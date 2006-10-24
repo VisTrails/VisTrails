@@ -1,9 +1,8 @@
 import copy
 from common import unimplemented, abstract, VistrailsInternalError
 from vis_connection import VisConnection
-from safe_object import *
 from enum import enum
-from builder_utils import Point
+from data_structures import Point
 from vis_types import *
 from vis_action import *
 from PyQt4 import QtCore, QtGui

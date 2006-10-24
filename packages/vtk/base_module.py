@@ -1,6 +1,6 @@
-from modules.vistrails_module import Module
-from modules.basic_modules import Tuple
-from modules.module_registry import registry
+from core.modules.vistrails_module import Module
+from core.modules.basic_modules import Tuple
+from core.modules.module_registry import registry
 import vtk
 import __builtin__
 

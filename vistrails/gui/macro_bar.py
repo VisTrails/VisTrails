@@ -1,6 +1,6 @@
 from PyQt4 import QtCore, QtGui
-from enum import enum
-from vis_macro import ExternalModuleNotSet, InvalidActionFound
+from core.enum import enum
+from core.vis_macro import ExternalModuleNotSet, InvalidActionFound
 
 ##################################################################
 

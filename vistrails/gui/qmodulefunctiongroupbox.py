@@ -1,8 +1,8 @@
 from PyQt4 import QtCore, QtGui, QtOpenGL
-from common import withIndex
-from debug import DebugPrint, notify
-import system
-import macroicons_rc
+from core.common import withIndex
+from core.debug import DebugPrint, notify
+import core.system
+import gui.resources.macroicons_rc
 
 ################################################################################
 class QPythonValueLineEdit(QtGui.QLineEdit):

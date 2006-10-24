@@ -1,7 +1,7 @@
 from PyQt4 import QtCore, QtGui
-from common import any
-from module_registry import registry, ModuleRegistry
-from vis_action import ChangeParameterAction
+from core.common import any
+from core.modules.module_registry import registry, ModuleRegistry
+from core.vis_action import ChangeParameterAction
 import urllib
 
 class StandardModuleConfigurationWidget(QtGui.QDialog):

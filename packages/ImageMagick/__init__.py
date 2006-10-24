@@ -1,7 +1,7 @@
-import modules
-import modules.module_registry
-import modules.basic_modules
-from modules.vistrails_module import Module, ModuleError, newModule, IncompleteImplementation
+import core.modules
+import core.modules.module_registry
+import core.modules.basic_modules
+from core.modules.vistrails_module import Module, ModuleError, newModule, IncompleteImplementation
 
 import os
 
@@ -172,8 +172,8 @@ def initialize(*args, **keywords):
     finally:
         os.unlink(name)
 
-    reg = modules.module_registry
-    basic = modules.basic_modules
+    reg = core.modules.module_registry
+    basic = core.modules.basic_modules
     reg.addModule(ImageMagick)
     reg.addInputPort(ImageMagick, "input", (basic.File, 'the input file'))
     reg.addInputPort(ImageMagick, "inputFormat", (basic.String, 'coerce interpretation of file to this format'))

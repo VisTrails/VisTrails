@@ -1,7 +1,7 @@
-import modules
-import modules.module_registry
-import modules.basic_modules
-from modules.vistrails_module import Module, ModuleError, newModule
+import core.modules
+import core.modules.module_registry
+import core.modules.basic_modules
+from core.modules.vistrails_module import Module, ModuleError, newModule
 
 import os
 import os.path
@@ -34,7 +34,7 @@ class ProvenanceChallenge(Module):
             raise ModuleError(self, "system call failed: '%s'" % cmd)
 
 
-class AIRHeaderFile(modules.basic_modules.File):
+class AIRHeaderFile(core.modules.basic_modules.File):
 
     def get_header_annotations(self):
         try:
@@ -183,8 +183,8 @@ def initialize(airpath=None, fslpath=None, netpbmpath=None, *args, **kwargs):
         global global_netpbmpath
         global_netpbmpath = netpbmpath + '/'
         
-    reg = modules.module_registry
-    basic = modules.basic_modules
+    reg = core.modules.module_registry
+    basic = core.modules.basic_modules
     reg.addModule(ProvenanceChallenge)
     
     reg.addModule(AlignWarp)

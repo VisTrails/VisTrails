@@ -2,37 +2,37 @@
 File for qBuilder class, th PyQt widget that handles
 the building of new Vistrails by the user
 """
+from OpenGL import GL
 from PyQt4 import QtCore, QtGui
-from common import unimplemented, VistrailsInternalError, withIndex
-from builder_utils import Point, ColorByName, toHtml
-from vis_action import *
+from core.common import unimplemented, VistrailsInternalError, withIndex
+from core.debug import DebugPrint
+from core.enum import enum
+from core.modules.module_registry import registry
+from core.vis_action import *
+from core.vis_connection import VisConnection
+from core.vis_macro import VisMacro
+from core.vis_types import VistrailModuleType, VisPort, ModuleFunction
+from core.vistrail import Vistrail
+from core.xml_parser import XMLParser
+from gui.builder_utils import ColorByName, toHtml
+from gui.pipeline_view import QPipelineView, QQueryView
+from gui.qbuildertreewidget import *
+from gui.qframebox import *
+from gui.qgroupboxscrollarea import *
+from gui.qmodulefunctiongroupbox import *
+from gui.qt import SignalSet
+from gui.version_tree import QVersionTree
+from gui.vis_shell import ShellGui
+from gui.vistrail_controller import VistrailController, QueryController
+import core.system
+import core.vis_types
+import db.DBconfig
+import gui.resources.macroicons_rc
+import gui.version_tree_search
+import math
 import os
 import sys
-import system
 import time
-import math
-import DBconfig
-from vistrail import Vistrail
-from xml_parser import XMLParser
-import vis_types
-from vis_types import VistrailModuleType, VisPort, ModuleFunction
-from vis_connection import VisConnection
-from pipeline_view import QPipelineView, QQueryView
-from OpenGL import GL
-from vistrail_controller import VistrailController, QueryController
-from version_tree import QVersionTree
-from vis_macro import VisMacro
-from enum import enum
-import macroicons_rc
-from debug import DebugPrint
-from qframebox import *
-from qmodulefunctiongroupbox import *
-from qgroupboxscrollarea import *
-from qbuildertreewidget import *
-import version_tree_search
-from vis_shell import ShellGui
-from modules.module_registry import registry
-from qt import SignalSet
 
 ################################################################################
 
@@ -160,7 +160,7 @@ class QBuilder(QtGui.QMainWindow):
         self.pipelineView = QPipelineView()
         self.queryView = QQueryView()
         self.queryController.setQueryView(self.queryView)
-        self.queryView.shapeEngine.setupBackgroundTexture(system.visTrailsRootDirectory() + "/images/query_bg.png")
+        self.queryView.shapeEngine.setupBackgroundTexture(core.system.visTrailsRootDirectory() + "/images/query_bg.png")
         self.connectPipelineViewSignals()
         self.connectQueryViewSignals()
         self.tabWidget.addTab(self.pipelineView, self.tr("<no collection>"))
@@ -545,11 +545,7 @@ class QBuilder(QtGui.QMainWindow):
         #print exec_ids
 
     def selectQueryModule(self, moduleId):
-<<<<<<< qbuilder.py
-        """Method to be called whenever a query module has been selected."""
-=======
 	"""Method to be called whenever a query module has been selected."""
->>>>>>> 1.87
         self.moduleAnnotations.resetTable()
         module = self.queryView.pipeline.getModuleById(moduleId)
         self.methodValuesArea.setVisModule(module)
@@ -797,7 +793,7 @@ of the search line edit widget."""
     def guiOpenVistrail(self):
         s = QtGui.QFileDialog.getOpenFileName(self,
                                               "Open VisTrail...",
-                                              system.vistrailsDirectory(),
+                                              core.system.vistrailsDirectory(),
                                               "Vistrail files (*.xml)")
         self.openVistrail(s)
 
@@ -912,7 +908,7 @@ of the search line edit widget."""
 
         fileName = QtGui.QFileDialog.getSaveFileName(self,
                                                      "Save Vistrail As..",
-                                                     system.vistrailsDirectory(),
+                                                     core.system.vistrailsDirectory(),
                                                      "XML files (*.xml)")
         if not fileName:
             return
@@ -1126,7 +1122,7 @@ of the search line edit widget."""
 
     def showAboutMessage(self):
         QtGui.QMessageBox.about(self,self.tr("About VisTrails..."),
-                                self.tr(system.aboutString()))
+                                self.tr(core.system.aboutString()))
 
     def _buildTagFrame(self, parent):
         """

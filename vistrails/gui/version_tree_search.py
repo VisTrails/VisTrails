@@ -1,9 +1,9 @@
-import xml.sax.saxutils
-import time
-import re
-import common
 from PyQt4 import QtGui
 from PyQt4.QtCore import QString
+import core.common
+import re
+import time
+import xml.sax.saxutils
 
 # This shouldn't be called VersionTreeSearch anymore, but Search, since it now
 # includes modules. We'll fix it later.

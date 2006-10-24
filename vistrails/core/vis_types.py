@@ -10,17 +10,14 @@
 from enum import enum
 import copy
 import __builtin__
-import modules
-import modules.vistrails_module
-from modules.module_registry import registry
+import core.modules.module_registry
+import core.modules.vistrails_module
 from common import VistrailsInternalError, all, eprint
 
 if __name__ == '__main__':
     import qt
     global app
     app = qt.createBogusQtApp()
-
-import modules.module_registry
 
 VistrailModuleType = enum('VistrailModuleType',
                           ['Invalid', 'Abstract', 'Filter', 'Object', 'Plugin', 'Module'])
@@ -32,21 +29,7 @@ VisPortEndPoint = enum('VisportEndPoint',
 class VisPort(object):
     """ A port denotes one endpoint of a VisConnection.
 
-    self.spec: list of list of (module, str)
-"""
-
-    @staticmethod
-    def portFromRepresentation(moduleName, portStr, endPoint, localRegistry=None, loose=False):
-        x = portStr.find('(')
-        assert x != -1
-        portName = portStr[:x]
-        portSpec = portStr[x:]
-        port = VisPort()
-        port.name = portName
-        port.moduleName = moduleName
-        port.endPoint = endPoint
-        port.spec = port.makeSpec(portSpec, localRegistry, loose)
-        return port
+    self.spec: list of list of (module, str)"""
 
     def makeSpec(self, specStr, localRegistry=None, loose=True):
         """Parses a string representation of a port spec and returns the spec. Uses
@@ -381,7 +364,7 @@ class TestVisTypes(unittest.TestCase):
         ports = modules.module_registry.registry.sourcePortsFromDescriptor(descriptor)
         assert all(ports, lambda x: x.moduleName == 'String')
         portRepr = 'value(String)'
-        p = VisPort.portFromRepresentation('String', portRepr, VisPortEndPoint.Source)
+        p = registry.portFromRepresentation('String', portRepr, VisPortEndPoint.Source)
         assert p.name == 'value'
         assert p.moduleName == 'String'
 
@@ -391,7 +374,7 @@ class TestVisTypes(unittest.TestCase):
         assert all(ports, lambda x: x.moduleName == 'String')
         portRepr = 'value(Float)'
         try:
-            p = VisPort.portFromRepresentation('String', portRepr, VisPortEndPoint.Source)
+            p = registry.portFromRepresentation('String', portRepr, VisPortEndPoint.Source)
             self.fail("Expected to fail - passed an incompatible spec representation")
         except VistrailsInternalError:
             pass

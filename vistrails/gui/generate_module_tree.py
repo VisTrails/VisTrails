@@ -1,8 +1,8 @@
 from PyQt4 import QtCore, QtGui, QtOpenGL
-from qbuildertreewidget import *
-from vis_types import VistrailModuleType
-import modules
-import modules.module_registry
+from gui.qbuildertreewidget import *
+from core.vis_types import VistrailModuleType
+import core.modules
+import core.modules.module_registry
 
 class GenerateModuleTree(QtCore.QObject):
     
@@ -31,7 +31,7 @@ class GenerateModuleTree(QtCore.QObject):
         return widget
         
     def generateModuleHierarchy(self):
-        baseNode = modules.module_registry.registry.classTree
+        baseNode = core.modules.module_registry.registry.classTree
         baseWidget = self.makeWidget(self.palette, "Module")
         self.generateModuleTreeNode(baseWidget, baseNode)
         return baseWidget
@@ -43,6 +43,6 @@ class GenerateModuleTree(QtCore.QObject):
             self.generateModuleTreeNode(subclassWidget, child)
 
     def newModule(self, moduleName):
-        d = modules.module_registry.registry.getDescriptorByName(moduleName)
+        d = core.modules.module_registry.registry.getDescriptorByName(moduleName)
         parentName = d.baseDescriptor.name
         self.makeWidget(self.widgets[parentName], moduleName)

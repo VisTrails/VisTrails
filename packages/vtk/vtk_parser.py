@@ -12,11 +12,11 @@ type information, and organizes them.
 import re
 import vtk
 import class_tree
-import debug
+import core.debug
 
-log      = debug.DebugPrint().log
-warning  = debug.DebugPrint().warning
-critical = debug.DebugPrint().critical
+log      = core.debug.DebugPrint().log
+warning  = core.debug.DebugPrint().warning
+critical = core.debug.DebugPrint().critical
 
 class VTKMethodParser(object):
     """This class provides useful methods for parsing methods of a VTK

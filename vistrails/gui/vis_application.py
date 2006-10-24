@@ -1,12 +1,14 @@
-import command_line
-import debug
+from core import command_line
+from core import debug
+from core import system
+
 import sys
 import copy
 import time
-import system
+
 from PyQt4 import QtGui, QtCore
 import qt
-from common import InstanceObject
+from core.common import InstanceObject
 import os.path
 
 class VistrailsApplication(QtGui.QApplication):
@@ -16,6 +18,7 @@ class VistrailsApplication(QtGui.QApplication):
         self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         
         self.configuration = InstanceObject(
+            packageDirectory=None,
             pythonPrompt=False,
             debugSignals=False,
             showSplash=True,
@@ -52,7 +55,7 @@ class VistrailsApplication(QtGui.QApplication):
         self.readOptions()
         self.runInitialization()
         if not self.configuration.nologger:
-            from logger import Logger
+            from core.logger import Logger
             self.logger = Logger()
         else:
             self.logger = None
@@ -82,7 +85,7 @@ class VistrailsApplication(QtGui.QApplication):
             if self.workflow == 0:
                 print "invalid workflow"
                 return
-            import console_mode
+            import core.console_mode
             console_mode.run(self.input, self.workflow)
             return
         else:
@@ -90,8 +93,8 @@ class VistrailsApplication(QtGui.QApplication):
             return
 
     def setupBaseModules(self):
-        import modules.vistrails_module
-        import modules.basic_modules
+        import core.modules.vistrails_module
+        import core.modules.basic_modules
 
     def setIcon(self):
         iconPath = system.visTrailsRootDirectory() + "/images/vistrails_icon_small.png"
@@ -106,8 +109,8 @@ class VistrailsApplication(QtGui.QApplication):
             self.splashScreen.show()
 
     def createWindows(self):
-        from qbuilder import QBuilder
         self.setupSplashScreen()
+        from gui.qbuilder import QBuilder
 	self.builderWindow = QBuilder()
         if self.configuration.maximizeWindows:
             self.builderWindow.showMaximized()
@@ -118,8 +121,8 @@ class VistrailsApplication(QtGui.QApplication):
         self.visDiffParent = QtGui.QWidget(None, QtCore.Qt.ToolTip)
         self.visDiffParent.resize(0,0)
 #        self.connect(self, QtCore.SIGNAL("aboutToQuit()"),self.builderWindow.closeAllVistrails)
-        import modules.module_registry
-        reg = modules.module_registry.registry
+        import core.modules.module_registry
+        reg = core.modules.module_registry.registry
         reg.connect(reg, reg.newModuleSignal, 
                     self.builderWindow.modulePalette.treeManager.newModule)
         
@@ -191,7 +194,6 @@ to zero to work around vtk bug with offscreen renderer and opengl texture3d mapp
         self.workflow = get('workflow')
 
     def runInitialization(self):
-        import system
         def addStartupHook(hook):
             self.startupHooks.append(hook)
         def addPackage(packageName, *args, **keywords):
@@ -235,6 +237,8 @@ the highest one I know of: 2""" % verbose
             dbg.log("Set verboseness level to %s" % verbose)
 
     def installPackages(self):
+        if self.configuration.packageDirectory:
+            sys.path.append(self.configuration.packageDirectory)
         import packages
 
         # import all packages in list

@@ -1,7 +1,7 @@
-import modules
-import modules.module_registry
-import modules.basic_modules
-from modules.vistrails_module import Module, ModuleError, newModule
+import core.modules
+import core.modules.module_registry
+import core.modules.basic_modules
+from core.modules.vistrails_module import Module, ModuleError, newModule
 
 import os
 import vtk
@@ -52,10 +52,10 @@ def initialize(*args, **keywords):
     print "Ok, found afront"
     __version__ = 0.9
     
-    reg = modules.module_registry
+    reg = core.modules.module_registry
     reg.addModule(Afront)
-    reg.addInputPort(Afront, "rho", (modules.basic_modules.Float, 'rho'))
-    reg.addInputPort(Afront, "eta", (modules.basic_modules.Float, 'eta'))
-    reg.addInputPort(Afront, "file", (modules.basic_modules.File, 'the file to process'))
-    reg.addOutputPort(Afront, "output", (modules.basic_modules.File, 'the result'))
+    reg.addInputPort(Afront, "rho", (core.modules.basic_modules.Float, 'rho'))
+    reg.addInputPort(Afront, "eta", (core.modules.basic_modules.Float, 'eta'))
+    reg.addInputPort(Afront, "file", (core.modules.basic_modules.File, 'the file to process'))
+    reg.addOutputPort(Afront, "output", (core.modules.basic_modules.File, 'the result'))
     

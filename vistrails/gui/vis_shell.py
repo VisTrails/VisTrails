@@ -20,11 +20,12 @@
 #    - Python*/Tools/idle/PyShell.py (Python Software Foundation License)
 #    - PyQt*/eric/Shell.py (Gnu Public License)
 
-import os, sys
-import system
-from code import InteractiveInterpreter
 from PyQt4 import QtGui, QtCore
+from code import InteractiveInterpreter
+import core.system
 import copy
+import os
+import sys
 
 class ShellGui(QtGui.QDialog):
     def __init__(self, parent, builder=None):

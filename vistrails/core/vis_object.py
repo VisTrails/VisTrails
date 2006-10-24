@@ -5,10 +5,9 @@ if __name__ == '__main__':
     app = qt.createBogusQtApp()
 
 
-from builder_utils import Point
+from data_structures import Point
 from vis_types import VistrailModuleType
 from common import NoSummon
-from live_object import *
 from xml_utils import *
 from vis_types import ModuleFunction, ModuleParam
 import copy

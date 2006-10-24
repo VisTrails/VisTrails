@@ -1,6 +1,6 @@
-import modules
-import modules.module_registry
-from modules.vistrails_module import Module, ModuleError
+import core.modules
+import core.modules.module_registry
+from core.modules.vistrails_module import Module, ModuleError
 
 ################################################################################
 
@@ -37,10 +37,10 @@ class PythonCalc(Module):
 ################################################################################
 
 def initialize(*args, **keywords):
-    reg = modules.module_registry
+    reg = core.modules.module_registry
     reg.addModule(PythonCalc)
-    reg.addInputPort(PythonCalc, "value1", (modules.basic_modules.Float, 'the first argument'))
-    reg.addInputPort(PythonCalc, "value2", (modules.basic_modules.Float, 'the second argument'))
-    reg.addInputPort(PythonCalc, "op", (modules.basic_modules.String, 'the operation'))
-    reg.addOutputPort(PythonCalc, "value", (modules.basic_modules.Float, 'the result'))
+    reg.addInputPort(PythonCalc, "value1", (core.modules.basic_modules.Float, 'the first argument'))
+    reg.addInputPort(PythonCalc, "value2", (core.modules.basic_modules.Float, 'the second argument'))
+    reg.addInputPort(PythonCalc, "op", (core.modules.basic_modules.String, 'the operation'))
+    reg.addOutputPort(PythonCalc, "value", (core.modules.basic_modules.Float, 'the result'))
 

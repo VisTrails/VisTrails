@@ -2,18 +2,18 @@
 
 # Qt opengl widget that controls a 2D shape rendering engine
 
-import sys
-import math
-import shape
-from intersect import Intersect
-from shape import *
-from builder_utils import *
 from PyQt4 import QtCore, QtGui, QtOpenGL
-from vis_types import *
-from vis_connection import VisConnection
-from debug import notify, DebugPrint, timecall
-import pickle
+from core.debug import notify, DebugPrint, timecall
+from core.vis_connection import VisConnection
+from core.vis_types import *
+from gui.builder_utils import *
+from gui.intersect import Intersect
+from gui.shape import *
 import bisect
+import gui.shape
+import math
+import pickle
+import sys
 
 try:
     from OpenGL.GL import *
@@ -368,7 +368,7 @@ class GLWidget(QtOpenGL.QGLWidget):
             self.setCursor(QtGui.QCursor())
 
     def drawShapes(self):
-        shape.current_context = self
+        gui.shape.current_context = self
         lw = self.lineWidth * self.height*self.panZ*0.2
 
         for c in self.connectionShapesUnder:

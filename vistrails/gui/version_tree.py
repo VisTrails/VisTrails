@@ -1,16 +1,14 @@
-
 from PyQt4 import QtCore, QtGui
-from vistrail import Vistrail
-from ostream import OStream, endl
-from shape_engine import GLWidget
-from builder_utils import *
-from debug import DebugPrint
-from shape import PolyLine, Ellipse
+from core.debug import DebugPrint
+from core.vistrail import Vistrail
+from gui.builder_utils import *
+from gui.qt import SignalSet
+from gui.shape import PolyLine, Ellipse
+from gui.shape_engine import GLWidget
+import core.system
+import core.common
+import gui.version_tree_search
 import os
-import system
-import version_tree_search
-import common
-from qt import SignalSet
 
 class DotNode(object):
     def __init__(self):
@@ -358,27 +356,24 @@ class QVersionTree(QtGui.QScrollArea):
                     terse.deleteVertex(current)
             self.controller.vistrail.setCurrentGraph(terse)
 
-    def outputVistrailGraph(self, s):
+    def outputVistrailGraph(self, f):
         """
         Parameters
         ----------
 
-        - s : 'OStream'
+        - f : file-like object
         """
         itm = self.controller.vistrail.inverseTagMap
         for v,t in itm.items():
-            s << v << '[label="' << t << '"];'
+            f.write('  %s [label="%s"];\n' % (v, t))
 
-        s << "0;"
+        f.write('  0;\n')
         self.maxId = 0
         self.minid = 0
         for id in self.versionGraph.vertices.keys():
             froom = self.versionGraph.edgesFrom(id)
             for (first,second) in froom:
-                s << id
-                s << '->'
-                s << first
-                s << ';'
+                f.write('%s -> %s;\n' % (id, first))
 
     def parseOutput(self, file):
         """
@@ -430,11 +425,11 @@ class QVersionTree(QtGui.QScrollArea):
 	    return
         self.versionGraph = self.getVersionGraph()
         self.controller.vistrail.setCurrentGraph(self.versionGraph)
-	file = open(system.temporaryDirectory() + "dot_tmp_vistrails.txt","w")
-        s = OStream(file)
-        s << "digraph G {"
-        self.outputVistrailGraph(s)
-        s << "}" << endl # endl forces writing to the file
+	f = file(system.temporaryDirectory() + "dot_tmp_vistrails.txt","w")
+        f.write("digraph G {\n")
+        self.outputVistrailGraph(f)
+        f.write("}\n")
+        f.close()
 
         tempDir = system.temporaryDirectory()
         cmdline = (system.graphVizDotCommandLine() +

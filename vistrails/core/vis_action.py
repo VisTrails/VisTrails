@@ -3,7 +3,7 @@ from xml_utils import *
 from vis_object import VisModule
 from vis_connection import VisConnection
 from vis_types import *
-from builder_utils import Point
+from data_structures import Point
 from modules.module_registry import registry, ModuleRegistry
 import copy
 
@@ -89,24 +89,17 @@ class VisAction(object):
 
     @staticmethod
     def getConnection(connection):
-        def parsePort(portStr, port):
-            x = portStr.find('(')
-            assert x != -1
-            portName = portStr[:x]
-            portSpec = portStr[x+1:-1]
-            port.name = portName
-            port.spec = self.makeSpec(portSpec)
         c = VisConnection()
         sourceModule = connection.getAttribute('sourceModule')
         destinationModule = connection.getAttribute('destinationModule')
         sourcePort = connection.getAttribute('sourcePort')
         destinationPort = connection.getAttribute('destinationPort')
         # Leaving this to performing actions to get modules registry
-        c.source = VisPort.portFromRepresentation(sourceModule,
+        c.source = registry.portFromRepresentation(sourceModule,
                                                   sourcePort,
                                                   VisPortEndPoint.Source,
                                                   None, True)
-        c.destination = VisPort.portFromRepresentation(destinationModule,
+        c.destination = registry.portFromRepresentation(destinationModule,
                                                        destinationPort,
                                                        VisPortEndPoint.Destination,
                                                        None, True)
@@ -315,12 +308,12 @@ class AddConnectionAction(VisAction):
             (destinationModuleName, destinationPort) = self.connection.destinationInfo
             sourceModule = pipeline.getModuleById(si)
             destinationModule = pipeline.getModuleById(di)
-            self.connection.source = VisPort.portFromRepresentation(sourceModuleName,
+            self.connection.source = registry.portFromRepresentation(sourceModuleName,
                                                                     sourcePort,
                                                                     VisPortEndPoint.Source,
                                                                     sourceModule.registry,
                                                                     False)
-            self.connection.destination = VisPort.portFromRepresentation(destinationModuleName,
+            self.connection.destination = registry.portFromRepresentation(destinationModuleName,
                                                                          destinationPort,
                                                                          VisPortEndPoint.Destination,
                                                                          destinationModule.registry,

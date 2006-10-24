@@ -2,16 +2,16 @@
 
 # Opengl shapes
 
-import sys
-import math
-from common import abstract
-from builder_utils import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
-# from vtk_rtti import VTKRTTI
-from modules import module_registry
-from vis_types import *
-from debug import timecall
+from core.common import abstract
+from core.data_structures import Point
+from core.debug import timecall
+from core.modules import module_registry
+from core.vis_types import *
+from gui.builder_utils import *
+import math
+import sys
 
 WS_LINE_WIDTH = 0.02
 

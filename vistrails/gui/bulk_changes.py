@@ -4,7 +4,7 @@ from qmodulefunctiongroupbox import *
 from qgroupboxscrollarea import *
 from qbuildertreewidget import *
 
-import pipeline_analyzer
+import core.pipeline_analyzer
 
 class BulkChanges(object):
     """BulkChanges is a class that encapsulates all the UI aspects of the

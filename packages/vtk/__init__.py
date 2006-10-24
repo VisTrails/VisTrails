@@ -19,11 +19,11 @@ import __builtin__
 import vtk_parser
 import inspect
 
-from modules.module_registry import addModule, addInputPort, addOutputPort, registry
-from modules.vistrails_module import newModule
-import modules.vistrails_module
-import modules.basic_modules as basic
-from debug import critical, warning, log
+from core.modules.module_registry import addModule, addInputPort, addOutputPort, registry
+from core.modules.vistrails_module import newModule
+import core.modules.vistrails_module
+import core.modules.basic_modules as basic
+from core.debug import critical, warning, log
 from base_module import vtkBaseModule
 
 parser = vtk_parser.VTKMethodParser()

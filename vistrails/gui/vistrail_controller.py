@@ -1,23 +1,23 @@
 from PyQt4 import QtCore, QtGui
-from common import VistrailsInternalError, InstanceObject, appendToDictOfLists
-from vis_object import VisModule
-from vis_pipeline import VisPipeline
-from vis_types import VistrailModuleType
-from vis_action import *
-from modules import module_registry
-from vis_macro import *
-from debug import DebugPrint
+from core.common import VistrailsInternalError, InstanceObject, appendToDictOfLists
+from core.debug import DebugPrint
+from core.modules import module_registry
+from core.vis_action import *
+from core.vis_macro import *
+from core.vis_object import VisModule
+from core.vis_pipeline import VisPipeline
+from core.vis_types import VistrailModuleType
+import copy
+import copy
+import core.query
+import gui.version_tree_search
 import thread
-import copy
 import weakref
-import version_tree_search
-import copy
-import query
 
 
 ################################################################################
 
-class VisualQuery(query.Query):
+class VisualQuery(core.query.Query):
 
     def __init__(self, pipeline):
         self.queryPipeline = copy.copy(pipeline)
@@ -246,14 +246,14 @@ class QueryController(BaseController):
         self.builder = weakref.proxy(builder)
 
         # Ugly effing hack
-        self.versionTree = InstanceObject(search = version_tree_search.TrueSearch())
+        self.versionTree = InstanceObject(search = gui.version_tree_search.TrueSearch())
 
     def setQueryView(self, view):
         self.queryView = weakref.proxy(view)
 
     def performQuery(self):
         if not len(self.currentPipeline.modules):
-            queryTemplate = version_tree_search.TrueSearch
+            queryTemplate = gui.version_tree_search.TrueSearch
         else:
             queryTemplate = VisualQuery(self.currentPipeline)
         self.builder.newQuery(queryTemplate)

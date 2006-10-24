@@ -1,4 +1,4 @@
-from common import unimplemented, VistrailsInternalError
+from core.common import unimplemented, VistrailsInternalError
 import os
 import os.path
 import sys
@@ -7,11 +7,11 @@ import platform
 systemType = platform.system()
 
 if systemType in ['Windows', 'Microsoft']:
-    from system.windows import *
+    from core.system.windows import *
 elif systemType in ['Linux']:
-    from system.linux import *
+    from core.system.linux import *
 elif systemType in ['Darwin']:
-    from system.osx import *
+    from core.system.osx import *
 else:
     print "Critical error"
     print "VisTrails could not detect your operating system."

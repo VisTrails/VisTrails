@@ -4,7 +4,7 @@ from vis_types import *
 from graph import Graph
 from debug import DebugPrint
 from vis_macro import VisMacro
-from xUpdateFunctions import UpdateFunctions
+from db.xUpdateFunctions import UpdateFunctions
 import xml.dom.minidom
 import copy
 import time

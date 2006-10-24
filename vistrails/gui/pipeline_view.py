@@ -1,18 +1,19 @@
 from PyQt4 import QtCore, QtGui
-from vistrail import Vistrail
-from vis_types import *
-from common import *
-from vis_object import VisModule
-from xml_utils import *
-from shape_engine import GLWidget
-from builder_utils import * 
-from vis_action import *
-import system
-from debug import notify, DebugPrint, timecall
-from shape import PolyLine, ModuleShape, PortShape
+from core.common import *
+from core.data_structures import *
+from core.debug import notify, DebugPrint, timecall
+from core.vis_action import *
+from core.vis_object import VisModule
+from core.vis_types import *
+from core.vistrail import Vistrail
+from core.xml_utils import *
+from gui.builder_utils import *
+from gui.qt import SignalSet
+from gui.shape import PolyLine, ModuleShape, PortShape
+from gui.shape_engine import GLWidget
+import core.system
 import os
 import threading
-from qt import SignalSet
 
 class QPipelineView(QtGui.QScrollArea):
     def __init__(self, parent=None):
@@ -28,7 +29,7 @@ class QPipelineView(QtGui.QScrollArea):
         self.currentVersion = 0
         self.shapeEngine = GLWidget()
 #        print "pipeline_view's shapeEngine:", self.shapeEngine
-        texPath = system.visTrailsRootDirectory() + "/images/pipeline_bg.png"
+        texPath = core.system.visTrailsRootDirectory() + "/images/pipeline_bg.png"
         self.shapeEngine.setupBackgroundTexture(texPath)
         self.shapeEngine.lineWidth = 2.0
         self.shapeEngine.panZ = 0.25
@@ -258,14 +259,14 @@ class QPipelineView(QtGui.QScrollArea):
 	    for c in self.pipeline.connections.values():
 		if c.sourceId in modules and c.destinationId in modules:
 		    c.serialize(dom,root)
-	    cb.setText (dom.toxml(), system.getClipboard())
+	    cb.setText (dom.toxml(), core.system.getClipboard())
 	    self.emit(QtCore.SIGNAL("modulescopied"))
 	    self.canPaste = True
     def paste(self):
 
 	cb = QtGui.QApplication.clipboard()
 	import xml.dom.minidom
-	dom = xml.dom.minidom.parseString(str(cb.text(system.getClipboard())))
+	dom = xml.dom.minidom.parseString(str(cb.text(core.system.getClipboard())))
 	root = dom.documentElement
 	modules = []
 	connections = []

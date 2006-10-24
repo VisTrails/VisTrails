@@ -6,7 +6,7 @@ import module_utils
 import module_configure
 import port_configure
 import os
-import system
+import core.system
 
 ################################################################################
 

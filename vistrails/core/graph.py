@@ -331,7 +331,7 @@ def edge_cmp(v1, v2):
 
 import unittest
 
-import peckcheck
+from tests import peckcheck
 class TestGraph(peckcheck.TestCase):
      """ Class to test Graph
 

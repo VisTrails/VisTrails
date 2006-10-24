@@ -4,7 +4,7 @@ if __name__ == '__main__':
     global app
     app = qt.createBogusQtApp()
 
-import modules.module_registry
+from modules.module_registry import registry
 from modules.vistrails_module import ModuleConnector
 
 from common import *
@@ -97,8 +97,8 @@ class VisConnection(object):
             if len(splittedS)==len(splittedSig):
                 ok = True
                 for i in range(len(splittedS)):
-                    d1 = modules.module_registry.registry.getDescriptorByName(splittedS[i])
-                    d2 = modules.module_registry.registry.getDescriptorByName(splittedSig[i])
+                    d1 = registry.getDescriptorByName(splittedS[i])
+                    d2 = registry.getDescriptorByName(splittedSig[i])
                     if not d1 or not d2 or not issubclass(d1.module, d2.module):
                         ok = False
                         break
@@ -127,13 +127,6 @@ class VisConnection(object):
 
     @staticmethod
     def loadFromXML(connection):
-        def parsePort(portStr, port):
-            x = portStr.find('(')
-            assert x != -1
-            portName = portStr[:x]
-            portSpec = portStr[x+1:-1]
-            port.name = portName
-            port.spec = self.makeSpec(portSpec)
         cId = int(connection.getAttribute('id'))
         c = VisConnection()
         sourceModule = connection.getAttribute('sourceModule')
@@ -141,8 +134,8 @@ class VisConnection(object):
         sourcePort = connection.getAttribute('sourcePort')
         destinationPort = connection.getAttribute('destinationPort')
         
-        c.source = VisPort.portFromRepresentation(sourceModule, sourcePort, VisPortEndPoint.Source)
-        c.destination = VisPort.portFromRepresentation(destinationModule, destinationPort, VisPortEndPoint.Destination)
+        c.source = registry.portFromRepresentation(sourceModule, sourcePort, VisPortEndPoint.Source)
+        c.destination = registry.portFromRepresentation(destinationModule, destinationPort, VisPortEndPoint.Destination)
         c.id = cId
         c.type = VistrailModuleType.Module
         c.sourceId = int(connection.getAttribute('sourceId'))
@@ -221,9 +214,6 @@ import unittest
 class TestVisConnection(unittest.TestCase):
 
     def testModuleConnection(self):
-        import modules
-        import modules.module_registry
-        import modules.basic_modules
         a = VisConnection.fromTypeID(VistrailModuleType.Module, 0)
         c = moduleConnection(a)
         def bogus(asd):

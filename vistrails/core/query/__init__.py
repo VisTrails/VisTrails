@@ -105,7 +105,7 @@
 
 ################################################################################
 
-from common import memo_method
+from core.common import memo_method
 
 from PyQt4 import QtCore
 logger = QtCore.QCoreApplication.instance().logger

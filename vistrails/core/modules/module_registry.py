@@ -1,18 +1,12 @@
 from PyQt4 import QtCore
 
-try:
-    import modules
-    import modules.vistrails_module
-    vistrails_module = modules.vistrails_module
-except ImportError:
-    print "Could not import file that exists: I'm guessing you're running from"
-    print "inside a package. I'll try to fix things"
-    import vistrails_module
+import core.modules
+import core.modules.vistrails_module
 
 import __builtin__
 
-from common import memo_method, all
-import vis_types
+from core.common import memo_method, all
+import core.vis_types
 import copy
 
 ################################################################################
@@ -96,9 +90,9 @@ put together, with the ability to extend it at runtime)"""
         self.newInputPortSignal = QtCore.SIGNAL("newInputPortSignal")
         # newOutputPortSignal is emitted with name of module, new port and spec
         self.newOutputPortSignal = QtCore.SIGNAL("newOutputPortSignal")
-        n = Tree(vistrails_module.Module)
+        n = Tree(core.modules.vistrails_module.Module)
         self.classTree = n
-        self.moduleName = { vistrails_module.Module: "Module" }
+        self.moduleName = { core.modules.vistrails_module.Module: "Module" }
         self.moduleTree = { "Module": n }
         self.moduleWidget = { "Module": None }
 
@@ -364,6 +358,59 @@ returns true if there could exist a connection connecting these two ports."""
         else:
             return None
 
+    def makeSpec(self, specStr, localRegistry=None, loose=True):
+        """Parses a string representation of a port spec and returns the spec. Uses
+own type to decide between source and destination ports."""
+        if specStr[0] != '(' or specStr[-1] != ')':
+            raise VistrailsInternalError("invalid port spec")
+        specStr = specStr[1:-1]
+        descriptor = registry.getDescriptorByName(self.moduleName)
+        if localRegistry:
+            localDescriptor = localRegistry.getDescriptorByName(self.moduleName)
+        else:
+            localDescriptor = None
+        if self.endPoint == VisPortEndPoint.Source:
+            ports = copy.copy(descriptor.outputPorts)
+            if localDescriptor:
+                ports.update(localDescriptor.outputPorts)
+        elif self.endPoint == VisPortEndPoint.Destination:
+            ports = copy.copy(descriptor.inputPorts)
+            if localDescriptor:
+                ports.update(localDescriptor.inputPorts)
+        else:
+            raise VistrailsInternalError("Invalid port endpoint")
+        values = specStr.split(", ")
+        if not ports.has_key(self.name):            
+            if loose:
+                return [[(registry.getDescriptorByName(v).module,
+                         '<no description>')
+                        for v in values]]
+            else:
+                raise VistrailsInternalError("Port name is inexistent in ModuleDescriptor")
+        specs = ports[self.name]
+        for spec in specs:
+            if all(zip(spec, values),
+                   lambda ((klass, descr), name): issubclass(registry.getDescriptorByName(name).module, klass)):
+                return [copy.copy(spec)]
+        print self.moduleName
+        print self.name
+        print specStr
+        print specs
+        raise VistrailsInternalError("No port spec matches the given string")
+
+    @staticmethod
+    def portFromRepresentation(moduleName, portStr, endPoint, localRegistry=None, loose=False):
+        x = portStr.find('(')
+        assert x != -1
+        portName = portStr[:x]
+        portSpec = portStr[x:]
+        port = core.vis_types.VisPort()
+        port.name = portName
+        port.moduleName = moduleName
+        port.endPoint = endPoint
+        port.spec = registry.makeSpec(portSpec, localRegistry, loose)
+        return port
+
 ################################################################################
 
 class Tree(object):
@@ -382,8 +429,8 @@ class Tree(object):
 
 ################################################################################
 
-import qt
-qt.askForQObjectCreation()
+import gui.qt
+gui.qt.askForQObjectCreation()
 
 registry = ModuleRegistry()
 
