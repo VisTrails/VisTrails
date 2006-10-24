@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2006 sp2 U (http://www.altova.com) by Emanuele Santos (University of UTAH) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="visTrail">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence maxOccurs="unbounded">
+				<xs:sequence maxOccurs="unbounded">
+					<xs:element name="action">
+						<xs:complexType>
+							<xs:sequence>
+								<xs:element name="notes" minOccurs="0"/>
+								<xs:choice>
+									<xs:sequence maxOccurs="unbounded">
+										<xs:element name="move">
+											<xs:complexType>
+												<xs:attribute name="dx" type="xs:float"/>
+												<xs:attribute name="dy" type="xs:float"/>
+												<xs:attribute name="id" type="xs:int"/>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:element name="object">
+										<xs:complexType>
+											<xs:attribute name="cache" type="xs:int"/>
+											<xs:attribute name="id" type="xs:int"/>
+											<xs:attribute name="name" type="xs:string"/>
+											<xs:attribute name="x" type="xs:float"/>
+											<xs:attribute name="y" type="xs:float"/>
+										</xs:complexType>
+									</xs:element>
+									<xs:sequence maxOccurs="unbounded">
+										<xs:element name="set">
+											<xs:complexType>
+												<xs:attribute name="function" type="xs:string"/>
+												<xs:attribute name="functionId" type="xs:int"/>
+												<xs:attribute name="moduleId" type="xs:int"/>
+												<xs:attribute name="parameter" type="xs:string"/>
+												<xs:attribute name="parameterId" type="xs:int"/>
+												<xs:attribute name="type" type="xs:string"/>
+												<xs:attribute name="value" type="xs:anySimpleType"/>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:element name="connect">
+										<xs:complexType>
+											<xs:choice>
+												<xs:element name="filterInput">
+													<xs:complexType>
+														<xs:attribute name="destId" type="xs:int"/>
+														<xs:attribute name="destPort" type="xs:int"/>
+														<xs:attribute name="sourceId" type="xs:int"/>
+														<xs:attribute name="sourcePort" type="xs:int"/>
+													</xs:complexType>
+												</xs:element>
+												<xs:element name="objectInput">
+													<xs:complexType>
+														<xs:attribute name="destId" type="xs:int"/>
+														<xs:attribute name="name" type="xs:string"/>
+														<xs:attribute name="sourceId" type="xs:int"/>
+													</xs:complexType>
+												</xs:element>
+											</xs:choice>
+											<xs:attribute name="id" type="xs:int"/>
+										</xs:complexType>
+									</xs:element>
+									<xs:sequence maxOccurs="unbounded">
+										<xs:element name="connection">
+											<xs:complexType>
+												<xs:attribute name="connectionId" type="xs:int"/>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:sequence maxOccurs="unbounded">
+										<xs:element name="module">
+											<xs:complexType>
+												<xs:attribute name="moduleId" type="xs:int"/>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:element name="function">
+										<xs:complexType>
+											<xs:attribute name="functionId" type="xs:int"/>
+											<xs:attribute name="moduleId" type="xs:int"/>
+										</xs:complexType>
+									</xs:element>
+								</xs:choice>
+							</xs:sequence>
+							<xs:attribute name="parent" type="xs:int"/>
+							<xs:attribute name="time" type="xs:int"/>
+							<xs:attribute name="what" type="xs:string"/>
+							<xs:attribute name="date" type="xs:string" use="optional"/>
+							<xs:attribute name="user" type="xs:string" use="optional"/>
+							<xs:attribute name="notes" type="xs:string" use="optional"/>
+						</xs:complexType>
+					</xs:element>
+				</xs:sequence>
+				<xs:sequence minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="tag">
+						<xs:complexType>
+							<xs:attribute name="name" type="xs:string"/>
+							<xs:attribute name="time" type="xs:int"/>
+						</xs:complexType>
+					</xs:element>
+				</xs:sequence>
+				<xs:sequence minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="macro">
+						<xs:complexType>
+							<xs:sequence minOccurs="0" maxOccurs="unbounded">
+								<xs:element name="action">
+									<xs:complexType>
+										<xs:attribute name="time" type="xs:int"/>
+									</xs:complexType>
+								</xs:element>
+							</xs:sequence>
+							<xs:attribute name="name" type="xs:string"/>
+							<xs:attribute name="id" type="xs:int"/>
+							<xs:attribute name="desc" type="xs:string" use="optional"/>
+						</xs:complexType>
+					</xs:element>
+				</xs:sequence>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

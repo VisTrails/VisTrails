@@ -1,0 +1,17 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>images/macro.png</file>
+    <file>images/macro_info.png</file>
+    <file>images/macro_new.png</file>
+    <file>images/macro_pause.png</file>
+    <file>images/macro_play.png</file>
+    <file>images/macro_pause.png</file>
+    <file>images/macro_stop.png</file>
+    <file>images/macro_view.png</file>
+    <file>images/info.png</file> 
+    <file>images/lightcheck.png</file>
+    <file>images/edit_add.png</file>
+    <file>images/down.png</file>
+    <file>images/up.png</file>
+</qresource>
+</RCC>

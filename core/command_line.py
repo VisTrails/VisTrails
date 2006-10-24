@@ -1,0 +1,56 @@
+"""Very thin convenience wrapper around optparse.OptionParser."""
+
+import optparse
+
+class CommandLineParserSingleton(object):
+    """CommandLineParser is a very thin wrapper around
+    optparse.OptionParser to make easier the parsing of command line
+    parameters."""
+    def __call__(self):
+        return self
+    
+    def __init__(self):
+        self.parser = optparse.OptionParser()
+        self.optionsWereRead = False
+        self.args = []
+
+    def initOptions(self):
+        """self.initOptions() -> None. Initialize option dictionary,
+        by parsing command line arguments according to the options set
+        by previous addOption calls.
+
+        Few programs should call this. Call self.parseOptions() unless
+        you know what you're doing."""
+        (self.options, self.args) = self.parser.parse_args()
+        self.optionsWereRead = True
+
+    def addOption(self, *args, **kwargs):
+        """self.addOption(*args, **kwargs) -> None. Adds a new option
+        to the command line parser. Behaves identically to the
+        optparse.OptionParser.add_option."""
+        self.parser.add_option(*args, **kwargs)
+
+    def getOption(self, key):
+        """self.getOption(key) -> value. Returns a value corresponding
+        to the given key that was parsed from the command line. Throws
+        AttributeError if key is not present."""
+        self.parseOptions()
+        return getattr(self.options, key)
+
+    def parseOptions(self):
+        """self.parseOptions() -> None. Parse command line arguments,
+        according to the options set by previous addOption calls."""
+        if not self.optionsWereRead:
+            self.initOptions()
+
+    def getArg(self,number):
+        """self.getArg(number) -> value. Returns the value corresponding
+        to the argument at position number from the command line. Returns 
+        None if number is greater or equal the number of arguments. """
+        if len(self.args) > number:
+            return self.args[number]
+        else:
+            return None 
+
+# singleton trick
+CommandLineParser = CommandLineParserSingleton()
