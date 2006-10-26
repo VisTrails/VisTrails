@@ -97,13 +97,13 @@ class VistrailsApplication(QtGui.QApplication):
         import core.modules.basic_modules
 
     def setIcon(self):
-        iconPath = system.visTrailsRootDirectory() + "/images/vistrails_icon_small.png"
+        iconPath = system.visTrailsRootDirectory() + "/gui/resources/images/vistrails_icon_small.png"
         icon = QtGui.QIcon(iconPath)
         self.setWindowIcon(icon)
         
     def setupSplashScreen(self):
         if self.configuration.showSplash:
-            splashPath = system.visTrailsRootDirectory() + "/images/vistrails_splash.png"
+            splashPath = system.visTrailsRootDirectory() + "/gui/resources/images/vistrails_splash.png"
             pixmap = QtGui.QPixmap(splashPath)
             self.splashScreen = QtGui.QSplashScreen(pixmap)
             self.splashScreen.show()

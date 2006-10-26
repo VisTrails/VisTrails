@@ -160,7 +160,7 @@ class QBuilder(QtGui.QMainWindow):
         self.pipelineView = QPipelineView()
         self.queryView = QQueryView()
         self.queryController.setQueryView(self.queryView)
-        self.queryView.shapeEngine.setupBackgroundTexture(core.system.visTrailsRootDirectory() + "/images/query_bg.png")
+        self.queryView.shapeEngine.setupBackgroundTexture(core.system.visTrailsRootDirectory() + "/gui/resources/images/query_bg.png")
         self.connectPipelineViewSignals()
         self.connectQueryViewSignals()
         self.tabWidget.addTab(self.pipelineView, self.tr("<no collection>"))

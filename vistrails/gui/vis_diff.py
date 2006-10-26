@@ -154,7 +154,7 @@ class VisualDiff(QtGui.QMainWindow):
         self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
                                              QtGui.QSizePolicy.Expanding))
         self.shapeEngine = GLWidget()
-        root = system.visTrailsRootDirectory()
+        root = system.visTrailsRootDirectory()+'/gui/resources/'
         texPath = root + "/images/pipeline_bg.png"
         self.shapeEngine.setupBackgroundTexture(texPath)
         self.shapeEngine.lineWidth = 2.0

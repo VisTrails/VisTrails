@@ -29,7 +29,7 @@ class QPipelineView(QtGui.QScrollArea):
         self.currentVersion = 0
         self.shapeEngine = GLWidget()
 #        print "pipeline_view's shapeEngine:", self.shapeEngine
-        texPath = core.system.visTrailsRootDirectory() + "/images/pipeline_bg.png"
+        texPath = core.system.visTrailsRootDirectory() + "/gui/resources/images/pipeline_bg.png"
         self.shapeEngine.setupBackgroundTexture(texPath)
         self.shapeEngine.lineWidth = 2.0
         self.shapeEngine.panZ = 0.25
