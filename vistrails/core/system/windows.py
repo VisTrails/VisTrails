@@ -1,4 +1,3 @@
-import system
 import os
 from PyQt4 import QtGui
 
@@ -68,7 +67,7 @@ def remoteShellProgram():
     return "plink -P"
 
 def graphVizDotCommandLine():
-    return '"' + system.visTrailsRootDirectory() + '\graphviz\dot" -Tplain -o'
+    return 'dot -Tplain -o'
 
 def removeGraphvizTemporaries():
     pass
