@@ -1,6 +1,7 @@
 from PyQt4 import QtCore, QtGui
 from core.debug import DebugPrint
 from core.vistrail import Vistrail
+from core.data_structures import *
 from gui.builder_utils import *
 from gui.qt import SignalSet
 from gui.shape import PolyLine, Ellipse
@@ -39,7 +40,7 @@ class QVersionTree(QtGui.QScrollArea):
 	self.setAcceptDrops(True)
 	self.controller = controller
 	self.shapeEngine = GLWidget()
-        texPath = system.visTrailsRootDirectory() + "/images/version_bg.png"
+        texPath = core.system.resourceDirectory() + "images/version_bg.png"
         self.shapeEngine.setupBackgroundTexture(texPath)
 	self.shapeEngine.moveable = False
         self.shapeEngine.lineWidth = 0.02
@@ -60,7 +61,7 @@ class QVersionTree(QtGui.QScrollArea):
                                    ,(self.shapeEngine, QtCore.SIGNAL('rightClick'), self.rclickMenu)])
         self.signalSet.plug()
 	self.layout = DotLayout()
-        self.search = version_tree_search.TrueSearch()
+        self.search = gui.version_tree_search.TrueSearch()
         self.setTerseTree()
         self.refine = None
 
@@ -296,7 +297,7 @@ class QVersionTree(QtGui.QScrollArea):
             if s:
                 selected_ord.append(b2.id)
         selected_ord.sort()
-        selected_pos = dict((id,pos) for (pos,id) in common.withIndex(selected_ord))
+        selected_pos = dict((id,pos) for (pos,id) in core.common.withIndex(selected_ord))
 	for b1,b2 in self.layout.nodes.items():
             if itm.has_key(b1):
                 f = itm[b1]
@@ -425,20 +426,20 @@ class QVersionTree(QtGui.QScrollArea):
 	    return
         self.versionGraph = self.getVersionGraph()
         self.controller.vistrail.setCurrentGraph(self.versionGraph)
-	f = file(system.temporaryDirectory() + "dot_tmp_vistrails.txt","w")
+	f = file(core.system.temporaryDirectory() + "dot_tmp_vistrails.txt","w")
         f.write("digraph G {\n")
         self.outputVistrailGraph(f)
         f.write("}\n")
         f.close()
 
-        tempDir = system.temporaryDirectory()
-        cmdline = (system.graphVizDotCommandLine() +
+        tempDir = core.system.temporaryDirectory()
+        cmdline = (core.system.graphVizDotCommandLine() +
                    tempDir + "dot_output_vistrails.txt " +
                    tempDir + "dot_tmp_vistrails.txt")
 
         os.system(cmdline)
 
-        fileIn = open(system.temporaryDirectory() + "dot_output_vistrails.txt")
+        fileIn = open(core.system.temporaryDirectory() + "dot_output_vistrails.txt")
 
         self.layout = self.parseOutput(fileIn)
 
@@ -449,7 +450,7 @@ class QVersionTree(QtGui.QScrollArea):
         self.layout.nodes = newnodes
 
         #removing temp files
-        system.removeGraphvizTemporaries()
+        core.system.removeGraphvizTemporaries()
         
         self.dirty = False
 
