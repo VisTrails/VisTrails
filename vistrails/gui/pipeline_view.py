@@ -318,8 +318,8 @@ class QPipelineView(QtGui.QScrollArea):
         handler(self.controller)
 
     def configureModule(self, s):
-        from modules.module_registry import registry
-        from modules.module_configure import DefaultModuleConfigurationWidget
+        from core.modules.module_registry import registry
+        from core.modules.module_configure import DefaultModuleConfigurationWidget
         if self.pipeline:
             module = self.pipeline.modules[s.id]
             widgetType = registry.moduleWidget[module.name]
@@ -337,7 +337,7 @@ class QPipelineView(QtGui.QScrollArea):
         self.controller.replaceModuleParams(module, portName, paramList)
 
     def configurePort(self, s):
-        from modules.module_registry import registry
+        from core.modules.module_registry import registry
         if self.pipeline:
             widgetType = registry.getPortConfigureWidgetType(s.port.moduleName, s.port.name)
             if widgetType:
