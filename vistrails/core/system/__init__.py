@@ -50,7 +50,7 @@ def blankVistrailFile():
     unimplemented()
 
 def resourceDirectory():
-    unimplemented()
+    return visTrailsRootDirectory() + 'gui/resources/'
 
 def defaultOptionsFile():
     return homeDirectory() + "/.vistrailsrc"
