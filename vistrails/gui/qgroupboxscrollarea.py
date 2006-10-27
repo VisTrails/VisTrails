@@ -72,6 +72,7 @@ parameter explorations."""
 
 ################################################################################
 
+#TODO: Rename this.
 class QVTKMethodScrollArea(QGroupBoxScrollArea):
 
     def deleteChild(self, child):
@@ -122,7 +123,7 @@ class QVTKMethodScrollArea(QGroupBoxScrollArea):
                 
         for i in range(len(self.module.functions)):
             fun = self.module.functions[i]
-            from modules.module_registry import registry
+            from core.modules.module_registry import registry
             configureWidgetType = registry.getPortConfigureWidgetType(self.module.name, fun.name)
             order = funOrder[fun.name]
             funOrder[fun.name] += -1
@@ -233,7 +234,7 @@ class QVTKRangeScrollArea(QGroupBoxScrollArea):
                 return
             if dropType != "Range":
                 return
-            from modules import module_registry
+            from core.modules import module_registry
             functions = module_registry.registry.userSetMethods(vtkclass)
             f = functions[vtkclass][vtkmethod]
             assert len(f) == 1 # This will be invalid for overloaded functions..
