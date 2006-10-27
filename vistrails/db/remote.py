@@ -4,9 +4,9 @@ import sys
 import MySQLdb
 
 from PyQt4 import QtGui
-from remote_db_auth import Ui_RemoteDbAuth
-from upload_files import Ui_UploadFiles
-from fetch_files import Ui_FetchFiles
+from db.gui.remote_db_auth import Ui_RemoteDbAuth
+from db.gui.upload_files import Ui_UploadFiles
+from db.gui.fetch_files import Ui_FetchFiles
 
 class RemoteRep(object):
     def __init__(self, settings, type):

@@ -27,10 +27,10 @@ Note:
 		into the builder.
 """
 
-import DBconfig
-from xUpdateFunctions import UpdateFunctions
-from xml_parser import XMLParser
-from vistrail import Vistrail
+import db.DBconfig
+from db.xUpdateFunctions import UpdateFunctions
+from core.xml_parser import XMLParser
+from core.vistrail import Vistrail
 
 class existMerge(object):
 

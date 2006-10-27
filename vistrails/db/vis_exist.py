@@ -1,3 +1,3 @@
-from xUpdateFuncions import *
-from GetFile import *
-from accessEXist import *
+from db.xUpdateFunctions import *
+from db.gui.GetFile import *
+from db.accessEXist import *

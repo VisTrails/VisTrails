@@ -1,7 +1,7 @@
 #Author: Mayank Maheshwary
 
 from xml.dom import minidom
-from accessEXist import eXist_Connector
+from db.accessEXist import eXist_Connector
 
 #connector = eXist_Connector("admin", "")
 
