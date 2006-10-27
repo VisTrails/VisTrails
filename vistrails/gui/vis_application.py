@@ -7,7 +7,11 @@ import copy
 import time
 
 from PyQt4 import QtGui, QtCore
-import qt
+
+# FIXME: Investigate weirdness. This crashes the test suite if it
+# says "import qt"
+from gui import qt
+
 from core.common import InstanceObject
 import os.path
 

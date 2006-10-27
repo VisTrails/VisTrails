@@ -2,7 +2,7 @@
 
 # class to detect intersections between shapes
 
-from shape import *
+from gui.shape import *
 import math
 from PyQt4 import QtGui
 

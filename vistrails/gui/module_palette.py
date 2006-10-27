@@ -1,9 +1,9 @@
 from PyQt4 import QtCore, QtGui, QtOpenGL
-from qframebox import *
-from qmodulefunctiongroupbox import *
-from qgroupboxscrollarea import *
-from qbuildertreewidget import *
-import generate_module_tree
+from gui.qframebox import *
+from gui.qmodulefunctiongroupbox import *
+from gui.qgroupboxscrollarea import *
+from gui.qbuildertreewidget import *
+from gui import generate_module_tree
 
 ##################################################################
 

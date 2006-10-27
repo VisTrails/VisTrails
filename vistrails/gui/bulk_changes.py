@@ -1,8 +1,8 @@
 from PyQt4 import QtCore, QtGui, QtOpenGL
-from qframebox import *
-from qmodulefunctiongroupbox import *
-from qgroupboxscrollarea import *
-from qbuildertreewidget import *
+from gui.qframebox import *
+from gui.qmodulefunctiongroupbox import *
+from gui.qgroupboxscrollarea import *
+from gui.qbuildertreewidget import *
 
 import core.pipeline_analyzer
 

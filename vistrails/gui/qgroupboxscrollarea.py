@@ -1,6 +1,6 @@
 from PyQt4 import QtCore, QtGui, QtOpenGL
-from qframebox import *
-from qmodulefunctiongroupbox import *
+from gui.qframebox import *
+from gui.qmodulefunctiongroupbox import *
 import pickle
 import re
 
