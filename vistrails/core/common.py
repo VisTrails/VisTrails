@@ -150,6 +150,15 @@ def eprint(*args):
         print v,
     print
 
+def uniq(l):
+    if len(l) == 0:
+        return []
+    a = copy.copy(l)
+    a.sort()
+    l1 = a[:-1] 
+    l2 = a[1:]
+    return [a[0]] + [next for (i, next) in zip(l1, l2) if i != next]
+
 class InstanceObject(object):
     def __init__(self, **kw):
         self.__dict__.update(kw)
