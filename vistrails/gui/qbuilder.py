@@ -573,7 +573,7 @@ class QBuilder(QtGui.QMainWindow):
         lastSelectedModule = self.pipeline.getModuleById(lastSelected)
         customizedPort = registry.getPortConfigureWidgetType(newMethod[0],
                                                              newMethod[1])!=None
-        from common import any
+        from core.common import any
         if customizedPort and any([f.name==newMethod[1]
                                     for f in lastSelectedModule.functions]):
             return
