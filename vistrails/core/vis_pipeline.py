@@ -301,7 +301,8 @@ class VisPipeline(object):
         return result
 
     def buildAliasDictionary(self):
-        from qmodulefunctiongroupbox import QPythonValueLineEdit
+        # TODO: Fix this.
+        from gui.qmodulefunctiongroupbox import QPythonValueLineEdit
         aliases = {}
         for mid in self.modules:
             for f in self.modules[mid].functions:
@@ -374,7 +375,8 @@ class VisPipeline(object):
             aliases[alias] = casting[atype](self.evaluateExp(atype,base,exps,aliases))
 
         # Evaluate all expressions
-        from qmodulefunctiongroupbox import QPythonValueLineEdit
+        # TODO: Fix this
+        from gui.qmodulefunctiongroupbox import QPythonValueLineEdit
         for mid in self.modules:
             for f in self.modules[mid].functions:
                 for p in f.params:
