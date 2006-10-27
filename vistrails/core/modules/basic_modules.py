@@ -1,10 +1,10 @@
 # from modules
 
-import module_registry
-import vistrails_module
-import module_utils
-import module_configure
-import port_configure
+from core.modules import module_registry
+from core.modules import vistrails_module
+from core.modules import module_utils
+from core.modules import module_configure
+from core.modules import port_configure
 import os
 import core.system
 

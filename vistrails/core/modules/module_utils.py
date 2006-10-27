@@ -1,9 +1,5 @@
 # Utilities for user-defined Modules
 
-import module_registry
-import vistrails_module
-import basic_modules
-
 import os
 import tempfile
 
@@ -28,6 +24,7 @@ class FilePool(object):
             raise VistrailsInternalError("Can't remove %s" % self.directory)
 
     def createFile(self, suffix = '', prefix = 'vt_tmp'):
+        from core.modules import basic_modules
         (fd, name) = tempfile.mkstemp(suffix=suffix,
                                       prefix=prefix,
                                       dir=self.directory)

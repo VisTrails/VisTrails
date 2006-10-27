@@ -2,7 +2,7 @@ from PyQt4 import QtCore, QtGui
 from core.common import any
 from core.modules.module_registry import registry, ModuleRegistry
 from core.vis_action import ChangeParameterAction
-import colorconfig_rc
+import core.modules.resources.colorconfig_rc
 
 class StandardPortConfigureContainer(QtGui.QDialog):
 
