@@ -37,7 +37,7 @@ own type to decide between source and destination ports."""
         if specStr[0] != '(' or specStr[-1] != ')':
             raise VistrailsInternalError("invalid port spec")
         specStr = specStr[1:-1]
-        descriptor = modules.module_registry.registry.getDescriptorByName(self.moduleName)
+        descriptor = core.modules.module_registry.registry.getDescriptorByName(self.moduleName)
         if localRegistry:
             localDescriptor = localRegistry.getDescriptorByName(self.moduleName)
         else:
@@ -55,7 +55,7 @@ own type to decide between source and destination ports."""
         values = specStr.split(", ")
         if not ports.has_key(self.name):            
             if loose:
-                return [[(modules.module_registry.registry.getDescriptorByName(v).module,
+                return [[(core.modules.module_registry.registry.getDescriptorByName(v).module,
                          '<no description>')
                         for v in values]]
             else:
@@ -63,7 +63,7 @@ own type to decide between source and destination ports."""
         specs = ports[self.name]
         for spec in specs:
             if all(zip(spec, values),
-                   lambda ((klass, descr), name): issubclass(modules.module_registry.registry.getDescriptorByName(name).module, klass)):
+                   lambda ((klass, descr), name): issubclass(core.modules.module_registry.registry.getDescriptorByName(name).module, klass)):
                 return [copy.copy(spec)]
         print self.moduleName
         print self.name
@@ -79,7 +79,7 @@ a string representation of each port spec."""
                 return "(" + ", ".join([getSig(s) for s in spec]) + ")"
             assert type(spec == __builtin__.tuple)
             spec = spec[0]
-            if issubclass(spec, modules.vistrails_module.Module):
+            if issubclass(spec, core.modules.vistrails_module.Module):
                 return spec.__name__
             raise VistrailsInternalError("getSig Can't handle type %s" % type(spec))
         return [getSig(spec) for spec in self.spec]
@@ -346,8 +346,8 @@ class ModuleFunction(object):
 import unittest
 
 if __name__ == '__main__':
-    import modules.basic_modules
-    import modules.module_registry
+    import core.modules.basic_modules
+    import core.modules.module_registry
 
 class TestVisTypes(unittest.TestCase):
     
@@ -360,8 +360,8 @@ class TestVisTypes(unittest.TestCase):
         a = str(x)
         
     def testPortSpec(self):
-        descriptor = modules.module_registry.registry.getDescriptorByName('String')
-        ports = modules.module_registry.registry.sourcePortsFromDescriptor(descriptor)
+        descriptor = core.modules.module_registry.registry.getDescriptorByName('String')
+        ports = core.modules.module_registry.registry.sourcePortsFromDescriptor(descriptor)
         assert all(ports, lambda x: x.moduleName == 'String')
         portRepr = 'value(String)'
         p = registry.portFromRepresentation('String', portRepr, VisPortEndPoint.Source)
@@ -369,8 +369,8 @@ class TestVisTypes(unittest.TestCase):
         assert p.moduleName == 'String'
 
     def testPortSpec2(self):
-        descriptor = modules.module_registry.registry.getDescriptorByName('String')
-        ports = modules.module_registry.registry.sourcePortsFromDescriptor(descriptor)
+        descriptor = core.modules.module_registry.registry.getDescriptorByName('String')
+        ports = core.modules.module_registry.registry.sourcePortsFromDescriptor(descriptor)
         assert all(ports, lambda x: x.moduleName == 'String')
         portRepr = 'value(Float)'
         try:
