@@ -17,13 +17,9 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         self.setClickable(True)
         self.setHighlightSections(True)
         self.fitToViewport = False
-        if orientation==QtCore.Qt.Horizontal:
-            self.minimumSize = max(QtGui.QApplication.globalStrut().width(),
-                                   self.fontMetrics().maxWidth())
-        else:
-            self.minimumSize = max(QtGui.QApplication.globalStrut().height(),
-                                   self.fontMetrics().height())
+        if orientation==QtCore.Qt.Vertical:
             self.setDefaultAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.minimumSize = 50
 
     ### Set fit to viewport for have all the sections always stretch
     ### to the whole viewport
