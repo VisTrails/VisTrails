@@ -5,7 +5,9 @@ import system
 import platform
 import MySQLdb
 from datetime import datetime
+
 class Logger(object):
+
     def __init__(self):
         self.username = getpass.getuser()
         self.machineName = socket.getfqdn()
