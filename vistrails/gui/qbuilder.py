@@ -24,6 +24,7 @@ from gui.qt import SignalSet
 from gui.version_tree import QVersionTree
 from gui.vis_shell import ShellGui
 from gui.vistrail_controller import VistrailController, QueryController
+from gui.vis_application import logger
 import core.system
 import core.vis_types
 import db.DBconfig
@@ -299,9 +300,8 @@ class QBuilder(QtGui.QMainWindow):
         self.moduleMethods = gui.module_annotation.ModuleAnnotations(self)
         frametw.addTab(self.moduleAnnotations, "Module Annotations")
 
-        app = QtCore.QCoreApplication.instance()
         import gui.log_tab
-        self.logTab = gui.log_tab.LogTab(self, app.logger)
+        self.logTab = gui.log_tab.LogTab(self)
         frametw.addTab(self.logTab, "Log")
 
         import gui.bulk_changes
@@ -1043,15 +1043,15 @@ of the search line edit widget."""
 
     def launchUploadApp(self):
         # As this window blocks according to I/O operations, we have to put it in a different thread/process.
-        app = QtCore.QCoreApplication.instance()
         from remote import RemoteRep
-        remote = RemoteRep(app.configuration.fileRepository,'Upload')
+        from gui.vis_application import VistrailsApplication
+        remote = RemoteRep(VistrailsApplication.configuration.fileRepository,'Upload')
 
     def launchFetchApp(self):
         # As this window blocks according to I/O operations, we have to put it in a different thread/process.
-        app = QtCore.QCoreApplication.instance()
         from remote import RemoteRep
-        remote = RemoteRep(app.configuration.fileRepository,'Fetch')
+        from gui.vis_application import VistrailsApplication
+        remote = RemoteRep(VistrailsApplication.configuration.fileRepository,'Fetch')
 
     def showConsole(self):
         if not self.shell:

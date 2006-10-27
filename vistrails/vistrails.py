@@ -1,9 +1,10 @@
 """Main file for the VisTrails distribution."""
 
-import gui.vis_application
+from gui.vis_application import VistrailsApplication
+
 import sys
 try:
-    app = gui.vis_application.VistrailsApplication(sys.argv)
+    app = VistrailsApplication()
 except SystemExit, e:
     sys.exit(e)
 except Exception, e:

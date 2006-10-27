@@ -11,9 +11,15 @@ import qt
 from core.common import InstanceObject
 import os.path
 
-class VistrailsApplication(QtGui.QApplication):
-    def __init__(self, argv):
-        QtGui.QApplication.__init__(self, argv)
+logger = None
+
+class VistrailsApplicationSingleton(QtGui.QApplication):
+    def __call__(self):
+        return self
+
+    def __init__(self):
+        global logger
+        QtGui.QApplication.__init__(self, sys.argv)
         qt.allowQObjects()
         self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         
@@ -56,9 +62,9 @@ class VistrailsApplication(QtGui.QApplication):
         self.runInitialization()
         if not self.configuration.nologger:
             from core.logger import Logger
-            self.logger = Logger()
+            logger = Logger()
         else:
-            self.logger = None
+            logger = None
         if self.configuration.interactiveMode:
             self.interactiveMode()
         else:
@@ -270,5 +276,8 @@ the highest one I know of: 2""" % verbose
                 dbg.critical("Exception raised during hook: %s - %s" % (e.__class__, e))
 
     def finishSession(self):
-        if self.logger:
-            self.logger.finishSession()
+        global logger
+        if logger:
+            logger.finishSession()
+
+VistrailsApplication = VistrailsApplicationSingleton()

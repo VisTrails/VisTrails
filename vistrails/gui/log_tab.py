@@ -3,12 +3,13 @@ from qframebox import *
 from qmodulefunctiongroupbox import *
 from qgroupboxscrollarea import *
 from qbuildertreewidget import *
+import vis_application
 
 class LogTab(QtGui.QWidget):
-    def __init__(self, builder, logger, parent=None):
+    def __init__(self, builder, parent=None):
         QtGui.QWidget.__init__(self,parent)
         self.builder = builder
-        self.logger = logger
+        self.logger = vis_application.logger
         self.vistrail_id = -1
         self.module_id = -1
         self.buildLogTab()

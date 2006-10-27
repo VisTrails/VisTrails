@@ -334,8 +334,8 @@ class VistrailController(BaseController):
         self.currentPipelineView = None
         self.recMacro = False
         self.currentMacro = None
-        app = QtCore.QCoreApplication.instance()
-        self.logger = app.logger
+        import gui.vis_application
+        self.logger = gui.vis_application.logger
 
     def _setName(self, name):
         self.__controllerName = name

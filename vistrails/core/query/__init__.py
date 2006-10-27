@@ -106,10 +106,9 @@
 ################################################################################
 
 from core.common import memo_method
+import gui.vis_application
 
-from PyQt4 import QtCore
-logger = QtCore.QCoreApplication.instance().logger
-
+ 
 class Query(object):
 
     def upstream(self, graph, id):
@@ -209,7 +208,7 @@ class Query1b(Query):
 class Query1c(Query):
 
     def run(self, vistrail, name):
-        c = logger.db.cursor()
+        c = gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct module_id, wf_version from
         wf_exec, exec, vistrails
@@ -248,7 +247,7 @@ class Query1c(Query):
 class Query2(Query):
 
     def run(self, vistrail, name):
-        c = logger.db.cursor()
+        c = gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct module_id, wf_version from
         wf_exec, exec, vistrails
@@ -296,7 +295,7 @@ class Query2(Query):
 class Query3(Query):
 
     def run(self, vistrail, name):
-        c = logger.db.cursor()
+        c = gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct module_id, wf_version from
         wf_exec, exec, vistrails
@@ -337,7 +336,7 @@ class Query3(Query):
 class Query4(Query):
 
     def run(self, vistrail, name):
-        c = logger.db.cursor()
+        c = gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct exec.ts_start, exec.ts_end, exec_id, module_id, wf_version from
         wf_exec, exec, vistrails
@@ -373,7 +372,7 @@ class Query5(Query):
         return set(self.upstream(graph, m_id))
 
     def run(self, vistrail, name):
-        c = logger.db.cursor()
+        c = gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct
            wf_exec.wf_version, exec.module_id
@@ -422,7 +421,7 @@ class Query5(Query):
 class Query6(Query):
 
     def run(self, vistrail, name):
-        c = logger.db.cursor()
+        c = gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct module_id, wf_version from
         wf_exec, exec, vistrails
