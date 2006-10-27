@@ -1,0 +1,24 @@
+Coding conventions:
+http://www.python.org/dev/peps/pep-0008/
+
+
+Docstring conventions:
+http://www.python.org/dev/peps/pep-0257/
+
+
+Importing modules:
+
+    Please import the modules using the fully qualified names,
+    even if they are in the right directories. For example, if you
+    have a file inside vistrails/core that imports a module inside 
+    vistrails/core/data_structures, do NOT use this
+
+    import data_structures.graph     # WRONG, don't do it!
+
+    instead, say
+
+    import core.data_structures.graph   # RIGHT
+
+    This allows us to run the modules as standalone classes, which is
+    good for testing purposes.
+
