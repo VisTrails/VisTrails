@@ -1,10 +1,10 @@
 from PyQt4 import QtCore, QtGui
-from shape_engine import *
-from vistrail import *
-from builder_utils import *
+from gui.shape_engine import *
+from core.vistrail import *
+from core.data_structures import *
 import string
-from common import *
-import system
+from core.common import *
+from core import system
 
 class FunctionItemModel(QtGui.QStandardItemModel):
     def __init__(self,row,col,parent=None):
