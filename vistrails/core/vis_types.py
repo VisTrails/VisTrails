@@ -7,12 +7,12 @@
     * ModuleFunction
 """
 
-from enum import enum
+from core.enum import enum
 import copy
 import __builtin__
 import core.modules.module_registry
 import core.modules.vistrails_module
-from common import VistrailsInternalError, all, eprint
+from core.common import VistrailsInternalError, all, eprint
 
 if __name__ == '__main__':
     import qt

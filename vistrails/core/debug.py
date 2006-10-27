@@ -1,10 +1,10 @@
 import logging
 import sys
 import inspect
-from common import *
+from core.common import *
 import code
 import threading
-import system
+from core import system
 import time
 from PyQt4 import QtCore
 

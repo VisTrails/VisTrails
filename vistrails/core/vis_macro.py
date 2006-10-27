@@ -1,11 +1,12 @@
 import copy
-from common import unimplemented, abstract, VistrailsInternalError
-from vis_connection import VisConnection
-from enum import enum
-from data_structures import Point
-from vis_types import *
-from vis_action import *
+from core.common import unimplemented, abstract, VistrailsInternalError
+from core.vis_connection import VisConnection
+from core.enum import enum
+from core.data_structures import Point
+from core.vis_types import *
+from core.vis_action import *
 from PyQt4 import QtCore, QtGui
+
 class VisMacro(object):
     """ Class that represents a Vis Macro.
     

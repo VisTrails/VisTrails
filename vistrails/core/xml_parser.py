@@ -1,10 +1,10 @@
 import xml.dom.minidom
 
-from xml_utils import *
-from vistrail import Vistrail
-from common import VistrailsInternalError
-from vis_action import VisAction
-from vis_macro import VisMacro
+from core.xml_utils import *
+from core.vistrail import Vistrail
+from core.common import VistrailsInternalError
+from core.vis_action import VisAction
+from core.vis_macro import VisMacro
 from core.data_structures import Graph
 
 ################################################################################

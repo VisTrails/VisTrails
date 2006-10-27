@@ -7,11 +7,11 @@ of pipelines with overlapping dataflows."""
 import sha
 # import vtk_rtti
 import __builtin__
-import system
+from core import system
 
-from debug import DebugPrint
-from common import *
-from vis_types import VistrailModuleType
+from core.debug import DebugPrint
+from core.common import *
+from core.vis_types import VistrailModuleType
 
 ################################################################################
 
@@ -206,9 +206,9 @@ returns cache entry for pipeline. pipeline must have an entry in the cache."""
 # Testing
 
 import unittest
-from vis_types import *
-from vis_object import *
-from builder_utils import Point
+from core.vis_types import *
+from core.vis_object import *
+from core.data_structures import Point
 import copy
 
 class TestCache(unittest.TestCase):

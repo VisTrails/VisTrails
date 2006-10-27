@@ -1,7 +1,7 @@
 """ File responsible to workflows related log """
 import getpass
 import socket
-import system
+from core import system
 import platform
 import MySQLdb
 from datetime import datetime

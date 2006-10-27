@@ -1,7 +1,7 @@
-import modules.module_registry
-from modules.vistrails_module import ModuleConnector, ModuleError
-from modules.module_utils import FilePool
-from common import withIndex, InstanceObject
+from core import modules
+from core.modules.vistrails_module import ModuleConnector, ModuleError
+from core.modules.module_utils import FilePool
+from core.common import withIndex, InstanceObject
 import threading
 
 ################################################################################

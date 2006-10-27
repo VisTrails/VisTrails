@@ -1,13 +1,13 @@
-import vis_pipeline
-import vis_action
+from core import vis_pipeline
+from core import vis_action
 # import vtk_rtti
-import vistrail
+from core import vistrail
 # import vtk_graph
-import vis_types
+from core import vis_types
 import copy
 import __builtin__
 
-from common import any,VistrailsInternalError
+from core.common import any,VistrailsInternalError
 
 ################################################################################
 

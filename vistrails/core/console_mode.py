@@ -1,6 +1,6 @@
 """TODO: This module is broken in the plugin branch. Fix it."""
 
-import xml_parser
+from core import xml_parser
 
 def run(input, workflow):
     """ Run the workflow 'workflow' in the 'input' file and generates 

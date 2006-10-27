@@ -4,11 +4,11 @@ if __name__ == '__main__':
     global app
     app = qt.createBogusQtApp()
 
-from modules.module_registry import registry
-from modules.vistrails_module import ModuleConnector
+from core.modules.module_registry import registry
+from core.modules.vistrails_module import ModuleConnector
 
-from common import *
-from vis_types import *
+from core.common import *
+from core.vis_types import *
 
 ################################################################################
 

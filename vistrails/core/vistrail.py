@@ -1,9 +1,9 @@
-from vis_pipeline import VisPipeline
-from vis_connection import VisConnection
-from vis_types import *
+from core.vis_pipeline import VisPipeline
+from core.vis_connection import VisConnection
+from core.vis_types import *
 from core.data_structures import Graph
-from debug import DebugPrint
-from vis_macro import VisMacro
+from core.debug import DebugPrint
+from core.vis_macro import VisMacro
 from db.xUpdateFunctions import UpdateFunctions
 import xml.dom.minidom
 import copy
@@ -11,7 +11,7 @@ import time
 import getpass
 import copy
 import string
-from enum import enum
+from core.enum import enum
 
 
 class Vistrail(object):

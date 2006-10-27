@@ -1,10 +1,10 @@
-from common import abstract, VistrailsInternalError
-from xml_utils import *
-from vis_object import VisModule
-from vis_connection import VisConnection
-from vis_types import *
-from data_structures import Point
-from modules.module_registry import registry, ModuleRegistry
+from core.common import abstract, VistrailsInternalError
+from core.xml_utils import *
+from core.vis_object import VisModule
+from core.vis_connection import VisConnection
+from core.vis_types import *
+from core.data_structures import Point
+from core.modules.module_registry import registry, ModuleRegistry
 import copy
 
 ################################################################################

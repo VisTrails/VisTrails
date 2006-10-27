@@ -5,16 +5,16 @@ if __name__ == '__main__':
     app = qt.createBogusQtApp()
 
 
-from data_structures import Point
-from vis_types import VistrailModuleType
-from common import NoSummon
-from xml_utils import *
-from vis_types import ModuleFunction, ModuleParam
+from core.data_structures import Point
+from core.vis_types import VistrailModuleType
+from core.common import NoSummon
+from core.xml_utils import *
+from core.vis_types import ModuleFunction, ModuleParam
 import copy
-import modules.module_registry
+import core.modules.module_registry
 from sets import Set
 
-registry = modules.module_registry.registry
+registry = core.modules.module_registry.registry
 
 ################################################################################
 
