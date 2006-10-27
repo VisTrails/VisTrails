@@ -432,39 +432,6 @@ class QBuilder(QtGui.QMainWindow):
                     currentMethod.index = self.vtkMethodPalette.indexFromItem(currentMethod, 0)
         self.vtkMethodPalette.allItems = self.vtkMethodPalette.findItems('',QtCore.Qt.MatchContains | QtCore.Qt.MatchRecursive)
 
-    def generateClassList(self, item, name):
-        """
-        Parameters
-        ----------
-
-        - item : 'QtGui.QTreeWidgetItem'
-
-        - name : 'str'
-        
-        """
-        root = VTKRTTI.inheritanceGraph.get_node(name)
-
-        for node in root.children:
-            subclassname = node.name
-            # Try to get rid off some warning messages
-            if subclassname in ['vtkInteractorStyleTrackball',
-                                'vtkStructuredPointsGeometryFilter',
-                                'vtkConstrainedPointHandleRepresentation']:
-                continue
-            t = VTKRTTI.moduleType(node.name)
-            type = str(t)
-            labels = QtCore.QStringList()
-            labels << subclassname << type
-            subclass = MyQTreeWidgetItem(item,labels)
-            subclass.index = self.moduleTreeWidget.indexFromItem(subclass, 0)
-
-            if t in [ VistrailModuleType.Object, VistrailModuleType.Filter]:
-                subclass.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled)
-            else:
-                subclass.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled) 
-        
-            self.generateClassList(subclass,subclassname)
-
     def popup(self, message):
         """ Pops up a model dialog.
 
