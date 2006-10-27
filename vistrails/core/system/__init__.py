@@ -17,7 +17,14 @@ else:
     print "VisTrails could not detect your operating system."
     sys.exit(1)
 
-__rootDir = os.getcwd() + os.path.normcase('/')
+# Makes sure root directory is sensible.
+if __name__ == '__main__':
+    _thisDir = sys.argv[0]
+else:
+    _thisDir = sys.modules[__name__].__file__
+_thisDir = os.path.split(_thisDir)[0]
+__rootDir = _thisDir + '/../../'
+
 __dataDir = __rootDir + 'data/'
 def setVistrailsDataDirectory(d):
     global __dataDir
