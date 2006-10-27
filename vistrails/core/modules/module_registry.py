@@ -192,12 +192,12 @@ elements is of either of the above formats."""
 #    @memo_method
     def sourcePortsFromDescriptor(self, descriptor):
         def visPortFromSpec(spec, optional):
-            result = vis_types.VisPort()
+            result = core.vis_types.VisPort()
             result.name = spec[0]
             result.spec = spec[1]
             result.optional = optional
             result.moduleName = descriptor.name
-            result.endPoint = vis_types.VisPortEndPoint.Source
+            result.endPoint = core.vis_types.VisPortEndPoint.Source
             return result
         v = descriptor.outputPorts.items()
         v.sort(lambda (n1, v1), (n2, v2): cmp(n1,n2))
@@ -206,12 +206,12 @@ elements is of either of the above formats."""
 #    @memo_method
     def destinationPortsFromDescriptor(self, descriptor):
         def visPortFromSpec(spec, optional):
-            result = vis_types.VisPort()
+            result = core.vis_types.VisPort()
             result.name = spec[0]
             result.spec = spec[1]
             result.optional = optional
             result.moduleName = descriptor.name
-            result.endPoint = vis_types.VisPortEndPoint.Destination
+            result.endPoint = core.vis_types.VisPortEndPoint.Destination
             return result        
         v = descriptor.inputPorts.items()
         v.sort(lambda (n1, v1), (n2, v2): cmp(n1,n2))
@@ -251,7 +251,7 @@ Constant."""
             return [spec
                     for spec
                     in port.spec
-                    if all(spec, lambda x: issubclass(x[0], modules.basic_modules.Constant))]
+                    if all(spec, lambda x: issubclass(x[0], core.modules.basic_modules.Constant))]
         lst = self.destinationPortsFromDescriptor(self.getDescriptorByThing(module))
         result = []
         for port in lst:
@@ -279,7 +279,7 @@ Returns all methods that can be set by the user in a given class
                     result[port.name] = []
                 specs = port.spec
                 for spec in specs:
-                    result[port.name].append(vis_types.ModuleFunction.fromSpec(port, spec))
+                    result[port.name].append(core.vis_types.ModuleFunction.fromSpec(port, spec))
             return result
 
         hierarchy = self.getModuleHierarchy(module)
@@ -358,42 +358,42 @@ returns true if there could exist a connection connecting these two ports."""
         else:
             return None
 
-    def makeSpec(self, specStr, localRegistry=None, loose=True):
+    def makeSpec(self, port, specStr, localRegistry=None, loose=True):
         """Parses a string representation of a port spec and returns the spec. Uses
 own type to decide between source and destination ports."""
         if specStr[0] != '(' or specStr[-1] != ')':
             raise VistrailsInternalError("invalid port spec")
         specStr = specStr[1:-1]
-        descriptor = registry.getDescriptorByName(self.moduleName)
+        descriptor = self.getDescriptorByName(port.moduleName)
         if localRegistry:
-            localDescriptor = localRegistry.getDescriptorByName(self.moduleName)
+            localDescriptor = localRegistry.getDescriptorByName(port.moduleName)
         else:
             localDescriptor = None
-        if self.endPoint == VisPortEndPoint.Source:
+        if port.endPoint == core.vis_types.VisPortEndPoint.Source:
             ports = copy.copy(descriptor.outputPorts)
             if localDescriptor:
                 ports.update(localDescriptor.outputPorts)
-        elif self.endPoint == VisPortEndPoint.Destination:
+        elif port.endPoint == core.vis_types.VisPortEndPoint.Destination:
             ports = copy.copy(descriptor.inputPorts)
             if localDescriptor:
                 ports.update(localDescriptor.inputPorts)
         else:
             raise VistrailsInternalError("Invalid port endpoint")
         values = specStr.split(", ")
-        if not ports.has_key(self.name):            
+        if not ports.has_key(port.name):            
             if loose:
-                return [[(registry.getDescriptorByName(v).module,
+                return [[(self.getDescriptorByName(v).module,
                          '<no description>')
                         for v in values]]
             else:
                 raise VistrailsInternalError("Port name is inexistent in ModuleDescriptor")
-        specs = ports[self.name]
+        specs = ports[port.name]
         for spec in specs:
             if all(zip(spec, values),
-                   lambda ((klass, descr), name): issubclass(registry.getDescriptorByName(name).module, klass)):
+                   lambda ((klass, descr), name): issubclass(self.getDescriptorByName(name).module, klass)):
                 return [copy.copy(spec)]
-        print self.moduleName
-        print self.name
+        print port.moduleName
+        print port.name
         print specStr
         print specs
         raise VistrailsInternalError("No port spec matches the given string")
@@ -408,7 +408,7 @@ own type to decide between source and destination ports."""
         port.name = portName
         port.moduleName = moduleName
         port.endPoint = endPoint
-        port.spec = registry.makeSpec(portSpec, localRegistry, loose)
+        port.spec = registry.makeSpec(port, portSpec, localRegistry, loose)
         return port
 
 ################################################################################
