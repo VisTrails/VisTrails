@@ -1,5 +1,5 @@
 from vis_types import VisPort, VistrailModuleType
-from graph import Graph
+from core.data_structures import Graph
 # from vtk_rtti import VTKRTTI
 from common import VistrailsInternalError
 import copy

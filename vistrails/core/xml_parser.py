@@ -5,7 +5,7 @@ from vistrail import Vistrail
 from common import VistrailsInternalError
 from vis_action import VisAction
 from vis_macro import VisMacro
-from graph import Graph
+from core.data_structures import Graph
 
 ################################################################################
 
