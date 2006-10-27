@@ -4,15 +4,6 @@ import copy
 
 from queue import Queue
 
-def uniq(l):
-    if len(l) == 0:
-        return []
-    a = copy.copy(l)
-    a.sort()
-    l1 = a[:-1] 
-    l2 = a[1:]
-    return [a[0]] + [next for (i, next) in zip(l1, l2) if i != next]
-
 class Graph(object):
     """Graph holds a graph with possible multiple edges. The
     datastructures are all dictionary-based, so datatypes more general than ints can be used. For example:
@@ -331,30 +322,33 @@ def edge_cmp(v1, v2):
 
 import unittest
 
-from tests import peckcheck
-class TestGraph(peckcheck.TestCase):
+class TestGraph(unittest.TestCase):
      """ Class to test Graph
 
      It tests vertex addition, the outDegree of a sink and inDegree of a source consistencies.
     
      """
-     def testAddVertList(self, x=peckcheck.a_list(peckcheck.an_int)):
-         g = Graph()
-         for i in x:
-             g.addVertex(i)
-         x = copy.copy(g.vertices.keys())
-         x.sort()
-         self.assertEquals(x, uniq(x))
-     def testSinkOutDegreeConsistency(self, x=peckcheck.an_object(Graph)):
-         if not len(x.sinks()):
-             raise BadData
-         result = [None for i in x.sinks() if x.outDegree(i) == 0]
-         assert len(result) == len(x.sinks())
-     def testSourceInDegreeConsistency(self, x=peckcheck.an_object(Graph)):
-         if not len(x.sources()):
-             raise BadData
-         result = [None for i in x.sources() if x.inDegree(i) == 0]
-         assert len(result) == len(x.sources())
+     
+#      def testAddVertList(self, x=peckcheck.a_list(peckcheck.an_int)):
+#          g = Graph()
+#          for i in x:
+#              g.addVertex(i)
+#          x = copy.copy(g.vertices.keys())
+#          x.sort()
+#          self.assertEquals(x, uniq(x))
+
+#      def testSinkOutDegreeConsistency(self, x=peckcheck.an_object(Graph)):
+#          if not len(x.sinks()):
+#              raise BadData
+#          result = [None for i in x.sinks() if x.outDegree(i) == 0]
+#          assert len(result) == len(x.sinks())
+
+#      def testSourceInDegreeConsistency(self, x=peckcheck.an_object(Graph)):
+#          if not len(x.sources()):
+#              raise BadData
+#          result = [None for i in x.sources() if x.inDegree(i) == 0]
+#          assert len(result) == len(x.sources())
+
      def test1(self):
          g = Graph()
          g.addVertex('0')
@@ -368,6 +362,7 @@ class TestGraph(peckcheck.TestCase):
          self.assertEquals(parent['3'], '2')
          self.assertEquals(parent['2'], '1')
          self.assertEquals(parent['1'], '0')
+
      def test2(self):
          g = Graph()
          g.addVertex(0)
@@ -393,4 +388,4 @@ class TestGraph(peckcheck.TestCase):
          
 
 if __name__ == '__main__':
-    peckcheck.main()
+    unittest.main()

@@ -1,50 +1,8 @@
-import math
 import copy
+from point import Point
 
-class Point(object):
-    """Point is a simple class that stores a point in 2D space."""
-    def __init__(self, x=0, y=0):
-        """Constructor: Point(x=0, y=0) -> Point"""
-        self.x = float(x)
-        self.y = float(y)
-
-    def reset(self,x,y):
-        """reset(x,y) -> None. Resets the point to given coordinates."""
-        self.x = float(x)
-        self.y = float(y)
-
-    def __neg__(self):
-        """__neg__() -> Point. Returns a point p such that
-        self + p == Point(0,0)"""
-        return Point(-self.x,-self.y)
-
-    def __add__(self,other):
-        """__add__(other) -> Point. Returns a point p such that
-        self + other == p"""
-        return Point(self.x + other.x, self.y + other.y)
-
-    def __sub__(self,other):
-        """__sub__(other) -> Point. Returns a point p such that
-        self + other == p"""
-        return Point(self.x - other.x, self.y - other.y)
-
-    def __mul__(self,other):
-        """__mul__(other) -> Point. Interprets self as a vector and returns
-        other * self, where other is a scalar."""
-        return Point(self.x * other, self.y * other)
-
-    def isInside(self,rect):
-        """isInside(other) -> Point. Interprets self as a vector and returns
-        other * self, where other is a scalar."""
-        return (self.x >= rect.lowerLeft.x and
-                self.x <= rect.upperRight.x and
-                self.y >= rect.lowerLeft.y and
-                self.y <= rect.upperRight.y)
-    
-    def length(self):
-        """length() -> float. Interprets self as a vector and returns the L_2
-        length of the vector."""
-        return math.sqrt(self.x * self.x + self.y * self.y)
+################################################################################
+# Rect
 
 class Rect(object):
     def __init__(self, lowerLeft=None, upperRight=None):
@@ -66,7 +24,10 @@ class Rect(object):
     def create(left, right, down, up):
         """create(left, right, down, up) -> Point. Creates a Rect from four
         float extents."""
-        return Rect(Point(left,down),Point(right,up))
+        return Rect(Point(min(left, right),
+                          min(up, down)),
+                    Point(max(left, right),
+                          max(down, up)))
     
     def setLeft(self, x):
         """self.setLeft(x) -> None. Sets the left limit of the Rect."""
@@ -102,3 +63,28 @@ class Rect(object):
             dly = self.lowerLeft.y
             self.lowerLeft.y = self.upperRight.y
             self.upperRight.y = dly
+
+################################################################################
+# Unit tests
+
+import unittest
+import random
+
+class TestRect(unittest.TestCase):
+
+    def testCreate(self):
+        """Exercises Rect.create()"""
+        for i in range(100):
+            a = random.uniform(-1.0, 1.0)
+            b = random.uniform(-1.0, 1.0)
+            c = random.uniform(-1.0, 1.0)
+            d = random.uniform(-1.0, 1.0)
+
+            r = Rect.create(a, b, c, d)
+            assert r.lowerLeft.x == min(a, b)
+            assert r.upperRight.x == max(a, b)
+            assert r.lowerLeft.y == min(c, d)
+            assert r.upperRight.y == max(c, d)
+
+if __name__ == '__main__':
+    unittest.main()
