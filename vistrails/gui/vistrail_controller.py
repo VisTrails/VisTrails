@@ -348,11 +348,11 @@ class VistrailController(BaseController):
     def executeWorkflow(self, vistrails):
         for vis in vistrails:
             (name, version, pipeline, view, logger) = vis
-            import interpreter
+            import core.interpreter
             if self.logger:
                 self.logger.startWorkflowExecution(name, version)
             pipeline.resolveAliases()
-            (objs, errors, executed) = interpreter.Interpreter().execute(pipeline, name, version, view, logger)
+            (objs, errors, executed) = core.interpreter.Interpreter().execute(pipeline, name, version, view, logger)
             for obj in objs.itervalues():
                 i = obj.id
                 if errors.has_key(i):
