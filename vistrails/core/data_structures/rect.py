@@ -1,5 +1,5 @@
 import copy
-from point import Point
+from core.data_structures.point import Point
 
 ################################################################################
 # Rect

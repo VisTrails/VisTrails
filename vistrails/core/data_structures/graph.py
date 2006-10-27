@@ -2,7 +2,7 @@ import math
 import random
 import copy
 
-from queue import Queue
+from core.data_structures.queue import Queue
 
 class Graph(object):
     """Graph holds a graph with possible multiple edges. The
