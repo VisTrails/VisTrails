@@ -1,11 +1,11 @@
 
 import os
 import stat
-import system
+import core.system
 import MySQLdb
 from PyQt4 import QtCore, QtGui
-from upload_files_GUI import Ui_Upload
-from common import *
+from db.gui.upload_files_GUI import Ui_Upload
+from core.common import *
 import md5
 import socket
 import getpass

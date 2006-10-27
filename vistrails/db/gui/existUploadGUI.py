@@ -1,13 +1,13 @@
 #Author: Mayank Maheshwary
 
 from PyQt4 import *
-import login
-import DBconfig
+import db.gui.login
+import db.DBconfig
 import xmlrpclib
-import existUploadGUI_GUI
-from xUpdateFunctions import UpdateFunctions
-from xml_parser import XMLParser
-from vistrail import Vistrail
+import db.gui.existUploadGUI_GUI
+from db.xUpdateFunctions import UpdateFunctions
+from core.xml_parser import XMLParser
+from core.vistrail import Vistrail
 
 # Class for upload GUI. Called from the corresponding menu item
 

@@ -3,13 +3,13 @@
 #Author: Mayank Maheshwary
 
 from PyQt4 import *
-import login
-import DBconfig
+import db.gui.login
+import db.DBconfig
 import xmlrpclib
-import downloadFromExist_GUI
-from xUpdateFunctions import UpdateFunctions
+import db.gui.downloadFromExist_GUI
+from db.xUpdateFunctions import UpdateFunctions
 
-        
+
 # Class for Import and download GUI. Called from the corresponding menu item
 class Ui_ImportFile(QtGui.QDialog):
 

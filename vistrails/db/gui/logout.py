@@ -1,10 +1,10 @@
 #Author: Mayank Maheshwary
 
 from PyQt4 import *
-import logout_GUI
-import DBconfig
+import db.gui.logout_GUI
+import db.DBconfig
 import xmlrpclib
-from xUpdateFunctions import UpdateFunctions
+from db.xUpdateFunctions import UpdateFunctions
 
 class Ui_Logout(QtGui.QDialog):
 

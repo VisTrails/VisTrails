@@ -1,6 +1,11 @@
 from PyQt4 import *
-import DB2
-import db2GUI
+
+try:
+	import DB2
+	import db2GUI
+except ImportError:
+	print "Could not import DB2. This module will not work!"
+
 
 #  The following class handles all the interactions for the window
 #  we've created and defined in db2GUI.py  It serves as a transparent 

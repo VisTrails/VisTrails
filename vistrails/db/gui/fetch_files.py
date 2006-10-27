@@ -1,9 +1,9 @@
 
 import os
-import system
+import core.system
 import MySQLdb
 from PyQt4 import QtCore, QtGui
-from fetch_files_GUI import Ui_Fetch
+from db.gui.fetch_files_GUI import Ui_Fetch
 
 class FetchFileThread(QtCore.QThread):
     """ Thread to get files from the repository """

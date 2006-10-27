@@ -2,7 +2,7 @@ import os
 import sys
 import MySQLdb
 from PyQt4 import *
-from remote_db_auth_GUI import Ui_Database
+from db.gui.remote_db_auth_GUI import Ui_Database
 
 class Ui_RemoteDbAuth(QtGui.QDialog):
 

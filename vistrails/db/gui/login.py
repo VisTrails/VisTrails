@@ -1,10 +1,10 @@
 #Author: Mayank Maheshwary
 
 from PyQt4 import *
-import login_GUI
+import db.gui.login_GUI
 import xmlrpclib
-import DBconfig
-from xUpdateFunctions import UpdateFunctions
+import db.DBconfig
+from db.xUpdateFunctions import UpdateFunctions
 
 # Class for login GUI. Called from the corresponding menu item
 
