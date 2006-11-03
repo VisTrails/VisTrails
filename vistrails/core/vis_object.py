@@ -132,6 +132,17 @@ appropriate summon method."""
 	child.setAttribute('y',     str(self.center.y))
 	for fi in range(len(self.functions)):
 	    f = self.functions[fi]
+	    if f.getNumParams() == 0:
+		xmlfunc = dom.createElement('function')
+		xmlfunc.setAttribute('functionId', str(fi))
+		xmlfunc.setAttribute('function', f.name)
+		xmlfunc.setAttribute('parameterId',"-1")
+		xmlfunc.setAttribute('parameter', "")
+		xmlfunc.setAttribute('value', "")
+		xmlfunc.setAttribute('type',"")
+		xmlfunc.setAttribute('alias',"")
+		child.appendChild(xmlfunc)
+
 	    for i in range(f.getNumParams()):
 		p = f.params[i]
 		xmlfunc = dom.createElement('function')

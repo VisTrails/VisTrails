@@ -631,6 +631,9 @@ class VistrailController(BaseController):
             for fi in range(len(module.functions)):
                 f = module.functions[fi]
                 action = ChangeParameterAction()
+		if f.getNumParams() == 0:
+		    action.addParameter(newId, fi, -1, f.name, "",
+					"","", "")
                 for i in range(f.getNumParams()):
                     p = f.params[i]
                     action.addParameter(newId, fi, i, f.name, p.name,
