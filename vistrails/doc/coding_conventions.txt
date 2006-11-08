@@ -1,12 +1,93 @@
-Coding conventions:
-http://www.python.org/dev/peps/pep-0008/
+Coding Conventions for VisTrails
+--------------------------------------------------------------------------------
+
+Variable naming, spacing
+------------------------
+
+Long version:
+
+    http://www.python.org/dev/peps/pep-0008/
 
 
-Docstring conventions:
-http://www.python.org/dev/peps/pep-0257/
+Short version:
+
+    Use 4 spaces per indentation level.
+
+    Use spaces, not tabs. 
+
+       Hint: if you have a file that uses tabs and you're using emacs:
+
+       M-x mark-whole-buffer
+       M-x untabify
+
+    Limit lines to 79 characters. (Use Python's implied continuation
+    for parentheses, brackets and braces. Or use a backslash):
+
+       if this_is_true and this_other_thing_is_also_true and this_other_thing_makes_this_line_too_long:
+           raise This_is_bad_style
+
+       Fix it like this:
+
+       if (this_is_true and
+           this_other_thing_is_also_true and
+           this_other_thing_makes_this_line_too_long):
+           raise This_is_better_style
+
+       Or like this:
+
+       if this_is_true and \
+          this_other_thing_is_also_true and \
+          this_other_thing_makes_this_line_too_long:
+          raise This_is_not_as_good_but_better_than_long_lines
+
+    Blank lines
+
+        Separate top-level function and class definitions with two
+        blank lines.
+
+        Method definitions inside a class are separated by a single
+        blank line.
+
+        Extra blank lines may be used (sparingly) to separate groups
+        of related functions.  Blank lines may be omitted between a
+        bunch of related one-liners (e.g. a set of dummy
+        implementations). Use blank lines in functions, sparingly, to
+        indicate logical sections.
+
+    Whitespace
+
+        Learn by example:
+
+        Yes: spam(ham[1], {eggs: 2})
+        No:  spam( ham[ 1 ], { eggs: 2 } )
+
+        Yes: if x == 4: print x, y; x, y = y, x
+        No:  if x == 4 : print x , y ; x , y = y , x
+
+        Yes: spam(1)
+        No:  spam (1)
+
+        Yes: dict['key'] = list[index]
+        No:  dict ['key'] = list [index]
+
+        Yes:  def complex(real, imag=0.0): return magic(r=real, i=imag)
+        No:   def complex(real, imag = 0.0): return magic(r = real, i = imag)
 
 
-Importing modules:
+    Comments:
+
+        Read http://www.python.org/dev/peps/pep-0008/
+
+
+
+Docstrings
+----------
+
+    http://www.python.org/dev/peps/pep-0257/
+
+
+Importing modules
+-----------------
 
     Please import the modules using the fully qualified names,
     even if they are in the right directories. For example, if you
