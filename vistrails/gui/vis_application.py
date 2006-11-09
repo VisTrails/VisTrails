@@ -79,11 +79,12 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         self.createWindows()
         self.setupBaseModules()
         self.installPackages()
+        self.builderWindow.modulePalette.treeManager.palette.expandAll()
         self.runStartupHooks()
 
         if self.configuration.showSplash:
             self.splashScreen.finish(self.builderWindow)
-	if self.input:
+        if self.input:
             self.builderWindow.openVistrail(os.path.abspath(self.input))
         QtGui.QApplication.setActiveWindow(self.builderWindow)
 

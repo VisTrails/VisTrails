@@ -7,7 +7,7 @@ import vtk
 from PyQt4 import QtCore, QtGui
 from packages.spreadsheet.basic_widgets import SpreadsheetCell
 from packages.spreadsheet.spreadsheet_helpers import *
-import system
+from core import system
 
 import QVTKWidget_rc
 

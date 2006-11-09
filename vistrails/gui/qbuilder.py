@@ -563,7 +563,6 @@ class QBuilder(QtGui.QMainWindow):
         functionName = lastSelectedModule.functions[methodId]
         if registry.getPortConfigureWidgetType(lastSelectedModule.name,
                                                functionName)!=None:
-            print 'here'
             for mid in reversed(lastSelectedModule.getNumFunctions()):
                 if lastSelectedModule.functions[mid].name==functionName:
                     self.emit(QtCore.SIGNAL("methodToBeDeleted(int, int)"),

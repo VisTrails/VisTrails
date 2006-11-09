@@ -32,8 +32,8 @@ def importWidgetModules(basicWidgets):
     widgetDir = core.system.visTrailsRootDirectory()+'/'+string.replace(__name__, '.', '/')+'/widgets/'
     candidates = os.listdir(widgetDir)
     for folder in candidates:
-        if os.path.isdir(widgetDir+folder) and folder!='CVS':
-            addWidget('packages.spreadsheet.widgets.'+folder,
+        if os.path.isdir(widgetDir+folder) and folder!='.svn':
+            addWidget(__name__+'.widgets.'+folder,
                       core.modules.module_registry,
                       core.modules.basic_modules,
                       basicWidgets)

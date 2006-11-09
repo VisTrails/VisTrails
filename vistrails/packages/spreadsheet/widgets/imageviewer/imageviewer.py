@@ -1,5 +1,4 @@
-import modules
-from modules.vistrails_module import Module
+from core.modules.vistrails_module import Module
 from PyQt4 import QtCore, QtGui
 from packages.spreadsheet.basic_widgets import SpreadsheetCell
 from packages.spreadsheet.spreadsheet_helpers import *

@@ -1,7 +1,5 @@
-import modules
-import modules.basic_modules
-import modules.module_registry
-from modules.vistrails_module import Module
+from core import modules
+from core.modules.vistrails_module import Module
 from spreadsheet_base import *
 from spreadsheet_controller import *
 from spreadsheet_event import *

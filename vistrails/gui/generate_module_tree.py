@@ -28,6 +28,7 @@ class GenerateModuleTree(QtCore.QObject):
         widget.setFlags(self.activeModuleFlags)
         self.widgets[name] = widget
         self.palette.allItems.append(widget)
+        self.palette.executeDelayedItemsLayout()
         return widget
         
     def generateModuleHierarchy(self):
