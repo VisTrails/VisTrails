@@ -4,6 +4,7 @@ if __name__ == '__main__':
     import gui.vis_application
     import sys
     try:
+        gui.vis_application.start_application()
         app = gui.vis_application.VistrailsApplication()
     except SystemExit, e:
         sys.exit(e)
