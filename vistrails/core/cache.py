@@ -274,7 +274,7 @@ class TestCache(unittest.TestCase):
         f.params = [self.p1, self.p2]
         m.functions = [f]
         m.center = Point(0, 0)
-        correctDigest = 'R\x13<\xa0\xe9i\x1f\xc9\x06\x80\xd8\xf2\xe9\xed\x0b\xbb\xd7\xa6=L'
+        correctDigest = '\xe3c@\xb2\x10\x90d\xa5l\x92\x02\x03A\x88\xd7\n\x96\x06\x99q'
         computedDigest = self.c.uniqueIdModule(m)
         self.assertEqual(correctDigest, computedDigest)
 
