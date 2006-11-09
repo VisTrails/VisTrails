@@ -103,3 +103,9 @@ Importing modules
     This allows us to run the modules as standalone classes, which is
     good for testing purposes.
 
+    Don't use the construct "from foo import *". This also imports the
+    tests from that module. The problem is that the test suite then
+    runs these tests twice. But worse than that is the problem that a
+    module that imports tests from other modules now reports these
+    tests as its own, even though it might have none. This gives us a
+    false sense of test converage which should be avoided.
