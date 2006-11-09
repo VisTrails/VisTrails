@@ -200,15 +200,22 @@ class TestCommon(unittest.TestCase):
         self.assertEquals(f[2], ["Foo"])
         
     def testMemo(self):
-        import timeit
-        t = timeit.Timer("common._TestFibo().f(100)", "import common")
-        t1 = t.timeit(10000)
-        t = timeit.Timer("common._TestFibo().f(102)", "import common")
-        t2 = t.timeit(10000)
-        t = timeit.Timer("common._TestFibo().f(104)", "import common")
-        t3 = t.timeit(10000)
-        r1 = t2/t1
-        r2 = t3/t2
+        import time
+        t1 = time.time()
+        for i in xrange(10000):
+            _TestFibo().f(102)
+        t2 = time.time()
+        for i in xrange(10000):
+            _TestFibo().f(104)
+        t3 = time.time()
+        for i in xrange(10000):
+            _TestFibo().f(106)
+        t4 = time.time()
+        d1 = t2 - t1
+        d2 = t3 - t2
+        d3 = t4 - t3
+        r1 = d2 / d1
+        r2 = d3 / d2
         self.assertEquals(r1< 2.618, True)
         self.assertEquals(r2< 2.618, True)
     def testMemo2(self):
