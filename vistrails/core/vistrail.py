@@ -733,10 +733,12 @@ import unittest
 
 class TestVistrail(unittest.TestCase):
     def test1(self):
-        import vistrail
-        import xml_parser
-        parser = xml_parser.XMLParser()
-        parser.openVistrail('test_files/lung.xml')
+        import core.vistrail
+        import core.xml_parser
+        import core.system
+        parser = core.xml_parser.XMLParser()
+        parser.openVistrail(core.system.visTrailsRootDirectory() +
+                            '/tests/resources/dummy.xml')
         v = parser.getVistrail()
         parser.closeVistrail()
         #testing nodes in different branches
@@ -745,7 +747,6 @@ class TestVistrail(unittest.TestCase):
         p1 = v.getFirstCommonVersion(v1,v2)
         p2 = v.getFirstCommonVersion(v2,v1)
         self.assertEquals(p1,p2)
-        print "Common version in different branches", p1
         
         #testing nodes in the same branch
         v1 = 1342
@@ -753,16 +754,16 @@ class TestVistrail(unittest.TestCase):
         p1 = v.getFirstCommonVersion(v1,v2)
         p2 = v.getFirstCommonVersion(v2,v1)
         self.assertEquals(p1,p2)
-        print "Common version in the same branch", p1
 
         if p1 == 0 or p2 == 0:
             self.fail("vistrails tree is not single rooted.")
 
     def test2(self):
-        import vistrail
-        import xml_parser
-        parser = xml_parser.XMLParser()
-        parser.openVistrail('tests/dummy.xml')
+        import core.vistrail
+        import core.xml_parser
+        parser = core.xml_parser.XMLParser()
+        parser.openVistrail(core.system.visTrailsRootDirectory() +
+                            '/tests/resources/dummy.xml')
         v = parser.getVistrail()
         parser.closeVistrail()
         #testing diff
