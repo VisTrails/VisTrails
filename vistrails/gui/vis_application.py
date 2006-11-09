@@ -284,4 +284,12 @@ the highest one I know of: 2""" % verbose
         if logger:
             logger.finishSession()
 
-VistrailsApplication = VistrailsApplicationSingleton()
+# The initialization must be explicitly signalled. Otherwise, any
+# modules importing vis_application will try to initialize the entire
+# app.
+def start_application():
+    """Initializes the application singleton."""
+    global VistrailsApplication
+    VistrailsApplication = VistrailsApplicationSingleton()
+
+VistrailsApplication = None
