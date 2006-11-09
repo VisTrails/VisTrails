@@ -4,7 +4,7 @@
 them, stealing the classes that look like unit tests, and running
 all of them.
 
-runTestSuite.py also reports all VisTrails modules that don't export
+runtestsuite.py also reports all VisTrails modules that don't export
 any unit tests, as a crude measure of code coverage.
 
 """
@@ -85,14 +85,14 @@ for (p, subdirs, files) in os.walk(root_directory):
         else:
             m = __import__(module)
 
-        testCases = get_test_cases(m)
-        for testCase in testCases:
-            suite = unittest.TestLoader().loadTestsFromTestCase(testCase)
+        test_cases = get_test_cases(m)
+        for test_case in test_cases:
+            suite = unittest.TestLoader().loadTestsFromTestCase(test_case)
             main_test_suite.addTests(suite)
 
-        if not testCases:
+        if not test_cases:
             print "WARNING: %s has no tests!" % filename
         else:
-            print "Ok: %s test cases." % len(testCases)
+            print "Ok: %s test cases." % len(test_cases)
 
 unittest.TextTestRunner().run(main_test_suite)
