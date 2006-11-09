@@ -5,7 +5,7 @@ import core.modules.vistrails_module
 
 import __builtin__
 
-from core.common import memo_method, all
+from core.common import VistrailsInternalError, memo_method, all
 import core.vis_types
 import copy
 
@@ -378,7 +378,7 @@ own type to decide between source and destination ports."""
             if localDescriptor:
                 ports.update(localDescriptor.inputPorts)
         else:
-            raise VistrailsInternalError("Invalid port endpoint")
+            raise VistrailsInternalError("Invalid port endpoint: %s" % port.endPoint)
         values = specStr.split(", ")
         if not ports.has_key(port.name):            
             if loose:
@@ -392,10 +392,6 @@ own type to decide between source and destination ports."""
             if all(zip(spec, values),
                    lambda ((klass, descr), name): issubclass(self.getDescriptorByName(name).module, klass)):
                 return [copy.copy(spec)]
-        print port.moduleName
-        print port.name
-        print specStr
-        print specs
         raise VistrailsInternalError("No port spec matches the given string")
 
     @staticmethod
