@@ -364,7 +364,7 @@ class TestVisTypes(unittest.TestCase):
         ports = core.modules.module_registry.registry.sourcePortsFromDescriptor(descriptor)
         assert all(ports, lambda x: x.moduleName == 'String')
         portRepr = 'value(String)'
-        p = registry.portFromRepresentation('String', portRepr, VisPortEndPoint.Source)
+        p = core.modules.module_registry.registry.portFromRepresentation('String', portRepr, VisPortEndPoint.Source)
         assert p.name == 'value'
         assert p.moduleName == 'String'
 
@@ -374,7 +374,7 @@ class TestVisTypes(unittest.TestCase):
         assert all(ports, lambda x: x.moduleName == 'String')
         portRepr = 'value(Float)'
         try:
-            p = registry.portFromRepresentation('String', portRepr, VisPortEndPoint.Source)
+            p = core.modules.module_registry.registry.portFromRepresentation('String', portRepr, VisPortEndPoint.Source)
             self.fail("Expected to fail - passed an incompatible spec representation")
         except VistrailsInternalError:
             pass
