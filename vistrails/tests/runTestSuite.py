@@ -61,6 +61,8 @@ for (p, subdirs, files) in os.walk(root_directory):
             continue
         if module.startswith('/'):
             continue
+        if module.startswith('\\'):
+            continue
         if module.startswith('packages'):
             continue
         if module.endswith('__init__'):
@@ -70,6 +72,7 @@ for (p, subdirs, files) in os.walk(root_directory):
         print "%s %s |" % (" " * (40 - len(module)), module),
 
         module = module.replace('/','.')
+        module = module.replace('\\','.')
         if '.' in module:
             m = __import__(module, globals(), locals(), ['foo'])
         else:
