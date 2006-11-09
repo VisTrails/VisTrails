@@ -14,15 +14,42 @@ if __name__ == '__main__':
 else:
     _thisDir = sys.modules[__name__].__file__
 _thisDir = os.path.split(_thisDir)[0]
-root_directory = _thisDir + '/../'
-
+if not _thisDir:
+    root_directory = './../'
+else:
+    root_directory = _thisDir + '/../'
 sys.path.append(root_directory)
 
 # creates a bogus qt app so that testing can happen
-
 import gui.qt
 app = gui.qt.createBogusQtApp()
 
+def subprint(s, overline=False):
+    """Prints line with underline (and optionally overline) ASCII dashes."""
+    if overline:
+        print "-" * len(s)
+    print s
+    print "-" * len(s)
+
+print "Test Suite for VisTrails"
+
+import unittest
+
+mainTestSuite = unittest.TestSuite()
+
+def getTestCases(module):
+    """Return all test cases from the module. Test cases are classes derived
+    from unittest.TestCase"""
+    result = []
+    import inspect
+    for member_name in dir(module):
+        member = getattr(module, member_name)
+        if inspect.isclass(member) and issubclass(member, unittest.TestCase):
+            result.append(member)
+    return result
+
+
+subprint("Trying to import all modules")
 for (p, subdirs, files) in os.walk(root_directory):
     if p.find('.svn') != -1:
         continue
@@ -34,6 +61,17 @@ for (p, subdirs, files) in os.walk(root_directory):
             continue
         if module.startswith('packages'):
             continue
-        print module
+        print "%s %s |" % (" " * (40 - len(module)), module),
         m = __import__(module)
-            
+
+        testCases = getTestCases(m)
+        for testCase in testCases:
+            suite = unittest.TestLoader().loadTestsFromTestCase(testCase)
+            mainTestSuite.addTests(suite)
+
+        if not testCases:
+            print "WARNING: %s has no tests!" % filename
+        else:
+            print "Ok: %s test cases." % len(testCases)
+
+unittest.TextTestRunner().run(mainTestSuite)
