@@ -564,10 +564,12 @@ class TestSearch(unittest.TestCase):
         self.assertEquals(TimeSearchStmt('13 apr 2006 21:00').date,
                           TimeSearchStmt('04/13/2006 21:00:00').date)
     def test15(self):
-        import vistrail
-        import xml_parser
-        parser = xml_parser.XMLParser()
-        parser.openVistrail('test_files/lung.xml')
+        import core.vistrail
+        import core.xml_parser
+        import core.system
+        parser = core.xml_parser.XMLParser()
+        parser.openVistrail(core.system.visTrailsRootDirectory() +
+                            '/tests/resources/dummy.xml')
         v = parser.getVistrail()
         parser.closeVistrail()
         self.assertTrue(NotesSearchStmt('mapper').match(v.actionMap[36]))
@@ -595,7 +597,8 @@ class TestSearch(unittest.TestCase):
                           SearchCompiler('before:this day').searchStmt.matchList[0].date)
     def test23(self):
         t = time.localtime()
-        inv = common.invert(TimeSearchStmt.months)
+        import core.common
+        inv = core.common.invert(TimeSearchStmt.months)
         m = inv[t[1]]
         self.assertEquals(SearchCompiler('after:%s %s %s' % (t[0], m, t[2])).searchStmt.matchList[0].date,
                           SearchCompiler('after:today').searchStmt.matchList[0].date)
