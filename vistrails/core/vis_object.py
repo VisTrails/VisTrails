@@ -294,7 +294,7 @@ class TestVisModule(unittest.TestCase):
     
     def testSummonModule(self):
         """Check that summon creates a correct module"""
-        import modules.basic_modules
+        import core.modules.basic_modules
         x = VisModule()
         x.name = "String"
         try:
