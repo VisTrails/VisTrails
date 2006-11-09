@@ -934,30 +934,36 @@ VisAction.createFromXMLDispatch['deleteModulePort'] = DeleteModulePortAction.par
 import unittest
 
 class TestVisAction(unittest.TestCase):
+    
     def test1(self):
-        import vistrail
-        import xml_parser
-        parser = xml_parser.XMLParser()
-        parser.openVistrail('test_files/vistrail.xml')
+        """Exercises aliasing on modules"""
+        import core.vistrail
+        import core.xml_parser
+        parser = core.xml_parser.XMLParser()
+        parser.openVistrail(core.system.visTrailsRootDirectory() +
+                            '/tests/resources/dummy.xml')
         v = parser.getVistrail()
         parser.closeVistrail()
-        p1 = v.getPipeline('Nice layout')
-        p2 = v.getPipeline('Nice layout')
+        p1 = v.getPipeline('final')
+        p2 = v.getPipeline('final')
         self.assertEquals(len(p1.modules), len(p2.modules))
         for k in p1.modules.keys():
             if p1.modules[k] is p2.modules[k]:
                 self.fail("didn't expect aliases in two different pipelines")
+
     def test2(self):
-        import vistrail
-        import xml_parser
-        parser = xml_parser.XMLParser()
-        parser.openVistrail('test_files/vtk_book_3rd_p189.xml')
+        """Exercises aliasing on points"""
+        import core.vistrail
+        import core.xml_parser
+        import core.system
+        parser = core.xml_parser.XMLParser()
+        parser.openVistrail(core.system.visTrailsRootDirectory() +
+                            '/tests/resources/dummy.xml')
         v = parser.getVistrail()
         parser.closeVistrail()
         p1 = v.getPipeline('final')
-        v.getPipeline('quadric')
+        v.getPipeline('final')
         p2 = v.getPipeline('final')
-        
         m1s = p1.modules.items()
         m2s = p2.modules.items()
         m1s.sort()
@@ -965,6 +971,7 @@ class TestVisAction(unittest.TestCase):
         for ((i1,m1),(i2,m2)) in zip(m1s, m2s):
             self.assertEquals(m1.center.x, m2.center.x)
             self.assertEquals(m1.center.y, m2.center.y)
+
 
 if __name__ == '__main__':
     unittest.main()
