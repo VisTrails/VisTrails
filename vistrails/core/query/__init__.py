@@ -106,7 +106,6 @@
 ################################################################################
 
 from core.common import memo_method
-import gui.vis_application
 
  
 class Query(object):
@@ -208,6 +207,7 @@ class Query1b(Query):
 class Query1c(Query):
 
     def run(self, vistrail, name):
+        import gui.vis_application
         c = gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct module_id, wf_version from
@@ -247,6 +247,7 @@ class Query1c(Query):
 class Query2(Query):
 
     def run(self, vistrail, name):
+        import gui.vis_application
         c = gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct module_id, wf_version from
@@ -295,6 +296,7 @@ class Query2(Query):
 class Query3(Query):
 
     def run(self, vistrail, name):
+        import gui.vis_application
         c = gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct module_id, wf_version from
@@ -336,6 +338,7 @@ class Query3(Query):
 class Query4(Query):
 
     def run(self, vistrail, name):
+        import gui.vis_application
         c = gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct exec.ts_start, exec.ts_end, exec_id, module_id, wf_version from
@@ -372,6 +375,7 @@ class Query5(Query):
         return set(self.upstream(graph, m_id))
 
     def run(self, vistrail, name):
+        import gui.vis_application
         c = gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct
@@ -421,6 +425,7 @@ class Query5(Query):
 class Query6(Query):
 
     def run(self, vistrail, name):
+        import gui.vis_application
         c = gui.vis_application.logger.db.cursor()
         c.execute("""
         select distinct module_id, wf_version from
