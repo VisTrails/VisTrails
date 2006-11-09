@@ -1,10 +1,18 @@
+"""The package afront defines a single module, Afront, which runs the meshing code
+described in
+
+Schreiner et al, Vis 2006
+Schreiner et al, Eurographics 2006
+Scheidegger et al, SGP 2005
+
+"""
+
 import core.modules
 import core.modules.module_registry
 import core.modules.basic_modules
 from core.modules.vistrails_module import Module, ModuleError, newModule
 
 import os
-import vtk
 
 ################################################################################
 
