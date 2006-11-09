@@ -1024,20 +1024,32 @@ class InvalidActionFound(Exception):
 import unittest
 
 class TestVisMacro(unittest.TestCase):
+    
     def test1(self):
-        import vistrail
-        import xml_parser
-        parser = xml_parser.XMLParser()
-        parser.openVistrail('tests/mounthood.xml')
+        # FIXME: This test is testing nothing. Put some macros in dummy.xml
+        import core.vistrail
+        import core.xml_parser
+        import core.system
+        parser = core.xml_parser.XMLParser()
+        parser.openVistrail(core.system.visTrailsRootDirectory() +
+                            'tests/resources/dummy.xml')
         v = parser.getVistrail()
         parser.closeVistrail()
-        v.serialize('tests/mounthood_out.xml')
+        import tempfile
+        import os
+        (fd, name) = tempfile.mkstemp()
+        os.close(fd)
+        v.serialize(name)
+        os.unlink(name)
 
     def testDependencies(self):
-        import vistrail
-        import xml_parser
-        parser = xml_parser.XMLParser()
-        parser.openVistrail('test_files/head_macro.xml')
+        # FIXME: This test is testing nothing. Put some macros in dummy.xml
+        import core.vistrail
+        import core.xml_parser
+        import core.system
+        parser = core.xml_parser.XMLParser()
+        parser.openVistrail(core.system.visTrailsRootDirectory() +
+                            'tests/resources/dummy.xml')
         v = parser.getVistrail()
         parser.closeVistrail()
 
