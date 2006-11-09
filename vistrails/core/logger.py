@@ -59,8 +59,8 @@ class Logger(object):
     def getSettingsFromApp(self):
         """ self.getSettingsFromApp()->None 
         Get information from configuration.logger in vis_application.py"""
-        from PyQt4 import QtCore
-        app = QtCore.QCoreApplication.instance()
+        import gui.vis_application
+        app = gui.vis_application.VistrailsApplication
         if app:
             self.dbHost = app.configuration.logger.dbHost
             self.dbPort = app.configuration.logger.dbPort
