@@ -59,10 +59,21 @@ for (p, subdirs, files) in os.walk(root_directory):
         module = p[5:] + '/' + filename[:-3]
         if module.startswith('tests'):
             continue
+        if module.startswith('/'):
+            continue
         if module.startswith('packages'):
             continue
+        if module.endswith('__init__'):
+            continue
+        if '#' in module:
+            continue
         print "%s %s |" % (" " * (40 - len(module)), module),
-        m = __import__(module)
+
+        module = module.replace('/','.')
+        if '.' in module:
+            m = __import__(module, globals(), locals(), ['foo'])
+        else:
+            m = __import__(module)
 
         testCases = getTestCases(m)
         for testCase in testCases:
