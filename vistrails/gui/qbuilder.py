@@ -24,7 +24,6 @@ from gui.qt import SignalSet
 from gui.version_tree import QVersionTree
 from gui.vis_shell import ShellGui
 from gui.vistrail_controller import VistrailController, QueryController
-from gui.vis_application import logger
 import core.system
 import core.vis_types
 import db.DBconfig
