@@ -83,8 +83,8 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         self.createWindows()
         self.setupBaseModules()
         self.installPackages()
-        if qt.qt_version() >= [4, 2, 0]:
-            self.builderWindow.modulePalette.treeManager.palette.expandAll()
+        modulePalette = self.builderWindow.modulePalette.treeManager.palette
+        modulePalette.expand(modulePalette.model().index(0,0))
         self.runStartupHooks()
 
         if self.configuration.showSplash:
