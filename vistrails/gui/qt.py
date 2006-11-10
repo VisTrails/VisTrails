@@ -56,6 +56,11 @@ def createBogusQtApp():
             allowQObjects()
     return BogusApplication()
 
+def qt_version():
+    return [int(i)
+            for i in
+            QtCore.qVersion().split('.')]
+
 ################################################################################
 
 okToCreateQObjects = False
