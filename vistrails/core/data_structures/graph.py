@@ -4,16 +4,15 @@ import copy
 
 from core.data_structures.queue import Queue
 
+################################################################################
+
 class Graph(object):
     """Graph holds a graph with possible multiple edges. The
-    datastructures are all dictionary-based, so datatypes more general than ints can be used. For example:
-
+    datastructures are all dictionary-based, so datatypes more general than ints
+    can be used. For example:
+    
     >>> import graph
     >>> g = graph.Graph()
-    >>> g.addEdge('foo')
-    Traceback (most recent call last):
-      File "<stdin>", line 1, in ?
-    TypeError: addEdge() takes at least 3 arguments (2 given)
     >>> g.addVertex('foo')
     >>> g.addVertex('bar')
     >>> g.addEdge('foo', 'bar', 'edge_foo')
@@ -22,25 +21,24 @@ class Graph(object):
     >>> g.outDegree('foo')
     2
     >>> g.outDegree('bar')
-    1
-    
+    1    
     """
-    class CannotSetVertices(Exception):
-        pass
     
+    def __init__(self):
+        """Initialize an empty graph"""
+        self.vertices = {}
+        self.adjacencyList = {}
+        self.inverseAdjacencyList = {}
+
     def addVertex(self, id):
-        """self.addVertex(id) -> None."""
+        """Add a vertex to the graph if it is not already in the graph"""
         if not self.vertices.has_key(id):
             self.vertices[id] = None
             self.adjacencyList[id] = []
             self.inverseAdjacencyList[id] = []
             
-    def __init__(self):
-        self.vertices = {}
-        self.adjacencyList = {}
-        self.inverseAdjacencyList = {}
-
     def inverse(self):
+        """Inverse all edge directions on the graph"""
         result = copy.copy(self)
         t = result.adjacencyList
         result.adjacencyList = result.inverseAdjacencyList
@@ -211,14 +209,16 @@ class Graph(object):
         vs = self.vertices.keys()
         vs.sort()
         al = reduce(lambda a,b: a + b,
-                    [map(lambda (t, i): (f, t, i), l) for (f, l) in self.adjacencyList.items()])
+                    [map(lambda (t, i): (f, t, i), l)
+                     for (f, l) in self.adjacencyList.items()])
         al.sort(edge_cmp)
         return "digraph G { " \
                + ";".join([str(s) for s in vs]) + ";" \
                + ";".join(["%s -> %s [label=\"%s\"]" % s for s in al]) + "}"
 
     def __repr__(self):
-        """ This function is much like __str__(), it returns a string versioon of the graph
+        """ This function is much like __str__(), it returns a string
+        version of the graph
 
         Returns
         -------
@@ -252,6 +252,7 @@ class Graph(object):
         return result
 
     def __copy__(self):
+        """Make a copy of the graph"""
         cp = Graph()
         cp.vertices = copy.deepcopy(self.vertices)
         cp.adjacencyList = copy.deepcopy(self.adjacencyList)
@@ -259,6 +260,7 @@ class Graph(object):
         return cp
 
     def bfs(self, frm):
+        """Perform Breadth-First-Search and return a dict of parent"""
         visited = set([frm])
         parent = {}
         q = Queue()
@@ -274,11 +276,7 @@ class Graph(object):
         return parent
 
     def parent(self, v):
-        #parent=self.bfs(0) #only works with ints?
-        #try:
-        #    return parent[v]
-        #except KeyError:
-        #    return -1
+        """Return the parent of vertex v"""
         try:
             l=self.inverseAdjacencyList[v]
         except KeyError:
@@ -321,35 +319,18 @@ def edge_cmp(v1, v2):
 ################################################################################
 
 import unittest
+import random
 
 class TestGraph(unittest.TestCase):
      """ Class to test Graph
 
-     It tests vertex addition, the outDegree of a sink and inDegree of a source consistencies.
+     It tests vertex addition, the outDegree of a sink and inDegree of a source
+     consistencies.
     
      """
      
-#      def testAddVertList(self, x=peckcheck.a_list(peckcheck.an_int)):
-#          g = Graph()
-#          for i in x:
-#              g.addVertex(i)
-#          x = copy.copy(g.vertices.keys())
-#          x.sort()
-#          self.assertEquals(x, uniq(x))
-
-#      def testSinkOutDegreeConsistency(self, x=peckcheck.an_object(Graph)):
-#          if not len(x.sinks()):
-#              raise BadData
-#          result = [None for i in x.sinks() if x.outDegree(i) == 0]
-#          assert len(result) == len(x.sinks())
-
-#      def testSourceInDegreeConsistency(self, x=peckcheck.an_object(Graph)):
-#          if not len(x.sources()):
-#              raise BadData
-#          result = [None for i in x.sources() if x.inDegree(i) == 0]
-#          assert len(result) == len(x.sources())
-
      def test1(self):
+         """Test adding edges and vertices"""
          g = Graph()
          g.addVertex('0')
          g.addVertex('1')
@@ -364,6 +345,7 @@ class TestGraph(unittest.TestCase):
          self.assertEquals(parent['1'], '0')
 
      def test2(self):
+         """Test bread-first-search"""
          g = Graph()
          g.addVertex(0)
          g.addVertex(1)
@@ -385,7 +367,19 @@ class TestGraph(unittest.TestCase):
          k2.sort()
          self.assertEquals(k2, [0, 1, 2, 3])
          
-         
+     def test3(self):
+         """Test sink and source degree consistency"""
+         g = Graph()
+         for i in range(100):
+             g.addVertex(i);
+         for i in range(1000):
+             v1 = random.randint(0,99)
+             v2 = random.randint(0,99)
+             g.addEdge(v1, v2, i)
+         sinkResult = [None for i in g.sinks() if g.outDegree(i) == 0]
+         sourceResult = [None for i in g.sinks() if g.outDegree(i) == 0]
+         assert len(sinkResult) == len(g.sinks())
+         assert len(sourceResult) == len(g.sources())
 
 if __name__ == '__main__':
     unittest.main()
