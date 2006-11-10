@@ -214,9 +214,9 @@ class TestCommon(unittest.TestCase):
         d1 = t2 - t1
         d2 = t3 - t2
         d3 = t4 - t3
-        if d1==0: r1 = 0
+        if d1 == 0: r1 = 0
         else: r1 = d2 / d1
-        if d2==0: r2 =0
+        if d2 == 0: r2 = 0
         else: r2 = d3 / d2
         self.assertEquals(r1< 2.618, True)
         self.assertEquals(r2< 2.618, True)
