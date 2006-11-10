@@ -218,8 +218,8 @@ class TestCommon(unittest.TestCase):
         else: r1 = d2 / d1
         if d2 == 0: r2 = 0
         else: r2 = d3 / d2
-        self.assertEquals(r1< 2.618, True)
-        self.assertEquals(r2< 2.618, True)
+        self.assertEquals(r1 < 2.618, True)
+        self.assertEquals(r2 < 2.618, True)
     def testMemo2(self):
         count = [0]
         class C1(object):
