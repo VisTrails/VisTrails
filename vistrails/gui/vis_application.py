@@ -5,6 +5,7 @@ from core import system
 import sys
 import copy
 import time
+import qt
 
 from PyQt4 import QtGui, QtCore
 
@@ -21,7 +22,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
     def __call__(self):
         return self
 
-    def __init__(self):
+    def __init__(self, optionsDict=None):
         global logger
         QtGui.QApplication.__init__(self, sys.argv)
         qt.allowQObjects()
@@ -59,6 +60,9 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
                                   dbUser='',
                                   dbPasswd='',
                                   dbName=''))
+        if optionsDict:
+            for (k, v) in optionsDict.iteritems():
+                setattr(self.configuration, k, v)
         self.startupHooks = []
         self.packageList = []
         self.setupOptions()
@@ -79,7 +83,8 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         self.createWindows()
         self.setupBaseModules()
         self.installPackages()
-        self.builderWindow.modulePalette.treeManager.palette.expandAll()
+        if qt.qt_version() >= [4, 2, 0]:
+            self.builderWindow.modulePalette.treeManager.palette.expandAll()
         self.runStartupHooks()
 
         if self.configuration.showSplash:
@@ -288,9 +293,9 @@ the highest one I know of: 2""" % verbose
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
 # app.
-def start_application():
+def start_application(optionsDict=None):
     """Initializes the application singleton."""
     global VistrailsApplication
-    VistrailsApplication = VistrailsApplicationSingleton()
+    VistrailsApplication = VistrailsApplicationSingleton(optionsDict)
 
 VistrailsApplication = None
