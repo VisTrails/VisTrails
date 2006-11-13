@@ -82,9 +82,33 @@ Short version:
 
 Docstrings
 ----------
-
+    We agreed using something a little more compact than the guidelines
+available at:
     http://www.python.org/dev/peps/pep-0257/
 
+    Examples:
+    If it is an obvious function, we should use something like this:
+    def temporaryDirectory():
+        """ temporaryDirectory()->str 
+         Returns the path to the system's temporary directory """
+         return "/tmp/"
+    
+
+    If the function has structured parameters requiring a detailed description,
+    use something like this:
+    
+    def complex(real=0.0, imag=0.0):
+        """complex(real=0.0, imag=0.0) -> complex
+        Form a complex number.
+
+        Keyword arguments:
+        real -- the real part
+        imag -- the imaginary part
+
+        """
+        if imag == 0.0 and real == 0.0: return complex_zero
+        ...
+        
 
 Importing modules
 -----------------
