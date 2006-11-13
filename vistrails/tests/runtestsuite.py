@@ -71,8 +71,13 @@ for (p, subdirs, files) in os.walk(root_directory):
             module.startswith('/') or
             module.startswith('\\') or
             module.startswith('packages') or
-            module.endswith('__init__') or
             ('#' in module)):
+            continue
+        if ('system' in module and not
+            module.endswith('__init__')):
+            continue
+        if (not ('system' in module) and
+            module.endswith('__init__')):
             continue
         print "%s %s |" % (" " * (40 - len(module)), module),
 
