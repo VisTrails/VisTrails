@@ -4,7 +4,10 @@
 class Queue(object):
 
     def __init__(self, capacity=8):
-        """Inint the queue with a default capacity and zero in size"""
+        """ Queue(capacity: int) -> Queue
+        Initialize the queue with a default capacity of zero in size
+
+        """
         self.__buffer = [None] * capacity
         self.__capacity = capacity
         self.__size = 0
@@ -12,7 +15,11 @@ class Queue(object):
         self.__end = 0
         
     def __len__(self):
-        """Return the number of element when using the built-in len()"""
+        """ __len__() -> int
+        Compute the number of elements when using the built-in len()
+        and return an int
+
+        """
         l = self.__end - self.__begin
         if l < 0:
             return self.__capacity - l
@@ -20,16 +27,25 @@ class Queue(object):
             return l
         
     def front(self):
-        """Return the front of the queue"""
+        """ front() -> element type
+        Get the front of the queue and return an element type
+
+        """
         return self.__buffer[self.__begin]
     
     def back(self):
-        """Return the back (last) element of the queue"""
+        """ back() -> element type
+        Get the back (last) element of the queue and return an element type
+
+        """
         return self.__buffer[(self.__end + self.__capacity - 1) %
                              self.__capacity]
     
     def push(self, obj):
-        """Push obj onto the back queue"""
+        """ push(obj: element type) -> None
+        Push obj onto the back queue and return nothing
+
+        """
         if (self.__end + 1) % self.__capacity == self.__begin:
             self.__rebuffer(self.__capacity * 2)
         self.__buffer[self.__end] = obj
@@ -38,7 +54,10 @@ class Queue(object):
             self.__end = 0
             
     def pop(self):
-        """Pop the front element of the queue"""
+        """ pop() -> element type
+        Pop the front element of the queue and return an element type
+
+        """
         r = self.__buffer[self.__begin]
         self.__buffer[self.__begin] = None
         self.__begin += 1
@@ -49,7 +68,11 @@ class Queue(object):
         return r
 
     def __rebuffer(self, newcapacity):
-        """Reallocate the internal buffer to fit at newcapacity elements"""
+        """ __rebuffer(newcapacity: int) -> none
+        Reallocate the internal buffer to fit at newcapacity elements and
+        return nothing
+
+        """
         nb = [None] * newcapacity
         if self.__begin < self.__end:
             l = self.__end - self.__begin
@@ -67,7 +90,10 @@ class Queue(object):
         self.__capacity = newcapacity
         
     def __str__(self):
-        """Return the string version of the queue"""
+        """ __str__() -> str
+        Format the queue for serialization and return a string
+
+        """
         return str(self.__buffer)
 
 ################################################################################

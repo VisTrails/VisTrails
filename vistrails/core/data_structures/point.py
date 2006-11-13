@@ -8,51 +8,73 @@ class Point(object):
 convenient."""
 
     def __init__(self, x=0, y=0):
-        """Constructor: Point(x=0, y=0) -> Point"""
+        """ Point(x: float, y: float) -> Point
+        Initialize and return a Point
+        
+        """
         self.x = float(x)
         self.y = float(y)
 
     def reset(self,x,y):
-        """reset(x,y) -> None. Resets the point to given coordinates."""
+        """ reset(x: float, y: float) -> None
+        Resets the point to given coordinates and return nothing
+
+        """
         self.x = float(x)
         self.y = float(y)
 
     def __neg__(self):
-        """__neg__() -> Point. Returns a point p such that
-        self + p == Point(0,0)"""
+        """ __neg__() -> Point
+        Compute a point p such that: self + p == Point(0,0), and return a Point
+        
+        """
         return Point(-self.x,-self.y)
 
-    def __add__(self,other):
-        """__add__(other) -> Point. Returns a point p such that
-        self + other == p"""
+    def __add__(self, other):
+        """ __add__(other: Point) -> Point
+        Returns a point p such that: self + other == p, and return a Point
+        
+        """
         return Point(self.x + other.x, self.y + other.y)
 
-    def __sub__(self,other):
-        """__sub__(other) -> Point. Returns a point p such that
-        self + other == p"""
+    def __sub__(self, other):
+        """ __sub__(other: Point) -> Point
+        Returns a point p such that: self + other == p, and return a Point
+
+        """
         return Point(self.x - other.x, self.y - other.y)
 
-    def __mul__(self,other):
-        """__mul__(other) -> Point. Interprets self as a vector and returns
-        self * other, where other is a scalar."""
+    def __mul__(self, other):
+        """ __mul__(other: float) -> Point
+        Interprets self as a vector to perform a scalar multiplication and
+        return a Point
+
+        """
         return Point(self.x * other, self.y * other)
 
-    def __rmul__(self,other):
-        """__rmul__(other) -> Point. Interprets self as a vector and returns
-        other * self, where other is a scalar."""
+    def __rmul__(self, other):
+        """ __rmul__(other: float) -> Point
+        Interprets self as a vector to perform a scalar multiplication and
+        return a Point
+
+        """
         return Point(self.x * other, self.y * other)
 
-    def isInside(self,rect):
-        """isInside(other) -> Point. Interprets self as a vector and returns
-        other * self, where other is a scalar."""
+    def isInside(self, rect):
+        """ isInside(rect: Rect) -> boolean
+        Check if the point is falling inside rect and return a boolean
+        
+        """
         return (self.x >= rect.lowerLeft.x and
                 self.x <= rect.upperRight.x and
                 self.y >= rect.lowerLeft.y and
                 self.y <= rect.upperRight.y)
     
     def length(self):
-        """length() -> float. Interprets self as a vector and returns the L_2
-        length of the vector."""
+        """ length() -> float
+        Interprets self as a vector to compute the L_2 norm and return a float
+
+        """
         return math.sqrt(self.x * self.x + self.y * self.y)
 
 ################################################################################

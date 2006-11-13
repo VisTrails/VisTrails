@@ -6,9 +6,11 @@ from core.data_structures.point import Point
 
 class Rect(object):
     def __init__(self, lowerLeft=None, upperRight=None):
-        """Rect(Point, Point). Creates a Rect given the lowerLeft and
-        the upperRight points. It creates a copy of the given points."""
-        
+        """ Rect(lowerLeft: Point, upperRight: Point) -> Rect
+        Creates a Rect given the lowerLeft and the upperRight points. It creates
+        a copy of the given points. Return a Rect
+
+        """        
         if lowerLeft == None:
             self.lowerLeft = Point()
         else:
@@ -22,38 +24,59 @@ class Rect(object):
 
     @staticmethod
     def create(left, right, down, up):
-        """create(left, right, down, up) -> Point. Creates a Rect from four
-        float extents."""
+        """ create(left: float, right: float, down: float, up: float) -> Point
+        Creates a Rect from four float extents and return a Rect
+
+        """
         return Rect(Point(min(left, right),
                           min(up, down)),
                     Point(max(left, right),
                           max(down, up)))
     
     def setLeft(self, x):
-        """self.setLeft(x) -> None. Sets the left limit of the Rect."""
+        """ setLeft(x: float) -> None
+        Sets the left limit of the Rect and return nothing
+
+        """
         self.lowerLeft.x = x
 
     def setRight(self, x):
-        """self.setLeft(x) -> None. Sets the right limit of the Rect."""
+        """ setRight(x: float) -> None
+        Sets the right limit of the Rect and return nothing
+
+        """
         self.upperRight.x = x
 
     def setUp(self,y):
-        """self.setLeft(x) -> None. Sets the upper limit of the Rect."""
+        """ setUp(y: float) -> None
+        Sets the upper limit of the Rect and return nothing
+
+        """
         self.upperRight.y = y
 
     def setDown(self, y):
-        """self.setLeft(x) -> None. Sets the lower limit of the Rect."""
+        """ setDown(y: float) -> None
+        Sets the lower limit of the Rect and return nothing
+
+        """
         self.lowerLeft.y = y
 
     def center(self):
-        """self.center() -> Point. Returns the center of the Rect."""
+        """ center() -> Point
+        Compute the center of the Rect and return a Point
+
+        """
         return (self.upperRight + self.lowerLeft) * 0.5
 
     def checkExtent(self):
-        """self.checkExtent() -> None. Makes sure left limit is less than right
-        limit, and lower limit is less than upper limit. In other words, ensures
-        that, immediately after the call, self.lowerLeft.x <= self.upperRight.x
-        and self.lowerLeft.y <= self.upperRight.y"""
+        """ checkExtent() -> None
+        Makes sure left limit is less than right limit, and lower limit is less
+        than upper limit. In other words, ensures that, immediately after the
+        call:
+        self.lowerLeft.x <= self.upperRight.x and
+        self.lowerLeft.y <= self.upperRight.y
+
+        """
         if self.lowerLeft.x > self.upperRight.x:
             dlx = self.lowerLeft.x
             self.lowerLeft.x = self.upperRight.x

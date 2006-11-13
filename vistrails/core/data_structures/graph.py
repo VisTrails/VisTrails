@@ -25,20 +25,33 @@ class Graph(object):
     """
     
     def __init__(self):
-        """Initialize an empty graph"""
+        """ Graph() -> Graph
+        Initialize an empty graph and return nothing
+
+        """
         self.vertices = {}
         self.adjacencyList = {}
         self.inverseAdjacencyList = {}
 
     def addVertex(self, id):
-        """Add a vertex to the graph if it is not already in the graph"""
+        """ addVertex(id: id type) -> None
+        Add a vertex to the graph if it is not already in the graph
+        and return nothing
+
+        Keyword arguments:
+        id -- vertex id
+        
+        """
         if not self.vertices.has_key(id):
             self.vertices[id] = None
             self.adjacencyList[id] = []
             self.inverseAdjacencyList[id] = []
             
     def inverse(self):
-        """Inverse all edge directions on the graph"""
+        """inverse() -> Graph
+        Inverse all edge directions on the graph and return a Graph
+
+        """
         result = copy.copy(self)
         t = result.adjacencyList
         result.adjacencyList = result.inverseAdjacencyList
@@ -46,19 +59,13 @@ class Graph(object):
         return result
 
     def addEdge(self, froom, to, id=None):
-        """ Add an edge from vertex 'froom' to vertex 'to'
+        """ addEdge(froom: id type, to: id type, id: id type) -> None
+        Add an edge from vertex 'froom' to vertex 'to' and return nothing
 
-        Parameters
-        ----------
-
-        - froom : 'immutable'
-          origin vertex
-          
-        - to : 'immutable'
-          destination vertex
-
-        - id : 'immutable'
-          edge id
+        Keyword arguments:
+        froom -- 'immutable' origin vertex id
+        to    -- 'immutable' destination vertex id
+        id    -- 'immutable' edge id (default None)
           
         """
         self.addVertex(froom)
@@ -67,13 +74,11 @@ class Graph(object):
         self.inverseAdjacencyList[to].append((froom, id))
         
     def deleteVertex(self, id):
-        """ Remove a vertex from graph
+        """ deleteVertex(id: id type) -> None
+        Remove a vertex from graph and return nothing
 
-        Parameters
-        ----------
-
-        - id : 'immutable'
-          vertex id
+        Keyword arguments:
+        -- id : 'immutable' vertex id
           
         """
         self.adjacencyList.pop(id)
@@ -81,19 +86,13 @@ class Graph(object):
         self.vertices.pop(id)
         
     def deleteEdge(self, froom, to, id):
-        """ Remove an edge from graph
+        """ deleteEdge(froom: id type, to: id type, id: id type) -> None
+        Remove an edge from graph and return nothing
 
-        Parameters
-        ----------
-
-        - froom : 'immutable'
-          origin vertex
-
-        - to : 'immutable'
-          destination vertex
-
-        - id : 'immutable'
-          edge id
+        Keyword arguments:
+        froom -- 'immutable' origin vertex id
+        to    -- 'immutable' destination vertex id
+        id    -- 'immutable' edge id
           
         """
         if id == None:
@@ -108,103 +107,63 @@ class Graph(object):
         self.inverseAdjacencyList[to].remove((froom, id))
         
     def outDegree(self, froom):
-        """ Returns the number of edges leaving 'froom'
+        """ outDegree(froom: id type) -> int
+        Compute the number of edges leaving 'froom' and return an int
 
-        Parameters
-        ----------
+        Keyword arguments:
+        froom -- 'immutable' vertex id
 
-        - froom : 'immutable'
-          vertex id
-
-        Returns
-        -------
-
-        - 'immutable'
-        
         """
         return len(self.adjacencyList[froom])
     
     def inDegree(self, to):
-        """ Returns the number of edges entering 'to'
+        """ inDegree(to: id type) -> int
+        Compute the number of edges entering 'to' and return an int
 
-        Parameters
-        ----------
+        Keyword arguments:
+        to -- 'immutable' vertex id
 
-        - to : 'immutable'
-          vertex id
-
-        Returns
-        -------
-
-        - 'immutable'
-        
         """
         return len(self.inverseAdjacencyList[to])
     
     def sinks(self):
-        """ Returns list of vertex ids which outDegree is zero
+        """ sinks() -> list(id type)
+        Find all vertices whose outDegree is zero and return a list of ids
 
-        Returns
-        -------
-
-        - 'list' of 'immutable'
-        
         """
         return [idx for idx in self.vertices.keys() if self.outDegree(idx) == 0]
     
     def sources(self):
-        """ Returns list of vertex ids which inDegree is zero
+        """ sources() -> list(id type)
+        Find all vertices whose inDegree is zero and return a list of ids
 
-        Returns
-        -------
-
-        - 'list' of 'immutable'
-        
         """
         return [idx for idx in self.vertices.keys() if self.inDegree(idx) == 0]
 
     def edgesTo(self, id):
-        """ Returns edges entering vertex id
-        
-        Parameters
-        ----------
+        """ edgesTo(id: id type) -> list(list)
+        Find edges entering a vertex id and return a list of tuples (id,id)
 
-        - id : 'immutable'
-          vertex id
-
-        Returns
-        -------
-
-        - 'list' of ('immutable','immutable')
+        Keyword arguments:
+        id : 'immutable' vertex id
         
         """
         return self.inverseAdjacencyList[id]
 
     def edgesFrom(self, id):
-        """ Returns edges leaving vertex id
+        """ edgesFrom(id: id type) -> list(list)
+        Find edges leaving a vertex id and return a list of tuples (id,id)
         
-        Parameters
-        ----------
+        Keyword arguments:
+        id : 'immutable' vertex id
 
-        - id : 'immutable'
-          vertex id
-
-        Returns
-        -------
-
-        - 'list' of ('immutable','immutable')
-        
         """
         return self.adjacencyList[id]
 
     def __str__(self):
-        """ Returns a formatted version of the graph
+        """ __str__() -> str
+        Format the graph for serialization and return a string
 
-        Returns
-        -------
-
-        - 'str'
-        
         """
         vs = self.vertices.keys()
         vs.sort()
@@ -217,25 +176,20 @@ class Graph(object):
                + ";".join(["%s -> %s [label=\"%s\"]" % s for s in al]) + "}"
 
     def __repr__(self):
-        """ This function is much like __str__(), it returns a string
-        version of the graph
-
-        Returns
-        -------
-
-        - 'str'
+        """ __repr__() -> str
+        Similar to __str__ to re-represent the graph and returns a string
 
         """
         return self.__str__()
 
     def fromRandom(size):
-        """ Create a dag with ~ size/e vertices and 3*|vertex| edges
-        
-        Returns
-        -------
+        """ fromRandom(size:int) -> Graph
+        Create a DAG with approximately size/e vertices and 3*|vertex| edges
+        and return a Graph
 
-        - 'Graph'
-        
+        Keyword arguments:
+        size -- the estimated size of the graph to generate
+
         """
         result = Graph()
         verts = filter(lambda x: x>0, peckcheck.a_list(peckcheck.an_int)(size))
@@ -252,7 +206,10 @@ class Graph(object):
         return result
 
     def __copy__(self):
-        """Make a copy of the graph"""
+        """ __copy__() -> Graph
+        Make a copy of the graph and return a Graph
+
+        """
         cp = Graph()
         cp.vertices = copy.deepcopy(self.vertices)
         cp.adjacencyList = copy.deepcopy(self.adjacencyList)
@@ -260,7 +217,13 @@ class Graph(object):
         return cp
 
     def bfs(self, frm):
-        """Perform Breadth-First-Search and return a dict of parent"""
+        """ bfs(frm:id type) -> dict(id type)
+        Perform Breadth-First-Search and return a dict of parent id
+
+        Keyword arguments:
+        frm -- 'immutable' vertex id
+
+        """
         visited = set([frm])
         parent = {}
         q = Queue()
@@ -276,7 +239,13 @@ class Graph(object):
         return parent
 
     def parent(self, v):
-        """Return the parent of vertex v"""
+        """ parent(v: id type) -> id type
+        Find the parent of vertex v and return an id
+
+        Keyword arguments:
+        v -- 'immutable' vertex id
+
+        """
         try:
             l=self.inverseAdjacencyList[v]
         except KeyError:
@@ -289,20 +258,12 @@ class Graph(object):
     fromRandom = staticmethod(fromRandom)
 
 def edge_cmp(v1, v2):
-    """ Defines how the comparison must be done between edges 
+    """ edge_cmp(v1: id type, v2:id type) -> int
+    Defines how the comparison must be done between edges  and return a boolean
 
-    Parameters
-    ----------
-    - v1 : 'sequence'
-      edge information
-      
-    - v2 : 'sequence'
-      other edge information
-    
-    Returns
-    -------
-
-    - 'boolean'
+    Keyword arguments:
+    v1 -- 'sequence' edge information
+    v2 -- 'sequence' other edge information
     
     """
     (from1, to1, id1) = v1
