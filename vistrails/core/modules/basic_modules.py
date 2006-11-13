@@ -64,7 +64,7 @@ class FileSink(vistrails_module.Module):
         v1 = self.getInputFromPort("file")
         v2 = self.getInputFromPort("outputName")
         try:
-            system.link_or_copy(v1.name, v2)
+            system.linkOrCopy(v1.name, v2)
         except OSError, e:
             if (self.hasInputFromPort("overrideFile") and
                 self.getInputFromPort("overrideFile")):

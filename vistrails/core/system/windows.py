@@ -1,12 +1,16 @@
 import os
+import shutil
 from PyQt4 import QtGui
 
 try:
-    from ctypes import *
+    from ctypes import windll, Structure, c_ulong
     importSuccess = True
     
     class WIN32MEMORYSTATUS(Structure):
-        """ Structure that represents memoory information returned by Windows API"""
+        """ Structure that represents memory information returned by 
+        Windows API
+        
+        """
         _fields_ = [
             ('dwLength', c_ulong),
             ('dwMemoryLoad', c_ulong),
@@ -21,10 +25,10 @@ try:
 except ImportError:
     importSuccess = False
     
-
-def parse_meminfo():
+##############################################################################
+def parseMeminfo():
     """ 
-    parse_meminfo() -> int
+    parseMeminfo() -> int
     Calls Windows 32 API GlobalMemoryStatus(Ex) to get memory information 
     It requires ctypes module
     
@@ -40,12 +44,21 @@ def parse_meminfo():
     return result.dwTotalPhys
 
 def guessTotalMemory():
+    """ guessTotalMemory() -> int 
+    Return system memory in bytes. If ctypes is not installed it returns -1 
+    
+    """
     if importSuccess:
-        return parse_meminfo()
+        return parseMeminfo()
     else:
         return -1
 
 def temporaryDirectory():
+    """ temporaryDirectory() -> str 
+    Returns the path to the system's temporary directory. Tries to use the $TMP 
+    environment variable, if it is present. Else, tries $TEMP, else uses 'c:/' 
+    
+    """
     if os.environ.has_key('TMP'):
         return os.environ['TMP'] + '\\'
     elif os.environ.has_key('TEMP'):
@@ -54,7 +67,11 @@ def temporaryDirectory():
         return 'c:/'
 
 def homeDirectory():
-    # FIXME: get the right one
+    """ homeDirectory() -> str 
+    Returns user's home directory using windows environment variables
+    $HOMEDRIVE and $HOMEPATH
+    
+    """
     if len(os.environ['HOMEPATH']) == 0:
 	return '\\'
     else:
@@ -67,17 +84,52 @@ def remoteShellProgram():
     return "plink -P"
 
 def graphVizDotCommandLine():
+    """ graphVizDotCommandLine() -> str
+    Returns dot command line
+
+    """
     return 'dot -Tplain -o'
 
 def removeGraphvizTemporaries():
     pass
 
-import shutil
-
-def link_or_copy(fr, to):
-    shutil.copyfile(fr, to)
-
+def linkOrCopy(src, dst):
+    """linkOrCopy(src:str, dst:str) -> None 
+    Copies file src to dst 
+    
+    """
+    shutil.copyfile(src, dst)
 
 def getClipboard():
-   return QtGui.QClipboard.Clipboard
+    """ getClipboard() -> int  
+    Returns which part of system clipboard will be used by QtGui.QClipboard.
+    On Windows, the global clipboard should be used.
 
+    """
+    return QtGui.QClipboard.Clipboard
+
+################################################################################
+
+import unittest
+
+class TestWindows(unittest.TestCase):
+     """ Class to test Windows specific functions """
+     
+     def test1(self):
+         """ Test if guessTotalMemory() is returning an int >= 0"""
+         result = guessTotalMemory()
+         assert type(result) == type(1)
+         assert result >= 0
+
+     def test2(self):
+         """ Test if homeDirectory is not empty """
+         result = homeDirectory()
+         assert result != ""
+
+     def test3(self):
+         """ Test if temporaryDirectory is not empty """
+         result = temporaryDirectory()
+         assert result != ""
+
+if __name__ == '__main__':
+    unittest.main()

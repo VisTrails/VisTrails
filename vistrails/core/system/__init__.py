@@ -1,17 +1,30 @@
-from core.common import unimplemented, VistrailsInternalError
 import os
 import os.path
 import sys
 import platform
+from core.common import unimplemented, VistrailsInternalError
+
+################################################################################
 
 systemType = platform.system()
 
 if systemType in ['Windows', 'Microsoft']:
-    from core.system.windows import *
+    from core.system.windows import guessTotalMemory, temporaryDirectory, \
+        homeDirectory, remoteCopyProgram, remoteShellProgram, \
+        graphVizDotCommandLine, removeGraphvizTemporaries, linkOrCopy, \
+        getClipboard, TestWindows
+
 elif systemType in ['Linux']:
-    from core.system.linux import *
+    from core.system.linux import guessTotalMemory, temporaryDirectory, \
+        homeDirectory, remoteCopyProgram, remoteShellProgram, \
+        graphVizDotCommandLine, removeGraphvizTemporaries, linkOrCopy, \
+        getClipboard, TestLinux
+
 elif systemType in ['Darwin']:
-    from core.system.osx import *
+    from core.system.osx import guessTotalMemory, temporaryDirectory, \
+        homeDirectory, remoteCopyProgram, remoteShellProgram, \
+        graphVizDotCommandLine, removeGraphvizTemporaries, linkOrCopy, \
+        getClipboard, TestMacOSX 
 else:
     print "Critical error"
     print "VisTrails could not detect your operating system."
@@ -26,7 +39,12 @@ _thisDir = os.path.split(_thisDir)[0]
 __rootDir = _thisDir + '/../../'
 
 __dataDir = __rootDir + 'data/'
+
 def setVistrailsDataDirectory(d):
+    """ setVistrailsDataDirectory(d:str) -> None 
+    Sets vistrails data directory taking into account environment variables
+
+    """
     global __dataDir
     new_d = os.path.expanduser(d)
     new_d = os.path.expandvars(new_d)
@@ -36,6 +54,11 @@ def setVistrailsDataDirectory(d):
     __dataDir = d + '/'
 
 def setVistrailsDirectory(d):
+    """ setVistrailsDirectory(d:str) -> None 
+    Sets vistrails root directory taking into account environment variables
+
+    """
+
     global __rootDir
     new_d = os.path.expanduser(d)
     new_d = os.path.expandvars(new_d)
@@ -45,24 +68,48 @@ def setVistrailsDirectory(d):
     __rootDir = d + '/'
 
 def visTrailsRootDirectory():
+    """ visTrailsRootDirectory() -> str
+    Returns vistrails root directory
+
+    """
     return __rootDir
 
 def vistrailsDirectory():
-    return visTrailsRootDirectory() + 'test_files'
+    """ vistrailsDirectory() -> str 
+    Returns vistrails examples directory
+
+    """
+    return visTrailsRootDirectory() + '../examples/'
 
 def packagesDirectory():
-    return visTrailsRootDirectory() + 'packages'
+    """ packagesDirectory() -> str 
+    Returns vistrails packages directory
+
+    """
+    return visTrailsRootDirectory() + 'packages/'
 
 def blankVistrailFile():
     unimplemented()
 
 def resourceDirectory():
+    """ resourceDirectory() -> str 
+    Returns vistrails gui resource directory
+
+    """
     return visTrailsRootDirectory() + 'gui/resources/'
 
 def defaultOptionsFile():
+    """ defaultOptionsFile() -> str 
+    Returns vistrails default options file
+
+    """
     return homeDirectory() + "/.vistrailsrc"
 
 def defaultDotVistrails():
+    """ defaultDotVistrails() -> str 
+    Returns vistrails configuration file
+
+    """
     return homeDirectory() + "/.vistrails"
 
 def pythonVersion():
@@ -73,7 +120,8 @@ Returns python version info."""
 def vistrailsVersion():
    """vistrailsVersion() -> string - Returns the current VisTrails version."""
    # 0.1 was the Vis2005 version
-   # 0.2 will be the SIGMOD demo version
+   # 0.2 was the SIGMOD demo version
+   # 0.3 is the plugin/vtk version
    return '0.3'
 
 def aboutString():
@@ -100,4 +148,12 @@ DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM
 (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING RENDERED
 INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF
 THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER
-OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.""" % vistrailsVersion()
+OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY 
+OF SUCH DAMAGES.""" % vistrailsVersion()
+
+################################################################################
+
+import unittest
+
+if __name__ == '__main__':
+    unittest.main()

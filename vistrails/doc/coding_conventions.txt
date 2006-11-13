@@ -89,7 +89,7 @@ available at:
     Examples:
     If it is an obvious function, we should use something like this:
     def temporaryDirectory():
-        """ temporaryDirectory()->str 
+        """ temporaryDirectory() -> str 
          Returns the path to the system's temporary directory """
          return "/tmp/"
     
