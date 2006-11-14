@@ -1,19 +1,41 @@
-from core.modules.vistrails_module import Module
-from core.modules.basic_modules import Tuple
-from core.modules.module_registry import registry
+################################################################################
+# This describes basic modules used by other VTK module
+################################################################################
 import vtk
-import __builtin__
+from core.modules.module_registry import registry
+from core.modules.vistrails_module import Module
+
+################################################################################
 
 class vtkBaseModule(Module):
+    """
+    vtkBaseModule is the base class for all VTK modules in VisTrails, it acts
+    as a wrapper to direct all input/output ports to appropriate VTK function
+    calls
+    
+    """
 
     def __init__(self):
+        """ vtkBaseModule() -> vtkBaseModule
+        Instantiate an emptt VTK Module with real VTK instance
+        
+        """
         Module.__init__(self)
         self.vtkInstance = None
 
     def compute(self):
+        """ compute() -> None
+        Actually perform real VTK task by directing all input/output ports
+        to VTK function calls
+        
+        """
+
+        # Always re-create vtkInstance module, no caching here
         if self.vtkInstance:
             del self.vtkInstance
         self.vtkInstance = self.vtkClass()
+
+        # Make sure all input ports are called correctly
         for function in self.inputPorts.keys():
             paramList = self.forceGetInputListFromPort(function)
             if function[:18]=='SetInputConnection':
@@ -21,7 +43,7 @@ class vtkBaseModule(Module):
                                  paramList)
                 function = 'SetInputConnection'
             for p in paramList:
-                if type(p)==__builtin__.tuple:
+                if type(p)==tuple:
                     param = list(p)
                 elif p==None: param = []
                 else: param = [p]
@@ -29,25 +51,27 @@ class vtkBaseModule(Module):
                     if hasattr(param[i], 'vtkInstance'):
                         param[i] = param[i].vtkInstance
                 getattr(self.vtkInstance, function)(*param)
-                
+
+        # Then update the output ports also with appropriate function calls
         for function in self.outputPorts.keys():
             if function[:13]=='GetOutputPort':
                 i = int(function[13:])
-                self.setResult(function,
-                               vtkBaseModule.wrapperModule('vtkAlgorithmOutput',
-                                                           self.vtkInstance.GetOutputPort(i)))
+                vtkOutput = self.vtkInstance.GetOutputPort(i)
+                output = vtkBaseModule.wrapperModule('vtkAlgorithmOutput',
+                                                     vtkOutput)
+                self.setResult(function, output)
             elif hasattr(self.vtkInstance, function):
                 retValues = getattr(self.vtkInstance, function)()
                 if issubclass(retValues.__class__, vtk.vtkObject):
-                    self.setResult(function,
-                                   vtkBaseModule.wrapperModule(retValues.GetClassName(),
-                                                               retValues))
-                elif (type(retValues)==__builtin__.tuple or
-                      type(retValues)==__builtin__.list):
+                    className = retValues.GetClassName()
+                    output  = vtkBaseModule.wrapperModule(className, retValues)
+                    self.setResult(function, output)                                   
+                elif (type(retValues) in [tuple, list]):
                     result = list(retValues)
                     for i in range(len(result)):
                         if issubclass(result[i].__class__, vtk.vtkObject):
-                            result[i] = vtkBaseModule.wrapperModule(result[i].GetClassName(),
+                            className = result[i].GetClassName()
+                            result[i] = vtkBaseModule.wrapperModule(className,
                                                                     result[i])
                     self.setResult(function, type(retValues)(result))
                 else:
@@ -57,6 +81,10 @@ class vtkBaseModule(Module):
 
     @staticmethod
     def wrapperModule(classname, instance):
+        """ wrapperModule(classname: str, instance: vtk class) -> Module
+        Create a wrapper module in VisTrails with a vtk instance
+        
+        """
         result = registry.getDescriptorByName(classname).module()
         result.vtkInstance = instance
         return result
