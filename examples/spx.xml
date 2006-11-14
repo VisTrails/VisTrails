@@ -1,0 +1,157 @@
+  <visTrail version="0.3.0">
+    <action date="22 Jun 2006 11:16:32" parent="0" time="2" user="stevec" what="addModule">
+      <object cache="1" id="0" name="vtkUnstructuredGridReader" x="-138.0" y="318.0"/>
+    </action>
+    <action date="" parent="2" time="3" user="stevec" what="moveModule">
+      <move dx="-28.0" dy="-27.0" id="0"/>
+    </action>
+    <action date="" parent="3" time="4" user="stevec" what="addModule">
+      <object cache="0" id="1" name="vtkDataSetMapper" x="-102.0" y="152.0"/>
+    </action>
+    <action date="" parent="4" time="5" user="stevec" what="moveModule">
+      <move dx="-21.0" dy="-99.0" id="1"/>
+    </action>
+    <action date="" parent="5" time="6" user="stevec" what="addConnection">
+      <connect destinationId="1" destinationModule="vtkDataSetMapper" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="0" sourceId="0" sourceModule="vtkUnstructuredGridReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="" parent="6" time="7" user="stevec" what="addModule">
+      <object cache="0" id="2" name="vtkActor" x="-74.0" y="-45.0"/>
+    </action>
+    <action date="" parent="7" time="8" user="stevec" what="moveModule">
+      <move dx="2.0" dy="-64.0" id="2"/>
+    </action>
+    <action date="" parent="8" time="9" user="stevec" what="addConnection">
+      <connect destinationId="2" destinationModule="vtkActor" destinationPort="SetMapper(vtkMapper)" id="1" sourceId="1" sourceModule="vtkDataSetMapper" sourcePort="self(vtkDataSetMapper)"/>
+    </action>
+    <action date="" parent="9" time="10" user="stevec" what="addModule">
+      <object cache="0" id="3" name="vtkRenderer" x="-86.0" y="-220.0"/>
+    </action>
+    <action date="" parent="10" time="11" user="stevec" what="moveModule">
+      <move dx="4.0" dy="34.0" id="2"/>
+    </action>
+    <action date="" parent="11" time="12" user="stevec" what="addConnection">
+      <connect destinationId="3" destinationModule="vtkRenderer" destinationPort="AddVolume(vtkProp)" id="2" sourceId="2" sourceModule="vtkActor" sourcePort="self(vtkActor)"/>
+    </action>
+    <action date="" parent="12" time="13" user="stevec" what="addModule">
+      <object cache="0" id="4" name="VTKCell" x="-63.0" y="-298.0"/>
+    </action>
+    <action date="" parent="13" time="14" user="stevec" what="moveModule">
+      <move dx="-3.0" dy="-20.0" id="3"/>
+      <move dx="-47.0" dy="-98.0" id="4"/>
+    </action>
+    <action date="" parent="14" time="15" user="stevec" what="addConnection">
+      <connect destinationId="4" destinationModule="VTKCell" destinationPort="AddRenderer(vtkRenderer)" id="3" sourceId="3" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
+    </action>
+    <action date="" parent="15" time="16" user="stevec" what="moveModule">
+      <move dx="-1.0" dy="-27.0" id="1"/>
+      <move dx="-3.0" dy="-23.0" id="2"/>
+      <move dx="0.0" dy="-30.0" id="3"/>
+    </action>
+    <action date="" parent="16" time="17" user="stevec" what="deleteConnection">
+      <connection connectionId="2"/>
+    </action>
+    <action date="" parent="17" time="18" user="stevec" what="addConnection">
+      <connect destinationId="3" destinationModule="vtkRenderer" destinationPort="AddVolume(vtkProp)" id="2" sourceId="2" sourceModule="vtkActor" sourcePort="self(vtkActor)"/>
+    </action>
+    <action date="" parent="18" time="19" user="stevec" what="moveModule">
+      <move dx="3.0" dy="-6.0" id="1"/>
+      <move dx="10.0" dy="-26.0" id="2"/>
+    </action>
+    <action date="" parent="19" time="20" user="stevec" what="changeParameter">
+      <set alias="" function="SetFileName" functionId="0" moduleId="0" parameter="" parameterId="0" type="String" value=""/>
+    </action>
+    <action date="" parent="20" time="21" user="stevec" what="changeParameter">
+      <set alias="" function="SetFileName" functionId="0" moduleId="0" parameter="" parameterId="0" type="String" value="../examples/data/spx.vtk"/>
+    </action>
+    <action date="" parent="21" time="22" user="stevec" what="changeParameter">
+      <set alias="" function="SetFileName" functionId="0" moduleId="0" parameter="" parameterId="0" type="String" value="../examples/data/spx.vtk"/>
+    </action>
+    <action date="" parent="22" time="23" user="stevec" what="changeParameter">
+      <set alias="" function="ScalarVisibilityOn" functionId="0" moduleId="1" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="" parent="23" time="24" user="stevec" what="changeParameter">
+      <set alias="" function="SetBackground" functionId="0" moduleId="3" parameter="" parameterId="0" type="Float" value=""/>
+      <set alias="" function="SetBackground" functionId="0" moduleId="3" parameter="" parameterId="1" type="Float" value=""/>
+      <set alias="" function="SetBackground" functionId="0" moduleId="3" parameter="" parameterId="2" type="Float" value=""/>
+    </action>
+    <action date="22 Jun 2006 11:28:05" parent="24" time="25" user="stevec" what="changeParameter">
+      <notes>
+        Load spx dataset and render surface geometry with default colormap.
+      </notes>
+      <set alias="" function="SetBackground" functionId="0" moduleId="3" parameter="" parameterId="0" type="Float" value="0"/>
+      <set alias="" function="SetBackground" functionId="0" moduleId="3" parameter="" parameterId="1" type="Float" value="0"/>
+      <set alias="" function="SetBackground" functionId="0" moduleId="3" parameter="" parameterId="2" type="Float" value="0"/>
+    </action>
+    <action date="" parent="25" time="26" user="stevec" what="addModule">
+      <object cache="1" id="5" name="vtkContourFilter" x="-173.336131046" y="149.915316515"/>
+    </action>
+    <action date="" parent="26" time="27" user="stevec" what="deleteConnection">
+      <connection connectionId="0"/>
+    </action>
+    <action date="" parent="27" time="28" user="stevec" what="addConnection">
+      <connect destinationId="5" destinationModule="vtkContourFilter" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="0" sourceId="0" sourceModule="vtkUnstructuredGridReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="" parent="28" time="29" user="stevec" what="addConnection">
+      <connect destinationId="1" destinationModule="vtkDataSetMapper" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="4" sourceId="5" sourceModule="vtkContourFilter" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="" parent="29" time="30" user="stevec" what="moveModule">
+      <move dx="0.0" dy="0.0" id="5"/>
+      <move dx="0.0" dy="0.0" id="5"/>
+    </action>
+    <action date="" parent="30" time="31" user="stevec" what="changeParameter">
+      <set alias="" function="SetValue" functionId="0" moduleId="5" parameter="" parameterId="0" type="Integer" value="0"/>
+      <set alias="" function="SetValue" functionId="0" moduleId="5" parameter="" parameterId="1" type="Float" value="0.0"/>
+    </action>
+    <action date="22 Jun 2006 11:30:16" parent="31" time="32" user="stevec" what="changeParameter">
+      <notes>
+        Extract an isosurface at 0.5.
+      </notes>
+      <set alias="" function="SetValue" functionId="0" moduleId="5" parameter="" parameterId="0" type="Integer" value="0"/>
+      <set alias="" function="SetValue" functionId="0" moduleId="5" parameter="" parameterId="1" type="Float" value="0.5"/>
+    </action>
+    <action date="" parent="32" time="33" user="stevec" what="addModule">
+      <object cache="1" id="6" name="vtkQuadricDecimation" x="132.109317386" y="144.57547806"/>
+    </action>
+    <action date="" parent="33" time="34" user="stevec" what="moveModule">
+      <move dx="0.0" dy="117.920043945" id="0"/>
+      <move dx="65.7630996704" dy="-11.3384656906" id="6"/>
+      <move dx="15.8738517761" dy="133.793899536" id="5"/>
+      <move dx="-299.335510254" dy="29.4800109863" id="6"/>
+    </action>
+    <action date="" parent="34" time="35" user="stevec" what="deleteConnection">
+      <connection connectionId="4"/>
+    </action>
+    <action date="" parent="35" time="36" user="stevec" what="addConnection">
+      <connect destinationId="6" destinationModule="vtkQuadricDecimation" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="4" sourceId="5" sourceModule="vtkContourFilter" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="" parent="36" time="37" user="stevec" what="addConnection">
+      <connect destinationId="1" destinationModule="vtkDataSetMapper" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="5" sourceId="6" sourceModule="vtkQuadricDecimation" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="" parent="37" time="38" user="stevec" what="moveModule">
+      <move dx="0.0" dy="0.0" id="6"/>
+    </action>
+    <action date="" parent="38" time="39" user="stevec" what="changeParameter">
+      <set alias="" function="SetTargetReduction" functionId="0" moduleId="6" parameter="" parameterId="0" type="Float" value="0.0"/>
+    </action>
+    <action date="22 Jun 2006 11:35:45" parent="39" time="40" user="stevec" what="changeParameter">
+      <notes>
+        Decimate the isosurface geometry to 90% _after_ extraction.
+      </notes>
+      <set alias="" function="SetTargetReduction" functionId="0" moduleId="6" parameter="" parameterId="0" type="Float" value="0.9"/>
+    </action>
+    <action date="16 Jul 2006 18:31:36" parent="25" time="41" user="hvo" what="changeParameter">
+      <set alias="" function="SetFileName" functionId="0" moduleId="0" parameter="" parameterId="0" type="String" value=""/>
+    </action>
+    <action date="16 Jul 2006 18:31:46" parent="41" time="42" user="hvo" what="changeParameter">
+      <set alias="" function="SetFileName" functionId="0" moduleId="0" parameter="" parameterId="0" type="String" value="../examples/data/spx.vtk"/>
+    </action>
+    <action date="02 Nov 2006 09:33:08" parent="40" time="43" user="emanuele" what="moveModule">
+      <move dx="-37.747252298" dy="90.5934051591" id="0"/>
+      <move dx="-55.3626367037" dy="25.1648347664" id="5"/>
+      <move dx="-98.1428559747" dy="-7.54945042992" id="6"/>
+      <move dx="-62.9120871633" dy="-5.03296695328" id="1"/>
+    </action>
+    <tag name="spx" time="25"/>
+    <tag name="decimate" time="43"/>
+    <tag name="contour" time="32"/>
+  </visTrail>

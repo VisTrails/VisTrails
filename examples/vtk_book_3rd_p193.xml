@@ -1,0 +1,147 @@
+  <visTrail version="0.3.0">
+    <action date="" parent="0" time="261928320" user="" what="addModule">
+      <object cache="1" id="0" name="vtkStructuredPointsReader" x="-60.5" y="263.0"/>
+    </action>
+    <action date="" parent="261928320" time="261928321" user="" what="addModule">
+      <object cache="1" id="1" name="vtkThresholdPoints" x="-43.5" y="111.0"/>
+    </action>
+    <action date="" parent="261928321" time="261928322" user="" what="addModule">
+      <object cache="1" id="2" name="vtkMaskPoints" x="-61.5" y="16.0"/>
+    </action>
+    <action date="" parent="261928322" time="261928323" user="" what="addModule">
+      <object cache="1" id="3" name="vtkConeSource" x="-216.5" y="-66.0"/>
+    </action>
+    <action date="" parent="261928323" time="261928324" user="" what="addModule">
+      <object cache="1" id="4" name="vtkGlyph3D" x="65.5" y="-176.0"/>
+    </action>
+    <action date="" parent="261928324" time="261928325" user="" what="addModule">
+      <object cache="0" id="5" name="vtkPolyDataMapper" x="-42.5" y="-306.0"/>
+    </action>
+    <action date="" parent="261928325" time="261928326" user="" what="addModule">
+      <object cache="0" id="6" name="vtkActor" x="-87.5" y="-416.0"/>
+    </action>
+    <action date="" parent="261928326" time="261928327" user="" what="addModule">
+      <object cache="0" id="7" name="vtkRenderer" x="14.5" y="-551.0"/>
+    </action>
+    <action date="" parent="261928327" time="261928328" user="" what="addModule">
+      <object cache="0" id="8" name="vtkRenderWindow" x="-9.5" y="-685.0"/>
+    </action>
+    <action date="" parent="261928328" time="261928329" user="" what="addConnection">
+      <connect destinationId="1" destinationModule="vtkThresholdPoints" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="0" sourceId="0" sourceModule="vtkStructuredPointsReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="" parent="261928329" time="261928330" user="" what="addConnection">
+      <connect destinationId="2" destinationModule="vtkMaskPoints" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="1" sourceId="1" sourceModule="vtkThresholdPoints" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="" parent="261928330" time="261928331" user="" what="addConnection">
+      <connect destinationId="4" destinationModule="vtkGlyph3D" destinationPort="SetInputConnection1(vtkAlgorithmOutput)" id="2" sourceId="3" sourceModule="vtkConeSource" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="" parent="261928331" time="261928332" user="" what="addConnection">
+      <connect destinationId="4" destinationModule="vtkGlyph3D" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="3" sourceId="2" sourceModule="vtkMaskPoints" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="" parent="261928332" time="261928333" user="" what="addConnection">
+      <connect destinationId="5" destinationModule="vtkPolyDataMapper" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="4" sourceId="4" sourceModule="vtkGlyph3D" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="" parent="261928333" time="261928334" user="" what="addConnection">
+      <connect destinationId="6" destinationModule="vtkActor" destinationPort="SetMapper(vtkMapper)" id="5" sourceId="5" sourceModule="vtkPolyDataMapper" sourcePort="self(vtkPolyDataMapper)"/>
+    </action>
+    <action date="" parent="261928334" time="261928335" user="" what="addConnection">
+      <connect destinationId="7" destinationModule="vtkRenderer" destinationPort="AddActor(vtkProp)" id="6" sourceId="6" sourceModule="vtkActor" sourcePort="self(vtkActor)"/>
+    </action>
+    <action date="" parent="261928335" time="261928336" user="" what="addConnection">
+      <notes>
+        &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;/head&gt;&lt;body style=&quot; white-space: pre-wrap; font-family:Lucida Grande; font-size:13pt; font-weight:400; font-style:normal; text-decoration:none;&quot;&gt;&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+      </notes>
+      <connect destinationId="8" destinationModule="vtkRenderWindow" destinationPort="AddRenderer(vtkRenderer)" id="7" sourceId="7" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
+    </action>
+    <action date="" parent="261928336" time="261928337" user="" what="moveModule">
+      <move dx="1.0" dy="0.0" id="0"/>
+    </action>
+    <action date="" parent="261928337" time="261928338" user="" what="changeParameter">
+      <set alias="" function="SetFileName" functionId="0" moduleId="0" parameter="" parameterId="0" type="String" value=""/>
+    </action>
+    <action date="" parent="261928338" time="261928339" user="" what="changeParameter">
+      <set alias="" function="SetFileName" functionId="0" moduleId="0" parameter="" parameterId="0" type="String" value="../examples/data/carotid.vtk"/>
+    </action>
+    <action date="" parent="261928339" time="261928340" user="" what="changeParameter">
+      <set alias="" function="ThresholdByUpper" functionId="0" moduleId="1" parameter="" parameterId="0" type="Float" value=""/>
+    </action>
+    <action date="" parent="261928340" time="261928341" user="" what="changeParameter">
+      <set alias="" function="ThresholdByUpper" functionId="0" moduleId="1" parameter="" parameterId="0" type="Float" value="200"/>
+    </action>
+    <action date="" parent="261928341" time="261928342" user="" what="changeParameter">
+      <set alias="" function="SetOnRatio" functionId="0" moduleId="2" parameter="" parameterId="0" type="Integer" value=""/>
+    </action>
+    <action date="" parent="261928342" time="261928343" user="" what="changeParameter">
+      <set alias="" function="SetOnRatio" functionId="0" moduleId="2" parameter="" parameterId="0" type="Integer" value="10"/>
+    </action>
+    <action date="" parent="261928343" time="261928344" user="" what="changeParameter">
+      <set alias="" function="SetResolution" functionId="0" moduleId="3" parameter="" parameterId="0" type="Integer" value=""/>
+    </action>
+    <action date="" parent="261928344" time="261928345" user="" what="changeParameter">
+      <set alias="" function="SetResolution" functionId="0" moduleId="3" parameter="" parameterId="0" type="Integer" value="3"/>
+    </action>
+    <action date="" parent="261928345" time="261928346" user="" what="changeParameter">
+      <set alias="" function="SetHeight" functionId="1" moduleId="3" parameter="" parameterId="0" type="Float" value=""/>
+    </action>
+    <action date="" parent="261928346" time="261928347" user="" what="changeParameter">
+      <set alias="" function="SetHeight" functionId="1" moduleId="3" parameter="" parameterId="0" type="Float" value="1"/>
+    </action>
+    <action date="" parent="261928347" time="261928348" user="" what="changeParameter">
+      <set alias="" function="SetRadius" functionId="2" moduleId="3" parameter="" parameterId="0" type="Float" value=""/>
+    </action>
+    <action date="" parent="261928348" time="261928349" user="" what="changeParameter">
+      <set alias="" function="SetRadius" functionId="2" moduleId="3" parameter="" parameterId="0" type="Float" value="0.25"/>
+    </action>
+    <action date="" parent="261928349" time="261928350" user="" what="changeParameter">
+      <set alias="" function="SetScaleFactor" functionId="0" moduleId="4" parameter="" parameterId="0" type="Float" value=""/>
+    </action>
+    <action date="" parent="261928350" time="261928351" user="" what="changeParameter">
+      <set alias="" function="SetScaleFactor" functionId="0" moduleId="4" parameter="" parameterId="0" type="Float" value="0.5"/>
+    </action>
+    <action date="" parent="261928351" time="261928352" user="" what="changeParameter">
+      <set alias="" function="SetScaleModeToScaleByVector" functionId="1" moduleId="4" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="" parent="261928352" time="261928353" user="" what="changeParameter">
+      <set alias="" function="SetScalarRange" functionId="0" moduleId="5" parameter="" parameterId="0" type="Float" value=""/>
+      <set alias="" function="SetScalarRange" functionId="0" moduleId="5" parameter="" parameterId="1" type="Float" value=""/>
+    </action>
+    <action date="" parent="261928353" time="261928354" user="" what="changeParameter">
+      <set alias="" function="SetScalarRange" functionId="0" moduleId="5" parameter="" parameterId="0" type="Float" value="2"/>
+      <set alias="" function="SetScalarRange" functionId="0" moduleId="5" parameter="" parameterId="1" type="Float" value="10"/>
+    </action>
+    <action date="" parent="261928354" time="261928355" user="" what="addModule">
+      <object cache="0" id="9" name="vtkLookupTable" x="-253.5" y="-237.0"/>
+    </action>
+    <action date="" parent="261928355" time="261928356" user="" what="changeParameter">
+      <set alias="" function="SetHueRange" functionId="0" moduleId="9" parameter="" parameterId="0" type="Float" value=""/>
+      <set alias="" function="SetHueRange" functionId="0" moduleId="9" parameter="" parameterId="1" type="Float" value=""/>
+    </action>
+    <action date="" parent="261928356" time="261928357" user="" what="changeParameter">
+      <set alias="" function="SetHueRange" functionId="0" moduleId="9" parameter="" parameterId="0" type="Float" value=".667"/>
+      <set alias="" function="SetHueRange" functionId="0" moduleId="9" parameter="" parameterId="1" type="Float" value="0"/>
+    </action>
+    <action date="" parent="261928357" time="261928358" user="" what="addConnection">
+      <connect destinationId="5" destinationModule="vtkMapper" destinationPort="SetLookupTable(vtkScalarsToColors)" id="8" sourceId="9" sourceModule="vtkLookupTable" sourcePort="self(vtkLookupTable)"/>
+    </action>
+    <action date="" parent="261928358" time="261928359" user="" what="changeParameter">
+      <set alias="" function="ResetCamera" functionId="0" moduleId="7" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="05 Oct 2006 12:47:21" parent="261928359" time="261928360" user="emanuele" what="deleteConnection">
+      <connection connectionId="7"/>
+    </action>
+    <action date="05 Oct 2006 12:47:21" parent="261928360" time="261928361" user="emanuele" what="deleteModule">
+      <module moduleId="8"/>
+    </action>
+    <action date="05 Oct 2006 12:47:36" parent="261928361" time="261928362" user="emanuele" what="addModule">
+      <object cache="0" id="8" name="VTKCell" x="206.210289363" y="-720.407292189"/>
+    </action>
+    <action date="05 Oct 2006 12:47:41" parent="261928362" time="261928363" user="emanuele" what="moveModule">
+      <move dx="-83.2626789663" dy="43.8224624416" id="8"/>
+    </action>
+    <action date="05 Oct 2006 12:47:41" parent="261928363" time="261928364" user="emanuele" what="addConnection">
+      <connect destinationId="8" destinationModule="VTKCell" destinationPort="AddRenderer(vtkRenderer)" id="7" sourceId="7" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
+    </action>
+    <tag name="connections" time="261928336"/>
+    <tag name="modules" time="261928328"/>
+    <tag name="lookup table" time="261928358"/>
+  </visTrail>
