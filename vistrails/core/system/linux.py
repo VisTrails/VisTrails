@@ -19,8 +19,8 @@ def parseMeminfo():
                 value = int(value)
             except ValueError:
                 raise VistrailsInternalError("I was expecting '%s' to be int" 
-                                          % value)
-            result[key] = value
+                                             % value)
+        result[key] = value
     return result
 
 def guessTotalMemory():
@@ -31,7 +31,7 @@ def guessTotalMemory():
     return parseMeminfo()['MemTotal']
 
 def temporaryDirectory():
-     """ temporaryDirectory() -> str 
+    """ temporaryDirectory() -> str 
     Returns the path to the system's temporary directory 
     
     """
@@ -62,7 +62,7 @@ def removeGraphvizTemporaries():
     os.unlink(temporaryDirectory() + "dot_tmp_vistrails.txt")
 
 def linkOrCopy(src, dst):
-   """linkOrCopy(src:str, dst:str) -> None 
+    """linkOrCopy(src:str, dst:str) -> None 
     Tries to create a hard link to a file. If it is not possible, it will
     copy file src to dst 
     
