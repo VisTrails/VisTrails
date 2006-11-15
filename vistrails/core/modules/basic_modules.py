@@ -64,13 +64,13 @@ class FileSink(vistrails_module.Module):
         v1 = self.getInputFromPort("file")
         v2 = self.getInputFromPort("outputName")
         try:
-            system.linkOrCopy(v1.name, v2)
+            core.system.link_or_copy(v1.name, v2)
         except OSError, e:
             if (self.hasInputFromPort("overrideFile") and
                 self.getInputFromPort("overrideFile")):
                 try:
                     os.unlink(v2)
-                    system.link_or_copy(v1.name, v2)
+                    core.system.link_or_copy(v1.name, v2)
                 except OSError:
                     raise vistrails_module.ModuleError(self, "(override true) Could not create file '%s'" % v2)
             else:
