@@ -1,11 +1,30 @@
+################################################################################
+# This file contains classes working with cell helper widgets, i.e. toolbar,
+# resizer, etc.:
+#   CellHelpers
+#   CellResizer
+#   CellResizerConfig
+#   CellToolBar
+################################################################################
 from PyQt4 import QtCore, QtGui
 
 ################################################################################
-################################################################################
-### CellResizerConfig: a triangular shape configuration of CellResizer
+
 class CellResizerConfig(object):
-    ### Create mask and pixmap for the shape    
+    """
+    CellResizerConfig can be used to config different parameters of
+    the CellResizer widget such as shape, mask, pixmap, color, size,
+    and cursor. By default, it has a black, triangular shape of size
+    25x25. In order to change the shape, we have to override this
+    class
+
+    """
     def __init__(self, size=25, color=QtGui.QColor(0,0,0)):
+        """ CellResizerConfig(size: int, color: QColor) -> CellResizerConfig
+        Create mask and pixmap of a triangular shape with the specifc size
+        and color
+        
+        """
         self.size = size
         self.transparentColor = QtGui.QColor(QtCore.Qt.blue)
         self.image = QtGui.QImage(size,size,QtGui.QImage.Format_RGB32)
@@ -15,42 +34,61 @@ class CellResizerConfig(object):
                     self.image.setPixel(i, j, self.transparentColor.rgb())
                 else:
                     if i+j==size-1 or i==size-1 or j==size-1:
-                        self.image.setPixel(i, j, QtGui.QColor(QtCore.Qt.white).rgb())
+                        self.image.setPixel(i, j,
+                                            QtGui.QColor(QtCore.Qt.white).rgb())
                     else:
                         self.image.setPixel(i, j, color.rgb())
         self.pixmapVar = self.maskVar = self.cursorVar = None
 
     def pixmap(self):
+        """ pixmap() -> QPixmap
+        Return the pixmap of the resizer shape
+        
+        """
         if not self.pixmapVar:
             self.pixmapVar = QtGui.QPixmap.fromImage(self.image)
         return self.pixmapVar
 
     def mask(self):
+        """ mask() -> QRegion
+        Return only the region of the resizer that will be shown on screen
+        
+        """
         if not self.maskVar:
-            self.maskVar = QtGui.QRegion(self.pixmap().createMaskFromColor(self.transparentColor))
+            mask = self.pixmap().createMaskFromColor(self.transparentColor)
+            self.maskVar = QtGui.QRegion(mask)
         return self.maskVar
 
     def cursor(self):
+        """ cursor() -> QCursor
+        Return the cursor that will be shown inside the resizer
+        
+        """
         return QtGui.QCursor(QtCore.Qt.SizeFDiagCursor)
 
-
-################################################################################
-################################################################################
-### CellResizer: a triangular shape SizeGrip that stays on top of the
-### widget, moving this size grip will end up resizing the
-### corresponding column and row in the table. This is different from
-### QSizeGrip because it allows overlapping on top of the widget
 class CellResizer(QtGui.QLabel):
+    """
+    CellResizer is a customized shape SizeGrip that stays on top of
+    the widget, moving this size grip will end up resizing the
+    corresponding cell in the table. This is different from QSizeGrip
+    because it allows overlapping on top of the widget
 
-    ### Initialize the size grip with triangular shape
+    """
     def __init__(self, sheet, config=CellResizerConfig(), parent=None):
-        QtGui.QLabel.__init__(self,sheet)#QtGui.QApplication.desktop().screen(0), QtCore.Qt.ToolTip)
+        """ CellResizer(sheet: SpreadsheetSheet,
+                        config: subclass of CellResizerConfig,
+                        parent: QWidget) -> CellResizer
+        Initialize the size grip with the default triangular shape
+        
+        """
+        QtGui.QLabel.__init__(self,sheet)
         self.setMouseTracking(False)
         self.setFixedSize(config.size, config.size)
         self.setPixmap(config.pixmap())
         self.setMask(config.mask())
         self.setCursor(config.cursor())
-        self.setStatusTip("Left/Right-click drag to resize the underlying cell or the whole spreadsheet ")
+        self.setStatusTip("Left/Right-click drag to resize the underlying"
+                          "cell or the whole spreadsheet ")
         self.setFocusPolicy(QtCore.Qt.NoFocus)
         self.sheet = sheet
         self.config = config
@@ -61,23 +99,37 @@ class CellResizer(QtGui.QLabel):
         self.col = -1
         self.hide()
 
-    ### Is the resizer busy dragging?
-    def setDragging(self,b):
+
+    def setDragging(self,b):        
+        """ setDragging(b: boolean) -> None
+        Set the resizer state to busy dragging
+        
+        """
         self.dragging = b
 
-    ### Assign which row and column the resizer should resize
     def snapTo(self,row,col):
+        """ snapTo(row, col) -> None
+        Assign which row and column the resizer should be controlling
+        
+        """
         self.row = row
         self.col = col
 
-    ### Adjust resizer position to be on the bottom-right corner of the cell
     def adjustPosition(self, rect):
+        """ adjustPosition(rect: QRect) -> None
+        Adjust resizer position to be on the bottom-right corner of the cell
+        
+        """
         p = self.parent().mapFromGlobal(rect.topLeft())
         self.move(p.x()+rect.width()-self.width(),
                   p.y()+rect.height()-self.height())
 
-    ### Are we resizing using Left or Right Button?
     def mousePressEvent(self,e):
+        """ mousePressEvent(e: QMouseEvent) -> None        
+        Handle Qt mouse press event to track if we need to resize
+        either left or right mouse button is clicked
+        
+        """
         if self.col>=0:
             if e.button()==QtCore.Qt.LeftButton:
                 self.resizeAll = False
@@ -88,15 +140,23 @@ class CellResizer(QtGui.QLabel):
                 self.dragging = True
                 self.lastPos = QtCore.QPoint(e.globalX(),e.globalY())
 
-    ### Clean up all states
     def mouseReleaseEvent(self,e):
+        """ mouseReleaseEvent(e: QMouseEvent) -> None
+        Handle Qt mouse release event to clean up all state
+        
+        """
         ctrl = e.modifiers()&QtCore.Qt.ControlModifier
         self.sheet.showHelpers(ctrl, self.row, self.col)
-        if e.button()==QtCore.Qt.LeftButton or e.button()==QtCore.Qt.RightButton:
+        if (e.button()==QtCore.Qt.LeftButton or
+            e.button()==QtCore.Qt.RightButton):
             self.dragging = False
 
-    ### Interactively resize the corresponding column and row
     def mouseMoveEvent(self,e):
+        """ mouseMoveEvent(e: QMouseEvent) -> None        
+        Interactively resize the corresponding column and row when the
+        mouse moves
+        
+        """
         if self.dragging:
             hd = e.globalX() - self.lastPos.x()
             vd = e.globalY() - self.lastPos.y()
@@ -135,105 +195,135 @@ class CellResizer(QtGui.QLabel):
             rect.moveTo(self.sheet.viewport().mapToGlobal(rect.topLeft()))
             self.adjustPosition(rect)
 
-################################################################################
-################################################################################
-### CellToolBar: inherited from QToolBar with some functionalities for
-### interacting with CellHelpers
 class CellToolBar(QtGui.QToolBar):
-
-    ### Init the cell tool bar to be floating like the cell resizer
+    """
+    CellToolBar is inherited from QToolBar with some functionalities
+    for interacting with CellHelpers
+    
+    """
     def __init__(self, sheet):
+        """ CellToolBar(sheet: SpreadsheetSheet) -> CellToolBar        
+        Initialize the cell toolbar by calling the user-defined
+        toolbar construction function
+        
+        """
         QtGui.QToolBar.__init__(self,sheet)
         self.setAutoFillBackground(True)
         self.sheet = sheet
         self.row = -1
         self.col = -1
         self.createToolBar()
-
-    ### An empty for inherited classes to initialize
+    
     def createToolBar(self):
+        """ createToolBar() -> None        
+        A user-defined method for customizing the toolbar. This is
+        going to be an empty method here for inherited classes to
+        override.
+        
+        """
         pass
 
-    ### When the mouse enters the widget, make sure it's a Popup
-    def aenterEvent(self, e):
-        if self.windowFlags()!=QtCore.Qt.Popup:
-            self.setWindowFlags(QtCore.Qt.Popup)
-            self.show()
-
-    ### When the mouse leaves the widget, make sure it's a ToolTip
-    def aleaveEvent(self, e):
-        if self.windowFlags()!=QtCore.Qt.ToolTip:
-            self.hide()
-            self.setWindowFlags(QtCore.Qt.ToolTip)
-            self.setVisible(self.isVisible())
-
-    ### Snap to a specific cell for position
     def snapTo(self, row, col):
+        """ snapTo(row, col) -> None
+        Assign which row and column the toolbar should be snapped to
+        
+        """
         self.row = row
         self.col = col
         self.updateToolBar()
 
-    ### Adjust the position of the toolbar to be top-left
     def adjustPosition(self, rect):
+        """ adjustPosition(rect: QRect) -> None
+        Adjust the position of the toolbar to be top-left
+        
+        """
         self.adjustSize()
         p = self.parent().mapFromGlobal(rect.topLeft())
         self.move(p.x(), p.y())
 
-    ### Update status of all toolbar widgets
     def updateToolBar(self):
+        """ updateToolBar() -> None        
+        This will get called when the toolbar widgets need to have
+        their status updated. It sends out needUpdateStatus signal
+        to let the widget have a change to update their own status
+        
+        """
         cellWidget = self.sheet.getCell(self.row, self.col)
         for action in self.actions():
             action.emit(QtCore.SIGNAL('needUpdateStatus'),
                         (self.sheet, self.row, self.col, cellWidget))
 
-    ### Connect action to special slots from the widget
     def connectAction(self, action, widget):
+        """ connectAction(action: QAction, widget: QWidget) -> None
+        Connect actions to special slots of a widget
+        
+        """
         if hasattr(widget, 'updateStatus'):
-            self.connect(action, QtCore.SIGNAL('needUpdateStatus'), widget.updateStatus)
+            self.connect(action, QtCore.SIGNAL('needUpdateStatus'),
+                         widget.updateStatus)
         if hasattr(widget, 'triggeredSlot'):
-            self.connect(action, QtCore.SIGNAL('triggered()'), widget.triggeredSlot)
+            self.connect(action, QtCore.SIGNAL('triggered()'),
+                         widget.triggeredSlot)
         if hasattr(widget, 'toggledSlot'):
-            self.connect(action, QtCore.SIGNAL('toggled(bool)'), widget.toggledSlot)
+            self.connect(action, QtCore.SIGNAL('toggled(bool)'),
+                         widget.toggledSlot)
 
-    ### Setup and add action to the tool bar
     def appendAction(self, action):
+        """ appendAction(action: QAction) -> QAction
+        Setup and add action to the tool bar
+        
+        """
         action.toolBar = self
         self.addAction(action)
         self.connectAction(action, action)
         return action
 
-    ### Setup and add widget to the tool bar
     def appendWidget(self, widget):
+        """ appendWidget(widget: QWidget) -> QAction
+        Setup the widget as an action and add it to the tool bar
+
+        """
         action = self.addWidget(widget)
         widget.toolBar = self
         action.toolBar = self
         self.connectAction(action, widget)
         return action
 
-    ### Return the snapped widget
     def getSnappedWidget(self):
+        """ getSnappedWidget() -> QWidget
+        Return the widget being snapped by the toolbar
+        
+        """
         if self.row>=0 and self.col>=0:
             return self.sheet.getCell(self.row, self.col)
         else:
             return None
 
-################################################################################
-################################################################################
-### CellHelpers: a container include CellResizer and CellToolbar that
-### will shows up whenever the Ctrl key is hold down and the mouse
-### hovers.
 class CellHelpers(object):
-    
-    ### Initialize with no tool bar and a cell resizer
+    """
+    CellHelpers is a container include CellResizer and CellToolbar
+    that will shows up whenever the Ctrl key is hold down and the
+    mouse hovers the cell.
+
+    """
     def __init__(self, sheet, resizerInstance=None, toolBarInstance=None):
+        """ CellHelpers(sheet: SpreadsheetSheet,
+                        resizerInstance: CellResizer,
+                        toolBarinstance: CellToolBar) -> CellHelpers
+        Initialize with no tool bar and a cell resizer
+        
+        """
         self.sheet = sheet
         self.resizer = resizerInstance
         self.toolBar = toolBarInstance
         self.row = -1
         self.col = -1
         
-    ### Assign the resizer and toolbar to the correct cell
     def snapTo(self, row, col):
+        """ snapTo(row: int, col: int) -> None
+        Assign the resizer and toolbar to the correct cell
+        
+        """
         if row>=0 and ((row!=self.row) or (col!=self.col)):
             self.hide()
             self.row = row
@@ -249,24 +339,35 @@ class CellHelpers(object):
                 self.toolBar.snapTo(row,col)
             self.adjustPosition()
 
-    ### Adjust both the toolbar and the resizer
     def adjustPosition(self):
+        """ adjustPosition() -> None
+        Adjust both the toolbar and the resizer
+        
+        """
         rect = self.sheet.getCellGlobalRect(self.row, self.col)
         if self.resizer:
             self.resizer.adjustPosition(rect)
         if self.toolBar:
             self.toolBar.adjustPosition(rect)
 
-    ### An helper function derived from setVisible
     def show(self):
+        """ show() -> None
+        An helper function derived from setVisible
+        
+        """
         self.setVisible(True)
 
-    ### An helper function derived from setVisible
     def hide(self):
+        """ hide() -> None
+        An helper function derived from setVisible
+        
+        """
         self.setVisible(False)
 
-    ### Show/hide the helpers
     def setVisible(self,b):
+        """ setVisible(b: boolean) -> None
+        Show/hide the cell helpers
+        """
         if self.resizer:
             self.resizer.setVisible(b)
         if not b and self.resizer:
@@ -274,8 +375,11 @@ class CellHelpers(object):
         if self.toolBar:
             self.toolBar.setVisible(b)
 
-    ### Is the helper in action with the resizer
     def isInteracting(self):
+        """ isInteracting() -> boolean
+        Check to see if the helper is in action with the resizer
+        
+        """
         if self.resizer:
             return self.resizer.dragging
         else:

@@ -1,23 +1,46 @@
+################################################################################
+# Richtext widgets implementation
+################################################################################
 from core.modules.vistrails_module import Module
 from PyQt4 import QtCore, QtGui
 from packages.spreadsheet.basic_widgets import SpreadsheetCell
 
-# A custom widget to edit text
+################################################################################
+
 class RichTextCell(SpreadsheetCell):
+    """
+    RichTextCell is a custom Module to view HTML files
     
+    """
     def compute(self):
-        if self.hasInputFromPort("File"): fileValue = self.getInputFromPort("File")
-        else: fileValue = None
+        """ compute() -> None
+        Dispatch the HTML contents to the spreadsheet
+        """
+        if self.hasInputFromPort("File"):
+            fileValue = self.getInputFromPort("File")
+        else:
+            fileValue = None
         self.display(RichTextCellWidget, (fileValue,))
 
-### Rich Text Cell  widget type
 class RichTextCellWidget(QtGui.QTextBrowser):
+    """
+    RichTextCellWidget derives from the QTextBrowser to display HTML files
+    
+    """
     def __init__(self, parent=None):
+        """ RichTextCellWidget(parent: QWidget) -> RichTextCellWidget
+        Create a rich text cell without a toolbar
+        
+        """
         QtGui.QTextBrowser.__init__(self, parent)
         self.setMouseTracking(True)
         self.controlBarType = None
 
     def updateContents(self, inputPorts):
+        """ updateContents(inputPorts: tuple) -> None
+        Updates the contents with a new changed in filename
+        
+        """
         (fileValue,) = inputPorts
         if fileValue:
             try:

@@ -1,26 +1,37 @@
-from PyQt4 import QtCore, QtGui
+################################################################################
+# This file implements the main spreadsheet window:
+#   SpreadsheetWindow
+################################################################################
 import sys
-from spreadsheet_base import *
-from spreadsheet_tabcontroller import *
-from spreadsheet_tab import *
-from spreadsheet_sheet import *
-import spreadsheet_event
+from PyQt4 import QtCore, QtGui
+from spreadsheet_base import StandardSheetReference
+from spreadsheet_event import BatchDisplayCellEventType, DisplayCellEventType
+from spreadsheet_tabcontroller import StandardWidgetTabController
 
 ################################################################################
-################################################################################
-### SpreadsheetWindow: the top-level main window containing a
-### QTabWidget of SheetTab
+### 
 class SpreadsheetWindow(QtGui.QMainWindow):
-
-    ### Layout menu, status bar and tab widget
+    """
+    SpreadsheetWindow is the top-level main window containing a
+    stacked widget of QTabWidget and its stacked widget for slideshow
+    mode
+    
+    """
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
+        """ SpreadsheetWindow(parent: QWidget, f: WindowFlags)
+                              -> SpreadsheetWindow
+        Layout menu, status bar and tab widget
+        
+        """
         QtGui.QMainWindow.__init__(self,parent,f)
         self.createEventMap()
         self.setWindowTitle('VisTrails - Spreadsheet - Untitled')
         self.stackedCentralWidget = QtGui.QStackedWidget(self)
-        self.tabController = StandardWidgetTabController(self.stackedCentralWidget)
+        self.tabController = StandardWidgetTabController(
+            self.stackedCentralWidget)
         self.stackedCentralWidget.addWidget(self.tabController)
-        self.fullScreenStackedWidget = QtGui.QStackedWidget(self.stackedCentralWidget)
+        self.fullScreenStackedWidget = QtGui.QStackedWidget(
+            self.stackedCentralWidget)
         self.stackedCentralWidget.addWidget(self.fullScreenStackedWidget)
         self.setCentralWidget(self.stackedCentralWidget)
         self.setStatusBar(QtGui.QStatusBar(self))
@@ -31,8 +42,11 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('needChangeTitle'),
                      self.setWindowTitle)
 
-    ### Set up the menu bar
     def setupMenu(self):
+        """ setupMenu() -> None
+        Add all available actions to the menu bar
+
+        """
         self.setMenuBar(QtGui.QMenuBar(self))
         self.mainMenu = QtGui.QMenu('&Main', self.menuBar())
         self.menuBar().addAction(self.mainMenu.menuAction())
@@ -46,23 +60,32 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.menuBar().addAction(self.viewMenu.menuAction())
         self.viewMenu.addAction(self.fullScreenAction())
 
-    ### Return the fullscreen action
     def fullScreenAction(self):
+        """ fullScreenAction() -> QAction
+        Return the fullscreen action
+        
+        """
         if not hasattr(self, 'fullScreenActionVar'):
             self.fullScreenActionVar = QtGui.QAction('&Full Screen\tF11', self)
-            self.fullScreenActionVar.setStatusTip('Show sheets without any menubar or statusbar')
+            self.fullScreenActionVar.setStatusTip('Show sheets without any '
+                                                  'menubar or statusbar')
             self.connect(self.fullScreenActionVar,
                          QtCore.SIGNAL('triggered()'),
                          self.fullScreenActivated)
             self.fullScreenAlternativeShortcuts = [QtGui.QShortcut('F11', self),
-                                                   QtGui.QShortcut('Alt+Return', self),
-                                                   QtGui.QShortcut('Alt+Enter', self)]
+                                                   QtGui.QShortcut('Alt+Return',
+                                                                   self),
+                                                   QtGui.QShortcut('Alt+Enter',
+                                                                   self)]
             for sc in self.fullScreenAlternativeShortcuts:
-                self.connect(sc, QtCore.SIGNAL('activated()'), self.fullScreenActivated)
+                self.connect(sc, QtCore.SIGNAL('activated()'),
+                             self.fullScreenActivated)
         return self.fullScreenActionVar
 
-    ### Alt+Enter has pressed, fullscreen?
     def fullScreenActivated(self):
+        """ fullScreenActivated() -> None
+        Alt+Enter has pressed, then go fullscreen now
+        """
         fs = self.isFullScreen()
         fs = not fs
         if fs:
@@ -72,18 +95,23 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         fs = self.isFullScreen()
         self.menuBar().setVisible(not fs)
         self.statusBar().setVisible(not fs)
-        self.tabController.setupFullScreenWidget(fs, self.fullScreenStackedWidget)
+        self.tabController.setupFullScreenWidget(fs,
+                                                 self.fullScreenStackedWidget)
         self.stackedCentralWidget.setCurrentIndex(int(fs))
         
-    ### Read VisTrails setting and show accordingly
     def configShow(self):
+        """ configShow() -> None
+        Read VisTrails setting and show the spreadsheet window accordingly
+        
+        """
         if hasattr(self.visApp, 'configuration'):
             ### Multiheads
             desktop = QtGui.QApplication.desktop()
             if self.visApp.configuration.multiHeads and desktop.numScreens()>1:
                 r = desktop.availableGeometry(desktop.primaryScreen())
-                self.visApp.builderWindow.move(self.visApp.builderWindow.pos() + r.center()-
-                                               self.visApp.builderWindow.frameGeometry().center())
+                center = self.visApp.builderWindow.frameGeometry().center()
+                self.visApp.builderWindow.move(self.visApp.builderWindow.pos()
+                                               + r.center() - center)
                 for i in range(desktop.numScreens()):
                     if i!=desktop.primaryScreen():
                         r = desktop.availableGeometry(i)
@@ -95,21 +123,33 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             else:
                 self.show()
 
-    ### Make sure we show ourself for show event
     def showEvent(self, e):
+        """ showEvent(e: QShowEvent) -> None
+        Make sure we show ourself for show event
+        
+        """
         self.show()
 
-    ### When close, just hide instead
     def closeEvent(self, e):
+        """ closeEvent(e: QCloseEvent) -> None
+        When close, just hide instead
+        
+        """
         e.ignore()
         self.hide()
 
-    ### A default size of the window
     def sizeHint(self):
+        """ sizeHint() -> QSize
+        Return a default size of the window
+        
+        """
         return QtCore.QSize(1024, 768)
 
-    ### An application-wide eventfilter to capture mouse/keyboard events
     def eventFilter(self,q,e):
+        """ eventFilter(q: QObject, e: QEvent) -> depends on event type
+        An application-wide eventfilter to capture mouse/keyboard events
+        
+        """
         # Handle Show/Hide cell resizer/toolbars on KeyPress,
         # KeyRelease, MouseMove but avoid Shortcut event
         eType = e.type()
@@ -117,7 +157,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             sheetWidget = self.tabController.tabWidgetUnderMouse()
             if sheetWidget:
                 if eType!=117:
-                    ctrl = e.modifiers()&QtCore.Qt.ControlModifier!=QtCore.Qt.NoModifier
+                    ctrl = (e.modifiers()&QtCore.Qt.ControlModifier
+                            !=QtCore.Qt.NoModifier)
                 else:
                     ctrl = False
                 sheetWidget.showHelpers(ctrl, QtGui.QCursor.pos())
@@ -131,7 +172,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 
         if (eType==QtCore.QEvent.KeyPress and
             self.isFullScreen()):
-            if (e.key() in [QtCore.Qt.Key_Space,QtCore.Qt.Key_PageDown,QtCore.Qt.Key_Right]):
+            if (e.key() in [QtCore.Qt.Key_Space,
+                            QtCore.Qt.Key_PageDown,QtCore.Qt.Key_Right]):
                 self.tabController.showNextTab()
                 return True
             if (e.key() in [QtCore.Qt.Key_PageUp,QtCore.Qt.Key_Left]):
@@ -145,28 +187,38 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             
         return QtGui.QMainWindow.eventFilter(self,q,e)
 
-
-    ### Handle all special events from spreadsheet controller
     def event(self, e):
+        """ event(e: QEvent) -> depends on event type
+        Handle all special events from spreadsheet controller
+        
+        """
         if self.eventMap.has_key(e.type()):
             self.tabController.addPipeline(e.vistrail)            
             self.eventMap[e.type()](e)
             return False
         return QtGui.QMainWindow.event(self, e)
 
-    ### Create event map
     def createEventMap(self):
+        """ createEventMap() -> None        
+        Create the event map to call inside the event(). This must be
+        called before anything else
+        
+        """
         self.eventMap = {
-            spreadsheet_event.DisplayCellEventType : self.displayCellEvent,
-            spreadsheet_event.BatchDisplayCellEventType : self.batchDisplayCellEvent
+            DisplayCellEventType : self.displayCellEvent,
+            BatchDisplayCellEventType : self.batchDisplayCellEvent
             }
 
-    ### Handle event where a new cell is arrived
     def displayCellEvent(self, e):
+        """ displayCellEvent(e: DisplayCellEvent) -> None
+        Display a cell when receive this event
+        
+        """
         cid = self.tabController.increasePipelineCellId(e.vistrail)
         pid = self.tabController.getCurrentPipelineId(e.vistrail)
         if self.tabController.isLoadingMode():
-            locations = self.tabController.getMonitoredLocations((e.vistrail, pid, cid))
+            locations = self.tabController.getMonitoredLocations((e.vistrail,
+                                                                  pid, cid))
             for (sheet, row, col) in locations:
                 sheet.setCellPipelineInfo(row, col, (e.vistrail, pid, cid))
                 sheet.setCellByType(row, col, e.cellType, e.inputPorts)
@@ -182,8 +234,11 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             sheet.setCellPipelineInfo(row, col, (e.vistrail, pid, cid))
             sheet.setCellByType(row, col, e.cellType, e.inputPorts)
 
-    ### Handle event where a series of cells are arrived
     def batchDisplayCellEvent(self, batchEvent):
+        """ batchDisplayCellEvent(batchEvent: BatchDisplayCellEvent) -> None
+        Handle event where a series of cells are arrived
+        
+        """
         for e in batchEvent.displayEvents:
             e.vistrail = batchEvent.vistrail
             self.displayCellEvent(e)

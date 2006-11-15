@@ -222,7 +222,7 @@ def createAllModules(g):
 ################################################################################
 def initialize():
     """ initialize() -> None
-    Package-entry for initialize the package
+    Package-entry to initialize the package
     
     """
     inheritanceGraph = ClassTree(vtk)

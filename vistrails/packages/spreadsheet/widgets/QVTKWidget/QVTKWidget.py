@@ -1,51 +1,83 @@
-""" File QVTKWidget.py
-File for displaying a vtkRenderWindow in a Qt's QWidget ported from
-VTK/GUISupport/QVTK. Combine altogether to a single class: QVTKWidget
-"""
-import sys
+################################################################################
+# File QVTKWidget.py
+# File for displaying a vtkRenderWindow in a Qt's QWidget ported from
+# VTK/GUISupport/QVTK. Combine altogether to a single class: QVTKWidget
+################################################################################
 import vtk
 from PyQt4 import QtCore, QtGui
-from packages.spreadsheet.basic_widgets import SpreadsheetCell
-from packages.spreadsheet.spreadsheet_helpers import *
 from core import system
-
+from packages.spreadsheet.basic_widgets import SpreadsheetCell
+from packages.spreadsheet.spreadsheet_helpers import CellToolBar
 import QVTKWidget_rc
 
-class VTKCell(SpreadsheetCell):
+################################################################################
 
+class VTKCell(SpreadsheetCell):
+    """
+    VTKCell is a VisTrails Module that can display vtkRenderWindow inside a cell
+    
+    """
     def compute(self):
+        """ compute() -> None
+        Dispatch the vtkRenderer to the actual rendering widget
+        """
         renderers = self.forceGetInputListFromPort('AddRenderer')
         self.display(QVTKWidget, (renderers,))
 
-AsciiToKeySymTable = ( None, None, None, None, None, None, None, None, None, "Tab", None, None, None, None, None, None,
-  None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-  "space", "exclam", "quotedbl", "numbersign",
-  "dollar", "percent", "ampersand", "quoteright",
-  "parenleft", "parenright", "asterisk", "plus",
-  "comma", "minus", "period", "slash",
-  "0", "1", "2", "3", "4", "5", "6", "7",
-  "8", "9", "colon", "semicolon", "less", "equal", "greater", "question",
-  "at", "A", "B", "C", "D", "E", "F", "G",
-  "H", "I", "J", "K", "L", "M", "N", "O",
-  "P", "Q", "R", "S", "T", "U", "V", "W",
-  "X", "Y", "Z", "bracketleft",
-  "backslash", "bracketright", "asciicircum", "underscore",
-  "quoteleft", "a", "b", "c", "d", "e", "f", "g",
-  "h", "i", "j", "k", "l", "m", "n", "o",
-  "p", "q", "r", "s", "t", "u", "v", "w",
-  "x", "y", "z", "braceleft", "bar", "braceright", "asciitilde", "Delete",
-  None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-  None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-  None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-  None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-  None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-  None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-  None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-  None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+AsciiToKeySymTable = ( None, None, None, None, None, None, None,
+                       None, None,
+                       "Tab", None, None, None, None, None, None,
+                       None, None, None, None, None, None,
+                       None, None, None, None, None, None,
+                       None, None, None, None,
+                       "space", "exclam", "quotedbl", "numbersign",
+                       "dollar", "percent", "ampersand", "quoteright",
+                       "parenleft", "parenright", "asterisk", "plus",
+                       "comma", "minus", "period", "slash",
+                       "0", "1", "2", "3", "4", "5", "6", "7",
+                       "8", "9", "colon", "semicolon", "less", "equal",
+                       "greater", "question",
+                       "at", "A", "B", "C", "D", "E", "F", "G",
+                       "H", "I", "J", "K", "L", "M", "N", "O",
+                       "P", "Q", "R", "S", "T", "U", "V", "W",
+                       "X", "Y", "Z", "bracketleft",
+                       "backslash", "bracketright", "asciicircum",
+                       "underscore",
+                       "quoteleft", "a", "b", "c", "d", "e", "f", "g",
+                       "h", "i", "j", "k", "l", "m", "n", "o",
+                       "p", "q", "r", "s", "t", "u", "v", "w",
+                       "x", "y", "z", "braceleft", "bar", "braceright",
+                       "asciitilde", "Delete",
+                       None, None, None, None, None, None, None, None, 
+                       None, None, None, None, None, None, None, None,
+                       None, None, None, None, None, None, None, None,
+                       None, None, None, None, None, None, None, None,
+                       None, None, None, None, None, None, None, None,
+                       None, None, None, None, None, None, None, None,
+                       None, None, None, None, None, None, None, None,
+                       None, None, None, None, None, None, None, None, 
+                       None, None, None, None, None, None, None, None, 
+                       None, None, None, None, None, None, None, None,
+                       None, None, None, None, None, None, None, None,
+                       None, None, None, None, None, None, None, None,
+                       None, None, None, None, None, None, None, None,
+                       None, None, None, None, None, None, None, None,
+                       None, None, None, None, None, None, None, None,
+                       None, None, None, None, None, None, None, None)
 
 
 class QVTKWidget(QtGui.QWidget):
-    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):                
+    """
+    QVTKWidget is the actual rendering widget that can display
+    vtkRenderer inside a Qt QWidget
+    
+    """
+    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
+        """ QVTKWidget(parent: QWidget, f: WindowFlags) -> QVTKWidget
+        Initialize QVTKWidget with a toolbar with its own device
+        context
+        
+        """
         QtGui.QWidget.__init__(self, parent, f | QtCore.Qt.MSWindowsOwnDC)
 
         self.interacting = None
@@ -57,14 +89,19 @@ class QVTKWidget(QtGui.QWidget):
         self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
                                              QtGui.QSizePolicy.Expanding))
         self.toolBarType = QVTKWidgetToolBar
-        #MAC?
-        #  this->DirtyRegionHandler = 0;
-        #  this->DirtyRegionHandlerUPP = 0;
 
     def __del__(self):
+        """ __del__() -> None
+        Make sure to free render window resource when deallocating
+        
+        """
         del self.mRenWin
 
     def updateContents(self, inputPorts):
+        """ updateContents(inputPorts: tuple)
+        Updates the cell contents with new vtkRenderer
+        
+        """
         (renderers,) = inputPorts
         renWin = self.GetRenderWindow()
         for renderer in renderers:            
@@ -75,6 +112,10 @@ class QVTKWidget(QtGui.QWidget):
         renWin.Render()
 
     def GetRenderWindow(self):
+        """ GetRenderWindow() -> vtkRenderWindow
+        Return the associated vtkRenderWindow
+        
+        """
         if not self.mRenWin:
             win = vtk.vtkRenderWindow()
             win.DoubleBufferOn()
@@ -83,7 +124,12 @@ class QVTKWidget(QtGui.QWidget):
 
         return self.mRenWin
 
-    def SetRenderWindow(self,w):        
+    def SetRenderWindow(self,w):
+        """ SetRenderWindow(w: vtkRenderWindow)        
+        Set a new render window to QVTKWidget and initialize the
+        interactor as well
+        
+        """
         if w == self.mRenWin:
             return
         
@@ -102,15 +148,11 @@ class QVTKWidget(QtGui.QWidget):
             self.mRenWin.Register(None)
             if self.mRenWin.GetMapped():
                 self.mRenWin.Finalize()
-            #X11?
             SetDisplayInfo = getattr(self.mRenWin, "SetDisplayInfo", None)
             if SetDisplayInfo:
                 SetDisplayInfo(str(int(QtGui.QX11Info.display())))
             self.mRenWin.SetWindowInfo(str(int(self.winId())))
             self.mRenWin.SetParentInfo(str(int(self.parent().winId())))
-            #MAC?
-            #self.mRenWin.SetWindowId(str(int(self.handle())));
-            #self.mRenWin->SetParentId(reinterpret_cast<void*>(0x1));
             self.mRenWin.SetSize(self.width(), self.height())
             self.mRenWin.SetPosition(self.x(), self.y())
             
@@ -128,39 +170,26 @@ class QVTKWidget(QtGui.QWidget):
                     self.mRenWin.SetWindowInfo(str(int(self.winId())))                
                 s = vtk.vtkInteractorStyleTrackballCamera()
                 iren.SetInteractorStyle(s)
-                s.AddObserver("InteractionEvent", self.interactionEvent);
-                s.AddObserver("CharEvent", self.charEvent);
-                s.AddObserver("MouseWheelForwardEvent", self.interactionEvent);
-                s.AddObserver("MouseWheelBackwardEvent", self.interactionEvent);
+                s.AddObserver("InteractionEvent", self.interactionEvent)
+                s.AddObserver("CharEvent", self.charEvent)
+                s.AddObserver("MouseWheelForwardEvent", self.interactionEvent)
+                s.AddObserver("MouseWheelBackwardEvent", self.interactionEvent)
                 del iren
                 del s
 
             self.mRenWin.GetInteractor().SetSize(self.width(),self.height())
 
-        #MAC?
-        # if(mRenWin && !this->DirtyRegionHandlerUPP)
-        # {
-        #     this->DirtyRegionHandlerUPP = NewEventHandlerUPP(QVTKWidget::DirtyRegionProcessor);
-        #     static EventTypeSpec events[] = { {'cute', 20} };  
-        #        // kEventClassQt, kEventQtRequestWindowChange from qt_mac_p.h
-        #        // Suggested by Sam Magnuson at Trolltech as best portabile hack 
-        #        // around Apple's missing functionality in HI Toolbox.
-        #     InstallEventHandler(GetApplicationEventTarget(), this->DirtyRegionHandlerUPP, 
-        #                         GetEventTypeCount(events), events, 
-        #                         reinterpret_cast<void*>(this), &this->DirtyRegionHandler);
-        #     }
-        #   else if(!mRenWin && this->DirtyRegionHandlerUPP)
-        #     {
-        #     RemoveEventHandler(this->DirtyRegionHandler);
-        #     DisposeEventHandlerUPP(this->DirtyRegionHandlerUPP);
-        #     this->DirtyRegionHandler = 0;
-        #     this->DirtyRegionHandlerUPP = 0;
-        #     }
-
     def GetInteractor(self):
+        """ GetInteractor() -> vtkInteractor
+        Return the vtkInteractor control this QVTKWidget
+        """
         return self.GetRenderWindow().GetInteractor()
 
     def event(self, e):
+        """ event(e: QEvent) -> depends on event type
+        Process window and interaction events
+        
+        """
         if e.type()==QtCore.QEvent.ParentAboutToChange:            
             if self.mRenWin:
                 if self.mRenWin.GetMapped():
@@ -184,6 +213,10 @@ class QVTKWidget(QtGui.QWidget):
         return QtGui.QWidget.event(self,e)
 
     def resizeEvent(self, e):
+        """ resizeEvent(e: QEvent) -> None
+        Re-adjust the vtkRenderWindow size then QVTKWidget resized
+        
+        """
         QtGui.QWidget.resizeEvent(self,e)
 
         if not self.mRenWin:
@@ -208,6 +241,10 @@ class QVTKWidget(QtGui.QWidget):
             self.mRenWin.GetInteractor().SetSize(self.width(),self.height())
 
     def moveEvent(self,e):
+        """ moveEvent(e: QEvent) -> None
+        Echo the move event into vtkRenderWindow
+        
+        """
         QtGui.QWidget.moveEvent(self,e)
         if not self.mRenWin:
             return
@@ -215,6 +252,10 @@ class QVTKWidget(QtGui.QWidget):
         self.mRenWin.SetPosition(self.x(),self.y())
 
     def paintEvent(self,e):
+        """ paintEvent(e: QPaintEvent) -> None
+        Paint the QVTKWidget with vtkRenderWindow
+        
+        """
         iren = None
         if self.mRenWin:
             iren = self.mRenWin.GetInteractor()
@@ -223,8 +264,11 @@ class QVTKWidget(QtGui.QWidget):
             return
         iren.Render()        
 
-    # Only make the one below the mouse cursor active
     def SelectActiveRenderer(self,iren):
+        """ SelectActiveRenderer(iren: vtkRenderWindowIteractor) -> None
+        Only make the vtkRenderer below the mouse cursor active
+        
+        """
         epos = iren.GetEventPosition()
         rens = iren.GetRenderWindow().GetRenderers()
         rens.InitTraversal()
@@ -233,6 +277,10 @@ class QVTKWidget(QtGui.QWidget):
             ren.SetInteractive(ren.IsInViewport(epos[0], epos[1]))
 
     def mousePressEvent(self,e):
+        """ mousePressEvent(e: QMouseEvent) -> None
+        Echo mouse event to vtkRenderWindowwInteractor
+        
+        """
         self.emit(QtCore.SIGNAL("mouseEvent(QMouseEvent)"),e)
 
         iren = None
@@ -243,11 +291,13 @@ class QVTKWidget(QtGui.QWidget):
             return
 
         ctrl = (e.modifiers()&QtCore.Qt.ControlModifier)
+        isDoubleClick = e.type()==QtCore.QEvent.MouseButtonDblClick
         iren.SetEventInformationFlipY(e.x(),e.y(),
                                       ctrl,
                                       (e.modifiers()&QtCore.Qt.ShiftModifier),
                                       chr(0),
-                                      e.type()==QtCore.QEvent.MouseButtonDblClick, None)
+                                      isDoubleClick,
+                                      None)
 
         invoke = {QtCore.Qt.LeftButton:"LeftButtonPressEvent",
                   QtCore.Qt.MidButton:"MiddleButtonPressEvent",
@@ -265,6 +315,10 @@ class QVTKWidget(QtGui.QWidget):
             iren.InvokeEvent(invoke[e.button()])
 
     def mouseMoveEvent(self,e):
+        """ mouseMoveEvent(e: QMouseEvent) -> None
+        Echo mouse event to vtkRenderWindowwInteractor
+        
+        """
         iren = None
         if self.mRenWin:
             iren = self.mRenWin.GetInteractor()
@@ -280,6 +334,10 @@ class QVTKWidget(QtGui.QWidget):
         iren.InvokeEvent("MouseMoveEvent")
                   
     def enterEvent(self,e):
+        """ enterEvent(e: QEvent) -> None
+        Echo mouse event to vtkRenderWindowwInteractor
+        
+        """
         iren = None
         if self.mRenWin:
             iren = self.mRenWin.GetInteractor()
@@ -290,6 +348,10 @@ class QVTKWidget(QtGui.QWidget):
         iren.InvokeEvent("EnterEvent")
 
     def leaveEvent(self,e):
+        """ leaveEvent(e: QEvent) -> None
+        Echo mouse event to vtkRenderWindowwInteractor
+        
+        """
         iren = None
         if self.mRenWin:
             iren = self.mRenWin.GetInteractor()
@@ -300,6 +362,10 @@ class QVTKWidget(QtGui.QWidget):
         iren.InvokeEvent("LeaveEvent")
 
     def mouseReleaseEvent(self,e):
+        """ mouseReleaseEvent(e: QEvent) -> None
+        Echo mouse event to vtkRenderWindowwInteractor
+        
+        """
         iren = None
         if self.mRenWin:
             iren = self.mRenWin.GetInteractor()
@@ -322,6 +388,10 @@ class QVTKWidget(QtGui.QWidget):
             iren.InvokeEvent(invoke[e.button()])
 
     def keyPressEvent(self,e):
+        """ keyPressEvent(e: QKeyEvent) -> None
+        Disallow 'quit' key in vtkRenderWindowwInteractor and sync the others
+        
+        """
         iren = None
         if self.mRenWin:
             iren = self.mRenWin.GetInteractor()
@@ -356,6 +426,10 @@ class QVTKWidget(QtGui.QWidget):
 
         
     def keyReleaseEvent(self,e):
+        """ keyReleaseEvent(e: QKeyEvent) -> None
+        Disallow 'quit' key in vtkRenderWindowwInteractor and sync the others
+        
+        """
         iren = None
         if self.mRenWin:
             iren = self.mRenWin.GetInteractor()
@@ -386,6 +460,10 @@ class QVTKWidget(QtGui.QWidget):
         iren.InvokeEvent("KeyReleaseEvent")
 
     def wheelEvent(self,e):
+        """ wheelEvent(e: QWheelEvent) -> None
+        Zoom in/out while scrolling the mouse
+        
+        """
         iren = None
         if self.mRenWin:
             iren = self.mRenWin.GetInteractor()
@@ -406,12 +484,25 @@ class QVTKWidget(QtGui.QWidget):
             iren.InvokeEvent("MouseWheelBackwardEvent")
 
     def focusInEvent(self,e):
+        """ focusInEvent(e: QFocusEvent) -> None
+        Ignore focus event
+        
+        """
         pass
 
     def focusOutEvent(self,e):
+        """ focusOutEvent(e: QFocusEvent) -> None
+        Ignore focus event
+        
+        """
         pass
 
     def contextMenuEvent(self,e):
+        """ contextMenuEvent(e: QContextMenuEvent) -> None        
+        Make sure to get the right mouse position for the context menu
+        event, i.e. also the right click
+        
+        """
         iren = None
         if self.mRenWin:
             iren = self.mRenWin.GetInteractor()
@@ -424,14 +515,19 @@ class QVTKWidget(QtGui.QWidget):
         iren.SetEventInformationFlipY(e.x(),e.y(),ctrl,shift,chr(0),0,None)
         iren.InvokeEvent("ContextMenuEvent")
 
-    def paintEngine(self):
-        return None
-
     def ascii_to_key_sym(self,i):
+        """ ascii_to_key_sym(i: int) -> str
+        Convert ASCII code into key name
+        
+        """
         global AsciiToKeySymTable
         return AsciiToKeySymTable[i]
 
     def qt_key_to_key_sym(self,i):
+        """ qt_key_to_key_sym(i: QtCore.Qt.Keycode) -> str
+        Convert Qt key code into key name
+        
+        """
         handler = {QtCore.Qt.Key_Backspace:"BackSpace",
                    QtCore.Qt.Key_Tab:"Tab",
                    QtCore.Qt.Key_Backtab:"Tab",
@@ -527,6 +623,9 @@ class QVTKWidget(QtGui.QWidget):
             return "None"
 
     def getRendererList(self):
+        """ getRendererList() -> list
+        Return a list of vtkRenderer running in this QVTKWidget
+        """
         result = []
         renWin = self.GetRenderWindow()
         renderers = renWin.GetRenderers()
@@ -536,6 +635,10 @@ class QVTKWidget(QtGui.QWidget):
         return result
 
     def getActiveRenderer(self, iren):
+        """ getActiveRenderer(iren: vtkRenderWindowwInteractor) -> vtkRenderer
+        Return the active vtkRenderer under mouse
+        
+        """
         epos = iren.GetEventPosition()
         rens = iren.GetRenderWindow().GetRenderers()
         rens.InitTraversal()
@@ -546,6 +649,10 @@ class QVTKWidget(QtGui.QWidget):
         return None
 
     def findSheetTabWidget(self):
+        """ findSheetTabWidget() -> QTabWidget
+        Find and return the sheet tab widget
+        
+        """
         p = self.parent()
         while p:
             if hasattr(p, 'isSheetTabWidget'):
@@ -555,6 +662,10 @@ class QVTKWidget(QtGui.QWidget):
         return None
 
     def interactionEvent(self, istyle, name):
+        """ interactionEvent(istyle: vtkInteractorStyle, name: str) -> None
+        Make sure interactions sync across selected renderers
+        
+        """
         if name=='MouseWheelForwardEvent':
             istyle.OnMouseWheelForward()
         if name=='MouseWheelBackwardEvent':
@@ -584,6 +695,10 @@ class QVTKWidget(QtGui.QWidget):
                         cell.GetRenderWindow().Render()
 
     def charEvent(self, istyle, name):
+        """ charEvent(istyle: vtkInteractorStyle, name: str) -> None
+        Make sure key presses also sync across selected renderers
+        
+        """
         sheet = self.findSheetTabWidget()
         if sheet:
             iren = istyle.GetInteractor()
@@ -601,7 +716,16 @@ class QVTKWidget(QtGui.QWidget):
 
 
 class QVTKWidgetCapture(QtGui.QAction):
+    """
+    QVTKWidgetCapture is the action to capture the vtk rendering
+    window to an image
+    
+    """
     def __init__(self, parent=None):
+        """ QVTKWidgetCapture(parent: QWidget) -> QVTKWidgetCapture
+        Setup the image, status tip, etc. of the action
+        
+        """
         QtGui.QAction.__init__(self,
                                QtGui.QIcon(":/images/camera.png"),
                                "&Capture image to file",
@@ -610,15 +734,35 @@ class QVTKWidgetCapture(QtGui.QAction):
 
 
 class QVTKWidgetCaptureToHistory(QtGui.QAction):
+    """
+    QVTKWidgetCaptureToHistory is the action to capture the vtk rendering
+    window to the history
+    
+    """
     def __init__(self, parent=None):
+        """ QVTKWidgetCaptureToHistory(parent: QWidget)
+                                       -> QVTKWidgetCaptureToHistory
+        Setup the image, status tip, etc. of the action
+        
+        """
         QtGui.QAction.__init__(self,
                                QtGui.QIcon(":/images/camera_mount.png"),
                                "&Capture image to history",
                                parent)
-        self.setStatusTip("Capture the rendered image to the history for playback later")
+        self.setStatusTip("Capture the rendered image to the history for "
+                          "playback later")
 
 class QVTKWidgetPlayHistory(QtGui.QAction):
+    """
+    QVTKWidgetPlayHistory is the action to play the history as an animation
+    
+    """
     def __init__(self, parent=None):
+        """ QVTKWidgetPlayHistory(parent: QWidget)
+                                       -> QVTKWidgetPlayHistory
+        Setup the image, status tip, etc. of the action
+        
+        """
         QtGui.QAction.__init__(self,
                                QtGui.QIcon(":/images/player_play.png"),
                                "&Play the history",
@@ -626,7 +770,16 @@ class QVTKWidgetPlayHistory(QtGui.QAction):
         self.setStatusTip("Playback all image files kept in the history")
 
 class QVTKWidgetPauseHistory(QtGui.QAction):
+    """
+    QVTKWidgetPauseHistory is the action to pause the history as an animation
+    
+    """
     def __init__(self, parent=None):
+        """ QVTKWidgetPauseHistory(parent: QWidget)
+                                       -> QVTKWidgetPauseHistory
+        Setup the image, status tip, etc. of the action
+        
+        """
         QtGui.QAction.__init__(self,
                                QtGui.QIcon(":/images/player_pause.png"),
                                "Pa&use the history playback",
@@ -634,15 +787,34 @@ class QVTKWidgetPauseHistory(QtGui.QAction):
         self.setStatusTip("Pause the playback, later it can be resumed")
 
 class QVTKWidgetEjectHistory(QtGui.QAction):
+    """
+    QVTKWidgetEjectHistory is the action to get back to rendering mode
+    
+    """
     def __init__(self, parent=None):
+        """ QVTKWidgetEjectHistory(parent: QWidget)
+                                       -> QVTKWidgetEjectHistory
+        Setup the image, status tip, etc. of the action
+        
+        """
         QtGui.QAction.__init__(self,
                                QtGui.QIcon(":/images/player_eject.png"),
                                "&Return to VTK interactive mode",
                                parent)
-        self.setStatusTip("Stop the playback and returned to the interactive mode")
+        self.setStatusTip("Stop the playback and returned to the "
+                          "interactive mode")
 
 class QVTKWidgetToolBar(CellToolBar):
+    """
+    QVTKWidgetToolBar derives from CellToolBar to give the VTKCell
+    a customizable toolbar
+    
+    """
     def createToolBar(self):
+        """ createToolBar() -> None
+        This will get call initiallly to add customizable widgets
+        
+        """
         self.setOrientation(QtCore.Qt.Vertical)
         self.appendAction(QVTKWidgetCapture(self))
         self.appendAction(QVTKWidgetCaptureToHistory(self))

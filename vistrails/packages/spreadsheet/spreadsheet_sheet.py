@@ -1,16 +1,30 @@
+################################################################################
+# This file contains a set of internal Spreadsheet basic classes used
+# by others:
+#   StandardWidgetHeaderView
+#   StandardWidgetItemDelegate
+#   StandardWidgetSheet
+################################################################################
 from PyQt4 import QtCore, QtGui
-from spreadsheet_helpers import *
+from spreadsheet_helpers import CellHelpers, CellResizer
 
 ################################################################################
-################################################################################
-### StandardWidgetHeaderView: the standard header view (containing
-### column/row labels). The main difference between this class and the
-### original one is that it allows resizing and stretching at the same
-### time.
+
 class StandardWidgetHeaderView(QtGui.QHeaderView):
-
-    ### Initialize the header view to be like the one in the table
+    """
+    StandardWidgetHeaderView is the standard header view (containing
+    column/row labels) inheriting from QHeaderView. The main
+    difference between this class and the original one is that it
+    allows resizing and stretching at the same time
+    
+    """
     def __init__(self, orientation, parent=None):
+        """ StandardWidgetHeaderView(orientation: QtCore.Qt.Align...,
+                                     parent: QWidget)
+                                     -> StandardWidgetHeaderView
+        Initialize the header view to be like the one in the spreadsheet table
+        
+        """
         QtGui.QHeaderView.__init__(self, orientation, parent)
         self.setFont(QtGui.QFont("Helvetica",12,QtGui.QFont.Bold))
         self.resizeSections(QtGui.QHeaderView.Stretch)
@@ -18,25 +32,35 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         self.setHighlightSections(True)
         self.fitToViewport = False
         if orientation==QtCore.Qt.Vertical:
-            self.setDefaultAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+            self.setDefaultAlignment(QtCore.Qt.AlignHCenter |
+                                     QtCore.Qt.AlignVCenter)
         self.minimumSize = 50
 
-    ### Set fit to viewport for have all the sections always stretch
-    ### to the whole viewport
     def setFitToViewport(self, fit=True):
+        """ setFitToViewport(fit: boolean) -> None        
+        Set fit to viewport for have all the sections always stretch
+        to the whole viewport
+        
+        """
         if self.fitToViewport!=fit:
             self.fitToViewport = fit
             if fit:
-                self.connect(self, QtCore.SIGNAL("sectionResized(int,int,int)"), self.fixSize)
+                self.connect(self, QtCore.SIGNAL("sectionResized(int,int,int)"),
+                             self.fixSize)
             else:
-                self.disconnect(self, QtCore.SIGNAL("sectionResized(int,int,int)"), self.fixSize)
+                self.disconnect(self,
+                                QtCore.SIGNAL("sectionResized(int,int,int)"),
+                                self.fixSize)
 
-    ### This slot capture sectionResized signal and makes sure all the
-    ### sections are stretched right. Then it will emit
-    ### 'lastSectionResized' with the list of all sections that have
-    ### been updated. QTableView should capture this signal instead if
-    ### it uses StandardWidgetHeaderView.
     def fixSize(self, logicalIndex, oldSize, newSize):
+        """ fixSize(logicalIndex: int, oldSize: int, newSize: int) -> None        
+        This slot capture sectionResized signal and makes sure all the
+        sections are stretched right. Then it will emit
+        'lastSectionResized' with the list of all sections that have
+        been updated. QTableView should capture this signal instead if
+        it uses StandardWidgetHeaderView
+        
+        """
         if newSize<self.minimumSize:
             self.resizeSection(logicalIndex, self.minimumSize)
             return
@@ -64,8 +88,11 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         updatedSections.append((logicalIndex, newSize))
         self.emit(QtCore.SIGNAL('lastSectionResized'), updatedSections)
 
-    ### Set a default thickness of the bar to 30
     def sizeHint(self):
+        """ sizeHint() -> QSize
+        Set a default thickness of the bar to 30
+        
+        """
         size = QtGui.QHeaderView.sizeHint(self)
         if self.orientation()==QtCore.Qt.Vertical:
             size.setWidth(30)
@@ -73,50 +100,68 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
             size.setHeight(30)
         return size
 
-################################################################################
-################################################################################
-### StandardWidgetItemDelegate: this will replace the QTableWidget to
-### have a padding around any cell widget.
 class StandardWidgetItemDelegate(QtGui.QItemDelegate):
+    """
+    StandardWidgetItemDelegate will replace the QTableWidget default
+    display to have a padding around every cell widget
 
-    ### Initialize with table and padding
+    """
     def __init__(self, table):
+        """ StandardWidgetItemDelegate(table: QTableWidget)
+                                       -> StandardWidgetItemDelegate
+        Initialize to store a table and padding
+        
+        """
         self.table = table
         self.padding = 2
         QtGui.QItemDelegate.__init__(self, None)
 
-    ### Re-set padding to a different value
     def setPadding(self, padding):
+        """ setPadding(padding: int) -> None
+        Re-set padding to a different value
+        
+        """
         if self.padding!=padding:
             self.padding = padding
 
-    ### Make sure the widget only occupied inside the padded area
     def updateEditorGeometry(self, editor, option, index):
+        """ updateEditorGeometry(editor: QWidget,
+                                 option: QStyleOptionViewItem,
+                                 index: QModelIndex) -> None
+        Make sure the widget only occupied inside the padded area
+    
+        """
         rect = self.table.visualRect(index)
         rect.adjust(self.padding,self.padding,-self.padding,-self.padding)
         editor.setGeometry(rect)
         editor.setFixedSize(rect.width(), rect.height())
             
-################################################################################
-################################################################################
-### StandardWidgetSheet: the standard sheet that can contains any type
-### of cell widget.  Each of them will be put into a separate cell. In
-### the case of vtkRenderWindow, where creating each sheet separately
-### can end up with a large number of GL contexts, a new VTK sheet
-### need to be created inherited from this one.
 class StandardWidgetSheet(QtGui.QTableWidget):
+    """
+    StandardWidgetSheet is a standard sheet that can contain any type
+    of cell widget. Each of them will be put into a separate cell. In
+    the case of vtkRenderWindow, where creating each sheet separately
+    can end up with a large number of GL contexts, a special type of
+    VTK sheet need to be derived from this one
 
-    ### Construct a sheet with rows x cols cells
+    """
     def __init__(self, rows=0, cols=0, parent=None):
+        """ StandardWidgetSheet(rows: int, cols: int, parent: QWidget)
+                                -> StandardWidgetSheet
+        Construct a sheet with rows x cols cells
+        
+        """
         QtGui.QTableWidget.__init__(self, 0, 0, parent)
         self.fitToWindow = False
         self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
-        self.setHorizontalHeader(StandardWidgetHeaderView(QtCore.Qt.Horizontal, self))
+        self.setHorizontalHeader(StandardWidgetHeaderView(QtCore.Qt.Horizontal,
+                                                          self))
         self.horizontalHeader().setSelectionModel(self.selectionModel())
         self.connect(self.horizontalHeader(),
                      QtCore.SIGNAL('sectionCountChanged(int, int)'),
                      self.updateColumnLabels)
-        self.setVerticalHeader(StandardWidgetHeaderView(QtCore.Qt.Vertical, self))
+        self.setVerticalHeader(StandardWidgetHeaderView(QtCore.Qt.Vertical,
+                                                        self))
         self.verticalHeader().setSelectionModel(self.selectionModel())
         self.connect(self.verticalHeader(),
                      QtCore.SIGNAL('sectionCountChanged(int, int)'),
@@ -130,25 +175,34 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         self.setColumnCount(cols)
         self.setFitToWindow(True)
 
-    ### Update vertical labels when the number of row changed
     def updateRowLabels(self, oldCount, newCount):
+        """ updateRowLabels(oldCount: int, newCount: int) -> None
+        Update vertical labels when the number of row changed
+        
+        """
         vLabels = QtCore.QStringList()
         for i in range(newCount):
             vLabels << str(i+1)
         self.setVerticalHeaderLabels(vLabels)
 
 
-    ### Update horizontal labels when the number of column changed
     def updateColumnLabels(self, oldCount, newCount):
+        """ updateColumnLabels(oldCount: int, newCount: int) -> None
+        Update horizontal labels when the number of column changed
+        
+        """
         hLabels = QtCore.QStringList()
         for i in range(newCount):
             hLabels << chr(i+ord('A'))
         self.setHorizontalHeaderLabels(hLabels)
 
-    ### Force to fit all cells into the visible area. Set fit=False
-    ### for the scroll mode where hidden cell can be view by scrolling
-    ### the scrollbars.
     def setFitToWindow(self, fit=True):
+        """ setFitToWindow(fit: boolean) -> None
+        Force to fit all cells into the visible area. Set fit=False
+        for the scroll mode where hidden cell can be view by scrolling
+        the scrollbars.
+        
+        """
         if fit!=self.fitToWindow:
             self.fitToWindow = fit
             self.horizontalHeader().setFitToViewport(fit)
@@ -163,20 +217,30 @@ class StandardWidgetSheet(QtGui.QTableWidget):
                 self.setRowHeight(self.rowCount()-1, height)
             self.stretchCells()
 
-    ### A helper function to set the resizing mode of the table to Stretch
     def stretchCells(self):
+        """ stretchCells() -> None
+        Stretch all the cells with equally spaces to fit in the viewport
+        
+        """
         if self.fitToWindow:
             self.horizontalHeader().resizeSections(QtGui.QHeaderView.Stretch)
             self.verticalHeader().resizeSections(QtGui.QHeaderView.Stretch)
             
-    ### resizeEvent will make sure all columns/rows stretched right
-    ### when the table get resized
     def resizeEvent(self, e):
+        """ resizeEvent(e: QResizeEvent) -> None        
+        ResizeEvent will make sure all columns/rows stretched right
+        when the table get resized
+        
+        """
         QtGui.QTableWidget.resizeEvent(self, e)
         self.stretchCells()
 
-    ### Show the helpers (resizer, toolbar) on the current cell
     def showHelpers(self, ctrl, row, col):
+        """ showHelpers(ctrl: boolean, row: int, col: int) -> None        
+        Show/hide the helpers (resizer, toolbar) on the current cell
+        depending on the status of the Control key and cell location
+        
+        """
         if ctrl:
             if self.helpers.isInteracting():
                 return
@@ -189,18 +253,25 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         else:
             self.helpers.hide()
 
-    ### Hide the helpers when mouse leave the widget
     def leaveEvent(self, e):
+        """ leaveEvent(e: QMouseEvent) -> None
+        Hide the helpers when mouse leave the widget
+        
+        """
         self.showHelpers(False, -1, -1)
 
-    ### Get cell at a specific row and column
-    ### Just a wrapper to interact with a general spreadsheet
     def getCell(self, row, col):
+        """ getCell(row: int, col: int) -> QWidget
+        Get cell at a specific row and column
+        
+        """
         return self.cellWidget(row, col)
 
-    ### Get cell toolbar at a specific row and column
-    ### Just a wrapper to interact with a general spreadsheet
     def getCellToolBar(self, row, col):
+        """ getCellToolBar(row: int, col: int) -> QWidget
+        Return the toolbar widget at cell location (row, col)
+        
+        """
         cell = self.getCell(row, col)
         if cell and hasattr(cell, 'toolBarType'):
             if not self.toolBars.has_key(cell.toolBarType):
@@ -209,29 +280,46 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         else:
             return self.blankCellToolBar
 
-    ### Get the cell rectangle at a specific row and column
-    ### Just a wrapper to interact with a general spreadsheet
     def getCellRect(self, row, col):
+        """ getCellRect(row: int, col: int) -> QRect
+        Return the rectangle surrounding the cell at location (row, col)
+        in parent coordinates
+        
+        """
         idx = self.model().index(row, col)
         return self.visualRect(idx)
 
-    ### Get the global cell rectangle at a specific row and column
-    ### Just a wrapper to interact with a general spreadsheet
     def getCellGlobalRect(self, row, col):
+        """ getCellGlobalRect(row: int, col: int) -> QRect
+        Return the rectangle surrounding the cell at location (row, col)
+        in global coordinates
+        
+        """
         rect = self.getCellRect(row, col)
         rect.moveTo(self.viewport().mapToGlobal(rect.topLeft()))
         return rect
 
-    ### Get a free cell on the spreadsheet
     def getFreeCell(self):
+        """ getFreeCell() -> tuple
+        Get a free cell location (row, col) on the spreadsheet 
+
+        """
         for r in range(self.rowCount()):
             for c in range(self.columnCount()):
                 if self.getCell(r, c)==None:
                     return (r,c)
         return (0,0)
 
-    ### Create a cell based on celltype, location and input ports
     def setCellByType(self, row, col, cellType, inputPorts):
+        """ setCellByType(row: int,
+                          col: int,
+                          cellType: a type inherits from QWidget,
+                          inpurPorts: tuple) -> None
+        Replace the current location (row, col) with a cell of
+        cellType. If the current type of that cell is the same as
+        cellType, only the contents is updated with inputPorts.
+        
+        """
         oldCell = self.getCell(row, col)
         if type(oldCell)!=cellType:
             if cellType:

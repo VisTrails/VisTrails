@@ -1,14 +1,31 @@
+################################################################################
+# This file contains classes controlling tabs in the spreadsheets. A tab is
+# a container of a sheet:
+#   SizeSpinBox
+#   StandardTabDockWidget
+#   StandardWidgetSheetTab
+#   StandardWidgetTabBar
+#   StandardWidgetTabBarEditor
+#   StandardWidgetToolBar
+################################################################################
 from PyQt4 import QtCore, QtGui
-from spreadsheet_sheet import *
-import spreadsheet_rc
 from spreadsheet_registry import spreadsheetRegistry
+from spreadsheet_sheet import StandardWidgetSheet
+import spreadsheet_rc
 
 ################################################################################
-################################################################################
-### SizeSpinBox: this is just an overrided spin box that will also
-### emit 'editingFinished()' signal when the user interact with mouse
+
 class SizeSpinBox(QtGui.QSpinBox):
+    """
+    SizeSpinBox is just an overrided spin box that will also emit
+    'editingFinished()' signal when the user interact with mouse
+    
+    """    
     def __init__(self, initValue=0, parent=None):
+        """ SizeSpinBox(initValue: int, parent: QWidget) -> SizeSpinBox
+        Initialize with a default width of 50 and a value of 0
+        
+        """
         QtGui.QSpinBox.__init__(self, parent)
         self.setMinimum(1)
         self.setMinimumWidth(50)
@@ -16,19 +33,25 @@ class SizeSpinBox(QtGui.QSpinBox):
         self.setValue(initValue)
 
     def mouseReleaseEvent(self, event):
-        QtGui.QSpinBox.mouseReleaseEvent(self, event)
-        self.emit(QtCore.SIGNAL("editingFinished()"))
+        """ mouseReleaseEvent(event: QMouseEvent) -> None
+        Emit 'editingFinished()' signal when the user release a mouse button
         
+        """
+        QtGui.QSpinBox.mouseReleaseEvent(self, event)
+        self.emit(QtCore.SIGNAL("editingFinished()"))        
 
-################################################################################
-################################################################################
-### StandardWidgetToolBar: The default toolbar for each sheet
-### container. By default, only FitToWindow and Table resizing are
-### included
 class StandardWidgetToolBar(QtGui.QToolBar):
-
-    ### Init with default actions
+    """
+    StandardWidgetToolBar: The default toolbar for each sheet
+    ontainer. By default, only FitToWindow and Table resizing are
+    included
+    
+    """
     def __init__(self, parent=None):
+        """ StandardWidgetToolBar(parent: QWidget) -> StandardWidgetToolBar
+        Init the toolbar with default actions
+        
+        """
         QtGui.QToolBar.__init__(self, parent)
         self.sheetTab = parent
         self.addAction(self.fitToWindowAction())
@@ -36,12 +59,16 @@ class StandardWidgetToolBar(QtGui.QToolBar):
         self.addWidget(self.colCountSpinBox())
         self.layout().setSpacing(2)
         
-    ### Return the fit to window action
     def fitToWindowAction(self):
+        """ fitToWindowAction() -> QAction
+        Return the fit to window action
+        
+        """
         if not hasattr(self, 'fitAction'):
-            self.fitAction = QtGui.QAction(QtGui.QIcon(':/images/fittowindow.png'),
-                                   'Fit to window', self)
-            self.fitAction.setStatusTip('Stretch spreadsheet cells to fit the window size')
+            icon = QtGui.QIcon(':/images/fittowindow.png')
+            self.fitAction = QtGui.QAction(icon, 'Fit to window', self)
+            self.fitAction.setStatusTip('Stretch spreadsheet cells '
+                                        'to fit the window size')
             self.fitAction.setCheckable(True)
             self.fitAction.setChecked(self.sheetTab.sheet.fitToWindow)
             self.connect(self.fitAction,
@@ -49,42 +76,58 @@ class StandardWidgetToolBar(QtGui.QToolBar):
                          self.fitActionToggled)
         return self.fitAction
 
-    ### Handle fitToWindow Action toggled
     def fitActionToggled(self, checked):
+        """ fitActionToggled(checked: boolean) -> None
+        Handle fitToWindow Action toggled
+        
+        """
         self.sheetTab.sheet.setFitToWindow(checked)
     
-    ### Return the row spin box widget:
     def rowCountSpinBox(self):
+        """ rowCountSpinBox() -> SizeSpinBox
+        Return the row spin box widget:
+        
+        """
         if not hasattr(self, 'rowSpinBox'):
             self.rowSpinBox = SizeSpinBox(self.sheetTab.sheet.rowCount())
             self.rowSpinBox.setToolTip('The number of rows')
-            self.rowSpinBox.setStatusTip('Change the number of rows of the current sheet')
+            self.rowSpinBox.setStatusTip('Change the number of rows '
+                                         'of the current sheet')
             self.connect(self.rowSpinBox,
                          QtCore.SIGNAL('editingFinished()'),
                          self.sheetTab.rowSpinBoxChanged)
         return self.rowSpinBox
 
-    ### Return the row spin box widget:
     def colCountSpinBox(self):
+        """ colCountSpinBox() -> SizeSpinBox
+        Return the column spin box widget:
+        
+        """
         if not hasattr(self, 'colSpinBox'):
             self.colSpinBox = SizeSpinBox(self.sheetTab.sheet.columnCount())
             self.colSpinBox.setToolTip('The number of columns')
-            self.colSpinBox.setStatusTip('Change the number of columns of the current sheet')
+            self.colSpinBox.setStatusTip('Change the number of columns '
+                                         'of the current sheet')
             self.connect(self.colSpinBox,
                          QtCore.SIGNAL('editingFinished()'),
                          self.sheetTab.colSpinBoxChanged)
         return self.colSpinBox        
         
             
-################################################################################
-################################################################################
-### StandardWidgetSheetTab: a container of StandardWidgetSheet with a
-### toolbar on top. This will be added directly to a QTabWidget for
-### displaying the spreadsheet.
 class StandardWidgetSheetTab(QtGui.QWidget):
-
-    ### Init with the initial vertical layout
+    """
+    StandardWidgetSheetTab is a container of StandardWidgetSheet with
+    a toolbar on top. This will be added directly to a QTabWidget for
+    displaying the spreadsheet.
+    
+    """
     def __init__(self, tabWidget, row=2, col=3):
+        """ StandardWidgetSheet(tabWidget: QTabWidget,
+                                row: int,
+                                col: int) -> StandardWidgetSheet
+        Initialize with a toolbar and a sheet widget
+                                
+        """
         QtGui.QWidget.__init__(self, None)
         self.type = 'StandardWidgetSheetTab'
         self.tabWidget = tabWidget
@@ -99,98 +142,155 @@ class StandardWidgetSheetTab(QtGui.QWidget):
         self.setLayout(self.vLayout)
         self.pipelineInfo = {}
 
-    ### Handle the number of row changed
     def rowSpinBoxChanged(self):
+        """ rowSpinBoxChanged() -> None
+        Handle the number of row changed
+        
+        """
         if self.toolBar.rowSpinBox.value()!=self.sheet.rowCount():
             self.sheet.setRowCount(self.toolBar.rowSpinBox.value())
             self.sheet.stretchCells()
         
-    ### Handle the number of row changed
     def colSpinBoxChanged(self):
+        """ colSpinBoxChanged() -> None
+        Handle the number of row changed
+        
+        """
         if self.toolBar.colSpinBox.value()!=self.sheet.columnCount():
             self.sheet.setColumnCount(self.toolBar.colSpinBox.value())
             self.sheet.stretchCells()
 
     ### Belows are API Wrappers to connect to self.sheet
 
-    ### Return True if this is a sheet tab widget
     def isSheetTabWidget(self):
+        """ isSheetTabWidget() -> boolean
+        Return True if this is a sheet tab widget
+        """
         return True
 
-    ### Get the sheet dimensions
     def getDimension(self):
+        """ getDimension() -> tuple
+        Get the sheet dimensions
+        
+        """
         return (self.sheet.rowCount(), self.sheet.columnCount())
             
-    ### Set the sheet dimensions
     def setDimension(self, rc, cc):
+        """ setDimension(rc: int, cc: int) -> None
+        Set the sheet dimensions
+        
+        """
         self.toolBar.rowCountSpinBox().setValue(rc)
         self.toolBar.colCountSpinBox().setValue(cc)
             
-    ### Get cell at a specific row and column
-    ### Just a wrapper to interact with a general spreadsheet
     def getCell(self, row, col):
+        """ getCell(row: int, col: int) -> QWidget
+        Get cell at a specific row and column.
+        
+        """
         return self.sheet.cellWidget(row, col)
 
-    ### Get cell toolbar at a specific row and column
-    ### Just a wrapper to interact with a general spreadsheet
     def getCellToolBar(self, row, col):
+        """ getCellToolBar(row: int, col: int) -> QWidget
+        Return the toolbar widget at cell location (row, col)
+        
+        """
         return self.sheet.getCellToolBar(row, col)
 
-    ### Get the cell rectangle at a specific row and column
-    ### Just a wrapper to interact with a general spreadsheet
     def getCellRect(self, row, col):
+        """ getCellRect(row: int, col: int) -> QRect
+        Return the rectangle surrounding the cell at location (row, col)
+        in parent coordinates
+        
+        """
         return self.sheet.getCellRect(row, col)
 
-    ### Get the global cell rectangle at a specific row and column
-    ### Just a wrapper to interact with a general spreadsheet
     def getCellGlobalRect(self, row, col):
+        """ getCellGlobalRect(row: int, col: int) -> QRect
+        Return the rectangle surrounding the cell at location (row, col)
+        in global coordinates
+        
+        """
         return self.sheet.getCellGlobalRect(row, col)
 
-    ### Get a free cell on the spreadsheet
     def getFreeCell(self):
+        """ getFreeCell() -> tuple
+        Get a free cell location (row, col) on the spreadsheet 
+
+        """
         return self.sheet.getFreeCell()
 
-    ### Create a cell based on celltype, location and input ports
     def setCellByType(self, row, col, cellType, inputPorts):
+        """ setCellByType(row: int,
+                          col: int,
+                          cellType: a type inherits from QWidget,
+                          inpurPorts: tuple) -> None                          
+        Replace the current location (row, col) with a cell of
+        cellType. If the current type of that cell is the same as
+        cellType, only the contents is updated with inputPorts.
+        
+        """
         self.sheet.setCellByType(row, col, cellType, inputPorts)
 
-    ### Show the helpers at a location p
     def showHelpers(self, ctrl, globalPos):
+        """ showHelpers(ctrl: boolean, globalPos: QPoint) -> None
+        Show the helpers (toolbar, resizer) when the Control key
+        status is ctrl and the mouse is at globalPos
+        
+        """
         localPos = self.sheet.viewport().mapFromGlobal(QtGui.QCursor.pos())
         row = self.sheet.rowAt(localPos.y())
         col = self.sheet.columnAt(localPos.x())
         self.sheet.showHelpers(ctrl, row, col)
 
-    ### Set information about a vistrail cell
     def setCellPipelineInfo(self, row, col, info):
+        """ setCellPipelineInfo(row: int, col: int, info: any type) -> None        
+        Provide a way for the spreadsheet to store vistrail
+        information, info, for the cell (row, col)
+        
+        """
         if not (row,col) in self.pipelineInfo:
             self.pipelineInfo[(row,col)] = {}
         self.pipelineInfo[(row,col)] = info
 
-    ### Get information about a vistrail cell
     def getCellPipelineInfo(self, row, col):
+        """ getCellPipelineInfo(row: int, col: int) -> any type        
+        Provide a way for the spreadsheet to extract vistrail
+        information, info, for the cell (row, col)
+        
+        """        
         if not (row,col) in self.pipelineInfo:
             return None
         return self.pipelineInfo[(row,col)]
 
-    ### Return the selected locations (row, col) of the current sheet
     def getSelectedLocations(self):
+        """ getSelectedLocations() -> tuple
+        Return the selected locations (row, col) of the current sheet
+        
+        """
         indexes = self.sheet.selectedIndexes()
         return [(idx.row(), idx.column()) for idx in indexes]
 
-################################################################################
-################################################################################
-### StandardWidgetTabBarEditor: override QLineEdit to enable
-### canceling edit when Esc is pressed
 class StandardWidgetTabBarEditor(QtGui.QLineEdit):
-
-    ### Store the original text at during initialization
+    """
+    StandardWidgetTabBarEditor overrides QLineEdit to enable canceling
+    edit when Esc is pressed
+    
+    """
     def __init__(self, text='', parent=None):
+        """ StandardWidgetTabBarEditor(text: str, parent: QWidget)
+                                       -> StandardWidgetTabBarEditor
+        Store the original text at during initialization
+        
+        """
         QtGui.QLineEdit.__init__(self, text, parent)
         self.originalText = text
 
-    ### Override keyPressEvent to handle Esc key
     def keyPressEvent(self, e):
+        """ keyPressEvent(e: QKeyEvent) -> None
+        Override keyPressEvent to handle Esc key
+        
+        """
         if e.key()==QtCore.Qt.Key_Escape:
             e.ignore()
             self.setText(self.originalText)
@@ -198,29 +298,39 @@ class StandardWidgetTabBarEditor(QtGui.QLineEdit):
         else:
             QtGui.QLineEdit.keyPressEvent(self, e)
 
-################################################################################
-################################################################################
-### StandardWidgetTabBar: a customized QTabBar to allow
-### double-click to change tab nam
 class StandardWidgetTabBar(QtGui.QTabBar):
-
-    ### Initialize like the original QTabWidget TabBar
+    """
+    StandardWidgetTabBar: a customized QTabBar to allow double-click
+    to change tab name
+    
+    """
     def __init__(self, parent=None):
+        """ StandardWidgetTabBar(parent: QWidget) -> StandardWidgetTabBar
+        Initialize like the original QTabWidget TabBar
+        
+        """
         QtGui.QTabBar.__init__(self, parent)
-        self.setStatusTip('Move the sheet in, out and around  by dragging the tabs')
+        self.setStatusTip('Move the sheet in, out and around'
+                          'by dragging the tabs')
         self.setDrawBase(False)
         self.editingIndex = -1
         self.editor = None        
         self.setFocusPolicy(QtCore.Qt.NoFocus)
-        self.connect(self, QtCore.SIGNAL('currentChanged(int)'), self.updateTabText)
+        self.connect(self, QtCore.SIGNAL('currentChanged(int)'),
+                     self.updateTabText)
         self.startDragPos = None
         self.dragging = False
         self.targetTab = -1
-        self.innerRubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle, self)
-        self.outerRubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle, None)
+        self.innerRubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle,
+                                                 self)
+        self.outerRubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle,
+                                                 None)
 
-    ### Handle Double-Click event
     def mouseDoubleClickEvent(self, e):
+        """ mouseDoubleClickEvent(e: QMouseEvent) -> None
+        Handle Double-Click event to start the editor
+        
+        """
         if e.buttons()!=QtCore.Qt.LeftButton or self.editor: return
         
         # Update the current editing tab widget
@@ -233,18 +343,23 @@ class StandardWidgetTabBar(QtGui.QTabBar):
         rect.adjust(dx+1,1,-dx,-1)
 
         # Display the editor inplace of the tab text
-        self.editor = StandardWidgetTabBarEditor(self.tabText(self.editingIndex), self)
+        text = self.tabText(self.editingIndex)
+        self.editor = StandardWidgetTabBarEditor(text, self)
         self.editor.setFont(self.font())
         self.editor.setFrame(False)
         self.editor.setGeometry(rect)
         self.editor.setAlignment(QtCore.Qt.AlignHCenter)
         self.editor.selectAll()
-        self.connect(self.editor, QtCore.SIGNAL('editingFinished()'), self.updateTabText)
+        self.connect(self.editor, QtCore.SIGNAL('editingFinished()'),
+                     self.updateTabText)
         self.editor.show()
         self.editor.setFocus(QtCore.Qt.MouseFocusReason)
 
-    ### Update the tab text after editing has been finished
     def updateTabText(self, idx=0):
+        """ updateTabText(idx: int) -> None
+        Update the tab text after editing has been finished
+        
+        """
         if self.editingIndex>=0 and self.editor:
             self.setTabText(self.editingIndex, self.editor.text())
             self.emit(QtCore.SIGNAL('tabTextChanged(int,QString)'),
@@ -253,8 +368,11 @@ class StandardWidgetTabBar(QtGui.QTabBar):
             self.editingIndex = -1
             self.editor = None
 
-    ### Reimplement of the private indexAtPos to find the tab index under a point
     def indexAtPos(self, p):
+        """ indexAtPos(p: QPoint) -> int Reimplement of the private
+        indexAtPos to find the tab index under a point
+        
+        """
         if self.tabRect(self.currentIndex()).contains(p):
             return self.currentIndex()
         for i in range(self.count()):
@@ -262,29 +380,41 @@ class StandardWidgetTabBar(QtGui.QTabBar):
                 return i
         return -1;
 
-    ### Handle mouse press event to see if we should start to drag tabs or not
     def mousePressEvent(self, e):
+        """ mousePressEvent(e: QMouseEvent) -> None
+        Handle mouse press event to see if we should start to drag tabs or not
+        
+        """
         QtGui.QTabBar.mousePressEvent(self, e)
         if e.buttons()==QtCore.Qt.LeftButton and self.editor==None:
             self.startDragPos = QtCore.QPoint(e.x(), e.y())
 
-    ### Get the rectangle of a tab in global coordinates
     def getGlobalRect(self, index):
+        """ getGlobalRect(self, index: int)
+        Get the rectangle of a tab in global coordinates
+        
+        """
         if index<0: return None
         rect = self.tabRect(index)
         rect.moveTo(self.mapToGlobal(rect.topLeft()))
         return rect
 
-    ### Highlight the rubber band of a tab
     def highlightTab(self, index):
+        """ highlightTab(index: int)
+        Highlight the rubber band of a tab
+        
+        """
         if index==-1:
             self.innerRubberBand.hide()
         else:
             self.innerRubberBand.setGeometry(self.tabRect(index))
             self.innerRubberBand.show()
             
-    ### Handle dragging action
     def mouseMoveEvent(self, e):
+        """ mouseMoveEvent(e: QMouseEvent) -> None
+        Handle dragging tabs in and out or around
+        
+        """
         QtGui.QTabBar.mouseMoveEvent(self, e)
         if self.startDragPos:
             # We already move more than 4 pixels
@@ -304,14 +434,18 @@ class StandardWidgetTabBar(QtGui.QTabBar):
                     self.targetTab = t
                 if self.count()>0:
                     if not self.outerRubberBand.isVisible():
-                        self.outerRubberBand.setGeometry(self.getGlobalRect(self.currentIndex()))
+                        index = self.getGlobalRect(self.currentIndex())
+                        self.outerRubberBand.setGeometry(index)
                         self.outerRubberBand.move(e.globalPos())
                         self.outerRubberBand.show()
                     else:
                         self.outerRubberBand.move(e.globalPos())
 
-    ### Make sure the tab moved at the end
     def mouseReleaseEvent(self, e):
+        """ mouseReleaseEvent(e: QMouseEvent) -> None
+        Make sure the tab moved at the end
+        
+        """
         QtGui.QTabBar.mouseReleaseEvent(self, e)
         if self.dragging:
             if self.targetTab!=-1 and self.targetTab!=self.currentIndex():
@@ -326,8 +460,12 @@ class StandardWidgetTabBar(QtGui.QTabBar):
             self.targetTab = -1
             self.highlightTab(-1)
             self.outerRubberBand.hide()
-    ### Return the slot index between the slots at the cursor pos
+            
     def slotIndex(self, pos):
+        """ slotIndex(pos: QPoint) -> int
+        Return the slot index between the slots at the cursor pos
+        
+        """
         p = self.mapFromGlobal(pos)
         for i in range(self.count()):
             r = self.tabRect(i)
@@ -338,8 +476,11 @@ class StandardWidgetTabBar(QtGui.QTabBar):
                     return i+1
         return -1
         
-    ### Return the geometry between the slots at cursor pos
     def slotGeometry(self, idx):
+        """ slotGeometry(idx: int) -> QRect
+        Return the geometry between the slots at cursor pos
+        
+        """
         if idx<0 or self.count()==0: return None
         if idx<self.count():
             rect = self.getGlobalRect(idx)
@@ -347,19 +488,27 @@ class StandardWidgetTabBar(QtGui.QTabBar):
             return rect
         else:
             rect = self.getGlobalRect(self.count()-1)
-            rect = QtCore.QRect(rect.x()+rect.width()-5, rect.y(), 5*2, rect.height())
+            rect = QtCore.QRect(rect.x()+rect.width()-5, rect.y(),
+                                5*2, rect.height())
             return rect
             
-
-################################################################################
-################################################################################
-### StandardTabDockWidget: inherited from QDockWidget to contain
-### a sheet widget floating around that can be merge back to tab controller
 class StandardTabDockWidget(QtGui.QDockWidget):
-
-    ### Initialize the dock widget to override the floating button
+    """
+    StandardTabDockWidget inherits from QDockWidget to contain a sheet
+    widget floating around that can be merge back to tab controller
+    
+    """
     def __init__(self, title, tabWidget, tabBar, tabController):
-        QtGui.QDockWidget.__init__(self, title, tabBar, QtCore.Qt.FramelessWindowHint)
+        """ StandardTabDockWidget(title: str,
+                                  tabWidget: QTabWidget,
+                                  tabBar: QTabBar,
+                                  tabController: StandardWidgetTabController)
+                                  -> StandardTabDockWidget
+        Initialize the dock widget to override the floating button
+        
+        """
+        QtGui.QDockWidget.__init__(self, title, tabBar,
+                                   QtCore.Qt.FramelessWindowHint)
         self.tabBar = tabBar
         self.tabController = tabController
         self.setFeatures(QtGui.QDockWidget.DockWidgetMovable|
@@ -371,22 +520,29 @@ class StandardTabDockWidget(QtGui.QDockWidget):
             self.floatingButton.installEventFilter(self)
         self.startDragPos = None
         self.startDragging = False
-        self.windowRubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle, None)
+        self.windowRubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle,
+                                                  None)
         tabWidget.setParent(self)
         self.setWidget(tabWidget)
         tabWidget.show()
         self.resize(tabWidget.size())
 
-    ### Hack to find the private Floating Button
-    ### Since there is only one button exists, we just need to find QAbstractButton
     def findFloatingButton(self):
+        """ findFloatingButton() -> QAbstractButton        
+        Hack to find the private Floating Button. Since there is only
+        one button exists, we just need to find QAbstractButton
+        
+        """
         for c in self.children():
             if type(c)==QtGui.QAbstractButton:
                 return c
         return None
 
-    ### Event filter the floating button to makes it merge to the tab controller
     def eventFilter(self, q, e):
+        """ eventFilter(q: QObject, e: QEvent) -> depends on event type
+        Event filter the floating button to makes it merge to the tab controller
+        
+        """
         if q and q==self.floatingButton:
             if (e.type()==QtCore.QEvent.MouseButtonRelease and
                 e.button()&QtCore.Qt.LeftButton):
@@ -397,12 +553,16 @@ class StandardTabDockWidget(QtGui.QDockWidget):
                 return False
         return QtGui.QDockWidget.eventFilter(self, q, e)
 
-    ### Handle movement of the dock widget to snap to the tab controller
     def event(self, e):
+        """ event(e: QEvent) -> depends on event type
+        Handle movement of the dock widget to snap to the tab controller
+        
+        """
         if e.type()==QtCore.QEvent.MouseButtonPress:
             # Click on the title bar
             if e.y()<self.widget().y() and e.buttons()&QtCore.Qt.LeftButton:
-                self.startDragPos = QtCore.QPoint(e.globalPos().x(),e.globalPos().y())
+                self.startDragPos = QtCore.QPoint(e.globalPos().x(),
+                                                  e.globalPos().y())
         elif e.type()==QtCore.QEvent.MouseMove:
             if not (e.buttons()&QtCore.Qt.LeftButton):
                 self.windowRubberBand.hide()
@@ -423,8 +583,9 @@ class StandardTabDockWidget(QtGui.QDockWidget):
                     if idx>=0:
                         self.windowRubberBand.setGeometry(tb.slotGeometry(idx))
                 else:
-                    self.windowRubberBand.setGeometry(QtCore.QRect(self.startDragPos+e.globalPos(),
-                                                                   self.size()))
+                    rect = QtCore.QRect(self.startDragPos+e.globalPos(),
+                                        self.size())
+                    self.windowRubberBand.setGeometry(rect)
         elif e.type()==QtCore.QEvent.MouseButtonRelease and self.startDragging:
             self.setMouseTracking(False)
             self.windowRubberBand.hide()
@@ -447,4 +608,5 @@ class StandardTabDockWidget(QtGui.QDockWidget):
             
         return QtGui.QDockWidget.event(self, e)
 
-spreadsheetRegistry.registerSheet('StandardWidgetSheetTab', StandardWidgetSheetTab)
+spreadsheetRegistry.registerSheet('StandardWidgetSheetTab',
+                                  StandardWidgetSheetTab)
