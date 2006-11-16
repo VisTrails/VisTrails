@@ -1,3 +1,16 @@
+"""This package defines a set of methods that perform the command-line
+tools necesary for the task designed for the first Provenance Challenge:
+
+http://twiki.ipaw.info
+
+This VisTrails package requires three software packages to be installed:
+
+AIR - Automated Image Registration: http://bishopw.loni.ucla.edu/AIR5/
+FSL - http://www.fmrib.ox.ac.uk/fsl/
+netpbm - http://netpbm.sourceforge.net/
+
+"""
+
 import core.modules
 import core.modules.module_registry
 import core.modules.basic_modules
@@ -6,6 +19,7 @@ from core.modules.vistrails_module import Module, ModuleError, newModule
 import os
 import os.path
 import stat
+import subprocess
 
 ################################################################################
 
@@ -14,14 +28,18 @@ global_fslpath = ""
 global_netpbmpath = ""
 
 class ProvenanceChallenge(Module):
+    """ProvenanceChallenge is the base Module for all Modules in the provenance
+package. It simply define helper methods for subclasses."""
 
     __quiet = True
     __programsQuiet = True
     
     def air_cmd_line(self, cmd, *params):
+        """Runs a command-line command for the AIR tools."""
         return (global_airpath + cmd + " %s" * len(params)) % params
 
     def fsl_cmd_line(self, cmd, *params):
+        """Runs a command-line command for the FSL tools."""
         return ('FSLOUTPUTTYPE=NIFTI_GZ ' + global_fslpath + cmd + " %s" * len(params)) % params
 
     def run(self, cmd):
@@ -35,18 +53,20 @@ class ProvenanceChallenge(Module):
 
 
 class AIRHeaderFile(core.modules.basic_modules.File):
+    """AIRHeaderFile subclasses File to annotate the execution with header
+file information for later querying."""
 
     def get_header_annotations(self):
-        try:
-            x = self.interpreter.filePool.createFile()
-            os.system(global_airpath + 'scanheader ' + self.name + '> ' +
-                      x.name)
-            f = file(x.name, 'r')
-        except:
+        """Returns the header information for the file using the AIR scanheader
+tool."""
+        process = subprocess.Popen(global_airpath + 'scanheader ' + self.name,
+                                   shell=True,
+                                   stdout=subprocess.PIPE)
+        if process.wait() != 0:
             raise ModuleError(self, "Could not open header file " + self.name)
 
         result = {}
-        for l in f:
+        for l in process.stdout:
             l = l[:-1]
             if not l:
                 continue
@@ -65,13 +85,14 @@ class AIRHeaderFile(core.modules.basic_modules.File):
 
 
 class AlignWarp(ProvenanceChallenge):
+    """AlignWarp executes the AIR warping tool on the input."""
 
     def compute(self):
         image = self.getInputFromPort("image")
-        ref   = self.getInputFromPort("reference")
+        ref = self.getInputFromPort("reference")
         model = self.getInputFromPort("model")
-        o     = self.interpreter.filePool.createFile(suffix='.warp')
-        cmd   = self.air_cmd_line('align_warp',
+        o = self.interpreter.filePool.createFile(suffix='.warp')
+        cmd = self.air_cmd_line('align_warp',
                                   image.name,
                                   ref.name,
                                   o.name,
@@ -83,11 +104,12 @@ class AlignWarp(ProvenanceChallenge):
 
 
 class Reslice(ProvenanceChallenge):
+    """AlignWarp executes the AIR reslicing tool on the input."""
 
     def compute(self):
         warp = self.getInputFromPort("warp")
-        o    = self.interpreter.filePool.createFile()
-        cmd  = self.air_cmd_line('reslice',
+        o = self.interpreter.filePool.createFile()
+        cmd = self.air_cmd_line('reslice',
                                  warp.name,
                                  o.name)
         self.run(cmd)
@@ -95,10 +117,11 @@ class Reslice(ProvenanceChallenge):
 
 
 class SoftMean(ProvenanceChallenge):
+    """SoftMean executes the AIR softmean averaging tool on the input."""
 
     def compute(self):
         imageList = self.getInputFromPort("imageList")
-        o        = self.interpreter.filePool.createFile(suffix='.hdr')
+        o = self.interpreter.filePool.createFile(suffix='.hdr')
         cmd = self.air_cmd_line('softmean',
                                 o.name,
                                 'y',
@@ -109,6 +132,7 @@ class SoftMean(ProvenanceChallenge):
 
 
 class Slicer(ProvenanceChallenge):
+    """Slicer executes the FSL slicer tool on the input."""
 
     def compute(self):
         cmd = ['slicer']
@@ -130,6 +154,7 @@ class Slicer(ProvenanceChallenge):
 
 
 class PGMToPPM(ProvenanceChallenge):
+    """PGMToPPM executes the netpbm pgmtoppm tool on the input."""
 
     def compute(self):
         cmd = ['pgmtoppm white']
@@ -143,6 +168,7 @@ class PGMToPPM(ProvenanceChallenge):
         
 
 class PNMToJpeg(ProvenanceChallenge):
+    """PGMToPPM executes the netpbm pnmtojpeg tool on the input."""
 
     def compute(self):
         cmd = ['pnmtojpeg']
