@@ -182,11 +182,11 @@ def initialize(*args, **keywords):
     process = subprocess.Popen("convert -version",
                                shell=True,
                                stdout=subprocess.PIPE)
+    version_line = process.stdout.readlines()[0][:-1].split(' ')
     result = process.wait()
     if result != 0:
         raise Exception("ImageMagick does not seem to be present.")
     print "Ok, found ImageMagick"
-    version_line = process.stdout.readlines()[0][:-1].split(' ')
     parse_error_if_not_equal(version_line[0], 'Version:')
     parse_error_if_not_equal(version_line[1], 'ImageMagick')
     print "Detected version %s" % version_line[2]

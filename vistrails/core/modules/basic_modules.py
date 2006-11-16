@@ -77,14 +77,14 @@ class FileSink(vistrails_module.Module):
                 raise vistrails_module.ModuleError(self, "Could not create file '%s': %s" % (v2, e))
 
 
-class OutputWindow(vistrails_module.Module):
+# class OutputWindow(vistrails_module.Module):
     
-    def compute(self):
-        v = self.getInputFromPort("value")
-        from PyQt4 import QtCore, QtGui
-        QtGui.QMessageBox.information(None,
-                                      "VisTrails",
-                                      str(v))
+#     def compute(self):
+#         v = self.getInputFromPort("value")
+#         from PyQt4 import QtCore, QtGui
+#         QtGui.QMessageBox.information(None,
+#                                       "VisTrails",
+#                                       str(v))
 
 
 class StandardOutput(vistrails_module.Module):
@@ -168,8 +168,9 @@ module_registry.registry.addInputPort(FileSink,  "file", File)
 module_registry.registry.addInputPort(FileSink,  "outputName", String)
 module_registry.registry.addInputPort(FileSink,  "overrideFile", Boolean)
 
-module_registry.registry.addModule(OutputWindow)
-module_registry.registry.addInputPort(OutputWindow, "value", vistrails_module.Module)
+#Removing Output Window because it does not work with current threading
+#module_registry.registry.addModule(OutputWindow)
+#module_registry.registry.addInputPort(OutputWindow, "value", vistrails_module.Module)
 
 module_registry.registry.addModule(StandardOutput)
 module_registry.registry.addInputPort(StandardOutput, "value", vistrails_module.Module)

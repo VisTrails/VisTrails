@@ -1,16 +1,25 @@
-import modules
-import modules.module_registry
-import modules.basic_modules
-from modules.vistrails_module import Module, ModuleError, newModule
+""" This package defines a set of methods to deal with web services.
+It requires pyXML, fpconst and SOAPpy modules to be installed
 
+""" 
 import xml
 import fpconst
 import SOAPpy
 from SOAPpy import WSDL
 
-############################################################################
+import core.modules
+import core.modules.module_registry
+import core.modules.basic_modules
+from core.modules.vistrails_module import Module, ModuleError, newModule
+
+###############################################################################
 
 class WebService(Module):
+    """ WebService is the base Module.
+     We will create a WebService Module for each method published by 
+     the web service.
+
+    """
     def __init__(self):
         Module.__init__(self)
         
@@ -55,20 +64,23 @@ def webServiceParamsMethodDict(name, inparams, outparams):
     return {'compute':compute, 
             '__str__':__str__}
 
-#  wsdlTypesDict will store the correspondence between WSDL basic types and 
+# wsdlTypesDict will store the correspondence between WSDL basic types and 
 # visTrails Modules basic types
 
-wsdlTypesDict = { 'string' : modules.basic_modules.String,
-                  'int' : modules.basic_modules.Integer,
-                  'float': modules.basic_modules.Float}
+wsdlTypesDict = { 'string' : core.modules.basic_modules.String,
+                  'int' : core.modules.basic_modules.Integer,
+                  'long' : core.modules.basic_modules.Integer,
+                  'float': core.modules.basic_modules.Float,
+                  'double': core.modules.basic_modules.Float,
+                  'boolean': core.modules.basic_modules.Boolean}
 
 ################################################################################
 
 def initialize(*args, **keywords):
     wsdlList = keywords['wsdlList']
         
-    reg = modules.module_registry
-    basic = modules.basic_modules
+    reg = core.modules.module_registry
+    basic = core.modules.basic_modules
     reg.addModule(WebService)
 
     for w in wsdlList:
@@ -85,7 +97,10 @@ def initialize(*args, **keywords):
             callInfo = server.methods[kw]
             inparams = callInfo.inparams
             outparams = callInfo.outparams
-            mt = newModule(m,str(kw), webServiceParamsMethodDict(str(kw),inparams,outparams))
+            mt = newModule(m,str(kw), 
+                           webServiceParamsMethodDict(str(kw),
+                                                      inparams,
+                                                      outparams))
             reg.addModule(mt)
             for p in inparams:
                 try:
