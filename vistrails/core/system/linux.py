@@ -61,8 +61,8 @@ def removeGraphvizTemporaries():
     os.unlink(temporaryDirectory() + "dot_output_vistrails.txt")
     os.unlink(temporaryDirectory() + "dot_tmp_vistrails.txt")
 
-def linkOrCopy(src, dst):
-    """linkOrCopy(src:str, dst:str) -> None 
+def link_or_copy(src, dst):
+    """link_or_copy(src:str, dst:str) -> None 
     Tries to create a hard link to a file. If it is not possible, it will
     copy file src to dst 
     

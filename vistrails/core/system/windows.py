@@ -93,8 +93,8 @@ def graphVizDotCommandLine():
 def removeGraphvizTemporaries():
     pass
 
-def linkOrCopy(src, dst):
-    """linkOrCopy(src:str, dst:str) -> None 
+def link_or_copy(src, dst):
+    """link_or_copy(src:str, dst:str) -> None 
     Copies file src to dst 
     
     """
