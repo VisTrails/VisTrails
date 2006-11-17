@@ -118,7 +118,7 @@ class TestWindows(unittest.TestCase):
      def test1(self):
          """ Test if guessTotalMemory() is returning an int >= 0"""
          result = guessTotalMemory()
-         assert type(result) == type(1)
+         assert type(result) == type(1) or type(result) == type(1L)
          assert result >= 0
 
      def test2(self):
