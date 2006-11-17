@@ -5,11 +5,11 @@
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from core.utils import abstract
+from core.utils.color import ColorByName
 from core.data_structures import Point
 from core.debug import timecall
 from core.modules import module_registry
 from core.vis_types import *
-from gui.builder_utils import *
 import math
 import sys
 

@@ -2,7 +2,6 @@ from PyQt4 import QtCore, QtGui
 from core.debug import DebugPrint
 from core.vistrail import Vistrail
 from core.data_structures import *
-from gui.builder_utils import *
 from gui.qt import SignalSet
 from gui.shape import PolyLine, Ellipse
 from gui.shape_engine import GLWidget

@@ -7,7 +7,6 @@ from core.vis_object import VisModule
 from core.vis_types import *
 from core.vistrail import Vistrail
 from core.xml_utils import *
-from gui.builder_utils import *
 from gui.qt import SignalSet
 from gui.shape import PolyLine, ModuleShape, PortShape
 from gui.shape_engine import GLWidget

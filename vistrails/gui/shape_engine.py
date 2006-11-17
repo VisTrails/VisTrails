@@ -6,7 +6,7 @@ from PyQt4 import QtCore, QtGui, QtOpenGL
 from core.debug import notify, DebugPrint, timecall
 from core.vis_connection import VisConnection
 from core.vis_types import *
-from gui.builder_utils import *
+from core.utils.color import ColorByName
 from gui.intersect import Intersect
 from gui.shape import *
 import bisect
