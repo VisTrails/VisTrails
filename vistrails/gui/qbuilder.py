@@ -14,6 +14,7 @@ from core.vis_macro import VisMacro
 from core.vis_types import VistrailModuleType, VisPort, ModuleFunction
 from core.vistrail import Vistrail
 from core.xml_parser import XMLParser
+from gui.param_explore import ParameterExplorationManager
 from gui.pipeline_view import QPipelineView, QQueryView
 from gui.qbuildertreewidget import *
 from gui.qframebox import *
@@ -302,8 +303,7 @@ class QBuilder(QtGui.QMainWindow):
         self.logTab = gui.log_tab.LogTab(self)
         frametw.addTab(self.logTab, "Log")
 
-        import gui.bulk_changes
-        self.bulkChanges = gui.bulk_changes.BulkChanges(self)
+        self.bulkChanges = ParameterExplorationManager(self)
         frametw.addTab(self.bulkChanges.buildPalette(), "Parameters Exploration")
 
         import gui.macro_bar
