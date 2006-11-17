@@ -14,7 +14,6 @@ from core.vis_macro import VisMacro
 from core.vis_types import VistrailModuleType, VisPort, ModuleFunction
 from core.vistrail import Vistrail
 from core.xml_parser import XMLParser
-from gui.builder_utils import ColorByName, toHtml
 from gui.pipeline_view import QPipelineView, QQueryView
 from gui.qbuildertreewidget import *
 from gui.qframebox import *
@@ -796,7 +795,7 @@ of the search line edit widget."""
         controller = self.controllers[self.currentControllerName]
         controller.consolidatePendingActions()
         if controller.vistrail.changed:
-            text = "Vistrail " + toHtml(self.currentControllerName) + " contains unsaved changes.\n Do you want to save changes before closing it?"
+            text = "Vistrail " + QtCore.Qt.escape(self.currentControllerName) + " contains unsaved changes.\n Do you want to save changes before closing it?"
             if showCancelButton:
                 res = QtGui.QMessageBox.information(None,
                                           self.tr("Vistrails"),
