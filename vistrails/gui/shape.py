@@ -4,8 +4,10 @@
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
-from core.utils import abstract
-from core.utils.color import ColorByName
+from core.utils import abstract, color
+from core.utils.color import (ColorByName, OBJECT_COLOR, FILTER_COLOR,
+                              SUCCESS_COLOR, ERROR_COLOR, NOT_EXECUTED_COLOR,
+                              ACTIVE_COLOR, COMPUTE_COLOR, SELECTED_COLOR)
 from core.data_structures import Point
 from core.debug import timecall
 from core.modules import module_registry
