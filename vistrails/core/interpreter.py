@@ -1,7 +1,7 @@
 from core import modules
 from core.modules.vistrails_module import ModuleConnector, ModuleError
 from core.modules.module_utils import FilePool
-from core.common import withIndex, InstanceObject
+from core.utils import withIndex, InstanceObject
 import threading
 
 ################################################################################

@@ -2,7 +2,7 @@ import os
 import os.path
 import sys
 import platform
-from core.common import unimplemented, VistrailsInternalError
+from core.utils import unimplemented, VistrailsInternalError
 
 ################################################################################
 

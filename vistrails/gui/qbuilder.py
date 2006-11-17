@@ -4,9 +4,9 @@ the building of new Vistrails by the user
 """
 from OpenGL import GL
 from PyQt4 import QtCore, QtGui
-from core.common import unimplemented, VistrailsInternalError, withIndex
+from core.utils import unimplemented, VistrailsInternalError, withIndex
 from core.debug import DebugPrint
-from core.enum import enum
+from core.utils import enum
 from core.modules.module_registry import registry
 from core.vis_action import *
 from core.vis_connection import VisConnection
@@ -538,7 +538,7 @@ class QBuilder(QtGui.QMainWindow):
         lastSelectedModule = self.pipeline.getModuleById(lastSelected)
         customizedPort = registry.getPortConfigureWidgetType(newMethod[0],
                                                              newMethod[1])!=None
-        from core.common import any
+        from core.utils import any
         if customizedPort and any([f.name==newMethod[1]
                                     for f in lastSelectedModule.functions]):
             return

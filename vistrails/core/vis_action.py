@@ -1,4 +1,4 @@
-from core.common import abstract, VistrailsInternalError
+from core.utils import abstract, VistrailsInternalError
 from core.xml_utils import *
 from core.vis_object import VisModule
 from core.vis_connection import VisConnection

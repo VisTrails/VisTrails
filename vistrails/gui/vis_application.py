@@ -13,7 +13,7 @@ from PyQt4 import QtGui, QtCore
 # says "import qt"
 from gui import qt
 
-from core.common import InstanceObject
+from core.utils import InstanceObject
 import os.path
 
 logger = None

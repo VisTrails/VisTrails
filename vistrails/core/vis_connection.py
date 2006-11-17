@@ -3,12 +3,12 @@ if __name__ == '__main__':
     import qt
     global app
     app = qt.createBogusQtApp()
-
+import copy
 from core.modules.module_registry import registry
 from core.modules.vistrails_module import ModuleConnector
 
-from core.common import *
-from core.vis_types import *
+from core.utils import VistrailsInternalError
+from core.vis_types import VisPortEndPoint, VisPort, VistrailModuleType
 
 ################################################################################
 

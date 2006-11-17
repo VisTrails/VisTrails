@@ -7,7 +7,7 @@ from gui.qt import SignalSet
 from gui.shape import PolyLine, Ellipse
 from gui.shape_engine import GLWidget
 import core.system
-import core.common
+import core.utils
 import gui.version_tree_search
 import os
 
@@ -297,7 +297,7 @@ class QVersionTree(QtGui.QScrollArea):
             if s:
                 selected_ord.append(b2.id)
         selected_ord.sort()
-        selected_pos = dict((id,pos) for (pos,id) in core.common.withIndex(selected_ord))
+        selected_pos = dict((id,pos) for (pos,id) in core.utils.withIndex(selected_ord))
 	for b1,b2 in self.layout.nodes.items():
             if itm.has_key(b1):
                 f = itm[b1]

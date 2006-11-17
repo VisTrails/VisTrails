@@ -2,15 +2,16 @@
 
 The Cache Manager stores the previously executed results of VTK operations,
 so that there will be as little overhead as possible in the execution
-of pipelines with overlapping dataflows."""
+of pipelines with overlapping dataflows.
 
+"""
 import sha
-# import vtk_rtti
+
 import __builtin__
 from core import system
 
 from core.debug import DebugPrint
-from core.common import *
+from core.utils import *
 from core.vis_types import VistrailModuleType
 
 ################################################################################

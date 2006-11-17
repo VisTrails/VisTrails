@@ -7,7 +7,7 @@ if __name__ == '__main__':
 
 from core.data_structures import Point
 from core.vis_types import VistrailModuleType
-from core.common import NoSummon
+from core.utils import NoSummon
 from core.xml_utils import *
 from core.vis_types import ModuleFunction, ModuleParam
 import copy

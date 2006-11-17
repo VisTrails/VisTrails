@@ -11,7 +11,7 @@ import time
 import getpass
 import copy
 import string
-from core.enum import enum
+from core.utils import enum
 
 
 class Vistrail(object):

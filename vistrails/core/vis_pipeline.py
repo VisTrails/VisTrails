@@ -1,7 +1,6 @@
 from core.vis_types import VisPort, VistrailModuleType
 from core.data_structures import Graph
-# from vtk_rtti import VTKRTTI
-from core.common import VistrailsInternalError
+from core.utils import VistrailsInternalError
 import copy
 
 ################################################################################

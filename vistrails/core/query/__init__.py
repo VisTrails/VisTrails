@@ -105,7 +105,7 @@
 
 ################################################################################
 
-from core.common import memo_method
+from core.utils import memo_method
 
  
 class Query(object):

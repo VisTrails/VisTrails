@@ -1,7 +1,7 @@
 import logging
 import sys
 import inspect
-from core.common import *
+#from core. import *
 import code
 import threading
 from core import system

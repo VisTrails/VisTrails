@@ -5,7 +5,7 @@ import core.system
 import MySQLdb
 from PyQt4 import QtCore, QtGui
 from db.gui.upload_files_GUI import Ui_Upload
-from core.common import *
+from core.utils import *
 import md5
 import socket
 import getpass

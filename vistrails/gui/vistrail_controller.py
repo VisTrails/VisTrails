@@ -1,5 +1,6 @@
 from PyQt4 import QtCore, QtGui
-from core.common import VistrailsInternalError, InstanceObject, appendToDictOfLists
+from core.utils import VistrailsInternalError, InstanceObject,\
+    appendToDictOfLists
 from core.debug import DebugPrint
 from core.modules import module_registry
 from core.vis_action import *

@@ -1,7 +1,6 @@
 import copy
-from core.common import unimplemented, abstract, VistrailsInternalError
+from core.utils import unimplemented, abstract, VistrailsInternalError, enum
 from core.vis_connection import VisConnection
-from core.enum import enum
 from core.data_structures import Point
 from core.vis_types import *
 from core.vis_action import *

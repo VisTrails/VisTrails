@@ -4,7 +4,7 @@
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
-from core.common import abstract
+from core.utils import abstract
 from core.data_structures import Point
 from core.debug import timecall
 from core.modules import module_registry

@@ -3,7 +3,7 @@ from gui.shape_engine import *
 from core.vistrail import *
 from core.data_structures import *
 import string
-from core.common import *
+from core.utils import *
 from core import system
 
 class FunctionItemModel(QtGui.QStandardItemModel):

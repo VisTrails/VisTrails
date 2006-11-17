@@ -1,5 +1,5 @@
 from PyQt4 import QtCore, QtGui
-from core.common import *
+#from core.utils import *
 from core.data_structures import *
 from core.debug import notify, DebugPrint, timecall
 from core.vis_action import *

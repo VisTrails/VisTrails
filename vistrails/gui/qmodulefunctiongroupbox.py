@@ -1,5 +1,5 @@
 from PyQt4 import QtCore, QtGui, QtOpenGL
-from core.common import withIndex
+from core.utils import withIndex
 from core.debug import DebugPrint, notify
 import core.system
 import gui.resources.macroicons_rc

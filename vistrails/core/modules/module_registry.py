@@ -5,7 +5,7 @@ import core.modules.vistrails_module
 
 import __builtin__
 
-from core.common import VistrailsInternalError, memo_method, all
+from core.utils import VistrailsInternalError, memo_method, all
 import core.vis_types
 import copy
 

@@ -1,6 +1,6 @@
 from PyQt4 import QtGui
 from PyQt4.QtCore import QString
-import core.common
+import core.utils
 import re
 import time
 import xml.sax.saxutils
@@ -597,8 +597,8 @@ class TestSearch(unittest.TestCase):
                           SearchCompiler('before:this day').searchStmt.matchList[0].date)
     def test23(self):
         t = time.localtime()
-        import core.common
-        inv = core.common.invert(TimeSearchStmt.months)
+        import core.utils
+        inv = core.utils.invert(TimeSearchStmt.months)
         m = inv[t[1]]
         self.assertEquals(SearchCompiler('after:%s %s %s' % (t[0], m, t[2])).searchStmt.matchList[0].date,
                           SearchCompiler('after:today').searchStmt.matchList[0].date)
