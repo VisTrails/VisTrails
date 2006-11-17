@@ -2,6 +2,7 @@
 This module defines common functions and exception class definitions
 used all over VisTrails.
 """
+from core.utils.enum import enum
 
 ################################################################################
 
