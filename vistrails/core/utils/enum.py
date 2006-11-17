@@ -1,6 +1,6 @@
 """enum helps create enumeration classes.
 
-TODO: Unit tests."""
+"""
 
 def enum(className, enumValues, doc = None):
     """enum(className: str, enumValues: [str], doc = None) -> class.
@@ -26,8 +26,8 @@ def enum(className, enumValues, doc = None):
     True
     >>> x.__doc__
     'Enumeration of primary colors'
-    """
-                           
+    
+    """                  
     def __init__(self, v):
         self.__v = v
         
@@ -42,7 +42,8 @@ def enum(className, enumValues, doc = None):
     
     def __eq__(self, other):
         try:
-            return self.__v == other.__v and self.__className == other.__className
+            return (self.__v == other.__v and 
+                    self.__className == other.__className)
         except AttributeError:
             return False
         

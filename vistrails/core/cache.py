@@ -11,7 +11,7 @@ import __builtin__
 from core import system
 
 from core.debug import DebugPrint
-from core.utils import *
+from core.utils import InvalidVistrailModuleType
 from core.vis_types import VistrailModuleType
 
 ################################################################################
@@ -38,12 +38,15 @@ class CacheManager(object):
         return self.touchTime
 
     def initMemoryLimits(self):
-        """initMemoryLimits() -> None - tries to guess 'reasonable' memory limits
-and set them. 'Reasonable' here means 25% of total estimated memory for maximum
-memory, and 5% for post-flush use"""
+        """initMemoryLimits() -> None - tries to guess 'reasonable' memory 
+        limits and set them. 'Reasonable' here means 25% of total estimated 
+        memory for maximum  memory, and 5% for post-flush use
+
+        """
         totalMemory = system.guessTotalMemory()
         if totalMemory == -1:
-            DebugPrint.critical('Could not guess totalMemory! Cache has no limit in size')
+            DebugPrint.critical('Could not guess totalMemory! Cache has ' \
+                                'no limit in size')
             self.maxMemory = 300000
             self.minMemory = 100000
         else:
@@ -54,7 +57,10 @@ memory, and 5% for post-flush use"""
 
     def addEntry(self, pipeline, result, elapsedTime, fixtureCreator):
         """addEntry(pipeline, result, time, fixtureCreator) -> None
-Adds a new entry in the cache  if the entry passes efficiency and time constraints."""
+        Adds a new entry in the cache  if the entry passes efficiency and time
+        constraints.
+        
+        """
         key = self.computeHash(pipeline)
         fixture = fixtureCreator(result)
         if self.cache.has_key(key):
@@ -75,31 +81,42 @@ Adds a new entry in the cache  if the entry passes efficiency and time constrain
         
     def entriesByEfficiency(self):
         """entriesByEfficiency() -> [(efficiency, (key, entry))]
-Returns a list of all cache entries sorted by efficiency (time/memory)."""
-        lst = [(elapsedTime / memory, (item, (result, elapsedTime, memory, touch)))
-               for (item, (result, elapsedTime, memory, touch)) in self.cache.iteritems()]
+        Returns a list of all cache entries sorted by efficiency 
+        (time/memory).
+        
+        """
+        lst = [(elapsedTime / memory, 
+                (item, (result, elapsedTime, memory, touch)))
+               for (item, (result, elapsedTime, memory, touch)) 
+               in self.cache.iteritems()]
         lst.sort()
         return lst
 
     def entriesByLRU(self):
         """entriesByLRU() -> [(touchtime, (key, entry))]
-Returns a list of all cache entries sorted by Least Recently Used."""
+        Returns a list of all cache entries sorted by Least Recently Used.
+        
+        """
         lst = [(touch, (item, (result, elapsedTime, memory, touch)))
-               for (item, (result, elapsedTime, memory, touch)) in self.cache.iteritems()]
+               for (item, (result, elapsedTime, memory, touch)) 
+               in self.cache.iteritems()]
         lst.sort()
         return lst
 
     def flush(self, flushByEfficiency=True):
         """flush(flushByEfficiency=True) -> None
-Flushes the cache down to self.minMemory, if total memory use is larger than
-self.maxMemory. If flushByEfficiency is true, flushes least efficient items, else
-flushes by LRU items."""
+        Flushes the cache down to self.minMemory, if total memory use is larger
+        than self.maxMemory. If flushByEfficiency is true, flushes least 
+        efficient items, else flushes by LRU items.
+        
+        """
         if self.maxMemory == -1:
             return
         if self.totalMemoryUse < self.maxMemory:
             return
         f = (self.totalMemoryUse, self.maxMemory, self.minMemory)
-        s = 'Cache is too full (%s kB > %s kB): Will purge down to less than (%s kB)' % f
+        s = 'Cache is too full (%s kB > %s kB): Will purge down to ' \
+            'less than (%s kB)' % f
         DebugPrint().log(s)
 
         if flushByEfficiency:
@@ -121,14 +138,19 @@ flushes by LRU items."""
         
 
     def hasEntry(self, pipeline):
-        """hasEntry(pipeline) -> bool - returns whether pipeline has a result computed
-in the cache."""
+        """hasEntry(pipeline) -> bool - returns whether pipeline has a result
+        computed in the cache.
+        
+        """
         key = self.computeHash(pipeline)
         return self.cache.has_key(key)
 
     def getEntry(self, pipeline):
         """getEntry(pipeline) -> (object, time, memory, touch) -
-returns cache entry for pipeline. pipeline must have an entry in the cache."""
+        returns cache entry for pipeline. pipeline must have an entry in the 
+        cache.
+        
+        """
         key = self.computeHash(pipeline)
         result = self.cache[key]
         newentry = (result[0], result[1], result[2], self.touch())
@@ -141,11 +163,11 @@ returns cache entry for pipeline. pipeline must have an entry in the cache."""
         self.totalMemoryUse = 0
         self.touchTime = 0
 
-    def getMemoryUse(self, entry):
-        if type(entry) == __builtin__.list:
-            return sum([vtk_rtti.VTKRTTI.memoryUse(obj) for obj in lst])
-        else:
-            return vtk_rtti.VTKRTTI.memoryUse(entry)
+#     def getMemoryUse(self, entry):
+#         if type(entry) == __builtin__.list:
+#             return sum([vtk_rtti.VTKRTTI.memoryUse(obj) for obj in lst])
+#         else:
+#             return vtk_rtti.VTKRTTI.memoryUse(entry)
 
     def examine(self):
         lst = self.entriesByEfficiency()
@@ -155,7 +177,8 @@ returns cache entry for pipeline. pipeline must have an entry in the cache."""
             print "   Compute time: %.3f seconds" % i[1][1][1]
             print "   Memory consumption: %s kB" % i[1][1][2]
             print "   Touch time: %s" % i[1][1][3]
-        print "Cache size: %s kB" % sum([i[1][2] for i in self.cache.iteritems()])
+        print "Cache size: %s kB" % sum([i[1][2] 
+                                         for i in self.cache.iteritems()])
 
     def computeHash(self, pipeline):
         taggedModuleIds = [(self.uniqueIdModule(m), m.id)
@@ -173,7 +196,8 @@ returns cache entry for pipeline. pipeline must have an entry in the cache."""
     def uniqueIdModule(self, obj):
         hasher = sha.new()
         hasher.update(obj.name)
-        functionsdig = hashList(obj.functions, lambda x: self.uniqueIdFunction(x))
+        functionsdig = hashList(obj.functions, 
+                                lambda x: self.uniqueIdFunction(x))
         hasher.update(functionsdig)
         return hasher.digest()
 
@@ -229,7 +253,8 @@ class TestCache(unittest.TestCase):
 
     def testEmptyParam(self):
         p = ModuleParam()
-        correctDigest = '\xda9\xa3\xee^kK\r2U\xbf\xef\x95`\x18\x90\xaf\xd8\x07\t'
+        correctDigest = '\xda9\xa3\xee^kK\r2U\xbf\xef\x95`\x18\x90' \
+            '\xaf\xd8\x07\t'
         computedDigest = self.c.uniqueIdParam(p)
         self.assertEqual(correctDigest, computedDigest)
 
@@ -239,7 +264,8 @@ class TestCache(unittest.TestCase):
         self.assertEqual(computedDigest, correctDigest)
         
     def testP2(self):
-        correctDigest = 'g\x1f\x0b%\xff\xdf\x01\xdfY\x87z\xaf\xf6\xcf\xe0q\xfb\xd8\xfd]'
+        correctDigest = 'g\x1f\x0b%\xff\xdf\x01\xdfY\x87z\xaf' \
+            '\xf6\xcf\xe0q\xfb\xd8\xfd]'
         computedDigest = self.c.uniqueIdParam(self.p2)
         self.assertEqual(computedDigest, correctDigest)
 
@@ -249,7 +275,8 @@ class TestCache(unittest.TestCase):
         f.returnType = "void"
         f.params = [self.p1, self.p2]
         computedDigest = self.c.uniqueIdFunction(f)
-        correctDigest = '\x8b\xc4\x9b\x00\xda\x0bb\xa4/\xbbd\xf8\xb3`I\xe3\xb3*H\xd2'
+        correctDigest = '\x8b\xc4\x9b\x00\xda\x0bb\xa4/\xbbd' \
+            '\xf8\xb3`I\xe3\xb3*H\xd2'
         self.assertEqual(computedDigest, correctDigest)
 
     def testParamOrder(self):
@@ -275,7 +302,8 @@ class TestCache(unittest.TestCase):
         f.params = [self.p1, self.p2]
         m.functions = [f]
         m.center = Point(0, 0)
-        correctDigest = '\xe3c@\xb2\x10\x90d\xa5l\x92\x02\x03A\x88\xd7\n\x96\x06\x99q'
+        correctDigest = '\xe3c@\xb2\x10\x90d\xa5l\x92\x02\x03A' \
+            '\x88\xd7\n\x96\x06\x99q'
         computedDigest = self.c.uniqueIdModule(m)
         self.assertEqual(correctDigest, computedDigest)
 

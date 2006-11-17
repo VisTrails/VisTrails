@@ -18,7 +18,8 @@ class Interpreter(object):
 
     
 
-    def execute(self, pipeline, vistrailName, currentVersion, view, logger, useLock=True):
+    def execute(self, pipeline, vistrailName, currentVersion, view, 
+                logger, useLock=True):
         try:
             if useLock:
                 _lock.acquire()
@@ -32,19 +33,23 @@ class Interpreter(object):
                 view.setModuleComputing(obj.id)
             def beginUpdate(obj):
                 view.setModuleActive(obj.id)
-                name = modules.module_registry.registry.getDescriptor(obj.__class__).name
+                reg = modules.module_registry.registry
+                name = reg.getDescriptor(obj.__class__).name
                 if logger:
-                    logger.startModuleExecution(vistrailName, currentVersion, obj.id, name)
+                    logger.startModuleExecution(vistrailName, 
+                                                currentVersion, obj.id, name)
             def endUpdate(obj, error=''):
                 if not error:
                     view.setModuleSuccess(obj.id)
                 else:
                     view.setModuleError(obj.id, error)
                 if logger:
-                    logger.finishModuleExecution(vistrailName, currentVersion, obj.id)
+                    logger.finishModuleExecution(vistrailName, 
+                                                 currentVersion, obj.id)
             def annotate(obj, d):
                 if logger:
-                    logger.insertAnnotationDB(vistrailName, currentVersion, obj.id, d)
+                    logger.insertAnnotationDB(vistrailName, 
+                                              currentVersion, obj.id, d)
             logging_obj = InstanceObject(signalSuccess=addToExecuted,
                                          beginUpdate=beginUpdate,
                                          beginCompute=beginCompute,
@@ -62,23 +67,32 @@ class Interpreter(object):
                 objects[id].currentVersion = currentVersion
     #            print "result: ", objects[id]
                 for f in module.functions:
+                    reg = modules.module_registry.registry
                     if len(f.params)==0:
-                        nullObject = modules.module_registry.registry.getDescriptorByName('Null').module()
-                        objects[id].setInputPort(f.name, ModuleConnector(nullObject, 'value'))
+                        nullObject = reg.getDescriptorByName('Null').module()
+                        objects[id].setInputPort(f.name, 
+                                                 ModuleConnector(nullObject,
+                                                                 'value'))
                     if len(f.params)==1:
                         p = f.params[0]
-                        constant = modules.module_registry.registry.getDescriptorByName(p.type).module()
+                        constant = reg.getDescriptorByName(p.type).module()
                         constant.setValue(p.evaluatedStrValue)
-                        objects[id].setInputPort(f.name, ModuleConnector(constant, 'value'))
+                        objects[id].setInputPort(f.name, 
+                                                 ModuleConnector(constant, 
+                                                                 'value'))
                     if len(f.params)>1:
                         value_list = []
-                        tupleModule = modules.module_registry.registry.getDescriptorByName('Tuple').module()
+                        tupleModule = reg.getDescriptorByName('Tuple').module()
                         tupleModule.length = len(f.params)
                         for (i,p) in withIndex(f.params):
-                            constant = modules.module_registry.registry.getDescriptorByName(p.type).module()
+                            constant = reg.getDescriptorByName(p.type).module()
                             constant.setValue(p.evaluatedStrValue)
-                            tupleModule.setInputPort(i, ModuleConnector(constant, 'value'))
-                        objects[id].setInputPort(f.name, ModuleConnector(tupleModule, 'value'))
+                            tupleModule.setInputPort(i, 
+                                                     ModuleConnector(constant, 
+                                                                     'value'))
+                        objects[id].setInputPort(f.name, 
+                                                 ModuleConnector(tupleModule,
+                                                                 'value'))
                         
             # create connections
             for id, conn in pipeline.connections.items():

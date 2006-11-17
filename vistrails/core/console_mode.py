@@ -1,16 +1,15 @@
-"""TODO: This module is broken in the plugin branch. Fix it."""
-
+""" Module used when running  vistrails uninteractively """
 from core import xml_parser
+from core import interpreter
 
 def run(input, workflow):
-    """ Run the workflow 'workflow' in the 'input' file and generates 
-    the 'outputfile' """ 
+    """ Run the workflow 'workflow' in the 'input' file and generates """ 
     parser = xml_parser.XMLParser()
     parser.openVistrail(input)
     v = parser.getVistrail()
     parser.closeVistrail()
     pip = v.getPipeline(workflow)
-    import interpreter
+
     error = False
     (objs, errors) = interpreter.Interpreter().execute(pip)
     for obj in objs.itervalues():
