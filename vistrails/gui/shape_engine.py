@@ -6,11 +6,7 @@ from PyQt4 import QtCore, QtGui, QtOpenGL
 from core.debug import notify, DebugPrint, timecall
 from core.vis_connection import VisConnection
 from core.vis_types import *
-from core.utils.color import (ColorByName, SELECTION_BOX,
-                              SELECTION_BOX_BORDER, GHOSTED_VERSION_COLOR,
-                              GHOSTED_VERSION_OUTLINE_COLOR, VERSION_TREE,
-                              OTHER_USER_VT, GHOSTED_MODULE_COLOR,
-                              GHOSTED_MODULE_OUTLINE_COLOR, OUTLINE_COLOR)
+from core.utils.color import PresetColor
 from gui.intersect import Intersect
 from gui.shape import *
 import bisect
@@ -56,7 +52,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.currentMoves = {}
         self.moveable = True
         self.currentShape = None
-        self.bgColor = ColorByName.get("black")
+        self.bgColor = PresetColor.PAINT_BACKGROUND
         self.font = QtGui.QFont("Arial", 24, QtGui.QFont.Bold)
         self.scale = 4.0
         self.setMouseTracking(True)
@@ -69,9 +65,9 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.bgTexture = None
         self.selectedShapes = []  #for multiple shapes manipulation
         self.selectionBox = Rectangle()
-        c=ColorByName.get(SELECTION_BOX)
+        c = PresetColor.SELECTION_BOX
         self.selectionBox.color=[c[0],c[1],c[2],0.30] #blending
-        self.selectionBox.outlineColor = ColorByName.get(SELECTION_BOX_BORDER)
+        self.selectionBox.outlineColor = PresetColor.SELECTION_BOX_BORDER
         self.selectionBox.outline = True
         self.selectionBox.outlineWidth=2.0
         self.beginDragPosition = Point()
@@ -526,9 +522,9 @@ class GLWidget(QtOpenGL.QGLWidget):
     def addVersionShape(self, id, n, p, w, h, sat, user, matched):
         if matched:
             if user == self.controller.vistrail.getUser():
-                c = ColorByName.get(VERSION_TREE)
+                c = PresetColor.VERSION_TREE
             else:
-                c = ColorByName.get(OTHER_USER_VT)
+                c = PresetColor.OTHER_USER_VT
             qc = QtGui.QColor(c[0]*255, c[1]*255, c[2]*255)
             hsv = qc.getHsv()
             qc.setHsv(hsv[0], hsv[1]*sat, hsv[2] + (255-hsv[2])*(1.0-sat))
@@ -536,25 +532,25 @@ class GLWidget(QtOpenGL.QGLWidget):
             finalColor = [float(col[0])/255.0, float(col[1])/255.0, float(col[2])/255.0]
             vs = VersionShape(id, n, p.x, p.y, w, h, finalColor)
         else:
-            finalColor = ColorByName.get(GHOSTED_VERSION_COLOR)
-            outlineColor = ColorByName.get(GHOSTED_VERSION_OUTLINE_COLOR)
+            finalColor = PresetColor.GHOSTED_VERSION
+            outlineColor = PresetColor.GHOSTED_VERSION_OUTLINE
             vs = VersionShape(id, n, p.x, p.y, w, h, finalColor, outlineColor, False)
         self.shapes[id] = vs
 
     def addModuleShape(self, m, mColor = None, matched = True):
         if mColor:
             color = mColor
-            outlineColor = ColorByName.get(OUTLINE_COLOR)
+            outlineColor = PresetColor.OUTLINE
         else:
             if matched:
                 if (m.type == VistrailModuleType.Filter): 
-                    color = ColorByName.get(FILTER_COLOR)
+                    color = PresetColor.FILTER
                 else:
-                    color = ColorByName.get(OBJECT_COLOR)
-                outlineColor = ColorByName.get(OUTLINE_COLOR)
+                    color = PresetColor.OBJECT
+                outlineColor = PresetColor.OUTLINE
             else:
-                color = ColorByName.get(GHOSTED_MODULE_COLOR)
-                outlineColor = ColorByName.get(GHOSTED_MODULE_OUTLINE_COLOR)
+                color = PresetColor.GHOSTED_MODULE
+                outlineColor = PresetColor.GHOSTED_MODULE_OUTLINE
         if len(color)<4: color += [1.0]*(4-len(color))
         h = 24*3
         w = len(m.name)*18

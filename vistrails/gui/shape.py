@@ -5,9 +5,7 @@
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from core.utils import abstract, color
-from core.utils.color import (ColorByName, OBJECT_COLOR, FILTER_COLOR,
-                              SUCCESS_COLOR, ERROR_COLOR, NOT_EXECUTED_COLOR,
-                              ACTIVE_COLOR, COMPUTE_COLOR, SELECTED_COLOR)
+from core.utils.color import PresetColor
 from core.data_structures import Point
 from core.debug import timecall
 from core.modules import module_registry
@@ -32,7 +30,7 @@ class Shape(object):
         self.color = [0.0,0.0,0.0,0.0]
         self.outline = False
         self.outlineColor = [0.0, 0.0, 0.0, 0.0]
-        self.selectedColor = ColorByName.get(SELECTED_COLOR)
+        self.selectedColor = PresetColor.SELECTED
         self.outlineWidth = 2.0
         self.selected = False
         self.__dlistId = -1
@@ -539,7 +537,7 @@ class PortShape(Shape):
             self.rectangle.outlineWidth = 1.0
         self.rectangle.outline = True
         self.rectangle.color = c
-        self.rectangle.outlineColor = ColorByName.get("black")
+        self.rectangle.outlineColor = PresetColor.OUTLINE
         self.optional = optional
         self.hidden = optional and hidden
 
@@ -647,32 +645,32 @@ class ModuleShape(Shape):
         self.selected = s
         self.rectangle.setSelected(s)
        
-    objectPortColor = [ColorByName.get(OBJECT_COLOR)[0] * 0.85,
-                       ColorByName.get(OBJECT_COLOR)[1] * 0.85,
-                       ColorByName.get(OBJECT_COLOR)[2] * 0.85,1]
-    filterPortColor = [ColorByName.get(FILTER_COLOR)[0] * 0.85,
-                       ColorByName.get(FILTER_COLOR)[1] * 0.85,
-                       ColorByName.get(FILTER_COLOR)[2] * 0.85,1]
-    successPortColor = [ColorByName.get(SUCCESS_COLOR)[0] * 0.85,
-                        ColorByName.get(SUCCESS_COLOR)[1] * 0.85,
-                        ColorByName.get(SUCCESS_COLOR)[2] * 0.85,1]
-    errorPortColor = [ColorByName.get(ERROR_COLOR)[0] * 0.85,
-                      ColorByName.get(ERROR_COLOR)[1] * 0.85,
-                      ColorByName.get(ERROR_COLOR)[2] * 0.85,1]
-    notExecutedPortColor = [ColorByName.get(NOT_EXECUTED_COLOR)[0] * 0.85,
-                            ColorByName.get(NOT_EXECUTED_COLOR)[1] * 0.85,
-                            ColorByName.get(NOT_EXECUTED_COLOR)[2] * 0.85,1]
-    activePortColor = [ColorByName.get(ACTIVE_COLOR)[0] * 0.85,
-                       ColorByName.get(ACTIVE_COLOR)[1] * 0.85,
-                       ColorByName.get(ACTIVE_COLOR)[2] * 0.85,1]
-    computePortColor = [ColorByName.get(COMPUTE_COLOR)[0] * 0.85,
-                        ColorByName.get(COMPUTE_COLOR)[1] * 0.85,
-                        ColorByName.get(COMPUTE_COLOR)[2] * 0.85,1]
+    objectPortColor = [PresetColor.OBJECT[0] * 0.85,
+                       PresetColor.OBJECT[1] * 0.85,
+                       PresetColor.OBJECT[2] * 0.85,1]
+    filterPortColor = [PresetColor.FILTER[0] * 0.85,
+                       PresetColor.FILTER[1] * 0.85,
+                       PresetColor.FILTER[2] * 0.85,1]
+    successPortColor = [PresetColor.SUCCESS[0] * 0.85,
+                        PresetColor.SUCCESS[1] * 0.85,
+                        PresetColor.SUCCESS[2] * 0.85,1]
+    errorPortColor = [PresetColor.ERROR[0] * 0.85,
+                      PresetColor.ERROR[1] * 0.85,
+                      PresetColor.ERROR[2] * 0.85,1]
+    notExecutedPortColor = [PresetColor.NOT_EXECUTED[0] * 0.85,
+                            PresetColor.NOT_EXECUTED[1] * 0.85,
+                            PresetColor.NOT_EXECUTED[2] * 0.85,1]
+    activePortColor = [PresetColor.ACTIVE[0] * 0.85,
+                       PresetColor.ACTIVE[1] * 0.85,
+                       PresetColor.ACTIVE[2] * 0.85,1]
+    computePortColor = [PresetColor.COMPUTE[0] * 0.85,
+                        PresetColor.COMPUTE[1] * 0.85,
+                        PresetColor.COMPUTE[2] * 0.85,1]
 
 
     def setSuccess(self):
         self.toolTipMsg = 'Module executed successfully'
-        self.rectangle.color = ColorByName.get(SUCCESS_COLOR)
+        self.rectangle.color = PresetColor.SUCCESS
         for p in self.destPortShapes.itervalues():
             p.setColor(self.successPortColor)
         for p in self.sourcePortShapes.itervalues():
@@ -680,7 +678,7 @@ class ModuleShape(Shape):
 
     def setActive(self):
         self.toolTipMsg = 'Module is currently active'
-        self.rectangle.color = ColorByName.get(ACTIVE_COLOR)
+        self.rectangle.color = PresetColor.ACTIVE
         for p in self.destPortShapes.itervalues():
             p.setColor(self.activePortColor)
         for p in self.sourcePortShapes.itervalues():
@@ -688,7 +686,7 @@ class ModuleShape(Shape):
 
     def setComputing(self):
         self.toolTipMsg = 'Module is currently being executed'
-        self.rectangle.color = ColorByName.get(COMPUTE_COLOR)
+        self.rectangle.color = PresetColor.COMPUTE
         for p in self.destPortShapes.itervalues():
             p.setColor(self.computePortColor)
         for p in self.sourcePortShapes.itervalues():
@@ -697,7 +695,7 @@ class ModuleShape(Shape):
 
     def setError(self, me):
         self.toolTipMsg = me.msg 
-        self.rectangle.color = ColorByName.get(ERROR_COLOR)
+        self.rectangle.color = PresetColor.ERROR
         for p in self.destPortShapes.itervalues():
             p.setColor(self.errorPortColor)
         for p in self.sourcePortShapes.itervalues():
@@ -705,7 +703,7 @@ class ModuleShape(Shape):
 
     def setNotExecuted(self):
         self.toolTipMsg = 'Module not executed because of pipeline errors'
-        self.rectangle.color = ColorByName.get(NOT_EXECUTED_COLOR)
+        self.rectangle.color = PresetColor.NOT_EXECUTED
         for p in self.destPortShapes.itervalues():
             p.setColor(self.notExecutedPortColor)
         for p in self.sourcePortShapes.itervalues():
@@ -854,7 +852,7 @@ class ModuleShape(Shape):
 
 class VersionShape(Shape):
     __fields__ = ['ellipse', 'text', 'shadowEllipse']
-    def __init__(self, id=0, n=None, x=0, y=0, w=0, h=0, c=0, oc=ColorByName.get("black"), shadow=True):
+    def __init__(self, id=0, n=None, x=0, y=0, w=0, h=0, c=0, oc=PresetColor.OUTLINE, shadow=True):
         Shape.__init__(self)
         self.id = id
         self.x = x

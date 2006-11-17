@@ -5,24 +5,6 @@ color defines
 
 ################################################################################
 
-FILTER_COLOR = 'sea_green_dark'
-OBJECT_COLOR = 'light_grey'
-ERROR_COLOR = 'salmon'
-SUCCESS_COLOR = 'mint'
-ACTIVE_COLOR = 'navajo_white'
-COMPUTE_COLOR = 'yellow'
-NOT_EXECUTED_COLOR = 'light_goldenrod'
-VERSION_TREE = 'desatcornflower'
-SELECTED_COLOR = 'banana'
-OTHER_USER_VT = 'melon'
-SELECTION_BOX = 'light_grey'
-SELECTION_BOX_BORDER = 'lamp_black'
-GHOSTED_VERSION_COLOR = 'very_light_grey'
-GHOSTED_VERSION_OUTLINE_COLOR = 'light_grey'
-GHOSTED_MODULE_COLOR = 'light_dim_grey'
-GHOSTED_MODULE_OUTLINE_COLOR = 'dark_dim_grey'
-OUTLINE_COLOR = 'black'
-
 class ColorByName(object):
     """
     Provides a list of colors that can be queried by name
@@ -267,6 +249,31 @@ class ColorByName(object):
         else:
             return [0.0, 0.0, 0.0]
 
+class PresetColor(object):
+    """
+    Provides some pre-defined color constants for using throughout
+    VisTrails
+    
+    """
+    FILTER = ColorByName.get('sea_green_dark')
+    OBJECT = ColorByName.get('light_grey')
+    ERROR = ColorByName.get('salmon')
+    SUCCESS = ColorByName.get('mint')
+    ACTIVE = ColorByName.get('navajo_white')
+    COMPUTE = ColorByName.get('yellow')
+    NOT_EXECUTED = ColorByName.get('light_goldenrod')
+    VERSION_TREE = ColorByName.get('desatcornflower')
+    SELECTED = ColorByName.get('banana')
+    OTHER_USER_VT = ColorByName.get('melon')
+    SELECTION_BOX = ColorByName.get('light_grey')
+    SELECTION_BOX_BORDER = ColorByName.get('lamp_black')
+    GHOSTED_VERSION = ColorByName.get('very_light_grey')
+    GHOSTED_VERSION_OUTLINE = ColorByName.get('light_grey')
+    GHOSTED_MODULE = ColorByName.get('light_dim_grey')
+    GHOSTED_MODULE_OUTLINE = ColorByName.get('dark_dim_grey')
+    OUTLINE = ColorByName.get('black')
+    PAINT_BACKGROUND = ColorByName.get('black')
+    
 ################################################################################
 
 import unittest
