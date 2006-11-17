@@ -25,6 +25,16 @@ class ParameterExplorationManager(object):
         self.builder = builder
         self.dimLabels = ['Dim %d' % (i+1) for i in range(4)]
 
+    def clear(self):
+        """ clear() -> None
+        Clear all settings and leave the GUI empty
+        
+        """
+        for dim in range(self.dimTab.count()):
+            tab = self.dimTab.widget(dim)
+            tab.methodList.clear()
+        
+
     def startParameterExploration(self):
         """ startParameterExploration() -> None
         Collects inputs from widgets and the builders to setup and
