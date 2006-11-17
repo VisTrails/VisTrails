@@ -280,7 +280,7 @@ import unittest
 
 class TestColorByName(unittest.TestCase):
     """
-    A few simple test to make sure ColorByName is working as expected
+    A few simple tests to make sure ColorByName is working as expected
     
     """
     def testAlphaChannel(self):
@@ -292,6 +292,18 @@ class TestColorByName(unittest.TestCase):
                           [0.0, 0.0, 0.0, 1.0]),        
         self.assertEquals(ColorByName.getNoAlpha('another not exist'),
                           [0.0, 0.0, 0.0]),
+        
+class TestPresetColor(unittest.TestCase):
+    """
+    A few simple tests to make sure Preset is working as expected
+    
+    """
+    def testColorValues(self):
+        self.assertEquals(PresetColor.FILTER,
+                          ColorByName.get('sea_green_dark'))
+        self.assertEquals(PresetColor.GHOSTED_VERSION,
+                          ColorByName.get('very_light_grey'))
+
         
 if __name__ == '__main__':
     unittest.main()
