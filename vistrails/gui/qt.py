@@ -36,7 +36,7 @@ to start creating other QtCore.QObjects."""
     caller = inspect.currentframe().f_back
     d = caller.f_locals
     if (not d.has_key('self') or
-        not isinstance(d['self'], QtGui.QApplication)):
+        not isinstance(d['self'], QtCore.QCoreApplication)):
         raise DisallowedCaller
     global okToCreateQObjects
     okToCreateQObjects = True
@@ -50,9 +50,9 @@ to create QObjects."""
 
 def createBogusQtApp():
     """createBogusQtApp creates a bogus Qt App so that we can use QObjects."""
-    class BogusApplication(QtGui.QApplication):
+    class BogusApplication(QtCore.QCoreApplication):
         def __init__(self):
-            QtGui.QApplication.__init__(self, ["bogus"])
+            QtCore.QCoreApplication.__init__(self, ["bogus"])
             allowQObjects()
     return BogusApplication()
 
