@@ -107,7 +107,7 @@ def defaultOptionsFile():
 
 def defaultDotVistrails():
     """ defaultDotVistrails() -> str 
-    Returns vistrails configuration file
+    Returns VisTrails per-user directory.
 
     """
     return homeDirectory() + "/.vistrails"
