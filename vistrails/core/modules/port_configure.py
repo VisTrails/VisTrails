@@ -16,14 +16,18 @@ class StandardPortConfigureContainer(QtGui.QDialog):
         self.layout().addWidget(configureWidget)
 
 class ColorWheel(QtGui.QWidget):
-    colorWheelImage = QtGui.QImage(':colorwheel.png')
-    colorWheelPixmap = QtGui.QPixmap(':colorwheel.png')
+    colorWheelImage = None
+    colorWheelPixmap = None
 
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.palette().setColor(QtGui.QPalette.Window, QtCore.Qt.white)
         self.setAutoFillBackground(True)
         self.dragging = False
+        if not self.colorWheelImage:
+            self.colorWheelImage = QtGui.QImage(':colorwheel.png')
+            self.colorWheelPixmap = QtGui.QPixmap(':colorwheel.png')
+        
 
     def sizeHint(self):
         return QtCore.QSize(256, 256)
