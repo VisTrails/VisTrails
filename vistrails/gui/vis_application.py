@@ -15,6 +15,8 @@ from gui import qt
 
 from core.utils import InstanceObject
 import os.path
+import tempfile
+import shutil
 
 logger = None
 
@@ -209,24 +211,60 @@ to zero to work around vtk bug with offscreen renderer and opengl texture3d mapp
         self.workflow = get('workflow')
 
     def runInitialization(self):
+
         def addStartupHook(hook):
             self.startupHooks.append(hook)
+
         def addPackage(packageName, *args, **keywords):
             self.packageList.append([packageName,None, keywords])
+
         def execDotVistrails():
-            try:
-                dotVistrails = file(self.dotVistrails)
-                code = compile("".join(dotVistrails.readlines()),
-                               system.temporaryDirectory() + "dotVistrailsErrors.txt",
-                               'exec')
-                g = {}
-                localsDir = {'configuration': self.configuration,
-                             'addStartupHook': addStartupHook,
-                             'addPackage': addPackage}
-                eval(code, g, localsDir)
-            except IOError:
-                debug.DebugPrint.critical('%s not found' % self.dotVistrails)
-                debug.DebugPrint.critical('Will not run an initialization file - there will only be the default modules')
+
+            # if isfile, then must move old-style .vistrails to
+            # directory.
+            if os.path.isfile(self.dotVistrails):
+                print "Old-style initialization hooks. Will try to set things correctly."
+                print self.dotVistrails
+                (fd, name) = tempfile.mkstemp()
+                os.close(fd)
+                shutil.copyfile(self.dotVistrails, name)
+                try:
+                    os.unlink(self.dotVistrails)
+                except:
+                    print "Failed to remove old initialization file."
+                    print "This could be an indication of a permissions problem."
+                    print "Make sure file '%s' is writable." % self.dotVistrails
+                    sys.exit(1)
+                try:
+                    os.mkdir(self.dotVistrails)
+                except:
+                    print "Failed to create initialization directory."
+                    print "This could be an indication of a permissions problem."
+                    print "Make sure file parent directory of '%s' is writable." % self.dotVistrails
+                    sys.exit(1)
+                try:
+                    shutil.copyfile(name, self.dotVistrails + '/startup.py')
+                except:
+                    print "Failed to copy old initialization file to newly-created"
+                    print "initialization directory. This must have been a race condition."
+                    print "Please remove '%s' and restart VisTrails." % self.dotVistrails
+                print "Successful move."
+    
+            if os.path.isdir(self.dotVistrails):
+                try:
+                    dotVistrails = file(self.dotVistrails + '/startup.py')
+                    code = compile("".join(dotVistrails.readlines()),
+                                   system.temporaryDirectory() + "dotVistrailsErrors.txt",
+                                   'exec')
+                    g = {}
+                    localsDir = {'configuration': self.configuration,
+                                 'addStartupHook': addStartupHook,
+                                 'addPackage': addPackage}
+                    eval(code, g, localsDir)
+                except IOError:
+                    debug.DebugPrint.critical('%s not found' % (self.dotVistrails + '/startup.py'))
+                    debug.DebugPrint.critical('Will not run an initialization file - there will only be the default modules')
+
         execDotVistrails()
         if self.configuration.pythonPrompt:
             debug.startVisTrailsREPL(locals())
