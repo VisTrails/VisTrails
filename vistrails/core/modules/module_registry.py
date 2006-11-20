@@ -9,7 +9,7 @@ from core.utils import VistrailsInternalError, memo_method, all
 import core.vis_types
 import copy
 
-################################################################################
+###############################################################################
 # ModuleDescriptor
 
 class ModuleDescriptor(object):
@@ -20,7 +20,8 @@ class ModuleDescriptor(object):
         self.module = module
         if (len(self.module.__bases__) > 0 and
             self.module.__bases__[0] != object):
-            self.baseDescriptor = registry.getDescriptor(self.module.__bases__[0])
+            base = self.module.__bases__[0]
+            self.baseDescriptor = registry.getDescriptor(base)
         else:
             self.baseDescriptor = None
         self.name = name
@@ -57,7 +58,8 @@ class ModuleDescriptor(object):
             port[name].append(spec)
 
     def addInputPort(self, name, spec, optional, configureWidgetType):
-        self.appendToPortList(self.inputPorts, self.inputPortsOptional, name, spec, optional)
+        self.appendToPortList(self.inputPorts,
+                              self.inputPortsOptional, name, spec, optional)
         self.inputPortsConfigureWidgetType[name] = configureWidgetType
 
     def deleteInputPort(self, name):
@@ -66,21 +68,22 @@ class ModuleDescriptor(object):
             del self.inputPortsOptional[name]
 
     def addOutputPort(self, name, spec, optional):
-        self.appendToPortList(self.outputPorts, self.outputPortsOptional, name, spec, optional)
+        self.appendToPortList(self.outputPorts,
+                              self.outputPortsOptional, name, spec, optional)
 
     def deleteOutputPort(self, name):
         if self.outputPorts.has_key(name):
             del self.outputPorts[name]
             del self.outputPortsOptional[name]
 
-################################################################################
+###############################################################################
 # ModuleRegistry
 
 class ModuleRegistry(QtCore.QObject):
     """ModuleRegistry serves as a global registry of all VisTrails modules.
 
-(To compare with the previous implementation, it is both VTKRTTI and PluginRTTI
-put together, with the ability to extend it at runtime)"""
+(To compare with the previous implementation, it is both VTKRTTI and
+PluginRTTI put together, with the ability to extend it at runtime)"""
 
     def __init__(self):
         QtCore.QObject.__init__(self)
@@ -118,15 +121,18 @@ subclasses from modules.vistrails_module.Module)"""
     def addModule(self, module, name = None, configureWidgetType = None):
         """addModule(module: class, optional name: string) -> Tree
 
-Registers a new module with VisTrails. Receives the class itself and an optional
-name that will be the name of the module (if not given, uses module.__name__).
-This module will be available for use in pipelines."""
+Registers a new module with VisTrails. Receives the class itself and
+an optional name that will be the name of the module (if not given,
+uses module.__name__).  This module will be available for use in
+pipelines."""
         if not name:
             name = module.__name__
+        import time
         assert not self.moduleTree.has_key(name)
         assert len(module.__bases__) == 1
         baseClass = module.__bases__[0]
-        assert self.moduleName.has_key(baseClass), ("Missing base class %s" % baseClass.__name__)
+        assert (self.moduleName.has_key(baseClass),
+                ("Missing base class %s" % baseClass.__name__))
         baseName = self.moduleName[baseClass]
         baseNode = self.moduleTree[baseName]
         moduleNode = baseNode.addModule(module)
@@ -139,7 +145,8 @@ This module will be available for use in pipelines."""
         self.emit(QtCore.SIGNAL("newModule"), name)
         return moduleNode
 
-    def addInputPort(self, module, portName, portSpec, optional=False, configureWidgetType=None):
+    def addInputPort(self, module, portName, portSpec, optional=False,
+                     configureWidgetType=None):
         """addInputPort(module: class, portName: string, portSpec) -> None
 
 Registers a new input port with VisTrails. Receives the module that will
@@ -155,7 +162,8 @@ contains a description of the input
 list of formats: the port takes more than a single input. Each of the list
 elements is of either of the above formats."""
         descriptor = self.getDescriptor(module)
-        descriptor.addInputPort(portName, portSpec, optional, configureWidgetType)
+        descriptor.addInputPort(portName, portSpec, optional,
+                                configureWidgetType)
         self.emit(self.newInputPortSignal,
                   descriptor.name, portName, portSpec)
 
@@ -201,7 +209,8 @@ elements is of either of the above formats."""
             return result
         v = descriptor.outputPorts.items()
         v.sort(lambda (n1, v1), (n2, v2): cmp(n1,n2))
-        return [visPortFromSpec(x, descriptor.outputPortsOptional[x[0]]) for x in v]
+        return [visPortFromSpec(x, descriptor.outputPortsOptional[x[0]])
+                for x in v]
 
 #    @memo_method
     def destinationPortsFromDescriptor(self, descriptor):
@@ -215,7 +224,8 @@ elements is of either of the above formats."""
             return result        
         v = descriptor.inputPorts.items()
         v.sort(lambda (n1, v1), (n2, v2): cmp(n1,n2))
-        return [visPortFromSpec(x, descriptor.inputPortsOptional[x[0]]) for x in v]
+        return [visPortFromSpec(x, descriptor.inputPortsOptional[x[0]])
+                for x in v]
 
     getDescriptorByThingDispatch = {
         __builtin__.str: getDescriptorByName,
@@ -232,9 +242,10 @@ elements is of either of the above formats."""
                 for klass in self.getModuleHierarchy(thing)]
 
     def destinationPorts(self, thing):
-        """Returns destination ports for all hierarchy leading to given module"""
-        return [(klass.__name__,
-                 self.destinationPortsFromDescriptor(self.getDescriptor(klass)))
+        """Returns destination ports for all hierarchy leading to
+        given module"""
+        getter = self.destinationPortsFromDescriptor
+        return [(klass.__name__, getter(self.getDescriptor(klass)))
                 for klass in self.getModuleHierarchy(thing)]
 
 #    @memo_method
@@ -245,14 +256,15 @@ Returns the list of ports that can also be interpreted as method
 calls. These are the ones whose spec contains only subclasses of
 Constant."""
         def specWithConstantOnly(port):
-#            print '>>>>>', port.name
-#            for spec in port.spec:
-#                print spec
+            allConstant = (lambda x:
+                           issubclass(x[0],
+                                      core.modules.basic_modules.Constant))
             return [spec
                     for spec
                     in port.spec
-                    if all(spec, lambda x: issubclass(x[0], core.modules.basic_modules.Constant))]
-        lst = self.destinationPortsFromDescriptor(self.getDescriptorByThing(module))
+                    if all(spec, allConstant)]
+        module_descriptor = self.getDescriptorByThing(module)
+        lst = self.destinationPortsFromDescriptor(module_descriptor)
         result = []
         for port in lst:
             constantOnly = specWithConstantOnly(port)
@@ -279,7 +291,8 @@ Returns all methods that can be set by the user in a given class
                     result[port.name] = []
                 specs = port.spec
                 for spec in specs:
-                    result[port.name].append(core.vis_types.ModuleFunction.fromSpec(port, spec))
+                    fun = core.vis_types.ModuleFunction.fromSpec(port, spec)
+                    result[port.name].append(fun)
             return result
 
         hierarchy = self.getModuleHierarchy(module)
@@ -288,8 +301,9 @@ Returns all methods that can be set by the user in a given class
         return dict(methods)
 
     def portsCanConnect(self, sourceModulePort, destinationModulePort):
-        """portsCanConnectVTKRTTI().portsCanConnect(sourceModulePort, destinationModulePort) -> Boolean
-returns true if there could exist a connection connecting these two ports."""
+        """portsCanConnectVTKRTTI().portsCanConnect(sourceModulePort,
+destinationModulePort) -> Boolean returns true if there could exist a
+connection connecting these two ports."""
         if sourceModulePort.endPoint == destinationModulePort.endPoint:
             return False
         if sourceModulePort.type != destinationModulePort.type:
@@ -309,7 +323,8 @@ returns true if there could exist a connection connecting these two ports."""
                 for (st, dt) in zip(sourceTypes, destTypes):
                     sourceDescriptor = self.getDescriptorByThing(st)
                     destinationDescriptor = self.getDescriptorByThing(dt)
-                    if not issubclass(sourceDescriptor.module, destinationDescriptor.module):
+                    if not issubclass(sourceDescriptor.module,
+                                      destinationDescriptor.module):
                         ok = False
                         break
                 if ok:
@@ -359,14 +374,16 @@ returns true if there could exist a connection connecting these two ports."""
             return None
 
     def makeSpec(self, port, specStr, localRegistry=None, loose=True):
-        """Parses a string representation of a port spec and returns the spec. Uses
-own type to decide between source and destination ports."""
+        """Parses a string representation of a port spec and returns
+the spec. Uses own type to decide between source and destination
+ports."""
         if specStr[0] != '(' or specStr[-1] != ')':
             raise VistrailsInternalError("invalid port spec")
         specStr = specStr[1:-1]
         descriptor = self.getDescriptorByName(port.moduleName)
         if localRegistry:
-            localDescriptor = localRegistry.getDescriptorByName(port.moduleName)
+            name = port.moduleName
+            localDescriptor = localRegistry.getDescriptorByName(name)
         else:
             localDescriptor = None
         if port.endPoint == core.vis_types.VisPortEndPoint.Source:
@@ -378,7 +395,8 @@ own type to decide between source and destination ports."""
             if localDescriptor:
                 ports.update(localDescriptor.inputPorts)
         else:
-            raise VistrailsInternalError("Invalid port endpoint: %s" % port.endPoint)
+            raise VistrailsInternalError("Invalid port endpoint: %s" %
+                                         port.endPoint)
         values = specStr.split(", ")
         if not ports.has_key(port.name):            
             if loose:
@@ -386,16 +404,19 @@ own type to decide between source and destination ports."""
                          '<no description>')
                         for v in values]]
             else:
-                raise VistrailsInternalError("Port name is inexistent in ModuleDescriptor")
+                msg = "Port name is inexistent in ModuleDescriptor"
+                raise VistrailsInternalError(msg)
         specs = ports[port.name]
+        fun = lambda ((klass, descr), name): \
+                      issubclass(self.getDescriptorByName(name).module, klass)
         for spec in specs:
-            if all(zip(spec, values),
-                   lambda ((klass, descr), name): issubclass(self.getDescriptorByName(name).module, klass)):
+            if all(zip(spec, values), fun):
                 return [copy.copy(spec)]
         raise VistrailsInternalError("No port spec matches the given string")
 
     @staticmethod
-    def portFromRepresentation(moduleName, portStr, endPoint, localRegistry=None, loose=False):
+    def portFromRepresentation(moduleName, portStr, endPoint,
+                               localRegistry=None, loose=False):
         x = portStr.find('(')
         assert x != -1
         portName = portStr[:x]
@@ -407,7 +428,7 @@ own type to decide between source and destination ports."""
         port.spec = registry.makeSpec(port, portSpec, localRegistry, loose)
         return port
 
-################################################################################
+###############################################################################
 
 class Tree(object):
     """Tree implements an n-ary tree of module descriptors. """
@@ -423,7 +444,7 @@ class Tree(object):
         self.children.append(result)
         return result
 
-################################################################################
+###############################################################################
 
 import gui.qt
 gui.qt.askForQObjectCreation()
