@@ -55,7 +55,13 @@ class Module(object):
             self.upToDate = True
             self.logging.endUpdate(self)
             self.logging.signalSuccess(self)
-        
+
+    def checkInputPort(self, name):
+        """checkInputPort(name) -> None.
+Makes sure input port 'name' is filled."""
+        if not self.hasInputFromPort(name):
+            raise ModuleError(self, "'%s' is a mandatory port" % name)
+
     def compute(self):
         pass
 
