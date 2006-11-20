@@ -249,6 +249,10 @@ to zero to work around vtk bug with offscreen renderer and opengl texture3d mapp
                     print "initialization directory. This must have been a race condition."
                     print "Please remove '%s' and restart VisTrails." % self.dotVistrails
                 print "Successful move."
+                try:
+                    os.unlink(name)
+                except:
+                    print "Failed to erase temporary file."
     
             if os.path.isdir(self.dotVistrails):
                 try:
