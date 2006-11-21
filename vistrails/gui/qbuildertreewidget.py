@@ -50,8 +50,7 @@ class QBuilderTreeWidget(QtGui.QTreeWidget):
                 i.hideProtect = True
                 i = i.parent()
         for i in self.allItems:
-            self.setRowHidden(i.index.row(),i.index.parent(),not i.hideProtect)
-            
+            self.setItemHidden(i, not i.hideProtect)
    
 ################################################################################
 

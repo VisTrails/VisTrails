@@ -462,6 +462,7 @@ class QBuilder(QtGui.QMainWindow):
         - tw : 'QtGui.QTreeWidget'
         
         """
+        print 'ha'
         if self.vtkClassMethodTab.currentWidget() == self.moduleTreeWidget:
             self.updateTreeWidget(self.moduleTreeWidget,text)                
         elif self.vtkClassMethodTab.currentWidget() == self.vtkModuleMethods:
@@ -1153,8 +1154,6 @@ of the search line edit widget."""
 
         searchLabel = QtGui.QLabel("Search:", searchFrame)
         self.searchLineEdit = QtGui.QLineEdit(searchFrame)
-        self.connect(self.searchLineEdit, QtCore.SIGNAL("textChanged(QString)"),
-                     self.changeTreeWidget)
         
         refineLayout.addWidget(refineLabel)
         refineLayout.addWidget(self.refineLineEdit)
