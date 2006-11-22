@@ -1,6 +1,6 @@
 from PyQt4 import QtCore, QtGui, QtOpenGL
 from gui.qbuildertreewidget import *
-from core.vis_types import VistrailModuleType
+from core.vistrail.module_param import VistrailModuleType
 import core.modules
 import core.modules.module_registry
 

@@ -6,7 +6,9 @@ import core.modules.vistrails_module
 import __builtin__
 
 from core.utils import VistrailsInternalError, memo_method, all
-import core.vis_types
+
+from core.vistrail.port import Port, PortEndPoint
+from core.vistrail.module_function import ModuleFunction
 import copy
 
 ###############################################################################
@@ -200,12 +202,12 @@ elements is of either of the above formats."""
 #    @memo_method
     def sourcePortsFromDescriptor(self, descriptor):
         def visPortFromSpec(spec, optional):
-            result = core.vis_types.VisPort()
+            result = Port()
             result.name = spec[0]
             result.spec = spec[1]
             result.optional = optional
             result.moduleName = descriptor.name
-            result.endPoint = core.vis_types.VisPortEndPoint.Source
+            result.endPoint = PortEndPoint.Source
             return result
         v = descriptor.outputPorts.items()
         v.sort(lambda (n1, v1), (n2, v2): cmp(n1,n2))
@@ -215,12 +217,12 @@ elements is of either of the above formats."""
 #    @memo_method
     def destinationPortsFromDescriptor(self, descriptor):
         def visPortFromSpec(spec, optional):
-            result = core.vis_types.VisPort()
+            result = Port()
             result.name = spec[0]
             result.spec = spec[1]
             result.optional = optional
             result.moduleName = descriptor.name
-            result.endPoint = core.vis_types.VisPortEndPoint.Destination
+            result.endPoint = PortEndPoint.Destination
             return result        
         v = descriptor.inputPorts.items()
         v.sort(lambda (n1, v1), (n2, v2): cmp(n1,n2))
@@ -291,7 +293,7 @@ Returns all methods that can be set by the user in a given class
                     result[port.name] = []
                 specs = port.spec
                 for spec in specs:
-                    fun = core.vis_types.ModuleFunction.fromSpec(port, spec)
+                    fun = ModuleFunction.fromSpec(port, spec)
                     result[port.name].append(fun)
             return result
 
@@ -386,11 +388,11 @@ ports."""
             localDescriptor = localRegistry.getDescriptorByName(name)
         else:
             localDescriptor = None
-        if port.endPoint == core.vis_types.VisPortEndPoint.Source:
+        if port.endPoint == PortEndPoint.Source:
             ports = copy.copy(descriptor.outputPorts)
             if localDescriptor:
                 ports.update(localDescriptor.outputPorts)
-        elif port.endPoint == core.vis_types.VisPortEndPoint.Destination:
+        elif port.endPoint == PortEndPoint.Destination:
             ports = copy.copy(descriptor.inputPorts)
             if localDescriptor:
                 ports.update(localDescriptor.inputPorts)
@@ -421,7 +423,7 @@ ports."""
         assert x != -1
         portName = portStr[:x]
         portSpec = portStr[x:]
-        port = core.vis_types.VisPort()
+        port = Port()
         port.name = portName
         port.moduleName = moduleName
         port.endPoint = endPoint

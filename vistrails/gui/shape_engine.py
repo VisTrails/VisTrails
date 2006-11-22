@@ -4,8 +4,8 @@
 
 from PyQt4 import QtCore, QtGui, QtOpenGL
 from core.debug import notify, DebugPrint, timecall
-from core.vis_connection import VisConnection
-from core.vis_types import *
+from core.vistrail.connection import Connection
+from core.vistrail.port import PortEndPoint
 from core.utils.color import PresetColor
 from gui.intersect import Intersect
 from gui.shape import *
@@ -14,6 +14,7 @@ import gui.shape
 import math
 import pickle
 import sys
+import copy
 
 try:
     from OpenGL.GL import *
@@ -603,7 +604,7 @@ class GLWidget(QtOpenGL.QGLWidget):
                 endModule = endShape
                 if isinstance(endShape, PortShape):
                     endModule = self.shapes[endShape.parentId]
-                if (self.currentShape.port.endPoint == VisPortEndPoint.Destination):
+                if (self.currentShape.port.endPoint == PortEndPoint.Destination):
                     sourcePort = endModule.getSourcePort(self.endPortDrag,
                                                      self.currentShape.port)
                     destPort = self.currentShape.port      
@@ -616,7 +617,7 @@ class GLWidget(QtOpenGL.QGLWidget):
                     sourceModule = self.shapes[self.currentShape.parentId]
                     destModule = endModule
                 if sourcePort and destPort and sourceModule != destModule:
-                    conn = VisConnection.fromPorts(sourcePort, destPort)
+                    conn = Connection.fromPorts(sourcePort, destPort)
                     conn.sourceId = sourceModule.id
                     conn.destinationId = destModule.id
                     #print sourcePort
@@ -635,7 +636,7 @@ class GLWidget(QtOpenGL.QGLWidget):
                     endModule = self.shapes[endShape.parentId]
                 if endModule == self.shapes[self.currentShape.parentId]:
                     return
-                if (self.currentShape.port.endPoint == VisPortEndPoint.Destination):
+                if (self.currentShape.port.endPoint == PortEndPoint.Destination):
                     port = endModule.getSourcePort(self.endPortDrag,
                                                self.currentShape.port)
                     if port:

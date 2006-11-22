@@ -12,7 +12,7 @@ from core import system
 
 from core.debug import DebugPrint
 from core.utils import InvalidVistrailModuleType
-from core.vis_types import VistrailModuleType
+from core.vistrail.module_param import VistrailModuleType
 
 ################################################################################
 
@@ -231,8 +231,9 @@ class CacheManager(object):
 # Testing
 
 import unittest
-from core.vis_types import *
-from core.vis_object import *
+from core.vistrail.module_param import ModuleParam
+from core.vistrail.module_function import ModuleFunction
+from core.vistrail.module import Module
 from core.data_structures import Point
 import copy
 
@@ -292,7 +293,7 @@ class TestCache(unittest.TestCase):
         self.assertEqual(digest1, digest2)
 
     def testModule(self):
-        m = VisModule()
+        m = Module()
         m.name = "vtkDataSetReader"
         m.id = 0
         m.cache = 1
@@ -309,7 +310,7 @@ class TestCache(unittest.TestCase):
 
     def testFunctionOrder(self):
         """Function order should be irrelevant"""
-        m = VisModule()
+        m = Module()
         m.name = "vtkDataSetReader"
         m.id = 0
         m.cache = 1

@@ -2,10 +2,11 @@ from PyQt4 import QtCore, QtGui
 #from core.utils import *
 from core.data_structures import *
 from core.debug import notify, DebugPrint, timecall
-from core.vis_action import *
-from core.vis_object import VisModule
-from core.vis_types import *
 from core.vistrail import Vistrail
+from core.vistrail.action import Action, MoveModuleAction
+from core.vistrail.module import Module
+from core.vistrail.connection import Connection
+from core.vistrail.port import Port
 from core.xml_utils import *
 from gui.qt import SignalSet
 from gui.shape import PolyLine, ModuleShape, PortShape
@@ -134,7 +135,7 @@ class QPipelineView(QtGui.QScrollArea):
                       ,(self.shapeEngine, QtCore.SIGNAL("connectionsToBeDeleted"), controller.deleteConnectionList)
                       ,(self, QtCore.SIGNAL("connectionToBeAdded"), controller.addConnection)
                       ,(self, QtCore.SIGNAL("actionToBePerformed"), controller.performAction)
-                      ,(controller, QtCore.SIGNAL("actedOnCurrentVistrail(VisAction)"), self.perform)
+                      ,(controller, QtCore.SIGNAL("actedOnCurrentVistrail(Action)"), self.perform)
                       ,(controller, QtCore.SIGNAL("flushPendingActions()"), self.updateVistrail)
                       ,(self, QtCore.SIGNAL("updateGL"), self.shapeEngine.updateGL)
                       ,(self, QtCore.SIGNAL("copyAndPaste"), controller.pasteModulesAndConnections)]
@@ -270,11 +271,11 @@ class QPipelineView(QtGui.QScrollArea):
 	modules = []
 	connections = []
 	for xmlmodule in named_elements(root, 'module'):
-	    module = VisModule.loadFromXML(xmlmodule)
+	    module = Module.loadFromXML(xmlmodule)
 	    modules.append(module)
 	
 	for xmlconnection in named_elements(root, 'connect'):
-	    conn = VisConnection.loadFromXML(xmlconnection)
+	    conn = Connection.loadFromXML(xmlconnection)
 	    connections.append(conn)
 
 	if len(modules) > 0:

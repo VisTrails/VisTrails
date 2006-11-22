@@ -9,7 +9,7 @@ from core.utils.color import PresetColor
 from core.data_structures import Point
 from core.debug import timecall
 from core.modules import module_registry
-from core.vis_types import *
+from core.vistrail.module_param import VistrailModuleType
 import math
 import sys
 

@@ -4,15 +4,16 @@ the building of new Vistrails by the user
 """
 from OpenGL import GL
 from PyQt4 import QtCore, QtGui
-from core.utils import unimplemented, VistrailsInternalError, withIndex
+from core.utils import enum, unimplemented, VistrailsInternalError, withIndex
 from core.debug import DebugPrint
-from core.utils import enum
 from core.modules.module_registry import registry
-from core.vis_action import *
-from core.vis_connection import VisConnection
-from core.vis_macro import VisMacro
-from core.vis_types import VistrailModuleType, VisPort, ModuleFunction
 from core.vistrail import Vistrail
+from core.vistrail.connection import Connection
+from core.vistrail.macro import Macro
+from core.vistrail.action import ChangeParameterAction
+from core.vistrail.module_param import VistrailModuleType
+from core.vistrail.port import Port
+from core.vistrail.module_function import ModuleFunction
 from core.xml_parser import XMLParser
 from gui.param_explore import ParameterExplorationManager
 from gui.pipeline_view import QPipelineView, QQueryView
@@ -25,7 +26,6 @@ from gui.version_tree import QVersionTree
 from gui.vis_shell import ShellGui
 from gui.vistrail_controller import VistrailController, QueryController
 import core.system
-import core.vis_types
 import db.DBconfig
 import gui.resources.macroicons_rc
 import gui.version_tree_search
@@ -579,7 +579,7 @@ class QBuilder(QtGui.QMainWindow):
         Parameters
         ----------
 
-        - action : 'VisAction'
+        - action : 'Action'
         
         """
         action.perform(self.pipeline)
@@ -666,18 +666,18 @@ class QBuilder(QtGui.QMainWindow):
         if s == "":
             stmt=None
         elif not s:
-            stmt = version_tree_search.TrueSearch()
+            stmt = gui.version_tree_search.TrueSearch()
         else:
             try:
-                stmt = version_tree_search.SearchCompiler(s).searchStmt
-            except version_tree_search.SearchParseError, e:
+                stmt = gui.version_tree_search.SearchCompiler(s).searchStmt
+            except gui.version_tree_search.SearchParseError, e:
                 QtGui.QMessageBox.warning(self,
                                           QtCore.QString("Refine Parse Error"),
                                           QtCore.QString(str(e)),
                                           QtGui.QMessageBox.Ok,
                                           QtGui.QMessageBox.NoButton,
                                           QtGui.QMessageBox.NoButton)
-                stmt = version_tree_search.TrueSearch()
+                stmt = gui.version_tree_search.TrueSearch()
 #        for c in self.controllers:
 #            self.versionTrees[self.controllers[c]].refine = stmt
         self.versionTrees[self.controllers[self.currentControllerName]].refine=stmt
@@ -699,34 +699,34 @@ class QBuilder(QtGui.QMainWindow):
     def versionTreeSearch(self):
         """Updates the version trees by setting the search matcher to the contents
 of the search line edit widget."""
-        import query
+        import core.query
         searchString = self.searchLineEdit.text()
         s = str(searchString)
-        d = {'__query1a__': query.Query1a,
-             '__query1b__': query.Query1b,
-             '__query1c__': query.Query1c,
-             '__query2__':  query.Query2,
-             '__query3__':  query.Query3,
-             '__query4__':  query.Query4,
-             '__query5__':  query.Query5,
-             '__query6__':  query.Query6,
-             '__query8__':  query.Query8,
-             '__query9__':  query.Query9 }
+        d = {'__query1a__': core.query.Query1a,
+             '__query1b__': core.query.Query1b,
+             '__query1c__': core.query.Query1c,
+             '__query2__':  core.query.Query2,
+             '__query3__':  core.query.Query3,
+             '__query4__':  core.query.Query4,
+             '__query5__':  core.query.Query5,
+             '__query6__':  core.query.Query6,
+             '__query8__':  core.query.Query8,
+             '__query9__':  core.query.Query9 }
         if not s:
-            self.newQuery(version_tree_search.TrueSearch)
+            self.newQuery(gui.version_tree_search.TrueSearch)
         elif d.has_key(s):
             self.newQuery(d[s])
         else:
             try:
-                stmt = version_tree_search.SearchCompiler(s).searchStmt
-            except version_tree_search.SearchParseError, e:
+                stmt = gui.version_tree_search.SearchCompiler(s).searchStmt
+            except gui.version_tree_search.SearchParseError, e:
                 QtGui.QMessageBox.warning(self,
                                           QtCore.QString("Search Parse Error"),
                                           QtCore.QString(str(e)),
                                           QtGui.QMessageBox.Ok,
                                           QtGui.QMessageBox.NoButton,
                                           QtGui.QMessageBox.NoButton)
-                stmt = version_tree_search.TrueSearch()
+                stmt = gui.version_tree_search.TrueSearch()
             self.newQuery(stmt)
 
     def newVistrail(self):

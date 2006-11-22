@@ -3,8 +3,8 @@ import xml.dom.minidom
 from core.xml_utils import *
 from core.vistrail import Vistrail
 from core.utils import VistrailsInternalError
-from core.vis_action import VisAction
-from core.vis_macro import VisMacro
+from core.vistrail.action import Action
+from core.vistrail.macro import Macro
 from core.data_structures import Graph
 
 ################################################################################
@@ -75,7 +75,7 @@ class XMLParser(object):
             """ Creates the action map for the just-parsed XML file """
             root = self.dom.documentElement
             for xmlaction in named_elements(root, 'action'):
-                action = VisAction.createFromXML(xmlaction)
+                action = Action.createFromXML(xmlaction)
                 if vistrail.hasVersion(action.timestep):
                     raise VistrailsInternalError("XML file contains two actions with the same time "+str(action.timestep) )
                 else:
@@ -84,7 +84,7 @@ class XMLParser(object):
             """ Creates the macro map for the just-parsed XML file """
             root = self.dom.documentElement
             for xmlmacro in named_elements(root, 'macro'):
-                macro = VisMacro.createFromXML(vistrail, xmlmacro)
+                macro = Macro.createFromXML(vistrail, xmlmacro)
                 vistrail.addMacro(macro)
         def createDBTags(vistrail):
 	    """ Loads the eXist DB stuff into the vistrail as loaded by the vistrail.serialize() method """
@@ -115,7 +115,7 @@ class XMLParser(object):
             """ Creates the action map for the just-parsed XML file """
             root = self.dom.documentElement
             for xmlaction in named_elements(root, 'action'):
-                action = VisAction.createFromXML(xmlaction, '0.1.0')
+                action = Action.createFromXML(xmlaction, '0.1.0')
                 if vistrail.hasVersion(action.timestep):
                     raise VistrailsInternalError("XML file contains two actions with the same time "+str(action.timestep) )
                 else:
@@ -124,7 +124,7 @@ class XMLParser(object):
             """ Creates the macro map for the just-parsed XML file """
             root = self.dom.documentElement
             for xmlmacro in named_elements(root, 'macro'):
-                macro = VisMacro.createFromXML(vistrail, xmlmacro)
+                macro = Macro.createFromXML(vistrail, xmlmacro)
                 vistrail.addMacro(macro)
         def createDBTags(vistrail):
 	    """ Loads the eXist DB stuff into the vistrail as loaded by the vistrail.serialize() method """

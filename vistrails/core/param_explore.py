@@ -1,6 +1,8 @@
 """
 This module handles Parameter Exploration in VisTrails
 """
+from core.vistrail.module_function import ModuleFunction
+from core.vistrail.module_param import ModuleParam
 ################################################################################
 
 class ParameterExploration(object):
@@ -122,12 +124,12 @@ class InterpolateDiscreteParam(object):
 
         """
         m = pipeline.modules[self.module]
-        f = vis_types.ModuleFunction()
+        f = ModuleFunction()
         f.name = self.function
         f.returnType = 'void'
         value = self.values[step]
         for v in value:
-            p = vis_types.ModuleParam()
+            p = ModuleParam()
             convert = {'int':'Integer', 'str':'String',
                        'float':'Float', 'double':'Float'}
             p.type = convert[type(v).__name__]

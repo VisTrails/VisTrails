@@ -3,12 +3,14 @@ from core.utils import VistrailsInternalError, InstanceObject,\
     appendToDictOfLists
 from core.debug import DebugPrint
 from core.modules import module_registry
-from core.vis_action import *
-from core.vis_macro import *
-from core.vis_object import VisModule
-from core.vis_pipeline import VisPipeline
-from core.vis_types import VistrailModuleType
-import copy
+from core.vistrail.action import Action, AddModuleAction, DeleteModuleAction, \
+    ChangeParameterAction, AddConnectionAction, DeleteConnectionAction, \
+    DeleteFunctionAction, ChangeAnnotationAction, DeleteAnnotationAction,\
+    AddModulePortAction, DeleteModulePortAction
+from core.vistrail.macro import Macro
+from core.vistrail.module import Module
+from core.vistrail.pipeline import Pipeline
+from core.vistrail.module_param import VistrailModuleType
 import copy
 import core.query
 import gui.version_tree_search
@@ -123,7 +125,7 @@ class BaseController(QtCore.QObject, object):
         self.emit(QtCore.SIGNAL("flushPendingActions()"))
 
         if self.currentPipeline:
-            newModule = VisModule()
+            newModule = Module()
             newModule.id = self.currentPipeline.freshModuleId()
             newModule.center.reset(x,y)
             newModule.name = str(name)
@@ -194,7 +196,7 @@ class BaseController(QtCore.QObject, object):
         """
         Parameters
         ----------
-        -conn : 'VisConnection'
+        -conn : 'Connection'
         
         """
         self.emit(QtCore.SIGNAL("flushPendingActions()"))
@@ -242,7 +244,7 @@ class QueryController(BaseController):
     makes sure interface signals become a query."""
     def __init__(self,builder):
         QtCore.QObject.__init__(self)
-        self.currentPipeline = VisPipeline()
+        self.currentPipeline = Pipeline()
         self.queryView = None
         self.builder = weakref.proxy(builder)
 
@@ -703,10 +705,10 @@ class VistrailController(BaseController):
         Returns
         -------
 
-        - 'VisMacro'
+        - 'Macro'
         
         """
-        macro = VisMacro(self.vistrail)
+        macro = Macro(self.vistrail)
         macro.name = name
         macro.description = desc
         self.vistrail.addMacro(macro)
@@ -747,7 +749,7 @@ class VistrailController(BaseController):
         Returns
         -------
 
-        - 'VisMacro'
+        - 'Macro'
 
         """
         macro = self.vistrail.macroMap[name]
