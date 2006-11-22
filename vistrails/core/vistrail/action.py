@@ -1,5 +1,20 @@
+""" This module defines the Class Action and its subclasses:
+   - Action
+   - AddModuleAction
+   - DeleteModuleAction
+   - ChangeParameterAction
+   - AddConnectionAction
+   - DeleteConnectionAction
+   - MoveModuleAction
+   - DeleteFunctionAction
+   - ChangeAnnotationAction
+   - DeleteAnnotationAction
+   - AddModulePortAction
+   - DeleteModulePortAction
+
+"""
 from core.utils import abstract, VistrailsInternalError
-from core.xml_utils import *
+from core.xml_utils import named_elements
 from core.vistrail.module import Module
 from core.vistrail.connection import Connection
 from core.vistrail.port import Port, PortEndPoint
@@ -12,7 +27,7 @@ import copy
 ################################################################################
 
 class Action(object):
-    """ Base class for a  Action.
+    """ Base class for a Action.
 
     A Vistrail action needs to know three things, behavior-wise: 
 
@@ -27,7 +42,18 @@ class Action(object):
      """
     createFromXMLDispatch = {}
     
-    def __init__(self,timestep=0,parent=0,date=None,user=None,notes=None):
+    def __init__(self, timestep=0, parent=0, date=None, user=None, notes=None):
+        """ __init__(timestep=0, parent=0, date=None, user=None, 
+                     notes=None) -> Action
+        Action constructor. 
+        Keyword Arguments:
+         - timestep: int
+         - parent: int
+         - date: str
+         - user: str
+         - notes: str
+
+        """
         self.timestep = timestep
         self.parent = parent
 	self.date = date
@@ -35,36 +61,63 @@ class Action(object):
         self.notes = notes
 
     def perform(self, pipeline):
+        """ perform(pipeline) -> None 
+        Abstract method called for each subclassed action when an action is 
+        performed on a given pipeline. 
+        
+        """
         abstract()
 
     def serialize(self,dom,element):
+        """ serialize(dom,element) -> None  
+        Abstract method called to convert the object to an XML representation. 
+        
+        """
         abstract()
 
-    def writeToDB(self):
-	abstract()
-
     def __str__(self):
-        return "<<timestep='%s' parent='%s' date='%s' user='%s' notes='%s'>>" % (self.timestep,
-                                                                      self.parent,
-                                                                      self.date,
-                                                                      self.user,
-								      self.notes)
+        """__str__() -> str 
+        Returns a string representation of an action object.
+
+        """
+        msg = "<<timestep='%s' parent='%s' date='%s' user='%s' notes='%s'>>"
+        return  msg % (self.timestep,
+                       self.parent,
+                       self.date,
+                       self.user,
+                       self.notes)
 
     @staticmethod
     def createFromXML(action, version=None):
+        """ createFromXML(action,version=None) -> Action 
+        Static method that given an action XML element, creates a specific 
+        Action object according to action.what attribute.
+
+        """
         att = action.getAttribute('what')
         return Action.createFromXMLDispatch[att](action,version)
        
     @staticmethod
     def getParameter(element):
+        """getParameter(element) -> ModuleParam 
+        Static method that constructs a ModuleParam object given an xml element.
+
+        """
         p = ModuleParam()
         p.name = element.getAttribute('name')
-        p.type = str(named_elements(element, 'type').next().firstChild.nodeValue)
-        p.strValue = str(named_elements(element, 'val').next().firstChild.nodeValue)
+        p.type = str(named_elements(element, 
+                                    'type').next().firstChild.nodeValue)
+        p.strValue = str(named_elements(element, 
+                                        'val').next().firstChild.nodeValue)
         return p
     
     @staticmethod
     def getFunction(element):
+        """getFunction(element) -> ModuleFunction 
+        Static method that constructs a ModuleFunction object given 
+        an xml element. 
+
+        """
         f = ModuleFunction()
         (f.name, f.returnType) = [str(element.getAttribute(x))
                             for x in ['name', 'returnType']]
@@ -74,6 +127,10 @@ class Action(object):
 
     @staticmethod
     def getModule(element):
+        """getModule(element) -> Module 
+        Static method that constructs a Module object given an xml element.
+
+        """
         m = Module()
         (m.name, cache, id, x, y) = [str(element.getAttribute(x))
                                      for x in ['name', 'cache', 'id',
@@ -86,11 +143,18 @@ class Action(object):
                        f in named_elements(element, 'function')]
         m.annotations = {}
         for a in named_elements(element, 'annotation'):
-            m.annotation[str(a.getAttribute('key'))] = str(a.getAttribute('value'))
+            akey = str(a.getAttribute('key'))
+            avalue = str(a.getAttribute('value'))
+            m.annotation[akey] = avalue
         return m
 
     @staticmethod
     def getConnection(connection):
+        """ getConnection(connection) -> Connection
+        Static method that creates a Connection object given a connection xml
+        element. Vistrails version should be >= 0.3.0
+
+        """
         c = Connection()
         sourceModule = connection.getAttribute('sourceModule')
         destinationModule = connection.getAttribute('destinationModule')
@@ -115,6 +179,11 @@ class Action(object):
     
     @staticmethod
     def getConnection0_1_0(connection):
+        """ getConnection0_1_0(connection) -> Connection
+        Static method that creates a Connection object given a connection xml
+        element of version 0.1.0
+
+        """
         cId = int(connection.getAttribute('id'))
         for f in named_elements(connection, 'filterInput'):
 	    c = Connection()
@@ -137,7 +206,6 @@ class Action(object):
 	    c.destination.name = "SetInputConnection" + str(destinationPort)
 	    
 	    c.id = cId
-	    
             return c
 
         for o in named_elements(connection, 'objectInput'):
@@ -174,16 +242,22 @@ class AddModuleAction(Action):
         self.type = 'AddModule'
         
     def serialize(self, dom, element):
+        """ serialize(dom,element) -> None  
+        Convert this object to an XML representation. 
+        
+        """
         element.setAttribute('what', 'addModule')
         self.module.serialize(dom, element)
 
-    def writeToDB(self):
-	source = """<action date=\"""" + str(self.date) + """\" parent=\"""" + str(self.parent) + """\" time=\"""" + str(self.timestep) + """\" user=\"""" + str(self.user) + """\" what="addModule"> <note>""" + str(self.notes) + """</note>""" + self.module.writeToDB() + """</action>"""
-	#print source
-	return source
-
     @staticmethod
     def parse(element, version=None):
+        """ parse(element, version=None) -> AddModuleAction
+        Static method that parses an xml element and creates an AddModuleAction.
+        Keyword arguments:
+          - element : xml.dom.minidom.Element
+          - version : str
+
+        """
 	notes = None
 	#backwards compatibility
 	notes = str(element.getAttribute('notes'))
@@ -204,6 +278,10 @@ class AddModuleAction(Action):
         raise VistrailsInternalError("No objects in addModule action")
     
     def perform(self, pipeline):
+        """ perform(pipeline:Pipeline) -> None 
+        Apply this action to pipeline.
+        
+        """
         pipeline.addModule(copy.copy(self.module))
 
 Action.createFromXMLDispatch['addModule'] = AddModuleAction.parse
@@ -215,15 +293,23 @@ class AddConnectionAction(Action):
         self.type = 'AddConnection'
         
     def serialize(self, dom, element):
+        """ serialize(dom,element) -> None  
+        Convert this object to an XML representation. 
+        
+        """
         element.setAttribute('what', 'addConnection')
         self.connection.serialize(dom, element)
 
-    def writeToDB(self):
-	source = """<action date=\"""" + str(self.date) + """\" parent=\"""" + str(self.parent) + """\" time=\"""" + str(self.timestep) + """\" user=\"""" + str(self.user) + """\" what="addConnection"> <note>""" + str(self.notes) + """</note>""" + self.connection.writeToDB() + """</action>"""
-	return source
-
     @staticmethod
     def parse(element, version=None):
+        """ parse(element, version=None) -> AddConnectionAction
+        Static method that parses an xml element according to its version and 
+        creates an AddConnectionAction.
+        Keyword arguments:
+          - element : xml.dom.minidom.Element
+          - version : str
+        
+        """
 	notes = None
 	#backwards compatibility
 	notes = str(element.getAttribute('notes'))
@@ -247,24 +333,29 @@ class AddConnectionAction(Action):
 	raise VistrailsInternalError("No connections in addConnection action")
      
     def perform(self, pipeline):
+        """ perform(pipeline:Pipeline) -> None 
+        Apply this action to pipeline.
+        
+        """
         if hasattr(self.connection, 'sourceInfo'):
             (si, di, cid) = (self.connection.sourceId,
                              self.connection.destinationId,
                              self.connection.id)
             (sourceModuleName, sourcePort) = self.connection.sourceInfo
-            (destinationModuleName, destinationPort) = self.connection.destinationInfo
+            (destModuleName, destPort) = self.connection.destinationInfo
             sourceModule = pipeline.getModuleById(si)
-            destinationModule = pipeline.getModuleById(di)
-            self.connection.source = registry.portFromRepresentation(sourceModuleName,
-                                                                    sourcePort,
-                                                                    PortEndPoint.Source,
-                                                                    sourceModule.registry,
-                                                                    False)
-            self.connection.destination = registry.portFromRepresentation(destinationModuleName,
-                                                                         destinationPort,
-                                                                         PortEndPoint.Destination,
-                                                                         destinationModule.registry,
-                                                                         False)
+            destModule = pipeline.getModuleById(di)
+            portFromRep = registry.portFromRepresentation
+            self.connection.source = portFromRep(sourceModuleName,
+                                                 sourcePort,
+                                                 PortEndPoint.Source,
+                                                 sourceModule.registry,
+                                                 False)
+            self.connection.destination = portFromRep(destModuleName,
+                                                      destPort,
+                                                      PortEndPoint.Destination,
+                                                      destModule.registry,
+                                                      False)
             (self.connection.sourceId,
              self.connection.destinationId,
              self.connection.id) = (si, di, cid)
@@ -276,6 +367,11 @@ class ChangeParameterAction(Action):
     attributes = ['moduleId', 'functionId', 'function', 'parameterId',
                   'parameter', 'value', 'type', 'alias']
     conversions = [int, int, str, int, str, str, str, str]
+    
+    #for version "0.1.0"
+    attributes0_1_0 = ['moduleId', 'functionId', 'function', 
+                       'parameterId','parameter', 'value', 'type']
+    conversions0_1_0 = [int, int, str, int, str, str, str]
 
     def __init__(self, timestep=0,parent=0,date=None,user=None,notes=None):
         Action.__init__(self, timestep,parent,date,user,notes)
@@ -284,42 +380,28 @@ class ChangeParameterAction(Action):
 
     def addParameter(self, moduleId, functionId, paramId,
                      function, param, value, type, alias):
-        """ Add a new parameter to the action
-        Parameters
-        ----------
-
-        - moduleId : 'int'
-
-        - functionId : 'int'
-
-        - paramId: 'int'
-
-        - function: 'str'
-
-        - param : 'str'
-
-        - value : 'str'
-
-        - type : 'str'
-
+        """ addParameter(moduleId, functionId, paramID, function, 
+                         param, value, type, alias) -> None
+        Add a new parameter to the action.
+        Keyword arguments: 
+          - moduleId : 'int'
+          - functionId : 'int'
+          - paramId: 'int'
+          - function: 'str'
+          - param : 'str'
+          - value : 'str'
+          - type : 'str'
+          - alias : 'str'
+        
         """
         p = [moduleId, functionId,function, paramId, param, value, type, alias]
         self.parameters.append(p)
-
-    def writeToDB(self):
-	
-	temp = ""
-	for parameter in self.parameters:
-            temp = temp + """<set"""
-            for a, v in zip(ChangeParameterAction.attributes, parameter):
-                temp = temp + """ """ + a + """=\"""" + str(v) + """\""""
-	    temp = temp + """/>"""
-	
-	source = """<action date=\"""" + str(self.date) + """\" parent=\"""" + str(self.parent) + """\" time=\"""" + str(self.timestep) + """\" user=\"""" + str(self.user) + """\" what="changeParameter"> <note>""" + str(self.notes) + """</note>""" + temp + """</action>"""
-	#print source
-	return source
-     
+    
     def serialize(self, dom, element):
+        """ serialize(dom,element) -> None  
+        Convert this object to an XML representation. 
+        
+        """
         element.setAttribute('what', 'changeParameter')
         for parameter in self.parameters:
             child = dom.createElement('set')
@@ -329,6 +411,14 @@ class ChangeParameterAction(Action):
 
     @staticmethod
     def parse(element, version=None):
+        """ parse(element, version=None) -> ChangeParameterAction
+        Static method that parses an xml element and creates a 
+        ChangeParameterAction.
+        Keyword arguments:
+          - element : xml.dom.minidom.Element
+          - version : str
+
+        """
 	notes = None
 	#backwards compatibility
 	notes = str(element.getAttribute('notes'))
@@ -345,10 +435,9 @@ class ChangeParameterAction(Action):
                                           notes)
 	if version == '0.1.0':
 	    p = [[conv(set.getAttribute(key))
-              for conv,key in zip([int, int, str, int, str, str, str],
-                                  ['moduleId', 'functionId', 'function', 'parameterId',
-				   'parameter', 'value', 'type'])]
-             for set in named_elements(element, 'set')]
+                  for conv,key in zip(ChangeParameterAction.conversions0_1_0,
+                                      ChangeParameterAction.attributes0_1_0)]
+                 for set in named_elements(element, 'set')]
 	    
 	    for par in p:
 		if par[6] in ['double','float']:
@@ -368,6 +457,10 @@ class ChangeParameterAction(Action):
         return newAction
       
     def perform(self, pipeline):
+        """ perform(pipeline:Pipeline) -> None 
+        Apply this action to pipeline.
+        
+        """
         for p in self.parameters:
             m = pipeline.getModuleById(p[0])
             if p[1] >= len(m.functions):
@@ -375,10 +468,12 @@ class ChangeParameterAction(Action):
                 f.name = p[2]
                 m.functions.append(f)
                 if len(m.functions)-1 != p[1]:
-                    raise VistrailsInternalError("Pipeline function id is inconsistent")
+                    msg = "Pipeline function id is inconsistent"
+                    raise VistrailsInternalError(msg)
             f = m.functions[p[1]]
             if f.name != p[2]:
-                raise VistrailsInternalError("Pipeline function name is inconsistent")
+                msg = "Pipeline function name is inconsistent"
+                raise VistrailsInternalError()
             if p[3] == -1:
                 continue
             if p[3] >= len(f.params):
@@ -386,11 +481,13 @@ class ChangeParameterAction(Action):
                 param.name = p[4]
                 f.params.append(param)
                 if len(f.params)-1 != p[3]:
-                    raise VistrailsInternalError("Pipeline parameter id is inconsistent")
+                    msg = "Pipeline parameter id is inconsistent"
+                    raise VistrailsInternalError()
             param = f.params[p[3]]
             param.name = p[4]
 #            if param.name != p[4]:
-#                raise VistrailsInternalError("Pipeline parameter name is inconsistent")
+#                msg = "Pipeline parameter name is inconsistent"
+#                raise VistrailsInternalError(msg)
             param.strValue = p[5]
             param.type = p[6]
             if param.type.find('char')>-1 or param.type=='str':
@@ -406,25 +503,17 @@ class DeleteModuleAction(Action):
         self.type = 'DeleteModule'
 
     def addId(self, id):
-        """  Adds a id module to the list of modules to be deleted
-        Parameters
-        ----------
-
-        - id : 'int'
-
+        """ addId(id:int) -> None  
+        Adds a module id to the list of modules to be deleted.
+       
         """
         self.ids.append(id)
-
-    def writeToDB(self):
-	
-	temp = ""
-	for id in self.ids:
-	    temp = temp + """<module moduleId=\"""" + str(id) + """\"/>"""
-
-	source = """<action date=\"""" + str(self.date) + """\" parent=\"""" + str(self.parent) + """\" time=\"""" + str(self.timestep) + """\" user=\"""" + str(self.user) + """\" what="deleteModule"> <note>""" + str(self.notes) + """</note>""" + temp  + """</action>"""
-	return source
-        
+       
     def serialize(self, dom, element):
+        """ serialize(dom,element) -> None  
+        Convert this object to an XML representation. 
+        
+        """
         element.setAttribute('what','deleteModule')
         for id in self.ids:
             child = dom.createElement('module')
@@ -433,6 +522,14 @@ class DeleteModuleAction(Action):
 
     @staticmethod
     def parse(element, version=None):
+        """ parse(element, version=None) -> DeleteModuleAction
+        Static method that parses an xml element and creates a 
+        DeleteModuleAction.
+        Keyword arguments:
+          - element : xml.dom.minidom.Element
+          - version : str
+
+        """
 	notes = None
 	#backwards compatibility
 	notes = str(element.getAttribute('notes'))
@@ -451,6 +548,10 @@ class DeleteModuleAction(Action):
         return newAction
       
     def perform(self, pipeline):
+        """ perform(pipeline:Pipeline) -> None 
+        Apply this action to pipeline.
+        
+        """
         for id in self.ids:
             pipeline.deleteModule(id)
 
@@ -463,18 +564,17 @@ class DeleteConnectionAction(Action):
         self.type = 'DeleteConnection'
         
     def addId(self, id):
+        """ addId(id:int) -> None  
+        Adds a connection id to the list of connections to be deleted
+       
+        """
         self.ids.append(id)
 
-    def writeToDB(self):
-	
-	temp = ""
-	for id in self.ids:
-	    temp = temp + """<connection connectionId=\"""" + str(id) + """\" />"""
-
-	source = """<action date=\"""" + str(self.date) + """\" parent=\"""" + str(self.parent) + """\" time=\"""" + str(self.timestep) + """\" user=\"""" + str(self.user) + """\" what="deleteConnection"> <note>""" + str(self.notes) + """</note>""" + temp  + """</action>"""
-	return source
-
     def serialize(self, dom, element):
+        """ serialize(dom,element) -> None  
+        Convert this object to an XML representation. 
+        
+        """
         element.setAttribute('what','deleteConnection')
         for id in self.ids:
             child = dom.createElement('connection')
@@ -483,6 +583,14 @@ class DeleteConnectionAction(Action):
 
     @staticmethod
     def parse(element, version=None):
+        """ parse(element, version=None) -> DeleteConnectionAction
+        Static method that parses an xml element and creates a 
+        DeleteConnectionAction.
+        Keyword arguments:
+          - element : xml.dom.minidom.Element
+          - version : str
+
+        """
 	notes = None
 	#backwards compatibility
 	notes = str(element.getAttribute('notes'))
@@ -501,6 +609,10 @@ class DeleteConnectionAction(Action):
         return newAction
        
     def perform(self, pipeline):
+        """ perform(pipeline:Pipeline) -> None 
+        Apply this action to pipeline.
+        
+        """
         for id in self.ids:
             pipeline.deleteConnection(id)
 
@@ -514,6 +626,13 @@ class MoveModuleAction(Action):
 
     @staticmethod
     def parse(element, version=None):
+        """ parse(element, version=None) -> MoveModuleAction
+        Static method that parses an xml element and creates a MoveModuleAction.
+        Keyword arguments:
+          - element : xml.dom.minidom.Element
+          - version : str
+
+        """
 	notes = None
 	#backwards compatibility
 	notes = str(element.getAttribute('notes'))
@@ -535,34 +654,27 @@ class MoveModuleAction(Action):
         return newAction
   
     def addMove(self, id, dx, dy):
-        """ Adds a item to the moves
-        
-        Parameters
-        ----------
-
-        - id : 'int'
-        - dx : 'float'
-        - dy : 'float'
-        
+        """addMove(id:int, dx:float, dy:float) -> None 
+        Adds an item to the moves
+         
         """
         self.moves.append((id, dx, dy))
         
     def perform(self, pipeline):
+        """ perform(pipeline:Pipeline) -> None 
+        Apply this action to pipeline.
+        
+        """
         for move in self.moves:
             m = pipeline.getModuleById(move[0])
             m.center.x = m.center.x + move[1]
             m.center.y = m.center.y + move[2]
 
-    def writeToDB(self):
-	
-	temp = ""
-	for move in self.moves:
-	    temp = temp + """<move id=\"""" + str(move[0]) + """\" dx=\"""" + str(move[1]) + """\" dy=\"""" + str(move[2]) + """\" />"""
-
-	source = """<action date=\"""" + str(self.date) + """\" parent=\"""" + str(self.parent) + """\" time=\"""" + str(self.timestep) + """\" user=\"""" + str(self.user) + """\" what="moveModule"> <note>""" + str(self.notes) + """</note>""" + temp  + """</action>"""
-	return source
-
     def serialize(self, dom, element):
+        """ serialize(dom,element) -> None  
+        Convert this object to an XML representation. 
+        
+        """
         element.setAttribute('what', 'moveModule')
         for move in self.moves:
             child = dom.createElement('move')
@@ -581,13 +693,17 @@ class DeleteFunctionAction(Action):
         self.type = 'DeleteFunction'
         
     def perform(self, pipeline):
+        """ perform(pipeline:Pipeline) -> None 
+        Apply this action to pipeline.
+        
+        """
         pipeline.getModuleById(self.moduleId).deleteFunction(self.functionId)
 
-    def writeToDB(self):
-	source = """<action date=\"""" + str(self.date) + """\" parent=\"""" + str(self.parent) + """\" time=\"""" + str(self.timestep) + """\" user=\"""" + str(self.user) + """\" what="deleteFunction"> <note>""" + str(self.notes) + """</note> <function functionId=\"""" + str(self.functionId) + """\" moduleId=\"""" + str(self.moduleId)  + """\" /> </action>"""
-	return source
-
     def serialize(self, dom, element):
+        """ serialize(dom,element) -> None  
+        Convert this object to an XML representation. 
+        
+        """
         element.setAttribute('what', 'deleteFunction')
         child = dom.createElement('function')
         child.setAttribute('functionId', str(self.functionId))
@@ -596,6 +712,13 @@ class DeleteFunctionAction(Action):
 
     @staticmethod
     def parse(element, version=None):
+        """ parse(element, version=None) -> AddModuleAction
+        Static method that parses an xml element and creates an AddModuleAction.
+        Keyword arguments:
+          - element : xml.dom.minidom.Element
+          - version : str
+
+        """
 	notes = None
 	#backwards compatibility
 	notes = str(element.getAttribute('notes'))
@@ -627,42 +750,35 @@ class ChangeAnnotationAction(Action):
         self.type = 'ChangeAnnotation'
 
     def addAnnotation(self, moduleId, key, value):
-        """ Add a new annotation to the action
-        Parameters
-        ----------
-
-        - moduleId : 'int'
-
-        - key : 'string'
-
-        - value : 'str'
+        """addAnnotation(moduleId:int, key:str, value:str) -> None 
+        Add a new annotation to the action
 
         """
         self.moduleId = moduleId
         self.key = key
         self.value = value
 
-    def writeToDB(self):
-	
-        temp = ""
-        temp = temp + """<set"""
-        for a, v in zip(ChangeAnnotationAction.attributes, [self.moduleId, self.key, self.value]):
-            temp = temp + """ """ + a + """=\"""" + str(v) + """\""""
-        temp = temp + """/>"""
-        source =""
-        
-        source = """<action date=\"""" + str(self.date) + """\" parent=\"""" + str(self.parent) + """\" time=\"""" + str(self.timestep) + """\" user=\"""" + str(self.user) + """\" what="changeAnnotation"> <note>""" + str(self.notes) + """</note>""" + temp + """</action>"""
-        return source
-     
     def serialize(self, dom, element):
+        """ serialize(dom,element) -> None  
+        Convert this object to an XML representation. 
+        
+        """
         element.setAttribute('what', 'changeAnnotation')
         child = dom.createElement('set')
-        for a, v in zip(ChangeAnnotationAction.attributes, [self.moduleId, self.key, self.value]):
+        for a, v in zip(ChangeAnnotationAction.attributes, 
+                        [self.moduleId, self.key, self.value]):
             child.setAttribute(a,str(v))
         element.appendChild(child)
 
     @staticmethod
     def parse(element, version=None):
+        """ parse(element, version=None) -> AddModuleAction
+        Static method that parses an xml element and creates an AddModuleAction.
+        Keyword arguments:
+          - element : xml.dom.minidom.Element
+          - version : str
+
+        """
 	notes = None
 	#backwards compatibility
 	notes = str(element.getAttribute('notes'))
@@ -698,13 +814,17 @@ class DeleteAnnotationAction(Action):
         self.type = 'DeleteAnnotation'
         
     def perform(self, pipeline):
+        """ perform(pipeline:Pipeline) -> None 
+        Apply this action to pipeline.
+        
+        """
         pipeline.getModuleById(self.moduleId).deleteAnnotation(self.key)
 
-    def writeToDB(self):
-	source = """<action date=\"""" + str(self.date) + """\" parent=\"""" + str(self.parent) + """\" time=\"""" + str(self.timestep) + """\" user=\"""" + str(self.user) + """\" what="deleteAnnotation"> <note>""" + str(self.notes) + """</note> <annotation key=\"""" + str(self.key) + """\" moduleId=\"""" + str(self.moduleId)  + """\" /> </action>"""
-	return source
-
     def serialize(self, dom, element):
+        """ serialize(dom,element) -> None  
+        Convert this object to an XML representation. 
+        
+        """
         element.setAttribute('what', 'deleteAnnotation')
         child = dom.createElement('annotation')
         child.setAttribute('key', self.key)
@@ -713,7 +833,14 @@ class DeleteAnnotationAction(Action):
 
     @staticmethod
     def parse(element, version = None):
-	notes = None
+	""" parse(element, version=None) -> AddModuleAction
+        Static method that parses an xml element and creates an AddModuleAction.
+        Keyword arguments:
+          - element : xml.dom.minidom.Element
+          - version : str
+
+        """
+        notes = None
 	#backwards compatibility
 	notes = str(element.getAttribute('notes'))
 	
@@ -744,47 +871,38 @@ class AddModulePortAction(Action):
         self.type = 'AddModulePort'
 
     def addModulePort(self, moduleId, portType, portName, portSpec):
-        """ Add a new port to the module
-        Parameters
-        ----------
-
-        - moduleId : 'int'
-
-        - portType : 'string'
-
-        - portName : 'string'
-
-        - portSpec : 'string'
-
+        """addModulePort(moduleId:int, portType:str, 
+                         portName:str, portSpec:str) -> None 
+        Add a new port to the module
+       
         """
         self.moduleId = moduleId
         self.portType = portType
         self.portName = portName
         self.portSpec = portSpec
-
-    def writeToDB(self):
-	
-        temp = ""
-        temp = temp + """<addPort"""
-        for a, v in zip(AddModulePortAction.attributes,
-                        [self.moduleId, self.portType, self.portName, self.portSpec]):
-            temp = temp + """ """ + a + """=\"""" + str(v) + """\""""
-        temp = temp + """/>"""
-        source =""
-        
-        source = """<action date=\"""" + str(self.date) + """\" parent=\"""" + str(self.parent) + """\" time=\"""" + str(self.timestep) + """\" user=\"""" + str(self.user) + """\" what="addModulePort"> <note>""" + str(self.notes) + """</note>""" + temp + """</action>"""
-        return source
-     
+  
     def serialize(self, dom, element):
+        """ serialize(dom,element) -> None  
+        Convert this object to an XML representation. 
+        
+        """
         element.setAttribute('what', 'addModulePort')
         child = dom.createElement('addPort')
         for a, v in zip(AddModulePortAction.attributes,
-                        [self.moduleId, self.portType, self.portName, self.portSpec]):
+                        [self.moduleId, self.portType, self.portName, 
+                         self.portSpec]):
             child.setAttribute(a,str(v))
         element.appendChild(child)
 
     @staticmethod
     def parse(element, version=None):
+        """ parse(element, version=None) -> AddModuleAction
+        Static method that parses an xml element and creates an AddModuleAction.
+        Keyword arguments:
+          - element : xml.dom.minidom.Element
+          - version : str
+
+        """
         notes = None
         #backwards compatibility
         notes = str(element.getAttribute('notes'))
@@ -803,26 +921,33 @@ class AddModulePortAction(Action):
               for conv,key in zip(AddModulePortAction.conversions,
                                   AddModulePortAction.attributes)]
              for set in named_elements(element, 'addPort')]
-        [[newAction.moduleId, newAction.portType, newAction.portName, newAction.portSpec]] = p
+        [[newAction.moduleId, newAction.portType, newAction.portName, 
+          newAction.portSpec]] = p
         return newAction
       
     def perform(self, pipeline):
+        """ perform(pipeline:Pipeline) -> None 
+        Apply this action to pipeline.
+        
+        """
         m = pipeline.getModuleById(self.moduleId)
         moduleThing = registry.getDescriptorByName(m.name).module
         if m.registry==None:
             m.registry = ModuleRegistry()
             m.registry.addModule(moduleThing)
+        
+        portSpecs = self.portSpec[1:-1].split(',')
         if self.portType=='input':
             des = m.registry.getDescriptorByThing(moduleThing)
             m.registry.addInputPort(moduleThing,
                                     self.portName,
                                     [registry.getDescriptorByName(spec).module
-                                     for spec in self.portSpec[1:-1].split(',')])
+                                     for spec in portSpecs])
         else:
             m.registry.addOutputPort(moduleThing,
                                      self.portName,
                                      [registry.getDescriptorByName(spec).module
-                                      for spec in self.portSpec[1:-1].split(',')])
+                                      for spec in portSpecs])
 
 Action.createFromXMLDispatch['addModulePort'] = AddModulePortAction.parse
 
@@ -833,6 +958,10 @@ class DeleteModulePortAction(Action):
         self.type = 'DeleteModulePort'
         
     def perform(self, pipeline):
+        """ perform(pipeline:Pipeline) -> None 
+        Apply this action to pipeline.
+        
+        """
         m = pipeline.getModuleById(self.moduleId)
         moduleThing = registry.getDescriptorByName(m.name).module
         if self.portType=='input':
@@ -840,11 +969,11 @@ class DeleteModulePortAction(Action):
         else:
             m.registry.deleteOutputPort(moduleThing, self.portName)
 
-    def writeToDB(self):
-	source = """<action date=\"""" + str(self.date) + """\" parent=\"""" + str(self.parent) + """\" time=\"""" + str(self.timestep) + """\" user=\"""" + str(self.user) + """\" what="deleteModulePort"> <note>""" + str(self.notes) + """</note> <annotation key=\"""" + str(self.key) + """\" moduleId=\"""" + str(self.moduleId)  + """\" /> </action>"""
-	return source
-
     def serialize(self, dom, element):
+        """ serialize(dom,element) -> None  
+        Convert this object to an XML representation. 
+        
+        """
         element.setAttribute('what', 'deleteModulePort')
         child = dom.createElement('deletePort')
         child.setAttribute('moduleId',   str(self.moduleId))
@@ -854,6 +983,13 @@ class DeleteModulePortAction(Action):
 
     @staticmethod
     def parse(element, version=None):
+        """ parse(element, version=None) -> AddModuleAction
+        Static method that parses an xml element and creates an AddModuleAction.
+        Keyword arguments:
+          - element : xml.dom.minidom.Element
+          - version : str
+
+        """
         notes = None
         #backwards compatibility
         notes = str(element.getAttribute('notes'))
