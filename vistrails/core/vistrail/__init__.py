@@ -1,9 +1,20 @@
-from core.vis_pipeline import VisPipeline
-from core.vis_connection import VisConnection
-from core.vis_types import *
+
+if __name__ == '__main__':
+    import qt
+    global app
+    app = qt.createBogusQtApp()
+
+#from core.vistrail.connection import Connection
+#from core.vistrail.port import PortEndPoint, Port
+from core.vistrail.module_param import VistrailModuleType#, ModuleParam
+#from core.vistrail.module_function import ModuleFunction
+#from core.vistrail.module import Module
+from core.vistrail.pipeline import Pipeline
+#from core.vistrail.action import Action
+#from core.vistrail.macro import Macro
 from core.data_structures import Graph
 from core.debug import DebugPrint
-from core.vis_macro import VisMacro
+#from core.vistrail.macro import Macro
 from db.xUpdateFunctions import UpdateFunctions
 import xml.dom.minidom
 import copy
@@ -13,6 +24,7 @@ import copy
 import string
 from core.utils import enum
 
+###############################################################################
 
 class Vistrail(object):
     def __init__(self):
@@ -38,7 +50,7 @@ class Vistrail(object):
 
         Returns
         -------
-        - 'VisPipeline'
+        - 'Pipeline'
         
         """
         return Vistrail.getPipelineDispatcher[type(version)](self, version)
@@ -55,7 +67,7 @@ class Vistrail(object):
         Returns
         -------
 
-        - 'VisPipeline'
+        - 'Pipeline'
 
         """
         number = self.tagMap[version]
@@ -73,10 +85,10 @@ class Vistrail(object):
         Returns
         -------
 
-        - 'VisPipeline'
+        - 'Pipeline'
 
         """
-        result = VisPipeline()
+        result = Pipeline()
         if version == 0:
             return result
         for action in self.actionChain(version):
@@ -306,7 +318,7 @@ class Vistrail(object):
         Returns
         -------
 
-        - 'list' of 'VisAction'
+        - 'list' of 'Action'
         
         """
         result = []
@@ -347,7 +359,7 @@ class Vistrail(object):
         Parameters
         ----------
 
-        - action : 'VisAction'
+        - action : 'Action'
           the new action
           
         """
@@ -589,8 +601,8 @@ class Vistrail(object):
         - filename : 'str'
           
         """
-	import xml_parser
-	version = xml_parser.XMLParser().currentVersion
+	import core.xml_parser
+	version = core.xml_parser.XMLParser().currentVersion
         impl = xml.dom.minidom.getDOMImplementation()
         dom = impl.createDocument(None, 'visTrail', None)
         root = dom.documentElement
@@ -638,7 +650,7 @@ class Vistrail(object):
 
         - name : 'str'
 
-        - pipeline : 'VisPipeline'
+        - pipeline : 'Pipeline'
         
         """
         self.macroMap[name].applyMacro(pipeline)
@@ -648,7 +660,7 @@ class Vistrail(object):
         Parameters
         ----------
 
-        - macro : 'VisMacro'
+        - macro : 'Macro'
 
         """
         if self.macroMap.has_key(macro.name):
