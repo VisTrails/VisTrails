@@ -1,30 +1,22 @@
-
+""" This file contains the definition of the class Vistrail """
 if __name__ == '__main__':
     import qt
     global app
     app = qt.createBogusQtApp()
 
-#from core.vistrail.connection import Connection
-#from core.vistrail.port import PortEndPoint, Port
-from core.vistrail.module_param import VistrailModuleType#, ModuleParam
-#from core.vistrail.module_function import ModuleFunction
-#from core.vistrail.module import Module
-from core.vistrail.pipeline import Pipeline
-#from core.vistrail.action import Action
-#from core.vistrail.macro import Macro
-from core.data_structures import Graph
-from core.debug import DebugPrint
-#from core.vistrail.macro import Macro
-from db.xUpdateFunctions import UpdateFunctions
 import xml.dom.minidom
 import copy
 import time
 import getpass
 import copy
 import string
-from core.utils import enum
+from core.vistrail.module_param import VistrailModuleType
+from core.vistrail.pipeline import Pipeline
+from core.data_structures import Graph
+from core.debug import DebugPrint
+from core.utils import enum, VistrailsInternalError
 
-###############################################################################
+################################################################################
 
 class Vistrail(object):
     def __init__(self):
@@ -42,50 +34,38 @@ class Vistrail(object):
 	self.remoteFilename = ""
 
     def getVersionName(self, version):
+        """ getVersionName(version) -> str 
+        Returns the name of a version, if it exists. Returns an empty string
+        if it doesn't. 
+        
+        """
         if self.inverseTagMap.has_key(version):
             return self.inverseTagMap[version]
-        
+        else:
+            return ""
+    
     def getPipeline(self, version):
-        """V.getPipeline(number or tagname) -> Pipeline
+        """getPipeline(number or tagname) -> Pipeline
+        Return a pipeline object given a version number or a version name. 
 
-        Returns
-        -------
-        - 'Pipeline'
-        
         """
         return Vistrail.getPipelineDispatcher[type(version)](self, version)
     
     def getPipelineVersionName(self, version):
-        """Returns a pipeline given a version name
-
-        Parameters
-        ----------
-
-        - version : 'str'
-          the version name
-
-        Returns
-        -------
-
-        - 'Pipeline'
+        """getPipelineVersionName(version:str) -> Pipeline
+        Returns a pipeline given a version name. If version name doesn't exist
+        it will return None.
 
         """
-        number = self.tagMap[version]
-        return self.getPipelineVersionNumber(number)
+        if self.tagMap.has_key(version):
+            number = self.tagMap[version]
+            return self.getPipelineVersionNumber(number)
+        else:
+            return None
     
     def getPipelineVersionNumber(self, version):
-        """Returns a pipeline given a version number
-
-        Parameters
-        ----------
-
-        - version : 'int'
-          the version number
-
-        Returns
-        -------
-
-        - 'Pipeline'
+        """getPipelineVersionNumber(version:int) -> Pipeline
+        Returns a pipeline given a version number.
 
         """
         result = Pipeline()
@@ -100,15 +80,9 @@ class Vistrail(object):
         return result
 
     def getPipelineShare(self, v1, v2):
-        """ Returns a list of shared modules between the two versions 
-        Parameters
-        ----------
-        - v1 : 'int'
-         version number 1
-
-        - v2 : 'int'
-         version number 2
-
+        """ getPipelineShare(v1:int,v2:int) -> [int] 
+        Returns a list of ids of shared modules between two versions. 
+       
         """
         #get first common ancestor
         p = self.getFirstCommonVersion(v1,v2)
@@ -158,9 +132,10 @@ class Vistrail(object):
                     values = [p[5] for p in a.parameters]
                     if not (a.parameters[0][0] in v1param):
                         v1param[a.parameters[0][0]] = []
-                    v1param[a.parameters[0][0]].append(string.joinfields([a.parameters[0][2],'(',
-                                                                          string.joinfields(values,','),
-                                                                          ')'],''))
+                    params = string.joinfields([a.parameters[0][2],'(',
+                                                string.joinfields(values,','),
+                                                 ')'],'')
+                    v1param[a.parameters[0][0]].append(params)
         v2param = {}
         for a in l2:
             if a.type == "ChangeParameter" and a.parameters:
@@ -168,20 +143,15 @@ class Vistrail(object):
                     values = [p[5] for p in a.parameters]
                     if not (a.parameters[0][0] in v2param):
                         v2param[a.parameters[0][0]] = []
-                    v2param[a.parameters[0][0]].append(string.joinfields([a.parameters[0][2],'(',
-                                                                          string.joinfields(values,','),
-                                                                          ')'],''))
+                    params = string.joinfields([a.parameters[0][2],'(',
+                                                string.joinfields(values,','),
+                                                ')'],'')
+                    v2param[a.parameters[0][0]].append(params)
         return [v1andv2,v1param,v2param]
             
     def getFirstCommonVersion(self, v1, v2):
-        """ Returns the first version that it is common to both v1 and v2 
-        Parameters
-        ----------
-        - v1 : 'int'
-         version number 1
-
-        - v2 : 'int'
-         version number 2
+        """getFirstCommonVersion(v1:int, v2:int) -> int 
+        Returns the first version that it is common to both v1 and v2 
 
         """
         t1 = []
@@ -199,13 +169,9 @@ class Vistrail(object):
             t = self.actionMap[t].parent
     
     def getLastCommonVersion(self, v):
-        """Returns the last version that is common to both v1 and v2
-	Parameters
-        -----------------
-        - v : The VisTrail to compare to.
-        
-        - returns:  The timestep representing the last version common
-        to both vistrails.
+        """getLastCommonVersion(v: Vistrail) -> int
+        Returns the last version that is common to this vistrail and v
+	
         """
         # TODO:  There HAS to be a better way to do this...
         common = []
@@ -218,108 +184,13 @@ class Vistrail(object):
             if time > timestep:
                 timestep = time
 
-        return timestep
-
-    def writeToDB(self, filepath, server, username, password):
-        """ Writes the vistrail to eXist database given the full path to the file"""
-        tempTimestamp = 0
-        tagElements = []
-        macroElements = []
-        update = UpdateFunctions(server, username, password)
-        if(update.docExists(filepath)):
-            tempDoc = update.getDom(filepath)
-            actionElements = tempDoc.getElementsByTagName("action")
-            tempLen = len(actionElements)
-            tempTimestamp = 0
-            for act in actionElements:
-                t = act.getAttribute("time")
-                if t > tempTimestamp:
-                    tempTimestamp = t
-            tagElements = tempDoc.getElementsByTagName("tag")
-            macroElements = tempDoc.getElementsByTagName("macro")
-                        
-        source = """("""
-        actionLen = len(self.actionMap.values())
-        tagLen = len(self.tagMap.items())
-        macroLen = len(self.macroMap.values())
-        
-        i = 0
-        for (time, action) in self.actionMap.items():
-            if(int(time) > int(tempTimestamp)):
-                if(i == actionLen-1):
-                    if(tagLen == 0):
-                        source = source + action.writeToDB()
-                    else:
-                        source = source + action.writeToDB() + ""","""
-                else:
-                    source = source + action.writeToDB() + ""","""
-            i = i + 1
-        i = 0
-        
-        for (name, time) in self.tagMap.items():
-            if(self.hasTagDBHelper(str(time), tagElements) == 0):
-                if(i == tagLen-1):
-                    if(macroLen == 0):
-                        source = source + """<tag name=\"""" + str(name) + """\" time=\"""" + str(time) + """\" />"""
-                    else:
-                        source = source + """<tag name=\"""" + str(name) + """\" time=\"""" + str(time) + """\" />,"""
-                else:
-                    source = source + """<tag name=\"""" + str(name) + """\" time=\"""" + str(time) + """\" />,"""
-            i = i + 1
-        i = 0
-        for (name, macro) in self.macroMap.items():
-            if(self.hasMacroDBHelper(str(name), macroElements) == 0):
-                if(i == macroLen-1):
-                    source = source + macro.writeToDB()
-                else:
-                    source = source + macro.writeToDB() + ""","""
-            i = i + 1
-
-        source = source + """)"""
-        #source.rstrip(""" ,""")
-        #print source
-
-        # Check if file already exists
-	#Insert actions
-        #update = UpdateFunctions(server, username, passwd)
-        if(source != """()"""):
-            if(update.docExists(filepath) == False):
-                update.createNewDoc(filepath)
-            update.addActions(source, "/db/" + filepath)
-		
-		
-    def hasTagDBHelper(self, time, tagElements):
-        
-        #tagElementsLen = len(tagElements)
-        #i = 0
-        for tag in tagElements:
-            #print type(tag.getAttribute("time"))
-            if(tag.getAttribute("time") == time):
-                return 1
-	return 0
-    
-    def hasMacroDBHelper(self, name, macroElements):
-	
-	for macro in macroElements:
-            #print type(tag.getAttribute("time"))
-            if(macro.getAttribute("name") == name):
-	        return 1
-	return 0
-    
+        return timestep	
+		    
     def actionChain(self, t, start=0):
-        """  Returns the action chain necessary to recreate a vistrail from a certain time
-        
-        Parameters
-        ----------
-        
-        - t : 'int'
-          time
-        
-        Returns
-        -------
-
-        - 'list' of 'Action'
-        
+        """ actionChain(t:int, start=0) -> [Action]  
+        Returns the action chain (list of Action)  necessary to recreate a 
+        vistrail from a  certain time
+                      
         """
         result = []
         action = copy.copy(self.actionMap[t])
@@ -337,30 +208,15 @@ class Vistrail(object):
         return result
     
     def hasVersion(self, version):
-        """ Returns True if version with given timestamp exists
+        """hasVersion(version:int) -> boolean
+        Returns True if version with given timestamp exists
 
-        Parameters
-        ----------
-
-        - version : 'int'
-          the version timestamp
-
-        Returns
-        -------
-
-        - 'Boolean'
-        
         """
         return self.actionMap.has_key(version)
     
     def addVersion(self, action):
-        """ Adds new version to vistrail
-
-        Parameters
-        ----------
-
-        - action : 'Action'
-          the new action
+        """ addVersion(action: Action) -> None 
+        Adds new version to vistrail
           
         """
         self.actionMap[action.timestep] = action
@@ -368,17 +224,9 @@ class Vistrail(object):
         action.vistrail = self
 
     def hasTag(self, tag):
-        """ Returns True if a tag with given name or number exists
-        Parameters
-        ----------
-
-        - tag : 'str' or 'int'
-
-        Returns
-        -------
-
-        - 'boolean'
-
+        """ hasTag(tag) -> boolean 
+        Returns True if a tag with given name or number exists
+       
         """
         if type(tag) == type(0):
             return self.inverseTagMap.has_key(tag)
@@ -386,16 +234,8 @@ class Vistrail(object):
             return self.tagMap.has_key(tag)
         
     def addTag(self, version_name, version_number):
-        """ Adds new tag to vistrail
-
-        Parameters
-        ----------
-
-        - version_name : 'str'
-          the version name
-
-        - version_number : 'int'
-          the version timestamp
+        """addTag(version_name, version_number) -> None
+        Adds new tag to vistrail
           
         """
         if self.inverseTagMap.has_key(version_number):
@@ -409,17 +249,9 @@ class Vistrail(object):
         self.changed = True
         
     def changeTag(self, version_name, version_number):
-        """ Changes a tag in the vistrail
-        
-        Parameters
-        ----------
-        
-        - version_name : 'str'
-          the new version name
-
-        - version_number : 'int'
-          the version timestamp
-          
+        """changeTag(version_name, version_number) -> None 
+        Changes the old tag of version_number to version_name in the vistrail.
+                  
         """
         if not self.inverseTagMap.has_key(version_number):
             DebugPrint.log("Version is not tagged")
@@ -435,17 +267,9 @@ class Vistrail(object):
         self.changed = True
 
     def changenotes(self, notes, version_number):
-        """ Changes a tag in the vistrail
-        
-        Parameters
-        ----------
-        
-        - notes : 'str'
-          the new version notes
-
-        - version_number : 'int'
-          the version timestamp
-          
+        """ changenotes(notes:str, version_number) -> None 
+        Changes the notes of a version
+                  
         """
     
         if self.actionMap.has_key(version_number):
@@ -453,12 +277,8 @@ class Vistrail(object):
         self.changed = True
         
     def getVersionGraph(self):
-        """ Returns the version graph
-
-        Returns
-        -------
-
-        - 'Graph'
+        """getVersionGraph() -> Graph 
+        Returns the version graph
         
         """
         result = Graph()
@@ -470,12 +290,9 @@ class Vistrail(object):
         return result
 
     def getTerseGraph(self):
-        """ Returns the version graph
-
-        Returns
-        -------
-
-        - 'Graph'
+        """ getTerseGraph() -> Graph 
+        Returns the version graph skiping the non-tagged internal nodes. 
+        Branches are kept.
         
         """
         complete = self.getVersionGraph()
@@ -498,13 +315,9 @@ class Vistrail(object):
         return complete
 
     def getSemiTerseGraph(self):
-        """ uses the data in self.expand to expand a localized part of the graph
+        """ getSemiTerseGraph() -> Graph 
+        Uses the data in self.expand to expand a localized part of the graph
         self.expand has tuples to be expanded. (list of tuples)
-
-        Returns
-        -------
-
-        - 'Graph'
 
         """
 
@@ -526,7 +339,8 @@ class Vistrail(object):
             V = result.vertices
             #check to see if the edge is there, since the graph may be refined
             if V.has_key(top) and V.has_key(bottom):
-                if (bottom,-1) in result.edgesFrom(top) and (top,-1) in result.edgesTo(bottom):
+                if ( (bottom,-1) in result.edgesFrom(top) and 
+                     (top,-1) in result.edgesTo(bottom) ):
                     result.deleteEdge(top,bottom,-1)
             while bottom>top:
                 p=fullgraph.parent(bottom)
@@ -534,7 +348,8 @@ class Vistrail(object):
                 result.addEdge(p,bottom,0) #0 means not annotated
                 bottom=p
          #on a refined expansion, this is necessary
-        if (lowest,-1) in result.edgesFrom(highest) and (highest,-1) in result.edgesTo(lowest):
+        if ( (lowest,-1) in result.edgesFrom(highest) and 
+             (highest,-1) in result.edgesTo(lowest) ):
             result.deleteEdge(highest,lowest,-1)
             
         #self.currentGraph=result.__copy__()
@@ -542,66 +357,54 @@ class Vistrail(object):
         return result
 
     def getCurrentGraph(self):
-        """returns the current version graph. if there is not one, returns the
-        terse graph instead"""
+        """getCurrentGraph() -> Graph
+        returns the current version graph. if there is not one, returns the
+        terse graph instead 
+
+        """
         if not self.currentGraph:
             self.currentGraph=self.getTerseGraph().__copy__()
         return self.currentGraph
 
     def setCurrentGraph(self, newGraph):
+        """setCurrentGraph(newGraph: Graph) -> None
+        Sets a copy of newGraph as the currentGraph. 
+
+        """
         self.currentGraph=newGraph.__copy__()
 
     def invalidateCurrentTime(self):
-        """ Recomputes the next unused timestep from scratch  """
+        """ invalidateCurrentTime() -> None 
+        Recomputes the next unused timestep from scratch  
+        """
         self.latestTime = 1
         for time in self.actionMap.keys():
             if time >= self.latestTime:
                 self.latestTime = time + 1
                 
     def getFreshTimestep(self):
-        """ Returns an unused timestep
+        """getFreshTimestep() -> int - Returns an unused timestep. """
 
-        Returns
-        -------
-
-        - 'int'
-        
-        """
         v = 1
         for time in self.actionMap.keys():
             v = max(v, time)
         return v+1
 
     def getDate(self):
-	""" Returns the date and time
-
-	Returns
-	-------
-	
-	- 'str'
-	"""
+	""" getDate() -> str - Returns the current date and time. """
 	return time.strftime("%d %b %Y %H:%M:%S", time.localtime())
     
     def getUser(self):
-	""" Returns the username
-	
-	Returns
-	-------
-	
-	- 'str'
-	"""
+	""" getUser() -> str - Returns the username. """
 	return getpass.getuser()
 
     def serialize(self, filename):
-        """ Writes collection to disk under given filename
-
-        Parameters
-        ----------
-
-        - filename : 'str'
+        """serialize(filename:str) -> None 
+        Writes vistrail to disk under given filename.
           
         """
-	import core.xml_parser
+        #couldn't remove this because of circular reference in xml_parser
+	import core.xml_parser 
 	version = core.xml_parser.XMLParser().currentVersion
         impl = xml.dom.minidom.getDOMImplementation()
         dom = impl.createDocument(None, 'visTrail', None)
@@ -640,27 +443,17 @@ class Vistrail(object):
         root.writexml(outputFile, "  ", "  ", '\n')
         outputFile.close()
 	self.changed = False
-            
 
     def applyMacro(self,name,pipeline):
-        """ Applies a macro to a given pipeline
-
-        Parameters
-        ----------
-
-        - name : 'str'
-
-        - pipeline : 'Pipeline'
-        
+        """applyMacro(name:str, pipeline:Pipeline) -> None
+        Applies a macro to a given pipeline
+         
         """
         self.macroMap[name].applyMacro(pipeline)
 
     def addMacro(self, macro):
-        """ Adds a macro to macroMap.
-        Parameters
-        ----------
-
-        - macro : 'Macro'
+        """addMacro(macro:Macro) -> None 
+        Adds a macro to macroMap.
 
         """
         if self.macroMap.has_key(macro.name):
@@ -673,19 +466,16 @@ class Vistrail(object):
         self.changed = True
 
     def deleteMacro(self, id):
-        """ Deletes a macro with a given id """
+        """deleteMacro(id) -> None 
+        Deletes a macro with a given id """
         macro = self.macroIdMap[id]
         del self.macroIdMap[id]
         del self.macroMap[macro.name]
         
     def changeMacroName(self,oldname):
-        """ The macro has changed its name. This updates the key (name) of the
+        """ changeMacroName(oldname) -> None 
+        The macro has changed its name. This updates the key (name) of the
         macro in the macroMap.
-
-        Parameters
-        ----------
-        - oldname : 'str'
-          previous key
           
         """
         macro = self.macroMap[oldname]
@@ -696,14 +486,7 @@ class Vistrail(object):
             self.macroMap[macro.name] = macro
 
     def freshMacroId(self):
-        """ Returns an unused macro ID
-
-        Returns
-        -------
-
-        - 'int'
-
-        """
+        """freshMacroId() -> int - Returns an unused macro id """
         # This is dumb and slow
         m = 0
         while self.macroIdMap.has_key(m):
@@ -711,6 +494,7 @@ class Vistrail(object):
         return m
 
     def setExp(self, exp):
+        """setExp(exp) -> None - Set current list of nodes to be expanded"""
         self.expand=exp
 
     # Dispatch in runtime according to type
@@ -754,15 +538,15 @@ class TestVistrail(unittest.TestCase):
         v = parser.getVistrail()
         parser.closeVistrail()
         #testing nodes in different branches
-        v1 = 532
-        v2 = 661
+        v1 = 36
+        v2 = 41
         p1 = v.getFirstCommonVersion(v1,v2)
         p2 = v.getFirstCommonVersion(v2,v1)
         self.assertEquals(p1,p2)
         
         #testing nodes in the same branch
-        v1 = 1342
-        v2 = 794
+        v1 = 15
+        v2 = 36
         p1 = v.getFirstCommonVersion(v1,v2)
         p2 = v.getFirstCommonVersion(v2,v1)
         self.assertEquals(p1,p2)
