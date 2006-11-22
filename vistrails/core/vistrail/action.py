@@ -165,62 +165,7 @@ class Action(object):
             c.destinationId = int(destId)
             return c
         
-	raise VistrailsInternalError("element is neither filter nor object")
-    
-class ImportVistrailAction(Action):
-    def __init__(self,timestep=0,parent=0,date=None,user=None,notes=None):
-        Action.__init__(self,timestep,parent,date,user,notes)
-        self.modules = []
-        self.connections = []
-        self.type = 'ImportVistrail'
-        
-    @staticmethod
-    def parse(element, version=None):
-	notes = None
-	#backwards compatibility
-	notes = str(element.getAttribute('notes'))
-
-	for n in element.childNodes:
-	    if n.localName == "notes":
-		notes = str(n.firstChild.nodeValue)
-		break
-
-        newAction = ImportVistrailAction(int(element.getAttribute('time')),
-                                         int(element.getAttribute('parent')),
-					 str(element.getAttribute('date')),
-					 str(element.getAttribute('user')),
-                                         notes)
-        
-        newAction.modules = [Action.getModule(obj)
-                             for obj in named_elements(element, 'object')]
-        newAction.connections = [Action.getConnection0_1_0(conn)
-                                 for conn in named_elements(element, 'connect')]
-        return newAction
-      
-    def serialize(self, dom, element):
-        element.setAttribute('what', 'import')
-        for module in self.modules:
-            module.serialize(dom, element)
-        for conn in self.connections:
-            conn.serialize(dom, element)
-
-    def writeToDB(self):
-	source = """<action date=\"""" + str(self.date) + """\" parent=\"""" + str(self.parent) + """\" time=\"""" + str(self.timestep) + """\" user=\"""" + str(self.user) + """\" what="import"> <note>""" + str(self.notes) + """</note>"""
-	for module in self.modules:
-            source = source + module.writeToDB()
-        for conn in self.connections:
-            source = source + conn.writeToDB()
-	    
-	source = source + """</action>"""
-	return source
-
-    def perform(self, pipeline):
-        for module in self.modules:
-            pipeline.addModule(copy.copy(module))
-        for conn in self.connections:
-            pipeline.addConnection(copy.copy(conn))
-
-Action.createFromXMLDispatch['import'] = ImportVistrailAction.parse
+	raise VistrailsInternalError("element is neither filter nor object")    
 
 class AddModuleAction(Action):
     def __init__(self, timestep=0,parent=0,date=None,user=None,notes=None):
