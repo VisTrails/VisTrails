@@ -174,44 +174,24 @@ class QPipelineView(QtGui.QScrollArea):
         self.shapeEngine.updateGL()
 
     def setModuleActive(self, id):
-        self.lock.acquire()
-        try:
-            self.shapeEngine.shapes[id].setActive()
-            self.emit(QtCore.SIGNAL("updateGL"))
-        finally:
-            self.lock.release()
+        self.shapeEngine.shapes[id].setActive()
+        self.emit(QtCore.SIGNAL("updateGL"))
 
     def setModuleComputing(self, id):
-        self.lock.acquire()
-        try:
-            self.shapeEngine.shapes[id].setComputing()
-            self.emit(QtCore.SIGNAL("updateGL"))
-        finally:
-            self.lock.release()
+        self.shapeEngine.shapes[id].setComputing()
+        self.emit(QtCore.SIGNAL("updateGL"))
 
     def setModuleError(self, id, error):
-        self.lock.acquire()
-        try:
-            self.shapeEngine.shapes[id].setError(error)
-            self.emit(QtCore.SIGNAL("updateGL"))
-        finally:
-            self.lock.release()
+        self.shapeEngine.shapes[id].setError(error)
+        self.emit(QtCore.SIGNAL("updateGL"))
 
     def setModuleSuccess(self, id):
-        self.lock.acquire()
-        try:
-            self.shapeEngine.shapes[id].setSuccess()
-            self.emit(QtCore.SIGNAL("updateGL"))
-        finally:
-            self.lock.release()
+        self.shapeEngine.shapes[id].setSuccess()
+        self.emit(QtCore.SIGNAL("updateGL"))
 
     def setModuleNotExecuted(self, id):
-        self.lock.acquire()
-        try:
-            self.shapeEngine.shapes[id].setNotExecuted()
-            self.emit(QtCore.SIGNAL("updateGL"))
-        finally:
-            self.lock.release()
+        self.shapeEngine.shapes[id].setNotExecuted()
+        self.emit(QtCore.SIGNAL("updateGL"))
 
     def multiPick(self):
         if self.shapeEngine.currentShape:
