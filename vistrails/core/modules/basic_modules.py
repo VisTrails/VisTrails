@@ -27,15 +27,23 @@ class Constant(vistrails_module.Module):
             v = self.getInputFromPort("value")
         else:
             v = self.value
-        if not isinstance(v, self.convert):
-            raise Exception("Value should be a %s" % self.convert.__name__)
+        try:
+            b = isinstance(v, self.convert)
+        except:
+            pass
+        else:
+            if not b:
+                raise Exception("Value should be a %s" % self.convert.__name__)
         self.setResult("value", v)
 
     def setValue(self, v):
         self.value = self.convert(v)
     
     def __str__(self):
-        return str(self.getOutput("value"))
+        if not self.upToDate:
+            return str(self.value)
+        else:
+            return str(self.getOutput("value"))
 
     def valueAsString(self):
         return str(self)
@@ -77,6 +85,8 @@ class FileSink(vistrails_module.Module):
     in a user-specified location in the file system."""
 
     def compute(self):
+        self.checkInputPort("file")
+        self.checkInputPort("outputName")
         v1 = self.getInputFromPort("file")
         v2 = self.getInputFromPort("outputName")
         try:
@@ -199,7 +209,16 @@ reg = module_registry.registry
 
 reg.addModule(Constant)
 
-Boolean = new_constant('Boolean' , bool)
+def bool_conv(x):
+    s = str(x).upper()
+    if s == 'TRUE':
+        return True
+    if s == 'FALSE':
+        return False
+    raise ValueError('Boolean from String in VisTrails should be either \
+"true" or "false"')
+
+Boolean = new_constant('Boolean' , bool_conv)
 Float   = new_constant('Float'   , float)
 Integer = new_constant('Integer' , int)
 String  = new_constant('String'  , str)
