@@ -35,9 +35,9 @@ def typeMap(name):
     if typeMapDict.has_key(name):
         return typeMapDict[name]
     else:
-        try:
+        if registry.hasModule(name):
             return registry.getDescriptorByName(name).module
-        except:
+        else:
             return None
 
 def addAlgorithmPorts(module):
