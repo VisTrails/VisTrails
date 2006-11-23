@@ -18,11 +18,9 @@ class MissingModule(Exception):
 class ModuleError(Exception):
     
     def __init__(self, module, errormsg):
+        Exception.__init__(self, errormsg)
         self.module = module
         self.msg = errormsg
-
-        
-    pass
 
 ################################################################################
 
@@ -93,7 +91,7 @@ Makes sure input port 'name' is filled."""
         return self.inputPorts.has_key(inputPort)
 
     def __str__(self):
-        pass
+        return "VisTrails_Module"
 
     def annotate(self, d):
         self.logging.annotate(self, d)
