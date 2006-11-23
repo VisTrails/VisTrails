@@ -1,15 +1,14 @@
 from PyQt4 import QtCore
 
+from core.utils import VistrailsInternalError, memo_method, all
+import __builtin__
+import copy
+import core.debug
 import core.modules
 import core.modules.vistrails_module
 
-import __builtin__
-
-from core.utils import VistrailsInternalError, memo_method, all
-
 from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.module_function import ModuleFunction
-import copy
 
 ###############################################################################
 # ModuleDescriptor
@@ -108,8 +107,13 @@ PluginRTTI put together, with the ability to extend it at runtime)"""
         """getDescriptorByName(name: string) -> ModuleDescriptor
 
 Returns the module descriptor of the class with a given name"""
-        assert self.moduleTree.has_key(name)
-        return self.moduleTree[name].descriptor
+        if not self.moduleTree.has_key(name):
+            msg = (("Cannot find module %s" % name) +
+                   ": a required package might be missing")
+            core.debug.critical(msg)
+            return None
+        else:
+            return self.moduleTree[name].descriptor
 
     def getDescriptor(self, module):
         """getDescriptor(module: class) -> ModuleDescriptor
