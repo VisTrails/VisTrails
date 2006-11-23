@@ -1,6 +1,6 @@
 from PyQt4 import QtCore, QtGui
 from core.utils import VistrailsInternalError, InstanceObject,\
-    appendToDictOfLists
+    appendToDictOfLists, trace_method, bump_trace
 from core.debug import DebugPrint
 from core.modules import module_registry
 from core.vistrail.action import Action, AddModuleAction, DeleteModuleAction, \
@@ -314,6 +314,28 @@ class QueryController(BaseController):
         self.queryView.invalidateLayout()
 
 
+class VistrailExecutionNotifier(object):
+
+    def __init__(self, pipeline, pipeline_view):
+        self.pipeline = pipeline
+        self.pipeline_view = pipeline_view
+
+    def setModuleComputing(self, module_id):
+        print "%s Computing" % module_id
+
+    def setModuleActive(self, module_id):
+        print "%s Active" % module_id
+
+    def setModuleSuccess(self, module_id):
+        print "%s Success" % module_id
+
+    def setModuleError(self, module_id, error):
+        print "%s Error: %s" % (module_id, error)
+
+    def setModuleNotExecuted(self, module_id):
+        print "%s Not Executed" % module_id
+
+
 class VistrailController(BaseController):
     """ Intermediate class between the interface and the vistrails. It
     links with signals and slots in the interface """ 
@@ -368,12 +390,20 @@ class VistrailController(BaseController):
                 self.logger.finishWorkflowExecution(name, version)        
 
     def sendToSpreadsheet(self):
-        thread.start_new_thread(self.executeWorkflow,
-                                (((self.name,
-                                   self.currentVersion,
-                                   self.currentPipeline,
-                                   self.currentPipelineView,
-                                   self.logger),),))
+#         view = VistrailExecutionNotifier(self.currentPipeline,
+#                                          self.currentPipelineView)
+        # no threads for now.
+        self.executeWorkflow([(self.name,
+                               self.currentVersion,
+                               self.currentPipeline,
+                               self.currentPipelineView,
+                               self.logger)])
+#         thread.start_new_thread(self.executeWorkflow,
+#                                 (((self.name,
+#                                    self.currentVersion,
+#                                    self.currentPipeline,
+#                                    view,
+#                                    self.logger),),))
                                 
 #         for id, obj in result.iteritems():
 #             print "id:",id,"obj:",obj
