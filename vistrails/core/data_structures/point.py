@@ -39,7 +39,7 @@ convenient."""
 
     def __sub__(self, other):
         """ __sub__(other: Point) -> Point
-        Returns a point p such that: self + other == p, and return a Point
+        Returns a point p such that: self - other == p, and return a Point
 
         """
         return Point(self.x - other.x, self.y - other.y)
@@ -51,6 +51,26 @@ convenient."""
 
         """
         return Point(self.x * other, self.y * other)
+
+    def __eq__(self, other):
+        """__eq__(other: Point) -> boolean 
+        Two points are equal if they have the same components 
+        
+        """
+        if other:
+            if self.x == other.x and self.y == other.y:
+                return True
+            else:
+                return False
+        else:
+            return False
+        
+    def __ne__(self, other):
+        """__ne__(other: Point) -> boolean 
+        Two points are differenr if they don't have the same components 
+        
+        """
+        return not self.__eq__(other)
 
     def __rmul__(self, other):
         """ __rmul__(other: float) -> Point
@@ -103,6 +123,15 @@ class TestPoint(unittest.TestCase):
             s = random.uniform(0.0, 10.0)
             self.assertDoubleEquals(s * x.length(), (s * x).length())
             self.assertDoubleEquals(s * x.length(), (x * s).length())
+
+    def testComparisonOperators(self):
+        """ Test comparison operators """
+        a = Point(0, 1)
+        b = Point(0, 1)
+        assert a == b
+        assert a != None
+        b = Point(0, 0.1)
+        assert a != b
 
 if __name__ == '__main__':
     unittest.main()
