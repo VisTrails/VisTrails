@@ -12,6 +12,12 @@ VistrailModuleType = enum('VistrailModuleType',
                            'Object', 'Plugin', 'Module'])
 
 ################################################################################
+def bool_conv(x):
+    s = str(x).upper()
+    if s == 'TRUE':
+        return True
+    if s == 'FALSE':
+        return False
 
 class ModuleParam(object):
     __fields__ = ['type', 'strValue', 'name', 'minValue', 'maxValue', 'alias']
@@ -58,12 +64,13 @@ class ModuleParam(object):
     dispatchValue = {'Float': float,
                      'Integer': int,
                      'String': str,
-                     'Boolean': bool}
+                     'Boolean': bool_conv}
 
     defaultValue = {'Float': ("0", 0.0),
                     'Integer': ("0", 0),
                     'String': ("", ""),
-                    'Boolean': ("False", "False")}
+                    'Boolean': ("False", False)}
+
 
 #     dispatchValue = {'float': float,
 #                      'double': float,
@@ -105,5 +112,81 @@ class ModuleParam(object):
                                   self.strValue,
                                   self.alias)
 
+    def __eq__(self, other):
+        """ __eq__(other: ModuleParam) -> boolean
+        Returns True if self and other have the same attributes. Used by == 
+        operator. 
+        
+        """
+        if self.type != other.type:
+            return False
+        if self.strValue != other.strValue:
+            return False
+        if self.name != other.name:
+            return False
+        if self.alias != other.alias:
+            return False
+        if self.minValue != other.minValue:
+            return False
+        if self.maxValue != other.maxValue:
+            return False
+        if self.evaluatedStrValue != other.evaluatedStrValue:
+            return False
+        return True
+
+    def __ne__(self, other):
+        """ __ne__(other: ModuleParam) -> boolean
+        Returns True if self and other don't have the same attributes. 
+        Used by !=  operator. 
+        
+        """
+        return not self.__eq__(other)
+
 ###############################################################################
-##TODO: include test cases
+# Testing
+
+import unittest
+
+class TestModuleParam(unittest.TestCase):
+    
+    def testValue(self):
+        """ Test values returned by value() function """
+        p = ModuleParam()
+        p.type = "Float"
+        assert p.value() == 0.0
+        p.strValue = "1.5"
+        assert p.value() == 1.5
+
+        p.type = "Integer"
+        p.strValue = ""
+        assert p.value() == 0
+        p.strValue = "2"
+        assert p.value() == 2
+
+        p.type = "String"
+        p.strValue = ""
+        assert p.value() == ""
+        p.strValue = "test"
+        assert p.value() == "test"
+
+        p.type = "Boolean"
+        p.strValue = ""
+        assert p.value() == False
+        p.strValue = "False"
+        assert p.value() == False
+        p.strValue = "True"
+        assert p.value() == True
+
+    def testComparisonOperators(self):
+        """ Test comparison operators """
+        p = ModuleParam()
+        q = ModuleParam()
+        assert p == q
+        q.type = "Float"
+        assert p != q
+
+if __name__ == '__main__':
+    unittest.main()
+    
+
+        

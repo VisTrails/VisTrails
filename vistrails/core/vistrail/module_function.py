@@ -158,6 +158,68 @@ class ModuleFunction(object):
         cp.params = [copy.copy(p) for p in self.params]
         return cp
 
-################################################################################
+    def __eq__(self, other):
+        """ __eq__(other: ModuleFunction) -> boolean
+        Returns True if self and other have the same attributes. Used by == 
+        operator. 
+        
+        """
+        if self.name != other.name:
+            return False
+        if self.returnType != other.returnType:
+            return False
+        if len(self.params) != len(other.params):
+            return False
+        for p,q in zip(self.params, other.params):
+            if p != q:
+                return False
+        return True
+            
+    def __ne__(self, other):
+        """ __ne__(other: ModuleFunction) -> boolean
+        Returns True if self and other don't have the same attributes. 
+        Used by !=  operator. 
+        
+        """
+        return not self.__eq__(other)
 
-##TODO: add test cases
+################################################################################
+# Testing
+
+import unittest
+from core.vistrail.module_param import ModuleParam
+
+#TODO add more meaningful tests
+
+class TestModuleFunction(unittest.TestCase):
+
+    def testComparisonOperators(self):
+        f = ModuleFunction()
+        f.name = "value"
+        param = ModuleParam()
+        param.name = "&lt;no description&gt;"
+        param.strValue = "1.2"
+        param.type = "Float"
+        param.alias = ""
+        f.params.append(param)
+        g = ModuleFunction()
+        g.name = "value"
+        param = ModuleParam()
+        param.name = "&lt;no description&gt;"
+        param.strValue = "1.2"
+        param.type = "Float"
+        param.alias = ""
+        g.params.append(param)
+        assert f == g
+        param = ModuleParam()
+        param.name = "&lt;no description&gt;"
+        param.strValue = "1.2"
+        param.type = "Float"
+        param.alias = ""
+        g.params.append(param)
+        assert f != g
+        
+
+if __name__ == '__main__':
+    unittest.main()
+    
