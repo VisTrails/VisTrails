@@ -26,7 +26,6 @@ from gui.version_tree import QVersionTree
 from gui.vis_shell import ShellGui
 from gui.vistrail_controller import VistrailController, QueryController
 import core.system
-import db.DBconfig
 import gui.resources.macroicons_rc
 import gui.version_tree_search
 import math
@@ -86,24 +85,6 @@ class QBuilder(QtGui.QMainWindow):
         self.resetViewAct.setShortcut(self.tr("Ctrl+R"))
         self.connect(self.resetViewAct, QtCore.SIGNAL("triggered()"), self.resetView)
 
-        self.uploadFilesAct = QtGui.QAction(self.tr("Upload Files..."), self)
-        self.connect(self.uploadFilesAct, QtCore.SIGNAL("triggered()"), self.launchUploadApp)
-
-        self.fetchFilesAct = QtGui.QAction(self.tr("Fetch Files..."), self)
-        self.connect(self.fetchFilesAct, QtCore.SIGNAL("triggered()"), self.launchFetchApp)
-
-        self.existLoginAct = QtGui.QAction(self.tr("Login..."), self)
-        self.connect(self.existLoginAct, QtCore.SIGNAL("triggered()"), self.launchExistLogin)
-                
-        self.existTransactionAct = QtGui.QAction(self.tr("Fetch Files"), self)
-        self.connect(self.existTransactionAct, QtCore.SIGNAL("triggered()"), self.launchExistImport)
-
-        self.existUploadAct = QtGui.QAction(self.tr("Synchronize with eXist"), self)
-        self.connect(self.existUploadAct, QtCore.SIGNAL("triggered()"), self.launchExistUpload)
-        
-        self.existLogoutAct = QtGui.QAction(self.tr("Logout..."), self)
-        self.connect(self.existLogoutAct, QtCore.SIGNAL("triggered()"), self.launchExistLogout)
-
         self.helpAct = QtGui.QAction(self.tr("About VisTrails..."), self)
         self.connect(self.helpAct, QtCore.SIGNAL("triggered()"), self.showAboutMessage)
 
@@ -120,16 +101,6 @@ class QBuilder(QtGui.QMainWindow):
         editMenu = self.menuBar().addMenu(self.tr("&Edit"))
         editMenu.addAction(self.copyAct)
         editMenu.addAction(self.pasteAct)
-
-        remoteMenu = self.menuBar().addMenu(self.tr("&Remote"))
-        remoteMenu.addAction(self.uploadFilesAct)
-        remoteMenu.addAction(self.fetchFilesAct)
-
-        existMenu = self.menuBar().addMenu(self.tr("e&Xist"))
-        existMenu.addAction(self.existLoginAct)
-        existMenu.addAction(self.existTransactionAct)
-        existMenu.addAction(self.existUploadAct)
-        existMenu.addAction(self.existLogoutAct)
 
         viewMenu = self.menuBar().addMenu(self.tr("View"))
         viewMenu.addAction(self.versionTreeAct)
@@ -1006,18 +977,6 @@ of the search line edit widget."""
     def pasteModules(self):
         self.tabWidget.currentWidget().paste()
 
-    def launchUploadApp(self):
-        # As this window blocks according to I/O operations, we have to put it in a different thread/process.
-        from remote import RemoteRep
-        from gui.vis_application import VistrailsApplication
-        remote = RemoteRep(VistrailsApplication.configuration.fileRepository,'Upload')
-
-    def launchFetchApp(self):
-        # As this window blocks according to I/O operations, we have to put it in a different thread/process.
-        from remote import RemoteRep
-        from gui.vis_application import VistrailsApplication
-        remote = RemoteRep(VistrailsApplication.configuration.fileRepository,'Fetch')
-
     def showConsole(self):
         if not self.shell:
             self.shell = ShellGui(self,self)
@@ -1030,49 +989,6 @@ of the search line edit widget."""
             controller = self.controllers[self.currentControllerName]
             vt = self.versionTrees[controller]
             vt.resetCamera()
-
-    def launchExistLogin(self):
-        from login import Ui_Login
-        window = Ui_Login()
-        window.exec_()
-
-    def launchExistLogout(self):
-        from logout import Ui_Logout
-        window = Ui_Logout()
-        window.exec_()
-
-    def launchExistImport(self):
-        from GetFile import Ui_ImportFile
-        window = Ui_ImportFile()
-        window.exec_()
-        if window.writeFile == 0:
-                f = file("tmp.xml", "w")
-                f.write(window.content)
-                f.close()
-                parser = XMLParser()
-                parser.openVistrail("tmp.xml")
-                vistrail = parser.getVistrail()
-
-                controller = VistrailController(vistrail)
-
-                vt = QVersionTree(None, controller)
-
-                self.tabWidget.addTab(vt, os.path.basename(window.name))
-                self.setCurrentController(window.name, controller, vt)
-                self.connect(vt, QtCore.SIGNAL("makeCurrent"),
-                     self.makeVersionTreeCurrent)
-
-    def launchExistUpload(self):
-        from xMerge import existMerge
-        merger = existMerge()
-        nvt = merger.synchronize(self.currentControllerName)
-
-        controller = self.controllers[self.currentControllerName]
-        controller.vistrail = nvt
-        controller.currentVersion = 0
-
-        vt = self.versionTrees[controller]
-        vt.invalidateLayout()
 
     def setCopyEnabled(self, value):
         self.copyAct.setEnabled(value)
