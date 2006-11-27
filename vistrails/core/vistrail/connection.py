@@ -1,27 +1,26 @@
-# Check for testing
+""" This python module defines Connection class.
+"""
 if __name__ == '__main__':
     import qt
     global app
     app = qt.createBogusQtApp()
+
 import copy
 import core.modules.module_registry
 from core.modules.vistrails_module import ModuleConnector
-
 from core.utils import VistrailsInternalError
 from core.vistrail.port import PortEndPoint, Port
 from core.vistrail.module_param import VistrailModuleType
 
 registry = core.modules.module_registry.registry
-################################################################################
-
-def visConnectionFromPorts(source, dest):
-    return Connection.fromPorts(source, dest)
-def visConnectionFromTypeID(type,id):
-    return Connection.fromTypeID(type, id)
 
 ################################################################################
 
 def moduleConnection(conn):
+    """moduleConnection(conn)-> function 
+    Returns a function to build a module connection
+
+    """
     def theFunction(src, dst):
         iport = conn.destination.name
         oport = conn.source.name
@@ -30,6 +29,10 @@ def moduleConnection(conn):
     return theFunction
 
 def noMakeConnection(conn):
+    """noMakeConnection(conn)-> function 
+    Returns a function that raises an Exception
+
+    """
     def theFunction(src, dst):
         raise NoMakeConnection(conn)
     return theFunction
@@ -37,23 +40,15 @@ def noMakeConnection(conn):
 ################################################################################
 
 class Connection(object):
-    """ A VistrailConnection is a connection between two modules.
-    Right now there's only Module connections."""
+    """ A Connection is a connection between two modules.
+    Right now there's only Module connections.
 
+    """
     @staticmethod
     def fromPorts(source, dest):
-        """ Creates a Connection given source and destination ports
-
-        Parameters
-        ----------
-
-        - source : 'Port'
-        - dest : 'Port'
-
-        Returns
-        -------
-
-        - 'Connection'
+        """fromPorts(source: Port, dest: Port) -> Connection
+        Static method that creates a Connection given source and 
+        destination ports.
 
         """
         conn = Connection()
@@ -64,18 +59,8 @@ class Connection(object):
         
     @staticmethod
     def fromTypeID(type, id):
-        """ Creates a Connection given type and id
-
-        Parameters
-        ----------
-
-        - type : trailModuleType.Module
-        - id : 'int' 
-
-        Returns
-        -------
-
-        - 'Connection'
+        """fromTypeID(type: VistrailModuleType.Module, id: int) -> Connection
+        Static method that creates a Connection given type and id.
 
         """
         conn = Connection()
@@ -87,28 +72,36 @@ class Connection(object):
         return conn
     
     def __init__(self):
+        """__init__() -> Connection 
+        Initializes source and destination ports.
+        
+        """
         self.__source = Port()
         self.__dest = Port()
 
     def findSignature(self, sig, signatures):
+        """findSignature(sig:str, signatures:[]) -> str 
+
+        It looks for a match of sig in signatures, including
+        overloaded functions. Returns None if it can't find any.
+
+        """
         splittedSig = sig[1:-1].split(',')
 	if splittedSig == ['']: splittedSig = []
         for s in signatures:
             splittedS = s[1:-1].split(',')
 	    if splittedS == ['']: splittedS = []
             if len(splittedS)==len(splittedSig):
-                ok = True
                 for i in range(len(splittedS)):
                     d1 = registry.getDescriptorByName(splittedS[i])
                     d2 = registry.getDescriptorByName(splittedSig[i])
                     if not d1 or not d2 or not issubclass(d1.module, d2.module):
-                        ok = False
                         break
                 return s
         return None
 
     def serialize(self, dom, el):
-        """ serialize(dom, el): writes itself as XML """
+        """ serialize(dom, el) -> None: writes itself as XML """
         assert self.__source.type == VistrailModuleType.Module
         child = dom.createElement('connect')
         child.setAttribute('id', str(self.__source.connectionId))
@@ -121,7 +114,8 @@ class Connection(object):
         assert destSig != None
         child.setAttribute('sourceId', str(self.__source.moduleId))
         child.setAttribute('sourceModule', str(self.__source.moduleName))
-        child.setAttribute('sourcePort', str(self.__source.name) + sourceSigs[0])
+        child.setAttribute('sourcePort', 
+                           str(self.__source.name) + sourceSigs[0])
         child.setAttribute('destinationId', str(self.__dest.moduleId))
         child.setAttribute('destinationModule', str(self.__dest.moduleName))
         child.setAttribute('destinationPort', str(self.__dest.name) + destSig)
@@ -129,15 +123,25 @@ class Connection(object):
 
     @staticmethod
     def loadFromXML(connection):
+        """ loadFromXML(connection) -> Connection
+        Static method that parses an xml element and creates a Connection.
+        Keyword arguments:
+          - connection : xml.dom.minidom.Element
+   
+        """
         cId = int(connection.getAttribute('id'))
         c = Connection()
         sourceModule = connection.getAttribute('sourceModule')
         destinationModule = connection.getAttribute('destinationModule')
         sourcePort = connection.getAttribute('sourcePort')
         destinationPort = connection.getAttribute('destinationPort')
-        
-        c.source = registry.portFromRepresentation(sourceModule, sourcePort, PortEndPoint.Source)
-        c.destination = registry.portFromRepresentation(destinationModule, destinationPort, PortEndPoint.Destination)
+        portFromRepresentation = registry.portFromRepresentation
+        c.source = portFromRepresentation(sourceModule, sourcePort, 
+                                          PortEndPoint.Source)
+
+        c.destination = portFromRepresentation(destinationModule, 
+                                               destinationPort, 
+                                               PortEndPoint.Destination)
         c.id = cId
         c.type = VistrailModuleType.Module
         c.sourceId = int(connection.getAttribute('sourceId'))
@@ -145,13 +149,19 @@ class Connection(object):
         return c
 
     def __str__(self):
-        return "<Connection>%s %s</Connection>" % (str(self.__source), str(self.__dest))
+        """__str__() -> str - Returns a string representation of a Connection
+        object. 
 
-    def pythonSource(self):
-        """ c.pythonSource() - Outputs self as a python call suitable for exporting """
-        raise VistrailsInternalError('unimplemented')
+        """
+        rep = "<Connection>%s %s</Connection>"
+        return  rep % (str(self.__source), str(self.__dest))
 
     def updateMakeConnection(self):
+        """updateMakeConnection() -> None 
+        Updates self.makeConnection to the right function according to 
+        self.type. 
+        
+        """ 
         if self.type == VistrailModuleType.Module:
             c = moduleConnection
         else:
@@ -159,6 +169,9 @@ class Connection(object):
         self.makeConnection = c(self)
 
     def __copy__(self):
+        """__copy__() -> Connection -  Returns a clone of self.
+        
+        """
         cp = Connection()
         cp.id = self.id
         cp.source = copy.copy(self.source)
@@ -167,43 +180,114 @@ class Connection(object):
         return cp
 
     def _get_id(self):
+        """ _get_id() -> int
+        Returns this connection id. Do not use this function, 
+        use id property: c.id 
+
+        """
         return self.__source.connectionId
+    
     def _set_id(self, i):
+        """ _set_id(i : int) -> None 
+        Sets this connection id. It updates both connection ids of 
+        self.__source and self.__dest. Do not use this function, use id 
+        property: c.id = i
+
+        """
         self.__source.connectionId = i
         self.__dest.connectionId = i
     id = property(_get_id, _set_id)
 
     def _get_sourceId(self):
+        """ _get_sourceId() -> int
+        Returns the module id of source port. Do not use this function, 
+        use sourceId property: c.sourceId 
+
+        """
         return self.__source.moduleId
+    
     def _set_sourceId(self, id):
+        """ _set_sourceId(id : int) -> None 
+        Sets this connection source id. It updates both self.__source.moduleId
+        and self.__source.id. Do not use this function, use sourceId 
+        property: c.sourceId = id
+
+        """
         self.__source.moduleId = id
         self.__source.id = id
     sourceId = property(_get_sourceId, _set_sourceId)
     
     def _get_destinationId(self):
+        """ _get_destinationId() -> int
+        Returns the module id of dest port. Do not use this function, 
+        use sourceId property: c.destinationId 
+
+        """
         return self.__dest.moduleId
+
     def _set_destinationId(self, id):
+        """ _set_destinationId(id : int) -> None 
+        Sets this connection destination id. It updates self.__dest.moduleId. 
+        Do not use this function, use destinationId property: 
+        c.destinationId = id
+
+        """
         self.__dest.moduleId = id
     destinationId = property(_get_destinationId, _set_destinationId)
 
     def _get_type(self):
+        """_get_type() -> VistrailModuleType - Returns this connection type.
+        Do not use this function, use type property: c.type = t 
+
+        """
         return self.__source.type
+
     def _set_type(self, t):
+        """ _set_type(t: VistrailModuleType) -> None 
+        Sets this connection type and updates self.__source.type and 
+        self.__dest.type. It also updates the correct makeConnection function.
+        Do not use this function, use type property: c.type = t
+
+        """
         self.__source.type = t
         self.__dest.type = t
         self.updateMakeConnection()
     type = property(_get_type, _set_type)
 
     def _get_source(self):
+        """_get_source() -> Port
+        Returns source port. Do not use this function, use source property: 
+        c.source 
+
+        """
         return self.__source
+
     def _set_source(self, source):
+        """_set_source(source: Port) -> None 
+        Sets this connection source port. It also updates this connection 
+        makeConnection function. Do not use this function, use source 
+        property instead: c.source = source
+
+        """
         self.__source = source        
         self.updateMakeConnection()
     source = property(_get_source, _set_source)
 
     def _get_destination(self):
+        """_get_destination() -> Port
+        Returns destination port. Do not use this function, use destination
+        property: c.destination 
+
+        """
         return self.__dest
+
     def _set_destination(self, dest):
+        """_set_destination(dest: Port) -> None 
+        Sets this connection destination port. It also updates this connection 
+        makeConnection function. Do not use this function, use destination 
+        property instead: c.destination = dest
+
+        """
         self.__dest = dest
         self.updateMakeConnection()
     destination = property(_get_destination, _set_destination)
