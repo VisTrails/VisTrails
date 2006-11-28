@@ -433,7 +433,6 @@ class QBuilder(QtGui.QMainWindow):
         - tw : 'QtGui.QTreeWidget'
         
         """
-        print 'ha'
         if self.vtkClassMethodTab.currentWidget() == self.moduleTreeWidget:
             self.updateTreeWidget(self.moduleTreeWidget,text)                
         elif self.vtkClassMethodTab.currentWidget() == self.vtkModuleMethods:
@@ -514,7 +513,7 @@ class QBuilder(QtGui.QMainWindow):
         if customizedPort and any([f.name==newMethod[1]
                                     for f in lastSelectedModule.functions]):
             return
-        self.emit(QtCore.SIGNAL("methodToBeAdded"), newMethod,lastSelected)
+        self.emit(QtCore.SIGNAL("methodToBeAdded"), newMethod, lastSelected)
         if self.selectedModule != -1:
             self.unselect()
             self.selectModule(lastSelected)
