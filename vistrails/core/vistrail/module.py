@@ -270,6 +270,8 @@ class Module(object):
         operator. 
         
         """
+        if not other:
+            return False
         if self.id != other.id:
             return False
         if self.name != other.name:
@@ -284,14 +286,6 @@ class Module(object):
             if f != g:
                 return False
         return True
-
-    def __ne__(self, other):
-        """ __ne__(other: Module) -> boolean
-        Returns True if self and other don't have the same attributes. 
-        Used by !=  operator. 
-        
-        """
-        return not self.__eq__(other)
         
     # autoprop
     def _set_name(self, name):
@@ -309,6 +303,11 @@ import xml.dom.minidom
 from core.xml_utils import named_elements
 
 class TestModule(unittest.TestCase):
+
+    def testEq(self):
+        """Check correctness of equality operator."""
+        x = Module()
+        self.assertNotEquals(x, None)
 
     def testAccessors(self):
         """Check that accessors are working."""
