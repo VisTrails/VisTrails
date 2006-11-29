@@ -81,9 +81,11 @@ if __name__ == '__main__':
     import core.modules.basic_modules
     import core.modules.module_registry
     from core.vistrail.module_param import VistrailModuleType
-
-class TestPort(unittest.TestCase):
     
+class TestPort(unittest.TestCase):
+    def setUp(self):
+        self.registry = core.modules.module_registry.registry
+
     def testPort(self):
         x = Port()
         a = str(x)
@@ -93,25 +95,28 @@ class TestPort(unittest.TestCase):
         a = str(x)
         
     def testPortSpec(self):
-        descriptor = core.modules.module_registry.registry.getDescriptorByName('String')
-        ports = core.modules.module_registry.registry.sourcePortsFromDescriptor(descriptor)
+        descriptor = self.registry.getDescriptorByName('String')
+        ports = self.registry.sourcePortsFromDescriptor(descriptor)
         assert all(ports, lambda x: x.moduleName == 'String')
         portRepr = 'value(String)'
-        p = core.modules.module_registry.registry.portFromRepresentation('String', portRepr, PortEndPoint.Source)
+        p = self.registry.portFromRepresentation('String', portRepr, 
+                                                     PortEndPoint.Source)
         assert p.name == 'value'
         assert p.moduleName == 'String'
 
     def testPortSpec2(self):
-        descriptor = core.modules.module_registry.registry.getDescriptorByName('String')
-        ports = core.modules.module_registry.registry.sourcePortsFromDescriptor(descriptor)
+        descriptor = self.registry.getDescriptorByName('String')
+        ports = self.registry.sourcePortsFromDescriptor(descriptor)
         assert all(ports, lambda x: x.moduleName == 'String')
         portRepr = 'value(Float)'
         try:
-            p = core.modules.module_registry.registry.portFromRepresentation('String', portRepr, PortEndPoint.Source)
-            self.fail("Expected to fail - passed an incompatible spec representation")
+            p = self.registry.portFromRepresentation('String', portRepr, 
+                                                         PortEndPoint.Source)
+            msg = "Expected to fail - passed an incompatible spec " \
+                "representation"
+            self.fail(msg)
         except VistrailsInternalError:
             pass
-        
         
 if __name__ == '__main__':
     unittest.main()
