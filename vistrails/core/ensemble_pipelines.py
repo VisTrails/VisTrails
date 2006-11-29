@@ -1,4 +1,4 @@
-from core.vis_pipeline import *
+from core.vistrail.pipeline import *
 import sys
 import copy
 
