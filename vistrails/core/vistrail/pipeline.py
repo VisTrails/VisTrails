@@ -1,8 +1,11 @@
+##TODO Tests
+""" This module defines the class Pipeline """
 from core.vistrail.port import Port
 from core.vistrail.module_param import VistrailModuleType
 from core.data_structures import Graph
 from core.utils import VistrailsInternalError
 import copy
+from types import ListType
 
 ################################################################################
 
@@ -10,18 +13,17 @@ class Pipeline(object):
     """ A Pipeline is a set of modules and connections between them. """
     
     def __init__(self):
+        """ __init__() -> Pipeline
+        Initializes modules, connections and graph.
+
+        """
         self.modules = {}
         self.connections = {}
         self.graph = Graph()
 
     def checkConnection(self, c):
-        """ Checks semantics of connection
-
-        Parameters
-        ----------
-        - c : 'Connection'
-
-          The connection object to be checked
+        """checkConnection(c: Connection) -> boolean 
+        Checks semantics of connection
           
         """
         if c.source.endPoint != Port.SourceEndPoint:
@@ -37,17 +39,8 @@ class Pipeline(object):
         return True
     
     def connectsAtPort(self, p):
-        """ Returns a list of Connections that connect at port p
-
-        Parameters
-        ----------
-        - p : 'VistrailPort'
-
-          The port object.
-
-        Returns
-        -------
-        - 'list' of 'Connection'
+        """ connectsAtPort(p: Port) -> list of Connection 
+        Returns a list of Connections that connect at port p
         
         """
         result = []
@@ -68,15 +61,11 @@ class Pipeline(object):
         return result
     
     def freshModuleId(self):
-        """ Returns an unused module ID. If everyone always calls
+        """freshModuleId() -> int 
+        Returns an unused module ID. If everyone always calls
         this, it is also the case that this is the smallest unused ID. So
         we can use any other number larger than the one returned, as long
         as they are contiguous.
-
-        Returns
-        -------
-
-        - 'int'
 
         """
         # This is dumb and slow
@@ -86,12 +75,8 @@ class Pipeline(object):
         return m
     
     def freshConnectionId(self):
-        """ Returns an unused connection ID
-
-        Returns
-        -------
-
-        - 'int'
+        """freshConnectionId() -> int 
+        Returns an unused connection ID.
         
         """
         # This is dumb and slow
@@ -101,15 +86,9 @@ class Pipeline(object):
         return c
     
     def deleteModule(self, id):
-        """ Delete a module from pipeline
+        """deleteModule(id:int) -> None 
+        Delete a module from pipeline given an id.
 
-        Parameters
-        ----------
-
-        - id : 'int'
-
-          Module identifier.
-          
         """
         if not self.hasModuleWithId(id):
             raise VistrailsInternalError("id missing in modules")
@@ -117,14 +96,8 @@ class Pipeline(object):
         self.graph.deleteVertex(id)
         
     def addModule(self, m):
-        """ Add new module to pipeline
-
-        Parameters
-        ----------
-
-        - m : 'Module'
-        
-          The Module object to be added
+        """addModule(m: Module) -> None 
+        Add new module to pipeline
           
         """
         if self.hasModuleWithId(m.id):
@@ -133,17 +106,10 @@ class Pipeline(object):
         self.graph.addVertex(m.id)
         
     def deleteConnection(self, id):
-        """ Delete connection from pipeline
-
-        Parameters
-        ----------
-
-        - id : 'int'
-
-           The connection identifier.
+        """ deleteConnection(id:int) -> None 
+        Delete connection identified by id from pipeline.
            
         """
-    
         if not self.hasConnectionWithId(id):
             raise VistrailsInternalError("id %s missing in connections" % id)
         conn = self.connections[id]
@@ -151,14 +117,8 @@ class Pipeline(object):
         self.graph.deleteEdge(conn.sourceId, conn.destinationId, conn.id)
         
     def addConnection(self, c):
-        """ Add new connection to pipeline
-
-        Parameters
-        ----------
-
-        - c : 'Connection'
-
-          The connection to be added
+        """addConnection(c: Connection) -> None 
+        Add new connection to pipeline.
           
         """
         if self.hasConnectionWithId(c.id):
@@ -168,117 +128,53 @@ class Pipeline(object):
         self.graph.addEdge(c.sourceId, c.destinationId, c.id)
         
     def getModuleById(self, id):
-        """ Accessor. id is the Module id
-
-        Parameters
-        ----------
-
-        - id : 'int'
-
-          Module id
-
-        Returns
-        -------
-
-        - 'Module'
+        """getModuleById(id: int) -> Module
+        Accessor. id is the Module id.
         
         """
         return self.modules[id]
     
     def getConnectionById(self, id):
-        """ Accessor. id is the Connection id
-
-        Parameters
-        ----------
-
-        - id : 'int'
-
-          Connection id
-
-        Returns
-        -------
-
-        - 'Connection'
+        """getConnectionById(id: int) -> Connection
+        Accessor. id is the Connection id.
         
         """
         return self.connections[id]
     
     def moduleCount(self):
-        """ Returns the number of modules in the pipeline
-
-        Returns
-        -------
-
-        - 'int'
+        """ moduleCount() -> int 
+        Returns the number of modules in the pipeline.
         
         """
         return len(self.modules)
     
     def connectionCount(self):
-        """ Returns rhe number of connections in the pipeline
-
-        Returns
-        -------
-
-        - 'int'
+        """connectionCount() -> int 
+        Returns the number of connections in the pipeline.
         
         """
         return len(self.connections)
     
     def hasModuleWithId(self, id):
-        """ Checks whether given module exists
-
-        Parameters
-        ----------
-
-        - id : 'int'
-
-          Module id
-
-        Returns
-        -------
-
-        - 'Boolean'
+        """hasModuleWithId(id: int) -> boolean 
+        Checks whether given module exists.
 
         """
         return self.modules.has_key(id)
     
     def hasConnectionWithId(self, id):
-        """ Checks whether given connection exists
-
-        Parameters
-        ----------
-
-        - id : 'int'
-
-          Connection id
-
-        Returns
-        -------
-
-        - 'boolean'
+        """hasConnectionWithId(id: int) -> boolean 
+        Checks whether given connection exists.
 
         """
         return self.connections.has_key(id)
     
     def outDegree(self, id):
-        """ p.outDegree(id) - Returns the out-degree of a module
-
-        Parameters
-        ----------
-
-        - id : 'int'
-          the module id
-
-        Returns
-        -------
-
-        - 'int'
-        
-        """
+        """outDegree(id: int) -> int - Returns the out-degree of a module. """
         return self.graph.outDegree(id)
 
     def __copy__(self):
+        """ __copy__() -> Pipeline - Returns a clone of itself """ 
         cp = Pipeline()
         cp.modules = dict([(k,copy.copy(v))
                            for (k,v)
@@ -289,8 +185,11 @@ class Pipeline(object):
         cp.graph = copy.copy(self.graph)
         return cp
 
-    def getNameDependencies(self,astList):
-        from types import ListType
+    def getNameDependencies(self, astList):
+        """getNameDependencies(astList) -> list of something 
+        
+        """
+        
         result = []
         if astList[0]==1: # NAME token
             result += [astList[1]]
