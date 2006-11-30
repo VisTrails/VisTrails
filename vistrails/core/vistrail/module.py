@@ -2,9 +2,9 @@
 """ This module defines the class Module 
 """
 if __name__ == '__main__':
-    import qt
+    import gui.qt
     global app
-    app = qt.createBogusQtApp()
+    app = gui.qt.createBogusQtApp()
 
 import copy
 from sets import Set
@@ -12,7 +12,7 @@ from core.data_structures import Point
 from core.vistrail.module_param import VistrailModuleType, ModuleParam
 from core.vistrail.module_function import ModuleFunction
 from core.utils import NoSummon
-from core.xml_utils import named_elements
+from core.utils.uxml import named_elements
 import core.modules.module_registry
 registry = core.modules.module_registry.registry
 
@@ -300,7 +300,7 @@ class Module(object):
 
 import unittest
 import xml.dom.minidom
-from core.xml_utils import named_elements
+from core.utils.uxml import named_elements
 
 class TestModule(unittest.TestCase):
 

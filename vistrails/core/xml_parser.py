@@ -1,8 +1,8 @@
 import xml.dom.minidom
 
-from core.xml_utils import *
 from core.vistrail import Vistrail
 from core.utils import VistrailsInternalError
+from core.utils.uxml import named_elements
 from core.vistrail.action import Action
 from core.vistrail.macro import Macro
 from core.data_structures import Graph
@@ -33,24 +33,28 @@ class XMLParser(object):
 
     """
     def openVistrail(self, filename):
-        """ Parses a XML file.
-
-        Parameters
-        ----------
-
-        - filename : 'str'
-          xml file to be parsed
+        """openVistrail(filename: str) -> None 
+        Parses a XML file.
 
         """
         self.filename = filename
         self.dom = xml.dom.minidom.parse(filename)
 
     def closeVistrail(self):
-        """ Removes the association with the XML file loaded by openVistrail method """
+        """closeVistrail() -> None 
+        Removes the association with the XML file loaded by openVistrail 
+        method. 
+
+        """
         self.filename = None
         self.dom = None
 
     def vistrailVersion(self):
+        """vistrailVersion() -> str 
+        Returns version of vistrail file. First it tries reading version 
+        attribute, if it is available. If not assumes to be in latest version.
+
+        """
         root = self.dom.documentElement
         if str(root.nodeName) == 'visTrail':
 	    version = root.getAttribute('version')
@@ -63,91 +67,102 @@ class XMLParser(object):
             raise UnknownVersion(self.filename)
 
     def getVistrailBase(self):
-        """ Returns a fresh vistrail representing the vistrail stored in the XML file """
+        """getVistrailBase() -> Vistrail 
+        Returns a fresh vistrail representing the vistrail stored in the 
+        XML file. 
+        
+        """
         def createTagMap(vistrail):
-            """ Creates the vistrail.tagMap for the just-parsed XML file """
+            """createTagMap(vistrail) -> None 
+            Creates the vistrail.tagMap for the just-parsed XML file """
             root = self.dom.documentElement
             for tag in named_elements(root, 'tag'):
                 tagName = tag.getAttribute('name')
                 tagTime = tag.getAttribute('time')
                 vistrail.addTag(str(tagName), int(tagTime))
         def createActionMap(vistrail):
-            """ Creates the action map for the just-parsed XML file """
+            """createActionMap(vistrail) -> None 
+            Creates the action map for the just-parsed XML file """
             root = self.dom.documentElement
             for xmlaction in named_elements(root, 'action'):
                 action = Action.createFromXML(xmlaction)
                 if vistrail.hasVersion(action.timestep):
-                    raise VistrailsInternalError("XML file contains two actions with the same time "+str(action.timestep) )
+                    msg = "XML file contains two actions with same time "
+                    msg += str(action.timestep)
+                    raise VistrailsInternalError(msg)
                 else:
                     vistrail.addVersion(action)
         def createMacroMap(vistrail):
-            """ Creates the macro map for the just-parsed XML file """
+            """createMacroMap(vistrail) -> None 
+            Creates the macro map for the just-parsed XML file """
             root = self.dom.documentElement
             for xmlmacro in named_elements(root, 'macro'):
                 macro = Macro.createFromXML(vistrail, xmlmacro)
                 vistrail.addMacro(macro)
-        def createDBTags(vistrail):
-	    """ Loads the eXist DB stuff into the vistrail as loaded by the vistrail.serialize() method """
-	    root = self.dom.documentElement
-	    #  The loop should terminate after 1 pass, but it's safer this way.
-	    for info in named_elements(root, 'dbinfo'):
-		vistrail.remoteFilename = info.getAttribute('remoteFilename')
-		vistrail.lastDBTime = info.getAttribute('remoteTime')
         result = Vistrail()
         createActionMap(result)
         createTagMap(result)
         createMacroMap(result)
-        createDBTags(result)
         result.invalidateCurrentTime()
         result.changed = False
         return result
 
     def getVistrailBase0_1_0(self):
-        """ Returns a fresh vistrail representing the vistrail stored in the XML file """
+        """getVistrailBase0_1_0() -> Vistrail 
+        Returns a fresh vistrail representing the vistrail stored in the 
+        XML file. This is for files with version 0.1.0 
+
+        """
         def createTagMap(vistrail):
-            """ Creates the vistrail.tagMap for the just-parsed XML file """
+            """createTagMap(vistrail)-> None 
+            Creates the vistrail.tagMap for the just-parsed XML file """
             root = self.dom.documentElement
             for tag in named_elements(root, 'tag'):
                 tagName = tag.getAttribute('name')
                 tagTime = tag.getAttribute('time')
                 vistrail.addTag(str(tagName), int(tagTime))
         def createActionMap(vistrail):
-            """ Creates the action map for the just-parsed XML file """
+            """createActionMap(vistrail) -> None 
+            Creates the action map for the just-parsed XML file """
             root = self.dom.documentElement
             for xmlaction in named_elements(root, 'action'):
                 action = Action.createFromXML(xmlaction, '0.1.0')
                 if vistrail.hasVersion(action.timestep):
-                    raise VistrailsInternalError("XML file contains two actions with the same time "+str(action.timestep) )
+                    msg = "XML file contains two actions with the same time "
+                    msg += +str(action.timestep)
+                    raise VistrailsInternalError(mesg)
                 else:
                     vistrail.addVersion(action)
         def createMacroMap(vistrail):
-            """ Creates the macro map for the just-parsed XML file """
+            """createMacroMap(vistrail) -> None 
+            Creates the macro map for the just-parsed XML file """
             root = self.dom.documentElement
             for xmlmacro in named_elements(root, 'macro'):
                 macro = Macro.createFromXML(vistrail, xmlmacro)
                 vistrail.addMacro(macro)
-        def createDBTags(vistrail):
-	    """ Loads the eXist DB stuff into the vistrail as loaded by the vistrail.serialize() method """
-	    root = self.dom.documentElement
-	    #  The loop should terminate after 1 pass, but it's safer this way.
-	    for info in named_elements(root, 'dbinfo'):
-		vistrail.remoteFilename = info.getAttribute('remoteFilename')
-		vistrail.lastDBTime = info.getAttribute('remoteTime')
         result = Vistrail()
         createActionMap(result)
         createTagMap(result)
         createMacroMap(result)
-        createDBTags(result)
         result.invalidateCurrentTime()
         result.changed = False
         return result
 
     def translate0to0_1_0(self, vistrail):
+        """translate0to0_1_0(vistrail) -> Vistrail
+        Convert vistrail from version 0 to 0.1.0.
+        
+        """
         return vistrail
 
     def translate0_1_0to0_3_0(self, vistrail):
+        """translate0_1_0to0_3_0(vistrail) -> Vistrail
+        Convert vistrail from version 0.1.0 to 0.3.0.
+
+        """
 	#the problem is in the connections because they are incomplete
-	#we need to materialize all the modules and complete the connection information
+	#we need to materialize all the modules and complete the connection 
+        #information
 	for (v,a) in vistrail.actionMap.items():
 	    if a.type == 'AddConnection':
 		id = a.connection.id
@@ -192,9 +207,14 @@ class XMLParser(object):
     currentVersion = '0.3.0'
 
     def getVistrail(self):
+        """getVistrail() -> Vistrail
+        Parses a vistrail file calling the specific functions according to 
+        version. Returns a fresh vistrail.
+        
+        """
         def translateName(v):
             return v.replace('.','_')
-        """ Returns a fresh vistrail representing the vistrail stored in the XML file """
+    
         version = self.vistrailVersion()
         vistrail = self.parseVersion[version](self)
 
@@ -213,4 +233,17 @@ class XMLParser(object):
 ################################################################################
 
 import unittest
+import core.system
 
+class TestXmlParser(unittest.TestCase):
+    def test1(self):
+        """ Exercising reading file """
+        parser = XMLParser()
+        parser.openVistrail(core.system.visTrailsRootDirectory() +
+                            '/tests/resources/dummy.xml')
+        v = parser.getVistrail()
+        parser.closeVistrail()
+        
+
+if __name__ == '__main__':
+    unittest.main()

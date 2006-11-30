@@ -14,7 +14,7 @@
 
 """
 from core.utils import abstract, VistrailsInternalError
-from core.xml_utils import named_elements
+from core.utils.uxml import named_elements
 from core.vistrail.module import Module
 from core.vistrail.connection import Connection
 from core.vistrail.port import Port, PortEndPoint

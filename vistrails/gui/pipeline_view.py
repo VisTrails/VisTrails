@@ -7,7 +7,7 @@ from core.vistrail.action import Action, MoveModuleAction
 from core.vistrail.module import Module
 from core.vistrail.connection import Connection
 from core.vistrail.port import Port
-from core.xml_utils import *
+from core.utils.uxml import named_elements
 from gui.qt import SignalSet
 from gui.shape import PolyLine, ModuleShape, PortShape
 from gui.shape_engine import GLWidget
