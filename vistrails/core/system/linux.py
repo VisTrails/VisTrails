@@ -108,6 +108,22 @@ class TestLinux(unittest.TestCase):
          result = temporaryDirectory()
          assert result != ""
 
+     def test4(self):
+         """ Test if origin of link_or_copy'ed file is deleteable. """
+         import tempfile
+         import os
+         (fd1, name1) = tempfile.mkstemp()
+         os.close(fd1)
+         (fd2, name2) = tempfile.mkstemp()
+         os.close(fd2)
+         os.unlink(name2)
+         link_or_copy(name1, name2)
+         try:
+             os.unlink(name1)
+         except:
+             self.fail("Should not throw")
+         os.unlink(name2)
+
 if __name__ == '__main__':
     unittest.main()
              
