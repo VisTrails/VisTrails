@@ -79,7 +79,22 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
             self.interactiveMode()
         else:
             self.noninteractiveMode()
-        
+
+    def destroy(self):
+        if not hasattr(self, "__destroyed"):
+            for (packageName, packageModule, _) in self.packageList:
+                print "Finalizing",packageName
+                try:
+                    x = packageModule.finalize
+                except AttributeError:
+                    pass
+                else:
+                    x()
+            self.__destroyed = True
+
+    def __del__(self):
+        self.destroy()
+
     def interactiveMode(self):
         self.setIcon()
         self.createWindows()
@@ -340,3 +355,8 @@ def start_application(optionsDict=None):
     VistrailsApplication = VistrailsApplicationSingleton(optionsDict)
 
 VistrailsApplication = None
+
+def stop_application():
+    global VistrailsApplication
+    VistrailsApplication.destroy()
+    VistrailsApplication.deleteLater()
