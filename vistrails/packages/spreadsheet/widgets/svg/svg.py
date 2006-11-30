@@ -22,7 +22,9 @@ class SVGCell(SpreadsheetCell):
         Dispatch SVG file into the spreadshet for display
         """
         if self.hasInputFromPort("File"):
-            fileValue = self.getInputFromPort("File")
+            window = spreadsheetController.findSpreadsheetWindow()
+            file_to_display = self.getInputFromPort("File")
+            fileValue = window.file_pool.make_local_copy(file_to_display.name)
         else:
             fileValue = None
         self.display(SVGCellWidget, (fileValue,))
