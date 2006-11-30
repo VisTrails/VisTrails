@@ -15,4 +15,5 @@ if __name__ == '__main__':
         sys.exit(255)
     if app.configuration.interactiveMode:
         v = app.exec_()
+        gui.vis_application.stop_application()
         sys.exit(v)
