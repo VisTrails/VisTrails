@@ -66,3 +66,7 @@ def initialize(*args, **keywords):
     global spreadsheetWindow
     spreadsheetWindow = SpreadsheetWindow()
     spreadsheetWindow.configShow()
+
+def finalize():
+    spreadsheetWindow.destroy()
+    spreadsheetWindow.deleteLater()
