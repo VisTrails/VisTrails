@@ -7,6 +7,8 @@ from PyQt4 import QtCore, QtGui
 from spreadsheet_base import StandardSheetReference
 from spreadsheet_event import BatchDisplayCellEventType, DisplayCellEventType
 from spreadsheet_tabcontroller import StandardWidgetTabController
+from core.modules import module_utils
+from core.utils import trace_method
 
 ################################################################################
 ### 
@@ -41,6 +43,11 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.connect(self.tabController,
                      QtCore.SIGNAL('needChangeTitle'),
                      self.setWindowTitle)
+        self.file_pool = module_utils.FilePool()
+
+
+    def destroy(self):
+        del self.file_pool
 
     def setupMenu(self):
         """ setupMenu() -> None
