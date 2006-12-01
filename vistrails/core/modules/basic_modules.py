@@ -3,7 +3,6 @@ pipelines."""
 
 from core.modules import module_configure
 from core.modules import module_registry
-from core.modules import module_utils
 from core.modules import port_configure
 from core.modules import vistrails_module
 import core.system
