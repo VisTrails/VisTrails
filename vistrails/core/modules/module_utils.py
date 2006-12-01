@@ -4,7 +4,7 @@ import os
 import tempfile
 from core.modules import basic_modules
 from core.system import link_or_copy
-from core.common import VistrailsInternalError
+from core.utils import VistrailsInternalError
 
 ################################################################################
 
