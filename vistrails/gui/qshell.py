@@ -1,33 +1,19 @@
-# Simulates a Python shell inside a Qt Widget.
-# Based on PyCute: http://gerard.vermeulen.free.fr/
-# PyCute is a Python shell for PyQt.
-#
-#    Creating, displaying and controlling PyQt widgets from the Python command
-#    line interpreter is very hard, if not, impossible.  PyCute solves this
-#    problem by interfacing the Python interpreter to a PyQt widget.
-#
-#    My use is interpreter driven plotting to QwtPlot instances. Why?
-#    
-#    Other popular scientific software packages like SciPy, SciLab, Octave,
-#    Maple, Mathematica, GnuPlot, ..., also have interpreter driven plotting.  
-#    It is well adapted to quick & dirty exploration. 
-#
-#    Of course, PyQt's debugger -- eric -- gives you similar facilities, but
-#    PyCute is smaller and easier to integrate in applications.
-#    Eric requires Qt-3.x
-#
-#    PyCute is based on ideas and code from:
-#    - Python*/Tools/idle/PyShell.py (Python Software Foundation License)
-#    - PyQt*/eric/Shell.py (Gnu Public License)
-
+""" This module defines the following classes:
+    - QShellDialog
+    - QShell
+"""
 from PyQt4 import QtGui, QtCore
 from code import InteractiveInterpreter
 import core.system
 import copy
-import os
 import sys
+import time
+import os.path
 
-class ShellGui(QtGui.QDialog):
+
+################################################################################
+
+class QShellDialog(QtGui.QDialog):
     def __init__(self, parent, builder=None):
         QtGui.QDialog.__init__(self, parent)
         self.builder = builder
@@ -39,25 +25,33 @@ class ShellGui(QtGui.QDialog):
         self.setLayout(layout)
         #locals() returns the original dictionary, not a copy as
         #the docs say
-        self.firstLocals = copy.copy(locals())
         
-        self.shell = VisShell(locals(),None)
+        self.firstLocals = copy.copy(locals())
+        self.shell = QShell(locals(),None)
         self.layout().addWidget(self.shell)
         self.resize(600,400)
         self.createMenu()
+        
     
     def createMenu(self):
+        """createMenu() -> None
+        Creates a menu bar and adds it to the main layout.
+
+        """
         self.newSessionAct = QtGui.QAction(self.tr("&Restart"),self)
         self.newSessionAct.setShortcut(self.tr("Ctrl+R"))
-        self.connect(self.newSessionAct, QtCore.SIGNAL("triggered()"),self.newSession)
+        self.connect(self.newSessionAct, QtCore.SIGNAL("triggered()"),
+                     self.newSession)
 
         self.saveSessionAct = QtGui.QAction(self.tr("&Save"), self)
         self.saveSessionAct.setShortcut(self.tr("Ctrl+S"))
-        self.connect(self.saveSessionAct, QtCore.SIGNAL("triggered()"),self.saveSession)
+        self.connect(self.saveSessionAct, QtCore.SIGNAL("triggered()"),
+                     self.saveSession)
 
         self.closeSessionAct = QtGui.QAction(self.tr("Close"), self)
         self.closeSessionAct.setShortcut(self.tr("Ctrl+W"))
-        self.connect(self.closeSessionAct,QtCore.SIGNAL("triggered()"), self.closeSession)
+        self.connect(self.closeSessionAct,QtCore.SIGNAL("triggered()"), 
+                     self.closeSession)
         
         self.menuBar = QtGui.QMenuBar(self)
         menu = self.menuBar.addMenu(self.tr("&Session"))
@@ -68,25 +62,41 @@ class ShellGui(QtGui.QDialog):
         self.layout().setMenuBar(self.menuBar)
 
     def closeEvent(self, e):
+        """closeEvent(e) -> None
+        Event handler called when the dialog is about to close."""
         self.closeSession()
     
     def showEvent(self, e):
+        """showEvent(e) -> None
+        Event handler called when the dialog acquires focus 
+
+        """
         self.shell.show()
         QtGui.QDialog.showEvent(self,e)
 
     def closeSession(self):
-        self.shell.hide()
+        """closeSession() -> None.
+        Hides the dialog instead of closing it, so the session continues open.
+
+        """
+        self.shell.suspend()
         self.hide()
 
     def newSession(self):
+        """newSession() -> None
+        Tells the shell to start a new session passing a copy of the original
+        locals dictionary.
+
+        """
         self.shell.restart(copy.copy(self.firstLocals))
 
     def saveSession(self):
-        import time
-        import os.path
+        """saveSession() -> None
+        Opens a File Save dialog and passes the filename to shell's saveSession.
 
+        """
         default = 'visTrails' + '-' + time.strftime("%Y%m%d-%H%M.log")
-        default = os.path.join(system.vistrailsDirectory(),default)
+        default = os.path.join(core.system.vistrailsDirectory(),default)
         fileName = QtGui.QFileDialog.getSaveFileName(self,
                                                      "Save Session As..",
                                                      default,
@@ -97,28 +107,28 @@ class ShellGui(QtGui.QDialog):
         self.shell.saveSession(str(fileName))
 
         
-class VisShell(QtGui.QTextEdit):
+class QShell(QtGui.QTextEdit):
+    """This class embeds a python interperter in a QTextEdit Widget"""
     def __init__(self, locals=None, parent=None):
         """Constructor.
 
-        The optional 'locals' argument specifies the dictionary in
-        which code will be executed; it defaults to a newly created
-        dictionary with key "__name__" set to "__console__" and key
-        "__doc__" set to None.
+        The optional 'locals' argument specifies the dictionary in which code
+        will be executed; it defaults to a newly created dictionary with key 
+        "__name__" set to "__console__" and key "__doc__" set to None.
 
-        The optional 'log' argument specifies the file in which the
-        interpreter session is to be logged.
+        The optional 'log' argument specifies the file in which the interpreter
+        session is to be logged.
         
-        The optional 'parent' argument specifies the parent widget.
-        If no parent widget has been specified, it is possible to
-        exit the interpreter by Ctrl-D.
+        The optional 'parent' argument specifies the parent widget. If no parent
+        widget has been specified, it is possible to exit the interpreter 
+        by Ctrl-D.
 
         """
 
         QtGui.QTextEdit.__init__(self, parent)
         self.setReadOnly(False)
         
-        # to exit the main interpreter by a Ctrl-D if VisShell has no parent
+        # to exit the main interpreter by a Ctrl-D if QShell has no parent
         if parent is None:
             self.eofKey = QtCore.Qt.Key_D
         else:
@@ -143,11 +153,11 @@ class VisShell(QtGui.QTextEdit):
         self.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
         
         # font
-        if system.systemType == 'Linux':
+        if core.system.systemType == 'Linux':
             font = QtGui.QFont("Fixed", 12)
-        elif system.systemType in ['Windows', 'Microsoft']:
+        elif core.system.systemType in ['Windows', 'Microsoft']:
             font = QtGui.QFont("Courier New", 8)
-        elif system.systemType == 'Darwin':
+        elif core.system.systemType == 'Darwin':
             font = QtGui.QFont("Monaco", 12)
         else:
             raise SystemExit, "FIXME for 'os2', 'ce' or 'riscos'"
@@ -173,6 +183,10 @@ class VisShell(QtGui.QTextEdit):
         self.write(sys.ps1)
 
     def reset(self, locals):
+        """reset(locals) -> None
+        Reset shell preparing it for a new session.
+        
+        """
         if self.interpreter:
             del self.interpreter
         self.interpreter = InteractiveInterpreter(locals)
@@ -191,20 +205,24 @@ class VisShell(QtGui.QTextEdit):
         self.last   = 0
 
     def flush(self):
-        """
+        """flush() -> None. 
         Simulate stdin, stdout, and stderr.
+        
         """
         pass
 
     def isatty(self):
-        """
+        """isatty() -> int
         Simulate stdin, stdout, and stderr.
+        
         """
         return 1
 
     def readline(self):
-        """
+        """readline() -> str
+        
         Simulate stdin, stdout, and stderr.
+        
         """
         self.reading = 1
         self.__clearLine()
@@ -220,37 +238,23 @@ class VisShell(QtGui.QTextEdit):
             return str(self.line) 
     
     def write(self, text):
-        """
+        """write(text: str) -> None
         Simulate stdin, stdout, and stderr.
+        
         """
                 
         self.append(text)
         cursor = self.textCursor()
         self.last = cursor.position()
         
-    def writelines(self, text):
-        """
-        Simulate stdin, stdout, and stderr.
-        """
-        map(self.write, text)
-        print "DO WE EVER GET HERE? IF YES, OPTIMIZATION POSSIBLE"
-
-    def fakeUser(self, lines):
-        """
-        Simulate a user: lines is a sequence of strings, (Python statements).
-        """
-        for line in lines:
-            self.line = QtCore.QString(line.rstrip())
-            self.write(self.line)
-            self.__run()
-            
     def __run(self):
-        """
+        """__run() -> None
         Append the last line to the history list, let the interpreter execute
         the last line(s), and clean up accounting for the interpreter results:
         (1) the interpreter succeeds
         (2) the interpreter fails, finds no errors and wants more line(s)
         (3) the interpreter fails, finds errors and writes them to sys.stderr
+        
         """
         self.pointer = 0
         self.history.append(QtCore.QString(self.line))
@@ -265,23 +269,26 @@ class VisShell(QtGui.QTextEdit):
         self.__clearLine()
         
     def __clearLine(self):
-        """
-        Clear input line buffer
+        """__clearLine() -> None
+        Clear input line buffer.
+        
         """
         self.line.truncate(0)
         self.point = 0
         
     def __insertText(self, text):
-        """
+        """__insertText(text) -> None
         Insert text at the current cursor position.
+        
         """
         self.insertPlainText(text)
         self.line.insert(self.point, text)
         self.point += text.length()
         
     def keyPressEvent(self, e):
-        """
+        """keyPressEvent(e) -> None
         Handle user input a key at a time.
+        
         """
         text  = e.text()
         key   = e.key()
@@ -294,9 +301,10 @@ class VisShell(QtGui.QTextEdit):
             return
 
         if e.modifiers() & QtCore.Qt.MetaModifier and key == self.eofKey:
-            self.hide()
+            self.parent().closeSession()
         
-        if e.modifiers() & QtCore.Qt.ControlModifier or e.modifiers() & QtCore.Qt.ShiftModifier:
+        if (e.modifiers() & QtCore.Qt.ControlModifier or 
+            e.modifiers() & QtCore.Qt.ShiftModifier):
             e.ignore()
             return
 
@@ -348,8 +356,9 @@ class VisShell(QtGui.QTextEdit):
             e.ignore()
 
     def __recall(self):
-        """
+        """__recall() -> None
         Display the current item from the command history.
+        
         """
         cursor = self.textCursor()
         cursor.setPosition(self.last)
@@ -364,15 +373,16 @@ class VisShell(QtGui.QTextEdit):
 
         
     def focusNextPrevChild(self, next):
-        """
+        """focusNextPrevChild(next) -> None
         Suppress tabbing to the next window in multi-line commands. 
+        
         """
         if next and self.more:
             return 0
         return QtGui.QTextEdit.focusNextPrevChild(self, next)
 
     def mousePressEvent(self, e):
-        """
+        """mousePressEvent(e) -> None
         Keep the cursor after the last prompt.
         """
         if e.button() == QtCore.Qt.LeftButton:
@@ -381,13 +391,23 @@ class VisShell(QtGui.QTextEdit):
             self.setTextCursor(cursor)
         return
 
-    def hide(self):
+    def suspend(self):
+        """suspend() -> None
+        Called when hiding the parent window in order to recover the previous
+        state.
+
+        """
         #recovering the state
         sys.stdout   = self.prev_stdout
         sys.stderr   = self.prev_stderr
         sys.stdin    = self.prev_stdin
 
     def show(self):
+        """show() -> None
+        Store previous state and starts capturing all interactive input and 
+        output.
+        
+        """
         # storing current state
         self.prev_stdout = sys.stdout
         self.prev_stdin = sys.stdin
@@ -399,12 +419,17 @@ class VisShell(QtGui.QTextEdit):
         sys.stdin    = self
 
     def saveSession(self, fileName):
-        """ Write its contents to a file """
+        """saveSession(fileName: str) -> None 
+        Write its contents to a file """
         output = open(str(fileName), 'w')
         output.write(self.toPlainText())
         output.close()
 
     def restart(self, locals=None):
+        """restart(locals=None) -> None 
+        Restart a new session 
+
+        """
         self.clear()
         self.reset(locals)
         self.write('VisTrails shell running Python %s on %s.\n' %
@@ -415,6 +440,8 @@ class VisShell(QtGui.QTextEdit):
 
     def contentsContextMenuEvent(self,ev):
         """
+        contentsContextMenuEvent(ev) -> None
         Suppress the right button context menu.
+        
         """
         return

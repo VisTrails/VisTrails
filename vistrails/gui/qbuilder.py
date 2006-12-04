@@ -23,7 +23,7 @@ from gui.qgroupboxscrollarea import *
 from gui.qmodulefunctiongroupbox import *
 from gui.qt import SignalSet
 from gui.version_tree import QVersionTree
-from gui.vis_shell import ShellGui
+from gui.qshell import QShellDialog
 from gui.vistrail_controller import VistrailController, QueryController
 import core.system
 import gui.resources.macroicons_rc
@@ -77,7 +77,7 @@ class QBuilder(QtGui.QMainWindow):
         self.versionTreeAct.setCheckable(True)
         self.connect(self.versionTreeAct, QtCore.SIGNAL("triggered()"), self.toggleVersionTree)
         
-        self.shellAct = QtGui.QAction(self.tr("Open VisTrails Console"), self)
+        self.shellAct = QtGui.QAction(self.tr("Open VisTrails Shell"), self)
         self.shellAct.setShortcut(self.tr("Ctrl+H"))
         self.connect(self.shellAct, QtCore.SIGNAL("triggered()"), self.showConsole)
 
@@ -978,8 +978,9 @@ of the search line edit widget."""
 
     def showConsole(self):
         if not self.shell:
-            self.shell = ShellGui(self,self)
+            self.shell = QShellDialog(self,self)
         self.shell.show()
+        
 
     def resetView(self):
         if self.tabWidget.currentWidget() == self.pipelineView:
