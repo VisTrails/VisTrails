@@ -4,7 +4,8 @@
 ################################################################################
 import os.path
 from PyQt4 import QtCore, QtGui
-from spreadsheet_tab import StandardWidgetTabBar, StandardWidgetSheetTab
+from spreadsheet_tab import (StandardWidgetTabBar,
+                             StandardWidgetSheetTab, StandardTabDockWidget)
 
 ################################################################################
 

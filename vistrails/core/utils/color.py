@@ -227,9 +227,10 @@ class ColorByName(object):
                'violet_red_pale': [ 0.8588, 0.4392, 0.5765 ] }
     @staticmethod
     def get(name):
-        """get(str) -> Color
-        Returns a color with the given name or black if name not
-        found. Alpha channel is also included
+        """ get(str) -> Color        
+        This is a static method returning a color with the
+        given name or black if name not found. Alpha channel is also
+        included
         
         """
         if ColorByName.colors.has_key(name):
@@ -238,42 +239,64 @@ class ColorByName(object):
             return [0.0, 0.0, 0.0, 1.0]
 
     @staticmethod
-    def getNoAlpha(name):
-        """get(str) -> Color
-        Returns a color with the given name or black if name not
-        found. Alpha channel is not included
+    def getInt(name):
+        """ getInt(str) -> Color in int range
+        Similar to get() but color ranges are from 0 to 255
         
         """
         if ColorByName.colors.has_key(name):
-            return ColorByName.colors[name]
+            return [int(ColorByName.colors[name][0]*255),
+                    int(ColorByName.colors[name][1]*255),
+                    int(ColorByName.colors[name][2]*255),
+                    255]
+        else:
+            return [0, 0, 0, 255]
+
+    @staticmethod
+    def getNoAlpha(name):
+        """ getNoAlpha(str) -> Color        
+        This is a static method returning a color with the given name
+        or black if name not found. Alpha channel is not included
+        
+        """
+        if ColorByName.colors.has_key(name):
+            return ColorByName.colors[name]+[] # to make copy
         else:
             return [0.0, 0.0, 0.0]
 
-class PresetColor(object):
+    @staticmethod
+    def getNoAlphaInt(name):
+        """ getNoAlphaInt(str) -> Color in int range
+        Similar to getNoAlphaInt() but color ranges are from 0 to 255
+        
+        """
+        if ColorByName.colors.has_key(name):
+            return [int(ColorByName.colors[name][0]*255),
+                    int(ColorByName.colors[name][1]*255),
+                    int(ColorByName.colors[name][2]*255)]
+        else:
+            return [0, 0, 0]
+
+class ColorManipulator(object):
     """
-    Provides some pre-defined color constants for using throughout
-    VisTrails
+    ColorManipulator is a class containing color-manipulation routines
     
     """
-    FILTER = ColorByName.get('sea_green_dark')
-    OBJECT = ColorByName.get('light_grey')
-    ERROR = ColorByName.get('salmon')
-    SUCCESS = ColorByName.get('mint')
-    ACTIVE = ColorByName.get('navajo_white')
-    COMPUTE = ColorByName.get('yellow')
-    NOT_EXECUTED = ColorByName.get('light_goldenrod')
-    VERSION_TREE = ColorByName.get('desatcornflower')
-    SELECTED = ColorByName.get('banana')
-    OTHER_USER_VT = ColorByName.get('melon')
-    SELECTION_BOX = ColorByName.get('light_grey')
-    SELECTION_BOX_BORDER = ColorByName.get('lamp_black')
-    GHOSTED_VERSION = ColorByName.get('very_light_grey')
-    GHOSTED_VERSION_OUTLINE = ColorByName.get('light_grey')
-    GHOSTED_MODULE = ColorByName.get('light_dim_grey')
-    GHOSTED_MODULE_OUTLINE = ColorByName.get('dark_dim_grey')
-    OUTLINE = ColorByName.get('black')
-    PAINT_BACKGROUND = ColorByName.get('black')
-    
+    @staticmethod
+    def multiply(color, ratio):
+        """ multiply(color: list, ratio: float) -> Color        
+        This is a static method returning a color that has its RGB to
+        be only a ratio of color
+        
+        """
+        result = []
+        for i in range(len(color)):
+            if i<3:
+                result.append(color[i]*ratio)
+            else:
+                return result + color[3:]
+        return color
+
 ################################################################################
 
 import unittest
@@ -292,18 +315,6 @@ class TestColorByName(unittest.TestCase):
                           [0.0, 0.0, 0.0, 1.0]),        
         self.assertEquals(ColorByName.getNoAlpha('another not exist'),
                           [0.0, 0.0, 0.0]),
-        
-class TestPresetColor(unittest.TestCase):
-    """
-    A few simple tests to make sure Preset is working as expected
-    
-    """
-    def testColorValues(self):
-        self.assertEquals(PresetColor.FILTER,
-                          ColorByName.get('sea_green_dark'))
-        self.assertEquals(PresetColor.GHOSTED_VERSION,
-                          ColorByName.get('very_light_grey'))
-
-        
+                
 if __name__ == '__main__':
     unittest.main()

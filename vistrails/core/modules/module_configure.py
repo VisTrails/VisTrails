@@ -6,18 +6,18 @@ import urllib
 
 class StandardModuleConfigurationWidget(QtGui.QDialog):
 
-    def __init__(self, module, parent=None):
+    def __init__(self, module, controller, parent=None):
         QtGui.QDialog.__init__(self, parent)
         self.setModal(True)
-        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowMinMaxButtonsHint)
         self.module = module
         self.moduleThing = registry.getDescriptorByName(self.module.name).module
+        self.controller = controller
 
 
 class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
 
-    def __init__(self, module, parent=None):
-        StandardModuleConfigurationWidget.__init__(self, module, parent)
+    def __init__(self, module, controller, parent=None):
+        StandardModuleConfigurationWidget.__init__(self, module, controller, parent)
         self.setWindowTitle('Module Configuration')
         self.setLayout(QtGui.QVBoxLayout())
         self.layout().setMargin(0)
@@ -101,7 +101,7 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
                 self.module.portVisible.add(port.name)
             else:
                 self.module.portVisible.discard(port.name)
-        self.emit(QtCore.SIGNAL('updatePipeline()'))
+        self.emit(QtCore.SIGNAL('doneConfigure()'))
         self.close()
         
 
@@ -266,8 +266,8 @@ class PythonEditor(QtGui.QTextEdit):
                  
 class PythonSourceConfigurationWidget(StandardModuleConfigurationWidget):
 
-    def __init__(self, module, parent=None):
-        StandardModuleConfigurationWidget.__init__(self, module, parent)
+    def __init__(self, module, controller, parent=None):
+        StandardModuleConfigurationWidget.__init__(self, module, controller, parent)
         self.setWindowTitle('PythonSource Configuration')
         self.setLayout(QtGui.QVBoxLayout())
         self.layout().setMargin(0)
@@ -403,6 +403,6 @@ class PythonSourceConfigurationWidget(StandardModuleConfigurationWidget):
             controller.performAction(action)
         
     def okTriggered(self, checked = False):
-        self.emit(QtCore.SIGNAL('updateActions'), self.updateActionsHandler)
-        self.emit(QtCore.SIGNAL('updatePipeline()'))
+        self.updateActionsHandler(self.controller)
+        self.emit(QtCore.SIGNAL('doneConfigure()'))
         self.close()

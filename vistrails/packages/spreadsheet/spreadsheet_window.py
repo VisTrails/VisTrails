@@ -189,7 +189,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 
 
         # Force to show status tip for top-level controller widgets
-        if eType==112 and q.parent()==None:
+        if (eType==112 and q.parent()==None and
+            q!=self.visApp.builderWindow):
             self.statusBar().showMessage(e.tip())
             
         return QtGui.QMainWindow.eventFilter(self,q,e)

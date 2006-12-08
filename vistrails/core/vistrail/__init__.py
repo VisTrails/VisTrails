@@ -79,79 +79,175 @@ class Vistrail(object):
                 connection.objectType = result.getModuleById(moduleId).name
         return result
 
-    def getPipelineShare(self, v1, v2):
-        """ getPipelineShare(v1:int,v2:int) -> [int] 
-        Returns a list of ids of shared modules between two versions. 
-       
+    def getPipelineDiffByAction(self, v1, v2):
+        """ getPipelineDiffByAction(v1: int, v2: int) -> tuple(list,list,list)        
+        Compute the diff between v1 and v2 just by looking at the
+        action chains. The value returned is a tuple containing lists
+        of shared, v1 not v2, and v2 not v1 modules
+        
         """
-        #get first common ancestor
+        # Get first common ancestor
         p = self.getFirstCommonVersion(v1,v2)
-
-        #get the modules present in v1 and v2
-        #this is not good
-        parent = self.getPipeline(p)
+        
+        # Get the modules present in v1 and v2
         v1andv2 = []
-        notInV1 = []
-        notInV2 = []
-        pm = []
+        v2Only = []
+        v1Only = []
+        sharedCreations = []
+        parent = self.getPipeline(p)
         for m in parent.modules.keys():
             v1andv2.append(m)
-            pm.append(m)
+            sharedCreations.append(m)
         l1 = self.actionChain(v1,p)
         l2 = self.actionChain(v2,p)
         l = l1 + l2
+
+        # Take deleted modules out of shared modules
         for a in l:
             if a.type == "DeleteModule":
                 for id in a.ids:
                     if id in v1andv2:
                         v1andv2.remove(id)
+
+        # Add deleted "shared modules" of v2 to v1
         for a in l2:
             if a.type == "DeleteModule":
                 for id in a.ids:
-                    if id in pm:
-                        notInV2.append(id)
+                    if id in sharedCreations:
+                        v1Only.append(id)
+                        
+        # Add deleted "shared modules" of v1 to v2
         for a in l1:
             if a.type == "DeleteModule":
                 for id in a.ids:
-                    if id in pm:
-                        notInV1.append(id)
+                    if id in sharedCreations:
+                        v2Only.append(id)
 
+        # Add module created by v1 only
         for a in l1:
             if a.type == "AddModule":
-                if a.module.id not in notInV2:
-                    notInV2.append(a.module.id)
+                if a.module.id not in v1Only:
+                    v1Only.append(a.module.id)
+            if a.type == "DeleteModule":
+                for id in a.ids:
+                    if id in v1Only:
+                        v1Only.remove(id)
+                    
+        # Add module created by v2 only
         for a in l2:
             if a.type == "AddModule":
-                if a.module.id not in notInV1:
-                    notInV1.append(a.module.id)
+                if a.module.id not in v2Only:
+                    v2Only.append(a.module.id)
+            if a.type == "DeleteModule":
+                for id in a.ids:
+                    if id in v2Only:
+                        v2Only.remove(id)
+                    
+        return (v1andv2,v1Only,v2Only)
 
-        v1param = {}
-        for a in l1:
-            if a.type == "ChangeParameter" and a.parameters:
-                if a.parameters[0][0] in v1andv2:
-                    values = [p[5] for p in a.parameters]
-                    if not (a.parameters[0][0] in v1param):
-                        v1param[a.parameters[0][0]] = []
-                    params = string.joinfields([a.parameters[0][2],'(',
-                                                string.joinfields(values,','),
-                                                 ')'],'')
-                    v1param[a.parameters[0][0]].append(params)
-        v2param = {}
-        for a in l2:
-            if a.type == "ChangeParameter" and a.parameters:
-                if a.parameters[0][0] in v1andv2:
-                    values = [p[5] for p in a.parameters]
-                    if not (a.parameters[0][0] in v2param):
-                        v2param[a.parameters[0][0]] = []
-                    params = string.joinfields([a.parameters[0][2],'(',
-                                                string.joinfields(values,','),
-                                                ')'],'')
-                    v2param[a.parameters[0][0]].append(params)
-        return [v1andv2,v1param,v2param]
-            
+    def getPipelineDiff(self, v1, v2):
+        """ getPipelineDiff(v1: int, v2: int) -> tuple        
+        Perform a diff between 2 versions, this will obtain the shared
+        modules by getting shared nodes on the version tree. After,
+        that, it will perform a heuristic algorithm to match
+        signatures of modules to get more shared/diff modules. The
+        heuristic is O(N^2), where N = the number of modules
+
+        Keyword arguments:
+        v1     --- the first version number
+        v2     --- the second version number
+        return --- (p1, p2: VistrailPipeline,
+                    [shared modules (id in v1, id in v2) ...],
+                    [v1 not v2 modules],
+                    [v2 not v1 modules],
+                    [parameter-changed modules (see-below)])
+
+        parameter-changed modules = [((module id in v1, module id in v2),
+                                      [(function in v1, function in v2)...]),
+                                      ...]
+        
+        """
+        # Instantiate pipelines associated with v1 and v2
+        p1 = self.getPipelineVersionNumber(v1)
+        p2 = self.getPipelineVersionNumber(v2)
+
+        # Find the shared modules deriving from the version tree
+        # common ancestor
+        (v1Andv2, v1Only, v2Only) = self.getPipelineDiffByAction(v1, v2)
+
+        # Convert v1Andv2 to a list of tuple
+        v1Andv2 = [(i,i) for i in v1Andv2]
+
+        # Looking for more shared modules by looking at all modules of
+        # v1 and determine if there is an corresponding one in v2.
+        # Only look by name for now
+        for m1id in copy.copy(v1Only):
+            m1 = p1.modules[m1id]
+            for m2id in v2Only:
+                m2 = p2.modules[m2id]
+                if m1.name==m2.name:
+                    v1Andv2.append((m1id, m2id))
+                    v1Only.remove(m1id)
+                    v2Only.remove(m2id)
+                    break
+
+        # Capture parameter changes
+        paramChanged = []
+        for (m1id,m2id) in copy.copy(v1Andv2):
+            m1 = p1.modules[m1id]
+            m2 = p2.modules[m2id]
+            # Get signatures of all functions in m1 and m2
+            signature1 = []
+            signature2 = []
+            for f1 in m1.functions:
+                signature1.append((f1.name,
+                                   [(p.type, str(p.strValue))
+                                    for p in f1.params]))
+            for f2 in m2.functions:
+                signature2.append((f2.name,
+                                   [(p.type, str(p.strValue))
+                                    for p in f2.params]))
+
+            if signature1!=signature2:
+                v1Andv2.remove((m1id,m2id))
+                paramMatching = []
+                id2 = 0
+                for s1 in signature1:
+                    # Looking for a match and perform a panel-to-panel
+                    # comparison
+                    i = id2
+                    match = None
+                    while i<len(signature2):
+                        s2 = signature2[i]
+                        if s1==s2:
+                            match = i
+                            break
+                        if s1[0]==s2[0] and match==None:
+                            match = i
+                        i += 1
+                    if match!=None:
+                        paramMatching.append((s1, signature2[match]))
+                        while id2<match:
+                            paramMatching.append(((None, None), signature2[id2]))
+                            id2 += 1
+                        id2 += 1
+                    else:
+                        paramMatching.append((s1, (None, None)))
+                while id2<len(signature2):
+                    paramMatching.append(((None, None), signature2[id2]))
+                    id2 += 1
+                paramChanged.append(((m1id,m2id),paramMatching))
+        return (p1, p2, v1Andv2, v1Only, v2Only, paramChanged)                    
+                        
     def getFirstCommonVersion(self, v1, v2):
-        """getFirstCommonVersion(v1:int, v2:int) -> int 
-        Returns the first version that it is common to both v1 and v2 
+        """ Returns the first version that it is common to both v1 and v2 
+        Parameters
+        ----------
+        - v1 : 'int'
+         version number 1
+
+        - v2 : 'int'
+         version number 2
 
         """
         t1 = []
@@ -167,6 +263,7 @@ class Vistrail(object):
             if t in t1:
                 return t
             t = self.actionMap[t].parent
+        return 0
     
     def getLastCommonVersion(self, v):
         """getLastCommonVersion(v: Vistrail) -> int
@@ -501,7 +598,6 @@ class Vistrail(object):
     getPipelineDispatcher = {}
     getPipelineDispatcher[type(0)] = getPipelineVersionNumber
     getPipelineDispatcher[type('0')] = getPipelineVersionName
-
 
 class VersionAlreadyTagged(Exception):
     def __str__(self):

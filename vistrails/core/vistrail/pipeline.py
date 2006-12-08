@@ -4,6 +4,7 @@ from core.vistrail.port import Port
 from core.vistrail.module_param import VistrailModuleType
 from core.data_structures import Graph
 from core.utils import VistrailsInternalError
+from core.utils import expression
 import copy
 from types import ListType
 
@@ -252,11 +253,12 @@ class Pipeline(object):
         return ordered
 
     def evaluateExp(self, atype, base, exps, aliases):
-        import datetime
-        
-        for e in exps: base = base[:e[0]] + str(eval(e[1],
-                                                     {'datetime':locals()['datetime']},
-                                                     aliases)) + base[e[0]:]
+        import datetime        
+        for e in exps: base = (base[:e[0]] +
+                               str(eval(e[1],
+                                        {'datetime':locals()['datetime']},
+                                        aliases)) +
+                               base[e[0]:])
         if not atype in ['string', 'String']: base = eval(base,None,None)
         return base        
 
@@ -271,19 +273,19 @@ class Pipeline(object):
                    'Integer': int, 'Float': float, 'String': str}
         for alias in reversed(ordered):
             (atype,(base,exps)) = aliases[alias]
-            aliases[alias] = casting[atype](self.evaluateExp(atype,base,exps,aliases))
+            value = self.evaluateExp(atype,base,exps,aliases)
+            aliases[alias] = casting[atype](value)
 
-        # Evaluate all expressions
-        # TODO: Fix this
-        from gui.qmodulefunctiongroupbox import QPythonValueLineEdit
         for mid in self.modules:
             for f in self.modules[mid].functions:
                 for p in f.params:
                     if p.alias and p.alias!='':
                         p.evaluatedStrValue = str(aliases[p.alias])
                     else:
-                        (base,exps) = QPythonValueLineEdit.parseExpression(str(p.strValue))
-                        p.evaluatedStrValue = str(self.evaluateExp(p.type,base,exps,aliases))
+                        (base,exps) = expression.parseExpression(
+                            str(p.strValue))
+                        p.evaluatedStrValue = str(
+                            self.evaluateExp(p.type,base,exps,aliases))
         return aliases
-
+    
 ################################################################################        

@@ -452,9 +452,6 @@ class Tree(object):
 
 ###############################################################################
 
-import gui.qt
-gui.qt.askForQObjectCreation()
-
 registry = ModuleRegistry()
 
 addModule     = registry.addModule

@@ -1,11 +1,11 @@
 """Main file for the VisTrails distribution."""
 
 if __name__ == '__main__':
-    import gui.vis_application
+    import gui.application
     import sys
     try:
-        gui.vis_application.start_application()
-        app = gui.vis_application.VistrailsApplication()
+        gui.application.start_application()
+        app = gui.application.VistrailsApplication()
     except SystemExit, e:
         sys.exit(e)
     except Exception, e:
@@ -15,5 +15,5 @@ if __name__ == '__main__':
         sys.exit(255)
     if app.configuration.interactiveMode:
         v = app.exec_()
-        gui.vis_application.stop_application()
+        gui.application.stop_application()
         sys.exit(v)

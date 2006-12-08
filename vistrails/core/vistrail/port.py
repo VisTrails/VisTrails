@@ -22,22 +22,27 @@ class Port(object):
     self.spec: list of list of (module, str) 
     
     """
+    def getSig(self, spec):
+        """ getSig(spec: tuple) -> str
+        Return a string of signature based a port spec
+        
+        """
+        if type(spec) == __builtin__.list:            
+            return "(" + ", ".join([self.getSig(s) for s in spec]) + ")"
+        assert type(spec == __builtin__.tuple)
+        spec = spec[0]
+        if issubclass(spec, core.modules.vistrails_module.Module):
+            return spec.__name__
+        raise VistrailsInternalError("getSig Can't handle type %s" 
+                                         % type(spec))
+    
     def getSignatures(self):
         """getSignatures() -> list
         Returns a list of all accepted signatures of this port, by generating
         a string representation of each port spec.
         
         """
-        def getSig(spec):
-            if type(spec) == __builtin__.list:
-                return "(" + ", ".join([getSig(s) for s in spec]) + ")"
-            assert type(spec == __builtin__.tuple)
-            spec = spec[0]
-            if issubclass(spec, core.modules.vistrails_module.Module):
-                return spec.__name__
-            raise VistrailsInternalError("getSig Can't handle type %s" 
-                                         % type(spec))
-        return [getSig(spec) for spec in self.spec]
+        return [self.getSig(spec) for spec in self.spec]
 
     def toolTip(self):
         """ toolTip() -> str
