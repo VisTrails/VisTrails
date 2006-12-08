@@ -74,7 +74,7 @@ class QMethodDropBox(QtGui.QScrollArea):
                                                            item.spec)
 
                         self.vWidget.addFunction(0, function)
-                        self.ensureVisible(0, self.viewport().height())
+                        self.scrollContentsBy(0, self.viewport().height())
                         self.lockUpdate()
                         if self.controller:
                             self.controller.previousModuleIds = [self.module.id]
