@@ -56,6 +56,15 @@ def createBogusQtApp():
             allowQObjects()
     return BogusApplication()
 
+def createBogusQtGuiApp(argv=["bogus"]):    
+    """createBogusQtGuiApp is similar to createBogusQtApp but return a
+    GUI application instead"""    
+    class BogusApplication(QtGui.QApplication):
+        def __init__(self):
+            QtGui.QApplication.__init__(self, argv)
+            allowQObjects()
+    return BogusApplication()
+
 def qt_version():
     return [int(i)
             for i in

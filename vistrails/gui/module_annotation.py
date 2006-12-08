@@ -1,42 +1,53 @@
-from PyQt4 import QtCore, QtGui, QtOpenGL
-from gui.qframebox import *
-from gui.qmodulefunctiongroupbox import *
-from gui.qgroupboxscrollarea import *
-from gui.qbuildertreewidget import *
+""" This file contains widgets related to the module annotation
+displaying a list of all pairs (key,value) for a module
 
-class ModuleAnnotations(object):
-    def __init__(self, builder):
-        self.builder = builder
-        self.buildModuleAnnotations()
-    def buildModuleAnnotations(_self):
-        """Builds the module annotation frame and table."""
-        self = _self.builder        
-        table = KeyValueTable(_self.builder)
-        labels = QtCore.QStringList()
-        labels << self.tr("Key") << self.tr("Value")
-        table.setHorizontalHeaderLabels(labels)
-        table.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
-        table.horizontalHeader().setMovable(False)
-        table.horizontalHeader().setStretchLastSection(True)
-        table.setSortingEnabled(True)
-        table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        table.verticalHeader().hide()
-        self.delegate = KeyValueDelegate(table)
-        table.setItemDelegate(self.delegate)
-        self.moduleAnnotations = table
+QKeyValueDelegate
+QModuleAnnotation
+"""
 
-class KeyValueTable(QtGui.QTableWidget):
-    def __init__(self, builder):
-        self.builder = builder
-        QtGui.QTableWidget.__init__(self,1,2)
+from PyQt4 import QtCore, QtGui
+from gui.common_widgets import QToolWindowInterface
+from core.modules.module_registry import registry
 
-    def resetTable(self):
+################################################################################
+
+class QModuleAnnotation(QtGui.QTableWidget, QToolWindowInterface):
+    """
+    QModuleAnnotation is a table widget that can be dock inside a
+    window. It has two columns for key and value pairs to view/edit at
+    run-time
+    
+    """    
+    def __init__(self, parent=None):
+        """ QModuleAnnotation(parent: QWidget) -> QModuleAnnotation
+        Construct the 1x2 table
+        
+        """
+        QtGui.QTableWidget.__init__(self, 1, 2, parent)
+        self.setWindowTitle('Annotations')
+        self.setHorizontalHeaderLabels(QtCore.QStringList() << 'Key' << 'Value')
+        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
+        self.horizontalHeader().setMovable(False)
+        self.horizontalHeader().setStretchLastSection(True)
+        self.setSortingEnabled(True)
+        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.verticalHeader().hide()
+        self.delegate = QKeyValueDelegate(self)
+        self.setItemDelegate(self.delegate)
+        self.module = None
+        self.controller = None
+
+    def updateModule(self, module):
+        """ updateModule(module: Module) -> None
+        Update the widget to view the module annotations
+        
+        """
+        self.module = module
         self.setRowCount(0)
-        if self.builder.pipeline and self.builder.selectedModule!=-1:
-            annotations = self.builder.pipeline.getModuleById(self.builder.selectedModule).annotations
-            self.setRowCount(len(annotations)+1)
+        if module:
+            self.setRowCount(len(module.annotations)+1)
             curRow = 0
-            for key,value in annotations.iteritems():
+            for (key, value) in module.annotations.items():
                 self.setItem(curRow, 0, QtGui.QTableWidgetItem(key))
                 self.setItem(curRow, 1, QtGui.QTableWidgetItem(value))
                 curRow += 1
@@ -46,58 +57,112 @@ class KeyValueTable(QtGui.QTableWidget):
             self.setEnabled(False)
         self.setItem(self.rowCount()-1, 0, QtGui.QTableWidgetItem(''))
         self.setItem(self.rowCount()-1, 1, QtGui.QTableWidgetItem(''))
+        self.makeItemBold(self.model().index(self.rowCount()-1,0))
 
-class KeyValueDelegate(QtGui.QItemDelegate):
+    def makeItemBold(self, index):
+        """ makeItemBold(index: QModelIndex) -> None
+        Make the item at index to have a bold face
+        
+        """
+        oldFont = QtGui.QFont(self.model().data(index, QtCore.Qt.FontRole))
+        oldFont.setBold(True)
+        oldFont.setPointSize(20)
+        self.model().setData(index, QtCore.QVariant(oldFont),
+                             QtCore.Qt.FontRole)
+        
+
+class QKeyValueDelegate(QtGui.QItemDelegate):
+    """    
+    QKeyValueDelegate tries to create a special control widget
+    providing a simple interface for adding/deleting module
+    annotations
+    
+    """
 
     def __init__(self, table):
+        """ QKeyValueDelegate(table: QModuleAnnotation) -> QKeyValueDelegate
+        Save a reference to table and perform a default initialization
+        
+        """
         self.table = table
         QtGui.QItemDelegate.__init__(self, None)
     
     def setEditorData(self, editor, index):
+        """ setEditorData(editor: QWidget, index: QModelIndex) -> None
+        Set the current item (at index) data into editor for editting
+        
+        """
         text = index.model().data(index, QtCore.Qt.DisplayRole).toString()
         editor.setText(text)
 
     def setModelData(self, editor, model, index):
+        """ setModelData(editor: QWidget, model: QAbstractItemModel,
+                         index: QModelIndex) -> None                         
+        Assign the value of the editor back into the model and emit a
+        signal to update vistrail
+        
+        """
         text = str(editor.text())
         row = index.row()
         col = index.column()
-        key = str(self.table.item(row, 0).text())
-        value = str(self.table.item(row, 1).text())
-        builder = self.table.builder
-        moduleId = builder.selectedModule
-    
-        annotations = builder.pipeline.getModuleById(moduleId).annotations
-        controller = builder.controllers[builder.currentControllerName]
+        keyItem = self.table.item(row, 0)
+        if keyItem:
+            key = str(keyItem.text())
+        else:
+            key = ''
+            
+        valueItem = self.table.item(row, 1)
+        if valueItem:
+            value = str(valueItem.text())
+        else:
+            value = ''
         
-        if col==0:
-            if not text and row<self.table.rowCount()-1:
-                self.table.removeRow(row)
-                controller.deleteAnnotation(key, moduleId)
-            if text and text!=key and annotations.has_key(text):
-                QtGui.QMessageBox.information(None,
-                                              "VisTrails",
-                                              QtCore.QString("'%1' already exists in the annotations.").arg(text))
-                return
+        if self.table.controller:
+            self.table.controller.quiet = True
 
-        if col==1 and not key:
+        if col==0:
+            if text=='' and row<self.table.rowCount()-1:
+                self.table.removeRow(row)
+                if self.table.controller and self.table.module:
+                    self.table.controller.deleteAnnotation(key,
+                                                           self.table.module.id)
+            if text!='' and text!=key:
+                if (self.table.module and
+                    self.table.module.annotations.has_key(text)):
+                    QtGui.QMessageBox.information(None,
+                                                  "VisTrails",
+                                                  text + ' already exists in '
+                                                  'the annotations.')
+                    return
+
+        if col==1 and key=='':
             QtGui.QMessageBox.information(None,
                                           "VisTrails",
                                           "Must provide a key first.")
+            if self.table.controller:
+                self.table.controller.quiet = False
             return
             
             
-        if (row==self.table.rowCount()-1) and text:
-            self.table.insertRow(row+1)
-            self.table.setItem(self.table.rowCount()-1, 0, QtGui.QTableWidgetItem(''))
-            self.table.setItem(self.table.rowCount()-1, 1, QtGui.QTableWidgetItem(''))
+        if col==0 and key=='' and text!='':
+            self.table.resizeRowsToContents()
+            self.table.insertRow(self.table.rowCount())
+            self.table.setItem(self.table.rowCount()-1, 0,
+                               QtGui.QTableWidgetItem(''))
+            self.table.setItem(self.table.rowCount()-1, 1,
+                               QtGui.QTableWidgetItem(''))
                     
         if col==1:
             if text!=value:
-                controller.addAnnotation((key, text), moduleId)
-        elif text:
-            if key!=text and key:
-                controller.deleteAnnotation(key, moduleId)
-            controller.addAnnotation((text, value), moduleId)
+                if self.table.controller and self.table.module:
+                    self.table.controller.addAnnotation((key, text),
+                                                        self.table.module.id)
+        elif text!='' and self.table.controller and self.table.module:
+            if key!=text and key!='':
+                self.table.controller.deleteAnnotation(key, moduleId)
+            self.table.controller.addAnnotation((text, value),
+                                                self.table.module.id)
         
-        model.setData(index, QtCore.QVariant(text))
-
+        model.setData(index, QtCore.QVariant(text))        
+        if self.table.controller:
+            self.table.controller.quiet = False

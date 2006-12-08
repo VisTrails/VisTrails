@@ -1,43 +1,92 @@
-from PyQt4 import QtCore, QtGui, QtOpenGL
-from gui.qframebox import *
-from gui.qmodulefunctiongroupbox import *
-from gui.qgroupboxscrollarea import *
-from gui.qbuildertreewidget import *
-from gui import generate_module_tree
+""" This file contains widgets related to the module palette
+displaying a list of all modules in Vistrails
 
-##################################################################
+QModulePalette
+QModuleTreeWidget
+QModuleTreeWidgetItem
+"""
 
-class ModulePalette(object):
+from PyQt4 import QtCore, QtGui
+from gui.common_widgets import (QSearchTreeWindow,
+                                QSearchTreeWidget,
+                                QToolWindowInterface)
+from core.modules.module_registry import registry
 
-    def __init__(self, builder):
-        self.builder = builder
-        self.buildModulePalette()
+################################################################################
 
-    def buildModulePalette(self):
-        w = QVTKClassTreeWidget()
-        w.setSortingEnabled(True)
-        w.sortItems(0,QtCore.Qt.AscendingOrder)
-        w.setColumnCount(2)
-        labels = QtCore.QStringList()
-        labels << "Name" << "Type"
-        w.setHeaderLabels(labels)
-        w.header().setResizeMode(QtGui.QHeaderView.Interactive)
-        w.header().setMovable(False)
-        w.header().resizeSection(0,230)
-        w.header().resizeSection(1,50)
-        w.setRootIsDecorated(True)
-        w.setDragEnabled(True)
+class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
+    """
+    QModulePalette just inherits from QSearchTreeWindow to have its
+    own type of tree widget
 
-        w.allItems = []
-        self.treeManager = generate_module_tree.GenerateModuleTree(w)
-        self.treeManager.generateModuleHierarchy()
+    """
+    def createTreeWidget(self):
+        """ createTreeWidget() -> QModuleTreeWidget
+        Return the search tree widget for this window
+        
+        """
+        self.setWindowTitle('Modules')
+        return QModuleTreeWidget(self)
 
-#        w.setMinimumHeight(600)
-#        w.setMinimumWidth(400)
+    def newModule(self, descriptor):
+        """ newModule(descriptor: ModuleDescriptor) -> None
+        A new module has been added to Vistrail
+        
+        """
+        print 'Unhandled module addition'
 
-        sp = QtGui.QSizePolicy()
-        sp.setHorizontalPolicy(QtGui.QSizePolicy.Fixed)
-        sp.setVerticalPolicy(QtGui.QSizePolicy.Expanding)
-        w.setSizePolicy(sp)
+class QModuleTreeWidget(QSearchTreeWidget):
+    """
+    QModuleTreeWidget is a subclass of QSearchTreeWidget to display all
+    Vistrails Module
+    
+    """
+    def __init__(self, parent=None):
+        """ QModuleTreeWidget(parent: QWidget) -> QModuleTreeWidget
+        Set up size policy and header
 
-        return w
+        """
+        QSearchTreeWidget.__init__(self, parent)
+        self.header().hide()
+        
+    def updateFromModuleRegistry(self):
+        """ updateFromModuleRegistry() -> None        
+        Setup this tree widget to show modules currently inside
+        module_registry.registry
+        
+        """
+        def createModuleItem(parentItem, module):
+            """ createModuleItem(parentItem: QModuleTreeWidgetItem,
+                                 module: Tree) -> QModuleTreeWidgetItem                                 
+            Traverse a module to create items recursively. Then return
+            its module item
+            
+            """
+            labels = QtCore.QStringList()
+            labels << module.descriptor.name
+            moduleItem = QModuleTreeWidgetItem(module.descriptor,
+                                               parentItem,
+                                               labels)
+            for child in module.children:
+                createModuleItem(moduleItem, child)
+            
+        module = registry.classTree
+        createModuleItem(self, module)
+        self.expandAll()
+
+class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
+    """
+    QModuleTreeWidgetItem represents module on QModuleTreeWidget
+    
+    """
+    def __init__(self, descriptor, parent, labelList):
+        """ QModuleTreeWidgetItem(parent: QTreeWidgetItem
+                                  labelList: QStringList)
+                                  -> QModuleTreeWidget                                  
+        Create a new tree widget item with a specific parent and
+        labels
+
+        """
+        self.descriptor = descriptor
+        QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
+        

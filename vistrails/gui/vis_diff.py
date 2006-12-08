@@ -1,419 +1,485 @@
+""" This modules builds a widget to interact with vistrail diff
+operation """
 from PyQt4 import QtCore, QtGui
-from gui.shape_engine import *
-from core.vistrail import *
-from core.data_structures import *
-import string
-from core.utils import *
-from core import system
+from core.utils.color import ColorByName
+from gui.pipeline_view import QPipelineView
+from gui.theme import CurrentTheme
+import copy
 
-class FunctionItemModel(QtGui.QStandardItemModel):
-    def __init__(self,row,col,parent=None):
-        QtGui.QStandardItemModel.__init__(self,row,col,parent)
+################################################################################
+
+class QFunctionItemModel(QtGui.QStandardItemModel):
+    """
+    QFunctionItemModel is a item model that will allow item to be
+    show as a disabled one on the table
+    
+    """
+    def __init__(self, row, col, parent=None):
+        """ QFunctionItemModel(row: int, col: int, parent: QWidget)
+                              -> QFunctionItemModel                             
+        Initialize with a number of rows and columns
+        
+        """
+        QtGui.QStandardItemModel.__init__(self, row, col, parent)
         self.disabledRows = {}
 
     def flags(self, index):
+        """ flags(index: QModelIndex) -> None
+        Return the current flags of the item with the index 'index'
+        
+        """
         if index.isValid() and self.disabledRows.has_key(index.row()):
-            return QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsSelectable
+            return (QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled |
+                    QtCore.Qt.ItemIsSelectable)
         return QtGui.QStandardItemModel.flags(self,index)
 
     def clearList(self):
+        """ clearList() -> None
+        Clear all items including the disabled ones
+        
+        """
         self.disabledRows = {}
         self.removeRows(0,self.rowCount())
 
     def disableRow(self,row):
+        """ disableRow(row: int) -> None
+        Disable a specific row on the table
+        
+        """
         self.disabledRows[row] = None
 
-class ParamChanges(QtGui.QWidget):
-    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
+class QParamTable(QtGui.QTableView):
+    """
+    QParamTable is a widget represents a diff between two version
+    as side-by-side comparisons
+    
+    """
+    def __init__(self, v1Name=None, v2Name=None, parent=None):
+        """ QParamTable(v1Name: str, v2Name: str, parent: QWidget)
+                       -> QParamTable
+        Initialize the table with two version names on the header view
+        
+        """
+        QtGui.QTableView.__init__(self, parent)
+        itemModel = QFunctionItemModel(0, 2, self)
+        itemModel.setHeaderData(0, QtCore.Qt.Horizontal,
+                                QtCore.QVariant(v1Name))
+        itemModel.setHeaderData(1, QtCore.Qt.Horizontal,
+                                QtCore.QVariant(v2Name))
+        self.setModel(itemModel)
+        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)        
+        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)        
+        self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)        
+        self.setFont(CurrentTheme.VISUAL_DIFF_PARAMETER_FONT)
+        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        
+
+class QParamInspector(QtGui.QWidget):
+    """
+    QParamInspector is a widget acting as an inspector vistrail modules
+    in diff mode. It consists of a function inspector and annotation
+    inspector
+    
+    """
+    def __init__(self, v1Name='', v2Name='',
+                 parent=None, f=QtCore.Qt.WindowFlags()):
+        """ QParamInspector(v1Name: str, v2Name: str,
+                            parent: QWidget, f: WindowFlags)
+                            -> QParamInspector
+        Construct a widget containing tabs: Functions and Annotations,
+        each of them is in turn a table of two columns for two
+        corresponding versions.
+        
+        """
         QtGui.QWidget.__init__(self, parent, f | QtCore.Qt.Tool)
-        self.setWindowTitle('Parameter Changes - None')
-        self.firstTime = True
+        self.setWindowTitle('Parameter Inspector - None')
+        self.firstTime = True        
         self.boxLayout = QtGui.QVBoxLayout()
         self.boxLayout.setMargin(0)
         self.boxLayout.setSpacing(0)
         self.tabWidget = QtGui.QTabWidget()
         self.tabWidget.setTabPosition(QtGui.QTabWidget.North)
         self.tabWidget.setTabShape(QtGui.QTabWidget.Triangular)
-        self.fFont = QtGui.QFont('Arial', 10)
-
-        self.allFunctionsModel = FunctionItemModel(0,2,self)
-        self.allFunctionsModel.setHeaderData(0,QtCore.Qt.Horizontal,QtCore.QVariant(self.parent().v1name))
-        self.allFunctionsModel.setHeaderData(1,QtCore.Qt.Horizontal,QtCore.QVariant(self.parent().v2name))
-        self.allFunctionsSelModel = QtGui.QItemSelectionModel(self.allFunctionsModel)
-        self.allFunctions = QtGui.QTableView()
-        self.allFunctions.setModel(self.allFunctionsModel)
-        self.allFunctions.setSelectionModel(self.allFunctionsSelModel)
-        self.allFunctions.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
-        self.allFunctions.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.allFunctions.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.allFunctions.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
-        self.allFunctions.setFont(self.fFont)
-        self.tabWidget.addTab(self.allFunctions, 'Functions')
-
-        self.annotationsModel = FunctionItemModel(0,2,self)        
-        self.annotationsModel.setHeaderData(0,QtCore.Qt.Horizontal,QtCore.QVariant(self.parent().v1name))
-        self.annotationsModel.setHeaderData(1,QtCore.Qt.Horizontal,QtCore.QVariant(self.parent().v2name))
-        self.annotationsSelModel = QtGui.QItemSelectionModel(self.annotationsModel)
-        self.annotations = QtGui.QTableView()
-        self.annotations.setModel(self.annotationsModel)
-        self.annotations.setSelectionModel(self.annotationsSelModel)
-        self.annotations.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
-        self.annotations.horizontalHeader().setStretchLastSection(True)
-        self.annotations.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.annotations.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.annotations.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
-        self.annotations.setFont(self.fFont)
-        self.tabWidget.addTab(self.annotations, 'Annotations')
-        
+        self.functionsTab = QParamTable(v1Name, v2Name)
+        self.tabWidget.addTab(self.functionsTab, 'Functions')        
+        self.annotationsTab = QParamTable(v1Name, v2Name)
+        self.annotationsTab.horizontalHeader().setStretchLastSection(True)
+        self.tabWidget.addTab(self.annotationsTab, 'Annotations')        
         self.boxLayout.addWidget(self.tabWidget)
         self.boxLayout.addWidget(QtGui.QSizeGrip(self))
         self.setLayout(self.boxLayout)
 
-    def closeEvent(self,e):
+    def closeEvent(self, e):
+        """ closeEvent(e: QCloseEvent) -> None        
+        Doesn't allow the QParamInspector widget to close, but just hide
+        instead
+        
+        """
         e.ignore()
-        self.parent().showParamsAction.setChecked(False)
+        self.parent().showInspectorAction.setChecked(False)
+        
 
-class LegendBox(QtGui.QFrame):
-    def __init__(self, color, size, parent=None, f=QtCore.Qt.WindowFlags()):
+class QLegendBox(QtGui.QFrame):
+    """
+    QLegendBox is just a rectangular box with a solid color
+    
+    """
+    def __init__(self, brush, size, parent=None, f=QtCore.Qt.WindowFlags()):
+        """ QLegendBox(color: QBrush, size: (int,int), parent: QWidget,
+                      f: WindowFlags) -> QLegendBox
+        Initialize the widget with a color and fixed size
+        
+        """
         QtGui.QFrame.__init__(self, parent, f)
         self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Plain)
         self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
         self.setAutoFillBackground(True)
-        self.palette().setColor(QtGui.QPalette.Window,
-                                QtGui.QColor(color[0]*255,
-                                             color[1]*255,
-                                             color[2]*255))
-        self.setFixedSize(size)
+        self.palette().setBrush(QtGui.QPalette.Window, brush)
+        self.setFixedSize(*size)        
 
-class LegendWindow(QtGui.QWidget):
-    def __init__(self, size, parent=None, f=QtCore.Qt.WindowFlags()):
+class QLegendWindow(QtGui.QWidget):
+    """
+    QLegendWindow contains a list of QLegendBox and its description
+    
+    """
+    def __init__(self, v1Name='', v2Name= None, parent='',
+                 f=QtCore.Qt.WindowFlags()):
+        """ QLegendWindow(v1Name: str, v2Name: str,
+                          parent: QWidget, f: WindowFlags)
+                          -> QLegendWindow
+        Construct a window by default with 4 QLegendBox and 4 QLabels
+        
+        """
         QtGui.QWidget.__init__(self, parent, f | QtCore.Qt.Tool)
         self.setWindowTitle('Visual Diff Legend')
         self.firstTime = True
         self.gridLayout = QtGui.QGridLayout(self)
         self.gridLayout.setMargin(10)
         self.gridLayout.setSpacing(10)
-        self.lFont = QtGui.QFont('Arial', 9)
-        self.setFont(self.lFont)
+        self.setFont(CurrentTheme.VISUAL_DIFF_LEGEND_FONT)
         
         parent = self.parent()
-        self.legendSize = size
-
-        self.legendV1Box = LegendBox(parent.v1Color, parent.legendSize, self)
-        self.gridLayout.addWidget(self.legendV1Box,0,0)
-        self.legendV1 = QtGui.QLabel("Version '" + parent.v1name + "'", self)
-        self.gridLayout.addWidget(self.legendV1,0,1)
         
-        self.legendV2Box = LegendBox(parent.v2Color, self.legendSize, self)
-        self.gridLayout.addWidget(self.legendV2Box,1,0)
-        self.legendV2 = QtGui.QLabel("Version '" + parent.v2name + "'", self)
-        self.gridLayout.addWidget(self.legendV2,1,1)
+        self.legendV1Box = QLegendBox(
+            CurrentTheme.VISUAL_DIFF_FROM_VERSION_BRUSH,
+            CurrentTheme.VISUAL_DIFF_LEGEND_SIZE,
+            self)        
+        self.gridLayout.addWidget(self.legendV1Box, 0, 0)
+        self.legendV1 = QtGui.QLabel("Version '" + v1Name + "'", self)
+        self.gridLayout.addWidget(self.legendV1, 0, 1)
         
-        self.legendV12Box = LegendBox(parent.commonColor, self.legendSize, self)
-        self.gridLayout.addWidget(self.legendV12Box,2,0)
+        self.legendV2Box = QLegendBox(
+            CurrentTheme.VISUAL_DIFF_TO_VERSION_BRUSH,            
+            CurrentTheme.VISUAL_DIFF_LEGEND_SIZE,
+            self)        
+        self.gridLayout.addWidget(self.legendV2Box, 1, 0)
+        self.legendV2 = QtGui.QLabel("Version '" + v2Name + "'", self)
+        self.gridLayout.addWidget(self.legendV2, 1, 1)
+        
+        self.legendV12Box = QLegendBox(CurrentTheme.VISUAL_DIFF_SHARED_BRUSH,
+                                       CurrentTheme.VISUAL_DIFF_LEGEND_SIZE,
+                                       self)
+        self.gridLayout.addWidget(self.legendV12Box, 2, 0)
         self.legendV12 = QtGui.QLabel("Shared", self)
-        self.gridLayout.addWidget(self.legendV12,2,1)
+        self.gridLayout.addWidget(self.legendV12, 2, 1)
         
-        self.legendParamBox = LegendBox(parent.paramColor, self.legendSize, self)
+        self.legendParamBox = QLegendBox(
+            CurrentTheme.VISUAL_DIFF_PARAMETER_CHANGED_BRUSH,
+            CurrentTheme.VISUAL_DIFF_LEGEND_SIZE,
+            self)
         self.gridLayout.addWidget(self.legendParamBox,3,0)
         self.legendParam = QtGui.QLabel("Parameter Changes", self)
         self.gridLayout.addWidget(self.legendParam,3,1)
         
     def closeEvent(self,e):
+        """ closeEvent(e: QCloseEvent) -> None
+        Doesn't allow the Legend widget to close, but just hide
+        instead
+        
+        """
         e.ignore()
         self.parent().showLegendsAction.setChecked(False)
+        
 
-class VisualDiff(QtGui.QMainWindow):
-    def __init__(self, vistrail, v1, v2, parent=None, f=QtCore.Qt.WindowFlags()):
-        self.vistrail = vistrail
-        self.v1 = v1
-        self.v2 = v2
-        self.commonColor = [0.45]*3
-        self.v1Color = ColorByName.get("melon")
-        self.v2Color = ColorByName.get("steel_blue_light")
-        self.paramColor = ColorByName.get("light_grey")
+class QVisualDiff(QtGui.QMainWindow):
+    """
+    QVisualDiff is a main widget for Visual Diff containing a GL
+    Widget to draw the pipeline
+    
+    """
+    def __init__(self, vistrail, v1, v2,
+                 parent=None, f=QtCore.Qt.WindowFlags()):
+        """ QVisualDiff(vistrail: Vistrail, v1: str, v2: str,
+                        parent: QWidget, f: WindowFlags) -> QVisualDiff
+        Initialize with all
         
-        self.v1andv2 = self.v1andv2Ver = self.v1andv2Sig = []        
-        self.v1param = self.v2param = self.v1paramVer = self.v2paramVer = self.v1paramSig = self.v2paramSig = {}
-        self.pl = self.plVer = self.plSig = []
-        self.modChanged = self.modChangedVer = self.modChangedSig = []
-        self.moduleShift = 0
-        self.vistrail = vistrail
-        self.v1name = self.vistrail.getVersionName(self.v1)
-        if not self.v1name:
-            self.v1name = '"unnamed"'
-        self.v2name = self.vistrail.getVersionName(self.v2)
-        if not self.v2name:
-            self.v2name = '"unnamed"'
+        """
+        # Set up the version name correctly
+        v1Name = vistrail.getVersionName(v1)
+        if not v1Name: v1Name = 'Version %d' % v1
+        v2Name = vistrail.getVersionName(v2)        
+        if not v2Name: v2Name = 'Version %d' % v2
         
+        # Actually perform the diff and store its result
+        self.diff = vistrail.getPipelineDiff(v1, v2)
+
+        # Create the top-level Visual Diff window
         visDiffParent = QtCore.QCoreApplication.instance().visDiffParent
         QtGui.QMainWindow.__init__(self, visDiffParent, f | QtCore.Qt.Dialog)
-        self.setWindowTitle('Visual Diff - ' + self.v1name + ' vs. ' + self.v2name)
+        self.setWindowTitle('Visual Diff - %s vs. %s' % (v1Name, v2Name))
         self.setMouseTracking(True)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
-                                             QtGui.QSizePolicy.Expanding))
-        self.shapeEngine = GLWidget()
-        root = system.visTrailsRootDirectory()+'/gui/resources/'
-        texPath = root + "/images/pipeline_bg.png"
-        self.shapeEngine.setupBackgroundTexture(texPath)
-        self.shapeEngine.lineWidth = 2.0
-        self.shapeEngine.draggingPortConnectionEnabled = False        
-        self.connect(self.shapeEngine, QtCore.SIGNAL("shapeSelected(int)"), self.moduleSelected)
-        self.connect(self.shapeEngine, QtCore.SIGNAL("shapeUnselected()"), self.moduleUnselected)
-        self.selectedModule = -1
+                                             QtGui.QSizePolicy.Expanding))        
+        self.createPipelineView()
+        self.createToolBar()
+        self.createToolWindows(v1Name, v2Name)
+
+    def createPipelineView(self):
+        """ createPipelineView() -> None        
+        Create a center pipeline view for Visual Diff and setup the
+        view based on the diff result self.diff
         
-        self.setCentralWidget(self.shapeEngine)
-        self.iconSize = QtCore.QSize(24,24)
-        self.legendSize = QtCore.QSize(16,16)
+        """
+        # Initialize the shape engine
+        self.pipelineView = QPipelineView()
+        self.setCentralWidget(self.pipelineView)
+
+        # Add all the shapes into the view
+        self.createDiffPipeline()
+
+        # Hook shape selecting functions
+        self.connect(self.pipelineView.scene(), QtCore.SIGNAL("moduleSelected"),
+                     self.moduleSelected)
+
+    def createToolBar(self):
+        """ createToolBar() -> None        
+        Create the default toolbar of Visual Diff window with two
+        buttons to toggle the Parameter Inspector and Legend window
+        
+        """
+        # Initialize the Visual Diff toolbar
         self.toolBar = self.addToolBar('Visual Diff Toolbar')
         self.toolBar.setMovable(False)
-        self.toolBar.setIconSize(self.iconSize)
-        self.matchBySigAction = self.toolBar.addAction(QtGui.QIcon(root + "/images/match_by_sig.png"),
-                                                       'Match modules/functions by signature')
-        self.matchBySigAction.setCheckable(True)
-        self.matchBySigAction.setChecked(True)
-        self.connect(self.matchBySigAction, QtCore.SIGNAL("toggled(bool)"), self.matchChanged)
+
+        # Add the Show Parameter Inspector action
+        self.showInspectorAction = self.toolBar.addAction(
+            CurrentTheme.VISUAL_DIFF_SHOW_PARAM_ICON,
+            'Show Parameter Inspector window')
+        self.showInspectorAction.setCheckable(True)
+        self.connect(self.showInspectorAction, QtCore.SIGNAL("toggled(bool)"),
+                     self.toggleShowInspector)
         
-        self.showParamsAction = self.toolBar.addAction(QtGui.QIcon(root + "/images/show_params.png"),
-                                                       'Show Parameter Changes window')
-        self.showParamsAction.setCheckable(True)
-        self.connect(self.showParamsAction, QtCore.SIGNAL("toggled(bool)"), self.paramChanged)
-        self.showLegendsAction = self.toolBar.addAction(QtGui.QIcon(root + "/images/show_legends.png"),
-                                                       'Show Legends')
+        # Add the Show Legend window action
+        self.showLegendsAction = self.toolBar.addAction(
+            CurrentTheme.VISUAL_DIFF_SHOW_LEGEND_ICON,
+            'Show Legends')
         self.showLegendsAction.setCheckable(True)
-        self.connect(self.showLegendsAction, QtCore.SIGNAL("toggled(bool)"), self.legendChanged)
+        self.connect(self.showLegendsAction, QtCore.SIGNAL("toggled(bool)"),
+                     self.toggleShowLegend)
+
+    def createToolWindows(self, v1Name, v2Name):
+        """ createToolWindows(v1Name: str, v2Name: str) -> None
+        Create Inspector and Legend window
+
+        """
+        self.inspector = QParamInspector(v1Name, v2Name, self)
+        self.inspector.resize(QtCore.QSize(
+            *CurrentTheme.VISUAL_DIFF_PARAMETER_WINDOW_SIZE))
+        self.legendWindow = QLegendWindow(v1Name, v2Name,self)
+
+    def moduleSelected(self, id, selectedItems):
+        """ moduleSelected(id: int, selectedItems: [QGraphicsItem]) -> None
+        When the user click on a module, display its parameter changes
+        in the Inspector
         
-        self.genDiff(v1, v2)
-        self.matchChanged()
-        self.resize(512,512/self.shapeEngine.zoomToFit())
+        """
+        if len(selectedItems)!=1:
+            self.moduleUnselected()
+            return
+        
+        # Interprete the diff result and setup item models
+        (p1, p2, v1Andv2, v1Only, v2Only, paramChanged) = self.diff
 
-        self.paramWindow = ParamChanges(self)
-        self.paramWindow.resize(384,256)
-        self.aModel = self.paramWindow.allFunctionsModel
-        self.nModel = self.paramWindow.annotationsModel
-
-        self.legendWindow = LegendWindow(self.legendSize,self)
-
-    def moduleSelected(self, id):
-        self.selectedModule = id
-        self.aModel.clearList()        
-        self.nModel.clearList()
-        funcList = {}
-        v1f = v2f = []
-        lmax = 0
-        keys = []
-        k1 = k2 = {}
-        if id in self.v1paramSig:
-            v1f = self.v1paramSig[id]
-            for f in v1f: funcList[f] = None
-            lmax = max(lmax, len(v1f))
-            self.paramWindow.setWindowTitle('Parameter Changes - ' + self.plSig[0].modules[id].name)
-            k1 = self.plSig[0].modules[id].annotations
-            keys += k1.keys()
-        if id in self.v2paramSig:
-            v2f = self.v2paramSig[id]
-            for f in self.v2paramSig[id]: funcList[f] = None
-            lmax = max(lmax, len(v2f))
-            self.paramWindow.setWindowTitle('Parameter Changes - ' + self.plSig[1].modules[id].name)
-            k2 = self.plSig[1].modules[id].annotations
-            keys += k2.keys()
-
-        self.aModel.insertRows(0,len(funcList))
-        l1 = l2 = f1 = f2 = r = 0
-        sortedFunc = funcList.keys()
-        sortedFunc.sort()
-        for f in sortedFunc:
-            finv1 = False
-            finv2 = False
-            if f in v1f:
-                self.aModel.setData(self.aModel.index(r,0), QtCore.QVariant(f))
-                finv1 = True
-            if f in v2f:
-                self.aModel.setData(self.aModel.index(r,1), QtCore.QVariant(f))
-                finv2 = True
-            if finv1 and finv2:
-                self.aModel.disableRow(r)                
-            r += 1
-
-        keys.sort()
-        for i in reversed(range(len(keys)-1)):
-            if keys[i+1]==keys[i]: del keys[i+1]
-        self.nModel.insertRows(0,len(keys))
-        for i in range(len(keys)):
-            key = keys[i]
-            self.nModel.setHeaderData(i, QtCore.Qt.Vertical, QtCore.QVariant(key))
-            s1 = s2 = '<undefined>'
-            if key in k1: s1 = k1[key]
-            if key in k2: s2 = k2[key]
-            self.nModel.setData(self.nModel.index(i,0), QtCore.QVariant(s1))
-            self.nModel.setData(self.nModel.index(i,1), QtCore.QVariant(s2))
-            if s1==s2:
-                self.nModel.disableRow(i)
+        # Set the window title
+        if id>self.maxId1:
+            self.inspector.setWindowTitle('Parameter Changes - %s' %
+                                          p2.modules[id-self.maxId1-1].name)
+        else:
+            self.inspector.setWindowTitle('Parameter Changes - %s' %
+                                          p1.modules[id].name)
             
-        self.paramWindow.allFunctions.resizeRowsToContents()
-        self.paramWindow.annotations.resizeRowsToContents()
+        # Clear the old inspector
+        functions = self.inspector.functionsTab.model()
+        annotations = self.inspector.annotationsTab.model()
+        functions.clearList()
+        annotations.clearList()
+
+        # Find the parameter changed module
+        matching = None
+        for ((m1id, m2id), paramMatching) in paramChanged:
+            if m1id==id:
+                matching = paramMatching
+                break
+
+        # If the module has no parameter changed, just display nothing
+        if not matching:          
+            return
+        
+        # Else just layout the diff on a table
+        functions.insertRows(0,len(matching))
+        currentRow = 0
+        for (f1, f2) in matching:
+            if f1[0]!=None:
+                functions.setData(
+                    functions.index(currentRow, 0),
+                    QtCore.QVariant('%s(%s)' % (f1[0],
+                                                ','.join(v[1] for v in f1[1]))))
+            if f2[0]!=None:
+                functions.setData(
+                    functions.index(currentRow, 1),
+                    QtCore.QVariant('%s(%s)' % (f2[0],
+                                                ','.join(v[1] for v in f2[1]))))
+            if f1==f2:                
+                functions.disableRow(currentRow)
+            currentRow += 1
+
+        self.inspector.functionsTab.resizeRowsToContents()
+        self.inspector.annotationsTab.resizeRowsToContents()
 
     def moduleUnselected(self):
-        self.selectedModule = -1
-        self.aModel.clearList()
-        self.nModel.clearList()
-        self.paramWindow.setWindowTitle('Parameter Changes - None')
-
-    def matchChanged(self):
-        self.updateDiff()
-	if (self.isVisible()):
-	    self.shapeEngine.updateGL()
+        """ moduleUnselected() -> None
+        When a user selects nothing, make sure to display nothing as well
         
-    def paramChanged(self):
-        if self.paramWindow.firstTime:
-            self.paramWindow.move(self.pos().x()+self.frameSize().width(),self.pos().y())
-            self.paramWindow.firstTime = False
-        self.paramWindow.setVisible(self.showParamsAction.isChecked())
+        """
+        self.inspector.annotationsTab.model().clearList()
+        self.inspector.functionsTab.model().clearList()
+        self.inspector.setWindowTitle('Parameter Changes - None')
+
+    def toggleShowInspector(self):
+        """ toggleShowInspector() -> None
+        Show/Hide the inspector when toggle this button
+        
+        """
+        if self.inspector.firstTime:
+            self.inspector.move(self.pos().x()+self.frameSize().width(),
+                                self.pos().y())
+            self.inspector.firstTime = False
+        self.inspector.setVisible(self.showInspectorAction.isChecked())
             
-    def legendChanged(self):
+    def toggleShowLegend(self):
+        """ toggleShowLegend() -> None
+        Show/Hide the legend window when toggle this button
+        
+        """
         if self.legendWindow.firstTime:
-            self.legendWindow.move(self.pos().x()+self.frameSize().width(),self.pos().y())
+            self.legendWindow.move(self.pos().x()+self.frameSize().width()-
+                                   self.legendWindow.frameSize().width(),
+                                   self.pos().y())
         self.legendWindow.setVisible(self.showLegendsAction.isChecked())
         if self.legendWindow.firstTime:
             self.legendWindow.firstTime = False
             self.legendWindow.setFixedSize(self.legendWindow.size())            
-
-    def genDiff(self, v1, v2):
-        if v1 == 0 or v2 == 0:
-            raise VistrailsInternalError("Should not be called with either v1 or v2 equals 0")
-        [self.v1andv2Ver,self.v1paramVer,self.v2paramVer] = self.vistrail.getPipelineShare(v1,v2)
-
-        # Diff only based on version tree
-        self.plVer = [self.vistrail.getPipelineVersionNumber(v1),
-                      self.vistrail.getPipelineVersionNumber(v2)]
-        self.modChangedVer = {}
-        for i in self.v1paramVer.keys(): self.modChangedVer[i] = None
-        for i in self.v2paramVer.keys(): self.modChangedVer[i] = None
-        self.modChangedVer = self.modChangedVer.keys()
-
-        # Diff by looking at module/function signatures
-        # Find more shared modules by looking at modules names
-        # just a N^2 straight-forward comparisons
-        self.v1andv2Sig = copy.deepcopy(self.v1andv2Ver)
-        self.plSig = [self.vistrail.getPipelineVersionNumber(v1),
-                      self.vistrail.getPipelineVersionNumber(v2)]                
-        newIdBase = max(i for k in range(2) for (i,j) in self.plSig[k].modules.items())+1
-        for (i,m) in self.plSig[0].modules.items():
-            if not (m.id in self.v1andv2Sig):
-                for (j,n) in self.plSig[1].modules.items():
-                    if not (n.id in self.v1andv2Sig):
-                        if m.name==n.name:
-                            # Get a new Id for this module
-                            newId = newIdBase
-                            newIdBase += 1
-                            # Correct all connections
-                            for (l,c) in self.plSig[0].connections.items():
-                                if c.sourceId==m.id: c.sourceId = newId
-                                if c.destinationId==m.id: c.destinationId = newId
-                            for (l,c) in self.plSig[1].connections.items():
-                                if c.sourceId==n.id: c.sourceId = newId
-                                if c.destinationId==n.id: c.destinationId = newId
-                            m.id = newId
-                            self.plSig[0].modules[newId] = m
-                            del(self.plSig[0].modules[i])
-                            n.id = newId
-                            self.plSig[1].modules[newId] = n
-                            del(self.plSig[1].modules[j])
-                            self.v1andv2Sig.append(newId)
-
-        # Capture parameter changes
-        self.v1paramSig = {}
-        self.v2paramSig = {}
-        for (m,m1) in self.plSig[0].modules.items():
-            if not (m) in self.v1paramSig: self.v1paramSig[m] = []
-            for f in m1.functions:
-                values = string.joinfields([str(v.strValue) for v in f.params],',')
-                self.v1paramSig[m].append(string.joinfields([f.name,'(',values,')'],''))
-        for (m,m2) in self.plSig[1].modules.items():
-            if not (m) in self.v2paramSig: self.v2paramSig[m] = []
-            for f in m2.functions:
-                values = string.joinfields([str(v.strValue) for v in f.params],',')
-                self.v2paramSig[m].append(string.joinfields([f.name,'(',values,')'],''))
-        # Eliminate anything that have the same function list
-        self.modChangedSig = []
-        for m in self.v1andv2Sig:
-            if (string.joinfields(self.v1paramSig[m],'|')!=string.joinfields(self.v2paramSig[m], '|') or
-                self.plSig[0].modules[m].annotations!=self.plSig[1].modules[m].annotations):
-                self.modChangedSig.append(m)
                 
-    def selectDiff(self,match=None):
-        if not match:
-            match = self.matchBySigAction.isChecked()
-        if match:
-            self.v1andv2 = self.v1andv2Sig
-            self.v1param = self.v1paramSig
-            self.v2param = self.v2paramSig
-            self.pl = self.plSig
-            self.modChanged = self.modChangedSig
-        else:
-            self.v1andv2 = self.v1andv2Ver
-            self.v1param = self.v1paramVer
-            self.v2param = self.v2paramVer
-            self.pl = self.plVer
-            self.modChanged = self.modChangedVer
+    def createDiffPipeline(self):
+        """ createDiffPipeline() -> None        
+        Actually walk through the self.diff result and add all modules
+        into the pipeline view
+        
+        """
 
-    def updateDiff(self,match=None):
-        self.selectDiff(match)
-        self.shapeEngine.clearShapes()
-        for (id,m) in self.pl[0].modules.items():
-            if not (m.id in self.v1andv2):
-                sh = self.shapeEngine.addModuleShape(m, self.v1Color)
-            else:
-                if m.id in self.modChanged:
-                    sh = self.shapeEngine.addModuleShape(m, self.paramColor)
-                else:
-                    sh = self.shapeEngine.addModuleShape(m, None, False)
-        self.moduleShift = max(i for (i,j) in self.pl[0].modules.items())+1
-        for (id,m) in self.pl[1].modules.items():
-            if not (m.id in self.v1andv2):
-                m.id += self.moduleShift
-                sh = self.shapeEngine.addModuleShape(m, self.v2Color)                
-            else:
-                continue
+        # Interprete the diff result
+        (p1, p2, v1Andv2, v1Only, v2Only, paramChanged) = self.diff
 
-        # Correct connections
-        connectionShift = max(i for (i,j) in self.pl[0].connections.items())+1
-        allConnections = self.pl[0].connections
-        for (i,c) in self.pl[1].connections.items():            
-            if not (c.sourceId in self.v1andv2):
-                c.sourceId += self.moduleShift
-            if not (c.destinationId in self.v1andv2):
-                c.destinationId += self.moduleShift
-            allConnections[connectionShift+i] = c
+        scene = self.pipelineView.scene()
+        scene.clearItems()
 
-        # Color Code Connection
-        self.shapeEngine.setPortConnections(allConnections)
-        for l in self.shapeEngine.connectionShapesOver:
-            c = allConnections[l.id]
-            sv = None
-            if not (c.sourceId in self.v1andv2):
-                sv = c.sourceId
-            if not (c.destinationId in self.v1andv2):
-                sv = c.destinationId
-            if sv:
-                if sv<self.moduleShift:
-                    l.color = self.v1Color
-                else:
-                    l.color = self.v2Color
+        # Find the max version id from v1 and start the adding process
+        self.maxId1 = 0
+        for m1id in p1.modules.keys():
+            if m1id>self.maxId1:
+                self.maxId1 = m1id
+        shiftId = self.maxId1 + 1
+
+        # First add all shared modules, just use v1 module id
+        for (m1id, m2id) in v1Andv2:
+            scene.addModule(p1.modules[m1id],            
+                            CurrentTheme.VISUAL_DIFF_SHARED_BRUSH)
+            
+        # Then add parameter changed version
+        for ((m1id, m2id), matching) in paramChanged:
+            scene.addModule(p1.modules[m1id],
+                            CurrentTheme.VISUAL_DIFF_PARAMETER_CHANGED_BRUSH)
+
+        # Now add the ones only applicable for v1, still using v1 ids
+        for m1id in v1Only:
+            scene.addModule(p1.modules[m1id],
+                            CurrentTheme.VISUAL_DIFF_FROM_VERSION_BRUSH)
+
+        # Now add the ones for v2 only but must shift the ids away from v1
+        for m2id in v2Only:
+            p2.modules[m2id].id = m2id + shiftId
+            scene.addModule(p2.modules[m2id],
+                            CurrentTheme.VISUAL_DIFF_TO_VERSION_BRUSH)
+
+        # Create a mapping between share modules between v1 and v2
+        v1Tov2 = {}
+        v2Tov1 = {}
+        for (m1id, m2id) in v1Andv2:
+            v1Tov2[m1id] = m2id
+            v2Tov1[m2id] = m1id
+        for ((m1id, m2id), matching) in paramChanged:
+            v1Tov2[m1id] = m2id
+            v2Tov1[m2id] = m1id
+
+        # Next we're going to add connections, only connections of
+        # v2Only need to shift their ids
+        connectionShift = max(p1.connections.keys())+1
+        allConnections = copy.copy(p1.connections)
+        sharedConnections = []
+        v2OnlyConnections = []        
+        for (cid2, connection2) in copy.copy(p2.connections.items()):
+            if connection2.sourceId in v2Only:
+                connection2.sourceId += shiftId
             else:
-                found = False
-                for (i,j) in self.pl[0].connections.items():
-                    if ((c.sourceId==j.sourceId and c.destinationId==j.destinationId) or
-                        (c.sourceId==j.destinationId and c.destinationId==j.sourceId) ):
-                        found = True
-                if not found:
-                    l.color = self.v2Color
-                else:
-                    found = False
-                    for (i,j) in self.pl[1].connections.items():
-                        if ((c.sourceId==j.sourceId and c.destinationId==j.destinationId) or
-                            (c.sourceId==j.destinationId and c.destinationId==j.sourceId) ):
-                            found = True
-                    if not found:
-                        l.color = self.v1Color
+                connection2.sourceId = v2Tov1[connection2.sourceId]
+                
+            if connection2.destinationId in v2Only:
+                connection2.destinationId += shiftId
+            else:
+                connection2.destinationId = v2Tov1[connection2.destinationId]
+
+            # Is this connection also shared by p1?
+            shared = False
+            for (cid1, connection1) in p1.connections.items():
+                if (connection1.sourceId==connection2.sourceId and
+                    connection1.destinationId==connection2.destinationId and
+                    connection1.source.name==connection2.source.name and
+                    connection1.destination.name==connection2.destination.name):
+                    sharedConnections.append(cid1)
+                    shared = True
+                    break
+            if not shared:
+                allConnections[cid2+connectionShift] = connection2
+                connection2.id = cid2+connectionShift
+                v2OnlyConnections.append(cid2+connectionShift)
+
+        connectionItems = []
+        for c in allConnections.values():
+            connectionItems.append(scene.addConnection(c))
+
+        # Color Code connections
+        for c in connectionItems:
+            if c.id in sharedConnections:
+                pass
+            elif c.id in v2OnlyConnections:
+                pen = QtGui.QPen(CurrentTheme.CONNECTION_PEN)
+                pen.setBrush(CurrentTheme.VISUAL_DIFF_TO_VERSION_BRUSH)
+                c.connectionPen = pen
+            else:
+                pen = QtGui.QPen(CurrentTheme.CONNECTION_PEN)
+                pen.setBrush(CurrentTheme.VISUAL_DIFF_FROM_VERSION_BRUSH)
+                c.connectionPen = pen
+
+        scene.updateSceneBoundingRect()
+        scene.fitToView(self.pipelineView)

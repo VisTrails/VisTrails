@@ -1,68 +1,96 @@
-from PyQt4 import QtCore, QtGui, QtOpenGL
-from gui.qframebox import *
-from gui.qmodulefunctiongroupbox import *
-from gui.qgroupboxscrollarea import *
-from gui.qbuildertreewidget import *
+""" This file contains widgets related to the method palette
+displaying a list of all functions available in a module
 
-class ModuleMethods(object):
+QMethodPalette
+QMethodTreeWidget
+QMethodTreeWidgetItem
+"""
+
+from PyQt4 import QtCore, QtGui
+from gui.common_widgets import (QSearchTreeWindow,
+                                QSearchTreeWidget,
+                                QToolWindowInterface)
+from core.modules.module_registry import registry
+
+################################################################################
+
+class QMethodPalette(QSearchTreeWindow, QToolWindowInterface):
+    """
+    QModulePalette just inherits from QSearchTreeWindow to have its
+    own type of tree widget
+
+    """
+    def createTreeWidget(self):
+        """ createTreeWidget() -> QMethodTreeWidget
+        Return the search tree widget for this window
+        
+        """
+        self.setWindowTitle('Methods')
+        return QMethodTreeWidget(self)
+
+class QMethodTreeWidget(QSearchTreeWidget):
+    """
+    QMethodTreeWidget is a subclass of QSearchTreeWidget to display all
+    methods available of a module
     
-    def __init__(self, builder):
-        self.builder = builder
-        self.buildModuleMethods()
-        self.buildMethodValuesView()
-        
-    def buildModuleMethods(_self):
-        """Builds the module method frame and palette."""
-        self = _self.builder
-        #method palette splitter
-        fr = QtGui.QWidget()
-        lfr = QtGui.QVBoxLayout()
-        lfr.setSpacing(0)
-        lfr.setMargin(0)
-        fr.setLayout(lfr)
-        w = QVTKMethodTreeWidget(fr)
-        fr.layout().addWidget(w)
-        w.setColumnCount(2)
-        
-        labels = QtCore.QStringList()
-        labels << self.tr("Method") << self.tr("Signature")
-        w.setHeaderLabels(labels)
-        w.header().setResizeMode(QtGui.QHeaderView.Interactive)
-        w.header().setMovable(False)
-        w.header().resizeSection(0,200)
-        w.setRootIsDecorated(True)
-        w.setSortingEnabled(False)
-        w.setDragEnabled(True)
-        self.vtkMethodPalette = w
-        self.vtkModuleMethods = fr
+    """
+    def __init__(self, parent=None):
+        """ QModuleMethods(parent: QWidget) -> QModuleMethods
+        Set up size policy and header
 
-    def buildMethodValuesView(_self):
         """
-        Parameters
-        ----------
-
-        - parent : 'QtGui.QWidget'
+        QSearchTreeWidget.__init__(self, parent)
+        self.header().setStretchLastSection(True)
+        self.setHeaderLabels(QtCore.QStringList() << 'Method' << 'Signature')
+        
+    def updateModule(self, module):
+        """ updateModule(module: Module) -> None        
+        Setup this tree widget to show functions of module
         
         """
-        self = _self.builder
-        parent = self.vtkModuleMethods
-        self.methodValuesArea = QVTKMethodScrollArea(self)
-        parent.layout().addWidget(self.methodValuesArea)
-            
-        self.methodValuesArea.setAcceptDrops(True)
-        #self.methodValuesArea.viewport().setAcceptDrops(True)
+        self.clear()
 
-        self.connect(self.methodValuesArea, QtCore.SIGNAL("newMethod"),
-                     self.addNewMethod)
-        self.connect(self.methodValuesArea, QtCore.SIGNAL("deleteMethod(int)"),
-                     self.deleteMethod)
-        self.connect(self.methodValuesArea,
-                     QtCore.SIGNAL("valuesToBeChanged"),
-                     self.changeValues)
+        if module:
+            moduleHierarchy = registry.getModuleHierarchy(module.name)
+            for baseModule in moduleHierarchy:
+                baseName = registry.getDescriptor(baseModule).name
+                # Create the base widget item
+                baseItem = QMethodTreeWidgetItem(None,
+                                                 None,
+                                                 self,
+                                                 (QtCore.QStringList()
+                                                  <<  baseName
+                                                  << ''))
+                methods = registry.methodPorts(baseModule)
+                # Also check the local registry
+                if module.registry and module.registry.hasModule(baseName):
+                    methods += module.registry.methodPorts(baseModule)
+                for method in methods:
+                    for spec in method.spec:
+                        sig = method.getSig(spec)
+                        QMethodTreeWidgetItem(method,
+                                              spec,
+                                              baseItem,
+                                              (QtCore.QStringList()
+                                               << method.name
+                                               << sig))
+            self.expandAll()
+                                          
+class QMethodTreeWidgetItem(QtGui.QTreeWidgetItem):
+    """
+    QMethodTreeWidgetItem represents module on QModuleTreeWidget
+    
+    """
+    def __init__(self, port, spec, parent, labelList):
+        """ QMethodTreeWidgetItem(port: Port,
+                                  spec: tuple,
+                                  parent: QTreeWidgetItem
+                                  labelList: QStringList)
+                                  -> QMethodTreeWidgetItem                               
+        Create a new tree widget item with a specific parent and
+        labels
 
-        sp = QtGui.QSizePolicy()
-        sp.setHorizontalPolicy(QtGui.QSizePolicy.MinimumExpanding)
-        sp.setVerticalPolicy(QtGui.QSizePolicy.MinimumExpanding)
-        self.methodValuesArea.setSizePolicy(sp)
-
-        
+        """
+        self.port = port
+        self.spec = spec
+        QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
