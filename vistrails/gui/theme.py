@@ -143,7 +143,7 @@ class DefaultTheme(object):
     
         # Brush and pen to draw a link between two versions
         self.LINK_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('black')))), 2)
+            QtGui.QColor(*(ColorByName.getInt('black')))), 1.5)
         self.LINK_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.getInt('banana')))), 2)
         self.GHOSTED_LINK_PEN = QtGui.QPen(QtGui.QBrush(
