@@ -1,30 +1,51 @@
 """
 This module creates Widgets to handle Parameter Exploration in
 VisTrails
+
+QParameterExploration
 """
 import thread
 from PyQt4 import QtCore, QtGui, QtOpenGL
 from core.param_explore import InterpolateDiscreteParam, ParameterExploration
-from gui.qbuildertreewidget import QVTKRangeTreeWidget
-from gui.qgroupboxscrollarea import QVTKRangeScrollArea
+from gui.common_widgets import QToolWindowInterface
+from gui.method_dropbox import QMethodDropBox, QMethodInputForm
+from gui.theme import CurrentTheme
 ################################################################################
 
-class ParameterExplorationManager(object):
+class QParameterExploration(QtGui.QWidget, QToolWindowInterface):
     """
-    ParameterExplorationManager provides interface to collect
+    QParameterExploration provides interface to collect
     parameter information from the GUI and pass it to
     core.param_explore.ParameterExploration. This also takes
     responsibility to setup the GUI in the builder
 
     """
-    def __init__(self, builder):
-        """ ParameterExplorationManager(builder: QBuilder)
-                                        -> ParameterExplorationManager
-        Store the builder instance and generate tab labels
+    def __init__(self, parent=None):
+        """ QParameterExploration(parent: QWidget)
+                                        -> QParameterExploration
+        Generate tab labels
+        
         """
-        self.builder = builder
+        QtGui.QWidget.__init__(self, parent)
+        self.setWindowTitle('Param Exploration')
         self.dimLabels = ['Dim %d' % (i+1) for i in range(4)]
-
+        vLayout = QtGui.QVBoxLayout()
+        vLayout.setSpacing(0)
+        vLayout.setMargin(0)
+        self.setLayout(vLayout)
+        self.dimTab = QtGui.QTabWidget()
+        for t in range(4):
+            tab = QDimensionWidget()
+            tab.paramEx = self
+            self.dimTab.addTab(tab, self.dimLabels[t]+' (1)')        
+        vLayout.addWidget(self.dimTab)
+        
+        createButton = QtGui.QPushButton("Perform Exploration")
+        vLayout.addWidget(createButton)
+        self.connect(createButton, QtCore.SIGNAL('clicked()'),
+                     self.startParameterExploration)
+        self.controller = None
+        
     def clear(self):
         """ clear() -> None
         Clear all settings and leave the GUI empty
@@ -34,114 +55,64 @@ class ParameterExplorationManager(object):
             tab = self.dimTab.widget(dim)
             tab.methodList.clear()
         
-
     def startParameterExploration(self):
         """ startParameterExploration() -> None
         Collects inputs from widgets and the builders to setup and
         start a parameter exploration
         
         """
+        if (not self.controller) or (not self.controller.currentPipeline):
+            return
         specs = []
         dimCount = 0
         for dim in range(self.dimTab.count()):
             tab = self.dimTab.widget(dim)
             stepCount = tab.sizeEdit.value()
             specsPerDim = []
-            for c in tab.methodList._children:
+            for i in range(tab.methodList.vWidget.layout().count()):
+                c = tab.methodList.vWidget.layout().itemAt(i).widget()
                 ranges = []
                 for v in c.fields:
                     if v[0]=='String':
                         strCount = v[1].count()
-                        strings = [str(v[1].item(i%strCount).text().toLatin1())
+                        strings = [str(v[1].item(i%strCount).text())
                                    for i in range(stepCount)]
                         ranges.append(strings)
                     else:                        
                         convert = {'Integer': int,
                                    'Float': float}
                         cv = convert[v[0]]
-                        ranges.append((cv(v[1]),cv(v[2])))
-                interpolator = InterpolateDiscreteParam(c.selectedModule,
+                        ranges.append((cv(v[1].text()),cv(v[2].text())))
+                interpolator = InterpolateDiscreteParam(c.moduleId,
                                                         c.functionName(),
                                                         ranges,
                                                         stepCount)
                 specsPerDim.append(interpolator)                
-            specs.append(specsPerDim)                
+            specs.append(specsPerDim)
         p = ParameterExploration(specs)
-        controllerName = self.builder.currentControllerName
-        controller = self.builder.controllers[controllerName]
-        pipelineList = p.explore(controller.currentPipeline)
+        pipelineList = p.explore(self.controller.currentPipeline)
         vistrails = ()
         for pipeline in pipelineList:
-            vistrails += ((controllerName,
-                           controller.currentVersion,
+            vistrails += ((self.controller.fileName,
+                           self.controller.currentVersion,
                            pipeline,
-                           controller.currentPipelineView,
+                           self.controller.currentPipelineView,
                            None),)
-        thread.start_new_thread(controller.executeWorkflow, (vistrails,))
-
-    def buildPalette(self):
-        """ buildPalette() -> None
-        Construct the paramter exploration widgets in the builder
-        
-        """
-        frame = QtGui.QWidget()
-        layoutFrame = QtGui.QVBoxLayout()
-        layoutFrame.setSpacing(0)
-        layoutFrame.setMargin(0)
-        frame.setLayout(layoutFrame)
-        self.buildTreeWidget(frame)
-        self.buildMethodRangesView(frame)
-        createButton = QtGui.QPushButton("Bulk Change")
-        frame.layout().addWidget(createButton)
-        self.builder.connect(createButton, QtCore.SIGNAL("clicked()"),
-                             self.startParameterExploration)
-        return frame
-    
-    def buildTreeWidget(self, frame):
-        """ buildTreeWidget(frame: QWidget) -> None
-        Build the method tree widget to drag to the parameter exploration area
-        
-        """
-        x = QVTKRangeTreeWidget(frame, self.builder)
-        frame.layout().addWidget(x)
-        x.setColumnCount(2)
-        labels = QtCore.QStringList()
-        labels << self.builder.tr("Method") << self.builder.tr("Signature")
-        x.setHeaderLabels(labels)
-        x.header().setResizeMode(QtGui.QHeaderView.Interactive)
-        x.header().setMovable(False)
-        x.header().resizeSection(0,200)
-        x.setRootIsDecorated(True)
-        x.setSortingEnabled(False)
-        x.setDragEnabled(True)
-        self.builder.vtkParameterExplorationTreeWidget = x
-
-    def buildMethodRangesView(self, frame):
-        """ buildMethodRangesView(frame: QWidget) -> None
-        Build the scroll area where methods can be dropped to
-        
-        """
-        self.dimTab = QtGui.QTabWidget()        
-        for t in range(4):
-            tabWidget = QDimensionWidget(self)
-            self.dimTab.addTab(tabWidget, self.dimLabels[t]+' (1)')        
-        frame.layout().addWidget(self.dimTab)
-        
+        self.controller.executeWorkflowList(vistrails)
+            
 class QDimensionWidget(QtGui.QWidget):
     """
     QDimensionWidget is the tab widget holding parameter info for a
     single dimension
     
     """
-    def __init__(self, bulkChanges, parent=None):
-        """ QDimensionWidget(bulkChanges: ParameterExplorationManager,
-                             parant: QWidget) -> QDimensionWidget                             
+    def __init__(self, parent=None):
+        """ QDimensionWidget(parant: QWidget) -> QDimensionWidget                             
         Initialize the tab with appropriate labels and connect all
         signals and slots
                              
         """
         QtGui.QWidget.__init__(self, parent)
-        self.bulkChanges = bulkChanges        
         self.sizeLabel = QtGui.QLabel('&Step Count')
         self.sizeEdit = QtGui.QSpinBox()
         self.sizeEdit.setMinimum(1)        
@@ -154,14 +125,14 @@ class QDimensionWidget(QtGui.QWidget):
         sizeLayout.addWidget(self.sizeEdit)
         sizeLayout.addStretch(0)
         
-        self.methodList = QVTKRangeScrollArea(self.bulkChanges.builder)
-        self.methodList.setAcceptDrops(True)
-        
         topLayout = QtGui.QVBoxLayout()
         topLayout.addLayout(sizeLayout)
+        
+        self.methodList = QMethodDropBox()
+        self.methodList.vWidget.formType = QRangeFunctionGroupBox
         topLayout.addWidget(self.methodList)
-
         self.setLayout(topLayout)
+        self.paramEx = None
         
     def stepCountChanged(self, count):
         """ stepCountChanged(count: int)        
@@ -169,11 +140,205 @@ class QDimensionWidget(QtGui.QWidget):
         invalidate all of its children
         
         """
-        idx = self.bulkChanges.dimTab.indexOf(self)
-        self.bulkChanges.dimTab.setTabText(idx,
-                                           self.bulkChanges.dimLabels[idx] +
-                                           ' (' + str(count) + ')')
-        for child in self.methodList._children:
+        idx = self.paramEx.dimTab.indexOf(self)
+        self.paramEx.dimTab.setTabText(idx,
+                                       self.paramEx.dimLabels[idx] +
+                                       ' (' + str(count) + ')')
+        for i in range(self.methodList.vWidget.layout().count()):
+            child = self.methodList.vWidget.layout().itemAt(i).widget()
             for field in child.fields:
-                if field[0]=='string':
+                if field[0]=='String':
                     child.updateStepCount(field[1].count())
+
+class QRangeFunctionGroupBox(QMethodInputForm):
+    def __init__(self, parent=None):
+        QMethodInputForm.__init__(self, parent)
+        self.function = None
+        self.fields = []
+  
+    def parameterCount(self):
+        return self.function.getNumParams()
+
+    def type(self, paramId):
+        return self.function.params[paramId].type
+
+    def functionName(self):
+        return self.function.name
+
+    def stepCount(self):
+        return self.parent().parent().parent().parent().sizeEdit.value()
+
+    def updateStepCount(self, count):
+        display = str(count)
+        stepCount = self.stepCount()
+        if count>stepCount:
+            display = display + ' (Too many values)'
+        if count<stepCount:
+            display = display + ' (Need more values)'        
+        self.el.setText(display)
+
+    def updateFunction(self, function):
+        self.function = function
+        self.setTitle(function.name)
+        gLayout = self.layout()
+        self.elLabel = QtGui.QLabel("Count")
+        gLayout.addWidget(self.elLabel,0,0)
+        self.el = QtGui.QLineEdit(str(self.stepCount),self)
+        self.el.setEnabled(False)
+        gLayout.addWidget(self.el,0,1)
+        self.lStart = QtGui.QLabel("Start",self)
+        gLayout.addWidget(self.lStart,1,1)
+        self.lEnd = QtGui.QLabel("End",self)
+        gLayout.addWidget(self.lEnd,1,2)
+
+        row = 2
+        for p in function.params:
+            self.createField(p, row)
+            row += 1
+        self.update()
+
+    def createField(self, p, row):
+        def dorange(Validator):
+            self.lStart.setVisible(True)
+            self.lEnd.setVisible(True)
+            self.elLabel.setVisible(False)
+            self.el.setVisible(False)
+
+            valueEdit1 = QtGui.QLineEdit(p.strValue, self)
+            gLayout.addWidget(valueEdit1, row, 1)
+            valueEdit2 = QtGui.QLineEdit(p.strValue, self)
+            gLayout.addWidget(valueEdit2, row, 2)
+            self.fields.append((p.type, valueEdit1, valueEdit2))
+            if Validator:
+                valueEdit1.setValidator(Validator(self))
+                valueEdit2.setValidator(Validator(self))
+
+        def dolist(dummy):
+           self.lStart.setVisible(False)
+           self.lEnd.setVisible(False)
+           self.elLabel.setVisible(True)
+           self.el.setVisible(True)
+           self.el.setText(str(0))
+           wgt = QRangeString(row, self)
+           gLayout.addWidget(wgt, row, 1, 1, 2)
+           self.fields.append((p.type,wgt.listWidget))
+           self.connect(wgt.listWidget,QtCore.SIGNAL("changed(int)"),self.updateStepCount)
+           self.updateStepCount(wgt.listWidget.count())
+        doit = {'Integer': [dorange,QtGui.QIntValidator],
+                'Float': [dorange,QtGui.QDoubleValidator],
+                'String': [dolist, None]}
+        gLayout = self.layout()
+        lbl = QtGui.QLabel(QtCore.QString(p.type),self)
+        gLayout.addWidget(lbl, row, 0)
+        doit[p.type][0](doit[p.type][1])
+
+class QRangeString(QtGui.QFrame):
+
+    def __init__(self, row, parent=None):
+        QtGui.QFrame.__init__(self, parent)
+        self.setObjectName('RangeString')
+        layout = QtGui.QVBoxLayout()
+        self.groupBox = parent
+        self.setLayout(layout)
+        self.frame = self # hack to make qvaluelineedit happy
+        self.strings = []
+        self.row = row
+        self.setLineEdits()
+    
+    def setLineEdits(self):
+        self.setUpdatesEnabled(False)
+        hl = QtGui.QHBoxLayout()
+        
+        self.lineEdit = QtGui.QLineEdit('', self)
+        hl.addWidget(self.lineEdit)
+        self.addBtn = QtGui.QToolButton()
+        self.addBtn.setToolTip(self.tr("Add string"))
+        self.addBtn.setIcon(CurrentTheme.ADD_STRING_ICON)
+        self.addBtn.setIconSize(QtCore.QSize(16,16))
+        self.connect(self.addBtn, QtCore.SIGNAL("clicked()"), self.addString)
+        hl.addWidget(self.addBtn)
+        hl.setSpacing(0)
+        hl.setMargin(0)
+        self.layout().addLayout(hl)
+        self.layout().setSpacing(0)
+        self.layout().setMargin(0)
+        
+        self.listWidget = QStringListWidget(self.groupBox)        
+        vl = QtGui.QVBoxLayout()
+        vl.setSpacing(0)
+        vl.setMargin(0)
+
+        self.upBtn = QtGui.QToolButton()
+        self.upBtn.setToolTip(self.tr("Move up"))
+        self.upBtn.setIcon(CurrentTheme.UP_STRING_ICON)
+        self.upBtn.setIconSize(QtCore.QSize(16,16))
+        self.connect(self.upBtn, QtCore.SIGNAL("clicked()"), self.moveUp)
+        vl.addWidget(self.upBtn)
+
+        self.downBtn = QtGui.QToolButton()
+        self.downBtn.setToolTip(self.tr("Move down"))
+        self.downBtn.setIcon(CurrentTheme.DOWN_STRING_ICON)
+        self.downBtn.setIconSize(QtCore.QSize(16,16))
+        self.connect(self.downBtn, QtCore.SIGNAL("clicked()"), self.moveDown)
+        vl.addWidget(self.downBtn)
+
+        hl2 = QtGui.QHBoxLayout()
+        hl2.setSpacing(0)
+        hl2.setMargin(0)
+        hl2.addWidget(self.listWidget)
+        hl2.addLayout(vl)
+        self.parent().layout().addLayout(hl2,self.row + 1, 1, 1, 2)
+        
+        
+        self.setUpdatesEnabled(True)
+        self.parent().adjustSize()
+        self.parent().parent().layout().invalidate()
+
+    def addString(self):
+        if not self.lineEdit.text().isEmpty():
+            slist = self.lineEdit.text().split(",",QtCore.QString.SkipEmptyParts)
+            self.listWidget.addText(slist)
+
+    def moveUp(self):
+        row = self.listWidget.currentRow()
+        if row > 0:
+            item = self.listWidget.takeItem(row)
+            self.listWidget.insertItem(row-1,item)
+            self.listWidget.setCurrentRow(row-1)
+
+    def moveDown(self):
+        row = self.listWidget.currentRow()
+        if row < self.listWidget.count()-1:
+            item = self.listWidget.takeItem(row)
+            self.listWidget.insertItem(row+1,item)
+            self.listWidget.setCurrentRow(row+1)
+
+class QStringListWidget(QtGui.QListWidget):
+
+    def __init__(self,parent=None):
+        QtGui.QListWidget.__init__(self,parent)
+        
+
+    def keyPressEvent(self, event):
+        k = event.key()
+        s = event.modifiers()
+        if (k == QtCore.Qt.Key_Delete or k == QtCore.Qt.Key_Backspace) and s == QtCore.Qt.NoModifier:
+            if self.currentRow() >= 0:
+                self.takeItem(self.currentRow())
+                self.updateCount()
+        elif (k == QtCore.Qt.Key_Delete or k == QtCore.Qt.Key_Backspace) and s & QtCore.Qt.ControlModifier:
+            self.clear()
+            self.updateCount()
+        else:
+            QtGui.QListWidget.keyPressEvent(self,event)
+
+    def sizeHint(self):
+        #Return an invalid sizeHint
+        return QtCore.QSize()
+
+    def addText(self,slist):
+        self.addItems(slist)
+        self.updateCount()
+
+    def updateCount(self):
+        self.emit(QtCore.SIGNAL("changed(int)"),self.count())

@@ -70,7 +70,7 @@ class QVistrailView(QDockContainer):
         # Send to spreadsheet action
         self.connect(self.toolBar.executePipelineAction(),
                      QtCore.SIGNAL('triggered(bool)'),
-                     self.controller.sendToSpreadsheet)
+                     self.controller.executeCurrentWorkflow)
 
         # Space-storage for the builder window
         self.savedToolBarArea = None

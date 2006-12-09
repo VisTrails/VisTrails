@@ -9,6 +9,7 @@ from gui.method_palette import QMethodPalette
 from gui.module_annotation import QModuleAnnotation
 from gui.module_methods import QModuleMethods
 from gui.pipeline_view import QPipelineView
+from gui.param_explore import QParameterExploration
 
 ################################################################################
 
@@ -43,6 +44,10 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         self.moduleAnnotations = QModuleAnnotation(self)
         self.tabifyDockWidget(self.moduleMethods.toolWindow(),
                               self.moduleAnnotations.toolWindow())
+        
+        self.paramExploration = QParameterExploration(self)
+        self.tabifyDockWidget(self.moduleAnnotations.toolWindow(),
+                              self.paramExploration.toolWindow())
         
         self.connect(self.toolWindow(),
                      QtCore.SIGNAL('topLevelChanged(bool)'),
@@ -116,6 +121,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
                          self.flushMoveActions)
             self.moduleMethods.controller = controller
             self.moduleAnnotations.controller = controller
+            self.paramExploration.controller = controller
             controller.currentPipelineView = self.pipelineView.scene()
 
     def versionChanged(self, newVersion):
@@ -133,6 +139,8 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
                     item.setSelected(True)
                     item.update()
                 self.controller.previousModuleIds = []
+            else:
+                self.moduleSelected(-1)
         else:
             self.moduleSelected(-1)
         if self.controller.resetPipelineView:

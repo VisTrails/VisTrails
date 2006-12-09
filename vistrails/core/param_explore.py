@@ -3,6 +3,8 @@ This module handles Parameter Exploration in VisTrails
 """
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
+import copy
+
 ################################################################################
 
 class ParameterExploration(object):
@@ -12,26 +14,24 @@ class ParameterExploration(object):
 
     """
     
-    def __init__(self, stepCounts, specs):
+    def __init__(self, specs):
         """ ParameterExploration(specs: list) -> ParameterExploration
         Takes a list of interpolator list. The number of items in the
         list is also the number of dimensions this parameter
         exploration is going to explore on
         
         """
-        self.stepCounts = stepCounts
         self.specs = specs
 
     def explore(self, pipeline):
         """ explore(pipeline: VisPipeline) -> list[VisPipeline]        
         Apply parameter exploration on multiple dimensions using the
-        values in self.specs and the number of steps in
-        self.stepCounts per each dimension
+        values in self.specs
         
         """
         pipelineList = [pipeline]
         for i in range(len(self.specs)):
-            pipelineList = interpolateList(pipelineList, self.specs[i])
+            pipelineList = self.interpolateList(pipelineList, self.specs[i])
         return pipelineList
 
     def interpolateList(self, pipelineList, interpList):
@@ -63,7 +63,7 @@ class InterpolateDiscreteParam(object):
     """
 
     def __init__(self, module, function, ranges, stepCount):
-        """ InterpolateDiscreteParam(module: int,
+        """ InterpolateDiscreteParam(module: Module,
                                      function: str,
                                      ranges: list(tuple),
                                      stepCount: int)
@@ -123,7 +123,7 @@ class InterpolateDiscreteParam(object):
         pipeline
 
         """
-        m = pipeline.modules[self.module]
+        m = pipeline.modules[self.module.id]
         f = ModuleFunction()
         f.name = self.function
         f.returnType = 'void'

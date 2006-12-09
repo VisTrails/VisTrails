@@ -52,11 +52,11 @@ class QGraphicsRubberBandItem(QtGui.QGraphicsRectItem):
         
         """
         painter.setOpacity(0.5)
-        painter.fillRect(self.boundingRect(),
+        painter.fillRect(self.rect(),
                          CurrentTheme.SELECTION_BOX_BRUSH)
         painter.setOpacity(1.0)
         painter.setPen(CurrentTheme.SELECTION_BOX_PEN)
-        painter.drawRect(self.boundingRect())
+        painter.drawRect(self.rect())
 
 class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
     """

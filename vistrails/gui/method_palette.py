@@ -57,6 +57,7 @@ class QMethodTreeWidget(QSearchTreeWidget):
                 # Create the base widget item
                 baseItem = QMethodTreeWidgetItem(None,
                                                  None,
+                                                 None,
                                                  self,
                                                  (QtCore.QStringList()
                                                   <<  baseName
@@ -68,7 +69,8 @@ class QMethodTreeWidget(QSearchTreeWidget):
                 for method in methods:
                     for spec in method.spec:
                         sig = method.getSig(spec)
-                        QMethodTreeWidgetItem(method,
+                        QMethodTreeWidgetItem(module,
+                                              method,
                                               spec,
                                               baseItem,
                                               (QtCore.QStringList()
@@ -81,8 +83,9 @@ class QMethodTreeWidgetItem(QtGui.QTreeWidgetItem):
     QMethodTreeWidgetItem represents module on QModuleTreeWidget
     
     """
-    def __init__(self, port, spec, parent, labelList):
-        """ QMethodTreeWidgetItem(port: Port,
+    def __init__(self, module, port, spec, parent, labelList):
+        """ QMethodTreeWidgetItem(module: Module
+                                  port: Port,
                                   spec: tuple,
                                   parent: QTreeWidgetItem
                                   labelList: QStringList)
@@ -91,6 +94,7 @@ class QMethodTreeWidgetItem(QtGui.QTreeWidgetItem):
         labels
 
         """
+        self.module = module
         self.port = port
         self.spec = spec
         QtGui.QTreeWidgetItem.__init__(self, parent, labelList)

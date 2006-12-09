@@ -166,7 +166,7 @@ class VistrailController(QtCore.QObject):
 
         self.performAction(action)
 
-    def executeWorkflow(self, vistrails):
+    def executeWorkflowList(self, vistrails):
         for vis in vistrails:
             (name, version, pipeline, view, logger) = vis
             import core.interpreter
@@ -185,13 +185,17 @@ class VistrailController(QtCore.QObject):
             if self.logger:
                 self.logger.finishWorkflowExecution(name, version)        
 
-    def sendToSpreadsheet(self):
+    def executeCurrentWorkflow(self):
+        """ executeCurrentWorkflow() -> None
+        Execute the current workflow (if exists)
+        
+        """
         if self.currentPipeline:
-            self.executeWorkflow([(self.name,
-                                   self.currentVersion,
-                                   self.currentPipeline,
-                                   self.currentPipelineView,
-                                   self.logger)])
+            self.executeWorkflowList([(self.name,
+                                       self.currentVersion,
+                                       self.currentPipeline,
+                                       self.currentPipelineView,
+                                       self.logger)])
 
     def changeSelectedVersion(self, newVersion):
         """ changeSelectedVersion(newVersion: int) -> None        
@@ -495,27 +499,21 @@ class VistrailController(QtCore.QObject):
         self.currentVersion = currentAction
         self.emit(QtCore.SIGNAL("vistrailChanged()"))
 
-    def replaceModuleParams(self, module, functionName, paramList):
+    def replaceFunction(self, module, functionId, paramList):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
-        for fid in reversed(range(len(module.functions))):
-            if module.functions[fid].name==functionName:
-                action = DeleteFunctionAction()
-                action.functionId = fid
-                action.moduleId = module.id
-                self.performAction(action)
-        typeConverter = {int:'Integer', float:'Float', str:'String'}
-        for param in paramList:
-            action = ChangeParameterAction()
-            for i in range(len(param)):
-                action.addParameter(module.id,
-                                    module.getNumFunctions(),
-                                    i,
-                                    functionName,
-                                    '<no description>',
-                                    str(param[i]),
-                                    typeConverter[type(param[i])],
-                                    '')
-            self.performAction(action)
+        functionName= module.functions[functionId].name
+        action = ChangeParameterAction()        
+        for pId in range(len(paramList)):
+            (pValue, pType) = paramList[pId]
+            action.addParameter(module.id,
+                                functionId,
+                                pId,
+                                functionName,
+                                '<no description>',
+                                pValue,
+                                pType,
+                                '')
+        self.performAction(action)
         
     def setVersion(self, newVersion):
         """ setVersion(newVersion: int) -> None

@@ -10,7 +10,6 @@ QHoverAliasLabel
 from PyQt4 import QtCore, QtGui
 from core.utils import expression
 from core.vistrail.module_function import ModuleFunction
-from gui.common_widgets import QToolWindowInterface
 from gui.method_palette import QMethodTreeWidget
 from gui.theme import CurrentTheme
 
@@ -23,7 +22,7 @@ class QMethodDropBox(QtGui.QScrollArea):
     construct an input form based on the type of handling widget
     
     """
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         """ QMethodPalette(parent: QWidget) -> QMethodPalette
         Initialize widget constraints
         
@@ -72,8 +71,9 @@ class QMethodDropBox(QtGui.QScrollArea):
                     if item.port:
                         function = ModuleFunction.fromSpec(item.port,
                                                            item.spec)
-
-                        self.vWidget.addFunction(0, function)
+                        self.vWidget.addFunction(item.module,
+                                                 item.module.getNumFunctions(),
+                                                 function)
                         self.scrollContentsBy(0, self.viewport().height())
                         self.lockUpdate()
                         if self.controller:
@@ -92,7 +92,7 @@ class QMethodDropBox(QtGui.QScrollArea):
         if module:
             fId = 0
             for f in module.functions:                
-                self.vWidget.addFunction(fId, f)
+                self.vWidget.addFunction(module.id, fId, f)
                 fId += 1
 
     def lockUpdate(self):
@@ -111,7 +111,7 @@ class QMethodDropBox(QtGui.QScrollArea):
         
 class QVerticalWidget(QtGui.QWidget):
     """
-    QVerticalWidget is a widget holding other widgets
+    QVerticalWidget is a widget holding other function widgets
     vertically
     
     """
@@ -127,13 +127,16 @@ class QVerticalWidget(QtGui.QWidget):
         self.layout().setAlignment(QtCore.Qt.AlignTop)
         self.setSizePolicy(QtGui.QSizePolicy.Expanding,
                            QtGui.QSizePolicy.Expanding)
+        self.formType = QMethodInputForm
         
-    def addFunction(self, fId, function):
-        """ addFunction(fId: int, function: ModuleFunction) -> None
+    def addFunction(self, moduleId, fId, function):
+        """ addFunction(moduleId: int, fId: int,
+                        function: ModuleFunction) -> None
         Add an input form for the function
         
-        """
-        inputForm = QMethodInputForm()
+        """        
+        inputForm = self.formType(self)
+        inputForm.moduleId = moduleId
         inputForm.fId = fId
         inputForm.updateFunction(function)
         self.layout().addWidget(inputForm)
@@ -173,6 +176,7 @@ class QMethodInputForm(QtGui.QGroupBox):
         self.palette().setColor(QtGui.QPalette.Window,
                                 CurrentTheme.METHOD_SELECT_COLOR)
         self.fId = -1
+        self.function = None
 
     def focusInEvent(self, event):
         """ gotFocus() -> None
@@ -183,10 +187,29 @@ class QMethodInputForm(QtGui.QGroupBox):
 
     def focusOutEvent(self, event):
         """ lostFocus() -> None
-        Make sure the form painted as non-selected
+        Make sure the form painted as non-selected and then
+        perform a parameter changes
         
         """
         self.setAutoFillBackground(False)
+
+    def updateMethod(self):
+        """ updateMethod() -> None
+        Update the method values to vistrail
+        
+        """
+        methodBox = self.parent().parent().parent()
+        if methodBox.controller:
+            paramList = []
+            for i in range(len(self.lineEdits)):
+                paramList.append((str(self.lineEdits[i].text()),
+                                  self.function.params[i].type))
+            methodBox.lockUpdate()
+            methodBox.controller.previousModuleId = [methodBox.module.id]
+            methodBox.controller.replaceFunction(methodBox.module,
+                                                 self.fId,
+                                                 paramList)
+            methodBox.unlockUpdate()
 
     def updateFunction(self, function):
         """ updateFunction(function: ModuleFunction) -> None
@@ -194,10 +217,13 @@ class QMethodInputForm(QtGui.QGroupBox):
         
         """
         self.setTitle(function.name)
+        self.function = function
+        self.lineEdits = []        
         for pIndex in range(len(function.params)):
             p = function.params[pIndex]
             label = QHoverAliasLabel(p.alias, p.type)
-            lineEdit = QPythonValueLineEdit(p.strValue, p.type, self)
+            lineEdit = QPythonValueLineEdit(p.strValue, p.type, self)            
+            self.lineEdits.append(lineEdit)
             self.layout().addWidget(label, pIndex, 0)
             self.layout().addWidget(lineEdit, pIndex, 1)
 
@@ -208,16 +234,16 @@ class QMethodInputForm(QtGui.QGroupBox):
         """
         if e.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
             methodBox = self.parent().parent().parent()
+            self.parent().layout().removeWidget(self)
+            self.deleteLater()
+            for i in range(self.parent().layout().count()):
+                self.parent().layout().itemAt(i).widget().fId = i
+            methodBox.lockUpdate()
             if methodBox.controller:
-                self.parent().layout().removeWidget(self)
-                self.deleteLater()
-                for i in range(self.parent().layout().count()):
-                    self.parent().layout().itemAt(i).widget().fId = i
-                methodBox.lockUpdate()
                 methodBox.controller.previousModuleId = [methodBox.module.id]
                 methodBox.controller.deleteMethod(self.fId,
                                                   methodBox.module.id)
-                methodBox.unlockUpdate()
+            methodBox.unlockUpdate()
         else:
             QtGui.QGroupBox.keyPressEvent(self, e)
 
@@ -277,9 +303,10 @@ class QHoverAliasLabel(QtGui.QLabel):
                                                     'Enter the parameter alias',
                                                     QtGui.QLineEdit.Normal,
                                                     self.alias)
-            if ok:
+            if ok and str(text)!=self.alias:
                 self.alias = str(text)
                 self.updateText()
+                self.parent().updateMethod()
 
 class QPythonValueLineEdit(QtGui.QLineEdit):
     """
@@ -299,7 +326,9 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
         
         """
         QtGui.QLineEdit.__init__(self, contents, parent)
+        self.contentType = contentType
         self.contentIsString = contentType=='String'
+        self.lastText = ''
 
     def keyPressEvent(self, event):
         """ keyPressEvent(event) -> None        
@@ -333,6 +362,7 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
         Pass the event to the parent
         
         """
+        self.lastText = str(self.text())
         if self.parent():
             self.parent().focusInEvent(event)
         QtGui.QLineEdit.focusInEvent(self, event)
@@ -345,6 +375,9 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
         self.updateText()
         if self.parent():
             self.parent().focusOutEvent(event)
+            newText = str(self.text())
+            if newText!=self.lastText:
+                self.parent().updateMethod()
         QtGui.QLineEdit.focusOutEvent(self, event)
 
     def updateText(self):

@@ -246,17 +246,32 @@ class DefaultTheme(object):
             core.system.visTrailsRootDirectory() +
             '/gui/resources/images/show_legends.png')
 
-        # Toolbar icon for showing the Legend window
+        # Toolbar icon for close button on the vistrail tabbar
         self.VIEW_MANAGER_CLOSE_ICON = QtGui.QIcon(
             core.system.visTrailsRootDirectory() +
             '/gui/resources/images/closeview.png')
 
-        # Toolbar icon for showing the Legend window
+        # Toolbar icon for the dock toolbutton on the splitted window
         self.DOCK_BACK_ICON = QtGui.QIcon(
             core.system.visTrailsRootDirectory() +
             '/gui/resources/images/dockback.png')
 
-        # Toolbar icon for showing the Legend window
+        # Icon for adding string in the parameter exploration widget
+        self.ADD_STRING_ICON = QtGui.QIcon(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/edit_add.png')
+
+        # Icon for moving string up in the parameter exploration widget
+        self.UP_STRING_ICON = QtGui.QIcon(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/up.png')
+
+        # Icon for moving string up in the parameter exploration widget
+        self.DOWN_STRING_ICON = QtGui.QIcon(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/down.png')
+
+        # Toolbar icon for dragging pixmap of VisDiff
         self.VERSION_DRAG_PIXMAP = QtGui.QPixmap(
             core.system.visTrailsRootDirectory() +
             '/gui/resources/images/dragging.png')

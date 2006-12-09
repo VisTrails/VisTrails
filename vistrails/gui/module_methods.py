@@ -21,10 +21,3 @@ class QModuleMethods(QMethodDropBox, QToolWindowInterface):
         """
         QMethodDropBox.__init__(self, parent)
         self.setWindowTitle('Properties')
-
-    def sizeHint(self):
-        """ sizeHint(self) -> QSize
-        Return recommended size of the widget
-        
-        """
-        return QtCore.QSize(200, 200)

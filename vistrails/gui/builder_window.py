@@ -45,7 +45,7 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         self.shell = None
         self.vistrailViewToolBar = None
-        self.viewManager.newVistrail()
+        self.sdiModeAction.trigger()
 
     def sizeHint(self):
         """ sizeHint() -> QRect
@@ -159,7 +159,6 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.toolBar.addAction(self.saveVistrailAction)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.shellAction)
-        self.toolBar.addAction(self.sdiModeAction)
 
     def connectSignals(self):
         """ connectSignals() -> None
@@ -272,7 +271,7 @@ class QBuilderWindow(QtGui.QMainWindow):
                 area = self.toolBarArea(self.vistrailViewToolBar)
                 self.removeToolBar(self.vistrailViewToolBar)
             else:
-                area = self.toolBarArea(self.toolBar)                
+                area = self.toolBarArea(self.toolBar)
             self.vistrailViewToolBar = self.viewManager.getCurrentToolBar()
             if self.vistrailViewToolBar:
                 self.addToolBar(area, self.vistrailViewToolBar)
@@ -317,7 +316,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         if not fileName:
             return
         else:
-            self.viewManager.saveVistrail(str(fileName))
+            self.viewManager.saveVistrail(None, str(fileName))
 
     def quitVistrails(self):
         """ quitVistrails() -> bool

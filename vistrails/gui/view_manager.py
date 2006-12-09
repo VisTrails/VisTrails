@@ -64,6 +64,8 @@ class QViewManager(QtGui.QTabWidget):
                      QtCore.SIGNAL('moduleSelectionChange'),
                      self.moduleSelectionChange)
         self.emit(QtCore.SIGNAL('vistrailViewAdded'), view)
+        if self.count()==1:
+            self.emit(QtCore.SIGNAL('currentChanged(int)'), 0)
 
     def removeVistrailView(self, view):
         """ removeVistrailView(view: QVistrailView) -> None
@@ -131,7 +133,7 @@ class QViewManager(QtGui.QTabWidget):
         self.setCurrentWidget(vistrailView)
         return vistrailView
 
-    def saveVistrail(self, vistrailView=None):
+    def saveVistrail(self, vistrailView=None, fileName=''):
         """ openVistrail(vistrailView: QVistrailView) -> QVistrailView
         Save the current active vistrail to a file
         
@@ -139,7 +141,8 @@ class QViewManager(QtGui.QTabWidget):
         if not vistrailView:
             vistrailView = self.currentWidget()
         if vistrailView:
-            fileName = vistrailView.controller.fileName
+            if fileName=='':
+                fileName = vistrailView.controller.fileName
             if fileName=='':
                 fileName = QtGui.QFileDialog.getSaveFileName(
                     self,
