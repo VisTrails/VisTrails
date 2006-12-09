@@ -36,9 +36,21 @@ class QGraphicsLinkItem(QtGui.QGraphicsPolygonItem, QGraphicsItemInterface):
         QtGui.QGraphicsPolygonItem.__init__(self, parent, scene)
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
         self.setZValue(0)
-        self.setPen(CurrentTheme.LINK_PEN)
+        self.linkPen = CurrentTheme.LINK_PEN
         self.startVersion = -1
         self.endVersion = -1
+        self.ghosted = False
+
+    def setGhosted(self, ghosted):
+        """ setGhosted(ghosted: True) -> None
+        Set this link to be ghosted or not
+        
+        """
+        self.ghosted = ghosted
+        if ghosted:
+            self.linkPen = CurrentTheme.GHOSTED_LINK_PEN
+        else:
+            self.linkPen = CurrentTheme.LINK_PEN
 
     def setupLink(self, v1, v2):
         """ setupLink(v1, v2: QGraphicsVersionItem) -> None
@@ -99,6 +111,8 @@ class QGraphicsLinkItem(QtGui.QGraphicsPolygonItem, QGraphicsItemInterface):
         poly.append(self.lines[0].p1())
         self.setPolygon(poly)
 
+        self.setGhosted(v1.ghosted or v2.ghosted)
+
     def paint(self, painter, option, widget=None):
         """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
                   widget: QWidget) -> None
@@ -108,7 +122,7 @@ class QGraphicsLinkItem(QtGui.QGraphicsPolygonItem, QGraphicsItemInterface):
         if self.isSelected():
             painter.setPen(CurrentTheme.LINK_SELECTED_PEN)
         else:
-            painter.setPen(CurrentTheme.LINK_PEN)
+            painter.setPen(self.linkPen)
         for line in self.lines:
             painter.drawLine(line)
 
@@ -146,22 +160,38 @@ class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
         self.id = -1
         self.label = ''
         self.dragging = False
+        self.ghosted = False
 
     def setGhosted(self, ghosted=True):
         """ setGhosted(ghosted: True) -> None
         Set this version to be ghosted or not
         
         """
+        self.ghosted = ghosted
         if ghosted:
             self.versionPen = CurrentTheme.GHOSTED_VERSION_PEN
             self.versionLabelPen = CurrentTheme.GHOSTED_VERSION_LABEL_PEN
             self.versionBrush = CurrentTheme.GHOSTED_VERSION_USER_BRUSH
-            self.setFlags(QtGui.QGraphicsItem.GraphicsItemFlags())
         else:
             self.versionPen = CurrentTheme.VERSION_PEN
             self.versionLabelPen = CurrentTheme.VERSION_LABEL_PEN
             self.versionBrush = CurrentTheme.VERSION_USER_BRUSH
-            self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+
+    def setSaturation(self, isThisUser, sat):
+        """ setSaturation(isThisUser: bool, sat: float) -> None        
+        Set the color of this version depending on whose is the user
+        and its saturation
+        
+        """
+        if not self.ghosted:
+            if isThisUser:
+                brush = CurrentTheme.VERSION_USER_BRUSH
+            else:
+                brush = CurrentTheme.VERSION_OTHER_BRUSH
+
+            (h, s, v, a) = brush.color().getHsvF()
+            newHsv = (h, s*sat, v+(1.0-v)*(1-sat), a)
+            self.versionBrush = QtGui.QBrush(QtGui.QColor.fromHsvF(*newHsv))
 
     def setupVersion(self, node, label):
         """ setupPort(node: DotNode, label: str) -> None
@@ -306,14 +336,13 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.versions = {}
         self.controller = None
 
-    def addVersion(self, node, label, ghosted=False):
-        """ addModule(node: DotNode, ghosted: bool) -> None
+    def addVersion(self, node, label):
+        """ addModule(node: DotNode) -> None
         Add a module to the scene
         
         """
         versionShape = QGraphicsVersionItem(None)
         versionShape.setupVersion(node, label)
-        versionShape.setGhosted(ghosted)
         self.addItem(versionShape)
         self.versions[node.id] = versionShape
 
@@ -334,6 +363,38 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.versions = {}
         self.clearItems()
 
+    def adjustVersionColors(self, controller):
+        """ adjustVersionColors(controller: VistrailController) -> None
+        Based on the controller to set version colors
+        
+        """
+        currentUser = controller.vistrail.getUser()
+        thisNodes = {}
+        otherNodes = {}
+        for nodeId in sorted(self.versions.keys()):
+            if nodeId!=0:
+                nodeUser = controller.vistrail.actionMap[nodeId].user
+                if nodeUser==currentUser:
+                    thisNodes[nodeId] = len(thisNodes)
+                else:
+                    otherNodes[nodeId] = len(otherNodes)
+        thisNorm = float(len(thisNodes))
+        otherNorm = float(len(otherNodes))
+    
+        for (nodeId, item) in self.versions.items():
+            ghosted = False
+            if controller.search and nodeId!=0:
+                action = controller.vistrail.actionMap[nodeId]
+                ghosted = not controller.search.match(action)
+            item.setGhosted(nodeId==0 or ghosted)
+            if thisNodes.has_key(nodeId):
+                item.setSaturation(True,
+                                   float(thisNodes[nodeId]+1)/thisNorm)
+            elif otherNodes.has_key(nodeId):
+                item.setSaturation(False,
+                                   float(otherNodes[nodeId]+1)/otherNorm)
+            
+
     def setupScene(self, controller):
         """ setupScene(vistrail: VistrailController) -> None
         Construct the scene to view a version tree
@@ -352,17 +413,11 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             label = ''
             if controller.vistrail.inverseTagMap.has_key(node.id):
                 label = controller.vistrail.inverseTagMap[node.id]
-            if controller.search:
-                if node.id!=0:
-                    action = controller.vistrail.actionMap[node.id]
-                    ghosted = not controller.search.match(action)
-                else:
-                    ghosted = True
-            else:
-                ghosted = False
-            self.addVersion(node, label, ghosted)
+            self.addVersion(node, label)
             if node.id==controller.currentVersion:
                 self.versions[node.id].setSelected(True)
+                
+        self.adjustVersionColors(controller)
             
         # Add version links
         for nodeId in graph.vertices.keys():

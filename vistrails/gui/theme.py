@@ -146,6 +146,8 @@ class DefaultTheme(object):
             QtGui.QColor(*(ColorByName.getInt('black')))), 2)
         self.LINK_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.getInt('banana')))), 2)
+        self.GHOSTED_LINK_PEN = QtGui.QPen(QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.getInt('light_grey')))), 2)
 
         # Selection box color
         self.SELECTION_BOX_BRUSH = QtGui.QBrush(

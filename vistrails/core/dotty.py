@@ -116,4 +116,4 @@ class DotLayout(object):
 
         # Parse Dotty's output
         self.parseDottyOutput(fileIn)
-#        core.system.removeGraphvizTemporaries()
+        core.system.removeGraphvizTemporaries()
