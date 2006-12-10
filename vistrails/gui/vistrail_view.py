@@ -74,7 +74,7 @@ class QVistrailView(QDockContainer):
         # Execute pipeline action
         self.connect(self.toolBar.executePipelineAction(),
                      QtCore.SIGNAL('triggered(bool)'),
-                     self.controller.executeCurrentWorkflow)
+                     self.executeCurrentWorkflow)
 
         # Query pipeline action
         self.connect(self.toolBar.visualQueryAction(),
@@ -220,6 +220,14 @@ class QVistrailView(QDockContainer):
                 self.controller.queryByExapmle(queryPipeline)
         else:
             self.controller.setSearch(None)
+
+    def executeCurrentWorkflow(self):
+        """ executeCurrentWorkflow() -> None
+        Make sure to get focus for QModuleMethods to update
+        
+        """
+        self.setFocus(QtCore.Qt.MouseFocusReason)
+        self.controller.executeCurrentWorkflow()
 
 ################################################################################
 

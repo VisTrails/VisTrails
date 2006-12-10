@@ -257,8 +257,11 @@ class Pipeline(object):
                                         {'datetime':locals()['datetime']},
                                         aliases)) +
                                base[e[0]:])
-        if not atype in ['string', 'String']: base = eval(base,None,None)
-        return base        
+        if not atype in ['string', 'String']:
+            if base=='':
+                base = '0'
+            base = eval(base,None,None)
+        return base
 
     def resolveAliases(self, customAliases=None):
         # Compute the 'locals' dictionary by evaluating named expressions

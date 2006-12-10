@@ -240,7 +240,7 @@ class QMethodInputForm(QtGui.QGroupBox):
                 self.parent().layout().itemAt(i).widget().fId = i
             methodBox.lockUpdate()
             if methodBox.controller:
-                methodBox.controller.previousModuleId = [methodBox.module.id]
+                methodBox.controller.previousModuleIds = [methodBox.module.id]
                 methodBox.controller.deleteMethod(self.fId,
                                                   methodBox.module.id)
             methodBox.unlockUpdate()
@@ -329,6 +329,9 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
         self.contentType = contentType
         self.contentIsString = contentType=='String'
         self.lastText = ''
+        self.connect(self,
+                     QtCore.SIGNAL('returnPressed()'),
+                     self.updateParent)                     
 
     def keyPressEvent(self, event):
         """ keyPressEvent(event) -> None        
