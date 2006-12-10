@@ -4,8 +4,11 @@
 ################################################################################
 import os.path
 from PyQt4 import QtCore, QtGui
+from core.xml_parser import XMLParser
+from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_tab import (StandardWidgetTabBar,
                              StandardWidgetSheetTab, StandardTabDockWidget)
+from spreadsheet_registry import spreadsheetRegistry
 
 ################################################################################
 
@@ -569,12 +572,10 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                 progress.show()
                 for pipelineIdx in range(pipelineCount):
                     (vistrailFileName, version) = eval(lines[lidx])
-                    from xml_parser import XMLParser
                     parser = XMLParser()
                     parser.openVistrail(vistrailFileName)
                     vistrail = parser.getVistrail()
                     pipeline = vistrail.getPipeline(version)
-                    from interpreter import Interpreter
                     execution = Interpreter()
                     progress.setValue(pipelineIdx)
                     QtCore.QCoreApplication.processEvents()
@@ -593,7 +594,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                 QtGui.QMessageBox.warning(self,
                                           'Open Spreadsheet Error',
                                           'Cannot open spreadsheet'
-                                          'to %s' % fileName)
+                                          ' from %s' % fileName)
         finally:
             self.loadingMode = False
             indexFile.close()

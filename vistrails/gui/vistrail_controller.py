@@ -190,7 +190,7 @@ class VistrailController(QtCore.QObject):
         
         """
         if self.currentPipeline:
-            self.executeWorkflowList([(self.name,
+            self.executeWorkflowList([(self.fileName,
                                        self.currentVersion,
                                        self.currentPipeline,
                                        self.currentPipelineView,
