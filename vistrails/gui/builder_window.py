@@ -353,6 +353,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         view.viewAction.setCheckable(True)
         self.vistrailActionGroup.addAction(view.viewAction)
         self.vistrailMenu.addAction(view.viewAction)
+        view.versionTab.versionView.scene().fitToView(
+            view.versionTab.versionView)
 
     def vistrailViewRemoved(self, view):
         """ vistrailViewRemoved(view: QVistrailView) -> None
