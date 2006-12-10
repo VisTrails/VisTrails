@@ -294,7 +294,7 @@ class QVisualDiff(QtGui.QMainWindow):
         in the Inspector
         
         """
-        if len(selectedItems)!=1:
+        if len(selectedItems)!=1 or id==-1:
             self.moduleUnselected()
             return
         

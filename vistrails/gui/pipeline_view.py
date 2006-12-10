@@ -212,6 +212,7 @@ class QGraphicsConnectionItem(QtGui.QGraphicsPolygonItem,
         self.connectingModules = (None, None)
         self.id = -1
         self.ghosted = False
+        self.connection = None
 
     def setupConnection(self, startPos, endPos):
         """ setupConnection(startPos: QPointF, endPos: QPointF) -> None
@@ -397,6 +398,7 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         """
         # Update module info and visual
         self.id = module.id
+        self.module = module
         self.label = module.name
         self.computeBoundingRect()
         self.resetMatrix()
@@ -672,6 +674,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         connectionItem = QGraphicsConnectionItem(None)
         connectionItem.setupConnection(dstPoint, srcPoint)
         connectionItem.id = connection.id
+        connectionItem.connection = connection
         connectionItem.connectingModules = (srcModule, dstModule)
         srcModule.addConnectionItem(connectionItem, False)
         dstModule.addConnectionItem(connectionItem, True)
@@ -798,16 +801,22 @@ class QPipelineScene(QInteractiveGraphicsScene):
         if len(selectedItems)>0:
             cb = QtGui.QApplication.clipboard()
             cb.clear()
-            modules = []
             dom = getDOMImplementation().createDocument(None, 'network', None)
             root = dom.documentElement
+            copiedConnections = {}
+            modules = {}
             for item in selectedItems:
-                module = self.controller.currentPipeline.modules[item.id]
+                module = item.module
                 module.dumpToXML(dom,root)
-                modules.append(module.id)
-            for conn in self.controller.currentPipeline.connections.values():
-                if conn.sourceId in modules and conn.destinationId in modules:
-                    conn.serialize(dom,root)
+                modules[module.id] = True
+            for item in selectedItems:
+                for (connItem, start) in item.dependingConnectionItems:
+                    conn = connItem.connection
+                    if ((not copiedConnections.has_key(conn)) and
+                        modules.has_key(conn.sourceId) and
+                        modules.has_key(conn.destinationId)):
+                        conn.serialize(dom, root)
+                        copiedConnections[conn] = True
             cb.setText(dom.toxml())
             
     def pasteFromClipboard(self):
@@ -816,7 +825,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         if self.controller:
-            cb = QtGui.QApplication.clipboard()
+            cb = QtGui.QApplication.clipboard()        
             text = str(cb.text())
             if text=='': return
             dom = parseString(str(cb.text()))
