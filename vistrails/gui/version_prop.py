@@ -152,5 +152,4 @@ class QVersionNotes(QtGui.QTextEdit):
         
         """
         if self.controller and self.document().isModified():
-            self.controller.vistrail.changenotes(str(self.toPlainText(),
-                                                     self.versionNumber))
+            self.controller.updateNotes(str(self.toPlainText()))
