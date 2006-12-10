@@ -134,7 +134,7 @@ class QGraphicsLinkItem(QtGui.QGraphicsPolygonItem, QGraphicsItemInterface):
         if change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool():
             selectedItems = self.scene().selectedItems()
             for item in selectedItems:
-                if isinstance(item, QGraphicsVersionItem):
+                if type(item)==QGraphicsVersionItem:
                     return QtCore.QVariant(False)
         return QtGui.QGraphicsPolygonItem.itemChange(self, change, value)
 
@@ -237,24 +237,27 @@ class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
         if change==QtGui.QGraphicsItem.ItemSelectedChange:
             selectedItems = self.scene().selectedItems()
             selectedId = -1
-            if value.toBool():
-                for item in selectedItems:
-                    if isinstance(item, QGraphicsLinkItem):
-                        item.setSelected(False)
-                        item.update()
-                if len(selectedItems)==0:
-                    selectedId = self.id
-            elif len(selectedItems)==2:
-                if selectedItems[0]==self:
-                    selectedId = selectedItems[1].id
-                else:
-                    selectedId = selectedItems[0].id
-            selectByClick = self.scene().mouseGrabberItem() == self
-            if not selectByClick:
-                for item in self.scene().items():
-                    if type(item)==QGraphicsRubberBandItem:
-                        selectByClick = True
-                        break
+            if not self.scene().multiSelecting:
+                if value.toBool():
+                    for item in selectedItems:
+                        if type(item)==QGraphicsLinkItem:
+                            item.setSelected(False)
+                            item.update()
+                    if len(selectedItems)==0:
+                        selectedId = self.id
+                elif len(selectedItems)==2:
+                    if selectedItems[0]==self:
+                        selectedId = selectedItems[1].id
+                    else:
+                        selectedId = selectedItems[0].id
+                selectByClick = self.scene().mouseGrabberItem() == self
+                if not selectByClick:
+                    for item in self.scene().items():
+                        if type(item)==QGraphicsRubberBandItem:
+                            selectByClick = True
+                            break
+            else:
+                selectByClick = False
             self.scene().emit(QtCore.SIGNAL('versionSelected(int,bool)'),
                               selectedId, selectByClick)                              
         return QtGui.QGraphicsItem.itemChange(self, change, value)    
@@ -428,8 +431,6 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             
         # Update bounding rects and fit to all view
         self.updateSceneBoundingRect()
-        for view in self.views():
-            view.resetCachedContent()
 
 class QVersionTreeView(QInteractiveGraphicsView):
     """

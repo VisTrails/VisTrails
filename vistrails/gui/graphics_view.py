@@ -71,6 +71,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         """
         QtGui.QGraphicsScene.__init__(self, parent)
         self.sceneBoundingRect = QtCore.QRectF()
+        self.multiSelecting = False
         
     def updateSceneBoundingRect(self):
         """ updateSceneBoundingRect() -> None        
@@ -96,6 +97,11 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         if panRect.width()<1e-6 and panRect.height()<1e-6:
             panRect = QtCore.QRectF(-1000,-1000,2000,2000)
         self.setSceneRect(panRect)
+
+        # Reset cache
+        for view in self.views():
+            view.resetCachedContent()
+
 
     def fitToView(self, view):
         """ fitToView(view: QGraphicsView) -> None
@@ -172,6 +178,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         if buttons == QtCore.Qt.LeftButton:
             if item==None:
                 if self.scene():
+                    self.scene().multiSelecting = True
                     self.scene().addItem(self.selectionBox)
                     self.selectionBox.setZValue(1000)
                     
@@ -198,6 +205,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         because of their flaky values during transformation
         
         """
+        self.setUpdatesEnabled(False)
         buttons = e.buttons()
         if buttons == QtCore.Qt.LeftButton:
             if self.startSelectingPos:
@@ -208,7 +216,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                 self.selectionBox.setRect(rect)
                 self.selectModules()
             else:
-                return QtGui.QGraphicsView.mouseMoveEvent(self, e)
+                QtGui.QGraphicsView.mouseMoveEvent(self, e)
         elif self.lastPos:
             if buttons == QtCore.Qt.RightButton:
                 globalPos = QtGui.QCursor.pos()
@@ -238,7 +246,8 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                                                   globalPos.y() +
                                                   self.lastPos.y())
         else:
-            return QtGui.QGraphicsView.mouseMoveEvent(self, e)
+            QtGui.QGraphicsView.mouseMoveEvent(self, e)
+        self.setUpdatesEnabled(True)
 
     def mouseReleaseEvent(self, e):
         """ mouseReleaseEvent(self, e: QMouseEvent) -> None
@@ -249,7 +258,9 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
             self.startSelectingPos = None
             self.selectionBox.setVisible(False)
             self.scene().removeItem(self.selectionBox)
+            self.scene().multiSelecting = False
         self.lastPos = None
+        self.setUpdatesEnabled(True)
         QtGui.QGraphicsView.mouseReleaseEvent(self, e)
 
     def selectModules(self):

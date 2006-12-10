@@ -1,13 +1,12 @@
 from PyQt4 import QtCore, QtGui
-from core.utils import VistrailsInternalError, InstanceObject,\
-    appendToDictOfLists, trace_method, bump_trace
-from core.debug import DebugPrint
+from core.utils import VistrailsInternalError
 from core.modules import module_registry
 from core.vistrail.action import Action, AddModuleAction, DeleteModuleAction, \
     ChangeParameterAction, AddConnectionAction, DeleteConnectionAction, \
     DeleteFunctionAction, ChangeAnnotationAction, DeleteAnnotationAction,\
     AddModulePortAction, DeleteModulePortAction, MoveModuleAction
-from core.vistrail.macro import Macro
+from core.query.version import TrueSearch
+from core.query.visual import VisualQuery
 from core.vistrail.module import Module
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.module_param import VistrailModuleType
@@ -559,3 +558,17 @@ class VistrailController(QtCore.QObject):
             self.fileName = fileName
             self.name = os.path.split(fileName)[1]
             self.emit(QtCore.SIGNAL('stateChanged'))
+
+    def queryByExapmle(self, pipeline):
+        """ queryByExapmle(pipeline: Pipeline) -> None
+        Perform visual query on the current vistrail
+        
+        """
+        if len(pipeline.modules)==0:
+            search = TrueSearch()
+        else:
+            search = VisualQuery(pipeline)
+
+        search.run(self.vistrail, '')
+            
+        self.setSearch(search)

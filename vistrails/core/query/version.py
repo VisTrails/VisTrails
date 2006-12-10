@@ -1,12 +1,11 @@
+# We need to remove QtGui and QtCore refernce by storing all of our
+# notes in plain text, not html, should be fix later
 from PyQt4 import QtGui
 from PyQt4.QtCore import QString
 import core.utils
 import re
 import time
 import xml.sax.saxutils
-
-# This shouldn't be called VersionTreeSearch anymore, but Search, since it now
-# includes modules. We'll fix it later.
 
 ################################################################################
 

@@ -30,7 +30,7 @@ import math
 
 ################################################################################
 
-class QGraphicsPortItem(QtGui.QGraphicsRectItem):#, QGraphicsItemInterface):
+class QGraphicsPortItem(QtGui.QGraphicsRectItem):
     """
     QGraphicsPortItem is a small port shape drawing on top (a child)
     of QGraphicsModuleItem, it can either be rectangle or rounded
@@ -58,9 +58,23 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):#, QGraphicsItemInterface):
         self.port = None
         self.dragging = False
         self.connection = None
+        self.ghosted = False
+
+    def setGhosted(self, ghosted):
+        """ setGhosted(ghosted: True) -> None
+        Set this link to be ghosted or not
+        
+        """
+        self.ghosted = ghosted
+        if ghosted:
+            self.setPen(CurrentTheme.GHOSTED_PORT_PEN)
+            self.setBrush(CurrentTheme.GHOSTED_PORT_BRUSH)
+        else:
+            self.setPen(CurrentTheme.PORT_PEN)
+            self.setBrush(CurrentTheme.PORT_BRUSH)
 
     def paintEllipse(self, painter, option, widget=None):
-        """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
+        """ paintEllipse(painter: QPainter, option: QStyleOptionGraphicsItem,
                   widget: QWidget) -> None
         Peform actual painting of the optional port
         
@@ -68,7 +82,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):#, QGraphicsItemInterface):
         painter.drawEllipse(self.rect())
 
     def paintRect(self, painter, option, widget=None):
-        """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
+        """ paintRect(painter: QPainter, option: QStyleOptionGraphicsItem,
                   widget: QWidget) -> None
         Peform actual painting of the regular port
         
@@ -197,6 +211,7 @@ class QGraphicsConnectionItem(QtGui.QGraphicsPolygonItem,
         self.visualPolygon = QtGui.QPolygonF()
         self.connectingModules = (None, None)
         self.id = -1
+        self.ghosted = False
 
     def setupConnection(self, startPos, endPos):
         """ setupConnection(startPos: QPointF, endPos: QPointF) -> None
@@ -242,6 +257,17 @@ class QGraphicsConnectionItem(QtGui.QGraphicsPolygonItem,
         polygon.append(polygon.at(0))
         self.setPolygon(polygon)
 
+    def setGhosted(self, ghosted):
+        """ setGhosted(ghosted: True) -> None
+        Set this link to be ghosted or not
+        
+        """
+        self.ghosted = ghosted
+        if ghosted:
+            self.connectionPen = CurrentTheme.GHOSTED_CONNECTION_PEN
+        else:
+            self.connectionPen = CurrentTheme.CONNECTION_PEN
+
     def paint(self, painter, option, widget=None):
         """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
                   widget: QWidget) -> None
@@ -262,7 +288,7 @@ class QGraphicsConnectionItem(QtGui.QGraphicsPolygonItem,
         if change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool():
             selectedItems = self.scene().selectedItems()
             for item in selectedItems:
-                if isinstance(item, QGraphicsModuleItem):
+                if type(item)==QGraphicsModuleItem:
                     return QtCore.QVariant(False)
         return QtGui.QGraphicsPolygonItem.itemChange(self, change, value)    
 
@@ -289,7 +315,9 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         self.setZValue(0)
         self.labelFont = CurrentTheme.MODULE_FONT
         self.labelFontMetric = CurrentTheme.MODULE_FONT_METRIC
+        self.modulePen = CurrentTheme.MODULE_PEN
         self.moduleBrush = CurrentTheme.MODULE_BRUSH
+        self.labelPen = CurrentTheme.MODULE_LABEL_PEN
         self.id = -1
         self.label = ''
         self.inputPorts = {}
@@ -297,6 +325,7 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         self.dependingConnectionItems = []
         self.controller = None
         self.module = None
+        self.ghosted = False
 
     def computeBoundingRect(self):
         """ computeBoundingRect() -> None
@@ -318,6 +347,21 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         """
         return self.paddedRect.adjusted(-2, -2, 2, 2)
 
+    def setGhosted(self, ghosted):
+        """ setGhosted(ghosted: True) -> None
+        Set this link to be ghosted or not
+        
+        """
+        self.ghosted = ghosted
+        if ghosted:
+            self.modulePen = CurrentTheme.GHOSTED_MODULE_PEN
+            self.moduleBrush = CurrentTheme.GHOSTED_MODULE_BRUSH
+            self.labelPen = CurrentTheme.GHOSTED_MODULE_LABEL_PEN
+        else:
+            self.modulePen = CurrentTheme.MODULE_PEN
+            self.moduleBrush = CurrentTheme.MODULE_BRUSH
+            self.labelPen = CurrentTheme.MODULE_LABEL_PEN
+            
     def paint(self, painter, option, widget=None):
         """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
                   widget: QWidget) -> None
@@ -328,12 +372,12 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         if self.isSelected():
             painter.setPen(CurrentTheme.MODULE_SELECTED_PEN)
         else:
-            painter.setPen(CurrentTheme.MODULE_PEN)
+            painter.setPen(self.modulePen)
         painter.drawRect(self.paddedRect)
         if self.isSelected():
             painter.setPen(CurrentTheme.MODULE_LABEL_SELECTED_PEN)
         else:
-            painter.setPen(CurrentTheme.MODULE_LABEL_PEN)
+            painter.setPen(self.labelPen)
         painter.setFont(self.labelFont)
         painter.drawText(self.paddedRect, QtCore.Qt.AlignCenter, self.label)
 
@@ -411,6 +455,7 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         """
         portShape = QGraphicsPortItem(self, self.scene(), port.optional)
         portShape.controller = self.controller
+        portShape.setGhosted(self.ghosted)
         portShape.setupPort(port)
         portShape.translate(x, y)
         return portShape
@@ -497,25 +542,29 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
                             connectionItem.endPos+dis)
         # Do not allow connection to be selected with modules
         elif change==QtGui.QGraphicsItem.ItemSelectedChange:
+            for item in self.scene().selectedItems():
+                if type(item)==QGraphicsConnectionItem:
+                    item.setSelected(False)
             selectedItems = self.scene().selectedItems()
             selectedId = -1
-            if value.toBool():
-                for item in selectedItems:
-                    if type(item)!=QGraphicsModuleItem:
-                        item.setSelected(False)
-                        item.update()
-                if len(selectedItems)==0:
-                    selectedId = self.id
-                    selectedItems.append(self)
-            elif len(selectedItems)==2:
-                if selectedItems[0]==self:
-                    selectedId = selectedItems[1].id
-                    selectedItems = selectedItems[1:]
+            if not self.scene().multiSelecting:
+                if value.toBool():
+                    for item in selectedItems:
+                        if type(item)!=QGraphicsModuleItem:
+                            item.setSelected(False)
+                            item.update()
+                    if len(selectedItems)==0:
+                        selectedId = self.id
+                        selectedItems.append(self)
+                elif len(selectedItems)==2:
+                    if selectedItems[0]==self:
+                        selectedId = selectedItems[1].id
+                        selectedItems = selectedItems[1:]
+                    else:
+                        selectedId = selectedItems[0].id
+                        selectedItems = selectedItems[:1]
                 else:
-                    selectedId = selectedItems[0].id
-                    selectedItems = selectedItems[:1]
-            else:
-                selectedItems = [m for m in selectedItems if m!=self]
+                    selectedItems = [m for m in selectedItems if m!=self]
             self.scene().emit(QtCore.SIGNAL('moduleSelected'),
                               selectedId, selectedItems)
         return QtGui.QGraphicsItem.itemChange(self, change, value)
@@ -600,6 +649,10 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         moduleItem = QGraphicsModuleItem(None)
+        if self.controller and self.controller.search:
+            moduleQuery = (self.controller.currentVersion, module)
+            matched = self.controller.search.matchModule(*moduleQuery)
+            moduleItem.setGhosted(not matched)
         moduleItem.controller = self.controller
         moduleItem.setupModule(module)
         if moduleBrush:
@@ -640,6 +693,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         if self.noUpdate: return
+        needReset = len(self.items())==0        
         # Clean the previous scene
         self.clear()
 
@@ -652,11 +706,10 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 self.addConnection(connection)
 
         # Update bounding rects and fit to all view
-        self.updateSceneBoundingRect()
+        self.updateSceneBoundingRect()        
 
-        # Reset cache
-        for view in self.views():
-            view.resetCachedContent()
+        if needReset and len(self.items())>0:
+            self.fitToAllViews()
 
     def dragEnterEvent(self, event):
         """ dragEnterEvent(event: QDragEnterEvent) -> None
@@ -709,7 +762,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
             selectedItems = self.selectedItems()
             if len(selectedItems)>0:
-                if isinstance(selectedItems[0], QGraphicsModuleItem):
+                if type(selectedItems[0])==QGraphicsModuleItem:
                     self.noUpdate = True
                     idList = [m.id for m in selectedItems]
                     self.controller.deleteModuleList(idList)
@@ -724,11 +777,16 @@ class QPipelineScene(QInteractiveGraphicsScene):
                     self.updateSceneBoundingRect()
                     self.update()
                     self.noUpdate = False
-                elif isinstance(selectedItems[0], QGraphicsConnectionItem):
+                elif type(selectedItems[0])==QGraphicsConnectionItem:
                     self.controller.resetPipelineView = False
                     idList = [conn.id for conn in selectedItems]
                     self.controller.deleteConnectionList(idList)
-                    
+        elif (event.key()==QtCore.Qt.Key_C and
+              event.modifiers()==QtCore.Qt.ControlModifier):
+            self.copySelection()
+        elif (event.key()==QtCore.Qt.Key_V and
+              event.modifiers()==QtCore.Qt.ControlModifier):
+            self.pasteFromClipboard()
         else:
             QInteractiveGraphicsScene.keyPressEvent(self, event)
 
@@ -760,6 +818,8 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         if self.controller:
             cb = QtGui.QApplication.clipboard()
+            text = str(cb.text())
+            if text=='': return
             dom = parseString(str(cb.text()))
             root = dom.documentElement
             modules = []
@@ -772,7 +832,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
                 conn = Connection.loadFromXML(xmlconnection)
                 connections.append(conn)
             self.controller.pasteModulesAndConnections(modules, connections)
-
+            
     def eventFilter(self, object, e):
         """ eventFilter(object: QObject, e: QEvent) -> None        
         Catch all the set module color events through self-event

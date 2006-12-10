@@ -140,7 +140,7 @@ def addOtherPorts(module, other_list):
 
     """
     for name in other_list:
-        if name[:3]=='Add' or name[:6]=='Insert':
+        if name[:3] in ['Add','Set'] or name[:6]=='Insert':
             method = getattr(module.vtkClass, name)
             addSignature = parser.get_method_signature(method)
             for sig in addSignature:

@@ -1,5 +1,8 @@
 """ The file describes the pipeline tab widget to manage a single
-pipeline"""
+pipeline
+
+QPipelineTab
+"""
 
 from PyQt4 import QtCore, QtGui
 from core.vistrail.module import Module
@@ -55,6 +58,8 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         self.connect(self.pipelineView.scene(),
                      QtCore.SIGNAL('moduleSelected'),
                      self.moduleSelected)
+
+        self.controller = None
 
     def updatePipeline(self, pipeline):
         """ updatePipeline(pipeline: Pipeline) -> None        
@@ -131,7 +136,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         
         """
         self.updatePipeline(self.controller.currentPipeline)
-        if newVersion>=0:
+        if newVersion>=0:            
             prevIds = self.controller.previousModuleIds
             if len(prevIds)>0:
                 for prevId in prevIds:

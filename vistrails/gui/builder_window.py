@@ -95,14 +95,12 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.quitVistrailsAction.setShortcut('Ctrl+Q')
         self.quitVistrailsAction.setStatusTip('Exit Vistrails')
        
-        self.copyAction = QtGui.QAction('Copy', self)
-        self.copyAction.setShortcut('Ctrl+C')
+        self.copyAction = QtGui.QAction('Copy\tCtrl+C', self)
         self.copyAction.setEnabled(False)
         self.copyAction.setStatusTip('Copy selected modules in '
                                      'the current pipeline view')
 
-        self.pasteAction = QtGui.QAction('Paste', self)
-        self.pasteAction.setShortcut('Ctrl+V')
+        self.pasteAction = QtGui.QAction('Paste\tCtrl+V', self)
         self.pasteAction.setEnabled(False)
         self.pasteAction.setStatusTip('Paste copied modules in the clipboard '
                                       'into the current pipeline view')

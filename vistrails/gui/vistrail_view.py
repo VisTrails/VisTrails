@@ -4,6 +4,7 @@ view and a version tree for each opened Vistrail """
 from PyQt4 import QtCore, QtGui
 from gui.common_widgets import QDockContainer, QToolWindowInterface
 from gui.pipeline_tab import QPipelineTab
+from gui.query_tab import QQueryTab
 from gui.version_tab import QVersionTab
 from gui.vistrail_controller import VistrailController
 from gui.vistrail_toolbar import QVistrailViewToolBar
@@ -33,8 +34,10 @@ class QVistrailView(QDockContainer):
 
         self.pipelineTab.pipelineView.setPIPScene(
             self.versionTab.versionView.scene())
-        self.versionTab.versionView.setPIPScene(
+        self.versionTab.versionView.setPIPScene(            
             self.pipelineTab.pipelineView.scene())
+
+        self.queryTab = QQueryTab()        
 
         # Setup a central stacked widget for pipeline view and version
         # tree view in tabbed mode
@@ -42,6 +45,7 @@ class QVistrailView(QDockContainer):
         self.setCentralWidget(self.stackedWidget)
         self.stackedWidget.addWidget(self.pipelineTab)
         self.stackedWidget.addWidget(self.versionTab)
+        self.stackedWidget.addWidget(self.queryTab)
         self.stackedWidget.setCurrentIndex(1)
 
         # Add the customized toolbar at the bottom
@@ -67,10 +71,15 @@ class QVistrailView(QDockContainer):
                      QtCore.SIGNAL('triggered(bool)'),
                      self.pipChanged)
 
-        # Send to spreadsheet action
+        # Execute pipeline action
         self.connect(self.toolBar.executePipelineAction(),
                      QtCore.SIGNAL('triggered(bool)'),
                      self.controller.executeCurrentWorkflow)
+
+        # Query pipeline action
+        self.connect(self.toolBar.visualQueryAction(),
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.queryVistrail)
 
         # Space-storage for the builder window
         self.savedToolBarArea = None
@@ -83,7 +92,7 @@ class QVistrailView(QDockContainer):
         pipeline tabs and version tree view accordingly
         
         """
-        tabs = [self.pipelineTab, self.versionTab]
+        tabs = [self.pipelineTab, self.versionTab, self.queryTab]
         if viewMode!=0:
             self.stackedWidget.hide()
         for tabOrder in range(len(tabs)):
@@ -199,6 +208,18 @@ class QVistrailView(QDockContainer):
                 event.ignore()
         else:
             return QDockContainer.closeEvent(self, event)
+
+    def queryVistrail(self, checked=True):
+        """ queryVistrail(checked: bool) -> None
+        Inspecting the query tab to get a pipeline for querying
+        
+        """
+        if checked:
+            queryPipeline = self.queryTab.controller.currentPipeline
+            if queryPipeline:
+                self.controller.queryByExapmle(queryPipeline)
+        else:
+            self.controller.setSearch(None)
 
 ################################################################################
 

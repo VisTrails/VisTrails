@@ -71,6 +71,11 @@ class DefaultTheme(object):
         self.VERSION_TREE_BACKGROUND_BRUSH = QtGui.QBrush(
             QtGui.QImage(core.system.visTrailsRootDirectory() +
                          '/gui/resources/images/version_bg.png'))
+        
+        # Background brush of the query pipeline view
+        self.QUERY_BACKGROUND_BRUSH = QtGui.QBrush(
+            QtGui.QImage(core.system.visTrailsRootDirectory() +
+                         '/gui/resources/images/query_bg.png'))
 
         # Pen to draw a module shape at regular state
         self.MODULE_PEN = QtGui.QPen(QtGui.QBrush(
@@ -83,6 +88,9 @@ class DefaultTheme(object):
             QtGui.QColor(*(ColorByName.getInt('black')))), 2)
         self.MODULE_LABEL_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.getInt('black')))), 2)
+        # Pen to draw module label when it is unmatched due to a query
+        self.GHOSTED_MODULE_LABEL_PEN = QtGui.QPen(QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.getInt('dark_dim_grey')))), 2)
         # Brush to draw a module shape at different states
         self.MODULE_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.getInt('light_grey'))))
@@ -97,6 +105,12 @@ class DefaultTheme(object):
         self.NOT_EXECUTE_MODULE_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.getInt('light_goldenrod'))))
 
+        # Pen and brush for un-matched queried modules
+        self.GHOSTED_MODULE_PEN = QtGui.QPen(QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.getInt('dark_dim_grey')))), 2)
+        self.GHOSTED_MODULE_BRUSH = QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.getInt('light_dim_grey'))))
+
         # Brush and pen to draw a port shape at regular state
         self.PORT_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.getInt('black')))), 1)
@@ -106,6 +120,12 @@ class DefaultTheme(object):
             QtGui.QColor(*(ColorByName.getInt('lamp_black')))), 1)
         self.PORT_OPTIONAL_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.getInt('titanium_white'))))
+        
+        # Pen and brush for drawing ports of ghosted modules
+        self.GHOSTED_PORT_PEN = QtGui.QPen(QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.getInt('dark_dim_grey')))), 2)
+        self.GHOSTED_PORT_BRUSH = QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.getInt('light_dim_grey'))))
 
         # Brush and pen to draw connections
         self.CONNECTION_PEN = QtGui.QPen(QtGui.QBrush(
@@ -114,6 +134,10 @@ class DefaultTheme(object):
             QtGui.QColor(*(ColorByName.getInt('banana')))), 2)
         self.CONNECTION_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.getInt('black'))))
+
+        # Pen for drawing while connecting any ghosted modules
+        self.GHOSTED_CONNECTION_PEN = QtGui.QPen(QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.getInt('dark_dim_grey')))), 2)
 
         # Pen to draw version tree node
         self.VERSION_PEN = QtGui.QPen(QtGui.QBrush(
@@ -273,6 +297,11 @@ class DefaultTheme(object):
             core.system.visTrailsRootDirectory() +
             '/gui/resources/images/down.png')
 
+        # Toolbar icon for visual query on a vistrail
+        self.VISUAL_QUERY_ICON = QtGui.QIcon(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/visual_query.png')
+        
         # Toolbar icon for dragging pixmap of VisDiff
         self.VERSION_DRAG_PIXMAP = QtGui.QPixmap(
             core.system.visTrailsRootDirectory() +

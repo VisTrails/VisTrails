@@ -205,7 +205,7 @@ class QMethodInputForm(QtGui.QGroupBox):
                 paramList.append((str(self.lineEdits[i].text()),
                                   self.function.params[i].type))
             methodBox.lockUpdate()
-            methodBox.controller.previousModuleId = [methodBox.module.id]
+            methodBox.controller.previousModuleIds = [methodBox.module.id]
             methodBox.controller.replaceFunction(methodBox.module,
                                                  self.fId,
                                                  paramList)
@@ -348,10 +348,9 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
                                                                  self.text(),
                                                                  'All files '
                                                                  '(*.*)')
-                    if fileName != None:
+                    if not fileName.isEmpty():
                         self.setText(fileName)
-                        self.update()
-                        self.setFocus(QtCore.Qt.MouseFocusReason)
+                        self.updateParent()
                         return
             else:
                 self.updateText()
@@ -372,13 +371,21 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
         Update when finishing editing, then pass the event to the parent
         
         """
-        self.updateText()
+        self.updateParent()
         if self.parent():
             self.parent().focusOutEvent(event)
+        QtGui.QLineEdit.focusOutEvent(self, event)
+
+    def updateParent(self):
+        """ updateParent() -> None
+        Update parent parameters info if necessary
+        
+        """
+        self.updateText()
+        if self.parent():
             newText = str(self.text())
             if newText!=self.lastText:
                 self.parent().updateMethod()
-        QtGui.QLineEdit.focusOutEvent(self, event)
 
     def updateText(self):
         """ updateText() -> None

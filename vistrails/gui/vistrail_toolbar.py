@@ -29,10 +29,11 @@ class QVistrailViewToolBar(QtGui.QToolBar):
         # First, add all the tool buttons on the left
         self.addAction(self.executePipelineAction())
         self.addSeparator()
-        self.addAction(self.tabbedViewAction())
-        self.addAction(self.horizontalViewAction())
-        self.addAction(self.verticalViewAction())
-        self.addAction(self.dockViewAction())
+        self.addAction(self.visualQueryAction())
+#        self.addAction(self.tabbedViewAction())
+#        self.addAction(self.horizontalViewAction())
+#        self.addAction(self.verticalViewAction())
+#        self.addAction(self.dockViewAction())
         self.addSeparator()
         self.addAction(self.pipViewAction())
         self.addSeparator()
@@ -58,6 +59,23 @@ class QVistrailViewToolBar(QtGui.QToolBar):
             self._executePipelineAction.setStatusTip(
                 self._executePipelineAction.toolTip())
         return self._executePipelineAction
+
+    def visualQueryAction(self):
+        """ visualQueryAction() -> QAction        
+        Returns the query vistrail action that can be used in any
+        menu or toolbar
+        
+        """
+        if not hasattr(self, '_visualQueryAction'):
+            self._visualQueryAction = QtGui.QAction(
+                CurrentTheme.VISUAL_QUERY_ICON,
+                '&Query',
+                self)
+            self._visualQueryAction.setCheckable(True)
+            self._visualQueryAction.setToolTip('Query vistrail by example')
+            self._visualQueryAction.setStatusTip(
+                self._visualQueryAction.toolTip())
+        return self._visualQueryAction
 
     def viewActionGroup(self):
         """ viewActionGroup() -> None        
@@ -323,6 +341,7 @@ class QVistrailViewTabBar(QtGui.QTabBar):
         self.setShape(QtGui.QTabBar.RoundedSouth)
         self.addTab('Pipeline')
         self.addTab('Version Tree')
+        self.addTab('Query')
         self.invisible = False
         self.setSizePolicy(QtGui.QSizePolicy.Maximum,
                                 QtGui.QSizePolicy.Maximum)

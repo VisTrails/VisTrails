@@ -5,8 +5,8 @@ QVersionNotes
 """
 
 from PyQt4 import QtCore, QtGui
+from core.query.version import SearchCompiler, SearchParseError, TrueSearch
 from gui.common_widgets import QToolWindowInterface
-from gui import version_tree_search
 
 ################################################################################
 
@@ -77,15 +77,15 @@ class QVersionSearch(QtGui.QWidget, QToolWindowInterface):
         if self.controller:
             s = str(self.statementEdit.text())
             try:
-                search = version_tree_search.SearchCompiler(s).searchStmt
-            except version_tree_search.SearchParseError, e:
+                search = SearchCompiler(s).searchStmt
+            except SearchParseError, e:
                 QtGui.QMessageBox.warning(self,
                                           QtCore.QString("Search Parse Error"),
                                           QtCore.QString(str(e)),
                                           QtGui.QMessageBox.Ok,
                                           QtGui.QMessageBox.NoButton,
                                           QtGui.QMessageBox.NoButton)
-                search = version_tree_search.TrueSearch()
+                search = TrueSearch()
             self.controller.setSearch(search)
 
     def refine(self):
@@ -96,15 +96,15 @@ class QVersionSearch(QtGui.QWidget, QToolWindowInterface):
         if self.controller:
             s = str(self.statementEdit.text())
             try:
-                search = version_tree_search.SearchCompiler(s).searchStmt
-            except version_tree_search.SearchParseError, e:
+                search = SearchCompiler(s).searchStmt
+            except SearchParseError, e:
                 QtGui.QMessageBox.warning(self,
                                           QtCore.QString("Search Parse Error"),
                                           QtCore.QString(str(e)),
                                           QtGui.QMessageBox.Ok,
                                           QtGui.QMessageBox.NoButton,
                                           QtGui.QMessageBox.NoButton)
-                search = version_tree_search.TrueSearch()
+                search = TrueSearch()
             self.controller.setSearch(search, True)
 
     def reset(self):

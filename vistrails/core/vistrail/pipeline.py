@@ -201,8 +201,6 @@ class Pipeline(object):
         return result
 
     def buildAliasDictionary(self):
-        # TODO: Fix this.
-        from gui.qmodulefunctiongroupbox import QPythonValueLineEdit
         aliases = {}
         for mid in self.modules:
             for f in self.modules[mid].functions:
@@ -213,7 +211,7 @@ class Pipeline(object):
                         for f1 in reversed(self.modules[mid].functions):
                             if f1.getSignature()==fsig:
                                 p = f1.params[pidx]
-                                aliases[palias] = (p.type, QPythonValueLineEdit.parseExpression(str(p.strValue)))
+                                aliases[palias] = (p.type, expression.parseExpression(str(p.strValue)))
                                 break
         return aliases
 
