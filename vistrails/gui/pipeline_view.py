@@ -123,7 +123,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
                 conn = Connection.fromPorts(self.connection.snapPort.port,
                                             self.port)
                 conn.sourceId = snapModuleId
-                conn.destinationId = self.port.parentItem().id
+                conn.destinationId = self.parentItem().id
             conn.id = self.controller.currentPipeline.freshConnectionId()
             self.controller.addConnection(conn)
             return
@@ -599,7 +599,8 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         for (srcPort, srcItem) in self.outputPorts.items():
             if (registry.portsCanConnect(srcPort, dstPort) and
                 srcItem.isVisible()):
-                dis = (pos - srcItem.sceneBoundingRect().center()).length()
+                vector = (pos - srcItem.sceneBoundingRect().center())
+                dis = vector.x()*vector.x() + vector.y()*vector.y()
                 if result==None or dis<minDis:
                     minDis = dis
                     result = srcItem
