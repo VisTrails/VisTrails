@@ -42,6 +42,9 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         to the whole viewport
         
         """
+        # Apparently, on Qt 4.2.2, we don't need to fix size of the
+        # spreadsheet anymore. Thus, this is skipped for now.
+        return
         if self.fitToViewport!=fit:
             self.fitToViewport = fit
             if fit:
@@ -57,7 +60,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         This slot capture sectionResized signal and makes sure all the
         sections are stretched right. Then it will emit
         'lastSectionResized' with the list of all sections that have
-        been updated. QTableView should capture this signal instead if
+        been updated. QTableView should capture this signal instead, if
         it uses StandardWidgetHeaderView
         
         """

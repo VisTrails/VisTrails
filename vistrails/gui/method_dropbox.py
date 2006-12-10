@@ -237,7 +237,7 @@ class QMethodInputForm(QtGui.QGroupBox):
             self.parent().layout().removeWidget(self)
             self.deleteLater()
             for i in range(self.parent().layout().count()):
-`                self.parent().layout().itemAt(i).widget().fId = i
+                self.parent().layout().itemAt(i).widget().fId = i
             methodBox.lockUpdate()
             if methodBox.controller:
                 methodBox.controller.previousModuleIds = [methodBox.module.id]
