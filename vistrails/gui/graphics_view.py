@@ -166,6 +166,19 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.selectionBox = QGraphicsRubberBandItem(None)
         self.startSelectingPos = None
 
+    def translateButton(self, event):
+        """ translateButton(event: QInputEvent) -> None
+        Translate mouse button and modifiers into a virtual mouse button
+        
+        """        
+        if (event.buttons() & QtCore.Qt.LeftButton and
+            event.modifiers() & QtCore.Qt.ShiftModifier):
+            return QtCore.Qt.MidButton
+        if (event.buttons() & QtCore.Qt.LeftButton and
+            event.modifiers() & QtCore.Qt.AltModifier):
+            return QtCore.Qt.RightButton
+        return event.buttons()
+
     def mousePressEvent(self, e):
         """ mousePressEvent(e: QMouseEvent) -> None        
         Handle mouse click event, use Qt rubber band for left-click
@@ -174,7 +187,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         """
         scenePos = self.mapToScene(e.pos())
         item = self.scene().itemAt(scenePos)
-        buttons = e.buttons()
+        buttons = self.translateButton(e)
         if buttons == QtCore.Qt.LeftButton:
             if item==None:
                 if self.scene():
@@ -206,7 +219,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         
         """
         self.setUpdatesEnabled(False)
-        buttons = e.buttons()
+        buttons = self.translateButton(e)
         if buttons == QtCore.Qt.LeftButton:
             if self.startSelectingPos:
                 dis = self.mapToScene(e.pos())-self.startSelectingPos

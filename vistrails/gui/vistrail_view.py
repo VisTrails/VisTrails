@@ -85,7 +85,7 @@ class QVistrailView(QDockContainer):
         self.savedToolBarArea = None
         self.viewAction = None
         self.closeEventHandler = None
-        
+
     def viewChanged(self, viewMode):
         """ viewChanged(viewId: int) -> None        
         When the view mode changed to viewId, make sure to layout the

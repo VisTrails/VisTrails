@@ -242,15 +242,15 @@ class QGraphicsConnectionItem(QtGui.QGraphicsPolygonItem,
             if horizontal:
                 x = p1x+rx*t
                 y = p1y+ry*s
-                polygon.append(QtCore.QPointF(x-2,y))
+                polygon.append(QtCore.QPointF(x,y-2))
                 self.visualPolygon.append(QtCore.QPointF(x,y))
-                points.append(QtCore.QPointF(x+2, y))
+                points.append(QtCore.QPointF(x, y+2))
             else:
                 x = p1x+rx*s
                 y = p1y+ry*t
-                polygon.append(QtCore.QPointF(x, y-2))
+                polygon.append(QtCore.QPointF(x-2, y))
                 self.visualPolygon.append(QtCore.QPointF(x, y))
-                points.append(QtCore.QPointF(x, y+2))
+                points.append(QtCore.QPointF(x+2, y))
                 
         for p in reversed(points):
             polygon.append(p)
