@@ -635,7 +635,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         QInteractiveGraphicsScene.__init__(self, parent)
-        from vis_application import VistrailsApplication
         self.setBackgroundBrush(CurrentTheme.PIPELINE_VIEW_BACKGROUND_BRUSH)
         self.setSceneRect(QtCore.QRectF(-5000, -5000, 10000, 10000))
         self.controller = None
