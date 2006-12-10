@@ -361,6 +361,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         self.vistrailActionGroup.removeAction(view.viewAction)
         self.vistrailMenu.removeAction(view.viewAction)
+        self.removeToolBar(self.vistrailViewToolBar)
+        self.vistrailViewToolBar = None
 
     def vistrailSelectFromMenu(self, menuAction):
         """ vistrailSelectFromMenu(menuAction: QAction) -> None

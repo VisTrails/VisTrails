@@ -26,8 +26,8 @@ class QQueryTab(QPipelineTab):
         
         """
         QPipelineTab.__init__(self, parent)
-#        self.pipelineView.setBackgroundBrush(
-#            CurrentTheme.QUERY_BACKGROUND_BRUSH)
+        self.pipelineView.setBackgroundBrush(
+            CurrentTheme.QUERY_BACKGROUND_BRUSH)
         
         controller = VistrailController()
         controller.setVistrail(Vistrail(), 'Query Vistrail')
