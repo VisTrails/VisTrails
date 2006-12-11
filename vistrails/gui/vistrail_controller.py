@@ -280,7 +280,7 @@ class VistrailController(QtCore.QObject):
                         terse.addEdge(to_me, f_me, annotated)
                 terse.deleteVertex(current)
         self.vistrail.setCurrentGraph(terse)
-        return terse
+        return (terse, full)
 
     def updateCurrentTag(self,tag):
         """ updateCurrentTag(tag: str) -> None
