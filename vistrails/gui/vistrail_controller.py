@@ -44,6 +44,7 @@ class VistrailController(QtCore.QObject):
         self.search = None
         self.refine = False
         self.changed = False
+        self.fullTree = False
 
     def setVistrail(self, vistrail, name):
         """ setVistrail(vistrail: Vistrail) -> None
@@ -228,16 +229,29 @@ class VistrailController(QtCore.QObject):
         self.refine = refine
         self.emit(QtCore.SIGNAL('vistrailChanged()'))
 
-    def refineGraph(self):
-        """ refineGraph(controller: VistrailController) -> Graph        
-        Refine the graph of the current vistrail based the search
-        status of the controller
+    def setFullTree(self, full):
+        """ setFullTree(full: bool) -> None        
+        Set if Vistrails should show a complete version tree or just a
+        terse tree
         
         """
-        terse = self.vistrail.getTerseGraph().__copy__()
-        if (not self.refine) or (not self.search): return terse
-        am = self.vistrail.actionMap
+        self.fullTree = full
+        self.emit(QtCore.SIGNAL('vistrailChanged()'))
+
+    def refineGraph(self):
+        """ refineGraph(controller: VistrailController) -> (Graph, Graph)        
+        Refine the graph of the current vistrail based the search
+        status of the controller. It also return the full graph as a
+        reference
+        
+        """
+        if self.fullTree:
+            terse = self.vistrail.getVersionGraph().__copy__()
+        else:
+            terse = self.vistrail.getTerseGraph().__copy__()
         full = self.vistrail.getVersionGraph()
+        if (not self.refine) or (not self.search): return (terse, full)
+        am = self.vistrail.actionMap
         
         x=[0]
         while len(x):

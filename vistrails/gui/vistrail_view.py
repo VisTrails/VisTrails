@@ -81,6 +81,11 @@ class QVistrailView(QDockContainer):
                      QtCore.SIGNAL('triggered(bool)'),
                      self.queryVistrail)
 
+        # View full version tree
+        self.connect(self.toolBar.viewFullTreeAction(),
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.controller.setFullTree)
+
         # Space-storage for the builder window
         self.savedToolBarArea = None
         self.viewAction = None

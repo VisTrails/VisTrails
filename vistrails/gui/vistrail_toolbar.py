@@ -30,6 +30,7 @@ class QVistrailViewToolBar(QtGui.QToolBar):
         self.addAction(self.executePipelineAction())
         self.addSeparator()
         self.addAction(self.visualQueryAction())
+        self.addAction(self.viewFullTreeAction())
 #        self.addAction(self.tabbedViewAction())
 #        self.addAction(self.horizontalViewAction())
 #        self.addAction(self.verticalViewAction())
@@ -76,6 +77,23 @@ class QVistrailViewToolBar(QtGui.QToolBar):
             self._visualQueryAction.setStatusTip(
                 self._visualQueryAction.toolTip())
         return self._visualQueryAction
+
+    def viewFullTreeAction(self):
+        """ viewFullTreeAction() -> QAction        
+        View the full tree with all move actions
+        
+        """
+        if not hasattr(self, '_viewFullTreeAction'):
+            self._viewFullTreeAction = QtGui.QAction(
+                CurrentTheme.VIEW_FULL_TREE_ICON,
+                '&View Full Tree',
+                self)
+            self._viewFullTreeAction.setCheckable(True)
+            self._viewFullTreeAction.setToolTip('View the whole version '
+                                               'tree with all move actions')
+            self._viewFullTreeAction.setStatusTip(
+                self._viewFullTreeAction.toolTip())
+        return self._viewFullTreeAction
 
     def viewActionGroup(self):
         """ viewActionGroup() -> None        

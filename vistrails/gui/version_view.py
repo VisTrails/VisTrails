@@ -52,8 +52,8 @@ class QGraphicsLinkItem(QtGui.QGraphicsPolygonItem, QGraphicsItemInterface):
         else:
             self.linkPen = CurrentTheme.LINK_PEN
 
-    def setupLink(self, v1, v2):
-        """ setupLink(v1, v2: QGraphicsVersionItem) -> None
+    def setupLink(self, v1, v2, compact=True):
+        """ setupLink(v1, v2: QGraphicsVersionItem, compact: bool) -> None
         Setup a line connecting v1 and v2 items
         
         """
@@ -73,43 +73,51 @@ class QGraphicsLinkItem(QtGui.QGraphicsPolygonItem, QGraphicsItemInterface):
 
         # Generate 2 segments along the main line and 3 segments along
         # the normal line
-        self.lines = []        
-        gapLine = QtCore.QLineF(mainLine)
-        gapLine.setLength(CurrentTheme.LINK_SEGMENT_GAP)
-        gapVector = gapLine.p2()-gapLine.p1()
-        
-        # Fist segment along the main line
-        line = QtCore.QLineF(mainLine)
-        line.setLength(line.length()/2-CurrentTheme.LINK_SEGMENT_GAP*2)
-        self.lines.append(QtCore.QLineF(line))
-        
-        # Second segment along the main line
-        line.translate(line.p2()-line.p1()+gapVector*4)
-        self.lines.append(QtCore.QLineF(line))
+        if compact:
+            self.lines = [mainLine]
+            poly = QtGui.QPolygonF()
+            poly.append(self.lines[0].p1())
+            poly.append(self.lines[0].p2())
+            poly.append(self.lines[0].p1())
+            self.setPolygon(poly)
+        else:
+            self.lines = []
+            gapLine = QtCore.QLineF(mainLine)
+            gapLine.setLength(CurrentTheme.LINK_SEGMENT_GAP)
+            gapVector = gapLine.p2()-gapLine.p1()
 
-        # First normal segment in front
-        line = QtCore.QLineF(normalLine)
-        line.translate(gapVector*(-1.0))
-        self.lines.append(QtCore.QLineF(line))
-        
-        # Middle normal segment
-        self.lines.append(QtCore.QLineF(normalLine))
-        
-        # Third normal segment in back
-        line = QtCore.QLineF(normalLine)
-        line.translate(gapVector)
-        self.lines.append(QtCore.QLineF(line))
+            # Fist segment along the main line
+            line = QtCore.QLineF(mainLine)
+            line.setLength(line.length()/2-CurrentTheme.LINK_SEGMENT_GAP*2)
+            self.lines.append(QtCore.QLineF(line))
 
-        # Create the poly line for selection and redraw
-        poly = QtGui.QPolygonF()
-        poly.append(self.lines[0].p1())
-        poly.append(self.lines[2].p1())
-        poly.append(self.lines[4].p1())
-        poly.append(self.lines[1].p2())
-        poly.append(self.lines[4].p2())
-        poly.append(self.lines[2].p2())
-        poly.append(self.lines[0].p1())
-        self.setPolygon(poly)
+            # Second segment along the main line
+            line.translate(line.p2()-line.p1()+gapVector*4)
+            self.lines.append(QtCore.QLineF(line))
+
+            # First normal segment in front
+            line = QtCore.QLineF(normalLine)
+            line.translate(gapVector*(-1.0))
+            self.lines.append(QtCore.QLineF(line))
+
+            # Middle normal segment
+            self.lines.append(QtCore.QLineF(normalLine))
+
+            # Third normal segment in back
+            line = QtCore.QLineF(normalLine)
+            line.translate(gapVector)
+            self.lines.append(QtCore.QLineF(line))
+
+            # Create the poly line for selection and redraw
+            poly = QtGui.QPolygonF()
+            poly.append(self.lines[0].p1())
+            poly.append(self.lines[2].p1())
+            poly.append(self.lines[4].p1())
+            poly.append(self.lines[1].p2())
+            poly.append(self.lines[4].p2())
+            poly.append(self.lines[2].p2())
+            poly.append(self.lines[0].p1())
+            self.setPolygon(poly)
 
         self.setGhosted(v1.ghosted or v2.ghosted)
 
@@ -338,6 +346,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.setSceneRect(QtCore.QRectF(-5000, -5000, 10000, 10000))
         self.versions = {}
         self.controller = None
+        self.fullGraph = None
 
     def addVersion(self, node, label):
         """ addModule(node: DotNode) -> None
@@ -355,7 +364,9 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         
         """
         linkShape = QGraphicsLinkItem()
-        linkShape.setupLink(v1, v2)
+        linkShape.setupLink(v1, v2,
+                            (self.fullGraph.parent(v1.id)==v2.id or
+                             self.fullGraph.parent(v2.id)==v1.id))
         self.addItem(linkShape)
         
     def clear(self):
@@ -407,7 +418,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.clear()
 
         # Call dotty to perform graph layout
-        graph = controller.refineGraph()
+        (graph, self.fullGraph) = controller.refineGraph()
         layout = DotLayout()
         layout.layoutFrom(controller.vistrail, graph)
 
