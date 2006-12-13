@@ -76,8 +76,8 @@ class Logger(object):
         Get information from configuration.logger in vis_application.py 
         
         """
-        import gui.vis_application
-        app = gui.vis_application.VistrailsApplication
+        import gui.application
+        app = gui.application.VistrailsApplication
         if app:
             self.dbHost = app.configuration.logger.dbHost
             self.dbPort = app.configuration.logger.dbPort
