@@ -157,7 +157,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
                 print "invalid workflow"
                 return
             import core.console_mode
-            console_mode.run(self.input, self.workflow)
+            core.console_mode.run(self.input, self.workflow)
             return
         else:
             print "no input vistrails provided"
