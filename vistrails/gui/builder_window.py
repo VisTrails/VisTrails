@@ -111,7 +111,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.shellAction.setShortcut('Ctrl+H')
 
         self.sdiModeAction = QtGui.QAction('SDI Mode', self)
-        self.sdiModeAction.setCheckable(True)
+        self.sdiModeAction.setCheckable(False)
         
         self.helpAction = QtGui.QAction(self.tr('About VisTrails...'), self)        
 
