@@ -150,7 +150,8 @@ class QLegendWindow(QtGui.QWidget):
         Construct a window by default with 4 QLegendBox and 4 QLabels
         
         """
-        QtGui.QWidget.__init__(self, parent, f | QtCore.Qt.Tool)
+        QtGui.QWidget.__init__(self, parent,
+                               f | QtCore.Qt.Tool )
         self.setWindowTitle('Visual Diff Legend')
         self.firstTime = True
         self.gridLayout = QtGui.QGridLayout(self)
@@ -226,12 +227,14 @@ class QVisualDiff(QtGui.QMainWindow):
 
         # Create the top-level Visual Diff window
         visDiffParent = QtCore.QCoreApplication.instance().visDiffParent
-        QtGui.QMainWindow.__init__(self, visDiffParent, f | QtCore.Qt.Dialog)
+        windowDecors = f | QtCore.Qt.Dialog |QtCore.Qt.WindowMaximizeButtonHint
+        QtGui.QMainWindow.__init__(self, visDiffParent,
+                                   )
         self.setWindowTitle('Visual Diff - %s vs. %s' % (v1Name, v2Name))
         self.setMouseTracking(True)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
-                                             QtGui.QSizePolicy.Expanding))        
+                                             QtGui.QSizePolicy.Expanding))
         self.createPipelineView()
         self.createToolBar()
         self.createToolWindows(v1Name, v2Name)
