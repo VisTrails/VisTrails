@@ -190,6 +190,7 @@ class QLegendWindow(QtGui.QWidget):
         self.gridLayout.addWidget(self.legendParamBox,3,0)
         self.legendParam = QtGui.QLabel("Parameter Changes", self)
         self.gridLayout.addWidget(self.legendParam,3,1)
+        self.adjustSize()
         
     def closeEvent(self,e):
         """ closeEvent(e: QCloseEvent) -> None
