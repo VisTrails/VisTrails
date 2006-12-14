@@ -113,8 +113,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.sdiModeAction = QtGui.QAction('SDI Mode', self)
         self.sdiModeAction.setCheckable(False)
         
-        self.helpAction = QtGui.QAction(self.tr('About VisTrails...'), self)        
-
+        self.helpAction = QtGui.QAction(self.tr('About VisTrails...'), self)
+        
     def createMenu(self):
         """ createMenu() -> None
         Initialize menu bar of builder window
@@ -143,6 +143,9 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         self.vistrailMenu = self.menuBar().addMenu('Vis&trail')
         self.vistrailActionGroup = QtGui.QActionGroup(self)
+
+        self.helpMenu = self.menuBar().addMenu('Help')
+        self.helpMenu.addAction(self.helpAction)
         
     def createToolBar(self):
         """ createToolBar() -> None
@@ -222,6 +225,11 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.shellAction,
                      QtCore.SIGNAL('triggered(bool)'),
                      self.showShell)
+
+        self.connect(self.helpAction,
+                     QtCore.SIGNAL("triggered()"),
+                     self.showAboutMessage)
+                     
         
     def moduleSelectionChange(self, selection):
         """ moduleSelectionChange(selection: list[id]) -> None
@@ -386,3 +394,10 @@ class QBuilderWindow(QtGui.QMainWindow):
             if self.shell:
                 self.shell.hide()
         
+    def showAboutMessage(self):
+        """showAboutMessage() -> None
+        Displays Application about message
+
+        """
+        QtGui.QMessageBox.about(self,self.tr("About VisTrails..."),
+                                self.tr(system.aboutString()))
