@@ -132,6 +132,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         self.setIcon()
         self.createWindows()
         self.setupBaseModules()
+        self.processEvents()
         self.installPackages()
         self.runStartupHooks()
         self.builderWindow.modulePalette.treeWidget.updateFromModuleRegistry()
@@ -190,7 +191,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
             splashPath = (system.visTrailsRootDirectory() +
                           "/gui/resources/images/vistrails_splash.png")
             pixmap = QtGui.QPixmap(splashPath)
-            self.splashScreen = QtGui.QSplashScreen(pixmap)
+            self.splashScreen = QtGui.QSplashScreen(pixmap, QtCore.Qt.WindowStaysOnTopHint)
             self.splashScreen.show()
 
     def createWindows(self):
@@ -198,7 +199,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         Create and configure all GUI widgets including the builder
         
         """
-        self.setupSplashScreen()        
+        self.setupSplashScreen()
         self.builderWindow = QBuilderWindow()
         if self.configuration.maximizeWindows:
             self.builderWindow.showMaximized()
