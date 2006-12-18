@@ -45,8 +45,8 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         self.shell = None
         self.vistrailViewToolBar = None
-        self.sdiModeAction.trigger()
-
+        self.setSDIMode(self.sdiModeAction.isChecked())
+        
     def sizeHint(self):
         """ sizeHint() -> QRect
         Return the recommended size of the builder window
@@ -111,7 +111,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.shellAction.setShortcut('Ctrl+H')
 
         self.sdiModeAction = QtGui.QAction('SDI Mode', self)
-        self.sdiModeAction.setCheckable(False)
+        self.sdiModeAction.setCheckable(True)
+        self.sdiModeAction.setChecked(False)
         
         self.helpAction = QtGui.QAction(self.tr('About VisTrails...'), self)
         
