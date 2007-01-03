@@ -278,7 +278,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
 
     def selectModules(self):
         """ selectModules() -> None
-        Select all modules inside teh self.selectionBox
+        Select all modules inside the self.selectionBox
         
         """
         path = QtGui.QPainterPath()
