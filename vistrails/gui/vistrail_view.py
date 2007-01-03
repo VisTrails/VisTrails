@@ -26,7 +26,7 @@ class QVistrailView(QDockContainer):
         QDockContainer.__init__(self, parent)
         
         # The window title is the name of the vistrail file
-        self.setWindowTitle('Untitle.xml')
+        self.setWindowTitle('Untitled.xml')
 
         # Create the views
         self.pipelineTab = QPipelineTab()
