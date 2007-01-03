@@ -141,8 +141,9 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         if self.configuration.showSplash:
             self.splashScreen.finish(self.builderWindow)
         if self.input:
-            self.builderWindow.viewManager.openVistrail(
-                os.path.abspath(self.input))
+            for filename in self.input:
+                self.builderWindow.viewManager.openVistrail(
+                    os.path.abspath(filename))
         QtGui.QApplication.setActiveWindow(self.builderWindow)
 
     def noninteractiveMode(self):
@@ -157,8 +158,10 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
             if self.workflow == 0:
                 print "invalid workflow"
                 return
+            if len(self.input) > 1:
+                print "Only one vistrail can be specified for non-interactive mode"
             import core.console_mode
-            core.console_mode.run(self.input, self.workflow)
+            core.console_mode.run(self.input[0], self.workflow)
             return
         else:
             print "no input vistrails provided"
@@ -288,7 +291,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         if get('noninteractive'):
             self.configuration.interactiveMode = False
         self.configuration.nologger = get('nologger')
-        self.input = command_line.CommandLineParser().getArg(0)
+        self.input = command_line.CommandLineParser().positionalArguments()
         self.workflow = get('workflow')
         if get('workflow') and not get('noninteractive'):
             print "Workflow option only allowed in noninteractive mode."
