@@ -52,7 +52,7 @@ class QVistrailView(QDockContainer):
         self.toolBar = QVistrailViewToolBar(self)
         self.connect(self.toolBar, QtCore.SIGNAL('viewChanged(int)'),
                      self.viewChanged)
-        self.addToolBar(QtCore.Qt.BottomToolBarArea,
+        self.addToolBar(QtCore.Qt.TopToolBarArea,
                         self.toolBar)
 
         # Initialize the vistrail controller
