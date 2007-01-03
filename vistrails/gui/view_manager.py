@@ -100,6 +100,10 @@ class QViewManager(QtGui.QTabWidget):
         if vistrailView:
             vistrailView.pipelineTab.pipelineView.scene().copySelection()
 
+    def currentView(self):
+        """currentView() -> VistrailView. Returns the vurrent vistrail view."""
+        return self.currentWidget()
+
     def pasteToCurrentPipeline(self):
         """ pasteToCurrentPipeline() -> None
         Paste what is on the clipboard to the current pipeline
