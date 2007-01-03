@@ -62,6 +62,15 @@ class QBuilderWindow(QtGui.QMainWindow):
         if not self.quitVistrails():
             e.ignore()
 
+    def keyPressEvent(self, event):
+        if (event.key() == QtCore.Qt.Key_Enter or 
+            event.key() == QtCore.Qt.Key_Return) and \
+            (event.modifiers() & QtCore.Qt.ControlModifier):
+            # FIXME: The action belongs somewhere other than in the toolbar..
+            view = self.viewManager.currentView()
+            if view:
+                view.toolBar.executePipelineAction().trigger()
+
     def createActions(self):
         """ createActions() -> None
         Construct all menu/toolbar actions for builder window
