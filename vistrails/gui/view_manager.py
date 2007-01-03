@@ -289,10 +289,10 @@ class QViewManager(QtGui.QTabWidget):
         label = self.tabText(index)
         self.removeTab(index)
         dockBackAction = QtGui.QAction(CurrentTheme.DOCK_BACK_ICON,
-                                       'Merge to Vistrails Builder',
+                                       'Merge to VisTrails Builder',
                                        self)
         dockBackAction.setToolTip('Bring this window back to the '
-                                  'Vistrails Builder')
+                                  'VisTrails Builder')
         self.connect(dockBackAction, QtCore.SIGNAL('triggered()'),
                      widget.emitDockBackSignal)
         
