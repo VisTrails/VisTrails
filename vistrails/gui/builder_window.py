@@ -296,9 +296,9 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         fileName = QtGui.QFileDialog.getOpenFileName(
             self,
-            "Open VisTrail...",
+            "Open Vistrail...",
             system.vistrailsDirectory(),
-            "Vistrail files (*.xml)")
+            "Vistrail files (*.xml)\nOther files (*)")
         if not fileName.isEmpty():
             self.viewManager.openVistrail(str(fileName))
 
