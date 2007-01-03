@@ -246,7 +246,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
             default = False,
             help="Maximize VisTrails windows at startup")
         add("-w", "--workflow", action="store", dest="workflow",
-            help="set the workflow to be run")
+            help="set the workflow to be run (non-interactive mode only)")
         add("-b", "--noninteractive", action="store_true",
             default = False,
             help="run in non-interactive mode")
@@ -290,6 +290,9 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         self.configuration.nologger = get('nologger')
         self.input = command_line.CommandLineParser().getArg(0)
         self.workflow = get('workflow')
+        if get('workflow') and not get('noninteractive'):
+            print "Workflow option only allowed in noninteractive mode."
+            sys.exit(1)
 
     def runInitialization(self):
         """ runInitialization() -> None
@@ -384,6 +387,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
             system.setVistrailsDataDirectory(self.configuration.dataDirectory)
         if self.configuration.verbosenessLevel != -1:
             dbg = debug.DebugPrint
+            verbose = self.configuration.verbosenessLevel
             if verbose < 0:
                 msg = ("""Don't know how to set verboseness level to %s - "
                        "setting tothe lowest one I know of: 0""" % verbose)
