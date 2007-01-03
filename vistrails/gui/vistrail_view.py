@@ -222,7 +222,7 @@ class QVistrailView(QDockContainer):
         if checked:
             queryPipeline = self.queryTab.controller.currentPipeline
             if queryPipeline:
-                self.controller.queryByExapmle(queryPipeline)
+                self.controller.queryByExample(queryPipeline)
         else:
             self.controller.setSearch(None)
 

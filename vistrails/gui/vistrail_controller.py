@@ -573,8 +573,8 @@ class VistrailController(QtCore.QObject):
             self.name = os.path.split(fileName)[1]
             self.emit(QtCore.SIGNAL('stateChanged'))
 
-    def queryByExapmle(self, pipeline):
-        """ queryByExapmle(pipeline: Pipeline) -> None
+    def queryByExample(self, pipeline):
+        """ queryByExample(pipeline: Pipeline) -> None
         Perform visual query on the current vistrail
         
         """
