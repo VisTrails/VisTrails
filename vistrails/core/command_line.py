@@ -52,5 +52,10 @@ class CommandLineParserSingleton(object):
         else:
             return None 
 
+    def positionalArguments(self):
+        """positionalArguments() -> [string]. Returns a list of strings
+        representing the positional arguments in the command line."""
+        return self.args
+
 # singleton trick
 CommandLineParser = CommandLineParserSingleton()
