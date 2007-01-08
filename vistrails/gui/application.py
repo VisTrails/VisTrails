@@ -322,43 +322,36 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
             # if it is file, then must move old-style .vistrails to
             # directory.
             if os.path.isfile(self.dotVistrails):
-                print "Old-style initialization hooks. Will try to set things",
-                print "correctly."
-                print self.dotVistrails
+                debug.warning("Old-style initialization hooks. Will try to set things correctly.")
                 (fd, name) = tempfile.mkstemp()
                 os.close(fd)
                 shutil.copyfile(self.dotVistrails, name)
                 try:
                     os.unlink(self.dotVistrails)
                 except:
-                    print "Failed to remove old initialization file."
-                    print "This could be an indication of a permissions",
-                    print "problem."
-                    print "Make sure file '%s' is writable." % self.dotVistrails
+                    debug.critical("""Failed to remove old initialization file.
+This could be an indication of a permissions problem.
+Make sure file '%s' is writable.""" % self.dotVistrails)
                     sys.exit(1)
                 try:
                     os.mkdir(self.dotVistrails)
                 except:
-                    print "Failed to create initialization directory."
-                    print "This could be an indication of a permissions "
-                    print "problem."
-                    print ("Make sure file parent directory of '%s' is "
-                           "writable." % self.dotVistrails)
+                    debug.critical("""Failed to create initialization directory.
+This could be an indication of a permissions problem. Make sure parent
+directory of '%'s is writable.""" % self.dotVistrails)
                     sys.exit(1)
                 try:
                     shutil.copyfile(name, self.dotVistrails + '/startup.py')
                 except:
-                    print "Failed to copy old initialization file to ",
-                    print "newly-created"
-                    print "initialization directory. This must have been a race"
-                    print " condition."
-                    print ("Please remove '%s' and restart VisTrails."
-                           % self.dotVistrails)
-                print "Successful move."
+                    debug.critical("""Failed to copy old initialization file to
+newly-created initialization directory. This must have been a race condition.
+Please remove '%s' and restart VisTrails.""" % self.dotVistrails)
+                    sys.exit(1)
+                debug.warning("Successful move.")
                 try:
                     os.unlink(name)
                 except:
-                    print "Failed to erase temporary file."
+                    debug.warning("Failed to erase temporary file.")
     
             if os.path.isdir(self.dotVistrails):
                 try:
@@ -379,6 +372,14 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
                     debug.DebugPrint.critical('Will not run an initialization '
                                               'file - there will only be the '
                                               'default modules')
+            else:
+                debug.DebugPrint.critical('%s not found' %
+                                          (self.dotVistrails +
+                                           '/startup.py'))
+                debug.DebugPrint.critical('Will not run an initialization '
+                                          'file - there will only be the '
+                                          'default modules')
+                
 
         execDotVistrails()
         if self.configuration.pythonPrompt:
