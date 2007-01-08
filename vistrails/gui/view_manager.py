@@ -101,7 +101,7 @@ class QViewManager(QtGui.QTabWidget):
             vistrailView.pipelineTab.pipelineView.scene().copySelection()
 
     def currentView(self):
-        """currentView() -> VistrailView. Returns the vurrent vistrail view."""
+        """currentView() -> VistrailView. Returns the current vistrail view."""
         return self.currentWidget()
 
     def pasteToCurrentPipeline(self):
@@ -122,6 +122,7 @@ class QViewManager(QtGui.QTabWidget):
         vistrailView.setVistrail(Vistrail())
         self.addVistrailView(vistrailView)
         self.setCurrentWidget(vistrailView)
+        vistrailView.setInitialView()
 
     def openVistrail(self, fileName):
         """ openVistrail(fileName) -> QVistrailView
