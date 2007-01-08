@@ -14,8 +14,8 @@ import os.path
 
 class QVistrailView(QDockContainer):
     """
-    QVistrailView is a widget containing two tabs: Pipeline View and
-    Version Tree View for manipulating VisTrails
+    QVistrailView is a widget containing three tabs: Pipeline View,
+    Version Tree View and Query View for manipulating VisTrails
     
     """
     def __init__(self, parent=None):
@@ -48,7 +48,7 @@ class QVistrailView(QDockContainer):
         self.stackedWidget.addWidget(self.queryTab)
         self.stackedWidget.setCurrentIndex(1)
 
-        # Add the customized toolbar at the bottom
+        # Add the customized toolbar at the top
         self.toolBar = QVistrailViewToolBar(self)
         self.connect(self.toolBar, QtCore.SIGNAL('viewChanged(int)'),
                      self.viewChanged)
@@ -90,6 +90,21 @@ class QVistrailView(QDockContainer):
         self.savedToolBarArea = None
         self.viewAction = None
         self.closeEventHandler = None
+
+        # PIP enabled by default.
+        self.toolBar.pipViewAction().trigger()
+
+    def changeView(self, viewIndex):
+        """changeView(viewIndex) -> None. Changes the view between
+        pipeline, version and query."""
+        self.toolBar.tabBar.setCurrentIndex(viewIndex)
+
+    def setInitialView(self):
+        """setInitialView(): sets up the correct initial view for a
+        new vistrail, that is, select empty version and focus on pipeline view."""
+        self.controller.changeSelectedVersion(0)
+        self.changeView(0)
+        
 
     def viewChanged(self, viewMode):
         """ viewChanged(viewId: int) -> None        
