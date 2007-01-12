@@ -2715,7 +2715,7 @@ Source: ..\..\vistrails\packages\spreadsheet\widgets\svg\__init__.pyc; DestDir: 
 [Dirs]
 Name: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails
 Name: {app}\vistrails
-Name: {app}\examples
+Name: {app}\examples; Components: ; Tasks: 
 Name: {app}\examples\data
 Name: {app}\vistrails\core
 Name: {app}\vistrails\core\data_structures
@@ -2836,8 +2836,8 @@ Name: main; Description: Main Files; Types: full compact custom; Flags: fixed
 Name: examples; Description: Example Files; Types: full
 
 [Icons]
-Name: {group}\VisTrails; Filename: {app}\vistrails\Python24\pythonw.exe; WorkingDir: {app}\vistrails; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Components: ; Parameters: vistrails.py -l
-Name: {commondesktop}\VisTrails; Filename: {app}\vistrails\Python24\pythonw.exe; WorkingDir: {app}\vistrails; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Parameters: vistrails.py -l
+Name: {group}\VisTrails; Filename: {app}\vistrails\Python24\python.exe; WorkingDir: {app}\vistrails; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Components: ; Parameters: vistrails.py -l
+Name: {commondesktop}\VisTrails; Filename: {app}\vistrails\Python24\python.exe; WorkingDir: {app}\vistrails; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Parameters: vistrails.py -l
 Name: {group}\Uninstall VisTrails; Filename: {uninstallexe}
 [Tasks]
 Name: desktopicon; Description: Create a &desktop icon; GroupDescription: Additional icons:; Components: main
