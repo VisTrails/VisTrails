@@ -60,7 +60,7 @@ class HTTPFile(HTTP):
         self.suffix = suf[suf.__len__() - 1]
 
     def is_outdated(self, remoteHeader, localFile):
-        """Checks whether local file is up-to-date."""
+        """Checks whether local file is outdated."""
         # TODO: There's gotta be a time method for this.
         mod = remoteHeader.split()
         day = int(mod[1])
@@ -68,22 +68,11 @@ class HTTPFile(HTTP):
         yr = int(mod[3])
         t = mod[4]
         ltime = time.gmtime(os.path.getmtime(localFile))
-        if ltime[0] < yr:
-            return True
-        if ltime[1] < mon:
-            return True
-        if ltime[2] < day:
-            return True
-        
-        t = t.split(':')
-        if ltime[3] < int(t[0]):
-            return True
-        if ltime[4] < int(t[1]):
-            return True
-        if ltime[5] < int(t[2]):
-            return True
 
-        return False
+        t = [int(x) for x in t.split(':')]
+        remoteTuple = (yr, mon, day, t[0], t[1], t[2])
+        localTuple = (ltime[0], ltime[1], ltime[2], ltime[3], ltime[4], ltime[5])
+        return remoteTuple > localTuple
     
     def compute(self):
         self.checkInputPort('url')
