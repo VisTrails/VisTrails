@@ -107,7 +107,6 @@ def initialize(*args, **keywords):
     basic = core.modules.basic_modules
 
     reg.addModule(HTTP)
-
     reg.addModule(HTTPFile)
     reg.addInputPort(HTTPFile, "url", (basic.String, 'URL'))
     reg.addOutputPort(HTTPFile, "file", (basic.File, 'local File object'))
