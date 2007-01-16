@@ -566,7 +566,7 @@ class VistrailController(QtCore.QObject):
         Write vistrail to file and emit changed signal
         
         """
-        if self.vistrail and (self.changed or fileName!=self.name):
+        if self.vistrail and (self.changed or fileName!=self.fileName):
             self.vistrail.serialize(fileName)
             self.changed = False
             self.fileName = fileName
