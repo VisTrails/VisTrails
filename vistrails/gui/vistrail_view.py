@@ -249,6 +249,15 @@ class QVistrailView(QDockContainer):
         self.setFocus(QtCore.Qt.MouseFocusReason)
         self.controller.executeCurrentWorkflow()
 
+    def createPopupMenu(self):
+        """ createPopupMenu() -> QMenu
+        Create a pop up menu that has a list of all tool windows of
+        the current tab of the view. Tool windows can be toggled using
+        this menu
+        
+        """
+        return self.stackedWidget.currentWidget().createPopupMenu()
+
 ################################################################################
 
 if __name__=="__main__":
