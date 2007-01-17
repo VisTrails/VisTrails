@@ -438,7 +438,10 @@ class QVisualDiff(QtGui.QMainWindow):
 
         # Next we're going to add connections, only connections of
         # v2Only need to shift their ids
-        connectionShift = max(p1.connections.keys())+1
+        if p1.connections.keys():
+            connectionShift = max(p1.connections.keys())+1
+        else:
+            connectionShift = 0
         allConnections = copy.copy(p1.connections)
         sharedConnections = []
         v2OnlyConnections = []        

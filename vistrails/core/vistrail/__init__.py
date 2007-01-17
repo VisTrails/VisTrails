@@ -252,8 +252,7 @@ class Vistrail(object):
         """
         t1 = []
         t2 = []
-        t1.append(v1)
-        t = self.actionMap[v1].parent
+        t = v1
         while  t != 0:
             t1.append(t)
             t = self.actionMap[t].parent
@@ -290,18 +289,19 @@ class Vistrail(object):
                       
         """
         result = []
-        action = copy.copy(self.actionMap[t])
-        
-        while 1:
-            result.append(action)
-            if action.timestep == start:
-                break
-            if action.parent == start:
-                if start != 0:
-                    action = copy.copy(self.actionMap[action.parent])
-                break
-            action = copy.copy(self.actionMap[action.parent])
-        result.reverse()
+        if self.actionMap.has_key(t):
+            action = copy.copy(self.actionMap[t])
+
+            while 1:
+                result.append(action)
+                if action.timestep == start:
+                    break
+                if action.parent == start:
+                    if start != 0:
+                        action = copy.copy(self.actionMap[action.parent])
+                    break
+                action = copy.copy(self.actionMap[action.parent])
+            result.reverse()
         return result
     
     def hasVersion(self, version):
