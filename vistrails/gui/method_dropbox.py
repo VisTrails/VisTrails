@@ -203,7 +203,8 @@ class QMethodInputForm(QtGui.QGroupBox):
             paramList = []
             for i in range(len(self.lineEdits)):
                 paramList.append((str(self.lineEdits[i].text()),
-                                  self.function.params[i].type))
+                                  self.function.params[i].type,
+                                  str(self.labels[i].alias)))
             methodBox.lockUpdate()
             methodBox.controller.previousModuleIds = [methodBox.module.id]
             methodBox.controller.replaceFunction(methodBox.module,
@@ -218,12 +219,14 @@ class QMethodInputForm(QtGui.QGroupBox):
         """
         self.setTitle(function.name)
         self.function = function
-        self.lineEdits = []        
+        self.lineEdits = []
+        self.labels = []
         for pIndex in range(len(function.params)):
             p = function.params[pIndex]
             label = QHoverAliasLabel(p.alias, p.type)
             lineEdit = QPythonValueLineEdit(p.strValue, p.type, self)            
             self.lineEdits.append(lineEdit)
+            self.labels.append(label)
             self.layout().addWidget(label, pIndex, 0)
             self.layout().addWidget(lineEdit, pIndex, 1)
 

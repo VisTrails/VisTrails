@@ -517,7 +517,7 @@ class VistrailController(QtCore.QObject):
         functionName= module.functions[functionId].name
         action = ChangeParameterAction()        
         for pId in range(len(paramList)):
-            (pValue, pType) = paramList[pId]
+            (pValue, pType, pAlias) = paramList[pId]
             action.addParameter(module.id,
                                 functionId,
                                 pId,
@@ -525,7 +525,7 @@ class VistrailController(QtCore.QObject):
                                 '<no description>',
                                 pValue,
                                 pType,
-                                '')
+                                pAlias)
         self.performAction(action)
         
     def setVersion(self, newVersion):
