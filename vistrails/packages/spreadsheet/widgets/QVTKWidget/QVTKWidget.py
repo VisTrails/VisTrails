@@ -152,7 +152,6 @@ class QVTKWidget(QtGui.QWidget):
             if SetDisplayInfo:
                 SetDisplayInfo(str(int(QtGui.QX11Info.display())))
             self.mRenWin.SetWindowInfo(str(int(self.winId())))
-            self.mRenWin.SetParentInfo(str(int(self.parent().winId())))
             self.mRenWin.SetSize(self.width(), self.height())
             self.mRenWin.SetPosition(self.x(), self.y())
             
