@@ -291,6 +291,8 @@ class PythonSourceConfigurationWidget(StandardModuleConfigurationWidget):
         self.layout().addWidget(self.inputPortTable)
         self.layout().addWidget(self.outputPortTable)
         self.performPortConnection(self.connect)
+        self.inputPortTable.fixGeometry()
+        self.outputPortTable.fixGeometry()
 
     def findSourceFunction(self):
         fid = -1
@@ -313,9 +315,11 @@ class PythonSourceConfigurationWidget(StandardModuleConfigurationWidget):
         self.buttonLayout = QtGui.QHBoxLayout()
         self.buttonLayout.setMargin(5)
         self.okButton = QtGui.QPushButton('&OK', self)
+        self.okButton.setAutoDefault(False)
         self.okButton.setFixedWidth(100)
         self.buttonLayout.addWidget(self.okButton)
         self.cancelButton = QtGui.QPushButton('&Cancel', self)
+        self.cancelButton.setAutoDefault(False)
         self.cancelButton.setShortcut('Esc')
         self.cancelButton.setFixedWidth(100)
         self.buttonLayout.addWidget(self.cancelButton)
@@ -328,8 +332,8 @@ class PythonSourceConfigurationWidget(StandardModuleConfigurationWidget):
 
     def performPortConnection(self, operation):
         operation(self.inputPortTable.horizontalHeader(),
-                        QtCore.SIGNAL('sectionResized(int,int,int)'),
-                        self.portTableResize)
+                  QtCore.SIGNAL('sectionResized(int,int,int)'),
+                  self.portTableResize)
         operation(self.outputPortTable.horizontalHeader(),
                   QtCore.SIGNAL('sectionResized(int,int,int)'),
                   self.portTableResize)
