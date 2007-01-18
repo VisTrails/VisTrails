@@ -220,11 +220,21 @@ def createAllModules(g):
         createModule(vtkObjectBase, children)
 
 ################################################################################
+
 def initialize():
     """ initialize() -> None
     Package-entry to initialize the package
     
     """
+
+    # Check VTK version
+    v = vtk.vtkVersion()
+    version = [v.GetVTKMajorVersion(),
+               v.GetVTKMinorVersion(),
+               v.GetVTKBuildVersion()]
+    if version < [5, 0, 0]:
+        raise Exception("You need to upgrade your VTK install to version \
+>= 5.0.0")
     inheritanceGraph = ClassTree(vtk)
     inheritanceGraph.create()
     addModule(vtkBaseModule)
