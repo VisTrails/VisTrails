@@ -1,3 +1,24 @@
+############################################################################
+##
+## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+##
+## This file is part of VisTrails.
+##
+## This file may be used under the terms of the GNU General Public
+## License version 2.0 as published by the Free Software Foundation
+## and appearing in the file LICENSE.GPL included in the packaging of
+## this file.  Please review the following to ensure GNU General Public
+## Licensing requirements will be met:
+## http://www.opensource.org/licenses/gpl-license.php
+##
+## If you are unsure which license is appropriate for your use (for
+## instance, you are interested in developing a commercial derivative
+## of VisTrails), please contact us at vistrails@sci.utah.edu.
+##
+## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+##
+############################################################################
 import math
 import random
 import copy
@@ -56,6 +77,18 @@ class Graph(object):
         t = result.adjacencyList
         result.adjacencyList = result.inverseAdjacencyList
         result.inverseAdjacencyList = t
+        return result
+
+    def inverse_immutable(self):
+        """inverse_immutable() -> Graph
+        
+Fast version of inverse(), but requires that output not be mutated (it
+shares with self.)
+        """
+        result = Graph()
+        result.vertices = self.vertices()
+        result.adjacencyList = self.inverseAdjacencyList
+        result.inverseAdjacencyList = self.adjacencyList
         return result
 
     def addEdge(self, froom, to, id=None):
@@ -238,6 +271,47 @@ class Graph(object):
                     visited.add(to)
         return parent
 
+    def dfs(self):
+        """ dfs(self) -> (discovery, parent, finish)
+        Performs a depth-first search on a graph and returns three dictionaries with
+        relevant information. See CLRS p. 541. """
+
+        # Ugly ugly python
+        # http://mail.python.org/pipermail/python-list/2006-April/378964.html
+        class Closure(object):
+            pass
+        
+        # Straight CLRS p.541
+        White = 0
+        Gray = 1
+        Black = 2
+        data = Closure()
+        data.color = {}
+        data.discovery = {} # d in CLRS
+        data.parent = {} # \pi in CLRS
+        data.finish = {}  # f in CLRS
+        data.t = 0
+
+        def visit(u):
+            data.color[u] = Gray
+            data.t += 1
+            data.discovery[u] = data.t
+            for (v, edge_id) in self.adjacencyList[u]:
+                if data.color[v] == White:
+                    data.parent[v] = u
+                    visit(v)
+            data.color[u] = Black
+            data.t += 1
+            data.finish[u] = data.t
+            
+        for vertex in self.vertices:
+            data.color[vertex] = White
+        for vertex in self.vertices:
+            if data.color[vertex] == White:
+                visit(vertex)
+        return (data.discovery, data.parent, data.finish)
+        
+
     def parent(self, v):
         """ parent(v: id type) -> id type
         Find the parent of vertex v and return an id
@@ -255,7 +329,21 @@ class Graph(object):
         else: froom=0
         return froom
     
-    fromRandom = staticmethod(fromRandom)
+    def vertices_topological_sort(self):
+        """ vertices_topological_sort(self) ->
+sequence(vertices) Returns an iterator for a sequence of all vertices,
+so that they are in reverse topological sort order (every node
+traversed is such that their parent nodes have already been traversed)
+        """
+        (d, p, f) = self.dfs()
+        lst = [(v, k) for (k,v) in f.iteritems()]
+        lst.sort()
+        lst.reverse()
+        return [v for (k, v) in lst]
+        
+        
+
+    fromRandom = staticmethod(fromRandom) 
 
 def edge_cmp(v1, v2):
     """ edge_cmp(v1: id type, v2:id type) -> int
@@ -341,6 +429,36 @@ class TestGraph(unittest.TestCase):
          sourceResult = [None for i in g.sinks() if g.outDegree(i) == 0]
          assert len(sinkResult) == len(g.sinks())
          assert len(sourceResult) == len(g.sources())
+
+     def testDFS(self):
+         """Test DFS on graph."""
+         g = Graph()
+         g.addVertex(0)
+         g.addVertex(1)
+         g.addVertex(2)
+         g.addVertex(3)
+         g.addVertex(4)
+         g.addEdge(0,1,0)
+         g.addEdge(1,2,1)
+         g.addEdge(0,3,2)
+         g.addEdge(3,2,3)
+         g.addEdge(2,4,4)
+         g.dfs()
+
+     def testTopologicalSort(self):
+         """Test toposort on graph."""
+         g = Graph()
+         g.addVertex(0)
+         g.addVertex(1)
+         g.addVertex(2)
+         g.addVertex(3)
+         g.addVertex(4)
+         g.addEdge(0,1,0)
+         g.addEdge(1,2,1)
+         g.addEdge(0,3,2)
+         g.addEdge(3,2,3)
+         g.addEdge(2,4,4)
+         g.vertices_topological_sort()
 
 if __name__ == '__main__':
     unittest.main()
