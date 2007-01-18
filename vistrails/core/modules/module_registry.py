@@ -1,3 +1,24 @@
+############################################################################
+##
+## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+##
+## This file is part of VisTrails.
+##
+## This file may be used under the terms of the GNU General Public
+## License version 2.0 as published by the Free Software Foundation
+## and appearing in the file LICENSE.GPL included in the packaging of
+## this file.  Please review the following to ensure GNU General Public
+## Licensing requirements will be met:
+## http://www.opensource.org/licenses/gpl-license.php
+##
+## If you are unsure which license is appropriate for your use (for
+## instance, you are interested in developing a commercial derivative
+## of VisTrails), please contact us at vistrails@sci.utah.edu.
+##
+## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+##
+############################################################################
 from PyQt4 import QtCore
 
 from core.utils import VistrailsInternalError, memo_method, all
@@ -9,6 +30,7 @@ import core.modules.vistrails_module
 
 from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.module_function import ModuleFunction
+import core.cache.hasher
 
 ###############################################################################
 # ModuleDescriptor
@@ -99,6 +121,15 @@ PluginRTTI put together, with the ability to extend it at runtime)"""
         self.moduleName = { core.modules.vistrails_module.Module: "Module" }
         self.moduleTree = { "Module": n }
         self.moduleWidget = { "Module": None }
+        self._hasher_callable = {}
+
+    def module_signature(self, module):
+        """Returns signature of a given core.vistrail.Module, possibly
+using user-defined hasher."""
+        if self._hasher_callable.has_key(module.name):
+            return self._hasher_callable[module.name](module)
+        else:
+            return core.cache.hasher.Hasher.module_signature(module)
 
     def hasModule(self, name):
         return self.moduleTree.has_key(name)
@@ -124,7 +155,10 @@ subclasses from modules.vistrails_module.Module)"""
         name = self.moduleName[module]
         return self.getDescriptorByName(name)
 
-    def addModule(self, module, name = None, configureWidgetType = None):
+    def addModule(self, module,
+                  name=None,
+                  configureWidgetType=None,
+                  cacheCallable=None):
         """addModule(module: class, optional name: string) -> Tree
 
 Registers a new module with VisTrails. Receives the class itself and
@@ -146,6 +180,9 @@ pipelines."""
         self.moduleName[module] = name
         self.moduleWidget[name] = configureWidgetType
         
+        if cacheCallable:
+            self._hasher_callable[name] = cacheCallable
+            
         # self requires object magic, it's an open type! I want OCaml :(
         # self.addOutputPort(module, 'self', (module, 'self'))
         self.emit(QtCore.SIGNAL("newModule"), name)
