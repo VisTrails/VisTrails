@@ -801,7 +801,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         selectedItems = self.selectedItems()
         if len(selectedItems)>0:
             cb = QtGui.QApplication.clipboard()
-            cb.clear()
             dom = getDOMImplementation().createDocument(None, 'network', None)
             root = dom.documentElement
             copiedConnections = {}
@@ -819,7 +818,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
                         conn.serialize(dom, root)
                         copiedConnections[conn] = True
             cb.setText(dom.toxml())
-            
     def pasteFromClipboard(self):
         """ pasteFromClipboard() -> None
         Paste modules/connections from the clipboard into this pipeline view
