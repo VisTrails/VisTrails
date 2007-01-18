@@ -30,13 +30,10 @@ class QVistrailViewToolBar(QtGui.QToolBar):
         self.addAction(self.executePipelineAction())
         self.addSeparator()
         self.addAction(self.visualQueryAction())
-        self.addAction(self.viewFullTreeAction())
-#        self.addAction(self.tabbedViewAction())
-#        self.addAction(self.horizontalViewAction())
-#        self.addAction(self.verticalViewAction())
-#        self.addAction(self.dockViewAction())
         self.addSeparator()
         self.addAction(self.pipViewAction())
+        self.addSeparator()
+        self.addAction(self.cursorMenu().menuAction())
         self.addSeparator()
 
         # Then take care of the tab bar on the right
@@ -95,100 +92,100 @@ class QVistrailViewToolBar(QtGui.QToolBar):
                 self._viewFullTreeAction.toolTip())
         return self._viewFullTreeAction
 
-    def viewActionGroup(self):
-        """ viewActionGroup() -> None        
-        A group for all view actions in order to have only one
+    def cursorMenu(self):
+        """ cursorMenu() -> None        
+        A menu of different cursor shapes
+        
+        """
+        if not hasattr(self, '_cursorMenu'):
+            menu = QtGui.QMenu("Select an action for the cursor", self)
+            menu.addAction(self.selectCursorAction())
+            menu.addAction(self.panCursorAction())
+            menu.addAction(self.zoomCursorAction())
+            checkedAction = self.cursorActionGroup().checkedAction()
+            self._cursorMenu = menu
+            self.assignCursorMenuAction(checkedAction)
+        return self._cursorMenu
+
+    def assignCursorMenuAction(self, action):
+        """ assignCursorMenuAction(action: QAction) -> None
+        Assign one of the three cursor actions to be the default one
+        
+        """
+        menu = self.cursorMenu()
+        menu.setIcon(action.icon())
+        menu.setTitle(action.toolTip())
+        menu.menuAction().setStatusTip(action.statusTip())                
+
+    def cursorActionGroup(self):
+        """ cursorActionGroup() -> None        
+        A group for all cursor actions in order to have only one
         selected at a time
         
         """
-        if not hasattr(self, '_viewActionGroup'):
-            self._viewActionGroup = QtGui.QActionGroup(self)
-        return self._viewActionGroup
+        if not hasattr(self, '_cursorActionGroup'):
+            self._cursorActionGroup = QtGui.QActionGroup(self)
+        return self._cursorActionGroup
 
-    def tabbedViewAction(self):
-        """ tabbedViewAction() -> QAction        
-        Returns the action for laying pipeline and version views in
-        tabbed layout
+    def selectCursorAction(self):
+        """ selectCursorAction() -> QAction        
+        Returns the action for using the cursor as a selection tool by
+        default (an arrow shape)
         
         """
-        if not hasattr(self, '_tabbedViewAction'):
-            self._tabbedViewAction = QtGui.QAction(
-                CurrentTheme.TABBED_VIEW_ICON,
-                'Tabbed View',
-                self.viewActionGroup())
-            self._tabbedViewAction.setCheckable(True)
-            self._tabbedViewAction.setToolTip('Layout the views in '
-                                              'tabbed mode')
-            self._tabbedViewAction.setStatusTip(
-                self._tabbedViewAction.toolTip())
-            self._tabbedViewAction.setChecked(True)
-            self.connect(self._tabbedViewAction,
+        if not hasattr(self, '_selectCursorAction'):
+            self._selectCursorAction = QtGui.QAction(
+                CurrentTheme.SELECT_ICON,
+                'Select',
+                self.cursorActionGroup())
+            self._selectCursorAction.setCheckable(True)
+            self._selectCursorAction.setToolTip('Selecting components '
+                                                'inside the view ')
+            self._selectCursorAction.setStatusTip(
+                self._selectCursorAction.toolTip())
+            self._selectCursorAction.setChecked(True)
+            self.connect(self._selectCursorAction,
                          QtCore.SIGNAL('triggered(bool)'),
-                         self.viewToggled)
-        return self._tabbedViewAction
+                         self.cursorToggled)
+        return self._selectCursorAction
 
-    def horizontalViewAction(self):
-        """ horizontalViewAction() -> QAction        
-        Returns the action for laying pipeline and version views side
-        by side horizontally
+    def panCursorAction(self):
+        """ panCursorAction() -> QAction        
+        Returns the action for using the cursor as a panning tool
         
         """
-        if not hasattr(self, '_horizontalViewAction'):
-            self._horizontalViewAction = QtGui.QAction(
-                CurrentTheme.HORIZONTAL_VIEW_ICON,
-                'Horizontal View',
-                self.viewActionGroup())
-            self._horizontalViewAction.setCheckable(True)
-            self._horizontalViewAction.setToolTip('Layout the views side-'
-                                                  'by-side horizontally')
-            self._horizontalViewAction.setStatusTip(
-                self._horizontalViewAction.toolTip())
-            self.connect(self._horizontalViewAction,
+        if not hasattr(self, '_panCursorAction'):
+            self._panCursorAction = QtGui.QAction(
+                CurrentTheme.PAN_ICON,
+                'Pan',
+                self.cursorActionGroup())
+            self._panCursorAction.setCheckable(True)
+            self._panCursorAction.setToolTip('Pan the view')
+            self._panCursorAction.setStatusTip(
+                self._panCursorAction.toolTip())
+            self.connect(self._panCursorAction,
                          QtCore.SIGNAL('triggered(bool)'),
-                         self.viewToggled)
-        return self._horizontalViewAction
+                         self.cursorToggled)
+        return self._panCursorAction
 
-    def verticalViewAction(self):
-        """ verticalViewAction() -> QAction        
-        Returns the action for laying pipeline and version views side
-        by side vertically
+    def zoomCursorAction(self):
+        """ zoomCursorAction() -> QAction        
+        Returns the action for using the cursor as a zooming tool
         
         """
-        if not hasattr(self, '_verticalViewAction'):
-            self._verticalViewAction = QtGui.QAction(
-                CurrentTheme.VERTICAL_VIEW_ICON,
-                'Vertical View',
-                self.viewActionGroup())
-            self._verticalViewAction.setCheckable(True)
-            self._verticalViewAction.setToolTip('Layout the views side-'
-                                                  'by-side vertically')
-            self._verticalViewAction.setStatusTip(
-                self._verticalViewAction.toolTip())
-            self.connect(self._verticalViewAction,
+        if not hasattr(self, '_zoomCursorAction'):
+            self._zoomCursorAction = QtGui.QAction(
+                CurrentTheme.ZOOM_ICON,
+                'Zoom',
+                self.cursorActionGroup())
+            self._zoomCursorAction.setCheckable(True)
+            self._zoomCursorAction.setToolTip('Zoom in/out the view')
+            self._zoomCursorAction.setStatusTip(
+                self._zoomCursorAction.toolTip())
+            self.connect(self._zoomCursorAction,
                          QtCore.SIGNAL('triggered(bool)'),
-                         self.viewToggled)
-        return self._verticalViewAction
-
-    def dockViewAction(self):
-        """ dockViewAction() -> QAction        
-        Returns the action for laying pipeline and version views side
-        by side horizontally but all views can be dockable
-        
-        """
-        if not hasattr(self, '_dockViewAction'):
-            self._dockViewAction = QtGui.QAction(
-                CurrentTheme.DOCK_VIEW_ICON,
-                'Docking View',
-                self.viewActionGroup())
-            self._dockViewAction.setCheckable(True)
-            self._dockViewAction.setToolTip('Allow all the views to be '
-                                            'dock widgets')
-            self._dockViewAction.setStatusTip(
-                self._dockViewAction.toolTip())
-            self.connect(self._dockViewAction,
-                         QtCore.SIGNAL('triggered(bool)'),
-                         self.viewToggled)
-        return self._dockViewAction
+                         self.cursorToggled)
+        return self._zoomCursorAction
 
     def pipViewAction(self):
         """ pipViewAction() -> QAction        
@@ -242,27 +239,26 @@ class QVistrailViewToolBar(QtGui.QToolBar):
             self.tabBar.setShape(tabBarShapeMap[area])
             self.paddedTabBar.updateSizePolicy()
 
-    def viewToggled(self, checked=True):
-        """ viewToggled(checked: bool) -> None        
-        Slot to handle view actions toggled. This will in turn emit
-        another signal to specify which view
+    def cursorToggled(self, checked=True):
+        """ cursorToggled(checked: bool) -> None        
+        Slot to handle cursor actions toggled. This will in turn emit
+        another signal to specify cursor has been selected
         
         """
-        viewMode = -1
-        if self.tabbedViewAction().isChecked():
-            viewMode = 0
-            self.tabBar.setCurrentIndex(1)
-            self.tabBar.show()
-        elif self.horizontalViewAction().isChecked():
-            viewMode = 1
-            self.tabBar.hide()
-        elif self.verticalViewAction().isChecked():
-            viewMode = 2
-            self.tabBar.hide()
-        elif self.dockViewAction().isChecked():
-            viewMode = 3
-            self.tabBar.hide()
-        self.emit(QtCore.SIGNAL('viewChanged(int)'), viewMode)
+        cursorMode = -1
+        action = None
+        if self.selectCursorAction().isChecked():
+            cursorMode = 0
+            action = self.selectCursorAction()
+        elif self.panCursorAction().isChecked():
+            cursorMode = 1
+            action = self.panCursorAction()
+        elif self.zoomCursorAction().isChecked():
+            cursorMode = 2
+            action = self.zoomCursorAction()
+        if action:
+            self.assignCursorMenuAction(action)
+        self.emit(QtCore.SIGNAL('cursorChanged(int)'), cursorMode)
 
 class QVistrailViewPaddedTabBar(QtGui.QWidget):
     """

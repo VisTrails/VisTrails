@@ -50,8 +50,6 @@ class QVistrailView(QDockContainer):
 
         # Add the customized toolbar at the top
         self.toolBar = QVistrailViewToolBar(self)
-        self.connect(self.toolBar, QtCore.SIGNAL('viewChanged(int)'),
-                     self.viewChanged)
         self.addToolBar(QtCore.Qt.TopToolBarArea,
                         self.toolBar)
 
@@ -94,6 +92,24 @@ class QVistrailView(QDockContainer):
         # PIP enabled by default.
         self.toolBar.pipViewAction().trigger()
 
+        # Make sure to connect all graphics view to cursor mode of the
+        # toolbar
+        pipelineView = self.pipelineTab.pipelineView
+        versionView = self.versionTab.versionView
+        self.connect(self.toolBar, QtCore.SIGNAL('cursorChanged(int)'),
+                     pipelineView.setDefaultCursorState)
+        self.connect(self.toolBar, QtCore.SIGNAL('cursorChanged(int)'),
+                     versionView.setDefaultCursorState)
+        self.connect(self.toolBar, QtCore.SIGNAL('cursorChanged(int)'),
+                     self.queryTab.pipelineView.setDefaultCursorState)
+        if self.toolBar.pipViewAction().isChecked():
+            pipelinePIPView = pipelineView.pipFrame.graphicsView
+            self.connect(self.toolBar, QtCore.SIGNAL('cursorChanged(int)'),
+                         pipelinePIPView.setDefaultCursorState)
+            versionPIPView = versionView.pipFrame.graphicsView
+            self.connect(self.toolBar, QtCore.SIGNAL('cursorChanged(int)'),
+                         versionPIPView.setDefaultCursorState)
+
     def changeView(self, viewIndex):
         """changeView(viewIndex) -> None. Changes the view between
         pipeline, version and query."""
@@ -105,64 +121,6 @@ class QVistrailView(QDockContainer):
         self.controller.changeSelectedVersion(0)
         self.changeView(0)
         
-
-    def viewChanged(self, viewMode):
-        """ viewChanged(viewId: int) -> None        
-        When the view mode changed to viewId, make sure to layout the
-        pipeline tabs and version tree view accordingly
-        
-        """
-        tabs = [self.pipelineTab, self.versionTab, self.queryTab]
-        if viewMode!=0:
-            self.stackedWidget.hide()
-        for tabOrder in range(len(tabs)):
-            tab = tabs[tabOrder]
-            
-            if viewMode==3:
-                tab.toolWindow().setFeatures(
-                    QtGui.QDockWidget.DockWidgetFloatable |
-                    QtGui.QDockWidget.DockWidgetMovable)
-            else:
-                tab.toolWindow().setFeatures(
-                    QtGui.QDockWidget.NoDockWidgetFeatures)
-
-            # Tabbed view
-            if viewMode==0:
-                if self.stackedWidget.indexOf(tab)==-1:
-                    self.removeDockWidget(tab.toolWindow())
-                self.stackedWidget.insertWidget(tabOrder,tab)
-            # Horizontal view
-            elif viewMode in [1,3]:
-                if self.stackedWidget.indexOf(tab)!=-1:
-                    self.stackedWidget.removeWidget(tab)
-                tab.toolWindow().setParent(self)
-                tab.show()
-                tab.toolWindow().show()
-                self.addDockWidget(QtCore.Qt.TopDockWidgetArea,
-                                   tab.toolWindow())
-            # Vertical view
-            elif viewMode==2:
-                if self.stackedWidget.indexOf(tab)!=-1:
-                    self.stackedWidget.removeWidget(tab)
-                tab.toolWindow().setParent(self)
-                tab.show()
-                tab.toolWindow().show()
-                self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,
-                                   tab.toolWindow())
-        if viewMode==0:
-            self.stackedWidget.setCurrentIndex(1)
-            self.stackedWidget.show()
-
-        # Somehow we have to re-add all dock widgets to get an even
-        # width/height
-        for tab in tabs:
-            if viewMode in [1,3]:
-                self.addDockWidget(QtCore.Qt.TopDockWidgetArea,
-                                   tab.toolWindow())
-            elif viewMode==2:
-                self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,
-                                   tab.toolWindow())
-
     def tabChanged(self, index):
         """ tabChanged(index: int) -> None        
         Slot for switching different views when the tab's current

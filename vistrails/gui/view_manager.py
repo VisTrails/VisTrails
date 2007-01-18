@@ -188,6 +188,8 @@ class QViewManager(QtGui.QTabWidget):
             elif res == 2:
                 return False
             self.removeVistrailView(vistrailView)
+            if self.count()==0:
+                self.emit(QtCore.SIGNAL('currentVistrailChanged'), None)
         return True
     
     def closeAllVistrails(self):
@@ -327,3 +329,13 @@ class QViewManager(QtGui.QTabWidget):
         view.closeEventHandler = None
         self.addTab(view, view.windowTitle())
         self.setCurrentWidget(view)        
+
+    def executeCurrentPipeline(self):
+        """ executeCurrentPipeline() -> None
+        Execute the active pipeline if exists
+        
+        """
+        view = self.currentView()
+        if view:
+            view.toolBar.executePipelineAction().trigger()
+        

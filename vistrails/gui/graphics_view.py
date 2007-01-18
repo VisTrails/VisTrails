@@ -161,22 +161,100 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.currentScale = self.scaleMax/2
         self.startScroll = (0,0)
         self.lastPos = QtCore.QPoint(0,0)
-        self.pipScene = None        
+        self.pipScene = None
         self.pipFrame = None
         self.selectionBox = QGraphicsRubberBandItem(None)
         self.startSelectingPos = None
+        self.setProperty('captureModifiers',
+                         QtCore.QVariant(0))
+        self.defaultCursorState = 0
+        self.setCursorState(self.defaultCursorState)
+
+    def modifiersPressed(self, key):
+        """ modifiersPressed(key: QtCore.Qt.Key) -> None
+        Notification when one of the modifier keys has been pressed
+        
+        """
+        # Shift -> Pan
+        if key==QtCore.Qt.Key_Shift:
+            self.setCursorState(1)
+        # Alt -> Zoom
+        elif key==QtCore.Qt.Key_Alt:
+            self.setCursorState(2)
+            self.viewport().setCursor(QtGui.QCursor(CurrentTheme.ZOOM_CURSOR))
+        
+    def modifiersReleased(self):
+        """ modifiersReleased() -> None
+        Notification when one of the modifier keys has been released
+        
+        """
+        self.setCursorState(self.defaultCursorState)
+
+    def validateCursorState(self):
+        """ validateCursorState() -> None
+        Check the keyboard modifiers to change the cursor shape correspondingly
+        
+        """
+        modifiers = QtGui.QApplication.keyboardModifiers()
+        if modifiers & QtCore.Qt.ShiftModifier:
+            self.setCursorState(1)
+        elif modifiers & QtCore.Qt.AltModifier:
+            self.setCursorState(2)
+        else:
+            self.setCursorState(self.defaultCursorState)
+
+    def enterEvent(self, event):
+        """ enterEvent(event: QEnterEvent) -> None        
+        Check the modifiers state when the mouse enter the
+        canvas. Then update the mouse functionality appropriately
+        
+        """
+        self.validateCursorState()
+        return QtGui.QGraphicsView.enterEvent(self, event)
+
+    def setCursorState(self, state):
+        """ setCursorState(state: int) -> None        
+        Update the cursor shape
+
+        Keyword arguments:
+        state - 0: selecting (default)
+                1: pan
+                2: zoom
+                3: panning
+        
+        """
+        if state==0:
+            self.viewport().setCursor(CurrentTheme.SELECT_CURSOR)
+        elif state==1:
+            self.viewport().setCursor(CurrentTheme.OPEN_HAND_CURSOR)
+        elif state==2:
+            self.viewport().setCursor(CurrentTheme.ZOOM_CURSOR)
+        elif state==3:
+            self.viewport().setCursor(CurrentTheme.CLOSE_HAND_CURSOR)
+        
+    def setDefaultCursorState(self, state):
+        """ setDefaultCursorState(state: int) -> None
+        Set the default cursor state when no modifier key is pressed
+        
+        """
+        self.defaultCursorState = state
+        self.validateCursorState()
 
     def translateButton(self, event):
         """ translateButton(event: QInputEvent) -> None
         Translate mouse button and modifiers into a virtual mouse button
         
-        """        
-        if (event.buttons() & QtCore.Qt.LeftButton and
-            event.modifiers() & QtCore.Qt.ShiftModifier):
-            return QtCore.Qt.MidButton
-        if (event.buttons() & QtCore.Qt.LeftButton and
-            event.modifiers() & QtCore.Qt.AltModifier):
-            return QtCore.Qt.RightButton
+        """
+        if event.buttons() & QtCore.Qt.LeftButton:
+            if event.modifiers() & QtCore.Qt.ShiftModifier:
+                return QtCore.Qt.MidButton
+            if event.modifiers() & QtCore.Qt.AltModifier:
+                return QtCore.Qt.RightButton
+            state2Button = {0: QtCore.Qt.LeftButton,
+                            1: QtCore.Qt.MidButton,
+                            2: QtCore.Qt.RightButton}
+            if state2Button.has_key(self.defaultCursorState):
+                return state2Button[self.defaultCursorState]
         return event.buttons()
 
     def mousePressEvent(self, e):
@@ -204,8 +282,10 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                 QtGui.QGraphicsView.mousePressEvent(self, e)
         else:
             if buttons & QtCore.Qt.RightButton:
+                self.setCursorState(2)
                 self.computeScale()
             elif buttons & QtCore.Qt.MidButton:
+                self.setCursorState(3)
                 self.startScroll = (self.horizontalScrollBar().value(),
                                     self.verticalScrollBar().value())
             self.lastPos = QtCore.QPoint(QtGui.QCursor.pos())
@@ -214,7 +294,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
     def mouseMoveEvent(self, e):
         """ mouseMoveEvent(e: QMouseEvent) -> None        
         Handle right click (zoom) and mid click (pan). This function
-        uses QtCursor globalPos instead of e.globalX() and e.globalY()
+        uses QCursor globalPos instead of e.globalX() and e.globalY()
         because of their flaky values during transformation
         
         """
@@ -259,7 +339,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                                                   globalPos.y() +
                                                   self.lastPos.y())
         else:
-            QtGui.QGraphicsView.mouseMoveEvent(self, e)
+            self.validateCursorState()
         self.setUpdatesEnabled(True)
 
     def mouseReleaseEvent(self, e):
@@ -273,8 +353,9 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
             self.scene().removeItem(self.selectionBox)
             self.scene().multiSelecting = False
         self.lastPos = None
+        self.validateCursorState()
         self.setUpdatesEnabled(True)
-        QtGui.QGraphicsView.mouseReleaseEvent(self, e)
+        QtGui.QGraphicsView.mouseReleaseEvent(self, e)        
 
     def selectModules(self):
         """ selectModules() -> None

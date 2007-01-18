@@ -4,6 +4,7 @@ QBuilderWindow
 """
 
 from PyQt4 import QtCore, QtGui
+from gui.graphics_view import QInteractiveGraphicsView
 from gui.module_palette import QModulePalette
 from gui.shell import QShellDialog
 from gui.theme import CurrentTheme
@@ -63,14 +64,49 @@ class QBuilderWindow(QtGui.QMainWindow):
             e.ignore()
 
     def keyPressEvent(self, event):
-        if (event.key() == QtCore.Qt.Key_Enter or 
-            event.key() == QtCore.Qt.Key_Return) and \
-            (event.modifiers() & QtCore.Qt.ControlModifier):
-            # FIXME: The action belongs somewhere other than in the toolbar..
-            view = self.viewManager.currentView()
-            if view:
-                view.toolBar.executePipelineAction().trigger()
-
+        """ keyPressEvent(event: QKeyEvent) -> None        
+        Capture modifiers (Ctrl, Alt, Shift) and send them to one of
+        the widget under the mouse cursor. It first starts at the
+        widget directly under the mouse and check if the widget has
+        property named captureModifiers. If yes, it calls
+        'modifiersPressed' function
+        
+        """
+        if event.key() in [QtCore.Qt.Key_Control,
+                           QtCore.Qt.Key_Alt,
+                           QtCore.Qt.Key_Shift]:
+            widget = QtGui.QApplication.widgetAt(QtGui.QCursor.pos())
+            if widget:
+                while widget:
+                    if widget.property('captureModifiers').isValid():
+                        if hasattr(widget, 'modifiersPressed'):
+                            widget.modifiersPressed(event.key())
+                        break
+                    widget = widget.parent()
+        QtGui.QMainWindow.keyPressEvent(self, event)
+            
+    def keyReleaseEvent(self, event):
+        """ keyReleaseEvent(event: QKeyEvent) -> None        
+        Capture modifiers (Ctrl, Alt, Shift) and send them to one of
+        the widget under the mouse cursor. It first starts at the
+        widget directly under the mouse and check if the widget has
+        property named captureModifiers. If yes, it calls
+        'modifiersReleased' function
+        
+        """
+        if event.key() in [QtCore.Qt.Key_Control,
+                           QtCore.Qt.Key_Alt,
+                           QtCore.Qt.Key_Shift]:
+            widget = QtGui.QApplication.widgetAt(QtGui.QCursor.pos())
+            if widget:
+                while widget:
+                    if widget.property('captureModifiers').isValid():
+                        if hasattr(widget, 'modifiersReleased'):
+                            widget.modifiersReleased()
+                        break
+                    widget = widget.parent()
+        QtGui.QMainWindow.keyReleaseEvent(self, event)
+            
     def createActions(self):
         """ createActions() -> None
         Construct all menu/toolbar actions for builder window
@@ -124,6 +160,14 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.sdiModeAction.setChecked(False)
         
         self.helpAction = QtGui.QAction(self.tr('About VisTrails...'), self)
+
+        self.executeShortcuts = [
+            QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.ControlModifier +
+                                               QtCore.Qt.Key_Return), self),
+            QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.ControlModifier +
+                                               QtCore.Qt.Key_Enter), self)
+            ]
+            
         
     def createMenu(self):
         """ createMenu() -> None
@@ -239,7 +283,11 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.helpAction,
                      QtCore.SIGNAL("triggered()"),
                      self.showAboutMessage)
-                     
+
+        for shortcut in self.executeShortcuts:
+            self.connect(shortcut,
+                         QtCore.SIGNAL('activated()'),
+                         self.viewManager.executeCurrentPipeline)
         
     def moduleSelectionChange(self, selection):
         """ moduleSelectionChange(selection: list[id]) -> None

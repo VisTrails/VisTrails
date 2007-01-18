@@ -311,7 +311,30 @@ class DefaultTheme(object):
         self.VERSION_DRAG_PIXMAP = QtGui.QPixmap(
             core.system.visTrailsRootDirectory() +
             '/gui/resources/images/dragging.png')
-        
+
+        # Cursor for zoom in/out graphics views
+        self.SELECT_CURSOR = QtGui.QCursor(QtCore.Qt.ArrowCursor)
+        self.OPEN_HAND_CURSOR = QtGui.QCursor(QtGui.QPixmap(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/open_hand.png'))
+        self.CLOSE_HAND_CURSOR = QtGui.QCursor(QtGui.QPixmap(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/close_hand.png'))
+        self.ZOOM_CURSOR = QtGui.QCursor(QtGui.QPixmap(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/zoom.png'))
+                
+        # Cursor icon for zoom in/out graphics views
+        self.SELECT_ICON = QtGui.QIcon(QtGui.QPixmap(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/select_icon.png'))        
+        self.PAN_ICON = QtGui.QIcon(QtGui.QPixmap(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/pan_icon.png'))
+        self.ZOOM_ICON = QtGui.QIcon(QtGui.QPixmap(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/zoom_icon.png'))
+                
         #### COLORS ####
         # Color for the PIP frame
         self.PIP_FRAME_COLOR = QtGui.QColor(
