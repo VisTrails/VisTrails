@@ -33,7 +33,9 @@ class QVistrailViewToolBar(QtGui.QToolBar):
         self.addSeparator()
         self.addAction(self.pipViewAction())
         self.addSeparator()
-        self.addAction(self.cursorMenu().menuAction())
+        self.addAction(self.selectCursorAction())
+        self.addAction(self.panCursorAction())
+        self.addAction(self.zoomCursorAction())
         self.addSeparator()
 
         # Then take care of the tab bar on the right
