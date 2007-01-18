@@ -397,8 +397,8 @@ class TestPresetColor(unittest.TestCase):
     
     """
     def testColorValues(self):
-        self.assertEquals(CurrentTheme.MODULE_COLOR,
-                          ColorByName.get('light_grey'))
+        self.assertEquals(CurrentTheme.CONNECTION_CONTROL_POINT,
+                          20)
         self.assertEquals(CurrentTheme.GHOSTED_VERSION_COLOR,
                           ColorByName.get('very_light_grey'))
 
