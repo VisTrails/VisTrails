@@ -20,6 +20,7 @@
 ##
 ############################################################################
 import xml.dom.minidom
+import xml.parsers.expat
 
 from core.vistrail.vistrail import Vistrail
 from core.utils import VistrailsInternalError
@@ -53,13 +54,31 @@ class XMLParser(object):
         >>> v = parser.getVistrail()
 
     """
+
+    class XMLParseError(Exception):
+
+       
+        def __init__(self, line, char, code):
+            self._line = line
+            self._char = char
+            self._code = code
+            
+        def __str__(self):
+            return ("XML Parse error at line %s, col %s: %s" %
+                    (self._line,
+                     self._char,
+                     xml.parsers.expat.ErrorString(self._code)))
+    
     def openVistrail(self, filename):
         """openVistrail(filename: str) -> None 
         Parses a XML file.
 
         """
         self.filename = filename
-        self.dom = xml.dom.minidom.parse(filename)
+        try:
+            self.dom = xml.dom.minidom.parse(filename)
+        except xml.parsers.expat.ExpatError, e:
+            raise self.XMLParseError(e.lineno, e.offset, e.code)
 
     def closeVistrail(self):
         """closeVistrail() -> None 
@@ -264,6 +283,19 @@ class TestXmlParser(unittest.TestCase):
                             '/tests/resources/dummy.xml')
         v = parser.getVistrail()
         parser.closeVistrail()
+
+    def test2(self):
+        """ Exercise malformed loading. """
+        parser = XMLParser()
+
+        self.assertRaises(IOError, parser.openVistrail,
+                          core.system.visTrailsRootDirectory() +
+                          '/tests/resources/file_that_does_not_exist.xml')
+        import xml.parsers.expat
+        self.assertRaises(XMLParser.XMLParseError,
+                          parser.openVistrail,
+                          (core.system.visTrailsRootDirectory() +
+                           '/tests/resources/dummy_broken.xml'))
         
 
 if __name__ == '__main__':
