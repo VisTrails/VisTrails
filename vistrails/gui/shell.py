@@ -85,6 +85,7 @@ class QShellDialog(QtGui.QDialog):
         """closeEvent(e) -> None
         Event handler called when the dialog is about to close."""
         self.closeSession()
+        self.emit(QtCore.SIGNAL("shellHidden()"))
     
     def showEvent(self, e):
         """showEvent(e) -> None
