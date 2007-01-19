@@ -1,7 +1,28 @@
+############################################################################
+##
+## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+##
+## This file is part of VisTrails.
+##
+## This file may be used under the terms of the GNU General Public
+## License version 2.0 as published by the Free Software Foundation
+## and appearing in the file LICENSE.GPL included in the packaging of
+## this file.  Please review the following to ensure GNU General Public
+## Licensing requirements will be met:
+## http://www.opensource.org/licenses/gpl-license.php
+##
+## If you are unsure which license is appropriate for your use (for
+## instance, you are interested in developing a commercial derivative
+## of VisTrails), please contact us at vistrails@sci.utah.edu.
+##
+## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+##
+############################################################################
 from core import modules
 from core.modules.vistrails_module import ModuleConnector, ModuleError
 from core.modules.module_utils import FilePool
-from core.utils import withIndex, InstanceObject
+from core.utils import withIndex, InstanceObject, lock_method
 import threading
 
 ################################################################################
@@ -16,40 +37,44 @@ class Interpreter(object):
                       'Integer': int,
                       'String': lambda x: x}
 
+    @lock_method(_lock)
+    def locked_execute(self, pipeline, vistrailName, currentVersion,
+                       view, logger):
+        return self.unlocked_execute(pipeline, vistrailName,
+                                     currentVersion, view, logger)
     
+    def unlocked_execute(self, pipeline, vistrailName, currentVersion,
+                         view, logger):
 
-    def execute(self, pipeline, vistrailName, currentVersion, view, 
-                logger, useLock=True):
+        def addToExecuted(obj):
+            executed[obj.id] = True
+        def beginCompute(obj):
+            view.setModuleComputing(obj.id)
+        def beginUpdate(obj):
+            view.setModuleActive(obj.id)
+            reg = modules.module_registry.registry
+            name = reg.getDescriptor(obj.__class__).name
+            if logger:
+                logger.startModuleExecution(vistrailName, 
+                                            currentVersion, obj.id, name)
+        def endUpdate(obj, error=''):
+            if not error:
+                view.setModuleSuccess(obj.id)
+            else:
+                view.setModuleError(obj.id, error)
+            if logger:
+                logger.finishModuleExecution(vistrailName, 
+                                             currentVersion, obj.id)
+        def annotate(obj, d):
+            if logger:
+                logger.insertAnnotationDB(vistrailName, 
+                                          currentVersion, obj.id, d)
+
         try:
-            if useLock:
-                _lock.acquire()
             self.filePool = FilePool()
             objects = {}
             errors = {}
             executed = {}
-            def addToExecuted(obj):
-                executed[obj.id] = True
-            def beginCompute(obj):
-                view.setModuleComputing(obj.id)
-            def beginUpdate(obj):
-                view.setModuleActive(obj.id)
-                reg = modules.module_registry.registry
-                name = reg.getDescriptor(obj.__class__).name
-                if logger:
-                    logger.startModuleExecution(vistrailName, 
-                                                currentVersion, obj.id, name)
-            def endUpdate(obj, error=''):
-                if not error:
-                    view.setModuleSuccess(obj.id)
-                else:
-                    view.setModuleError(obj.id, error)
-                if logger:
-                    logger.finishModuleExecution(vistrailName, 
-                                                 currentVersion, obj.id)
-            def annotate(obj, d):
-                if logger:
-                    logger.insertAnnotationDB(vistrailName, 
-                                              currentVersion, obj.id, d)
             logging_obj = InstanceObject(signalSuccess=addToExecuted,
                                          beginUpdate=beginUpdate,
                                          beginCompute=beginCompute,
@@ -57,7 +82,6 @@ class Interpreter(object):
                                          annotate=annotate)
             # create objects
             for id, module in pipeline.modules.items():
-    #            print "Will summon module", id, module
                 objects[id] = module.summon()
                 objects[id].interpreter = self
                 objects[id].id = id
@@ -65,7 +89,6 @@ class Interpreter(object):
                     objects[id].logging = logging_obj
                 objects[id].vistrailName = vistrailName
                 objects[id].currentVersion = currentVersion
-    #            print "result: ", objects[id]
                 for f in module.functions:
                     reg = modules.module_registry.registry
                     if len(f.params)==0:
@@ -96,12 +119,8 @@ class Interpreter(object):
                         
             # create connections
             for id, conn in pipeline.connections.items():
-    #             print "Will connect ",conn.sourceId,"and",conn.destinationId,
-    #             print "with",conn
                 src = objects[conn.sourceId]
                 dst = objects[conn.destinationId]
-    #             print "src:",src
-    #             print "dst:",dst
                 conn.makeConnection(src, dst)
 
             for v in pipeline.graph.sinks():
@@ -109,16 +128,38 @@ class Interpreter(object):
                     objects[v].update()
                 except ModuleError, me:
                     me.module.logging.endUpdate(me.module, False)
-#                     print "Module failed during execution."
-#                     print "Module:",me.module
-#                     print "Error:",me.msg
                     errors[me.module.id] = me
         finally:
-            if useLock:
-                _lock.release()
             self.filePool.cleanup()
             del self.filePool
         
         return (objects, errors, executed)
         
+    def execute(self, pipeline, vistrailName, currentVersion, view, 
+                logger, useLock=True):
+        if useLock:
+            method_call = self.locked_execute
+        else:
+            method_call = self.unlocked_execute
+
+        return method_call(pipeline, vistrailName, currentVersion, view,
+                           logger)
+        
+        
 ################################################################################
+
+class CachedInterpreter(object):
+
+    def __init__(self):
+        self._file_pool = FilePool()
+        self._persistent_pipeline = core.vistrail.Pipeline()
+
+    def execute(self, pipeline, vistrailName, currentVersion,
+                view, logger):
+        self.add_to_persistent_pipeline(pipeline)
+
+    def add_to_persistent_pipeline(self, pipeline):
+        new_pipeline_sinks = pipeline.graph.sinks()
+        
+
+##############################################################################
