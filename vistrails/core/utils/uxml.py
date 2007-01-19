@@ -31,6 +31,54 @@ def named_elements(element, elname):
         if node.nodeName == elname:
             yield node
 
+class XMLWrapper(object):
+    """Helper to parse a general XML file. It provides functions to open and 
+    close files.
+    It must be subclassed to parse specifi files. """
+    def openFile(self, filename):
+        """openFile(filename: str) -> None 
+        Parses a XML file.
+
+        """
+        self.filename = filename
+        self.dom = minidom.parse(filename)
+
+    def closeFile(self):
+        """closeFile() -> None 
+        Removes the association with the XML file loaded by openFile 
+        method. 
+
+        """
+        if self.dom:
+            self.dom.unlink()
+        self.filename = None
+        self.dom = None
+    
+    def createDocument(self, nodename):
+        """createDocument(nodename: str) -> xml element 
+        Creates a documentElement 
+        
+        """
+        impl = minidom.getDOMImplementation()
+        dom = impl.createDocument(None, nodename, None)
+        return dom
+
+    def writeDocument(self, root, filename):
+        """writeDocument(root:xml element, filename: str) -> None
+        Save as an XML file 
+        
+        """
+        outputFile = file(filename,'w')
+        root.writexml(outputFile, "  ", "  ", '\n')
+        outputFile.close()
+
+    def __str__(self):
+        """ __str__() -> str 
+        Returns the XML that self.dom represents as a string 
+        
+        """
+        return self.dom.toprettyxml()
+
 ################################################################################
 # Testing
 
