@@ -73,16 +73,22 @@ class QBookmarkPanel(QtGui.QFrame, QToolWindowInterface):
         self.executeAction.setToolTip('Execute checked bookmarks')
         self.executeAction.setStatusTip(self.executeAction.toolTip())
 
+        self.removeAction = QtGui.QAction(CurrentTheme.BOOKMARKS_REMOVE_ICON,
+                                          'Remove', self)
+        self.removeAction.setToolTip('Remove selected bookmark')
+        self.removeAction.setStatusTip(self.removeAction.toolTip())
+
     def createToolBar(self):
         """ createToolBar() -> None
         Create a default toolbar for bookmarks panel
         
         """
         self.toolBar = QtGui.QToolBar()
-        self.toolBar.setIconSize(QtCore.QSize(24,24))
+        self.toolBar.setIconSize(QtCore.QSize(32,32))
         self.toolBar.setWindowTitle('Bookmarks controls')
         self.layout().addWidget(self.toolBar)
         self.toolBar.addAction(self.executeAction)
+        self.toolBar.addAction(self.removeAction)
 
     def connectSignals(self):
         """ connectSignals() -> None
@@ -92,6 +98,9 @@ class QBookmarkPanel(QtGui.QFrame, QToolWindowInterface):
         self.connect(self.executeAction,
                      QtCore.SIGNAL('triggered(bool)'),
                      self.bookmarkPalette.executeCheckedWorkflows)
+        self.connect(self.removeAction,
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.bookmarkPalette.treeWidget.removeCurrentItem)
 
     def updateBookmarkPalette(self):
         """updateBookmarkPalette() -> None
@@ -249,4 +258,5 @@ class QBookmarkTreeWidgetItem(QtGui.QTreeWidgetItem):
         QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
         self.bookmark = bookmark
         self.setFlags((QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsSelectable
-                       | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable))
+                       | QtCore.Qt.ItemIsEnabled | 
+                       QtCore.Qt.ItemIsUserCheckable))

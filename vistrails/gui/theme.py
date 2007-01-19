@@ -282,7 +282,13 @@ class DefaultTheme(object):
         self.BOOKMARKS_ICON = QtGui.QIcon(
             core.system.visTrailsRootDirectory() +
             '/gui/resources/images/bookmarks.png')
-    
+        
+        # BOOKMARKS WINDOW
+        #Toolbar icon for removing bookmark
+        self.BOOKMARKS_REMOVE_ICON = QtGui.QIcon(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/edittrash.png')
+
         # Background image of the Visual Diff pipeline view
         self.VISUAL_DIFF_BACKGROUND_IMAGE = QtGui.QImage(
             core.system.visTrailsRootDirectory() +

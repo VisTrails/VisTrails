@@ -69,6 +69,7 @@ class QBookmarksWindow(QtGui.QMainWindow):
                            self.bookmarkAliasPanel.toolWindow())
         
         self.createActions()
+        self.createMenu()
         self.createToolBar()
 
         self.connectSignals()
@@ -103,7 +104,9 @@ class QBookmarksWindow(QtGui.QMainWindow):
         self.viewMenu = self.menuBar().addMenu('&View')
         self.viewMenu.addAction(
             self.bookmarkPanel.toolWindow().toggleViewAction())
-
+        self.viewMenu.addAction(
+            self.bookmarkAliasPanel.toolWindow().toggleViewAction())
+        
     def createToolBar(self):
         """ createToolBar() -> None
         Create a default toolbar for bookmarks window
