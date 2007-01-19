@@ -31,7 +31,7 @@ PipelineSceneInterface
 
 import os.path
 from PyQt4 import QtCore, QtGui
-from gui.bookmark_palette import QBookmarkPanel
+from gui.bookmark_panel import QBookmarkPanel
 from gui.bookmark_alias import QBookmarkAliasPanel
 from gui.vistrail_controller import VistrailController
 from core.xml_parser import XMLParser
