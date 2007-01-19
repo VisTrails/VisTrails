@@ -149,15 +149,21 @@ class QViewManager(QtGui.QTabWidget):
         """ openVistrail(fileName) -> QVistrailView
         Open a new vistrail and return a QVistrailView        
         
-        """        
-        parser = XMLParser()
-        parser.openVistrail(fileName)
-        vistrail = parser.getVistrail()
-        vistrailView = QVistrailView()
-        vistrailView.setVistrail(vistrail, fileName)
-        self.addVistrailView(vistrailView)
-        self.setCurrentWidget(vistrailView)
-        return vistrailView
+        """
+        try:
+            parser = XMLParser()
+            parser.openVistrail(fileName)
+            vistrail = parser.getVistrail()
+            vistrailView = QVistrailView()
+            vistrailView.setVistrail(vistrail, fileName)
+            self.addVistrailView(vistrailView)
+            self.setCurrentWidget(vistrailView)
+            return vistrailView
+        except XMLParser.XMLParseError, e:
+            QtGui.QMessageBox.critical(None,
+                                       'Vistrails',
+                                       str(e))
+            
 
     def saveVistrail(self, vistrailView=None, fileName=''):
         """ openVistrail(vistrailView: QVistrailView) -> QVistrailView
