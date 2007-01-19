@@ -124,7 +124,7 @@ class QBookmarksWindow(QtGui.QMainWindow):
         if BookmarksManager.collection.updateGUI:
             self.bookmarkPanel.updateBookmarkPalette()
             BookmarksManager.collection.updateGUI = False
-        
+
     def connectSignals(self):
         """ connectSignals() -> None
         Map signals between various GUI components        
@@ -133,7 +133,10 @@ class QBookmarksWindow(QtGui.QMainWindow):
         self.connect(BookmarksManager, 
                      QtCore.SIGNAL("updateAliasGUI"),
                      self.bookmarkAliasPanel.updateAliasTable)
-
+        self.connect(BookmarksManager, 
+                     QtCore.SIGNAL("updateBookmarksGUI"),
+                     self.bookmarkPanel.updateBookmarkPalette)
+        
 ################################################################################
 
 class PipelineSceneInterface(object):
@@ -185,7 +188,17 @@ class BookmarksManagerSingleton(QtCore.QObject):
         bookmark = Bookmark(parent, id, vistrailsFile,pipeline,name,"item")
         self.collection.addBookmark(bookmark)
         self.collection.serialize(self.filename)
+        self.emit(QtCore.SIGNAL("updateBookmarksGUI"))
+        self.collection.updateGUI = False
 
+    def removeBookmark(self, id):
+        """removeBookmark(id: int) -> None 
+        Remove bookmark with id from the collection 
+        
+        """
+        self.collection.removeBookmark(id)
+        self.collection.serialize(self.filename)
+        
     def updateAlias(self, alias, value):
         """updateAlias(alias: str, value: str) -> None
         Change the value of an alias and propagate changes in the pipelines
@@ -228,6 +241,10 @@ class BookmarksManagerSingleton(QtCore.QObject):
                           self.logger))
             
         self.controller.executeWorkflowList(wList)
+
+    def writeBookmarks(self):
+        """writeBookmarks() -> None - Write collection to disk."""
+        self.collection.serialize(self.filename)
 
 ###############################################################################
 

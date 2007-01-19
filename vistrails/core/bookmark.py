@@ -136,20 +136,30 @@ class BookmarkCollection(XMLWrapper):
         
         """
         if node == None:
-            node = self.root
+            node = self.bookmarks
         if node.bookmark.id == id:
             return node
         else:
-            for child in self.children:
-                self.findBookmark(id,child)
+            for child in node.children:
+                result = self.findBookmark(id,child)
+                if result:
+                    return result
+            else:
+                return None
 
-    def removeBookmark(self, node):
-        del self.bookmarkMap[node.bookmark.id]
-        for c in node.children:
-            self.removeBookmark(c)
-        if node.parent:
-            node.parent.children.remove(node)
-        del node
+    def removeBookmark(self, id, node=None):
+        """removeBookmark(id: int, node: BookmarkTree) -> None 
+        Remove bookmark and children starting searchin from node
+        
+        """
+        child = self.findBookmark(id, node)
+        if child:
+            del self.bookmarkMap[id]
+            for c in child.children:
+                self.removeBookmark(c.bookmark.id,c)
+            if child.parent:
+                child.parent.children.remove(child)
+            del child
         
     def clear(self):
         """ clear() -> None 
@@ -188,8 +198,8 @@ class BookmarkCollection(XMLWrapper):
     def getFreshId(self):
         """getFreshId() -> int - Returns an unused id. """
         i = 0
-        for bmark in self.bookmarks.asList():
-            i = max(i, bmark.id)
+        for bmark in sorted(self.bookmarkMap.keys()):
+            i = max(i, bmark)
         return i+1
 
 ###############################################################################

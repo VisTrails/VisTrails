@@ -116,6 +116,9 @@ class QBookmarkPalette(QSearchTreeWindow):
         self.connect(self.treeWidget,
                      QtCore.SIGNAL("itemChanged(QTreeWidgetItem*,int)"),
                      self.processItemChanges)
+        self.connect(self.treeWidget,
+                     QtCore.SIGNAL("itemRemoved(int)"),
+                     self.removeBookmark)
         
     def createTreeWidget(self):
         """ createTreeWidget() -> QBookmarkTreeWidget
@@ -133,7 +136,11 @@ class QBookmarkPalette(QSearchTreeWindow):
             self.manager.executeWorkflows(self.checkedList)
 
     def processItemChanges(self, item, col):
-        if col == 0:
+        """processItemChanges(item: QBookmarkTreeWidgetItem, col:int)
+        Event handler for propagating bookmarking changes to the collection. 
+        
+        """
+        if col == 0 and item != self.treeWidget.headerItem():
             if item.bookmark.type == 'item':
                 id = item.bookmark.id
                 if item.checkState(0) ==QtCore.Qt.Unchecked:
@@ -144,7 +151,19 @@ class QBookmarkPalette(QSearchTreeWindow):
                     if id not in self.checkedList:
                         self.checkedList.append(id)
                         self.manager.loadPipelines(self.checkedList)
-                        
+            if str(item.text(0)) != item.bookmark.name:
+                item.bookmark.name = str(item.text(0))
+                self.manager.writeBookmarks()    
+    
+    def removeBookmark(self, id):
+        """removeBookmark(id: int) -> None 
+        Tell manager to remove bookmark with id 
+
+        """
+        if id in self.checkedList:
+            self.checkedList.remove(id)
+            self.manager.loadPipelines(self.checkedList)
+        self.manager.removeBookmark(id)
         
 class QBookmarkTreeWidget(QSearchTreeWidget):
     """
@@ -158,7 +177,7 @@ class QBookmarkTreeWidget(QSearchTreeWidget):
 
         """
         QSearchTreeWidget.__init__(self, parent)
-        self.setColumnCount(2)
+        self.setColumnCount(1)
         self.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
         self.header().hide()
         
@@ -178,15 +197,14 @@ class QBookmarkTreeWidget(QSearchTreeWidget):
             """
             labels = QtCore.QStringList()
             bObj = bookmark.bookmark
-            if bObj.type == "item":
-                labels << bObj.name << bObj.filename
-            else:
-                labels << bObj.name
-
+            labels << bObj.name
             bookmarkItem = QBookmarkTreeWidgetItem(bookmark.bookmark,
                                                    parentFolder,
                                                    labels)
-            bookmarkItem.setCheckState(0,QtCore.Qt.Unchecked)
+            if bObj.type == "item":
+                bookmarkItem.setToolTip(0,bObj.filename)
+                bookmarkItem.setCheckState(0,QtCore.Qt.Unchecked)
+            
             for child in bookmark.children:
                 createBookmarkItem(bookmarkItem, child)
             
@@ -194,7 +212,25 @@ class QBookmarkTreeWidget(QSearchTreeWidget):
             self.clear()
             bookmark = self.parent().manager.collection.bookmarks
             createBookmarkItem(self, bookmark)
+            self.sortItems(0,QtCore.Qt.AscendingOrder)
             self.expandAll()
+
+    def keyPressEvent(self, event):
+        if (event.key() == QtCore.Qt.Key_Delete or 
+            event.key() == QtCore.Qt.Key_Backspace):
+            if self.isVisible():      
+                self.removeCurrentItem()
+        QtGui.QTreeWidget.keyPressEvent(self, event)
+
+    def removeCurrentItem(self):
+        """removeCurrentItem() -> None Removes from the GUI and Collection """
+        item = self.currentItem()
+        parent = item.parent()
+        parent.takeChild(parent.indexOfChild(item))
+        id = item.bookmark.id
+        del item
+        self.emit(QtCore.SIGNAL("itemRemoved(int)"),id)
+         
 
 class QBookmarkTreeWidgetItem(QtGui.QTreeWidgetItem):
     """
@@ -202,7 +238,8 @@ class QBookmarkTreeWidgetItem(QtGui.QTreeWidgetItem):
     
     """
     def __init__(self, bookmark, parent, labelList):
-        """ QBookmarkTreeWidgetItem(parent: QTreeWidgetItem
+        """ QBookmarkTreeWidgetItem(bookmark: Bookmark,
+                                  parent: QTreeWidgetItem
                                   labelList: QStringList)
                                   -> QBookmarkTreeWidget                                  
         Create a new tree widget item with a specific parent and
@@ -211,3 +248,5 @@ class QBookmarkTreeWidgetItem(QtGui.QTreeWidgetItem):
         """
         QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
         self.bookmark = bookmark
+        self.setFlags((QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsSelectable
+                       | QtCore.Qt.ItemIsEnabled))
