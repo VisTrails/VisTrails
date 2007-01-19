@@ -133,6 +133,13 @@ def defaultDotVistrails():
     """
     return homeDirectory() + "/.vistrails"
 
+def defaultBookmarksFile():
+    """ defaultBookmarksFile() -> str
+    Returns default Vistrails per-user bookmarks file
+
+    """
+    return defaultDotVistrails() + "/bookmarks.xml"
+
 def pythonVersion():
    """pythonVersion() -> (major, minor, micro, release, serial)
 Returns python version info."""
