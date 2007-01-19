@@ -277,6 +277,11 @@ class DefaultTheme(object):
         self.CONSOLE_MODE_ICON = QtGui.QIcon(
             core.system.visTrailsRootDirectory() +
             '/gui/resources/images/console.png')
+
+        # Toolbar icon for toggling bookmarks window
+        self.BOOKMARKS_ICON = QtGui.QIcon(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/bookmarks.png')
     
         # Background image of the Visual Diff pipeline view
         self.VISUAL_DIFF_BACKGROUND_IMAGE = QtGui.QImage(
