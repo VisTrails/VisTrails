@@ -26,7 +26,6 @@ from core.vistrail.vistrail import Vistrail
 from core.utils import VistrailsInternalError
 from core.utils.uxml import named_elements, XMLWrapper
 from core.vistrail.action import Action
-from core.vistrail.macro import Macro
 from core.data_structures import Graph
 
 ################################################################################
@@ -112,17 +111,9 @@ class XMLParser(XMLWrapper):
                     raise VistrailsInternalError(msg)
                 else:
                     vistrail.addVersion(action)
-        def createMacroMap(vistrail):
-            """createMacroMap(vistrail) -> None 
-            Creates the macro map for the just-parsed XML file """
-            root = self.dom.documentElement
-            for xmlmacro in named_elements(root, 'macro'):
-                macro = Macro.createFromXML(vistrail, xmlmacro)
-                vistrail.addMacro(macro)
         result = Vistrail()
         createActionMap(result)
         createTagMap(result)
-        createMacroMap(result)
         result.invalidateCurrentTime()
         result.changed = False
         return result
@@ -153,17 +144,9 @@ class XMLParser(XMLWrapper):
                     raise VistrailsInternalError(mesg)
                 else:
                     vistrail.addVersion(action)
-        def createMacroMap(vistrail):
-            """createMacroMap(vistrail) -> None 
-            Creates the macro map for the just-parsed XML file """
-            root = self.dom.documentElement
-            for xmlmacro in named_elements(root, 'macro'):
-                macro = Macro.createFromXML(vistrail, xmlmacro)
-                vistrail.addMacro(macro)
         result = Vistrail()
         createActionMap(result)
         createTagMap(result)
-        createMacroMap(result)
         result.invalidateCurrentTime()
         result.changed = False
         return result
