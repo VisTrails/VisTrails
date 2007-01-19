@@ -190,6 +190,7 @@ class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
         self.label = ''
         self.dragging = False
         self.ghosted = False
+        self.createActions()
 
     def setGhosted(self, ghosted=True):
         """ setGhosted(ghosted: True) -> None
@@ -322,7 +323,7 @@ class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
         
         """
         self.dragging = False
-        QtGui.QGraphicsEllipseItem.mouseMoveEvent(self, event)
+        QtGui.QGraphicsEllipseItem.mouseReleaseEvent(self, event)
 
     def dragEnterEvent(self, event):
         """ dragEnterEvent(event: QDragEnterEvent) -> None
@@ -348,7 +349,34 @@ class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
                                   self.scene().views()[0])
             visDiff.show()
         else:
-            event.ignore()        
+            event.ignore()  
+
+    def contextMenuEvent(self, event):
+        """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None
+        Captures context menu event.
+
+        """
+        menu = QtGui.QMenu()
+        menu.addAction(self.addToBookmarksAct)
+        menu.exec_(event.screenPos())
+
+    def createActions(self):
+        """ createActions() -> None
+        Create actions related to context menu 
+
+        """
+        self.addToBookmarksAct = QtGui.QAction("Add To Bookmarks", self.scene())
+        self.addToBookmarksAct.setStatusTip("Add this pipeline to bookmarks")
+        QtCore.QObject.connect(self.addToBookmarksAct, 
+                               QtCore.SIGNAL("triggered()"),
+                               self.addBookmark)
+
+    def addBookmark(self):
+        """addBookmark() -> None
+        Emit signal containing version info: tag and number 
+        
+        """
+        self.scene().emit( QtCore.SIGNAL('addToBookmarks'), self.id, self.label) 
 
 class QVersionTreeScene(QInteractiveGraphicsScene):
     """

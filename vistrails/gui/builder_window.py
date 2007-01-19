@@ -27,6 +27,7 @@ QBuilderWindow
 from PyQt4 import QtCore, QtGui
 from gui.graphics_view import QInteractiveGraphicsView
 from gui.module_palette import QModulePalette
+from gui.bookmark_window import QBookmarksWindow
 from gui.shell import QShellDialog
 from gui.theme import CurrentTheme
 from gui.view_manager import QViewManager
@@ -58,6 +59,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.modulePalette = QModulePalette(self)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,
                            self.modulePalette.toolWindow())
+        
+        self.bookmarksWindow = QBookmarksWindow(parent=self)
         
         self.createActions()
         self.createMenu()
@@ -176,6 +179,11 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.shellAction.setCheckable(True)
         self.shellAction.setShortcut('Ctrl+H')
 
+        self.bookmarksAction = QtGui.QAction(CurrentTheme.BOOKMARKS_ICON,
+                                             'Bookmarks', self)
+        self.bookmarksAction.setCheckable(True)
+        self.bookmarksAction.setShortcut('Ctrl+D')
+
         self.sdiModeAction = QtGui.QAction('SDI Mode', self)
         self.sdiModeAction.setCheckable(True)
         self.sdiModeAction.setChecked(False)
@@ -213,6 +221,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.viewMenu.addAction(self.shellAction)
         self.viewMenu.addAction(
             self.modulePalette.toolWindow().toggleViewAction())
+        self.viewMenu.addAction(self.bookmarksAction)
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.sdiModeAction)
 
@@ -235,6 +244,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.toolBar.addAction(self.saveVistrailAction)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.shellAction)
+        self.toolBar.addAction(self.bookmarksAction)
 
     def connectSignals(self):
         """ connectSignals() -> None
@@ -300,16 +310,24 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.shellAction,
                      QtCore.SIGNAL('triggered(bool)'),
                      self.showShell)
+        
+        self.connect(self.bookmarksAction,
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.showBookmarks)
 
         self.connect(self.helpAction,
                      QtCore.SIGNAL("triggered()"),
                      self.showAboutMessage)
 
+        self.connect(self.bookmarksWindow,
+                     QtCore.SIGNAL("bookmarksHidden()"),
+                     self.bookmarksAction.toggle)
+        
         for shortcut in self.executeShortcuts:
             self.connect(shortcut,
                          QtCore.SIGNAL('activated()'),
                          self.viewManager.executeCurrentPipeline)
-        
+
     def moduleSelectionChange(self, selection):
         """ moduleSelectionChange(selection: list[id]) -> None
         Update the status of tool bar buttons if there is module selected
@@ -468,10 +486,24 @@ class QBuilderWindow(QtGui.QMainWindow):
         if checked:
             if not self.shell:
                 self.shell = QShellDialog(self)
+                self.connect(self.shell,QtCore.SIGNAL("shellHidden()"),
+                             self.shellAction.toggle)
             self.shell.show()
         else:
             if self.shell:
                 self.shell.hide()
+
+    def showBookmarks(self, checked=True):
+        """ showBookmarks() -> None
+        Display Bookmarks Interactor Window
+        
+        """
+        if checked:
+            if self.bookmarksWindow:
+                self.bookmarksWindow.show()
+        else:
+            if self.bookmarksWindow:
+                self.bookmarksWindow.hide()
         
     def showAboutMessage(self):
         """showAboutMessage() -> None

@@ -24,7 +24,7 @@ import xml.parsers.expat
 
 from core.vistrail.vistrail import Vistrail
 from core.utils import VistrailsInternalError
-from core.utils.uxml import named_elements
+from core.utils.uxml import named_elements, XMLWrapper
 from core.vistrail.action import Action
 from core.vistrail.macro import Macro
 from core.data_structures import Graph
@@ -39,7 +39,7 @@ class UnknownVersion(Exception):
 
 ################################################################################
 
-class XMLParser(object):
+class XMLParser(XMLWrapper):
     """Class to parse a vistrail from the XML representation.
 
 
@@ -54,31 +54,12 @@ class XMLParser(object):
         >>> v = parser.getVistrail()
 
     """
-
-    class XMLParseError(Exception):
-
-       
-        def __init__(self, line, char, code):
-            self._line = line
-            self._char = char
-            self._code = code
-            
-        def __str__(self):
-            return ("XML Parse error at line %s, col %s: %s" %
-                    (self._line,
-                     self._char,
-                     xml.parsers.expat.ErrorString(self._code)))
-    
     def openVistrail(self, filename):
         """openVistrail(filename: str) -> None 
         Parses a XML file.
 
         """
-        self.filename = filename
-        try:
-            self.dom = xml.dom.minidom.parse(filename)
-        except xml.parsers.expat.ExpatError, e:
-            raise self.XMLParseError(e.lineno, e.offset, e.code)
+        self.openFile(filename)
 
     def closeVistrail(self):
         """closeVistrail() -> None 
@@ -86,8 +67,7 @@ class XMLParser(object):
         method. 
 
         """
-        self.filename = None
-        self.dom = None
+        self.closeFile()
 
     def vistrailVersion(self):
         """vistrailVersion() -> str 

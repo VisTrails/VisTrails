@@ -41,6 +41,7 @@ from gui import qt
 from gui.builder_window import QBuilderWindow
 import gui.theme
 from gui.theme import CurrentTheme
+import gui.bookmark_window
 
 ################################################################################
 
@@ -402,7 +403,20 @@ Please remove '%s' and restart VisTrails.""" % self.dotVistrails)
                                           'default modules')
                 
 
+        def initBookmarks():
+            """loadBookmarkCollection() -> None
+            Init BookmarksManager and creates .vistrails folder if it 
+            does not exist 
+
+            """
+            if (not os.path.isdir(self.dotVistrails) and 
+                not os.path.isfile(self.dotVistrails)):
+                #create .vistrails dir
+                os.mkdir(self.dotVistrails)
+            gui.bookmark_window.initBookmarks(system.defaultBookmarksFile())    
+            
         execDotVistrails()
+        initBookmarks()
         if self.configuration.pythonPrompt:
             debug.startVisTrailsREPL(locals())
         self.showSplash = self.configuration.showSplash

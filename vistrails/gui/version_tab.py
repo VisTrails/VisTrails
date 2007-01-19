@@ -27,6 +27,7 @@ from gui.common_widgets import QDockContainer, QToolWindowInterface
 from gui.version_prop import QVersionProp
 from gui.version_search import QVersionSearch
 from gui.version_view import QVersionTreeView
+from gui.bookmark_window import BookmarksManager
 
 ################################################################################
         
@@ -63,6 +64,9 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         self.connect(self.versionView.scene(),
                      QtCore.SIGNAL('versionSelected(int,bool)'),
                      self.versionSelected)
+        self.connect(self.versionView.scene(),
+                     QtCore.SIGNAL('addToBookmarks'),
+                     self.addBookmark)
 
     def updateWindowTitle(self, topLevel):
         """ updateWindowTitle(topLevel: bool) -> None
@@ -116,3 +120,12 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         self.versionView.scene().setupScene(self.controller)
         if self.controller and self.controller.resetVersionView:
             self.versionView.scene().fitToAllViews()
+
+    def addBookmark(self, id, name):
+        """addBookmark(id: int, label:name) -> None
+        Gather all information concerning the new bookmark and send it to 
+        BookmarksManager
+
+        """
+        vistrailsFile = self.controller.fileName
+        BookmarksManager.addBookmark('',vistrailsFile,id,name)
