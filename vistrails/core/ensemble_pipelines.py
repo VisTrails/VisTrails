@@ -34,7 +34,7 @@ class EnsemblePipelines(object):
 
     def update(self, name, value):
         """update(nam: str, value: str) -> None
-        Propogates changes of the value of an alias through a list of 
+        Propagates changes of the value of an alias through a list of 
         pipelines
 
         name - the name of the variable and key into the alias dictionary
