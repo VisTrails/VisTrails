@@ -51,6 +51,7 @@ class QVistrailViewToolBar(QtGui.QToolBar):
         self.addAction(self.executePipelineAction())
         self.addSeparator()
         self.addAction(self.visualQueryAction())
+        self.addAction(self.viewFullTreeAction())
         self.addSeparator()
         self.addAction(self.pipViewAction())
         self.addSeparator()
