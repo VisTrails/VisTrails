@@ -1,3 +1,24 @@
+############################################################################
+##
+## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+##
+## This file is part of VisTrails.
+##
+## This file may be used under the terms of the GNU General Public
+## License version 2.0 as published by the Free Software Foundation
+## and appearing in the file LICENSE.GPL included in the packaging of
+## this file.  Please review the following to ensure GNU General Public
+## Licensing requirements will be met:
+## http://www.opensource.org/licenses/gpl-license.php
+##
+## If you are unsure which license is appropriate for your use (for
+## instance, you are interested in developing a commercial derivative
+## of VisTrails), please contact us at vistrails@sci.utah.edu.
+##
+## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+##
+############################################################################
 ##TODO Tests
 """ This module defines the class Pipeline """
 from core.vistrail.port import Port
@@ -5,8 +26,12 @@ from core.vistrail.module_param import VistrailModuleType
 from core.data_structures import Graph
 from core.utils import VistrailsInternalError
 from core.utils import expression
+from core.cache.hasher import Hasher
+import core.modules.module_registry
+
 import copy
 from types import ListType
+import sha
 
 ################################################################################
 
@@ -21,6 +46,9 @@ class Pipeline(object):
         self.modules = {}
         self.connections = {}
         self.graph = Graph()
+        self._subpipeline_signatures = {}
+        self._module_signatures = {}
+        self._module_signatures_inv = {}
 
     def checkConnection(self, c):
         """checkConnection(c: Connection) -> boolean 
@@ -288,5 +316,125 @@ class Pipeline(object):
                         p.evaluatedStrValue = str(
                             self.evaluateExp(p.type,base,exps,aliases))
         return aliases
-    
+
+    def module_signature(self, module_id):
+        if not self._module_signatures.has_key(module_id):
+            m = self.modules[module_id]
+            sig = core.modules.module_registry.registry.module_signature(m)
+            self._module_signatures[module_id] = sig
+        return self._module_signatures[module_id]
+
+    def subpipeline_signature(self, module_id):
+        if not self._subpipeline_signatures.has_key(module_id):
+            upstream_sigs = [(self.subpipeline_signature(m) +
+                              Hasher.connection_signature(
+                                  self.connections[edge_id]))
+                             for (m, edge_id) in
+                             self.graph.edgesTo(module_id)]
+            module_sig = self.module_signature(module_id)
+            sig = Hasher.subpipeline_signature(module_sig,
+                                               upstream_sigs)
+            self._subpipeline_signatures[module_id] = sig
+        return self._module_signatures[module_id]
+        
+        
 ################################################################################        
+
+import unittest
+from core.vistrail.module import Module
+from core.vistrail.module_function import ModuleFunction
+from core.vistrail.module_param import ModuleParam
+from core.vistrail.connection import Connection
+
+class TestPipeline(unittest.TestCase):
+
+    def setUp(self):
+        
+        p = Pipeline()
+
+        def module1(p):
+            def f1():
+                f = ModuleFunction()
+                f.name = 'op'
+                f.returnType = 'void'
+                param = ModuleParam()
+                param.type = 'String'
+                param.strValue = '+'
+                f.params.append(param)
+                return f
+            def f2():
+                f = ModuleFunction()
+                f.name = 'value1'
+                f.returnType = 'void'
+                param = ModuleParam()
+                param.type = 'Float'
+                param.strValue = '2.0'
+                f.params.append(param)
+                return f
+            def f3():
+                f = ModuleFunction()
+                f.name = 'value2'
+                f.returnType = 'void'
+                param = ModuleParam()
+                param.type = 'Float'
+                param.strValue = '4.0'
+                f.params.append(param)
+                return f
+            m = Module()
+            m.id = p.freshModuleId()
+            m.name = 'PythonCalc'
+            m.functions.append(f1())
+            return m
+        
+        def module2(p):
+            def f1():
+                f = ModuleFunction()
+                f.name = 'op'
+                f.returnType = 'void'
+                param = ModuleParam()
+                param.type = 'String'
+                param.strValue = '+'
+                f.params.append(param)
+                return f
+            m = Module()
+            m.id = p.freshModuleId()
+            m.name = 'PythonCalc'
+            m.functions.append(f1())
+            return m
+        
+        self.pipeline = p
+        m1 = module1(p)
+        p.addModule(m1)
+        m2 = module1(p)
+        p.addModule(m2)
+        m3 = module2(p)
+        p.addModule(m3)
+
+        c1 = Connection()
+        c1.sourceId = m1.id
+        c1.destinationId = m3.id
+        c1.source.name = 'value'
+        c1.source.moduleName = 'PythonCalc'
+        c1.destination.name = 'value1'
+        c1.destination.name = 'PythonCalc'
+        c1.id = p.freshConnectionId()
+        p.addConnection(c1)
+
+        c2 = Connection()
+        c2.sourceId = m2.id
+        c2.destinationId = m3.id
+        c2.source.name = 'value'
+        c2.source.moduleName = 'PythonCalc'
+        c2.destination.name = 'value2'
+        c2.destination.name = 'PythonCalc'
+        c2.id = p.freshConnectionId()
+
+        p.addConnection(c2)
+        self.sink_id = m3.id
+
+    def testCreatePipeline(self):
+        self.pipeline.subpipeline_signature(self.sink_id)
+
+
+if __name__ == '__main__':
+    unittest.main()
