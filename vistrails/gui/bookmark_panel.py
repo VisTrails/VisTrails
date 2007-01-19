@@ -249,4 +249,4 @@ class QBookmarkTreeWidgetItem(QtGui.QTreeWidgetItem):
         QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
         self.bookmark = bookmark
         self.setFlags((QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsSelectable
-                       | QtCore.Qt.ItemIsEnabled))
+                       | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable))
