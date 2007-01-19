@@ -533,8 +533,27 @@
       <set alias="Background_G" function="SetDiffuseColor" functionId="0" moduleId="5" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="1"/>
       <set alias="Background_B" function="SetDiffuseColor" functionId="0" moduleId="5" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="1"/>
     </action>
+    <action date="19 Jan 2007 10:59:53" parent="139" time="140" user="emanuele" what="changeParameter">
+      <set alias="Diffuse_Color_R" function="SetDiffuseColor" functionId="0" moduleId="5" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="1"/>
+      <set alias="Background_G" function="SetDiffuseColor" functionId="0" moduleId="5" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="1"/>
+      <set alias="Background_B" function="SetDiffuseColor" functionId="0" moduleId="5" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="1"/>
+    </action>
+    <action date="19 Jan 2007 11:00:07" parent="140" time="141" user="emanuele" what="changeParameter">
+      <set alias="Diffuse_Color_R" function="SetDiffuseColor" functionId="0" moduleId="5" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="1"/>
+      <set alias="Diffuse_Color_G" function="SetDiffuseColor" functionId="0" moduleId="5" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="1"/>
+      <set alias="Background_B" function="SetDiffuseColor" functionId="0" moduleId="5" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="1"/>
+    </action>
+    <action date="19 Jan 2007 11:00:20" parent="141" time="142" user="emanuele" what="changeParameter">
+      <set alias="Diffuse_Color_R" function="SetDiffuseColor" functionId="0" moduleId="5" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="1"/>
+      <set alias="Diffuse_Color_G" function="SetDiffuseColor" functionId="0" moduleId="5" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="1"/>
+      <set alias="Diffuse_Color_B" function="SetDiffuseColor" functionId="0" moduleId="5" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="1"/>
+    </action>
+    <action date="19 Jan 2007 11:03:34" parent="142" time="143" user="emanuele" what="changeParameter">
+      <set alias="" function="SetValue" functionId="0" moduleId="1" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="0"/>
+      <set alias="isovalue" function="SetValue" functionId="0" moduleId="1" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="67"/>
+    </action>
+    <tag name="aliases" time="143"/>
     <tag name="volume rendering" time="134"/>
-    <tag name="aliases" time="139"/>
-    <tag name="bone" time="38"/>
     <tag name="bone_camera" time="81"/>
+    <tag name="bone" time="38"/>
   </visTrail>
