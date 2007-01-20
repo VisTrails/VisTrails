@@ -100,7 +100,6 @@ class QShellDialog(QtGui.QDialog):
         Hides the dialog instead of closing it, so the session continues open.
 
         """
-        self.shell.suspend()
         self.hide()
 
     def newSession(self):
@@ -157,16 +156,14 @@ class QShell(QtGui.QTextEdit):
 
         self.interpreter = None
         # storing current state
-        self.prev_stdout = sys.stdout
-        self.prev_stdin = sys.stdin
-        self.prev_stderr = sys.stderr
-
+        #this is not working on mac
+        #self.prev_stdout = sys.stdout
+        #self.prev_stdin = sys.stdin
+        #self.prev_stderr = sys.stderr
         # capture all interactive input/output
-        sys.stdout   = self
-        sys.stderr   = self
-        sys.stdin    = self
-
-        self.reset(locals)
+        #sys.stdout   = self
+        #sys.stderr   = self
+        #sys.stdin    = self
         
         # user interface setup
         
@@ -184,8 +181,31 @@ class QShell(QtGui.QTextEdit):
             raise SystemExit, "FIXME for 'os2', 'ce' or 'riscos'"
         font.setFixedPitch(1)
         self.setCurrentFont(font)
+        self.reset(locals)
 
-        # interpreter prompt.
+    def reset(self, locals):
+        """reset(locals) -> None
+        Reset shell preparing it for a new session.
+        
+        """
+        if self.interpreter:
+            del self.interpreter
+        self.interpreter = InteractiveInterpreter(locals)
+ 
+        # last line + last incomplete lines
+        self.line    = QtCore.QString()
+        self.lines   = []
+        # the cursor position in the last line
+        self.point   = 0
+        # flag: the interpreter needs more input to run the last lines. 
+        self.more    = 0
+        # flag: readline() is being used for e.g. raw_input() and input()
+        self.reading = 0
+        # history
+        self.history = []
+        self.pointer = 0
+        self.last   = 0
+                # interpreter prompt.
         if hasattr(sys, "ps1"):
             sys.ps1
         else:
@@ -203,27 +223,6 @@ class QShell(QtGui.QTextEdit):
                    ' for more information on Python.\n')
         self.write(sys.ps1)
 
-    def reset(self, locals):
-        """reset(locals) -> None
-        Reset shell preparing it for a new session.
-        
-        """
-        if self.interpreter:
-            del self.interpreter
-        self.interpreter = InteractiveInterpreter(locals)
-         # last line + last incomplete lines
-        self.line    = QtCore.QString()
-        self.lines   = []
-        # the cursor position in the last line
-        self.point   = 0
-        # flag: the interpreter needs more input to run the last lines. 
-        self.more    = 0
-        # flag: readline() is being used for e.g. raw_input() and input()
-        self.reading = 0
-        # history
-        self.history = []
-        self.pointer = 0
-        self.last   = 0
 
     def flush(self):
         """flush() -> None. 
@@ -412,16 +411,16 @@ class QShell(QtGui.QTextEdit):
             self.setTextCursor(cursor)
         return
 
-    def suspend(self):
-        """suspend() -> None
-        Called when hiding the parent window in order to recover the previous
-        state.
+#     def suspend(self):
+#         """suspend() -> None
+#         Called when hiding the parent window in order to recover the previous
+#         state.
 
-        """
-        #recovering the state
-        sys.stdout   = self.prev_stdout
-        sys.stderr   = self.prev_stderr
-        sys.stdin    = self.prev_stdin
+#         """
+#         #recovering the state
+#         sys.stdout   = self.prev_stdout
+#         sys.stderr   = self.prev_stderr
+#         sys.stdin    = self.prev_stdin
 
     def show(self):
         """show() -> None
@@ -429,10 +428,10 @@ class QShell(QtGui.QTextEdit):
         output.
         
         """
-        # storing current state
-        self.prev_stdout = sys.stdout
-        self.prev_stdin = sys.stdin
-        self.prev_stderr = sys.stderr
+#         # storing current state
+#         self.prev_stdout = sys.stdout
+#         self.prev_stdin = sys.stdin
+#         self.prev_stderr = sys.stderr
 
         # capture all interactive input/output
         sys.stdout   = self
@@ -453,11 +452,6 @@ class QShell(QtGui.QTextEdit):
         """
         self.clear()
         self.reset(locals)
-        self.write('VisTrails shell running Python %s on %s.\n' %
-                   (sys.version, sys.platform))
-        self.write('Type "copyright", "credits" or "license"'
-                   ' for more information on Python.\n')
-        self.write(sys.ps1)
 
     def contentsContextMenuEvent(self,ev):
         """

@@ -23,7 +23,8 @@
 
 QBuilderWindow
 """
-
+import sys
+import copy
 from PyQt4 import QtCore, QtGui
 from gui.graphics_view import QInteractiveGraphicsView
 from gui.module_palette import QModulePalette
@@ -484,6 +485,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         
         """
         if checked:
+            self.savePythonPrompt()
             if not self.shell:
                 self.shell = QShellDialog(self)
                 self.connect(self.shell,QtCore.SIGNAL("shellHidden()"),
@@ -492,6 +494,25 @@ class QBuilderWindow(QtGui.QMainWindow):
         else:
             if self.shell:
                 self.shell.hide()
+            self.recoverPythonPrompt()
+
+    def savePythonPrompt(self):
+        """savePythonPrompt() -> None
+        Keep system standard input and output internally
+
+        """
+        self.stdout = sys.stdout
+        self.stdin = sys.stdin
+        self.stderr = sys.stderr
+    
+    def recoverPythonPrompt(self):
+        """recoverPythonPrompt() -> None
+        Reassign system standard input and output to previous saved state.
+
+        """
+        sys.stdout = self.stdout
+        sys.stdin = self.stdin
+        sys.stderr = self.stderr
 
     def showBookmarks(self, checked=True):
         """ showBookmarks() -> None
