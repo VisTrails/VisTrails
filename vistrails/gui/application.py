@@ -23,25 +23,26 @@
 initializations to the theme, packages and the builder...
 
 """
-import copy
-import os.path
-import shutil
-import sys
-import tempfile
-import time
 
+from PyQt4 import QtGui, QtCore
 from core import command_line
 from core import debug
 from core import system
 from core.modules.module_registry import registry
 from core.utils import InstanceObject
-
-from PyQt4 import QtGui, QtCore
 from gui import qt
 from gui.builder_window import QBuilderWindow
-import gui.theme
 from gui.theme import CurrentTheme
+
+import copy
+import core.system
 import gui.bookmark_window
+import gui.theme
+import os.path
+import shutil
+import sys
+import tempfile
+import time
 
 ################################################################################
 
@@ -336,7 +337,31 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
             """
             self.packageList.append([packageName,None, keywords])
 
-        def execDotVistrails():
+        def install_default_startup():
+            debug.critical('Will try to create default startup script')
+            try:
+                shutil.copyfile((core.system.visTrailsRootDirectory() +
+                                 'core/resources/default_vistrails_startup'),
+                                self.dotVistrails + '/startup.py')
+                debug.critical('Succeeded!')
+            except:
+                debug.critical("""Failed to copy default file to .vistrails.
+This could be an indication of a permissions problem.
+Make sure directory '%s' is writable""" % self.dotVistrails)
+                sys.exit(1)
+
+        def create_default_directory():
+            debug.critical('Will try to create default directory')
+            try:
+                os.mkdir(self.dotVistrails)
+                debug.critical('Succeeded!')
+            except:
+                debug.critical("""Failed to create initialization directory.
+This could be an indication of a permissions problem. Make sure parent
+directory of '%'s is writable.""" % self.dotVistrails)
+                sys.exit(1)
+
+        def execDotVistrails(tried_once=False):
             """ execDotVistrails() -> None
             Actually execute the Vistrail initialization
             
@@ -355,13 +380,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
 This could be an indication of a permissions problem.
 Make sure file '%s' is writable.""" % self.dotVistrails)
                     sys.exit(1)
-                try:
-                    os.mkdir(self.dotVistrails)
-                except:
-                    debug.critical("""Failed to create initialization directory.
-This could be an indication of a permissions problem. Make sure parent
-directory of '%'s is writable.""" % self.dotVistrails)
-                    sys.exit(1)
+                create_default_directory()
                 try:
                     shutil.copyfile(name, self.dotVistrails + '/startup.py')
                 except:
@@ -369,12 +388,12 @@ directory of '%'s is writable.""" % self.dotVistrails)
 newly-created initialization directory. This must have been a race condition.
 Please remove '%s' and restart VisTrails.""" % self.dotVistrails)
                     sys.exit(1)
-                debug.warning("Successful move.")
+                debug.critical("Successful move!")
                 try:
                     os.unlink(name)
                 except:
                     debug.warning("Failed to erase temporary file.")
-    
+
             if os.path.isdir(self.dotVistrails):
                 try:
                     dotVistrails = file(self.dotVistrails + '/startup.py')
@@ -388,20 +407,23 @@ Please remove '%s' and restart VisTrails.""" % self.dotVistrails)
                                  'addPackage': addPackage}
                     eval(code, g, localsDir)
                 except IOError:
-                    debug.DebugPrint.critical('%s not found' %
-                                              (self.dotVistrails +
-                                               '/startup.py'))
-                    debug.DebugPrint.critical('Will not run an initialization '
-                                              'file - there will only be the '
-                                              'default modules')
-            else:
-                debug.DebugPrint.critical('%s not found' %
-                                          (self.dotVistrails +
-                                           '/startup.py'))
-                debug.DebugPrint.critical('Will not run an initialization '
-                                          'file - there will only be the '
-                                          'default modules')
-                
+                    if tried_once:
+                        debug.critical("""Still cannot find default file.
+Something has gone wrong. Please make sure ~/.vistrails exists, is writable,
+and ~/.vistrails/startup.py does not exist.""")
+                        sys.exit(1)
+                    debug.critical('%s not found' %
+                                   (self.dotVistrails +
+                                    '/startup.py'))
+                    debug.critical('Will try to install default' +
+                                              'startup file')
+                    install_default_startup()
+                    execDotVistrails(True)
+            elif not os.path.lexists(self.dotVistrails):
+                debug.critical('%s not found' % self.dotVistrails)
+                create_default_directory()
+                install_default_startup()
+                execDotVistrails(True)
 
         def initBookmarks():
             """loadBookmarkCollection() -> None
