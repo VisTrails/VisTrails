@@ -1,0 +1,103 @@
+  <visTrail version="0.3.0">
+    <action date="22 Jan 2007 21:45:13" parent="0" time="2" user="emanuele" what="addModule">
+      <object cache="0" id="0" name="String" x="-103.0" y="6.0"/>
+    </action>
+    <action date="22 Jan 2007 21:45:17" parent="2" time="3" user="emanuele" what="addModule">
+      <object cache="0" id="1" name="String" x="-1.0" y="-52.0"/>
+    </action>
+    <action date="22 Jan 2007 21:45:20" parent="3" time="4" user="emanuele" what="addModule">
+      <object cache="0" id="2" name="String" x="118.0" y="-55.0"/>
+    </action>
+    <action date="22 Jan 2007 21:45:48" parent="4" time="5" user="emanuele" what="moveModule">
+      <move dx="-30.0" dy="-27.0" id="0"/>
+      <move dx="-18.0" dy="29.0" id="1"/>
+      <move dx="-21.0" dy="34.0" id="2"/>
+    </action>
+    <action date="22 Jan 2007 21:45:48" parent="5" time="6" user="emanuele" what="addModule">
+      <object cache="0" id="3" name="getRate" x="-112.0" y="-112.0"/>
+    </action>
+    <action date="22 Jan 2007 21:45:51" parent="6" time="7" user="emanuele" what="addModule">
+      <object cache="0" id="4" name="getRate" x="58.0" y="-120.0"/>
+    </action>
+    <action date="22 Jan 2007 21:46:27" parent="7" time="8" user="emanuele" what="moveModule">
+      <move dx="15.3398058252" dy="3.06796116505" id="3"/>
+      <move dx="-12.2718446602" dy="10.7378640777" id="4"/>
+    </action>
+    <action date="22 Jan 2007 21:46:27" parent="8" time="9" user="emanuele" what="addModule">
+      <object cache="0" id="5" name="PythonSource" x="-32.9805825243" y="-177.174757282"/>
+    </action>
+    <action date="22 Jan 2007 21:46:50" parent="9" time="10" user="emanuele" what="moveModule">
+      <move dx="9.97087378641" dy="3.06796116505" id="5"/>
+    </action>
+    <action date="22 Jan 2007 21:46:50" parent="10" time="11" user="emanuele" what="addModule">
+      <object cache="0" id="6" name="RichTextCell" x="-37.928429612" y="-239.547976497"/>
+    </action>
+    <action date="22 Jan 2007 21:54:57" parent="11" time="12" user="emanuele" what="addConnection">
+      <connect destinationId="3" destinationModule="getRate" destinationPort="country1(String)" id="0" sourceId="0" sourceModule="String" sourcePort="value(String)"/>
+    </action>
+    <action date="22 Jan 2007 21:55:01" parent="12" time="13" user="emanuele" what="addConnection">
+      <connect destinationId="3" destinationModule="getRate" destinationPort="country2(String)" id="1" sourceId="1" sourceModule="String" sourcePort="value(String)"/>
+    </action>
+    <action date="22 Jan 2007 21:55:08" parent="13" time="14" user="emanuele" what="addConnection">
+      <connect destinationId="4" destinationModule="getRate" destinationPort="country1(String)" id="2" sourceId="1" sourceModule="String" sourcePort="value(String)"/>
+    </action>
+    <action date="22 Jan 2007 21:55:11" parent="14" time="15" user="emanuele" what="addConnection">
+      <connect destinationId="4" destinationModule="getRate" destinationPort="country2(String)" id="3" sourceId="2" sourceModule="String" sourcePort="value(String)"/>
+    </action>
+    <action date="22 Jan 2007 22:43:17" parent="15" time="16" user="emanuele" what="moveModule">
+      <move dx="-1.06040268456" dy="-53.0201342282" id="0"/>
+      <move dx="-1.06040268456" dy="-53.0201342282" id="1"/>
+      <move dx="-1.06040268456" dy="-53.0201342282" id="2"/>
+      <move dx="-1.06040268456" dy="-53.0201342282" id="3"/>
+      <move dx="-1.06040268456" dy="-53.0201342282" id="4"/>
+      <move dx="-3.04605389389" dy="-59.9699134608" id="5"/>
+      <move dx="14.82480699" dy="-64.9340414841" id="6"/>
+    </action>
+    <action date="22 Jan 2007 22:43:17" parent="16" time="17" user="emanuele" what="addModulePort">
+      <addPort moduleId="5" portName="value1" portSpec="(Float)" portType="input"/>
+    </action>
+    <action date="22 Jan 2007 22:43:33" parent="17" time="18" user="emanuele" what="addModulePort">
+      <addPort moduleId="5" portName="value2" portSpec="(Float)" portType="input"/>
+    </action>
+    <action date="22 Jan 2007 22:51:00" parent="18" time="19" user="emanuele" what="changeParameter">
+      <set alias="" function="source" functionId="0" moduleId="5" parameter="&lt;no description&gt;" parameterId="0" type="String" value="%0Atext%20%3D%20%27%3CHTML%3E%3CTITLE%3EElcirc%20run%20todaydev%3C/TITLE%3E%3CBODY%20BGCOLOR%3D%22%23FFFFFF%22%3E%3CTABLE%20WIDTH%3D%22100%25%22%20BORDER%3D%221%22%20BGCOLOR%3D%22%23FFFFFF%22%20CELLPADDING%3D%224%22%3E%20%27%0Atext%20%2B%3D%20%27%3CTR%3E%3CTD%3EToday%20Salinity%3CBR%3Esalinity%20plume%20surface%3CBR%3E%3CB%3EVisualization%3C/B%3E%3C/TD%3E%3C/TR%3E%3CTR%3E%3CTD%20VALIGN%3D%22TOP%22%3E%3CP%3E%3CIMG%20SRC%3D%22%27%20%0Atext%20%2B%3D%20imageFile.name%20%0Atext%20%2B%3D%20%27%22%3E%3C/TD%3E%3C/TR%3E%3C/TR%3E%3C/TABLE%3E%27%0Aoutput%20%3D%20self.interpreter.filePool.createFile%28%29%0Amy_file%20%3D%20open%28str%28output.name%29%2C%20%27w%27%29%0Amy_file.write%28text%29%0Amy_file.close%28%29%0Aself.setResult%28%22htmlFile%22%2Coutput%29"/>
+    </action>
+    <action date="22 Jan 2007 23:09:05" parent="19" time="20" user="emanuele" what="addModulePort">
+      <addPort moduleId="5" portName="htmlFile" portSpec="(File)" portType="output"/>
+    </action>
+    <action date="22 Jan 2007 23:09:06" parent="20" time="21" user="emanuele" what="changeParameter">
+      <set alias="" function="source" functionId="0" moduleId="5" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20datetime%0A%0Avalue1%20%3D%20self.getInputFromPort%28%22value1%22%29%0Avalue2%20%3D%20self.getInputFromPort%28%22value2%22%29%0A%0Atext%20%3D%20%27%3CHTML%3E%3CTITLE%3EExchange%20Currency%20Rate%20Table%20%3C/TITLE%3E%3CBODY%20BGCOLOR%3D%22%23FFFFFF%22%3E%27%0Atext%20%2B%3D%20%27%3CTABLE%20WIDTH%3D%2270%25%22%20BORDER%3D%221%22%20BGCOLOR%3D%22%23FFFFFF%22%20CELLPADDING%3D%224%22%3E%20%27%0Atext%20%2B%3D%20%27%3CTR%3E%3CTD%3EUSA%3C/TD%3E%3CTD%3EBrazil%3C/TD%3E%3CTD%3E%3CB%3E%27%0Atext%20%2B%3D%20str%28value1%29%20%0Atext%20%2B%3D%20%27%3C/B%3E%3C/TD%3E%3C/TR%3E%3CTR%3E%3CTD%3EBrazil%3C/TD%3E%3CTD%3EChina%3C/TD%3E%3CTD%3E%3CB%3E%27%20%0Atext%20%2B%3D%20str%28value2%29%0Atext%20%2B%3D%20%27%3C/B%3E%3C/TD%3E%3C/TR%3E%27%0Atext%20%2B%3D%20%27%3CTR%3E%3CTD%20colspan%3D%223%22%20align%3D%22right%22%3ELast%20updated%20on%3A%20%27%0Atext%20%2B%3D%20datetime.datetime.now%28%29.strftime%28%22%25m-%25d-%25Y%20%25I%3A%25M%3A%25S%22%29%0Atext%20%2B%3D%20%27%3C/TD%3E%3C/TABLE%3E%27%0Aoutput%20%3D%20self.interpreter.filePool.createFile%28%29%0Amy_file%20%3D%20open%28str%28output.name%29%2C%20%27w%27%29%0Amy_file.write%28text%29%0Amy_file.close%28%29%0Aself.setResult%28%22htmlFile%22%2Coutput%29"/>
+    </action>
+    <action date="22 Jan 2007 23:13:05" parent="21" time="22" user="emanuele" what="changeParameter">
+      <set alias="" function="value" functionId="0" moduleId="0" parameter="&lt;no description&gt;" parameterId="0" type="String" value=""/>
+    </action>
+    <action date="22 Jan 2007 23:13:08" parent="22" time="23" user="emanuele" what="changeParameter">
+      <set alias="" function="value" functionId="0" moduleId="0" parameter="&lt;no description&gt;" parameterId="0" type="String" value="usa"/>
+    </action>
+    <action date="22 Jan 2007 23:13:12" parent="23" time="24" user="emanuele" what="changeParameter">
+      <set alias="" function="value" functionId="0" moduleId="1" parameter="&lt;no description&gt;" parameterId="0" type="String" value=""/>
+    </action>
+    <action date="22 Jan 2007 23:13:15" parent="24" time="25" user="emanuele" what="changeParameter">
+      <set alias="" function="value" functionId="0" moduleId="1" parameter="&lt;no description&gt;" parameterId="0" type="String" value="brazil"/>
+    </action>
+    <action date="22 Jan 2007 23:13:20" parent="25" time="26" user="emanuele" what="changeParameter">
+      <set alias="" function="value" functionId="0" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="String" value=""/>
+    </action>
+    <action date="22 Jan 2007 23:13:24" parent="26" time="27" user="emanuele" what="changeParameter">
+      <set alias="" function="value" functionId="0" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="String" value="china"/>
+    </action>
+    <action date="22 Jan 2007 23:13:29" parent="27" time="28" user="emanuele" what="addConnection">
+      <connect destinationId="5" destinationModule="PythonSource" destinationPort="value1(Float)" id="4" sourceId="3" sourceModule="getRate" sourcePort="Result(Float)"/>
+    </action>
+    <action date="22 Jan 2007 23:13:32" parent="28" time="29" user="emanuele" what="addConnection">
+      <connect destinationId="5" destinationModule="PythonSource" destinationPort="value2(Float)" id="5" sourceId="4" sourceModule="getRate" sourcePort="Result(Float)"/>
+    </action>
+    <action date="22 Jan 2007 23:13:41" parent="29" time="30" user="emanuele" what="addConnection">
+      <connect destinationId="6" destinationModule="RichTextCell" destinationPort="File(File)" id="6" sourceId="5" sourceModule="PythonSource" sourcePort="htmlFile(File)"/>
+    </action>
+    <action date="22 Jan 2007 23:38:04" parent="30" time="31" user="emanuele" what="changeParameter">
+      <set alias="" function="source" functionId="0" moduleId="5" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20datetime%0A%0Avalue1%20%3D%20self.getInputFromPort%28%22value1%22%29%0Avalue2%20%3D%20self.getInputFromPort%28%22value2%22%29%0A%0Atext%20%3D%20%27%3CHTML%3E%3CTITLE%3EExchange%20Currency%20Rate%20Table%20%3C/TITLE%3E%3CBODY%20BGCOLOR%3D%22%23FFFFFF%22%3E%27%0Atext%20%2B%3D%20%27%3CTABLE%20WIDTH%3D%2270%25%22%20BORDER%3D%221%22%20BGCOLOR%3D%22%23FFFFFF%22%20CELLPADDING%3D%224%22%3E%20%27%0Atext%20%2B%3D%20%27%3CTR%3E%3CTD%3EUSA%3C/TD%3E%3CTD%3EBrazil%3C/TD%3E%3CTD%3E%3CB%3E%27%0Atext%20%2B%3D%20str%28value1%29%20%0Atext%20%2B%3D%20%27%3C/B%3E%3C/TD%3E%3C/TR%3E%3CTR%3E%3CTD%3EBrazil%3C/TD%3E%3CTD%3EChina%3C/TD%3E%3CTD%3E%3CB%3E%27%20%0Atext%20%2B%3D%20str%28value2%29%0Atext%20%2B%3D%20%27%3C/B%3E%3C/TD%3E%3C/TR%3E%27%0Atext%20%2B%3D%20%27%3CTR%3E%3CTD%20colspan%3D%223%22%20align%3D%22right%22%3ELast%20updated%20on%3A%20%27%0Atext%20%2B%3D%20datetime.datetime.now%28%29.strftime%28%22%25m-%25d-%25Y%20%25I%3A%25M%3A%25S%22%29%0Atext%20%2B%3D%20%27%3C/TD%3E%3C/TABLE%3E%3C/BODY%3E%3C/HTML%3E%27%0Aoutput%20%3D%20self.interpreter.filePool.createFile%28%29%0Amy_file%20%3D%20open%28str%28output.name%29%2C%20%27w%27%29%0Amy_file.write%28text%29%0Amy_file.close%28%29%0Aself.setResult%28%22htmlFile%22%2Coutput%29"/>
+    </action>
+    <tag name="modules" time="11"/>
+    <tag name="first connections" time="15"/>
+  </visTrail>
