@@ -160,14 +160,14 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         self.runStartupHooks()
         self.builderWindow.modulePalette.treeWidget.updateFromModuleRegistry()
         registry.connect(registry, registry.newModuleSignal, 
-                         self.builderWindow.modulePalette.newModule)        
+                         self.builderWindow.modulePalette.newModule)
         if self.configuration.showSplash:
             self.splashScreen.finish(self.builderWindow)
         if self.input:
             for filename in self.input:
                 self.builderWindow.viewManager.openVistrail(
                     os.path.abspath(filename))
-        QtGui.QApplication.setActiveWindow(self.builderWindow)
+        self.builderWindow.activateWindow()
 
     def noninteractiveMode(self):
         """ noninteractiveMode() -> None
@@ -231,7 +231,6 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
             self.builderWindow.showMaximized()
         else:
             self.builderWindow.show()
-            self.setActiveWindow(self.builderWindow)
         self.visDiffParent = QtGui.QWidget(None, QtCore.Qt.ToolTip)
         self.visDiffParent.resize(0,0)
         
