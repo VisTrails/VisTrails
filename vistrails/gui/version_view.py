@@ -191,6 +191,15 @@ class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
         self.dragging = False
         self.ghosted = False
         self.createActions()
+        
+        # Need a timer to start a drag to avoid stalls on QGraphicsView
+        self.dragTimer = QtCore.QTimer()
+        self.dragTimer.setSingleShot(True)
+        self.dragTimer.connect(self.dragTimer,
+                               QtCore.SIGNAL('timeout()'),
+                               self.startDrag)
+
+        self.dragPos = QtCore.QPoint()
 
     def setGhosted(self, ghosted=True):
         """ setGhosted(ghosted: True) -> None
@@ -299,23 +308,34 @@ class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
         """
         if event.button()==QtCore.Qt.LeftButton:
             self.dragging = True
+            self.dragPos = QtCore.QPoint(event.screenPos())
         QtGui.QGraphicsEllipseItem.mousePressEvent(self, event)
         
     def mouseMoveEvent(self, event):
-        """ mouseMoveEvent(event: QMouseEvent) -> None
-        Now begin to use Qt drag and drop
+        """ mouseMoveEvent(event: QMouseEvent) -> None        
+        Now set the timer preparing for dragging. Must use a timer in
+        junction with QDrag in order to avoid problem updates stall of
+        QGraphicsView, especially on Linux
         
         """
-        if self.dragging:
+        if (self.dragging and
+            (event.screenPos()-self.dragPos).manhattanLength()>2):
             self.dragging = False
-            data = QtCore.QMimeData()
-            data.versionId = self.id
-            data.controller = self.scene().controller
-            drag = QtGui.QDrag(self.scene().views()[0])
-            drag.setMimeData(data)
-            drag.setPixmap(CurrentTheme.VERSION_DRAG_PIXMAP)
-            drag.start()
+            self.dragTimer.start(1)
         QtGui.QGraphicsEllipseItem.mouseMoveEvent(self, event)
+
+    def startDrag(self):
+        """ startDrag() -> None
+        Start the drag of QDrag
+        
+        """
+        data = QtCore.QMimeData()
+        data.versionId = self.id
+        data.controller = self.scene().controller
+        drag = QtGui.QDrag(self.scene().views()[0])
+        drag.setMimeData(data)
+        drag.setPixmap(CurrentTheme.VERSION_DRAG_PIXMAP)
+        drag.start()
 
     def mouseReleaseEvent(self, event):
         """ mouseReleaseEvent(event: QMouseEvent) -> None
