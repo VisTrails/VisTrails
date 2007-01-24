@@ -184,7 +184,7 @@ class QVistrailViewToolBar(QtGui.QToolBar):
                 'Pan',
                 self.cursorActionGroup())
             self._panCursorAction.setCheckable(True)
-            self._panCursorAction.setToolTip('Pan the view')
+            self._panCursorAction.setToolTip('Pan the view (Shift+Click)')
             self._panCursorAction.setStatusTip(
                 self._panCursorAction.toolTip())
             self.connect(self._panCursorAction,
@@ -203,7 +203,8 @@ class QVistrailViewToolBar(QtGui.QToolBar):
                 'Zoom',
                 self.cursorActionGroup())
             self._zoomCursorAction.setCheckable(True)
-            self._zoomCursorAction.setToolTip('Zoom in/out the view')
+            self._zoomCursorAction.setToolTip('Zoom in/out the view '
+                                              '(Meta[Shift+Alt]+Click)')
             self._zoomCursorAction.setStatusTip(
                 self._zoomCursorAction.toolTip())
             self.connect(self._zoomCursorAction,
