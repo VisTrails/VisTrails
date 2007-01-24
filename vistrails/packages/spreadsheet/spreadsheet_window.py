@@ -46,7 +46,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         Layout menu, status bar and tab widget
         
         """
-        QtGui.QMainWindow.__init__(self,parent,f)
+        QtGui.QMainWindow.__init__(self, parent, f)
         self.createEventMap()
         self.setWindowTitle('VisTrails - Spreadsheet - Untitled')
         self.stackedCentralWidget = QtGui.QStackedWidget(self)

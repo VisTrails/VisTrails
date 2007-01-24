@@ -169,25 +169,24 @@ class QVTKWidget(QtGui.QWidget):
             self.mRenWin.Register(None)
             if self.mRenWin.GetMapped():
                 self.mRenWin.Finalize()
-            SetDisplayInfo = getattr(self.mRenWin, "SetDisplayInfo", None)
-            if SetDisplayInfo:
-                SetDisplayInfo(str(int(QtGui.QX11Info.display())))
+            if system.systemType=='Linux':
+                vp = '_%s_void_p' % (hex(int(QtGui.QX11Info.display()))[2:])
+                self.mRenWin.SetDisplayId(vp)
+                self.mRenWin.SetSize(1,1)
             self.mRenWin.SetWindowInfo(str(int(self.winId())))
-            self.mRenWin.SetSize(self.width(), self.height())
-            self.mRenWin.SetPosition(self.x(), self.y())
-            
-            if system.systemType != "Linux" and self.isVisible():
+            if self.isVisible():
                 self.mRenWin.Start()
 
             if not self.mRenWin.GetInteractor():
                 iren = vtk.vtkRenderWindowInteractor()
-                self.mRenWin.SetInteractor(iren)
+                iren.SetRenderWindow(self.mRenWin)
                 iren.Initialize()
-                HideTopShell = getattr(iren, "HideTopShell", None)
-                if HideTopShell:
-                    HideTopShell(str(int(self.winId())))
-                else:
-                    self.mRenWin.SetWindowInfo(str(int(self.winId())))                
+                if system.systemType=='Linux':
+                    system.XDestroyWindow(self.mRenWin.GetGenericDisplayId(),
+                                         self.mRenWin.GetGenericWindowId())
+                self.mRenWin.SetWindowInfo(str(int(self.winId())))
+                self.mRenWin.SetSize(self.width(), self.height())
+                self.mRenWin.SetPosition(self.x(), self.y())
                 s = vtk.vtkInteractorStyleTrackballCamera()
                 iren.SetInteractorStyle(s)
                 s.AddObserver("InteractionEvent", self.interactionEvent)
@@ -196,8 +195,6 @@ class QVTKWidget(QtGui.QWidget):
                 s.AddObserver("MouseWheelBackwardEvent", self.interactionEvent)
                 del iren
                 del s
-
-            self.mRenWin.GetInteractor().SetSize(self.width(),self.height())
 
     def GetInteractor(self):
         """ GetInteractor() -> vtkInteractor

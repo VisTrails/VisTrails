@@ -39,13 +39,13 @@ elif systemType in ['Linux']:
     from core.system.linux import guessTotalMemory, temporaryDirectory, \
         homeDirectory, remoteCopyProgram, remoteShellProgram, \
         graphVizDotCommandLine, removeGraphvizTemporaries, link_or_copy, \
-        getClipboard, TestLinux
+        getClipboard, XDestroyWindow, TestLinux
 
 elif systemType in ['Darwin']:
     from core.system.osx import guessTotalMemory, temporaryDirectory, \
         homeDirectory, remoteCopyProgram, remoteShellProgram, \
         graphVizDotCommandLine, removeGraphvizTemporaries, link_or_copy, \
-        getClipboard, TestMacOSX 
+        getClipboard, TestMacOSX
 else:
     print "Critical error"
     print "VisTrails could not detect your operating system."

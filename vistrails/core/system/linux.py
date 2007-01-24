@@ -21,6 +21,7 @@
 ############################################################################
 import os
 import shutil
+from ctypes import CDLL, c_void_p
 from PyQt4 import QtGui
 
 ################################################################################
@@ -105,6 +106,32 @@ def getClipboard():
 
     """
     return QtGui.QClipboard.Selection
+
+def getLibX11():
+    """ getLibX11() -> CDLL    
+    Return the X11 library loaded with ctypes. Only available on
+    Linux.  We also need a way to find the correct X11 library name on
+    different machines. Right now, libX11.so.6 is used.
+    
+    """
+    return CDLL('libX11.so.6')
+
+def XDestroyWindow(displayId, windowId):
+    """ XDestroyWindow(displayId: void_p_str, windowId: void_p_str) -> None
+    Destroy the X window specified by two strings displayId and
+    windowId containing void pointer string of (Display*) and (Window)    
+    type.
+    This is specific for VTKCell to remove the top shell window. Since
+    VTK does not expose X11-related functions to Python, we have to
+    use ctypes to hi-jack X11 library and call XDestroyWindow to kill
+    the top-shell widget after reparent the OpenGL canvas to another
+    Qt widget
+    
+    """
+    displayPtr = c_void_p(int(displayId[1:displayId.find('_void_p')], 16))
+    windowPtr = c_void_p(int(windowId[1:windowId.find('_void_p')], 16))
+    libx = getLibX11()
+    libx.XDestroyWindow(displayPtr, windowPtr)
 
 ################################################################################
 
