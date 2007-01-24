@@ -99,19 +99,20 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         if event.key() in [QtCore.Qt.Key_Control,
                            QtCore.Qt.Key_Alt,
-                           QtCore.Qt.Key_Shift]:
+                           QtCore.Qt.Key_Shift,
+                           QtCore.Qt.Key_Meta]:
             widget = QtGui.QApplication.widgetAt(QtGui.QCursor.pos())
             if widget:
                 while widget:
                     if widget.property('captureModifiers').isValid():
                         if hasattr(widget, 'modifiersPressed'):
-                            widget.modifiersPressed(event.key())
+                            widget.modifiersPressed(event.modifiers())
                         break
                     widget = widget.parent()
         QtGui.QMainWindow.keyPressEvent(self, event)
             
     def keyReleaseEvent(self, event):
-        """ keyReleaseEvent(event: QKeyEvent) -> None        
+        """ keyReleaseEvent(event: QKeyEvent) -> None
         Capture modifiers (Ctrl, Alt, Shift) and send them to one of
         the widget under the mouse cursor. It first starts at the
         widget directly under the mouse and check if the widget has
@@ -121,7 +122,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         if event.key() in [QtCore.Qt.Key_Control,
                            QtCore.Qt.Key_Alt,
-                           QtCore.Qt.Key_Shift]:
+                           QtCore.Qt.Key_Shift,
+                           QtCore.Qt.Key_Meta]:
             widget = QtGui.QApplication.widgetAt(QtGui.QCursor.pos())
             if widget:
                 while widget:

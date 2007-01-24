@@ -187,42 +187,50 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.selectionBox = QGraphicsRubberBandItem(None)
         self.startSelectingPos = None
         self.setProperty('captureModifiers',
-                         QtCore.QVariant(0))
+                         QtCore.QVariant(1))
         self.defaultCursorState = 0
         self.setCursorState(self.defaultCursorState)
 
-    def modifiersPressed(self, key):
-        """ modifiersPressed(key: QtCore.Qt.Key) -> None
+    def modifiersPressed(self, modifiers):
+        """ modifiersPressed(modifiers: QtCore.Qt.KeyboardModifiers) -> None
         Notification when one of the modifier keys has been pressed
         
         """
-        # Shift -> Pan
-        if key==QtCore.Qt.Key_Shift:
-            self.setCursorState(1)
-        # Alt -> Zoom
-        elif key==QtCore.Qt.Key_Alt:
-            self.setCursorState(2)
-            self.viewport().setCursor(QtGui.QCursor(CurrentTheme.ZOOM_CURSOR))
+        self.validateCursorState(modifiers)
         
     def modifiersReleased(self):
         """ modifiersReleased() -> None
         Notification when one of the modifier keys has been released
         
         """
-        self.setCursorState(self.defaultCursorState)
+        self.validateCursorState()
 
-    def validateCursorState(self):
-        """ validateCursorState() -> None
+    def findCursorState(self, modifiers=None):
+        """ findCursorState(modifiers: QtCore.Qt.KeyboardModifiers) -> None
+        Check the keyboard modifiers and return the cursor state
+
+        """
+        if not self.isActiveWindow():
+            return self.defaultCursorState
+        if modifiers==None:
+            modifiers = QtGui.QApplication.keyboardModifiers()
+        shift = modifiers & QtCore.Qt.ShiftModifier
+        alt = modifiers & QtCore.Qt.AltModifier
+        meta = modifiers & QtCore.Qt.MetaModifier or (alt and shift)
+        ctrl = modifiers & QtCore.Qt.ControlModifier
+        if shift and (not alt) and (not ctrl) and (not meta):
+            return 1
+        elif meta and (not ctrl):
+            return 2
+        else:
+            return self.defaultCursorState
+
+    def validateCursorState(self, modifiers=None):
+        """ validateCursorState(modifiers: QtCore.Qt.KeyboardModifiers) -> None
         Check the keyboard modifiers to change the cursor shape correspondingly
         
-        """
-        modifiers = QtGui.QApplication.keyboardModifiers()
-        if modifiers & QtCore.Qt.ShiftModifier:
-            self.setCursorState(1)
-        elif modifiers & QtCore.Qt.AltModifier:
-            self.setCursorState(2)
-        else:
-            self.setCursorState(self.defaultCursorState)
+        """        
+        self.setCursorState(self.findCursorState(modifiers))
 
     def enterEvent(self, event):
         """ enterEvent(event: QEnterEvent) -> None        
@@ -267,15 +275,12 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         
         """
         if event.buttons() & QtCore.Qt.LeftButton:
-            if event.modifiers() & QtCore.Qt.ShiftModifier:
-                return QtCore.Qt.MidButton
-            if event.modifiers() & QtCore.Qt.AltModifier:
-                return QtCore.Qt.RightButton
+            state = self.findCursorState(event.modifiers())
             state2Button = {0: QtCore.Qt.LeftButton,
                             1: QtCore.Qt.MidButton,
                             2: QtCore.Qt.RightButton}
-            if state2Button.has_key(self.defaultCursorState):
-                return state2Button[self.defaultCursorState]
+            if state2Button.has_key(state):
+                return state2Button[state]
         return event.buttons()
 
     def mousePressEvent(self, e):
@@ -360,7 +365,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                                                   globalPos.y() +
                                                   self.lastPos.y())
         else:
-            self.validateCursorState()
+            self.validateCursorState(e.modifiers())
         self.setUpdatesEnabled(True)
 
     def mouseReleaseEvent(self, e):
