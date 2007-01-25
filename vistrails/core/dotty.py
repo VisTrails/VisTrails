@@ -26,6 +26,7 @@ from core.data_structures.point import Point
 import core.system
 import os
 import tokenize
+import time
 
 ################################################################################
 
@@ -132,8 +133,16 @@ class DotLayout(object):
                    tempDir + 'dot_output_vistrails.txt ' +
                    tempDir + 'dot_tmp_vistrails.txt')
         os.system(cmdline)
-        fileIn = open(core.system.temporaryDirectory() +
-                      'dot_output_vistrails.txt')
+
+        dtty_file = tempDir + 'dot_output_vistrails.txt'
+
+        if not os.path.exists(dtty_file) :
+            print ""
+            print "Could not find %s" % dtty_file
+            print "Is GraphViz installed and is dotty in your PATH?"
+            print ""
+            
+        fileIn = open(dtty_file)
 
         # Parse Dotty's output
         self.parseDottyOutput(fileIn)
