@@ -32,7 +32,8 @@ import core.modules.basic_modules
 from core.modules.vistrails_module import Module, ModuleError, newModule, IncompleteImplementation
 
 import os
-import subprocess
+
+import popen2
 
 ################################################################################
 
@@ -200,14 +201,14 @@ def initialize(*args, **keywords):
     print "-----------------------------"
     print "Will test ImageMagick presence..."
 
-    process = subprocess.Popen("convert -version",
-                               shell=True,
-                               stdout=subprocess.PIPE)
+    process = popen2.Popen4("convert -version")
 
-    output = core.utils.no_interrupt(process.stdout.readlines)
-    version_line = output[0][:-1].split(' ')
+    result = 1
+    while result != 0 :
+        result = process.poll()
 
-    result = process.wait()
+    conv_output = process.fromchild
+    version_line = conv_output.readlines()[0][:-1].split(' ')
     if result != 0:
         raise Exception("ImageMagick does not seem to be present.")
     print "Ok, found ImageMagick"
