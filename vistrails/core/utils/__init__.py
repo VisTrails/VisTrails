@@ -27,6 +27,7 @@ from core.utils.enum import enum
 from core.utils.tracemethod import trace_method, bump_trace
 from core.utils.color import ColorByName
 from core.utils.lockmethod import lock_method
+import errno
 
 ################################################################################
 
