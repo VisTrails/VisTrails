@@ -196,6 +196,25 @@ def appendToDictOfLists(dict, key, value):
     except KeyError:
         dict[key] = [value]
 
+##############################################################################
+
+# FIXME: Add tests
+def no_interrupt(callable_, *args, **kwargs):
+    """no_interrupt(callable_, *args, **kwargs) -> return arguments
+    from callable.
+
+    Calls callable_ with *args and **kwargs and keeps retrying as long as call
+is interrupted by the OS. This makes calling read more convenient when
+using output from the subprocess module."""
+    while True:
+        try:
+            return callable_(*args, **kwargs)
+        except IOError, e:
+            if e.errno == errno.EINTR:
+                continue
+            else:
+                raise
+
 ################################################################################
 
 import unittest
@@ -268,5 +287,7 @@ class TestCommon(unittest.TestCase):
         self.assertEquals(count[0], 2)
         t.f(C2, 0)
         self.assertEquals(count[0], 3)
+
+
 if __name__ == '__main__':
     unittest.main()
