@@ -88,8 +88,8 @@ class Logger(object):
                                  passwd=self.dbPasswd,
                                  db=self.dbName)
         except MySQLdb.Error, e:
-            print "Logger Error %d: %s" % (e.args[0], e.args[1])
-        
+            msg = "MySQL returned de following error %d: %s" % (e.args[0], e.args[1])
+            raise Exception(msg)
         return db
 
     def getSettingsFromApp(self):
@@ -98,20 +98,12 @@ class Logger(object):
         
         """
         import gui.application
-        app = gui.application.VistrailsApplication
-        if app:
-            self.dbHost = app.configuration.logger.dbHost
-            self.dbPort = app.configuration.logger.dbPort
-            self.dbUser = app.configuration.logger.dbUser
-            self.dbPasswd = app.configuration.logger.dbPasswd
-            self.dbName = app.configuration.logger.dbName
-        else:
-            #testing purposes
-            self.dbHost = 'frodo.sci.utah.edu'
-            self.dbPort = 3306
-            self.dbUser = 'vistrails'
-            self.dbPasswd = 'vistrailspwd'
-            self.dbName = 'vislog'
+        app = gui.application.VistrailsApplication 
+        self.dbHost = app.configuration.logger.dbHost
+        self.dbPort = app.configuration.logger.dbPort
+        self.dbUser = app.configuration.logger.dbUser
+        self.dbPasswd = app.configuration.logger.dbPasswd
+        self.dbName = app.configuration.logger.dbName
 
     def initSession(self):
         """ initSession() -> None - 
@@ -491,13 +483,3 @@ class Logger(object):
         
         c.close()
 ########################################################################################
-
-import unittest
-
-class TestLogger(unittest.TestCase):
-    def test1(self):
-        logger = Logger()
-        logger.finishSession()
-
-if __name__ == '__main__':
-    unittest.main()

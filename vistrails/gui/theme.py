@@ -429,10 +429,9 @@ class TestPresetColor(unittest.TestCase):
     
     """
     def testColorValues(self):
-        self.assertEquals(CurrentTheme.CONNECTION_CONTROL_POINT,
+        initializeCurrentTheme()
+        self.assertEquals(CurrentTheme.CONNECTION_CONTROL_POINTS,
                           20)
-        self.assertEquals(CurrentTheme.GHOSTED_VERSION_COLOR,
-                          ColorByName.get('very_light_grey'))
 
         
 if __name__ == '__main__':

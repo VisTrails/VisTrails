@@ -62,7 +62,10 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         """
         return self
 
-    def __init__(self, optionsDict=None):
+    def __init__(self):
+        pass
+
+    def init(self, optionsDict=None):
         """ VistrailsApplicationSingleton(optionDict: dict)
                                           -> VistrailsApplicationSingleton
         Create the application with a dict of settings
@@ -514,7 +517,8 @@ and ~/.vistrails/startup.py does not exist.""")
 def start_application(optionsDict=None):
     """Initializes the application singleton."""
     global VistrailsApplication
-    VistrailsApplication = VistrailsApplicationSingleton(optionsDict)
+    VistrailsApplication = VistrailsApplicationSingleton()
+    VistrailsApplication.init(optionsDict)
 
 VistrailsApplication = None
 
