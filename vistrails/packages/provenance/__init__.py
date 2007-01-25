@@ -32,11 +32,11 @@ netpbm - http://netpbm.sourceforge.net/
 
 """
 
-import core.modules
-import core.modules.module_registry
-import core.modules.basic_modules
 from core.modules.vistrails_module import Module, ModuleError, newModule
-
+import core.modules
+import core.modules.basic_modules
+import core.modules.module_registry
+import core.utils
 import os
 import os.path
 import stat
@@ -87,7 +87,8 @@ tool."""
             raise ModuleError(self, "Could not open header file " + self.name)
 
         result = {}
-        for l in process.stdout:
+        lines = core.utils.no_interrupt(process.stdout.readlines)
+        for l in lines:
             l = l[:-1]
             if not l:
                 continue
@@ -100,7 +101,7 @@ tool."""
         return result
 
     def compute(self):
-        modules.basic_modules.File.compute(self)
+        core.modules.basic_modules.File.compute(self)
         d = self.get_header_annotations()
         self.annotate(d)
 
