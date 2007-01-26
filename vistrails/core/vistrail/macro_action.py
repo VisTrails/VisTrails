@@ -190,7 +190,7 @@ class MacroActionAddModule(MacroAction):
         pipeline to obtain a fresh Module id. 
          
         """
-        newId = pipeline.freshModuleId()
+        newId = pipeline.fresh_module_id()
         self.macro.modules[self.endAction.module.id] = newId
         self.endAction.module.id = newId
         self.endAction.module.center = self.macro.startPos + Point(-20,-100)
@@ -292,7 +292,7 @@ class MacroActionAddConnection(MacroAction):
         pipeline to obtain a fresh connection id.
 
         """
-        newCId = pipeline.freshConnectionId()
+        newCId = pipeline.fresh_connection_id()
         self.macro.connections[self.endAction.connection.id] = newCId
         self.endAction.connection.id = newCId
 
