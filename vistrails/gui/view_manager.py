@@ -103,6 +103,7 @@ class QViewManager(QtGui.QTabWidget):
                 self.removeTab(self.currentIndex())
             elif self.splittedViews.has_key(view):
                 del self.splittedViews[view]
+            view.controller.cleanup()
             view.close()
 
     def moduleSelectionChange(self, selection):
