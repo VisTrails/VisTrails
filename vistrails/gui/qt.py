@@ -69,13 +69,17 @@ to create QObjects."""
     if not okToCreateQObjects:
         raise QApplicationNotYetCreated()
 
+global _appHolder
+
 def createBogusQtApp():
     """createBogusQtApp creates a bogus Qt App so that we can use QObjects."""
     class BogusApplication(QtCore.QCoreApplication):
         def __init__(self):
             QtCore.QCoreApplication.__init__(self, ["bogus"])
             allowQObjects()
-    return BogusApplication()
+    global _appHolder
+    _appHolder = BogusApplication()
+    return _appHolder
 
 def createBogusQtGuiApp(argv=["bogus"]):    
     """createBogusQtGuiApp is similar to createBogusQtApp but return a
@@ -84,7 +88,13 @@ def createBogusQtGuiApp(argv=["bogus"]):
         def __init__(self):
             QtGui.QApplication.__init__(self, argv)
             allowQObjects()
-    return BogusApplication()
+    global _appHolder
+    _appHolder = BogusApplication()
+    return _appHolder
+
+def destroyBogusQtApp():
+    global _appHolder
+    del _appHolder
 
 def qt_version():
     return [int(i)
