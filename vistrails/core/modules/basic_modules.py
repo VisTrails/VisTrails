@@ -94,6 +94,7 @@ class File(vistrails_module.Module):
     file system local to the machine where VisTrails is running."""
 
     def compute(self):
+        self.checkInputPort("name")
         n = self.getInputFromPort("name")
         self.name = n
 
