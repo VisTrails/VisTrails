@@ -113,7 +113,7 @@ class AlignWarp(ProvenanceChallenge):
         image = self.getInputFromPort("image")
         ref = self.getInputFromPort("reference")
         model = self.getInputFromPort("model")
-        o = self.interpreter.filePool.createFile(suffix='.warp')
+        o = self.interpreter.filePool.create_file(suffix='.warp')
         cmd = self.air_cmd_line('align_warp',
                                   image.name,
                                   ref.name,
@@ -130,7 +130,7 @@ class Reslice(ProvenanceChallenge):
 
     def compute(self):
         warp = self.getInputFromPort("warp")
-        o = self.interpreter.filePool.createFile()
+        o = self.interpreter.filePool.create_file()
         cmd = self.air_cmd_line('reslice',
                                  warp.name,
                                  o.name)
@@ -143,7 +143,7 @@ class SoftMean(ProvenanceChallenge):
 
     def compute(self):
         imageList = self.getInputFromPort("imageList")
-        o = self.interpreter.filePool.createFile(suffix='.hdr')
+        o = self.interpreter.filePool.create_file(suffix='.hdr')
         cmd = self.air_cmd_line('softmean',
                                 o.name,
                                 'y',
@@ -169,7 +169,7 @@ class Slicer(ProvenanceChallenge):
         elif self.hasInputFromPort("slice_z"):
             cmd.append('-z')
             cmd.append(str(self.getInputFromPort("slice_z")))
-        o = self.interpreter.filePool.createFile(suffix='.pgm')
+        o = self.interpreter.filePool.create_file(suffix='.pgm')
         cmd.append(o.name)
         self.run(self.fsl_cmd_line(*cmd))
         self.setResult('output', o)
@@ -182,7 +182,7 @@ class PGMToPPM(ProvenanceChallenge):
         cmd = ['pgmtoppm white']
         i = self.getInputFromPort("input")
         cmd.append(i.name)
-        o = self.interpreter.filePool.createFile(suffix='.ppm')
+        o = self.interpreter.filePool.create_file(suffix='.ppm')
         cmd.append(' >')
         cmd.append(o.name)
         self.run(" ".join(cmd))
@@ -196,7 +196,7 @@ class PNMToJpeg(ProvenanceChallenge):
         cmd = ['pnmtojpeg']
         i = self.getInputFromPort("input")
         cmd.append(i.name)
-        o = self.interpreter.filePool.createFile(suffix='.jpg')
+        o = self.interpreter.filePool.create_file(suffix='.jpg')
         cmd.append(' >')
         cmd.append(o.name)
         self.run(" ".join(cmd))
