@@ -30,12 +30,20 @@ from core.utils import VistrailsInternalError
 ################################################################################
 
 class FilePool(object):
+
+    """FilePool provides a convenient interface for Module developers to
+use temporary files. """
     
     def __init__(self):
         self.directory = tempfile.mkdtemp(prefix='vt_tmp')
         self.files = {}
         
     def cleanup(self):
+        """cleanup() -> None
+
+Cleans up the file pool, by removing all temporary files
+and the directory they existed in. Module developers should never not
+call this directly."""
         if not os.path.isdir(self.directory):
             # cleanup has already happened
             return
@@ -51,7 +59,11 @@ class FilePool(object):
                                          (self.directory,
                                           str(e)))
 
-    def createFile(self, suffix = '', prefix = 'vt_tmp'):
+    def create_file(self, suffix = '', prefix = 'vt_tmp'):
+        """create_file(suffix='', prefix='vt_tmp') -> File.
+
+Returns a File module representing a writable file for use in modules. To
+avoid race conditions, this file will already exist in the file system."""
         (fd, name) = tempfile.mkstemp(suffix=suffix,
                                       prefix=prefix,
                                       dir=self.directory)
@@ -66,7 +78,9 @@ class FilePool(object):
         self.cleanup()
 
     def guess_suffix(self, file_name):
-        """Tries to guess the suffix of the given filename."""
+        """guess_suffix(file_name) -> String.
+
+Tries to guess the suffix of the given filename."""
         suffix = ''
         # try to guess suffix
         f = file_name.rfind('.')
@@ -82,9 +96,13 @@ class FilePool(object):
                 return ''
 
     def make_local_copy(self, src):
-        """Returns a file in the filePool that's either a link or a
-        copy of the given file path. This ensures the file's longevity
-        when necessary."""
+        """make_local_copy(src) -> File
+
+Returns a file in the filePool that's either a link or a copy of the
+given file path. This ensures the file's longevity when
+necessary. Since it might use a hardlink for speed, modules should
+only use this method if the file is not going to be changed in the
+future."""
         (fd, name) = tempfile.mkstemp(suffix=self.guess_suffix(src),
                                       dir=self.directory)
         os.close(fd)
@@ -111,6 +129,8 @@ class TestFilePool(unittest.TestCase):
         self.assertEquals(x.guess_suffix('bar'), '')
         self.assertEquals(x.guess_suffix('./lalala'), '')
         self.assertEquals(x.guess_suffix('./lalala.bar'), '.bar')
+        x.cleanup()
+        del x
 
     def test_double_cleanup(self):
         x = FilePool()
