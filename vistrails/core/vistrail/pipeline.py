@@ -24,6 +24,7 @@
 from core.vistrail.port import Port
 from core.vistrail.module_param import VistrailModuleType
 from core.data_structures import Graph
+from core.data_structures import Bidict
 from core.utils import VistrailsInternalError
 from core.utils import expression
 from core.cache.hasher import Hasher
@@ -46,9 +47,11 @@ class Pipeline(object):
         self.modules = {}
         self.connections = {}
         self.graph = Graph()
-        self._subpipeline_signatures = {}
-        self._module_signatures = {}
-        self._module_signatures_inv = {}
+        self._subpipeline_signatures = Bidict()
+        self._module_signatures = Bidict()
+        self._connection_signatures = Bidict()
+        self._fresh_module_id = 0
+        self._fresh_connection_id = 0
 
     def checkConnection(self, c):
         """checkConnection(c: Connection) -> boolean 
@@ -89,30 +92,22 @@ class Pipeline(object):
             raise VistrailsInternalError("port with bogus information")
         return result
     
-    def freshModuleId(self):
-        """freshModuleId() -> int 
+    def fresh_module_id(self):
+        """fresh_module_id() -> int 
         Returns an unused module ID. If everyone always calls
         this, it is also the case that this is the smallest unused ID. So
         we can use any other number larger than the one returned, as long
         as they are contiguous.
 
         """
-        # This is dumb and slow
-        m = 0
-        while self.hasModuleWithId(m):
-            m += 1
-        return m
+        return self._fresh_module_id
     
-    def freshConnectionId(self):
-        """freshConnectionId() -> int 
+    def fresh_connection_id(self):
+        """fresh_connection_id() -> int 
         Returns an unused connection ID.
         
         """
-        # This is dumb and slow
-        c = 0
-        while self.hasConnectionWithId(c):
-            c += 1
-        return c
+        return self._fresh_connection_id
     
     def deleteModule(self, id):
         """deleteModule(id:int) -> None 
@@ -133,6 +128,8 @@ class Pipeline(object):
             raise VistrailsInternalError("duplicate module id")
         self.modules[m.id] = m
         self.graph.addVertex(m.id)
+        self._fresh_module_id = max(self._fresh_module_id,
+                                    m.id + 1)
         
     def deleteConnection(self, id):
         """ deleteConnection(id:int) -> None 
@@ -155,6 +152,8 @@ class Pipeline(object):
         self.connections[c.id] = c
         assert(c.sourceId != c.destinationId)        
         self.graph.addEdge(c.sourceId, c.destinationId, c.id)
+        self._fresh_connection_id = max(self._fresh_connection_id,
+                                        c.id + 1)
         
     def getModuleById(self, id):
         """getModuleById(id: int) -> Module
@@ -317,14 +316,34 @@ class Pipeline(object):
                             self.evaluateExp(p.type,base,exps,aliases))
         return aliases
 
+    ##########################################################################
+    # Caching-related
+
+    # Modules
+
     def module_signature(self, module_id):
+        """module_signature(module_id): string
+Returns the signature for the module with given module_id."""
         if not self._module_signatures.has_key(module_id):
             m = self.modules[module_id]
             sig = core.modules.module_registry.registry.module_signature(m)
             self._module_signatures[module_id] = sig
         return self._module_signatures[module_id]
 
+    def module_id_from_signature(self, signature):
+        """module_id_from_signature(sig): int
+        Returns the module_id that corresponds to the given signature.
+This must have been previously computed."""
+        return self._module_signatures.inverse[signature]
+
+    def has_module_signature(self, signature):
+        return self._module_signatures.inverse.has_key(signature)
+
+    # Subpipelines
+
     def subpipeline_signature(self, module_id):
+        """subpipeline_signature(module_id): string
+Returns the signature for the subpipeline whose sink id is module_id."""
         if not self._subpipeline_signatures.has_key(module_id):
             upstream_sigs = [(self.subpipeline_signature(m) +
                               Hasher.connection_signature(
@@ -335,10 +354,46 @@ class Pipeline(object):
             sig = Hasher.subpipeline_signature(module_sig,
                                                upstream_sigs)
             self._subpipeline_signatures[module_id] = sig
-        return self._module_signatures[module_id]
-        
-        
-################################################################################        
+        return self._subpipeline_signatures[module_id]
+
+    def subpipeline_id_from_signature(self, signature):
+        """subpipeline_id_from_signature(sig): int
+        Returns the module_id that corresponds to the given signature.
+This must have been previously computed."""
+        return self._subpipeline_signatures.inverse[signature]
+
+    def has_subpipeline_signature(self, signature):
+        return self._subpipeline_signatures.inverse.has_key(signature)
+
+    # Connections
+
+    def connection_signature(self, connection_id):
+        """connection_signature(id): string
+Returns the signature for the connection with given id."""
+        if not self._connection_signatures.has_key(connection_id):
+            c = self.connections[connection_id]
+            source_sig = self.subpipeline_signature(c.sourceId)
+            dest_sig = self.subpipeline_signature(c.destinationId)
+            sig = Hasher.connection_subpipeline_signature(c, source_sig,
+                                                          dest_sig)
+            self._connection_signatures[connection_id] = sig
+        return self._connection_signatures[connection_id]
+
+    def connection_id_from_signature(self, signature):
+        return self._connection_signatures.inverse[signature]
+
+    def has_connection_signature(self, signature):
+        return self._connection_signatures.inverse.has_key(signature)
+
+    def compute_signatures(self):
+        """compute_signatures(): compute all module and subpipeline signatures
+for this pipeline."""
+        for i in self.modules.iterkeys():
+            self.subpipeline_signature(i)
+        for c in self.connections.iterkeys():
+            self.connection_signature(i)
+
+################################################################################
 
 import unittest
 from core.vistrail.module import Module
@@ -381,7 +436,7 @@ class TestPipeline(unittest.TestCase):
                 f.params.append(param)
                 return f
             m = Module()
-            m.id = p.freshModuleId()
+            m.id = p.fresh_module_id()
             m.name = 'PythonCalc'
             m.functions.append(f1())
             return m
@@ -397,7 +452,7 @@ class TestPipeline(unittest.TestCase):
                 f.params.append(param)
                 return f
             m = Module()
-            m.id = p.freshModuleId()
+            m.id = p.fresh_module_id()
             m.name = 'PythonCalc'
             m.functions.append(f1())
             return m
@@ -417,7 +472,7 @@ class TestPipeline(unittest.TestCase):
         c1.source.moduleName = 'PythonCalc'
         c1.destination.name = 'value1'
         c1.destination.name = 'PythonCalc'
-        c1.id = p.freshConnectionId()
+        c1.id = p.fresh_connection_id()
         p.addConnection(c1)
 
         c2 = Connection()
@@ -427,14 +482,13 @@ class TestPipeline(unittest.TestCase):
         c2.source.moduleName = 'PythonCalc'
         c2.destination.name = 'value2'
         c2.destination.name = 'PythonCalc'
-        c2.id = p.freshConnectionId()
+        c2.id = p.fresh_connection_id()
 
         p.addConnection(c2)
         self.sink_id = m3.id
 
-    def testCreatePipeline(self):
+    def test_create_pipeline(self):
         self.pipeline.subpipeline_signature(self.sink_id)
-
 
 if __name__ == '__main__':
     unittest.main()
