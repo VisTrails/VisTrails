@@ -45,7 +45,7 @@ class Afront(Module):
         os.system(cmdline)
         
     def compute(self):
-        o = self.interpreter.filePool.createFile()
+        o = self.interpreter.filePool.create_file()
         args = []
         if not self.hasInputFromPort("file"):
             raise ModuleError("Needs input file")
