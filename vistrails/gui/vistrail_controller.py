@@ -33,6 +33,7 @@ from core.vistrail.pipeline import Pipeline
 from core.vistrail.module_param import VistrailModuleType
 import copy
 import os.path
+import core.interpreter
 
 ################################################################################
 
@@ -66,6 +67,10 @@ class VistrailController(QtCore.QObject):
         self.refine = False
         self.changed = False
         self.fullTree = False
+        self.interpreter = core.interpreter.CachedInterpreter()
+
+    def cleanup(self):
+        self.interpreter.clear()
 
     def setVistrail(self, vistrail, name):
         """ setVistrail(vistrail: Vistrail) -> None
@@ -86,7 +91,7 @@ class VistrailController(QtCore.QObject):
 
         if self.currentPipeline:
             newModule = Module()
-            newModule.id = self.currentPipeline.freshModuleId()
+            newModule.id = self.currentPipeline.fresh_module_id()
             newModule.center.reset(x,y)
             newModule.name = str(name)
             newModule.cache = 0
@@ -188,23 +193,10 @@ class VistrailController(QtCore.QObject):
         self.performAction(action)
 
     def executeWorkflowList(self, vistrails):
+        interpreter = core.interpreter.Interpreter()
         for vis in vistrails:
             (name, version, pipeline, view, logger) = vis
-            import core.interpreter
-            if self.logger:
-                self.logger.startWorkflowExecution(name, version)
-            pipeline.resolveAliases()
-            (objs, errors, executed) = core.interpreter.Interpreter().execute(pipeline, name, version, view, logger)
-            for obj in objs.itervalues():
-                i = obj.id
-                if errors.has_key(i):
-                    view.setModuleError(i, errors[i])
-                elif executed.has_key(i):
-                    view.setModuleSuccess(i)
-                else:
-                    view.setModuleNotExecuted(i)
-            if self.logger:
-                self.logger.finishWorkflowExecution(name, version)        
+            (objs, errors, executed) = interpreter.execute(pipeline, name, version, view, logger)
 
     def executeCurrentWorkflow(self):
         """ executeCurrentWorkflow() -> None
@@ -524,7 +516,7 @@ class VistrailController(QtCore.QObject):
         
         for c in connections:
             conn = copy.copy(c)
-            conn.id = self.currentPipeline.freshConnectionId()
+            conn.id = self.currentPipeline.fresh_connection_id()
             conn.sourceId = modulesMap[conn.sourceId]
             conn.destinationId = modulesMap[conn.destinationId]
             currentAction = self.addConnection(conn)            
