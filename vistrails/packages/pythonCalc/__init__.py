@@ -21,7 +21,12 @@
 ############################################################################
 """This package implements a very simple VisTrails module called
 PythonCalc. This is intended as a simple example that can be referred
-to by users to create their own packages and modules later."""
+to by users to create their own packages and modules later.
+
+If you're interested in developing new modules for VisTrails, you
+should also consult the documentation in
+core/modules/vistrails_module.py.
+"""
 
 import core.modules
 import core.modules.module_registry
