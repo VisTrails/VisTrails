@@ -47,5 +47,5 @@ class ImageToFile(ITK):
         self.setResult("File", f)
 
     def createOutputFile(self, s):
-        return self.interpreter.filePool.createFile(suffix=s)
+        return self.interpreter.filePool.create_file(suffix=s)
 
