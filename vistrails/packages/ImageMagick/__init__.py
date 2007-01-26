@@ -73,7 +73,7 @@ has a descriptive name of the operation it implements."""
 outputFormat port."""
         if self.hasInputFromPort('outputFormat'):
             s = '.' + self.getInputFromPort('outputFormat')
-            return self.interpreter.filePool.createFile(suffix=s)
+            return self.interpreter.filePool.create_file(suffix=s)
 
     def geometry_description(self):
         """returns a string with the description of the geometry as
