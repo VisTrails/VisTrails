@@ -48,6 +48,16 @@ class Hasher(object):
         return hasher.digest()
 
     @staticmethod
+    def connection_subpipeline_signature(c, source_sig, dest_sig):
+        """Returns the signature for the connection, including source
+and dest subpipelines"""
+        hasher = sha.new()
+        hasher.update(Hasher.connection_signature(c))
+        hasher.update(source_sig)
+        hasher.update(dest_sig)
+        return hasher.digest()
+
+    @staticmethod
     def module_signature(obj):
         hasher = sha.new()
         hasher.update(obj.name)
