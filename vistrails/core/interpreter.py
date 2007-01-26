@@ -49,6 +49,11 @@ class Interpreter(object):
     def unlocked_execute(self, pipeline, vistrailName, currentVersion,
                          view, logger):
 
+        pipeline.resolveAliases()
+
+        if logger:
+            logger.startWorkflowExecution(vistrailName, currentVersion)
+
         def addToExecuted(obj):
             executed[obj.id] = True
         def beginCompute(obj):
@@ -134,6 +139,9 @@ class Interpreter(object):
         finally:
             self.filePool.cleanup()
             del self.filePool
+
+        if logger:
+            logger.finishWorkflowExecution(vistrailName, currentVersion)
         
         return (objects, errors, executed)
         
