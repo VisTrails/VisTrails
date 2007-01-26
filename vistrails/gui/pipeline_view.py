@@ -145,7 +145,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
                                             self.port)
                 conn.sourceId = snapModuleId
                 conn.destinationId = self.parentItem().id
-            conn.id = self.controller.currentPipeline.freshConnectionId()
+            conn.id = self.controller.currentPipeline.fresh_connection_id()
             self.controller.addConnection(conn)
             return
         if self.connection:
@@ -865,7 +865,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """ eventFilter(object: QObject, e: QEvent) -> None        
         Catch all the set module color events through self-event
         filter. Using the standard event cause some ambiguity in
-        converting between QGraphicsSceneEvent and QEveng
+        converting between QGraphicsSceneEvent and QEvent
         
         """
         if e.type()==QModuleStatusEvent.TYPE:
