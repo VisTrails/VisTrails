@@ -1,0 +1,25 @@
+Release Name: 288
+Notes:
+Changes:
+
+- Fixed crash when writing a vistrail.
+- Fixed bug when setting ports in PythonSource
+    Pressing enter had the same effect as clicking on the OK button
+- Fixed VisTrails Diff between two version whose common parent is the empty version
+- Fixed bug that closed panels on the builder didn't come back
+- Vistrail Toolbar is not allowed to be hidden anymore. Right click on the tool bar will bring up a pop-up menu for toggling tool windows
+- Fixed bug that alias changes were not being saved
+- Removed warning SetParentInfo method not implemented on Mac
+- VTK Package: Raising a exception if VTK version < 5.0.0
+- License on splash screen updated to reflect GPL release
+- Added buttons and changed cursors for navigation (zoom, pan, selection)
+- Fixed bug that last vistrail closed didn't update the window title  
+- Fixed bug Copy and Paste on Linux
+- Added bookmarks feature
+- Added three more vistrail examples
+- Fixed bug on toggling VisTrails Shell
+- Fixed bug of missing sys.stdout when opening a VisTrails Shell
+- Generating a default startup.py when it is not present
+- Fixed bug on the spreadsheet for handling VTKCell on linux
+- Avoiding race condition on Mac when calling subprocess.POpen()
+- Fixed bug of automatically opening a connection to the database when running vistrails without '-l'. 
