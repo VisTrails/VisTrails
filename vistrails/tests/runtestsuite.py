@@ -91,13 +91,13 @@ for (p, subdirs, files) in os.walk(root_directory):
         if (module.startswith('tests') or
             module.startswith('/') or
             module.startswith('\\') or
-            module.startswith('packages') or
             ('#' in module)):
             continue
         if ('system' in module and not
             module.endswith('__init__')):
             continue
         if (not ('system' in module) and
+            not (module.startswith('packages')) and
             module.endswith('__init__')):
             continue
         print "%s %s |" % (" " * (40 - len(module)), module),
@@ -106,10 +106,14 @@ for (p, subdirs, files) in os.walk(root_directory):
         # slashes to avoid duplicates in sys.modules
         module = module.replace('/','.')
         module = module.replace('\\','.')
-        if '.' in module:
-            m = __import__(module, globals(), locals(), ['foo'])
-        else:
-            m = __import__(module)
+        try:
+            if '.' in module:
+                m = __import__(module, globals(), locals(), ['foo'])
+            else:
+                m = __import__(module)
+        except:
+            print "ERROR: Could not import module!"
+            continue
 
         test_cases = get_test_cases(m)
         for test_case in test_cases:
