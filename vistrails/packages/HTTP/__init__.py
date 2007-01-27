@@ -65,20 +65,9 @@ class HTTPFile(HTTP):
     
     def parse_url(self, url):
         # TODO: There's gotta be a urllib method for this.
-        url = url.strip('http://')
-        split = url.split('/')
-        self.host = split[0]
-        self.filename = ''
-        split[0] = ''
-        for i in split:
-            if i == '':
-                continue
-            else:
-                self.filename = self.filename + '/' + i
-
-        suf = split[split.__len__() - 1]
-        suf = suf.split('.')
-        self.suffix = suf[suf.__len__() - 1]
+        s = url.split('/')
+        self.host = s[2]
+        self.filename = '/' + '/'.join(s[3:])
 
     def is_outdated(self, remoteHeader, localFile):
         """Checks whether local file is outdated."""
@@ -121,8 +110,7 @@ class HTTPFile(HTTP):
         conn.close()
         self.setResult("file", result)
         self.setResult("local_filename", local_filename)
-            
-        
+
 def initialize(*args, **keywords):
     reg = core.modules.module_registry
     basic = core.modules.basic_modules
@@ -145,3 +133,19 @@ def initialize(*args, **keywords):
             print "'%s' does not exist and parent directory is writable"
             sys.exit(1)
         print "Ok."
+
+
+##############################################################################
+
+import unittest
+
+class TestHTTPFile(unittest.TestCase):
+
+    def testParseURL(self):
+        foo = HTTPFile()
+        foo.parse_url('http://www.sci.utah.edu/~cscheid/stuff/vtkdata-5.0.2.zip')
+        self.assertEquals(foo.host, 'www.sci.utah.edu')
+        self.assertEquals(foo.filename, '/~cscheid/stuff/vtkdata-5.0.2.zip')
+
+if __name__ == '__main__':
+    unittest.main()
