@@ -23,16 +23,17 @@
 
 QBuilderWindow
 """
-import sys
-import copy
 from PyQt4 import QtCore, QtGui
+from core import system
+from gui.bookmark_window import QBookmarksWindow
 from gui.graphics_view import QInteractiveGraphicsView
 from gui.module_palette import QModulePalette
-from gui.bookmark_window import QBookmarksWindow
 from gui.shell import QShellDialog
 from gui.theme import CurrentTheme
 from gui.view_manager import QViewManager
-from core import system
+import copy
+import core.interpreter.cached
+import sys
 
 ################################################################################
 
@@ -193,6 +194,12 @@ class QBuilderWindow(QtGui.QMainWindow):
         
         self.helpAction = QtGui.QAction(self.tr('About VisTrails...'), self)
 
+        a = QtGui.QAction(self.tr('E&xecute Current Workflow\tCtrl+Enter'),
+                          self)
+        self.executeCurrentWorkflowAction = a
+        self.flushCacheAction = QtGui.QAction(self.tr('Erase Cache Contents'),
+                                              self)
+
         self.executeShortcuts = [
             QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.ControlModifier +
                                                QtCore.Qt.Key_Return), self),
@@ -228,12 +235,17 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.sdiModeAction)
 
+        self.runMenu = self.menuBar().addMenu('&Run')
+        self.runMenu.addAction(self.executeCurrentWorkflowAction)
+        self.runMenu.addAction(self.flushCacheAction)
+        
+
         self.vistrailMenu = self.menuBar().addMenu('Vis&trail')
         self.vistrailActionGroup = QtGui.QActionGroup(self)
 
         self.helpMenu = self.menuBar().addMenu('Help')
         self.helpMenu.addAction(self.helpAction)
-        
+
     def createToolBar(self):
         """ createToolBar() -> None
         Create a default toolbar for this builder window
@@ -325,6 +337,14 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.bookmarksWindow,
                      QtCore.SIGNAL("bookmarksHidden()"),
                      self.bookmarksAction.toggle)
+
+        self.connect(self.executeCurrentWorkflowAction,
+                     QtCore.SIGNAL("triggered()"),
+                     self.viewManager.executeCurrentPipeline)
+
+        self.connect(self.flushCacheAction,
+                     QtCore.SIGNAL("triggered()"),
+                     self.flush_cache)
         
         for shortcut in self.executeShortcuts:
             self.connect(shortcut,
@@ -535,3 +555,6 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         QtGui.QMessageBox.about(self,self.tr("About VisTrails..."),
                                 self.tr(system.aboutString()))
+
+    def flush_cache(self):
+        core.interpreter.cached.CachedInterpreter.cleanup()
