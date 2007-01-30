@@ -26,7 +26,7 @@
 #   SingleCellSheetReference
 #   SpreadsheetCell
 ################################################################################
-from core.modules.vistrails_module import Module
+from core.modules.vistrails_module import Module, NotCacheable
 from spreadsheet_base import (StandardSheetReference,
                               StandardSingleCellSheetReference)
 from spreadsheet_controller import spreadsheetController
@@ -145,7 +145,7 @@ class CellLocation(Module):
                 except:
                     self.row = -1
 
-class SpreadsheetCell(Module):
+class SpreadsheetCell(NotCacheable, Module):
     """
     SpreadsheetCell is a base class to other widget types. It provides
     a simple protocol to dispatch information to the spreadsheet
