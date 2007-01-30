@@ -869,7 +869,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         
         """
         if e.type()==QModuleStatusEvent.TYPE:
-            if e.moduleId>=0:                
+            if e.moduleId>=0:
                 item = self.modules[e.moduleId]
                 item.setToolTip(e.toolTip)
                 if e.status==0:
