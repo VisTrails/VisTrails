@@ -122,6 +122,17 @@ class VersionTooLow(Exception):
                 required_version +
                 " or later")
 
+class InvalidModuleClass(Exception):
+    """InvalidModuleClass is raised when there's something wrong with
+a class that's being registered as a module within VisTrails."""
+
+    def __init__(self, klass):
+        self.klass = klass
+
+    def __str__(self):
+        return ("klass '%s' cannot be registered in VisTrails. Please" +
+                " consult the documentation." % klass.__name__)
+
 ################################################################################
 
 # Only works for functions with NO kwargs!
