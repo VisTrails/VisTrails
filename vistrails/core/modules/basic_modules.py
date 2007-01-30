@@ -26,6 +26,8 @@ from core.modules import module_configure
 from core.modules import module_registry
 from core.modules import port_configure
 from core.modules import vistrails_module
+from core.modules.vistrails_module import Module, newModule, \
+     NotCacheable, ModuleError
 import core.system
 import os
 import zipfile
@@ -34,12 +36,12 @@ _reg = module_registry.registry
 
 ###############################################################################
 
-class Constant(vistrails_module.Module):
+class Constant(Module):
     """Base class for all Modules that represent a constant value of
     some type."""
     
     def __init__(self):
-        vistrails_module.Module.__init__(self)
+        Module.__init__(self)
         self.value = None
         self.addRequestPort("value_as_string", self.valueAsString)
 
@@ -50,6 +52,8 @@ class Constant(vistrails_module.Module):
             v = self.getInputFromPort("value")
         else:
             v = self.value
+
+        # TODO: This is a bogus check ('except: pass' is bad). Fix it.
         try:
             b = isinstance(v, self.convert)
         except:
@@ -62,14 +66,14 @@ class Constant(vistrails_module.Module):
     def setValue(self, v):
         self.value = self.convert(v)
     
-    def __str__(self):
-        if not self.upToDate:
-            return str(self.value)
-        else:
-            return str(self.getOutput("value"))
+#     def __str__(self):
+#         if not self.upToDate:
+#             return str(self.value)
+#         else:
+#             return str(self.getOutput("value"))
 
     def valueAsString(self):
-        return str(self)
+        return str(self.value)
 
 _reg.addModule(Constant)
 
@@ -88,7 +92,7 @@ def new_constant(name, conversion):
         Constant.__init__(self)
         self.convert = conversion
     
-    m = vistrails_module.newModule(Constant, name, {'__init__': __init__})
+    m = newModule(Constant, name, {'__init__': __init__})
     module_registry.registry.addModule(m)
     module_registry.registry.addInputPort(m, "value", m)
     module_registry.registry.addOutputPort(m, "value", m)
@@ -111,7 +115,7 @@ _reg.addOutputPort(Constant, "value_as_string", String)
 
 ##############################################################################
 
-class File(vistrails_module.Module):
+class File(Module):
     """File is a VisTrails Module that represents a file stored on a
     file system local to the machine where VisTrails is running."""
 
@@ -128,7 +132,7 @@ _reg.addOutputPort(File, "local_filename", String)
 
 ##############################################################################
 
-class FileSink(vistrails_module.Module):
+class FileSink(NotCacheable, Module):
     """FileSink is a VisTrails Module that takes a file and writes it
     in a user-specified location in the file system."""
 
@@ -147,10 +151,10 @@ class FileSink(vistrails_module.Module):
                     core.system.link_or_copy(v1.name, v2)
                 except OSError:
                     msg = "(override true) Could not create file '%s'" % v2
-                    raise vistrails_module.ModuleError(self, v2)
+                    raise ModuleError(self, v2)
             else:
                 msg = "Could not create file '%s': %s" % (v2, e)
-                raise vistrails_module.ModuleError(self, msg)
+                raise ModuleError(self, msg)
 
 _reg.addModule(FileSink)
 _reg.addInputPort(FileSink,  "file", File)
@@ -159,7 +163,7 @@ _reg.addInputPort(FileSink,  "overrideFile", Boolean)
 
 ##############################################################################
 
-# class OutputWindow(vistrails_module.Module):
+# class OutputWindow(Module):
     
 #     def compute(self):
 #         v = self.getInputFromPort("value")
@@ -171,11 +175,11 @@ _reg.addInputPort(FileSink,  "overrideFile", Boolean)
 #Removing Output Window because it does not work with current threading
 #reg.addModule(OutputWindow)
 #reg.addInputPort(OutputWindow, "value",
-#                               vistrails_module.Module)
+#                               Module)
 
 ##############################################################################
 
-class StandardOutput(vistrails_module.Module):
+class StandardOutput(NotCacheable, Module):
     """StandardOutput is a VisTrails Module that simply prints the
     value connected on its port to standard output. It is intended
     mostly as a debugging device."""
@@ -185,14 +189,14 @@ class StandardOutput(vistrails_module.Module):
         print v
 
 _reg.addModule(StandardOutput)
-_reg.addInputPort(StandardOutput, "value", vistrails_module.Module)
+_reg.addInputPort(StandardOutput, "value", Module)
 
 ##############################################################################
 
 # Tuple will be reasonably magic right now. We'll integrate it better
 # with vistrails later.
 # TODO: Check Tuple class, test, integrate.
-class Tuple(vistrails_module.Module):
+class Tuple(Module):
     """Tuple represents a tuple of values. Tuple might not be well
     integrated with the rest of VisTrails, so don't use it unless
     you know what you're doing."""
@@ -205,7 +209,7 @@ _reg.addModule(Tuple)
 ##############################################################################
 
 # TODO: Create a better Module for ConcatenateString.
-class ConcatenateString(vistrails_module.Module):
+class ConcatenateString(Module):
     """ConcatenateString takes many strings as input and produces the
     concatenation as output. Useful for constructing filenames, for
     example.
@@ -234,7 +238,7 @@ _reg.addOutputPort(ConcatenateString, "value", String)
 ##############################################################################
 
 # TODO: Create a better Module for List.
-class List(vistrails_module.Module):
+class List(Module):
     """List represents a single cons cell of a linked list.
 
     This class will probably be replaced with a better API in the
@@ -256,14 +260,14 @@ class List(vistrails_module.Module):
 
 _reg.addModule(List)
 
-_reg.addInputPort(List, "head", vistrails_module.Module)
+_reg.addInputPort(List, "head", Module)
 _reg.addInputPort(List, "tail", List)
 _reg.addOutputPort(List, "value", List)
 
 ##############################################################################
 
 # TODO: Null should be a subclass of Constant?
-class Null(vistrails_module.Module):
+class Null(Module):
     """Null is the class of None values."""
     
     def compute(self):
@@ -273,7 +277,7 @@ _reg.addModule(Null)
 
 ##############################################################################
 
-class PythonSource(vistrails_module.Module):
+class PythonSource(NotCacheable, Module):
     """PythonSource is a Module that executes an arbitrary piece of
     Python code.
     
@@ -290,7 +294,7 @@ _reg.addInputPort(PythonSource, 'source', String, True)
 
 ##############################################################################
 
-class TestPortConfig(vistrails_module.Module):
+class TestPortConfig(Module):
     
     def compute(self):
         pass
@@ -332,7 +336,7 @@ it avoids moving the entire file contents to/from memory."""
                        self._output_filename))
             
 
-class Unzip(vistrails_module.Module):
+class Unzip(Module):
     """Unzip extracts a file from a ZIP archive."""
 
     def compute(self):
