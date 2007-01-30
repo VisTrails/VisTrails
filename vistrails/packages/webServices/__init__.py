@@ -50,9 +50,6 @@ class WebService(Module):
     def runMethod(self, methodName, *args):
         return getattr(self.server,methodName)(*args)
 
-    def __str__(self):
-        return "webservice"
-
 def webServiceNameMethodDict():
     """ This returns the method dictionary for the web service address base
     class. """
@@ -81,12 +78,7 @@ def webServiceParamsMethodDict(name, inparams, outparams):
         self.setResult(outparams[0].name,r)
         #print r # just for debugging
 
-    def __str__(self):
-        v = self.getOutput(outparams[0].name)
-        return str(v)
-
-    return {'compute':compute, 
-            '__str__':__str__}
+    return {'compute':compute}
 
 # wsdlTypesDict will store the correspondence between WSDL basic types and 
 # visTrails Modules basic types
