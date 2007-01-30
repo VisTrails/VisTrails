@@ -29,6 +29,13 @@ from core.utils import VistrailsInternalError
 
 ################################################################################
 
+class NotCacheable(object):
+
+    def is_cacheable(self):
+        return False
+
+################################################################################
+
 class FilePool(object):
 
     """FilePool provides a convenient interface for Module developers to
