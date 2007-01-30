@@ -2,7 +2,9 @@ class Bidict(dict):
     """Subclass of mapping that automatically keeps track of the
 inverse mapping. Note: self.inverse is a simple dict, so it won't keep
 track of deletions directly to self.inverse and things like that. Use
-this for lookups ONLY!"""
+this for lookups ONLY!. Also, if mapping is not bijective, there's no
+guarantee the inverse mapping will be consistent (particularly in the
+presence of deletions.)"""
 
     def __init__(self, *args, **kwargs):
 
@@ -18,7 +20,10 @@ this for lookups ONLY!"""
     def __delitem__(self, key):
         v = self[key]
         dict.__delitem__(self, key)
-        del self.inverse[v]
+        # Might not be true if mapping was not bijective
+        if v in self.inverse:
+            del self.inverse[v]
+            
 
 ##############################################################################
 
@@ -36,6 +41,14 @@ class TestBidict(unittest.TestCase):
         del x[1]
         self.assertRaises(KeyError, x.__getitem__, 1)
         self.assertRaises(KeyError, x.inverse.__getitem__, 8)
-        
+
+    def testNonBijective(self):
+        """Tests resilience (not correctness!) under non-bijectiveness."""
+        x = Bidict()
+        x[1] = 2
+        x[3] = 2
+        del x[1]
+        del x[3]
+
 if __name__ == '__main__':
     unittest.main()
