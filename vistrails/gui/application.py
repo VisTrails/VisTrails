@@ -24,6 +24,7 @@ initializations to the theme, packages and the builder...
 
 """
 
+
 from PyQt4 import QtGui, QtCore
 from core import command_line
 from core import debug
@@ -33,8 +34,8 @@ from core.utils import InstanceObject
 from gui import qt
 from gui.builder_window import QBuilderWindow
 from gui.theme import CurrentTheme
-
 import copy
+import core.interpreter.cached
 import core.system
 import gui.bookmark_window
 import gui.theme
@@ -510,6 +511,7 @@ and ~/.vistrails/startup.py does not exist.""")
         global logger
         if logger:
             logger.finishSession()
+        core.interpreter.cached.CachedInterpreter.cleanup()
 
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
