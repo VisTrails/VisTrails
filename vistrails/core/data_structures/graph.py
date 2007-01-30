@@ -285,8 +285,18 @@ shares with self.)
 
         # Ugly ugly python
         # http://mail.python.org/pipermail/python-list/2006-April/378964.html
+
+        # We cannot explicitly "del data":
+        # http://www.python.org/dev/peps/pep-0227/
+        
         class Closure(object):
-            pass
+            
+            def clear(self):
+                del self.color
+                del self.discovery
+                del self.parent
+                del self.finish
+                del self.t
         
         # Straight CLRS p.541
         White = 0
@@ -318,7 +328,10 @@ shares with self.)
         for vertex in vertex_set:
             if data.color[vertex] == White:
                 visit(vertex)
-        return (data.discovery, data.parent, data.finish)
+
+        result = (data.discovery, data.parent, data.finish)
+        data.clear()
+        return result
         
 
     def parent(self, v):
