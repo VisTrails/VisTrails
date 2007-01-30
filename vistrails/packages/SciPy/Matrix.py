@@ -33,9 +33,6 @@ class Matrix(SciPy):
     def __init__(self, mat):
         self.matrix=mat
 
-    def __str__(self):
-        return self.matrix.__str__()
-
     def setSize(self, size):
         pass
 
