@@ -131,6 +131,19 @@ Designing New Modules
         self.upToDate = False
         self.setResult("self", self) # every object can return itself
 
+    def clear(self):
+        """clear(self) -> None. Removes all references, prepares for
+deletion."""
+        for connector_list in self.inputPorts.itervalues():
+            for connector in connector_list:
+                print type(connector)
+                connector.clear()
+        self.inputPorts = {}
+        self.outputPorts = {}
+        self.outputRequestTable = {}
+        if hasattr(self, "logging"):
+            del self.logging
+
     def is_cacheable(self):
         """is_cacheable() -> bool. A Module should return whether it
 can be reused across executions. It is safe for a Module to return
@@ -241,9 +254,16 @@ class NotCacheable(object):
 ################################################################################
 
 class ModuleConnector(object):
+    
     def __init__(self, obj, port):
         self.obj = obj
         self.port = port
+
+    def clear(self):
+        """clear() -> None. Removes references, prepares for deletion."""
+        self.obj = None
+        self.port = None
+    
     def __call__(self):
         return self.obj.getOutput(self.port)
 
