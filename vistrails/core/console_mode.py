@@ -21,7 +21,7 @@
 ############################################################################
 """ Module used when running  vistrails uninteractively """
 from core import xml_parser
-from core import interpreter
+import core.interpreter.default
 from core.utils import VistrailsInternalError
 
 ################################################################################
@@ -60,12 +60,12 @@ def run(input, workflow):
 
     error = False
     view = DummyView()
-    pip.resolveAliases()
-    (objs, errors, executed) = interpreter.Interpreter().execute(pip,
-                                                       input,
-                                                       version,
-                                                       view,
-                                                       None)
+    interpreter = core.interpreter.default.default_interpreter.get()
+    (objs, errors, executed) = interpreter.execute(pip,
+                                                   input,
+                                                   version,
+                                                   view,
+                                                   None)
     for obj in objs.itervalues():
         i = obj.id
         if errors.has_key(i):
