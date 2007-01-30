@@ -44,6 +44,11 @@ class vtkBaseModule(Module):
         Module.__init__(self)
         self.vtkInstance = None
 
+    def is_cacheable(self):
+        # VTK objects are by default cacheable only if they're subclasses
+        # of vtkAlgorithm
+        return issubclass(self.vtkClass, vtk.vtkAlgorithm)
+
     def compute(self):
         """ compute() -> None
         Actually perform real VTK task by directing all input/output ports
