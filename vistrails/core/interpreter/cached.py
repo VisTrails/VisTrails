@@ -1,3 +1,25 @@
+############################################################################
+##
+## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+##
+## This file is part of VisTrails.
+##
+## This file may be used under the terms of the GNU General Public
+## License version 2.0 as published by the Free Software Foundation
+## and appearing in the file LICENSE.GPL included in the packaging of
+## this file.  Please review the following to ensure GNU General Public
+## Licensing requirements will be met:
+## http://www.opensource.org/licenses/gpl-license.php
+##
+## If you are unsure which license is appropriate for your use (for
+## instance, you are interested in developing a commercial derivative
+## of VisTrails), please contact us at vistrails@sci.utah.edu.
+##
+## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+##
+############################################################################
+
 from core import modules
 from core.data_structures import Bidict
 from core.modules.module_utils import FilePool
@@ -18,8 +40,14 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         self._objects = {}
         self._executed = {}
         self.filePool = self._file_pool
+
     def clear(self):
         self._file_pool.cleanup()
+        self._persistent_pipeline.clear()
+        for obj in self._objects.itervalues():
+            obj.clear()
+        self._objects = {}
+        self._executed = {}
 
     def __del__(self):
         self.clear()
@@ -274,6 +302,9 @@ all connection ids added to the persistent pipeline."""
     @staticmethod
     def cleanup():
         if CachedInterpreter.__instance:
-            del CachedInterpreter.__instance
+            CachedInterpreter.__instance.clear()
+        import gc
+        objs = gc.collect()
+        print "Number of objects collected:", objs
 
 ##############################################################################
