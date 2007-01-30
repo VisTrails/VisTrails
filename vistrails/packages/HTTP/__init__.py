@@ -37,8 +37,12 @@ import os.path
 import sys
 import time
 import urllib
+import socket
 
 package_directory = None
+
+# TODO: When network is down, HTTPFile should log the fact that it used the
+# local cache regardless.
 
 ###############################################################################
 
@@ -83,33 +87,45 @@ class HTTPFile(HTTP):
         remoteTuple = (yr, mon, day, t[0], t[1], t[2])
         localTuple = (ltime[0], ltime[1], ltime[2], ltime[3], ltime[4], ltime[5])
         return remoteTuple > localTuple
+
+    def _file_is_in_local_cache(self, local_filename):
+        return os.path.isfile(local_filename)
     
     def compute(self):
         self.checkInputPort('url')
         url = self.getInputFromPort("url")
         self.parse_url(url)
         conn = httplib.HTTPConnection(self.host)
-        conn.request("GET", self.filename)
-        response = conn.getresponse()
-        mod = response.msg.getheader('last-modified')
         local_filename = package_directory + '/' + urllib.quote_plus(url)
-        result = core.modules.basic_modules.File()
-        result.name = local_filename
-        if (not os.path.isfile(local_filename) or
-            not mod or
-            self.is_outdated(mod, local_filename)):
-            # FIXME: This is bad for large files
-            data = response.read()
-            try:
-                fn = file(local_filename, "w")
-            except:
-                raise ModuleError(self, ("Could not create local file '%s'" %
-                                         local_filename))
-            fn.write(data)
-            fn.close()
-        conn.close()
-        self.setResult("file", result)
         self.setResult("local_filename", local_filename)
+        try:
+            conn.request("GET", self.filename)
+        except socket.gaierror, e:
+            if self._file_is_in_local_cache(local_filename):
+                result = core.modules.basic_modules.File()
+                result.name = local_filename
+                self.setResult("file", result)
+            else:
+                raise ModuleError(self, e[1])
+        else:
+            response = conn.getresponse()
+            mod_header = response.msg.getheader('last-modified')
+            result = core.modules.basic_modules.File()
+            result.name = local_filename
+            if (not self._file_is_in_local_cache(local_filename) or
+                not mod_header or
+                self.is_outdated(mod_header, local_filename)):
+                # FIXME: This is bad for large files
+                data = response.read()
+                try:
+                    fn = file(local_filename, "w")
+                except:
+                    raise ModuleError(self, ("Could not create local file '%s'" %
+                                             local_filename))
+                fn.write(data)
+                fn.close()
+            conn.close()
+            self.setResult("file", result)
 
 def initialize(*args, **keywords):
     reg = core.modules.module_registry
