@@ -98,10 +98,11 @@ Designing New Modules
     output like uploading a file on the WWW or writing a file to a
     local hard drive). These modules should probably not be cached at
     all. VisTrails provides an easy way for modules to report that
-    they should not be cached: simply override the method
-    is_cacheable() so that it returns False in the case the module is
-    not cacheable. These modules (and anything connected to them) will
-    never be reused.
+    they should not be cached: simply subclass from the NotCacheable
+    mixin provided in this python module. (NB: In order for the mixin
+    to work appropriately, NotCacheable must appear *BEFORE* any other
+    subclass in the class hierarchy declarations). These modules (and
+    anything that depends on their results) will then never be reused.
 
 
   Intermediate Files
@@ -131,8 +132,11 @@ Designing New Modules
         self.setResult("self", self) # every object can return itself
 
     def is_cacheable(self):
-        """is_cacheable() -> bool. A Module should return False if
-it's not to be cached at all across executions."""
+        """is_cacheable() -> bool. A Module should return whether it
+can be reused across executions. It is safe for a Module to return
+different values in different occasions. In other words, it is
+possible for modules to be cacheable depending on their execution
+context."""
         return True
 
     def update(self):
@@ -222,8 +226,17 @@ Makes sure input port 'name' is filled."""
 
     ### Set an output port before hand that it is neccesary for the computation
     def enableOutputPort(self, outputPort):
-        if outputPort!='self':
+        # Don't reset existing values, it screws up the caching.
+        if not self.outputPorts.has_key(outputPort):
             self.setResult(outputPort, None)
+
+
+################################################################################
+
+class NotCacheable(object):
+
+    def is_cacheable(self):
+        return False
 
 ################################################################################
 
