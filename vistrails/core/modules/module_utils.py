@@ -74,9 +74,6 @@ avoid race conditions, this file will already exist in the file system."""
         self.files[name] = result
         return result
 
-    def __del__(self):
-        self.cleanup()
-
     def guess_suffix(self, file_name):
         """guess_suffix(file_name) -> String.
 
