@@ -71,8 +71,11 @@ def webServiceParamsMethodDict(name, inparams, outparams):
             pname = str(inparams[i].name)
             type = str(inparams[i].type)
             v.append(self.getInputFromPort(pname))
-        
-        r = self.runMethod(name,*(v)) 
+        try:
+            r = self.runMethod(name,*(v)) 
+        except SOAPpy.Errors.HTTPError, e:
+            raise ModuleError(self, """The server couldn't fulfill the request.
+            Error Message: '%s'""" % e)
         self.inparams = inparams
         self.outparams = outparams
         self.setResult(outparams[0].name,r)
