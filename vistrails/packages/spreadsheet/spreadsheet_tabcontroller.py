@@ -25,7 +25,7 @@
 ################################################################################
 import os.path
 from PyQt4 import QtCore, QtGui
-from core.interpreter import Interpreter
+from core.interpreter.default import default_interpreter
 from core.xml_parser import XMLParser
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_tab import (StandardWidgetTabBar,
@@ -598,7 +598,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                     parser.openVistrail(vistrailFileName)
                     vistrail = parser.getVistrail()
                     pipeline = vistrail.getPipeline(version)
-                    execution = Interpreter()
+                    execution = default_interpreter.get()
                     progress.setValue(pipelineIdx)
                     QtCore.QCoreApplication.processEvents()
                     if progress.wasCanceled():
