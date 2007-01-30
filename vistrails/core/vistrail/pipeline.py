@@ -44,14 +44,19 @@ class Pipeline(object):
         Initializes modules, connections and graph.
 
         """
+        self.clear()
+
+    def clear(self):
+        """clear() -> None. Erases pipeline contents."""
+        self.graph = Graph()
         self.modules = {}
         self.connections = {}
-        self.graph = Graph()
         self._subpipeline_signatures = Bidict()
         self._module_signatures = Bidict()
         self._connection_signatures = Bidict()
         self._fresh_module_id = 0
         self._fresh_connection_id = 0
+
 
     def checkConnection(self, c):
         """checkConnection(c: Connection) -> boolean 
