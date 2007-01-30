@@ -116,9 +116,19 @@ class Pipeline(object):
         """
         if not self.hasModuleWithId(id):
             raise VistrailsInternalError("id missing in modules")
+        adj = copy.copy(self.graph.adjacencyList[id])
+        inv_adj = copy.copy(self.graph.inverseAdjacencyList[id])
+        for (_, conn_id) in adj:
+            self.deleteConnection(conn_id)
+        for (_, conn_id) in inv_adj:
+            self.deleteConnection(conn_id)
         self.modules.pop(id)
         self.graph.deleteVertex(id)
-        
+        if id in self._module_signatures:
+            del self._module_signatures[id]
+        if id in self._subpipeline_signatures:
+            del self._subpipeline_signatures[id]
+
     def addModule(self, m):
         """addModule(m: Module) -> None 
         Add new module to pipeline
@@ -141,6 +151,8 @@ class Pipeline(object):
         conn = self.connections[id]
         self.connections.pop(id)
         self.graph.deleteEdge(conn.sourceId, conn.destinationId, conn.id)
+        if id in self._connection_signatures:
+            del self._connection_signatures[id]
         
     def addConnection(self, c):
         """addConnection(c: Connection) -> None 
@@ -212,109 +224,6 @@ class Pipeline(object):
                                in self.connections.iteritems()])
         cp.graph = copy.copy(self.graph)
         return cp
-
-    def getNameDependencies(self, astList):
-        """getNameDependencies(astList) -> list of something 
-        
-        """
-        
-        result = []
-        if astList[0]==1: # NAME token
-            result += [astList[1]]
-        else:
-            for e in astList:
-                if type(e) is ListType:
-                    result += self.getNameDependencies(e)
-        return result
-
-    def buildAliasDictionary(self):
-        aliases = {}
-        for mid in self.modules:
-            for f in self.modules[mid].functions:
-                fsig = f.getSignature()
-                for pidx in range(len(f.params)):
-                    palias = f.params[pidx].alias
-                    if palias and palias!='':
-                        for f1 in reversed(self.modules[mid].functions):
-                            if f1.getSignature()==fsig:
-                                p = f1.params[pidx]
-                                aliases[palias] = (p.type, expression.parseExpression(str(p.strValue)))
-                                break
-        return aliases
-
-    def computeEvaluationOrder(self, aliases):
-        # Build the dependencies graph
-        import parser        
-        dp = {}
-        for alias,(atype,(base,exp)) in aliases.items():
-            edges = []
-            for e in exp:
-                edges += self.getNameDependencies(parser.expr(e[1]).tolist())
-            dp[alias] = edges
-            
-        # Topological Sort to find the order to compute aliases
-        # Just a slow implementation, O(n^3)...
-        unordered = copy.copy(list(aliases.keys()))
-        ordered = []
-        while unordered:
-            added = []
-            for i in range(len(unordered)):
-                ok = True
-                u = unordered[i]
-                for j in range(len(unordered)):
-                    if i!=j:
-                        for v in dp[unordered[j]]:
-                            if u==v:
-                                ok = False
-                                break
-                        if not ok: break
-                if ok: added.append(i)
-            if not added:
-                print 'Looping dependencies detected!'
-                break
-            for i in reversed(added):
-                ordered.append(unordered[i])
-                del unordered[i]
-        return ordered
-
-    def evaluateExp(self, atype, base, exps, aliases):
-        import datetime        
-        for e in exps: base = (base[:e[0]] +
-                               str(eval(e[1],
-                                        {'datetime':locals()['datetime']},
-                                        aliases)) +
-                               base[e[0]:])
-        if not atype in ['string', 'String']:
-            if base=='':
-                base = '0'
-            base = eval(base,None,None)
-        return base
-
-    def resolveAliases(self, customAliases=None):
-        # Compute the 'locals' dictionary by evaluating named expressions
-        if not customAliases:
-            aliases = self.buildAliasDictionary()
-        else:
-            aliases = copy.copy(customAliases)
-        ordered = self.computeEvaluationOrder(aliases)
-        casting = {'int': int, 'float': float, 'double': float, 'string': str,
-                   'Integer': int, 'Float': float, 'String': str}
-        for alias in reversed(ordered):
-            (atype,(base,exps)) = aliases[alias]
-            value = self.evaluateExp(atype,base,exps,aliases)
-            aliases[alias] = casting[atype](value)
-
-        for mid in self.modules:
-            for f in self.modules[mid].functions:
-                for p in f.params:
-                    if p.alias and p.alias!='':
-                        p.evaluatedStrValue = str(aliases[p.alias])
-                    else:
-                        (base,exps) = expression.parseExpression(
-                            str(p.strValue))
-                        p.evaluatedStrValue = str(
-                            self.evaluateExp(p.type,base,exps,aliases))
-        return aliases
 
     ##########################################################################
     # Caching-related
@@ -391,7 +300,7 @@ for this pipeline."""
         for i in self.modules.iterkeys():
             self.subpipeline_signature(i)
         for c in self.connections.iterkeys():
-            self.connection_signature(i)
+            self.connection_signature(c)
 
 ################################################################################
 
@@ -403,7 +312,7 @@ from core.vistrail.connection import Connection
 
 class TestPipeline(unittest.TestCase):
 
-    def setUp(self):
+    def create_default_pipeline(self):
         
         p = Pipeline()
 
@@ -456,8 +365,6 @@ class TestPipeline(unittest.TestCase):
             m.name = 'PythonCalc'
             m.functions.append(f1())
             return m
-        
-        self.pipeline = p
         m1 = module1(p)
         p.addModule(m1)
         m2 = module1(p)
@@ -485,10 +392,39 @@ class TestPipeline(unittest.TestCase):
         c2.id = p.fresh_connection_id()
 
         p.addConnection(c2)
-        self.sink_id = m3.id
+        p.compute_signatures()
+        return p
 
-    def test_create_pipeline(self):
+    def setUp(self):
+        self.pipeline = self.create_default_pipeline()
+        self.sink_id = 2
+
+    def test_create_pipeline_signature(self):
         self.pipeline.subpipeline_signature(self.sink_id)
+
+    def test_delete_signatures(self):
+        """Makes sure signatures are deleted when other things are."""
+        p = self.create_default_pipeline()
+        m_sig_size_before = len(p._module_signatures)
+        c_sig_size_before = len(p._connection_signatures)
+        p_sig_size_before = len(p._subpipeline_signatures)
+        p.deleteModule(0)
+        m_sig_size_after = len(p._module_signatures)
+        c_sig_size_after = len(p._connection_signatures)
+        p_sig_size_after = len(p._subpipeline_signatures)
+        self.assertNotEquals(m_sig_size_before, m_sig_size_after)
+        self.assertNotEquals(c_sig_size_before, c_sig_size_after)
+        self.assertNotEquals(p_sig_size_before, p_sig_size_after)
+
+    def test_delete_connections(self):
+        p = self.create_default_pipeline()
+        p.deleteModule(2)
+        self.assertEquals(len(p.connections), 0)
+
+    def test_basic(self):
+        """Makes sure pipeline can be created, modules and connections
+        can be added and deleted."""
+        p = self.create_default_pipeline()
 
 if __name__ == '__main__':
     unittest.main()
