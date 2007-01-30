@@ -33,7 +33,7 @@ from core.vistrail.pipeline import Pipeline
 from core.vistrail.module_param import VistrailModuleType
 import copy
 import os.path
-import core.interpreter
+from core.interpreter.default import default_interpreter
 
 ################################################################################
 
@@ -67,10 +67,9 @@ class VistrailController(QtCore.QObject):
         self.refine = False
         self.changed = False
         self.fullTree = False
-        self.interpreter = core.interpreter.CachedInterpreter()
 
     def cleanup(self):
-        self.interpreter.clear()
+        pass
 
     def setVistrail(self, vistrail, name):
         """ setVistrail(vistrail: Vistrail) -> None
@@ -193,7 +192,7 @@ class VistrailController(QtCore.QObject):
         self.performAction(action)
 
     def executeWorkflowList(self, vistrails):
-        interpreter = core.interpreter.Interpreter()
+        interpreter = default_interpreter.get()
         for vis in vistrails:
             (name, version, pipeline, view, logger) = vis
             (objs, errors, executed) = interpreter.execute(pipeline, name, version, view, logger)
