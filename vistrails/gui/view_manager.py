@@ -105,6 +105,7 @@ class QViewManager(QtGui.QTabWidget):
                 del self.splittedViews[view]
             view.controller.cleanup()
             view.close()
+            view.deleteLater()
 
     def moduleSelectionChange(self, selection):
         """ moduleSelectionChange(selection: list[id]) -> None
