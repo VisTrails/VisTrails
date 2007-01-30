@@ -114,11 +114,14 @@ shares with self.)
         -- id : 'immutable' vertex id
           
         """
+        for (origin, edge_id) in self.inverseAdjacencyList[id]:
+            t = (id, edge_id)
+            self.adjacencyList[origin].remove(t)
         self.adjacencyList.pop(id)
         self.inverseAdjacencyList.pop(id)
         self.vertices.pop(id)
         
-    def deleteEdge(self, froom, to, id):
+    def deleteEdge(self, froom, to, id=None):
         """ deleteEdge(froom: id type, to: id type, id: id type) -> None
         Remove an edge from graph and return nothing
 
@@ -129,8 +132,6 @@ shares with self.)
           
         """
         if id == None:
-            ids_froom = []
-            ids_to = []
             efroom = self.adjacencyList[froom]
             for edge in efroom:
                 if edge[0] == to:
@@ -200,9 +201,10 @@ shares with self.)
         """
         vs = self.vertices.keys()
         vs.sort()
-        al = reduce(lambda a,b: a + b,
-                    [map(lambda (t, i): (f, t, i), l)
-                     for (f, l) in self.adjacencyList.items()])
+        al = []
+        for i in [map(lambda (t, i): (f, t, i), l)
+                  for (f, l) in self.adjacencyList.items()]:
+            al.extend(i)
         al.sort(edge_cmp)
         return "digraph G { " \
                + ";".join([str(s) for s in vs]) + ";" \
@@ -271,10 +273,15 @@ shares with self.)
                     visited.add(to)
         return parent
 
-    def dfs(self):
-        """ dfs(self) -> (discovery, parent, finish)
+    def dfs(self,vertex_set=None):
+        """ dfs(self,vertex_set=None) -> (discovery, parent, finish)
         Performs a depth-first search on a graph and returns three dictionaries with
-        relevant information. See CLRS p. 541. """
+        relevant information. If vertex_set is not None, then it is used as
+        the list of ids to perform the DFS on.
+        See CLRS p. 541. """
+
+        if not vertex_set:
+            vertex_set = self.vertices
 
         # Ugly ugly python
         # http://mail.python.org/pipermail/python-list/2006-April/378964.html
@@ -297,16 +304,18 @@ shares with self.)
             data.t += 1
             data.discovery[u] = data.t
             for (v, edge_id) in self.adjacencyList[u]:
+                if not v in data.color:
+                    data.color[v] = White
                 if data.color[v] == White:
                     data.parent[v] = u
                     visit(v)
             data.color[u] = Black
             data.t += 1
             data.finish[u] = data.t
-            
-        for vertex in self.vertices:
+
+        for vertex in vertex_set:
             data.color[vertex] = White
-        for vertex in self.vertices:
+        for vertex in vertex_set:
             if data.color[vertex] == White:
                 visit(vertex)
         return (data.discovery, data.parent, data.finish)
@@ -329,13 +338,14 @@ shares with self.)
         else: froom=0
         return froom
     
-    def vertices_topological_sort(self):
-        """ vertices_topological_sort(self) ->
-sequence(vertices) Returns an iterator for a sequence of all vertices,
-so that they are in reverse topological sort order (every node
-traversed is such that their parent nodes have already been traversed)
+    def vertices_topological_sort(self,vertex_set=None):
+        """ vertices_topological_sort(self,vertex_set=None) ->
+sequence(vertices) Returns a sequence of all vertices, so that they
+are in topological sort order (every node traversed is such that their
+parent nodes have already been traversed). vertex_set is optionally a
+list of vertices on which to perform the topological sort.
         """
-        (d, p, f) = self.dfs()
+        (d, p, f) = self.dfs(vertex_set)
         lst = [(v, k) for (k,v) in f.iteritems()]
         lst.sort()
         lst.reverse()
@@ -377,6 +387,20 @@ class TestGraph(unittest.TestCase):
      consistencies.
     
      """
+
+     def get_default_graph(self):
+         g = Graph()
+         g.addVertex(0)
+         g.addVertex(1)
+         g.addVertex(2)
+         g.addVertex(3)
+         g.addVertex(4)
+         g.addEdge(0,1,0)
+         g.addEdge(1,2,1)
+         g.addEdge(0,3,2)
+         g.addEdge(3,2,3)
+         g.addEdge(2,4,4)
+         return g
      
      def test1(self):
          """Test adding edges and vertices"""
@@ -395,17 +419,7 @@ class TestGraph(unittest.TestCase):
 
      def test2(self):
          """Test bread-first-search"""
-         g = Graph()
-         g.addVertex(0)
-         g.addVertex(1)
-         g.addVertex(2)
-         g.addVertex(3)
-         g.addVertex(4)
-         g.addEdge(0,1,0)
-         g.addEdge(1,2,1)
-         g.addEdge(0,3,2)
-         g.addEdge(3,2,3)
-         g.addEdge(2,4,4)
+         g = self.get_default_graph()
          p = g.bfs(0)
          k = p.keys()
          k.sort()
@@ -432,33 +446,43 @@ class TestGraph(unittest.TestCase):
 
      def testDFS(self):
          """Test DFS on graph."""
-         g = Graph()
-         g.addVertex(0)
-         g.addVertex(1)
-         g.addVertex(2)
-         g.addVertex(3)
-         g.addVertex(4)
-         g.addEdge(0,1,0)
-         g.addEdge(1,2,1)
-         g.addEdge(0,3,2)
-         g.addEdge(3,2,3)
-         g.addEdge(2,4,4)
+         g = self.get_default_graph()
          g.dfs()
 
      def testTopologicalSort(self):
          """Test toposort on graph."""
+         g = self.get_default_graph()
+         g.vertices_topological_sort()
+
+     def testLimitedDFS(self):
+         """Test DFS on graph using a limited set of starting vertices."""
+         g = self.get_default_graph()
+         g.dfs(vertex_set=[1])
+         g.dfs(vertex_set=[1,3])
+         g.dfs(vertex_set=[1,2])
+
+     def testLimitedTopologicalSort(self):
+         """Test toposort on graph using a limited set of starting vertices."""
+         g = self.get_default_graph()
+         g.vertices_topological_sort(vertex_set=[1])
+         g.vertices_topological_sort(vertex_set=[1,3])
+         g.vertices_topological_sort(vertex_set=[1,2])
+
+     def testPrintEmptyGraph(self):
+         """Test print on empty graph"""
+         g = Graph()
+         g.__str__()
+
+     def testDelete(self):
+         """Tests consistency of data structure after deletion."""
          g = Graph()
          g.addVertex(0)
          g.addVertex(1)
          g.addVertex(2)
-         g.addVertex(3)
-         g.addVertex(4)
-         g.addEdge(0,1,0)
-         g.addEdge(1,2,1)
-         g.addEdge(0,3,2)
-         g.addEdge(3,2,3)
-         g.addEdge(2,4,4)
-         g.vertices_topological_sort()
+         g.addEdge(0, 1, 0)
+         g.addEdge(1, 2, 1)
+         g.deleteVertex(2)
+         self.assertEquals(g.adjacencyList[1], [])
 
 if __name__ == '__main__':
     unittest.main()
