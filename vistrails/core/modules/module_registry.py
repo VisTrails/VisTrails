@@ -21,7 +21,8 @@
 ############################################################################
 from PyQt4 import QtCore
 
-from core.utils import VistrailsInternalError, memo_method, all
+from core.utils import VistrailsInternalError, memo_method, all, \
+     InvalidModuleClass
 import __builtin__
 import copy
 import core.debug
@@ -41,9 +42,9 @@ class ModuleDescriptor(object):
         if not name:
             name = module.__name__
         self.module = module
-        if (len(self.module.__bases__) > 0 and
-            self.module.__bases__[0] != object):
-            base = self.module.__bases__[0]
+        candidates = ModuleRegistry.get_subclass_candidates(self.module)
+        if len(candidates) > 0:
+            base = candidates[0]
             self.baseDescriptor = registry.getDescriptor(base)
         else:
             self.baseDescriptor = None
@@ -169,8 +170,11 @@ pipelines."""
             name = module.__name__
         import time
         assert not self.moduleTree.has_key(name)
-        assert len(module.__bases__) == 1
-        baseClass = module.__bases__[0]
+        # try to eliminate mixins
+        candidates = self.get_subclass_candidates(module)
+        if len(candidates) != 1:
+            raise InvalidModuleClass(module)
+        baseClass = candidates[0]
         assert (self.moduleName.has_key(baseClass),
                 ("Missing base class %s" % baseClass.__name__))
         baseName = self.moduleName[baseClass]
@@ -404,10 +408,11 @@ connection connecting these two ports."""
                     return True
         return False
 
-
     def getModuleHierarchy(self, thing):
         descriptor = self.getDescriptorByThing(thing)
-        return descriptor.module.mro()[:-1]
+        return [klass
+                for klass in descriptor.module.mro()
+                if issubclass(klass, core.modules.vistrails_module.Module)]
 
     def getPortConfigureWidgetType(self, moduleName, portName):
         moduleDescriptor = self.getDescriptorByName(moduleName)
@@ -471,6 +476,17 @@ ports."""
         port.spec = registry.makeSpec(port, portSpec, localRegistry, loose)
         return port
 
+    @staticmethod
+    def get_subclass_candidates(module):
+        """get_subclass_candidates(module) -> [class]
+
+Tries to eliminate irrelevant mixins for the hierarchy. Returns all
+base classes that subclass from Module."""
+        return [klass
+                for klass in module.__bases__
+                if issubclass(klass,
+                              core.modules.vistrails_module.Module)]
+
 ###############################################################################
 
 class Tree(object):
@@ -481,7 +497,7 @@ class Tree(object):
         self.parent = None
 
     def addModule(self, submodule):
-        assert submodule.__bases__[0] == self.descriptor.module
+        assert self.descriptor.module in submodule.__bases__
         result = Tree(submodule)
         result.parent = self
         self.children.append(result)
