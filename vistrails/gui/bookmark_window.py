@@ -271,11 +271,9 @@ class BookmarksManagerSingleton(QtCore.QObject):
         
         """
         view = PipelineSceneInterface()
-        print "ids: ", ids
         for id in ids:
             newSpecs = []
             bookmark = self.collection.bookmarkMap[id]
-            print "specsCount", len(specs)
             for specsPerDim in specs:
                 newSpecs.append(self.mergeParameters(id, specsPerDim))
             p = ParameterExploration(newSpecs)
@@ -305,7 +303,6 @@ class BookmarksManagerSingleton(QtCore.QObject):
         newSpecs = [] 
         repeated = []
         for alias, data in aliases.iteritems():
-            print "repeated ", repeated
             if alias not in repeated:
                 mId = data[0][0]
                 fId = data[0][1]
@@ -334,7 +331,6 @@ class BookmarksManagerSingleton(QtCore.QObject):
                                                         f.name,
                                                         newRange,
                                                         data[2])
-                print newRange
                 newSpecs.append(interpolator)
         return newSpecs
 

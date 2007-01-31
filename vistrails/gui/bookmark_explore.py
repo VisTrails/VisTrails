@@ -280,7 +280,8 @@ class QAliasExplorationTable(QtGui.QTableWidget):
                            | QtCore.Qt.ItemIsSelectable)
             eItem = QAliasTableWidgetItem(alias, type, "")
         
-            self.setItem(row, 0, sItem)    
+            self.setItem(row, 0, sItem)
+            self.setSpan(row,0,1,1)
             self.setItem(row, 1, eItem)
         else:
             self.setSpan(row,0,1,2)

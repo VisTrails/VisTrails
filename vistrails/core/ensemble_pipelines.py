@@ -103,8 +103,8 @@ class EnsemblePipelines(object):
     
     def getSource(self, id, alias):
         """getSource(id: int, alias: str) -> tuple
-        Return a tuple containing the module id, function id, and parameter id of
-        an alias in a given pipeline """
+        Return a tuple containing the module id, function id, and parameter id
+        of an alias in a given pipeline """
         pList = self.sources[alias]
         for info in pList:
             if id == info[0]:
