@@ -509,6 +509,7 @@ and ~/.vistrails/startup.py does not exist.""")
 
     def finishSession(self):
         global logger
+        gui.bookmark_window.finalizeBookmarks()
         if logger:
             logger.finishSession()
         core.interpreter.cached.CachedInterpreter.cleanup()

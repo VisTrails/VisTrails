@@ -33,8 +33,10 @@ import os.path
 from PyQt4 import QtCore, QtGui
 from gui.bookmark_panel import QBookmarkPanel
 from gui.bookmark_alias import QBookmarkAliasPanel
+from gui.bookmark_explore import QAliasExplorationPanel
 from gui.vistrail_controller import VistrailController
 from core.xml_parser import XMLParser
+from core.param_explore import InterpolateDiscreteParam, ParameterExploration
 from core.bookmark import Bookmark, BookmarkCollection
 from core.ensemble_pipelines import EnsemblePipelines
     
@@ -67,6 +69,10 @@ class QBookmarksWindow(QtGui.QMainWindow):
         self.bookmarkAliasPanel = QBookmarkAliasPanel(self,BookmarksManager)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
                            self.bookmarkAliasPanel.toolWindow())
+
+        self.aliasExplorePanel = QAliasExplorationPanel(self,BookmarksManager)
+        self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
+                           self.aliasExplorePanel.toolWindow())
         
         self.createActions()
         self.createMenu()
@@ -139,6 +145,9 @@ class QBookmarksWindow(QtGui.QMainWindow):
         self.connect(BookmarksManager, 
                      QtCore.SIGNAL("updateBookmarksGUI"),
                      self.bookmarkPanel.updateBookmarkPalette)
+        self.connect(self.bookmarkAliasPanel.parameters,
+                     QtCore.SIGNAL("rowRemoved"),
+                     self.aliasExplorePanel.dropbox.parameters.removeAlias)
         
 ################################################################################
 
@@ -248,6 +257,86 @@ class BookmarksManagerSingleton(QtCore.QObject):
     def writeBookmarks(self):
         """writeBookmarks() -> None - Write collection to disk."""
         self.collection.serialize(self.filename)
+    
+    def cleanup(self):
+        """cleanup() -> None
+        Removes temp files generated during execution 
+
+        """
+        self.controller.cleanup()
+
+    def parameterExploration(self, ids, specs):
+        """parameterExploration(ids: list, specs: list) -> None
+        Build parameter exploration in original format for each bookmark id.
+        
+        """
+        view = PipelineSceneInterface()
+        print "ids: ", ids
+        for id in ids:
+            newSpecs = []
+            bookmark = self.collection.bookmarkMap[id]
+            print "specsCount", len(specs)
+            for specsPerDim in specs:
+                newSpecs.append(self.mergeParameters(id, specsPerDim))
+            p = ParameterExploration(newSpecs)
+            pipelineList = p.explore(self.ensemble.pipelines[id])
+            vistrails = ()
+            for pipeline in pipelineList:
+                vistrails += ((bookmark.filename,
+                               bookmark.pipeline,
+                               pipeline,
+                               view,
+                               None),)
+            self.controller.executeWorkflowList(vistrails)
+    
+    def mergeParameters(self, id, specs):
+        """mergeParameters(id: int, specs: list) -> list
+        Identifies aliases in a common function and generates only one tuple
+        for them 
+        
+        """
+        aliases = {}
+        for interpolator in specs:
+            #build alias dictionary
+             alias = interpolator[0]
+             info = self.ensemble.getSource(id,alias)
+             if info:
+                 aliases[alias] = (info, interpolator[2],interpolator[3])
+        newSpecs = [] 
+        repeated = []
+        for alias, data in aliases.iteritems():
+            print "repeated ", repeated
+            if alias not in repeated:
+                mId = data[0][0]
+                fId = data[0][1]
+                pId = data[0][2]
+                common = {}
+                common[pId] = alias
+                for a, d in aliases.iteritems():
+                    if a != alias:
+                        if mId == d[0][0] and fId == d[0][1]:
+                            common[d[0][2]] = a
+                            repeated.append(a)
+                pip = self.ensemble.pipelines[id]
+                m = pip.getModuleById(mId)
+                f = m.functions[fId]
+                pCount = len(f.params)
+                newRange = []
+                for i in range(pCount):
+                    if i not in common.keys():
+                        p = f.params[i]
+                        newRange.append((p.value(),p.value()))
+                    else:
+                        d = aliases[common[i]]
+                        r = d[1][0]
+                        newRange.append(r)
+                interpolator = InterpolateDiscreteParam(m,
+                                                        f.name,
+                                                        newRange,
+                                                        data[2])
+                print newRange
+                newSpecs.append(interpolator)
+        return newSpecs
 
 ###############################################################################
 
@@ -259,6 +348,15 @@ def initBookmarks(filename):
     """
     BookmarksManager.filename = filename
     BookmarksManager.loadBookmarks()
+
+def finalizeBookmarks():
+    """finalizeBookmarks() -> None 
+    Cleans up the controller.
+    """
+    
+    BookmarksManager.cleanup()
+    BookmarksManager.deleteLater()
+
 
 #singleton technique
 BookmarksManager = BookmarksManagerSingleton()

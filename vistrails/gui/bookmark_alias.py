@@ -40,8 +40,9 @@ class QBookmarkAliasPanel(QtGui.QFrame, QToolWindowInterface):
     
     """
     def __init__(self, parent=None, manager=None):
-        """ QBookmarkPalette(parent: QWidget) -> QBookmarkPalette
-        Set bookmark manager
+        """ QBookmarkAliasPanel(parent: QWidget, manaager: BookmarksManager) 
+                             -> QBookmarkAliasPanel
+        Initializes the panel and sets bookmark manager
         
         """
         QtGui.QFrame.__init__(self, parent)
@@ -77,14 +78,18 @@ class QAliasTable(QtGui.QTableWidget):
         self.manager = manager
         self.aliases = {}
         self.setColumnCount(1)
-        self.setSortingEnabled(True)
+
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
+        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.setDragEnabled(True)
         self.horizontalHeader().setStretchLastSection(True)
         self.horizontalHeader().hide()
         self.connect(self,
                      QtCore.SIGNAL("cellChanged(int,int)"),
                      self.processCellChanges)
+        self.connect(self.verticalHeader(),
+                     QtCore.SIGNAL("sectionClicked(int)"),
+                     self.updateFocus)
         
     def processCellChanges(self, row, col):
         """ parseCellChanges(row: int, col: int) -> None
@@ -103,35 +108,75 @@ class QAliasTable(QtGui.QTableWidget):
         
         """
         def createAliasRow(alias, type, value):
-            """ createAliasItem( alias: str, type: str, 
-                                 value: str) -> QAliasTableWidgetItem
+            """ createAliasRow( alias: str, type: str, value: str) -> None
             Creates a row in the table
             
             """
             row = self.rowCount()
             self.insertRow(row)
-            item = QAliasTableWidgetItem(alias)
+            item = QAliasTableWidgetItem(alias, type, alias)
+            item.setFlags(QtCore.Qt.ItemIsEnabled)
             self.setVerticalHeaderItem(row,item)
-            
-            item = QAliasTableWidgetItem(value)
-            item.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable)
+
+            item = QAliasTableWidgetItem(alias,type, value)
+            item.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsEditable \
+                          | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled)
             self.setItem(row, 0, item)
             
         if self.manager:
-            self.setRowCount(0)
+            #check if an alias was removed:
+            for alias in self.aliases.keys():
+                if not aliases.has_key(alias):
+                    row = self.getItemRow(alias)
+                    self.removeRow(row)
+                    self.emit(QtCore.SIGNAL("rowRemoved"),alias)
+            newAliases = {}
             for alias, info in aliases.iteritems():
-                type = info[0]
-                value = info[1][0]
-                createAliasRow(alias,type,value)
+                if not self.aliases.has_key(alias):
+                    type = info[0]
+                    value = info[1][0]
+                    createAliasRow(alias,type,value)
+                else:
+                    row = self.getItemRow(alias)
+                    self.processCellChanges(row, 0)
+                newAliases[alias] = info
+            self.aliases = newAliases
+
+    def updateFocus(self, row):
+        """ updateFocus(row: int) -> None
+        Set focus to the alias cell when clicking on the header cell 
+
+        """
+        self.setCurrentCell(row,0)
+
+    def mimeData(self, itemList):
+        """ mimeData(itemList) -> None        
+        Setup the mime data to contain itemList 
+        
+        """
+        data = QtGui.QTableWidget.mimeData(self, itemList)
+        data.aliases = itemList
+        return data
+        
+    def getItemRow(self, alias):
+        for i in range(self.rowCount()):
+            item = self.item(i,0)
+            if item:
+                if item.alias == alias:
+                    return i
+        return -1
 
 class QAliasTableWidgetItem(QtGui.QTableWidgetItem):
     """
     QAliasTableWidgetItem represents alias on QAliasTableWidget
     
     """
-    def __init__(self, text):
-        """ QAliasTableWidgetItem(text: string): 
-        Create a new table widget item with text
+    def __init__(self, alias, type, text):
+        """ QAliasTableWidgetItem(alias: str, type: str, text: str): 
+        Create a new table widget item with alias and text
 
         """
         QtGui.QTableWidgetItem.__init__(self, text)
+        self.alias = alias
+        self.type = type
+    

@@ -101,4 +101,13 @@ class EnsemblePipelines(object):
             #tuples don't allow changing in place
             self.aliases[name] = (info[0],(value,info[1][1]))
     
-
+    def getSource(self, id, alias):
+        """getSource(id: int, alias: str) -> tuple
+        Return a tuple containing the module id, function id, and parameter id of
+        an alias in a given pipeline """
+        pList = self.sources[alias]
+        for info in pList:
+            if id == info[0]:
+                return (info[1], info[2], info[3])
+        return None
+        
