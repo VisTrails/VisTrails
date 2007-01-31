@@ -29,7 +29,8 @@ import thread
 from PyQt4 import QtCore, QtGui, QtOpenGL
 from core.param_explore import InterpolateDiscreteParam, ParameterExploration
 from gui.common_widgets import QToolWindowInterface
-from gui.method_dropbox import QMethodDropBox, QMethodInputForm
+from gui.method_dropbox import (QMethodDropBox, QMethodInputForm, 
+                                QPythonValueLineEdit)
 from gui.theme import CurrentTheme
 ################################################################################
 
@@ -270,7 +271,7 @@ class QRangeString(QtGui.QFrame):
         self.setUpdatesEnabled(False)
         hl = QtGui.QHBoxLayout()
         
-        self.lineEdit = QtGui.QLineEdit('', self)
+        self.lineEdit = QPythonValueLineEdit('','String', self, multiLines=True)
         hl.addWidget(self.lineEdit)
         self.addBtn = QtGui.QToolButton()
         self.addBtn.setToolTip(self.tr("Add string"))
@@ -313,7 +314,8 @@ class QRangeString(QtGui.QFrame):
         
         self.setUpdatesEnabled(True)
         self.parent().adjustSize()
-        self.parent().parent().layout().invalidate()
+        if self.parent().parent().layout():
+            self.parent().parent().layout().invalidate()
 
     def addString(self):
         if not self.lineEdit.text().isEmpty():
@@ -333,6 +335,9 @@ class QRangeString(QtGui.QFrame):
             item = self.listWidget.takeItem(row)
             self.listWidget.insertItem(row+1,item)
             self.listWidget.setCurrentRow(row+1)
+    
+    def updateMethod(self):
+        pass
 
 class QStringListWidget(QtGui.QListWidget):
 

@@ -339,7 +339,7 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
     well by using a double '$$'
     
     """
-    def __init__(self, contents, contentType, parent=None):
+    def __init__(self, contents, contentType, parent=None, multiLines=False):
         """ QPythonValueLineEdit(contents: str,
                                  contentType: str,
                                  container: QWidget,
@@ -353,6 +353,7 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
         self.contentType = contentType
         self.contentIsString = contentType=='String'
         self.lastText = ''
+        self.multiLines = multiLines
         self.connect(self,
                      QtCore.SIGNAL('returnPressed()'),
                      self.updateParent)                     
@@ -365,10 +366,9 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
         """
         k = event.key()
         s = event.modifiers()
-
         if (k == QtCore.Qt.Key_Enter or k == QtCore.Qt.Key_Return):
-            if s & QtCore.Qt.ControlModifier:
-                if self.contentIsString:
+            if s & QtCore.Qt.ShiftModifier:
+                if self.contentIsString and not self.multiLines:
                     fileName = QtGui.QFileDialog.getOpenFileName(self,
                                                                  'Use Filename '
                                                                  'as Value...',
@@ -379,6 +379,20 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
                         self.setText(fileName)
                         self.updateParent()
                         return
+
+                if self.contentIsString and self.multiLines:
+                    fileNames = QtGui.QFileDialog.getOpenFileNames(self,
+                                                                 'Use Filename '
+                                                                 'as Value...',
+                                                                 self.text(),
+                                                                 'All files '
+                                                                 '(*.*)')
+                    fileName = fileNames.join(',')
+                    if not fileName.isEmpty():
+                        self.setText(fileName)
+                        self.updateParent()
+                        return
+                
             else:
                 self.updateText()
         QtGui.QLineEdit.keyPressEvent(self,event)
