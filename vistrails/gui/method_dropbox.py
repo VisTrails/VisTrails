@@ -368,6 +368,7 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
         s = event.modifiers()
         if (k == QtCore.Qt.Key_Enter or k == QtCore.Qt.Key_Return):
             if s & QtCore.Qt.ShiftModifier:
+                event.accept()
                 if self.contentIsString and not self.multiLines:
                     fileName = QtGui.QFileDialog.getOpenFileName(self,
                                                                  'Use Filename '
@@ -378,7 +379,7 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
                     if not fileName.isEmpty():
                         self.setText(fileName)
                         self.updateParent()
-                        return
+                        
 
                 if self.contentIsString and self.multiLines:
                     fileNames = QtGui.QFileDialog.getOpenFileNames(self,
@@ -394,8 +395,10 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
                         return
                 
             else:
+                event.accept()
                 self.updateText()
-        QtGui.QLineEdit.keyPressEvent(self,event)
+        else:
+            event.ignore()
 
     def focusInEvent(self, event):
         """ focusInEvent(event: QEvent) -> None

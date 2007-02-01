@@ -23,9 +23,10 @@
 of aliases in user's bookmarks
 
 QAliasExplorationPanel
-QAliasDorpBox
+QAliasDimensionWidget
+QAliasDropBox
 QAliasExplorationTable
-QAliasTableItem
+QRangeStringContainer
 
 """
 from PyQt4 import QtCore, QtGui
@@ -47,16 +48,129 @@ class QAliasExplorationPanel(QtGui.QFrame, QToolWindowInterface):
         
         """
         QtGui.QFrame.__init__(self, parent)
+        self.bookmarkPanel = None
         self.setFrameStyle(QtGui.QFrame.Panel|QtGui.QFrame.Sunken)
         self.manager = manager
-        layout = QtGui.QVBoxLayout()
-        self.setLayout(layout)
-        self.layout().setMargin(0)
-        self.layout().setSpacing(0)
+        self.dimLabels = ['Dim %d' % (i+1) for i in range(4)]
+        vLayout = QtGui.QVBoxLayout()
+        vLayout.setSpacing(0)
+        vLayout.setMargin(0)
+        self.setLayout(vLayout)
+        self.dimTab = QtGui.QTabWidget()
+        for t in range(4):
+            tab = QAliasDimensionWidget(manager=self.manager)
+            tab.paramEx = self
+            self.dimTab.addTab(tab, self.dimLabels[t]+' (1)')        
+        vLayout.addWidget(self.dimTab)
+        createButton = QtGui.QPushButton("Perform Exploration")
+        vLayout.addWidget(createButton)
+        if parent:
+            self.bookmarkPanel = parent.bookmarkPanel
+        self.connect(createButton, QtCore.SIGNAL('clicked()'),
+                     self.startParameterExploration)
+        self.setWindowTitle('Parameter Exploration')
+
+    def startParameterExploration(self):
+        """ startParameterExploration() -> None
+        Collects inputs from widgets and the builders to setup and
+        start a parameter exploration
+        
+        """
+        if not self.manager.controller:
+            return
+        specs = []
+        dimCount = 0
+        for dim in range(self.dimTab.count()):
+            tab = self.dimTab.widget(dim)
+            stepCount = tab.sizeEdit.value()
+            specsPerDim = []
+            for row in range(tab.dropbox.parameters.rowCount()):
+                type = tab.dropbox.parameters.verticalHeaderItem(row).type
+                alias = tab.dropbox.parameters.verticalHeaderItem(row).alias
+                ranges = []
+                if type == 'String':
+                    wgt = tab.dropbox.parameters.cellWidget(row,0)
+                    strCount = wgt.listWidget.count()
+                    strings = [str( wgt.listWidget.item(i%strCount).text())
+                               for i in range(stepCount)]
+                    ranges.append(strings)
+                else:
+                    convert = {'Integer': int,
+                               'Float': float}
+                    cv = convert[type]
+                    sItem = tab.dropbox.parameters.item(row,0)
+                    eItem = tab.dropbox.parameters.item(row,1)
+                    ranges.append((cv(sItem.text()),cv(eItem.text())))
+                interpolator = (alias, type, ranges, stepCount) 
+                specsPerDim.append(interpolator)                
+            specs.append(specsPerDim)
+        ids = self.bookmarkPanel.bookmarkPalette.checkedList
+        self.manager.parameterExploration(ids, specs)
+
+    def clear(self):
+        """ clear() -> None
+        Clear all settings and leave the GUI empty
+        
+        """
+        for dim in range(self.dimTab.count()):
+            tab = self.dimTab.widget(dim)
+            tab.dropbox.clear()
+
+    def removeAlias(self,alias):
+        """removeAlias(alias:str) -> None
+        Propagates event down to each tab. """
+        for dim in range(self.dimTab.count()):
+            tab = self.dimTab.widget(dim)
+            tab.dropbox.parameters.removeAlias(alias)
+
+class QAliasDimensionWidget(QtGui.QWidget):
+    """
+    QALiasDimensionWidget is the tab widget holding parameter info for a
+    single dimension
+    
+    """
+    def __init__(self, parent=None, manager=None):
+        """ QAliasDimensionWidget(parant: QWidget) -> QALiasDimensionWidget      
+        Initialize the tab with appropriate labels and connect all
+        signals and slots
+                             
+        """
+        QtGui.QWidget.__init__(self, parent)
+        self.manager = manager
+        self.sizeLabel = QtGui.QLabel('&Step Count')
+        self.sizeEdit = QtGui.QSpinBox()
+        self.sizeEdit.setMinimum(1)        
+        self.connect(self.sizeEdit,QtCore.SIGNAL("valueChanged(int)"),
+                     self.stepCountChanged)
+        self.sizeLabel.setBuddy(self.sizeEdit)
+        
+        sizeLayout = QtGui.QHBoxLayout()
+        sizeLayout.addWidget(self.sizeLabel)
+        sizeLayout.addWidget(self.sizeEdit)
+        sizeLayout.addStretch(0)
+        
+        topLayout = QtGui.QVBoxLayout()
+        topLayout.addLayout(sizeLayout)
         self.dropbox = QAliasDropBox(None, self.manager)
-        self.dropbox.bookmarkPanel = parent.bookmarkPanel
-        layout.addWidget(self.dropbox, 1)
-        self.setWindowTitle('Exploration')
+        topLayout.addWidget(self.dropbox)
+        self.setLayout(topLayout)
+        self.paramEx = None
+        
+    def stepCountChanged(self, count):
+        """ stepCountChanged(count: int)        
+        When the number step in this dimension is changed, notify and
+        invalidate all of its children
+        
+        """
+        idx = self.paramEx.dimTab.indexOf(self)
+        self.paramEx.dimTab.setTabText(idx,
+                                       self.paramEx.dimLabels[idx] +
+                                       ' (' + str(count) + ')')
+        for i in range(self.dropbox.parameters.rowCount()):
+            item = self.dropbox.parameters.verticalHeaderItem(i)
+            if item.type =='String':
+                child = self.dropbox.parameters.cellWidget(i,0)
+                child.updateStepCount(child.listWidget.count())
 
 class QAliasDropBox(QtGui.QScrollArea):
     """
@@ -72,7 +186,6 @@ class QAliasDropBox(QtGui.QScrollArea):
         """
         QtGui.QScrollArea.__init__(self, parent)
         self.setAcceptDrops(True)
-        self.bookmarkPanel = None
         self.panel = self.createPanel()
         self.panel.setVisible(False)
         self.setWidgetResizable(True)
@@ -81,35 +194,19 @@ class QAliasDropBox(QtGui.QScrollArea):
         self.manager = manager
 
     def createPanel(self):
+        """createPanel() -> QWidget
+        Creates a widget with a layout to hold a QAliasExplorationTable
+
+        """
         widget = QtGui.QWidget(self)
         layout = QtGui.QVBoxLayout()
         widget.setLayout(layout)
         widget.layout().setMargin(0)
         widget.layout().setSpacing(0)
 
-        self.sizeLabel = QtGui.QLabel('&Step Count')
-        self.sizeEdit = QtGui.QSpinBox()
-        self.sizeEdit.setMinimum(1)        
-        self.connect(self.sizeEdit,QtCore.SIGNAL("valueChanged(int)"),
-                     self.stepCountChanged)
-        self.sizeLabel.setBuddy(self.sizeEdit)
-        
-        sizeLayout = QtGui.QHBoxLayout()
-        sizeLayout.setMargin(1)
-        sizeLayout.addWidget(self.sizeLabel)
-        sizeLayout.addWidget(self.sizeEdit)
-        sizeLayout.addStretch(0)
-        layout.addLayout(sizeLayout)
-        
         self.parameters = QAliasExplorationTable()
         
         layout.addWidget(self.parameters, 1)
-        self.exploreButton = QtGui.QPushButton("Perform Exploration")
-        layout.addWidget(self.exploreButton)
-        self.exploreButton.setVisible(False)
-        self.connect(self.exploreButton, QtCore.SIGNAL('clicked()'),
-                     self.startParameterExploration)
-        widget.setVisible(False)
 
         return widget
 
@@ -148,92 +245,9 @@ class QAliasDropBox(QtGui.QScrollArea):
                 for item in data.aliases:
                     if self.parameters.rowCount() == 0:
                         self.parameters.horizontalHeader().show()
-                        self.exploreButton.setVisible(True)
-                        self.sizeLabel.setVisible(True)
-                        self.sizeEdit.setVisible(True)
+
                     self.parameters.createAliasRow(item.alias, item.type)
-                    # if item.port:
-#                         function = ModuleFunction.fromSpec(item.port,
-#                                                            item.spec)
-#                         self.vWidget.addFunction(item.module,
-#                                                  item.module.getNumFunctions(),
-#                                                  function)
-#                         self.scrollContentsBy(0, self.viewport().height())
-#                    self.lockUpdate()
- #                        if self.controller:
-#                             self.controller.previousModuleIds = [self.module.id]
-#                             self.controller.addMethod(self.module.id, function)
-#                         self.unlockUpdate()
-
-    def updateModule(self, module):
-        """ updateModule(module: Module)) -> None        
-        Construct input forms with the list of functions of a module
-        
-        """
-        self.module = module
-        if self.updateLocked: return
-        self.vWidget.clear()
-        if module:
-            fId = 0
-            for f in module.functions:                
-                self.vWidget.addFunction(module.id, fId, f)
-                fId += 1
-
-    def lockUpdate(self):
-        """ lockUpdate() -> None
-        Do not allow updateModule()
-        
-        """
-        self.updateLocked = True
-        
-    def unlockUpdate(self):
-        """ unlockUpdate() -> None
-        Allow updateModule()
-        
-        """
-        self.updateLocked = False
-
-    def startParameterExploration(self):
-        """ startParameterExploration() -> None
-        Collects inputs from widgets and the builders to setup and
-        start a parameter exploration
-        
-        """
-        if not self.manager.controller:
-            return
-        specs = []
-        stepCount = self.sizeEdit.value()
-        specsPerDim = []
-        for row in range(self.parameters.rowCount()):
-            type = self.parameters.verticalHeaderItem(row).type
-            alias = self.parameters.verticalHeaderItem(row).alias
-            ranges = []
-            if type == 'String':
-                wgt = self.parameters.cellWidget(row,0)
-                strCount = wgt.listWidget.count()
-                strings = [str( wgt.listWidget.item(i%strCount).text())
-                           for i in range(stepCount)]
-                ranges.append(strings)
-            else:
-                convert = {'Integer': int,
-                           'Float': float}
-                cv = convert[type]
-                sItem = self.parameters.item(row,0)
-                eItem = self.parameters.item(row,1)
-                ranges.append((cv(sItem.text()),cv(eItem.text())))
-            interpolator = (alias, type, ranges, stepCount) 
-            specsPerDim.append(interpolator)                
-        specs.append(specsPerDim)
-        ids = self.bookmarkPanel.bookmarkPalette.checkedList
-        self.manager.parameterExploration(ids, specs)
-
-    def stepCountChanged(self, count):
-        """ stepCountChanged(count: int)        
-        When the number step in this dimension is changed, notify and
-        invalidate all of its children
-        
-        """
-        pass
+                    self.scrollContentsBy(0, self.viewport().height())
 
 class QAliasExplorationTable(QtGui.QTableWidget):
     """
@@ -284,17 +298,22 @@ class QAliasExplorationTable(QtGui.QTableWidget):
             self.setSpan(row,0,1,1)
             self.setItem(row, 1, eItem)
         else:
+            #join the two columns in one
             self.setSpan(row,0,1,2)
-            widget = QtGui.QWidget(self)
+            widget = QRangeStringContainer(self)
             layout = QtGui.QGridLayout()
             widget.setLayout(layout)
             lineEdit = QRangeString(0, widget)
             widget.listWidget = lineEdit.listWidget
             layout.addWidget(lineEdit,0,1,1,2)
+            self.connect(widget.listWidget,
+                         QtCore.SIGNAL("changed(int)"),
+                         widget.updateStepCount)
             h = widget.sizeHint().height()
             w = widget.sizeHint().width()
             self.setRowHeight(row,h)
             self.setCellWidget(row,0,widget)
+            widget.updateStepCount(widget.listWidget.count())
 
     def updateFocus(self, row):
         """ updateFocus(row: int) -> None
@@ -304,6 +323,10 @@ class QAliasExplorationTable(QtGui.QTableWidget):
         self.setCurrentCell(row,0)
 
     def getItemRow(self, alias):
+        """getItemRow(alias:str) -> int 
+        Searches for the row that contains the alias name 
+
+        """
         for i in range(self.rowCount()):
             item = self.verticalHeaderItem(i)
             if item:
@@ -312,6 +335,53 @@ class QAliasExplorationTable(QtGui.QTableWidget):
         return -1
 
     def removeAlias(self, alias):
+        """removeAlias(alias:str) -> None Removes the row containing alias """
         row = self.getItemRow(alias)
+        self.deleteRow(row)
+    
+    def keyPressEvent(self, event):
+        """keyPressEvent(event: QKeyEvent) -> None 
+        Event handler for key press events. 
+         - Ctrl(Command) + Backspace or Ctrl(command) + Del 
+                     removes the current row
+        """
+        if (event.key() == QtCore.Qt.Key_Delete or 
+            event.key() == QtCore.Qt.Key_Backspace):
+            if event.modifiers() & QtCore.Qt.ControlModifier:
+                event.accept()
+                row = self.currentRow()
+                self.deleteRow(row)
+            else:
+                event.ignore()
+        else:
+            event.ignore()
+
+    def deleteRow(self, row):
+        """deleteRow(row: int) -> None 
+        Removes a row and updates the table.
+
+        """
         if row > -1:
             self.removeRow(row)
+            item = self.verticalHeaderItem(row)
+            if item.type != 'String':
+                self.setSpan(row,0,1,1)
+            if self.rowCount() == 0:
+                self.horizontalHeader().hide()
+
+class QRangeStringContainer(QtGui.QWidget):
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+
+    def stepCount(self):
+        dropbox = self.parent().parent().parent().parent().parent() 
+        return dropbox.parent().sizeEdit.value()
+    
+    def updateStepCount(self, count):
+        display = 'Count: '+ str(count)
+        stepCount = self.stepCount()
+        if count>stepCount:
+            display = display + ' (Too many values)'
+        if count<stepCount:
+            display = display + ' (Need more values)'        
+        self.setToolTip(display)

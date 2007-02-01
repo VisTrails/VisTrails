@@ -229,7 +229,11 @@ class QBookmarkTreeWidget(QSearchTreeWidget):
             event.key() == QtCore.Qt.Key_Backspace):
             if self.isVisible():      
                 self.removeCurrentItem()
-        QtGui.QTreeWidget.keyPressEvent(self, event)
+                event.accept()
+            else:
+                event.ignore()
+        else:
+            event.ignore()
 
     def removeCurrentItem(self):
         """removeCurrentItem() -> None Removes from the GUI and Collection """

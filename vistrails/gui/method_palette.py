@@ -98,6 +98,7 @@ class QMethodTreeWidget(QSearchTreeWidget):
                                                << method.name
                                                << sig))
             self.expandAll()
+            self.resizeColumnToContents(0)
                                           
 class QMethodTreeWidgetItem(QtGui.QTreeWidgetItem):
     """

@@ -75,7 +75,7 @@ class QParameterExploration(QtGui.QWidget, QToolWindowInterface):
         """
         for dim in range(self.dimTab.count()):
             tab = self.dimTab.widget(dim)
-            tab.methodList.clear()
+            tab.methodList.vWidget.clear()
         
     def startParameterExploration(self):
         """ startParameterExploration() -> None

@@ -112,6 +112,8 @@ class QBookmarksWindow(QtGui.QMainWindow):
             self.bookmarkPanel.toolWindow().toggleViewAction())
         self.viewMenu.addAction(
             self.bookmarkAliasPanel.toolWindow().toggleViewAction())
+        self.viewMenu.addAction(
+            self.aliasExplorePanel.toolWindow().toggleViewAction())
         
     def createToolBar(self):
         """ createToolBar() -> None
@@ -147,7 +149,7 @@ class QBookmarksWindow(QtGui.QMainWindow):
                      self.bookmarkPanel.updateBookmarkPalette)
         self.connect(self.bookmarkAliasPanel.parameters,
                      QtCore.SIGNAL("rowRemoved"),
-                     self.aliasExplorePanel.dropbox.parameters.removeAlias)
+                     self.aliasExplorePanel.removeAlias)
         
 ################################################################################
 
@@ -274,8 +276,7 @@ class BookmarksManagerSingleton(QtCore.QObject):
         for id in ids:
             newSpecs = []
             bookmark = self.collection.bookmarkMap[id]
-            for specsPerDim in specs:
-                newSpecs.append(self.mergeParameters(id, specsPerDim))
+            newSpecs = self.mergeParameters(id, specs)
             p = ParameterExploration(newSpecs)
             pipelineList = p.explore(self.ensemble.pipelines[id])
             vistrails = ()
@@ -294,25 +295,46 @@ class BookmarksManagerSingleton(QtCore.QObject):
         
         """
         aliases = {}
-        for interpolator in specs:
-            #build alias dictionary
-             alias = interpolator[0]
-             info = self.ensemble.getSource(id,alias)
-             if info:
-                 aliases[alias] = (info, interpolator[2],interpolator[3])
+        aList = []
+        for dim in range(len(specs)):
+            specsPerDim = specs[dim]
+            for interpolator in specsPerDim:
+                #build alias dictionary
+                 alias = interpolator[0]
+                 info = self.ensemble.getSource(id,alias)
+                 if info:
+                     if aliases.has_key(alias):
+                         aliases[alias].append((info, 
+                                                interpolator[2],
+                                                interpolator[3],
+                                                dim))
+                     else:
+                         aliases[alias] = [(info, 
+                                            interpolator[2],
+                                            interpolator[3],
+                                            dim)]
+                     aList.append((alias,info, 
+                                   interpolator[2],
+                                   interpolator[3],
+                                   dim))
         newSpecs = [] 
         repeated = []
-        for alias, data in aliases.iteritems():
+        newSpecsPerDim = {}
+        for data in aList:
+            alias = data[0]
             if alias not in repeated:
-                mId = data[0][0]
-                fId = data[0][1]
-                pId = data[0][2]
+                mId = data[1][0]
+                fId = data[1][1]
+                pId = data[1][2]
                 common = {}
                 common[pId] = alias
-                for a, d in aliases.iteritems():
+                for d in aList:
+                    a = d[0]
                     if a != alias:
-                        if mId == d[0][0] and fId == d[0][1]:
-                            common[d[0][2]] = a
+                        if mId == d[1][0] and fId == d[1][1]:
+                            #assuming that we cannot set the same parameter
+                            #across the dimensions
+                            common[d[1][2]] = a
                             repeated.append(a)
                 pip = self.ensemble.pipelines[id]
                 m = pip.getModuleById(mId)
@@ -324,14 +346,26 @@ class BookmarksManagerSingleton(QtCore.QObject):
                         p = f.params[i]
                         newRange.append((p.value(),p.value()))
                     else:
-                        d = aliases[common[i]]
-                        r = d[1][0]
+                        dList = aliases[common[i]]
+                        r = None
+                        for d in dList:
+                            if d[0][2] == i:
+                                r = d[1][0]
                         newRange.append(r)
                 interpolator = InterpolateDiscreteParam(m,
                                                         f.name,
                                                         newRange,
-                                                        data[2])
-                newSpecs.append(interpolator)
+                                                        data[3])
+                if newSpecsPerDim.has_key(data[4]):
+                    newSpecsPerDim[data[4]].append(interpolator)
+                else:
+                    newSpecsPerDim[data[4]] = [interpolator]
+        for dim in sorted(newSpecsPerDim.keys()):
+            lInter = newSpecsPerDim[dim]
+            l = []
+            for inter in lInter:
+                l.append(inter)
+            newSpecs.append(l)
         return newSpecs
 
 ###############################################################################
