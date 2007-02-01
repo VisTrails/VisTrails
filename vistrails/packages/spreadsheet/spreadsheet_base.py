@@ -29,7 +29,8 @@
 from PyQt4 import QtCore, QtGui
 from spreadsheet_helpers import CellHelpers
 from spreadsheet_registry import spreadsheetRegistry
-from spreadsheet_tab import StandardWidgetSheetTab
+from spreadsheet_tab import (StandardWidgetSheetTab,
+                             StandardWidgetSheetTabInterface)
 
 ################################################################################
 
@@ -131,7 +132,8 @@ class StandardSheetReference(object):
             tabController.setCurrentWidget(self.candidate[0])
             return self.candidate[0]
 
-class StandardSingleCellSheetTab(QtGui.QWidget):
+class StandardSingleCellSheetTab(QtGui.QWidget,
+                                 StandardWidgetSheetTabInterface):
     """
     StandardSingleCellSheetTab is a container of StandardWidgetSheet
     with only a single cell. This will be added directly to a
@@ -160,25 +162,12 @@ class StandardSingleCellSheetTab(QtGui.QWidget):
 
     ### Belows are API Wrappers to connect to self.sheet
             
-    def isSheetTabWidget(self):
-        """ isSheetTabWidget() -> boolean
-        Return True if this is a sheet tab widget
-        """
-        return True
-
     def getDimension(self):
         """ getDimension() -> tuple
         Get the sheet dimensions
         
         """
         return (1,1)
-            
-    def setDimension(self, rc, cc):
-        """ setDimension(rc: int, cc: int) -> None
-        Set the sheet dimensions. Ignored, always (1,1)
-        
-        """
-        pass
             
     def getCell(self, row, col):
         """ getCell(row: int, col: int) -> QWidget
@@ -219,13 +208,6 @@ class StandardSingleCellSheetTab(QtGui.QWidget):
         rect.moveTo(self.mapToGlobal(rect.topLeft()))
         return rect
 
-    def getFreeCell(self):
-        """ getFreeCell() -> tuple
-        Get a free cell location (row, col) on the spreadsheet 
-
-        """
-        return (0,0)
-
     def setCellByType(self, row, col, cellType, inputPorts):
         """ setCellByType(row: int,
                           col: int,
@@ -262,26 +244,6 @@ class StandardSingleCellSheetTab(QtGui.QWidget):
             self.helpers.show()
         else:
             self.helpers.hide()
-            
-    def setCellPipelineInfo(self, row, col, info):
-        """ setCellPipelineInfo(row: int, col: int, info: any type) -> None        
-        Provide a way for the spreadsheet to store vistrail
-        information, info, for the cell (row, col)
-        
-        """
-        if not (row,col) in self.pipelineInfo:
-            self.pipelineInfo[(row,col)] = {}
-        self.pipelineInfo[(row,col)] = info
-
-    def getCellPipelineInfo(self, row, col):
-        """ getCellPipelineInfo(row: int, col: int) -> any type        
-        Provide a way for the spreadsheet to extract vistrail
-        information, info, for the cell (row, col)
-        
-        """        
-        if not (row,col) in self.pipelineInfo:
-            return None
-        return self.pipelineInfo[(row,col)]
 
     def getSelectedLocations(self):
         """ getSelectedLocations() -> tuple

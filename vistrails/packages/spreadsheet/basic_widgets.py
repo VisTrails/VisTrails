@@ -163,7 +163,7 @@ class SpreadsheetCell(NotCacheable, Module):
         inputPorts --- a tuple of input data that cellType() will understand
         
         """
-        e = DisplayCellEvent()        
+        e = DisplayCellEvent()
         e.vistrail = (self.vistrailName, self.currentVersion)
         location = self.forceGetInputFromPort("Location")
         if location:

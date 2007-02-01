@@ -221,6 +221,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             widget = self.currentWidget()
             self.tabWidgets.remove(widget)
             self.removeTab(self.currentIndex())
+            widget.deleteAllCells()
             widget.deleteLater()
 
     def clearTabs(self):

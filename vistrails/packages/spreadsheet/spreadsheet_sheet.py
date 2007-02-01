@@ -357,6 +357,8 @@ class StandardWidgetSheet(QtGui.QTableWidget):
                 newCell.updateContents(inputPorts)
             else:
                 self.setCellWidget(row, col, None)
+            if hasattr(oldCell, 'deleteLater'):
+                oldCell.deleteLater()
             del oldCell
         else:
             oldCell.updateContents(inputPorts)

@@ -110,13 +110,29 @@ class QVTKWidget(QtGui.QWidget):
         self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
                                              QtGui.QSizePolicy.Expanding))
         self.toolBarType = QVTKWidgetToolBar
-
-    def __del__(self):
-        """ __del__() -> None
-        Make sure to free render window resource when deallocating
+        
+    def deleteLater(self):
+        """ deleteLater() -> None        
+        Make sure to free render window resource when
+        deallocating. Overriding PyQt deleteLater to free up
+        resources
         
         """
+        for ren in self.getRendererList():
+            self.mRenWin.RemoveRenderer(ren)
+            del ren
+
+        iren = self.mRenWin.GetInteractor()
+        if iren:
+            style = iren.GetInteractorStyle()
+            style.RemoveObservers("InteractionEvent")
+            style.RemoveObservers("CharEvent")
+            style.RemoveObservers("MouseWheelForwardEvent")
+            style.RemoveObservers("MouseWheelBackwardEvent")
+            
         del self.mRenWin
+        self.mRenWin = None
+        QtGui.QWidget.deleteLater(self)
 
     def updateContents(self, inputPorts):
         """ updateContents(inputPorts: tuple)
@@ -125,7 +141,7 @@ class QVTKWidget(QtGui.QWidget):
         """
         (renderers,) = inputPorts
         renWin = self.GetRenderWindow()
-        for renderer in renderers:            
+        for renderer in renderers:
             renWin.AddRenderer(renderer.vtkInstance)
             if hasattr(renderer.vtkInstance, 'IsActiveCameraCreated'):
                 if not renderer.vtkInstance.IsActiveCameraCreated():
@@ -162,7 +178,6 @@ class QVTKWidget(QtGui.QWidget):
             self.mRenWin.SetWindowId(None)
             self.mRenWin.UnRegister(None)
             
-
         self.mRenWin = w
         
         if self.mRenWin:
@@ -193,8 +208,8 @@ class QVTKWidget(QtGui.QWidget):
                 s.AddObserver("CharEvent", self.charEvent)
                 s.AddObserver("MouseWheelForwardEvent", self.interactionEvent)
                 s.AddObserver("MouseWheelBackwardEvent", self.interactionEvent)
-                del iren
                 del s
+                del iren
 
     def GetInteractor(self):
         """ GetInteractor() -> vtkInteractor
@@ -683,6 +698,7 @@ class QVTKWidget(QtGui.QWidget):
         Make sure interactions sync across selected renderers
         
         """
+        print 'there'
         if name=='MouseWheelForwardEvent':
             istyle.OnMouseWheelForward()
         if name=='MouseWheelBackwardEvent':

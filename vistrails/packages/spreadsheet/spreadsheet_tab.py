@@ -134,8 +134,129 @@ class StandardWidgetToolBar(QtGui.QToolBar):
                          self.sheetTab.colSpinBoxChanged)
         return self.colSpinBox        
         
+class StandardWidgetSheetTabInterface(object):
+    """
+    StandardWidgetSheetTabInterface is the interface for tab
+    controller to call for manipulating a tab
+    
+    """
+    ### Belows are API Wrappers to connect to self.sheet
+
+    def isSheetTabWidget(self):
+        """ isSheetTabWidget() -> boolean
+        Return True if this is a sheet tab widget
+        """
+        return True
+
+    def getDimension(self):
+        """ getDimension() -> tuple
+        Get the sheet dimensions
+        
+        """
+        return (0,0)
             
-class StandardWidgetSheetTab(QtGui.QWidget):
+    def setDimension(self, rc, cc):
+        """ setDimension(rc: int, cc: int) -> None
+        Set the sheet dimensions
+        
+        """
+        pass
+            
+    def getCell(self, row, col):
+        """ getCell(row: int, col: int) -> QWidget
+        Get cell at a specific row and column.
+        
+        """
+        return None
+
+    def getCellToolBar(self, row, col):
+        """ getCellToolBar(row: int, col: int) -> QWidget
+        Return the toolbar widget at cell location (row, col)
+        
+        """
+        return None
+
+    def getCellRect(self, row, col):
+        """ getCellRect(row: int, col: int) -> QRect
+        Return the rectangle surrounding the cell at location (row, col)
+        in parent coordinates
+        
+        """
+        return QtCore.QRect()
+
+    def getCellGlobalRect(self, row, col):
+        """ getCellGlobalRect(row: int, col: int) -> QRect
+        Return the rectangle surrounding the cell at location (row, col)
+        in global coordinates
+        
+        """
+        return QtCore.QRect()
+
+    def getFreeCell(self):
+        """ getFreeCell() -> tuple
+        Get a free cell location (row, col) on the spreadsheet 
+
+        """
+        return (0, 0)
+
+    def setCellByType(self, row, col, cellType, inputPorts):
+        """ setCellByType(row: int,
+                          col: int,
+                          cellType: a type inherits from QWidget,
+                          inpurPorts: tuple) -> None                          
+        Replace the current location (row, col) with a cell of
+        cellType. If the current type of that cell is the same as
+        cellType, only the contents is updated with inputPorts.
+        
+        """
+        pass
+
+    def showHelpers(self, ctrl, globalPos):
+        """ showHelpers(ctrl: boolean, globalPos: QPoint) -> None
+        Show the helpers (toolbar, resizer) when the Control key
+        status is ctrl and the mouse is at globalPos
+        
+        """
+        pass
+
+    def setCellPipelineInfo(self, row, col, info):
+        """ setCellPipelineInfo(row: int, col: int, info: any type) -> None        
+        Provide a way for the spreadsheet to store vistrail
+        information, info, for the cell (row, col)
+        
+        """
+        if not (row,col) in self.pipelineInfo:
+            self.pipelineInfo[(row,col)] = {}
+        self.pipelineInfo[(row,col)] = info
+
+    def getCellPipelineInfo(self, row, col):
+        """ getCellPipelineInfo(row: int, col: int) -> any type        
+        Provide a way for the spreadsheet to extract vistrail
+        information, info, for the cell (row, col)
+        
+        """        
+        if not (row,col) in self.pipelineInfo:
+            return None
+        return self.pipelineInfo[(row,col)]
+
+    def getSelectedLocations(self):
+        """ getSelectedLocations() -> tuple
+        Return the selected locations (row, col) of the current sheet
+        
+        """
+        return []
+
+    def deleteAllCells(self):
+        """ deleteAllCells() -> None
+        Delete all cells in the sheet
+        
+        """
+        (rowCount, columnCount) = self.getDimension()
+        for r in range(rowCount):
+            for c in range(columnCount):
+                self.setCellByType(r, c, None, None)
+
+class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
     """
     StandardWidgetSheetTab is a container of StandardWidgetSheet with
     a toolbar on top. This will be added directly to a QTabWidget for
@@ -182,12 +303,6 @@ class StandardWidgetSheetTab(QtGui.QWidget):
             self.sheet.stretchCells()
 
     ### Belows are API Wrappers to connect to self.sheet
-
-    def isSheetTabWidget(self):
-        """ isSheetTabWidget() -> boolean
-        Return True if this is a sheet tab widget
-        """
-        return True
 
     def getDimension(self):
         """ getDimension() -> tuple
@@ -263,27 +378,7 @@ class StandardWidgetSheetTab(QtGui.QWidget):
         row = self.sheet.rowAt(localPos.y())
         col = self.sheet.columnAt(localPos.x())
         self.sheet.showHelpers(ctrl, row, col)
-
-    def setCellPipelineInfo(self, row, col, info):
-        """ setCellPipelineInfo(row: int, col: int, info: any type) -> None        
-        Provide a way for the spreadsheet to store vistrail
-        information, info, for the cell (row, col)
         
-        """
-        if not (row,col) in self.pipelineInfo:
-            self.pipelineInfo[(row,col)] = {}
-        self.pipelineInfo[(row,col)] = info
-
-    def getCellPipelineInfo(self, row, col):
-        """ getCellPipelineInfo(row: int, col: int) -> any type        
-        Provide a way for the spreadsheet to extract vistrail
-        information, info, for the cell (row, col)
-        
-        """        
-        if not (row,col) in self.pipelineInfo:
-            return None
-        return self.pipelineInfo[(row,col)]
-
     def getSelectedLocations(self):
         """ getSelectedLocations() -> tuple
         Return the selected locations (row, col) of the current sheet
