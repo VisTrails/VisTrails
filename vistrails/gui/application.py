@@ -479,8 +479,12 @@ and ~/.vistrails/startup.py does not exist.""")
             s = core.system.defaultDotVistrails()
             self.configuration.userPackageDirectory = s
         sys.path.append(core.system.defaultDotVistrails())
-        import userpackages
 
+        try:
+            import userpackages
+        except ImportError:
+            pass
+        
         base, user = 0, 1
         def import_from_base(pkg):
             try:
