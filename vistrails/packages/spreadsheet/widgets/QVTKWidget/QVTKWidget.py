@@ -698,7 +698,6 @@ class QVTKWidget(QtGui.QWidget):
         Make sure interactions sync across selected renderers
         
         """
-        print 'there'
         if name=='MouseWheelForwardEvent':
             istyle.OnMouseWheelForward()
         if name=='MouseWheelBackwardEvent':
