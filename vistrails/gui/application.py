@@ -80,6 +80,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         
         self.configuration = InstanceObject(
             packageDirectory=None,
+            userPackageDirectory=None,
             pythonPrompt=False,
             debugSignals=False,
             showSplash=True,
@@ -134,7 +135,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         
         """
         if not hasattr(self, "__destroyed"):
-            for (packageName, packageModule, _) in self.packageList:
+            for (packageName, packageModule, _, _) in self.packageList:
                 print "Finalizing",packageName
                 try:
                     x = packageModule.finalize
@@ -338,7 +339,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         def addPackage(packageName, *args, **keywords):
             """ addPackage(packageName: str, *args) -> None
             """
-            self.packageList.append([packageName,None, keywords])
+            self.packageList.append([packageName, None, keywords, -1])
 
         def install_default_startup():
             debug.critical('Will try to create default startup script')
@@ -474,23 +475,53 @@ and ~/.vistrails/startup.py does not exist.""")
             sys.path.append(self.configuration.packageDirectory)
         import packages
 
+        if not self.configuration.userPackageDirectory:
+            s = core.system.defaultDotVistrails()
+            self.configuration.userPackageDirectory = s
+        sys.path.append(core.system.defaultDotVistrails())
+        import userpackages
+
+        base, user = 0, 1
+        def import_from_base(pkg):
+            try:
+                __import__('packages.'+pkg[0], globals(), locals(), [])
+                pkg[1] = getattr(packages, pkg[0])
+                pkg[3] = base
+            except ImportError:
+                return False
+            return True
+
+        def import_from_user(pkg):
+            try:
+                __import__('userpackages.'+pkg[0], globals(), locals(), [])
+                pkg[1] = getattr(userpackages, pkg[0])
+                pkg[3] = user
+            except ImportError:
+                return False
+            return True
+
         # import all packages in list
         for package in self.packageList:
-            try:
-                __import__('packages.'+package[0], globals(), locals(), [])
-                package[1] = getattr(packages, package[0])
-            except ImportError, e:
+            if (not import_from_base(package) and
+                not import_from_user(package)):
                 dbg = debug.DebugPrint
                 dbg.critical("Could not install package %s" % package[0])
-                raise
+                raise ImportError("Package %s not present" % package[0])
 
         # initialize all packages in list
-        for (packageName, packageModule, packageParams) in self.packageList:
+        for (packageName, packageModule,
+             packageParams, packagePlace) in self.packageList:
             print "Initializing ",packageName
             oldPath = copy.copy(sys.path)
-            sys.path.append(system.visTrailsRootDirectory() +
-                            '/packages/' +
-                            packageName)
+            if packagePlace == base:
+                sys.path.append(system.visTrailsRootDirectory() +
+                                '/packages/' +
+                                packageName)
+            elif packagePlace == user:
+                sys.path.append(self.configuration.userPackageDirectory +
+                                '/userpackages/' + packageName)
+            else:
+                raise VistrailsInternalError('bad packagePlace')
             packageModule.initialize(**packageParams)
             sys.path = oldPath
 
