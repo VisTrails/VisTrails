@@ -397,8 +397,7 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
             else:
                 event.accept()
                 self.updateText()
-        else:
-            event.ignore()
+        QtGui.QLineEdit.keyPressEvent(self,event)
 
     def focusInEvent(self, event):
         """ focusInEvent(event: QEvent) -> None
