@@ -52,6 +52,13 @@ error and the error message as a string."""
         self.module = module
         self.msg = errormsg
 
+class _InvalidOutput(object):
+    """ Specify an invalid result
+    """
+    pass
+
+InvalidOutput = _InvalidOutput
+
 ################################################################################
 
 class Module(object):
@@ -130,7 +137,6 @@ Designing New Modules
     def __init__(self):
         self.inputPorts = {}
         self.outputPorts = {}
-        self.outputTypes = {}
         self.outputRequestTable = {}
         self.upToDate = False
         self.setResult("self", self) # every object can return itself
@@ -167,17 +173,9 @@ context."""
                 connector.obj.update()
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             for connector in connectorList:
-                oType = connector.obj.getOutputType(connector.port)                
-                connector.type = oType
-                if oType!=type(None):
-                    matchedType = False
-                    for spec in connector.spec[0]:
-                        if issubclass(oType, spec[0]):
-                            matchedType = True
-                            break
-                    if matchedType==False:
-                        self.removeInputConnector(iport, connector)                        
-        
+                if connector.obj.getOutput(connector.port)==InvalidOutput:
+                    self.removeInputConnector(iport, connector)
+                    
     def update(self):
         """ update() -> None        
         Check if the module is up-to-date then update the
@@ -219,22 +217,13 @@ Makes sure input port 'name' is filled."""
             v = self.outputRequestTable[port]()
             return v
 
-    def setResult(self, port, value, vType = None):
+    def setResult(self, port, value):
         self.outputPorts[port] = value
-        if vType:
-            self.outputTypes[port] = vType
-        else:
-            self.outputTypes[port] = type(value)
 
     def getOutput(self, port):
         if self.outputPorts.has_key(port) or not self.outputPorts[port]:
             return self.outputPorts[port]
         return self.requestOutputFromPort(port)
-
-    def getOutputType(self, port):
-        if self.outputPorts.has_key(port) or not self.outputPorts[port]:
-            return self.outputTypes[port]
-        return None
 
     def getInputConnector(self, inputPort):
         if not self.inputPorts.has_key(inputPort):
@@ -325,8 +314,6 @@ class ModuleConnector(object):
     def __init__(self, obj, port, spec=None):
         self.obj = obj
         self.port = port
-        self.spec = spec
-        self.type = None
 
     def clear(self):
         """clear() -> None. Removes references, prepares for deletion."""

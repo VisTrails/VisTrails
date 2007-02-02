@@ -61,7 +61,7 @@ class Constant(Module):
         else:
             if not b:
                 raise Exception("Value should be a %s" % self.convert.__name__)
-        self.setResult("value", v, type(self))
+        self.setResult("value", v)
 
     def setValue(self, v):
         self.value = self.convert(v)

@@ -155,21 +155,19 @@ and over again. This allows nested execution."""
             obj.currentVersion = currentVersion
             reg = modules.module_registry.registry
             for f in module.functions:
-                spec = reg.getInputPortSpec(module, f.name)
                 if len(f.params) == 0:
-                    connector = ModuleConnector(createNull(), 'value', spec)
+                    connector = ModuleConnector(createNull(), 'value')
                 elif len(f.params) == 1:
                     p = f.params[0]
-                    connector = ModuleConnector(createConstant(p), 'value',
-                                                spec)
+                    connector = ModuleConnector(createConstant(p), 'value')
                 else:
                     tupleModule = reg.getDescriptorByName('Tuple').module()
                     tupleModule.length = len(f.params)
                     for (i,p) in withIndex(f.params):
                         constant = createConstant(p)
-                        connector = ModuleConnector(constant, 'value', spec)
+                        connector = ModuleConnector(constant, 'value')
                         tupleModule.setInputPort(i, connector)
-                    connector = ModuleConnector(tupleModule, 'value', spec)
+                    connector = ModuleConnector(tupleModule, 'value')
                 obj.setInputPort(f.name, connector)
 
         # Create the new connections
@@ -178,9 +176,7 @@ and over again. This allows nested execution."""
             conn = self._persistent_pipeline.connections[persistent_id]
             src = self._objects[conn.sourceId]
             dst = self._objects[conn.destinationId]
-            dstModule = self._persistent_pipeline.modules[conn.destinationId]
-            spec = reg.getInputPortSpec(dstModule, conn.destination.name)
-            conn.makeConnection(src, dst, spec)
+            conn.makeConnection(src, dst)
 
         if self.doneSummonHook:
             self.doneSummonHook(self._persistent_pipeline, self._objects)

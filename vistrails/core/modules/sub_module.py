@@ -24,7 +24,7 @@
 
 from core.modules import module_registry
 from core.modules.basic_modules import String, Variant, NotCacheable
-from core.modules.vistrails_module import Module
+from core.modules.vistrails_module import Module, InvalidOutput
 from core.interpreter.default import (noncached_interpreter, 
                                       default_interpreter)
 from core.inspector import PipelineInspector
@@ -89,11 +89,10 @@ class InputPort(Module):
     def compute(self):
         exPipe = self.forceGetInputFromPort('ExternalPipe')
         if exPipe:
-            exType = self.getInputConnector('ExternalPipe').type
-            self.setResult('InternalPipe', exPipe, exType)
+            self.setResult('InternalPipe', exPipe)
         else:
-            self.setResult('InternalPipe', None)
-        
+            self.setResult('InternalPipe', InvalidOutput)
+            
 _reg.addModule(InputPort)
 _reg.addInputPort(InputPort, "name", String, True)
 _reg.addInputPort(InputPort, "ExternalPipe", Module, True)
@@ -105,8 +104,7 @@ class OutputPort(Module):
     
     def compute(self):
         inPipe = self.getInputFromPort('InternalPipe')
-        inType = self.getInputConnector('InternalPipe').type
-        self.setResult('ExternalPipe', inPipe, inType)
+        self.setResult('ExternalPipe', inPipe)
     
 _reg.addModule(OutputPort)
 _reg.addInputPort(OutputPort, "InternalPipe", Module)
@@ -177,8 +175,7 @@ class SubModule(NotCacheable, Module):
                 outputPortId = self.inspector.outputPortByName[oport]
                 outputPortModule = objects[outputPortId]
                 self.setResult(oport,
-                               outputPortModule.getOutput('ExternalPipe'),
-                               outputPortModule.getOutputType('ExternalPipe'))
+                               outputPortModule.getOutput('ExternalPipe'))
         
 _reg.addModule(SubModule)
 

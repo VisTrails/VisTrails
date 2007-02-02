@@ -102,19 +102,18 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                 objects[id].currentVersion = currentVersion
                 reg = modules.module_registry.registry
                 for f in module.functions:
-                    spec = reg.getInputPortSpec(module, f.name)
                     if len(f.params)==0:
                         nullObject = reg.getDescriptorByName('Null').module()
                         objects[id].setInputPort(f.name, 
                                                  ModuleConnector(nullObject,
-                                                                 'value', spec))
+                                                                 'value'))
                     if len(f.params)==1:
                         p = f.params[0]
                         constant = reg.getDescriptorByName(p.type).module()
                         constant.setValue(p.evaluatedStrValue)
                         objects[id].setInputPort(f.name, 
                                                  ModuleConnector(constant, 
-                                                                 'value', spec))
+                                                                 'value'))
                     if len(f.params)>1:
                         tupleModule = reg.getDescriptorByName('Tuple').module()
                         tupleModule.length = len(f.params)
@@ -123,19 +122,17 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                             constant.setValue(p.evaluatedStrValue)
                             tupleModule.setInputPort(i, 
                                                      ModuleConnector(constant, 
-                                                                     'value',
-                                                                     spec))
+                                                                     'value'))
                         objects[id].setInputPort(f.name, 
                                                  ModuleConnector(tupleModule,
-                                                                 'value', spec))            
+                                                                 'value'))
             
             # create connections
             for id, conn in pipeline.connections.items():
                 src = objects[conn.sourceId]
                 dst = objects[conn.destinationId]
                 dstModule = pipeline.modules[conn.destinationId]
-                spec = reg.getInputPortSpec(dstModule, conn.destination.name)
-                conn.makeConnection(src, dst, spec)
+                conn.makeConnection(src, dst)
 
             if self.doneSummonHook:
                 self.doneSummonHook(pipeline, objects)
