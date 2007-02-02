@@ -45,7 +45,7 @@ class Vistrail(object):
         self.actionMap = {}
         self.tagMap = {}
         self.inverseTagMap = {}
-        self.latestTime = 0
+        self.latestTime = 1
         self.macroMap = {}
         self.macroIdMap = {}
         self.currentVersion = -1
@@ -307,11 +307,11 @@ class Vistrail(object):
     def actionChain(self, t, start=0):
         """ actionChain(t:int, start=0) -> [Action]  
         Returns the action chain (list of Action)  necessary to recreate a 
-        vistrail from a  certain time
+        pipeline from a  certain time
                       
         """
         result = []
-        action = copy.copy(self.actionMap[t])
+        action = self.actionMap[t]
         
         while 1:
             result.append(action)
@@ -319,9 +319,9 @@ class Vistrail(object):
                 break
             if action.parent == start:
                 if start != 0:
-                    action = copy.copy(self.actionMap[action.parent])
+                    action = self.actionMap[action.parent]
                 break
-            action = copy.copy(self.actionMap[action.parent])
+            action = self.actionMap[action.parent]
         result.reverse()
         return result
     
@@ -337,6 +337,9 @@ class Vistrail(object):
         Adds new version to vistrail
           
         """
+        if self.actionMap.has_key(action.timestep):
+            raise VistrailsInternalError("existing timestep")
+        self.latestTime = max(self.latestTime, action.timestep+1)
         self.actionMap[action.timestep] = action
         self.changed = True
         action.vistrail = self
@@ -481,7 +484,7 @@ class Vistrail(object):
 
         """
         if not self.currentGraph:
-            self.currentGraph=self.getTerseGraph().__copy__()
+            self.currentGraph=copy.copy(self.getTerseGraph())
         return self.currentGraph
 
     def setCurrentGraph(self, newGraph):
@@ -489,24 +492,19 @@ class Vistrail(object):
         Sets a copy of newGraph as the currentGraph. 
 
         """
-        self.currentGraph=newGraph.__copy__()
+        self.currentGraph=copy.copy(newGraph)
 
     def invalidateCurrentTime(self):
         """ invalidateCurrentTime() -> None 
         Recomputes the next unused timestep from scratch  
         """
-        self.latestTime = 1
-        for time in self.actionMap.keys():
-            if time >= self.latestTime:
-                self.latestTime = time + 1
+        self.latestTime = max(self.actionMap.keys())
+        self.latestTime += 1
                 
     def getFreshTimestep(self):
         """getFreshTimestep() -> int - Returns an unused timestep. """
 
-        v = 1
-        for time in self.actionMap.keys():
-            v = max(v, time)
-        return v+1
+        return self.latestTime
 
     def getDate(self):
 	""" getDate() -> str - Returns the current date and time. """
