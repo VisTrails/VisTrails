@@ -471,19 +471,26 @@ and ~/.vistrails/startup.py does not exist.""")
         """ installPackages() -> None
         Scheme through packages directory and initialize them all
         """
+        # Imports standard packages directory
+        old_sys_path = sys.path
         if self.configuration.packageDirectory:
             sys.path.append(self.configuration.packageDirectory)
         import packages
+        sys.path = old_sys_path
 
+        # Imports user packages directory, if existent
+        old_sys_path = sys.path
         if not self.configuration.userPackageDirectory:
-            s = core.system.defaultDotVistrails()
+            s = core.system.defaultDotVistrails() + '/userpackages'
             self.configuration.userPackageDirectory = s
-        sys.path.append(core.system.defaultDotVistrails())
-
+        sys.path.append(self.configuration.userPackageDirectory
+                        + '/'
+                        + os.path.pardir)
         try:
             import userpackages
         except ImportError:
             pass
+        sys_path = old_sys_path
         
         base, user = 0, 1
         def import_from_base(pkg):
@@ -516,18 +523,18 @@ and ~/.vistrails/startup.py does not exist.""")
         for (packageName, packageModule,
              packageParams, packagePlace) in self.packageList:
             print "Initializing ",packageName
-            oldPath = copy.copy(sys.path)
-            if packagePlace == base:
-                sys.path.append(system.visTrailsRootDirectory() +
-                                '/packages/' +
-                                packageName)
-            elif packagePlace == user:
-                sys.path.append(self.configuration.userPackageDirectory +
-                                '/userpackages/' + packageName)
-            else:
-                raise VistrailsInternalError('bad packagePlace')
+#             oldPath = copy.copy(sys.path)
+#             if packagePlace == base:
+#                 sys.path.append(system.visTrailsRootDirectory() +
+#                                 '/packages/' +
+#                                 packageName)
+#             elif packagePlace == user:
+#                 sys.path.append(self.configuration.userPackageDirectory +
+#                                 '/userpackages/' + packageName)
+#             else:
+#                 raise VistrailsInternalError('bad packagePlace')
             packageModule.initialize(**packageParams)
-            sys.path = oldPath
+#             sys.path = oldPath
 
     def runStartupHooks(self):
         """ runStartupHooks() -> None
