@@ -278,6 +278,7 @@ class Module(object):
         cp.id = self.id
         cp.cache = self.cache
         cp.name = self.name
+        cp.registry = self.registry
         return cp
 
     def __str__(self):

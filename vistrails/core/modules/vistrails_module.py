@@ -169,7 +169,7 @@ context."""
             for connector in connectorList:
                 oType = connector.obj.getOutputType(connector.port)                
                 connector.type = oType
-                if True or oType!=type(None):
+                if oType!=type(None):
                     matchedType = False
                     for spec in connector.spec[0]:
                         if issubclass(oType, spec[0]):
