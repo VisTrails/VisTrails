@@ -19,6 +19,9 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
+
+import copy
+
 class NeedsInputPort(Exception):
     def __init__(self, obj, port):
         self.obj = obj
@@ -127,10 +130,11 @@ Designing New Modules
     def __init__(self):
         self.inputPorts = {}
         self.outputPorts = {}
+        self.outputTypes = {}
         self.outputRequestTable = {}
         self.upToDate = False
         self.setResult("self", self) # every object can return itself
-
+        
     def clear(self):
         """clear(self) -> None. Removes all references, prepares for
 deletion."""
@@ -151,21 +155,44 @@ possible for modules to be cacheable depending on their execution
 context."""
         return True
 
+    def updateUpstream(self):
+        """ updateUpstream() -> None        
+        Go upstream from the current module, then update its upstream
+        modules and check input connection based on upstream modules
+        results
+        
+        """
+        for connectorList in self.inputPorts.itervalues():
+            for connector in connectorList:
+                connector.obj.update()
+        for iport, connectorList in copy.copy(self.inputPorts.items()):
+            for connector in connectorList:
+                oType = connector.obj.getOutputType(connector.port)                
+                connector.type = oType
+                if True or oType!=type(None):
+                    matchedType = False
+                    for spec in connector.spec[0]:
+                        if issubclass(oType, spec[0]):
+                            matchedType = True
+                            break
+                    if matchedType==False:
+                        self.removeInputConnector(iport, connector)                        
+        
     def update(self):
+        """ update() -> None        
+        Check if the module is up-to-date then update the
+        modules. Report to the logger if available
+        
+        """
         if self.upToDate:
             return
         if not hasattr(self, "logging"):
-            for connectorList in self.inputPorts.itervalues():
-                for connector in connectorList:
-                    connector.obj.update()
+            self.updateUpstream()
             self.compute()
             self.upToDate = True
         else:
-            # Updates upstream modules
             self.logging.beginUpdate(self)
-            for connectorList in self.inputPorts.itervalues():
-                for connector in connectorList:
-                    connector.obj.update()
+            self.updateUpstream()
             self.logging.beginCompute(self)
             self.compute()
             self.upToDate = True
@@ -192,17 +219,36 @@ Makes sure input port 'name' is filled."""
             v = self.outputRequestTable[port]()
             return v
 
-    def setResult(self, port, value):
+    def setResult(self, port, value, vType = None):
         self.outputPorts[port] = value
+        if vType:
+            self.outputTypes[port] = vType
+        else:
+            self.outputTypes[port] = type(value)
 
     def getOutput(self, port):
         if self.outputPorts.has_key(port) or not self.outputPorts[port]:
             return self.outputPorts[port]
         return self.requestOutputFromPort(port)
 
+    def getOutputType(self, port):
+        if self.outputPorts.has_key(port) or not self.outputPorts[port]:
+            return self.outputTypes[port]
+        return None
+
+    def getInputConnector(self, inputPort):
+        if not self.inputPorts.has_key(inputPort):
+            raise ModuleError(self, "Missing value from port %s" % inputPort)
+        return self.inputPorts[inputPort][0]
+
     def getInputFromPort(self, inputPort):
         if not self.inputPorts.has_key(inputPort):
             raise ModuleError(self, "Missing value from port %s" % inputPort)
+        # Cannot resolve circular reference here, need to be fixed later
+        from core.modules.sub_module import InputPort
+        for conn in self.inputPorts[inputPort]:
+            if type(conn.obj)==InputPort:
+                return conn()
         return self.inputPorts[inputPort][0]()
 
     def hasInputFromPort(self, inputPort):
@@ -229,19 +275,42 @@ Makes sure input port 'name' is filled."""
     def getInputListFromPort(self, inputPort):
         if not self.inputPorts.has_key(inputPort):
             raise ModuleError(self, "Missing value from port %s" % inputPort)
+        # Cannot resolve circular reference here, need to be fixed later
+        from core.modules.sub_module import InputPort
+        fromInputPortModule = [connector()
+                               for connector in self.inputPorts[inputPort]
+                               if type(connector.obj)==InputPort]
+        if len(fromInputPortModule)>0:
+            return fromInputPortModule
         return [connector() for connector in self.inputPorts[inputPort]]
 
     def forceGetInputListFromPort(self, inputPort):
         if not self.inputPorts.has_key(inputPort):
             return []
-        return [connector() for connector in self.inputPorts[inputPort]]
+        return self.getInputListFromPort(inputPort)
 
-    ### Set an output port before hand that it is neccesary for the computation
     def enableOutputPort(self, outputPort):
+        """ enableOutputPort(outputPort: str) -> None
+        Set an output port to be active to store result of computation
+        
+        """
         # Don't reset existing values, it screws up the caching.
         if not self.outputPorts.has_key(outputPort):
             self.setResult(outputPort, None)
-
+            
+    def removeInputConnector(self, inputPort, connector):
+        """ removeInputConnector(inputPort: str,
+                                 connector: ModuleConnector) -> None
+        Remove a connector from the connection list of an input port
+        
+        """
+        if self.inputPorts.has_key(inputPort):
+            conList = self.inputPorts[inputPort]
+            if connector in conList:
+                conList.remove(connector)
+            if conList==[]:
+                del self.inputPorts[inputPort]
+            
 
 ################################################################################
 
@@ -253,10 +322,11 @@ class NotCacheable(object):
 ################################################################################
 
 class ModuleConnector(object):
-    
-    def __init__(self, obj, port):
+    def __init__(self, obj, port, spec=None):
         self.obj = obj
         self.port = port
+        self.spec = spec
+        self.type = None
 
     def clear(self):
         """clear() -> None. Removes references, prepares for deletion."""

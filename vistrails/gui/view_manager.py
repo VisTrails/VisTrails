@@ -160,6 +160,7 @@ class QViewManager(QtGui.QTabWidget):
             vistrailView.setVistrail(vistrail, fileName)
             self.addVistrailView(vistrailView)
             self.setCurrentWidget(vistrailView)
+            vistrailView.controller.inspectAndImportModules()
             return vistrailView
         except XMLParser.XMLParseError, e:
             QtGui.QMessageBox.critical(None,

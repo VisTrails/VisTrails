@@ -61,7 +61,7 @@ class Constant(Module):
         else:
             if not b:
                 raise Exception("Value should be a %s" % self.convert.__name__)
-        self.setResult("value", v)
+        self.setResult("value", v, type(self))
 
     def setValue(self, v):
         self.value = self.convert(v)
@@ -298,7 +298,7 @@ class TestPortConfig(Module):
     
     def compute(self):
         pass
-
+    
 _reg.addModule(TestPortConfig)
 _reg.addInputPort(TestPortConfig,
                  'ColorPort', [Float,Float,Float],
@@ -356,3 +356,15 @@ _reg.addModule(Unzip)
 _reg.addInputPort(Unzip, 'archive_file', File)
 _reg.addInputPort(Unzip, 'filename_in_archive', String)
 _reg.addOutputPort(Unzip, 'file', File)
+
+##############################################################################
+    
+class Variant(Module):
+    """
+    Variant is tracked internally for outputing a variant type on
+    output port. For input port, Module type should be used
+    
+    """
+    pass
+    
+_reg.addModule(Variant)

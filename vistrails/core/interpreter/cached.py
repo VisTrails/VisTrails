@@ -35,6 +35,7 @@ import core.vistrail.pipeline
 class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
     def __init__(self):
+        core.interpreter.base.BaseInterpreter.__init__(self)
         self._file_pool = FilePool()
         self._persistent_pipeline = core.vistrail.pipeline.Pipeline()
         self._objects = {}
@@ -68,8 +69,12 @@ and the modules that depend on them."""
             self._persistent_pipeline.deleteModule(v)
             del self._objects[v]
 
-    def sub_execute(self, pipeline, vistrailName, currentVersion,
-                    view, logger):
+    def unlocked_execute(self, pipeline, vistrailName, currentVersion,
+                view, logger):
+        """unlocked_execute(pipeline, vistrailName, currentVersion, view, logger):
+Executes a pipeline using caching. Caching works by reusing pipelines directly.
+This means that there exists one global pipeline whose parts get executed over
+and over again. This allows nested execution."""
 
         (module_map,
          conn_map,
@@ -84,11 +89,13 @@ and the modules that depend on them."""
         # views work on local ids
         def beginCompute(obj):
             i = module_map.inverse[obj.id]
-            view.setModuleComputing(i)
+            if view:
+                view.setModuleComputing(i)
         # views and loggers work on local ids
         def beginUpdate(obj):
             i = module_map.inverse[obj.id]
-            view.setModuleActive(i)
+            if view:
+                view.setModuleActive(i)
             reg = modules.module_registry.registry
             name = reg.getDescriptor(obj.__class__).name
             if logger:
@@ -97,10 +104,11 @@ and the modules that depend on them."""
         # views and loggers work on local ids
         def endUpdate(obj, error=''):
             i = module_map.inverse[obj.id]
-            if not error:
-                view.setModuleSuccess(i)
-            else:
-                view.setModuleError(i, error)
+            if view:
+                if not error:
+                    view.setModuleSuccess(i)
+                else:
+                    view.setModuleError(i, error)
             if logger:
                 logger.finishModuleExecution(vistrailName, 
                                              currentVersion, i)
@@ -145,21 +153,23 @@ and the modules that depend on them."""
                 obj.logging = logging_obj
             obj.vistrailName = vistrailName
             obj.currentVersion = currentVersion
+            reg = modules.module_registry.registry
             for f in module.functions:
+                spec = reg.getInputPortSpec(module, f.name)
                 if len(f.params) == 0:
-                    connector = ModuleConnector(createNull(), 'value')
+                    connector = ModuleConnector(createNull(), 'value', spec)
                 elif len(f.params) == 1:
                     p = f.params[0]
-                    connector = ModuleConnector(createConstant(p), 'value')
+                    connector = ModuleConnector(createConstant(p), 'value',
+                                                spec)
                 else:
-                    reg = modules.module_registry.registry
                     tupleModule = reg.getDescriptorByName('Tuple').module()
                     tupleModule.length = len(f.params)
                     for (i,p) in withIndex(f.params):
                         constant = createConstant(p)
-                        connector = ModuleConnector(constant, 'value')
+                        connector = ModuleConnector(constant, 'value', spec)
                         tupleModule.setInputPort(i, connector)
-                    connector = ModuleConnector(tupleModule, 'value')
+                    connector = ModuleConnector(tupleModule, 'value', spec)
                 obj.setInputPort(f.name, connector)
 
         # Create the new connections
@@ -168,8 +178,13 @@ and the modules that depend on them."""
             conn = self._persistent_pipeline.connections[persistent_id]
             src = self._objects[conn.sourceId]
             dst = self._objects[conn.destinationId]
-            conn.makeConnection(src, dst)
+            dstModule = self._persistent_pipeline.modules[conn.destinationId]
+            spec = reg.getInputPortSpec(dstModule, conn.destination.name)
+            conn.makeConnection(src, dst, spec)
 
+        if self.doneSummonHook:
+            self.doneSummonHook(self._persistent_pipeline, self._objects)
+                
         # Update new sinks
         for v in persistent_sinks:
             try:
@@ -178,6 +193,9 @@ and the modules that depend on them."""
                 me.module.logging.endUpdate(me.module, me.msg)
                 errors[me.module.id] = me
 
+        if self.doneUpdateHook:
+            self.doneUpdateHook(self._persistent_pipeline, self._objects)
+                
         # objs, errs, and execs are mappings that use the local ids as keys,
         # as opposed to the persistent ids.
         # They are thus ideal to external consumption.
@@ -198,15 +216,16 @@ and the modules that depend on them."""
 #         print "objs:", objs
 #         print "errs:", errs
 #         print "execs:", execs
-        
-        for i, obj in objs.iteritems():
-            if errs.has_key(i):
-                view.setModuleError(i, errs[i].msg)
-            elif execs.has_key(i):
-                view.setModuleSuccess(i)
-            else:
-                view.setModuleNotExecuted(i)
 
+        if view:
+            for i, obj in objs.iteritems():
+                if errs.has_key(i):
+                    view.setModuleError(i, errs[i].msg)
+                elif execs.has_key(i):
+                    view.setModuleSuccess(i)
+                else:
+                    view.setModuleNotExecuted(i)
+                    
         return (objs, errs, execs)
         
 
@@ -238,9 +257,9 @@ means they were cached."""
 
         self.clean_non_cacheable_modules()
 
-        (objs, errs, execs) = self.sub_execute(pipeline, vistrailName,
-                                               currentVersion,
-                                               view, logger)
+        (objs, errs, execs) = self.unlocked_execute(pipeline, vistrailName,
+                                                    currentVersion,
+                                                    view, logger)
 
         if logger:
             logger.finishWorkflowExecution(vistrailName, currentVersion)

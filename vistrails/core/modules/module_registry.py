@@ -22,7 +22,7 @@
 from PyQt4 import QtCore
 
 from core.utils import VistrailsInternalError, memo_method, all, \
-     InvalidModuleClass
+     InvalidModuleClass, ModuleAlreadyExists
 import __builtin__
 import copy
 import core.debug
@@ -123,6 +123,9 @@ PluginRTTI put together, with the ability to extend it at runtime)"""
         self.moduleTree = { "Module": n }
         self.moduleWidget = { "Module": None }
         self._hasher_callable = {}
+        self.currentPackageName = 'Basic Modules'
+        self.modulePackage = {"Module": 'Basic Modules'}
+        self.packageModules = {'Basic Modules': ["Module"]}
 
     def module_signature(self, module):
         """Returns signature of a given core.vistrail.Module, possibly
@@ -168,8 +171,8 @@ uses module.__name__).  This module will be available for use in
 pipelines."""
         if not name:
             name = module.__name__
-        import time
-        assert not self.moduleTree.has_key(name)
+        if self.moduleTree.has_key(name):
+            raise ModuleAlreadyExists(name)
         # try to eliminate mixins
         candidates = self.get_subclass_candidates(module)
         if len(candidates) != 1:
@@ -179,10 +182,15 @@ pipelines."""
                 ("Missing base class %s" % baseClass.__name__))
         baseName = self.moduleName[baseClass]
         baseNode = self.moduleTree[baseName]
-        moduleNode = baseNode.addModule(module)
+        moduleNode = baseNode.addModule(module, name)
         self.moduleTree[name] = moduleNode
         self.moduleName[module] = name
         self.moduleWidget[name] = configureWidgetType
+        self.modulePackage[name] = self.currentPackageName
+        if self.packageModules.has_key(self.currentPackageName):
+            self.packageModules[self.currentPackageName].append(name)
+        else:
+            self.packageModules[self.currentPackageName] = [name]
         
         if cacheCallable:
             self._hasher_callable[name] = cacheCallable
@@ -355,53 +363,50 @@ connection connecting these two ports."""
             return False
         if sourceModulePort.type != destinationModulePort.type:
             return False
-
-        def getTypes(port, specId=0):
-            spec = port.spec[specId]
-            return [description[0] for description in spec]
-
-        for j in range(len(sourceModulePort.spec)):
-            sourceTypes = getTypes(sourceModulePort, j)
-            for i in range(len(destinationModulePort.spec)):
-                destTypes = getTypes(destinationModulePort, i)
-                if len(sourceTypes) != len(destTypes):
-                    continue
-                ok = True
-                for (st, dt) in zip(sourceTypes, destTypes):
-                    sourceDescriptor = self.getDescriptorByThing(st)
-                    destinationDescriptor = self.getDescriptorByThing(dt)
-                    if not issubclass(sourceDescriptor.module,
-                                      destinationDescriptor.module):
-                        ok = False
-                        break
-                if ok:
-                    return True
-        return False
-
+        return self.isSpecsMatched(sourceModulePort, destinationModulePort)
 
     def isPortSubType(self, super, sub):
-        def getTypes(port, specId=0):
-            spec = port.spec[specId]
-            return [description[0] for description in spec]
-
+        """ isPortSubType(super: Port, sub: Port) -> bool        
+        Check if port super and sub are similar or not. These ports
+        must have exact name and type as well as position
+        
+        """
         if super.endPoint != sub.endPoint:
             return False
         if super.type != sub.type:
             return False
         if super.name != sub.name:
             return False
+        return self.isSpecsMatched(super, sub)
+
+    def isSpecsMatched(self, super, sub):
+        """ isSpecsMatched(super: Port, sub: Port) -> bool        
+        Check if specs of super and sub port are matched or not
+        
+        """
+        def getTypes(port, specId=0):
+            spec = port.spec[specId]
+            return [description[0] for description in spec]
+
+        variantType = core.modules.basic_modules.Variant
 
         for j in range(len(super.spec)):
             superTypes = getTypes(super, j)
+            if superTypes==[variantType]:
+                return True
             for i in range(len(sub.spec)):
                 subTypes = getTypes(sub, i)
+                if subTypes==[variantType]:
+                    return True
                 if len(superTypes) != len(subTypes):
                     continue
                 ok = True
                 for (superType, subType) in zip(superTypes, subTypes):
+                    if (superType==variantType or subType==variantType):
+                        continue
                     superModule = self.getDescriptorByThing(superType).module
                     subModule = self.getDescriptorByThing(subType).module
-                    if not issubclass(subModule, superModule):
+                    if not issubclass(superModule, subModule):
                         ok = False
                         break
                 if ok:
@@ -476,6 +481,46 @@ ports."""
         port.spec = registry.makeSpec(port, portSpec, localRegistry, loose)
         return port
 
+    def getInputPortSpec(self, module, portName):
+        """ getInputPortSpec(module: Module, portName: str) -> spec-tuple        
+        Return the spec for an input port of a module given the module
+        and port name
+        
+        """
+        moduleHierarchy = self.getModuleHierarchy(module.name)
+        for baseModule in moduleHierarchy:
+            des = self.getDescriptorByThing(baseModule)
+            if des.inputPorts.has_key(portName):
+                return des.inputPorts[portName]
+        # Also check local registry
+        if module.registry:
+            moduleHierarchy = module.registry.getModuleHierarchy(module.name)
+            for baseModule in moduleHierarchy:
+                des = module.registry.getDescriptorByThing(baseModule)
+                if des.inputPorts.has_key(portName):
+                    return des.inputPorts[portName]
+        return None
+
+    def getOutputPortSpec(self, module, portName):
+        """ getOutputPortSpec(module: Module, portName: str) -> spec-tuple        
+        Return the spec for an output port of a module given the module
+        and port name
+        
+        """
+        moduleHierarchy = self.getModuleHierarchy(module.name)
+        for baseModule in moduleHierarchy:
+            des = self.getDescriptorByThing(baseModule)
+            if des.outputPorts.has_key(portName):
+                return des.outputPorts[portName]
+        # Also check local registry
+        if module.registry:
+            moduleHierarchy = module.registry.getModuleHierarchy(module.name)
+            for baseModule in moduleHierarchy:
+                des = module.registry.getDescriptorByThing(baseModule)
+                if des.outputPorts.has_key(portName):
+                    return des.outputPorts[portName]
+        return None
+
     @staticmethod
     def get_subclass_candidates(module):
         """get_subclass_candidates(module) -> [class]
@@ -487,6 +532,28 @@ base classes that subclass from Module."""
                 if issubclass(klass,
                               core.modules.vistrails_module.Module)]
 
+    def setCurrentPackageName(self, pName):
+        """ setCurrentPackageName(pName: str) -> None        
+        Set the current package name for all addModule operations to
+        name. This means that all modules added after this call will
+        be assigned to a package name: pName. Set pName to None to
+        indicate that VisTrails default package should be used instead
+        
+        """
+        if pName==None:
+            pName = 'Basic Modules'
+        self.currentPackageName = pName
+
+    def getModulePackage(self, moduleName):
+        """ getModulePackage(moduleName: str) -> str
+        Return the name associate of a module
+        
+        """
+        if self.modulePackage.has_key(moduleName):
+            return self.modulePackage[moduleName]
+        else:
+            return None
+
 ###############################################################################
 
 class Tree(object):
@@ -496,9 +563,9 @@ class Tree(object):
         self.children = []
         self.parent = None
 
-    def addModule(self, submodule):
+    def addModule(self, submodule, name=None):
         assert self.descriptor.module in submodule.__bases__
-        result = Tree(submodule)
+        result = Tree(submodule, name)
         result.parent = self
         self.children.append(result)
         return result
@@ -510,3 +577,4 @@ registry = ModuleRegistry()
 addModule     = registry.addModule
 addInputPort  = registry.addInputPort
 addOutputPort = registry.addOutputPort
+setCurrentPackageName = registry.setCurrentPackageName

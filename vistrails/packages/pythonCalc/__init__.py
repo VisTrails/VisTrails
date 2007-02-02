@@ -100,6 +100,12 @@ def initialize(*args, **keywords):
     # we can refer to it in a shorter way.
     reg = core.modules.module_registry
 
+    # VisTrails allows each package to specify its name for friendly
+    # managing packages. This is done by calling
+    # setCurrentPackageName. If this function is not called, the
+    # package directory will be used as its name.
+    reg.setCurrentPackageName('Python Calculator')
+
     # VisTrails cannot currently automatically detect your derived
     # classes, and the ports that they support as input and
     # output. Because of this, you as a module developer need to let

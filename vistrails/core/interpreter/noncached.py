@@ -34,7 +34,7 @@ import core.vistrail.pipeline
 
 class Interpreter(core.interpreter.base.BaseInterpreter):
     def __init__(self):
-        pass
+        core.interpreter.base.BaseInterpreter.__init__(self)
 
     typeConversion = {'Float': float,
                       'Integer': int,
@@ -57,19 +57,22 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
         def addToExecuted(obj):
             executed[obj.id] = True
         def beginCompute(obj):
-            view.setModuleComputing(obj.id)
+            if view:
+                view.setModuleComputing(obj.id)
         def beginUpdate(obj):
-            view.setModuleActive(obj.id)
-            reg = modules.module_registry.registry
-            name = reg.getDescriptor(obj.__class__).name
+            if view:
+                view.setModuleActive(obj.id)
             if logger:
+                reg = modules.module_registry.registry
+                name = reg.getDescriptor(obj.__class__).name
                 logger.startModuleExecution(vistrailName, 
                                             currentVersion, obj.id, name)
         def endUpdate(obj, error=''):
-            if not error:
-                view.setModuleSuccess(obj.id)
-            else:
-                view.setModuleError(obj.id, error)
+            if view:
+                if not error:
+                    view.setModuleSuccess(obj.id)
+                else:
+                    view.setModuleError(obj.id, error)
             if logger:
                 logger.finishModuleExecution(vistrailName, 
                                              currentVersion, obj.id)
@@ -97,20 +100,21 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                     objects[id].logging = logging_obj
                 objects[id].vistrailName = vistrailName
                 objects[id].currentVersion = currentVersion
+                reg = modules.module_registry.registry
                 for f in module.functions:
-                    reg = modules.module_registry.registry
+                    spec = reg.getInputPortSpec(module, f.name)
                     if len(f.params)==0:
                         nullObject = reg.getDescriptorByName('Null').module()
                         objects[id].setInputPort(f.name, 
                                                  ModuleConnector(nullObject,
-                                                                 'value'))
+                                                                 'value', spec))
                     if len(f.params)==1:
                         p = f.params[0]
                         constant = reg.getDescriptorByName(p.type).module()
                         constant.setValue(p.evaluatedStrValue)
                         objects[id].setInputPort(f.name, 
                                                  ModuleConnector(constant, 
-                                                                 'value'))
+                                                                 'value', spec))
                     if len(f.params)>1:
                         tupleModule = reg.getDescriptorByName('Tuple').module()
                         tupleModule.length = len(f.params)
@@ -119,16 +123,22 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                             constant.setValue(p.evaluatedStrValue)
                             tupleModule.setInputPort(i, 
                                                      ModuleConnector(constant, 
-                                                                     'value'))
+                                                                     'value',
+                                                                     spec))
                         objects[id].setInputPort(f.name, 
                                                  ModuleConnector(tupleModule,
-                                                                 'value'))
-                        
+                                                                 'value', spec))            
+            
             # create connections
             for id, conn in pipeline.connections.items():
                 src = objects[conn.sourceId]
                 dst = objects[conn.destinationId]
-                conn.makeConnection(src, dst)
+                dstModule = pipeline.modules[conn.destinationId]
+                spec = reg.getInputPortSpec(dstModule, conn.destination.name)
+                conn.makeConnection(src, dst, spec)
+
+            if self.doneSummonHook:
+                self.doneSummonHook(pipeline, objects)
 
             for v in pipeline.graph.sinks():
                 try:
@@ -136,6 +146,10 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                 except ModuleError, me:
                     me.module.logging.endUpdate(me.module, me.msg)
                     errors[me.module.id] = me
+                    
+            if self.doneUpdateHook:
+                self.doneUpdateHook(pipeline, objects)
+                
         finally:
             self.filePool.cleanup()
             del self.filePool

@@ -51,8 +51,8 @@ class Vistrail(object):
         self.currentVersion = -1
         self.expand=[] #to expand selections in versiontree
         self.currentGraph=None
-	self.lastDBTime = 0
-	self.remoteFilename = ""
+        self.lastDBTime = 0
+        self.remoteFilename = ""
 
     def getVersionName(self, version):
         """ getVersionName(version) -> str 
@@ -370,8 +370,10 @@ class Vistrail(object):
         self.changed = True
         
     def changeTag(self, version_name, version_number):
-        """changeTag(version_name, version_number) -> None 
-        Changes the old tag of version_number to version_name in the vistrail.
+        """changeTag(version_name, version_number) -> None        
+        Changes the old tag of version_number to version_name in the
+        vistrail.  If version_name is empty, this version will be
+        untagged.
                   
         """
         if not self.inverseTagMap.has_key(version_number):
@@ -383,8 +385,11 @@ class Vistrail(object):
             DebugPrint.log("Tag already exists")
             raise TagExists()
         self.tagMap.pop(self.inverseTagMap[version_number])
-        self.inverseTagMap[version_number] = version_name
-        self.tagMap[version_name] = version_number
+        if version_name=='':
+            self.inverseTagMap.pop(version_number)
+        else:
+            self.inverseTagMap[version_number] = version_name
+            self.tagMap[version_name] = version_number
         self.changed = True
 
     def changenotes(self, notes, version_number):
@@ -520,12 +525,12 @@ class Vistrail(object):
           
         """
         #couldn't remove this because of circular reference in xml_parser
-	import core.xml_parser 
-	version = core.xml_parser.XMLParser().currentVersion
+        import core.xml_parser 
+        version = core.xml_parser.XMLParser().currentVersion
         impl = xml.dom.minidom.getDOMImplementation()
         dom = impl.createDocument(None, 'visTrail', None)
         root = dom.documentElement
-	root.setAttribute('version', str(version))
+        root.setAttribute('version', str(version))
         for action in self.actionMap.values():
             actionElement = dom.createElement('action')
             actionElement.setAttribute('time', str(action.timestep))
@@ -534,13 +539,13 @@ class Vistrail(object):
                 actionElement.setAttribute('date', str(action.date))
             if action.user != None:
                 actionElement.setAttribute('user', str(action.user))
-	    if action.notes != None:
-		action.notes = action.notes.strip()
-		if action.notes != '':
-		    notesElement = dom.createElement('notes')
-		    text = dom.createTextNode(str(action.notes))
-		    notesElement.appendChild(text)
-		    actionElement.appendChild(notesElement)
+            if action.notes != None:
+                action.notes = action.notes.strip()
+            if action.notes != '':
+                notesElement = dom.createElement('notes')
+                text = dom.createTextNode(str(action.notes))
+                notesElement.appendChild(text)
+                actionElement.appendChild(notesElement)
             root.appendChild(actionElement)
             action.serialize(dom, actionElement)
         for (name, time) in self.tagMap.items():
@@ -551,14 +556,14 @@ class Vistrail(object):
         for macro in self.macroMap.values():
             macro.serialize(dom,root)
         if len(self.remoteFilename) > 0:
-	    el = dom.createElement('dbinfo')
-	    el.setAttribute('remoteFilename', str(self.remoteFilename))
-	    el.setAttribute('remoteTime', str(self.lastDBTime))
-	    root.appendChild(el)
+            el = dom.createElement('dbinfo')
+            el.setAttribute('remoteFilename', str(self.remoteFilename))
+            el.setAttribute('remoteTime', str(self.lastDBTime))
+            root.appendChild(el)
         outputFile = file(filename,'w')
         root.writexml(outputFile, "  ", "  ", '\n')
         outputFile.close()
-	self.changed = False
+        self.changed = False
 
     def applyMacro(self,name,pipeline):
         """applyMacro(name:str, pipeline:Pipeline) -> None

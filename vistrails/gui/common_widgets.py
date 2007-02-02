@@ -150,8 +150,9 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
 
         def quickMatchedTest(item):
             """ quickMatchedTest(item: QModuleTreeWidgetItem,
-                                 matchedItems) -> bool
-            Quickly test if item is in sorted matchedItems list using bisect module
+                                 matchedItems) -> bool                                 
+            Quickly test if item is in sorted matchedItems list using
+            bisect module
             
             """
             candidate = bisect.bisect_left(matchedItems, item)
@@ -187,8 +188,8 @@ class QSearchTreeWindow(QtGui.QWidget):
     """
     QSearchTreeWindow contains a search box on top of a tree widget
     for easy search and refine. The subclass has to implement
-    createTreeWidget() method to return a tree widget that is also a
-    subclass of QSearchTreeWidget
+    createTreeWidget() method to return a tree widget that is also 
+    needs to expose searchItemName method
 
     """
     def __init__(self, parent=None):

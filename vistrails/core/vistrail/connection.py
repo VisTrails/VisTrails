@@ -42,11 +42,11 @@ def moduleConnection(conn):
     Returns a function to build a module connection
 
     """
-    def theFunction(src, dst):
+    def theFunction(src, dst, spec=None):
         iport = conn.destination.name
         oport = conn.source.name
         src.enableOutputPort(oport)
-        dst.setInputPort(iport, ModuleConnector(src, oport))
+        dst.setInputPort(iport, ModuleConnector(src, oport, spec))
     return theFunction
 
 def noMakeConnection(conn):
@@ -54,7 +54,7 @@ def noMakeConnection(conn):
     Returns a function that raises an Exception
 
     """
-    def theFunction(src, dst):
+    def theFunction(src, dst, spec=None):
         raise NoMakeConnection(conn)
     return theFunction
 

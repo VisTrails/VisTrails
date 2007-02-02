@@ -52,3 +52,9 @@ def get_referrers(obj, path=None):
         referrers = gc.get_referrers(referrers[edge])
     return referrers
 
+def count_object_by_name(name):
+    objects = get_objects_by_livecount()
+    for (count, oName) in objects:
+        if oName==name:
+            return count
+    return 0

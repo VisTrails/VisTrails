@@ -133,6 +133,17 @@ a class that's being registered as a module within VisTrails."""
         return ("klass '%s' cannot be registered in VisTrails. Please" +
                 " consult the documentation." % klass.__name__)
 
+class ModuleAlreadyExists(Exception):
+    """ModuleAlreadyExists is raised when trying to add a class that
+    is already in the module registry."""
+
+    def __init__(self, moduleName):
+        self.moduleName = moduleName
+
+    def __str__(self):
+        return ("'%s' cannot be registered in VisTrails because of another "
+                "module with the same name already exists." % self.moduleName)
+
 ################################################################################
 
 # Only works for functions with NO kwargs!

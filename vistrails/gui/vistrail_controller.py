@@ -20,7 +20,7 @@
 ##
 ############################################################################
 from PyQt4 import QtCore, QtGui
-from core.utils import VistrailsInternalError
+from core.utils import VistrailsInternalError, ModuleAlreadyExists
 from core.modules import module_registry
 from core.vistrail.action import Action, AddModuleAction, DeleteModuleAction, \
     ChangeParameterAction, AddConnectionAction, DeleteConnectionAction, \
@@ -31,9 +31,13 @@ from core.query.visual import VisualQuery
 from core.vistrail.module import Module
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.module_param import VistrailModuleType
+from core.vistrail.vistrail import TagExists
+from core.interpreter.default import default_interpreter
+from core.inspector import PipelineInspector
+from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
+from core.modules.sub_module import addSubModule, DupplicateSubModule
 import copy
 import os.path
-from core.interpreter.default import default_interpreter
 
 ################################################################################
 
@@ -72,7 +76,7 @@ class VistrailController(QtCore.QObject):
         pass
 
     def setVistrail(self, vistrail, name):
-        """ setVistrail(vistrail: Vistrail) -> None
+        """ setVistrail(vistrail: Vistrail, name: str) -> None
         Start controlling a vistrail
         
         """
@@ -300,15 +304,31 @@ class VistrailController(QtCore.QObject):
         
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
-      
-        if tag == '' and self.vistrail.hasTag(self.currentVersion):
-            raise VistrailsInternalError("Tags cannot be erased.")
-        else:
-            if self.vistrail.hasTag(self.currentVersion):
-                changed = self.vistrail.changeTag(tag, self.currentVersion)
-            else:
-                changed = self.vistrail.addTag(tag, self.currentVersion)
 
+        pInspector = PipelineInspector()
+        if self.currentPipeline:
+            pInspector.inspect(self.currentPipeline)
+            
+        try:
+            if self.vistrail.hasTag(self.currentVersion):
+                self.vistrail.changeTag(tag, self.currentVersion)
+            else:
+                self.vistrail.addTag(tag, self.currentVersion)
+        except TagExists:
+            show_warning('Name Exists',
+                         "There is already another version named '%s'.\n"
+                         "Please enter a different one." % tag)
+            return
+
+        if pInspector.isSubModule() and tag!='':
+            ans = show_question("Add Sub-Module",
+                                "'%s' can be used as a module in VisTrails. "
+                                "Do you want to add it to VisTrails Modules?"
+                                % tag,
+                                [YES_BUTTON, NO_BUTTON], YES_BUTTON)
+            if ans==YES_BUTTON:
+                self.addSubModule(tag, self.name, self.vistrail, self.fileName,
+                                  self.currentVersion, pInspector)
         self.setChanged(True)
 
         self.resetVersionView = False
@@ -598,3 +618,56 @@ class VistrailController(QtCore.QObject):
         search.run(self.vistrail, '')
             
         self.setSearch(search)
+
+
+    def addSubModule(self, moduleName, packageName, vistrail,
+                     fileName, version, inspector):
+        """ addSubModule(moduleName: str,
+                         packageName: str,
+                         vistrail: Vistrail,
+                         fileName: str,
+                         version: int,
+                         inspector: PipelineInspector) -> SubModule
+        Wrap sub_module.addSubModule to show GUI dialogs
+        
+        """
+        try:
+            return addSubModule(moduleName, packageName, vistrail, fileName,
+                                version, inspector)
+        except ModuleAlreadyExists:
+            show_warning('Module Exists',
+                         "Failed to registered '%s' as a module "
+                         "because there is already another module with "
+                         "the same name. Please change the version name "
+                         "and manually add it later." % moduleName)
+        except DupplicateSubModule:
+            show_warning('Module Exists',
+                         "Failed to registered '%s' as a module "
+                         "because it is already registered." % moduleName)
+
+    def inspectAndImportModules(self):
+        """ inspectAndImportModules() -> None        
+        Go through all named pipelines and ask user to import them
+        
+        """
+        importModule = False
+        inspector = PipelineInspector()
+        for tag, version in self.vistrail.tagMap.iteritems():
+            if tag!='':
+                pipeline = self.vistrail.getPipeline(version)
+                inspector.inspect(pipeline)
+                if inspector.isSubModule():
+                    if importModule==False:
+                        res = show_question('Import Modules',
+                                            "'%s' contains importable modules. "
+                                            "Do you want to import all of them?"
+                                            % self.name,
+                                            [YES_BUTTON, NO_BUTTON], YES_BUTTON)
+                        if res==YES_BUTTON:
+                            importModule = True
+                        else:
+                            return
+                    if importModule:
+                        self.addSubModule(tag, self.name, self.vistrail,
+                                          self.fileName, version,
+                                          inspector)

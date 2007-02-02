@@ -32,9 +32,10 @@ from gui.common_widgets import (QSearchTreeWindow,
                                 QSearchTreeWidget,
                                 QToolWindowInterface)
 from core.modules.module_registry import registry
+from core.system import systemType
 
 ################################################################################
-
+                
 class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
     """
     QModulePalette just inherits from QSearchTreeWindow to have its
@@ -49,12 +50,43 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         self.setWindowTitle('Modules')
         return QModuleTreeWidget(self)
 
-    def newModule(self, descriptor):
-        """ newModule(descriptor: ModuleDescriptor) -> None
+    def newModule(self, moduleName):
+        """ newModule(moduleName: str) -> None
         A new module has been added to Vistrail
         
         """
-        print 'Unhandled module addition'
+        packageName = registry.modulePackage[moduleName]
+        packageItems = self.treeWidget.findItems(packageName,
+                                                 QtCore.Qt.MatchExactly |
+                                                 QtCore.Qt.MatchWrap)
+        assert(len(packageItems)<=1)
+        if packageItems==[]:
+            parentItem = QModuleTreeWidgetItem(None,
+                                               None,
+                                               QtCore.QStringList(packageName))
+            parentItem.setFlags((parentItem.flags() &
+                                 ~(QtCore.Qt.ItemIsDragEnabled)))
+            self.treeWidget.insertTopLevelItem(0, parentItem)
+        else:
+            parentItem = packageItems[0]
+        hierarchy = registry.getModuleHierarchy(moduleName)
+        prevModule = None
+        for module in hierarchy[1:]:
+            mName = registry.getDescriptorByThing(module).name
+            pName = registry.modulePackage[mName]
+            if pName!=packageName:
+                break
+            else:
+                prevModule = mName
+        if prevModule!=None:
+            parentItem = self.treeWidget.findItems(prevModule,
+                                                   QtCore.Qt.MatchExactly |
+                                                   QtCore.Qt.MatchWrap)
+        desc = registry.getDescriptorByName(moduleName)
+        item = QModuleTreeWidgetItem(desc,
+                                     parentItem,
+                                     QtCore.QStringList(moduleName))
+        self.treeWidget.setCurrentItem(item)
 
 class QModuleTreeWidget(QSearchTreeWidget):
     """
@@ -69,31 +101,145 @@ class QModuleTreeWidget(QSearchTreeWidget):
         """
         QSearchTreeWidget.__init__(self, parent)
         self.header().hide()
+        self.setRootIsDecorated(False)
+        self.delegate = QModuleTreeWidgetItemDelegate(self, self)
+        self.setItemDelegate(self.delegate)
+        self.connect(self,
+                     QtCore.SIGNAL('itemPressed(QTreeWidgetItem *,int)'),
+                     self.onItemPressed)
+
+    def onItemPressed(self, item, column):
+        """ onItemPressed(item: QTreeWidgetItem, column: int) -> None
+        Expand/Collapse top-level item when the mouse is pressed
+        
+        """
+        if item and item.parent()==None:
+            self.setItemExpanded(item, not self.isItemExpanded(item))
         
     def updateFromModuleRegistry(self):
-        """ updateFromModuleRegistry() -> None        
+        """ updateFromModuleRegistry(packageName: str) -> None
         Setup this tree widget to show modules currently inside
         module_registry.registry
         
         """
-        def createModuleItem(parentItem, module):
-            """ createModuleItem(parentItem: QModuleTreeWidgetItem,
-                                 module: Tree) -> QModuleTreeWidgetItem                                 
+        parentItems = {}
+        
+        def createModuleItem(module):
+            """ createModuleItem(registry: ModuleRegistry,
+                                 parentItem: QModuleTreeWidgetItem,
+                                 module: Tree) -> QModuleTreeWidgetItem
             Traverse a module to create items recursively. Then return
             its module item
             
             """
-            labels = QtCore.QStringList()
-            labels << module.descriptor.name
+            labels = QtCore.QStringList(module.descriptor.name)
+            packageName = registry.modulePackage[module.descriptor.name]
+            parentItem = parentItems[packageName]
             moduleItem = QModuleTreeWidgetItem(module.descriptor,
                                                parentItem,
                                                labels)
+            parentItems[packageName] = moduleItem
             for child in module.children:
-                createModuleItem(moduleItem, child)
-            
+                createModuleItem(child)
+            parentItems[packageName] = parentItem
+
+        for packageName in registry.packageModules.iterkeys():
+            item = QModuleTreeWidgetItem(None,
+                                         self,
+                                         QtCore.QStringList(packageName))
+            item.setFlags(item.flags() & ~(QtCore.Qt.ItemIsDragEnabled))
+            parentItems[packageName] = item
         module = registry.classTree
-        createModuleItem(self, module)
+        createModuleItem(module)
         self.expandAll()
+
+class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
+    """    
+    QModuleTreeWidgetItemDelegate will override the original
+    QTreeWidget paint function to draw buttons for top-level item
+    similar to QtDesigner. This mimics
+    Qt/tools/designer/src/lib/shared/sheet_delegate, which is only a
+    private class from QtDesigned.
+    
+    """
+    def __init__(self, view, parent):
+        """ QModuleTreeWidgetItemDelegate(view: QTreeView,
+                                          parent: QWidget)
+                                          -> QModuleTreeWidgetItemDelegate
+        Create the item delegate given the tree view
+        
+        """
+        QtGui.QItemDelegate.__init__(self, parent)
+        self.treeView = view
+        self.isMac = systemType in ['Darwin']
+
+    def paint(self, painter, option, index):
+        """ painter(painter: QPainter, option QStyleOptionViewItem,
+                    index: QModelIndex) -> None
+        Repaint the top-level item to have a button-look style
+        
+        """
+        model = index.model()
+        if model.parent(index).isValid()==False:
+            buttonOption = QtGui.QStyleOptionButton()            
+            buttonOption.state = option.state
+            if self.isMac:
+                buttonOption.state |= QtGui.QStyle.State_Raised
+            buttonOption.state &= ~QtGui.QStyle.State_HasFocus
+
+            buttonOption.rect = option.rect
+            buttonOption.palette = option.palette
+            buttonOption.features = QtGui.QStyleOptionButton.None
+
+            style = self.treeView.style()
+            
+            style.drawControl(QtGui.QStyle.CE_PushButton,
+                              buttonOption,
+                              painter,
+                              self.treeView);
+
+            branchOption = QtGui.QStyleOption()
+            i = 9; ### hardcoded in qcommonstyle.cpp
+            r = option.rect
+            branchOption.rect = QtCore.QRect(r.left() + i/2,
+                                             r.top() + (r.height() - i)/2,
+                                             i, i)
+            branchOption.palette = option.palette
+            branchOption.state = QtGui.QStyle.State_Children
+
+            if self.treeView.isExpanded(index):
+                branchOption.state |= QtGui.QStyle.State_Open
+                
+            style.drawPrimitive(QtGui.QStyle.PE_IndicatorBranch,
+                                branchOption,
+                                painter, self.treeView)
+
+            textrect = QtCore.QRect(r.left() + i*2,
+                                    r.top(),
+                                    r.width() - ((5*i)/2),
+                                    r.height())
+            text = option.fontMetrics.elidedText(
+                model.data(index,
+                           QtCore.Qt.DisplayRole).toString(),
+                QtCore.Qt.ElideMiddle, 
+                textrect.width())
+            style.drawItemText(painter,
+                               textrect,
+                               QtCore.Qt.AlignCenter,
+                               option.palette,
+                               self.treeView.isEnabled(),
+                               text)
+        else:
+            QtGui.QItemDelegate.paint(self, painter, option, index)
+
+    def sizeHint(self, option, index):
+        """ sizeHint(option: QStyleOptionViewItem, index: QModelIndex) -> None
+        Take into account the size of the top-level button
+        
+        """
+        return (QtGui.QItemDelegate.sizeHint(self, option, index) +
+                QtCore.QSize(2, 2))
+            
 
 class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
     """

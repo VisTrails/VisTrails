@@ -58,8 +58,9 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
     
     """
     def __init__(self, parent=None, scene=None, optional=False):
-        """ QGraphicsPortItem(parent: QGraphicsItem, scene: QGraphicsScene)
-                                -> QGraphicsPortItem
+        """ QGraphicsPortItem(parent: QGraphicsItem, scene: QGraphicsScene,
+                              optional: bool)
+                              -> QGraphicsPortItem
         Create the shape, initialize its pen and brush accordingly
         
         """
@@ -426,21 +427,29 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         self.translate(module.center.x, -module.center.y)
 
         # Check to see which ports will be shown on the screen
+        visibleOptionalPorts = []
         inputPorts = []
         self.optionalInputPorts = []
         for p in module.destinationPorts():
-            if (not p.optional) or (p.name in module.portVisible):
+            if not p.optional:
                 inputPorts.append(p)
+            elif p.name in module.portVisible:
+                visibleOptionalPorts.append(p)
             else:
                 self.optionalInputPorts.append(p)
-
+        inputPorts += visibleOptionalPorts
+        
+        visibleOptionalPorts = []
         outputPorts = []
         self.optionalOutputPorts = []
         for p in module.sourcePorts():
-            if (not p.optional) or (p.name in module.portVisible):
+            if not p.optional:
                 outputPorts.append(p)
+            elif p.name in module.portVisible:
+                visibleOptionalPorts.append(p)
             else:
                 self.optionalOutputPorts.append(p)
+        outputPorts += visibleOptionalPorts
 
         # Adjust the width to fit all ports
         maxPortCount = max(len(inputPorts), len(outputPorts))

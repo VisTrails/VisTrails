@@ -30,6 +30,14 @@ import parser
 
 class BaseInterpreter(object):
 
+    def __init__(self):
+        """ BaseInterpreter() -> BaseInterpreter
+        Initialize class members
+        
+        """
+        self.doneSummonHook = None
+        self.doneUpdateHook = None
+
     def getNameDependencies(self, astList):
         """getNameDependencies(astList) -> list of something 
         
@@ -143,5 +151,21 @@ class BaseInterpreter(object):
                             self.evaluateExp(p.type,base,exps,aliases))
         return aliases
     
+
+    def setDoneSummonHook(self, hook):
+        """ setDoneSummonHook(hook: function(pipeline, objects)) -> None        
+        Assign a function to call right after every objects has been
+        summoned during execution
+        
+        """
+        self.doneSummonHook = hook
+
+    def setDoneUpdateHook(self, hook):
+        """ setDoneUpdateHook(hook: function(pipeline, objects)) -> None        
+        Assign a function to call right after every objects has been
+        updated
+        
+        """
+        self.doneUpdateHook = hook
 
 ##############################################################################

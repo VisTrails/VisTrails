@@ -247,7 +247,7 @@ def initialize():
     Package-entry to initialize the package
     
     """
-
+    registry.setCurrentPackageName('VTK')
     # Check VTK version
     v = vtk.vtkVersion()
     version = [v.GetVTKMajorVersion(),

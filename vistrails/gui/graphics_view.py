@@ -379,7 +379,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
             self.scene().removeItem(self.selectionBox)
             self.scene().multiSelecting = False
         self.lastPos = None
-        self.validateCursorState()
+        self.validateCursorState(e.modifiers())
         self.setUpdatesEnabled(True)
         QtGui.QGraphicsView.mouseReleaseEvent(self, e)        
 

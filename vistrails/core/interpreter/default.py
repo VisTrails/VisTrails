@@ -23,4 +23,6 @@
 import core.interpreter.cached
 import core.interpreter.noncached
 
-default_interpreter = core.interpreter.cached.CachedInterpreter
+cached_interpreter = core.interpreter.cached.CachedInterpreter
+noncached_interpreter = core.interpreter.noncached.Interpreter
+default_interpreter = cached_interpreter

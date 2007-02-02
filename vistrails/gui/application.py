@@ -203,6 +203,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         """
         import core.modules.vistrails_module
         import core.modules.basic_modules
+        import core.modules.sub_module
 
     def setIcon(self):
         """ setIcon() -> None
@@ -523,18 +524,9 @@ and ~/.vistrails/startup.py does not exist.""")
         for (packageName, packageModule,
              packageParams, packagePlace) in self.packageList:
             print "Initializing ",packageName
-#             oldPath = copy.copy(sys.path)
-#             if packagePlace == base:
-#                 sys.path.append(system.visTrailsRootDirectory() +
-#                                 '/packages/' +
-#                                 packageName)
-#             elif packagePlace == user:
-#                 sys.path.append(self.configuration.userPackageDirectory +
-#                                 '/userpackages/' + packageName)
-#             else:
-#                 raise VistrailsInternalError('bad packagePlace')
+            registry.setCurrentPackageName(packageName)
             packageModule.initialize(**packageParams)
-#             sys.path = oldPath
+            registry.setCurrentPackageName(None)
 
     def runStartupHooks(self):
         """ runStartupHooks() -> None

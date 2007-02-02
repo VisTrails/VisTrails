@@ -110,7 +110,7 @@ class Module(object):
         Returns list of destination (input) ports module supports
 
         """
-        ports = []        
+        ports = []
         thing = registry.getDescriptorByName(self.name).module
         for (n, registry_ports) in registry.destinationPorts(thing):
             ports.extend([copy.copy(x) for x in registry_ports])

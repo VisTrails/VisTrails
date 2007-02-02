@@ -81,6 +81,7 @@ def initialize(*args, **keywords):
     Package-entry to initialize the package
     
     """
+    module_registry.registry.setCurrentPackageName('Spreadsheet')
     print 'Loading Spreadsheet widgets...'
     basicWidgets = addWidget('packages.spreadsheet.basic_widgets', None)
     importWidgetModules(basicWidgets)
