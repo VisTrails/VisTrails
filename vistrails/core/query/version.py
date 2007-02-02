@@ -387,7 +387,6 @@ class AfterSearchStmt(TimeSearchStmt):
         if not action.date:
             return False
         t = time.mktime(time.strptime(action.date, "%d %b %Y %H:%M:%S"))
-        print t, self.date, action.date
         return t >= self.date
 
 class UserSearchStmt(SearchStmt):
