@@ -136,7 +136,6 @@ Designing New Modules
 deletion."""
         for connector_list in self.inputPorts.itervalues():
             for connector in connector_list:
-                print type(connector)
                 connector.clear()
         self.inputPorts = {}
         self.outputPorts = {}
