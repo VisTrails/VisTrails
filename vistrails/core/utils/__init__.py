@@ -167,6 +167,25 @@ def memo_method(method):
         decorated.__doc__ = warn
     return decorated
 
+def iterate(*iterables):
+    """iterate(*iterables) -> iterator.
+
+    iterate creates an iterator that iterates through a sequence of
+    iterables. This is clearer in an example:
+
+    >>> x = iterate([1,2,3],[4,5,6])
+    >>> for v in iterate([1,2,3],[4,5,6]): print v
+    1 2 3 4 5 6
+    >>> d = {1:2,3:4,5:6}
+    >>> for v in iterate(d.iterkeys(), d.itervalues(), d.iteritems()): print v,
+    1 3 5 2 4 6 (1, 2) (3, 4) (5, 6)
+    """
+
+    for iterable in iterables:
+        for item in iterable:
+            yield item
+    return
+
 ################################################################################
 
 def all(bool_list, pred = lambda x: x):
@@ -287,6 +306,7 @@ class TestCommon(unittest.TestCase):
         else: r2 = d3 / d2
         self.assertEquals(r1 < 2.618, True)
         self.assertEquals(r2 < 2.618, True)
+
     def testMemo2(self):
         count = [0]
         class C1(object):
@@ -311,6 +331,15 @@ class TestCommon(unittest.TestCase):
         t.f(C2, 0)
         self.assertEquals(count[0], 3)
 
+    def testIterate(self):
+        x = [v for v in iterate([1,2,3],[4,5,6])]
+        self.assertEquals(x, [1,2,3,4,5,6])
+        x = [v for v in iterate([], [1,2,3],[4,5,6])]
+        self.assertEquals(x, [1,2,3,4,5,6])
+        x = [v for v in iterate([1,2,3],[], [4,5,6])]
+        self.assertEquals(x, [1,2,3,4,5,6])
+        x = [v for v in iterate([1,2,3],[4,5,6], [])]
+        self.assertEquals(x, [1,2,3,4,5,6])
 
 if __name__ == '__main__':
     unittest.main()
