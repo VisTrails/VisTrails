@@ -68,33 +68,8 @@ and the modules that depend on them."""
             self._persistent_pipeline.deleteModule(v)
             del self._objects[v]
 
-    @lock_method(core.interpreter.utils.get_interpreter_lock())
-    def execute(self, pipeline, vistrailName, currentVersion,
-                view, logger):
-        """execute(pipeline, vistrailName, currentVersion, view, logger):
-Executes a pipeline using caching. Caching works by reusing pipelines directly.
-This means that there exists one global pipeline whose parts get executed over
-and over again.
-
-This function returns a triple of dictionaries (objs, errs, execs).
-
-objs returns a mapping from local ids (the ids in the pipeline) to
-objects **in the persistent pipeline**. Notice, these are not the objects
-inside the passed pipeline, but the objects they were mapped to in the
-persistent pipeline.
-
-errs returns a dictionary from local ids to error messages of modules
-that might have returns errors.
-
-execs returns a dictionary from local ids to boolean values indicating
-whether they were executed or not.
-
-If modules have no error associated with but were not executed, it
-means they were cached."""
-        if logger:
-            logger.startWorkflowExecution(vistrailName, currentVersion)
-
-        self.clean_non_cacheable_modules()
+    def sub_execute(self, pipeline, vistrailName, currentVersion,
+                    view, logger):
 
         (module_map,
          conn_map,
@@ -231,6 +206,41 @@ means they were cached."""
                 view.setModuleSuccess(i)
             else:
                 view.setModuleNotExecuted(i)
+
+        return (objs, errs, execs)
+        
+
+    @lock_method(core.interpreter.utils.get_interpreter_lock())
+    def execute(self, pipeline, vistrailName, currentVersion,
+                view, logger):
+        """execute(pipeline, vistrailName, currentVersion, view, logger):
+Executes a pipeline using caching. Caching works by reusing pipelines directly.
+This means that there exists one global pipeline whose parts get executed over
+and over again.
+
+This function returns a triple of dictionaries (objs, errs, execs).
+
+objs is a mapping from local ids (the ids in the pipeline) to
+objects **in the persistent pipeline**. Notice, these are not the objects
+inside the passed pipeline, but the objects they were mapped to in the
+persistent pipeline.
+
+errs is a dictionary from local ids to error messages of modules
+that might have returns errors.
+
+execs is a dictionary from local ids to boolean values indicating
+whether they were executed or not.
+
+If modules have no error associated with but were not executed, it
+means they were cached."""
+        if logger:
+            logger.startWorkflowExecution(vistrailName, currentVersion)
+
+        self.clean_non_cacheable_modules()
+
+        (objs, errs, execs) = self.sub_execute(pipeline, vistrailName,
+                                               currentVersion,
+                                               view, logger)
 
         if logger:
             logger.finishWorkflowExecution(vistrailName, currentVersion)
