@@ -61,11 +61,8 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         """ setFitToViewport(fit: boolean) -> None        
         Set fit to viewport for have all the sections always stretch
         to the whole viewport
-        
-        """
-        # Apparently, on Qt 4.2.2, we don't need to fix size of the
-        # spreadsheet anymore. Thus, this is skipped for now.
-        return
+
+        """        
         if self.fitToViewport!=fit:
             self.fitToViewport = fit
             if fit:
