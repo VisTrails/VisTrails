@@ -444,7 +444,7 @@
       <set key="" moduleId="7" value=""/>
     </action>
     <action date="18 Jan 2007 21:53:56" parent="113" time="114" user="emanuele" what="changeParameter">
-      <set alias="filename" function="SetFileName" functionId="0" moduleId="8" parameter="&lt;no description&gt;" parameterId="0" type="String" value="../examples/data/mummy.128.vtk"/>
+      <set alias="filename" function="SetFileName" functionId="0" moduleId="8" parameter="&lt;no description&gt;" parameterId="0" type="String" value="../examples/data/head.120.vtk"/>
     </action>
     <action date="18 Jan 2007 21:53:56" parent="114" time="115" user="emanuele" what="changeAnnotation">
       <set key="" moduleId="8" value=""/>
