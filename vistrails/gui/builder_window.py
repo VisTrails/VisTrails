@@ -558,4 +558,4 @@ class QBuilderWindow(QtGui.QMainWindow):
                                 self.tr(system.aboutString()))
 
     def flush_cache(self):
-        core.interpreter.cached.CachedInterpreter.cleanup()
+        core.interpreter.cached.CachedInterpreter.flush()
