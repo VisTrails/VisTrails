@@ -60,12 +60,14 @@ class PipelineInspector(object):
         self.outputPortByName = {}
         self.spreadsheetCells = []
 
-        # First pass to check cells types
-        cellType = registry.getDescriptorByName('SpreadsheetCell').module
-        for mId, module in pipeline.modules.iteritems():
-            desc = registry.getDescriptorByName(module.name)
-            if issubclass(desc.module, cellType):
-                self.spreadsheetCells.append(mId)
+        # Sometimes we run without the spreadsheet!
+        if registry.hasModule('SpreadsheetCell'):
+            # First pass to check cells types
+            cellType = registry.getDescriptorByName('SpreadsheetCell').module
+            for mId, module in pipeline.modules.iteritems():
+                desc = registry.getDescriptorByName(module.name)
+                if issubclass(desc.module, cellType):
+                    self.spreadsheetCells.append(mId)
 
         # Then inspect input and output ports
         for cId, conn in pipeline.connections.iteritems():
