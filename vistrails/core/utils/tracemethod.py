@@ -20,9 +20,13 @@
 ##
 ############################################################################
 """Defines a trace decorator that traces function calls. This is not currently
-thread-safe. It won't crash, but the bump() printouts might not be correct."""
+thread-safe. It won't crash, but the bump() printouts might not be correct.
+
+Also defines report_stack, a decorator that dumps the traceback whenever
+a method gets called."""
 
 import sys
+import traceback
 from core.data_structures import Stack
 _output_file = sys.stderr
 
@@ -50,6 +54,14 @@ def bump_trace():
     _indent()
     _output_file.write('%s.%s\n' % tuple(__current_method_name.top()))
 
+def report_stack(method):
+    def decorated(self, *args, **kwargs):
+        print "-" * 78
+        traceback.print_stack()
+        print "-" * 78
+        return method(self, *args, **kwargs)
+    return decorated
+        
 ###############################################################################
 
 import unittest
