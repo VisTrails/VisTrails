@@ -96,16 +96,14 @@ for (p, subdirs, files) in os.walk(root_directory):
         if ('system' in module and not
             module.endswith('__init__')):
             continue
-        if (not ('system' in module) and
-            not (module.startswith('packages')) and
-            module.endswith('__init__')):
-            continue
         print "%s %s |" % (" " * (40 - len(module)), module),
 
         # use qualified import names with periods instead of
         # slashes to avoid duplicates in sys.modules
         module = module.replace('/','.')
         module = module.replace('\\','.')
+        if module.endswith('__init__'):
+            module = module[:-9]
         try:
             if '.' in module:
                 m = __import__(module, globals(), locals(), ['foo'])
