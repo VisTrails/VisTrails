@@ -29,6 +29,7 @@ import copy
 import core.interpreter.base
 import core.interpreter.utils
 import core.vistrail.pipeline
+import gc
 
 ##############################################################################
 
@@ -36,12 +37,15 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
     def __init__(self):
         core.interpreter.base.BaseInterpreter.__init__(self)
+        self.create()
+
+    def create(self):
         self._file_pool = FilePool()
         self._persistent_pipeline = core.vistrail.pipeline.Pipeline()
         self._objects = {}
         self._executed = {}
         self.filePool = self._file_pool
-
+        
     def clear(self):
         self._file_pool.cleanup()
         self._persistent_pipeline.clear()
@@ -328,8 +332,15 @@ all connection ids added to the persistent pipeline."""
     def cleanup():
         if CachedInterpreter.__instance:
             CachedInterpreter.__instance.clear()
-        import gc
         objs = gc.collect()
         print "Number of objects collected:", objs
+
+
+    @staticmethod
+    def flush():
+        if CachedInterpreter.__instance:
+            CachedInterpreter.__instance.clear()
+            CachedInterpreter.__instance.create()
+        objs = gc.collect()
 
 ##############################################################################
