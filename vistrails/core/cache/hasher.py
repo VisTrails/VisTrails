@@ -38,7 +38,11 @@ class Hasher(object):
 
     @staticmethod
     def function_signature(function):
-        return hash_list(function.params, Hasher.parameter_signature)
+        hasher = sha.new()
+        hasher.update(function.name)
+        hasher.update(function.returnType)
+        hasher.update(hash_list(function.params, Hasher.parameter_signature))
+        return hasher.digest()
 
     @staticmethod
     def connection_signature(c):
