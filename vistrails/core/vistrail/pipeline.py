@@ -431,5 +431,42 @@ class TestPipeline(unittest.TestCase):
         can be added and deleted."""
         p = self.create_default_pipeline()
 
+    def shorthand_param(self, t, v):
+        p = ModuleParam()
+        p.type = t
+        p.strValue = v
+        return p
+
+    def shorthand_function(self, name, params):
+        f = ModuleFunction()
+        f.name = name
+        f.returnType = 'void'
+        for param in params:
+            f.params.append(self.shorthand_param(*param))
+        return f
+
+    def shorthand_module(self, name, i, funs):
+        m = Module()
+        m.id = i
+        m.name = name
+        for fun in funs:
+            m.functions.append(self.shorthand_function(*fun))
+        return m
+    
+    def test_module_signature(self):
+        """Tests signatures for modules with similar (but not equal)
+        parameter specs."""
+        p1 = Pipeline()
+        p1.addModule(self.shorthand_module('CacheBug', 3,
+                                           [('i1', [('Float', '1.0')]),
+                                            ('i2', [('Float', '2.0')])]))
+        p2 = Pipeline()
+        p2.addModule(self.shorthand_module('CacheBug', 3,
+                                           [('i1', [('Float', '2.0')]),
+                                            ('i2', [('Float', '1.0')])]))
+        self.assertNotEquals(p1.module_signature(3),
+                             p2.module_signature(3))
+        
+
 if __name__ == '__main__':
     unittest.main()
