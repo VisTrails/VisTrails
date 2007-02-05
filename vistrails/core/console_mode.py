@@ -75,6 +75,9 @@ def run(input, workflow):
     else:
         return True
 
+def cleanup():
+    core.interpreter.cached.CachedInterpreter.cleanup()
+
 ################################################################################
 #Testing
 
@@ -86,6 +89,7 @@ class TestConsoleMode(unittest.TestCase):
         result = run(core.system.visTrailsRootDirectory() +
             '/tests/resources/dummy.xml',"int chain")
         self.assertEquals(result, True)
-
+    def tearDown(self):
+        cleanup()
 if __name__ == '__main__':
     unittest.main()
