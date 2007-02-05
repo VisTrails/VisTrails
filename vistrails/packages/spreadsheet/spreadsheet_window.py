@@ -68,7 +68,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
 
 
     def destroy(self):
-        del self.file_pool
+        self.file_pool.cleanup()
 
     def setupMenu(self):
         """ setupMenu() -> None
