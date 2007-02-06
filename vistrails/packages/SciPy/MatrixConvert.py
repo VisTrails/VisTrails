@@ -19,8 +19,8 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
-import modules
-from modules.vistrails_module import Module, ModuleError
+import core.modules
+from core.modules.vistrails_module import Module, ModuleError
 from SciPy import SciPy
 from Matrix import Matrix, COOMatrix, SparseMatrix, CSRMatrix
 from scipy import sparse

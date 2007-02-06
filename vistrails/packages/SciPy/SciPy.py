@@ -19,9 +19,9 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
-import modules
-import modules.module_registry
-from modules.vistrails_module import Module, ModuleError
+import core.modules
+import core.modules.module_registry
+from core.modules.vistrails_module import Module, ModuleError
 
 ################################################################################
 

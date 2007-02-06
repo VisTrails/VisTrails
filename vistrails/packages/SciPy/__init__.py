@@ -19,9 +19,9 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
-import modules
-import modules.module_registry
-from modules.vistrails_module import Module, ModuleError
+import core.modules
+import core.modules.module_registry
+from core.modules.vistrails_module import Module, ModuleError
 from SciPy import SciPy
 from Matrix import *
 from MatlabReader import MatlabReader
@@ -29,13 +29,13 @@ from MatrixInfo import MatrixInfo
 from MatrixConvert import MatrixConvert
 from MatrixOperations import *
 from DSP import *
-import modules.basic_modules
+import core.modules.basic_modules
 
 from scipy import sparse
 
 def initialize(*args, **keywords):
-    reg = modules.module_registry
-    basic = modules.basic_modules
+    reg = core.modules.module_registry
+    basic = core.modules.basic_modules
 
     reg.addModule(SciPy)
     reg.addModule(Matrix)
