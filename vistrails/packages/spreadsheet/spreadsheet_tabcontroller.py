@@ -231,10 +231,11 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         """
         self.executedPipelines = [[], {}, {}]
         while self.count()>0:
-            self.removeTab(self.count()-1)
+            self.deleteSheetActionTriggered()
         for i in reversed(range(len(self.tabWidgets))):
             t = self.tabWidgets[i]
             del self.tabWidgets[i]
+            t.deleteAllCells()
             t.deleteLater()
 
     def insertTab(self, idx, tabWidget, tabText):
@@ -635,3 +636,10 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                                      )
         if not fileName.isNull():
             self.openSpreadsheet(fileName)
+
+    def cleanup(self):
+        """ cleanup() -> None
+        Clear reference of non-collectable objects/temp files for gc
+        
+        """
+        self.clearTabs()

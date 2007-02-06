@@ -32,7 +32,6 @@ from core.modules import module_utils
 from core.utils import trace_method
 
 ################################################################################
-### 
 class SpreadsheetWindow(QtGui.QMainWindow):
     """
     SpreadsheetWindow is the top-level main window containing a
@@ -68,6 +67,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
 
 
     def destroy(self):
+        self.tabController.cleanup()
         self.file_pool.cleanup()
 
     def setupMenu(self):
@@ -136,14 +136,22 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             ### Multiheads
             desktop = QtGui.QApplication.desktop()
             if self.visApp.configuration.multiHeads and desktop.numScreens()>1:
-                r = desktop.availableGeometry(desktop.primaryScreen())
-                center = self.visApp.builderWindow.frameGeometry().center()
-                self.visApp.builderWindow.move(self.visApp.builderWindow.pos()
-                                               + r.center() - center)
+                builderScreen = desktop.screenNumber(self.visApp.builderWindow)
+                r = desktop.availableGeometry(builderScreen)
+                self.visApp.builderWindow.ensurePolished()
+                self.visApp.builderWindow.updateGeometry()
+                self.visApp.builderWindow.adjustSize()
+                frame = self.visApp.builderWindow.frameGeometry()
+                rect = self.visApp.builderWindow.rect()
+                frameDiff = QtCore.QPoint((frame.width()-rect.width())/2,
+                                          (frame.height()-rect.height())/2)
+                self.visApp.builderWindow.move(
+                    frame.topLeft()+r.center()-frame.center())
                 for i in range(desktop.numScreens()):
-                    if i!=desktop.primaryScreen():
+                    if i!=builderScreen:
                         r = desktop.availableGeometry(i)
-                        self.move(r.center()-self.rect().center())
+                        self.adjustSize()
+                        self.move(r.center()-self.rect().center()-frameDiff)
                         break
             ### Maximize
             if self.visApp.configuration.maximizeWindows:
