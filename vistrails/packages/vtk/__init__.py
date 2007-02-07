@@ -31,6 +31,7 @@ from core.modules.vistrails_module import newModule
 from base_module import vtkBaseModule
 from class_tree import ClassTree
 from vtk_parser import VTKMethodParser
+import re
 
 ################################################################################
 
@@ -45,6 +46,7 @@ typeMapDict = {'int': Integer,
                'char': String,
                'const char*': String,
                'const char *': String}
+typeMapDictValues = [Integer, Float, String]
 
 def typeMap(name):
     """ typeMap(name: str) -> Module
@@ -53,13 +55,62 @@ def typeMap(name):
     """
     if type(name) == tuple:
         return [typeMap(x) for x in name]
-    if typeMapDict.has_key(name):
+    if name in typeMapDict:
         return typeMapDict[name]
     else:
-        if registry.hasModule(name):
-            return registry.getDescriptorByName(name).module
+        node = registry.moduleTree.get(name, None)
+        if node:
+            return node.descriptor.module
         else:
             return None
+
+def get_method_signature(method):
+    """ get_method_signature(method: vtkmethod) -> [ret, arg]
+    Re-wrap Prabu's method to increase performance
+    
+    """
+    doc = method.__doc__
+    tmp = doc.split('\n')
+    sig = []        
+    pat = re.compile(r'\b')
+
+    # Remove all the C++ function signatures and V.<method_name> field
+    offset = 2+len(method.__name__)
+    for i in range(len(tmp)):
+        s = tmp[i]
+        if s=='': break
+        if i%2==0:
+            x = s.split('->')
+            arg = x[0].strip()[offset:]
+            if len(x) == 1: # No return value
+                ret = None
+            else:
+                ret = x[1].strip()
+
+            # Remove leading and trailing parens for arguments.
+            arg = arg[1:-1]
+            if not arg:
+                arg = None
+            if arg and arg[-1] == ')':
+                arg = arg + ','
+
+            # Now quote the args and eval them.  Easy!
+            if ret and ret[:3]!='vtk':
+                ret = eval(pat.sub('\"', ret))
+            if arg:
+                if arg.find('(')!=-1:
+                    arg = eval(pat.sub('\"', arg))
+                else:
+                    arg = arg.split(', ')
+                    if len(arg)>1:
+                        arg = tuple(arg)
+                    else:
+                        arg = arg[0]
+                if type(arg) == str:
+                    arg = [arg]
+
+            sig.append(([ret], arg))
+    return sig    
 
 def addAlgorithmPorts(module):
     """ addAlgorithmPorts(module: Module) -> None
@@ -98,8 +149,8 @@ def addSetGetPorts(module, get_set_dict):
         if name in ['InputConnection', 'OutputPort']: continue
         getterMethod = getattr(module.vtkClass, 'Get%s'%name)
         setterMethod = getattr(module.vtkClass, 'Set%s'%name)
-        getterSig = parser.get_method_signature(getterMethod)
-        setterSig = parser.get_method_signature(setterMethod)
+        getterSig = get_method_signature(getterMethod)
+        setterSig = get_method_signature(setterMethod)
         for getter, order in zip(getterSig, range(1, len(getterSig)+1)):
             if getter[1]:
                 log("Can't handle getter %s (%s) of class %s: Needs input to "
@@ -163,34 +214,37 @@ def addOtherPorts(module, other_list):
     for name in other_list:
         if name[:3] in ['Add','Set'] or name[:6]=='Insert':
             method = getattr(module.vtkClass, name)
-            addSignature = parser.get_method_signature(method)
-            for sig in addSignature:
+            signatures = get_method_signature(method)
+            for sig in signatures:
                 ([result], params) = sig
                 types = []
                 if params:
                     for p in params:
                         t = typeMap(p)
-                        if not t: types = None
+                        if not t:
+                            types = None
+                            break
                         else: types.append(t)
                 else:
                     types = [[]]
                 if types:
                     if len(types)<=1:
                         addInputPort(module, name, types[0],
-                                     types[0] in typeMapDict.itervalues())
+                                     types[0] in typeMapDictValues)
                     else:
                         addInputPort(module, name, types, True)
-        else:
-            method = getattr(module.vtkClass, name)
-            signatures = parser.get_method_signature(method)
-            for sig in signatures:
-                ([result], params) = sig
-                if params:
-                    types = [typeMap(p) for p in params]
-                else:
-                    types = []
-                if len(types)==0 or (result==None):
-                    addInputPort(module, name, types, True)
+#         else:
+#             method = getattr(module.vtkClass, name)
+#             signatures = get_method_signature(method)
+#             for sig in signatures:
+#                 ([result], params) = sig
+#                 types = []
+#                 if params:
+#                     types = [typeMap(p) for p in params]
+#                 else:
+#                     types = []
+#                 if types==[] or (result==None):
+#                     addInputPort(module, name, types, True)
     
 def addPorts(module):
     """ addPorts(module: VTK module inherited from Module) -> None
@@ -255,7 +309,7 @@ def initialize():
                v.GetVTKBuildVersion()]
     if version < [5, 0, 0]:
         raise Exception("You need to upgrade your VTK install to version \
->= 5.0.0")
+> >= 5.0.0")
     inheritanceGraph = ClassTree(vtk)
     inheritanceGraph.create()
     addModule(vtkBaseModule)
