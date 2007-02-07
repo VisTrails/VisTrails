@@ -698,7 +698,9 @@ class QVTKWidget(QtGui.QWidget):
         Return the active vtkRenderer under mouse
         
         """
-        epos = iren.GetEventPosition()
+        epos = list(iren.GetEventPosition())
+        if epos[1]<0:
+            epos[1] = -epos[1]
         rens = iren.GetRenderWindow().GetRenderers()
         rens.InitTraversal()
         for i in range(rens.GetNumberOfItems()):
@@ -739,7 +741,7 @@ class QVTKWidget(QtGui.QWidget):
                 cpos = cam.GetPosition()
                 cfol = cam.GetFocalPoint()
                 cup = cam.GetViewUp()
-                cells = sheet.getSelectedLocations()
+                cells = sheet.getSelectedLocations()                
                 for (row, col) in cells:
                     cell = sheet.getCell(row, col)
                     if hasattr(cell, 'getRendererList'):
