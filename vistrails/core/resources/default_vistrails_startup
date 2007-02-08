@@ -72,7 +72,7 @@ addPackage('pythonCalc')
 
 # ImageMagick uses the ImageMagick command-line suite to perform various
 # tasks on images (conversion, filtering, etc).
-addPackage('ImageMagick')
+#addPackage('ImageMagick')
 
 # The spreadsheet package enables the Visualization Spreadsheet
 addPackage('spreadsheet')
