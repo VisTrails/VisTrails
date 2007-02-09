@@ -1,4 +1,33 @@
-Release Name: 288
+Release Name: 370
+Notes:
+
+Changes:
+- Added caching
+- A default vistrails startup file is created if one is not found
+- Classes method names changed to follow naming conventions
+- Added output port local_filename to File module
+- Added Unzip to basic modules
+- Added vtk_http.xml example file to demonstrate how to use HTTPFile
+  and Unzip modules for visualizing data that lives on the web
+- Added new Run menu to builder Window. The user now can manually flush the cache.
+- Separating packages' modules by package in the Modules Panel
+- Added Parameter Exploration to Bookmarks Window
+- Packages can now exist under ~/.vistrails/userpackages as well
+  This can be configured by the user by setting the following line in startup.py:
+  configuration.userPackagesDirectory = new_directory.
+
+Bug Fixes:
+- Fixed memory leaks
+- Webservice package is now raising a ModuleError Exception in case 
+  of failure when invoking a web service
+- Shift + Enter to open File Open Dialog Box on a SetFileName method 
+- Fixed resizing problem on the spreadsheet
+- Fixed webservicee example to reflect FilePool method name change
+- Fixed head.xml to use only the head data set.
+
+
+
+Changes from release 288
 Notes:
 Changes:
 
