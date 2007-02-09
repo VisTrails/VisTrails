@@ -1582,35 +1582,6 @@
       <set alias="" function="AddPoint" functionId="2" moduleId="2" parameter="" parameterId="0" type="Float" value="190"/>
       <set alias="" function="AddPoint" functionId="2" moduleId="2" parameter="" parameterId="1" type="Float" value="0"/>
     </action>
-    <action date="28 Mar 2006 09:39:40" parent="350" time="370" user="juliana" what="moveModule">
-      <move dx="0.0" dy="0.0" id="3"/>
-      <move dx="0.0" dy="0.0" id="2"/>
-      <move dx="0.0" dy="0.0" id="6"/>
-      <move dx="0.0" dy="0.0" id="5"/>
-      <move dx="-494.600769043" dy="-7.97743177414" id="9"/>
-      <move dx="0.0" dy="0.0" id="4"/>
-      <move dx="-13.2957191467" dy="-13.2957201004" id="6"/>
-      <move dx="0.0" dy="0.0" id="0"/>
-      <move dx="0.0" dy="0.0" id="1"/>
-      <move dx="0.0" dy="0.0" id="5"/>
-      <move dx="-2.65914392471" dy="0.0" id="8"/>
-      <move dx="0.0" dy="0.0" id="7"/>
-      <move dx="0.0" dy="0.0" id="5"/>
-      <move dx="0.0" dy="0.0" id="4"/>
-      <move dx="5.31828784943" dy="2.65914392471" id="0"/>
-      <move dx="2.65914392471" dy="0.0" id="6"/>
-      <move dx="0.0" dy="0.0" id="4"/>
-      <move dx="0.0" dy="0.0" id="0"/>
-      <move dx="0.0" dy="0.0" id="5"/>
-      <move dx="0.0" dy="0.0" id="7"/>
-      <move dx="0.0" dy="-2.65914392471" id="1"/>
-      <move dx="0.0" dy="0.0" id="6"/>
-      <move dx="0.0" dy="0.0" id="2"/>
-      <move dx="0.0" dy="0.0" id="10"/>
-      <move dx="0.0" dy="0.0" id="3"/>
-      <move dx="0.0" dy="0.0" id="3"/>
-      <move dx="0.0" dy="0.0" id="3"/>
-    </action>
     <action date="28 Mar 2006 09:39:40" parent="350" time="371" user="juliana" what="changeParameter">
       <set alias="" function="SetFileName" functionId="0" moduleId="3" parameter="" parameterId="0" type="String" value="../examples/data/anon4877_0.req.vtk"/>
     </action>
