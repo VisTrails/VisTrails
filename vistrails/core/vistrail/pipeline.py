@@ -33,6 +33,7 @@ import core.modules.module_registry
 import copy
 from types import ListType
 import sha
+from xml.dom.minidom import getDOMImplementation, parseString
 
 ################################################################################
 
@@ -229,6 +230,17 @@ class Pipeline(object):
                                in self.connections.iteritems()])
         cp.graph = copy.copy(self.graph)
         return cp
+
+    def dumpToXML(self, dom, root, timeAttr=None):
+	"""dumpToXML(dom, root, timeAttr=None) -> None - outputs self to xml"""
+	node = dom.createElement('pipeline')
+	if timeAttr is not None:
+	    node.setAttribute('time',str(timeAttr))
+	for module in self.modules.values():
+	    module.dumpToXML(dom, node)
+	for connection in self.connections.values():
+	    connection.serialize(dom, node)
+	root.appendChild(node)
 
     ##########################################################################
     # Caching-related
