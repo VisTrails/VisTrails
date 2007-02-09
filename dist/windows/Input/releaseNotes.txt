@@ -1,5 +1,26 @@
-Release Name: 370
+Release Name: 389
+
 Notes:
+  This is mainly a bug fix release.
+
+Changes:
+ - Fixed more memory leaks
+ - VisTrail can be run without the spreadsheet
+ - Added back support for animations in VTK cells
+ - Fixed multi-screen positioning with the spreadsheet
+ - Fixed synchronization in the spreadsheet under Linux
+ - Optimization to improve vtk package initialization
+ - Removed ImageMagick package from the default startup.py file
+ - Windows installer does not require administrator privileges anymore
+ - Windows uninstaller now removes *.pyc files
+ - Fixed bug in the lung.xml example
+
+--------------------------------------------------------------------
+
+Changes from previous releases
+
+
+From release 370:
 
 Changes:
 - Added caching
