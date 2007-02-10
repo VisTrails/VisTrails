@@ -236,7 +236,7 @@ class PythonHighlighter(QtGui.QSyntaxHighlighter):
                                  "elif","in","len",
                                  "assert","try","except",
                                  "exec", "break", "continue"
-                                 "not", "and", "or"
+                                 "not", "and", "or", "as"
                                  ]]
         
         defclassFormat = QtGui.QTextCharFormat()
@@ -276,6 +276,7 @@ class PythonEditor(QtGui.QTextEdit):
         self.setTabStopWidth(4)
         self.setFontFamily('Courier')
         self.setFontPointSize(10.0)
+        self.setCursorWidth(8)
         self.highlighter = PythonHighlighter(self.document())
         self.connect(self,
                      QtCore.SIGNAL('currentCharFormatChanged(QTextCharFormat)'),

@@ -32,6 +32,8 @@ import string
 
 ################################################################################
 
+basicWidgets = None
+
 def importReturnLast(name):
     """ importReturnLast(name: str) -> package
     Import a package whose name is specified in name and return right-most
@@ -44,23 +46,23 @@ def importReturnLast(name):
         mod = getattr(mod, comp)
     return mod
 
-def addWidget(packageName, basicWidgets = None):
-    """ addWidget(packageName: str, basicWidgets: widget) -> package
+def addWidget(packagePath):
+    """ addWidget(packagePath: str) -> package
     Add a new widget type to the spreadsheet registry supplying a
     basic set of spreadsheet widgets
     
     """
     try:
-        widget = importReturnLast(packageName)
+        widget = importReturnLast(packagePath)
         if hasattr(widget, 'widgetName'):
             widgetName = widget.widgetName()
         else:
-            widgetName = packageName
+            widgetName = packagePath
         widget.registerWidget(module_registry, basic_modules, basicWidgets)
-        spreadsheetRegistry.registerPackage(widget, packageName)
+        spreadsheetRegistry.registerPackage(widget, packagePath)
         print '  ==> Successfully import <%s>' % widgetName
     except:
-        print '  ==> Ignored package <%s>' % packageName
+        print '  ==> Ignored package <%s>' % packagePath
         widget = None
     return widget
 
@@ -74,7 +76,7 @@ def importWidgetModules(basicWidgets):
     candidates = os.listdir(widgetDir)
     for folder in candidates:
         if os.path.isdir(widgetDir+folder) and folder!='.svn':
-            addWidget(__name__+'.widgets.'+folder, basicWidgets)
+            addWidget(__name__+'.widgets.'+folder)
 
 def initialize(*args, **keywords):
     """ initialize() -> None
@@ -83,7 +85,9 @@ def initialize(*args, **keywords):
     """
     module_registry.registry.setCurrentPackageName('Spreadsheet')
     print 'Loading Spreadsheet widgets...'
-    basicWidgets = addWidget('packages.spreadsheet.basic_widgets', None)
+    global basicWidgets
+    if basicWidgets==None:
+        basicWidgets = addWidget('packages.spreadsheet.basic_widgets')
     importWidgetModules(basicWidgets)
     global spreadsheetWindow
     spreadsheetWindow = SpreadsheetWindow()

@@ -488,17 +488,16 @@ ports."""
         
         """
         moduleHierarchy = self.getModuleHierarchy(module.name)
-        for baseModule in moduleHierarchy:
-            des = self.getDescriptorByThing(baseModule)
-            if des.inputPorts.has_key(portName):
-                return des.inputPorts[portName]
-        # Also check local registry
         if module.registry:
             moduleHierarchy = module.registry.getModuleHierarchy(module.name)
             for baseModule in moduleHierarchy:
                 des = module.registry.getDescriptorByThing(baseModule)
                 if des.inputPorts.has_key(portName):
                     return des.inputPorts[portName]
+        for baseModule in moduleHierarchy:
+            des = self.getDescriptorByThing(baseModule)
+            if des.inputPorts.has_key(portName):
+                return des.inputPorts[portName]
         return None
 
     def getOutputPortSpec(self, module, portName):
@@ -508,17 +507,17 @@ ports."""
         
         """
         moduleHierarchy = self.getModuleHierarchy(module.name)
-        for baseModule in moduleHierarchy:
-            des = self.getDescriptorByThing(baseModule)
-            if des.outputPorts.has_key(portName):
-                return des.outputPorts[portName]
-        # Also check local registry
         if module.registry:
             moduleHierarchy = module.registry.getModuleHierarchy(module.name)
             for baseModule in moduleHierarchy:
                 des = module.registry.getDescriptorByThing(baseModule)
                 if des.outputPorts.has_key(portName):
                     return des.outputPorts[portName]
+        for baseModule in moduleHierarchy:
+            des = self.getDescriptorByThing(baseModule)
+            if des.outputPorts.has_key(portName):
+                return des.outputPorts[portName]
+        # Also check local registry
         return None
 
     @staticmethod

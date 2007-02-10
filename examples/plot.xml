@@ -1,0 +1,223 @@
+  <visTrail version="0.3.0">
+    <action date="09 Feb 2007 17:12:22" parent="0" time="1" user="hvo" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="0" name="MplPlot" x="-292.0" y="230.0"/>
+    </action>
+    <action date="09 Feb 2007 17:12:24" parent="1" time="2" user="hvo" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="1" name="MplPlot" x="-273.0" y="315.0"/>
+    </action>
+    <action date="09 Feb 2007 17:12:25" parent="2" time="3" user="hvo" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="2" name="MplPlot" x="-8.0" y="210.0"/>
+    </action>
+    <action date="09 Feb 2007 17:12:33" parent="3" time="4" user="hvo" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="-79.0" dy="-41.0" id="0"/>
+      <move dx="-42.0" dy="-46.0" id="1"/>
+      <move dx="-173.0" dy="-5.0" id="2"/>
+    </action>
+    <action date="09 Feb 2007 17:12:33" parent="4" time="5" user="hvo" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="3" name="MplFigure" x="-322.0" y="38.0"/>
+    </action>
+    <action date="09 Feb 2007 17:12:35" parent="5" time="6" user="hvo" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="81.0" dy="-5.0" id="3"/>
+    </action>
+    <action date="09 Feb 2007 17:12:35" parent="6" time="7" user="hvo" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="3" destinationModule="MplFigure" destinationPort="Script(String)" id="0" sourceId="2" sourceModule="MplPlot" sourcePort="source(String)"/>
+    </action>
+    <action date="09 Feb 2007 17:12:37" parent="7" time="8" user="hvo" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="3" destinationModule="MplFigure" destinationPort="Script(String)" id="1" sourceId="1" sourceModule="MplPlot" sourcePort="source(String)"/>
+    </action>
+    <action date="09 Feb 2007 17:12:41" parent="8" time="9" user="hvo" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="3" destinationModule="MplFigure" destinationPort="Script(String)" id="2" sourceId="0" sourceModule="MplPlot" sourcePort="source(String)"/>
+    </action>
+    <action date="09 Feb 2007 17:13:25" parent="9" time="10" user="hvo" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="28.2923730511" dy="-9.62235982261" id="3"/>
+    </action>
+    <action date="09 Feb 2007 17:13:25" parent="10" time="11" user="hvo" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="4" name="MplFigureCell" x="-210.077852594" y="-102.979339507"/>
+    </action>
+    <action date="09 Feb 2007 17:13:29" parent="11" time="12" user="hvo" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="4" destinationModule="MplFigureCell" destinationPort="FigureManager(MplFigureManager)" id="3" sourceId="3" sourceModule="MplFigure" sourcePort="FigureManager(MplFigureManager)"/>
+    </action>
+    <action date="09 Feb 2007 17:17:16" parent="12" time="13" user="hvo" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="0" parameter="&lt;no description&gt;" parameterId="0" type="String" value="p.figure%28time.time%28%29%29%0A%0At%20%3D%20nx.arange%280.0%2C%201.0%2B0.01%2C%200.01%29%0As%20%3D%20nx.cos%282%2A2%2Anx.pi%2At%29%0Ap.plot%28t%2C%20s%29%0A%0Ap.xlabel%28%27time%20%28s%29%27%29%0Ap.ylabel%28%27voltage%20%28mV%29%27%29%0Ap.title%28%27About%20as%20simple%20as%20it%20gets%2C%20folks%27%29%0Ap.grid%28True%29%0A%0A"/>
+    </action>
+    <action date="09 Feb 2007 17:17:29" parent="13" time="14" user="hvo" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="0" parameter="&lt;no description&gt;" parameterId="0" type="String" value="p.figure%28time.time%28%29%29%0A%0At%20%3D%20nx.arange%280.0%2C%201.0%2B0.01%2C%200.01%29%0As%20%3D%20nx.cos%282%2A2%2Anx.pi%2At%29%0Aplot%28t%2C%20s%29%0A%0Axlabel%28%27time%20%28s%29%27%29%0Aylabel%28%27voltage%20%28mV%29%27%29%0Atitle%28%27About%20as%20simple%20as%20it%20gets%2C%20folks%27%29%0Agrid%28True%29%0A%0A"/>
+    </action>
+    <action date="09 Feb 2007 17:17:48" parent="14" time="15" user="hvo" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="0" parameter="&lt;no description&gt;" parameterId="0" type="String" value="t%20%3D%20nx.arange%280.0%2C%201.0%2B0.01%2C%200.01%29%0As%20%3D%20nx.cos%282%2A2%2Anx.pi%2At%29%0Aplot%28t%2C%20s%29%0A%0Axlabel%28%27time%20%28s%29%27%29%0Aylabel%28%27voltage%20%28mV%29%27%29%0Atitle%28%27About%20as%20simple%20as%20it%20gets%2C%20folks%27%29%0Agrid%28True%29%0A%0A"/>
+    </action>
+    <action date="09 Feb 2007 17:20:32" parent="15" time="16" user="hvo" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="0" parameter="&lt;no description&gt;" parameterId="0" type="String" value="subplot%28221%29%0At%20%3D%20nx.arange%280.0%2C%201.0%2B0.01%2C%200.01%29%0As%20%3D%20nx.cos%282%2A2%2Anx.pi%2At%29%0Aplot%28t%2C%20s%29%0A%0Axlabel%28%27time%20%28s%29%27%29%0Aylabel%28%27voltage%20%28mV%29%27%29%0Atitle%28%27About%20as%20simple%20as%20it%20gets%2C%20folks%27%29%0Agrid%28True%29%0A%0A"/>
+    </action>
+    <action date="09 Feb 2007 17:20:40" parent="16" time="17" user="hvo" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="1" parameter="&lt;no description&gt;" parameterId="0" type="String" value="subplot%28222%29%0Amu%2C%20sigma%20%3D%20100%2C%2015%0Ax%20%3D%20mu%20%2B%20sigma%2Arandn%2810000%29%0A%0A%23%20the%20histogram%20of%20the%20data%0An%2C%20bins%2C%20patches%20%3D%20hist%28x%2C%2050%2C%20normed%3D1%29%0Asetp%28patches%2C%20%27facecolor%27%2C%20%27g%27%2C%20%27alpha%27%2C%200.75%29%0A%0A%23%20add%20a%20%27best%20fit%27%20line%0Ay%20%3D%20normpdf%28%20bins%2C%20mu%2C%20sigma%29%0Al%20%3D%20plot%28bins%2C%20y%2C%20%27r--%27%29%0Asetp%28l%2C%20%27linewidth%27%2C%201%29%0A%0Axlabel%28%27Smarts%27%29%0Aylabel%28%27Probability%27%29%0Atitle%28r%27%24%5Crm%7BHistogram%5C%20of%5C%20IQ%3A%7D%5C%20%5Cmu%3D100%2C%5C%20%5Csigma%3D15%24%27%29%0Aaxis%28%5B40%2C%20160%2C%200%2C%200.03%5D%29%0Agrid%28True%29%0A"/>
+    </action>
+    <action date="09 Feb 2007 17:22:47" parent="17" time="18" user="hvo" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="String" value="ax3d%20%3D%20axes3d.Axes3D%28fig%29%0Aplt%20%3D%20fig.axes.append%28ax3d%29%0A%0Adelta%20%3D%20pi%20/%20199.0%0Au%20%3D%20arange%280%2C%202%2Api%2B%28delta%2A2%29%2C%20delta%2A2%29%0Av%20%3D%20arange%280%2C%20pi%2Bdelta%2C%20delta%29%0A%0Ax%20%3D%20outerproduct%28cos%28u%29%2Csin%28v%29%29%0Ay%20%3D%20outerproduct%28sin%28u%29%2Csin%28v%29%29%0Az%20%3D%20outerproduct%28ones%28u.shape%29%2C%20cos%28v%29%29%0A%0A%23ax3d.plot_wireframe%28x%2Cy%2Cz%29%0Asurf%20%3D%20ax3d.plot_surface%28x%2C%20y%2C%20z%29%0Asurf.set_array%28linspace%280%2C%201.0%2C%20len%28v%29%29%29%0A%20%20%20%20%20%20%20%20%0Aax3d.set_xlabel%28%27X%27%29%0Aax3d.set_ylabel%28%27Y%27%29%0Aax3d.set_zlabel%28%27Z%27%29%0A"/>
+    </action>
+    <action date="09 Feb 2007 17:22:58" parent="18" time="19" user="hvo" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="String" value="subplot%28212%29%0Aax3d%20%3D%20axes3d.Axes3D%28fig%29%0Aplt%20%3D%20fig.axes.append%28ax3d%29%0A%0Adelta%20%3D%20pi%20/%20199.0%0Au%20%3D%20arange%280%2C%202%2Api%2B%28delta%2A2%29%2C%20delta%2A2%29%0Av%20%3D%20arange%280%2C%20pi%2Bdelta%2C%20delta%29%0A%0Ax%20%3D%20outerproduct%28cos%28u%29%2Csin%28v%29%29%0Ay%20%3D%20outerproduct%28sin%28u%29%2Csin%28v%29%29%0Az%20%3D%20outerproduct%28ones%28u.shape%29%2C%20cos%28v%29%29%0A%0A%23ax3d.plot_wireframe%28x%2Cy%2Cz%29%0Asurf%20%3D%20ax3d.plot_surface%28x%2C%20y%2C%20z%29%0Asurf.set_array%28linspace%280%2C%201.0%2C%20len%28v%29%29%29%0A%20%20%20%20%20%20%20%20%0Aax3d.set_xlabel%28%27X%27%29%0Aax3d.set_ylabel%28%27Y%27%29%0Aax3d.set_zlabel%28%27Z%27%29%0A"/>
+    </action>
+    <action date="09 Feb 2007 17:23:12" parent="19" time="20" user="hvo" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20matplotlib.axes3d%20as%20axes3d%0Asubplot%28212%29%0Aax3d%20%3D%20axes3d.Axes3D%28fig%29%0Aplt%20%3D%20fig.axes.append%28ax3d%29%0A%0Adelta%20%3D%20pi%20/%20199.0%0Au%20%3D%20arange%280%2C%202%2Api%2B%28delta%2A2%29%2C%20delta%2A2%29%0Av%20%3D%20arange%280%2C%20pi%2Bdelta%2C%20delta%29%0A%0Ax%20%3D%20outerproduct%28cos%28u%29%2Csin%28v%29%29%0Ay%20%3D%20outerproduct%28sin%28u%29%2Csin%28v%29%29%0Az%20%3D%20outerproduct%28ones%28u.shape%29%2C%20cos%28v%29%29%0A%0A%23ax3d.plot_wireframe%28x%2Cy%2Cz%29%0Asurf%20%3D%20ax3d.plot_surface%28x%2C%20y%2C%20z%29%0Asurf.set_array%28linspace%280%2C%201.0%2C%20len%28v%29%29%29%0A%20%20%20%20%20%20%20%20%0Aax3d.set_xlabel%28%27X%27%29%0Aax3d.set_ylabel%28%27Y%27%29%0Aax3d.set_zlabel%28%27Z%27%29%0A"/>
+    </action>
+    <action date="09 Feb 2007 17:23:38" parent="20" time="21" user="hvo" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20matplotlib.axes3d%20as%20axes3d%0Asubplot%28212%29%0Aax3d%20%3D%20axes3d.Axes3D%28gcf%28%29%29%0Aplt%20%3D%20fig.axes.append%28ax3d%29%0A%0Adelta%20%3D%20pi%20/%20199.0%0Au%20%3D%20arange%280%2C%202%2Api%2B%28delta%2A2%29%2C%20delta%2A2%29%0Av%20%3D%20arange%280%2C%20pi%2Bdelta%2C%20delta%29%0A%0Ax%20%3D%20outerproduct%28cos%28u%29%2Csin%28v%29%29%0Ay%20%3D%20outerproduct%28sin%28u%29%2Csin%28v%29%29%0Az%20%3D%20outerproduct%28ones%28u.shape%29%2C%20cos%28v%29%29%0A%0A%23ax3d.plot_wireframe%28x%2Cy%2Cz%29%0Asurf%20%3D%20ax3d.plot_surface%28x%2C%20y%2C%20z%29%0Asurf.set_array%28linspace%280%2C%201.0%2C%20len%28v%29%29%29%0A%20%20%20%20%20%20%20%20%0Aax3d.set_xlabel%28%27X%27%29%0Aax3d.set_ylabel%28%27Y%27%29%0Aax3d.set_zlabel%28%27Z%27%29%0A"/>
+    </action>
+    <action date="09 Feb 2007 17:23:53" parent="21" time="22" user="hvo" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20matplotlib.axes3d%20as%20axes3d%0Afig%20%3D%20gcf%28%29%0Asubplot%28212%29%0Aax3d%20%3D%20axes3d.Axes3D%28fig%29%0Aplt%20%3D%20fig.axes.append%28ax3d%29%0A%0Adelta%20%3D%20pi%20/%20199.0%0Au%20%3D%20arange%280%2C%202%2Api%2B%28delta%2A2%29%2C%20delta%2A2%29%0Av%20%3D%20arange%280%2C%20pi%2Bdelta%2C%20delta%29%0A%0Ax%20%3D%20outerproduct%28cos%28u%29%2Csin%28v%29%29%0Ay%20%3D%20outerproduct%28sin%28u%29%2Csin%28v%29%29%0Az%20%3D%20outerproduct%28ones%28u.shape%29%2C%20cos%28v%29%29%0A%0A%23ax3d.plot_wireframe%28x%2Cy%2Cz%29%0Asurf%20%3D%20ax3d.plot_surface%28x%2C%20y%2C%20z%29%0Asurf.set_array%28linspace%280%2C%201.0%2C%20len%28v%29%29%29%0A%20%20%20%20%20%20%20%20%0Aax3d.set_xlabel%28%27X%27%29%0Aax3d.set_ylabel%28%27Y%27%29%0Aax3d.set_zlabel%28%27Z%27%29%0A"/>
+    </action>
+    <action date="09 Feb 2007 17:26:45" parent="22" time="23" user="hvo" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20matplotlib.axes3d%20as%20axes3d%0A%0Afig%20%3D%20gcf%28%29%0A%0Aax3d%20%3D%20axes3d.Axes3D%28fig%29%0Aplt%20%3D%20fig.axes.append%28ax3d%29%0A%0Adelta%20%3D%20pi%20/%20199.0%0Au%20%3D%20arange%280%2C%202%2Api%2B%28delta%2A2%29%2C%20delta%2A2%29%0Av%20%3D%20arange%280%2C%20pi%2Bdelta%2C%20delta%29%0A%0Ax%20%3D%20outer%28cos%28u%29%2Csin%28v%29%29%0Ay%20%3D%20outer%28sin%28u%29%2Csin%28v%29%29%0Az%20%3D%20outer%28ones%28u.shape%29%2C%20cos%28v%29%29%0A%0A%23ax3d.plot_wireframe%28x%2Cy%2Cz%29%0Asurf%20%3D%20ax3d.plot_surface%28x%2C%20y%2C%20z%29%0Asurf.set_array%28linspace%280%2C%201.0%2C%20len%28v%29%29%29%0A%20%20%20%20%20%20%20%20%0Aax3d.set_xlabel%28%27X%27%29%0Aax3d.set_ylabel%28%27Y%27%29%0Aax3d.set_zlabel%28%27Z%27%29"/>
+    </action>
+    <action date="09 Feb 2007 17:27:01" parent="23" time="24" user="hvo" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="5" name="MplFigure" x="-61.1991503354" y="72.379764339"/>
+    </action>
+    <action date="09 Feb 2007 17:27:02" parent="24" time="25" user="hvo" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="6" name="MplFigureCell" x="-1.76536010583" y="-31.1880285363"/>
+    </action>
+    <action date="09 Feb 2007 17:27:04" parent="25" time="26" user="hvo" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="6" destinationModule="MplFigureCell" destinationPort="FigureManager(MplFigureManager)" id="4" sourceId="5" sourceModule="MplFigure" sourcePort="FigureManager(MplFigureManager)"/>
+    </action>
+    <action date="09 Feb 2007 17:27:06" parent="26" time="27" user="hvo" what="deleteConnection">
+      <notes>
+        None
+      </notes>
+      <connection connectionId="0"/>
+    </action>
+    <action date="09 Feb 2007 17:27:07" parent="27" time="28" user="hvo" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="5" destinationModule="MplFigure" destinationPort="Script(String)" id="5" sourceId="2" sourceModule="MplPlot" sourcePort="source(String)"/>
+    </action>
+    <action date="09 Feb 2007 17:28:04" parent="28" time="29" user="hvo" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="66.4952306529" dy="-2.94226684305" id="2"/>
+      <move dx="48.8416295946" dy="10.592160635" id="5"/>
+      <move dx="28.8342150619" dy="-38.8379223282" id="6"/>
+    </action>
+    <action date="09 Feb 2007 17:28:04" parent="29" time="30" user="hvo" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="7" name="MplPlot" x="-220.08155986" y="188.305077955"/>
+    </action>
+    <action date="09 Feb 2007 17:28:05" parent="30" time="31" user="hvo" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="3" destinationModule="MplFigure" destinationPort="Script(String)" id="6" sourceId="7" sourceModule="MplPlot" sourcePort="source(String)"/>
+    </action>
+    <action date="09 Feb 2007 17:28:40" parent="31" time="32" user="hvo" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="7" parameter="&lt;no description&gt;" parameterId="0" type="String" value="subplot%28212%29%0Aax%20%3D%20axes%28%5B0.1%2C%200.1%2C%200.8%2C%200.8%5D%29%0A%0Alabels%20%3D%20%27Frogs%27%2C%20%27Hogs%27%2C%20%27Dogs%27%2C%20%27Logs%27%0Afracs%20%3D%20%5B15%2C30%2C45%2C%2010%5D%0Aexplode%3D%280%2C%200.05%2C%200%2C%200%29%0Apie%28fracs%2C%20explode%3Dexplode%2C%20labels%3Dlabels%2C%20autopct%3D%27%251.1f%25%25%27%2C%20shadow%3DTrue%29%0A%0A"/>
+    </action>
+    <action date="09 Feb 2007 17:29:21" parent="32" time="33" user="hvo" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="7" parameter="&lt;no description&gt;" parameterId="0" type="String" value="subplot%28221%29%0Aax%20%3D%20axes%28%5B0.1%2C%200.1%2C%200.8%2C%200.8%5D%29%0A%0Alabels%20%3D%20%27Frogs%27%2C%20%27Hogs%27%2C%20%27Dogs%27%2C%20%27Logs%27%0Afracs%20%3D%20%5B15%2C30%2C45%2C%2010%5D%0Aexplode%3D%280%2C%200.05%2C%200%2C%200%29%0Apie%28fracs%2C%20explode%3Dexplode%2C%20labels%3Dlabels%2C%20autopct%3D%27%251.1f%25%25%27%2C%20shadow%3DTrue%29%0A%0A"/>
+    </action>
+    <action date="09 Feb 2007 17:29:27" parent="33" time="34" user="hvo" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="0" parameter="&lt;no description&gt;" parameterId="0" type="String" value="subplot%28212%29%0At%20%3D%20nx.arange%280.0%2C%201.0%2B0.01%2C%200.01%29%0As%20%3D%20nx.cos%282%2A2%2Anx.pi%2At%29%0Aplot%28t%2C%20s%29%0A%0Axlabel%28%27time%20%28s%29%27%29%0Aylabel%28%27voltage%20%28mV%29%27%29%0Atitle%28%27About%20as%20simple%20as%20it%20gets%2C%20folks%27%29%0Agrid%28True%29%0A%0A"/>
+    </action>
+    <action date="09 Feb 2007 17:30:26" parent="34" time="35" user="hvo" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="0" parameter="&lt;no description&gt;" parameterId="0" type="String" value="subplot%28212%29%0A%0Adashes%20%3D%20%5B5%2C2%2C10%2C5%5D%20%23%205%20points%20on%2C%202%20off%2C%203%20on%2C%201%20off%0A%0Al%2C%20%3D%20plot%28arange%2820%29%2C%20%27--%27%29%0Al.set_dashes%28dashes%29%0A"/>
+    </action>
+    <action date="09 Feb 2007 17:31:04" parent="35" time="36" user="hvo" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="7" parameter="&lt;no description&gt;" parameterId="0" type="String" value="subplot%28221%29%0A%0A%0AN%20%3D%205%0AmenMeans%20%3D%20%2820%2C%2035%2C%2030%2C%2035%2C%2027%29%0AmenStd%20%3D%20%20%20%282%2C%203%2C%204%2C%201%2C%202%29%0A%0Aind%20%3D%20arange%28N%29%20%20%23%20the%20x%20locations%20for%20the%20groups%0Awidth%20%3D%200.35%20%20%20%20%20%20%20%23%20the%20width%20of%20the%20bars%0Ap1%20%3D%20bar%28ind%2C%20menMeans%2C%20width%2C%20color%3D%27r%27%2C%20yerr%3DmenStd%29%0A%0AwomenMeans%20%3D%20%2825%2C%2032%2C%2034%2C%2020%2C%2025%29%0AwomenStd%20%3D%20%20%20%283%2C%205%2C%202%2C%203%2C%203%29%0Ap2%20%3D%20bar%28ind%2Bwidth%2C%20womenMeans%2C%20width%2C%20color%3D%27y%27%2C%20yerr%3DwomenStd%29%0A%0Aylabel%28%27Scores%27%29%0Atitle%28%27Scores%20by%20group%20and%20gender%27%29%0Axticks%28ind%2Bwidth%2C%20%28%27G1%27%2C%20%27G2%27%2C%20%27G3%27%2C%20%27G4%27%2C%20%27G5%27%29%20%29%0A%0Alegend%28%20%28p1%5B0%5D%2C%20p2%5B0%5D%29%2C%20%28%27Men%27%2C%20%27Women%27%29%20%29%0A"/>
+    </action>
+    <tag name="Two Plots" time="36"/>
+  </visTrail>

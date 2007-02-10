@@ -28,6 +28,7 @@ from core.modules import port_configure
 from core.modules import vistrails_module
 from core.modules.vistrails_module import Module, newModule, \
      NotCacheable, ModuleError
+from core.modules.tuple_configuration import TupleConfigurationWidget
 import core.system
 import os
 import zipfile
@@ -201,10 +202,23 @@ class Tuple(Module):
     integrated with the rest of VisTrails, so don't use it unless
     you know what you're doing."""
 
+    INPUTPORTS = []
+
     def compute(self):
-        values = tuple([self.getInputFromPort(i) for i in range(self.length)])
+        values = tuple([self.getInputFromPort(p)
+                        for p in Tuple.INPUTPORTS])
         self.setResult("value", values)
-_reg.addModule(Tuple)
+        
+_reg.addModule(Tuple, None, TupleConfigurationWidget)
+
+class TestTuple(Module):
+    def compute(self):
+        pair = self.getInputFromPort('tuple')
+        print pair
+        
+_reg.addModule(TestTuple)
+_reg.addInputPort(TestTuple, 'tuple', [Integer,String])
+
 
 ##############################################################################
 
