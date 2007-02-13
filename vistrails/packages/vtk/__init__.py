@@ -315,3 +315,17 @@ def initialize():
     addModule(vtkBaseModule)
     createAllModules(inheritanceGraph)
     setAllPorts(registry.moduleTree['vtkObjectBase'])
+
+def package_dependencies():
+    import core.packagemanager
+    manager = core.packagemanager.get_package_manager()
+    if manager.has_package('spreadsheet'):
+        return ['spreadsheet']
+    else:
+        return []
+
+def package_requirements():
+    import core.requirements
+    if not core.requirements.python_module_exists('vtk'):
+        raise core.requirements.MissingRequirement('vtk')
+    import vtk
