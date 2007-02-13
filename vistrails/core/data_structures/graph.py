@@ -273,8 +273,15 @@ shares with self.)
                     visited.add(to)
         return parent
 
-    def dfs(self,vertex_set=None):
-        """ dfs(self,vertex_set=None) -> (discovery, parent, finish)
+    class GraphContainsCycles(Exception):
+        def __init__(self, v1, v2):
+            self.back_edge = (v1, v2)
+        def __str__(self):
+            return ("Graph contains cycles: back edge %s encountered" %
+                    self.back_edge)
+
+    def dfs(self,vertex_set=None,raise_if_cyclic=False):
+        """ dfs(self,vertex_set=None,raise_if_cyclic=False) -> (discovery, parent, finish)
         Performs a depth-first search on a graph and returns three dictionaries with
         relevant information. If vertex_set is not None, then it is used as
         the list of ids to perform the DFS on.
@@ -319,6 +326,8 @@ shares with self.)
                 if data.color[v] == White:
                     data.parent[v] = u
                     visit(v)
+                if raise_if_cyclic and data.color[v] == Gray:
+                    raise self.GraphContainsCycles(u, v)
             data.color[u] = Black
             data.t += 1
             data.finish[u] = data.t
@@ -358,7 +367,7 @@ are in topological sort order (every node traversed is such that their
 parent nodes have already been traversed). vertex_set is optionally a
 list of vertices on which to perform the topological sort.
         """
-        (d, p, f) = self.dfs(vertex_set)
+        (d, p, f) = self.dfs(vertex_set,raise_if_cyclic=True)
         lst = [(v, k) for (k,v) in f.iteritems()]
         lst.sort()
         lst.reverse()
@@ -454,8 +463,12 @@ class TestGraph(unittest.TestCase):
              g.addEdge(v1, v2, i)
          sinkResult = [None for i in g.sinks() if g.outDegree(i) == 0]
          sourceResult = [None for i in g.sinks() if g.outDegree(i) == 0]
-         assert len(sinkResult) == len(g.sinks())
-         assert len(sourceResult) == len(g.sources())
+         if len(sinkResult) <> len(g.sinks()):
+             print "Inconsistency:",g
+             assert False
+         if len(sourceResult) <> len(g.sources()):
+             print "Inconsistency:",g
+             assert False
 
      def testDFS(self):
          """Test DFS on graph."""
@@ -496,6 +509,22 @@ class TestGraph(unittest.TestCase):
          g.addEdge(1, 2, 1)
          g.deleteVertex(2)
          self.assertEquals(g.adjacencyList[1], [])
+
+     def testRaisingDFS(self):
+         """Tests if DFS with cycle-checking will raise exceptions."""
+         g = Graph()
+         g.addVertex(0)
+         g.addVertex(1)
+         g.addVertex(2)
+         g.addEdge(0, 1)
+         g.addEdge(1, 2)
+         g.addEdge(2, 0)
+         try:
+             g.dfs(raise_if_cyclic=True)
+         except Graph.GraphContainsCycles, e:
+             pass
+         else:
+             raise Exception("Should have thrown")
 
 if __name__ == '__main__':
     unittest.main()
