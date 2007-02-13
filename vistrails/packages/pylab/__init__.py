@@ -25,10 +25,6 @@ This package wrap Matplotlib/pylab to provide a plotting tool for
 VisTrails. We are going to use the 'Qt4Agg' backend of the library.
 
 """
-import matplotlib
-matplotlib.use('Qt4Agg')
-import pylab
-
 import core.modules
 import core.modules.module_registry
 from core.modules.basic_modules import File, String, Boolean
@@ -114,3 +110,13 @@ def initialize(*args, **keywords):
         from figure_cell import MplFigureCell
         reg.registry.addModule(MplFigureCell)
         reg.registry.addInputPort(MplFigureCell, 'FigureManager', MplFigureManager)
+
+def package_requirements():
+    import core.requirements
+    if not core.requirements.python_module_exists('matplotlib'):
+        raise core.requirements.MissingRequirement('matplotlib')
+    if not core.requirements.python_module_exists('pylab'):
+        raise core.requirements.MissingRequirement('pylab')
+    import matplotlib
+    matplotlib.use('Qt4Agg')
+    import pylab

@@ -454,10 +454,10 @@ ports."""
         else:
             raise VistrailsInternalError("Invalid port endpoint: %s" %
                                          port.endPoint)
-        values = specStr.split(", ")
+        values = specStr.split(",")
         if not ports.has_key(port.name):            
             if loose:
-                return [[(self.getDescriptorByName(v).module,
+                return [[(self.getDescriptorByName(v.strip()).module,
                          '<no description>')
                         for v in values]]
             else:

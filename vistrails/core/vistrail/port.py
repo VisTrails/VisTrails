@@ -49,7 +49,7 @@ class Port(object):
         
         """
         if type(spec) == __builtin__.list:            
-            return "(" + ", ".join([self.getSig(s) for s in spec]) + ")"
+            return "(" + ",".join([self.getSig(s) for s in spec]) + ")"
         assert type(spec == __builtin__.tuple)
         spec = spec[0]
         if issubclass(spec, core.modules.vistrails_module.Module):
