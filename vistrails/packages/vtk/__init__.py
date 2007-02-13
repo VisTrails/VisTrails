@@ -258,6 +258,10 @@ def addPorts(module):
     addTogglePorts(module, parser.get_toggle_methods())
     addStatePorts(module, parser.get_state_methods())
     addOtherPorts(module, parser.get_other_methods())
+    # CVS version of VTK doesn't support AddInputConnect(vtkAlgorithmOutput)
+    if module.vtkClass==vtk.vtkAlgorithm:
+        addInputPort(module, 'AddInputConnection',
+                     typeMap('vtkAlgorithmOutput'))
 
 def setAllPorts(treeNode):
     """ setAllPorts(treeNode: TreeNode) -> None

@@ -118,7 +118,7 @@ class HTTPFile(HTTP):
                 # FIXME: This is bad for large files
                 data = response.read()
                 try:
-                    fn = file(local_filename, "w")
+                    fn = file(local_filename, "wb")
                 except:
                     raise ModuleError(self, ("Could not create local file '%s'" %
                                              local_filename))

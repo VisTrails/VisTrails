@@ -68,6 +68,11 @@ class vtkBaseModule(Module):
                 paramList = zip([int(function[18:])]*len(paramList),
                                  paramList)
                 function = 'SetInputConnection'
+            if function=='AddInputConnection':
+                desc = registry.getDescriptorByName('vtkAlgorithmOutput')
+                for i in range(len(paramList)):
+                    if type(paramList[i])==desc.module:
+                        paramList[i] = (0, paramList[i])
             for p in paramList:
                 if type(p)==tuple:
                     param = list(p)
