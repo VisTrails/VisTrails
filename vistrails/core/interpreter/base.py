@@ -28,6 +28,30 @@ import parser
 
 ##############################################################################
 
+class InternalTuple(object):
+    """Tuple used internally for constant tuples."""
+
+    def _get_length(self, length):
+        return len(self._values)
+    def _set_length(self, length):
+        self._values = [None] * length
+    length = property(_get_length, _set_length)
+
+    def compute(self):
+        return
+
+    def setInputPort(self, index, connector):
+        self._values[index] = connector()
+
+    def getOutput(self, port):
+        return tuple(self._values)
+
+    def update(self):
+        pass
+        
+
+##############################################################################
+
 class BaseInterpreter(object):
 
     def __init__(self):
