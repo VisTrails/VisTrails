@@ -142,6 +142,58 @@
     <action date="26 Jan 2007 18:05:24" parent="47" time="48" user="cscheid" what="changeParameter">
       <set alias="" function="filename_in_archive" functionId="0" moduleId="1" parameter="&lt;no description&gt;" parameterId="0" type="String" value="VTKData/Data/tetraMesh.vtk"/>
     </action>
+    <action date="12 Feb 2007 18:10:39" parent="48" time="49" user="cscheid" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="2.93567253946" dy="-57.2456145194" id="8"/>
+    </action>
+    <action date="12 Feb 2007 18:10:39" parent="49" time="50" user="cscheid" what="deleteConnection">
+      <notes>
+        None
+      </notes>
+      <connection connectionId="6"/>
+    </action>
+    <action date="12 Feb 2007 18:10:44" parent="50" time="51" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="9" name="vtkContourFilter" x="-209.900586571" y="2.93567253946"/>
+    </action>
+    <action date="12 Feb 2007 18:10:45" parent="51" time="52" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="8" destinationModule="vtkAlgorithm" destinationPort="AddInputConnection(vtkAlgorithmOutput)" id="7" sourceId="9" sourceModule="vtkContourFilter" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="12 Feb 2007 18:10:47" parent="52" time="53" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="9" destinationModule="vtkContourFilter" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="8" sourceId="3" sourceModule="vtkDataSetReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="12 Feb 2007 18:10:49" parent="53" time="54" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="SetValue" functionId="0" moduleId="9" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="0"/>
+      <set alias="" function="SetValue" functionId="0" moduleId="9" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.0"/>
+    </action>
+    <action date="12 Feb 2007 18:10:50" parent="54" time="55" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="SetValue" functionId="0" moduleId="9" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="1"/>
+      <set alias="" function="SetValue" functionId="0" moduleId="9" parameter="&lt;no description&gt;" parameterId="1" type="Float" value=""/>
+    </action>
+    <action date="12 Feb 2007 18:10:52" parent="55" time="56" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="SetValue" functionId="0" moduleId="9" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="1"/>
+      <set alias="" function="SetValue" functionId="0" moduleId="9" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.5"/>
+    </action>
     <tag name="Fran Cut" time="43"/>
+    <tag name="tetra mesh contour" time="56"/>
     <tag name="tetra mesh" time="48"/>
   </visTrail>
