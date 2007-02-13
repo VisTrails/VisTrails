@@ -53,7 +53,7 @@ def run(input, workflow):
     elif type(workflow) == type(1):
         version = workflow
     else:
-        msg = "Invalid version tag or number"
+        msg = "Invalid version tag or number: %s" % workflow
         raise VistrailsInternalError(msg)
     parser.closeVistrail()
     pip = v.getPipeline(workflow)
@@ -81,15 +81,43 @@ def cleanup():
 ################################################################################
 #Testing
 
-import unittest
+import core.packagemanager
 import core.system
+import sys
+import unittest
+import core.vistrail
+
+_UGLY_HACK = 0
 
 class TestConsoleMode(unittest.TestCase):
+
+    def setUp(self, *args, **kwargs):
+        global _UGLY_HACK
+        if _UGLY_HACK != 0:
+            old_path = sys.path
+            sys.path.append(core.system.visTrailsRootDirectory() +
+                            '/tests/resources')
+            m = __import__('console_mode_test')
+            sys.path = old_path
+            d = {'console_mode_test': m}
+            manager = core.packagemanager.get_package_manager()
+            manager.add_package('console_mode_test')
+            manager.initialize_packages(d)
+        _UGLY_HACK += 1
+
     def test1(self):
         result = run(core.system.visTrailsRootDirectory() +
-            '/tests/resources/dummy.xml',"int chain")
+                     '/tests/resources/dummy.xml',"int chain")
         self.assertEquals(result, True)
-    def tearDown(self):
-        cleanup()
+
+    def test_tuple(self):
+        interpreter = core.interpreter.default.default_interpreter.get()
+        v = DummyView()
+        p = core.vistrail.pipeline.Pipeline()
+        shm = core.vistrail.pipeline.shorthand_module
+        p.addModule(shm('TestTupleExecution', 0,
+                        [('input', [('Float', '2.0'), ('Float', '2.0')])]))
+        interpreter.execute(p, 'foo', 1, v, None)
+
 if __name__ == '__main__':
     unittest.main()
