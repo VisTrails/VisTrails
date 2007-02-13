@@ -44,6 +44,7 @@ import shutil
 import sys
 import tempfile
 import time
+import core.packagemanager
 
 ################################################################################
 
@@ -64,7 +65,8 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         return self
 
     def __init__(self):
-        pass
+        QtGui.QApplication.__init__(self, sys.argv)
+        qt.allowQObjects()
 
     def init(self, optionsDict=None):
         """ VistrailsApplicationSingleton(optionDict: dict)
@@ -73,8 +75,6 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         
         """
         global logger
-        QtGui.QApplication.__init__(self, sys.argv)
-        qt.allowQObjects()
         gui.theme.initializeCurrentTheme()
         self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         
@@ -115,7 +115,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
             for (k, v) in optionsDict.iteritems():
                 setattr(self.configuration, k, v)
         self.startupHooks = []
-        self.packageList = []
+        self._package_manager = core.packagemanager.PackageManager(self)
         self.setupOptions()
         self.readOptions()
         self.runInitialization()
@@ -134,16 +134,17 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         Finalize all packages to, such as, get rid of temp files
         
         """
-        if not hasattr(self, "__destroyed"):
-            for (packageName, packageModule, _, _) in self.packageList:
-                print "Finalizing",packageName
-                try:
-                    x = packageModule.finalize
-                except AttributeError:
-                    pass
-                else:
-                    x()
-            self.__destroyed = True
+        self._package_manager.finalize_packages()
+#         if not hasattr(self, "__destroyed"):
+#             for (packageName, packageModule, _, _) in self.packageList:
+#                 print "Finalizing",packageName
+#                 try:
+#                     x = packageModule.finalize
+#                 except AttributeError:
+#                     pass
+#                 else:
+#                     x()
+#             self.__destroyed = True
 
     def __del__(self):
         """ __del__() -> None
@@ -183,17 +184,17 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         self.installPackages()
         self.runStartupHooks()
         if self.input:
-            if self.workflow == 0:
-                print "invalid workflow"
-                return
+            if not self.nonInteractiveOpts.workflow:
+                debug.DebugPrint.critical('need workflow tag or id to \
+run in batch mode.')
+                sys.exit(1)
             if len(self.input) > 1:
                 print "Only one vistrail can be specified for non-interactive mode"
             import core.console_mode
-            core.console_mode.run(self.input[0], self.workflow)
-            return
+            core.console_mode.run(self.input[0],
+                                  self.nonInteractiveOpts.workflow)
         else:
-            print "no input vistrails provided"
-            return
+            debug.DebugPrint.critical("no input vistrails provided")
 
     def setupBaseModules(self):
         """ setupBaseModules() -> None        
@@ -318,9 +319,9 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         self.configuration.verbosenessLevel = get('verbose')
         if get('noninteractive'):
             self.configuration.interactiveMode = False
+            self.nonInteractiveOpts = InstanceObject(workflow=get('workflow'))
         self.configuration.nologger = get('nologger')
         self.input = command_line.CommandLineParser().positionalArguments()
-        self.workflow = get('workflow')
         if get('workflow') and not get('noninteractive'):
             print "Workflow option only allowed in noninteractive mode."
             sys.exit(1)
@@ -340,7 +341,8 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         def addPackage(packageName, *args, **keywords):
             """ addPackage(packageName: str, *args) -> None
             """
-            self.packageList.append([packageName, None, keywords, -1])
+            self._package_manager.add_package(packageName, args, keywords)
+#             self.packageList.append([packageName, None, keywords, -1])
 
         def install_default_startup():
             debug.critical('Will try to create default startup script')
@@ -467,66 +469,16 @@ and ~/.vistrails/startup.py does not exist.""")
             levels = [dbg.Critical, dbg.Warning, dbg.Log]
             dbg.setMessageLevel(levels[verbose])
             dbg.log("Set verboseness level to %s" % verbose)
+        if not self.configuration.userPackageDirectory:
+            s = core.system.defaultDotVistrails() + '/userpackages'
+            self.configuration.userPackageDirectory = s
 
     def installPackages(self):
         """ installPackages() -> None
         Scheme through packages directory and initialize them all
         """
         # Imports standard packages directory
-        old_sys_path = sys.path
-        if self.configuration.packageDirectory:
-            sys.path.append(self.configuration.packageDirectory)
-        import packages
-        sys.path = old_sys_path
-
-        # Imports user packages directory, if existent
-        old_sys_path = sys.path
-        if not self.configuration.userPackageDirectory:
-            s = core.system.defaultDotVistrails() + '/userpackages'
-            self.configuration.userPackageDirectory = s
-        sys.path.append(self.configuration.userPackageDirectory
-                        + '/'
-                        + os.path.pardir)
-        try:
-            import userpackages
-        except ImportError:
-            pass
-        sys_path = old_sys_path
-        
-        base, user = 0, 1
-        def import_from_base(pkg):
-            try:
-                __import__('packages.'+pkg[0], globals(), locals(), [])
-                pkg[1] = getattr(packages, pkg[0])
-                pkg[3] = base
-            except ImportError:
-                return False
-            return True
-
-        def import_from_user(pkg):
-            try:
-                __import__('userpackages.'+pkg[0], globals(), locals(), [])
-                pkg[1] = getattr(userpackages, pkg[0])
-                pkg[3] = user
-            except ImportError:
-                return False
-            return True
-
-        # import all packages in list
-        for package in self.packageList:
-            if (not import_from_base(package) and
-                not import_from_user(package)):
-                dbg = debug.DebugPrint
-                dbg.critical("Could not install package %s" % package[0])
-                raise ImportError("Package %s not present" % package[0])
-
-        # initialize all packages in list
-        for (packageName, packageModule,
-             packageParams, packagePlace) in self.packageList:
-            print "Initializing ",packageName
-            registry.setCurrentPackageName(packageName)
-            packageModule.initialize(**packageParams)
-            registry.setCurrentPackageName(None)
+        self._package_manager.initialize_packages()
 
     def runStartupHooks(self):
         """ runStartupHooks() -> None
@@ -554,6 +506,9 @@ and ~/.vistrails/startup.py does not exist.""")
 def start_application(optionsDict=None):
     """Initializes the application singleton."""
     global VistrailsApplication
+    if VistrailsApplication:
+        print "Application already started."""
+        return
     VistrailsApplication = VistrailsApplicationSingleton()
     VistrailsApplication.init(optionsDict)
 
