@@ -70,9 +70,9 @@ def get_test_cases(module):
 
 ###############################################################################
 
-# creates a bogus qt app so that testing can happen
-import gui.qt
-app = gui.qt.createBogusQtApp()
+# creates the app so that testing can happen
+import gui.application
+gui.application.start_application({'interactiveMode': False})
 
 print "Test Suite for VisTrails"
 
@@ -124,3 +124,5 @@ for (p, subdirs, files) in os.walk(root_directory):
             print "Ok: %s test cases." % len(test_cases)
 
 unittest.TextTestRunner().run(main_test_suite)
+
+gui.application.VistrailsApplication.finishSession()
