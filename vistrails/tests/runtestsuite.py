@@ -72,7 +72,8 @@ def get_test_cases(module):
 
 # creates the app so that testing can happen
 import gui.application
-gui.application.start_application({'interactiveMode': False})
+gui.application.start_application({'interactiveMode': False,
+                                   'nologger': True})
 
 print "Test Suite for VisTrails"
 

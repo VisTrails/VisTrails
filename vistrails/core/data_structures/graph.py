@@ -86,7 +86,7 @@ Fast version of inverse(), but requires that output not be mutated (it
 shares with self.)
         """
         result = Graph()
-        result.vertices = self.vertices()
+        result.vertices = self.vertices
         result.adjacencyList = self.inverseAdjacencyList
         result.inverseAdjacencyList = self.adjacencyList
         return result
@@ -525,6 +525,18 @@ class TestGraph(unittest.TestCase):
              pass
          else:
              raise Exception("Should have thrown")
+
+     def testCallInverse(self):
+         """Test if calling inverse methods work."""
+         g = Graph()
+         g.addVertex(0)
+         g.addVertex(1)
+         g.addVertex(2)
+         g.addEdge(0, 1)
+         g.addEdge(1, 2)
+         g.addEdge(2, 0)
+         g2 = g.inverse()
+         g3 = g.inverse_immutable()
 
 if __name__ == '__main__':
     unittest.main()

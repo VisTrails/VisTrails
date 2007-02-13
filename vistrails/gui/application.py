@@ -111,14 +111,14 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
                                   dbUser='',
                                   dbPasswd='',
                                   dbName=''))
-        if optionsDict:
-            for (k, v) in optionsDict.iteritems():
-                setattr(self.configuration, k, v)
         self.startupHooks = []
         self._package_manager = core.packagemanager.PackageManager(self)
         self.setupOptions()
         self.readOptions()
         self.runInitialization()
+        if optionsDict:
+            for (k, v) in optionsDict.iteritems():
+                setattr(self.configuration, k, v)
         if not self.configuration.nologger:
             from core.logger import Logger
             logger = Logger()

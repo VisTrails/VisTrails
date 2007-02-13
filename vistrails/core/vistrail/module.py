@@ -32,7 +32,7 @@ from sets import Set
 from core.data_structures import Point
 from core.vistrail.module_param import VistrailModuleType, ModuleParam
 from core.vistrail.module_function import ModuleFunction
-from core.utils import NoSummon
+from core.utils import NoSummon, VistrailsInternalError
 from core.utils.uxml import named_elements
 import core.modules.module_registry
 registry = core.modules.module_registry.registry
@@ -209,43 +209,43 @@ class Module(object):
         m.center.y = float(y)
         for n in element.childNodes:
             if n.localName == "function":
-        p = []
-        p.append(-1)
-        p.append(int(n.getAttribute('functionId')))
-        p.append(str(n.getAttribute('function')))
-        p.append(int(n.getAttribute('parameterId')))
-        p.append(str(n.getAttribute('parameter')))
-        p.append(str(n.getAttribute('value')))
-        p.append(str(n.getAttribute('type')))
-        p.append(str(n.getAttribute('alias')))
-        
-        if p[1] >= len(m.functions):
-            f = ModuleFunction()
-            f.name = p[2]
-            m.functions.append(f)
-            if len(m.functions)-1 != p[1]:
-                msg = "Pipeline function id is inconsistent"
-            raise VistrailsInternalError(msg)
-        f = m.functions[p[1]]
-        if f.name != p[2]:
-            msg = "Pipeline function name is inconsistent"
-            raise VistrailsInternalError()
-        if p[3] == -1:
-            continue
-        if p[3] >= len(f.params):
-            param = ModuleParam()
-            param.name = p[4]
-            f.params.append(param)
-            if len(f.params)-1 != p[3]:
-                msg = "Pipeline parameter id is inconsistent"
-            raise VistrailsInternalError(msg)
-        param = f.params[p[3]]
-        param.name = p[4]
-        param.strValue = p[5]
-        param.type = p[6]
-        if param.type.find('char')>-1 or param.type=='str':
-            param.type = 'string'
-        param.alias = p[7]
+                p = []
+                p.append(-1)
+                p.append(int(n.getAttribute('functionId')))
+                p.append(str(n.getAttribute('function')))
+                p.append(int(n.getAttribute('parameterId')))
+                p.append(str(n.getAttribute('parameter')))
+                p.append(str(n.getAttribute('value')))
+                p.append(str(n.getAttribute('type')))
+                p.append(str(n.getAttribute('alias')))
+
+                if p[1] >= len(m.functions):
+                    f = ModuleFunction()
+                    f.name = p[2]
+                    m.functions.append(f)
+                    if len(m.functions)-1 != p[1]:
+                        msg = "Pipeline function id is inconsistent"
+                        raise VistrailsInternalError(msg)
+                f = m.functions[p[1]]
+                if f.name != p[2]:
+                    msg = "Pipeline function name is inconsistent"
+                    raise VistrailsInternalError()
+                if p[3] == -1:
+                    continue
+                if p[3] >= len(f.params):
+                    param = ModuleParam()
+                    param.name = p[4]
+                    f.params.append(param)
+                    if len(f.params)-1 != p[3]:
+                        msg = "Pipeline parameter id is inconsistent"
+                        raise VistrailsInternalError(msg)
+                param = f.params[p[3]]
+                param.name = p[4]
+                param.strValue = p[5]
+                param.type = p[6]
+                if param.type.find('char')>-1 or param.type=='str':
+                    param.type = 'string'
+                param.alias = p[7]
     
         m.annotations = {}
         for a in named_elements(element, 'annotation'):

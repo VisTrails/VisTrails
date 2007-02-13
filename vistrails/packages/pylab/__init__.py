@@ -104,13 +104,21 @@ def initialize(*args, **keywords):
     reg.addOutputPort(MplFigure, 'File', File)
     
     reg.registry.addModule(MplFigureManager)
-
+    
     # Register a figure cell type if the spreadsheet is up
     if reg.registry.hasModule('SpreadsheetCell'):
         from figure_cell import MplFigureCell
         reg.registry.addModule(MplFigureCell)
         reg.registry.addInputPort(MplFigureCell, 'FigureManager', MplFigureManager)
 
+def package_dependencies():
+    import core.packagemanager
+    manager = core.packagemanager.get_package_manager()
+    if manager.has_package('spreadsheet'):
+        return ['spreadsheet']
+    else:
+        return []
+    
 def package_requirements():
     import core.requirements
     if not core.requirements.python_module_exists('matplotlib'):

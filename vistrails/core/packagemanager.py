@@ -235,7 +235,8 @@ creating a class that behaves similarly)."""
             
         # perform actual initialization
         try:
-            sorted_packages = self._dependency_graph.vertices_topological_sort()
+            g = self._dependency_graph.inverse_immutable()
+            sorted_packages = g.vertices_topological_sort()
         except core.data_structures.Graph.GraphContainsCycles, e:
             raise self.DependencyCycle(e.back_edge[0],
                                        e.back_edge[1])

@@ -309,12 +309,21 @@ def initialize():
                v.GetVTKBuildVersion()]
     if version < [5, 0, 0]:
         raise Exception("You need to upgrade your VTK install to version \
-> >= 5.0.0")
+        > >= 5.0.0")
     inheritanceGraph = ClassTree(vtk)
     inheritanceGraph.create()
     addModule(vtkBaseModule)
     createAllModules(inheritanceGraph)
     setAllPorts(registry.moduleTree['vtkObjectBase'])
+
+    # Register the VTKCell type if the spreadsheet is up
+    if registry.hasModule('SpreadsheetCell'):
+        from vtkcell import VTKCell
+        from packages.spreadsheet.basic_widgets import CellLocation
+        addModule(VTKCell)
+        addInputPort(VTKCell, "Location", CellLocation)
+        addInputPort(VTKCell, "AddRenderer",
+                     registry.getDescriptorByName('vtkRenderer').module)
 
 def package_dependencies():
     import core.packagemanager
@@ -328,4 +337,7 @@ def package_requirements():
     import core.requirements
     if not core.requirements.python_module_exists('vtk'):
         raise core.requirements.MissingRequirement('vtk')
+    if not core.requirements.python_module_exists('PyQt4'):
+        print 'PyQt4 is not available. There will be no interaction',
+        print 'between VTK and the spreadsheet.'
     import vtk
