@@ -91,7 +91,7 @@ on its inputs."""
 
 ###############################################################################
 # the function initialize is called for each package, after all
-# packages have been loaded. It it used to register the module with
+# packages have been loaded. It is used to register the module with
 # the VisTrails runtime.
 
 def initialize(*args, **keywords):
