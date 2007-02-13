@@ -155,13 +155,47 @@ def initialize(*args, **keywords):
 
 import unittest
 
+
 class TestHTTPFile(unittest.TestCase):
+
+    class DummyView(object):
+        def setModuleActive(self, id):
+            pass
+        def setModuleComputing(self, id):
+            pass
+        def setModuleSuccess(self, id):
+            pass
+        def setModuleError(self, id, error):
+            pass
 
     def testParseURL(self):
         foo = HTTPFile()
         foo.parse_url('http://www.sci.utah.edu/~cscheid/stuff/vtkdata-5.0.2.zip')
         self.assertEquals(foo.host, 'www.sci.utah.edu')
         self.assertEquals(foo.filename, '/~cscheid/stuff/vtkdata-5.0.2.zip')
+
+    def testIncorrectURL(self):
+        import core.vistrail
+        import core.interpreter
+        p = core.vistrail.pipeline.Pipeline()
+        shm = core.vistrail.pipeline.shorthand_module
+        p.addModule(shm('HTTPFile', 0,
+                        [('url', [('String',
+                                   'http://illbetyouthisdoesnotexistohrly')])]))
+        interpreter = core.interpreter.default.default_interpreter.get()
+        interpreter.execute(p, 'foo', 1, self.DummyView(), None)
+
+    def testIncorrectURL_2(self):
+        import core.vistrail
+        import core.interpreter
+        p = core.vistrail.pipeline.Pipeline()
+        shm = core.vistrail.pipeline.shorthand_module
+        p.addModule(shm('HTTPFile', 0,
+                        [('url', [('String',
+                                   'foobarttp://illbetyouthisdoesnotexistohrly')])]))
+        interpreter = core.interpreter.default.default_interpreter.get()
+        interpreter.execute(p, 'foo', 1, self.DummyView(), None)
+
 
 if __name__ == '__main__':
     unittest.main()
