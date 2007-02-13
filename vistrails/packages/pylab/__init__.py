@@ -86,8 +86,8 @@ class MplFigure(NotCacheable, Module):
         if 'File' in self.outputPorts:
             f = self.interpreter.filePool.create_file(suffix='.png')
             pylab.savefig(f.name)
-            noOutput = False
             self.setResult('File', f)
+            noOutput = False
         if noOutput:
             pylab.show()
 

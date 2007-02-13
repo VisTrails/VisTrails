@@ -31,6 +31,7 @@ from core.modules.module_configure import StandardModuleConfigurationWidget, \
      PortTable
 from core.modules.module_registry import registry
 from core.utils import any
+import copy
 
 ############################################################################
 class TupleConfigurationWidget(StandardModuleConfigurationWidget):
@@ -109,7 +110,7 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
         # it has at the time of configuration.
         if self.module.registry:
             iPorts = self.module.registry.destinationPorts(
-                self.moduleThing)
+                self.moduleThing, False)
             self.portTable.initializePorts(iPorts)
         else:
             self.portTable.fixGeometry()
@@ -179,22 +180,19 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
         return ports
 
     def registryChanges(self, newPorts):
-        """ registryChanges(ports: [port]) -> (deletePorts, addPorts)        
-        Check the module registry to see if we need to delete or add
-        which ports
+        """ registryChanges(ports: [port]) -> (keep, delete, add ports)
+        Check the module registry to see if we have to keep, delete and add
+        ports
         
         """
         if self.module.registry:
-            dstPorts = self.module.registry.destinationPorts(self.moduleThing)
+            dstPorts = self.module.registry.destinationPorts(self.moduleThing, False)
             oldIn = [('input', p.name,
                       '('+registry.getDescriptorByThing(p.spec[0][0][0]).name+
                       ')') for p in dstPorts[0][1]]
         else:
             oldIn = []
-        deletePorts = [p for p in oldIn if not p in newPorts]
-        addPorts = [p for p in newPorts
-                    if (not p in oldIn)]
-        return (deletePorts, addPorts)
+        return self.lcs(oldIn, newPorts)
     
     def updateVistrail(self):
         """ updateVistrail() -> None
@@ -202,15 +200,23 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
         
         """
         newPorts = self.newInputPorts()
-        (deletePorts, addPorts) = self.registryChanges(newPorts)
+        (samePorts, deletePorts, addPorts) = self.registryChanges(newPorts)
 
-        # Remove all deletePorts and its connection
+        # Remove any connections or functions related to delete ports
         for (cid, c) in self.controller.currentPipeline.connections.items():
             if ((c.sourceId==self.module.id and
                  any([c.source.name==p[1] for p in deletePorts])) or
                 (c.destinationId==self.module.id and
                  any([c.destination.name==p[1] for p in deletePorts]))):
                 self.controller.deleteConnection(cid)
+        for p in deletePorts:
+            module = self.controller.currentPipeline.modules[self.module.id]
+            ids = []
+            for fid in range(module.getNumFunctions()):
+                if module.functions[fid].name==p[1]:
+                    ids.append(fid)
+            for i in ids:
+                self.controller.deleteMethod(i, self.module.id)
         for p in deletePorts:
             self.controller.deleteModulePort(self.module.id, p)
 
@@ -219,18 +225,55 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
             self.controller.addModulePort(self.module.id, p)
 
         # If output spec change, remove all connections
-        prevPortSpec = self.module.registry.getOutputPortSpec(self.module, 'value')
-        if prevPortSpec:
-            prevPortSpec = [registry.getDescriptor(p[0]).name for p in prevPortSpec[0]]
         spec = [p[2][1:-1] for p in newPorts]
-        if prevPortSpec!=spec:
+        if len(deletePorts)+len(addPorts)>0:
             for (cid, c) in self.controller.currentPipeline.connections.items():
                 if (c.sourceId==self.module.id and c.source.name=='value'):
                     self.controller.deleteConnection(cid)
 
         # Remove the current output port and add a new one                    
         self.controller.deleteModulePort(self.module.id, ('output', 'value'))
-        self.moduleThing.INPUTPORTS = [p[1] for p in newPorts]
         spec = '('+','.join(spec)+')'
         self.controller.addModulePort(self.module.id,
                                       ('output', 'value', spec))
+
+    def lcs(self, l1, l2):
+        """ lcs(l1: list, l2: list) -> (keep, delete, add list)        
+        Given 2 lists, we want to find our which part of l1 is the
+        same as l2 and which should be deleted or added. This is very
+        small in our case, we just use memoirization.
+        
+        """
+        res = {}
+        def rec(i1, i2):
+            if (i1<0 or i2<0):
+                return 0
+            cached = res.get(i1*len(l2)+i2, -1)
+            if cached!=-1:
+                return cached
+            if l1[i1]==l2[i2]:
+                r = rec(i1-1, i2-1) + 1
+            else:
+                r = max(rec(i1, i2-1), rec(i1-1, i2))
+            res[i1*len(l2)+i2] = r
+            return r
+        same = []
+        delete = copy.copy(l1)
+        add = copy.copy(l2)
+        def trace(i1, i2):
+            if i1>=0 and i2>=0:
+                if l1[i1]==l2[i2]:
+                    same.append(l1[i1])
+                    del delete[i1]
+                    del add[i2]
+                    trace(i1-1, i2-1)
+                else:
+                    if rec(i1, i2)==rec(i1, i2-1):
+                        trace(i1, i2-1)
+                    else:
+                        trace(i1-1, i2)
+        rec(len(l1)-1, len(l2)-1)
+        trace(len(l1)-1, len(l2)-1)
+        same.reverse()
+        return (same, delete, add)
+    

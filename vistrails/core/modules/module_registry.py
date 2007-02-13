@@ -144,7 +144,7 @@ using user-defined hasher."""
 Returns the module descriptor of the class with a given name"""
         if not self.moduleTree.has_key(name):
             msg = (("Cannot find module %s" % name) +
-                   ": a required package might be missing")
+                   ": a required package might be missing")            
             core.debug.critical(msg)
             return None
         else:
@@ -253,7 +253,7 @@ elements is of either of the above formats."""
         descriptor.deleteOutputPort(portName)
 
 #    @memo_method
-    def sourcePortsFromDescriptor(self, descriptor):
+    def sourcePortsFromDescriptor(self, descriptor, sorted=True):
         def visPortFromSpec(spec, optional):
             result = Port()
             result.name = spec[0]
@@ -263,12 +263,13 @@ elements is of either of the above formats."""
             result.endPoint = PortEndPoint.Source
             return result
         v = descriptor.outputPorts.items()
-        v.sort(lambda (n1, v1), (n2, v2): cmp(n1,n2))
+        if sorted:
+            v.sort(lambda (n1, v1), (n2, v2): cmp(n1,n2))
         return [visPortFromSpec(x, descriptor.outputPortsOptional[x[0]])
                 for x in v]
 
 #    @memo_method
-    def destinationPortsFromDescriptor(self, descriptor):
+    def destinationPortsFromDescriptor(self, descriptor, sorted=True):
         def visPortFromSpec(spec, optional):
             result = Port()
             result.name = spec[0]
@@ -278,7 +279,8 @@ elements is of either of the above formats."""
             result.endPoint = PortEndPoint.Destination
             return result        
         v = descriptor.inputPorts.items()
-        v.sort(lambda (n1, v1), (n2, v2): cmp(n1,n2))
+        if sorted:
+            v.sort(lambda (n1, v1), (n2, v2): cmp(n1,n2))
         return [visPortFromSpec(x, descriptor.inputPortsOptional[x[0]])
                 for x in v]
 
@@ -290,17 +292,19 @@ elements is of either of the above formats."""
     def getDescriptorByThing(self, thing):
         return self.getDescriptorByThingDispatch[type(thing)](self, thing)
 
-    def sourcePorts(self, thing):
+    def sourcePorts(self, thing, sorted=True):
         """Returns source ports for all hierarchy leading to given module"""
         return [(klass.__name__,
-                 self.sourcePortsFromDescriptor(self.getDescriptor(klass)))
+                 self.sourcePortsFromDescriptor(self.getDescriptor(klass),
+                                                sorted))
                 for klass in self.getModuleHierarchy(thing)]
 
-    def destinationPorts(self, thing):
+    def destinationPorts(self, thing, sorted=True):
         """Returns destination ports for all hierarchy leading to
         given module"""
         getter = self.destinationPortsFromDescriptor
-        return [(klass.__name__, getter(self.getDescriptor(klass)))
+        return [(klass.__name__, getter(self.getDescriptor(klass),
+                                        sorted))
                 for klass in self.getModuleHierarchy(thing)]
 
 #    @memo_method
@@ -465,6 +469,7 @@ ports."""
         for spec in specs:
             if all(zip(spec, values), fun):
                 return [copy.copy(spec)]
+        print port, specStr
         raise VistrailsInternalError("No port spec matches the given string")
 
     @staticmethod

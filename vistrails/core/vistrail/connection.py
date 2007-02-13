@@ -110,14 +110,14 @@ class Connection(object):
 
         """
         splittedSig = sig[1:-1].split(',')
-	if splittedSig == ['']: splittedSig = []
+        if splittedSig == ['']: splittedSig = []
         for s in signatures:
             splittedS = s[1:-1].split(',')
-	    if splittedS == ['']: splittedS = []
+            if splittedS == ['']: splittedS = []
             if len(splittedS)==len(splittedSig):
                 for i in range(len(splittedS)):
-                    d1 = registry.getDescriptorByName(splittedS[i])
-                    d2 = registry.getDescriptorByName(splittedSig[i])
+                    d1 = registry.getDescriptorByName(splittedS[i].strip())
+                    d2 = registry.getDescriptorByName(splittedSig[i].strip())
                     if not d1 or not d2 or not issubclass(d1.module, d2.module):
                         break
                 return s
