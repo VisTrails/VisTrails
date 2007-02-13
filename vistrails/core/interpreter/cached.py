@@ -165,10 +165,11 @@ and over again. This allows nested execution."""
                     p = f.params[0]
                     connector = ModuleConnector(createConstant(p), 'value')
                 else:
-                    tupleModule = reg.getDescriptorByName('Tuple').module()
+                    tupleModule = core.interpreter.base.InternalTuple()
                     tupleModule.length = len(f.params)
                     for (i,p) in withIndex(f.params):
                         constant = createConstant(p)
+                        constant.update()
                         connector = ModuleConnector(constant, 'value')
                         tupleModule.setInputPort(i, connector)
                     connector = ModuleConnector(tupleModule, 'value')
