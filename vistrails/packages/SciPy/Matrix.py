@@ -30,9 +30,6 @@ from scipy import linsolve, sparse
 #######################################################################
 class Matrix(SciPy):
 
-    def __init__(self, mat):
-        self.matrix=mat
-
     def setSize(self, size):
         pass
 
@@ -52,13 +49,19 @@ class Matrix(SciPy):
         return self.matrix.shape[1]
 
     def Reals(self):
-        return SparseMatrix(self.matrix.real)
+        out = SparseMatrix()
+        out.matrix = self.matrix.real
+        return out
 
     def Imaginaries(self):
-        return SparseMatrix(self.matrix.imag)
+        out = SparseMatrix()
+        out.matrix = self.matrix.imag
+        return out
  
     def Conjugate(self):
-        return SparseMatrix(self.matrix.conjugate())
+        out = SparseMatrix()
+        out.matrix = self.matrix.conjugate()
+        return out
 
     def GetRow(self, i):
         return self.matrix.getrow(i)
@@ -68,16 +71,11 @@ class Matrix(SciPy):
 
 class SparseMatrix(Matrix):
 
-    def __init__(self, mat):
-        self.matrix=mat
-
     def setSize(self, size):
         self.matrix = sparse.csc_matrix((size, size))
         self.matrix.setdiag(ones(size))
 
 class DenseMatrix(Matrix):
-    def __init__(self, mat):
-        self.matrix = mat
 
     def setSize(self, size):
         self.matrix = sparse.csc_matrix((size, size))
@@ -86,9 +84,6 @@ class DenseMatrix(Matrix):
     
 
 class DOKMatrix(Matrix):
-    
-    def __init__(self, mat):
-        self.matrix=mat
 
     def setSize(self, size):
         self.matrix = sparse.dok_matrix((size, size))

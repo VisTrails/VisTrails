@@ -50,7 +50,8 @@ class GetRow(MatrixOperation):
         m = self.getInputFromPort("InputMatrix")
         c = self.getInputFromPort("RowIndex")
         row = m.GetRow(c)
-        mat = SparseMatrix(row)
+        mat = SparseMatrix()
+        mat.matrix = row
         self.setResult("OutputMatrix", mat)
 
 class GetCol(MatrixOperation):
@@ -58,7 +59,8 @@ class GetCol(MatrixOperation):
         m = self.getInputFromPort("InputMatrix")
         c = self.getInputFromPort("ColIndex")
         col = m.GetCol(c)
-        mat = SparseMatrix(col)
+        mat = SparseMatrix()
+        mat.matrix = col
         self.setResult("OutputMatrix", mat)
 
 class MatrixMultiply(MatrixOperation):
@@ -66,7 +68,8 @@ class MatrixMultiply(MatrixOperation):
         a = self.getInputFromPort("InputMatrix1")
         b = self.getInputFromPort("InputMatrix2")
         c = a.matrix * b.matrix
-        out = SparseMatrix(c)
+        out = SparseMatrix()
+        out.matrix = c
         return out
 
 class ScalarMultiply(MatrixOperation):
@@ -99,3 +102,26 @@ class Transpose(MatrixOperation):
         m.matrix = m.matrix.transpose()
         self.setResult("OutputMatrix", m)
  
+class PrintMatrix(Matrix):
+    def compute(self):
+        m = self.getInputFromPort("InputMatrix")
+        s = m.matrix.__str__()
+        self.setResult("Output", s)
+
+class GetColumnRange(Matrix):
+    def compute(self):
+        m = self.getInputFromPort("InputMatrix")
+        start = self.getInputFromPort("StartIndex")
+        end = self.getInputFromPort("EndIndex")
+        size = end - start
+        self.matrix = sparse.csc_matrix((m.matrix.shape[0], size))
+        i = 0
+        j = 0
+        while j < m.matrix.shape[0]:
+            while i < size:
+                self.matrix[j,i] = m.matrix[j,i]
+                i = i + 1
+            j = j + 1
+        m.matrix = self.matrix
+        self.setResult("Output", m)
+        

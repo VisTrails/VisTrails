@@ -46,6 +46,10 @@ def initialize(*args, **keywords):
     reg.addInputPort(SparseMatrix, "size", (basic.Integer, 'Matrix Size'))
     reg.addOutputPort(SparseMatrix, "output", (SparseMatrix, 'Output Matrix'))
 
+    reg.addModule(PrintMatrix)
+    reg.addInputPort(PrintMatrix, "InputMatrix", (Matrix, 'Matrix'))
+    reg.addOutputPort(PrintMatrix, "Output", (basic.String, 'Output String'))
+
     reg.addModule(MatrixConvert)
     reg.addInputPort(MatrixConvert, "InputMatrix", (Matrix, 'Matrix'))
     reg.addInputPort(MatrixConvert, "OutputType", (basic.String, 'Output Type'))
@@ -83,6 +87,12 @@ def initialize(*args, **keywords):
     reg.addInputPort(GetCol, "ColIndex", (basic.Integer, 'Col Index'))
     reg.addOutputPort(GetCol, "OutputMatrix", (SparseMatrix, 'Result'))
 
+    reg.addModule(GetColumnRange)
+    reg.addInputPort(GetColumnRange, "InputMatrix", (SparseMatrix, 'Input Matrix'))
+    reg.addInputPort(GetColumnRange, "StartIndex", (basic.Integer, 'Start Index'))
+    reg.addInputPort(GetColumnRange, "EndIndex", (basic.Integer, 'End Index'))
+    reg.addOutputPort(GetColumnRange, "Output", (SparseMatrix, 'Result'))
+    
     reg.addModule(ScalarMultiply)
     reg.addInputPort(ScalarMultiply, "InputMatrix", (Matrix, 'Input Matrix'))
     reg.addInputPort(ScalarMultiply, "Scalar", (basic.Float, 'Scalar'))
@@ -100,7 +110,7 @@ def initialize(*args, **keywords):
     reg.addModule(ElementMultiply)
     reg.addInputPort(ElementMultiply, "InputMatrix1", (Matrix, 'Input Matrix 1'))
     reg.addInputPort(ElementMultiply, "InputMatrix2", (Matrix, 'Input Matrix 2'))
-    reg.addOutputPort(ElementMultiply, "OutputMatrix", (Matrix, 'Output Matrix'))
+    reg.addOutputPort(ElementMultiply, "OutputMatrix", (SparseMatrix, 'Output Matrix'))
 
     reg.addModule(FFT)
     reg.addInputPort(FFT, "Signals", (Matrix, 'Input Signal Matrix'))

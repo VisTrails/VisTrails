@@ -39,5 +39,6 @@ class MatlabReader(SciPy):
         vals = m.values()
         mat = vals[2]
         cscmat = sparse.csr_matrix(mat)
-        self.matrix = SparseMatrix(cscmat)
+        self.matrix = SparseMatrix()
+        self.matrix.matrix = cscmat
         self.setResult("sparseoutput", self.matrix)

@@ -38,5 +38,6 @@ class FFT(DSP):
         pts = self.getInputFromPort("FFT Samples")
         phasors = fft.fft(mat.matrix.data, pts)
         outmat = sparse.csc_matrix(phasors)
-        out = SparseMatrix(outmat)
+        out = SparseMatrix()
+        out.matrix = outmat
         self.setResult("FFT Output", out)
