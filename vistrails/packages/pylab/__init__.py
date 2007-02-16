@@ -31,9 +31,14 @@ from core.modules.basic_modules import File, String, Boolean
 from core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
 from plot import MplPlot, MplPlotConfigurationWidget
 from core.modules.module_configure import PythonSourceConfigurationWidget
-import pylab
 import time
 import urllib
+try:
+    import matplotlib
+    matplotlib.use('Qt4Agg')
+    import pylab
+except:
+    pass
         
 ################################################################################
 
@@ -119,12 +124,9 @@ def package_dependencies():
     else:
         return []
     
-def package_requirements():
+def package_requirements():    
     import core.requirements
     if not core.requirements.python_module_exists('matplotlib'):
         raise core.requirements.MissingRequirement('matplotlib')
     if not core.requirements.python_module_exists('pylab'):
         raise core.requirements.MissingRequirement('pylab')
-    import matplotlib
-    matplotlib.use('Qt4Agg')
-    import pylab
