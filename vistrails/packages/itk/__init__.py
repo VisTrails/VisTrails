@@ -28,8 +28,8 @@ try:
 except ImportError:
     raise PackageError("This package requires ITK and WrapITK")
 
-import modules
-import modules.module_registry
+import core.modules
+import core.modules.module_registry
 
 from ITK import ITK, PixelType
 from PixelTypes import *
@@ -38,8 +38,8 @@ from ImageReader import *
 from Filters import *
 
 def initialize(*args, **keywords):
-    reg = modules.module_registry
-    basic = modules.basic_modules
+    reg = core.modules.module_registry
+    basic = core.modules.basic_modules
 
     reg.addModule(ITK)
     reg.addModule(PixelType)

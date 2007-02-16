@@ -20,7 +20,7 @@
 ##
 ############################################################################
 import itk
-import modules
+import core.modules
 from ITK import *
 
 class PixelTypeFloat(PixelType):
