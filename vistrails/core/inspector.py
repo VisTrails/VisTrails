@@ -130,9 +130,30 @@ class PipelineInspector(object):
         """ inspectParameter(pipeline: Pipeline) -> None        
         Report the aliases and methods used in the pipeline for
         parameter exploration. This will also provide a map between
-        aliases and parameter index
+        aliases and parameter index.
+        
+        A parameter index is a triplet of 3 numbers (moduleId,
+        functionId, paramId). For now, functionId and paramId is just
+        an index into the function and parameter list. This will be
+        fixed later with the DB scheme.
+
+        Remarks: Only aliases and parameters with cardinal types
+        (e.g. int, float, str) will be reported.
         
         """
+        self.aliases = {}
+
+        for moduleId in pipeline.modules.iterkeys():
+            module = pipeline.modules[moduleId]
+            for functionId in range(len(module.functions)):
+                function = module.functions[functionId]
+                for paramId in range(len(function.params)):
+                    param = function.params[paramId]
+                    if param.alias and param.alias!='':
+                        self.aliases[param.alias] = (moduleId,
+                                                     functionId,
+                                                     paramId)        
+
         pass
 
 if __name__ == '__main__':
