@@ -179,8 +179,8 @@ class QVerticalWidget(QPromptWidget):
                 del child
             else:
                 break
-        self.setEnabled(True)
-            
+        self.showPrompt(True)
+        self.setEnabled(True)            
 
 class QMethodInputForm(QtGui.QGroupBox):
     """
