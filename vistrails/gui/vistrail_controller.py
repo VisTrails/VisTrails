@@ -307,7 +307,7 @@ class VistrailController(QtCore.QObject):
 
         pInspector = PipelineInspector()
         if self.currentPipeline:
-            pInspector.inspect(self.currentPipeline)
+            pInspector.inspectInputOutputPorts(self.currentPipeline)
             
         try:
             if self.vistrail.hasTag(self.currentVersion):

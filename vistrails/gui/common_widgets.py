@@ -230,3 +230,54 @@ class QSearchTreeWindow(QtGui.QWidget):
         """
         return QSearchTreeWidget(self)
 
+class QPromptWidget(QtGui.QLabel):
+    """
+    QPromptWidget is a widget that will display a prompt text when it
+    doesn't have any child visible, or else, it will disappear. This
+    is good for drag and drop prompt. The inheritance should call
+    setPromptText and showPrompt in appropriate time to show/hide the
+    prompt text
+    """
+    def __init__(self, parent=None):
+        """ QPromptWidget(parent: QWidget) -> QPromptWidget
+        Set up the font and alignment for the prompt
+        
+        """
+        QtGui.QLabel.__init__(self, parent)        
+        self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.setWordWrap(True)
+        self.regularFont = QtGui.QFont(self.font())
+        self.promptFont = QtGui.QFont(self.font())
+        self.promptFont.setItalic(True)
+        self.promptText = ''
+
+    def setPromptText(self, text):
+        """ setPromptText(text: str) -> None
+        Set the prompt text string
+        
+        """
+        self.promptText = text
+        self.showPromptByChildren()
+
+    def showPrompt(self, show=True):
+        """ showPrompt(show: boolean) -> None
+        Show/Hide the prompt
+        
+        """
+        if show:
+            self.setFont(self.promptFont)
+            self.setText(self.promptText)
+        else:
+            self.setFont(self.regularFont)
+            self.setText(QtCore.QString())
+
+    def showPromptByChildren(self):
+        """ showPromptByChildren()
+        Show/Hide the prompt based on the current state of children
+        
+        """
+        if self.promptText=='':
+            self.showPrompt(False)
+        else:
+            self.showPrompt(self.layout()==None or
+                            self.layout().count()==0)

@@ -34,21 +34,14 @@ from core.utils import InstanceObject
 from gui import qt
 from gui.builder_window import QBuilderWindow
 from gui.theme import CurrentTheme
-import copy
 import core.interpreter.cached
-import core.system
 import gui.bookmark_window
 import gui.theme
 import os.path
-import shutil
 import sys
-import tempfile
-import time
-import core.packagemanager
+import core.startup
 
 ################################################################################
-
-logger = None
 
 class VistrailsApplicationSingleton(QtGui.QApplication):
     """
@@ -74,56 +67,24 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         Create the application with a dict of settings
         
         """
-        global logger
         gui.theme.initializeCurrentTheme()
         self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         
-        self.configuration = InstanceObject(
-            packageDirectory=None,
-            userPackageDirectory=None,
-            pythonPrompt=False,
-            debugSignals=False,
-            showSplash=True,
-            verbosenessLevel=-1,
-            useCache=True,
-            minMemory=-1,
-            maxMemory=-1,
-            pluginList=[],
-            multiHeads=False,
-            maximizeWindows=False,
-            showMovies=True,
-            interactiveMode=True,
-            nologger=False,
-            rootDirectory=None,
-            dataDirectory=None,
-            fileRepository=InstanceObject(dbHost='',
-                                          dbPort=0,
-                                          dbUser='',
-                                          dbPasswd='',
-                                          dbName='',
-                                          sshHost='',
-                                          sshPort=0,
-                                          sshUser='',
-                                          sshDir='',
-                                          localDir=''),
-            logger=InstanceObject(dbHost='',
-                                  dbPort=0,
-                                  dbUser='',
-                                  dbPasswd='',
-                                  dbName=''))
-        self.startupHooks = []
-        self._package_manager = core.packagemanager.PackageManager(self)
+        self.configuration = core.startup.vistrailsDefaultConfiguration()
         self.setupOptions()
         self.readOptions()
-        self.runInitialization()
         if optionsDict:
             for (k, v) in optionsDict.iteritems():
                 setattr(self.configuration, k, v)
-        if not self.configuration.nologger:
-            from core.logger import Logger
-            logger = Logger()
-        else:
-            logger = None
+        self.vistrailsStartup = core.startup.VistrailsStartup()
+        if self.configuration.interactiveMode:
+            self.setIcon()
+            self.createWindows()
+            self.processEvents()
+            
+        self.vistrailsStartup.init(self.configuration)
+        self.runInitialization()
+        
         if self.configuration.interactiveMode:
             self.interactiveMode()
         else:
@@ -134,17 +95,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         Finalize all packages to, such as, get rid of temp files
         
         """
-        self._package_manager.finalize_packages()
-#         if not hasattr(self, "__destroyed"):
-#             for (packageName, packageModule, _, _) in self.packageList:
-#                 print "Finalizing",packageName
-#                 try:
-#                     x = packageModule.finalize
-#                 except AttributeError:
-#                     pass
-#                 else:
-#                     x()
-#             self.__destroyed = True
+        self.vistrailsStartup.destroy()
 
     def __del__(self):
         """ __del__() -> None
@@ -158,12 +109,6 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         Instantiate the GUI for interactive mode
         
         """
-        self.setIcon()
-        self.createWindows()
-        self.setupBaseModules()
-        self.processEvents()
-        self.installPackages()
-        self.runStartupHooks()
         self.builderWindow.modulePalette.treeWidget.updateFromModuleRegistry()
         registry.connect(registry, registry.newModuleSignal, 
                          self.builderWindow.modulePalette.newModule)
@@ -180,9 +125,6 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         Run the console in non-interactive mode
         
         """
-        self.setupBaseModules()
-        self.installPackages()
-        self.runStartupHooks()
         if self.input:
             if not self.nonInteractiveOpts.workflow:
                 debug.DebugPrint.critical('need workflow tag or id to \
@@ -195,16 +137,6 @@ run in batch mode.')
                                   self.nonInteractiveOpts.workflow)
         else:
             debug.DebugPrint.critical("no input vistrails provided")
-
-    def setupBaseModules(self):
-        """ setupBaseModules() -> None        
-        Import basic modules for self-registration. The import here is
-        on purpose, not a typo against the coding rule
-        
-        """
-        import core.modules.vistrails_module
-        import core.modules.basic_modules
-        import core.modules.sub_module
 
     def setIcon(self):
         """ setIcon() -> None
@@ -309,9 +241,9 @@ run in batch mode.')
         if get('nosplash'):
             self.configuration.showSplash = False
         self.configuration.debugSignals = get('debugsignals')
-        self.dotVistrails = get('dotVistrails')
-        if not self.dotVistrails:
-            self.dotVistrails = system.defaultDotVistrails()
+        self.configuration.dotVistrails = get('dotVistrails')
+        if not self.configuration.dotVistrails:
+            self.configuration.dotVistrails = system.defaultDotVistrails()
         self.configuration.multiHeads = get('multiheads')
         self.configuration.maximizeWindows = get('maximized')
         self.configuration.showMovies = get('movies')
@@ -331,173 +263,27 @@ run in batch mode.')
         Run init script on the user folder
         
         """
-        def addStartupHook(hook):
-            """ addStartupHook(hook: function) -> None
-            Add a hook for start-up after initialization
-            
-            """
-            self.startupHooks.append(hook)
-
-        def addPackage(packageName, *args, **keywords):
-            """ addPackage(packageName: str, *args) -> None
-            """
-            self._package_manager.add_package(packageName, args, keywords)
-#             self.packageList.append([packageName, None, keywords, -1])
-
-        def install_default_startup():
-            debug.critical('Will try to create default startup script')
-            try:
-                shutil.copyfile((core.system.visTrailsRootDirectory() +
-                                 'core/resources/default_vistrails_startup'),
-                                self.dotVistrails + '/startup.py')
-                debug.critical('Succeeded!')
-            except:
-                debug.critical("""Failed to copy default file to .vistrails.
-This could be an indication of a permissions problem.
-Make sure directory '%s' is writable""" % self.dotVistrails)
-                sys.exit(1)
-
-        def create_default_directory():
-            debug.critical('Will try to create default directory')
-            try:
-                os.mkdir(self.dotVistrails)
-                debug.critical('Succeeded!')
-            except:
-                debug.critical("""Failed to create initialization directory.
-This could be an indication of a permissions problem. Make sure parent
-directory of '%'s is writable.""" % self.dotVistrails)
-                sys.exit(1)
-
-        def execDotVistrails(tried_once=False):
-            """ execDotVistrails() -> None
-            Actually execute the Vistrail initialization
-            
-            """
-            # if it is file, then must move old-style .vistrails to
-            # directory.
-            if os.path.isfile(self.dotVistrails):
-                debug.warning("Old-style initialization hooks. Will try to set things correctly.")
-                (fd, name) = tempfile.mkstemp()
-                os.close(fd)
-                shutil.copyfile(self.dotVistrails, name)
-                try:
-                    os.unlink(self.dotVistrails)
-                except:
-                    debug.critical("""Failed to remove old initialization file.
-This could be an indication of a permissions problem.
-Make sure file '%s' is writable.""" % self.dotVistrails)
-                    sys.exit(1)
-                create_default_directory()
-                try:
-                    shutil.copyfile(name, self.dotVistrails + '/startup.py')
-                except:
-                    debug.critical("""Failed to copy old initialization file to
-newly-created initialization directory. This must have been a race condition.
-Please remove '%s' and restart VisTrails.""" % self.dotVistrails)
-                    sys.exit(1)
-                debug.critical("Successful move!")
-                try:
-                    os.unlink(name)
-                except:
-                    debug.warning("Failed to erase temporary file.")
-
-            if os.path.isdir(self.dotVistrails):
-                try:
-                    dotVistrails = file(self.dotVistrails + '/startup.py')
-                    code = compile("".join(dotVistrails.readlines()),
-                                   system.temporaryDirectory() +
-                                   "dotVistrailsErrors.txt",
-                                   'exec')
-                    g = {}
-                    localsDir = {'configuration': self.configuration,
-                                 'addStartupHook': addStartupHook,
-                                 'addPackage': addPackage}
-                    eval(code, g, localsDir)
-                except IOError:
-                    if tried_once:
-                        debug.critical("""Still cannot find default file.
-Something has gone wrong. Please make sure ~/.vistrails exists, is writable,
-and ~/.vistrails/startup.py does not exist.""")
-                        sys.exit(1)
-                    debug.critical('%s not found' %
-                                   (self.dotVistrails +
-                                    '/startup.py'))
-                    debug.critical('Will try to install default' +
-                                              'startup file')
-                    install_default_startup()
-                    execDotVistrails(True)
-            elif not os.path.lexists(self.dotVistrails):
-                debug.critical('%s not found' % self.dotVistrails)
-                create_default_directory()
-                install_default_startup()
-                execDotVistrails(True)
-
         def initBookmarks():
             """loadBookmarkCollection() -> None
             Init BookmarksManager and creates .vistrails folder if it 
             does not exist 
 
             """
-            if (not os.path.isdir(self.dotVistrails) and 
-                not os.path.isfile(self.dotVistrails)):
+            if (not os.path.isdir(self.configuration.dotVistrails) and 
+                not os.path.isfile(self.configuration.dotVistrails)):
                 #create .vistrails dir
-                os.mkdir(self.dotVistrails)
+                os.mkdir(self.configuration.dotVistrails)
             gui.bookmark_window.initBookmarks(system.defaultBookmarksFile())    
             
-        execDotVistrails()
         initBookmarks()
         if self.configuration.pythonPrompt:
             debug.startVisTrailsREPL(locals())
         self.showSplash = self.configuration.showSplash
-        if self.configuration.rootDirectory:
-            system.setVistrailsDirectory(self.configuration.rootDirectory)
-        if self.configuration.dataDirectory:
-            system.setVistrailsDataDirectory(self.configuration.dataDirectory)
-        if self.configuration.verbosenessLevel != -1:
-            dbg = debug.DebugPrint
-            verbose = self.configuration.verbosenessLevel
-            if verbose < 0:
-                msg = ("""Don't know how to set verboseness level to %s - "
-                       "setting tothe lowest one I know of: 0""" % verbose)
-                dbg.critical(msg)
-                verbose = 0
-            if verbose > 2:
-                msg = ("""Don't know how to set verboseness level to %s - "
-                       "setting to the highest one I know of: 2""" % verbose)
-                dbg.critical(msg)
-                verbose = 2
-            levels = [dbg.Critical, dbg.Warning, dbg.Log]
-            dbg.setMessageLevel(levels[verbose])
-            dbg.log("Set verboseness level to %s" % verbose)
-        if not self.configuration.userPackageDirectory:
-            s = core.system.defaultDotVistrails() + '/userpackages'
-            self.configuration.userPackageDirectory = s
-
-    def installPackages(self):
-        """ installPackages() -> None
-        Scheme through packages directory and initialize them all
-        """
-        # Imports standard packages directory
-        self._package_manager.initialize_packages()
-
-    def runStartupHooks(self):
-        """ runStartupHooks() -> None
-        After initialization, need to run all start up hooks registered
-        
-        """
-        for hook in self.startupHooks:
-            try:
-                hook()
-            except Exception, e:
-                dbg = debug.DebugPrint
-                dbg.critical("Exception raised during hook: %s - %s" %
-                             (e.__class__, e))
 
     def finishSession(self):
-        global logger
-        gui.bookmark_window.finalizeBookmarks()
-        if logger:
-            logger.finishSession()
+        gui.bookmark_window.finalizeBookmarks()        
+        if core.startup.logger:
+            core.startup.logger.finishSession()
         core.interpreter.cached.CachedInterpreter.cleanup()
 
 # The initialization must be explicitly signalled. Otherwise, any

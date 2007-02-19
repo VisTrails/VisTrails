@@ -158,7 +158,7 @@ class SubModule(NotCacheable, Module):
         Added additional input port to sub module
         
         """
-        self.inspector.inspect(pipeline)
+        self.inspector.inspectSpreadsheetCells(pipeline)
         for iport, conn in self.inputPorts.iteritems():
             inputPortId = self.inspector.inputPortByName[iport]
             inputPortModule = objects[inputPortId]
@@ -169,7 +169,7 @@ class SubModule(NotCacheable, Module):
         Added additional output port to sub module
         
         """
-        self.inspector.inspect(pipeline)
+        self.inspector.inspectSpreadsheetCells(pipeline)
         for oport in self.outputPorts.keys():
             if self.inspector.outputPortByName.has_key(oport):
                 outputPortId = self.inspector.outputPortByName[oport]

@@ -65,20 +65,23 @@ class MplFigure(NotCacheable, Module):
     in Matplotlib. It receive multiple MplPlot inputs
     
     """
+    def update(self):
+        """ update() -> None        
+        Interfere into the update process to set the appropriate
+        figure command before going upstream to the MplPlot
+        
+        """
+        pylab.figure()
+        Module.update(self)
 
     def compute(self):
         """ compute() -> None        
-        Read all plot inputs and draw the figure. Then either passing
-        the figure manager to a SpreadsheetCell or save the image to file
+        Either passing the figure manager to a SpreadsheetCell or save
+        the image to file
 
         """
-        pylab.figure()
-        scripts = self.forceGetInputListFromPort('Script')
-        for script in scripts:
-            if script:
-                exec ('from pylab import *\n' + urllib.unquote(script))
         noOutput = True
-        if self.outputPorts.has_key('FigureManager'):            
+        if self.outputPorts.has_key('FigureManager'):
             mfm = MplFigureManager()
             mfm.figManager = pylab.get_current_fig_manager()
             self.setResult('FigureManager', mfm)

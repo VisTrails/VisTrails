@@ -149,13 +149,13 @@ class PackageManager(object):
                     (self._package_1,
                      self._package_2))
 
-    def __init__(self, qapplication):
+    def __init__(self, configuration):
         global _package_manager
         if _package_manager:
             m = "Package manager can only be constructed once."
             raise VistrailsInternalError(m)
         _package_manager = self
-        self._application = qapplication
+        self._configuration = configuration
         self._package_list = {}
         self._dependency_graph = core.data_structures.Graph()
 
@@ -203,7 +203,7 @@ package-like objects (in theory they have to be modules that respect
 the correct interface, but nothing actually prevents anyone from
 creating a class that behaves similarly)."""
         # Imports standard packages directory
-        conf = self._application.configuration
+        conf = self._configuration
         old_sys_path = sys.path
         if conf.packageDirectory:
             sys.path.append(conf.packageDirectory)

@@ -47,44 +47,16 @@ class PipelineInspector(object):
         self.outputPortByName = {}
 
         # A list of ids of module of type cell
-        self.spreadsheetCells = []        
+        self.spreadsheetCells = []
 
     def inspect(self, pipeline):
         """ inspect(pipeline: Pipeline) -> None
         Inspect a pipeline and update information
         
         """
-        self.inputPorts = {}
-        self.inputPortByName = {}
-        self.outputPorts = {}
-        self.outputPortByName = {}
-        self.spreadsheetCells = []
-
-        # Sometimes we run without the spreadsheet!
-        if registry.hasModule('SpreadsheetCell'):
-            # First pass to check cells types
-            cellType = registry.getDescriptorByName('SpreadsheetCell').module
-            for mId, module in pipeline.modules.iteritems():
-                desc = registry.getDescriptorByName(module.name)
-                if issubclass(desc.module, cellType):
-                    self.spreadsheetCells.append(mId)
-
-        # Then inspect input and output ports
-        for cId, conn in pipeline.connections.iteritems():
-            srcModule = pipeline.modules[conn.source.moduleId]
-            dstModule = pipeline.modules[conn.destination.moduleId]
-            if srcModule.name=='InputPort':
-                spec = registry.getInputPortSpec(dstModule,
-                                                 conn.destination.name)
-                self.inputPorts[srcModule.id] = (conn.destination.name,
-                                                 spec[0])
-                self.inputPortByName[conn.destination.name] = srcModule.id
-            if dstModule.name=='OutputPort':
-                spec = registry.getOutputPortSpec(srcModule,
-                                                 conn.source.name)
-                self.outputPorts[dstModule.id] = (conn.source.name,
-                                                  spec[0])
-                self.outputPortByName[conn.source.name] = dstModule.id
+        self.inspectInputOutputPorts(pipeline)
+        self.inspectSpreadsheetCells(pipeline)
+        self.inspectParameters(pipeline)
 
     def hasInputPorts(self):
         """ hasInputPorts() -> bool
@@ -113,3 +85,64 @@ class PipelineInspector(object):
         
         """
         return self.hasInputPorts() or self.hasOutputPorts()    
+
+    def inspectInputOutputPorts(self, pipeline):
+        """ inspectInputOutputPorts(pipeline: Pipeline) -> None
+        Inspect the pipeline input/output ports, useful for submodule
+        
+        """
+        self.inputPorts = {}
+        self.inputPortByName = {}
+        self.outputPorts = {}
+        self.outputPortByName = {}        
+        for cId, conn in pipeline.connections.iteritems():
+            srcModule = pipeline.modules[conn.source.moduleId]
+            dstModule = pipeline.modules[conn.destination.moduleId]
+            if srcModule.name=='InputPort':
+                spec = registry.getInputPortSpec(dstModule,
+                                                 conn.destination.name)
+                self.inputPorts[srcModule.id] = (conn.destination.name,
+                                                 spec[0])
+                self.inputPortByName[conn.destination.name] = srcModule.id
+            if dstModule.name=='OutputPort':
+                spec = registry.getOutputPortSpec(srcModule,
+                                                 conn.source.name)
+                self.outputPorts[dstModule.id] = (conn.source.name,
+                                                  spec[0])
+                self.outputPortByName[conn.source.name] = dstModule.id
+
+    def inspectSpreadsheetCells(self, pipeline):
+        """ inspectSpreadsheetCells(pipeline: Pipeline) -> None
+        Inspect the pipeline to see how many cells is needed
+        
+        """        
+        self.spreadsheetCells = []
+        # Sometimes we run without the spreadsheet!
+        if registry.hasModule('SpreadsheetCell'):
+            # First pass to check cells types
+            cellType = registry.getDescriptorByName('SpreadsheetCell').module
+            for mId, module in pipeline.modules.iteritems():
+                desc = registry.getDescriptorByName(module.name)
+                if issubclass(desc.module, cellType):
+                    self.spreadsheetCells.append(mId)
+
+    def inspectParameters(self, pipeline):
+        """ inspectParameter(pipeline: Pipeline) -> None        
+        Report the aliases and methods used in the pipeline for
+        parameter exploration. This will also provide a map between
+        aliases and parameter index
+        
+        """
+        pass
+
+if __name__ == '__main__':
+    from core.startup import VistrailsStartup
+    from core.xml_parser import XMLParser
+    xmlFile = 'C:/cygwin/home/stew/src/vistrails/trunk/examples/vtk.xml'
+    vs = VistrailsStartup()
+    vs.init()
+    parser = XMLParser()
+    parser.openVistrail(xmlFile)
+    vistrail = parser.getVistrail()
+    pipeline = vistrail.getPipeline(vistrail.latestTime-1)
+    print vistrail.latestTime

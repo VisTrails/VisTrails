@@ -31,6 +31,7 @@ QHoverAliasLabel
 from PyQt4 import QtCore, QtGui
 from core.utils import expression
 from core.vistrail.module_function import ModuleFunction
+from gui.common_widgets import QPromptWidget
 from gui.method_palette import QMethodTreeWidget
 from gui.theme import CurrentTheme
 
@@ -129,8 +130,8 @@ class QMethodDropBox(QtGui.QScrollArea):
         
         """
         self.updateLocked = False
-        
-class QVerticalWidget(QtGui.QWidget):
+
+class QVerticalWidget(QPromptWidget):
     """
     QVerticalWidget is a widget holding other function widgets
     vertically
@@ -141,7 +142,8 @@ class QVerticalWidget(QtGui.QWidget):
         Initialize with a vertical layout
         
         """
-        QtGui.QWidget.__init__(self, parent)
+        QPromptWidget.__init__(self, parent)
+        self.setPromptText("Drag methods here to add properties")
         self.setLayout(QtGui.QVBoxLayout())
         self.layout().setMargin(0)
         self.layout().setSpacing(5)
@@ -149,6 +151,7 @@ class QVerticalWidget(QtGui.QWidget):
         self.setSizePolicy(QtGui.QSizePolicy.Expanding,
                            QtGui.QSizePolicy.Expanding)
         self.formType = QMethodInputForm
+        self.setMinimumHeight(50)
         
     def addFunction(self, moduleId, fId, function):
         """ addFunction(moduleId: int, fId: int,
@@ -161,6 +164,7 @@ class QVerticalWidget(QtGui.QWidget):
         inputForm.fId = fId
         inputForm.updateFunction(function)
         self.layout().addWidget(inputForm)
+        self.showPrompt(False)
 
     def clear(self):
         """ clear() -> None
@@ -260,13 +264,14 @@ class QMethodInputForm(QtGui.QGroupBox):
             methodBox = self.parent().parent().parent()
             self.parent().layout().removeWidget(self)
             self.deleteLater()
+            self.parent().showPromptByChildren()
             for i in range(self.parent().layout().count()):
                 self.parent().layout().itemAt(i).widget().fId = i
             methodBox.lockUpdate()
             if methodBox.controller:
                 methodBox.controller.previousModuleIds = [methodBox.module.id]
                 methodBox.controller.deleteMethod(self.fId,
-                                                  methodBox.module.id)
+                                                  methodBox.module.id)            
             methodBox.unlockUpdate()
         else:
             QtGui.QGroupBox.keyPressEvent(self, e)

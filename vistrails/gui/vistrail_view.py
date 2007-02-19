@@ -175,6 +175,10 @@ class QVistrailView(QDockContainer):
         self.controller.setVistrail(vistrail, name)
         self.versionTab.setController(self.controller)
         self.pipelineTab.setController(self.controller)
+        
+        # Make sure to select the latest time step
+        self.controller.changeSelectedVersion(vistrail.latestTime-1)
+        self.versionTab.vistrailChanged()
 
     def stateChanged(self):
         """ stateChanged() -> None

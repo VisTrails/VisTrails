@@ -22,6 +22,7 @@
 ################################################################################
 # Spreadsheet Package for VisTrails
 ################################################################################
+from PyQt4 import QtCore, QtGui
 from core.modules import basic_modules, module_registry
 from core.modules.vistrails_module import Module
 from core.system import visTrailsRootDirectory
@@ -29,6 +30,7 @@ from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_window import SpreadsheetWindow
 import os
 import string
+import sys
 
 ################################################################################
 
@@ -83,6 +85,10 @@ def initialize(*args, **keywords):
     Package-entry to initialize the package
     
     """
+    # Create application if there is no one available
+    if QtCore.QCoreApplication.instance()==None:        
+        global app
+        app = QtGui.QApplication(sys.argv)
     module_registry.registry.setCurrentPackageName('Spreadsheet')
     print 'Loading Spreadsheet widgets...'
     global basicWidgets

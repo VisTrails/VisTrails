@@ -50,7 +50,12 @@ class MplPlot(NotCacheable, Module):
         
         """
         if self.hasInputFromPort('source'):
-            self.setResult('source', self.getInputFromPort('source'))
+            if self.outputPorts.has_key('source'):                
+                self.setResult('source', self.getInputFromPort('source'))
+                source = self.getInputFromPort('source')
+                exec('from pylab import *\n' +
+                     'from numpy import *\n' +
+                     urllib.unquote(source))
 
 class MplPlotConfigurationWidget(PythonSourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):
