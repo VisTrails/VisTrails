@@ -24,6 +24,7 @@
 runtime components such as binaries, libraries, other python modules, etc."""
 
 import imp
+import core.system
 
 ##############################################################################
 
@@ -36,6 +37,11 @@ Returns if python module of given name can be safely imported."""
     except ImportError:
         return False
     
+
+def executable_file_exists(filename):
+    """executable_file_exists(filename): Boolean.
+Returns if certain file is in current path and is executable."""
+    return core.system.executable_is_in_path(filename) != ""
 
 ##############################################################################
 
