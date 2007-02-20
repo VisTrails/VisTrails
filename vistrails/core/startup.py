@@ -73,8 +73,8 @@ def vistrailsDefaultConfiguration():
                               dbPasswd='',
                               dbName=''))
 
-# FIX ME: Need to move global logger into core.logger instead
-#         And we're not using logger in the execution modal right now
+# FIXME: Need to move global logger into core.logger instead
+#        And we're not using logger in the execution modal right now
 logger = None
 
 class VistrailsStartup(object):
@@ -129,6 +129,36 @@ class VistrailsStartup(object):
             """ addPackage(packageName: str, *args) -> None
             """
             self._package_manager.add_package(packageName, args, keywords)
+
+        def create_user_packages_dir():
+            debug.critical('Will try to create userpackages directory')
+            userpackagesname = (self.configuration.dotVistrails +
+                                '/userpackages')
+            if not os.path.isdir(userpackagesname):
+                try:
+                    os.mkdir(userpackagesname)
+                except:
+                    msg = ("""Failed to create userpackages directory: '%s'.
+                    This could be an indication of a permissions problem.
+                    Make sure directory '%s' in writable.""" %
+                           (userpackagesname,
+                            self.configuration.dotVistrails))
+                    debug.critical(msg)
+                    sys.exit(1)
+            try:
+                print "ASDL"
+                name = (self.configuration.dotVistrails +
+                        '/userpackages/__init__.py')
+                f = file(name, 'w')
+                f.write('pass\n')
+                f.close()
+            except:
+                msg = ("""Failed to create file '%s'. This could indicate a
+                rare combination of a race condition and a permissions problem.
+                Please make sure it is writable.""" % name)
+                debug.critical(msg)
+                sys.exit(1)
+                       
 
         def install_default_startup():
             debug.critical('Will try to create default startup script')
@@ -194,6 +224,9 @@ class VistrailsStartup(object):
                     debug.warning("Failed to erase temporary file.")
 
             if os.path.isdir(self.configuration.dotVistrails):
+                if not os.path.isdir(self.configuration.dotVistrails +
+                                     '/userpackages'):
+                    create_user_packages_dir()
                 try:
                     dotVistrails = file(self.configuration.dotVistrails + '/startup.py')
                     code = compile("".join(dotVistrails.readlines()),
