@@ -180,7 +180,7 @@ class QVerticalWidget(QPromptWidget):
             else:
                 break
         self.showPrompt(True)
-        self.setEnabled(True)            
+        self.setEnabled(True)
 
 class QMethodInputForm(QtGui.QGroupBox):
     """

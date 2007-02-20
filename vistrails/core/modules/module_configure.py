@@ -236,7 +236,8 @@ class PythonHighlighter(QtGui.QSyntaxHighlighter):
                                  "elif","in","len",
                                  "assert","try","except",
                                  "exec", "break", "continue"
-                                 "not", "and", "or", "as"
+                                 "not", "and", "or", "as",
+                                 "type"
                                  ]]
         
         defclassFormat = QtGui.QTextCharFormat()

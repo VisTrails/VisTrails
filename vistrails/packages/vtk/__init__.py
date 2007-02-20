@@ -322,12 +322,10 @@ def initialize():
 
     # Register the VTKCell type if the spreadsheet is up
     if registry.hasModule('SpreadsheetCell'):
-        from vtkcell import VTKCell
-        from packages.spreadsheet.basic_widgets import CellLocation
-        addModule(VTKCell)
-        addInputPort(VTKCell, "Location", CellLocation)
-        addInputPort(VTKCell, "AddRenderer",
-                     registry.getDescriptorByName('vtkRenderer').module)
+        import vtkhandler
+        import vtkcell
+        vtkhandler.registerSelf()
+        vtkcell.registerSelf()
 
 def package_dependencies():
     import core.packagemanager

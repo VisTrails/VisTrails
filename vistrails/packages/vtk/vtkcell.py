@@ -27,7 +27,8 @@
 import vtk
 from PyQt4 import QtCore, QtGui
 from core import system
-from packages.spreadsheet.basic_widgets import SpreadsheetCell
+from core.modules.module_registry import registry
+from packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
 from packages.spreadsheet.spreadsheet_helpers import CellToolBar
 import vtkcell_rc
 import datetime
@@ -45,7 +46,8 @@ class VTKCell(SpreadsheetCell):
         Dispatch the vtkRenderer to the actual rendering widget
         """
         renderers = self.forceGetInputListFromPort('AddRenderer')
-        self.display(QVTKWidget, (renderers,))
+        iHandler = self.forceGetInputFromPort('InteractionHandler')
+        self.display(QVTKWidget, (renderers, iHandler))
 
 AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None,
@@ -123,6 +125,7 @@ class QVTKWidget(QtGui.QWidget):
                      self.playNextFrame)
         self.currentFrame = 0
         self.playing = False
+        self.iHandler = None
         
     def deleteLater(self):
         """ deleteLater() -> None        
@@ -161,12 +164,15 @@ class QVTKWidget(QtGui.QWidget):
         for renderer in oldRenderers:
             renWin.RemoveRenderer(renderer)
         
-        (renderers,) = inputPorts
+        (renderers, self.iHandler) = inputPorts
         for renderer in renderers:
             renWin.AddRenderer(renderer.vtkInstance)
             if hasattr(renderer.vtkInstance, 'IsActiveCameraCreated'):
                 if not renderer.vtkInstance.IsActiveCameraCreated():
                     renderer.vtkInstance.ResetCamera()
+        if self.iHandler:
+            iren = renWin.GetInteractor()
+            self.iHandler.observer.vtkInstance.SetInteractor(iren)
         renWin.Render()
 
         # Capture window into history for playback
@@ -472,7 +478,7 @@ class QVTKWidget(QtGui.QWidget):
         # Ignore 'q' or 'e' or Ctrl-anykey
         ctrl = (e.modifiers()&QtCore.Qt.ControlModifier)
         shift = (e.modifiers()&QtCore.Qt.ShiftModifier)
-        if not(keysym in ['w','s','r','f'] and not ctrl):
+        if (keysym in ['q', 'e'] or ctrl):
             e.ignore()
             return
         
@@ -510,7 +516,7 @@ class QVTKWidget(QtGui.QWidget):
         # Ignore 'q' or 'e' or Ctrl-anykey
         ctrl = (e.modifiers()&QtCore.Qt.ControlModifier)
         shift = (e.modifiers()&QtCore.Qt.ShiftModifier)
-        if not(keysym in ['w','s','r','f'] and not ctrl):
+        if (keysym in ['q','e'] or ctrl):
             e.ignore()
             return
         
@@ -730,7 +736,7 @@ class QVTKWidget(QtGui.QWidget):
         if name=='MouseWheelForwardEvent':
             istyle.OnMouseWheelForward()
         if name=='MouseWheelBackwardEvent':
-            istyle.OnMouseWheelBackward()        
+            istyle.OnMouseWheelBackward()
         sheet = self.findSheetTabWidget()
         if sheet:
             iren = istyle.GetInteractor()
@@ -1023,3 +1029,14 @@ class QVTKWidgetToolBar(CellToolBar):
         self.appendAction(QVTKWidgetCaptureToHistory(self))
         self.appendAction(QVTKWidgetPlayHistory(self))
         self.appendAction(QVTKWidgetClearHistory(self))
+
+def registerSelf():
+    """ registerSelf() -> None
+    Registry module with the registry
+    """
+    registry.addModule(VTKCell)
+    registry.addInputPort(VTKCell, "Location", CellLocation)
+    registry.addInputPort(VTKCell, "AddRenderer",
+                 registry.getDescriptorByName('vtkRenderer').module)
+    vIH = registry.getDescriptorByName('vtkInteractionHandler').module
+    registry.addInputPort(VTKCell, "InteractionHandler", vIH)
