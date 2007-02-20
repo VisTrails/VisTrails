@@ -129,6 +129,9 @@ def getClipboard():
     """
     return QtGui.QClipboard.Clipboard
 
+def executable_is_in_path(filename):
+    raise core.utils.VistrailsInternalError("Unimplemented on Windows")
+
 ################################################################################
 
 import unittest
@@ -150,6 +153,10 @@ class TestWindows(unittest.TestCase):
      def test3(self):
          """ Test if temporaryDirectory is not empty """
          result = temporaryDirectory()
+         assert result != ""
+
+     def test_executable_file_in_path(self):
+         result = executable_is_in_path('del')
          assert result != ""
 
 if __name__ == '__main__':

@@ -27,6 +27,9 @@ import datetime
 import time
 import os
 import shutil
+import popen2
+import core.utils
+from core.system.unix import executable_is_in_path
 
 from PyQt4 import QtGui
 
@@ -288,6 +291,11 @@ class TestMacOSX(unittest.TestCase):
          """ Test if temporaryDirectory is not empty """
          result = temporaryDirectory()
          assert result != ""
+
+     def test_executable_file_in_path(self):
+         # Should exist in any POSIX shell, which is what we have in OSX
+         result = executable_is_in_path('ls')
+         assert result == "/bin/ls" # Any UNIX should respect this.
 
 if __name__ == '__main__':
     unittest.main()

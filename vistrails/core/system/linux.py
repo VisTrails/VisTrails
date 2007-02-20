@@ -23,6 +23,7 @@ import os
 import shutil
 from ctypes import CDLL, c_void_p
 from PyQt4 import QtGui
+from core.system.unix import executable_is_in_path
 
 ################################################################################
 
@@ -171,6 +172,11 @@ class TestLinux(unittest.TestCase):
          except:
              self.fail("Should not throw")
          os.unlink(name2)
+
+     def test_executable_file_in_path(self):
+         # Should exist in any POSIX shell, which is what we have in OSX
+         result = executable_is_in_path('ls')
+         assert result == "/bin/ls" # Any UNIX should respect this.
 
 if __name__ == '__main__':
     unittest.main()
