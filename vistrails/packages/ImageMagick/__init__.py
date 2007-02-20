@@ -30,6 +30,8 @@ import core.modules
 import core.modules.module_registry
 import core.modules.basic_modules
 from core.modules.vistrails_module import Module, ModuleError, newModule, IncompleteImplementation
+import core.requirements
+import core.system
 
 import os
 
@@ -201,12 +203,14 @@ def initialize(*args, **keywords):
     print "-----------------------------"
     print "Will test ImageMagick presence..."
 
+    if not core.requirements.executable_file_exists('convert'):
+        raise core.requirements.MissingRequirement("ImageMagick suite")
+
     process = popen2.Popen4("convert -version")
 
-    result = 1
-    while result != 0 :
+    result = -1
+    while result == -1:
         result = process.poll()
-
     conv_output = process.fromchild
     version_line = conv_output.readlines()[0][:-1].split(' ')
     if result != 0:
