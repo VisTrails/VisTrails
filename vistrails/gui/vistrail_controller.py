@@ -36,6 +36,7 @@ from core.interpreter.default import default_interpreter
 from core.inspector import PipelineInspector
 from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 from core.modules.sub_module import addSubModule, DupplicateSubModule
+import core.startup
 import copy
 import os.path
 
@@ -66,7 +67,7 @@ class VistrailController(QtCore.QObject):
         self.resetPipelineView = False
         self.resetVersionView = True
         self.quiet = False
-        self.logger = None
+        self.logger = core.startup.logger
         self.search = None
         self.refine = False
         self.changed = False
