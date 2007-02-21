@@ -26,6 +26,7 @@ from PyQt4 import QtCore, QtGui
 from core.modules import basic_modules, module_registry
 from core.modules.vistrails_module import Module
 from core.system import visTrailsRootDirectory
+from spreadsheet_controller import spreadsheetController
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_window import SpreadsheetWindow
 import os
@@ -86,19 +87,21 @@ def initialize(*args, **keywords):
     
     """
     # Create application if there is no one available
-    if QtCore.QCoreApplication.instance()==None:        
-        global app
-        app = QtGui.QApplication(sys.argv)
     module_registry.registry.setCurrentPackageName('Spreadsheet')
     print 'Loading Spreadsheet widgets...'
     global basicWidgets
     if basicWidgets==None:
         basicWidgets = addWidget('packages.spreadsheet.basic_widgets')
     importWidgetModules(basicWidgets)
-    global spreadsheetWindow
-    spreadsheetWindow = SpreadsheetWindow()
-    spreadsheetWindow.configShow()
+    global app
+    app = QtCore.QCoreApplication.instance()
+    if app==None:
+        app = QtGui.QApplication(sys.argv)
+    if hasattr(app, 'builderWindow'):
+        global spreadsheetWindow        
+        spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
 
 def finalize():
+    spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
     spreadsheetWindow.destroy()
     spreadsheetWindow.deleteLater()

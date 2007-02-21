@@ -52,7 +52,10 @@ class SpreadsheetController(object):
         for w in wList:
             if type(w)==SpreadsheetWindow:
                 return w
-        return None
+        global spreadsheetWindow
+        spreadsheetWindow = SpreadsheetWindow()
+        spreadsheetWindow.configShow()
+        return spreadsheetWindow
         
     def postEventToSpreadsheet(self, event):
         """ postEventToSpreadsheet(event: QEvent) -> None
@@ -61,7 +64,7 @@ class SpreadsheetController(object):
         spreadsheetWindow = self.findSpreadsheetWindow()
         if spreadsheetWindow:
             QtCore.QCoreApplication.postEvent(spreadsheetWindow, QtGui.QShowEvent())
-            QtCore.QCoreApplication.postEvent(spreadsheetWindow, event)    
+            QtCore.QCoreApplication.postEvent(spreadsheetWindow, event)
 
 spreadsheetController = SpreadsheetController()
 registeredWidgets = {}

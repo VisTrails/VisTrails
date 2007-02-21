@@ -22,6 +22,7 @@
 """Main file for the VisTrails distribution."""
 
 if __name__ == '__main__':
+    from PyQt4 import QtGui
     import gui.application
     import sys
     try:
@@ -34,6 +35,7 @@ if __name__ == '__main__':
         import traceback
         traceback.print_exc()
         sys.exit(255)
-    v = app.exec_()
-    gui.application.stop_application()
-    sys.exit(v)
+    if QtGui.QApplication.activeWindow():
+        v = app.exec_()
+        gui.application.stop_application()
+        sys.exit(v)
