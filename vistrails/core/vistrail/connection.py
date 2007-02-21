@@ -160,11 +160,13 @@ class Connection(object):
         destinationPort = connection.getAttribute('destinationPort')
         portFromRepresentation = registry.portFromRepresentation
         c.source = portFromRepresentation(sourceModule, sourcePort, 
-                                          PortEndPoint.Source)
+                                          PortEndPoint.Source,
+                                          None, True)
 
         c.destination = portFromRepresentation(destinationModule, 
                                                destinationPort, 
-                                               PortEndPoint.Destination)
+                                               PortEndPoint.Destination,
+                                               None, True)
         c.id = cId
         c.type = VistrailModuleType.Module
         c.sourceId = int(connection.getAttribute('sourceId'))
