@@ -171,8 +171,11 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         When close, just hide instead
         
         """
-        e.ignore()
-        self.hide()
+        if hasattr(self.visApp, 'builderWindow'):
+            e.ignore()
+            self.hide()
+        else:
+            QtGui.QMainWindow.closeEvent(self, e)
 
     def sizeHint(self):
         """ sizeHint() -> QSize

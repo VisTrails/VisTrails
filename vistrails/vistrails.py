@@ -34,7 +34,6 @@ if __name__ == '__main__':
         import traceback
         traceback.print_exc()
         sys.exit(255)
-    if app.configuration.interactiveMode:
-        v = app.exec_()
-        gui.application.stop_application()
-        sys.exit(v)
+    v = app.exec_()
+    gui.application.stop_application()
+    sys.exit(v)
