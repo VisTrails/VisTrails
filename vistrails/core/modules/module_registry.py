@@ -142,7 +142,7 @@ using user-defined hasher."""
         """getDescriptorByName(name: string) -> ModuleDescriptor
 
 Returns the module descriptor of the class with a given name"""
-        if not self.moduleTree.has_key(name):
+        if not self.moduleTree.has_key(name):            
             msg = (("Cannot find module %s" % name) +
                    ": a required package might be missing")            
             core.debug.critical(msg)
@@ -437,18 +437,27 @@ ports."""
         if specStr[0] != '(' or specStr[-1] != ')':
             raise VistrailsInternalError("invalid port spec")
         specStr = specStr[1:-1]
-        descriptor = self.getDescriptorByName(port.moduleName)
+        if self.hasModule(port.moduleName):            
+            descriptor = self.getDescriptorByName(port.moduleName)
+        else:
+            descriptor = None
         if localRegistry:
             name = port.moduleName
             localDescriptor = localRegistry.getDescriptorByName(name)
         else:
             localDescriptor = None
         if port.endPoint == PortEndPoint.Source:
-            ports = copy.copy(descriptor.outputPorts)
+            if loose and descriptor==None:
+                ports = {}
+            else:
+                ports = copy.copy(descriptor.outputPorts)
             if localDescriptor:
                 ports.update(localDescriptor.outputPorts)
         elif port.endPoint == PortEndPoint.Destination:
-            ports = copy.copy(descriptor.inputPorts)
+            if loose and descriptor==None:
+                ports = {}
+            else:
+                ports = copy.copy(descriptor.inputPorts)
             if localDescriptor:
                 ports.update(localDescriptor.inputPorts)
         else:
@@ -470,7 +479,6 @@ ports."""
         for spec in specs:
             if all(zip(spec, values), fun):
                 return [copy.copy(spec)]
-        print port, specStr
         raise VistrailsInternalError("No port spec matches the given string")
 
     @staticmethod

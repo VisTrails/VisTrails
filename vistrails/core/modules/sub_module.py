@@ -144,7 +144,7 @@ class SubModule(NotCacheable, Module):
         pipeline = self.Vistrail.getPipeline(self.VersionNumber)
         interpreter = noncached_interpreter.get()
         interpreter.setDoneSummonHook(self.glueInputPorts)
-        interpreter.setDoneUpdateHook(self.glueOutputPorts)
+        interpreter.setDoneUpdateHook(self.glueOutputPorts)        
         results = interpreter.unlocked_execute(pipeline,
                                                None,
                                                None,
@@ -158,7 +158,12 @@ class SubModule(NotCacheable, Module):
         Added additional input port to sub module
         
         """
-        self.inspector.inspectSpreadsheetCells(pipeline)
+        # Make sure we the sub modules interpreter point to the
+        # sub_module interpreter for file pool
+        for obj in objects.itervalues():
+            obj.interpreter = self.interpreter
+        
+        self.inspector.inspectInputOutputPorts(pipeline)
         for iport, conn in self.inputPorts.iteritems():
             inputPortId = self.inspector.inputPortByName[iport]
             inputPortModule = objects[inputPortId]
@@ -169,7 +174,7 @@ class SubModule(NotCacheable, Module):
         Added additional output port to sub module
         
         """
-        self.inspector.inspectSpreadsheetCells(pipeline)
+        self.inspector.inspectInputOutputPorts(pipeline)
         for oport in self.outputPorts.keys():
             if self.inspector.outputPortByName.has_key(oport):
                 outputPortId = self.inspector.outputPortByName[oport]

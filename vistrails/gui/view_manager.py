@@ -146,6 +146,7 @@ class QViewManager(QtGui.QTabWidget):
         self.addVistrailView(vistrailView)
         self.setCurrentWidget(vistrailView)
         vistrailView.setInitialView()
+        vistrailView.versionTab.vistrailChanged()
 
     def openVistrail(self, fileName):
         """ openVistrail(fileName) -> QVistrailView
@@ -160,7 +161,10 @@ class QViewManager(QtGui.QTabWidget):
             vistrailView.setVistrail(vistrail, fileName)
             self.addVistrailView(vistrailView)
             self.setCurrentWidget(vistrailView)
-            vistrailView.controller.inspectAndImportModules()
+            vistrailView.controller.inspectAndImportModules()        
+            # Make sure to select the latest time step
+            vistrailView.controller.changeSelectedVersion(vistrail.latestTime-1)
+            vistrailView.versionTab.vistrailChanged()
             return vistrailView
         except XMLParser.XMLParseError, e:
             QtGui.QMessageBox.critical(None,

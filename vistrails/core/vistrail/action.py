@@ -183,13 +183,13 @@ class Action(object):
         destinationPort = connection.getAttribute('destinationPort')
         # Leaving this to performing actions to get modules registry
         c.source = registry.portFromRepresentation(sourceModule,
-                                                  sourcePort,
-                                                  PortEndPoint.Source,
-                                                  None, True)
+                                                   sourcePort,
+                                                   PortEndPoint.Source,
+                                                   None, True)
         c.destination = registry.portFromRepresentation(destinationModule,
-                                                       destinationPort,
-                                                       PortEndPoint.Destination,
-                                                       None, True)
+                                                        destinationPort,
+                                                        PortEndPoint.Destination,
+                                                        None, True)
         c.sourceInfo = (sourceModule, sourcePort)
         c.destinationInfo = (destinationModule, destinationPort)
         c.id = int(connection.getAttribute('id'))
@@ -279,19 +279,19 @@ class AddModuleAction(Action):
           - version : str
 
         """
-	notes = None
-	#backwards compatibility
-	notes = str(element.getAttribute('notes'))
+        notes = None
+        #backwards compatibility
+        notes = str(element.getAttribute('notes'))
 	
-	for n in element.childNodes:
-	    if n.localName == "notes":
-		notes = str(n.firstChild.nodeValue)
-		break
-	    
+        for n in element.childNodes:
+            if n.localName == "notes":
+                notes = str(n.firstChild.nodeValue)
+                break
+            
         newAction = AddModuleAction(int(element.getAttribute('time')),
                                     int(element.getAttribute('parent')),
-				    str(element.getAttribute('date')),
-				    str(element.getAttribute('user')),
+                                    str(element.getAttribute('date')),
+                                    str(element.getAttribute('user')),
                                     notes)
         for o in named_elements(element, 'object'):
             newAction.module = Action.getModule(o)
@@ -329,29 +329,29 @@ class AddConnectionAction(Action):
         Keyword arguments:
           - element : xml.dom.minidom.Element
           - version : str
-        
+          
         """
-	notes = None
-	#backwards compatibility
-	notes = str(element.getAttribute('notes'))
+        notes = None
+    	#backwards compatibility
+        notes = str(element.getAttribute('notes'))
+        
+        for n in element.childNodes:
+            if n.localName == "notes":
+                notes = str(n.firstChild.nodeValue)
+                break
 
-	for n in element.childNodes:
-	    if n.localName == "notes":
-		notes = str(n.firstChild.nodeValue)
-		break
-
-	newAction = AddConnectionAction(int(element.getAttribute('time')),
-					int(element.getAttribute('parent')),
-					str(element.getAttribute('date')),
-					str(element.getAttribute('user')),
-					notes)
-	for c in named_elements(element, 'connect'):
-	    if version == '0.1.0':
-		newAction.connection = Action.getConnection0_1_0(c)
-	    else:
-		newAction.connection = Action.getConnection(c)
-	    return newAction
-	raise VistrailsInternalError("No connections in addConnection action")
+        newAction = AddConnectionAction(int(element.getAttribute('time')),
+                                        int(element.getAttribute('parent')),
+                                        str(element.getAttribute('date')),
+                                        str(element.getAttribute('user')),
+                                        notes)
+        for c in named_elements(element, 'connect'):
+            if version == '0.1.0':
+                newAction.connection = Action.getConnection0_1_0(c)
+            else:
+                newAction.connection = Action.getConnection(c)
+            return newAction
+        raise VistrailsInternalError("No connections in addConnection action")
      
     def perform(self, pipeline):
         """ perform(pipeline:Pipeline) -> None 
