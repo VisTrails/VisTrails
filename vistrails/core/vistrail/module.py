@@ -191,6 +191,22 @@ class Module(object):
             set.setAttribute('value',str(v))
             annot.appendChild(set)
         child.appendChild(annot)
+        # Also dump the local registry
+        # Nothing fancy here. Only the port name and its type
+        if self.registry:            
+            desc = self.registry.getDescriptorByName(self.name)
+            for (pName, pSpec) in desc.inputPorts.iteritems():
+                d = registry.getDescriptor(pSpec[0][0][0])
+                xmlInput = dom.createElement('inputport')
+                xmlInput.setAttribute('name', str(pName))
+                xmlInput.setAttribute('type', str(d.name))
+                child.appendChild(xmlInput)
+            for (pName, pSpec) in desc.outputPorts.iteritems():
+                d = registry.getDescriptor(pSpec[0][0][0])
+                xmlOutput = dom.createElement('outputport')
+                xmlOutput.setAttribute('name', str(pName))
+                xmlOutput.setAttribute('type', str(d.name))
+                child.appendChild(xmlOutput)
         element.appendChild(child)
 
     @staticmethod
@@ -207,6 +223,7 @@ class Module(object):
         m.id = int(id)
         m.center.x = float(x)
         m.center.y = float(y)
+        moduleThing = registry.getDescriptorByName(m.name).module
         for n in element.childNodes:
             if n.localName == "function":
                 p = []
@@ -246,6 +263,16 @@ class Module(object):
                 if param.type.find('char')>-1 or param.type=='str':
                     param.type = 'string'
                 param.alias = p[7]
+            elif n.localName in ["inputport", "outputport"]:
+                if not m.registry:
+                    m.registry = core.modules.module_registry.ModuleRegistry()
+                    m.registry.addModule(moduleThing)
+                (name, spec) = (n.getAttribute('name'), n.getAttribute('type'))
+                spec = registry.getDescriptorByName(spec).module
+                if n.localName=="inputport":
+                    m.registry.addInputPort(moduleThing, name, spec)
+                else:
+                    m.registry.addOutputPort(moduleThing, name, spec)
     
         m.annotations = {}
         for a in named_elements(element, 'annotation'):

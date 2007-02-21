@@ -524,13 +524,26 @@ class VistrailController(QtCore.QObject):
                 for i in range(f.getNumParams()):
                     p = f.params[i]
                     action.addParameter(newId, fi, i, f.name, p.name,
-                                        p.strValue, p.type, p.alias)                   
+                                        p.strValue, p.type, p.alias)
                 actions.append(action)
             for (key,value) in module.annotations.items():
                 action = ChangeAnnotationAction()
                 action.addAnnotation(newId,key,value)
                 actions.append(action)
-                
+            if module.registry:
+                desc = module.registry.getDescriptorByName(module.name)
+                for (name, spec) in desc.inputPorts.iteritems():
+                    d = module_registry.registry.getDescriptor(spec[0][0][0])
+                    print d.name
+                    action = AddModulePortAction()
+                    action.addModulePort(newId, 'input', name, '('+d.name+')')
+                    actions.append(action)
+                for (name, spec) in desc.outputPorts.iteritems():
+                    d = module_registry.registry.getDescriptor(spec[0][0][0])
+                    action = AddModulePortAction()
+                    action.addModulePort(newId, 'output', name, '('+d.name+')')
+                    actions.append(action)
+
         currentAction = self.performBulkActions(actions)
         
         for c in connections:

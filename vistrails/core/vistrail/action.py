@@ -959,7 +959,6 @@ class AddModulePortAction(Action):
         
         portSpecs = self.portSpec[1:-1].split(',')
         if self.portType=='input':
-            des = m.registry.getDescriptorByThing(moduleThing)
             m.registry.addInputPort(moduleThing,
                                     self.portName,
                                     [registry.getDescriptorByName(spec).module
