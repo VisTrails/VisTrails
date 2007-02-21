@@ -1,0 +1,439 @@
+  <visTrail version="0.3.0">
+    <action date="20 Feb 2007 20:59:55" parent="0" time="1" user="emanuele" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="0" name="vtkUnstructuredGridReader" x="-156.0" y="301.0"/>
+    </action>
+    <action date="20 Feb 2007 20:59:55" parent="1" time="2" user="emanuele" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="1" name="VTKCell" x="-100.0" y="-386.0"/>
+    </action>
+    <action date="20 Feb 2007 20:59:55" parent="2" time="3" user="emanuele" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="2" name="vtkActor" x="-51.0" y="-114.0"/>
+    </action>
+    <action date="20 Feb 2007 20:59:55" parent="3" time="4" user="emanuele" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="3" name="vtkRenderer" x="-79.0" y="-260.0"/>
+    </action>
+    <action date="20 Feb 2007 20:59:55" parent="4" time="5" user="emanuele" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="4" name="vtkDataSetMapper" x="-111.0" y="30.0"/>
+    </action>
+    <action date="20 Feb 2007 20:59:55" parent="5" time="6" user="emanuele" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="SetFileName" functionId="0" moduleId="0" parameter="" parameterId="0" type="String" value="../examples/data/spx.vtk"/>
+    </action>
+    <action date="20 Feb 2007 20:59:55" parent="6" time="7" user="emanuele" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="0" value=""/>
+    </action>
+    <action date="20 Feb 2007 20:59:55" parent="7" time="8" user="emanuele" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="1" value=""/>
+    </action>
+    <action date="20 Feb 2007 20:59:55" parent="8" time="9" user="emanuele" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="2" value=""/>
+    </action>
+    <action date="20 Feb 2007 20:59:55" parent="9" time="10" user="emanuele" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="SetBackground" functionId="0" moduleId="3" parameter="" parameterId="0" type="Float" value="0"/>
+      <set alias="" function="SetBackground" functionId="0" moduleId="3" parameter="" parameterId="1" type="Float" value="0"/>
+      <set alias="" function="SetBackground" functionId="0" moduleId="3" parameter="" parameterId="2" type="Float" value="0"/>
+    </action>
+    <action date="20 Feb 2007 20:59:55" parent="10" time="11" user="emanuele" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="3" value=""/>
+    </action>
+    <action date="20 Feb 2007 20:59:55" parent="11" time="12" user="emanuele" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="ScalarVisibilityOn" functionId="0" moduleId="4" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="20 Feb 2007 20:59:55" parent="12" time="13" user="emanuele" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="4" value=""/>
+    </action>
+    <action date="20 Feb 2007 20:59:55" parent="13" time="14" user="emanuele" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="4" destinationModule="vtkDataSetMapper" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="0" sourceId="0" sourceModule="vtkUnstructuredGridReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="20 Feb 2007 20:59:55" parent="14" time="15" user="emanuele" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="1" destinationModule="VTKCell" destinationPort="AddRenderer(vtkRenderer)" id="1" sourceId="3" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
+    </action>
+    <action date="20 Feb 2007 20:59:55" parent="15" time="16" user="emanuele" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="2" destinationModule="vtkActor" destinationPort="SetMapper(vtkMapper)" id="2" sourceId="4" sourceModule="vtkDataSetMapper" sourcePort="self(vtkDataSetMapper)"/>
+    </action>
+    <action date="20 Feb 2007 20:59:55" parent="16" time="17" user="emanuele" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="3" destinationModule="vtkRenderer" destinationPort="AddVolume(vtkProp)" id="3" sourceId="2" sourceModule="vtkActor" sourcePort="self(vtkActor)"/>
+    </action>
+    <action date="20 Feb 2007 21:01:47" parent="17" time="18" user="emanuele" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="68.8453608247" dy="130.041237113" id="1"/>
+      <move dx="26.7731958763" dy="80.3195876289" id="2"/>
+      <move dx="-126.216494845" dy="110.917525773" id="3"/>
+      <move dx="-72.6701030928" dy="95.618556701" id="4"/>
+    </action>
+    <action date="20 Feb 2007 21:01:47" parent="18" time="19" user="emanuele" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="5" name="PythonSource" x="754.625002262" y="-594.276667201"/>
+    </action>
+    <action date="20 Feb 2007 21:01:47" parent="19" time="20" user="emanuele" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="5" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20vtk%0Awindow%20%3D%20vtk.vtkRenderWindow%28%29%0Ar%20%3D%20self.getInputFromPort%28%22renderer%22%29.vtkInstance%0Ar.ResetCamera%28%29%0Awindow.AddRenderer%28r%29%0Awindow.OffScreenRenderingOn%28%29%0Awindow.Start%28%29%0Awindow.Render%28%29%0Awin2image%20%3D%20vtk.vtkWindowToImageFilter%28%29%0Awin2image.SetInput%28window%29%0Awin2image.Update%28%29%0Awriter%20%3D%20vtk.vtkPNGWriter%28%29%0Awriter.SetInput%28win2image.GetOutput%28%29%29%0Aoutput%20%3D%20self.interpreter.filePool.createFile%28%29%0Awriter.SetFileName%28output.name%29%0Awriter.Write%28%29%0Awindow.Finalize%28%29%0Adel%20window%0Adel%20win2image%0Adel%20writer%0Aself.setResult%28%22image%22%2Coutput%29"/>
+    </action>
+    <action date="20 Feb 2007 21:01:47" parent="20" time="21" user="emanuele" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="5" value=""/>
+    </action>
+    <action date="20 Feb 2007 21:02:16" parent="21" time="22" user="emanuele" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="-959.716577625" dy="306.359702602" id="5"/>
+    </action>
+    <action date="20 Feb 2007 21:02:16" parent="22" time="23" user="emanuele" what="deleteConnection">
+      <notes>
+        None
+      </notes>
+      <connection connectionId="1"/>
+    </action>
+    <action date="20 Feb 2007 21:02:16" parent="23" time="24" user="emanuele" what="deleteModule">
+      <notes>
+        None
+      </notes>
+      <module moduleId="1"/>
+    </action>
+    <action date="20 Feb 2007 21:03:47" parent="24" time="25" user="emanuele" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="-32.8464754741" dy="32.8464754741" id="5"/>
+    </action>
+    <action date="20 Feb 2007 21:03:47" parent="25" time="26" user="emanuele" what="addModulePort">
+      <notes>
+        None
+      </notes>
+      <addPort moduleId="5" portName="renderer" portSpec="(vtkRenderer)" portType="input"/>
+    </action>
+    <action date="20 Feb 2007 21:03:47" parent="26" time="27" user="emanuele" what="addModulePort">
+      <notes>
+        None
+      </notes>
+      <addPort moduleId="5" portName="image" portSpec="(File)" portType="output"/>
+    </action>
+    <action date="20 Feb 2007 21:03:59" parent="27" time="28" user="emanuele" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="5" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20vtk%0Awindow%20%3D%20vtk.vtkRenderWindow%28%29%0Ar%20%3D%20self.getInputFromPort%28%22renderer%22%29.vtkInstance%0Ar.ResetCamera%28%29%0Awindow.AddRenderer%28r%29%0Awindow.OffScreenRenderingOn%28%29%0Awindow.Start%28%29%0Awindow.Render%28%29%0Awin2image%20%3D%20vtk.vtkWindowToImageFilter%28%29%0Awin2image.SetInput%28window%29%0Awin2image.Update%28%29%0Awriter%20%3D%20vtk.vtkPNGWriter%28%29%0Awriter.SetInput%28win2image.GetOutput%28%29%29%0Aoutput%20%3D%20self.interpreter.filePool.create_file%28%29%0Awriter.SetFileName%28output.name%29%0Awriter.Write%28%29%0Awindow.Finalize%28%29%0Adel%20window%0Adel%20win2image%0Adel%20writer%0Aself.setResult%28%22image%22%2Coutput%29"/>
+    </action>
+    <action date="20 Feb 2007 21:04:05" parent="28" time="29" user="emanuele" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="-32.8464754741" dy="32.8464754741" id="5"/>
+    </action>
+    <action date="20 Feb 2007 21:04:05" parent="29" time="30" user="emanuele" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="6" name="FileSink" x="-83.0822614934" y="-280.161114338"/>
+    </action>
+    <action date="20 Feb 2007 21:04:10" parent="30" time="31" user="emanuele" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="-15.457164929" dy="-17.3893105451" id="6"/>
+    </action>
+    <action date="20 Feb 2007 21:04:15" parent="31" time="32" user="emanuele" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="-56.0322228676" dy="28.9821842419" id="5"/>
+    </action>
+    <action date="20 Feb 2007 21:04:15" parent="32" time="33" user="emanuele" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="6" destinationModule="FileSink" destinationPort="file(File)" id="4" sourceId="5" sourceModule="PythonSource" sourcePort="image(File)"/>
+    </action>
+    <action date="20 Feb 2007 21:04:25" parent="33" time="34" user="emanuele" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="102.403717655" dy="-56.0322228676" id="5"/>
+      <move dx="-54.1000772515" dy="-57.9643684838" id="6"/>
+    </action>
+    <action date="20 Feb 2007 21:04:25" parent="34" time="35" user="emanuele" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="5" destinationModule="PythonSource" destinationPort="renderer(vtkRenderer)" id="5" sourceId="3" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
+    </action>
+    <action date="20 Feb 2007 21:04:35" parent="35" time="36" user="emanuele" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="-36.7107667064" dy="9.66072808063" id="5"/>
+      <move dx="42.5072035548" dy="38.6429123225" id="6"/>
+    </action>
+    <action date="20 Feb 2007 21:04:35" parent="36" time="37" user="emanuele" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="7" name="String" x="5.79643684838" y="-156.503794906"/>
+    </action>
+    <action date="20 Feb 2007 21:04:43" parent="37" time="38" user="emanuele" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="6" destinationModule="FileSink" destinationPort="outputName(String)" id="6" sourceId="7" sourceModule="String" sourcePort="value(String)"/>
+    </action>
+    <action date="20 Feb 2007 21:04:48" parent="38" time="39" user="emanuele" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="value" functionId="0" moduleId="7" parameter="&lt;no description&gt;" parameterId="0" type="String" value=""/>
+    </action>
+    <action date="20 Feb 2007 21:05:00" parent="39" time="40" user="emanuele" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="filename" function="value" functionId="0" moduleId="7" parameter="&lt;no description&gt;" parameterId="0" type="String" value=""/>
+    </action>
+    <action date="20 Feb 2007 21:05:36" parent="40" time="41" user="emanuele" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="filename" function="value" functionId="0" moduleId="7" parameter="&lt;no description&gt;" parameterId="0" type="String" value="image.png"/>
+    </action>
+    <action date="20 Feb 2007 21:06:25" parent="41" time="42" user="emanuele" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="filename" function="value" functionId="0" moduleId="7" parameter="&lt;no description&gt;" parameterId="0" type="String" value="~/Desktop/image.png"/>
+    </action>
+    <action date="20 Feb 2007 21:07:03" parent="42" time="43" user="emanuele" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="filename" function="value" functionId="0" moduleId="7" parameter="&lt;no description&gt;" parameterId="0" type="String" value="image.png"/>
+    </action>
+    <action date="20 Feb 2007 21:11:01" parent="43" time="44" user="emanuele" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="15.1938811849" dy="91.1632871093" id="2"/>
+      <move dx="-32.5583168247" dy="82.4810692893" id="3"/>
+      <move dx="-65.1166336495" dy="69.4577425594" id="5"/>
+      <move dx="-65.1166336495" dy="43.4110890996" id="6"/>
+      <move dx="-39.0699801897" dy="28.2172079148" id="7"/>
+    </action>
+    <action date="20 Feb 2007 21:11:01" parent="44" time="45" user="emanuele" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="8" name="CellLocation" x="840.504976386" y="-955.819381689"/>
+    </action>
+    <action date="20 Feb 2007 21:11:02" parent="45" time="46" user="emanuele" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="9" name="SheetReference" x="845.30516105" y="-1059.21860426"/>
+    </action>
+    <action date="20 Feb 2007 21:11:02" parent="46" time="47" user="emanuele" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="10" name="RichTextCell" x="832.724802472" y="-850.069864812"/>
+    </action>
+    <action date="20 Feb 2007 21:11:02" parent="47" time="48" user="emanuele" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="8" value=""/>
+    </action>
+    <action date="20 Feb 2007 21:11:02" parent="48" time="49" user="emanuele" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="MinColumnCount" functionId="0" moduleId="9" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="1"/>
+    </action>
+    <action date="20 Feb 2007 21:11:02" parent="49" time="50" user="emanuele" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="MinRowCount" functionId="1" moduleId="9" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="1"/>
+    </action>
+    <action date="20 Feb 2007 21:11:02" parent="50" time="51" user="emanuele" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="SheetName" functionId="2" moduleId="9" parameter="&lt;no description&gt;" parameterId="0" type="String" value="Salinity 60"/>
+    </action>
+    <action date="20 Feb 2007 21:11:02" parent="51" time="52" user="emanuele" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="9" value=""/>
+    </action>
+    <action date="20 Feb 2007 21:11:02" parent="52" time="53" user="emanuele" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="10" value=""/>
+    </action>
+    <action date="20 Feb 2007 21:11:02" parent="53" time="54" user="emanuele" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="8" destinationModule="CellLocation" destinationPort="SheetReference(SheetReference)" id="7" sourceId="9" sourceModule="SheetReference" sourcePort="self(SheetReference)"/>
+    </action>
+    <action date="20 Feb 2007 21:11:03" parent="54" time="55" user="emanuele" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="10" destinationModule="RichTextCell" destinationPort="Location(CellLocation)" id="8" sourceId="8" sourceModule="CellLocation" sourcePort="self(CellLocation)"/>
+    </action>
+    <action date="20 Feb 2007 21:12:13" parent="55" time="56" user="emanuele" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="204.420297441" dy="31.2888210368" id="6"/>
+      <move dx="-983.572209997" dy="467.583173731" id="8"/>
+      <move dx="-983.572209997" dy="467.583173731" id="9"/>
+      <move dx="-983.572209997" dy="467.583173731" id="10"/>
+    </action>
+    <action date="20 Feb 2007 21:12:13" parent="56" time="57" user="emanuele" what="deleteConnection">
+      <notes>
+        None
+      </notes>
+      <connection connectionId="4"/>
+      <connection connectionId="6"/>
+    </action>
+    <action date="20 Feb 2007 21:12:13" parent="57" time="58" user="emanuele" what="deleteModule">
+      <notes>
+        None
+      </notes>
+      <module moduleId="6"/>
+    </action>
+    <action date="20 Feb 2007 21:12:16" parent="58" time="59" user="emanuele" what="deleteConnection">
+      <notes>
+        None
+      </notes>
+    </action>
+    <action date="20 Feb 2007 21:12:16" parent="59" time="60" user="emanuele" what="deleteModule">
+      <notes>
+        None
+      </notes>
+      <module moduleId="7"/>
+    </action>
+    <action date="20 Feb 2007 21:12:53" parent="60" time="61" user="emanuele" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="11" name="PythonSource" x="-127.24120555" y="-273.255703722"/>
+    </action>
+    <action date="20 Feb 2007 21:13:25" parent="61" time="62" user="emanuele" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="-81.3509346958" dy="0.0" id="11"/>
+    </action>
+    <action date="20 Feb 2007 21:13:25" parent="62" time="63" user="emanuele" what="addModulePort">
+      <notes>
+        None
+      </notes>
+      <addPort moduleId="11" portName="imageFile" portSpec="(File)" portType="input"/>
+    </action>
+    <action date="20 Feb 2007 21:13:25" parent="63" time="64" user="emanuele" what="addModulePort">
+      <notes>
+        None
+      </notes>
+      <addPort moduleId="11" portName="htmlFile" portSpec="(File)" portType="output"/>
+    </action>
+    <action date="20 Feb 2007 21:13:25" parent="64" time="65" user="emanuele" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="0" type="String" value="imageFile%20%3D%20self.getInputFromPort%28%22imageFile%22%29%0A%0Atext%20%3D%20%27%3CHTML%3E%3CTITLE%3EElcirc%20run%20todaydev%3C/TITLE%3E%3CBODY%20BGCOLOR%3D%22%23FFFFFF%22%3E%3CTABLE%20WIDTH%3D%22100%25%22%20BORDER%3D%221%22%20BGCOLOR%3D%22%23FFFFFF%22%20CELLPADDING%3D%224%22%3E%20%27%0Atext%20%2B%3D%20%27%3CTR%3E%3CTD%3EToday%20Salinity%3CBR%3Esalinity%20plume%20surface%3CBR%3E%3CB%3EVisualization%3C/B%3E%3C/TD%3E%3C/TR%3E%3CTR%3E%3CTD%20VALIGN%3D%22TOP%22%3E%3CP%3E%3CIMG%20SRC%3D%22%27%20%0Atext%20%2B%3D%20imageFile.name%20%0Atext%20%2B%3D%20%27%22%3E%3C/TD%3E%3C/TR%3E%3C/TR%3E%3C/TABLE%3E%27%0Aoutput%20%3D%20self.interpreter.filePool.createFile%28%29%0Amy_file%20%3D%20open%28str%28output.name%29%2C%20%27w%27%29%0Amy_file.write%28text%29%0Amy_file.close%28%29%0Aself.setResult%28%22htmlFile%22%2Coutput%29"/>
+    </action>
+    <action date="20 Feb 2007 21:13:29" parent="65" time="66" user="emanuele" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="11" destinationModule="PythonSource" destinationPort="imageFile(File)" id="9" sourceId="5" sourceModule="PythonSource" sourcePort="image(File)"/>
+    </action>
+    <action date="20 Feb 2007 21:13:32" parent="66" time="67" user="emanuele" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="10" destinationModule="RichTextCell" destinationPort="File(File)" id="10" sourceId="11" sourceModule="PythonSource" sourcePort="htmlFile(File)"/>
+    </action>
+    <action date="20 Feb 2007 21:13:53" parent="67" time="68" user="emanuele" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="0" type="String" value="imageFile%20%3D%20self.getInputFromPort%28%22imageFile%22%29%0A%0Atext%20%3D%20%27%3CHTML%3E%3CTITLE%3EElcirc%20run%20todaydev%3C/TITLE%3E%3CBODY%20BGCOLOR%3D%22%23FFFFFF%22%3E%3CTABLE%20WIDTH%3D%22100%25%22%20BORDER%3D%221%22%20BGCOLOR%3D%22%23FFFFFF%22%20CELLPADDING%3D%224%22%3E%20%27%0Atext%20%2B%3D%20%27%3CTR%3E%3CTD%3EToday%20Salinity%3CBR%3Esalinity%20plume%20surface%3CBR%3E%3CB%3EVisualization%3C/B%3E%3C/TD%3E%3C/TR%3E%3CTR%3E%3CTD%20VALIGN%3D%22TOP%22%3E%3CP%3E%3CIMG%20SRC%3D%22%27%20%0Atext%20%2B%3D%20imageFile.name%20%0Atext%20%2B%3D%20%27%22%3E%3C/TD%3E%3C/TR%3E%3C/TR%3E%3C/TABLE%3E%27%0Aoutput%20%3D%20self.interpreter.filePool.create_file%28%29%0Amy_file%20%3D%20open%28str%28output.name%29%2C%20%27w%27%29%0Amy_file.write%28text%29%0Amy_file.close%28%29%0Aself.setResult%28%22htmlFile%22%2Coutput%29"/>
+    </action>
+    <action date="20 Feb 2007 21:14:30" parent="68" time="69" user="emanuele" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="SheetName" functionId="2" moduleId="9" parameter="&lt;no description&gt;" parameterId="0" type="String" value="SPX"/>
+    </action>
+    <action date="20 Feb 2007 21:15:43" parent="69" time="70" user="emanuele" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="0" type="String" value="imageFile%20%3D%20self.getInputFromPort%28%22imageFile%22%29%0A%0Atext%20%3D%20%27%3CHTML%3E%3CTITLE%3ESPX%3C/TITLE%3E%3CBODY%20BGCOLOR%3D%22%23FFFFFF%22%3E%3CTABLE%20WIDTH%3D%22100%25%22%20BORDER%3D%221%22%20BGCOLOR%3D%22%23FFFFFF%22%20CELLPADDING%3D%224%22%3E%20%27%0Atext%20%2B%3D%20%27%3CTR%3E%3CTD%3EExample%20of%20embedding%20an%20image%20on%20a%20html%20file.%3CBR%3E%3CB%3EVisualization%3C/B%3E%3C/TD%3E%3C/TR%3E%3CTR%3E%3CTD%20VALIGN%3D%22TOP%22%3E%3CP%3E%3CIMG%20SRC%3D%22%27%20%0Atext%20%2B%3D%20imageFile.name%20%0Atext%20%2B%3D%20%27%22%3E%3C/TD%3E%3C/TR%3E%3C/TR%3E%3C/TABLE%3E%27%0Aoutput%20%3D%20self.interpreter.filePool.create_file%28%29%0Amy_file%20%3D%20open%28str%28output.name%29%2C%20%27w%27%29%0Amy_file.write%28text%29%0Amy_file.close%28%29%0Aself.setResult%28%22htmlFile%22%2Coutput%29"/>
+    </action>
+    <tag name="offscreen" time="43"/>
+    <tag name="html" time="70"/>
+    <tag name="only vtk" time="17"/>
+  </visTrail>
