@@ -1695,11 +1695,297 @@
       </notes>
       <connect destinationId="31" destinationModule="PythonSource" destinationPort="renderer(vtkRenderer)" id="32" sourceId="5" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
     </action>
+    <action date="21 Feb 2007 18:22:30" parent="157" time="269" user="manu" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="url" functionId="0" moduleId="21" parameter="&lt;no description&gt;" parameterId="0" type="String" value="http://www.vistrails.org/data/1_wind.62"/>
+    </action>
+    <action date="21 Feb 2007 18:23:05" parent="269" time="270" user="manu" what="deleteConnection">
+      <notes>
+        None
+      </notes>
+      <connection connectionId="23"/>
+      <connection connectionId="22"/>
+    </action>
+    <action date="21 Feb 2007 18:23:05" parent="270" time="271" user="manu" what="deleteModule">
+      <notes>
+        None
+      </notes>
+      <module moduleId="22"/>
+    </action>
+    <action date="21 Feb 2007 18:23:09" parent="271" time="272" user="manu" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="23" destinationModule="PythonSource" destinationPort="file(File)" id="28" sourceId="21" sourceModule="HTTPFile" sourcePort="file(File)"/>
+    </action>
+    <action date="21 Feb 2007 18:23:25" parent="272" time="273" user="manu" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="51.4091543219" dy="-47.1250581284" id="21"/>
+      <move dx="8.56819238698" dy="24.2765450964" id="23"/>
+    </action>
+    <action date="21 Feb 2007 18:23:25" parent="273" time="274" user="manu" what="deleteConnection">
+      <notes>
+        None
+      </notes>
+      <connection connectionId="27"/>
+      <connection connectionId="25"/>
+    </action>
+    <action date="21 Feb 2007 18:23:25" parent="274" time="275" user="manu" what="deleteModule">
+      <notes>
+        None
+      </notes>
+      <module moduleId="24"/>
+    </action>
+    <action date="21 Feb 2007 18:23:28" parent="275" time="276" user="manu" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="26" destinationModule="PythonSource" destinationPort="file(File)" id="29" sourceId="25" sourceModule="HTTPFile" sourcePort="file(File)"/>
+    </action>
+    <action date="21 Feb 2007 18:23:34" parent="276" time="277" user="manu" what="changeParameter">
+      <notes>
+        This version is the same as the basic workflow one, but downloading uncompressed files. This is because of python limitations with zipfile. If you are on windows you should run versions on this branch.
+      </notes>
+      <set alias="" function="url" functionId="0" moduleId="25" parameter="&lt;no description&gt;" parameterId="0" type="String" value="http://www.vistrails.org/data/1_salt.63"/>
+    </action>
+    <action date="21 Feb 2007 18:26:43" parent="277" time="278" user="manu" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="SetTimeStep" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="60"/>
+    </action>
+    <action date="21 Feb 2007 18:26:49" parent="278" time="279" user="manu" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="SetTimeStep" functionId="0" moduleId="16" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="60"/>
+    </action>
+    <action date="21 Feb 2007 18:28:07" parent="279" time="280" user="manu" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="SetText" functionId="0" moduleId="0" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="1"/>
+      <set alias="" function="SetText" functionId="0" moduleId="0" parameter="&lt;no description&gt;" parameterId="1" type="String" value="2006-Oct-11 18:00:00"/>
+    </action>
+    <action date="21 Feb 2007 18:28:17" parent="280" time="281" user="manu" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="ColumnRowAddress" functionId="0" moduleId="18" parameter="&lt;no description&gt;" parameterId="0" type="String" value="B1"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="281" time="282" user="manu" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="27" name="PythonSource" x="1046.31058501" y="-578.801575252"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="282" time="283" user="manu" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="28" name="CellLocation" x="850.504976386" y="-945.819381689"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="283" time="284" user="manu" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="29" name="RichTextCell" x="842.724802472" y="-840.069864812"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="284" time="285" user="manu" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="30" name="PythonSource" x="909.305801203" y="-656.252227407"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="285" time="286" user="manu" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="31" name="SheetReference" x="855.30516105" y="-1049.21860426"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="286" time="287" user="manu" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="27" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20vtk%0Awindow%20%3D%20vtk.vtkRenderWindow%28%29%0Ar%20%3D%20self.getInputFromPort%28%22renderer%22%29.vtkInstance%0Ar.ResetCamera%28%29%0Awindow.AddRenderer%28r%29%0Awindow.OffScreenRenderingOn%28%29%0Awindow.Start%28%29%0Awindow.Render%28%29%0Awin2image%20%3D%20vtk.vtkWindowToImageFilter%28%29%0Awin2image.SetInput%28window%29%0Awin2image.Update%28%29%0Awriter%20%3D%20vtk.vtkPNGWriter%28%29%0Awriter.SetInput%28win2image.GetOutput%28%29%29%0Aoutput%20%3D%20self.interpreter.filePool.create_file%28%29%0Awriter.SetFileName%28output.name%29%0Awriter.Write%28%29%0Awindow.Finalize%28%29%0Adel%20window%0Adel%20win2image%0Adel%20writer%0Aself.setResult%28%22image%22%2Coutput%29"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="287" time="288" user="manu" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="27" value=""/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="288" time="289" user="manu" what="addModulePort">
+      <notes>
+        None
+      </notes>
+      <addPort moduleId="27" portName="renderer" portSpec="(vtkRenderer)" portType="input"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="289" time="290" user="manu" what="addModulePort">
+      <notes>
+        None
+      </notes>
+      <addPort moduleId="27" portName="image" portSpec="(File)" portType="output"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="290" time="291" user="manu" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="28" value=""/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="291" time="292" user="manu" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="29" value=""/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="292" time="293" user="manu" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="30" parameter="&lt;no description&gt;" parameterId="0" type="String" value="imageFile%20%3D%20self.getInputFromPort%28%22imageFile%22%29%0A%0Atext%20%3D%20%27%3CHTML%3E%3CTITLE%3EElcirc%20run%20todaydev%3C/TITLE%3E%3CBODY%20BGCOLOR%3D%22%23FFFFFF%22%3E%3CTABLE%20WIDTH%3D%22100%25%22%20BORDER%3D%221%22%20BGCOLOR%3D%22%23FFFFFF%22%20CELLPADDING%3D%224%22%3E%20%27%0Atext%20%2B%3D%20%27%3CTR%3E%3CTD%3EToday%20Salinity%3CBR%3Esalinity%20plume%20surface%3CBR%3E%3CB%3EVisualization%3C/B%3E%3C/TD%3E%3C/TR%3E%3CTR%3E%3CTD%20VALIGN%3D%22TOP%22%3E%3CP%3E%3CIMG%20SRC%3D%22%27%20%0Atext%20%2B%3D%20imageFile.name%20%0Atext%20%2B%3D%20%27%22%3E%3C/TD%3E%3C/TR%3E%3C/TR%3E%3C/TABLE%3E%27%0Aoutput%20%3D%20self.interpreter.filePool.create_file%28%29%0Amy_file%20%3D%20open%28str%28output.name%29%2C%20%27w%27%29%0Amy_file.write%28text%29%0Amy_file.close%28%29%0Aself.setResult%28%22htmlFile%22%2Coutput%29"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="293" time="294" user="manu" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="30" value=""/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="294" time="295" user="manu" what="addModulePort">
+      <notes>
+        None
+      </notes>
+      <addPort moduleId="30" portName="imageFile" portSpec="(File)" portType="input"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="295" time="296" user="manu" what="addModulePort">
+      <notes>
+        None
+      </notes>
+      <addPort moduleId="30" portName="htmlFile" portSpec="(File)" portType="output"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="296" time="297" user="manu" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="MinColumnCount" functionId="0" moduleId="31" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="1"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="297" time="298" user="manu" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="MinRowCount" functionId="1" moduleId="31" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="1"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="298" time="299" user="manu" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="SheetName" functionId="2" moduleId="31" parameter="&lt;no description&gt;" parameterId="0" type="String" value="Salinity 60"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="299" time="300" user="manu" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="31" value=""/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="300" time="301" user="manu" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="30" destinationModule="PythonSource" destinationPort="imageFile(File)" id="30" sourceId="27" sourceModule="PythonSource" sourcePort="image(File)"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="301" time="302" user="manu" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="28" destinationModule="CellLocation" destinationPort="SheetReference(SheetReference)" id="31" sourceId="31" sourceModule="SheetReference" sourcePort="self(SheetReference)"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="302" time="303" user="manu" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="29" destinationModule="RichTextCell" destinationPort="Location(CellLocation)" id="32" sourceId="28" sourceModule="CellLocation" sourcePort="self(CellLocation)"/>
+    </action>
+    <action date="21 Feb 2007 18:29:52" parent="303" time="304" user="manu" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="29" destinationModule="RichTextCell" destinationPort="File(File)" id="33" sourceId="30" sourceModule="PythonSource" sourcePort="htmlFile(File)"/>
+    </action>
+    <action date="21 Feb 2007 18:30:22" parent="304" time="305" user="manu" what="deleteConnection">
+      <notes>
+        None
+      </notes>
+      <connection connectionId="8"/>
+    </action>
+    <action date="21 Feb 2007 18:30:22" parent="305" time="306" user="manu" what="deleteModule">
+      <notes>
+        None
+      </notes>
+      <module moduleId="18"/>
+    </action>
+    <action date="21 Feb 2007 18:30:24" parent="306" time="307" user="manu" what="deleteConnection">
+      <notes>
+        None
+      </notes>
+      <connection connectionId="7"/>
+    </action>
+    <action date="21 Feb 2007 18:30:24" parent="307" time="308" user="manu" what="deleteModule">
+      <notes>
+        None
+      </notes>
+      <module moduleId="3"/>
+    </action>
+    <action date="21 Feb 2007 18:30:27" parent="308" time="309" user="manu" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="27" destinationModule="PythonSource" destinationPort="renderer(vtkRenderer)" id="34" sourceId="5" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
+    </action>
+    <action date="21 Feb 2007 18:31:11" parent="309" time="310" user="manu" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="612.79434763" dy="457.336194544" id="28"/>
+      <move dx="527.834659316" dy="267.532635544" id="29"/>
+      <move dx="338.031100315" dy="-9.03826471431" id="30"/>
+      <move dx="775.483112488" dy="683.292812402" id="31"/>
+    </action>
+    <action date="21 Feb 2007 18:31:11" parent="310" time="311" user="manu" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="SheetName" functionId="2" moduleId="31" parameter="&lt;no description&gt;" parameterId="0" type="String" value="Salinity"/>
+    </action>
+    <action date="21 Feb 2007 18:31:13" parent="311" time="312" user="manu" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="SheetName" functionId="2" moduleId="31" parameter="&lt;no description&gt;" parameterId="0" type="String" value="Salinity"/>
+    </action>
+    <action date="21 Feb 2007 18:31:16" parent="312" time="313" user="manu" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="SheetName" functionId="2" moduleId="31" parameter="&lt;no description&gt;" parameterId="0" type="String" value="Salinity 60"/>
+    </action>
+    <action date="21 Feb 2007 18:31:17" parent="313" time="314" user="manu" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="SheetName" functionId="2" moduleId="31" parameter="&lt;no description&gt;" parameterId="0" type="String" value="Salinity 60"/>
+    </action>
     <tag name="webpage 90" time="268"/>
+    <tag name="webpage 60 Windows" time="314"/>
     <tag name="TimeStep 60" time="161"/>
     <tag name="webpage 30" time="237"/>
     <tag name="webpage 60" time="234"/>
     <tag name="TimeStep 90" time="168"/>
+    <tag name="TimeStep 60 Windows" time="281"/>
+    <tag name="uncompressed" time="277"/>
     <tag name="TimeStep 30" time="164"/>
     <tag name="basic workflow" time="157"/>
   </visTrail>
