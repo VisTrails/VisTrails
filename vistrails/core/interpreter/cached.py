@@ -74,7 +74,7 @@ and the modules that depend on them."""
             del self._objects[v]
 
     def unlocked_execute(self, pipeline, vistrailName, currentVersion,
-                view, logger):
+                view, logger, aliases=None):
         """unlocked_execute(pipeline, vistrailName, currentVersion, view, logger):
 Executes a pipeline using caching. Caching works by reusing pipelines directly.
 This means that there exists one global pipeline whose parts get executed over
@@ -85,7 +85,7 @@ and over again. This allows nested execution."""
          module_added_set,
          conn_added_set) = self.add_to_persistent_pipeline(pipeline)
 
-        self.resolveAliases(self._persistent_pipeline)
+        self.resolveAliases(self._persistent_pipeline,aliases)
 
         # the executed dict works on persistent ids
         def addToExecuted(obj):
@@ -232,7 +232,7 @@ and over again. This allows nested execution."""
 
     @lock_method(core.interpreter.utils.get_interpreter_lock())
     def execute(self, pipeline, vistrailName, currentVersion,
-                view, logger):
+                view, logger,aliases=None):
         """execute(pipeline, vistrailName, currentVersion, view, logger):
 Executes a pipeline using caching. Caching works by reusing pipelines directly.
 This means that there exists one global pipeline whose parts get executed over
@@ -258,9 +258,10 @@ means they were cached."""
 
         self.clean_non_cacheable_modules()
 
+        
         (objs, errs, execs) = self.unlocked_execute(pipeline, vistrailName,
                                                     currentVersion,
-                                                    view, logger)
+                                                    view, logger,aliases)
 
         if logger:
             logger.finishWorkflowExecution(vistrailName, currentVersion)

@@ -42,14 +42,14 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
 
     @lock_method(core.interpreter.utils.get_interpreter_lock())
     def locked_execute(self, pipeline, vistrailName, currentVersion,
-                       view, logger):
+                       view, logger, aliases=None):
         return self.unlocked_execute(pipeline, vistrailName,
-                                     currentVersion, view, logger)
+                                     currentVersion, view, logger, aliases)
     
     def unlocked_execute(self, pipeline, vistrailName, currentVersion,
-                         view, logger):
+                         view, logger, aliases=None):
 
-        self.resolveAliases(pipeline)
+        self.resolveAliases(pipeline, aliases)
 
         if logger:
             logger.startWorkflowExecution(vistrailName, currentVersion)

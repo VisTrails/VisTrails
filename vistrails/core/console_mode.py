@@ -22,7 +22,8 @@
 """ Module used when running  vistrails uninteractively """
 from core import xml_parser
 import core.interpreter.default
-from core.utils import VistrailsInternalError
+from core.utils import VistrailsInternalError, expression
+import core.startup
 
 ################################################################################
 
@@ -39,12 +40,14 @@ class DummyView(object):
     def setModuleError(self, id, error):
         pass
     
-def run(input, workflow):
+def run(input, workflow, parameters=''):
     """run(input: str, workflow: int or str) -> boolean 
     Run the workflow 'workflow' in the 'input' file and generates 
     Returns False in case of error. workflow can be a tag name or a version.
 
     """ 
+    elements = parameters.split(",")
+    aliases = {}
     parser = xml_parser.XMLParser()
     parser.openVistrail(input)
     v = parser.getVistrail()
@@ -57,7 +60,15 @@ def run(input, workflow):
         raise VistrailsInternalError(msg)
     parser.closeVistrail()
     pip = v.getPipeline(workflow)
-
+    for e in elements:
+        pos = e.find("=")
+        if pos != -1:
+            key = e[:pos].strip()
+            value = e[pos+1:].strip()
+            
+            if pip.hasAlias(key):
+                ptype = pip.aliases[key]
+                aliases[key] = (ptype,expression.parseExpression(value))
     error = False
     view = DummyView()
     interpreter = core.interpreter.default.default_interpreter.get()
@@ -65,7 +76,8 @@ def run(input, workflow):
                                                    input,
                                                    version,
                                                    view,
-                                                   None)
+                                                   core.startup.logger,
+                                                   aliases)
     for obj in objs.itervalues():
         i = obj.id
         if errors.has_key(i):

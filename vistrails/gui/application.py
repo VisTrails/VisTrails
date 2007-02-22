@@ -134,7 +134,8 @@ run in batch mode.')
                 print "Only one vistrail can be specified for non-interactive mode"
             import core.console_mode
             core.console_mode.run(self.input[0],
-                                  self.nonInteractiveOpts.workflow)
+                                  self.nonInteractiveOpts.workflow,
+                                  self.nonInteractiveOpts.parameters)
         else:
             debug.DebugPrint.critical("no input vistrails provided")
 
@@ -181,7 +182,7 @@ run in batch mode.')
         add = command_line.CommandLineParser.addOption
         add("-S", "--startup", action="store", type="str", default="",
             dest="dotVistrails",
-            help="Set startup file (default is ~/.vistrails)")
+            help="Set startup file (default is ~/.vistrails/startup.py)")
         add("-?", action="help",
             help="show this help message and exit")
         add("-p", "--prompt", action="store_true",
@@ -220,6 +221,8 @@ run in batch mode.')
         add("-d", "--debugsignals", action="store_true",
             default = False,
             help="debug Qt Signals")
+        add("-a", "--parameters", action="store", dest="parameters",
+            help="workflow parameter settings (non-interactive mode only)")
         command_line.CommandLineParser.parseOptions()
 
     def printVersion(self):
@@ -251,7 +254,8 @@ run in batch mode.')
         self.configuration.verbosenessLevel = get('verbose')
         if get('noninteractive'):
             self.configuration.interactiveMode = False
-            self.nonInteractiveOpts = InstanceObject(workflow=get('workflow'))
+            self.nonInteractiveOpts = InstanceObject(workflow=get('workflow'),
+                                                     parameters=get('parameters'))
         self.configuration.nologger = get('nologger')
         self.input = command_line.CommandLineParser().positionalArguments()
         if get('workflow') and not get('noninteractive'):

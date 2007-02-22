@@ -52,6 +52,7 @@ class Pipeline(object):
         self.graph = Graph()
         self.modules = {}
         self.connections = {}
+        self.aliases = {}
         self._subpipeline_signatures = Bidict()
         self._module_signatures = Bidict()
         self._connection_signatures = Bidict()
@@ -146,7 +147,16 @@ class Pipeline(object):
         self.graph.addVertex(m.id)
         self._fresh_module_id = max(self._fresh_module_id,
                                     m.id + 1)
-        
+    
+    def addAlias(self, name, type):
+        """addAlias(name: str, type: str) -> None 
+        Add alias to pipeline
+          
+        """
+        if self.hasAlias(name):
+            raise VistrailsInternalError("duplicate alias")
+        self.aliases[name] = type
+
     def deleteConnection(self, id):
         """ deleteConnection(id:int) -> None 
         Delete connection identified by id from pipeline.
@@ -215,6 +225,13 @@ class Pipeline(object):
         """
         return self.connections.has_key(id)
     
+    def hasAlias(self, name):
+        """hasAlias(name: str) -> boolean 
+        Checks whether given alias exists.
+
+        """
+        return self.aliases.has_key(name)
+
     def outDegree(self, id):
         """outDegree(id: int) -> int - Returns the out-degree of a module. """
         return self.graph.outDegree(id)

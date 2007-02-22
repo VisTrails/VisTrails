@@ -151,10 +151,13 @@ class BaseInterpreter(object):
     def resolveAliases(self, pipeline,
                        customAliases=None):
         # Compute the 'locals' dictionary by evaluating named expressions
-        if not customAliases:
-            aliases = self.buildAliasDictionary(pipeline)
-        else:
-            aliases = copy.copy(customAliases)
+        aliases = self.buildAliasDictionary(pipeline)
+        if customAliases:
+            #customAliases can be only a subset of the aliases
+            #so we need to build the Alias Dictionary always
+            for k,v in customAliases.iteritems():
+                aliases[k] = v
+        
         ordered = self.computeEvaluationOrder(aliases)
         casting = {'int': int, 'float': float, 'double': float, 'string': str,
                    'Integer': int, 'Float': float, 'String': str}

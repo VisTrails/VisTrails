@@ -35,7 +35,7 @@ if __name__ == '__main__':
         import traceback
         traceback.print_exc()
         sys.exit(255)
-    if QtGui.QApplication.activeWindow():
+    if len(QtGui.QApplication.topLevelWidgets()):
         v = app.exec_()
         gui.application.stop_application()
         sys.exit(v)

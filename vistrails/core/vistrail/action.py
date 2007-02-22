@@ -514,6 +514,8 @@ class ChangeParameterAction(Action):
             if param.type.find('char')>-1 or param.type=='str':
                 param.type = 'string'
             param.alias = p[7]
+            if param.alias != "" and not pipeline.hasAlias(param.alias):
+                pipeline.addAlias(param.alias, param.type)
 
 Action.createFromXMLDispatch['changeParameter'] = ChangeParameterAction.parse
 
