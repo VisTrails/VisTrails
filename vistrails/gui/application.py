@@ -25,7 +25,7 @@ initializations to the theme, packages and the builder...
 """
 
 
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui, QtCore, Qt
 from core import command_line
 from core import debug
 from core import system
@@ -35,6 +35,7 @@ from gui import qt
 from gui.builder_window import QBuilderWindow
 from gui.theme import CurrentTheme
 import core.interpreter.cached
+import core.requirements
 import gui.bookmark_window
 import gui.theme
 import os.path
@@ -59,6 +60,8 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
 
     def __init__(self):
         QtGui.QApplication.__init__(self, sys.argv)
+        if Qt.QT_VERSION < 0x40200: # 0x40200 = 4.2.0
+            raise core.requirements.MissingRequirement("Qt version >= 4.2")
         qt.allowQObjects()
 
     def init(self, optionsDict=None):
@@ -95,7 +98,8 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         Finalize all packages to, such as, get rid of temp files
         
         """
-        self.vistrailsStartup.destroy()
+        if hasattr(self, 'vistrailsStartup'):
+            self.vistrailsStartup.destroy()
 
     def __del__(self):
         """ __del__() -> None
