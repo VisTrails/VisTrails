@@ -34,16 +34,16 @@ from core.modules.module_configure import PythonSourceConfigurationWidget
 import time
 import urllib
 
-import core.bundles
+from core.bundles import py_import
 try:
-    matplotlib = core.bundles.py_import('matplotlib',
-                                        {'linux-ubuntu': 'python-matplotlib'})
-#     import matplotlib
+    mpl_dict = {'linux-ubuntu': 'python-matplotlib'}
+    matplotlib = py_import('matplotlib', mpl_dict)
     matplotlib.use('Qt4Agg')
-    import pylab
-except:
-    pass
-        
+    pylab = py_import('pylab', mpl_dict)
+except Exception, e:
+    print "EXCEPTION!"
+    print e
+
 ################################################################################
 
 class MplFigureManager(Module):
