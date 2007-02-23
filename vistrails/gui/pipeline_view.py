@@ -170,6 +170,8 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
             self.connection.snapPort = self.findSnappedPort(endPos)
             if self.connection.snapPort:
                 endPos = self.connection.snapPort.sceneBoundingRect().center()
+                QtGui.QToolTip.showText(event.screenPos(),
+                                        self.connection.snapPort.toolTip())
                 
             self.connection.prepareGeometryChange()
             self.connection.setLine(startPos.x(), startPos.y(),
