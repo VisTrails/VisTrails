@@ -22,7 +22,11 @@
 ################################################################################
 # VTK Package for VisTrails
 ################################################################################
-import vtk
+
+from core.bundles import py_import
+
+vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk'})
+
 from core.debug import log
 from core.modules.basic_modules import Integer, Float, String
 from core.modules.module_registry import (registry, addModule,
