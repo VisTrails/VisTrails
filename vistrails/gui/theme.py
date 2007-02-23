@@ -76,6 +76,9 @@ class DefaultTheme(object):
 
     # Default legend size (small rectangular shape)
     VISUAL_DIFF_LEGEND_SIZE = (16, 16)
+
+    # Virtual Cell Label default  size
+    VIRTUAL_CELL_LABEL_SIZE = (40, 40)
     
     def __init__(self):
         """ DefaultTheme() -> DefaultTheme
@@ -216,6 +219,13 @@ class DefaultTheme(object):
         self.VISUAL_DIFF_SHARED_BRUSH = QtGui.QBrush(
             QtGui.QColor(155, 155, 155, 255))
     
+        # Pen & Brush of the circled id on the right corner of the
+        # virtual cell label
+        self.VIRTUAL_CELL_LABEL_ID_PEN = QtGui.QPen(
+            QtCore.Qt.white)
+        self.VIRTUAL_CELL_LABEL_ID_BRUSH = QtGui.QBrush(
+            QtGui.QColor(0, 0, 255, 255))
+    
         #### FONTS ####        
         # Font for shape engine text
         self.MODULE_FONT = QtGui.QFont("Arial", 14, QtGui.QFont.Bold)
@@ -224,7 +234,7 @@ class DefaultTheme(object):
         # Font for shape engine text
         self.VERSION_FONT = QtGui.QFont("Arial", 15, QtGui.QFont.Bold)
         self.VERSION_FONT_METRIC = QtGui.QFontMetrics(self.VERSION_FONT)
-        
+
         # Font showing on the Parameter Inspector window of Visual Diff
         self.VISUAL_DIFF_PARAMETER_FONT = QtGui.QFont('Arial', 10)
         
@@ -344,6 +354,20 @@ class DefaultTheme(object):
             core.system.visTrailsRootDirectory() +
             '/gui/resources/images/dragging.png')
 
+        # Parameter Exploration Pixmaps
+        self.EXPLORE_COLUMN_PIXMAP = QtGui.QPixmap(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/column.png')
+        self.EXPLORE_ROW_PIXMAP = QtGui.QPixmap(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/row.png')
+        self.EXPLORE_SHEET_PIXMAP = QtGui.QPixmap(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/sheet.png')
+        self.EXPLORE_TIME_PIXMAP = QtGui.QPixmap(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/time.png')        
+
         # Cursor for zoom in/out graphics views
         self.SELECT_CURSOR = QtGui.QCursor(QtCore.Qt.ArrowCursor)
         self.OPEN_HAND_CURSOR = QtGui.QCursor(QtGui.QPixmap(
@@ -359,14 +383,14 @@ class DefaultTheme(object):
         # Cursor icon for zoom in/out graphics views
         self.SELECT_ICON = QtGui.QIcon(QtGui.QPixmap(
             core.system.visTrailsRootDirectory() +
-            '/gui/resources/images/select_icon.png'))        
+            '/gui/resources/images/select_icon.png'))
         self.PAN_ICON = QtGui.QIcon(QtGui.QPixmap(
             core.system.visTrailsRootDirectory() +
             '/gui/resources/images/pan_icon.png'))
         self.ZOOM_ICON = QtGui.QIcon(QtGui.QPixmap(
             core.system.visTrailsRootDirectory() +
             '/gui/resources/images/zoom_icon.png'))
-                
+
         #### COLORS ####
         # Color for the PIP frame
         self.PIP_FRAME_COLOR = QtGui.QColor(

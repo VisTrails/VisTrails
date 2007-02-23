@@ -225,7 +225,6 @@ class VistrailController(QtCore.QObject):
             self.currentPipeline = self.vistrail.getPipeline(newVersion)
         else:
             self.currentPipeline = None            
-
         self.emit(QtCore.SIGNAL('versionWasChanged'), newVersion)
             
     def resendVersionWasChanged(self):

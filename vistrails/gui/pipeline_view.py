@@ -349,6 +349,7 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         self.controller = None
         self.module = None
         self.ghosted = False
+        self.isSpreadsheetCell = False
 
     def computeBoundingRect(self):
         """ computeBoundingRect() -> None
@@ -479,6 +480,13 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
             self.outputPorts[port] = self.createPortItem(port, x, y)
             x -= CurrentTheme.PORT_WIDTH + CurrentTheme.MODULE_PORT_SPACE
         self.nextOutputPortPos = [x, y]
+
+        # See if this is a spreadsheet cell
+        if registry.hasModule('SpreadsheetCell'):
+            scDesc = registry.getDescriptorByName('SpreadsheetCell')
+            thisDesc = registry.getDescriptorByName(self.module.name)
+            self.isSpreadsheetCell = issubclass(thisDesc.module,
+                                                scDesc.module)
 
     def createPortItem(self, port, x, y):
         """ createPortItem(port: Port, x: int, y: int) -> QGraphicsPortItem

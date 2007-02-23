@@ -24,6 +24,7 @@ view and a version tree for each opened Vistrail """
 
 from PyQt4 import QtCore, QtGui
 from gui.common_widgets import QDockContainer, QToolWindowInterface
+from gui.pe_tab import QParameterExplorationTab
 from gui.pipeline_tab import QPipelineTab
 from gui.query_tab import QQueryTab
 from gui.version_tab import QVersionTab
@@ -58,7 +59,11 @@ class QVistrailView(QDockContainer):
         self.versionTab.versionView.setPIPScene(            
             self.pipelineTab.pipelineView.scene())
 
-        self.queryTab = QQueryTab()        
+        self.queryTab = QQueryTab()
+
+        self.peTab = QParameterExplorationTab()
+        self.peTab.markPipelineView.setScene(
+            self.pipelineTab.pipelineView.scene())
 
         # Setup a central stacked widget for pipeline view and version
         # tree view in tabbed mode
@@ -67,6 +72,7 @@ class QVistrailView(QDockContainer):
         self.stackedWidget.addWidget(self.pipelineTab)
         self.stackedWidget.addWidget(self.versionTab)
         self.stackedWidget.addWidget(self.queryTab)
+        self.stackedWidget.addWidget(self.peTab)
         self.stackedWidget.setCurrentIndex(1)
 
         # Add the customized toolbar at the top
@@ -175,6 +181,7 @@ class QVistrailView(QDockContainer):
         self.controller.setVistrail(vistrail, name)
         self.versionTab.setController(self.controller)
         self.pipelineTab.setController(self.controller)
+        self.peTab.setController(self.controller)
 
     def stateChanged(self):
         """ stateChanged() -> None

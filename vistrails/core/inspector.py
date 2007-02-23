@@ -137,6 +137,11 @@ class PipelineInspector(object):
         an index into the function and parameter list. This will be
         fixed later with the DB scheme.
 
+        We have discussed for not having aliases know how to map to
+        the index but if we are going to perform the parameter
+        exploration by actions, we have to need it to map an alias
+        change to a ChangeParameterAction.
+
         Remarks: Only aliases and parameters with cardinal types
         (e.g. int, float, str) will be reported.
         
@@ -152,9 +157,8 @@ class PipelineInspector(object):
                     if param.alias and param.alias!='':
                         self.aliases[param.alias] = (moduleId,
                                                      functionId,
-                                                     paramId)        
+                                                     paramId)
 
-        pass
 
 if __name__ == '__main__':
     from core.startup import VistrailsStartup
