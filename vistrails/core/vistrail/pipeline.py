@@ -52,7 +52,7 @@ class Pipeline(object):
         self.graph = Graph()
         self.modules = {}
         self.connections = {}
-        self.aliases = {}
+        self.aliases = Bidict()
         self._subpipeline_signatures = Bidict()
         self._module_signatures = Bidict()
         self._connection_signatures = Bidict()
@@ -135,6 +135,7 @@ class Pipeline(object):
             del self._module_signatures[id]
         if id in self._subpipeline_signatures:
             del self._subpipeline_signatures[id]
+        self.removeAliases(mId=id)
 
     def addModule(self, m):
         """addModule(m: Module) -> None 
@@ -148,14 +149,66 @@ class Pipeline(object):
         self._fresh_module_id = max(self._fresh_module_id,
                                     m.id + 1)
     
-    def addAlias(self, name, type):
-        """addAlias(name: str, type: str) -> None 
+    def addAlias(self, name, type, mId, fId, pId):
+        """addAlias(name: str, type: str, mId: int, fId: int, pId: int) -> None 
         Add alias to pipeline
           
         """
         if self.hasAlias(name):
             raise VistrailsInternalError("duplicate alias")
-        self.aliases[name] = type
+        self.aliases[name] = (type,mId,fId,pId)
+
+    def removeAliasByName(self, name):
+        """removeAliasByName(name: str) -> None
+        Remove alias with given name """
+        if self.hasAlias(name):
+            del self.aliases[name]
+
+    def removeAlias(self,type, mId, fId, pId):
+        """removeAlias(name: str, type: str, mId: int, 
+                       fId: int, pId: int)-> None
+        Remove alias identified by type, mId, fId, pId """
+        if self.aliases.inverse.has_key((type, mId,fId, pId)):
+            oldname = self.aliases.inverse[(type, mId,fId, pId)]
+            del self.aliases[oldname]
+
+    def removeAliases(self, *args, **keywords):
+        """removeAliases(*args, *keywords) -> None
+        Batch removal of aliases. Use keywords mId and fId
+        For example, 
+        remove all aliases of module id 5:
+        >>> pipeline.removeAliases(mId=5)
+        remove all aliases of module id 5, function id 4:
+        >>> pipeline.removeAliases(mId=5,fId=4)
+
+        """
+        if keywords.has_key('mId'):
+            mId = keywords['mId']
+            remove = []
+            if keywords.has_key('fId'):
+                fId = keywords['fId']
+                for k,v in self.aliases.inverse.iteritems():
+                    if k[1] == mId and k[2] == fId:
+                        remove.append(v)
+            else:
+                for k,v in self.aliases.inverse.iteritems():
+                    if k[1] == mId:
+                      remove.append(v)
+            for alias in remove:
+                del self.aliases[alias]
+
+    def changeAlias(self,name, type, mId, fId, pId):
+        """changeAlias(name: str, type: str, mId: int, 
+                       fId: int, pId: int)-> None
+        Change alias if name is non empty. Else remove alias 
+        
+        """
+        if name == "":
+            self.removeAlias(type, mId, fId, pId)
+        else:
+            if not self.hasAlias(name):
+                self.removeAlias(type, mId, fId, pId)
+                self.addAlias(name,type,mId,fId,pId)
 
     def deleteConnection(self, id):
         """ deleteConnection(id:int) -> None 
@@ -338,10 +391,11 @@ for this pipeline."""
 
 ################################################################################
 
-def shorthand_param(t, v):
+def shorthand_param(t, v, a=''):
     p = ModuleParam()
     p.type = t
     p.strValue = v
+    p.alias = a
     return p
 
 def shorthand_function(name, params):
@@ -497,7 +551,6 @@ class TestPipeline(unittest.TestCase):
                                        ('i2', [('Float', '1.0')])]))
         self.assertNotEquals(p1.module_signature(3),
                              p2.module_signature(3))
-        
 
 if __name__ == '__main__':
     unittest.main()

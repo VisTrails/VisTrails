@@ -67,7 +67,7 @@ def run(input, workflow, parameters=''):
             value = e[pos+1:].strip()
             
             if pip.hasAlias(key):
-                ptype = pip.aliases[key]
+                ptype = pip.aliases[key][0]
                 aliases[key] = (ptype,expression.parseExpression(value))
     error = False
     view = DummyView()

@@ -514,9 +514,13 @@ class ChangeParameterAction(Action):
             if param.type.find('char')>-1 or param.type=='str':
                 param.type = 'string'
             param.alias = p[7]
-            if param.alias != "" and not pipeline.hasAlias(param.alias):
-                pipeline.addAlias(param.alias, param.type)
-
+            if not pipeline.hasAlias(param.alias):
+                pipeline.changeAlias(param.alias, 
+                                     param.type, 
+                                     p[0], #module id  
+                                     p[1], #function id
+                                     p[3]) #parameter id
+                    
 Action.createFromXMLDispatch['changeParameter'] = ChangeParameterAction.parse
 
 class DeleteModuleAction(Action):
@@ -721,6 +725,7 @@ class DeleteFunctionAction(Action):
         
         """
         pipeline.getModuleById(self.moduleId).deleteFunction(self.functionId)
+        pipeline.removeAliases(mId=self.moduleId,fId=self.functionId)
 
     def serialize(self, dom, element):
         """ serialize(dom,element) -> None  
@@ -1077,6 +1082,29 @@ class TestAction(unittest.TestCase):
             self.assertEquals(m1.center.x, m2.center.x)
             self.assertEquals(m1.center.y, m2.center.y)
 
-
+    def test3(self):
+        """ Exercises aliases manipulation """
+        import core.vistrail
+        import core.xml_parser
+        parser = core.xml_parser.XMLParser()
+        parser.openVistrail(core.system.visTrailsRootDirectory() +
+                            '/tests/resources/test_alias.xml')
+        v = parser.getVistrail()
+        parser.closeVistrail()
+        p1 = v.getPipeline('alias')
+        p2 = v.getPipeline('alias')
+        #testing removing an alias
+        action = ChangeParameterAction()
+        action.addParameter(0, 0, 0 , "value", "&lt;no description&gt;",
+                            "2.0", "Float", "")
+        action.perform(p1)
+        self.assertEquals(p1.hasAlias('v1'),False)
+        v1 = p2.aliases['v1']
+        action = ChangeParameterAction()
+        action.addParameter(2, 0, 0 , "value", "&lt;no description&gt;",
+                            "2.0", "Float", "v1")
+        action.perform(p2)
+        self.assertEquals(v1, p2.aliases['v1'])
+            
 if __name__ == '__main__':
     unittest.main()

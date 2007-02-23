@@ -524,6 +524,8 @@ class VistrailController(QtCore.QObject):
                                         "","", "")
                 for i in range(f.getNumParams()):
                     p = f.params[i]
+                    if self.currentPipeline.hasAlias(p.alias):
+                        p.alias = ""
                     action.addParameter(newId, fi, i, f.name, p.name,
                                         p.strValue, p.type, p.alias)
                 actions.append(action)
@@ -606,6 +608,11 @@ class VistrailController(QtCore.QObject):
             if self.name=='':
                 self.name = 'Untitled.xml'
             self.emit(QtCore.SIGNAL('stateChanged'))
+
+    def checkAlias(self, name):
+        """checkAlias(alias) -> Boolean 
+        Returns True if current pipeline has an alias named name """
+        return self.currentPipeline.hasAlias(name)
 
     def writeVistrail(self, fileName):
         """ writeVistrail(fileName: str) -> None

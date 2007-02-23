@@ -237,6 +237,16 @@ class QMethodInputForm(QtGui.QGroupBox):
                                                  paramList)
             methodBox.unlockUpdate()
 
+    def checkAlias(self, name):
+        """ checkAlias(name: str) -> Boolean
+        Returns True if the current pipeline already has the alias name
+
+        """
+        methodBox = self.parent().parent().parent()
+        if methodBox.controller:
+            return methodBox.controller.checkAlias(name)
+        return False
+
     def updateFunction(self, function):
         """ updateFunction(function: ModuleFunction) -> None
         Auto create widgets to describes the function 'function'
@@ -332,10 +342,21 @@ class QHoverAliasLabel(QtGui.QLabel):
                                                     'Enter the parameter alias',
                                                     QtGui.QLineEdit.Normal,
                                                     self.alias)
+            while ok and self.parent().checkAlias(str(text)):
+                msg =" This alias is already being used.\
+ Please enter a different parameter alias "
+                (text, ok) = QtGui.QInputDialog.getText(self,
+                                                        'Set Parameter Alias',
+                                                        msg,
+                                                        QtGui.QLineEdit.Normal,
+                                                        text)
             if ok and str(text)!=self.alias:
-                self.alias = str(text)
-                self.updateText()
-                self.parent().updateMethod()
+                if not self.parent().checkAlias(str(text)):
+                    self.alias = str(text).strip()
+                    self.updateText()
+                    self.parent().updateMethod()
+
+                    
 
 class QPythonValueLineEdit(QtGui.QLineEdit):
     """
