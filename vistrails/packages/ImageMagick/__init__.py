@@ -32,7 +32,7 @@ import core.modules.basic_modules
 from core.modules.vistrails_module import Module, ModuleError, newModule, IncompleteImplementation
 import core.requirements
 import core.system
-
+import core.bundles
 import os
 
 import popen2
@@ -203,7 +203,10 @@ def initialize(*args, **keywords):
     print "-----------------------------"
     print "Will test ImageMagick presence..."
 
-    if not core.requirements.executable_file_exists('convert'):
+    
+
+    if (not core.requirements.executable_file_exists('convert') and
+        not core.bundles.install({'linux-ubuntu': 'imagemagick'})):
         raise core.requirements.MissingRequirement("ImageMagick suite")
 
     process = popen2.Popen4("convert -version")
