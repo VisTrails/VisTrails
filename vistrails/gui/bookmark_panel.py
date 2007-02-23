@@ -189,7 +189,16 @@ class QBookmarkTreeWidget(QSearchTreeWidget):
         self.setColumnCount(1)
         self.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
         self.header().hide()
-        
+        self.connect(self, 
+                     QtCore.SIGNAL("itemSelectionChanged()"),
+                     self.checkButtons)
+    
+    def checkButtons(self):
+        if len(self.selectedItems()) == 0:
+            self.parent().parent().removeAction.setEnabled(False)
+        else:
+            self.parent().parent().removeAction.setEnabled(True)
+
     def updateFromBookmarkCollection(self):
         """ updateFromBookmarkCollection() -> None        
         Setup this tree widget to show bookmarks currently inside
@@ -238,11 +247,12 @@ class QBookmarkTreeWidget(QSearchTreeWidget):
     def removeCurrentItem(self):
         """removeCurrentItem() -> None Removes from the GUI and Collection """
         item = self.currentItem()
-        parent = item.parent()
-        parent.takeChild(parent.indexOfChild(item))
-        id = item.bookmark.id
-        del item
-        self.emit(QtCore.SIGNAL("itemRemoved(int)"),id)
+        if item and item.parent():
+            parent = item.parent()
+            parent.takeChild(parent.indexOfChild(item))
+            id = item.bookmark.id
+            del item
+            self.emit(QtCore.SIGNAL("itemRemoved(int)"),id)
          
 
 class QBookmarkTreeWidgetItem(QtGui.QTreeWidgetItem):
