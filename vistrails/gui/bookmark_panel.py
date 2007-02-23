@@ -56,11 +56,11 @@ class QBookmarkPanel(QtGui.QFrame, QToolWindowInterface):
         self.layout().setMargin(0)
         self.layout().setSpacing(0)
         self.bookmarkPalette = QBookmarkPalette(None, self.manager)
+        self.createActions()
+        self.createToolBar()
         layout.addWidget(self.bookmarkPalette, 1)
         self.setWindowTitle('Bookmarks')
         
-        self.createActions()
-        self.createToolBar()
         self.connectSignals()
         
     def createActions(self):
