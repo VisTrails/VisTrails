@@ -33,8 +33,12 @@ from plot import MplPlot, MplPlotConfigurationWidget
 from core.modules.module_configure import PythonSourceConfigurationWidget
 import time
 import urllib
+
+import core.bundles
 try:
-    import matplotlib
+    matplotlib = core.bundles.py_import('matplotlib',
+                                        {'linux-ubuntu': 'python-matplotlib'})
+#     import matplotlib
     matplotlib.use('Qt4Agg')
     import pylab
 except:
