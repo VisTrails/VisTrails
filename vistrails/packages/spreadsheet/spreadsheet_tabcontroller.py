@@ -606,7 +606,6 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                     if progress.wasCanceled():
                         parser.closeVistrail()
                         break
-                    pipeline.resolveAliases()
                     execution.execute(pipeline, vistrailFileName,
                                       version, None, None)
                     parser.closeVistrail()
