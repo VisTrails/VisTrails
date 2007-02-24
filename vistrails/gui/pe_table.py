@@ -30,7 +30,7 @@ from gui.common_widgets import QPromptWidget
 from gui.theme import CurrentTheme
 
 ################################################################################
-class QParameterExplorationTable(QPromptWidget):
+class QParameterExplorationTable(QtGui.QTableWidget):
     """
     QParameterExplorationTable is a grid layout widget having 4
     comlumns corresponding to 4 dimensions of exploration. It accept
@@ -42,51 +42,130 @@ class QParameterExplorationTable(QPromptWidget):
     
     """
     def __init__(self, parent=None):
-        """ QParameterExplorationTable(parent: QLabel)
+        """ QParameterExplorationTable(parent: QWidget)
                                       -> QParameterExplorationTable
         Create an grid layout and accept drops
         
         """
-        QPromptWidget.__init__(self, parent)
-        self.setPromptText('Drag parameter here for a paramter exploration')
-        self.showPrompt()
+        QtGui.QTableWidget.__init__(self, 1, 6, parent)
+        self.setAutoFillBackground(True)
         self.setAcceptDrops(True)
+        self.horizontalHeader().hide()
+        self.horizontalHeader().setStretchLastSection(True)
+        self.verticalHeader().hide()
         
-        gridLayout = QtGui.QGridLayout(self)
-        gridLayout.setMargin(0)
-        gridLayout.setSpacing(0)
-        self.setLayout(gridLayout)
+        self.setCellWidget(0, 0, QDimensionLabel(None, 'Parameter', self))
+
+        self.setCellWidget(0, 1,
+                           QDimensionLabel(CurrentTheme.EXPLORE_COLUMN_PIXMAP,
+                                           'Column', self))
+
+        self.setCellWidget(0, 2,
+                           QDimensionLabel(CurrentTheme.EXPLORE_ROW_PIXMAP,
+                                           'Row', self))
+
+        self.setCellWidget(0, 3,
+                           QDimensionLabel(CurrentTheme.EXPLORE_SHEET_PIXMAP,
+                                           'Sheet', self))
+
+        self.setCellWidget(0, 4,
+                           QDimensionLabel(CurrentTheme.EXPLORE_TIME_PIXMAP,
+                                           'Time', self))
+        self.setCellWidget(0, 5, QDimensionLabel(None, 'Skip', self))
+
+        self.updateColumnSizes()
+        self.verticalHeader().resizeSection(0, 80)
+
+    def updateColumnSizes(self):
+        """ updateColumnSizes() -> None
+        We resize 4 dimensional columns and fixed the two end ones
         
-        columnLabel = QtGui.QLabel()
-        columnLabel.setFrameStyle(QtGui.QFrame.StyledPanel)
-        columnLabel.setPixmap(CurrentTheme.EXPLORE_COLUMN_PIXMAP)
-        gridLayout.addWidget(columnLabel,
-                             0, 1, 1, 1,
-                             QtCore.Qt.AlignCenter)
+        """
+        nameColumnWidth = 90
+        ignoreColumnWidth = 40
+        usableWidth = (self.width() - nameColumnWidth - ignoreColumnWidth)
+        shares = 3
+        self.horizontalHeader().resizeSection(0, 90)
+        # Assign the default column width and row height
+        for i in range(shares):
+            width = usableWidth/shares + int(i<(usableWidth%shares))-1
+            self.horizontalHeader().resizeSection(1+i,
+                                                  width)
+        self.horizontalHeader().resizeSection(4, 10)
 
-        rowLabel = QtGui.QLabel()
-        rowLabel.setFrameStyle(QtGui.QFrame.StyledPanel)
-        rowLabel.setPixmap(CurrentTheme.EXPLORE_ROW_PIXMAP)
-        gridLayout.addWidget(rowLabel,
-                             0, 2, 1, 1,
-                             QtCore.Qt.AlignCenter)
+    def resizeEvent(self, event):
+        """ resizeEvent(event: QResizeEvent) -> None
+        Make sure we resize the column appropriately
+        
+        """
+        self.updateColumnSizes()
+        QtGui.QTableWidget.resizeEvent(self, event)
 
-        sheetLabel = QtGui.QLabel()
-        sheetLabel.setFrameStyle(QtGui.QFrame.StyledPanel)
-        sheetLabel.setPixmap(CurrentTheme.EXPLORE_SHEET_PIXMAP)
-        gridLayout.addWidget(sheetLabel,
-                             0, 3, 1, 1,
-                             QtCore.Qt.AlignCenter)
+    def paintEvent(self, event):
+        """ paintEvent(event: QPaintEvent) -> None
+        Make sure to promptly show a message when there is not yet
+        any parameter
+        
+        """
+        QtGui.QTableWidget.paintEvent(self, event)
+        if self.rowCount()==1:
+            painter = QtGui.QPainter(self.viewport())
+            painter.setRenderHints(QtGui.QPainter.Antialiasing)
+            font = QtGui.QFont(self.font())
+            font.setItalic(True)
+            painter.setFont(font)
+            painter.drawText(self.rect(),
+                             QtCore.Qt.AlignCenter | QtCore.Qt.TextWrapAnywhere,
+                             'Drag aliases/parameters here for a parameter '
+                             'exploration')
+            painter.end()            
 
-        timeLabel = QtGui.QLabel()
-        timeLabel.setFrameStyle(QtGui.QFrame.StyledPanel)
-        timeLabel.setPixmap(CurrentTheme.EXPLORE_TIME_PIXMAP)
-        gridLayout.addWidget(timeLabel,
-                             0, 4, 1, 1,
-                             QtCore.Qt.AlignCenter)
+class QDimensionLabel(QtGui.QWidget):
+    """
+    QDimensionLabel represents the horizontal header item of the
+    parameter window. It has a large icon and a small description
+    
+    """
+    def __init__(self, pix, text, parent=None):
+        """ QDimensionLabel(pix: QPixmap, text: str, parent: QWidget) -> None
+        Initialize the label with an icon and a caption
+        
+        """
+        QtGui.QWidget.__init__(self, parent)
+        self.setAutoFillBackground(True)
+        self.setLayout(QtGui.QVBoxLayout(self))
+        label = QtGui.QLabel()
+        label.setAlignment(QtCore.Qt.AlignCenter)
+        if pix:
+            label.setPixmap(pix)
+        else:
+            font = QtGui.QFont(label.font())
+            font.setBold(True)
+            font.setUnderline(True)
+            label.setFont(font)
+            label.setText(text)
+        self.layout().addWidget(label)
 
-        paddedSouth = QtGui.QLabel()
-        paddedSouth.setAutoFillBackground(False)
-        paddedSouth.setSizePolicy(QtGui.QSizePolicy.Ignored,
-                                  QtGui.QSizePolicy.Expanding)
-        gridLayout.addWidget(paddedSouth, 1, 1)
+    def paintEvent(self, event):
+        """ paintEvent(event: QPaintEvent) -> None
+        Make sure to promptly show a message when there is not yet
+        any parameter
+        
+        """
+        # Force to draw the background
+        painter = QtGui.QPainter(self)
+        painter.fillRect(event.rect(), self.palette().brush(QtGui.QPalette.Window))
+        painter.end()
+        QtGui.QWidget.paintEvent(self, event)
+    
+
+################################################################################
+
+if __name__=="__main__":        
+    import sys
+    import gui.theme
+    app = QtGui.QApplication(sys.argv)
+    gui.theme.initializeCurrentTheme()
+    vc = QDimensionLabel(CurrentTheme.EXPLORE_SHEET_PIXMAP, 'Hello World')
+    vc.show()
+    sys.exit(app.exec_())

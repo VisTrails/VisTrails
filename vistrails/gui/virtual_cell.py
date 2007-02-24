@@ -51,7 +51,6 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         label = QtGui.QLabel('Arrange the cell(s) below to construct'
                              ' a virtual cell')
         font = QtGui.QFont(label.font())
-        font.setItalic(True)
         label.setFont(font)
         label.setWordWrap(True)        
         vLayout.addWidget(label)

@@ -57,6 +57,7 @@ class QMarkPipelineView(QPipelineView, QToolWindowInterface):
         QPipelineView.paintEvent(self, event)
         if self.scene():
             painter = QtGui.QPainter(self.viewport())
+            painter.setRenderHints(QtGui.QPainter.Antialiasing)
             id = 1
             for item in self.scene().modules.itervalues():
                 if item.isSpreadsheetCell:

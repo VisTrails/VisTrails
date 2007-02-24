@@ -224,7 +224,7 @@ class DefaultTheme(object):
         self.VIRTUAL_CELL_LABEL_ID_PEN = QtGui.QPen(
             QtCore.Qt.white)
         self.VIRTUAL_CELL_LABEL_ID_BRUSH = QtGui.QBrush(
-            QtGui.QColor(0, 0, 255, 255))
+            QtGui.QColor(157, 0, 0, 255))
     
         #### FONTS ####        
         # Font for shape engine text

@@ -44,7 +44,7 @@ class QParameterView(QSearchTreeWindow, QToolWindowInterface):
         Return the search tree widget for this window
         
         """
-        self.setWindowTitle('Paramters')
+        self.setWindowTitle('Parameters')
         return QParameterTreeWidget(self)
 
 class QParameterTreeWidget(QSearchTreeWidget):
@@ -66,7 +66,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
 
     def updateFromPipeline(self, pipeline):
         """ updateFromPipeline(pipeline: Pipeline) -> None
-        Read the list of aliases and paramters from the pipeline
+        Read the list of aliases and parameters from the pipeline
         
         """
         self.clear()
@@ -146,10 +146,10 @@ class QParameterTreeWidgetItemDelegate(QtGui.QItemDelegate):
                                option.palette,
                                self.treeView.isEnabled(),
                                text)
-            painter.setPen(QtGui.QPen(QtCore.Qt.black, 2))
+            painter.setPen(QtGui.QPen(QtCore.Qt.black))
             painter.drawLine(textrect.left()-5,
                              textrect.bottom(),
-                             textrect.left()+textrect.width()*0.8,
+                             textrect.left()+textrect.width(),
                              textrect.bottom())
         else:
             QtGui.QItemDelegate.paint(self, painter, option, index)
