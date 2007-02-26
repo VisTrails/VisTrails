@@ -43,6 +43,23 @@ def executable_file_exists(filename):
 Returns if certain file is in current path and is executable."""
     return core.system.executable_is_in_path(filename) != ""
 
+# FIXME: Add documentation.
+
+def require_python_module(module_name):
+    if not python_module_exists(module_name):
+        raise MissingRequirement(module_name)
+
+def require_executable(filename):
+    if not executable_file_exists(filename):
+        raise MissingRequirement(filename)
+
+def check_all_vistrails_requirements():
+    # check dot
+    require_executable('dot')
+    # check pyqt4
+    require_python_module('PyQt4')
+
+
 ##############################################################################
 
 class MissingRequirement(Exception):
