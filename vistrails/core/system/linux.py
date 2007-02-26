@@ -21,9 +21,8 @@
 ############################################################################
 import os
 import shutil
-from ctypes import CDLL, c_void_p
-from PyQt4 import QtGui
 from core.system.unix import executable_is_in_path
+import core.bundles
 
 ################################################################################
 
@@ -106,6 +105,7 @@ def getClipboard():
     On Linux, the global mouse selection should be used.
 
     """
+    from PyQt4 import QtGui
     return QtGui.QClipboard.Selection
 
 def getLibX11():
@@ -115,6 +115,11 @@ def getLibX11():
     different machines. Right now, libX11.so.6 is used.
     
     """
+    ctypes = core.bundles.pyimport.py_import('ctypes',
+                                             {'linux-ubuntu':
+                                              'python-ctypes'})
+    c_void_p = ctypes.c_void_p
+    CDLL = ctypes.CDLL
     return CDLL('libX11.so.6')
 
 def XDestroyWindow(displayId, windowId):
@@ -129,6 +134,10 @@ def XDestroyWindow(displayId, windowId):
     Qt widget
     
     """
+    ctypes = core.bundles.pyimport.py_import('ctypes',
+                                             {'linux-ubuntu':
+                                              'python-ctypes'})
+    c_void_p = ctypes.c_void_p
     displayPtr = c_void_p(int(displayId[1:displayId.find('_void_p')], 16))
     windowPtr = c_void_p(int(windowId[1:windowId.find('_void_p')], 16))
     libx = getLibX11()
