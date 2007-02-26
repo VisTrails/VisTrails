@@ -22,6 +22,9 @@
 """Main file for the VisTrails distribution."""
 
 if __name__ == '__main__':
+    import core.requirements
+    core.requirements.check_all_vistrails_requirements()
+
     from PyQt4 import QtGui
     import gui.application
     import sys
