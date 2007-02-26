@@ -660,9 +660,8 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
             global widget
             widget = widgetType(module, self.controller, None)
             widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-            QtCore.QObject.connect(widget, QtCore.SIGNAL('doneConfigure()'),
-                                   self.controller.resendVersionWasChanged)
-            widget.show()
+            widget.exec_()
+            self.controller.resendVersionWasChanged()
         
 
 class QPipelineScene(QInteractiveGraphicsScene):

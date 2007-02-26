@@ -246,10 +246,11 @@ class QPromptWidget(QtGui.QLabel):
         QtGui.QLabel.__init__(self, parent)        
         self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         self.setWordWrap(True)
-        self.regularFont = QtGui.QFont(self.font())
+        self.regularFont = self.font()
         self.promptFont = QtGui.QFont(self.font())
         self.promptFont.setItalic(True)
         self.promptText = ''
+        self.promptVisible = False
 
     def setPromptText(self, text):
         """ setPromptText(text: str) -> None
@@ -257,20 +258,16 @@ class QPromptWidget(QtGui.QLabel):
         
         """
         self.promptText = text
-        self.showPromptByChildren()
 
     def showPrompt(self, show=True):
         """ showPrompt(show: boolean) -> None
         Show/Hide the prompt
         
         """
-        if show:
-            self.setFont(self.promptFont)
-            self.setText(self.promptText)
-        else:
-            self.setFont(self.regularFont)
-            self.setText(QtCore.QString())
-
+        if show!=self.promptVisible:
+            self.promptVisible = show
+            self.repaint(self.rect())
+            
     def showPromptByChildren(self):
         """ showPromptByChildren()
         Show/Hide the prompt based on the current state of children
@@ -280,4 +277,18 @@ class QPromptWidget(QtGui.QLabel):
             self.showPrompt(False)
         else:
             self.showPrompt(self.layout()==None or
-                            self.layout().count()==0)
+                            self.layout().count()==0)            
+
+    def paintEvent(self, event):
+        """ paintEvent(event: QPaintEvent) -> None
+        Paint the prompt in the center if neccesary
+        
+        """
+        if self.promptVisible:
+            painter = QtGui.QPainter(self)
+            painter.setFont(self.promptFont)
+            painter.drawText(self.rect(),
+                             QtCore.Qt.AlignCenter | QtCore.Qt.TextWordWrap,
+                             self.promptText)
+            painter.end()            
+        QtGui.QLabel.paintEvent(self, event)

@@ -27,7 +27,6 @@ from PyQt4 import QtCore, QtGui
 from core.inspector import PipelineInspector
 from gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget, \
      QToolWindowInterface
-from gui.pe_table import QParameterExplorationTable
 from gui.virtual_cell import QVirtualCellWindow
 from gui.pe_pipeline import QMarkPipelineView
 
@@ -80,22 +79,33 @@ class QParameterTreeWidget(QSearchTreeWidget):
                 (aType, mId, fId, pId) = info
                 v = pipeline.modules[mId].functions[fId].params[pId].strValue
                 label = QtCore.QStringList('%s = %s' % (alias, v))
-                aliasItem = QParameterTreeWidgetItem(info, aliasRoot, label)
+                aliasItem = QParameterTreeWidgetItem((alias,
+                                                      [(aType, v,
+                                                        mId, fId, pId)]),
+                                                     aliasRoot, label)
             aliasRoot.setExpanded(True)
             
         # Now go through all modules and functions
         for mId, module in pipeline.modules.iteritems():
             if len(module.functions)>0:
                 label = QtCore.QStringList(module.name)
-                moduleItem = QParameterTreeWidgetItem(None, self, label)
+                moduleItem = None
                 for fId in range(len(module.functions)):
                     function = module.functions[fId]
+                    if len(function.params)==0: continue
+                    if moduleItem==None:
+                        moduleItem = QParameterTreeWidgetItem(None, self, label)
                     v = ', '.join([p.strValue for p in function.params])
                     label = QtCore.QStringList('%s(%s)' % (function.name, v))
-                    mItem = QParameterTreeWidgetItem((mId, fId),
+                    pList = [(function.params[pId].type,
+                              function.params[pId].strValue,
+                              mId, fId, pId)
+                             for pId in range(len(function.params))]
+                    mItem = QParameterTreeWidgetItem((function.name, pList),
                                                      moduleItem,
                                                      label)
-                moduleItem.setExpanded(True)
+                if moduleItem:
+                    moduleItem.setExpanded(True)
                     
             
             
@@ -147,9 +157,11 @@ class QParameterTreeWidgetItemDelegate(QtGui.QItemDelegate):
                                self.treeView.isEnabled(),
                                text)
             painter.setPen(QtGui.QPen(QtCore.Qt.black))
+            fm = QtGui.QFontMetrics(font)
+            size = fm.size(QtCore.Qt.TextSingleLine, text)
             painter.drawLine(textrect.left()-5,
                              textrect.bottom(),
-                             textrect.left()+textrect.width(),
+                             textrect.left()+size.width()+5,
                              textrect.bottom())
         else:
             QtGui.QItemDelegate.paint(self, painter, option, index)
@@ -169,13 +181,22 @@ class QParameterTreeWidgetItem(QtGui.QTreeWidgetItem):
     
     """
     def __init__(self, info, parent, labelList):
-        """ QParameterTreeWidgetItem(parent: QTreeWidgetItem
-                                  labelList: QStringList)
-                                  -> QParameterTreeWidget
+        """ QParameterTreeWidgetItem(info: (str, []),
+                                     parent: QTreeWidgetItem
+                                     labelList: QStringList)
+                                     -> QParameterTreeWidget
+                                     
         Create a new tree widget item with a specific parent and
-        labels
+        labels. info describing a set of paramters as follow:
+        (name, [(type, value, mId, fId, pId), ...]):
+           name  = Name of the parameter set (alias or function)
+           type  = type of the parameter
+           value = default value
+           mId   = module id
+           fId   = function id
+           pId   = parameter id
 
         """
-        self.info = info
+        self.parameter = info
         QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
         

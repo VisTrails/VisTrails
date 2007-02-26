@@ -42,7 +42,7 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
     those input as a result.
 
     When subclassing StandardModuleConfigurationWidget, there are
-    only a few things we care about:
+    only two things we need to care about:
     
     1) The builder will provide the VistrailController (through the
        constructor) associated with the pipeline the module is in. The
@@ -62,11 +62,6 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
        module information (ports) changing in time. The same module
        can have different types of input ports at two different time
        in the same vistrail.
-
-    3) After updating the controller and finish the configuration,
-       remember to emit the signal 'doneConfigure()' (if the module
-       has been modified) so that the builder can update itself to
-       reflect the new controller and module
 
     That's it, the rest of the widget will be just like a regular Qt
     widget.
@@ -160,7 +155,6 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
         
         """
         self.updateVistrail()
-        self.emit(QtCore.SIGNAL('doneConfigure()'))
         self.close()
 
     def newInputPorts(self):

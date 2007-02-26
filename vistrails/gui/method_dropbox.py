@@ -113,9 +113,12 @@ class QMethodDropBox(QtGui.QScrollArea):
         self.vWidget.clear()
         if module:
             fId = 0
-            for f in module.functions:                
+            for f in module.functions:
                 self.vWidget.addFunction(module.id, fId, f)
                 fId += 1
+            self.vWidget.showPromptByChildren()
+        else:
+            self.vWidget.showPrompt(False)
 
     def lockUpdate(self):
         """ lockUpdate() -> None
@@ -179,7 +182,6 @@ class QVerticalWidget(QPromptWidget):
                 del child
             else:
                 break
-        self.showPrompt(True)
         self.setEnabled(True)
 
 class QMethodInputForm(QtGui.QGroupBox):

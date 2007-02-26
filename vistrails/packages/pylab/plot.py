@@ -172,5 +172,4 @@ class _MplPlotConfigurationWidget(StandardModuleConfigurationWidget):
         
         """
         self.updateController(self.controller)
-        self.emit(QtCore.SIGNAL('doneConfigure()'))
         self.close()

@@ -27,7 +27,7 @@ QParameterExplorationTab
 from PyQt4 import QtCore, QtGui
 from core.inspector import PipelineInspector
 from gui.common_widgets import QDockContainer, QToolWindowInterface
-from gui.pe_table import QParameterExplorationTable
+from gui.pe_table import QParameterExplorationWidget
 from gui.virtual_cell import QVirtualCellWindow
 from gui.param_view import QParameterView
 from gui.pe_pipeline import QMarkPipelineView
@@ -52,7 +52,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         self.toolWindow().setFeatures(QtGui.QDockWidget.NoDockWidgetFeatures)
         self.toolWindow().hide()
 
-        self.peTable = QParameterExplorationTable()
+        self.peTable = QParameterExplorationWidget()
         self.setCentralWidget(self.peTable)
         
         self.paramView = QParameterView(self)

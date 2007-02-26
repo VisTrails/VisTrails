@@ -367,6 +367,15 @@ class DefaultTheme(object):
         self.EXPLORE_TIME_PIXMAP = QtGui.QPixmap(
             core.system.visTrailsRootDirectory() +
             '/gui/resources/images/time.png')        
+        self.EXPLORE_SKIP_PIXMAP = QtGui.QPixmap(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/skip.png')        
+        self.REMOVE_PARAM_PIXMAP = QtGui.QPixmap(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/remove_param.png')        
+        self.RIGHT_ARROW_PIXMAP = QtGui.QPixmap(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/right.png')        
 
         # Cursor for zoom in/out graphics views
         self.SELECT_CURSOR = QtGui.QCursor(QtCore.Qt.ArrowCursor)

@@ -122,7 +122,6 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
                 self.module.portVisible.add(port.name)
             else:
                 self.module.portVisible.discard(port.name)
-        self.emit(QtCore.SIGNAL('doneConfigure()'))
         self.close()
         
 
