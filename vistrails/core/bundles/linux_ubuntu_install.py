@@ -98,7 +98,6 @@ class GUIFetchProgress(FetchProgress):
     def updateStatus(self, uri, descr, shortDescr, status):
         if status != self.dlQueued:
             print "\r%s %s" % (self.dlStatusStr[status], descr)
-        self.items[uri] = status
     
         
 class Window(QtGui.QWidget):
