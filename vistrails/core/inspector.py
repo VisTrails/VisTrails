@@ -104,16 +104,32 @@ class PipelineInspector(object):
             if srcModule.name=='InputPort':
                 spec = registry.getInputPortSpec(dstModule,
                                                  conn.destination.name)
-                self.inputPorts[srcModule.id] = (conn.destination.name,
+                name = self.getPortName(srcModule)
+                if name=='':
+                    name = conn.destination.name
+                self.inputPorts[srcModule.id] = (name,
                                                  spec[0])
-                self.inputPortByName[conn.destination.name] = srcModule.id
+                self.inputPortByName[name] = srcModule.id
             if dstModule.name=='OutputPort':
                 spec = registry.getOutputPortSpec(srcModule,
                                                  conn.source.name)
+                name = self.getPortName(dstModule)
+                if name=='':
+                    name = conn.source.name
                 self.outputPorts[dstModule.id] = (conn.source.name,
                                                   spec[0])
-                self.outputPortByName[conn.source.name] = dstModule.id
+                self.outputPortByName[name] = dstModule.id
 
+    def getPortName(self, module):
+        """ getPortName(module: InputPort/OutputPort) -> str
+        Return the real name of the port module based on 'name' function
+        
+        """
+        for f in module.functions:
+            if f.name=='name' and f.params:
+                return f.params[0].strValue
+        return ''
+            
     def inspectSpreadsheetCells(self, pipeline):
         """ inspectSpreadsheetCells(pipeline: Pipeline) -> None
         Inspect the pipeline to see how many cells is needed
