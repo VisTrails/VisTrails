@@ -23,7 +23,9 @@ import os
 import os.path
 import sys
 import platform
+import popen2
 from core.utils import unimplemented, VistrailsInternalError
+import core.requirements
 
 ################################################################################
 
@@ -153,9 +155,28 @@ def vistrailsVersion():
    # 0.4 is cleaned up version with new GUI
    return '0.4'
 
+def vistrailsRevision():
+    """vistrailsRevision() -> str 
+    When run on a working copy, shows the current svn revision else
+    shows the latest release revision
+
+    """
+    release = "444"
+    if core.requirements.executable_file_exists('svn'):
+        process = popen2.Popen4("svn info")
+        result = -1
+        while result == -1:
+            result = process.poll()
+        svn_output = process.fromchild
+        revision_line = svn_output.readlines()[4][:-1].split(' ')
+        if result == 0:
+            if revision_line[0] == 'Revision:':
+                return revision_line[1]
+    return release
+        
 def aboutString():
    """aboutString() -> string - Returns the about string for VisTrails."""
-   return """VisTrails version %s -- vistrails@sci.utah.edu
+   return """VisTrails version %s.%s -- vistrails@sci.utah.edu
 
 Copyright (c) 2006-2007 University of Utah. All rights reserved.
 http://www.vistrails.org
@@ -177,7 +198,7 @@ PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING \
 RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A \
 FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF \
 SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH \
-DAMAGES.""" % vistrailsVersion()
+DAMAGES.""" % (vistrailsVersion(), vistrailsRevision())
 
 ################################################################################
 

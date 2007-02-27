@@ -21,14 +21,14 @@
 ;############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 0.4 (rev389)
+AppVerName=VisTrails 0.4 (rev444)
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$e3dfe0
 DefaultDirName={code:CustomAppDir}\VisTrails
 SetupIconFile=resources\icons\vistrails_install2.ico
 DefaultGroupName=VisTrails
-InfoAfterFile=C:\Documents and Settings\emanuele\Desktop\vistrails_svn\trunk\dist\windows\Input\releaseNotes.txt
+InfoAfterFile=C:\Documents and Settings\emanuele\Desktop\vistrails_svn\branches\2007-02-23\dist\windows\Input\releaseNotes.txt
 DisableDirPage=false
 PrivilegesRequired=none
 RestartIfNeededByRun=false
@@ -64,6 +64,8 @@ Source: ..\..\examples\data\head.120.vtk; DestDir: {app}\examples\data
 Source: ..\..\examples\data\spx.vtk; DestDir: {app}\examples\data
 Source: ..\..\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 Source: Input\startup.py; DestDir: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails; Flags: onlyifdoesntexist uninsneveruninstall; Components: ; Tasks: 
+Source: Input\unzip.exe; DestDir: {app}\vistrails
+Source: Input\unzip32.dll; DestDir: {app}\vistrails
 Source: C:\Qt\4.2.2\bin\*.dll; DestDir: {app}\vistrails
 Source: C:\WINDOWS\system32\python24.dll; DestDir: {app}\vistrails
 Source: C:\code\VTKbuild\bin\release\*.dll; DestDir: {app}\vistrails
@@ -73,7 +75,6 @@ Name: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails
 Name: {app}\vistrails
 Name: {app}\examples; Components: ; Tasks: 
 Name: {app}\examples\data
-Name: {app}\vistrails\graphviz
 Name: {app}\vistrails\Python24
 Name: {app}\vistrails\vtk
 Name: {app}\vistrails\vistrails\vtk
@@ -100,6 +101,8 @@ Name: desktopicon\user; Description: For the current user only; GroupDescription
 Name: quicklaunchicon; Description: Create a &Quick Launch icon; GroupDescription: Additional icons:; Components: main; Flags: unchecked
 
 [Code]
+var
+	FinishedInstall: Boolean;
 function CustomAppDir(Param: String): String;
 begin
 	if IsAdminLoggedOn then
@@ -108,6 +111,23 @@ begin
 		Result := ExpandConstant('{userappdata}')
 end;
 
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssPostInstall then
+    FinishedInstall := True;
+end;
+
+procedure DeinitializeSetup();
+var
+  qvtk: String;
+  ResultCode: Integer;
+begin
+  if FinishedInstall then begin
+      qvtk := ExpandConstant('{app}') + '\vistrails\packages\spreadsheet\widgets\QVTKWidget';
+	  if DirExists(qvtk) then
+		DelTree(qvtk, True, True, True);
+    end;
+end;
 [_ISTool]
 LogFile=C:\Documents and Settings\emanuele\Desktop\vistrails_svn\trunk\dist\windows\Output\build.log
 LogFileAppend=false

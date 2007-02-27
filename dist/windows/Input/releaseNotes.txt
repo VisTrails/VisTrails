@@ -1,7 +1,40 @@
-Release Name: 389
+Release Name: 444
 
-Notes:
-  This is mainly a bug fix release.
+Changes:
+ - Added pylab package that wraps Matplotlib
+ - Added vistrails examples illustrating the use of pylab, 
+   abstraction (subpipelines), offscreen rendering, and CORIE
+ - Added tetra mesh contour pipeline to vtk_http.xml example
+ - Packages now check for dependencies when loaded
+ - Moved QVTKWidget, VTKCell from spreadsheet package to vtk package
+ - Fixed bugs in HTTP package
+ - Added vtkInteractionHandler module to vtk package which can be 
+   used to control a vtk widget (see Implicit Plane Clipper workflow
+   inside vtk.xml example)
+ - Allowing the spreadsheet to run in non-interactive mode if the  
+   user wants to
+ - Bug fixes in Copying and Paste a PythonSource module
+ - Bug fixes when using logging (workflow execution was not being 
+   captured)
+ - Separating the startup process from QApplication initialization.
+   Vistrails can now be imported as a python package in a python 
+   script without creating a QApplication (see sample in 
+   core.inspector.py)   
+ - Aliased parameters can now be set when running vistrails in non-
+   interactive mode with the "-a" option. See wiki FAQ for an example.
+ - Checking if appropriate QT version (>=4.2.0) is installed, raising
+   missing requirement exception otherwise.
+ - Fixed bug that allowed duplicate alias in a same pipeline
+ - Fixed bug on deleting bookmarks
+ - Fixed bug that prevented the tooltip to be shown on a port when 
+   dragging a connection
+ - Other minor fixes and cosmetic changes
+
+--------------------------------------------------------------------
+
+Changes from previous releases
+
+From release 389:
 
 Changes:
  - Fixed more memory leaks
@@ -14,11 +47,6 @@ Changes:
  - Windows installer does not require administrator privileges anymore
  - Windows uninstaller now removes *.pyc files
  - Fixed bug in the lung.xml example
-
---------------------------------------------------------------------
-
-Changes from previous releases
-
 
 From release 370:
 
@@ -46,18 +74,15 @@ Bug Fixes:
 - Fixed webservicee example to reflect FilePool method name change
 - Fixed head.xml to use only the head data set.
 
-
-
-Changes from release 288
-Notes:
-Changes:
+From release 288:
 
 - Fixed crash when writing a vistrail.
 - Fixed bug when setting ports in PythonSource
     Pressing enter had the same effect as clicking on the OK button
 - Fixed VisTrails Diff between two version whose common parent is the empty version
 - Fixed bug that closed panels on the builder didn't come back
-- Vistrail Toolbar is not allowed to be hidden anymore. Right click on the tool bar will bring up a pop-up menu for toggling tool windows
+- Vistrail Toolbar is not allowed to be hidden anymore. Right click on the tool 
+  bar will bring up a pop-up menu for toggling tool windows
 - Fixed bug that alias changes were not being saved
 - Removed warning SetParentInfo method not implemented on Mac
 - VTK Package: Raising a exception if VTK version < 5.0.0

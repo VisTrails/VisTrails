@@ -334,12 +334,17 @@ it avoids moving the entire file contents to/from memory."""
 
     if core.system.systemType in ['Windows', 'Microsoft']:
         def extract(self):
-            import zipfile
-            output_file = file(self._output_filename, 'w')
-            zip_file = zipfile.ZipFile(self._archive)
-            contents = zip_file.read(self._filename_in_archive)
-            output_file.write(contents)
-            output_file.close()
+            os.system('unzip -p "%s" "%s" > "%s"' %
+                      (self._archive,
+                       self._filename_in_archive,
+                       self._output_filename))
+# zipfile cannot handle big files
+#            import zipfile
+#             output_file = file(self._output_filename, 'w')
+#             zip_file = zipfile.ZipFile(self._archive)
+#             contents = zip_file.read(self._filename_in_archive)
+#             output_file.write(contents)
+#             output_file.close()
     else:
         def extract(self):
             os.system("unzip -p %s %s > %s" %
