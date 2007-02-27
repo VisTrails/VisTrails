@@ -39,6 +39,7 @@ from gui.graphics_view import (QInteractiveGraphicsScene,
                                QGraphicsRubberBandItem)
 from gui.theme import CurrentTheme
 from gui.vis_diff import QVisualDiff
+import gui.utils
 import math
 
 ################################################################################
@@ -396,7 +397,23 @@ class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
         Emit signal containing version info: tag and number 
         
         """
-        self.scene().emit( QtCore.SIGNAL('addToBookmarks'), self.id, self.label) 
+        modified = False
+        if self.scene().controller.changed:
+            modified = True
+            res = gui.utils.show_question("VisTrails",
+                                    "You need to save your file before\
+ adding a bookmark.\nDo you want to save your changes?",
+                                    [gui.utils.SAVE_BUTTON, 
+                                     gui.utils.CANCEL_BUTTON],
+                                    gui.utils.SAVE_BUTTON)
+            if res == gui.utils.SAVE_BUTTON:
+                fileName = self.scene().controller.fileName
+                self.scene().controller.writeVistrail(str(fileName))
+                modified = False
+
+        if not modified:
+            self.scene().emit( QtCore.SIGNAL('addToBookmarks'), 
+                               self.id, self.label) 
 
 class QVersionTreeScene(QInteractiveGraphicsScene):
     """

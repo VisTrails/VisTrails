@@ -23,8 +23,9 @@
 """ Utilities for creating simple dialogs, notifications in Vistrails
 without exposing Qt codes """
 
-from PyQt4 import QtGui
-
+from PyQt4 import QtGui, QtCore
+from gui.theme import CurrentTheme
+from core.system import systemType
 ################################################################################
 
 OK_BUTTON              = QtGui.QMessageBox.Ok
@@ -47,12 +48,35 @@ RETRY_BUTTON           = QtGui.QMessageBox.Retry
 IGNORE_BUTTON          = QtGui.QMessageBox.Ignore
 NOBUTTON_BUTTON        = QtGui.QMessageBox.NoButton
 
+_buttons_captions_dict = { OK_BUTTON   : "Ok",
+                           OPEN_BUTTON : "Open",
+                           SAVE_BUTTON : "Save",
+                           CANCEL_BUTTON : "Cancel",
+                           CLOSE_BUTTON : "Close",
+                           DISCARD_BUTTON : "Discard",
+                           APPLY_BUTTON : "Apply",
+                           RESET_BUTTON : "Reset",
+                           RESTOREDEFAULTS_BUTTON : "Restore Defaults",
+                           HELP_BUTTON : "Help",
+                           SAVEALL_BUTTON : "Save All",
+                           YES_BUTTON : "Yes",
+                           NO_BUTTON : "No",
+                           NOTOALL_BUTTON : "No to All",
+                           ABORT_BUTTON : "Abort",
+                           RETRY_BUTTON : "Retry",
+                           IGNORE_BUTTON : "Ignore",
+                           NOBUTTON_BUTTON : ""}
+
+                           
 def show_warning(title, message):
     """ show_warning(title: str, message: str) -> None
     Show a warning  message box with a specific title and contents
     
     """
-    QtGui.QMessageBox.warning(None, title, message)
+    if systemType not in ['Darwin']:
+        QtGui.QMessageBox.warning(None, title, message)
+    else:
+        show_custom(title,message)
 
 def show_question(title,
                   message,
@@ -72,27 +96,45 @@ def show_question(title,
     qButtons = QtGui.QMessageBox.StandardButtons()
     for button in buttons:
         qButtons |= button
-    return QtGui.QMessageBox.question(None, title, message, qButtons, default)
+    if systemType not in ['Darwin']:
+        return QtGui.QMessageBox.question(None, title, message, 
+                                          qButtons, default)
+    else:
+        return show_custom(title,message,None,buttons)
 
-def show_custom(title, message,
-                button1, button2='', button3='',
-                default=0, escape=-1):
+def show_custom(title, message, icon=None,
+                buttons = [OK_BUTTON], default=OK_BUTTON, escape=-1):
     """ show_custom(title: str,
                     message: str,
-                    button0, button1, button2: str,
-                    default: int,
-                    escape: int) -> int                    
-    Show a custom dialog box with up to 3 buttons. The 3 buttons will
-    have labels as specified in button0, button1, button2. If a label
-    is empty. The button will not be shown. The function return a
-    number as specified which button is pressed. Default and escape
-    defined which button or value returned when Enter/Esc keys are
-    pressed.
+                    icon: QPixmap
+                    buttons: list of buttons (defined above) 
+                    default: str
+                    escape: str) -> int                    
+    Show a custom dialog box. 
+    Default is the button in buttons that will be clicked if
+    the user presses Enter. escape is the button in buttons 
+    that will be clicked if Esc is pressed.
+    The function returns the index of the button that was pressed.
     
     """
-    if button0=='': button0 = QtCore.QString()
-    if button1=='': button1 = QtCore.QString()
-    if button2=='': button2 = QtCore.QString()
-    return QtGui.QMessageBox.question(None, title, message,
-                                      button0, button1, button2,
-                                      default, escape)
+    msgBox = QtGui.QMessageBox()
+    abstractButtons = {}
+    for b in buttons:
+        msgBox.addButton(b)
+        abstractButtons[b] = msgBox.button(b)
+    if abstractButtons.has_key(default):
+        msgBox.setDefaultButton(abstractButtons[default])
+    if escape != -1:
+        msgBox.setEscapeButton(abstractButtons[escape])
+                               
+    msgBox.setWindowModality(QtCore.Qt.ApplicationModal)
+    if icon:
+        msgBox.setIconPixmap(icon)
+    else:
+        msgBox.setIconPixmap(CurrentTheme.APPLICATION_PIXMAP)
+    msgBox.setWindowTitle(title)
+    msgBox.setText(message)
+    qButtons = QtGui.QMessageBox.StandardButtons()
+ 
+    return msgBox.exec_()                                  
+    
