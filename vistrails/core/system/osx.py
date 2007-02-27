@@ -31,8 +31,6 @@ import popen2
 import core.utils
 from core.system.unix import executable_is_in_path
 
-from PyQt4 import QtGui
-
 ###############################################################################
 # Extract system detailed information of a Mac system
 #
@@ -260,14 +258,6 @@ def link_or_copy(src, dst):
             shutil.copyfile(src, dst)
         else:
             raise e
-
-def getClipboard():
-    """ getClipboard() -> int  
-    Returns which part of system clipboard will be used by QtGui.QClipboard.
-    On Mac OS X, the global clipboard should be used.
-
-    """
-    return QtGui.QClipboard.Clipboard
 
 ################################################################################
 

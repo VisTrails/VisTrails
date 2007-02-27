@@ -21,6 +21,7 @@
 ############################################################################
 import os
 import shutil
+from ctypes import CDLL, c_void_p
 from core.system.unix import executable_is_in_path
 import core.bundles
 
@@ -98,15 +99,6 @@ def link_or_copy(src, dst):
             shutil.copyfile(src, dst)
         else:
             raise e
-
-def getClipboard():
-    """ getClipboard() -> int  
-    Returns which part of system clipboard will be used by QtGui.QClipboard.
-    On Linux, the global mouse selection should be used.
-
-    """
-    from PyQt4 import QtGui
-    return QtGui.QClipboard.Selection
 
 def getLibX11():
     """ getLibX11() -> CDLL    

@@ -23,7 +23,6 @@ import os
 import shutil
 import sys
 import stat
-from PyQt4 import QtGui
 
 try:
     from ctypes import windll, Structure, c_ulong
@@ -122,14 +121,6 @@ def link_or_copy(src, dst):
     
     """
     shutil.copyfile(src, dst)
-
-def getClipboard():
-    """ getClipboard() -> int  
-    Returns which part of system clipboard will be used by QtGui.QClipboard.
-    On Windows, the global clipboard should be used.
-
-    """
-    return QtGui.QClipboard.Clipboard
 
 def executable_is_in_path(filename):
     """ executable_is_in_path(filename: str) -> string    
