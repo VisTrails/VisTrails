@@ -109,6 +109,8 @@ class Connection(object):
         overloaded functions. Returns None if it can't find any.
 
         """
+        if sig[1:-1]=='Variant':
+            return signatures[0]
         splittedSig = sig[1:-1].split(',')
         if splittedSig == ['']: splittedSig = []
         for s in signatures:
