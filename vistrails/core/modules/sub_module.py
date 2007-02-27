@@ -107,6 +107,7 @@ class OutputPort(Module):
         self.setResult('ExternalPipe', inPipe)
     
 _reg.addModule(OutputPort)
+_reg.addInputPort(OutputPort, "name", String, True)
 _reg.addInputPort(OutputPort, "InternalPipe", Module)
 _reg.addOutputPort(OutputPort, "ExternalPipe", Variant, True)
 
