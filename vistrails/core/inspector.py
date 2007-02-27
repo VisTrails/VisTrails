@@ -116,7 +116,7 @@ class PipelineInspector(object):
                 name = self.getPortName(dstModule)
                 if name=='':
                     name = conn.source.name
-                self.outputPorts[dstModule.id] = (conn.source.name,
+                self.outputPorts[dstModule.id] = (name,
                                                   spec[0])
                 self.outputPortByName[name] = dstModule.id
 
