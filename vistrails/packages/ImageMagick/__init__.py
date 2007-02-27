@@ -208,13 +208,17 @@ def initialize(*args, **keywords):
     if (not core.requirements.executable_file_exists('convert') and
         not core.bundles.install({'linux-ubuntu': 'imagemagick'})):
         raise core.requirements.MissingRequirement("ImageMagick suite")
+    if core.system.systemType not in ['Windows', 'Microsoft']: 
+        process = popen2.Popen4("convert -version")
 
-    process = popen2.Popen4("convert -version")
-
-    result = -1
-    while result == -1:
-        result = process.poll()
-    conv_output = process.fromchild
+        result = -1
+        while result == -1:
+            result = process.poll()
+        conv_output = process.fromchild
+    else:
+        conv_output, input = popen2.popen4("convert -version")
+        result = 0
+        
     version_line = conv_output.readlines()[0][:-1].split(' ')
     if result != 0:
         raise Exception("ImageMagick does not seem to be present.")

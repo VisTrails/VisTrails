@@ -163,11 +163,17 @@ def vistrailsRevision():
     """
     release = "444"
     if core.requirements.executable_file_exists('svn'):
-        process = popen2.Popen4("svn info")
-        result = -1
-        while result == -1:
-            result = process.poll()
-        svn_output = process.fromchild
+        if systemType not in ['Windows', 'Microsoft']:
+            process = popen2.Popen4("svn info")
+            result = -1
+            while result == -1:
+                result = process.poll()
+            svn_output = process.fromchild
+        else:
+            #Popen4 does not seem to be present on Windows
+            svn_output, input = popen2.popen4("svn info")
+            result = 0
+            
         revision_line = svn_output.readlines()[4][:-1].split(' ')
         if result == 0:
             if revision_line[0] == 'Revision:':
