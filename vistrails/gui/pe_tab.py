@@ -25,12 +25,11 @@ QParameterExplorationTab
 """
 
 from PyQt4 import QtCore, QtGui
-from core.inspector import PipelineInspector
 from gui.common_widgets import QDockContainer, QToolWindowInterface
 from gui.pe_table import QParameterExplorationWidget
 from gui.virtual_cell import QVirtualCellWindow
 from gui.param_view import QParameterView
-from gui.pe_pipeline import QMarkPipelineView
+from gui.pe_pipeline import QAnnotatedPipelineView
 
 ################################################################################
 
@@ -59,9 +58,9 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
                            self.paramView.toolWindow())
         
-        self.markPipelineView = QMarkPipelineView(self)
+        self.annotatedPipelineView = QAnnotatedPipelineView(self)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
-                           self.markPipelineView.toolWindow())
+                           self.annotatedPipelineView.toolWindow())
         
         self.virtualCell = QVirtualCellWindow(self)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
@@ -85,17 +84,15 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         if self.currentVersion!=self.controller.currentVersion:
             self.currentVersion = self.controller.currentVersion
             if self.currentVersion!=-1:
-                # First create an inspector for the pipeline
-                inspector = PipelineInspector()
-
-                # Now inspect the spreadsheet cells for the virtual
-                # cell configuration
-                inspector.inspectSpreadsheetCells(
+                
+                # Update the virtual cell
+                self.virtualCell.updateVirtualCell(
                     self.controller.currentPipeline)
-                cells = [self.controller.currentPipeline.modules[mId].name
-                         for mId in inspector.spreadsheetCells]
-                self.virtualCell.config.configVirtualCells(cells)
 
                 # Now we need to inspect the parameter list
                 self.paramView.treeWidget.updateFromPipeline(
+                    self.controller.currentPipeline)
+
+                # Update the annotated ids
+                self.annotatedPipelineView.updateAnnotatedIds(
                     self.controller.currentPipeline)

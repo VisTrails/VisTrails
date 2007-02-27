@@ -221,9 +221,9 @@ class DefaultTheme(object):
     
         # Pen & Brush of the circled id on the right corner of the
         # virtual cell label
-        self.VIRTUAL_CELL_LABEL_ID_PEN = QtGui.QPen(
+        self.ANNOTATED_ID_PEN = QtGui.QPen(
             QtCore.Qt.white)
-        self.VIRTUAL_CELL_LABEL_ID_BRUSH = QtGui.QBrush(
+        self.ANNOTATED_ID_BRUSH = QtGui.QBrush(
             QtGui.QColor(157, 0, 0, 255))
     
         #### FONTS ####        

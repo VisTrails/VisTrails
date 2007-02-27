@@ -21,6 +21,8 @@
 ############################################################################
 import os
 import shutil
+import sys
+import stat
 from PyQt4 import QtGui
 
 try:
@@ -130,7 +132,28 @@ def getClipboard():
     return QtGui.QClipboard.Clipboard
 
 def executable_is_in_path(filename):
-    raise core.utils.VistrailsInternalError("Unimplemented on Windows")
+    """ executable_is_in_path(filename: str) -> string    
+    Check if exename can be reached in the PATH environment. Return
+    the filename if true, or an empty string if false.
+    
+    """
+    path = sys.path
+    if path[0] in (".", ""): del path[0]
+    pathlist = os.environ['PATH'].split(os.pathsep)
+    sts = 0
+    ident = ()
+    for dir in pathlist:
+        fullpath = os.path.join(dir, filename)
+        try:
+            st = os.stat(fullpath)
+        except os.error:
+            try:
+                st = os.stat(fullpath+'.exe')
+            except:
+                continue        
+        if stat.S_ISREG(st[stat.ST_MODE]):
+            return filename
+    return ""
 
 ################################################################################
 
@@ -156,7 +179,7 @@ class TestWindows(unittest.TestCase):
          assert result != ""
 
      def test_executable_file_in_path(self):
-         result = executable_is_in_path('del')
+         result = executable_is_in_path('cmd')
          assert result != ""
 
 if __name__ == '__main__':

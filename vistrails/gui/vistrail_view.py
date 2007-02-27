@@ -62,7 +62,7 @@ class QVistrailView(QDockContainer):
         self.queryTab = QQueryTab()
 
         self.peTab = QParameterExplorationTab()
-        self.peTab.markPipelineView.setScene(
+        self.peTab.annotatedPipelineView.setScene(
             self.pipelineTab.pipelineView.scene())
 
         # Setup a central stacked widget for pipeline view and version

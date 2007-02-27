@@ -49,6 +49,9 @@ class PipelineInspector(object):
         # A list of ids of module of type cell
         self.spreadsheetCells = []
 
+        # A dict of ambigious modules mapped to their annotated id
+        self.annotatedModules = {}
+
     def inspect(self, pipeline):
         """ inspect(pipeline: Pipeline) -> None
         Inspect a pipeline and update information
@@ -56,7 +59,7 @@ class PipelineInspector(object):
         """
         self.inspectInputOutputPorts(pipeline)
         self.inspectSpreadsheetCells(pipeline)
-        self.inspectParameters(pipeline)
+        self.inspectAmbigiousModules(pipeline)
 
     def hasInputPorts(self):
         """ hasInputPorts() -> bool
@@ -126,48 +129,39 @@ class PipelineInspector(object):
                 if issubclass(desc.module, cellType):
                     self.spreadsheetCells.append(mId)
 
-    def inspectParameters(self, pipeline):
-        """ inspectParameter(pipeline: Pipeline) -> None        
-        Report the aliases and methods used in the pipeline for
-        parameter exploration. This will also provide a map between
-        aliases and parameter index.
-        
-        A parameter index is a triplet of 3 numbers (moduleId,
-        functionId, paramId). For now, functionId and paramId is just
-        an index into the function and parameter list. This will be
-        fixed later with the DB scheme.
-
-        We have discussed for not having aliases know how to map to
-        the index but if we are going to perform the parameter
-        exploration by actions, we have to need it to map an alias
-        change to a ChangeParameterAction.
-
-        Remarks: Only aliases and parameters with cardinal types
-        (e.g. int, float, str) will be reported.
+    def inspectAmbigiousModules(self, pipeline):
+        """ inspectAmbigiousModules(pipeline: Pipeline) -> None
+        inspectAmbigiousModules returns a dict of ambigious modules,
+        i.e. cannot determine the exact module by giving just its
+        name. Then in each group of dupplicate modules, a set of
+        annotated id is generated for them sorted based on their id.
+        The annotatedModules dictionary will map actual module id into
+        their annotated one (if it is ambigious)
         
         """
-        self.aliases = {}
-
+        self.annotatedModules = {}
+        count = {}
+        moduleName = {}
         for moduleId in pipeline.modules.iterkeys():
             module = pipeline.modules[moduleId]
-            for functionId in range(len(module.functions)):
-                function = module.functions[functionId]
-                for paramId in range(len(function.params)):
-                    param = function.params[paramId]
-                    if param.alias and param.alias!='':
-                        self.aliases[param.alias] = (moduleId,
-                                                     functionId,
-                                                     paramId)
+            if moduleName.has_key(module.name): # ambiguous
+                if count[module.name]==1:
+                    self.annotatedModules[moduleName[module.name]] = 1
+                count[module.name] += 1
+                self.annotatedModules[moduleId] = count[module.name]
+            else:
+                moduleName[module.name] = moduleId
+                count[module.name] = 1
 
 
 if __name__ == '__main__':
     from core.startup import VistrailsStartup
     from core.xml_parser import XMLParser
-    xmlFile = 'C:/cygwin/home/stew/src/vistrails/trunk/examples/vtk.xml'
+    xmlFile = 'C:/cygwin/home/stew/src/vistrails/trunk/examples/vtk.xml'    
     vs = VistrailsStartup()
     vs.init()
     parser = XMLParser()
     parser.openVistrail(xmlFile)
     vistrail = parser.getVistrail()
-    pipeline = vistrail.getPipeline(vistrail.latestTime-1)
+    pipeline = vistrail.getPipeline('Single Renderer')
     print vistrail.latestTime

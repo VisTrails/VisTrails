@@ -28,7 +28,8 @@ from core.inspector import PipelineInspector
 from gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget, \
      QToolWindowInterface
 from gui.virtual_cell import QVirtualCellWindow
-from gui.pe_pipeline import QMarkPipelineView
+from gui.pe_pipeline import QAnnotatedPipelineView
+import operator
 
 ################################################################################
 
@@ -86,7 +87,12 @@ class QParameterTreeWidget(QSearchTreeWidget):
             aliasRoot.setExpanded(True)
             
         # Now go through all modules and functions
-        for mId, module in pipeline.modules.iteritems():
+
+        inspector = PipelineInspector()
+        inspector.inspectAmbigiousModules(pipeline)
+        sortedModules = sorted(pipeline.modules.iteritems(),
+                               key=lambda item: item[1].name)
+        for mId, module in sortedModules:
             if len(module.functions)>0:
                 label = QtCore.QStringList(module.name)
                 moduleItem = None
@@ -94,7 +100,13 @@ class QParameterTreeWidget(QSearchTreeWidget):
                     function = module.functions[fId]
                     if len(function.params)==0: continue
                     if moduleItem==None:
-                        moduleItem = QParameterTreeWidgetItem(None, self, label)
+                        if inspector.annotatedModules.has_key(mId):
+                            annotatedId = inspector.annotatedModules[mId]
+                            moduleItem = QParameterTreeWidgetItem(annotatedId,
+                                                                  self, label)
+                        else:
+                            moduleItem = QParameterTreeWidgetItem(None,
+                                                                  self, label)
                     v = ', '.join([p.strValue for p in function.params])
                     label = QtCore.QStringList('%s(%s)' % (function.name, v))
                     pList = [(function.params[pId].type,
@@ -146,10 +158,9 @@ class QParameterTreeWidgetItemDelegate(QtGui.QItemDelegate):
             font.setBold(True)
             painter.setFont(font)
             text = option.fontMetrics.elidedText(
-                model.data(index,
-                           QtCore.Qt.DisplayRole).toString(),
+                model.data(index, QtCore.Qt.DisplayRole).toString(),
                 QtCore.Qt.ElideMiddle, 
-                textrect.width())
+                textrect.width()-10)
             style.drawItemText(painter,
                                textrect,
                                QtCore.Qt.AlignLeft,
@@ -160,9 +171,20 @@ class QParameterTreeWidgetItemDelegate(QtGui.QItemDelegate):
             fm = QtGui.QFontMetrics(font)
             size = fm.size(QtCore.Qt.TextSingleLine, text)
             painter.drawLine(textrect.left()-5,
-                             textrect.bottom(),
+                             textrect.bottom()-1,
                              textrect.left()+size.width()+5,
-                             textrect.bottom())
+                             textrect.bottom()-1)
+
+            annotatedId = model.data(index, QtCore.Qt.UserRole+1)            
+            if annotatedId.isValid():
+                idRect = QtCore.QRect(
+                    QtCore.QPoint(textrect.left()+size.width()+5,
+                                  textrect.top()),
+                    textrect.bottomRight())
+                QAnnotatedPipelineView.drawId(painter, idRect,
+                                              annotatedId.toInt()[0],
+                                              QtCore.Qt.AlignLeft |
+                                              QtCore.Qt.AlignVCenter)
         else:
             QtGui.QItemDelegate.paint(self, painter, option, index)
 
@@ -196,7 +218,12 @@ class QParameterTreeWidgetItem(QtGui.QTreeWidgetItem):
            fId   = function id
            pId   = parameter id
 
+        If this item is a top-level item, info can either be None or
+        an integer specifying the annotated id of this module
+
         """
         self.parameter = info
         QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
-        
+        if type(self.parameter)==int:
+            self.setData(0, QtCore.Qt.UserRole+1,
+                         QtCore.QVariant(self.parameter))

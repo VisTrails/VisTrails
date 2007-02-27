@@ -407,9 +407,7 @@ class QDimensionRadioButton(QtGui.QRadioButton):
         painter = QtGui.QPainter(self)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         if self.isChecked():
-            painter.setPen(self.palette().color(QtGui.QPalette.WindowText))
-        else:
-            painter.setPen(self.palette().color(QtGui.QPalette.Dark))
+            painter.setPen(self.palette().color(QtGui.QPalette.Shadow))
         painter.setBrush(QtCore.Qt.NoBrush)
         l = min(self.width()-2, self.height()-2, 12)
         r = QtCore.QRect(0, 0, l, l)
@@ -417,7 +415,8 @@ class QDimensionRadioButton(QtGui.QRadioButton):
         painter.drawEllipse(r)
 
         if self.isChecked():
-            r.adjust(2, 2, -2, -2)
+            r.adjust(3, 3, -3, -3)
+            painter.setPen(QtCore.Qt.NoPen)
             painter.setBrush(self.palette().color(QtGui.QPalette.WindowText))
             painter.drawEllipse(r)
         

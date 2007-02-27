@@ -23,14 +23,15 @@
 pipeline in a specific way in the parameter exploration window
 """
 from PyQt4 import QtCore, QtGui
+from core.inspector import PipelineInspector
 from gui.common_widgets import QToolWindowInterface
 from gui.pipeline_view import QPipelineView, QGraphicsModuleItem
-from gui.virtual_cell import QVirtualCellLabel
+from gui.theme import CurrentTheme
 
 ################################################################################
-class QMarkPipelineView(QPipelineView, QToolWindowInterface):
+class QAnnotatedPipelineView(QPipelineView, QToolWindowInterface):
     """
-    QMarkPipelineView subclass QPipelineView to perform some overlay
+    QAnnotatedPipelineView subclass QPipelineView to perform some overlay
     marking on a pipeline view
     
     """
@@ -41,6 +42,7 @@ class QMarkPipelineView(QPipelineView, QToolWindowInterface):
         """
         QPipelineView.__init__(self, parent)
         self.setWindowTitle('Annotated Pipeline')
+        self.inspector = PipelineInspector()
 
     def sizeHint(self):
         """ sizeHint() -> QSize
@@ -57,13 +59,53 @@ class QMarkPipelineView(QPipelineView, QToolWindowInterface):
         QPipelineView.paintEvent(self, event)
         if self.scene():
             painter = QtGui.QPainter(self.viewport())
-            painter.setRenderHints(QtGui.QPainter.Antialiasing)
-            id = 1
-            for item in self.scene().modules.itervalues():
-                if item.isSpreadsheetCell:
-                    br = item.sceneBoundingRect().center()
-                    rect = QtCore.QRect(QtCore.QPoint(0,0),
-                                        self.mapFromScene(br))
-                    QVirtualCellLabel.drawId(painter, rect, id, True)
-                    id += 1
+            for mId, annotatedId in self.inspector.annotatedModules.iteritems():
+                item = self.scene().modules[mId]
+                br = item.sceneBoundingRect()
+                rect = QtCore.QRect(self.mapFromScene(br.topLeft()),
+                                    self.mapFromScene(br.bottomRight()))
+                QAnnotatedPipelineView.drawId(painter, rect, annotatedId)
             painter.end()
+
+    def updateAnnotatedIds(self, pipeline):
+        """ updateAnnotatedIds(pipeline: Pipeline) -> None
+        Re-inspect the pipeline to get annotated ids
+        
+        """
+        self.inspector.inspectAmbigiousModules(pipeline)        
+
+    @staticmethod
+    def drawId(painter, rect, id, align=QtCore.Qt.AlignCenter):
+        """ drawId(painter: QPainter, rect: QRect, id: int,
+                   align: QtCore.Qt.Align) -> None
+        Draw the rounded id number on a rectangular area
+        
+        """
+        painter.save()
+        painter.setRenderHints(QtGui.QPainter.Antialiasing)
+        painter.setPen(CurrentTheme.ANNOTATED_ID_BRUSH.color())
+        painter.setBrush(CurrentTheme.ANNOTATED_ID_BRUSH)
+        font = QtGui.QFont()
+        font.setStyleStrategy(QtGui.QFont.ForceOutline)
+        font.setBold(True)
+        painter.setFont(font)
+        fm = QtGui.QFontMetrics(font)
+        size = fm.size(QtCore.Qt.TextSingleLine, str(id))
+        size = max(size.width(), size.height())
+        
+        x = rect.left()
+        if align & QtCore.Qt.AlignHCenter:
+            x = rect.left() + rect.width()/2-size/2
+        if align & QtCore.Qt.AlignRight:
+            x = rect.left() + rect.width()-size
+        y = rect.top()
+        if align & QtCore.Qt.AlignVCenter:
+            y = rect.top() + rect.height()/2-size/2
+        if align & QtCore.Qt.AlignBottom:
+            y = rect.top() + rect.height()-size
+            
+        newRect = QtCore.QRect(x, y, size, size)
+        painter.drawEllipse(newRect)
+        painter.setPen(CurrentTheme.ANNOTATED_ID_PEN)
+        painter.drawText(newRect, QtCore.Qt.AlignCenter, str(id))
+        painter.restore()

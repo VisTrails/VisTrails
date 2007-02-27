@@ -23,7 +23,9 @@
 Parameter Exploration Tab """
 
 from PyQt4 import QtCore, QtGui
+from core.inspector import PipelineInspector
 from gui.common_widgets import QToolWindowInterface
+from gui.pe_pipeline import QAnnotatedPipelineView
 from gui.theme import CurrentTheme
 import string
 
@@ -72,7 +74,24 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         vLayout.addWidget(vPadWidget)
         vPadWidget.setSizePolicy(QtGui.QSizePolicy.Expanding,
                                 QtGui.QSizePolicy.Expanding)
+
+    def updateVirtualCell(self, pipeline):        
+        """ updateVirtualCell(pipeline: QPipeline) -> None
+        Setup the virtual cells given a pipeline
         
+        """
+        inspector = PipelineInspector()
+        inspector.inspectSpreadsheetCells(pipeline)
+        inspector.inspectAmbigiousModules(pipeline)
+        cells = []
+        for mId in inspector.spreadsheetCells:
+            name = pipeline.modules[mId].name
+            if inspector.annotatedModules.has_key(mId):
+                cells.append((name, inspector.annotatedModules[mId]))
+            else:
+                cells.append((name, -1))
+        self.config.configVirtualCells(cells)
+                
 class QVirtualCellConfiguration(QtGui.QWidget):
     """
     QVirtualCellConfiguration is a widget provide a virtual layout of
@@ -116,7 +135,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         self.numCell = 0
 
     def configVirtualCells(self, cells):
-        """ configVirtualCells(cells: list of str) -> None        
+        """ configVirtualCells(cells: [(str, int)]) -> None        
         Given a list of cell types and ids, this will clear old
         configuration and start a fresh one.
         
@@ -125,7 +144,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         self.numCell = len(cells)
         row = []
         for i in range(self.numCell):
-            label = QVirtualCellLabel(cells[i], i+1)
+            label = QVirtualCellLabel(*cells[i])
             row.append(label)
             self.layout().addWidget(label, 0, i, 1, 1, QtCore.Qt.AlignCenter)
             self.connect(label, QtCore.SIGNAL('finishedDragAndDrop'),
@@ -277,40 +296,13 @@ class QVirtualCellLabel(QtGui.QLabel):
                                 self.formatLabel(self.type))
             # Draw the lower right corner number if there is an id
             if self.id>=0 and self.type:
-                QVirtualCellLabel.drawId(painter, image.rect(), self.id)
+                QAnnotatedPipelineView.drawId(painter, image.rect(), self.id,
+                                              QtCore.Qt.AlignRight |
+                                              QtCore.Qt.AlignBottom)
 
         painter.end()
 
         self.setPixmap(QtGui.QPixmap.fromImage(image))
-
-    @staticmethod
-    def drawId(painter, rect, id, center=False):
-        """ drawId(painter: QPainter, rect: QRect, id: int, center:bool) -> None
-        Draw the rounded id number on the right corner of rect in
-        canvas painter. If center is true, the rounded is still drawn
-        at the bottom right corner but with its center at the point
-        
-        """
-        painter.setPen(CurrentTheme.VIRTUAL_CELL_LABEL_ID_BRUSH.color())
-        painter.setBrush(CurrentTheme.VIRTUAL_CELL_LABEL_ID_BRUSH)
-        font = QtGui.QFont()
-        font.setStyleStrategy(QtGui.QFont.ForceOutline)
-        font.setBold(True)
-        painter.setFont(font)
-        fm = QtGui.QFontMetrics(font)
-        size = fm.size(QtCore.Qt.TextSingleLine, str(id))
-        size = max(size.width(), size.height())
-        if center:
-            newRect = QtCore.QRect(rect.width()-size/2,
-                                   rect.height()-size/2,
-                                   size, size)
-        else:
-            newRect = QtCore.QRect(rect.width()-size,
-                                   rect.height()-size,
-                                   size, size)
-        painter.drawEllipse(newRect)
-        painter.setPen(CurrentTheme.VIRTUAL_CELL_LABEL_ID_PEN)
-        painter.drawText(newRect, QtCore.Qt.AlignCenter, str(id))
 
     def mousePressEvent(self, event):
         """ mousePressEvent(event: QMouseEvent) -> None
