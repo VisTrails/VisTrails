@@ -243,6 +243,16 @@ class DefaultTheme(object):
 
 
         #### ICONS & IMAGES ####
+        #The application icon
+        self.APPLICATION_ICON = QtGui.QIcon(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/vistrails_icon_small.png')
+
+        #The application pixmap
+        self.APPLICATION_PIXMAP = QtGui.QPixmap(
+             core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/vistrails_icon_small.png')
+
         # The execute icons in the first spot of vistrail view toolbar
         self.EXECUTE_PIPELINE_ICON = QtGui.QIcon(
             core.system.visTrailsRootDirectory() +

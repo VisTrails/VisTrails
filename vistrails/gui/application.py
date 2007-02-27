@@ -147,10 +147,7 @@ run in batch mode.')
         """ setIcon() -> None
         Setup Vistrail Icon
         """
-        iconPath = (system.visTrailsRootDirectory() +
-                    "/gui/resources/images/vistrails_icon_small.png")
-        icon = QtGui.QIcon(iconPath)
-        self.setWindowIcon(icon)
+        self.setWindowIcon(CurrentTheme.APPLICATION_ICON)
         
     def setupSplashScreen(self):
         """ setupSplashScreen() -> None

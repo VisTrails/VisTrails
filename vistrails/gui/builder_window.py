@@ -155,7 +155,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.saveVistrailAction.setShortcut('Ctrl+S')
         self.saveVistrailAction.setStatusTip('Save the current VisTrail')
 
-        self.saveVistrailAsAction = QtGui.QAction('Save &as...', self)
+        self.saveVistrailAsAction = QtGui.QAction('Save as...', self)
         self.saveVistrailAsAction.setShortcut('Ctrl+Shift+S')
         self.saveVistrailAction.setStatusTip('Save the current VisTrail at '
                                              'a different location')
