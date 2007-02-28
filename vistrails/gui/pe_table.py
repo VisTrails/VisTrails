@@ -26,9 +26,12 @@ QParameterExplorationTable
 
 
 from PyQt4 import QtCore, QtGui
-from gui.common_widgets import QPromptWidget
-from gui.theme import CurrentTheme
+from gui.common_widgets import QPromptWidget, QStringEdit
 from gui.param_view import QParameterTreeWidget
+from gui.theme import CurrentTheme
+from gui.utils import show_warning
+from core.modules.module_configure import PythonEditor
+from core.vistrail.action import ChangeParameterAction
 
 ################################################################################
 class QParameterExplorationWidget(QtGui.QScrollArea):
@@ -82,6 +85,13 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
                     self.table.addParameter(item.parameter)
             vsb = self.verticalScrollBar()
             vsb.setValue(vsb.maximum())
+
+    def updatePipeline(self, pipeline):
+        """ updatePipeline(pipeline: Pipeline) -> None
+        Assign a pipeline to the table
+        
+        """
+        self.table.setPipeline(pipeline)
                     
 class QParameterExplorationTable(QPromptWidget):
     """
@@ -101,6 +111,7 @@ class QParameterExplorationTable(QPromptWidget):
         
         """
         QPromptWidget.__init__(self, parent)
+        self.pipeline = None
         self.setSizePolicy(QtGui.QSizePolicy.Expanding,
                            QtGui.QSizePolicy.Expanding)
         self.setPromptText('Drag aliases/parameters here for a parameter '
@@ -113,7 +124,14 @@ class QParameterExplorationTable(QPromptWidget):
         vLayout.setAlignment(QtCore.Qt.AlignTop)
         self.setLayout(vLayout)
 
-        vLayout.addWidget(QDimensionLabel())
+        self.label = QDimensionLabel()
+        self.connect(self.label.params.button, QtCore.SIGNAL('clicked()'),
+                     self.performParameterExploration)
+        for labelIcon in self.label.labelIcons:
+            self.connect(labelIcon.countWidget,
+                         QtCore.SIGNAL('editingFinished()'),
+                         self.updateUserDefinedFunctions)
+        vLayout.addWidget(self.label)
 
         for i in range(2):
             hBar = QtGui.QFrame()
@@ -131,6 +149,88 @@ class QParameterExplorationTable(QPromptWidget):
         p.show()
         self.setMinimumHeight(self.layout().minimumSize().height())
 
+    def updateUserDefinedFunctions(self):
+        """ updateUserDefinedFunctions() -> None
+        Update all user-defined function to reflect the step count
+        
+        """
+        # Go through all possible parameter widgets
+        counts = self.label.getCounts()
+        for i in range(self.layout().count()):
+            pEditor = self.layout().itemAt(i).widget()
+            if pEditor and type(pEditor)==QParameterSetEditor:
+                for paramWidget in pEditor.paramWidgets:
+                    dim = paramWidget.getDimension()
+                    if dim in [0, 1, 2, 3]:
+                        userWidget = paramWidget.editor.stackedEditors.widget(2)
+                        userWidget.setSize(counts[dim])
+
+    def setPipeline(self, pipeline):
+        """ setPipeline(pipeline: Pipeline) -> None
+        Assign a pipeline to the current table
+        
+        """
+        self.pipeline = pipeline
+
+    def performParameterExploration(self):
+        """ performParameterExploration() -> None
+        Validate all interpolation values and perform the parameter exploration
+        
+        """
+        if not self.pipeline:
+            return
+        parameterValues = {0:[], 1:[], 2:[], 3:[]}
+        typeCast = {'Integer': int, 'Float': float, 'String': str}
+        counts = self.label.getCounts()
+        for i in range(self.layout().count()):
+            pEditor = self.layout().itemAt(i).widget()
+            if pEditor and type(pEditor)==QParameterSetEditor:
+                for paramWidget in pEditor.paramWidgets:
+                    editor = paramWidget.editor
+                    interpolator = editor.stackedEditors.currentWidget()
+                    paramInfo = paramWidget.param
+                    realType = typeCast[paramInfo[0]]
+                    dim = paramWidget.getDimension()
+                    count = counts[dim]
+                    if dim in [0, 1, 2, 3]:
+                        if type(interpolator)==QLinearInterpolationEditor:
+                            values = interpolator.getValues(count)
+                        if type(interpolator)==QListInterpolationEditor:
+                            values = interpolator.getValues()
+                            if (len(values)!=count):
+                                show_warning('Inconsistent Size',
+                                             'One of the <i>%s</i>\'s list '
+                                             'interpolated '
+                                             'values has a different '
+                                             'size from the step count. '
+                                             'Parameter Exploration aborted.'
+                                             % pEditor.info[0])
+                                return
+                        if type(interpolator)==QUserFunctionEditor:
+                            values = interpolator.getValues()
+                            if [True for v in values if type(v)!=realType]:
+                                show_warning('Inconsistent Size',
+                                             'One of the <i>%s</i>\'s user defined '
+                                             'functions has generated '
+                                             'a value of type different '
+                                             'than that specified by the '
+                                             'parameter. Parameter Exploration '
+                                              'aborted.' % pEditor.info[0])
+                                return
+                        (mId, fId, pId) = tuple(paramInfo[2:5])
+                        function = self.pipeline.modules[mId].functions[fId]
+                        fName = function.name
+                        pName = function.params[pId].name
+                        pAlias = function.params[pId].alias
+                        actions = []
+                        for v in values:
+                            action = ChangeParameterAction()
+                            action.addParameter(mId, fId, fName, pId, pName,
+                                                v, paramInfo[0], pAlias)
+                            actions.append(action)
+                        parameterValues[dim].append(action)
+
+                
 class QDimensionLabel(QtGui.QWidget):
     """
     QDimensionLabel represents a horizontal header item of the
@@ -153,22 +253,47 @@ class QDimensionLabel(QtGui.QWidget):
         hLayout.setSpacing(0)
         self.setLayout(hLayout)        
 
-        params = QDimensionLabelText('Parameters')
-        hLayout.addWidget(params)
-        params.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                             QtGui.QSizePolicy.Expanding)
+        self.params = QDimensionLabelText('Parameters')
+        hLayout.addWidget(self.params)
+        self.params.setSizePolicy(QtGui.QSizePolicy.Expanding,
+                                  QtGui.QSizePolicy.Expanding)
         hLayout.addWidget(QDimensionLabelSeparator())
         
         pixes = [CurrentTheme.EXPLORE_COLUMN_PIXMAP,
                  CurrentTheme.EXPLORE_ROW_PIXMAP,
                  CurrentTheme.EXPLORE_SHEET_PIXMAP,
                  CurrentTheme.EXPLORE_TIME_PIXMAP]
+        self.labelIcons = []
         for pix in pixes:
-            hLayout.addWidget(QDimensionLabelIcon(pix))
+            labelIcon = QDimensionLabelIcon(pix)
+            hLayout.addWidget(labelIcon)
+            self.labelIcons.append(labelIcon)            
             hLayout.addWidget(QDimensionLabelSeparator())
 
         hLayout.addWidget(QDimensionLabelIcon(CurrentTheme.EXPLORE_SKIP_PIXMAP,
                                               False))
+
+    def getCounts(self):
+        """ getCounts() -> [int]        
+        Return a list of 4 ints denoting the step count desired for
+        each dimension
+        
+        """
+        return [l.countWidget.value() for l in self.labelIcons]
+
+class QDimensionSpinBox(QtGui.QSpinBox):
+    """
+    QDimensionSpinBox is just an overrided spin box that will also emit
+    'editingFinished()' signal when the user interact with mouse
+    
+    """    
+    def mouseReleaseEvent(self, event):
+        """ mouseReleaseEvent(event: QMouseEvent) -> None
+        Emit 'editingFinished()' signal when the user release a mouse button
+        
+        """
+        QtGui.QSpinBox.mouseReleaseEvent(self, event)
+        self.emit(QtCore.SIGNAL("editingFinished()"))
 
 class QDimensionLabelIcon(QtGui.QWidget):
     """
@@ -195,7 +320,7 @@ class QDimensionLabelIcon(QtGui.QWidget):
         layout.addWidget(label)
 
         if hasCount:
-            self.countWidget = QtGui.QSpinBox()
+            self.countWidget = QDimensionSpinBox()
             self.countWidget.setFixedWidth(32)
             self.countWidget.setRange(1, 10000000)
             self.countWidget.setAlignment(QtCore.Qt.AlignRight)
@@ -209,10 +334,10 @@ class QDimensionLabelIcon(QtGui.QWidget):
         self.setSizePolicy(QtGui.QSizePolicy.Maximum,
                             QtGui.QSizePolicy.Maximum)        
                 
-class QDimensionLabelText(QtGui.QLabel):
+class QDimensionLabelText(QtGui.QWidget):
     """
     QDimensionLabelText describes those texts staying on the header
-    view of the table
+    view of the table. It also has a button to perform exploration
     
     """
     def __init__(self, text, parent=None):
@@ -221,12 +346,25 @@ class QDimensionLabelText(QtGui.QLabel):
         Putting the text bold in the center
         
         """
-        QtGui.QLabel.__init__(self, text, parent)
-        font = QtGui.QFont(self.font())
-        font.setItalic(False)
-        font.setBold(True)
-        self.setFont(font)
-        self.setAlignment(QtCore.Qt.AlignCenter)
+        QtGui.QWidget.__init__(self, parent)
+        hLayout = QtGui.QHBoxLayout()
+        self.setLayout(hLayout)
+
+        hLayout.addStretch()
+        
+        self.button = QtGui.QToolButton()
+        self.button.setIcon(CurrentTheme.PERFORM_PARAMETER_EXPLORATION_ICON)
+        self.button.setIconSize(QtCore.QSize(32, 32))
+        self.button.setSizePolicy(QtGui.QSizePolicy.Maximum,
+                             QtGui.QSizePolicy.Maximum)
+        hLayout.addWidget(self.button)
+        
+        hLayout.addSpacing(2)
+
+        hLayout.addWidget(QtGui.QLabel('<b>Parameters</b>'))
+
+        hLayout.addStretch()
+        
         
 class QDimensionLabelSeparator(QtGui.QFrame):
     """
@@ -264,6 +402,10 @@ class QParameterSetEditor(QtGui.QWidget):
         self.info = info
         self.table = table
         (name, paramList) = info
+        if table:
+            size = table.label.getCounts()[0]
+        else:
+            size = 1
         
         vLayout = QtGui.QVBoxLayout(self)
         vLayout.setMargin(0)
@@ -274,9 +416,12 @@ class QParameterSetEditor(QtGui.QWidget):
         self.connect(label.removeButton, QtCore.SIGNAL('clicked()'),
                      self.removeSelf)
         vLayout.addWidget(label)
-
+        
+        self.paramWidgets = []
         for param in paramList:
-            vLayout.addWidget(QParameterWidget(param))
+            paramWidget = QParameterWidget(param, size)
+            vLayout.addWidget(paramWidget)
+            self.paramWidgets.append(paramWidget)
 
         vLayout.addSpacing(10)
 
@@ -339,9 +484,10 @@ class QParameterWidget(QtGui.QWidget):
     editor and a radio group.
     
     """
-    def __init__(self, param, parent=None):
-        """ QParameterWidget(param: tuple, parent: QWidget) -> QParameterWidget
-        Initialize the widget with param = (aType, mId, fId, fId)
+    def __init__(self, param, size, parent=None):
+        """ QParameterWidget(param: tuple, size: int, parent: QWidget)
+                             -> QParameterWidget
+        Initialize the widget with param = (aType, mId, fId, pId)
         
         """
         QtGui.QWidget.__init__(self, parent)
@@ -354,14 +500,38 @@ class QParameterWidget(QtGui.QWidget):
 
         hLayout.addSpacing(5+16+5)
 
-        label = QtGui.QLabel(param[0])
-        label.setFixedWidth(50)
-        hLayout.addWidget(label)
+        self.label = QtGui.QLabel(param[0])
+        self.label.setFixedWidth(50)
+        hLayout.addWidget(self.label)
 
-        self.editor = QParameterEditor(param[0], param[1])
+        self.editor = QParameterEditor(param[0], param[1], size)
         hLayout.addWidget(self.editor)
 
-        hLayout.addWidget(QDimensionSelector())
+        self.selector = QDimensionSelector()
+        self.connect(self.selector.radioButtons[4],
+                     QtCore.SIGNAL('toggled(bool)'),
+                     self.disableParameter)
+        hLayout.addWidget(self.selector)
+
+    def getDimension(self):
+        """ getDimension() -> int        
+        Return a number 0-4 indicating which radio button is
+        selected. If none is selected (should not be in this case),
+        return -1
+        
+        """
+        for i in range(5):
+            if self.selector.radioButtons[i].isChecked():
+                return i
+        return -1
+
+    def disableParameter(self, disabled=True):
+        """ disableParameter(disabled: bool) -> None
+        Disable/Enable this parameter when disabled is True/False
+        
+        """
+        self.label.setEnabled(not disabled)
+        self.editor.setEnabled(not disabled)
 
 class QDimensionSelector(QtGui.QWidget):
     """
@@ -406,8 +576,7 @@ class QDimensionRadioButton(QtGui.QRadioButton):
         """
         painter = QtGui.QPainter(self)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        if self.isChecked():
-            painter.setPen(self.palette().color(QtGui.QPalette.Shadow))
+        painter.setPen(self.palette().color(QtGui.QPalette.Dark))
         painter.setBrush(QtCore.Qt.NoBrush)
         l = min(self.width()-2, self.height()-2, 12)
         r = QtCore.QRect(0, 0, l, l)
@@ -438,9 +607,9 @@ class QParameterEditor(QtGui.QWidget):
     with this editor: Integer, Float and String
     
     """
-    def __init__(self, pType, pValue, parent=None):
-        """ QParameterEditor(pType: str, pValue: str, parent: QWidget)
-                             -> QParameterEditor
+    def __init__(self, pType, pValue, size, parent=None):
+        """ QParameterEditor(pType: str, pValue: str, parent: QWidget,
+                             size: int) -> QParameterEditor
         Put a stacked widget and a popup button
         
         """
@@ -460,6 +629,9 @@ class QParameterEditor(QtGui.QWidget):
                                                                  pValue))
         self.stackedEditors.addWidget(QListInterpolationEditor(pType,
                                                                pValue))
+        self.stackedEditors.addWidget(QUserFunctionEditor(pType,
+                                                          pValue,
+                                                          size))
         hLayout.addWidget(self.stackedEditors)
 
         selector = QParameterEditorSelector(pType)
@@ -543,6 +715,7 @@ class QLinearInterpolationEditor(QtGui.QWidget):
         
         """
         QtGui.QWidget.__init__(self, parent)
+        self.type = pType
         
         hLayout = QtGui.QHBoxLayout(self)
         hLayout.setMargin(0)
@@ -570,6 +743,19 @@ class QLinearInterpolationEditor(QtGui.QWidget):
         self.toEdit = QtGui.QLineEdit(pValue)
         self.toEdit.setValidator(validatorType(self.toEdit))
         hLayout.addWidget(self.toEdit)
+
+    def getValues(self, size):
+        """ getValues(size: int) -> tuple
+        Return the linear interpolated list containing 'size' values
+        
+        """
+        cast = {'Integer': int, 'Float': float}[self.pType]
+        begin = cast(str(self.fromEdit.text()))
+        end = cast(str(self.toEdit.text()))
+        if size<=1:
+            return [begin]
+        return [cast(begin + (end-begin)*float(i/(size-1)))
+                for i in range(size)]
     
 class QListInterpolationEditor(QtGui.QWidget):
     """
@@ -593,7 +779,7 @@ class QListInterpolationEditor(QtGui.QWidget):
         
         self.listValues = QtGui.QLineEdit()
         if pType=='String':
-            self.listValues.setText('["%s"]' % pValue.replace('"', '\"'))
+            self.listValues.setText("['%s']" % pValue.replace("'", "\'"))
         else:
             self.listValues.setText('[%s]' % pValue)
         self.listValues.setSizePolicy(QtGui.QSizePolicy.Expanding,
@@ -607,10 +793,9 @@ class QListInterpolationEditor(QtGui.QWidget):
                      self.editListValues)
         hLayout.addWidget(inputButton)
 
-    def getValues(self, size):
-        """ getValues(size: int) -> []        
-        Convert the list values into a list. Size specifies the size
-        request. We ignore this for the list interpolator
+    def getValues(self):
+        """ getValues() -> []        
+        Convert the list values into a list
         
         """
         text = str(self.listValues.text())
@@ -629,11 +814,11 @@ class QListInterpolationEditor(QtGui.QWidget):
         Show a dialog for editing the values
         
         """
-        dialog = QListEditDialog(self.getValues(0), None)
+        dialog = QListEditDialog(self.type, self.getValues(), None)
         if dialog.exec_()==QtGui.QDialog.Accepted:
             values = dialog.getList()
             if self.type=='String':
-                values = ['"%s"' % v.replace('"', '\"')
+                values = ["'%s'" % v.replace("'", "\'")
                           for v in values]
             self.listValues.setText('[%s]' % ', '.join(values))
             self.listValues.home(False)
@@ -643,31 +828,40 @@ class QListEditDialog(QtGui.QDialog):
     """
     QListEditDialog provides an interface for user to edit a list of
     values and export to a string
+    
     """
-    def __init__(self, values, parent=None):
-        """ QListEditDialog(values: list, parent: QWidget) -> QListEditDialog
+    def __init__(self, pType, values, parent=None):
+        """ QListEditDialog(pType: str, values: list, parent: QWidget)
+                            -> QListEditDialog
         Parse values and setup the table
         
         """
         QtGui.QDialog.__init__(self, parent)
+        self.pType = pType
         vLayout = QtGui.QVBoxLayout()
         vLayout.setMargin(0)
         vLayout.setSpacing(0)
         self.setLayout(vLayout)
         
-        label = QtGui.QLabel('Please enter values in boxes below. '
-                             'Drag rows up and down to arrange your '
-                             'list values')
+        label = QtGui.QLabel("Please enter values in boxes below. Drag "
+                             "rows up and down to arrange your list values. "
+                             "'Add' appends an empty value to the list. "
+                             "And 'Del' removes the selected values.")
         label.setMargin(5)
         label.setWordWrap(True)
         vLayout.addWidget(label)
 
-        self.table = QtGui.QTableWidget(len(values), 1)
+        self.table = QtGui.QTableWidget(0, 1, parent)
         self.table.setHorizontalHeaderLabels(QtCore.QStringList('Values'))
-        self.table.horizontalHeader().setStretchLastSection(True)            
+        self.table.horizontalHeader().setStretchLastSection(True)
         self.table.verticalHeader().setMovable(True)
+        self.table.verticalHeader().setResizeMode(
+            QtGui.QHeaderView.ResizeToContents)
+        self.delegate = QListEditItemDelegate()
+        self.table.setItemDelegate(self.delegate)
+        self.table.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         for i in range(len(values)):
-            self.table.setItem(i, 0, QtGui.QTableWidgetItem(str(values[i])))
+            self.addRow(str(values[i]))
         self.connect(self.table.verticalHeader(),
                      QtCore.SIGNAL('sectionMoved(int,int,int)'),
                      self.rowMoved)
@@ -688,6 +882,22 @@ class QListEditDialog(QtGui.QDialog):
         self.connect(cancelButton, QtCore.SIGNAL('clicked()'), self.reject)
         hLayout.addWidget(cancelButton)
 
+        addButton = QtGui.QPushButton('&Add')
+        addButton.setIcon(CurrentTheme.ADD_STRING_ICON)
+        addButton.setSizePolicy(QtGui.QSizePolicy.Maximum,
+                                QtGui.QSizePolicy.Maximum)
+        self.connect(addButton, QtCore.SIGNAL('clicked()'), self.addRow)
+        hLayout.addWidget(addButton)
+        
+        removeButton = QtGui.QPushButton('&Del')
+        removeButton.setIcon(QtGui.QIcon(
+            self.style().standardPixmap(QtGui.QStyle.SP_DialogCancelButton)))
+        removeButton.setSizePolicy(QtGui.QSizePolicy.Maximum,
+                                   QtGui.QSizePolicy.Maximum)
+        self.connect(removeButton, QtCore.SIGNAL('clicked()'),
+                     self.removeSelection)
+        hLayout.addWidget(removeButton)
+        
     def sizeHint(self):
         """ sizeHint() -> QSize
         Return the recommended size for the widget
@@ -717,7 +927,229 @@ class QListEditDialog(QtGui.QDialog):
         for i in range(self.table.rowCount()):
             labels << str(vHeader.visualIndex(i)+1)
         self.table.setVerticalHeaderLabels(labels)
+
+    def addRow(self, text=None):
+        """ addRow(text: str) -> QListStringEdit
+        Add an extra row to the end of the table
+        
+        """
+        self.table.setRowCount(self.table.rowCount()+1)
+        if text:
+            item = QtGui.QTableWidgetItem(text)
+        else:
+            item = QtGui.QTableWidgetItem()
+        row = self.table.rowCount()-1
+        self.table.setItem(row, 0, item)
+
+    def removeSelection(self):
+        """ removeSelection() -> None
+        Remove selected rows on the table
+        
+        """
+        for item in self.table.selectedItems():
+            self.table.removeRow(item.row())
+
+class QListEditItemDelegate(QtGui.QItemDelegate):
+    """
+    QListEditItemDelegate sets up the editor for the QListEditDialog
+    table
     
+    """
+    def createEditor(self, parent, option, index):
+        """ createEditor(parent: QWidget,
+                         option: QStyleOptionViewItem,
+                         index: QModelIndex) -> QStringEdit
+        Return the editor widget for the index
+        
+        """
+        return QStringEdit(parent)
+
+    def setEditorData(self, editor, index):
+        """ setEditorData(editor: QWidget, index: QModelIndex) -> None
+        Set the editor to reflects data at index
+        
+        """
+        editor.setText(index.data().toString())
+        editor.selectAll()
+
+    def updateEditorGeometry(self, editor, option, index):
+        """ updateEditorGeometry(editor: QStringEdit,
+                                 option: QStyleOptionViewItem,
+                                 index: QModelIndex) -> None
+        Update the geometry of the editor based on the style option
+        
+        """
+        editor.setGeometry(option.rect)
+
+    def setModelData(self, editor, model, index):
+        """ setModelData(editor: QStringEdit,
+                         model: QAbstractItemModel,
+                         index: QModelIndex) -> None
+        Set the text of the editor back to the item model
+        
+        """
+        model.setData(index, QtCore.QVariant(editor.text()))
+
+class QUserFunctionEditor(QtGui.QFrame):
+    """
+    QUserFunctionEditor shows user-defined interpolation function
+    
+    """
+    def __init__(self, pType, pValue, size, parent=None):
+        """ QUserFunctionEditor(pType: str, pValue: str, parent: QWidget)
+                                -> QUserFunctionEditor
+        Create a read-only line edit widget and a button for
+        customizing the user-defined function
+        
+        """
+        QtGui.QFrame.__init__(self, parent)
+        self.setFrameStyle(QtGui.QFrame.Box | QtGui.QFrame.Sunken)
+        self.size = -1
+        self.type = pType
+        self.defaultValue = pValue
+        self.function = self.defaultFunction()
+        
+        hLayout = QtGui.QHBoxLayout(self)
+        hLayout.setMargin(0)
+        hLayout.setSpacing(0)
+        self.setLayout(hLayout)
+        
+        hLayout.addSpacing(2)
+        self.label = QtGui.QLabel()
+        hLayout.addWidget(self.label)
+
+        self.listValues = QtGui.QLineEdit()
+        self.listValues.setFrame(False)        
+        self.listValues.palette().setBrush(QtGui.QPalette.Base,
+                                           QtGui.QBrush(QtCore.Qt.NoBrush))
+        self.listValues.setReadOnly(True)
+        self.listValues.setSizePolicy(QtGui.QSizePolicy.Expanding,
+                                      QtGui.QSizePolicy.Maximum)
+        self.listValues.home(False)
+        hLayout.addWidget(self.listValues)
+
+        self.setSize(size)
+
+        inputButton = QtGui.QToolButton()
+        inputButton.setText('...')
+        self.connect(inputButton, QtCore.SIGNAL('clicked()'),
+                     self.editFunction)
+        hLayout.addWidget(inputButton)
+
+    def defaultFunction(self):
+        """ defaultFunction() -> str
+        Return the default function definition
+        
+        """
+        if self.type=='String':
+            quote = '"'
+        else:
+            quote = ''
+        pythonType = {'Integer': 'int', 'Float': 'float', 'String': 'str'}
+        return 'def value(i):\n    """ value(i: int) -> %s\n'\
+               '    Return the interpolated value at step i\n'\
+               '    i is from 0 to <step count>-1\n\n'\
+               '    """\n'\
+               '    return %s%s%s'\
+               % (pythonType[self.type], quote, str(self.defaultValue), quote)
+
+    def getValues(self):
+        """ getValues() -> []        
+        Convert the user define function into a list. Size specifies the size
+        request.
+        
+        """
+        firstError = True
+        values = []
+        for i in range(self.size):
+            v = self.defaultValue
+            exec(self.function + '\nv = value(%d)' % i)
+            values.append(v)
+        return values
+
+    def getValuesString(self):
+        """ getValuesString() -> str
+        Return a string representation of the parameter list
+        
+        """
+        text = str(self.getValues())
+        return '{%s}' % text[1:-1]
+
+    def editFunction(self):
+        """ editFunction() -> None
+        Pop up a dialog for editing user-defined function
+        
+        """
+        dialog = QUserFunctionDialog(self.function)        
+        if dialog.exec_()==QtGui.QDialog.Accepted:
+            self.function = str(dialog.editor.toPlainText())
+            self.listValues.setText(self.getValuesString())
+
+    def setSize(self, size):
+        """ setSize(size: int) -> None
+        Set the size of the interpolation. Values are re-calculated
+        
+        """
+        if size!=self.size:
+            self.size = size
+            htmlText = '<html><big>&fnof;</big>(n) <b>:</b> ' \
+                       '[0,%d) &rarr; </html>' % size
+            self.label.setText(htmlText)
+            self.listValues.setText(self.getValuesString())
+    
+class QUserFunctionDialog(QtGui.QDialog):
+    """
+    QUserFunctionDialog provides an interface for user to edit a
+    python function
+    
+    """
+    def __init__(self, function, parent=None):
+        """ QUserFunctionDialog(function: str, parent: QWidget)
+                                -> QUserFunctionDialog
+        Set up a python source editor
+        
+        """
+        QtGui.QDialog.__init__(self, parent)
+        vLayout = QtGui.QVBoxLayout()
+        vLayout.setMargin(0)
+        vLayout.setSpacing(0)
+        self.setLayout(vLayout)
+        
+        label = QtGui.QLabel("Please define your function below. This "
+                             "'value(i)' function will be iteratively called "
+                             "for <step count> numbers. For each step, "
+                             "it should return a value of parameter type.")
+        label.setMargin(5)
+        label.setWordWrap(True)
+        vLayout.addWidget(label)
+
+        self.editor = PythonEditor(self)
+        self.editor.setPlainText(function)
+        self.editor.moveCursor(QtGui.QTextCursor.End)
+        vLayout.addWidget(self.editor)
+
+        hLayout = QtGui.QHBoxLayout()        
+        vLayout.addLayout(hLayout)
+
+        okButton = QtGui.QPushButton('&OK')
+        okButton.setSizePolicy(QtGui.QSizePolicy.Maximum,
+                               QtGui.QSizePolicy.Maximum)
+        self.connect(okButton, QtCore.SIGNAL('clicked()'), self.accept)
+        hLayout.addWidget(okButton)
+
+        cancelButton = QtGui.QPushButton('&Cancel')
+        cancelButton.setSizePolicy(QtGui.QSizePolicy.Maximum,
+                                   QtGui.QSizePolicy.Maximum)
+        self.connect(cancelButton, QtCore.SIGNAL('clicked()'), self.reject)
+        hLayout.addWidget(cancelButton)
+        
+    def sizeHint(self):
+        """ sizeHint() -> QSize
+        Return the recommended size for the widget
+        
+        """
+        return QtCore.QSize(512, 512)
+            
 ################################################################################
 
 if __name__=="__main__":        

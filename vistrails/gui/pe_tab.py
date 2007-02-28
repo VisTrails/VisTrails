@@ -96,3 +96,6 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                 # Update the annotated ids
                 self.annotatedPipelineView.updateAnnotatedIds(
                     self.controller.currentPipeline)
+
+                # Update the parameter exploration table
+                self.peTable.updatePipeline(self.controller.currentPipeline)

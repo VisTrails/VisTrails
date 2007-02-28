@@ -75,7 +75,8 @@ class QParameterTreeWidget(QSearchTreeWidget):
         if len(pipeline.aliases)>0:
             aliasRoot = QParameterTreeWidgetItem(None, self,
                                                  QtCore.QStringList('Aliases'))
-            aliasRoot.setFlags(QtCore.Qt.ItemIsEnabled)
+            aliasRoot.setFlags(QtCore.Qt.ItemIsEnabled,
+                               )
             for (alias, info) in pipeline.aliases.iteritems():
                 (aType, mId, fId, pId) = info
                 v = pipeline.modules[mId].functions[fId].params[pId].strValue
@@ -210,7 +211,7 @@ class QParameterTreeWidgetItem(QtGui.QTreeWidgetItem):
                                      
         Create a new tree widget item with a specific parent and
         labels. info describing a set of paramters as follow:
-        (name, [(type, value, mId, fId, pId), ...]):
+        (name, [(type, value, alias, mId, fId, pId), ...]):
            name  = Name of the parameter set (alias or function)
            type  = type of the parameter
            value = default value

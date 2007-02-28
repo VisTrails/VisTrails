@@ -106,9 +106,9 @@ def show_custom(title, message, icon=None,
                 buttons = [OK_BUTTON], default=OK_BUTTON, escape=-1):
     """ show_custom(title: str,
                     message: str,
-                    icon: QPixmap
-                    buttons: list of buttons (defined above) 
-                    default: str
+                    icon: QPixmap,
+                    buttons: list of buttons (defined above),
+                    default: str,
                     escape: str) -> int                    
     Show a custom dialog box. 
     Default is the button in buttons that will be clicked if

@@ -292,3 +292,84 @@ class QPromptWidget(QtGui.QLabel):
                              self.promptText)
             painter.end()            
         QtGui.QLabel.paintEvent(self, event)
+
+class QStringEdit(QtGui.QFrame):
+    """
+    QStringEdit is a line edit that has an extra button to allow user
+    to use a file as the value
+    
+    """
+    def __init__(self, parent=None):
+        """ QStringEdit(parent: QWidget) -> QStringEdit
+        Create a hbox layout to contain a line edit and a button
+
+        """
+        QtGui.QFrame.__init__(self, parent)        
+        hLayout = QtGui.QHBoxLayout(self)
+        hLayout.setMargin(0)
+        hLayout.setSpacing(0)        
+        self.setLayout(hLayout)
+
+        self.lineEdit = QtGui.QLineEdit()
+        self.lineEdit.setFrame(False)
+        self.lineEdit.setSizePolicy(QtGui.QSizePolicy.Expanding,
+                                    QtGui.QSizePolicy.Expanding)
+        hLayout.addWidget(self.lineEdit)
+        self.setFocusProxy(self.lineEdit)
+
+        self.fileButton = QtGui.QToolButton()
+        self.fileButton.setText('...')
+        self.fileButton.setSizePolicy(QtGui.QSizePolicy.Maximum,
+                                      QtGui.QSizePolicy.Expanding)
+        self.fileButton.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.fileButton.setAutoFillBackground(True)
+        self.connect(self.fileButton, QtCore.SIGNAL('clicked()'),
+                     self.insertFileNameDialog)
+        hLayout.addWidget(self.fileButton)
+
+    def setText(self, text):
+        """ setText(text: QString) -> None
+        Overloaded function for setting the line edit text
+        
+        """
+        self.lineEdit.setText(text)
+
+    def text(self):
+        """ text() -> QString
+        Overloaded function for getting the line edit text
+        
+        """
+        return self.lineEdit.text()
+
+    def selectAll(self):
+        """ selectAll() -> None
+        Overloaded function for selecting all the text
+        
+        """
+        self.lineEdit.selectAll()
+
+    def setFrame(self, frame):
+        """ setFrame(frame: bool) -> None
+        Show/Hide the frame of this widget
+        
+        """
+        if frame:
+            self.setFrameStyle(QtGui.QFrame.StyledPanel |
+                               QtGui.QFrame.Plain)
+        else:
+            self.setFrameStyle(QtGui.QFrame.NoFrame)
+
+    def insertFileNameDialog(self):
+        """ insertFileNameDialog() -> None
+        Allow user to insert a file name as a value to the string
+        
+        """
+        fileName = QtGui.QFileDialog.getOpenFileName(self,
+                                                     'Use Filename '
+                                                     'as Value...',
+                                                     self.text(),
+                                                     'All files '
+                                                     '(*.*)')
+        if not fileName.isEmpty():
+            self.setText(fileName)
+        

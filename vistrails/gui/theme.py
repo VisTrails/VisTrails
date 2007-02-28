@@ -359,6 +359,11 @@ class DefaultTheme(object):
             core.system.visTrailsRootDirectory() +
             '/gui/resources/images/full_tree.png')
 
+        # Toolbar icon for viewing the whole version tree
+        self.PERFORM_PARAMETER_EXPLORATION_ICON = QtGui.QIcon(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/perform_pe.png')
+
         # Toolbar icon for dragging pixmap of VisDiff
         self.VERSION_DRAG_PIXMAP = QtGui.QPixmap(
             core.system.visTrailsRootDirectory() +
