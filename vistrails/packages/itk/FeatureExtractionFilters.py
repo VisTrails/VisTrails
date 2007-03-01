@@ -22,15 +22,26 @@
 import itk
 import core.modules
 from ITK import *
+from Filters import *
 
-class FeatureFilter(Filter):
+class GradientMagnitudeRecursiveGaussianImageFilter(FeatureFilter):
+    def setSigma(self, sigma):
+        self.sigma_ = sigma;
+        
     def compute(self):
-	pass
+        inFilter = self.forceGetInputFromPort("Input Filter")
+        im = self.getInputFromPort("Input Image")
+        inType = self.getInputFromPort("Input PixelType")._type
+        outType = self.getInputFromPort("Output PixelType")._type
+        dim = self.getInputFromPort("Dimension")
+        self.setSigma(self.getInputFromPort("Sigma"))
+        inType = itk.Image[inType, dim]
+        outType= itk.Image[outType, dim]
 
-class IntensityFilter(Filter):
-    def compute(self):
-	pass
+        self.filter_ = itk.GradientMagnitudeRecursiveGaussianImageFilter[inType, outType].New(im)
+        self.filter_.SetSigma(self.sigma_)
+        
+        self.filter_.Update()
 
-class SegmentationFilter(Filter):
-    def compute(self):
-	pass
+        self.setResult("Output Image", self.filter_.GetOutput())
+        self.setResult("Filter", self)

@@ -36,3 +36,26 @@ class Filter(ITK):
     def compute(self):
         pass
 
+class Index2D(ITK):
+    def compute(self):
+	self.ind_ = itk.Index[2]()
+	self.x_ = self.getInputFromPort("X Index")
+	self.y_ = self.getInputFromPort("Y Index")
+
+	self.ind_.SetElement(0,self.x_)
+	self.ind_.SetElement(1,self.y_)
+
+	self.setResult("Index", self)
+
+class Index3D(ITK):
+    def compute(self):
+	self.ind_ = itk.Index[3]()
+	self.x_ = self.getInputFromPort("X Index")
+	self.y_ = self.getInputFromPort("Y Index")
+	self.z_ = self.getInputFromPort("Z Index")
+
+	self.ind_.SetElement(0,self.x_)
+	self.ind_.SetElement(1,self.y_)
+	self.ind_.SetElement(2,self.z_)
+
+	self.setResult("Index", self)

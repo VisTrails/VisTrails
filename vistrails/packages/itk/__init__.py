@@ -36,12 +36,26 @@ from PixelTypes import *
 from Image import *
 from ImageReader import *
 from Filters import *
+from FeatureExtractionFilters import *
+from IntensityFilters import *
+from SegmentationFilters import *
 
 def initialize(*args, **keywords):
     reg = core.modules.module_registry
     basic = core.modules.basic_modules
 
     reg.addModule(ITK)
+    reg.addModule(Index2D)
+    reg.addInputPort(Index2D, "X Index", (basic.Integer, 'X Index'))
+    reg.addInputPort(Index2D, "Y Index", (basic.Integer, 'Y Index'))
+    reg.addOutputPort(Index2D, "Index", (Index2D, 'Index'))
+
+    reg.addModule(Index3D)
+    reg.addInputPort(Index3D, "X Index", (basic.Integer, 'X Index'))
+    reg.addInputPort(Index3D, "Y Index", (basic.Integer, 'Y Index'))
+    reg.addInputPort(Index3D, "Z Index", (basic.Integer, 'Z Index'))
+    reg.addOutputPort(Index3D, "Index", (Index3D, 'Index'))
+
     reg.addModule(PixelType)
 
     reg.addModule(PixelTypeFloat)
@@ -72,7 +86,8 @@ def initialize(*args, **keywords):
     reg.addInputPort(ImageToFile, "Image", (Image, 'Image'))
     reg.addOutputPort(ImageToFile, "File", (basic.File, 'File'))
 
-    reg.addModule(Filter)
+    reg.addModule(Filter, "Image Filters")
+    reg.addModule(FeatureFilter, "Feature Extraction Filters")
     reg.addModule(GradientMagnitudeRecursiveGaussianImageFilter)
     reg.addInputPort(GradientMagnitudeRecursiveGaussianImageFilter, "Input Filter", (Filter, 'Input Filter'))
     reg.addInputPort(GradientMagnitudeRecursiveGaussianImageFilter, "Input Image", (Image, 'Input Image'))
@@ -83,6 +98,7 @@ def initialize(*args, **keywords):
     reg.addOutputPort(GradientMagnitudeRecursiveGaussianImageFilter, "Output Image", (Image, 'Output Image'))
     reg.addOutputPort(GradientMagnitudeRecursiveGaussianImageFilter, "Filter", (Filter, 'Filter'))
 
+    reg.addModule(IntensityFilter, "Image Intensity Filters")
     reg.addModule(RescaleIntensityImageFilter)
     reg.addInputPort(RescaleIntensityImageFilter, "Input Filter", (Filter, 'Input Filter'))
     reg.addInputPort(RescaleIntensityImageFilter, "Input Image", (Image, 'Input Image'))
@@ -94,3 +110,12 @@ def initialize(*args, **keywords):
     reg.addOutputPort(RescaleIntensityImageFilter, "Output Image", (Image, 'Output Image'))
     reg.addOutputPort(RescaleIntensityImageFilter, "Filter", (Filter, 'Filter'))
 
+    reg.addModule(SegmentationFilter, "Segmentation Filters")
+    reg.addModule(IsolatedWatershedImageFilter)
+    reg.addInputPort(IsolatedWatershedImageFilter, "Input Image", (Image, 'Input Image'))
+    reg.addInputPort(IsolatedWatershedImageFilter, "Input PixelType", (PixelType, 'Input PixelType'))
+    reg.addInputPort(IsolatedWatershedImageFilter, "Output PixelType", (PixelType, 'Output PixelType'))
+    reg.addInputPort(IsolatedWatershedImageFilter, "Dimension", (basic.Integer, 'Dimension'))
+    reg.addInputPort(IsolatedWatershedImageFilter, "Seed1", (Index2D, 'Seed 1 Location'))
+    reg.addInputPort(IsolatedWatershedImageFilter, "Threshold", (basic.Float, 'Threshold'))
+    reg.addOutputPort(IsolatedWatershedImageFilter, "Output Image", (Image, 'Output Image'))
