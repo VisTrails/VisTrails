@@ -270,6 +270,9 @@ class QBuilderWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('moduleSelectionChange'),
                      self.moduleSelectionChange)
         self.connect(self.viewManager,
+                     QtCore.SIGNAL('versionSelectionChange'),
+                     self.versionSelectionChange)
+        self.connect(self.viewManager,
                      QtCore.SIGNAL('currentVistrailChanged'),
                      self.currentVistrailChanged)
         self.connect(self.viewManager,
@@ -358,6 +361,13 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         self.copyAction.setEnabled(len(selection)>0)
 
+    def versionSelectionChange(self, versionId):
+        """ versionSelectionChange(versionId: int) -> None
+        Update the status of tool bar buttons if there is a version selected
+        
+        """
+        self.executeCurrentWorkflowAction.setEnabled(versionId>-1)
+    
     def clipboardChanged(self, mode=QtGui.QClipboard.Clipboard):
         """ clipboardChanged(mode: QClipboard) -> None        
         Update the status of tool bar buttons when the clipboard

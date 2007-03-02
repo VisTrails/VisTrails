@@ -111,6 +111,14 @@ class QVistrailView(QDockContainer):
                      QtCore.SIGNAL('triggered(bool)'),
                      self.controller.setFullTree)
 
+        #Toolbar buttons state
+        self.connect(self.versionTab,
+                     QtCore.SIGNAL('versionSelectionChange'),
+                     self.versionSelectionChange)
+        self.connect(self.queryTab,
+                     QtCore.SIGNAL('queryPipelineChange'),
+                     self.queryPipelineChange)
+
         # Space-storage for the builder window
         self.savedToolBarArea = None
         self.viewAction = None
@@ -194,6 +202,22 @@ class QVistrailView(QDockContainer):
         if self.controller.changed:
             title += '*'
         self.setWindowTitle(title)
+
+    def versionSelectionChange(self, versionId):
+        """ versionSelectionChange(versionId: int) -> None
+        Update the status of tool bar buttons if there is a version selected
+        
+        """
+        self.toolBar.executePipelineAction().setEnabled(versionId>-1)
+        self.toolBar.viewFullTreeAction().setEnabled(versionId>-1)
+
+    def queryPipelineChange(self, notEmpty):
+        """ versionSelectionChange(notEmpty: bool) -> None
+        Update the status of tool bar buttons if there are
+        modules on the query canvas
+        
+        """
+        self.toolBar.visualQueryAction().setEnabled(notEmpty)
 
     def emitDockBackSignal(self):
         """ emitDockBackSignal() -> None

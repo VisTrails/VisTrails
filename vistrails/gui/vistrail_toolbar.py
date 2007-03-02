@@ -80,6 +80,7 @@ class QVistrailViewToolBar(QtGui.QToolBar):
                                                    'pipeline')
             self._executePipelineAction.setStatusTip(
                 self._executePipelineAction.toolTip())
+            self._executePipelineAction.setEnabled(False)
         return self._executePipelineAction
 
     def visualQueryAction(self):
@@ -97,6 +98,7 @@ class QVistrailViewToolBar(QtGui.QToolBar):
             self._visualQueryAction.setToolTip('Query vistrail by example')
             self._visualQueryAction.setStatusTip(
                 self._visualQueryAction.toolTip())
+            self._visualQueryAction.setEnabled(False)
         return self._visualQueryAction
 
     def viewFullTreeAction(self):
@@ -114,6 +116,7 @@ class QVistrailViewToolBar(QtGui.QToolBar):
                                                'tree with all move actions')
             self._viewFullTreeAction.setStatusTip(
                 self._viewFullTreeAction.toolTip())
+            self._viewFullTreeAction.setEnabled(False)
         return self._viewFullTreeAction
 
     def cursorMenu(self):

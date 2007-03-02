@@ -64,3 +64,5 @@ class QQueryTab(QPipelineTab):
         
         """
         self.updatePipeline(self.controller.currentPipeline)
+        self.emit(QtCore.SIGNAL("queryPipelineChange"),
+                  len(self.controller.currentPipeline.modules)>0)

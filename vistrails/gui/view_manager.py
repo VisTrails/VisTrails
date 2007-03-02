@@ -84,6 +84,12 @@ class QViewManager(QtGui.QTabWidget):
         self.connect(view.pipelineTab,
                      QtCore.SIGNAL('moduleSelectionChange'),
                      self.moduleSelectionChange)
+        self.connect(view.versionTab,
+                     QtCore.SIGNAL('versionSelectionChange'),
+                     self.versionSelectionChange)
+        self.connect(view.queryTab,
+                     QtCore.SIGNAL('queryPipelineChange'),
+                     self.queryPipelineChange)
         self.emit(QtCore.SIGNAL('vistrailViewAdded'), view)
         if self.count()==1:
             self.emit(QtCore.SIGNAL('currentChanged(int)'), 0)
@@ -98,6 +104,9 @@ class QViewManager(QtGui.QTabWidget):
             self.disconnect(view.pipelineTab,
                             QtCore.SIGNAL('moduleSelectionChange'),
                             self.moduleSelectionChange)
+            self.disconnect(view.versionTab,
+                            QtCore.SIGNAL('versionSelectionChange'),
+                            self.versionSelectionChange)
             self.emit(QtCore.SIGNAL('vistrailViewRemoved'), view)
             if self.indexOf(view)!=-1:
                 self.removeTab(self.currentIndex())
@@ -113,6 +122,20 @@ class QViewManager(QtGui.QTabWidget):
         
         """
         self.emit(QtCore.SIGNAL('moduleSelectionChange'), selection)
+
+    def versionSelectionChange(self, versionId):
+        """ versionSelectionChange(versionId: int) -> None
+        Just echo the signal from the view
+        
+        """
+        self.emit(QtCore.SIGNAL('versionSelectionChange'), versionId)
+
+    def queryPipelineChange(self, notEmpty):
+        """ versionSelectionChange(notEmpty: bool) -> None
+        Just echo the signal from the view
+        
+        """
+        self.emit(QtCore.SIGNAL('queryPipelineChange'), notEmpty)
 
     def copySelection(self):
         """ copySelection() -> None

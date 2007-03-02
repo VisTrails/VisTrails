@@ -89,6 +89,8 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
             self.controller.resetPipelineView = byClick
             self.controller.changeSelectedVersion(versionId)
             self.versionProp.updateVersion(versionId)
+            self.emit(QtCore.SIGNAL('versionSelectionChange'),versionId)
+            
 
     def setController(self, controller):
         """ setController(controller: VistrailController) -> None
