@@ -351,6 +351,7 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         self.controller = None
         self.module = None
         self.ghosted = False
+        self._module_shape = None
 
     def computeBoundingRect(self):
         """ computeBoundingRect() -> None
@@ -393,16 +394,34 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         Peform actual painting of the module
         
         """
-        painter.fillRect(self.paddedRect, self.moduleBrush)
-        if self.isSelected():
-            painter.setPen(CurrentTheme.MODULE_SELECTED_PEN)
+        def setModulePen():
+            if self.isSelected():
+                painter.setPen(CurrentTheme.MODULE_SELECTED_PEN)
+            else:
+                painter.setPen(self.modulePen)
+        def setLabelPen():
+            if self.isSelected():
+                painter.setPen(CurrentTheme.MODULE_LABEL_SELECTED_PEN)
+            else:
+                painter.setPen(self.labelPen)
+            
+        def drawCustomShape():
+            painter.setBrush(self.moduleBrush)
+            painter.drawPolygon(self._module_shape)
+            setModulePen()
+            painter.drawPolyline(self._module_shape)
+
+        def drawStandardShape():
+            painter.fillRect(self.paddedRect, self.moduleBrush)
+            setModulePen()
+            painter.drawRect(self.paddedRect)
+
+        if self._module_shape:
+            drawCustomShape()
         else:
-            painter.setPen(self.modulePen)
-        painter.drawRect(self.paddedRect)
-        if self.isSelected():
-            painter.setPen(CurrentTheme.MODULE_LABEL_SELECTED_PEN)
-        else:
-            painter.setPen(self.labelPen)
+            drawStandardShape()
+    
+        setLabelPen()
         painter.setFont(self.labelFont)
         painter.drawText(self.paddedRect, QtCore.Qt.AlignCenter, self.label)
 
@@ -427,6 +446,11 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         self.computeBoundingRect()
         self.resetMatrix()
         self.translate(module.center.x, -module.center.y)
+        c = registry.get_module_color(module.name)
+        if c:
+            ic = [int(cl*255) for cl in c]
+            b = QtGui.QBrush(QtGui.QColor(ic[0], ic[1], ic[2]))
+            self.moduleBrush = b
 
         # Check to see which ports will be shown on the screen
         visibleOptionalPorts = []
@@ -481,6 +505,29 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
             self.outputPorts[port] = self.createPortItem(port, x, y)
             x -= CurrentTheme.PORT_WIDTH + CurrentTheme.MODULE_PORT_SPACE
         self.nextOutputPortPos = [x, y]
+
+        # Update module shape, if necessary
+        fringe = registry.get_module_fringe(module.name)
+        if fringe:
+            P = QtCore.QPointF
+            self._module_shape = QtGui.QPolygonF()
+            height = self.paddedRect.height()
+
+            # right side of shape
+            for (px, py) in fringe:
+                p = P(px, py)
+                p *= height
+                p += self.paddedRect.topRight()
+                self._module_shape.append(p)
+
+            # left side of shape
+            for (px, py) in fringe:
+                p = P(-px, -py)
+                p *= height
+                p += self.paddedRect.bottomLeft()
+                self._module_shape.append(p)
+            # close polygon
+            self._module_shape.append(self._module_shape[0])
 
     def createPortItem(self, port, x, y):
         """ createPortItem(port: Port, x: int, y: int) -> QGraphicsPortItem
