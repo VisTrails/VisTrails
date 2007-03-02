@@ -308,7 +308,7 @@ class PythonSource(NotCacheable, Module):
         locals_ = locals()
         locals_.update(inputDict)
         locals_.update(outputDict)
-        locals_.update({'fail': fail})
+        locals_.update({'fail': fail, 'self': self})
         del locals_['source']
         exec s in globals(), locals_
         for k in outputDict.iterkeys():
