@@ -297,8 +297,23 @@ class PythonSource(NotCacheable, Module):
     pipeline."""
     
     def compute(self):
+        def fail(msg):
+            raise ModuleError(self, msg)
         import urllib
-        exec urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        inputDict = dict([(k, self.getInputFromPort(k))
+                          for k in self.inputPorts])
+        outputDict = dict([(k, None)
+                           for k in self.outputPorts])
+        locals_ = locals()
+        locals_.update(inputDict)
+        locals_.update(outputDict)
+        locals_.update({'fail': fail})
+        del locals_['source']
+        exec s in globals(), locals_
+        for k in outputDict.iterkeys():
+            if locals_[k] != None:
+                self.setResult(k, locals_[k])
 
 _reg.addModule(PythonSource,
               None, module_configure.PythonSourceConfigurationWidget)
