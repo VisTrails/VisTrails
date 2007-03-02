@@ -158,6 +158,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 self.showMaximized()
             else:
                 self.show()
+        else:
+            self.show()
 
     def showEvent(self, e):
         """ showEvent(e: QShowEvent) -> None
