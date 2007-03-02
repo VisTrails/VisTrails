@@ -260,6 +260,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             locations = self.tabController.getMonitoredLocations((e.vistrail,
                                                                   pid, cid))
             for (sheet, row, col) in locations:
+                sheet.tabWidget.setCurrentWidget(sheet)
                 sheet.setCellPipelineInfo(row, col, (e.vistrail, pid, cid))
                 sheet.setCellByType(row, col, e.cellType, e.inputPorts)
         else:

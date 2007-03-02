@@ -47,7 +47,8 @@ class vtkBaseModule(Module):
     def is_cacheable(self):
         # VTK objects are by default cacheable only if they're subclasses
         # of vtkAlgorithm
-        return issubclass(self.vtkClass, vtk.vtkAlgorithm)
+        return (issubclass(self.vtkClass, vtk.vtkAlgorithm)
+                and (not issubclass(self.vtkClass, vtk.vtkAbstractMapper)))
 
     def compute(self):
         """ compute() -> None

@@ -196,6 +196,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         self.setRowCount(rows)
         self.setColumnCount(cols)
         self.setFitToWindow(True)
+        self.firstShow = True
 
     def updateRowLabels(self, oldCount, newCount):
         """ updateRowLabels(oldCount: int, newCount: int) -> None
@@ -238,6 +239,13 @@ class StandardWidgetSheet(QtGui.QTableWidget):
                 self.setColumnWidth(self.columnCount()-1, width)
                 self.setRowHeight(self.rowCount()-1, height)
             self.stretchCells()
+
+    def showEvent(self, event):
+        """ showEvent(event: QShowEvent) -> None
+        Make sure to stretch the sheet on the first appearance
+        
+        """
+        self.stretchCells()
 
     def stretchCells(self):
         """ stretchCells() -> None
@@ -352,7 +360,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
                                                    None,
                                                    index)
                 newCell.show()
-                newCell.updateContents(inputPorts)
+                newCell.updateContents(inputPorts)                
             else:
                 self.setCellWidget(row, col, None)
             if hasattr(oldCell, 'deleteLater'):
