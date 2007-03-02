@@ -99,23 +99,20 @@ import sys
 import unittest
 import core.vistrail
 
-_UGLY_HACK = 0
-
 class TestConsoleMode(unittest.TestCase):
 
     def setUp(self, *args, **kwargs):
-        global _UGLY_HACK
-        if _UGLY_HACK != 0:
-            old_path = sys.path
-            sys.path.append(core.system.visTrailsRootDirectory() +
-                            '/tests/resources')
-            m = __import__('console_mode_test')
-            sys.path = old_path
-            d = {'console_mode_test': m}
-            manager = core.packagemanager.get_package_manager()
-            manager.add_package('console_mode_test')
-            manager.initialize_packages(d)
-        _UGLY_HACK += 1
+        manager = core.packagemanager.get_package_manager()
+        if manager.has_package('console_mode_test'):
+            return
+        old_path = sys.path
+        sys.path.append(core.system.visTrailsRootDirectory() +
+                        '/tests/resources')
+        m = __import__('console_mode_test')
+        sys.path = old_path
+        d = {'console_mode_test': m}
+        manager.add_package('console_mode_test')
+        manager.initialize_packages(d)
 
     def test1(self):
         result = run(core.system.visTrailsRootDirectory() +
@@ -130,6 +127,11 @@ class TestConsoleMode(unittest.TestCase):
         p.addModule(shm('TestTupleExecution', 0,
                         [('input', [('Float', '2.0'), ('Float', '2.0')])]))
         interpreter.execute(p, 'foo', 1, v, None)
+
+    def test_python_source(self):
+        result = run(core.system.visTrailsRootDirectory() +
+                     '/tests/resources/pythonsource.xml',"testPortsAndFail")
+        self.assertEquals(result, True)
 
 if __name__ == '__main__':
     unittest.main()
