@@ -115,13 +115,13 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
 
     def vistrailChanged(self):
         """ vistrailChanged() -> None        
-        Update the version tree when the vistrail of the controller
-        has changed
+        An action was performed on the current vistrail
         
         """
         self.versionView.scene().setupScene(self.controller)
         if self.controller and self.controller.resetVersionView:
             self.versionView.scene().fitToAllViews()
+        self.emit(QtCore.SIGNAL("vistrailChanged()"))
 
     def addBookmark(self, id, name):
         """addBookmark(id: int, label:name) -> None

@@ -87,6 +87,9 @@ class QViewManager(QtGui.QTabWidget):
         self.connect(view.versionTab,
                      QtCore.SIGNAL('versionSelectionChange'),
                      self.versionSelectionChange)
+        self.connect(view.versionTab,
+                     QtCore.SIGNAL('vistrailChanged()'),
+                     self.vistrailChanged)
         self.connect(view.queryTab,
                      QtCore.SIGNAL('queryPipelineChange'),
                      self.queryPipelineChange)
@@ -107,6 +110,9 @@ class QViewManager(QtGui.QTabWidget):
             self.disconnect(view.versionTab,
                             QtCore.SIGNAL('versionSelectionChange'),
                             self.versionSelectionChange)
+            self.disconnect(view.versionTab,
+                            QtCore.SIGNAL('vistrailChanged()'),
+                            self.vistrailChanged)
             self.emit(QtCore.SIGNAL('vistrailViewRemoved'), view)
             if self.indexOf(view)!=-1:
                 self.removeTab(self.currentIndex())
@@ -129,6 +135,13 @@ class QViewManager(QtGui.QTabWidget):
         
         """
         self.emit(QtCore.SIGNAL('versionSelectionChange'), versionId)
+
+    def vistrailChanged(self):
+        """ vistrailChanged() -> None
+        Just echo the signal from the view
+        
+        """
+        self.emit(QtCore.SIGNAL('vistrailChanged()'))
 
     def queryPipelineChange(self, notEmpty):
         """ versionSelectionChange(notEmpty: bool) -> None
@@ -188,6 +201,7 @@ class QViewManager(QtGui.QTabWidget):
             # Make sure to select the latest time step
             vistrailView.controller.changeSelectedVersion(vistrail.latestTime-1)
             vistrailView.versionTab.vistrailChanged()
+        
             return vistrailView
         except XMLParser.XMLParseError, e:
             QtGui.QMessageBox.critical(None,

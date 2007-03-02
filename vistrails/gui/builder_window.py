@@ -154,15 +154,18 @@ class QBuilderWindow(QtGui.QMainWindow):
                                                 '&Save', self)
         self.saveVistrailAction.setShortcut('Ctrl+S')
         self.saveVistrailAction.setStatusTip('Save the current VisTrail')
-
+        self.saveVistrailAction.setEnabled(False)
+        
         self.saveVistrailAsAction = QtGui.QAction('Save as...', self)
         self.saveVistrailAsAction.setShortcut('Ctrl+Shift+S')
-        self.saveVistrailAction.setStatusTip('Save the current VisTrail at '
+        self.saveVistrailAsAction.setStatusTip('Save the current VisTrail at '
                                              'a different location')
+        self.saveVistrailAsAction.setEnabled(False)
 
         self.closeVistrailAction = QtGui.QAction('Close', self)
         self.closeVistrailAction.setShortcut('Ctrl+W')
         self.closeVistrailAction.setStatusTip('Close the current VisTrail')
+        self.closeVistrailAction.setEnabled(False)
 
         self.quitVistrailsAction = QtGui.QAction('Quit', self)
         self.quitVistrailsAction.setShortcut('Ctrl+Q')
@@ -194,9 +197,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         
         self.helpAction = QtGui.QAction(self.tr('About VisTrails...'), self)
 
-        a = QtGui.QAction(self.tr('E&xecute Current Workflow\tCtrl+Enter'),
+        a = QtGui.QAction(self.tr('Execute Current Workflow\tCtrl+Enter'),
                           self)
         self.executeCurrentWorkflowAction = a
+        self.executeCurrentWorkflowAction.setEnabled(False)
         self.flushCacheAction = QtGui.QAction(self.tr('Erase Cache Contents'),
                                               self)
 
@@ -241,6 +245,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         
 
         self.vistrailMenu = self.menuBar().addMenu('Vis&trail')
+        self.vistrailMenu.menuAction().setEnabled(False)
         self.vistrailActionGroup = QtGui.QActionGroup(self)
 
         self.helpMenu = self.menuBar().addMenu('Help')
@@ -275,6 +280,9 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.viewManager,
                      QtCore.SIGNAL('currentVistrailChanged'),
                      self.currentVistrailChanged)
+        self.connect(self.viewManager,
+                     QtCore.SIGNAL('vistrailChanged()'),
+                     self.vistrailChanged)
         self.connect(self.viewManager,
                      QtCore.SIGNAL('vistrailViewAdded'),
                      self.vistrailViewAdded)
@@ -401,7 +409,13 @@ class QBuilderWindow(QtGui.QMainWindow):
                                 vistrailView.windowTitle())
         else:
             self.setWindowTitle('VisTrails Builder')
-            
+            self.saveVistrailAction.setEnabled(False)
+            self.closeVistrailAction.setEnabled(False)
+            self.saveVistrailAsAction.setEnabled(False)
+            self.executeCurrentWorkflowAction.setEnabled(False)
+            #self.vistrailActionGroup.setEnabled(False)
+            self.vistrailMenu.menuAction().setEnabled(False)
+
         if self.viewManager.sdiMode:
             if self.vistrailViewToolBar:
                 area = self.toolBarArea(self.vistrailViewToolBar)
@@ -418,6 +432,14 @@ class QBuilderWindow(QtGui.QMainWindow):
             if not vistrailView.viewAction.isChecked():
                 vistrailView.viewAction.setChecked(True)
 
+    def vistrailChanged(self):
+        """ vistrailChanged() -> None
+        An action was performed on the current vistrail
+        
+        """
+        self.saveVistrailAction.setEnabled(True)
+        self.saveVistrailAsAction.setEnabled(True)
+
     def openVistrail(self):
         """ openVistrail() -> None
         Open a new vistrail
@@ -430,6 +452,10 @@ class QBuilderWindow(QtGui.QMainWindow):
             "Vistrail files (*.xml)\nOther files (*)")
         if not fileName.isEmpty():
             self.viewManager.openVistrail(str(fileName))
+            self.closeVistrailAction.setEnabled(True)
+            self.saveVistrailAsAction.setEnabled(True)
+            #self.vistrailActionGroup.setEnabled(True)
+            self.vistrailMenu.menuAction().setEnabled(True)
 
     def saveVistrail(self):
         """ saveVistrail() -> None
@@ -437,6 +463,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         
         """
         self.viewManager.saveVistrail()
+        
 
     def saveVistrailAs(self):
         """ saveVistrailAs() -> None
