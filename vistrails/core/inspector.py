@@ -97,7 +97,8 @@ class PipelineInspector(object):
         self.inputPorts = {}
         self.inputPortByName = {}
         self.outputPorts = {}
-        self.outputPortByName = {}        
+        self.outputPortByName = {}
+        if not pipeline: return        
         for cId, conn in pipeline.connections.iteritems():
             srcModule = pipeline.modules[conn.source.moduleId]
             dstModule = pipeline.modules[conn.destination.moduleId]
@@ -136,6 +137,7 @@ class PipelineInspector(object):
         
         """        
         self.spreadsheetCells = []
+        if not pipeline: return
         # Sometimes we run without the spreadsheet!
         if registry.hasModule('SpreadsheetCell'):
             # First pass to check cells types
@@ -156,6 +158,7 @@ class PipelineInspector(object):
         
         """
         self.annotatedModules = {}
+        if not pipeline: return
         count = {}
         moduleName = {}
         for moduleId in pipeline.modules.iterkeys():

@@ -75,23 +75,60 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         vPadWidget.setSizePolicy(QtGui.QSizePolicy.Expanding,
                                 QtGui.QSizePolicy.Expanding)
 
+        self.inspector = PipelineInspector()
+        self.pipeline = None
+
     def updateVirtualCell(self, pipeline):        
         """ updateVirtualCell(pipeline: QPipeline) -> None
         Setup the virtual cells given a pipeline
         
         """
+        self.pipeline = pipeline
+        if pipeline:
+            self.inspector.inspectSpreadsheetCells(pipeline)
+            self.inspector.inspectAmbigiousModules(pipeline)
+            cells = []
+            for mId in self.inspector.spreadsheetCells:
+                name = pipeline.modules[mId].name
+                if self.inspector.annotatedModules.has_key(mId):
+                    cells.append((name, self.inspector.annotatedModules[mId]))
+                else:
+                    cells.append((name, -1))
+            self.config.configVirtualCells(cells)
+        else:
+            self.config.clear()
+
+    def getConfiguration(self):
+        """ getConfiguration() -> info (see below)
+        Return the current configuration of the virtual cell. The
+        information is:
+        info = (rowCount, columnCount,
+                [{(type,id): (row, column)})
+        """
+        return self.config.getConfiguration()
+
+                
+    def decodeConfiguration(self, pipeline, cells):
+        """ decodeConfiguration(pipeline: Pipeline,
+                                cells: configuration) -> decoded cells
+        Convert cells of type [{(type,id): (row, column)}) to
+        (mId, row, col) in a particular pipeline
+        
+        """
+        decodedCells = []
         inspector = PipelineInspector()
         inspector.inspectSpreadsheetCells(pipeline)
         inspector.inspectAmbigiousModules(pipeline)
-        cells = []
         for mId in inspector.spreadsheetCells:
             name = pipeline.modules[mId].name
             if inspector.annotatedModules.has_key(mId):
-                cells.append((name, inspector.annotatedModules[mId]))
+                idx = inspector.annotatedModules[mId]
             else:
-                cells.append((name, -1))
-        self.config.configVirtualCells(cells)
-                
+                idx = -1
+            (vRow, vCol) = cells[(name, idx)]
+            decodedCells.append((mId, vRow, vCol))
+        return decodedCells
+
 class QVirtualCellConfiguration(QtGui.QWidget):
     """
     QVirtualCellConfiguration is a widget provide a virtual layout of
@@ -208,7 +245,26 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         # Clear redundant columns
         for i in range(self.numCell-len(visibleCols)):
             for r in range(self.numCell):
-                self.cells[r][i+len(visibleCols)].setCellData(None, -1)                
+                self.cells[r][i+len(visibleCols)].setCellData(None, -1)
+
+    def getConfiguration(self):
+        """ getVirtualCellwConfiguration() -> info (see below)
+        Return the current configuration of the virtual cell. The
+        information is:
+        info = (rowCount, columnCount
+                [{(type, id): (row, column)}])
+        """
+        result = {}
+        rCount = 0
+        cCount = 0
+        for r in range(self.numCell):
+            for c in range(self.numCell):
+                cell = self.cells[r][c]
+                if cell.type:
+                    result[(cell.type, cell.id)] = (r, c)
+                    if r+1>rCount: rCount = r+1
+                    if c+1>cCount: cCount = c+1
+        return (rCount, cCount, result)
 
 class QVirtualCellLabel(QtGui.QLabel):
     """
@@ -276,7 +332,6 @@ class QVirtualCellLabel(QtGui.QLabel):
         painter.begin(image)
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
         if self.type==None:
-#            painter.setPen(QtCore.Qt.lightGray)
             painter.setPen(QtCore.Qt.NoPen)
             painter.setBrush(QtCore.Qt.NoBrush)
         else:

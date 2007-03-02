@@ -70,6 +70,8 @@ class QParameterTreeWidget(QSearchTreeWidget):
         
         """
         self.clear()
+        if not pipeline:
+            return
 
         # Update the aliases
         if len(pipeline.aliases)>0:
@@ -95,7 +97,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                key=lambda item: item[1].name)
         for mId, module in sortedModules:
             if len(module.functions)>0:
-                label = QtCore.QStringList(module.name)
+                mLabel = QtCore.QStringList(module.name)
                 moduleItem = None
                 for fId in range(len(module.functions)):
                     function = module.functions[fId]
@@ -104,17 +106,21 @@ class QParameterTreeWidget(QSearchTreeWidget):
                         if inspector.annotatedModules.has_key(mId):
                             annotatedId = inspector.annotatedModules[mId]
                             moduleItem = QParameterTreeWidgetItem(annotatedId,
-                                                                  self, label)
+                                                                  self, mLabel)
                         else:
                             moduleItem = QParameterTreeWidgetItem(None,
-                                                                  self, label)
+                                                                  self, mLabel)
                     v = ', '.join([p.strValue for p in function.params])
                     label = QtCore.QStringList('%s(%s)' % (function.name, v))
                     pList = [(function.params[pId].type,
                               function.params[pId].strValue,
                               mId, fId, pId)
                              for pId in range(len(function.params))]
-                    mItem = QParameterTreeWidgetItem((function.name, pList),
+                    mName = module.name
+                    if moduleItem.parameter!=None:
+                        mName += '(%d)' % moduleItem.parameter
+                    fName = '%s :: %s' % (mName, function.name)
+                    mItem = QParameterTreeWidgetItem((fName, pList),
                                                      moduleItem,
                                                      label)
                 if moduleItem:

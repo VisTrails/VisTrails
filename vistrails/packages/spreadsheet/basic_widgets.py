@@ -153,6 +153,22 @@ class SpreadsheetCell(NotCacheable, Module):
     itself. That should be done by the specific widget type.
     
     """
+    def __init__(self):
+        """ SpreadsheetCell() -> SpreadsheetCell
+        Initialize attributes
+        
+        """
+        Module.__init__(self)
+        self.location = None
+    
+    def overrideLocation(self, location):
+        """ overrideLocation(location: CellLocation) -> None        
+        Make the cell always use this location instead of reading from
+        the port
+        
+        """
+        self.location = location
+    
     def display(self, cellType, inputPorts):
         """ display(cellType: python type, iputPorts: tuple) -> None
         Dispatch the cellType to the spreadsheet with appropriate input data
@@ -165,7 +181,10 @@ class SpreadsheetCell(NotCacheable, Module):
         """
         e = DisplayCellEvent()
         e.vistrail = (self.vistrailName, self.currentVersion)
-        location = self.forceGetInputFromPort("Location")
+        if self.location:
+            location = self.location
+        else:
+            location = self.forceGetInputFromPort("Location")
         if location:
             e.row = location.row
             e.col = location.col

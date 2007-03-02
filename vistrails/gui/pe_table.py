@@ -116,7 +116,7 @@ class QParameterExplorationTable(QPromptWidget):
                            QtGui.QSizePolicy.Expanding)
         self.setPromptText('Drag aliases/parameters here for a parameter '
                            'exploration')
-#        self.showPrompt()
+        self.showPrompt()
         
         vLayout = QtGui.QVBoxLayout(self)
         vLayout.setSpacing(0)
@@ -144,10 +144,59 @@ class QParameterExplorationTable(QPromptWidget):
         in QParameterTreeWidgetItem
         
         """
-        p = QParameterSetEditor(paramInfo, self)
-        self.layout().addWidget(p)
-        p.show()
+        # Check to see paramInfo is not a subset of some other parameter set
+        params = paramInfo[1]
+        for i in range(self.layout().count()):
+            pEditor = self.layout().itemAt(i).widget()
+            if pEditor and type(pEditor)==QParameterSetEditor:
+                subset = True
+                for p in params:
+                    if not (p in pEditor.info[1]):
+                        subset = False
+                        break                    
+                if subset:
+                    show_warning('Parameter Exists',
+                                 'The parameter you are trying to add is '
+                                 'already in the list.')
+                    return
+        self.showPrompt(False)
+        newEditor = QParameterSetEditor(paramInfo, self)
+
+        # Make sure to disable all duplicated parameter
+        for p in range(len(params)):
+            for i in range(self.layout().count()):
+                pEditor = self.layout().itemAt(i).widget()
+                if pEditor and type(pEditor)==QParameterSetEditor:
+                    if params[p] in pEditor.info[1]:
+                        widget = newEditor.paramWidgets[p]
+                        widget.setDimension(4)
+                        widget.setDuplicate(True)
+                        widget.setEnabled(False)
+                        break
+        
+        self.layout().addWidget(newEditor)
+        newEditor.show()
         self.setMinimumHeight(self.layout().minimumSize().height())
+
+    def removeParameter(self, ps):
+        """ removeParameterSet(ps: QParameterSetEditor) -> None
+        Remove a parameter set from the table and validate the rest
+        
+        """
+        self.layout().removeWidget(ps)
+        # Restore disabled parameter
+        for i in range(self.layout().count()):
+            pEditor = self.layout().itemAt(i).widget()
+            if pEditor and type(pEditor)==QParameterSetEditor:
+                for p in range(len(pEditor.info[1])):
+                    param = pEditor.info[1][p]
+                    widget = pEditor.paramWidgets[p]                    
+                    if (param in ps.info[1] and (not widget.isEnabled())):
+                        widget.setDimension(0)
+                        widget.setDuplicate(False)
+                        widget.setEnabled(True)
+                        break
+        self.showPrompt(self.layout().count()<=3)
 
     def updateUserDefinedFunctions(self):
         """ updateUserDefinedFunctions() -> None
@@ -165,21 +214,37 @@ class QParameterExplorationTable(QPromptWidget):
                         userWidget = paramWidget.editor.stackedEditors.widget(2)
                         userWidget.setSize(counts[dim])
 
+    def clear(self):
+        """ clear() -> None
+        Clear all widgets
+        
+        """
+        for i in reversed(range(self.layout().count())):
+            pEditor = self.layout().itemAt(i).widget()
+            if pEditor and type(pEditor)==QParameterSetEditor:
+                pEditor.table = None
+                self.layout().removeWidget(pEditor)
+        self.label.resetCounts()
+        self.showPrompt()
+
     def setPipeline(self, pipeline):
         """ setPipeline(pipeline: Pipeline) -> None
         Assign a pipeline to the current table
         
         """
-        self.pipeline = pipeline
+        if pipeline!=self.pipeline:
+            self.pipeline = pipeline
+            self.clear()
+        self.label.setEnabled(self.pipeline!=None)
 
-    def performParameterExploration(self):
-        """ performParameterExploration() -> None
-        Validate all interpolation values and perform the parameter exploration
+    def collectParameterActions(self):
+        """ collectParameterActions() -> list
+        Return a list of action lists corresponding to each dimension
         
         """
         if not self.pipeline:
-            return
-        parameterValues = {0:[], 1:[], 2:[], 3:[]}
+            return None
+        parameterValues = [[], [], [], []]
         typeCast = {'Integer': int, 'Float': float, 'String': str}
         counts = self.label.getCounts()
         for i in range(self.layout().count()):
@@ -205,7 +270,7 @@ class QParameterExplorationTable(QPromptWidget):
                                              'size from the step count. '
                                              'Parameter Exploration aborted.'
                                              % pEditor.info[0])
-                                return
+                                return None
                         if type(interpolator)==QUserFunctionEditor:
                             values = interpolator.getValues()
                             if [True for v in values if type(v)!=realType]:
@@ -216,7 +281,7 @@ class QParameterExplorationTable(QPromptWidget):
                                              'than that specified by the '
                                              'parameter. Parameter Exploration '
                                               'aborted.' % pEditor.info[0])
-                                return
+                                return None
                         (mId, fId, pId) = tuple(paramInfo[2:5])
                         function = self.pipeline.modules[mId].functions[fId]
                         fName = function.name
@@ -225,12 +290,20 @@ class QParameterExplorationTable(QPromptWidget):
                         actions = []
                         for v in values:
                             action = ChangeParameterAction()
-                            action.addParameter(mId, fId, fName, pId, pName,
-                                                v, paramInfo[0], pAlias)
+                            action.addParameter(mId, fId, pId, fName, pName,
+                                                str(v), paramInfo[0], pAlias)
                             actions.append(action)
-                        parameterValues[dim].append(action)
+                        parameterValues[dim].append(actions)
+        return [zip(*p) for p in parameterValues]
 
-                
+    def performParameterExploration(self):
+        """ performParameterExploration() -> None
+        Validate all interpolation values and perform the parameter exploration
+        
+        """
+        actions = self.collectParameterActions()
+        self.emit(QtCore.SIGNAL('requestParameterExploration'), actions)
+
 class QDimensionLabel(QtGui.QWidget):
     """
     QDimensionLabel represents a horizontal header item of the
@@ -281,6 +354,14 @@ class QDimensionLabel(QtGui.QWidget):
         """
         return [l.countWidget.value() for l in self.labelIcons]
 
+    def resetCounts(self):
+        """ resetCounts() -> None
+        Reset all counts to 1
+        
+        """
+        for l in self.labelIcons:
+            l.countWidget.setValue(1)
+    
 class QDimensionSpinBox(QtGui.QSpinBox):
     """
     QDimensionSpinBox is just an overrided spin box that will also emit
@@ -355,8 +436,6 @@ class QDimensionLabelText(QtGui.QWidget):
         self.button = QtGui.QToolButton()
         self.button.setIcon(CurrentTheme.PERFORM_PARAMETER_EXPLORATION_ICON)
         self.button.setIconSize(QtCore.QSize(32, 32))
-        self.button.setSizePolicy(QtGui.QSizePolicy.Maximum,
-                             QtGui.QSizePolicy.Maximum)
         hLayout.addWidget(self.button)
         
         hLayout.addSpacing(2)
@@ -435,7 +514,7 @@ class QParameterSetEditor(QtGui.QWidget):
         
         """
         if self.table:
-            self.table.layout().removeWidget(self)
+            self.table.removeParameter(self)            
             self.table = None
             self.close()
             self.deleteLater()
@@ -492,6 +571,7 @@ class QParameterWidget(QtGui.QWidget):
         """
         QtGui.QWidget.__init__(self, parent)
         self.param = param
+        self.prevWidget = 0
         
         hLayout = QtGui.QHBoxLayout(self)
         hLayout.setMargin(0)
@@ -532,6 +612,25 @@ class QParameterWidget(QtGui.QWidget):
         """
         self.label.setEnabled(not disabled)
         self.editor.setEnabled(not disabled)
+
+    def setDimension(self, dim):
+        """ setDimension(dim: int) -> None
+        Select a dimension for this parameter
+        
+        """
+        if dim in range(5):
+            self.selector.radioButtons[dim].setChecked(True)
+
+    def setDuplicate(self, duplicate):
+        """ setDuplicate(duplicate: True) -> None
+        Set if this parameter is a duplicate parameter
+        
+        """
+        if duplicate:
+            self.prevWidget = self.editor.stackedEditors.currentIndex()
+            self.editor.stackedEditors.setCurrentIndex(3)
+        else:
+            self.editor.stackedEditors.setCurrentIndex(self.prevWidget)
 
 class QDimensionSelector(QtGui.QWidget):
     """
@@ -632,6 +731,8 @@ class QParameterEditor(QtGui.QWidget):
         self.stackedEditors.addWidget(QUserFunctionEditor(pType,
                                                           pValue,
                                                           size))
+        self.stackedEditors.addWidget(QtGui.QLabel('<i>This is a duplicated '
+                                                   'parameter</i>'))
         hLayout.addWidget(self.stackedEditors)
 
         selector = QParameterEditorSelector(pType)
@@ -749,7 +850,7 @@ class QLinearInterpolationEditor(QtGui.QWidget):
         Return the linear interpolated list containing 'size' values
         
         """
-        cast = {'Integer': int, 'Float': float}[self.pType]
+        cast = {'Integer': int, 'Float': float}[self.type]
         begin = cast(str(self.fromEdit.text()))
         end = cast(str(self.toEdit.text()))
         if size<=1:
@@ -1084,6 +1185,7 @@ class QUserFunctionEditor(QtGui.QFrame):
         if dialog.exec_()==QtGui.QDialog.Accepted:
             self.function = str(dialog.editor.toPlainText())
             self.listValues.setText(self.getValuesString())
+        dialog.deleteLater()
 
     def setSize(self, size):
         """ setSize(size: int) -> None

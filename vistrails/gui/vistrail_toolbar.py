@@ -384,7 +384,7 @@ class QVistrailViewTabBar(QtGui.QTabBar):
         self.addTab('Pipeline')
         self.addTab('Version Tree')
         self.addTab('Query')
-#        self.addTab('Parameter Exploration (In Progress)')
+        self.addTab('Parameter Exploration')
         self.invisible = False
         self.setSizePolicy(QtGui.QSizePolicy.Maximum,
                            QtGui.QSizePolicy.Maximum)

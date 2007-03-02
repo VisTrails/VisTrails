@@ -62,7 +62,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         Set fit to viewport for have all the sections always stretch
         to the whole viewport
 
-        """        
+        """
         if self.fitToViewport!=fit:
             self.fitToViewport = fit
             if fit:
@@ -82,6 +82,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         it uses StandardWidgetHeaderView
         
         """
+        return
         if newSize<self.minimumSize:
             self.resizeSection(logicalIndex, self.minimumSize)
             return
