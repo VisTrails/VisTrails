@@ -123,6 +123,8 @@ PluginRTTI put together, with the ability to extend it at runtime)"""
         self.moduleTree = { "Module": n }
         self.moduleWidget = { "Module": None }
         self._hasher_callable = {}
+        self._module_color = {}
+        self._module_fringe = {}
         self.currentPackageName = 'Basic Modules'
         self.modulePackage = {"Module": 'Basic Modules'}
         self.packageModules = {'Basic Modules': ["Module"]}
@@ -137,6 +139,18 @@ using user-defined hasher."""
 
     def hasModule(self, name):
         return self.moduleTree.has_key(name)
+
+    def get_module_color(self, name):
+        if self._module_color.has_key(name):
+            return self._module_color[name]
+        else:
+            return None
+
+    def get_module_fringe(self, name):
+        if self._module_fringe.has_key(name):
+            return self._module_fringe[name]
+        else:
+            return None
 
     def getDescriptorByName(self, name):
         """getDescriptorByName(name: string) -> ModuleDescriptor
@@ -162,13 +176,30 @@ subclasses from modules.vistrails_module.Module)"""
     def addModule(self, module,
                   name=None,
                   configureWidgetType=None,
-                  cacheCallable=None):
-        """addModule(module: class, optional name: string) -> Tree
+                  cacheCallable=None,
+                  moduleColor=None,
+                  moduleFringe=None):
+        """addModule(module: class,
+        name=None, configureWidgetType=None,
+        cacheCallable=None, moduleColor=None) -> Tree
 
 Registers a new module with VisTrails. Receives the class itself and
 an optional name that will be the name of the module (if not given,
 uses module.__name__).  This module will be available for use in
-pipelines."""
+pipelines.
+
+If moduleColor is not None, then registry stores it so that the gui
+can use it correctly. moduleColor must be a tuple of three floats
+between 0 and 1.
+
+if moduleFringe is not None, then registry stores it so that the gui
+can use it correctly. moduleFringe must be a list of pairs of floating
+points.  The first point must be (0.0, 0.0), and the last must be
+(0.0, 1.0). This will be used to generate custom lateral fringes for
+module boxes. It must be the case that all x values must be positive, and
+all y values must be between 0.0 and 1.0.
+
+"""
         if not name:
             name = module.__name__
         if self.moduleTree.has_key(name):
@@ -193,8 +224,31 @@ pipelines."""
             self.packageModules[self.currentPackageName] = [name]
         
         if cacheCallable:
+            raise VistrailsInternalError("Unimplemented!")
             self._hasher_callable[name] = cacheCallable
+
+        if moduleColor:
+            assert type(moduleColor) == tuple
+            assert len(moduleColor) == 3
+            for i in 0,1,2:
+                assert type(moduleColor[i]) == float
+            self._module_color[name] = moduleColor
+
+        if moduleFringe:
+            assert type(moduleFringe) == list
+            assert len(moduleFringe) >= 2
+            for v in moduleFringe:
+                assert type(v) == tuple
+                assert len(v) == 2
+                assert type(v[0]) == float
+                assert type(v[1]) == float
+            assert moduleFringe[0][0] == 0.0
+            assert moduleFringe[0][1] == 0.0
+            assert moduleFringe[-1][0] == 0.0
+            assert moduleFringe[-1][1] == 1.0
+            self._module_fringe[name] = moduleFringe
             
+
         # self requires object magic, it's an open type! I want OCaml :(
         # self.addOutputPort(module, 'self', (module, 'self'))
         self.emit(QtCore.SIGNAL("newModule"), name)
