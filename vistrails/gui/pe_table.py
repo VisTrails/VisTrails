@@ -1173,8 +1173,7 @@ class QUserFunctionEditor(QtGui.QFrame):
         Return a string representation of the parameter list
         
         """
-        text = str(self.getValues())
-        return '{%s}' % text[1:-1]
+        return '{%s}' % ','.join([str(v) for v in self.getValues()])
 
     def editFunction(self):
         """ editFunction() -> None
