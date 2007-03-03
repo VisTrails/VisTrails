@@ -373,10 +373,11 @@ class QVirtualCellLabel(QtGui.QLabel):
             drag.setHotSpot(self.pixmap().rect().center())
             drag.setPixmap(self.pixmap())
             
-            self.setCellData('', self.id)
+            self.setCellData('', -1)
             
             drag.start(QtCore.Qt.MoveAction)
-            self.setCellData(*mimeData.cellData)
+            if mimeData.cellData!=('', -1):
+                self.setCellData(*mimeData.cellData)
             self.emit(QtCore.SIGNAL('finishedDragAndDrop'))
 
     def dragEnterEvent(self, event):
@@ -384,7 +385,7 @@ class QVirtualCellLabel(QtGui.QLabel):
         Set to accept drops from the other cell info
         
         """
-        mimeData = event.mimeData()        
+        mimeData = event.mimeData()
         if hasattr(mimeData, 'cellData'):
             event.setDropAction(QtCore.Qt.MoveAction)
             event.accept()
@@ -400,8 +401,8 @@ class QVirtualCellLabel(QtGui.QLabel):
         mimeData = event.mimeData()
         if hasattr(mimeData, 'cellData'):
             event.setDropAction(QtCore.Qt.MoveAction)
-            event.accept()
-            if self.id!=mimeData.cellData[1]:
+            event.accept()            
+            if (self.type,self.id)!=(mimeData.cellData[0],mimeData.cellData[0]):
                 oldCellData = (self.type, self.id)
                 self.setCellData(*mimeData.cellData)
                 mimeData.cellData = oldCellData
