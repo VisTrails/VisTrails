@@ -802,12 +802,15 @@ class QVTKWidget(QtGui.QWidget):
                   current.strftime("%Y_%m_%d__%H_%M_%S") +
                   "_" + str(current.microsecond)+".png")
         w2i = vtk.vtkWindowToImageFilter()
+        w2i.ReadFrontBufferOff()
         w2i.SetInput(self.mRenWin)
+        # Render twice to get a clean image on the back buffer
+        self.mRenWin.Render()
+        self.mRenWin.Render()
         w2i.Update()
         writer = vtk.vtkPNGWriter()
         writer.SetInputConnection(w2i.GetOutputPort())
-        writer.SetFileName(fn)
-        self.mRenWin.Render()
+        writer.SetFileName(fn)    
         writer.Write()
         if toHistory:
             self.historyImages.append(fn)

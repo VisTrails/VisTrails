@@ -132,7 +132,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
             (rCount, cCount, cells) = self.virtualCell.getConfiguration()
             dim = [max(1, len(a)) for a in actions]
             pi = 0
-            interpreter = noncached_interpreter.get()
+            interpreter = default_interpreter.get()
             for t in range(dim[3]):
                 for s in range(dim[2]):
                     for r in range(dim[1]):

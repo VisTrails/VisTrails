@@ -275,6 +275,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             col = e.col
             if row<0 or col<0:
                 (row, col) = sheet.getFreeCell()
+            sheet.tabWidget.setCurrentWidget(sheet)
             sheet.setCellPipelineInfo(row, col, (e.vistrail, pid, cid))
             sheet.setCellByType(row, col, e.cellType, e.inputPorts)
 

@@ -146,7 +146,6 @@ class VistrailsStartup(object):
                     debug.critical(msg)
                     sys.exit(1)
             try:
-                print "ASDL"
                 name = (self.configuration.dotVistrails +
                         '/userpackages/__init__.py')
                 f = file(name, 'w')
