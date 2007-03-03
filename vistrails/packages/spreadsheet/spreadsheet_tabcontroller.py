@@ -201,9 +201,6 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.connect(self.openActionVar,
                          QtCore.SIGNAL('triggered()'),
                          self.openSpreadsheetAs)
-        self.deleteSheetAction().setEnabled(True)
-        self.saveAction().setEnabled(True)
-        self.saveAsAction().setEnabled(True)
         return self.openActionVar
 
     def newSheetActionTriggered(self, checked=False):
@@ -623,6 +620,9 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                 progress.setValue(pipelineCount)
                 QtCore.QCoreApplication.processEvents()
                 self.changeSpreadsheetFileName(fileName)
+                self.deleteSheetAction().setEnabled(True)
+                self.saveAction().setEnabled(True)
+                self.saveAsAction().setEnabled(True)
             except:
                 QtGui.QMessageBox.warning(self,
                                           'Open Spreadsheet Error',
