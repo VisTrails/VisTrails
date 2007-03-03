@@ -201,6 +201,9 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.connect(self.openActionVar,
                          QtCore.SIGNAL('triggered()'),
                          self.openSpreadsheetAs)
+        self.deleteSheetAction().setEnabled(True)
+        self.saveAction().setEnabled(True)
+        self.saveAsAction().setEnabled(True)
         return self.openActionVar
 
     def newSheetActionTriggered(self, checked=False):
