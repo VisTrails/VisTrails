@@ -32,3 +32,13 @@ class PixelTypeUnsignedChar(PixelType):
     def compute(self):
         self._type = itk.UC
         self.setResult("Pixel Type", self)
+
+class PixelTypeUnsignedShort(PixelType):
+    def compute(self):
+        self._type = itk.US
+        self.setResult("Pixel Type", self)
+
+class PixelTypeRGB(PixelType):
+    def compute(self):
+	self._type = itk.RGBPixel[itk.US]
+	self.setResult("Pixel Type", self)

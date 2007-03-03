@@ -42,13 +42,20 @@ class IsolatedWatershedImageFilter(SegmentationFilter):
 
     def compute(self):
 	im = self.getInputFromPort("Input Image")
+
+	if self.hasInputFromPort("Output PixelType"):
+	    out = self.getInputFromPort("Output PixelType")
+	else:
+	    out = self.getInputFromPort("Input PixelType")
+
 	inType = self.getInputFromPort("Input PixelType")._type
-	outType = self.getInputFromPort("Output PixelType")._type
+	outType = out._type
 	dim = self.getInputFromPort("Dimension")
 	inType = itk.Image[inType,dim]
 	outType = itk.Image[outType,dim]
 
-	self.filter_ = itk.IsolatedWatershedImageFilter[inType,outType].New(im)
+	self.filter_ = itk.IsolatedWatershedImageFilter[inType,outType].New()
+        self.filter_.SetInput(im)
 
 	if self.hasInputFromPort("Seed2"):
 	    self.setSeed2(self.getInputFromPort("Seed2"))
@@ -63,5 +70,7 @@ class IsolatedWatershedImageFilter(SegmentationFilter):
 
 	self.filter_.Update()
 
+	self.setResult("Output PixelType", out)
 	self.setResult("Output Image", self.filter_.GetOutput())
 	self.setResult("Filter", self)
+

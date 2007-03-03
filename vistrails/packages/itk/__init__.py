@@ -64,6 +64,12 @@ def initialize(*args, **keywords):
     reg.addModule(PixelTypeUnsignedChar)
     reg.addOutputPort(PixelTypeUnsignedChar, "Pixel Type", (PixelType, 'Pixel Type'))
 
+    reg.addModule(PixelTypeUnsignedShort)
+    reg.addOutputPort(PixelTypeUnsignedShort, "Pixel Type", (PixelType, 'Pixel Type'))
+
+    reg.addModule(PixelTypeRGB)
+    reg.addOutputPort(PixelTypeRGB, "Pixel Type", (PixelType, 'Pixel Type'))
+
     reg.addModule(Image)
     reg.addInputPort(Image, "Pixel Type", (PixelType, 'Pixel Type'))
     reg.addInputPort(Image, "Dimension", (basic.Integer, 'Dimension'))
@@ -79,6 +85,11 @@ def initialize(*args, **keywords):
     reg.addOutputPort(ImageReader, "Image", (Image, 'Image'))
     reg.addOutputPort(ImageReader, "Reader", (ImageReader, 'Reader'))
 
+    reg.addModule(DICOMReader)
+    reg.addInputPort(DICOMReader, "Directory", (basic.String, 'Directory'))
+    reg.addInputPort(DICOMReader, "Dimension", (basic.Integer, 'Dimension'))
+    reg.addOutputPort(DICOMReader, "Image Series", (Image, 'Image Series'))
+
     reg.addModule(ImageToFile)
     reg.addInputPort(ImageToFile, "Suffix", (basic.String, 'Suffix'))
     reg.addInputPort(ImageToFile, "Pixel Type", (PixelType, 'Pixel Type'))
@@ -92,30 +103,39 @@ def initialize(*args, **keywords):
     reg.addInputPort(GradientMagnitudeRecursiveGaussianImageFilter, "Input Filter", (Filter, 'Input Filter'))
     reg.addInputPort(GradientMagnitudeRecursiveGaussianImageFilter, "Input Image", (Image, 'Input Image'))
     reg.addInputPort(GradientMagnitudeRecursiveGaussianImageFilter, "Input PixelType", (PixelType, 'Input PixelType'))
-    reg.addInputPort(GradientMagnitudeRecursiveGaussianImageFilter, "Output PixelType", (PixelType, 'Output PixelType'))
+    reg.addInputPort(GradientMagnitudeRecursiveGaussianImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
     reg.addInputPort(GradientMagnitudeRecursiveGaussianImageFilter, "Dimension", (basic.Integer, 'Dimension'))
     reg.addInputPort(GradientMagnitudeRecursiveGaussianImageFilter, "Sigma", (basic.Float, 'Sigma'))
     reg.addOutputPort(GradientMagnitudeRecursiveGaussianImageFilter, "Output Image", (Image, 'Output Image'))
-    reg.addOutputPort(GradientMagnitudeRecursiveGaussianImageFilter, "Filter", (Filter, 'Filter'))
+    reg.addOutputPort(GradientMagnitudeRecursiveGaussianImageFilter, "Filter", (Filter, 'Filter'), True)
+    reg.addOutputPort(GradientMagnitudeRecursiveGaussianImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
 
     reg.addModule(IntensityFilter, "Image Intensity Filters")
     reg.addModule(RescaleIntensityImageFilter)
-    reg.addInputPort(RescaleIntensityImageFilter, "Input Filter", (Filter, 'Input Filter'))
+    reg.addInputPort(RescaleIntensityImageFilter, "Input Filter", (Filter, 'Input Filter'), True)
     reg.addInputPort(RescaleIntensityImageFilter, "Input Image", (Image, 'Input Image'))
     reg.addInputPort(RescaleIntensityImageFilter, "Input PixelType", (PixelType, 'Input PixelType'))
-    reg.addInputPort(RescaleIntensityImageFilter, "Output PixelType", (PixelType, 'Output PixelType'))
+    reg.addInputPort(RescaleIntensityImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
     reg.addInputPort(RescaleIntensityImageFilter, "Dimension", (basic.Integer, 'Dimension'))
     reg.addInputPort(RescaleIntensityImageFilter, "Minimum", (basic.Integer, 'Minimum'))
     reg.addInputPort(RescaleIntensityImageFilter, "Maximum", (basic.Integer, 'Maximum'))
     reg.addOutputPort(RescaleIntensityImageFilter, "Output Image", (Image, 'Output Image'))
-    reg.addOutputPort(RescaleIntensityImageFilter, "Filter", (Filter, 'Filter'))
+    reg.addOutputPort(RescaleIntensityImageFilter, "Filter", (Filter, 'Filter'), True)
+    reg.addOutputPort(RescaleIntensityImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
 
     reg.addModule(SegmentationFilter, "Segmentation Filters")
     reg.addModule(IsolatedWatershedImageFilter)
     reg.addInputPort(IsolatedWatershedImageFilter, "Input Image", (Image, 'Input Image'))
     reg.addInputPort(IsolatedWatershedImageFilter, "Input PixelType", (PixelType, 'Input PixelType'))
-    reg.addInputPort(IsolatedWatershedImageFilter, "Output PixelType", (PixelType, 'Output PixelType'))
     reg.addInputPort(IsolatedWatershedImageFilter, "Dimension", (basic.Integer, 'Dimension'))
     reg.addInputPort(IsolatedWatershedImageFilter, "Seed1", (Index2D, 'Seed 1 Location'))
-    reg.addInputPort(IsolatedWatershedImageFilter, "Threshold", (basic.Float, 'Threshold'))
+
+    reg.addInputPort(IsolatedWatershedImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
+    reg.addInputPort(IsolatedWatershedImageFilter, "Threshold", (basic.Float, 'Threshold'), True)
+    reg.addInputPort(IsolatedWatershedImageFilter, "Seed2", (Index2D, 'Seed 2 Location'), True)
+    reg.addInputPort(IsolatedWatershedImageFilter, "ReplaceValue1", (basic.Float, 'Replacement Value 1'), True);
+    reg.addInputPort(IsolatedWatershedImageFilter, "ReplaceValue2", (basic.Float, 'Replacement Value 2'), True);
+
     reg.addOutputPort(IsolatedWatershedImageFilter, "Output Image", (Image, 'Output Image'))
+    reg.addOutputPort(IsolatedWatershedImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
+

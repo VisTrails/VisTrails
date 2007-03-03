@@ -1,4 +1,4 @@
-############################################################################
+#############################################################################
 ##
 ## Copyright (C) 2006-2007 University of Utah. All rights reserved.
 ##
@@ -24,10 +24,7 @@ import core.modules
 from ITK import *
 from Filters import *
 
-class GradientMagnitudeRecursiveGaussianImageFilter(FeatureFilter):
-    def setSigma(self, sigma):
-        self.sigma_ = sigma;
-        
+class RescaleIntensityImageFilter(IntensityFilter):
     def compute(self):
         inFilter = self.forceGetInputFromPort("Input Filter")
         im = self.getInputFromPort("Input Image")
@@ -37,15 +34,18 @@ class GradientMagnitudeRecursiveGaussianImageFilter(FeatureFilter):
 	else:
 	    out = self.getInputFromPort("Input PixelType")
 
+
         inType = self.getInputFromPort("Input PixelType")._type
         outType = out._type
         dim = self.getInputFromPort("Dimension")
-        self.setSigma(self.getInputFromPort("Sigma"))
+        minimum = self.getInputFromPort("Minimum")
+        maximum = self.getInputFromPort("Maximum")
         inType = itk.Image[inType, dim]
         outType= itk.Image[outType, dim]
 
-        self.filter_ = itk.GradientMagnitudeRecursiveGaussianImageFilter[inType, outType].New(im)
-        self.filter_.SetSigma(self.sigma_)
+        self.filter_ = itk.RescaleIntensityImageFilter[inType, outType].New(im)
+        self.filter_.SetOutputMaximum(maximum)
+        self.filter_.SetOutputMinimum(minimum)
         
         self.filter_.Update()
 

@@ -49,3 +49,17 @@ class ImageToFile(ITK):
     def createOutputFile(self, s):
         return self.interpreter.filePool.create_file(suffix=s)
 
+class DICOMReader(ITK):
+    def compute(self):
+	dir = self.getInputFromPort("Directory")
+	dim = self.getInputFromPort("Dimension")
+	self.dicomNames_ = itk.DICOMSeriesFileNames.New()
+
+	self.dicomNames_.SetDirectory(dir)
+
+	self.iType_ = itk.Image[itk.US,dim]
+	self.reader_ = itk.ImageSeriesReader[self.iType_].New()
+	self.reader_.SetFileNames(self.dicomNames_.GetFileNames(False))
+	self.reader_.Update()
+
+	self.setResult("Image Series", self.reader_.GetOutput())
