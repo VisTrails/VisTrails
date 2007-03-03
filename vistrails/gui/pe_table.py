@@ -256,8 +256,8 @@ class QParameterExplorationTable(QPromptWidget):
                     paramInfo = paramWidget.param
                     realType = typeCast[paramInfo[0]]
                     dim = paramWidget.getDimension()
-                    count = counts[dim]
                     if dim in [0, 1, 2, 3]:
+                        count = counts[dim]
                         if type(interpolator)==QLinearInterpolationEditor:
                             values = interpolator.getValues(count)
                         if type(interpolator)==QListInterpolationEditor:
