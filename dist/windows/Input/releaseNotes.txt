@@ -1,4 +1,27 @@
-Release Name: 444
+Release Name: ???
+
+Changes:
+ - Module's color and shape can be customized
+   See http://vistrails.sci.utah.edu/index.php/UsersGuideVisTrailsPackages
+   for instructions on how to use it
+ - New parameter exploration interface (we will temporarily keep
+   the old one)
+ - Refactoring the importing modules mechanism to use 'bundles', 
+   which are system-level packages that should correspond to RPMs,
+   APT.debs, etc. Now VisTrails is able to use the system-level 
+   package management to install required modules (working only on
+   Ubuntu, right now)
+ - Fixed saving spreadsheet state
+ - Fixed issues when trying to add a bookmark from an unsaved
+   vistrail
+ - Fixed menus and buttons behaviors
+ - Fixed bug on trying to use ImageMagick package on Windows
+ - Improvements on the abstraction mechanism
+
+--------------------------------------------------------------------
+Changes from previous releases
+
+From release 444:
 
 Changes:
  - Added pylab package that wraps Matplotlib
@@ -29,10 +52,6 @@ Changes:
  - Fixed bug that prevented the tooltip to be shown on a port when 
    dragging a connection
  - Other minor fixes and cosmetic changes
-
---------------------------------------------------------------------
-
-Changes from previous releases
 
 From release 389:
 
