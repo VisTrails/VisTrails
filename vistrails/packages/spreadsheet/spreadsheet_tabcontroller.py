@@ -211,6 +211,9 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.setCurrentIndex(self.addTabWidget(StandardWidgetSheetTab(self),
                                                'Sheet %d' % (self.count()+1)))
         self.currentWidget().sheet.stretchCells()
+        self.deleteSheetAction().setEnabled(True)
+        self.saveAction().setEnabled(True)
+        self.saveAsAction().setEnabled(True)
 
     def deleteSheetActionTriggered(self, checked=False):
         """ deleteSheetActionTriggered(checked: boolean) -> None
@@ -223,6 +226,10 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.removeTab(self.currentIndex())
             widget.deleteAllCells()
             widget.deleteLater()
+            if self.count() == 0:
+                self.deleteSheetAction().setEnabled(False)
+                self.saveAction().setEnabled(False)
+                self.saveAsAction().setEnabled(False)
 
     def clearTabs(self):
         """ clearTabs() -> None

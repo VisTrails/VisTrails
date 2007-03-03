@@ -94,7 +94,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         
         """
         if not hasattr(self, 'fullScreenActionVar'):
-            self.fullScreenActionVar = QtGui.QAction('&Full Screen\tF11', self)
+            self.fullScreenActionVar = QtGui.QAction('&Full Screen', self)
+            self.fullScreenActionVar.setShortcut('Ctrl+F')
             self.fullScreenActionVar.setStatusTip('Show sheets without any '
                                                   'menubar or statusbar')
             self.connect(self.fullScreenActionVar,
