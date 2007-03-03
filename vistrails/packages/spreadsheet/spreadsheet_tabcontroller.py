@@ -25,7 +25,7 @@
 ################################################################################
 import os.path
 from PyQt4 import QtCore, QtGui
-from core.interpreter.default import default_interpreter
+from core.interpreter.default import default_interpreter, noncached_interpreter
 from core.xml_parser import XMLParser
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_tab import (StandardWidgetTabBar,
@@ -215,6 +215,15 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.saveAction().setEnabled(True)
         self.saveAsAction().setEnabled(True)
 
+    def removeSheetReference(self, sheet):
+        """ removeSheetReference(sheet: StandardWidgetSheetTab) -> None
+        Remove references of a sheet from the spreadsheet
+        """
+        for (code, locations) in self.monitoredPipelines.iteritems():
+            for lid in reversed(range(len(locations))):
+                if sheet==locations[lid][0]:
+                    del locations[lid]                        
+
     def deleteSheetActionTriggered(self, checked=False):
         """ deleteSheetActionTriggered(checked: boolean) -> None
         Actual code to delete the current sheet
@@ -224,6 +233,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             widget = self.currentWidget()
             self.tabWidgets.remove(widget)
             self.removeTab(self.currentIndex())
+            self.removeSheetReference(widget)
             widget.deleteAllCells()
             widget.deleteLater()
             if self.count() == 0:
@@ -242,6 +252,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         for i in reversed(range(len(self.tabWidgets))):
             t = self.tabWidgets[i]
             del self.tabWidgets[i]
+            self.removeSheetReference(t)
             t.deleteAllCells()
             t.deleteLater()
 
@@ -607,7 +618,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                     parser.openVistrail(vistrailFileName)
                     vistrail = parser.getVistrail()
                     pipeline = vistrail.getPipeline(version)
-                    execution = default_interpreter.get()
+                    execution = noncached_interpreter.get()
                     progress.setValue(pipelineIdx)
                     QtCore.QCoreApplication.processEvents()
                     if progress.wasCanceled():
