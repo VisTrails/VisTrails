@@ -72,6 +72,7 @@ class QBookmarkPanel(QtGui.QFrame, QToolWindowInterface):
                                        'Execute', self)
         self.executeAction.setToolTip('Execute checked bookmarks')
         self.executeAction.setStatusTip(self.executeAction.toolTip())
+        self.executeAction.setEnabled(False)
 
         self.removeAction = QtGui.QAction(CurrentTheme.BOOKMARKS_REMOVE_ICON,
                                           'Remove', self)
@@ -101,6 +102,16 @@ class QBookmarkPanel(QtGui.QFrame, QToolWindowInterface):
         self.connect(self.removeAction,
                      QtCore.SIGNAL('triggered(bool)'),
                      self.bookmarkPalette.treeWidget.removeCurrentItem)
+        self.connect(self.bookmarkPalette,
+                     QtCore.SIGNAL('checkedListChanged'),
+                     self.checkedListChanged)
+
+    def checkedListChanged(self, num):
+        """checkedListChanged(num: int) -> None
+        Updates the buttons state according to the number of checked items
+
+        """
+        self.executeAction.setEnabled(num>0)
 
     def updateBookmarkPalette(self):
         """updateBookmarkPalette() -> None
@@ -160,9 +171,11 @@ class QBookmarkPalette(QSearchTreeWindow):
                     if id not in self.checkedList:
                         self.checkedList.append(id)
                         self.manager.loadPipelines(self.checkedList)
+                self.emit(QtCore.SIGNAL("checkedListChanged"),
+                          len(self.checkedList))
             if str(item.text(0)) != item.bookmark.name:
                 item.bookmark.name = str(item.text(0))
-                self.manager.writeBookmarks()    
+                self.manager.writeBookmarks()
     
     def removeBookmark(self, id):
         """removeBookmark(id: int) -> None 

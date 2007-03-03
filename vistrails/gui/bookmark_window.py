@@ -47,7 +47,7 @@ class QBookmarksWindow(QtGui.QMainWindow):
     QBookmarksWindow is a main widget containing several tool windows
     for interacting with bookmarked vistrails pipelines without having to use 
     the builder.
-    It is based in QBuilderWindow visual style.
+    It is based on QBuilderWindow visual style.
         
     """
     def __init__(self, parent=None, logger=None):
@@ -381,7 +381,7 @@ def initBookmarks(filename):
 
 def finalizeBookmarks():
     """finalizeBookmarks() -> None 
-    Cleans up the controller.
+    Cleans up manager.
     """
     
     BookmarksManager.cleanup()
