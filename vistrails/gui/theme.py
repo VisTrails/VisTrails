@@ -43,10 +43,10 @@ class DefaultTheme(object):
     MODULE_LABEL_MARGIN = (20, 20, 20, 15)
     
     # Margin of Module shape into its ports
-    MODULE_PORT_MARGIN = (5, 5, 5, 5)
+    MODULE_PORT_MARGIN = (4, 4, 4, 4)
     
     # Space between ports inside a module
-    MODULE_PORT_SPACE = 5
+    MODULE_PORT_SPACE = 4
     
     # The space added to the end of port shapes before it reaches the
     # margin of the module
