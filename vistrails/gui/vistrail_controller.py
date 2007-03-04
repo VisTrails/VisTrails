@@ -378,7 +378,7 @@ class VistrailController(QtCore.QObject):
             for i in range(f.getNumParams()):
                 p = f.params[i]
                 action.addParameter(moduleId, m.getNumFunctions(),i,
-                                    f.name, p.name, p.value(), p.type, "")
+                                    f.name, p.name, str(p.value()), p.type, "")
         self.performAction(action)
                    
     def deleteAnnotation(self, key, module_id):
