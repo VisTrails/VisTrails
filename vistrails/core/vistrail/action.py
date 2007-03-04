@@ -43,6 +43,7 @@ from core.vistrail.module_param import ModuleParam, VistrailModuleType
 from core.vistrail.module_function import ModuleFunction
 from core.data_structures import Point
 from core.modules.module_registry import registry, ModuleRegistry
+from core.utils import report_stack
 import copy
 
 ################################################################################
@@ -400,7 +401,7 @@ class ChangeParameterAction(Action):
         self.type = 'ChangeParameter'
 
     def addParameter(self, moduleId, functionId, paramId,
-                     function, param, value, type, alias):
+                     function, param, value, type_, alias):
         """ addParameter(moduleId, functionId, paramID, function, 
                          param, value, type, alias) -> None
         Add a new parameter to the action.
@@ -415,7 +416,15 @@ class ChangeParameterAction(Action):
           - alias : 'str'
         
         """
-        p = [moduleId, functionId,function, paramId, param, value, type, alias]
+        assert type(moduleId) == int
+        assert type(functionId) == int
+        assert type(paramId) == int
+        assert type(function) == str
+        assert type(param) == str
+        assert type(value) == str
+        assert type(type_) == str
+        assert type(alias) == str
+        p = [moduleId, functionId,function, paramId, param, value, type_, alias]
         self.parameters.append(p)
     
     def serialize(self, dom, element):
