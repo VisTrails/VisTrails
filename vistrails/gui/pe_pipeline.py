@@ -72,7 +72,7 @@ class QAnnotatedPipelineView(QPipelineView, QToolWindowInterface):
         Re-inspect the pipeline to get annotated ids
         
         """
-        self.inspector.inspectAmbigiousModules(pipeline)
+        self.inspector.inspectAmbiguousModules(pipeline)
         self.scene().fitToView(self)
 
     @staticmethod

@@ -49,7 +49,7 @@ class PipelineInspector(object):
         # A list of ids of module of type cell
         self.spreadsheetCells = []
 
-        # A dict of ambigious modules mapped to their annotated id
+        # A dict of ambiguous modules mapped to their annotated id
         self.annotatedModules = {}
 
     def inspect(self, pipeline):
@@ -59,7 +59,7 @@ class PipelineInspector(object):
         """
         self.inspectInputOutputPorts(pipeline)
         self.inspectSpreadsheetCells(pipeline)
-        self.inspectAmbigiousModules(pipeline)
+        self.inspectAmbiguousModules(pipeline)
 
     def hasInputPorts(self):
         """ hasInputPorts() -> bool
@@ -147,14 +147,14 @@ class PipelineInspector(object):
                 if issubclass(desc.module, cellType):
                     self.spreadsheetCells.append(mId)
 
-    def inspectAmbigiousModules(self, pipeline):
-        """ inspectAmbigiousModules(pipeline: Pipeline) -> None
-        inspectAmbigiousModules returns a dict of ambigious modules,
+    def inspectAmbiguousModules(self, pipeline):
+        """ inspectAmbiguousModules(pipeline: Pipeline) -> None
+        inspectAmbiguousModules returns a dict of ambiguous modules,
         i.e. cannot determine the exact module by giving just its
         name. Then in each group of dupplicate modules, a set of
         annotated id is generated for them sorted based on their id.
         The annotatedModules dictionary will map actual module id into
-        their annotated one (if it is ambigious)
+        their annotated one (if it is ambiguous)
         
         """
         self.annotatedModules = {}

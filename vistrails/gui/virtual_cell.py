@@ -86,7 +86,7 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         self.pipeline = pipeline
         if pipeline:
             self.inspector.inspectSpreadsheetCells(pipeline)
-            self.inspector.inspectAmbigiousModules(pipeline)
+            self.inspector.inspectAmbiguousModules(pipeline)
             cells = []
             for mId in self.inspector.spreadsheetCells:
                 name = pipeline.modules[mId].name
@@ -118,7 +118,7 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         decodedCells = []
         inspector = PipelineInspector()
         inspector.inspectSpreadsheetCells(pipeline)
-        inspector.inspectAmbigiousModules(pipeline)
+        inspector.inspectAmbiguousModules(pipeline)
         for mId in inspector.spreadsheetCells:
             name = pipeline.modules[mId].name
             if inspector.annotatedModules.has_key(mId):

@@ -92,7 +92,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
         # Now go through all modules and functions
 
         inspector = PipelineInspector()
-        inspector.inspectAmbigiousModules(pipeline)
+        inspector.inspectAmbiguousModules(pipeline)
         sortedModules = sorted(pipeline.modules.iteritems(),
                                key=lambda item: item[1].name)
         for mId, module in sortedModules:
