@@ -116,13 +116,17 @@ class VistrailController(QtCore.QObject):
 
         action = DeleteConnectionAction()
 
+        added = False
         for v, id in graph.edgesFrom(module_id):
+            added = True
             action.addId(id)
 
         for v, id in graph.edgesTo(module_id):
+            added = True
             action.addId(id)
 
-        self.performAction(action)
+        if added:
+            self.performAction(action)
 
         action2 = DeleteModuleAction()
         action2.addId(module_id)
