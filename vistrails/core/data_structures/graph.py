@@ -462,7 +462,7 @@ class TestGraph(unittest.TestCase):
              v2 = random.randint(0,99)
              g.addEdge(v1, v2, i)
          sinkResult = [None for i in g.sinks() if g.outDegree(i) == 0]
-         sourceResult = [None for i in g.sinks() if g.outDegree(i) == 0]
+         sourceResult = [None for i in g.sources() if g.inDegree(i) == 0]
          if len(sinkResult) <> len(g.sinks()):
              print "Inconsistency:",g
              assert False
