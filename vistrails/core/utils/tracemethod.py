@@ -57,6 +57,14 @@ def bump_trace():
 def report_stack(method):
     def decorated(self, *args, **kwargs):
         print "-" * 78
+        try:
+            print "Method: " + method.im_class.__name__ + '.' + method.__name__
+        except:
+            pass
+        try:
+            print "Function: " + method.func_name
+        except:
+            pass
         traceback.print_stack()
         print "-" * 78
         return method(self, *args, **kwargs)
