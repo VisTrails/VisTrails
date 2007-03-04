@@ -1164,7 +1164,10 @@ class QUserFunctionEditor(QtGui.QFrame):
         values = []
         for i in range(self.size):
             v = self.defaultValue
-            exec(self.function + '\nv = value(%d)' % i)
+            try:
+                exec(self.function + '\nv = value(%d)' % i)
+            except:
+                v = 'ERROR'
             values.append(v)
         return values
 
