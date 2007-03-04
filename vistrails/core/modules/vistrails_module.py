@@ -299,7 +299,6 @@ Makes sure input port 'name' is filled."""
                 conList.remove(connector)
             if conList==[]:
                 del self.inputPorts[inputPort]
-            
 
 ################################################################################
 
