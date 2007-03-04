@@ -801,7 +801,25 @@ class QParameterEditorSelector(QtGui.QToolButton):
             self.listAction.trigger()
         else:
             self.linearAction.trigger()
-        
+
+class LinearInterpolator(object):
+
+    def __init__(self, ptype, mn, mx, steps):
+        self._ptype = ptype
+        self._mn = mn
+        self._mx = mx
+        self._steps = steps
+
+    def get_values(self):
+        cast = self._ptype
+        begin = self._mn
+        end = self._mx
+        size = self._steps
+        if size<=1:
+            return [begin]
+        result = [cast(begin + (((end-begin)*i) / cast(size-1)))
+                  for i in range(size)]
+        return result
 
 class QLinearInterpolationEditor(QtGui.QWidget):
     """
@@ -853,10 +871,11 @@ class QLinearInterpolationEditor(QtGui.QWidget):
         cast = {'Integer': int, 'Float': float}[self.type]
         begin = cast(str(self.fromEdit.text()))
         end = cast(str(self.toEdit.text()))
-        if size<=1:
-            return [begin]
-        return [cast(begin + (end-begin)*float(i/(size-1)))
-                for i in range(size)]
+        lerp = LinearInterpolator(cast,
+                                  begin,
+                                  end,
+                                  size)
+        return lerp.get_values()
     
 class QListInterpolationEditor(QtGui.QWidget):
     """
@@ -1255,6 +1274,36 @@ class QUserFunctionDialog(QtGui.QDialog):
         return QtCore.QSize(512, 512)
             
 ################################################################################
+
+import unittest
+
+class TestLinearInterpolator(unittest.TestCase):
+
+    def test_int(self):
+        x = LinearInterpolator(int, 0, 999, 1000)
+        assert x.get_values() == range(1000)
+
+    def test_float(self):
+        # test the property that differences in value must be linearly
+        # proportional to differences in index for a linear interpolation
+        import random
+        s = random.randint(4, 10000)
+        v1 = random.random()
+        v2 = random.random()
+        mn = min(v1, v2)
+        mx = max(v1, v2)
+        x = LinearInterpolator(float, mn, mx, s).get_values()
+        v1 = random.randint(0, s-1)
+        v2 = 0
+        while v2 == v1:
+            v2 = random.randint(0, s-1)
+        v3 = random.randint(0, s-1)
+        v4 = 0
+        while v3 == v4:
+            v4 = random.randint(0, s-1)
+        r1 = (v2 - v1) / (x[v2] - x[v1])
+        r2 = (v4 - v3) / (x[v4] - x[v3])
+        assert abs(r1 - r2) < 1e-6        
 
 if __name__=="__main__":        
     import sys
