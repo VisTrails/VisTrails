@@ -41,7 +41,6 @@ def bool_conv(x):
         return False
 
 class ModuleParam(object):
-    __fields__ = ['type', 'strValue', 'name', 'minValue', 'maxValue', 'alias']
     """ Stores a parameter setting for a vistrail function """
     def __init__(self):
         self.type = ""
