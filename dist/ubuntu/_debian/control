@@ -3,6 +3,7 @@ Section: unknown
 Priority: optional
 Maintainer: Carlos Scheidegger <cscheid@sci.utah.edu>
 Package: vistrails
+Depends: python-qt4 (>=4.2.0), graphviz
 Architecture: all
 Description: VisTrails is a scientific workflow management system.
  VisTrails is a new scientific workflow management system developed at
@@ -22,4 +23,4 @@ Description: VisTrails is a scientific workflow management system.
  involved in organizing the vast volumes of data they
  manipulate. VisTrails provides infrastructure that can be combined
  with and enhance existing visualization and workflow systems.
-Version: 0.4.455
+Version: 0.4.502
