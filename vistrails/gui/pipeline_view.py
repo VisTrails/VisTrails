@@ -510,20 +510,30 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         fringe = registry.get_module_fringe(module.name)
         if fringe:
             left_fringe, right_fringe = fringe
+            if left_fringe[0] != (0.0, 0.0):
+                left_fringe = [(0.0, 0.0)] + left_fringe
+            if left_fringe[-1] != (0.0, 1.0):
+                left_fringe = left_fringe + [(0.0, 1.0)]
+
+            if right_fringe[0] != (0.0, 0.0):
+                right_fringe = [(0.0, 0.0)] + right_fringe
+            if right_fringe[-1] != (0.0, 1.0):
+                right_fringe = right_fringe + [(0.0, 1.0)]
+
             P = QtCore.QPointF
             self._module_shape = QtGui.QPolygonF()
             height = self.paddedRect.height()
 
             # right side of shape
             for (px, py) in right_fringe:
-                p = P(px, py)
+                p = P(px, -py)
                 p *= height
-                p += self.paddedRect.topRight()
+                p += self.paddedRect.bottomRight()
                 self._module_shape.append(p)
 
             # left side of shape
-            for (px, py) in left_fringe:
-                p = P(-px, -py)
+            for (px, py) in reversed(left_fringe):
+                p = P(px, -py)
                 p *= height
                 p += self.paddedRect.bottomLeft()
                 self._module_shape.append(p)

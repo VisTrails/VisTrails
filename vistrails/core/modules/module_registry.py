@@ -241,20 +241,19 @@ set moduleLeftFringe and moduleRightFringe to set two different fringes.
 
         def checkFringe(fringe):
             assert type(fringe) == list
-            assert len(fringe) >= 2
+            assert len(fringe) >= 1
             for v in fringe:
                 assert type(v) == tuple
                 assert len(v) == 2
                 assert type(v[0]) == float
                 assert type(v[1]) == float
-            assert fringe[0][0] == 0.0
-            assert fringe[0][1] == 0.0
-            assert fringe[-1][0] == 0.0
-            assert fringe[-1][1] == 1.0
 
         if moduleFringe:
             checkFringe(moduleFringe)
-            self._module_fringe[name] = (moduleFringe, moduleFringe)
+            leftFringe = list(reversed([(-x, 1.0-y) for (x, y) in moduleFringe]))
+            print leftFringe
+            print moduleFringe
+            self._module_fringe[name] = (leftFringe, moduleFringe)
         elif moduleLeftFringe and moduleRightFringe:
             checkFringe(moduleLeftFringe)
             checkFringe(moduleRightFringe)
