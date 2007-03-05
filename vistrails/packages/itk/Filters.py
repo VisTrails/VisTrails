@@ -34,3 +34,7 @@ class IntensityFilter(Filter):
 class SegmentationFilter(Filter):
     def compute(self):
 	pass
+
+class SelectionFilter(Filter):
+    def compute(self):
+	pass

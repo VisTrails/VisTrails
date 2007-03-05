@@ -59,3 +59,32 @@ class Index3D(ITK):
 	self.ind_.SetElement(2,self.z_)
 
 	self.setResult("Index", self)
+
+class Size(ITK):
+    def compute(self):
+	dim = self.getInputFromPort("Dimension")
+	self.size_ = itk.Size[dim]()
+	self.x = self.getInputFromPort("Element 1")
+	self.y = self.getInputFromPort("Element 2")
+	if dim > 2:
+	    self.z = self.getInputFromPort("Element 3")
+
+	self.size_.SetElement(0,self.x)
+	self.size_.SetElement(1,self.y)
+	
+	if dim > 2:
+	    self.size_.SetElement(2,self.z)
+
+	self.setResult("Size",self)
+
+class Region(ITK):
+    def compute(self):
+	dim = self.getInputFromPort("Dimension")
+	self.region_ = itk.ImageRegion[dim]()
+	self.region_.SetSize(self.getInputFromPort("Size").size_)
+	if dim > 2:
+	    self.region_.SetStart(self.getInputFromPort("Input 3D Index").ind_)
+	else:
+	    self.region_.SetStart(self.getInputFromPort("Input 2D Index").ind_)
+
+	self.setResult("Region", self)

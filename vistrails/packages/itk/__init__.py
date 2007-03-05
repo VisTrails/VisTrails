@@ -39,6 +39,7 @@ from Filters import *
 from FeatureExtractionFilters import *
 from IntensityFilters import *
 from SegmentationFilters import *
+from SelectionFilters import *
 
 def initialize(*args, **keywords):
     reg = core.modules.module_registry
@@ -55,6 +56,20 @@ def initialize(*args, **keywords):
     reg.addInputPort(Index3D, "Y Index", (basic.Integer, 'Y Index'))
     reg.addInputPort(Index3D, "Z Index", (basic.Integer, 'Z Index'))
     reg.addOutputPort(Index3D, "Index", (Index3D, 'Index'))
+
+    reg.addModule(Size)
+    reg.addInputPort(Size, "Dimension", (basic.Integer, 'Dimension'))
+    reg.addInputPort(Size, "Element 1", (basic.Integer, 'Element 1'))
+    reg.addInputPort(Size, "Element 2", (basic.Integer, 'Element 2'))
+    reg.addInputPort(Size, "Element 3", (basic.Integer, 'Element 3'))
+    reg.addOutputPort(Size, "Size", (Size, 'Size'))
+
+    reg.addModule(Region)
+    reg.addInputPort(Region, "Dimension", (basic.Integer, 'Dimension'))
+    reg.addInputPort(Region, "Size", (Size, 'Size'))
+    reg.addInputPort(Region, "Input 2D Index", (Index2D, 'Input 2D Index'))
+    reg.addInputPort(Region, "Input 3D Index", (Index3D, 'Input 3D Index'), True)
+    reg.addOutputPort(Region, "Region", (Region, 'Region'))
 
     reg.addModule(PixelType)
 
@@ -139,3 +154,18 @@ def initialize(*args, **keywords):
     reg.addOutputPort(IsolatedWatershedImageFilter, "Output Image", (Image, 'Output Image'))
     reg.addOutputPort(IsolatedWatershedImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
 
+    reg.addModule(SelectionFilter, "Image Selection Filters")
+    reg.addModule(RegionOfInterestImageFilter, "RegionOfInterestFilter")
+    reg.addInputPort(RegionOfInterestImageFilter, "Input Dimension", (basic.Integer, 'Input Dimension'))
+    reg.addInputPort(RegionOfInterestImageFilter, "Output Dimension", (basic.Integer, 'Output Dimension'))
+    reg.addInputPort(RegionOfInterestImageFilter, "Input PixelType", (PixelType, 'Input PixelType'))
+    reg.addInputPort(RegionOfInterestImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
+    reg.addInputPort(RegionOfInterestImageFilter, "Input 2D Index", (Index2D, 'Input 2D Index'))
+    reg.addInputPort(RegionOfInterestImageFilter, "Input 3D Index", (Index3D, 'Input 3D Index'), True)
+    reg.addInputPort(RegionOfInterestImageFilter, "Region Size", (Size, 'Region Size'))
+    reg.addInputPort(RegionOfInterestImageFilter, "Input Image", (Image, 'Input Image'))
+    reg.addInputPort(RegionOfInterestImageFilter, "Input Region", (Region, 'Input Region'), True)
+    reg.addOutputPort(RegionOfInterestImageFilter, "Output Image", (Image, 'Output Image'))
+    reg.addOutputPort(RegionOfInterestImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
+    reg.addOutputPort(RegionOfInterestImageFilter, "Filter", (Filter, 'Filter'), True)
+    reg.addOutputPort(RegionOfInterestImageFilter, "Output Dimension", (basic.Integer, 'Output Dimension'))
