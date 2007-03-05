@@ -178,10 +178,14 @@ subclasses from modules.vistrails_module.Module)"""
                   configureWidgetType=None,
                   cacheCallable=None,
                   moduleColor=None,
-                  moduleFringe=None):
+                  moduleFringe=None,
+                  moduleLeftFringe=None,
+                  moduleRightFringe=None):
         """addModule(module: class,
         name=None, configureWidgetType=None,
-        cacheCallable=None, moduleColor=None) -> Tree
+        cacheCallable=None, moduleColor=None,
+        moduleFringe=None,
+        moduleLeftFringe=None, moduleRightFringe=None) -> Tree
 
 Registers a new module with VisTrails. Receives the class itself and
 an optional name that will be the name of the module (if not given,
@@ -197,7 +201,8 @@ can use it correctly. moduleFringe must be a list of pairs of floating
 points.  The first point must be (0.0, 0.0), and the last must be
 (0.0, 1.0). This will be used to generate custom lateral fringes for
 module boxes. It must be the case that all x values must be positive, and
-all y values must be between 0.0 and 1.0.
+all y values must be between 0.0 and 1.0. Alternatively, the user can
+set moduleLeftFringe and moduleRightFringe to set two different fringes.
 
 """
         if not name:
@@ -234,19 +239,27 @@ all y values must be between 0.0 and 1.0.
                 assert type(moduleColor[i]) == float
             self._module_color[name] = moduleColor
 
-        if moduleFringe:
-            assert type(moduleFringe) == list
-            assert len(moduleFringe) >= 2
-            for v in moduleFringe:
+        def checkFringe(fringe):
+            assert type(fringe) == list
+            assert len(fringe) >= 2
+            for v in fringe:
                 assert type(v) == tuple
                 assert len(v) == 2
                 assert type(v[0]) == float
                 assert type(v[1]) == float
-            assert moduleFringe[0][0] == 0.0
-            assert moduleFringe[0][1] == 0.0
-            assert moduleFringe[-1][0] == 0.0
-            assert moduleFringe[-1][1] == 1.0
-            self._module_fringe[name] = moduleFringe
+            assert fringe[0][0] == 0.0
+            assert fringe[0][1] == 0.0
+            assert fringe[-1][0] == 0.0
+            assert fringe[-1][1] == 1.0
+
+        if moduleFringe:
+            checkFringe(moduleFringe)
+            self._module_fringe[name] = (moduleFringe, moduleFringe)
+        elif moduleLeftFringe and moduleRightFringe:
+            checkFringe(moduleLeftFringe)
+            checkFringe(moduleRightFringe)
+            self._module_fringe[name] = (moduleLeftFringe, moduleRightFringe)
+            
             
 
         # self requires object magic, it's an open type! I want OCaml :(
