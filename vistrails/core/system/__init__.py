@@ -161,7 +161,7 @@ def vistrailsRevision():
     shows the latest release revision
 
     """
-    release = "496"
+    release = "502"
     if core.requirements.executable_file_exists('svn'):
         if systemType not in ['Windows', 'Microsoft']:
             process = popen2.Popen4("svn info")
@@ -173,11 +173,12 @@ def vistrailsRevision():
             #Popen4 does not seem to be present on Windows
             svn_output, input = popen2.popen4("svn info")
             result = 0
-            
-        revision_line = svn_output.readlines()[4][:-1].split(' ')
-        if result == 0:
-            if revision_line[0] == 'Revision:':
-                return revision_line[1]
+        lines = svn_output.readlines()
+        if len(lines) > 5:
+            revision_line = lines[4][:-1].split(' ')
+            if result == 0:
+                if revision_line[0] == 'Revision:':
+                    return revision_line[1]
     return release
         
 def aboutString():

@@ -21,14 +21,14 @@
 ;############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 0.4 (rev444)
+AppVerName=VisTrails 0.4 (rev502)
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$e3dfe0
 DefaultDirName={code:CustomAppDir}\VisTrails
 SetupIconFile=resources\icons\vistrails_install2.ico
 DefaultGroupName=VisTrails
-InfoAfterFile=C:\Documents and Settings\emanuele\Desktop\vistrails_svn\branches\2007-02-23\dist\windows\Input\releaseNotes.txt
+InfoAfterFile=C:\Documents and Settings\emanuele\Desktop\vistrails_svn\trunk\dist\windows\Input\releaseNotes.txt
 DisableDirPage=false
 PrivilegesRequired=none
 RestartIfNeededByRun=false
