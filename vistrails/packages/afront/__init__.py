@@ -32,20 +32,27 @@ import core.modules
 import core.modules.module_registry
 import core.modules.basic_modules
 from core.modules.vistrails_module import Module, ModuleError, newModule
-
+import core.requirements
+import core.bundles
 import os
 
 ################################################################################
 
-class Afront(Module):
+class AfrontRun(object):
 
     def run(self, args):
         cmdline = ("afront -nogui " + (" %s" * len(args)))
         cmdline = cmdline % tuple(args)
-        os.system(cmdline)
+        print cmdline
+        result = os.system(cmdline)
+        if result != 0:
+            raise ModuleError(self, "Execution failed")
+
+
+class Afront(Module, AfrontRun):
         
     def compute(self):
-        o = self.interpreter.filePool.create_file()
+        o = self.interpreter.filePool.create_file(suffix='.m')
         args = []
         if not self.hasInputFromPort("file"):
             raise ModuleError("Needs input file")
@@ -62,10 +69,19 @@ class Afront(Module):
         self.run(args)
         self.setResult("output", o)
 
-# class HHM_File_to_VTK(Module):
 
-#     def compute(self):
-        
+class MeshQualityHistogram(Module, AfrontRun):
+
+    def compute(self):
+        o = self.interpreter.filePool.create_file(suffix='.csv')
+        args = []
+        self.checkInputPort("file")
+        args.append(self.getInputFromPort("file").name)
+        args.append('-histname')
+        args.append(o.name)
+        args.append('-histogram')
+        self.run(args)
+        self.setResult("output", o)
 
 ################################################################################
 
@@ -75,16 +91,28 @@ def initialize(*args, **keywords):
     print "------------------------"
     print "Testing afront presence..."
 
-    result = os.system("afront >/dev/null 2>&1")
-    if result != 0:
-        raise Exception("afront does not seem to be present.")
+    if (not core.requirements.executable_file_exists('afront') and
+        not core.bundles.install({'linux-ubuntu': 'afront'})):
+        raise core.requirements.MissingRequirement("Afront")
+
     print "Ok, found afront"
-    __version__ = 0.9
+    __version__ = 0.1
     
     reg = core.modules.module_registry
-    reg.addModule(Afront)
+    reg.addModule(Afront,
+                  moduleColor=(1.0,0.8,0.6),
+                  moduleLeftFringe=[(0.0, 0.0),
+                                    (0.2, 0.0),
+                                    (0.0, 1.0)],
+                  moduleRightFringe=[(0.0, 0.0),
+                                     (0.2, 1.0),
+                                     (0.0, 1.0)])
     reg.addInputPort(Afront, "rho", (core.modules.basic_modules.Float, 'rho'))
     reg.addInputPort(Afront, "eta", (core.modules.basic_modules.Float, 'eta'))
     reg.addInputPort(Afront, "file", (core.modules.basic_modules.File, 'the file to process'))
     reg.addOutputPort(Afront, "output", (core.modules.basic_modules.File, 'the result'))
+
+    reg.addModule(MeshQualityHistogram)
+    reg.addInputPort(MeshQualityHistogram, "file", core.modules.basic_modules.File)
+    reg.addOutputPort(MeshQualityHistogram, "output", core.modules.basic_modules.File)
     
