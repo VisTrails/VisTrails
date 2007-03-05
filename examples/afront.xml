@@ -1,0 +1,803 @@
+  <visTrail version="0.3.0">
+    <action date="01 Mar 2007 17:56:06" parent="0" time="1" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="0" name="Afront" x="9.0" y="273.0"/>
+    </action>
+    <action date="01 Mar 2007 17:56:12" parent="1" time="2" user="cscheid" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="-46.0" dy="-38.0" id="0"/>
+    </action>
+    <action date="01 Mar 2007 17:56:12" parent="2" time="3" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="1" name="File" x="-58.0" y="381.0"/>
+    </action>
+    <action date="01 Mar 2007 17:56:16" parent="3" time="4" user="cscheid" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="10.0" dy="-84.0" id="0"/>
+      <move dx="30.0" dy="-45.0" id="1"/>
+    </action>
+    <action date="01 Mar 2007 17:56:16" parent="4" time="5" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="name" functionId="0" moduleId="1" parameter="&lt;no description&gt;" parameterId="0" type="String" value=""/>
+    </action>
+    <action date="01 Mar 2007 17:56:24" parent="5" time="6" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="name" functionId="0" moduleId="1" parameter="&lt;no description&gt;" parameterId="0" type="String" value="/home/cscheid/cscheid_old/meshes/bunny.off"/>
+    </action>
+    <action date="01 Mar 2007 17:56:25" parent="6" time="7" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="name" functionId="0" moduleId="1" parameter="&lt;no description&gt;" parameterId="0" type="String" value="/home/cscheid/cscheid_old/meshes/bunny.off"/>
+    </action>
+    <action date="01 Mar 2007 17:56:29" parent="7" time="8" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="eta" functionId="0" moduleId="0" parameter="eta" parameterId="0" type="Float" value="0.0"/>
+    </action>
+    <action date="01 Mar 2007 17:56:32" parent="8" time="9" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="eta" functionId="0" moduleId="0" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.8"/>
+    </action>
+    <action date="01 Mar 2007 17:56:34" parent="9" time="10" user="cscheid" what="deleteFunction">
+      <notes>
+        None
+      </notes>
+      <function functionId="0" moduleId="0"/>
+    </action>
+    <action date="01 Mar 2007 17:56:35" parent="10" time="11" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="rho" functionId="0" moduleId="0" parameter="rho" parameterId="0" type="Float" value="0.0"/>
+    </action>
+    <action date="01 Mar 2007 17:56:37" parent="11" time="12" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="rho" functionId="0" moduleId="0" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.8"/>
+    </action>
+    <action date="01 Mar 2007 17:56:38" parent="12" time="13" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="rho" functionId="0" moduleId="0" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.8"/>
+    </action>
+    <action date="01 Mar 2007 17:56:41" parent="13" time="14" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="0" destinationModule="Afront" destinationPort="file(File)" id="0" sourceId="1" sourceModule="File" sourcePort="self(File)"/>
+    </action>
+    <action date="01 Mar 2007 17:56:50" parent="14" time="15" user="cscheid" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="5.0" dy="26.0" id="0"/>
+    </action>
+    <action date="01 Mar 2007 17:56:50" parent="15" time="16" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="2" name="MeshQualityHistogram" x="35.0" y="46.0"/>
+    </action>
+    <action date="01 Mar 2007 17:56:53" parent="16" time="17" user="cscheid" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="-23.0" dy="25.0" id="0"/>
+    </action>
+    <action date="01 Mar 2007 17:56:53" parent="17" time="18" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="2" destinationModule="MeshQualityHistogram" destinationPort="file(File)" id="1" sourceId="0" sourceModule="Afront" sourcePort="output(File)"/>
+    </action>
+    <action date="01 Mar 2007 17:56:57" parent="18" time="19" user="cscheid" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="-53.0" dy="26.0" id="2"/>
+    </action>
+    <action date="01 Mar 2007 17:56:57" parent="19" time="20" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="3" name="PythonSource" x="-30.0" y="-86.0"/>
+    </action>
+    <action date="01 Mar 2007 17:58:52" parent="20" time="21" user="cscheid" what="addModulePort">
+      <notes>
+        None
+      </notes>
+      <addPort moduleId="3" portName="input" portSpec="(File)" portType="input"/>
+    </action>
+    <action date="01 Mar 2007 17:58:52" parent="21" time="22" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="3" parameter="&lt;no description&gt;" parameterId="0" type="String" value="f%20%3D%20self.getInputFromPort%28%27input%27%29%0A%0Av%20%3D%201.0%0Afor%20l%20in%20f.readlines%28%29%3A%0A%20%20%20v%20-%3D%20float%28l%29%20/%20100.0%0A%0Aprint%20%22mesh%20quality%3A%20%22%2C%20v"/>
+    </action>
+    <action date="01 Mar 2007 17:58:54" parent="22" time="23" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="3" destinationModule="PythonSource" destinationPort="input(File)" id="2" sourceId="2" sourceModule="MeshQualityHistogram" sourcePort="output(File)"/>
+    </action>
+    <action date="01 Mar 2007 18:00:32" parent="23" time="24" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="3" parameter="&lt;no description&gt;" parameterId="0" type="String" value="f%20%3D%20self.getInputFromPort%28%27input%27%29%0A%0Av%20%3D%201.0%0Afor%20l%20in%20file%28f.name%29.readlines%28%29%3A%0A%20%20%20v%20-%3D%20float%28l%29%20/%20100.0%0A%0Aprint%20%22mesh%20quality%3A%20%22%2C%20v"/>
+    </action>
+    <action date="01 Mar 2007 18:00:48" parent="24" time="25" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="3" parameter="&lt;no description&gt;" parameterId="0" type="String" value="f%20%3D%20self.getInputFromPort%28%27input%27%29%0A%0Av%20%3D%201.0%0Afor%20l%20in%20file%28f.name%29.readlines%28%29%3A%0A%20%20%20print%20l%0A%20%20%20v%20-%3D%20float%28l%29%20/%20100.0%0A%0Aprint%20%22mesh%20quality%3A%20%22%2C%20v"/>
+    </action>
+    <action date="01 Mar 2007 18:09:13" parent="25" time="26" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="3" parameter="&lt;no description&gt;" parameterId="0" type="String" value="f%20%3D%20self.getInputFromPort%28%27input%27%29%0A%0Av%20%3D%201.0%0Afor%20l%20in%20file%28f.name%29.readlines%28%29%3A%0A%20%20%20v%20-%3D%20float%28l%29%20/%20100.0%0A%0Aprint%20%22mesh%20quality%3A%20%22%2C%20v"/>
+    </action>
+    <action date="01 Mar 2007 18:09:26" parent="0" time="27" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="0" name="vtkDataSetReader" x="50.4689536324" y="-75.039097946"/>
+    </action>
+    <action date="01 Mar 2007 18:09:26" parent="27" time="28" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="1" name="OutputPort" x="66.5683979218" y="-176.342434481"/>
+    </action>
+    <action date="01 Mar 2007 18:09:26" parent="28" time="29" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="2" name="InputPort" x="72.8614246679" y="145.860534924"/>
+    </action>
+    <action date="01 Mar 2007 18:09:26" parent="29" time="30" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="3" name="PythonSource" x="50.127651043" y="23.962638969"/>
+    </action>
+    <action date="01 Mar 2007 18:09:26" parent="30" time="31" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="0" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:09:26" parent="31" time="32" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="1" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:09:26" parent="32" time="33" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="name" functionId="0" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="String" value="input_file"/>
+    </action>
+    <action date="01 Mar 2007 18:09:26" parent="33" time="34" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="2" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:09:26" parent="34" time="35" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="3" parameter="&lt;no description&gt;" parameterId="0" type="String" value="%23%20Extracts%20the%20internal%20file%20name%20so%20VTK%20can%20use%20it%0A%23%20Also%2C%20makes%20local%20copy%20so%20that%20the%20file%20survives%20filepool%0A%23%20cleanup.%0Afrom%20packages.spreadsheet.spreadsheet_controller%20import%20spreadsheetController%0Aself.checkInputPort%28%22file%22%29%0Awindow%20%3D%20spreadsheetController.findSpreadsheetWindow%28%29%0Af%20%3D%20self.getInputFromPort%28%22file%22%29%0Afile_copy%20%3D%20window.file_pool.make_local_copy%28f.name%29%0Aself.setResult%28%22name%22%2C%20file_copy.name%29%0Aself.setResult%28%22file%22%2C%20file_copy%29"/>
+    </action>
+    <action date="01 Mar 2007 18:09:26" parent="35" time="36" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="3" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:09:26" parent="36" time="37" user="cscheid" what="addModulePort">
+      <notes>
+        None
+      </notes>
+      <addPort moduleId="3" portName="file" portSpec="(File)" portType="input"/>
+    </action>
+    <action date="01 Mar 2007 18:09:26" parent="37" time="38" user="cscheid" what="addModulePort">
+      <notes>
+        None
+      </notes>
+      <addPort moduleId="3" portName="name" portSpec="(String)" portType="output"/>
+    </action>
+    <action date="01 Mar 2007 18:09:26" parent="38" time="39" user="cscheid" what="addModulePort">
+      <notes>
+        None
+      </notes>
+      <addPort moduleId="3" portName="file" portSpec="(File)" portType="output"/>
+    </action>
+    <action date="01 Mar 2007 18:09:26" parent="39" time="40" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="1" destinationModule="OutputPort" destinationPort="InternalPipe(Module)" id="0" sourceId="0" sourceModule="vtkDataSetReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="01 Mar 2007 18:09:26" parent="40" time="41" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="0" destinationModule="vtkDataReader" destinationPort="SetFileName(String)" id="1" sourceId="3" sourceModule="PythonSource" sourcePort="name(String)"/>
+    </action>
+    <action date="01 Mar 2007 18:09:26" parent="41" time="42" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="3" destinationModule="PythonSource" destinationPort="file(File)" id="2" sourceId="2" sourceModule="InputPort" sourcePort="InternalPipe(Variant)"/>
+    </action>
+    <action date="01 Mar 2007 18:10:45" parent="26" time="43" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="4" name="MeshFilter" x="-260.146183261" y="3.39321108601"/>
+    </action>
+    <action date="01 Mar 2007 18:10:48" parent="43" time="44" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="output_format" functionId="0" moduleId="4" parameter="&lt;no description&gt;" parameterId="0" type="String" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:12:31" parent="44" time="45" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="output_format" functionId="0" moduleId="4" parameter="&lt;no description&gt;" parameterId="0" type="String" value=".vtk"/>
+    </action>
+    <action date="01 Mar 2007 18:12:34" parent="45" time="46" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="4" destinationModule="MeshFilter" destinationPort="input_file(File)" id="3" sourceId="0" sourceModule="Afront" sourcePort="output(File)"/>
+    </action>
+    <action date="01 Mar 2007 18:13:38" parent="46" time="47" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="5" name="vtkVistrailsFileReader" x="-272.292020374" y="-128.719864177"/>
+    </action>
+    <action date="01 Mar 2007 18:13:41" parent="47" time="48" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="5" destinationModule="vtkVistrailsFileReader" destinationPort="input_file(File)" id="4" sourceId="4" sourceModule="MeshFilter" sourcePort="output_file(File)"/>
+    </action>
+    <action date="01 Mar 2007 18:14:08" parent="48" time="49" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="6" name="VTKCell" x="-180.664206774" y="-165.520338043"/>
+    </action>
+    <action date="01 Mar 2007 18:14:08" parent="49" time="50" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="7" name="vtkDataSetMapper" x="-237.282186703" y="301.998142802"/>
+    </action>
+    <action date="01 Mar 2007 18:14:08" parent="50" time="51" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="8" name="vtkRenderer" x="-220.460112232" y="-3.1201219181"/>
+    </action>
+    <action date="01 Mar 2007 18:14:08" parent="51" time="52" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="9" name="vtkActor" x="-258.041526728" y="119.069528254"/>
+    </action>
+    <action date="01 Mar 2007 18:14:08" parent="52" time="53" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="6" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:14:08" parent="53" time="54" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="ScalarVisibilityOn" functionId="0" moduleId="7" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:14:08" parent="54" time="55" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="7" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:14:08" parent="55" time="56" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="8" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:14:08" parent="56" time="57" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="9" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:14:08" parent="57" time="58" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="6" destinationModule="VTKCell" destinationPort="AddRenderer(vtkRenderer)" id="5" sourceId="8" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
+    </action>
+    <action date="01 Mar 2007 18:14:08" parent="58" time="59" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="9" destinationModule="vtkActor" destinationPort="SetMapper(vtkMapper)" id="6" sourceId="7" sourceModule="vtkDataSetMapper" sourcePort="self(vtkDataSetMapper)"/>
+    </action>
+    <action date="01 Mar 2007 18:14:08" parent="59" time="60" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="8" destinationModule="vtkRenderer" destinationPort="AddActor(vtkProp)" id="7" sourceId="9" sourceModule="vtkActor" sourcePort="self(vtkActor)"/>
+    </action>
+    <action date="01 Mar 2007 18:14:14" parent="60" time="61" user="cscheid" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="-39.0229417805" dy="-559.894382068" id="6"/>
+      <move dx="-39.0229417805" dy="-559.894382068" id="7"/>
+      <move dx="-39.0229417805" dy="-559.894382068" id="8"/>
+      <move dx="-39.0229417805" dy="-559.894382068" id="9"/>
+    </action>
+    <action date="01 Mar 2007 18:14:14" parent="61" time="62" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="7" destinationModule="vtkAlgorithm" destinationPort="AddInputConnection(vtkAlgorithmOutput)" id="8" sourceId="5" sourceModule="vtkVistrailsFileReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="01 Mar 2007 18:14:33" parent="0" time="63" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="0" name="VTKCell" x="-209.687148555" y="-715.414720111"/>
+    </action>
+    <action date="01 Mar 2007 18:14:33" parent="63" time="64" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="1" name="vtkActor" x="-287.064468509" y="-430.824853814"/>
+    </action>
+    <action date="01 Mar 2007 18:14:33" parent="64" time="65" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="2" name="vtkVistrailsFileReader" x="-262.292020374" y="-118.719864177"/>
+    </action>
+    <action date="01 Mar 2007 18:14:33" parent="65" time="66" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="3" name="vtkRenderer" x="-249.483054013" y="-553.014503986"/>
+    </action>
+    <action date="01 Mar 2007 18:14:33" parent="66" time="67" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="4" name="vtkDataSetMapper" x="-266.305128484" y="-247.896239266"/>
+    </action>
+    <action date="01 Mar 2007 18:14:33" parent="67" time="68" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="0" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:14:33" parent="68" time="69" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="1" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:14:33" parent="69" time="70" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="2" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:14:33" parent="70" time="71" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="3" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:14:33" parent="71" time="72" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="ScalarVisibilityOn" functionId="0" moduleId="4" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:14:33" parent="72" time="73" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="4" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:14:33" parent="73" time="74" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="0" destinationModule="VTKCell" destinationPort="AddRenderer(vtkRenderer)" id="0" sourceId="3" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
+    </action>
+    <action date="01 Mar 2007 18:14:33" parent="74" time="75" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="1" destinationModule="vtkActor" destinationPort="SetMapper(vtkMapper)" id="1" sourceId="4" sourceModule="vtkDataSetMapper" sourcePort="self(vtkDataSetMapper)"/>
+    </action>
+    <action date="01 Mar 2007 18:14:33" parent="75" time="76" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="3" destinationModule="vtkRenderer" destinationPort="AddActor(vtkProp)" id="2" sourceId="1" sourceModule="vtkActor" sourcePort="self(vtkActor)"/>
+    </action>
+    <action date="01 Mar 2007 18:14:33" parent="76" time="77" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="4" destinationModule="vtkAlgorithm" destinationPort="AddInputConnection(vtkAlgorithmOutput)" id="3" sourceId="2" sourceModule="vtkVistrailsFileReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="01 Mar 2007 18:14:41" parent="77" time="78" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="5" name="InputPort" x="-312.960721232" y="26.921352364"/>
+    </action>
+    <action date="01 Mar 2007 18:14:42" parent="78" time="79" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="2" destinationModule="vtkVistrailsFileReader" destinationPort="input_file(File)" id="4" sourceId="5" sourceModule="InputPort" sourcePort="InternalPipe(Variant)"/>
+    </action>
+    <action date="01 Mar 2007 18:14:56" parent="62" time="80" user="cscheid" what="deleteConnection">
+      <notes>
+        None
+      </notes>
+      <connection connectionId="5"/>
+      <connection connectionId="7"/>
+      <connection connectionId="8"/>
+      <connection connectionId="4"/>
+      <connection connectionId="6"/>
+    </action>
+    <action date="01 Mar 2007 18:14:56" parent="80" time="81" user="cscheid" what="deleteModule">
+      <notes>
+        None
+      </notes>
+      <module moduleId="8"/>
+      <module moduleId="5"/>
+      <module moduleId="7"/>
+      <module moduleId="9"/>
+      <module moduleId="6"/>
+    </action>
+    <action date="01 Mar 2007 18:15:01" parent="81" time="82" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="10" name="MeshCell" x="-269.411673235" y="-189.161387591"/>
+    </action>
+    <action date="01 Mar 2007 18:15:04" parent="82" time="83" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="10" destinationModule="MeshCell" destinationPort="input_file(File)" id="9" sourceId="4" sourceModule="MeshFilter" sourcePort="output_file(File)"/>
+    </action>
+    <action date="01 Mar 2007 18:15:10" parent="83" time="84" user="cscheid" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="74.5181223843" dy="-45.8573060826" id="2"/>
+      <move dx="74.5181223843" dy="-45.8573060826" id="3"/>
+      <move dx="11.4643265207" dy="82.1610067314" id="10"/>
+    </action>
+    <action date="01 Mar 2007 18:15:10" parent="84" time="85" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="11" name="MeshFilter" x="-250.146183261" y="13.393211086"/>
+    </action>
+    <action date="01 Mar 2007 18:15:10" parent="85" time="86" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="output_format" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="0" type="String" value=".vtk"/>
+    </action>
+    <action date="01 Mar 2007 18:15:10" parent="86" time="87" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="11" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:15:13" parent="87" time="88" user="cscheid" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="-87.8931699917" dy="179.607782157" id="11"/>
+    </action>
+    <action date="01 Mar 2007 18:15:13" parent="88" time="89" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="11" destinationModule="MeshFilter" destinationPort="input_file(File)" id="10" sourceId="1" sourceModule="File" sourcePort="self(File)"/>
+    </action>
+    <action date="01 Mar 2007 18:15:14" parent="89" time="90" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="12" name="MeshCell" x="-247.947346715" y="-97.000380859"/>
+    </action>
+    <action date="01 Mar 2007 18:15:14" parent="90" time="91" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="12" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:15:17" parent="91" time="92" user="cscheid" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="-187.250666504" dy="141.393360421" id="12"/>
+    </action>
+    <action date="01 Mar 2007 18:15:17" parent="92" time="93" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="12" destinationModule="MeshCell" destinationPort="input_file(File)" id="11" sourceId="11" sourceModule="MeshFilter" sourcePort="output_file(File)"/>
+    </action>
+    <action date="01 Mar 2007 18:16:57" parent="93" time="94" user="cscheid" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="-265.590231062" dy="-26.7500952149" id="1"/>
+      <move dx="-107.000380859" dy="-204.447156285" id="11"/>
+      <move dx="-11.4643265207" dy="-152.857686942" id="12"/>
+    </action>
+    <action date="01 Mar 2007 18:16:57" parent="94" time="95" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="13" name="MplFigureCell" x="37.0688549561" y="-60.0259508645"/>
+    </action>
+    <action date="01 Mar 2007 18:16:57" parent="95" time="96" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="14" name="MplPlot" x="-104.504769347" y="212.057733157"/>
+    </action>
+    <action date="01 Mar 2007 18:16:57" parent="96" time="97" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="15" name="MplFigure" x="-2.3575207408" y="92.971924974"/>
+    </action>
+    <action date="01 Mar 2007 18:16:57" parent="97" time="98" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="13" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:16:57" parent="98" time="99" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="14" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20matplotlib.axes3d%20as%20axes3d%0A%0Afig%20%3D%20gcf%28%29%0A%0Aax3d%20%3D%20axes3d.Axes3D%28fig%29%0Aplt%20%3D%20fig.axes.append%28ax3d%29%0A%0Adelta%20%3D%20pi%20/%20199.0%0Au%20%3D%20arange%280%2C%202%2Api%2B%28delta%2A2%29%2C%20delta%2A2%29%0Av%20%3D%20arange%280%2C%20pi%2Bdelta%2C%20delta%29%0A%0Ax%20%3D%20outer%28cos%28u%29%2Csin%28v%29%29%0Ay%20%3D%20outer%28sin%28u%29%2Csin%28v%29%29%0Az%20%3D%20outer%28ones%28u.shape%29%2C%20cos%28v%29%29%0A%0A%23ax3d.plot_wireframe%28x%2Cy%2Cz%29%0Asurf%20%3D%20ax3d.plot_surface%28x%2C%20y%2C%20z%29%0Asurf.set_array%28linspace%280%2C%201.0%2C%20len%28v%29%29%29%0A%20%20%20%20%20%20%20%20%0Aax3d.set_xlabel%28%27X%27%29%0Aax3d.set_ylabel%28%27Y%27%29%0Aax3d.set_zlabel%28%27Z%27%29"/>
+    </action>
+    <action date="01 Mar 2007 18:16:57" parent="99" time="100" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="14" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:16:57" parent="100" time="101" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="15" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:16:57" parent="101" time="102" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="13" destinationModule="MplFigureCell" destinationPort="FigureManager(MplFigureManager)" id="12" sourceId="15" sourceModule="MplFigure" sourcePort="FigureManager(MplFigureManager)"/>
+    </action>
+    <action date="01 Mar 2007 18:16:58" parent="102" time="103" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="15" destinationModule="MplFigure" destinationPort="Script(String)" id="13" sourceId="14" sourceModule="MplPlot" sourcePort="source(String)"/>
+    </action>
+    <action date="01 Mar 2007 18:19:45" parent="103" time="104" user="cscheid" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="-187.250666504" dy="-460.483781913" id="13"/>
+      <move dx="-89.8038910785" dy="-443.287292132" id="14"/>
+      <move dx="-171.96489781" dy="-433.733686698" id="15"/>
+    </action>
+    <action date="01 Mar 2007 18:19:45" parent="104" time="105" user="cscheid" what="addModulePort">
+      <notes>
+        None
+      </notes>
+      <addPort moduleId="14" portName="inputFile" portSpec="(File)" portType="input"/>
+    </action>
+    <action date="01 Mar 2007 18:19:45" parent="105" time="106" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="14" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20matplotlib.axes3d%20as%20axes3d%0A%0Afig%20%3D%20gcf%28%29%0A%0Aplot%28array%28%5B0%2C%201%2C%202%2C%203%5D%29%2C%20array%28%5B1%2C%203%2C%201%2C%203%5D%29%29%0A"/>
+    </action>
+    <action date="01 Mar 2007 18:19:52" parent="106" time="107" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="14" destinationModule="MplPlot" destinationPort="inputFile(File)" id="14" sourceId="2" sourceModule="MeshQualityHistogram" sourcePort="output(File)"/>
+    </action>
+    <action date="01 Mar 2007 18:19:53" parent="107" time="108" user="cscheid" what="deleteConnection">
+      <notes>
+        None
+      </notes>
+      <connection connectionId="2"/>
+    </action>
+    <action date="01 Mar 2007 18:19:53" parent="108" time="109" user="cscheid" what="deleteModule">
+      <notes>
+        None
+      </notes>
+      <module moduleId="3"/>
+    </action>
+    <action date="01 Mar 2007 18:21:37" parent="109" time="110" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="14" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20matplotlib.axes3d%20as%20axes3d%0A%0Afig%20%3D%20gcf%28%29%0A%0Ax%20%3D%20arange%280.0%2C%201.0%2C%201.0/100.0%29%0Ay%20%3D%20array%28%5Bfloat%28x%29%20for%20x%20in%20file%28inputFile.name%29%5D%29%0A%0Aplot%28x%2C%20y%29%0A"/>
+    </action>
+    <action date="01 Mar 2007 18:23:36" parent="110" time="111" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="14" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20matplotlib.axes3d%20as%20axes3d%0A%0AinputFile%20%3D%20self.getInputFromPort%28%27inputFile%27%29%0A%0Afig%20%3D%20gcf%28%29%0A%0Ax%20%3D%20arange%280.0%2C%201.0%2C%201.0/100.0%29%0Ay%20%3D%20array%28%5Bfloat%28x%29%20for%20x%20in%20file%28inputFile.name%29%5D%29%0A%0Aplot%28x%2C%20y%29%0A"/>
+    </action>
+    <action date="01 Mar 2007 18:24:06" parent="111" time="112" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="14" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20matplotlib.axes3d%20as%20axes3d%0A%0AinputFile%20%3D%20self.getInputFromPort%28%27inputFile%27%29%0A%0Afig%20%3D%20gcf%28%29%0A%0Ax%20%3D%20arange%280.0%2C%201.0%2C%201.0/100.0%29%0Ay%20%3D%20array%28%5Bfloat%28x%29%20for%20x%20in%20file%28inputFile.name%29%5D%29%0A%0Aprint%20x%0A%0Aprint%20y%0A%0Aplot%28x%2C%20y%29%0A"/>
+    </action>
+    <action date="01 Mar 2007 18:24:38" parent="112" time="113" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="14" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20matplotlib.axes3d%20as%20axes3d%0A%0AinputFile%20%3D%20self.getInputFromPort%28%27inputFile%27%29%0A%0Afig%20%3D%20gcf%28%29%0A%0Ax%20%3D%20arange%280.0%2C%201.0%2C%201.0/100.0%29%0Ay%20%3D%20array%28%5Bfloat%28v%29%20for%20v%20in%20file%28inputFile.name%29%5D%29%0A%0Aprint%20x%0A%0Aprint%20y%0A%0Aplot%28x%2C%20y%29%0A"/>
+    </action>
+    <action date="01 Mar 2007 18:25:09" parent="113" time="114" user="cscheid" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="244.572299107" dy="150.946965855" id="13"/>
+      <move dx="244.572299107" dy="150.946965855" id="14"/>
+      <move dx="244.572299107" dy="150.946965855" id="15"/>
+    </action>
+    <action date="01 Mar 2007 18:25:09" parent="114" time="115" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="16" name="MplFigure" x="-164.322418551" y="-330.761761724"/>
+    </action>
+    <action date="01 Mar 2007 18:25:09" parent="115" time="116" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="17" name="MplFigureCell" x="-140.181811548" y="-510.509732778"/>
+    </action>
+    <action date="01 Mar 2007 18:25:09" parent="116" time="117" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="18" name="MplPlot" x="-184.308660425" y="-221.229558975"/>
+    </action>
+    <action date="01 Mar 2007 18:25:10" parent="117" time="118" user="cscheid" what="addModule">
+      <notes>
+        None
+      </notes>
+      <object cache="0" id="19" name="MeshQualityHistogram" x="66.5181223843" y="36.1426939174"/>
+    </action>
+    <action date="01 Mar 2007 18:25:10" parent="118" time="119" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="16" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:25:10" parent="119" time="120" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="17" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:25:10" parent="120" time="121" user="cscheid" what="changeParameter">
+      <notes>
+        None
+      </notes>
+      <set alias="" function="source" functionId="0" moduleId="18" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20matplotlib.axes3d%20as%20axes3d%0A%0AinputFile%20%3D%20self.getInputFromPort%28%27inputFile%27%29%0A%0Afig%20%3D%20gcf%28%29%0A%0Ax%20%3D%20arange%280.0%2C%201.0%2C%201.0/100.0%29%0Ay%20%3D%20array%28%5Bfloat%28v%29%20for%20v%20in%20file%28inputFile.name%29%5D%29%0A%0Aprint%20x%0A%0Aprint%20y%0A%0Aplot%28x%2C%20y%29%0A"/>
+    </action>
+    <action date="01 Mar 2007 18:25:10" parent="121" time="122" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="18" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:25:10" parent="122" time="123" user="cscheid" what="addModulePort">
+      <notes>
+        None
+      </notes>
+      <addPort moduleId="18" portName="inputFile" portSpec="(File)" portType="input"/>
+    </action>
+    <action date="01 Mar 2007 18:25:10" parent="123" time="124" user="cscheid" what="changeAnnotation">
+      <notes>
+        None
+      </notes>
+      <set key="" moduleId="19" value=""/>
+    </action>
+    <action date="01 Mar 2007 18:25:10" parent="124" time="125" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="17" destinationModule="MplFigureCell" destinationPort="FigureManager(MplFigureManager)" id="15" sourceId="16" sourceModule="MplFigure" sourcePort="FigureManager(MplFigureManager)"/>
+    </action>
+    <action date="01 Mar 2007 18:25:10" parent="125" time="126" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="16" destinationModule="MplFigure" destinationPort="Script(String)" id="16" sourceId="18" sourceModule="MplPlot" sourcePort="source(String)"/>
+    </action>
+    <action date="01 Mar 2007 18:25:10" parent="126" time="127" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="18" destinationModule="MplPlot" destinationPort="inputFile(File)" id="17" sourceId="19" sourceModule="MeshQualityHistogram" sourcePort="output(File)"/>
+    </action>
+    <action date="01 Mar 2007 18:25:24" parent="127" time="128" user="cscheid" what="moveModule">
+      <notes>
+        None
+      </notes>
+      <move dx="-196.804271938" dy="49.6787482562" id="11"/>
+      <move dx="-196.804271938" dy="49.6787482562" id="12"/>
+      <move dx="-168.143455636" dy="-225.46508824" id="16"/>
+      <move dx="-168.143455636" dy="-225.46508824" id="17"/>
+      <move dx="-168.143455636" dy="-225.46508824" id="18"/>
+      <move dx="-397.429986049" dy="-385.965659529" id="19"/>
+    </action>
+    <action date="01 Mar 2007 18:25:24" parent="128" time="129" user="cscheid" what="addConnection">
+      <notes>
+        None
+      </notes>
+      <connect destinationId="19" destinationModule="MeshQualityHistogram" destinationPort="file(File)" id="18" sourceId="1" sourceModule="File" sourcePort="self(File)"/>
+    </action>
+    <tag name="MeshCell" time="79"/>
+    <tag name="vtkVistrailsFileReader" time="42"/>
+  </visTrail>
