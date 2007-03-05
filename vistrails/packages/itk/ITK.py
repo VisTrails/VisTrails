@@ -83,8 +83,8 @@ class Region(ITK):
 	self.region_ = itk.ImageRegion[dim]()
 	self.region_.SetSize(self.getInputFromPort("Size").size_)
 	if dim > 2:
-	    self.region_.SetStart(self.getInputFromPort("Input 3D Index").ind_)
+	    self.region_.SetIndex(self.getInputFromPort("Input 3D Index").ind_)
 	else:
-	    self.region_.SetStart(self.getInputFromPort("Input 2D Index").ind_)
+	    self.region_.SetIndex(self.getInputFromPort("Input 2D Index").ind_)
 
 	self.setResult("Region", self)

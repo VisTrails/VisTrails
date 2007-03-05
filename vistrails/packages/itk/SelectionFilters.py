@@ -51,7 +51,7 @@ class RegionOfInterestImageFilter(SelectionFilter):
 	self.inIm = itk.Image[inType,indim]
 	self.outIm = itk.Image[outType,outdim]
 
-	self.filter_ = itk.RegionOfInterestImageFilter[inIm,outIm].New()
+	self.filter_ = itk.RegionOfInterestImageFilter[self.inIm,self.outIm].New()
 
 	if self.hasInputFromPort("Input Region"):
 	    self.region_ = self.getInputFromPort("Input Region").region_
