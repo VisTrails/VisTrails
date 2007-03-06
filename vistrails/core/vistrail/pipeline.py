@@ -381,6 +381,12 @@ Returns the signature for the connection with given id."""
     def has_connection_signature(self, signature):
         return self._connection_signatures.inverse.has_key(signature)
 
+    def refresh_signatures(self):
+        self._connection_signatures = {}
+        self._subpipeline_signatures = {}
+        self._module_signatures = {}
+        self.compute_signatures()
+
     def compute_signatures(self):
         """compute_signatures(): compute all module and subpipeline signatures
 for this pipeline."""

@@ -42,12 +42,12 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
 
     @lock_method(core.interpreter.utils.get_interpreter_lock())
     def locked_execute(self, pipeline, vistrailName, currentVersion,
-                       view, logger, aliases=None):
+                       view, logger, aliases=None, **kwargs):
         return self.unlocked_execute(pipeline, vistrailName,
-                                     currentVersion, view, logger, aliases)
+                                     currentVersion, view, logger, aliases, **kwargs)
     
     def unlocked_execute(self, pipeline, vistrailName, currentVersion,
-                         view, logger, aliases=None):
+                         view, logger, aliases=None, **kwargs):
 
         self.resolveAliases(pipeline, aliases)
 
@@ -136,6 +136,9 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
 
             if self.doneSummonHook:
                 self.doneSummonHook(pipeline, objects)
+            if kwargs.has_key('doneSummonHook'):
+                for callable_ in kwargs['doneSummonHook']:
+                    callable_(self._persistent_pipeline, self._objects)
 
             for v in pipeline.graph.sinks():
                 try:
@@ -157,14 +160,14 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
         return (objects, errors, executed)
         
     def execute(self, pipeline, vistrailName, currentVersion, view, 
-                logger, useLock=True):
+                logger, useLock=True, **kwargs):
         if useLock:
             method_call = self.locked_execute
         else:
             method_call = self.unlocked_execute
 
         return method_call(pipeline, vistrailName, currentVersion, view,
-                           logger)
+                           logger, **kwargs)
 
 
     @staticmethod

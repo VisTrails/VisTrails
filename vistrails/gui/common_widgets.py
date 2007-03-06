@@ -148,27 +148,14 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
                 item.setHidden(not visible)
             return visible
 
-        def quickMatchedTest(item):
-            """ quickMatchedTest(item: QModuleTreeWidgetItem,
-                                 matchedItems) -> bool                                 
-            Quickly test if item is in sorted matchedItems list using
-            bisect module
-            
-            """
-            candidate = bisect.bisect_left(matchedItems, item)
-            if candidate>=len(matchedItems):
-                return False
-            return item==matchedItems[candidate]
-
         if str(name)=='':
             testFunction = lambda x: True
         else:
-            matchedItems = self.findItems(name,
-                                          QtCore.Qt.MatchContains |
-                                          QtCore.Qt.MatchWrap |
-                                          QtCore.Qt.MatchRecursive)
-            matchedItems = sorted(matchedItems)
-            testFunction = quickMatchedTest
+            matchedItems = set(self.findItems(name,
+                                              QtCore.Qt.MatchContains |
+                                              QtCore.Qt.MatchWrap |
+                                              QtCore.Qt.MatchRecursive))
+            testFunction = lambda x: x in matchedItems
         for itemIndex in range(self.topLevelItemCount()):
             recursiveSetVisible(self.topLevelItem(itemIndex),
                                 testFunction)

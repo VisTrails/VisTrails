@@ -74,7 +74,7 @@ and the modules that depend on them."""
             del self._objects[v]
 
     def unlocked_execute(self, pipeline, vistrailName, currentVersion,
-                view, logger, aliases=None):
+                view, logger, aliases=None, **kwargs):
         """unlocked_execute(pipeline, vistrailName, currentVersion, view, logger):
 Executes a pipeline using caching. Caching works by reusing pipelines directly.
 This means that there exists one global pipeline whose parts get executed over
@@ -185,6 +185,9 @@ and over again. This allows nested execution."""
 
         if self.doneSummonHook:
             self.doneSummonHook(self._persistent_pipeline, self._objects)
+        if kwargs.has_key('doneSummonHook'):
+            for callable_ in kwargs['doneSummonHook']:
+                callable_(self._persistent_pipeline, self._objects)
                 
         # Update new sinks
         for v in persistent_sinks:
@@ -232,7 +235,7 @@ and over again. This allows nested execution."""
 
     @lock_method(core.interpreter.utils.get_interpreter_lock())
     def execute(self, pipeline, vistrailName, currentVersion,
-                view, logger,aliases=None):
+                view, logger,aliases=None, **kwargs):
         """execute(pipeline, vistrailName, currentVersion, view, logger):
 Executes a pipeline using caching. Caching works by reusing pipelines directly.
 This means that there exists one global pipeline whose parts get executed over
@@ -261,7 +264,8 @@ means they were cached."""
         
         (objs, errs, execs) = self.unlocked_execute(pipeline, vistrailName,
                                                     currentVersion,
-                                                    view, logger,aliases)
+                                                    view, logger,aliases,
+                                                    **kwargs)
 
         if logger:
             logger.finishWorkflowExecution(vistrailName, currentVersion)
@@ -282,7 +286,7 @@ all connection ids added to the persistent pipeline."""
         connection_id_map = Bidict()
         modules_added = set()
         connections_added = set()
-        pipeline.compute_signatures()
+        pipeline.refresh_signatures()
         # we must traverse vertices in topological sort order
         verts = pipeline.graph.vertices_topological_sort()
         for new_module_id in verts:

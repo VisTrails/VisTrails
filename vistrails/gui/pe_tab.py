@@ -90,19 +90,17 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         if self.currentVersion!=self.controller.currentVersion:
             self.currentVersion = self.controller.currentVersion
             # Update the virtual cell
-            self.virtualCell.updateVirtualCell(
-                self.controller.currentPipeline)
+            pipeline = self.controller.currentPipeline
+            self.virtualCell.updateVirtualCell(pipeline)
 
             # Now we need to inspect the parameter list
-            self.paramView.treeWidget.updateFromPipeline(
-                self.controller.currentPipeline)
+            self.paramView.treeWidget.updateFromPipeline(pipeline)
 
             # Update the annotated ids
-            self.annotatedPipelineView.updateAnnotatedIds(
-                self.controller.currentPipeline)
+            self.annotatedPipelineView.updateAnnotatedIds(pipeline)
 
             # Update the parameter exploration table
-            self.peWidget.updatePipeline(self.controller.currentPipeline)
+            self.peWidget.updatePipeline(pipeline)
 
     def performParameterExploration(self, actions):
         """ performParameterExploration(actions: list) -> None        
@@ -158,14 +156,15 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                                         ref.minimumRowCount = dim[1]*rCount
                                         ref.minimumColumnCount = dim[0]*cCount
                                         location.sheetReference = ref
+                                        print id(objects[mId])
                                         objects[mId].overrideLocation(location)
                                         
-                            interpreter.setDoneSummonHook(doneSummonHook)
                             interpreter.execute(
                                 pipelines[pi],
                                 self.controller.name,
                                 self.controller.currentVersion,
                                 self.controller.currentPipelineView,
-                                self.controller.logger)
+                                self.controller.logger,
+                                doneSummonHook=[doneSummonHook])
                             pi += 1
             progress.setValue(len(pipelines))
