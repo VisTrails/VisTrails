@@ -81,3 +81,24 @@ class CastImageFilter(SelectionFilter):
 	self.setResult("Output Image", self.filter_.GetOutput())
 	self.setResult("Output PixelType", outType)
 	self.setResult("Dimension", dim)
+
+class ExtractImageFilter(SelectionFilter):
+    def compute(self):
+	imVol = self.getInputFromPort("Input Volume")
+	inDim = self.getInputFromPort("Input Dimension")
+	outDim = self.getInputFromPort("Output Dimension")
+	pType = self.getInputFromPort("Input PixelType")
+
+	inType = itk.Image[pType._type,inDim]
+	outType = itk.Image[pType._type,outDim]
+	self.filter_ = itk.ExtractImageFilter[inType,outType].New()
+	self.filter_.SetInput(imVol)
+	
+	region = self.getInputFromPort("Extraction Region")
+	self.filter_.SetExtractionRegion(region.region_)
+	self.filter_.Update()
+	
+	self.setResult("Output Image", self.filter_.GetOutput())
+	self.setResult("Output PixelType", pType)
+	self.setResult("Dimension", outDim)
+	

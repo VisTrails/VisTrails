@@ -178,3 +178,13 @@ def initialize(*args, **keywords):
     reg.addOutputPort(RegionOfInterestImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
     reg.addOutputPort(RegionOfInterestImageFilter, "Filter", (Filter, 'Filter'), True)
     reg.addOutputPort(RegionOfInterestImageFilter, "Output Dimension", (basic.Integer, 'Output Dimension'))
+
+    reg.addModule(ExtractImageFilter)
+    reg.addInputPort(ExtractImageFilter, "Input Volume", (Image, 'Input Image'))
+    reg.addInputPort(ExtractImageFilter, "Input Dimension", (basic.Integer, 'Input Dimension'))
+    reg.addInputPort(ExtractImageFilter, "Output Dimension", (basic.Integer, 'Output Dimension'))
+    reg.addInputPort(ExtractImageFilter, "Input PixelType", (PixelType, 'Input PixelType'))
+    reg.addInputPort(ExtractImageFilter, "Extraction Region", (Region, 'Extraction Region'))
+    reg.addOutputPort(ExtractImageFilter, "Output Image", (Image, 'Output Image'))
+    reg.addOutputPort(ExtractImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
+    reg.addOutputPort(ExtractImageFilter, "Dimension", (basic.Integer, 'Dimension'), True)
