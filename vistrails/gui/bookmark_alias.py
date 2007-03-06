@@ -92,7 +92,7 @@ class QAliasTable(QtGui.QTableWidget):
                      self.updateFocus)
         
     def processCellChanges(self, row, col):
-        """ parseCellChanges(row: int, col: int) -> None
+        """ processCellChanges(row: int, col: int) -> None
         Event handler for capturing when the contents in a cell changes
 
         """
@@ -100,7 +100,6 @@ class QAliasTable(QtGui.QTableWidget):
             value = str(self.item(row,col).text())
             alias = str(self.verticalHeaderItem(row).text())
             self.manager.updateAlias(alias, value)
-                        
         
     def updateFromEnsemble(self, aliases):
         """ updateFromEnsemble(aliases: dict) -> None        

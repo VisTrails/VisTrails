@@ -89,8 +89,12 @@ class QBookmarkPanel(QtGui.QFrame, QToolWindowInterface):
         self.toolBar.setWindowTitle('Bookmarks controls')
         self.layout().addWidget(self.toolBar)
         self.toolBar.addAction(self.executeAction)
+        wdgt = self.toolBar.widgetForAction(self.executeAction)
+        wdgt.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.toolBar.addAction(self.removeAction)
-
+        wdgt = self.toolBar.widgetForAction(self.removeAction)
+        wdgt.setFocusPolicy(QtCore.Qt.ClickFocus)
+        
     def connectSignals(self):
         """ connectSignals() -> None
         Map signals between  GUI components        
