@@ -49,12 +49,33 @@ class ImageToFile(ITK):
     def createOutputFile(self, s):
         return self.interpreter.filePool.create_file(suffix=s)
 
+class GDCMReader(ITK):
+    def compute(self):
+	dir = self.getInputFromPort("Directory")
+	dim = self.getInputFromPort("Dimension")
+	self.dicomNames_ = itk.GDCMSeriesFileNames.New()
+
+	self.dicomNames_.SetDirectory(dir)
+	self.dicomNames_.SetUseSeriesDetails(True)
+	self.dicomNames_.SetRecursive(True)
+	self.dicomNames_.LoadSequencesOn()
+
+	self.iType_ = itk.Image[itk.US,dim]
+	self.reader_ = itk.ImageSeriesReader[self.iType_].New()
+	self.reader_.SetFileNames(self.dicomNames_.GetInputFileNames())
+	self.io_ = itk.GDCMImageIO.New()
+	self.reader_.SetImageIO(self.io_.GetPointer())
+	self.reader_.Update()
+
+	self.setResult("Image Series", self.reader_.GetOutput())
+
 class DICOMReader(ITK):
     def compute(self):
 	dir = self.getInputFromPort("Directory")
 	dim = self.getInputFromPort("Dimension")
 	self.dicomNames_ = itk.DICOMSeriesFileNames.New()
 
+	self.dicomNames_.SetFileNameSortingOrderToSortByImagePositionPatient()
 	self.dicomNames_.SetDirectory(dir)
 
 	self.iType_ = itk.Image[itk.US,dim]
@@ -63,6 +84,7 @@ class DICOMReader(ITK):
 	self.reader_.Update()
 
 	self.setResult("Image Series", self.reader_.GetOutput())
+	
 
 class ITKImageToVTKData(ITK):
     def compute(self):

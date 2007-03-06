@@ -105,6 +105,11 @@ def initialize(*args, **keywords):
     reg.addInputPort(DICOMReader, "Dimension", (basic.Integer, 'Dimension'))
     reg.addOutputPort(DICOMReader, "Image Series", (Image, 'Image Series'))
 
+    reg.addModule(GDCMReader)
+    reg.addInputPort(GDCMReader, "Directory", (basic.String, 'Directory'))
+    reg.addInputPort(GDCMReader, "Dimension", (basic.Integer, 'Dimension'))
+    reg.addOutputPort(GDCMReader, "Image Series", (Image, 'Image Series'))
+
     reg.addModule(ImageToFile)
     reg.addInputPort(ImageToFile, "Suffix", (basic.String, 'Suffix'))
     reg.addInputPort(ImageToFile, "Pixel Type", (PixelType, 'Pixel Type'))
