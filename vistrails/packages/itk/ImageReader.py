@@ -63,3 +63,14 @@ class DICOMReader(ITK):
 	self.reader_.Update()
 
 	self.setResult("Image Series", self.reader_.GetOutput())
+
+class ITKImageToVTKData(ITK):
+    def compute(self):
+	dim = self.getInputFromPort("Dimension")
+	pType = self.getInputFromPort("Input PixelType")
+	iType = itk.Image[itk.pType,dim]
+	self.vtkExport_ = itk.VTKImageExport[iType].New()
+	im = self.getInputFromPort("Input Image")
+	self.vtkExport_.SetInput(im)
+	self.vtkExport_.Update()
+	self.setResult("VTK Output", self.vtkExport_.GetOutput())

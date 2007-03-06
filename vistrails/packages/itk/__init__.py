@@ -155,6 +155,15 @@ def initialize(*args, **keywords):
     reg.addOutputPort(IsolatedWatershedImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
 
     reg.addModule(SelectionFilter, "Image Selection Filters")
+    reg.addModule(CastImageFilter)
+    reg.addInputPort(CastImageFilter, "Input Image", (Image, 'Input Image'))
+    reg.addInputPort(CastImageFilter, "Dimension", (basic.Integer, 'Dimension'))
+    reg.addInputPort(CastImageFilter, "Input PixelType", (PixelType, 'Input PixelType'))
+    reg.addInputPort(CastImageFilter, "Output PixelType", (PixelType, 'Output PixelType'))
+    reg.addOutputPort(CastImageFilter, "Output Image", (Image, 'Output Image'))
+    reg.addOutputPort(CastImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
+    reg.addOutputPort(CastImageFilter, "Dimension", (basic.Integer, 'Dimension'), True)
+
     reg.addModule(RegionOfInterestImageFilter, "RegionOfInterestFilter")
     reg.addInputPort(RegionOfInterestImageFilter, "Input Dimension", (basic.Integer, 'Input Dimension'))
     reg.addInputPort(RegionOfInterestImageFilter, "Output Dimension", (basic.Integer, 'Output Dimension'))

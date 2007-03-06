@@ -34,7 +34,7 @@ class RegionOfInterestImageFilter(SelectionFilter):
 	else:
 	    self.index = self.getInputFromPort("Input 3D Index").ind_
 
-	self.region_.SetStart(self.index)
+	self.region_.SetIndex(self.index)
 
     def compute(self):
 	im = self.getInputFromPort("Input Image")
@@ -56,8 +56,8 @@ class RegionOfInterestImageFilter(SelectionFilter):
 	if self.hasInputFromPort("Input Region"):
 	    self.region_ = self.getInputFromPort("Input Region").region_
 	else:
-	    self.region_ = itk.ImageRegion[dim]()	    
-	    self.setStart(dim)
+	    self.region_ = itk.ImageRegion[indim]()	    
+	    self.setStart(indim)
 	    self.setSize(self.getInputFromPort("Region Size").size_)
 
 	self.filter_.SetRegionOfInterest(self.region_)
@@ -67,3 +67,17 @@ class RegionOfInterestImageFilter(SelectionFilter):
 	self.setResult("Output PixelType", out)
 	self.setResult("Filter", self)
 	self.setResult("Output Dimension", outdim)
+
+class CastImageFilter(SelectionFilter):
+    def compute(self):
+	im = self.getInputFromPort("Input Image")
+	dim = self.getInputFromPort("Dimension")
+	inType = self.getInputFromPort("Input PixelType")
+	outType = self.getInputFromPort("Output PixelType")
+
+	self.filter_ = itk.CastImageFilter[itk.Image[inType._type, dim], itk.Image[outType._type,dim]].New()
+	self.filter_.SetInput(im)
+	self.filter_.Update()
+	self.setResult("Output Image", self.filter_.GetOutput())
+	self.setResult("Output PixelType", outType)
+	self.setResult("Dimension", dim)
