@@ -106,6 +106,9 @@ class Bookmark(object):
                 return False
         return True
 
+    def __ne__(self, other):
+        return not (self == other)
+
 class BookmarkCollection(XMLWrapper):
     """Class to store a collection of bookmarks.
 
