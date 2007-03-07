@@ -50,7 +50,7 @@ class Module(object):
 
     def __init__(self):
         self.id = -1
-        self.cache = 0
+        self.cache = 1
         self.functions = []
         self.annotations = {}
         self.center = Point(-1.0, -1.0)
@@ -128,10 +128,16 @@ class Module(object):
         appropriate summon method.
         
         """
+        def summonCall(*args):
+            result = getDescriptorByName(self.name).module()
+            if self.cache != 1:
+                self.is_cacheable = lambda *args: False
+            return result
+
         self.type = self.findType(self.name)
         if self.type == VistrailModuleType.Module:
             getDescriptorByName = registry.getDescriptorByName
-            self.summon = lambda *args: getDescriptorByName(self.name).module()
+            self.summon = summonCall
             self.summonProxy = lambda *args: noSummon(self)
             self.createCacheFixture = lambda *args: noSummon(self)
         else:
@@ -365,7 +371,7 @@ class TestModule(unittest.TestCase):
         self.assertEquals(x.id, -1)
         x.id = 10
         self.assertEquals(x.id, 10)
-        self.assertEquals(x.cache, 0)
+        self.assertEquals(x.cache, 1)
         x.cache = 1
         self.assertEquals(x.cache, 1)
         self.assertEquals(x.center.x, -1.0)
