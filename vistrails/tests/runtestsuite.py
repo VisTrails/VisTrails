@@ -70,8 +70,13 @@ def get_test_cases(module):
 
 ###############################################################################
 
+test_modules = None
+if len(sys.argv) > 1:
+    test_modules = set(sys.argv[1:])
+
 # creates the app so that testing can happen
 import gui.application
+sys.argv = sys.argv[:1]
 gui.application.start_application({'interactiveMode': False,
                                    'nologger': True})
 
@@ -79,7 +84,11 @@ print "Test Suite for VisTrails"
 
 main_test_suite = unittest.TestSuite()
 
-sub_print("Trying to import all modules")
+if test_modules:
+    sub_print("Trying to import some of the modules")
+else:
+    sub_print("Trying to import all modules")
+
 for (p, subdirs, files) in os.walk(root_directory):
     # skip subversion subdirectories
     if p.find('.svn') != -1:
@@ -96,6 +105,8 @@ for (p, subdirs, files) in os.walk(root_directory):
             continue
         if ('system' in module and not
             module.endswith('__init__')):
+            continue
+        if test_modules and not module in test_modules:
             continue
         print "%s %s |" % (" " * (40 - len(module)), module),
 
