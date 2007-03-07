@@ -131,7 +131,7 @@ class Module(object):
         def summonCall(*args):
             result = getDescriptorByName(self.name).module()
             if self.cache != 1:
-                self.is_cacheable = lambda *args: False
+                result.is_cacheable = lambda *args: False
             return result
 
         self.type = self.findType(self.name)
