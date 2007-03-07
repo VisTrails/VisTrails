@@ -155,7 +155,7 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
                                               QtCore.Qt.MatchContains |
                                               QtCore.Qt.MatchWrap |
                                               QtCore.Qt.MatchRecursive))
-            testFunction = lambda x: x in matchedItems
+            testFunction = matchedItems.__contains__
         for itemIndex in range(self.topLevelItemCount()):
             recursiveSetVisible(self.topLevelItem(itemIndex),
                                 testFunction)

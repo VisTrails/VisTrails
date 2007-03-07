@@ -90,6 +90,9 @@ and over again. This allows nested execution."""
         # the executed dict works on persistent ids
         def addToExecuted(obj):
             executed[obj.id] = True
+            if kwargs.has_key('moduleExecutedHook'):
+                for callable_ in kwargs['moduleExecutedHook']:
+                    callable_(obj.id)
         # views work on local ids
         def beginCompute(obj):
             i = module_map.inverse[obj.id]

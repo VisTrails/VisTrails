@@ -42,6 +42,8 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
     related to parameter exploration
     
     """
+    explorationId = 0
+    
     def __init__(self, parent=None):
         """ QParameterExplorationTab(parent: QWidget)
                                     -> QParameterExplorationTab
@@ -112,59 +114,47 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
             explorer = ActionBasedParameterExploration()
             pipelines = explorer.explore(self.controller.currentPipeline,
                                          actions)
+            
+            dim = [max(1, len(a)) for a in actions]
+            if (registry.hasModule('CellLocation') and
+                registry.hasModule('SheetReference')):
+                modifiedPipelines = self.virtualCell.positionPipelines(
+                    'PE#%d %s' % (QParameterExplorationTab.explorationId,
+                                  self.controller.name),
+                    dim[2], dim[1], dim[0], pipelines)
+            else:
+                modifiedPipelines = pipelines
+
+            mCount = []
+            for p in modifiedPipelines:
+                if len(mCount)==0:
+                    mCount.append(0)
+                else:
+                    mCount.append(len(p.modules)+mCount[len(mCount)-1])
+                
             # Now execute the pipelines
+            totalProgress = sum([len(p.modules) for p in modifiedPipelines])
             progress = QtGui.QProgressDialog('Performing Parameter '
                                              'Exploration...',
                                              '&Cancel',
-                                             0, len(pipelines))
+                                             0, totalProgress)
             progress.setWindowTitle('Parameter Exploration')
             progress.setWindowModality(QtCore.Qt.WindowModal)
             progress.show()
 
-            if (registry.hasModule('CellLocation') and
-                registry.hasModule('SheetReference')):
-                CellLocation = registry.getDescriptorByName('CellLocation')
-                SheetReference = registry.getDescriptorByName('SheetReference')
-            else:
-                CellLocation = SheetReference = None
-            (rCount, cCount, cells) = self.virtualCell.getConfiguration()
-            dim = [max(1, len(a)) for a in actions]
-            pi = 0
+            QParameterExplorationTab.explorationId += 1
             interpreter = default_interpreter.get()
-            for t in range(dim[3]):
-                for s in range(dim[2]):
-                    for r in range(dim[1]):
-                        for c in range(dim[0]):
-                            progress.setValue(pi)
-                            QtCore.QCoreApplication.processEvents()
-                            if progress.wasCanceled():
-                                break
-                            def doneSummonHook(pipeline, objects):
-                                """Hook to set the cell location"""
-                                if CellLocation and SheetReference:
-                                    dec = self.virtualCell.decodeConfiguration
-                                    decodedCells = dec(pipeline, cells)
-                                    for (mId, vRow, vCol) in decodedCells:
-                                        location = CellLocation.module()
-                                        location.row = r*rCount+vRow
-                                        location.col = c*cCount+vCol
-                                        ref = SheetReference.module()
-                                        ref.compute()
-                                        ref = ref.sheetReference
-                                        ref.sheetName = ('PE %s %d'
-                                            % (self.controller.name, (s+1)))
-                                        ref.minimumRowCount = dim[1]*rCount
-                                        ref.minimumColumnCount = dim[0]*cCount
-                                        location.sheetReference = ref
-                                        print id(objects[mId])
-                                        objects[mId].overrideLocation(location)
-                                        
-                            interpreter.execute(
-                                pipelines[pi],
-                                self.controller.name,
-                                self.controller.currentVersion,
-                                self.controller.currentPipelineView,
-                                self.controller.logger,
-                                doneSummonHook=[doneSummonHook])
-                            pi += 1
-            progress.setValue(len(pipelines))
+            for pi in range(len(modifiedPipelines)):
+                progress.setValue(mCount[pi])
+                QtCore.QCoreApplication.processEvents()
+                def moduleExecuted(objId):
+                    progress.setValue(progress.value()+1)
+                    QtCore.QCoreApplication.processEvents()
+                interpreter.execute(
+                    modifiedPipelines[pi],
+                    self.controller.name,
+                    self.controller.currentVersion,
+                    self.controller.currentPipelineView,
+                    self.controller.logger,
+                    moduleExecutedHook=[moduleExecuted])
+            progress.setValue(totalProgress)

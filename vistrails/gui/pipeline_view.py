@@ -939,7 +939,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         if e.type()==QModuleStatusEvent.TYPE:
             if e.moduleId>=0:
-                item = self.modules[e.moduleId]
+                item = self.modules.get(e.moduleId, None)
+                if not item:
+                    return True
                 item.setToolTip(e.toolTip)
                 if e.status==0:
                     item.moduleBrush = CurrentTheme.SUCCESS_MODULE_BRUSH

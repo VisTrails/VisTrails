@@ -47,6 +47,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
         
         """
         QtGui.QHeaderView.__init__(self, orientation, parent)
+        self.setMovable(True)
         self.setFont(QtGui.QFont("Helvetica",12,QtGui.QFont.Bold))
         self.resizeSections(QtGui.QHeaderView.Stretch)
         self.setClickable(True)
@@ -76,19 +77,13 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
     def fixSize(self, logicalIndex, oldSize, newSize):
         """ fixSize(logicalIndex: int, oldSize: int, newSize: int) -> None        
         This slot capture sectionResized signal and makes sure all the
-        sections are stretched right. Then it will emit
-        'lastSectionResized' with the list of all sections that have
-        been updated. QTableView should capture this signal instead, if
-        it uses StandardWidgetHeaderView
+        sections are stretched right. 
         
         """
-        return
         if newSize<self.minimumSize:
             self.resizeSection(logicalIndex, self.minimumSize)
             return
 
-        updatedSections = []
-    
         if self.orientation()==QtCore.Qt.Horizontal:
             diff = self.length()-self.maximumViewportSize().width()
         else:
@@ -101,14 +96,11 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
                 newS = max(oldS-diff, self.minimumSize)
                 if newS!=oldS:
                     self.resizeSection(realIndex, newS)
-                    updatedSections.append((realIndex, newS))
                 diff = diff - (oldS-newS)
                 if diff==0: break
             newSize = max(newSize-diff, oldSize)
             self.resizeSection(logicalIndex, newSize)
             self.setFitToViewport(True)
-        updatedSections.append((logicalIndex, newSize))
-        self.emit(QtCore.SIGNAL('lastSectionResized'), updatedSections)
 
     def sizeHint(self):
         """ sizeHint() -> QSize
@@ -182,12 +174,18 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         self.connect(self.horizontalHeader(),
                      QtCore.SIGNAL('sectionCountChanged(int, int)'),
                      self.updateColumnLabels)
+        self.connect(self.horizontalHeader(),
+                     QtCore.SIGNAL('sectionMoved(int,int,int)'),
+                     self.columnMoved)
         self.setVerticalHeader(StandardWidgetHeaderView(QtCore.Qt.Vertical,
                                                         self))
         self.verticalHeader().setSelectionModel(self.selectionModel())
         self.connect(self.verticalHeader(),
                      QtCore.SIGNAL('sectionCountChanged(int, int)'),
                      self.updateRowLabels)
+        self.connect(self.verticalHeader(),
+                     QtCore.SIGNAL('sectionMoved(int,int,int)'),
+                     self.rowMoved)
         self.delegate = StandardWidgetItemDelegate(self)
         self.setItemDelegate(self.delegate)
         self.helpers = CellHelpers(self, CellResizer(self))
@@ -196,7 +194,6 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         self.setRowCount(rows)
         self.setColumnCount(cols)
         self.setFitToWindow(True)
-        self.firstShow = True
 
     def updateRowLabels(self, oldCount, newCount):
         """ updateRowLabels(oldCount: int, newCount: int) -> None
@@ -204,21 +201,36 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         
         """
         vLabels = QtCore.QStringList()
+        vIdx = self.verticalHeader().visualIndex
         for i in range(newCount):
-            vLabels << str(i+1)
+            vLabels << str(vIdx(i)+1)
         self.setVerticalHeaderLabels(vLabels)
 
-
+    def rowMoved(self, row, old, new):
+        """ rowMove(row: int, old: int, new: int) -> None
+        Renumber the vertical header labels when rows moved
+        
+        """
+        self.updateRowLabels(self.rowCount(), self.rowCount())
+        
     def updateColumnLabels(self, oldCount, newCount):
         """ updateColumnLabels(oldCount: int, newCount: int) -> None
         Update horizontal labels when the number of column changed
         
         """
         hLabels = QtCore.QStringList()
+        vIdx = self.horizontalHeader().visualIndex
         for i in range(newCount):
-            hLabels << chr(i+ord('A'))
+            hLabels << chr(vIdx(i)+ord('A'))
         self.setHorizontalHeaderLabels(hLabels)
 
+    def columnMoved(self, row, old, new):
+        """ columnMoved(row: int, old: int, new: int) -> None
+        Renumber the horizontal header labels when columns moved
+        
+        """
+        self.updateColumnLabels(self.columnCount(), self.columnCount())
+        
     def setFitToWindow(self, fit=True):
         """ setFitToWindow(fit: boolean) -> None
         Force to fit all cells into the visible area. Set fit=False
@@ -253,8 +265,12 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         
         """
         if self.fitToWindow:
+            self.horizontalHeader().setFitToViewport(False)
             self.horizontalHeader().resizeSections(QtGui.QHeaderView.Stretch)
+            self.horizontalHeader().setFitToViewport(True)
+            self.verticalHeader().setFitToViewport(False)
             self.verticalHeader().resizeSections(QtGui.QHeaderView.Stretch)
+            self.verticalHeader().setFitToViewport(True)
             
     def resizeEvent(self, e):
         """ resizeEvent(e: QResizeEvent) -> None        
@@ -334,11 +350,13 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         Get a free cell location (row, col) on the spreadsheet 
 
         """
+        vIdx = self.verticalHeader().logicalIndex
+        hIdx = self.horizontalHeader().logicalIndex
         for r in range(self.rowCount()):
             for c in range(self.columnCount()):
-                if self.getCell(r, c)==None:
+                if self.getCell(vIdx(r), hIdx(c))==None:
                     return (r,c)
-        return (0,0)
+        return (0, 0)
 
     def setCellByType(self, row, col, cellType, inputPorts):
         """ setCellByType(row: int,
@@ -350,6 +368,8 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         cellType, only the contents is updated with inputPorts.
         
         """
+        row = self.verticalHeader().logicalIndex(row)
+        col = self.horizontalHeader().logicalIndex(col)
         oldCell = self.getCell(row, col)
         if type(oldCell)!=cellType:
             if cellType:

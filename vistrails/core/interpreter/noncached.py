@@ -56,6 +56,9 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
 
         def addToExecuted(obj):
             executed[obj.id] = True
+            if kwargs.has_key('moduleExecutedHook'):
+                for callable_ in kwargs['moduleExecutedHook']:
+                    callable_(obj.id)
         def beginCompute(obj):
             if view:
                 view.setModuleComputing(obj.id)
@@ -65,7 +68,7 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
             if logger:
                 reg = modules.module_registry.registry
                 name = reg.getDescriptor(obj.__class__).name
-                logger.startModuleExecution(vistrailName, 
+                logger.startModuleExecution(vistrailName,
                                             currentVersion, obj.id, name)
         def endUpdate(obj, error=''):
             if view:
@@ -138,7 +141,7 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                 self.doneSummonHook(pipeline, objects)
             if kwargs.has_key('doneSummonHook'):
                 for callable_ in kwargs['doneSummonHook']:
-                    callable_(self._persistent_pipeline, self._objects)
+                    callable_(pipeline, objects)
 
             for v in pipeline.graph.sinks():
                 try:

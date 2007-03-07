@@ -329,6 +329,8 @@ class Pipeline(object):
         cp.aliases = Bidict([(k,copy.copy(v))
                            for (k,v)
                            in self.aliases.iteritems()]) 
+        cp._fresh_module_id = self._fresh_module_id
+        cp._fresh_connection_id = self._fresh_connection_id
         return cp
 
     def dumpToXML(self, dom, root, timeAttr=None):
