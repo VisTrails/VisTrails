@@ -67,6 +67,9 @@ def enum(className, enumValues, doc = None):
                     self.__className == other.__className)
         except AttributeError:
             return False
+
+    def __ne__(self, other):
+        return not (self == other)
         
     theEnum = type(className, (object, ),
                    {'__init__': __init__,
