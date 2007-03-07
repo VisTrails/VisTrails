@@ -309,6 +309,11 @@ class DefaultTheme(object):
             core.system.visTrailsRootDirectory() +
             '/gui/resources/images/edittrash.png')
 
+        #Toolbar icon for reloading a bookmark
+        self.BOOKMARKS_RELOAD_ICON = QtGui.QIcon(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/reload.png')
+
         # Background image of the Visual Diff pipeline view
         self.VISUAL_DIFF_BACKGROUND_IMAGE = QtGui.QImage(
             core.system.visTrailsRootDirectory() +
