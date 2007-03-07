@@ -167,6 +167,8 @@ class QVerticalWidget(QPromptWidget):
         inputForm.fId = fId
         inputForm.updateFunction(function)
         self.layout().addWidget(inputForm)
+        inputForm.show()
+        self.setMinimumHeight(self.layout().minimumSize().height())
         self.showPrompt(False)
 
     def clear(self):
