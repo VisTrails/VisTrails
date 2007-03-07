@@ -78,7 +78,12 @@ class QBookmarkPanel(QtGui.QFrame, QToolWindowInterface):
                                           'Remove', self)
         self.removeAction.setToolTip('Remove selected bookmark')
         self.removeAction.setStatusTip(self.removeAction.toolTip())
-
+        self.reloadAction = QtGui.QAction(CurrentTheme.BOOKMARKS_RELOAD_ICON,
+                                          'Reload', self)
+        self.reloadAction.setToolTip('Reload selected bookmark with ' 
+                                     'original values')
+        self.reloadAction.setStatusTip(self.reloadAction.toolTip())
+        
     def createToolBar(self):
         """ createToolBar() -> None
         Create a default toolbar for bookmarks panel
@@ -94,6 +99,9 @@ class QBookmarkPanel(QtGui.QFrame, QToolWindowInterface):
         self.toolBar.addAction(self.removeAction)
         wdgt = self.toolBar.widgetForAction(self.removeAction)
         wdgt.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.toolBar.addAction(self.reloadAction)
+        wdgt = self.toolBar.widgetForAction(self.reloadAction)
+        wdgt.setFocusPolicy(QtCore.Qt.ClickFocus)
         
     def connectSignals(self):
         """ connectSignals() -> None
@@ -106,6 +114,9 @@ class QBookmarkPanel(QtGui.QFrame, QToolWindowInterface):
         self.connect(self.removeAction,
                      QtCore.SIGNAL('triggered(bool)'),
                      self.bookmarkPalette.treeWidget.removeCurrentItem)
+        self.connect(self.reloadAction,
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.bookmarkPalette.treeWidget.reloadSelectedBookmark)
         self.connect(self.bookmarkPalette,
                      QtCore.SIGNAL('checkedListChanged'),
                      self.checkedListChanged)
@@ -143,6 +154,9 @@ class QBookmarkPalette(QSearchTreeWindow):
         self.connect(self.treeWidget,
                      QtCore.SIGNAL("itemRemoved(int)"),
                      self.removeBookmark)
+        self.connect(self.treeWidget,
+                     QtCore.SIGNAL("reloadBookmark"),
+                     self.reloadBookmark)
         
     def createTreeWidget(self):
         """ createTreeWidget() -> QBookmarkTreeWidget
@@ -170,11 +184,11 @@ class QBookmarkPalette(QSearchTreeWindow):
                 if item.checkState(0) ==QtCore.Qt.Unchecked:
                     if id in self.checkedList:
                         self.checkedList.remove(id)
-                        self.manager.loadPipelines(self.checkedList)
+                        self.manager.setActivePipelines(self.checkedList)
                 elif item.checkState(0) ==QtCore.Qt.Checked:
                     if id not in self.checkedList:
                         self.checkedList.append(id)
-                        self.manager.loadPipelines(self.checkedList)
+                        self.manager.setActivePipelines(self.checkedList)
                 self.emit(QtCore.SIGNAL("checkedListChanged"),
                           len(self.checkedList))
             if str(item.text(0)) != item.bookmark.name:
@@ -188,9 +202,19 @@ class QBookmarkPalette(QSearchTreeWindow):
         """
         if id in self.checkedList:
             self.checkedList.remove(id)
-            self.manager.loadPipelines(self.checkedList)
+            self.manager.setActivePipelines(self.checkedList)
         self.manager.removeBookmark(id)
-        
+    
+    def reloadBookmark(self, id):
+        """reloadBookmark(id : int) -> None 
+        Resets the pipeline of the selected bookmark
+
+        """
+        if id in self.checkedList:
+            self.checkedList.remove(id)
+            self.manager.setActivePipelines(self.checkedList)
+        self.manager.reloadPipeline(id)
+
 class QBookmarkTreeWidget(QSearchTreeWidget):
     """
     QBookmarkTreeWidget is a subclass of QSearchTreeWidget to display all
@@ -270,7 +294,18 @@ class QBookmarkTreeWidget(QSearchTreeWidget):
             id = item.bookmark.id
             del item
             self.emit(QtCore.SIGNAL("itemRemoved(int)"),id)
-         
+    
+    def reloadSelectedBookmark(self):
+        """ reloadSelectedBookmark() -> None
+        uncheck selected item and propagates the signal with the item id
+
+        """
+        item = self.currentItem()
+        if item and item != self.headerItem():
+            id = item.bookmark.id
+            item.setCheckState(0,QtCore.Qt.Unchecked)
+            self.emit(QtCore.SIGNAL("reloadBookmark"), id)
+               
 
 class QBookmarkTreeWidgetItem(QtGui.QTreeWidgetItem):
     """

@@ -120,11 +120,16 @@ class BookmarkCollection(XMLWrapper):
         self.bookmarkMap = {}
         self.changed = False
         self.updateGUI = True
+        self.currentId = 1
 
     def addBookmark(self, bookmark):
         """addBookmark(bookmark: Bookmark) -> None
         Adds a bookmark to the collection """
         self.bookmarks.addBookmark(bookmark)
+        if self.bookmarkMap.has_key(bookmark.id):
+            raise VistrailsInternalError("Bookmark with repeated id")
+
+        self.currentId = max(self.currentId, bookmark.id+1)
         self.bookmarkMap[bookmark.id] = bookmark
         self.changed = True
         self.updateGUI = True
@@ -167,6 +172,7 @@ class BookmarkCollection(XMLWrapper):
         self.bookmarks.clear()
         self.bookmarkMap = {}
         self.changed = True
+        self.currentId = 1
 
     def parse(self, filename):
         """loadBookmarks(filename: str) -> None  
@@ -178,6 +184,7 @@ class BookmarkCollection(XMLWrapper):
         root = self.dom.documentElement
         for element in named_elements(root, 'bookmark'):    
             self.addBookmark(Bookmark.parse(element))
+        self.refreshCurrentId()
         self.changed = False
         self.updateGUI = True
 
@@ -195,12 +202,16 @@ class BookmarkCollection(XMLWrapper):
         self.writeDocument(root, filename)
         self.changed = False
 
+    def refreshCurrentId(self):
+        """refreshCurrentId() -> None
+        Recomputes the next unused id from scratch
+        
+        """
+        self.currentId = max(self.bookmarkMap.keys()) + 1
+
     def getFreshId(self):
         """getFreshId() -> int - Returns an unused id. """
-        i = 0
-        for bmark in sorted(self.bookmarkMap.keys()):
-            i = max(i, bmark)
-        return i+1
+        return self.currentId
 
 ###############################################################################
 

@@ -177,12 +177,14 @@ class BookmarksManagerSingleton(QtCore.QObject):
         self.collection = BookmarkCollection()
         self.filename = ''
         self.pipelines = {}
+        self.activePipelines = []
         self.ensemble = None
         self.controller = VistrailController()
 
     def loadBookmarks(self):
         if os.path.exists(self.filename):
             self.collection.parse(self.filename)
+            self.loadAllPipelines()
 
     def __call__(self):
         """ __call__() -> BookmarksManagerSingleton
@@ -202,6 +204,7 @@ class BookmarksManagerSingleton(QtCore.QObject):
         bookmark = Bookmark(parent, id, vistrailsFile,pipeline,name,"item")
         self.collection.addBookmark(bookmark)
         self.collection.serialize(self.filename)
+        self.loadPipeline(id)
         self.emit(QtCore.SIGNAL("updateBookmarksGUI"))
         self.collection.updateGUI = False
 
@@ -211,6 +214,13 @@ class BookmarksManagerSingleton(QtCore.QObject):
         
         """
         self.collection.removeBookmark(id)
+        del self.pipelines[id]
+        del self.ensemble.pipelines[id]
+        if id in self.activePipelines:
+            del self.activePipelines[id]
+        if id in self.ensemble.activePipelines:
+            del self.ensemble.activePipelines[id]
+        self.ensemble.assembleAliases()
         self.collection.serialize(self.filename)
         
     def updateAlias(self, alias, value):
@@ -220,21 +230,54 @@ class BookmarksManagerSingleton(QtCore.QObject):
         """
         self.ensemble.update(alias,value)
     
-    def loadPipelines(self, ids):
-        """loadPipelines(ids) -> None
-        Given a list of bokmark ids, loads its correspondent pipelines and sets
+    def reloadPipeline(self, id):
+        """reloadPipeline(id: int) -> None
+        Given a bookmark id, loads its original pipeline in the ensemble 
+
+        """
+        if self.pipelines.has_key(id):
+            self.ensemble.addPipeline(id, self.pipelines[id])
+            self.ensemble.assembleAliases()
+
+    def loadPipeline(self, id):
+        """loadPipeline(id: int) -> None
+        Given a bookmark id, loads its correspondent pipeline and include it in
         an ensemble 
 
         """
         parser = XMLParser()
+        bookmark = self.collection.bookmarkMap[id]
+        parser.openVistrail(bookmark.filename)
+        v = parser.getVistrail()
+        self.pipelines[id] = v.getPipeline(bookmark.pipeline)
+        parser.closeVistrail()
+        self.ensemble.addPipeline(id, self.pipelines[id])
+        self.ensemble.assembleAliases()
+        self.emit(QtCore.SIGNAL("updateAliasGUI"), self.ensemble.aliases)
+
+    def loadAllPipelines(self):
+        """loadAllPipelines() -> None
+        Load all bookmarks' pipelines and sets an ensemble 
+
+        """
+        parser = XMLParser()
         self.pipelines = {}
-        for id in ids:
-            bookmark = self.collection.bookmarkMap[id]
+        for id, bookmark in self.collection.bookmarkMap.iteritems():
             parser.openVistrail(bookmark.filename)
             v = parser.getVistrail()
             self.pipelines[id] = v.getPipeline(bookmark.pipeline)
             parser.closeVistrail()
         self.ensemble = EnsemblePipelines(self.pipelines)
+        self.ensemble.assembleAliases()
+        self.emit(QtCore.SIGNAL("updateAliasGUI"), self.ensemble.aliases)
+
+    def setActivePipelines(self, ids):
+        """ setActivePipelines(ids: list) -> None
+        updates the list of active pipelines 
+        
+        """
+        self.activePipelines = ids
+        self.ensemble.activePipelines = ids
         self.ensemble.assembleAliases()
         self.emit(QtCore.SIGNAL("updateAliasGUI"), self.ensemble.aliases)
 

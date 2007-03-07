@@ -27,32 +27,38 @@ class EnsemblePipelines(object):
     def __init__(self, pipelines=None):
         if pipelines == None:
             self.pipelines = {}
-            self.sources = []
         else:
-            self.pipelines = copy.copy(pipelines)
+            self.pipelines = dict([(k,copy.copy(v))
+                                   for (k,v)
+                                   in pipelines.iteritems()])
         self.aliases = {}
+        self.sources = []
+        self.activePipelines = []
+
+    def addPipeline(self, id, pipeline):
+        """addPipeline(id: int, pipeline: Pipeline) -> None 
+        adds a copy of pipeline to the local dictionary 
+        
+        """
+        self.pipelines[id] = copy.copy(pipeline)
 
     def update(self, name, value):
-        """update(nam: str, value: str) -> None
-        Propagates changes of the value of an alias through a list of 
-        pipelines
+        """update(name: str, value: str) -> None
+        Propagates new value of an alias through a list of 
+        active pipelines
 
         name - the name of the variable and key into the alias dictionary
         value - the new value of the variable
         returns - void
         """
         self.changeParameter(name, value)
-        for id,pipeline in self.pipelines.iteritems():
-            for pa in self.aliases:
-                if pa in self.sources.keys():
-                    for (pi, mid, f, pidx) in self.sources[pa]:
-                        if pi == id:
-                            f = pipeline.modules[mid].functions[f]
-                            f.params[pidx].strValue = self.aliases[pa][1][0]
+        for id in self.activePipelines:
+            pipeline = self.pipelines[id]
+            pipeline.setAliasStrValue(name, value)
             
     def assembleAliases(self):
         """assembleAliases() -> None
-        Generate a list of all aliases across the pipelines
+        Generate a list of all aliases across the active pipelines
         in self.pipelines, which is stored in self.aliases
         Also, for each key in self.aliases, self.sources has the same key,
         mapped to a tuple of the type (p, m, f, pa)
@@ -62,30 +68,17 @@ class EnsemblePipelines(object):
         """
         union = {}
         sources = {}
-        for pi,pipeline in self.pipelines.iteritems():
-            modules = pipeline.modules
-            for mid in modules:
-                functions = modules[mid].functions
-                for fidx in range(len(functions)):
-                    f = functions[fidx]
-                    fsig = f.getSignature()
-                    for pidx in range(len(f.params)):
-                        palias = f.params[pidx].alias
-                        if palias and palias!='':
-                            for f1 in reversed(functions):
-                                if f1.getSignature()==fsig:
-                                    p = f1.params[pidx]
-                                    if not union.has_key(palias):
-                                        value = str(p.strValue)
-                                        e = expression.parseExpression(value)
-                                        union[palias] = (p.type, e)
-                                        sources[palias] = [(pi, mid, 
-                                                            fidx, pidx)] 
-                                    else:
-                                        sources[palias].append((pi, mid, 
-                                                                fidx, pidx))
-                                    break            
-
+        for pi in self.activePipelines:
+            pipeline = self.pipelines[pi]
+            for name, info in pipeline.aliases.iteritems():
+                if not union.has_key(name):
+                    value = str(pipeline.getAliasStrValue(name))
+                    e = expression.parseExpression(value)
+                    union[name] = (info[0], e)
+                    sources[name] = [(pi, info[1], info[2], info[3])]
+                else:
+                    sources[name].append((pi, info[1], info[2], info[3]))
+                    
         self.sources = sources
         self.aliases = union
 

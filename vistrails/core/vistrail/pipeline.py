@@ -210,6 +210,33 @@ class Pipeline(object):
                 self.removeAlias(type, mId, fId, pId)
                 self.addAlias(name,type,mId,fId,pId)
 
+    def getAliasStrValue(self, name):
+        """ getAliasValue(name: str) -> str
+        returns the strValue of the parameter with alias name
+
+        """
+        result = ""
+        if self.aliases.has_key(name):
+            info = self.aliases[name]
+            module = self.modules[info[1]]
+            function = module.functions[info[2]]
+            
+            parameter = function.params[info[3]]
+            result = parameter.strValue
+        return result
+
+    def setAliasStrValue(self, name, value):
+        """ setAliasStrValue(name: str, value: str) -> None
+        sets the strValue of the parameter with alias name 
+        
+        """
+        if self.aliases.has_key(name):
+            info = self.aliases[name]
+            module = self.modules[info[1]]
+            function = module.functions[info[2]]
+            parameter = function.params[info[3]]
+            parameter.strValue = str(value)
+
     def deleteConnection(self, id):
         """ deleteConnection(id:int) -> None 
         Delete connection identified by id from pipeline.
@@ -299,6 +326,9 @@ class Pipeline(object):
                                for (k,v)
                                in self.connections.iteritems()])
         cp.graph = copy.copy(self.graph)
+        cp.aliases = Bidict([(k,copy.copy(v))
+                           for (k,v)
+                           in self.aliases.iteritems()]) 
         return cp
 
     def dumpToXML(self, dom, root, timeAttr=None):
