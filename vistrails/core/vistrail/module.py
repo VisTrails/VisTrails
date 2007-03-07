@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
 import copy
 from sets import Set
-from core.data_structures import Point
+from core.data_structures.point import Point
 from core.vistrail.module_param import VistrailModuleType, ModuleParam
 from core.vistrail.module_function import ModuleFunction
 from core.utils import NoSummon, VistrailsInternalError
@@ -333,6 +333,9 @@ class Module(object):
             if f != g:
                 return False
         return True
+
+    def __ne__(self, other):
+        return not (self == other)
         
     # autoprop
     def _set_name(self, name):
