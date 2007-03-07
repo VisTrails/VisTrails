@@ -26,7 +26,7 @@ from core.vistrail.vistrail import Vistrail
 from core.utils import VistrailsInternalError
 from core.utils.uxml import named_elements, XMLWrapper
 from core.vistrail.action import Action
-from core.data_structures import Graph
+from core.data_structures.graph import Graph
 
 ################################################################################
 

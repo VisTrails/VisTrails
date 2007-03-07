@@ -23,8 +23,8 @@
 """ This module defines the class Pipeline """
 from core.vistrail.port import Port
 from core.vistrail.module_param import VistrailModuleType
-from core.data_structures import Graph
-from core.data_structures import Bidict
+from core.data_structures.graph import Graph
+from core.data_structures.bijectivedict import Bidict
 from core.utils import VistrailsInternalError
 from core.utils import expression
 from core.cache.hasher import Hasher

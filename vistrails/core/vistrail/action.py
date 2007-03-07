@@ -41,7 +41,7 @@ from core.vistrail.connection import Connection
 from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.module_param import ModuleParam, VistrailModuleType
 from core.vistrail.module_function import ModuleFunction
-from core.data_structures import Point
+from core.data_structures.point import Point
 from core.modules.module_registry import registry, ModuleRegistry
 from core.utils import report_stack
 import copy

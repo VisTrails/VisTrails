@@ -27,7 +27,7 @@ a method gets called."""
 
 import sys
 import traceback
-from core.data_structures import Stack
+from core.data_structures.stack import Stack
 _output_file = sys.stderr
 
 __current_method_name = Stack()

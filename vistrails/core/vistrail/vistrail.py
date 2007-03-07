@@ -33,7 +33,7 @@ import copy
 import string
 from core.vistrail.module_param import VistrailModuleType
 from core.vistrail.pipeline import Pipeline
-from core.data_structures import Graph
+from core.data_structures.graph import Graph
 from core.debug import DebugPrint
 from core.utils import enum, VistrailsInternalError
 
@@ -623,6 +623,27 @@ class Vistrail(object):
     getPipelineDispatcher[type(0)] = getPipelineVersionNumber
     getPipelineDispatcher[type('0')] = getPipelineVersionName
 
+    class InvalidAbstraction(Exception):
+        pass
+
+    def create_abstraction(self,
+                           pipeline_version,
+                           subgraph,
+                           abstraction_name):
+        pipeline = self.getPipeline(pipeline_version)
+        current_graph = pipeline.graph
+        if not current_graph.topologically_contractible(subgraph):
+            msg = "Abstraction violates DAG constraints."
+            raise self.InvalidAbstraction(msg)
+        input_ports = current_graph.connections_to_subgraph(subgraph)
+        output_ports = current_graph.connections_from_subgraph(subgraph)
+
+        print "Inputs: "
+        
+        print "Outputs:"
+        
+##############################################################################
+
 class VersionAlreadyTagged(Exception):
     def __str__(self):
         return "Version is already tagged"
@@ -688,6 +709,19 @@ class TestVistrail(unittest.TestCase):
         v3 = 22
         v.getPipelineDiff(v1,v2)
         v.getPipelineDiff(v1,v3)
+
+#     def test_abstraction(self):
+#         import core.vistrail
+#         import core.xml_parser
+#         parser = core.xml_parser.XMLParser()
+#         parser.openVistrail(core.system.visTrailsRootDirectory() +
+#                             '/tests/resources/ect.xml')
+#         v = parser.getVistrail()
+#         parser.closeVistrail()
+#         #testing diff
+#         p = v.getPipeline('WindowedSync (lambda-mu) Error')
+#         print p.modules[43], p.modules[45]
+#         print p.graph
 
 if __name__ == '__main__':
     unittest.main()

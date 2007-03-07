@@ -20,7 +20,7 @@
 ##
 ############################################################################
 
-from core.data_structures import Graph
+from core.data_structures.graph import Graph
 from core.utils import expression
 from core.utils import trace_method
 import copy

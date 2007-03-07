@@ -29,7 +29,7 @@ These are the classes defined here:
 import copy
 from core.utils import unimplemented, abstract, VistrailsInternalError, enum
 from core.vistrail.connection import Connection
-from core.data_structures import Point
+from core.data_structures.point import Point
 from core.vistrail.action import Action
 
 ###############################################################################

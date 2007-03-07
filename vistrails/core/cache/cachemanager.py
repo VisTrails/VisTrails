@@ -248,7 +248,7 @@ import copy
 from core.vistrail.module_param import ModuleParam
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module import Module
-from core.data_structures import Point
+from core.data_structures.point import Point
 
 class TestCache(unittest.TestCase):
 

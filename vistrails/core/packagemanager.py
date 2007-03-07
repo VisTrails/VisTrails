@@ -27,7 +27,7 @@ to checking dependencies to initializing them."""
 from core import debug
 from core.modules.module_registry import registry
 from core.utils import VistrailsInternalError
-import core.data_structures
+import core.data_structures.graph
 import os
 import sys
 
@@ -157,7 +157,7 @@ class PackageManager(object):
         _package_manager = self
         self._configuration = configuration
         self._package_list = {}
-        self._dependency_graph = core.data_structures.Graph()
+        self._dependency_graph = core.data_structures.graph.Graph()
 
     def finalize_packages(self):
         """Finalizes all installed packages. Call this only prior to
