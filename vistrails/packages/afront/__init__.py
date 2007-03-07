@@ -83,6 +83,29 @@ class MeshQualityHistogram(Module, AfrontRun):
         self.run(args)
         self.setResult("output", o)
 
+class AfrontIso(Afront):
+
+    def compute(self):
+        o = self.interpreter.filePool.create_file(suffix='.m')
+        args = []
+        if not self.hasInputFromPort("file"):
+            raise ModuleError("Needs input file")
+        args.append(self.getInputFromPort("file").name)
+        if self.hasInputFromPort("rho"):
+            args.append("-rho")
+            args.append(self.getInputFromPort("rho"))
+        if self.hasInputFromPort("eta"):
+            args.append("-eta")
+            args.append(self.getInputFromPort("eta"))
+        self.checkInputPort("iso")
+        args.append("-outname")
+        args.append(o.name)
+        args.append("-tri")
+        args.append(self.getInputFromPort("iso"))
+        self.run(args)
+        self.setResult("output", o)
+        
+
 ################################################################################
 
 def initialize(*args, **keywords):
@@ -99,14 +122,7 @@ def initialize(*args, **keywords):
     __version__ = 0.1
     
     reg = core.modules.module_registry
-    reg.addModule(Afront,
-                  moduleColor=(1.0,0.8,0.6),
-                  moduleLeftFringe=[(0.0, 0.0),
-                                    (0.2, 0.0),
-                                    (0.0, 1.0)],
-                  moduleRightFringe=[(0.0, 0.0),
-                                     (0.2, 1.0),
-                                     (0.0, 1.0)])
+    reg.addModule(Afront)
     reg.addInputPort(Afront, "rho", (core.modules.basic_modules.Float, 'rho'))
     reg.addInputPort(Afront, "eta", (core.modules.basic_modules.Float, 'eta'))
     reg.addInputPort(Afront, "file", (core.modules.basic_modules.File, 'the file to process'))
@@ -116,3 +132,5 @@ def initialize(*args, **keywords):
     reg.addInputPort(MeshQualityHistogram, "file", core.modules.basic_modules.File)
     reg.addOutputPort(MeshQualityHistogram, "output", core.modules.basic_modules.File)
     
+    reg.addModule(AfrontIso)
+    reg.addInputPort(AfrontIso, "iso", (core.modules.basic_modules.Float, 'iso'))
