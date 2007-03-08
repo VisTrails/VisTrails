@@ -127,6 +127,8 @@ class QParameterExplorationTable(QPromptWidget):
         self.label = QDimensionLabel()
         self.connect(self.label.params.button, QtCore.SIGNAL('clicked()'),
                      self.performParameterExploration)
+        self.label.params.button.setEnabled(False)
+
         for labelIcon in self.label.labelIcons:
             self.connect(labelIcon.countWidget,
                          QtCore.SIGNAL('editingFinished()'),
@@ -160,6 +162,7 @@ class QParameterExplorationTable(QPromptWidget):
                                  'already in the list.')
                     return
         self.showPrompt(False)
+        self.label.params.button.setEnabled(True)
         newEditor = QParameterSetEditor(paramInfo, self)
 
         # Make sure to disable all duplicated parameter
@@ -197,6 +200,7 @@ class QParameterExplorationTable(QPromptWidget):
                         widget.setEnabled(True)
                         break
         self.showPrompt(self.layout().count()<=3)
+        self.label.params.button.setEnabled(self.layout().count()>3)
 
     def updateUserDefinedFunctions(self):
         """ updateUserDefinedFunctions() -> None
@@ -226,6 +230,7 @@ class QParameterExplorationTable(QPromptWidget):
                 self.layout().removeWidget(pEditor)
         self.label.resetCounts()
         self.showPrompt()
+        self.label.params.button.setEnabled(False)
 
     def setPipeline(self, pipeline):
         """ setPipeline(pipeline: Pipeline) -> None

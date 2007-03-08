@@ -59,15 +59,31 @@ class QParameterExploration(QtGui.QWidget, QToolWindowInterface):
         for t in range(4):
             tab = QDimensionWidget()
             tab.paramEx = self
-            self.dimTab.addTab(tab, self.dimLabels[t]+' (1)')        
+            self.dimTab.addTab(tab, self.dimLabels[t]+' (1)')
+            self.connect(tab.methodList,
+                         QtCore.SIGNAL("paramsAreaChanged"),
+                         self.updateButton)
         vLayout.addWidget(self.dimTab)
         
-        createButton = QtGui.QPushButton("Perform Exploration")
-        vLayout.addWidget(createButton)
-        self.connect(createButton, QtCore.SIGNAL('clicked()'),
+        self.peButton = QtGui.QPushButton("Perform Exploration")
+        self.peButton.setEnabled(False)
+        vLayout.addWidget(self.peButton)
+        self.connect(self.peButton, QtCore.SIGNAL('clicked()'),
                      self.startParameterExploration)
         self.controller = None
         
+    def updateButton(self):
+        """updateButton() -> None
+        enable/disable peButton according to data to be explored 
+        
+        """
+        enable = False
+        for dim in range(self.dimTab.count()):
+            tab = self.dimTab.widget(dim)
+            if tab.methodList.vWidget.layout().count() > 0:
+                enable = True
+        self.peButton.setEnabled(enable)
+
     def clear(self):
         """ clear() -> None
         Clear all settings and leave the GUI empty

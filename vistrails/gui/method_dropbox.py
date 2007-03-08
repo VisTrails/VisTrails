@@ -102,6 +102,7 @@ class QMethodDropBox(QtGui.QScrollArea):
                             self.controller.previousModuleIds = [self.module.id]
                             self.controller.addMethod(self.module.id, function)
                         self.unlockUpdate()
+                self.emit(QtCore.SIGNAL("paramsAreaChanged"))
 
     def updateModule(self, module):
         """ updateModule(module: Module)) -> None        
@@ -287,6 +288,7 @@ class QMethodInputForm(QtGui.QGroupBox):
                 methodBox.controller.deleteMethod(self.fId,
                                                   methodBox.module.id)            
             methodBox.unlockUpdate()
+            methodBox.emit(QtCore.SIGNAL("paramsAreaChanged"))
         else:
             QtGui.QGroupBox.keyPressEvent(self, e)
 

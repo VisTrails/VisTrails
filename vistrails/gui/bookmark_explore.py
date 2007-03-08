@@ -60,16 +60,32 @@ class QAliasExplorationPanel(QtGui.QFrame, QToolWindowInterface):
         for t in range(4):
             tab = QAliasDimensionWidget(manager=self.manager)
             tab.paramEx = self
-            self.dimTab.addTab(tab, self.dimLabels[t]+' (1)')        
+            self.dimTab.addTab(tab, self.dimLabels[t]+' (1)')
+            self.connect(tab.dropbox.parameters,
+                         QtCore.SIGNAL("tableChanged"),
+                         self.updateButton)
         vLayout.addWidget(self.dimTab)
-        createButton = QtGui.QPushButton("Perform Exploration")
-        vLayout.addWidget(createButton)
+        self.peButton = QtGui.QPushButton("Perform Exploration")
+        self.peButton.setEnabled(False)
+        vLayout.addWidget(self.peButton)
         if parent:
             self.bookmarkPanel = parent.bookmarkPanel
-        self.connect(createButton, QtCore.SIGNAL('clicked()'),
+        self.connect(self.peButton, QtCore.SIGNAL('clicked()'),
                      self.startParameterExploration)
         self.setWindowTitle('Parameter Exploration')
-
+        
+    def updateButton(self):
+        """updateButton() -> None
+        enable/disable peButton according to data to be explored 
+        
+        """
+        enable = False
+        for dim in range(self.dimTab.count()):
+            tab = self.dimTab.widget(dim)
+            if tab.dropbox.parameters.rowCount() > 0:
+                enable = True
+        self.peButton.setEnabled(enable)
+            
     def startParameterExploration(self):
         """ startParameterExploration() -> None
         Collects inputs from widgets and the builders to setup and
@@ -314,6 +330,7 @@ class QAliasExplorationTable(QtGui.QTableWidget):
             self.setRowHeight(row,h)
             self.setCellWidget(row,0,widget)
             widget.updateStepCount(widget.listWidget.count())
+        self.emit(QtCore.SIGNAL("tableChanged"))
 
     def updateFocus(self, row):
         """ updateFocus(row: int) -> None
@@ -362,12 +379,17 @@ class QAliasExplorationTable(QtGui.QTableWidget):
 
         """
         if row > -1:
-            self.removeRow(row)
-            item = self.verticalHeaderItem(row)
-            if item.type != 'String':
+            #looking at the next item and set colspan before removing
+            # the row. Otherwise the layout is not updated
+            item = self.verticalHeaderItem(row+1)
+            if item and item.type != 'String':
                 self.setSpan(row,0,1,1)
+            else:
+                self.setSpan(row,0,1,2)
+            self.removeRow(row)
             if self.rowCount() == 0:
                 self.horizontalHeader().hide()
+            self.emit(QtCore.SIGNAL("tableChanged"))
 
 class QRangeStringContainer(QtGui.QWidget):
     def __init__(self, parent=None):

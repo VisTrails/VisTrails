@@ -29,16 +29,15 @@ PipelineSceneInterface
 
 """
 
-import os.path
 from PyQt4 import QtCore, QtGui
 from gui.bookmark_panel import QBookmarkPanel
 from gui.bookmark_alias import QBookmarkAliasPanel
 from gui.bookmark_explore import QAliasExplorationPanel
 from gui.vistrail_controller import VistrailController
-from core.xml_parser import XMLParser
 from core.param_explore import InterpolateDiscreteParam, ParameterExploration
-from core.bookmark import Bookmark, BookmarkCollection
-from core.ensemble_pipelines import EnsemblePipelines
+from core.bookmark import (Bookmark, 
+                           BookmarkCollection, 
+                           BookmarkController)
     
 ################################################################################
 
@@ -153,38 +152,13 @@ class QBookmarksWindow(QtGui.QMainWindow):
         
 ################################################################################
 
-class PipelineSceneInterface(object):
-    """Simulates a QPipelineScene. """
-    def setModuleActive(self, id):
-        pass
-
-    def setModuleComputing(self, id):
-        pass
-    
-    def setModuleSuccess(self, id):
-        pass
-    
-    def setModuleError(self, id, error):
-        pass
-
-class BookmarksManagerSingleton(QtCore.QObject):
+class BookmarksManagerSingleton(QtCore.QObject, BookmarkController):
     def __init__(self):
         """__init__() -> BookmarksManagerSingleton
         Creates Bookmarks manager 
         """
         QtCore.QObject.__init__(self)
-        self.logger = None
-        self.collection = BookmarkCollection()
-        self.filename = ''
-        self.pipelines = {}
-        self.activePipelines = []
-        self.ensemble = None
-        self.controller = VistrailController()
-
-    def loadBookmarks(self):
-        if os.path.exists(self.filename):
-            self.collection.parse(self.filename)
-            self.loadAllPipelines()
+        BookmarkController.__init__(self)
 
     def __call__(self):
         """ __call__() -> BookmarksManagerSingleton
@@ -200,59 +174,18 @@ class BookmarksManagerSingleton(QtCore.QObject):
         collection
 
         """
-        id = self.collection.getFreshId()
-        bookmark = Bookmark(parent, id, vistrailsFile,pipeline,name,"item")
-        self.collection.addBookmark(bookmark)
-        self.collection.serialize(self.filename)
-        self.loadPipeline(id)
+        BookmarkController.addBookmark(self, parent, vistrailsFile, 
+                                       pipeline, name)
         self.emit(QtCore.SIGNAL("updateBookmarksGUI"))
         self.collection.updateGUI = False
-
-    def removeBookmark(self, id):
-        """removeBookmark(id: int) -> None 
-        Remove bookmark with id from the collection 
         
-        """
-        self.collection.removeBookmark(id)
-        del self.pipelines[id]
-        del self.ensemble.pipelines[id]
-        if id in self.activePipelines:
-            del self.activePipelines[id]
-        if id in self.ensemble.activePipelines:
-            del self.ensemble.activePipelines[id]
-        self.ensemble.assembleAliases()
-        self.collection.serialize(self.filename)
-        
-    def updateAlias(self, alias, value):
-        """updateAlias(alias: str, value: str) -> None
-        Change the value of an alias and propagate changes in the pipelines
-        
-        """
-        self.ensemble.update(alias,value)
-    
-    def reloadPipeline(self, id):
-        """reloadPipeline(id: int) -> None
-        Given a bookmark id, loads its original pipeline in the ensemble 
-
-        """
-        if self.pipelines.has_key(id):
-            self.ensemble.addPipeline(id, self.pipelines[id])
-            self.ensemble.assembleAliases()
-
     def loadPipeline(self, id):
         """loadPipeline(id: int) -> None
         Given a bookmark id, loads its correspondent pipeline and include it in
-        an ensemble 
+        the ensemble 
 
         """
-        parser = XMLParser()
-        bookmark = self.collection.bookmarkMap[id]
-        parser.openVistrail(bookmark.filename)
-        v = parser.getVistrail()
-        self.pipelines[id] = v.getPipeline(bookmark.pipeline)
-        parser.closeVistrail()
-        self.ensemble.addPipeline(id, self.pipelines[id])
-        self.ensemble.assembleAliases()
+        BookmarkController.loadPipeline(self,id)
         self.emit(QtCore.SIGNAL("updateAliasGUI"), self.ensemble.aliases)
 
     def loadAllPipelines(self):
@@ -260,15 +193,7 @@ class BookmarksManagerSingleton(QtCore.QObject):
         Load all bookmarks' pipelines and sets an ensemble 
 
         """
-        parser = XMLParser()
-        self.pipelines = {}
-        for id, bookmark in self.collection.bookmarkMap.iteritems():
-            parser.openVistrail(bookmark.filename)
-            v = parser.getVistrail()
-            self.pipelines[id] = v.getPipeline(bookmark.pipeline)
-            parser.closeVistrail()
-        self.ensemble = EnsemblePipelines(self.pipelines)
-        self.ensemble.assembleAliases()
+        BookmarkController.loadAllPipelines(self)
         self.emit(QtCore.SIGNAL("updateAliasGUI"), self.ensemble.aliases)
 
     def setActivePipelines(self, ids):
@@ -276,141 +201,9 @@ class BookmarksManagerSingleton(QtCore.QObject):
         updates the list of active pipelines 
         
         """
-        self.activePipelines = ids
-        self.ensemble.activePipelines = ids
-        self.ensemble.assembleAliases()
+        BookmarkController.setActivePipelines(self, ids)
         self.emit(QtCore.SIGNAL("updateAliasGUI"), self.ensemble.aliases)
-
-    def executeWorkflows(self, ids):
-        """executeWorkflows(ids:list of Bookmark.id) -> None
-        Execute the workflows bookmarked with the ids
-
-        """
-        view = PipelineSceneInterface()
-        wList = []
-        self.controller.logger = self.logger
-        for id in ids:
-            bookmark = self.collection.bookmarkMap[id]
-            wList.append((bookmark.filename,
-                          bookmark.pipeline,
-                          self.ensemble.pipelines[id],
-                          view,
-                          self.logger))
-            
-        self.controller.executeWorkflowList(wList)
-
-    def writeBookmarks(self):
-        """writeBookmarks() -> None - Write collection to disk."""
-        self.collection.serialize(self.filename)
-    
-    def cleanup(self):
-        """cleanup() -> None
-        Removes temp files generated during execution 
-
-        """
-        self.controller.cleanup()
-
-    def parameterExploration(self, ids, specs):
-        """parameterExploration(ids: list, specs: list) -> None
-        Build parameter exploration in original format for each bookmark id.
         
-        """
-        view = PipelineSceneInterface()
-        for id in ids:
-            newSpecs = []
-            bookmark = self.collection.bookmarkMap[id]
-            newSpecs = self.mergeParameters(id, specs)
-            p = ParameterExploration(newSpecs)
-            pipelineList = p.explore(self.ensemble.pipelines[id])
-            vistrails = ()
-            for pipeline in pipelineList:
-                vistrails += ((bookmark.filename,
-                               bookmark.pipeline,
-                               pipeline,
-                               view,
-                               None),)
-            self.controller.executeWorkflowList(vistrails)
-    
-    def mergeParameters(self, id, specs):
-        """mergeParameters(id: int, specs: list) -> list
-        Identifies aliases in a common function and generates only one tuple
-        for them 
-        
-        """
-        aliases = {}
-        aList = []
-        for dim in range(len(specs)):
-            specsPerDim = specs[dim]
-            for interpolator in specsPerDim:
-                #build alias dictionary
-                 alias = interpolator[0]
-                 info = self.ensemble.getSource(id,alias)
-                 if info:
-                     if aliases.has_key(alias):
-                         aliases[alias].append((info, 
-                                                interpolator[2],
-                                                interpolator[3],
-                                                dim))
-                     else:
-                         aliases[alias] = [(info, 
-                                            interpolator[2],
-                                            interpolator[3],
-                                            dim)]
-                     aList.append((alias,info, 
-                                   interpolator[2],
-                                   interpolator[3],
-                                   dim))
-        newSpecs = [] 
-        repeated = []
-        newSpecsPerDim = {}
-        for data in aList:
-            alias = data[0]
-            if alias not in repeated:
-                mId = data[1][0]
-                fId = data[1][1]
-                pId = data[1][2]
-                common = {}
-                common[pId] = alias
-                for d in aList:
-                    a = d[0]
-                    if a != alias:
-                        if mId == d[1][0] and fId == d[1][1]:
-                            #assuming that we cannot set the same parameter
-                            #across the dimensions
-                            common[d[1][2]] = a
-                            repeated.append(a)
-                pip = self.ensemble.pipelines[id]
-                m = pip.getModuleById(mId)
-                f = m.functions[fId]
-                pCount = len(f.params)
-                newRange = []
-                for i in range(pCount):
-                    if i not in common.keys():
-                        p = f.params[i]
-                        newRange.append((p.value(),p.value()))
-                    else:
-                        dList = aliases[common[i]]
-                        r = None
-                        for d in dList:
-                            if d[0][2] == i:
-                                r = d[1][0]
-                        newRange.append(r)
-                interpolator = InterpolateDiscreteParam(m,
-                                                        f.name,
-                                                        newRange,
-                                                        data[3])
-                if newSpecsPerDim.has_key(data[4]):
-                    newSpecsPerDim[data[4]].append(interpolator)
-                else:
-                    newSpecsPerDim[data[4]] = [interpolator]
-        for dim in sorted(newSpecsPerDim.keys()):
-            lInter = newSpecsPerDim[dim]
-            l = []
-            for inter in lInter:
-                l.append(inter)
-            newSpecs.append(l)
-        return newSpecs
-
 ###############################################################################
 
 def initBookmarks(filename):
@@ -421,14 +214,6 @@ def initBookmarks(filename):
     """
     BookmarksManager.filename = filename
     BookmarksManager.loadBookmarks()
-
-def finalizeBookmarks():
-    """finalizeBookmarks() -> None 
-    Cleans up manager.
-    """
-    
-    BookmarksManager.cleanup()
-    BookmarksManager.deleteLater()
 
 
 #singleton technique
