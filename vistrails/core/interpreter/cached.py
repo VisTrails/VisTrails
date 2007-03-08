@@ -74,8 +74,8 @@ and the modules that depend on them."""
             del self._objects[v]
 
     def unlocked_execute(self, pipeline, vistrailName, currentVersion,
-                view, logger, aliases=None, **kwargs):
-        """unlocked_execute(pipeline, vistrailName, currentVersion, view, logger):
+                         view, aliases=None, **kwargs):
+        """unlocked_execute(pipeline, vistrailName, currentVersion, view):
 Executes a pipeline using caching. Caching works by reusing pipelines directly.
 This means that there exists one global pipeline whose parts get executed over
 and over again. This allows nested execution."""
@@ -105,8 +105,8 @@ and over again. This allows nested execution."""
                 view.setModuleActive(i)
             reg = modules.module_registry.registry
             name = reg.getDescriptor(obj.__class__).name
-            if logger:
-                logger.startModuleExecution(vistrailName, 
+            if self._logger:
+                self._logger.startModuleExecution(vistrailName, 
                                             currentVersion, i, name)
         # views and loggers work on local ids
         def endUpdate(obj, error=''):
@@ -116,14 +116,14 @@ and over again. This allows nested execution."""
                     view.setModuleSuccess(i)
                 else:
                     view.setModuleError(i, error)
-            if logger:
-                logger.finishModuleExecution(vistrailName, 
+            if self._logger:
+                self._logger.finishModuleExecution(vistrailName, 
                                              currentVersion, i)
         # views and loggers work on local ids
         def annotate(obj, d):
             i = module_map.inverse[obj.id]
-            if logger:
-                logger.insertAnnotationDB(vistrailName, 
+            if self._logger:
+                self._logger.insertAnnotationDB(vistrailName, 
                                           currentVersion, i, d)
 
         def createNull():
@@ -238,8 +238,8 @@ and over again. This allows nested execution."""
 
     @lock_method(core.interpreter.utils.get_interpreter_lock())
     def execute(self, pipeline, vistrailName, currentVersion,
-                view, logger,aliases=None, **kwargs):
-        """execute(pipeline, vistrailName, currentVersion, view, logger):
+                view, aliases=None, **kwargs):
+        """execute(pipeline, vistrailName, currentVersion, view):
 Executes a pipeline using caching. Caching works by reusing pipelines directly.
 This means that there exists one global pipeline whose parts get executed over
 and over again.
@@ -259,19 +259,18 @@ whether they were executed or not.
 
 If modules have no error associated with but were not executed, it
 means they were cached."""
-        if logger:
-            logger.startWorkflowExecution(vistrailName, currentVersion)
+        if self._logger:
+            self._logger.startWorkflowExecution(vistrailName, currentVersion)
 
         self.clean_non_cacheable_modules()
 
-        
         (objs, errs, execs) = self.unlocked_execute(pipeline, vistrailName,
                                                     currentVersion,
-                                                    view, logger,aliases,
+                                                    view, aliases,
                                                     **kwargs)
 
-        if logger:
-            logger.finishWorkflowExecution(vistrailName, currentVersion)
+        if self._logger:
+            self._logger.finishWorkflowExecution(vistrailName, currentVersion)
 
         return (objs, errs, execs)
 

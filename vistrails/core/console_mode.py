@@ -23,7 +23,6 @@
 from core import xml_parser
 import core.interpreter.default
 from core.utils import VistrailsInternalError, expression
-import core.logger
 
 ################################################################################
 
@@ -72,12 +71,10 @@ def run(input, workflow, parameters=''):
     error = False
     view = DummyView()
     interpreter = core.interpreter.default.default_interpreter.get()
-    logger = core.logger.Logger.get()
     (objs, errors, executed) = interpreter.execute(pip,
                                                    input,
                                                    version,
                                                    view,
-                                                   logger,
                                                    aliases)
     for obj in objs.itervalues():
         i = obj.id

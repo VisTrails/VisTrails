@@ -155,6 +155,5 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                     self.controller.name,
                     self.controller.currentVersion,
                     self.controller.currentPipelineView,
-                    self.controller.logger,
                     moduleExecutedHook=[moduleExecuted])
             progress.setValue(totalProgress)

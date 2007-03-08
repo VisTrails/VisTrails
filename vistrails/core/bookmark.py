@@ -34,7 +34,6 @@ from core.utils.uxml import named_elements, XMLWrapper
 from core.xml_parser import XMLParser
 from core.ensemble_pipelines import EnsemblePipelines
 from core.interpreter.default import default_interpreter
-import core.logger
 
 ################################################################################
 
@@ -276,7 +275,6 @@ class BookmarkController(object):
         Creates Bookmark Controller
         
         """
-        self.logger = core.logger.Logger.get()
         self.collection = BookmarkCollection()
         self.filename = ''
         self.pipelines = {}
@@ -392,30 +390,27 @@ class BookmarkController(object):
             wList.append((bookmark.filename,
                           bookmark.pipeline,
                           self.ensemble.pipelines[id],
-                          view,
-                          self.logger))
+                          view))
             
         self.executeWorkflowList(wList)
     
     def executeWorkflowList(self, vistrails):
         """executeWorkflowList(vistrails: [(name, version, 
-                                            pipeline, view, logger]) -> None
+                                            pipeline, view]) -> None
         Executes a list of pipelines, where:
          - name: str is the vistrails filename
          - version: int is the version number
          - pipeline: Pipeline object
          - view: interface to a QPipelineScene
-         - logger: Logger
         
         """
         interpreter = default_interpreter.get()
         for vis in vistrails:
-            (name, version, pipeline, view, logger) = vis
+            (name, version, pipeline, view) = vis
             (objs, errors, executed) = interpreter.execute(pipeline, 
                                                            name, 
                                                            version, 
-                                                           view, 
-                                                           logger)
+                                                           view)
 
     def parameterExploration(self, ids, specs):
         """parameterExploration(ids: list, specs: list) -> None

@@ -25,6 +25,7 @@ from core.utils import expression
 from core.utils import trace_method
 import copy
 import parser
+import core.logger
 
 ##############################################################################
 
@@ -61,6 +62,7 @@ class BaseInterpreter(object):
         """
         self.doneSummonHook = None
         self.doneUpdateHook = None
+        self._logger = core.logger.Logger.get()
 
     def getNameDependencies(self, astList):
         """getNameDependencies(astList) -> list of something 

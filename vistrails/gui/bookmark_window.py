@@ -49,7 +49,7 @@ class QBookmarksWindow(QtGui.QMainWindow):
     It is based on QBuilderWindow visual style.
         
     """
-    def __init__(self, parent=None, logger=None):
+    def __init__(self, parent=None):
         """ __init__(parent: QWidget) -> QBookmarksWindow
         Construct a window with menus, toolbar, and floating toolwindow
         
@@ -59,7 +59,6 @@ class QBookmarksWindow(QtGui.QMainWindow):
         self.setWindowTitle('VisTrails Bookmarks')
         self.setStatusBar(QtGui.QStatusBar(self))
         self.setDockNestingEnabled(True)
-        BookmarksManager.logger = logger
 
         self.bookmarkPanel = QBookmarkPanel(self,BookmarksManager)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,

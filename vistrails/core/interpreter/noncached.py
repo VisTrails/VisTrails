@@ -42,17 +42,17 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
 
     @lock_method(core.interpreter.utils.get_interpreter_lock())
     def locked_execute(self, pipeline, vistrailName, currentVersion,
-                       view, logger, aliases=None, **kwargs):
+                       view, aliases=None, **kwargs):
         return self.unlocked_execute(pipeline, vistrailName,
-                                     currentVersion, view, logger, aliases, **kwargs)
+                                     currentVersion, view, aliases, **kwargs)
     
     def unlocked_execute(self, pipeline, vistrailName, currentVersion,
-                         view, logger, aliases=None, **kwargs):
+                         view, aliases=None, **kwargs):
 
         self.resolveAliases(pipeline, aliases)
 
-        if logger:
-            logger.startWorkflowExecution(vistrailName, currentVersion)
+        if self._logger:
+            self._logger.startWorkflowExecution(vistrailName, currentVersion)
 
         def addToExecuted(obj):
             executed[obj.id] = True
@@ -65,10 +65,10 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
         def beginUpdate(obj):
             if view:
                 view.setModuleActive(obj.id)
-            if logger:
+            if self._logger:
                 reg = modules.module_registry.registry
                 name = reg.getDescriptor(obj.__class__).name
-                logger.startModuleExecution(vistrailName,
+                self._logger.startModuleExecution(vistrailName,
                                             currentVersion, obj.id, name)
         def endUpdate(obj, error=''):
             if view:
@@ -76,12 +76,12 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                     view.setModuleSuccess(obj.id)
                 else:
                     view.setModuleError(obj.id, error)
-            if logger:
-                logger.finishModuleExecution(vistrailName, 
+            if self._logger:
+                self._logger.finishModuleExecution(vistrailName, 
                                              currentVersion, obj.id)
         def annotate(obj, d):
-            if logger:
-                logger.insertAnnotationDB(vistrailName, 
+            if self._logger:
+                self._logger.insertAnnotationDB(vistrailName, 
                                           currentVersion, obj.id, d)
 
         try:
@@ -157,20 +157,20 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
             self.filePool.cleanup()
             del self.filePool
 
-        if logger:
-            logger.finishWorkflowExecution(vistrailName, currentVersion)
+        if self._logger:
+            self._logger.finishWorkflowExecution(vistrailName, currentVersion)
         
         return (objects, errors, executed)
         
-    def execute(self, pipeline, vistrailName, currentVersion, view, 
-                logger, useLock=True, **kwargs):
+    def execute(self, pipeline, vistrailName, currentVersion, view,
+                useLock=True, **kwargs):
         if useLock:
             method_call = self.locked_execute
         else:
             method_call = self.unlocked_execute
 
-        return method_call(pipeline, vistrailName, currentVersion, view,
-                           logger, **kwargs)
+        return method_call(pipeline, vistrailName, currentVersion,
+                           view, **kwargs)
 
 
     @staticmethod

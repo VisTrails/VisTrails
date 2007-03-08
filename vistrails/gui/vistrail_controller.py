@@ -36,7 +36,6 @@ from core.interpreter.default import default_interpreter
 from core.inspector import PipelineInspector
 from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 from core.modules.sub_module import addSubModule, DupplicateSubModule
-import core.logger
 import copy
 import os.path
 
@@ -67,7 +66,6 @@ class VistrailController(QtCore.QObject):
         self.resetPipelineView = False
         self.resetVersionView = True
         self.quiet = False
-        self.logger = core.logger.Logger.get()
         self.search = None
         self.refine = False
         self.changed = False
@@ -203,8 +201,8 @@ class VistrailController(QtCore.QObject):
     def executeWorkflowList(self, vistrails):
         interpreter = default_interpreter.get()
         for vis in vistrails:
-            (name, version, pipeline, view, logger) = vis
-            (objs, errors, executed) = interpreter.execute(pipeline, name, version, view, logger)
+            (name, version, pipeline, view) = vis
+            (objs, errors, executed) = interpreter.execute(pipeline, name, version, view)
 
     def executeCurrentWorkflow(self):
         """ executeCurrentWorkflow() -> None
@@ -215,8 +213,7 @@ class VistrailController(QtCore.QObject):
             self.executeWorkflowList([(self.fileName,
                                        self.currentVersion,
                                        self.currentPipeline,
-                                       self.currentPipelineView,
-                                       self.logger)])
+                                       self.currentPipelineView)])
 
     def changeSelectedVersion(self, newVersion):
         """ changeSelectedVersion(newVersion: int) -> None        
@@ -695,3 +692,8 @@ class VistrailController(QtCore.QObject):
                         self.addSubModule(tag, self.name, self.vistrail,
                                           self.fileName, version,
                                           inspector)
+
+    def create_abstraction(self, subgraph):
+        self.vistrail.create_abstraction(self.currentVersion,
+                                         subgraph,
+                                         'FOOBAR')
