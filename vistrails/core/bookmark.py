@@ -215,7 +215,7 @@ class BookmarkCollection(XMLWrapper):
         Recomputes the next unused id from scratch
         
         """
-        self.currentId = max(self.bookmarkMap.keys()) + 1
+        self.currentId = max([0] + self.bookmarkMap.keys()) + 1
 
     def getFreshId(self):
         """getFreshId() -> int - Returns an unused id. """
@@ -544,6 +544,12 @@ class TestBookmarkCollection(unittest.TestCase):
     
         #remove created file
         os. unlink('bookmarks.xml')
+
+    def test_empty_bookmark(self):
+        """ Exercises doing things on an empty bookmark. """
+        collection = BookmarkCollection()
+        collection.parse(core.system.visTrailsRootDirectory() +
+                         'tests/resources/empty_bookmarks.xml')
 
 if __name__ == '__main__':
     unittest.main()
