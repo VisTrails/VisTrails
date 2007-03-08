@@ -29,6 +29,7 @@ import platform
 from datetime import datetime
 
 _nologger = True
+MySQLdb = None
 
 class Logger(object):
     """ Class that provides an interface for logging workflows. """
@@ -488,7 +489,9 @@ class Logger(object):
     @staticmethod
     def get():
         if not Logger.__instance and not _nologger:
-            import MySQLdb
+            import MySQLdb as _MySQLdb
+            global MySQLdb
+            MySQLdb = _MySQLdb
             Logger.__instance = Logger()
         return Logger.__instance
    
