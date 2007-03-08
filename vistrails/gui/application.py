@@ -286,9 +286,9 @@ run in batch mode.')
         self.showSplash = self.configuration.showSplash
 
     def finishSession(self):
-        gui.bookmark_window.finalizeBookmarks()        
-        if core.startup.logger:
-            core.startup.logger.finishSession()
+        logger = core.logger.Logger.get() 
+        if logger:
+            logger.finishSession()
         core.interpreter.cached.CachedInterpreter.cleanup()
 
 # The initialization must be explicitly signalled. Otherwise, any

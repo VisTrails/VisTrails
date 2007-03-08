@@ -29,6 +29,8 @@ import platform
 import MySQLdb
 from datetime import datetime
 
+_nologger = True
+
 class Logger(object):
     """ Class that provides an interface for logging workflows. """
     def __init__(self):
@@ -114,7 +116,6 @@ class Logger(object):
         self.vistrailsMap = {} 
 	self.wfDict = {} 
         self.modDict = {}
-
         self.db = self.createDBConnection()
         #check if machine_id is there
         self.machineId = self.getMachineIdDB()
@@ -482,4 +483,13 @@ class Logger(object):
             print "Logger Error %d: %s" % (e.args[0], e.args[1])
         
         c.close()
-########################################################################################
+
+    __instance = None
+    
+    @staticmethod
+    def get():
+        if not Logger.__instance and not _nologger:
+            Logger.__instance = Logger()
+        return Logger.__instance
+   
+################################################################################

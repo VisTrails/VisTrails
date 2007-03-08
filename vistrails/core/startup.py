@@ -30,6 +30,7 @@ import os.path
 import shutil
 import sys
 import tempfile
+import core.logger
 
 ################################################################################
 
@@ -73,10 +74,6 @@ def vistrailsDefaultConfiguration():
                               dbPasswd='',
                               dbName=''))
 
-# FIXME: Need to move global logger into core.logger instead
-#        And we're not using logger in the execution modal right now
-logger = None
-
 class VistrailsStartup(object):
     """
     VistrailsStartup is the class that initializes VisTrails based on
@@ -106,12 +103,9 @@ class VistrailsStartup(object):
         self.setupBaseModules()
         self.installPackages()
         self.runStartupHooks()
-        global logger
         if not self.configuration.nologger:
-            from core.logger import Logger
-            logger = Logger()
-        else:
-            logger = None
+            core.logger._nologger = False
+            core.logger.Logger.get()
 
     def runDotVistrails(self):
         """ runDotVistrails() -> None
