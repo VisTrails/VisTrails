@@ -26,7 +26,6 @@ import getpass
 import socket
 from core import system
 import platform
-import MySQLdb
 from datetime import datetime
 
 _nologger = True
@@ -489,6 +488,7 @@ class Logger(object):
     @staticmethod
     def get():
         if not Logger.__instance and not _nologger:
+            import MySQLdb
             Logger.__instance = Logger()
         return Logger.__instance
    
