@@ -540,12 +540,12 @@ class Vistrail(object):
             if action.user != None:
                 actionElement.setAttribute('user', str(action.user))
             if action.notes != None:
-                action.notes = action.notes.strip()
-            if action.notes != '':
-                notesElement = dom.createElement('notes')
-                text = dom.createTextNode(str(action.notes))
-                notesElement.appendChild(text)
-                actionElement.appendChild(notesElement)
+                action.notes = action.notes.strip('\n\t ')
+                if action.notes != '':
+                    notesElement = dom.createElement('notes')
+                    text = dom.createTextNode(str(action.notes))
+                    notesElement.appendChild(text)
+                    actionElement.appendChild(notesElement)
             root.appendChild(actionElement)
             action.serialize(dom, actionElement)
         for (name, time) in self.tagMap.items():

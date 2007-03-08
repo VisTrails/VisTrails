@@ -105,6 +105,13 @@ class XMLParser(XMLWrapper):
             root = self.dom.documentElement
             for xmlaction in named_elements(root, 'action'):
                 action = Action.createFromXML(xmlaction)
+                if action.notes:
+                    action.notes = action.notes.strip('\n\t ')
+                    #getting rid of notes generated with the None text
+                    if action.notes == 'None':
+                        action.notes = ''
+                else:
+                    action.notes = ''
                 if vistrail.hasVersion(action.timestep):
                     msg = "XML file contains two actions with same time "
                     msg += str(action.timestep)

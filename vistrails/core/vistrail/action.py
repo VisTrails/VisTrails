@@ -47,7 +47,7 @@ from core.utils import report_stack
 import copy
 
 ################################################################################
-
+    
 class Action(object):
     """ Base class for a Action.
 
@@ -78,8 +78,8 @@ class Action(object):
         """
         self.timestep = timestep
         self.parent = parent
-	self.date = date
-	self.user = user
+        self.date = date
+        self.user = user
         self.notes = notes
 
     def perform(self, pipeline):
@@ -208,54 +208,54 @@ class Action(object):
         """
         cId = int(connection.getAttribute('id'))
         for f in named_elements(connection, 'filterInput'):
-	    c = Connection()
-	    c.source = Port()
-	    c.destination = Port()
-	   	
-	    c.source.endPoint = PortEndPoint.Source
-	    c.destination.endPoint = PortEndPoint.Destination
-	    
+            c = Connection()
+            c.source = Port()
+            c.destination = Port()
+                
+            c.source.endPoint = PortEndPoint.Source
+            c.destination.endPoint = PortEndPoint.Destination
+            
             (c.sourceId,
              c.destinationId,
              sourcePort,
              destinationPort) = [int(f.getAttribute(x))
                              for x in ['sourceId', 'destId',
                                        'sourcePort', 'destPort']]
-	    c.source.moduleId = c.sourceId
-	    c.source.name = "GetOutputPort" + str(sourcePort)
+            c.source.moduleId = c.sourceId
+            c.source.name = "GetOutputPort" + str(sourcePort)
 
-	    c.destination.moduleId = c.destinationId
-	    c.destination.name = "SetInputConnection" + str(destinationPort)
-	    
-	    c.id = cId
+            c.destination.moduleId = c.destinationId
+            c.destination.name = "SetInputConnection" + str(destinationPort)
+            
+            c.id = cId
             return c
 
         for o in named_elements(connection, 'objectInput'):
             c = Connection()
-	    c.source = Port()
-	    c.destination = Port()
-	   	
-	    c.source.endPoint = PortEndPoint.Source
-	    c.destination.endPoint = PortEndPoint.Destination
+            c.source = Port()
+            c.destination = Port()
+                
+            c.source.endPoint = PortEndPoint.Source
+            c.destination.endPoint = PortEndPoint.Destination
 
             (moduleId,
              destId,
              name) = [str(o.getAttribute(x))
                                    for x in ['sourceId', 'destId',
                                              'name']]
-	    
-	    
-	    c.source.moduleId = int(moduleId)
-	    c.source.name = 'self'
-	    c.destination.moduleId = int(destId)
+            
+            
+            c.source.moduleId = int(moduleId)
+            c.source.name = 'self'
+            c.destination.moduleId = int(destId)
 
-	    c.destination.name = str(name) 
+            c.destination.name = str(name) 
             c.id = cId
-	    c.sourceId = int(moduleId)
+            c.sourceId = int(moduleId)
             c.destinationId = int(destId)
             return c
         
-	raise VistrailsInternalError("element is neither filter nor object")    
+        raise VistrailsInternalError("element is neither filter nor object")    
 
 class AddModuleAction(Action):
     def __init__(self, timestep=0,parent=0,date=None,user=None,notes=None):
@@ -283,7 +283,7 @@ class AddModuleAction(Action):
         notes = None
         #backwards compatibility
         notes = str(element.getAttribute('notes'))
-	
+        
         for n in element.childNodes:
             if n.localName == "notes":
                 notes = str(n.firstChild.nodeValue)
@@ -333,7 +333,7 @@ class AddConnectionAction(Action):
           
         """
         notes = None
-    	#backwards compatibility
+        #backwards compatibility
         notes = str(element.getAttribute('notes'))
         
         for n in element.childNodes:
@@ -449,41 +449,41 @@ class ChangeParameterAction(Action):
           - version : str
 
         """
-	notes = None
-	#backwards compatibility
-	notes = str(element.getAttribute('notes'))
+        notes = None
+        #backwards compatibility
+        notes = str(element.getAttribute('notes'))
 
-	for n in element.childNodes:
-	    if n.localName == "notes":
-		notes = str(n.firstChild.nodeValue)
-		break
+        for n in element.childNodes:
+            if n.localName == "notes":
+                notes = str(n.firstChild.nodeValue)
+                break
 
-	newAction = ChangeParameterAction(int(element.getAttribute('time')),
+        newAction = ChangeParameterAction(int(element.getAttribute('time')),
                                           int(element.getAttribute('parent')),
-					  str(element.getAttribute('date')),
-					  str(element.getAttribute('user')),
+                                          str(element.getAttribute('date')),
+                                          str(element.getAttribute('user')),
                                           notes)
-	if version == '0.1.0':
-	    p = [[conv(set.getAttribute(key))
+        if version == '0.1.0':
+            p = [[conv(set.getAttribute(key))
                   for conv,key in zip(ChangeParameterAction.conversions0_1_0,
                                       ChangeParameterAction.attributes0_1_0)]
                  for set in named_elements(element, 'set')]
-	    
-	    for par in p:
-		if par[6] in ['double','float']:
-		    par[6] = 'Float'
-		elif par[6] == 'int':
-		    par[6] = 'Integer'
-		elif par[6] in ['const char *', 'const char*', 'string']:
-		    par[6] = 'String'
-		par.append("") #alias
-	else:
-	    p = [[conv(set.getAttribute(key))
-		  for conv,key in zip(ChangeParameterAction.conversions,
-				      ChangeParameterAction.attributes)]
-		 for set in named_elements(element, 'set')]
+            
+            for par in p:
+                if par[6] in ['double','float']:
+                    par[6] = 'Float'
+                elif par[6] == 'int':
+                    par[6] = 'Integer'
+                elif par[6] in ['const char *', 'const char*', 'string']:
+                    par[6] = 'String'
+                par.append("") #alias
+        else:
+            p = [[conv(set.getAttribute(key))
+                  for conv,key in zip(ChangeParameterAction.conversions,
+                                      ChangeParameterAction.attributes)]
+                 for set in named_elements(element, 'set')]
         
-	newAction.parameters = p
+        newAction.parameters = p
         return newAction
       
     def perform(self, pipeline):
@@ -566,18 +566,18 @@ class DeleteModuleAction(Action):
           - version : str
 
         """
-	notes = None
-	#backwards compatibility
-	notes = str(element.getAttribute('notes'))
-	for n in element.childNodes:
-	    if n.localName == "notes":
-		notes = str(n.firstChild.nodeValue)
-		break
+        notes = None
+        #backwards compatibility
+        notes = str(element.getAttribute('notes'))
+        for n in element.childNodes:
+            if n.localName == "notes":
+                notes = str(n.firstChild.nodeValue)
+                break
 
         newAction = DeleteModuleAction(int(element.getAttribute('time')),
                                        int(element.getAttribute('parent')),
-				       str(element.getAttribute('date')),
-				       str(element.getAttribute('user')),
+                                       str(element.getAttribute('date')),
+                                       str(element.getAttribute('user')),
                                        notes)
         newAction.ids = [int(m.getAttribute('moduleId'))
                     for m in named_elements(element, 'module')]
@@ -627,18 +627,18 @@ class DeleteConnectionAction(Action):
           - version : str
 
         """
-	notes = None
-	#backwards compatibility
-	notes = str(element.getAttribute('notes'))
-	for n in element.childNodes:
-	    if n.localName == "notes":
-		notes = str(n.firstChild.nodeValue)
-		break
-	
+        notes = None
+        #backwards compatibility
+        notes = str(element.getAttribute('notes'))
+        for n in element.childNodes:
+            if n.localName == "notes":
+                notes = str(n.firstChild.nodeValue)
+                break
+        
         newAction = DeleteConnectionAction(int(element.getAttribute('time')),
                                            int(element.getAttribute('parent')),
-					   str(element.getAttribute('date')),
-					   str(element.getAttribute('user')),
+                                           str(element.getAttribute('date')),
+                                           str(element.getAttribute('user')),
                                            notes)
         newAction.ids = [int(m.getAttribute('connectionId'))
                          for m in named_elements(element, 'connection')]
@@ -669,19 +669,19 @@ class MoveModuleAction(Action):
           - version : str
 
         """
-	notes = None
-	#backwards compatibility
-	notes = str(element.getAttribute('notes'))
+        notes = None
+        #backwards compatibility
+        notes = str(element.getAttribute('notes'))
 
-	for n in element.childNodes:
-	    if n.localName == "notes":
-		notes = str(n.firstChild.nodeValue)
-		break
+        for n in element.childNodes:
+            if n.localName == "notes":
+                notes = str(n.firstChild.nodeValue)
+                break
 
         newAction = MoveModuleAction(int(element.getAttribute('time')),
                                      int(element.getAttribute('parent')),
-				     str(element.getAttribute('date')),
-				     str(element.getAttribute('user')),
+                                     str(element.getAttribute('date')),
+                                     str(element.getAttribute('user')),
                                      notes)
         newAction.moves = [(int(m.getAttribute('id')),
                             float(m.getAttribute('dx')),
@@ -756,19 +756,19 @@ class DeleteFunctionAction(Action):
           - version : str
 
         """
-	notes = None
-	#backwards compatibility
-	notes = str(element.getAttribute('notes'))
-	
-	for n in element.childNodes:
-	    if n.localName == "notes":
-		notes = str(n.firstChild.nodeValue)
-		break
+        notes = None
+        #backwards compatibility
+        notes = str(element.getAttribute('notes'))
+        
+        for n in element.childNodes:
+            if n.localName == "notes":
+                notes = str(n.firstChild.nodeValue)
+                break
 
-	newAction = DeleteFunctionAction(int(element.getAttribute('time')),
+        newAction = DeleteFunctionAction(int(element.getAttribute('time')),
                                          int(element.getAttribute('parent')),
-					 str(element.getAttribute('date')),
-					 str(element.getAttribute('user')),
+                                         str(element.getAttribute('date')),
+                                         str(element.getAttribute('user')),
                                          notes)
         for el in named_elements(element, 'function'):
             newAction.moduleId = int(el.getAttribute('moduleId'))
@@ -816,19 +816,19 @@ class ChangeAnnotationAction(Action):
           - version : str
 
         """
-	notes = None
-	#backwards compatibility
-	notes = str(element.getAttribute('notes'))
+        notes = None
+        #backwards compatibility
+        notes = str(element.getAttribute('notes'))
 
-	for n in element.childNodes:
-	    if n.localName == "notes":
-		notes = str(n.firstChild.nodeValue)
-		break
+        for n in element.childNodes:
+            if n.localName == "notes":
+                notes = str(n.firstChild.nodeValue)
+                break
 
-	newAction = ChangeAnnotationAction(int(element.getAttribute('time')),
+        newAction = ChangeAnnotationAction(int(element.getAttribute('time')),
                                           int(element.getAttribute('parent')),
-					  str(element.getAttribute('date')),
-					  str(element.getAttribute('user')),
+                                          str(element.getAttribute('date')),
+                                          str(element.getAttribute('user')),
                                           notes)
         p = [[conv(set.getAttribute(key))
               for conv,key in zip(ChangeAnnotationAction.conversions,
@@ -870,7 +870,7 @@ class DeleteAnnotationAction(Action):
 
     @staticmethod
     def parse(element, version = None):
-	""" parse(element, version=None) -> AddModuleAction
+        """ parse(element, version=None) -> AddModuleAction
         Static method that parses an xml element and creates an AddModuleAction.
         Keyword arguments:
           - element : xml.dom.minidom.Element
@@ -878,18 +878,18 @@ class DeleteAnnotationAction(Action):
 
         """
         notes = None
-	#backwards compatibility
-	notes = str(element.getAttribute('notes'))
-	
-	for n in element.childNodes:
-	    if n.localName == "notes":
-		notes = str(n.firstChild.nodeValue)
-		break
+        #backwards compatibility
+        notes = str(element.getAttribute('notes'))
+        
+        for n in element.childNodes:
+            if n.localName == "notes":
+                notes = str(n.firstChild.nodeValue)
+                break
 
-	newAction = DeleteAnnotationAction(int(element.getAttribute('time')),
+        newAction = DeleteAnnotationAction(int(element.getAttribute('time')),
                                          int(element.getAttribute('parent')),
-					 str(element.getAttribute('date')),
-					 str(element.getAttribute('user')),
+                                         str(element.getAttribute('date')),
+                                         str(element.getAttribute('user')),
                                          notes)
         for el in named_elements(element, 'annotation'):
             newAction.moduleId = int(el.getAttribute('moduleId'))
@@ -1116,4 +1116,4 @@ class TestAction(unittest.TestCase):
         self.assertEquals(v1, p2.aliases['v1'])
             
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main() 
