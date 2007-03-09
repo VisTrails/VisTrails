@@ -48,7 +48,7 @@ class Port(object):
         Return a string of signature based a port spec
         
         """
-        if type(spec) == __builtin__.list:            
+        if type(spec) == __builtin__.list:
             return "(" + ",".join([self.getSig(s) for s in spec]) + ")"
         assert type(spec == __builtin__.tuple)
         spec = spec[0]
@@ -88,6 +88,7 @@ class Port(object):
         self.type = VistrailModuleType.Module
         self.spec = None
         self.optional = False
+        self.sort_key = -1
     
     def __str__(self):
         """ __str__() -> str 

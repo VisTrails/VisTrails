@@ -50,6 +50,7 @@ class ModuleDescriptor(object):
             self.baseDescriptor = None
         self.name = name
         self.inputPorts = {}
+        self.portOrder = {}
         self.outputPorts = {}
         self.inputPortsOptional = {}
         self.outputPortsOptional = {}
@@ -64,6 +65,7 @@ class ModuleDescriptor(object):
                 assert type(specItem[0]) == __builtin__.type
                 assert type(specItem[1]) == __builtin__.str                
                 return specItem
+
         if type(spec) == __builtin__.list:
             newSpec = []
             for s in spec:
@@ -76,11 +78,12 @@ class ModuleDescriptor(object):
             spec = [canonicalize(spec)]
         if not port.has_key(name):
             port[name] = []
+            self.portOrder[name] = len(port)
             optionals[name] = optional
         if not spec in port[name]:
             optionals[name] = optional and optionals[name]
             port[name].append(spec)
-
+ 
     def addInputPort(self, name, spec, optional, configureWidgetType):
         self.appendToPortList(self.inputPorts,
                               self.inputPortsOptional, name, spec, optional)
@@ -343,6 +346,7 @@ elements is of either of the above formats."""
             result.optional = optional
             result.moduleName = descriptor.name
             result.endPoint = PortEndPoint.Destination
+            result.sort_key = descriptor.portOrder[spec[0]]
             return result        
         v = descriptor.inputPorts.items()
         if sorted:

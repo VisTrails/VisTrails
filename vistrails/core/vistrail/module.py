@@ -80,7 +80,7 @@ class Module(object):
         """
         if len(ports)==0:
             return ports
-        ports.sort(lambda n1,n2: cmp(n1.name,n2.name))
+        ports.sort(lambda n1,n2: cmp(n1.sort_key,n2.sort_key))
         result = [ports[0]]
         names = [p.name for p in ports]
         for i in range(1,len(names)):
@@ -114,6 +114,7 @@ class Module(object):
         thing = registry.getDescriptorByName(self.name).module
         for (n, registry_ports) in registry.destinationPorts(thing):
             ports.extend([copy.copy(x) for x in registry_ports])
+
         ports = self.uniqueSortedPorts(ports)
         if self.registry:
             for (n, registry_ports) in self.registry.destinationPorts(thing, False):
