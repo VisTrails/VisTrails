@@ -1,12 +1,12 @@
   <bookmarks>
-    <bookmark id="1" name="volume rendering" parent="" pipeline="134" type="item">
+    <bookmark id="3" name="aliases" parent="" pipeline="143" type="item">
       <filename>
-        C:/Documents and Settings/emanuele/Desktop/vistrails_svn/trunk/examples/head.xml
+        C:/Program Files/VisTrails/examples/head.xml
       </filename>
     </bookmark>
-    <bookmark id="2" name="aliases" parent="" pipeline="139" type="item">
+    <bookmark id="4" name="volume rendering" parent="" pipeline="134" type="item">
       <filename>
-        C:/Documents and Settings/emanuele/Desktop/vistrails_svn/trunk/examples/head.xml
+        C:/Program Files/VisTrails/examples/head.xml
       </filename>
     </bookmark>
   </bookmarks>

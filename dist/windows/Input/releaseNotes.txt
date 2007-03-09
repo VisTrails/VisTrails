@@ -1,4 +1,59 @@
-Release Name: 502
+Release Name: 559
+
+Changes:
+ - Packages:
+     * Added MeshQualityHistogram and AfrontIso modules to afront
+     * Added region selection and full DICOM slice-based exploration to itk
+
+ - Spreadsheet:
+     * Users can move rows and columns around
+
+ - Module customization: support for specifying a custom leftFringe and 
+   rightFringe
+
+ - Examples:
+     * Added afront.xml which makes use of afront, matplotlib, vtk, histograms, 
+       etc.
+     * Added four cell example to vtk.xml
+
+Fixes:
+ - Parameter Exploration:
+     * Caring for unitialized parameters
+     * Linear interpolation
+     * Performing type casting on user defined functions
+     * Disabling parameters button when the panel is empty
+     * Caching was not functioning properly
+
+ - Builder:
+     * Enabling a scrollbar when there are many methods on the properties panel
+     * Fixed phantom methods on the properties panel on Linux
+     * Notes panel sometimes showed "None" when there were no notes
+     * Removing an unconnected module, or removing its connections before
+       removing it was generating empty DeleteConnection actions
+     * If the query canvas was emptied before unchecking the query button the 
+       version tree status could not be restored.
+     * Vistrails installation folder was not searched when checking for 
+       requirements. This caused the application to crash with "dot not found"
+
+ - Spreadsheet:
+     * More resizing problems were fixed 
+
+ - Bookmarks:
+     * Bookmark sample file caused vistrails to crash on a new installation 
+     * Propagating parameter changes when clicking on the Execute Workflow 
+       button direct from the Parameters Panel 
+     * Large workflows affected performance on GUI updates
+ 
+ - Installer:
+     * Added pylab to the default startup.py on the binary installation
+
+ - Other minor fixes and coding reorganization
+
+
+--------------------------------------------------------------------
+Changes from previous releases
+
+From release 502:
 
 Changes:
  - Module's color and shape can be customized
@@ -18,8 +73,6 @@ Changes:
  - Fixed bug on trying to use ImageMagick package on Windows
  - Improvements on the abstraction mechanism
 
---------------------------------------------------------------------
-Changes from previous releases
 
 From release 444:
 

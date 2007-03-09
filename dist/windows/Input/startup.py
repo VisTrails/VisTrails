@@ -83,6 +83,9 @@ addPackage('spreadsheet')
 # them as regular files in VisTrails pipelines.
 addPackage('HTTP')
 
+#matplotlib/pylab package for plotting and histograms
+addPackage('pylab')
+
 ################################################################################
 # Hooks
 
