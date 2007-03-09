@@ -211,9 +211,21 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.setCurrentIndex(self.addTabWidget(StandardWidgetSheetTab(self),
                                                'Sheet %d' % (self.count()+1)))
         self.currentWidget().sheet.stretchCells()
+        
+    def tabInserted(self, index):
+        """tabInserted(index: int) -> None
+        event handler to get when sheets are inserted """
         self.deleteSheetAction().setEnabled(True)
         self.saveAction().setEnabled(True)
         self.saveAsAction().setEnabled(True)
+
+    def tabRemoved(self, index):
+        """tabInserted(index: int) -> None
+        event handler to get when sheets are removed """
+        if self.count() == 0:
+                self.deleteSheetAction().setEnabled(False)
+                self.saveAction().setEnabled(False)
+                self.saveAsAction().setEnabled(False)
 
     def removeSheetReference(self, sheet):
         """ removeSheetReference(sheet: StandardWidgetSheetTab) -> None
@@ -236,11 +248,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.removeSheetReference(widget)
             widget.deleteAllCells()
             widget.deleteLater()
-            if self.count() == 0:
-                self.deleteSheetAction().setEnabled(False)
-                self.saveAction().setEnabled(False)
-                self.saveAsAction().setEnabled(False)
-
+            
     def clearTabs(self):
         """ clearTabs() -> None
         Clear and reset the controller
@@ -631,9 +639,6 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                 progress.setValue(pipelineCount)
                 QtCore.QCoreApplication.processEvents()
                 self.changeSpreadsheetFileName(fileName)
-                self.deleteSheetAction().setEnabled(True)
-                self.saveAction().setEnabled(True)
-                self.saveAsAction().setEnabled(True)
             except:
                 QtGui.QMessageBox.warning(self,
                                           'Open Spreadsheet Error',
