@@ -998,7 +998,7 @@ class QListEditDialog(QtGui.QDialog):
         okButton = QtGui.QPushButton('&OK')
         okButton.setSizePolicy(QtGui.QSizePolicy.Maximum,
                                QtGui.QSizePolicy.Maximum)
-        self.connect(okButton, QtCore.SIGNAL('clicked()'), self.accept)
+        self.connect(okButton, QtCore.SIGNAL('clicked()'), self.okButtonPressed)
         hLayout.addWidget(okButton)
 
         cancelButton = QtGui.QPushButton('&Cancel')
@@ -1029,6 +1029,14 @@ class QListEditDialog(QtGui.QDialog):
         
         """
         return QtCore.QSize(256, 384)
+
+    def okButtonPressed(self):
+        """ okButtonPressed() -> None
+        Make sure to commit the editor data before accepting
+        
+        """
+        self.table.itemDelegate().finishEditing()
+        self.accept()
 
     def getList(self):
         """ getList() -> list of str values
@@ -1080,6 +1088,15 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
     table
     
     """
+
+    def __init__(self, parent=None):
+        """ QListEditItemDelegate(parent: QWidget) -> QListEditItemDelegate
+        Store the uncommit editor for commit later
+        
+        """
+        QtGui.QItemDelegate.__init__(self, parent)
+        self.editor = None
+        
     def createEditor(self, parent, option, index):
         """ createEditor(parent: QWidget,
                          option: QStyleOptionViewItem,
@@ -1087,7 +1104,8 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
         Return the editor widget for the index
         
         """
-        return QStringEdit(parent)
+        self.editor = QStringEdit(parent)
+        return self.editor
 
     def setEditorData(self, editor, index):
         """ setEditorData(editor: QWidget, index: QModelIndex) -> None
@@ -1113,7 +1131,12 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
         Set the text of the editor back to the item model
         
         """
-        model.setData(index, QtCore.QVariant(editor.text()))
+        model.setData(index, QtCore.QVariant(editor.text()))        
+        self.editor = None
+
+    def finishEditing(self):
+        if self.editor:
+            self.emit(QtCore.SIGNAL('commitData(QWidget*)'), self.editor)
 
 class QUserFunctionEditor(QtGui.QFrame):
     """
