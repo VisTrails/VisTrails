@@ -203,18 +203,34 @@ class XMLParser(XMLWrapper):
 
 	return vistrail
 
+    def translate0_3_0to0_3_1(self, vistrail):
+	# The change here is that we are honoring the 'cache' attribute, and 
+	# it should be the case that the default value is 1, but it was
+        # 0. We'll change that under the hood.
+	for (v,a) in vistrail.actionMap.items():
+	    if a.type == 'AddModule':
+                if a.module.cache == 0:
+                    a.module.cache = 1
+
+	return vistrail
+        
+        
+
     parseVersion = {'0': getVistrailBase,
                     '0.1.0': getVistrailBase0_1_0,
-		    '0.3.0': getVistrailBase}
+		    '0.3.0': getVistrailBase,
+                    '0.3.1': getVistrailBase}
 
     graph = Graph()
     graph.addVertex('0')
     graph.addVertex('0.1.0')
     graph.addVertex('0.3.0')
+    graph.addVertex('0.3.1')
     graph.addEdge('0', '0.1.0')
     graph.addEdge('0.1.0','0.3.0')
+    graph.addEdge('0.3.0','0.3.1')
 
-    currentVersion = '0.3.0'
+    currentVersion = '0.3.1'
 
     def getVistrail(self):
         """getVistrail() -> Vistrail
