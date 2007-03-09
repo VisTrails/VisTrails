@@ -275,18 +275,18 @@ class QParameterExplorationTable(QPromptWidget):
                                              'size from the step count. '
                                              'Parameter Exploration aborted.'
                                              % pEditor.info[0])
-                                return None
+                                return []
                         if type(interpolator)==QUserFunctionEditor:
                             values = interpolator.getValues()
                             if [True for v in values if type(v)!=realType]:
-                                show_warning('Inconsistent Size',
+                                show_warning('Inconsistent Type',
                                              'One of the <i>%s</i>\'s user defined '
                                              'functions has generated '
                                              'a value of type different '
                                              'than that specified by the '
                                              'parameter. Parameter Exploration '
-                                              'aborted.' % pEditor.info[0])
-                                return None
+                                             'aborted.' % pEditor.info[0])
+                                return []
                         (mId, fId, pId) = tuple(paramInfo[2:5])
                         function = self.pipeline.modules[mId].functions[fId]
                         fName = function.name
@@ -1186,10 +1186,13 @@ class QUserFunctionEditor(QtGui.QFrame):
         """
         firstError = True
         values = []
+        pythonType = {'Integer': int, 'Float': float, 'String': str}
         for i in range(self.size):
             v = self.defaultValue
             try:
                 exec(self.function + '\nv = value(%d)' % i)
+                if self.type != 'String':
+                    v = pythonType[self.type](v)
             except:
                 v = 'ERROR'
             values.append(v)
