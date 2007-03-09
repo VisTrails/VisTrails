@@ -99,7 +99,7 @@ class Module(object):
             ports.extend([copy.copy(x) for x in registry_ports])
         ports = self.uniqueSortedPorts(ports)
         if self.registry:
-            for (n, registry_ports) in self.registry.sourcePorts(thing, False):
+            for (n, registry_ports) in self.registry.sourcePorts(thing):
                 ports.extend([copy.copy(x) for x in registry_ports])
         for p in ports:
             p.id = self.id
@@ -117,7 +117,7 @@ class Module(object):
 
         ports = self.uniqueSortedPorts(ports)
         if self.registry:
-            for (n, registry_ports) in self.registry.destinationPorts(thing, False):
+            for (n, registry_ports) in self.registry.destinationPorts(thing):
                 ports.extend([copy.copy(x) for x in registry_ports])
         for p in ports:
             p.id = self.id

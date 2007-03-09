@@ -104,8 +104,7 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
         # input port, we just use the local registry to see what ports
         # it has at the time of configuration.
         if self.module.registry:
-            iPorts = self.module.registry.destinationPorts(
-                self.moduleThing, False)
+            iPorts = self.module.registry.destinationPorts(self.moduleThing)
             self.portTable.initializePorts(iPorts)
         else:
             self.portTable.fixGeometry()
