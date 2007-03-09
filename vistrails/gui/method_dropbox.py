@@ -156,13 +156,14 @@ class QVerticalWidget(QPromptWidget):
                            QtGui.QSizePolicy.Expanding)
         self.formType = QMethodInputForm
         self.setMinimumHeight(50)
+        self._functions = {}
         
     def addFunction(self, moduleId, fId, function):
         """ addFunction(moduleId: int, fId: int,
                         function: ModuleFunction) -> None
         Add an input form for the function
         
-        """        
+        """
         inputForm = self.formType(self)
         inputForm.moduleId = moduleId
         inputForm.fId = fId
@@ -171,6 +172,8 @@ class QVerticalWidget(QPromptWidget):
         inputForm.show()
         self.setMinimumHeight(self.layout().minimumSize().height())
         self.showPrompt(False)
+        self._functions[(moduleId, fId)] = inputForm
+
 
     def clear(self):
         """ clear() -> None
@@ -178,13 +181,11 @@ class QVerticalWidget(QPromptWidget):
         
         """
         self.setEnabled(False)
-        while True:
-            child = self.layout().takeAt(0)
-            if child:
-                child.widget().deleteLater()
-                del child
-            else:
-                break
+
+        for (k, v) in self._functions.iteritems():
+            self.layout().removeWidget(v)
+            v.deleteLater()
+        self._functions = {}
         self.setEnabled(True)
 
 class QMethodInputForm(QtGui.QGroupBox):
