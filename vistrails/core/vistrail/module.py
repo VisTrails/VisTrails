@@ -133,6 +133,8 @@ class Module(object):
             result = getDescriptorByName(self.name).module()
             if self.cache != 1:
                 result.is_cacheable = lambda *args: False
+            if hasattr(result, 'srcPortsOrder'):
+                result.srcPortsOrder = [p.name for p in self.destinationPorts()]
             return result
 
         self.type = self.findType(self.name)

@@ -202,10 +202,14 @@ class Tuple(Module):
     integrated with the rest of VisTrails, so don't use it unless
     you know what you're doing."""
 
+    def __init__(self):
+        Module.__init__(self)
+        self.srcPortsOrder = []
+
     def compute(self):
-       values = tuple([self.getInputFromPort(p)
-                       for p in self.inputPorts.iterkeys()])
-       self.setResult("value", values)
+        values = tuple([self.getInputFromPort(p)
+                        for p in self.srcPortsOrder])
+        self.setResult("value", values)
         
 _reg.addModule(Tuple, None, TupleConfigurationWidget)
 
