@@ -278,7 +278,7 @@ class QMethodInputForm(QtGui.QGroupBox):
         if e.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
             methodBox = self.parent().parent().parent()
             self.parent().layout().removeWidget(self)
-            self.parent()._functions.remove((methodBox.module.id, self.fId))
+            del self.parent()._functions[(methodBox.module.id, self.fId)]
             self.deleteLater()
             self.parent().showPromptByChildren()
             for i in range(self.parent().layout().count()):
