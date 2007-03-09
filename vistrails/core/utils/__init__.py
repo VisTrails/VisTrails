@@ -28,6 +28,7 @@ from core.utils.tracemethod import trace_method, bump_trace, report_stack
 from core.utils.color import ColorByName
 from core.utils.lockmethod import lock_method
 import errno
+import itertools
 
 ################################################################################
 
@@ -167,24 +168,8 @@ def memo_method(method):
         decorated.__doc__ = warn
     return decorated
 
-def iterate(*iterables):
-    """iterate(*iterables) -> iterator.
-
-    iterate creates an iterator that iterates through a sequence of
-    iterables. This is clearer in an example:
-
-    >>> x = iterate([1,2,3],[4,5,6])
-    >>> for v in iterate([1,2,3],[4,5,6]): print v
-    1 2 3 4 5 6
-    >>> d = {1:2,3:4,5:6}
-    >>> for v in iterate(d.iterkeys(), d.itervalues(), d.iteritems()): print v,
-    1 3 5 2 4 6 (1, 2) (3, 4) (5, 6)
-    """
-
-    for iterable in iterables:
-        for item in iterable:
-            yield item
-    return
+# Carlos, meet the standard library.
+iterate = itertools.chain
 
 ################################################################################
 
@@ -209,6 +194,12 @@ def withIndex(lst):
     """withIndex(list) -> [(index, element)] - Returns a list with
     elements and their indices. Useful for iterating through the list."""
     return zip(range(len(lst)), lst)
+
+def iter_with_index(iterable):
+    """iter_with_index(iterable) -> iterable - Iterator version
+    of withIndex."""
+    return itertools.izip(itertools.count(0),
+                          iterable)
 
 def eprint(*args):
     """eprint(*args) -> False - Prints the arguments, then returns
@@ -340,6 +331,12 @@ class TestCommon(unittest.TestCase):
         self.assertEquals(x, [1,2,3,4,5,6])
         x = [v for v in iterate([1,2,3],[4,5,6], [])]
         self.assertEquals(x, [1,2,3,4,5,6])
+
+    def test_with_index(self):
+        l = [0, 5, 10]
+        l1 = withIndex(l)
+        l2 = [v for v in iter_with_index(l)]
+        self.assertEquals(l1, l2)
 
 if __name__ == '__main__':
     unittest.main()

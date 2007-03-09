@@ -43,6 +43,7 @@ import gui.utils
 import math
 
 ################################################################################
+# QGraphicsLinkItem
 
 class QGraphicsLinkItem(QtGui.QGraphicsPolygonItem, QGraphicsItemInterface):
     """
@@ -167,6 +168,9 @@ class QGraphicsLinkItem(QtGui.QGraphicsPolygonItem, QGraphicsItemInterface):
                 if type(item)==QGraphicsVersionItem:
                     return QtCore.QVariant(False)
         return QtGui.QGraphicsPolygonItem.itemChange(self, change, value)
+
+##############################################################################
+# QGraphicsVersionItem
 
 class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
     """

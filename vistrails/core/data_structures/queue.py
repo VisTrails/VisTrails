@@ -73,12 +73,17 @@ class Queue(object):
         self.__end += 1
         if self.__end == self.__capacity:
             self.__end = 0
-            
+
+    class EmptyQueue(Exception):
+        pass
+    
     def pop(self):
         """ pop() -> element type
         Pop the front element of the queue and return an element type
 
         """
+        if len(self) == 0:
+            raise self.EmptyQueue()
         r = self.__buffer[self.__begin]
         self.__buffer[self.__begin] = None
         self.__begin += 1
@@ -171,6 +176,15 @@ class TestQueue(unittest.TestCase):
                     v = q.pop()
                     self.assertEquals(v, popped)
                     popped += 1
+
+    def test_pop(self):
+        x = Queue()
+        try:
+            x.pop()
+        except x.EmptyQueue:
+            pass
+        else:
+            assert False
 
 if __name__ == '__main__':
     unittest.main()

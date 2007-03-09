@@ -41,6 +41,7 @@ from core.vistrail.connection import Connection
 from core.vistrail.module import Module
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.port import PortEndPoint
+from core.vistrail.vistrail import Vistrail
 from gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface)
@@ -50,6 +51,7 @@ from xml.dom.minidom import getDOMImplementation, parseString
 import math
 
 ################################################################################
+# QGraphicsPortItem
 
 class QGraphicsPortItem(QtGui.QGraphicsRectItem):
     """
@@ -187,7 +189,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         for item in itemsUnder:
             if type(item)==QGraphicsModuleItem:
                 return item
-        return None        
+        return None
         
     def findSnappedPort(self, pos):
         """ findSnappedPort(pos: QPoint) -> Port        
@@ -196,7 +198,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         
         """
         snapModule = self.findModuleUnder(pos)
-        if snapModule and snapModule!=self.parentItem(): 
+        if snapModule and snapModule!=self.parentItem():
             if self.port.endPoint==PortEndPoint.Source:
                 return snapModule.getDestPort(pos, self.port)
             else:
@@ -212,6 +214,9 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         if change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool():
             return QtCore.QVariant(False)
         return QtGui.QGraphicsRectItem.itemChange(self, change, value)
+
+##############################################################################
+# QGraphicsConnectionItem
     
 class QGraphicsConnectionItem(QtGui.QGraphicsPolygonItem,
                               QGraphicsItemInterface):
@@ -316,6 +321,9 @@ class QGraphicsConnectionItem(QtGui.QGraphicsPolygonItem,
                 if type(item)==QGraphicsModuleItem:
                     return QtCore.QVariant(False)
         return QtGui.QGraphicsPolygonItem.itemChange(self, change, value)    
+
+##############################################################################
+# QGraphicsModuleItem
 
 class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
     """
@@ -712,7 +720,9 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
             widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
             widget.exec_()
             self.controller.resendVersionWasChanged()
-        
+
+##############################################################################
+# QPipelineScene
 
 class QPipelineScene(QInteractiveGraphicsScene):
     """
@@ -733,6 +743,15 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self.modules = {}
         self.noUpdate = False
         self.installEventFilter(self)
+
+
+#        menu = QtGui.QMenu()
+#        self._create_abstraction = QtGui.QAction("Create abstraction", self)
+#        menu.addAction(self._create_abstraction)
+#        self._context_menu = menu
+#        self.connect(self._create_abstraction,
+#                     QtCore.SIGNAL("triggered()"),
+#                     self.create_abstraction)
 
     def addModule(self, module, moduleBrush=None):
         """ addModule(module: Module, moduleBrush: QBrush) -> None
@@ -770,6 +789,32 @@ class QPipelineScene(QInteractiveGraphicsScene):
         dstModule.addConnectionItem(connectionItem, True)
         self.addItem(connectionItem)
         return connectionItem
+
+    def selected_subgraph(self):
+        """Returns the subgraph containing the selected modules and its
+mutual connections."""
+        items = self.selectedItems()
+        modules = [x.id
+                   for x in items
+                   if type(x) == QGraphicsModuleItem]
+        return self.controller.currentPipeline.graph.subgraph(modules)
+
+    def create_abstraction(self):
+        subgraph = self.selected_subgraph()
+        try:
+            self.controller.create_abstraction(subgraph)
+        except Vistrail.InvalidAbstraction, e:
+            dlg = QtGui.QMessageBox.warning(None,
+                                            "Invalid Abstraction",
+                                            str(e))
+        
+
+#    def contextMenuEvent(self, event):
+#        selectedItems = self.selectedItems()
+#        if len(selectedItems) == 0:
+#            return QInteractiveGraphicsScene.contextMenuEvent(self, event)
+#        else:
+#            self._context_menu.exec_(event.screenPos())
 
     def clear(self):
         """ clear() -> None

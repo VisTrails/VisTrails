@@ -36,6 +36,7 @@ from core.vistrail.pipeline import Pipeline
 from core.data_structures.graph import Graph
 from core.debug import DebugPrint
 from core.utils import enum, VistrailsInternalError
+import core.vistrail.module
 
 ################################################################################
 
@@ -64,6 +65,11 @@ class Vistrail(object):
             return self.inverseTagMap[version]
         else:
             return ""
+
+    def get_version_number(self, version):
+        """get_version_number(version) -> Integer
+        Returns the version number given a tag."""
+        return self.tagMap[version]
     
     def getPipeline(self, version):
         """getPipeline(number or tagname) -> Pipeline
@@ -638,9 +644,23 @@ class Vistrail(object):
         input_ports = current_graph.connections_to_subgraph(subgraph)
         output_ports = current_graph.connections_from_subgraph(subgraph)
 
-        print "Inputs: "
-        
-        print "Outputs:"
+        # Recreate pipeline from empty version
+        sub_pipeline = pipeline.get_subpipeline(subgraph)
+        actions = sub_pipeline.dump_actions()
+
+        for (frm, to, conn_id) in input_ports:
+            fresh_id = sub_pipeline.fresh_module_id()
+            m = core.vistrail.module.Module()
+            m.id = fresh_id
+            m.center = copy.copy(pipeline.modules[frm].center)
+            m.name = "InputPort"
+            actions.append(m)
+
+            c = core.vistrail.connection.Connection()
+            fresh_id = sub_pipeline.fresh_connection_id()
+            c.id = fresh_id
+
+        raise Exception("not finished")
         
 ##############################################################################
 
@@ -720,8 +740,9 @@ class TestVistrail(unittest.TestCase):
 #         parser.closeVistrail()
 #         #testing diff
 #         p = v.getPipeline('WindowedSync (lambda-mu) Error')
-#         print p.modules[43], p.modules[45]
-#         print p.graph
+#         version = v.get_version_number('WindowedSync (lambda-mu) Error')
+#         sub = p.graph.subgraph([43, 45])
+#         v.create_abstraction(version, sub, "FOOBAR")
 
 if __name__ == '__main__':
     unittest.main()

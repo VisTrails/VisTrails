@@ -23,6 +23,10 @@ import math
 import random
 import copy
 
+
+from itertools import imap, chain, izip
+
+from core.utils import withIndex, iter_with_index
 from core.data_structures.queue import Queue
 
 ################################################################################
@@ -114,9 +118,13 @@ shares with self.)
         -- id : 'immutable' vertex id
           
         """
+        
         for (origin, edge_id) in self.inverseAdjacencyList[id]:
             t = (id, edge_id)
             self.adjacencyList[origin].remove(t)
+        for (dest, edge_id) in self.adjacencyList[id]:
+            t = (id, edge_id)
+            self.inverseAdjacencyList[dest].remove(t)
         self.adjacencyList.pop(id)
         self.inverseAdjacencyList.pop(id)
         self.vertices.pop(id)
@@ -372,8 +380,117 @@ list of vertices on which to perform the topological sort.
         lst.sort()
         lst.reverse()
         return [v for (k, v) in lst]
+
+    def topologically_contractible(self, subgraph):
+        """topologically_contractible(subgraph) -> Boolean.
+
+Returns true if contracting the subgraph to a single vertex doesn't create
+cycles. This is equivalent to checking whether
+a pipeline subgraph forms a legal abstraction."""
+
+        x = copy.copy(self)
+        conns_to_subgraph = self.connections_to_subgraph(subgraph)
+        conns_from_subgraph = self.connections_from_subgraph(subgraph)
+        for v in subgraph.vertices.iterkeys():
+            x.deleteVertex(v)
+        free_vertex = max(subgraph.vertices.iterkeys()) + 1
+        x.addVertex(free_vertex)
+        for (edge_from, edge_to, edge_id) in conns_to_subgraph:
+            x.addEdge(free_vertex, edge_to)
+        for (edge_from, edge_to, edge_id) in conns_from_subgraph:
+            x.addEdge(edge_from, free_vertex)
+        try:
+            x.vertices_topological_sort()
+            return True
+        except self.GraphContainsCycles:
+            return False
+
+
         
-        
+
+    def subgraph(self, vertex_set):
+        """ subgraph(vertex_set) -> Graph.
+
+Returns a subgraph of self containing all vertices and connections between them."""
+        result = Graph()
+        vertex_set = set(vertex_set)
+        # add vertices
+        for vertex in vertex_set:
+            result.addVertex(vertex)
+        # add edges
+        for vertex_from in vertex_set:
+            for (vertex_to, edge_id) in self.edgesFrom(vertex_from):
+                if vertex_to in vertex_set:
+                    result.addEdge(vertex_from, vertex_to, edge_id)
+        return result
+
+    def connections_to_subgraph(self, subgraph):
+        """connections_to_subgraph(subgraph) -> [(vert_from, vert_to, edge_id)]
+
+Returns the list of all edges that connect to a vertex \in subgraph. subgraph
+is assumed to be a subgraph of self"""
+        vertices_to_traverse = set(self.vertices.iterkeys())
+        subgraph_verts = set(subgraph.vertices.iterkeys())
+        vertices_to_traverse -= subgraph_verts
+
+        result = []
+        for v in vertices_to_traverse:
+            for e in self.adjacencyList[v]:
+                (v_to, e_id) = e
+                if v_to in subgraph_verts:
+                    result.append((v, v_to, e_id))
+        return result
+
+    def connections_from_subgraph(self, subgraph):
+        """connections_from_subgraph(subgraph) -> [(vert_from, vert_to, edge_id)]
+
+Returns the list of all edges that connect from a vertex \in subgraph to a vertex
+\not \in subgraph. subgraph is assumed to be a subgraph of self"""
+        subgraph_verts = set(subgraph.vertices.iterkeys())
+        vertices_to_traverse = subgraph_verts
+
+        result = []
+        for v in vertices_to_traverse:
+            for e in self.adjacencyList[v]:
+                (v_to, e_id) = e
+                if v_to not in subgraph_verts:
+                    result.append((v, v_to, e_id))
+        return result
+
+    def iter_edges_from(self, vertex):
+        """iter_edges_from(self, vertex) -> iterable
+
+        Returns an iterator over all edges in the form
+        (vertex, vert_to, edge_id)."""
+        def fn(edge):
+            (edge_to, edge_id) = edge
+            return (vertex, edge_to, edge_id)
+        return imap(fn, self.adjacencyList[vertex])
+
+    def iter_edges_to(self, vertex):
+        """iter_edges_to(self, vertex) -> iterable
+
+        Returns an iterator over all edges in the form
+        (vertex, vert_to, edge_id)."""
+        def fn(edge):
+            (edge_from, edge_id) = edge
+            return (edge_from, vertex, edge_id)
+        return imap(fn, self.inverseAdjacencyList[vertex])
+
+    def iter_all_edges(self):
+        """iter_all_edges() -> iterable
+
+        Returns an iterator over all edges in the graph in the form
+        (vert_from, vert_to, edge_id)."""
+        verts = self.iter_vertices()
+        edge_itors = imap(self.iter_edges_from, verts)
+        return chain(*[v for v in edge_itors])
+
+    def iter_vertices(self):
+        """iter_vertices() -> iterable
+
+        Returns an iterator over all vertex ids of the graph."""
+        return self.vertices.iterkeys()
 
     fromRandom = staticmethod(fromRandom) 
 
@@ -409,6 +526,27 @@ class TestGraph(unittest.TestCase):
      consistencies.
     
      """
+
+     def make_complete(self, v):
+         """returns a complete graph with v verts."""
+         g = Graph()
+         for x in xrange(v):
+             g.addVertex(x)
+         for f in xrange(v):
+             for t in xrange(f+1, v):
+                 g.addEdge(f, t, f * v + t)
+         return g
+
+     def make_linear(self, v, bw=False):
+         """returns a linear graph with v verts. if bw=True, add bw links."""
+         g = Graph()
+         for x in xrange(v):
+             g.addVertex(x)
+         for x,y in izip(xrange(v-1), xrange(1, v)):
+             g.addEdge(x, y, x)
+             if bw:
+                 g.addEdge(y, x, x + v)
+         return g
 
      def get_default_graph(self):
          g = Graph()
@@ -464,12 +602,15 @@ class TestGraph(unittest.TestCase):
          sinkResult = [None for i in g.sinks() if g.outDegree(i) == 0]
          sourceResult = [None for i in g.sources() if g.inDegree(i) == 0]
          if len(sinkResult) <> len(g.sinks()):
-             print "Inconsistency:",g
              assert False
          if len(sourceResult) <> len(g.sources()):
-             print "Inconsistency:",g
              assert False
 
+     def testRemoveVertices(self):
+         g = self.make_linear(5)
+         g.deleteVertex(1)
+         g.deleteVertex(2)
+         
      def testDFS(self):
          """Test DFS on graph."""
          g = self.get_default_graph()
@@ -537,6 +678,73 @@ class TestGraph(unittest.TestCase):
          g.addEdge(2, 0)
          g2 = g.inverse()
          g3 = g.inverse_immutable()
+     
+     def test_subgraph(self):
+         """Test subgraph routines."""
+         g = self.make_complete(5)
+         sub = g.subgraph([0,1])
+         assert sub.vertices.has_key(0)
+         assert sub.vertices.has_key(1)
+         assert (1,1) in sub.adjacencyList[0]
+         assert (0,1) in sub.inverseAdjacencyList[1]
+
+         g = self.make_linear(3)
+         sub = g.subgraph([0, 2])
+         assert sub.vertices.has_key(0)
+         assert sub.vertices.has_key(2)
+         assert sub.adjacencyList[0] == []
+         assert sub.adjacencyList[2] == []
+         
+     def test_connections_to_subgraph(self):
+         """Test connections_to_subgraph."""
+         g = self.make_linear(5)
+         sub = g.subgraph([3])
+         assert len(g.connections_to_subgraph(sub)) == 1
+         g = self.make_linear(5, True)
+         sub = g.subgraph([3])
+         assert len(g.connections_to_subgraph(sub)) == 2
+
+     def test_connections_from_subgraph(self):
+         """Test connections_from_subgraph."""
+         g = self.make_linear(5)
+         sub = g.subgraph([3])
+         assert len(g.connections_from_subgraph(sub)) == 1
+         g = self.make_linear(5, True)
+         sub = g.subgraph([3])
+         assert len(g.connections_from_subgraph(sub)) == 2
+
+     def test_topologically_contractible(self):
+         """Test topologically_contractible."""
+         g = self.make_linear(5)
+         sub = g.subgraph([1, 2])
+         assert g.topologically_contractible(sub)
+         sub = g.subgraph([1, 3])
+         assert not g.topologically_contractible(sub)
+
+         g = Graph()
+         g.addVertex(0)
+         g.addVertex(1)
+         g.addVertex(2)
+         g.addVertex(3)
+         g.addEdge(0, 1)
+         g.addEdge(2, 3)
+         for i in xrange(1, 16):
+             s = []
+             for j in xrange(4):
+                 if i & (1 << j): s.append(j)
+             assert g.topologically_contractible(g.subgraph(s))
+
+     def test_iter_vertices(self):
+         g = self.get_default_graph()
+         l = list(g.iter_vertices())
+         l.sort()
+         assert l == [0,1,2,3,4]
+
+     def test_iter_edges(self):
+         g = self.get_default_graph()
+         l = [v for v in g.iter_all_edges()]
+         l.sort()
+         assert l == [(0,1,0), (0,3,2), (1, 2, 1), (2, 4, 4), (3, 2, 3)]
 
 if __name__ == '__main__':
     unittest.main()

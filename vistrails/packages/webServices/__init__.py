@@ -23,9 +23,20 @@
 It requires pyXML, fpconst and SOAPpy modules to be installed
 
 """ 
+from core.bundles import py_import
+from core.requirements import MissingRequirement
+
 import xml
-import fpconst
-import SOAPpy
+try:
+    import fpconst
+except:
+    raise MissingRequirement('fpconst')
+
+try:
+    SOAPpy = py_import('SOAPpy', {'linux-ubuntu': 'python-soappy'})
+except:
+    raise MissingRequirement('SOAPpy')
+
 from SOAPpy import WSDL
 
 import core.modules

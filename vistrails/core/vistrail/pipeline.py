@@ -29,6 +29,7 @@ from core.utils import VistrailsInternalError
 from core.utils import expression
 from core.cache.hasher import Hasher
 import core.modules.module_registry
+import core.vistrail.action
 
 import copy
 from types import ListType
@@ -427,6 +428,42 @@ for this pipeline."""
         for c in self.connections.iterkeys():
             self.connection_signature(c)
 
+    def get_subpipeline(self, module_set):
+        """get_subpipeline([module_id] or subgraph) -> Pipeline
+
+        Returns a subset of the current pipeline with the modules passed
+in as module_ids and the internal connections between them."""
+        if type(module_set) == list:
+            subgraph = self.graph.subgraph(module_set)
+        elif type(module_set) == Graph:
+            subgraph = module_set
+        else:
+            raise Exception("Expected list of ints or graph")
+        result = Pipeline()
+        for module_id in subgraph.iter_vertices():
+            result.addModule(copy.copy(self.modules[module_id]))
+        for (conn_from, conn_to, conn_id) in subgraph.iter_all_edges():
+            result.addConnection(copy.copy(self.connections[conn_id]))
+		# I haven't finished this yet. -cscheid
+        raise Exception("Incomplete implementation!")
+        return result
+
+    def dump_actions(self):
+        """dump_actions() -> [Action].
+
+        Returns a list of actions that can be used to create a copy of the
+pipeline."""
+        result = []
+        for m in self.modules.itervalues():
+            add_module = core.vistrail.action.AddModuleAction()
+            add_module.module = copy.copy(m)
+            result.append(add_module)
+        for c in self.connections.itervalues():
+            add_connection = core.vistrail.action.AddConnectionAction()
+            add_connection.connection = copy.copy(c)
+            result.append(add_connection)
+        return result
+
 ################################################################################
 
 def shorthand_param(t, v, a=''):
@@ -589,6 +626,14 @@ class TestPipeline(unittest.TestCase):
                                        ('i2', [('Float', '1.0')])]))
         self.assertNotEquals(p1.module_signature(3),
                              p2.module_signature(3))
+
+#     def test_subpipeline(self):
+#         p = self.create_default_pipeline()
+#         p2 = p.get_subpipeline([0, 1])
+#         for m in p2.modules:
+#             print m
+#         for c in p2.connections:
+#             print c
 
 if __name__ == '__main__':
     unittest.main()
