@@ -129,7 +129,7 @@ def executable_is_in_path(filename):
     
     """
     path = sys.path
-    if path[0] in (".", ""): del path[0]
+#    if path[0] in (".", ""): del path[0]
     pathlist = os.environ['PATH'].split(os.pathsep)
     sts = 0
     ident = ()
