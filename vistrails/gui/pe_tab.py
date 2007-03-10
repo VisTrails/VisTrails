@@ -147,9 +147,12 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
             for pi in range(len(modifiedPipelines)):
                 progress.setValue(mCount[pi])
                 QtCore.QCoreApplication.processEvents()
+                if progress.wasCanceled():
+                    break
                 def moduleExecuted(objId):
-                    progress.setValue(progress.value()+1)
-                    QtCore.QCoreApplication.processEvents()
+                    if not progress.wasCanceled():
+                        progress.setValue(progress.value()+1)
+                        QtCore.QCoreApplication.processEvents()
                 interpreter.execute(
                     modifiedPipelines[pi],
                     self.controller.name,

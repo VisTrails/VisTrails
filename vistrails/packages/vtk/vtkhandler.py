@@ -42,10 +42,16 @@ class vtkInteractionHandler(NotCacheable, Module):
         """        
         self.observer = self.getInputFromPort('Observer')
         self.handler = self.forceGetInputFromPort('Handler', '')
-        self.shareddata = self.forceGetInputFromPort('SharedData', None)
+        self.shareddata = self.forceGetInputListFromPort('SharedData')
+        if len(self.shareddata)==1:
+            self.shareddata = self.shareddata[0]
         if self.observer:
             self.observer.vtkInstance.AddObserver('InteractionEvent',
                                                   self.interactionEvent)
+            self.observer.vtkInstance.AddObserver('EndInteractionEvent',
+                                                  self.endInteractionEvent)
+            self.observer.vtkInstance.AddObserver('StartInteractionEvent',
+                                                  self.startInteractionEvent)
             if hasattr(self.observer.vtkInstance, 'PlaceWidget'):
                 self.observer.vtkInstance.PlaceWidget()
 
@@ -56,12 +62,35 @@ class vtkInteractionHandler(NotCacheable, Module):
         """
         if self.handler!='':
             source = urllib.unquote(self.handler)
-            exec(source + '\ninteractionHandler(obj, self.shareddata)')
+            exec(source + '\nif locals().has_key("interactionHandler"):\n' +
+                 '\tinteractionHandler(obj, self.shareddata)')
+
+    def startInteractionEvent(self, obj, event):
+        """ startInteractionEvent(obj: vtkObject, event: str) -> None
+        Perform handler on starting interaction event
+        
+        """
+        if self.handler!='':
+            source = urllib.unquote(self.handler)
+            exec(source + '\nif locals().has_key("startInteractionHandler"):\n' +
+                 '\tstartInteractionHandler(obj, self.shareddata)')
+
+    def endInteractionEvent(self, obj, event):
+        """ endInteractionEvent(obj: vtkObject, event: str) -> None
+        Perform handler on ending interaction event
+        
+        """
+        if self.handler!='':
+            source = urllib.unquote(self.handler)
+            exec(source + '\nif locals().has_key("endInteractionHandler"):\n' +
+                 '\tendInteractionHandler(obj, self.shareddata)')
 
     def clear(self):
         """
         """
         self.observer.vtkInstance.RemoveObservers("InteractionEvent")
+        self.observer.vtkInstance.RemoveObservers("StartInteractionEvent")
+        self.observer.vtkInstance.RemoveObservers("EndInteractionEvent")
         Module.clear(self)
 
 class HandlerConfigurationWidget(StandardModuleConfigurationWidget):

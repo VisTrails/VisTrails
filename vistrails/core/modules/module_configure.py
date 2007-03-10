@@ -236,7 +236,8 @@ class PythonHighlighter(QtGui.QSyntaxHighlighter):
                                  "assert","try","except",
                                  "exec", "break", "continue"
                                  "not", "and", "or", "as",
-                                 "type"
+                                 "type", "int", "float",
+                                 "string"
                                  ]]
         
         defclassFormat = QtGui.QTextCharFormat()
@@ -273,7 +274,6 @@ class PythonEditor(QtGui.QTextEdit):
     def __init__(self, parent=None):
         QtGui.QTextEdit.__init__(self, parent)
         self.setLineWrapMode(QtGui.QTextEdit.NoWrap)
-        self.setTabStopWidth(4)
         self.setFontFamily('Courier')
         self.setFontPointSize(10.0)
         self.setCursorWidth(8)
@@ -284,7 +284,17 @@ class PythonEditor(QtGui.QTextEdit):
 
     def formatChanged(self, f):
         self.setFontFamily('Courier')
-        self.setFontPointSize(10.0)        
+        self.setFontPointSize(10.0)
+
+    def keyPressEvent(self, event):
+        """ keyPressEvent(event: QKeyEvent) -> Nont
+        Handle tab with 4 spaces
+        
+        """
+        if event.key()==QtCore.Qt.Key_Tab:
+            self.insertPlainText('    ')
+        else:
+            QtGui.QTextEdit.keyPressEvent(self, event)
                  
 class PythonSourceConfigurationWidget(StandardModuleConfigurationWidget):
 

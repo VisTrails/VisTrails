@@ -173,9 +173,12 @@ class BaseInterpreter(object):
                 for p in f.params:
                     if p.alias and p.alias!='':
                         p.evaluatedStrValue = str(aliases[p.alias])
+                        pipeline.modules[mid].cache = False
                     else:
                         (base,exps) = expression.parseExpression(
                             str(p.strValue))
+                        if len(exps)>0:
+                            pipeline.modules[mid].cache = False
                         p.evaluatedStrValue = str(
                             self.evaluateExp(p.type,base,exps,aliases))
         return aliases

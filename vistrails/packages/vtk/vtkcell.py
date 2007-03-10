@@ -46,8 +46,8 @@ class VTKCell(SpreadsheetCell):
         Dispatch the vtkRenderer to the actual rendering widget
         """
         renderers = self.forceGetInputListFromPort('AddRenderer')
-        iHandler = self.forceGetInputFromPort('InteractionHandler')
-        self.display(QVTKWidget, (renderers, iHandler))
+        iHandlers = self.forceGetInputListFromPort('InteractionHandler')
+        self.display(QVTKWidget, (renderers, iHandlers))
 
 AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None,
@@ -125,7 +125,7 @@ class QVTKWidget(QtGui.QWidget):
                      self.playNextFrame)
         self.currentFrame = 0
         self.playing = False
-        self.iHandler = None
+        self.iHandlers = []
         
     def deleteLater(self):
         """ deleteLater() -> None        
@@ -158,21 +158,24 @@ class QVTKWidget(QtGui.QWidget):
         
         """
         renWin = self.GetRenderWindow()
+        for iHandler in self.iHandlers:
+            iHandler.observer.vtkInstance.SetInteractor(None)
+            iHandler.clear()
 
         # Remove old renderers first
         oldRenderers = self.getRendererList()
         for renderer in oldRenderers:
             renWin.RemoveRenderer(renderer)
         
-        (renderers, self.iHandler) = inputPorts
+        (renderers, self.iHandlers) = inputPorts
         for renderer in renderers:
             renWin.AddRenderer(renderer.vtkInstance)
             if hasattr(renderer.vtkInstance, 'IsActiveCameraCreated'):
                 if not renderer.vtkInstance.IsActiveCameraCreated():
                     renderer.vtkInstance.ResetCamera()
-        if self.iHandler:
-            iren = renWin.GetInteractor()
-            self.iHandler.observer.vtkInstance.SetInteractor(iren)
+        iren = renWin.GetInteractor()
+        for iHandler in self.iHandlers:
+            iHandler.observer.vtkInstance.SetInteractor(iren)
         renWin.Render()
 
         # Capture window into history for playback
@@ -217,7 +220,7 @@ class QVTKWidget(QtGui.QWidget):
             if system.systemType=='Linux':
                 vp = '_%s_void_p' % (hex(int(QtGui.QX11Info.display()))[2:])
                 self.mRenWin.SetDisplayId(vp)
-                self.mRenWin.SetSize(1,1)
+                self.resizeWindow(1,1)
             self.mRenWin.SetWindowInfo(str(int(self.winId())))
             if self.isVisible():
                 self.mRenWin.Start()
@@ -230,7 +233,7 @@ class QVTKWidget(QtGui.QWidget):
                     system.XDestroyWindow(self.mRenWin.GetGenericDisplayId(),
                                           self.mRenWin.GetGenericWindowId())
                 self.mRenWin.SetWindowInfo(str(int(self.winId())))
-                self.mRenWin.SetSize(self.width(), self.height())
+                self.resizeWindow(self.width(), self.height())
                 self.mRenWin.SetPosition(self.x(), self.y())
                 s = vtk.vtkInteractorStyleTrackballCamera()
                 iren.SetInteractorStyle(s)
@@ -274,19 +277,11 @@ class QVTKWidget(QtGui.QWidget):
 
         return QtGui.QWidget.event(self,e)
 
-    def resizeEvent(self, e):
-        """ resizeEvent(e: QEvent) -> None
-        Re-adjust the vtkRenderWindow size then QVTKWidget resized
+    def resizeWindow(self, width, height):
+        """ resizeWindow(width: int, height: int) -> None
+        Work around vtk bugs for resizing window
         
         """
-        QtGui.QWidget.resizeEvent(self,e)
-
-        if self.player.isVisible():
-            self.player.setGeometry(self.geometry())
-            
-        if not self.mRenWin:
-            return
-
         ########################################################
         # VTK - BUGGGGGGGGG - GRRRRRRRRR
         # This is a 'bug' in vtkWin32OpenGLRenderWindow(.cxx)
@@ -301,9 +296,25 @@ class QVTKWidget(QtGui.QWidget):
         # SetPosition(curX,curY) also works here but slower.
         self.mRenWin.GetSize()
         
-        self.mRenWin.SetSize(self.width(),self.height())
+        self.mRenWin.SetSize(width, height)
         if self.mRenWin.GetInteractor():
-            self.mRenWin.GetInteractor().SetSize(self.width(),self.height())            
+            self.mRenWin.GetInteractor().SetSize(width, height)
+
+    def resizeEvent(self, e):
+        """ resizeEvent(e: QEvent) -> None
+        Re-adjust the vtkRenderWindow size then QVTKWidget resized
+        
+        """
+        QtGui.QWidget.resizeEvent(self,e)
+
+        if self.player.isVisible():
+            self.player.setGeometry(self.geometry())
+            
+        if not self.mRenWin:
+            return
+
+        self.resizeWindow(self.width(), self.height())
+
 
     def moveEvent(self,e):
         """ moveEvent(e: QEvent) -> None

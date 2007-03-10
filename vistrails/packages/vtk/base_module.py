@@ -82,7 +82,10 @@ class vtkBaseModule(Module):
                 for i in range(len(param)):
                     if hasattr(param[i], 'vtkInstance'):
                         param[i] = param[i].vtkInstance
-                getattr(self.vtkInstance, function)(*param)
+                try:
+                    getattr(self.vtkInstance, function)(*param)
+                except:
+                    print "Cannot execute", function, param
 
         # Then update the output ports also with appropriate function calls
         for function in self.outputPorts.keys():

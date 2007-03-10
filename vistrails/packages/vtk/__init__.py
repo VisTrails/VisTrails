@@ -162,7 +162,7 @@ def addSetGetPorts(module, get_set_dict):
                 continue
             if len(getter[0]) != 1:
                 log("Can't handle getter %s (%s) of class %s: More than a "
-                    "single output" % (order, name, module.vtkClass))
+                    "single output" % (order, name, str(module.vtkClass)))
                 continue
             addOutputPort(module, 'Get'+name, typeMap(getter[0][0]), True)
         for setter, order in zip(setterSig, range(1, len(setterSig)+1)):
@@ -237,18 +237,18 @@ def addOtherPorts(module, other_list):
                                      types[0] in typeMapDictValues)
                     else:
                         addInputPort(module, name, types, True)
-#         else:
-#             method = getattr(module.vtkClass, name)
-#             signatures = get_method_signature(method)
-#             for sig in signatures:
-#                 ([result], params) = sig
-#                 types = []
-#                 if params:
-#                     types = [typeMap(p) for p in params]
-#                 else:
-#                     types = []
-#                 if types==[] or (result==None):
-#                     addInputPort(module, name, types, True)
+        else:
+            method = getattr(module.vtkClass, name)
+            signatures = get_method_signature(method)
+            for sig in signatures:
+                ([result], params) = sig
+                types = []
+                if params:
+                    types = [typeMap(p) for p in params]
+                else:
+                    types = []
+                if types==[] or (result==None):
+                    addInputPort(module, name, types, True)
     
 def addPorts(module):
     """ addPorts(module: VTK module inherited from Module) -> None
@@ -266,6 +266,10 @@ def addPorts(module):
     if module.vtkClass==vtk.vtkAlgorithm:
         addInputPort(module, 'AddInputConnection',
                      typeMap('vtkAlgorithmOutput'))
+    # Somehow vtkProbeFilter.GetOutput cannot be found in any port list
+    if module.vtkClass==vtk.vtkProbeFilter:
+        addOutputPort(module, 'GetOutput',
+                     typeMap('vtkPolyData'), True)
 
 def setAllPorts(treeNode):
     """ setAllPorts(treeNode: TreeNode) -> None
