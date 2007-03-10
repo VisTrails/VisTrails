@@ -536,15 +536,16 @@ class VistrailController(QtCore.QObject):
             if module.registry:
                 desc = module.registry.getDescriptorByName(module.name)
                 for (name, spec) in desc.inputPorts.iteritems():
-                    d = module_registry.registry.getDescriptor(spec[0][0][0])
-                    print d.name
+                    names = [module_registry.registry.getDescriptor(p[0]).name
+                             for p in spec[0]]                    
                     action = AddModulePortAction()
-                    action.addModulePort(newId, 'input', name, '('+d.name+')')
+                    action.addModulePort(newId, 'input', name, '('+','.join(names)+')')
                     actions.append(action)
                 for (name, spec) in desc.outputPorts.iteritems():
-                    d = module_registry.registry.getDescriptor(spec[0][0][0])
+                    names = [module_registry.registry.getDescriptor(p[0]).name
+                             for p in spec[0]]
                     action = AddModulePortAction()
-                    action.addModulePort(newId, 'output', name, '('+d.name+')')
+                    action.addModulePort(newId, 'output', name, '('+','.join(names)+')')
                     actions.append(action)
 
         currentAction = self.performBulkActions(actions)

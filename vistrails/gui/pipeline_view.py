@@ -953,6 +953,7 @@ mutual connections."""
                         conn.serialize(dom, root)
                         copiedConnections[conn] = True
             cb.setText(dom.toxml())
+            
     def pasteFromClipboard(self):
         """ pasteFromClipboard() -> None
         Paste modules/connections from the clipboard into this pipeline view

@@ -205,17 +205,24 @@ class Module(object):
         if self.registry:            
             desc = self.registry.getDescriptorByName(self.name)
             for (pName, pSpec) in desc.inputPorts.iteritems():
-                d = registry.getDescriptor(pSpec[0][0][0])
+                s = []
+                for p in pSpec[0]:
+                    d = registry.getDescriptor(p[0])
+                    s.append(d.name)
                 xmlInput = dom.createElement('inputport')
                 xmlInput.setAttribute('name', str(pName))
-                xmlInput.setAttribute('type', str(d.name))
+                xmlInput.setAttribute('type', "(" +",".join(s)+")")
                 child.appendChild(xmlInput)
             for (pName, pSpec) in desc.outputPorts.iteritems():
-                d = registry.getDescriptor(pSpec[0][0][0])
+                s = []
+                for p in pSpec[0]:
+                    d = registry.getDescriptor(p[0])
+                    s.append(d.name)
                 xmlOutput = dom.createElement('outputport')
                 xmlOutput.setAttribute('name', str(pName))
-                xmlOutput.setAttribute('type', str(d.name))
+                xmlOutput.setAttribute('type', "(" +",".join(s)+")")
                 child.appendChild(xmlOutput)
+                
         element.appendChild(child)
 
     @staticmethod
@@ -276,8 +283,11 @@ class Module(object):
                 if not m.registry:
                     m.registry = core.modules.module_registry.ModuleRegistry()
                     m.registry.addModule(moduleThing)
-                (name, spec) = (n.getAttribute('name'), n.getAttribute('type'))
-                spec = registry.getDescriptorByName(spec).module
+                (name, types) = (str(n.getAttribute('name')), str(n.getAttribute('type')))
+                types = types[1:-1].split(',')
+                spec = [registry.getDescriptorByName(t).module for t in types]
+                if len(spec)==1:
+                    spec = spec[0]
                 if n.localName=="inputport":
                     m.registry.addInputPort(moduleThing, name, spec)
                 else:
