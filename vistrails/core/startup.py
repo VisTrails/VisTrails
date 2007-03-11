@@ -25,12 +25,13 @@
 from core import debug
 from core import system
 from core.utils import InstanceObject
+import copy
+import core.logger
 import core.packagemanager
 import os.path
 import shutil
 import sys
 import tempfile
-import core.logger
 
 ################################################################################
 
@@ -98,7 +99,7 @@ class VistrailsStartup(object):
         self._package_manager = core.packagemanager.PackageManager(
             self.configuration)
         self.startupHooks = []
-        self.runDotVistrails()
+        self._python_environment = self.runDotVistrails()
         self.setupDefaultFolders()
         self.setupBaseModules()
         self.installPackages()
@@ -106,6 +107,11 @@ class VistrailsStartup(object):
         if not self.configuration.nologger:
             core.logger._nologger = False
             core.logger.Logger.get()
+
+    def get_python_environment(self):
+        """get_python_environment(): returns the python environment generated
+by startup.py. This should only be called after init()."""
+        return self._python_environment
 
     def runDotVistrails(self):
         """ runDotVistrails() -> None
@@ -230,7 +236,13 @@ class VistrailsStartup(object):
                     localsDir = {'configuration': self.configuration,
                                  'addStartupHook': addStartupHook,
                                  'addPackage': addPackage}
+                    old_path = copy.copy(sys.path)
+                    sys.path.append(self.configuration.dotVistrails)
                     eval(code, g, localsDir)
+                    sys.path = old_path
+                    del localsDir['addPackage']
+                    del localsDir['addStartupHook']
+                    return localsDir
                 except IOError:
                     if tried_once:
                         debug.critical("""Still cannot find default file.
@@ -244,15 +256,15 @@ class VistrailsStartup(object):
                     debug.critical('Will try to install default' +
                                               'startup file')
                     install_default_startup()
-                    execDotVistrails(True)
+                    return execDotVistrails(True)
             elif not os.path.lexists(self.configuration.dotVistrails):
                 debug.critical('%s not found' % self.configuration.dotVistrails)
                 create_default_directory()
                 install_default_startup()
-                execDotVistrails(True)
+                return execDotVistrails(True)
 
         # Now execute the dot vistrails
-        execDotVistrails()
+        return execDotVistrails()
 
     def setupDefaultFolders(self):
         """ setupDefaultFolders() -> None        

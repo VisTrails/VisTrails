@@ -87,11 +87,18 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
             
         self.vistrailsStartup.init(self.configuration)
         self.runInitialization()
+        self._python_environment = self.vistrailsStartup.get_python_environment()
         
         if self.configuration.interactiveMode:
             self.interactiveMode()
         else:
             self.noninteractiveMode()
+
+    def get_python_environment(self):
+        """get_python_environment(): returns an environment that
+includes local definitions from startup.py. Should only be called
+after self.init()"""
+        return self._python_environment
 
     def destroy(self):
         """ destroy() -> None

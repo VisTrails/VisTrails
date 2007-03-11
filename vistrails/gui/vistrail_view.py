@@ -36,9 +36,9 @@ import os.path
 
 class QVistrailView(QDockContainer):
     """
-    QVistrailView is a widget containing three tabs: Pipeline View,
-    Version Tree View and Query View for manipulating VisTrails
-    
+    QVistrailView is a widget containing four tabs: Pipeline View,
+    Version Tree View, Query View and Parameter Exploration view
+    for manipulating vistrails.
     """
     def __init__(self, parent=None):
         """ QVistrailItem(parent: QWidget) -> QVistrailItem

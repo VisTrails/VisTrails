@@ -30,7 +30,7 @@ import copy
 import sys
 import time
 import os.path
-
+import gui.application
 
 ################################################################################
 
@@ -45,9 +45,9 @@ class QShellDialog(QtGui.QDialog):
         self.setLayout(layout)
         #locals() returns the original dictionary, not a copy as
         #the docs say
-        
-        self.firstLocals = copy.copy(locals())
-        self.shell = QShell(locals(),None)
+        app = gui.application.VistrailsApplication
+        self.firstLocals = copy.copy(app.get_python_environment())
+        self.shell = QShell(self.firstLocals,None)
         self.layout().addWidget(self.shell)
         self.resize(600,400)
         self.createMenu()
@@ -126,6 +126,8 @@ class QShellDialog(QtGui.QDialog):
 
         self.shell.saveSession(str(fileName))
 
+##############################################################################
+# QShell
         
 class QShell(QtGui.QTextEdit):
     """This class embeds a python interperter in a QTextEdit Widget"""
@@ -263,9 +265,17 @@ class QShell(QtGui.QTextEdit):
         
         """
                 
-        self.append(text)
+        self.insertPlainText(text)
         cursor = self.textCursor()
         self.last = cursor.position()
+
+    def scroll_bar_at_bottom(self):
+        """Returns true if vertical bar exists and is at bottom, or if
+        vertical bar does not exist."""
+        bar = self.verticalScrollBar()
+        if not bar:
+            return True
+        return bar.value() == bar.maximum()
         
     def __run(self):
         """__run() -> None
@@ -276,10 +286,12 @@ class QShell(QtGui.QTextEdit):
         (3) the interpreter fails, finds errors and writes them to sys.stderr
         
         """
+        should_scroll = self.scroll_bar_at_bottom()
         self.pointer = 0
         self.history.append(QtCore.QString(self.line))
         self.lines.append(str(self.line))
         source = '\n'.join(self.lines)
+        self.write('\n')
         self.more = self.interpreter.runsource(source)
         if self.more:
             self.write(sys.ps2)
@@ -287,7 +299,11 @@ class QShell(QtGui.QTextEdit):
             self.write(sys.ps1)
             self.lines = []
         self.__clearLine()
-        
+        if should_scroll:
+            bar = self.verticalScrollBar()
+            if bar:
+                bar.setValue(bar.maximum())
+
     def __clearLine(self):
         """__clearLine() -> None
         Clear input line buffer.
