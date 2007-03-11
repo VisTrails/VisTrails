@@ -22,6 +22,12 @@
 """ This module defines the following classes:
     - QShellDialog
     - QShell
+
+QShell is based on ideas and code from PyCute developed by Gerard Vermeulen.
+Used with the author's permission.
+More information on PyCute, visit:
+http://gerard.vermeulen.free.fr/html/pycute-intro.html
+
 """
 from PyQt4 import QtGui, QtCore
 from code import InteractiveInterpreter
@@ -130,7 +136,10 @@ class QShellDialog(QtGui.QDialog):
 # QShell
         
 class QShell(QtGui.QTextEdit):
-    """This class embeds a python interperter in a QTextEdit Widget"""
+    """This class embeds a python interperter in a QTextEdit Widget
+    It is based on PyCute developed by Gerard Vermeulen.
+    
+    """
     def __init__(self, locals=None, parent=None):
         """Constructor.
 
