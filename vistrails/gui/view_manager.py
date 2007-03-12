@@ -69,11 +69,14 @@ class QViewManager(QtGui.QTabWidget):
                      QtCore.SIGNAL('tabSplitRequest(int,QPoint)'),
                      self.splitTab)
 
+        self._views = {}
+
     def addVistrailView(self, view):
         """ addVistrailView(view: QVistrailView) -> None
         Add a vistrail view to the tab, and connect to the right signals
         
         """
+        self._views[view] = view.controller
         if self.indexOf(view)!=-1:
             return
         if self.sdiMode:
@@ -103,6 +106,7 @@ class QViewManager(QtGui.QTabWidget):
         
         """
         if view:
+            del self._views[view]
             view.removeEventFilter(self)
             self.disconnect(view.pipelineTab,
                             QtCore.SIGNAL('moduleSelectionChange'),

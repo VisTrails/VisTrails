@@ -71,6 +71,9 @@ class VistrailController(QtCore.QObject):
         self.changed = False
         self.fullTree = False
 
+    def signal_vistrail_change(self):
+        self.emit(QtCore.SIGNAL('vistrailChanged()'))
+
     def cleanup(self):
         pass
 
@@ -244,7 +247,7 @@ class VistrailController(QtCore.QObject):
         """
         self.search = search
         self.refine = refine
-        self.emit(QtCore.SIGNAL('vistrailChanged()'))
+        self.signal_vistrail_change()
 
     def setFullTree(self, full):
         """ setFullTree(full: bool) -> None        
@@ -253,7 +256,7 @@ class VistrailController(QtCore.QObject):
         
         """
         self.fullTree = full
-        self.emit(QtCore.SIGNAL('vistrailChanged()'))
+        self.signal_vistrail_change()
 
     def refineGraph(self):
         """ refineGraph(controller: VistrailController) -> (Graph, Graph)        
@@ -333,7 +336,7 @@ class VistrailController(QtCore.QObject):
         self.setChanged(True)
 
         self.resetVersionView = False
-        self.emit(QtCore.SIGNAL('vistrailChanged()'))
+        self.signal_vistrail_change()
         self.resetVersionView = True
 
     def updateNotes(self,notes):
@@ -465,7 +468,7 @@ class VistrailController(QtCore.QObject):
         self.setChanged(True)
         
         if not self.quiet:
-            self.emit(QtCore.SIGNAL('vistrailChanged()'))
+            self.signal_vistrail_change()
         return newTimestep
 
     def performBulkActions(self, actions):
@@ -475,8 +478,7 @@ class VistrailController(QtCore.QObject):
         actions are performed
         
         """
-        res = []
-        newTimestep = -1;
+        newTimestep = -1
         for action in actions:
             newTimestep = self.vistrail.getFreshTimestep()
             action.timestep = newTimestep
@@ -487,12 +489,10 @@ class VistrailController(QtCore.QObject):
 
             action.perform(self.currentPipeline)
             self.currentVersion = newTimestep
-            res.append(newTimestep)
 
-        self.setChanged(True)
-            
         if newTimestep != -1 and (not self.quiet):
-            self.emit(QtCore.SIGNAL("vistrailChanged()"))
+            self.setChanged(True)
+            self.signal_vistrail_change()
         
         return newTimestep
 
@@ -559,7 +559,7 @@ class VistrailController(QtCore.QObject):
         self.quiet = False
 
         self.currentVersion = currentAction
-        self.emit(QtCore.SIGNAL("vistrailChanged()"))
+        self.signal_vistrail_change()
 
     def replaceFunction(self, module, functionId, paramList):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))

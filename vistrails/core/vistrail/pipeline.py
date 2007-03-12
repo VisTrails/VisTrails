@@ -41,12 +41,15 @@ from xml.dom.minidom import getDOMImplementation, parseString
 class Pipeline(object):
     """ A Pipeline is a set of modules and connections between them. """
     
-    def __init__(self):
+    def __init__(self, action_chain=None):
         """ __init__() -> Pipeline
         Initializes modules, connections and graph.
 
         """
         self.clear()
+        if action_chain:
+            for action in action_chain:
+                action.perform(self)
 
     def clear(self):
         """clear() -> None. Erases pipeline contents."""

@@ -63,6 +63,33 @@ class Action(object):
      
      """
     createFromXMLDispatch = {}
+
+    class MissingModule(Exception):
+        """MissingModule is necessary because we apply these actions on
+        an empty pipeline on purpose to figure out the context of an
+        analogy."""
+        def __init__(self, module_ids):
+            if type(module_ids) != list:
+                self.module_ids = [module_ids]
+            else:
+                self.module_ids = module_ids
+        def __str__(self):
+            return ("Pipeline is missing necessary module ids: %d" %
+                    self.module_ids)
+
+    class MissingConnection(Exception):
+        """MissingConnection is necessary because we apply these actions on
+        an empty pipeline on purpose to figure out the context of an
+        analogy."""
+        def __init__(self, connection_ids):
+            if type(connection_ids) != list:
+                self.connection_ids = [connection_ids]
+            else:
+                self.connection_ids = connection_ids
+        def __str__(self):
+            return ("Pipeline is missing necessary connection ids: %d" %
+                    self.connection_ids)
+        
     
     def __init__(self, timestep=0, parent=0, date=None, user=None, notes=None):
         """ __init__(timestep=0, parent=0, date=None, user=None, 
@@ -81,6 +108,10 @@ class Action(object):
         self.date = date
         self.user = user
         self.notes = notes
+
+    def relevant_for_analogy(self):
+        """If an action is important for analogies, it should return true."""
+        return False
 
     def perform(self, pipeline):
         """ perform(pipeline) -> None 
@@ -262,6 +293,9 @@ class AddModuleAction(Action):
         Action.__init__(self,timestep,parent,date,user,notes)
         self.module = None
         self.type = 'AddModule'
+
+    def relevant_for_analogy(self):
+        return True
         
     def serialize(self, dom, element):
         """ serialize(dom,element) -> None  
@@ -313,6 +347,9 @@ class AddConnectionAction(Action):
         Action.__init__(self, timestep, parent, date, user,notes)
         self.connection = None
         self.type = 'AddConnection'
+
+    def relevant_for_analogy(self):
+        return True
         
     def serialize(self, dom, element):
         """ serialize(dom,element) -> None  
@@ -365,8 +402,14 @@ class AddConnectionAction(Action):
                              self.connection.id)
             (sourceModuleName, sourcePort) = self.connection.sourceInfo
             (destModuleName, destPort) = self.connection.destinationInfo
-            sourceModule = pipeline.getModuleById(si)
-            destModule = pipeline.getModuleById(di)
+            try:
+                sourceModule = pipeline.getModuleById(si)
+            except KeyError:
+                raise self.MissingModule(si)
+            try:
+                destModule = pipeline.getModuleById(di)
+            except KeyError:
+                raise self.MissingModule(di)
             portFromRep = registry.portFromRepresentation
             self.connection.source = portFromRep(sourceModuleName,
                                                  sourcePort,
@@ -399,6 +442,9 @@ class ChangeParameterAction(Action):
         Action.__init__(self, timestep,parent,date,user,notes)
         self.parameters = []
         self.type = 'ChangeParameter'
+
+    def relevant_for_analogy(self):
+        return True
 
     def addParameter(self, moduleId, functionId, paramId,
                      function, param, value, type_, alias):
@@ -492,7 +538,10 @@ class ChangeParameterAction(Action):
         
         """
         for p in self.parameters:
-            m = pipeline.getModuleById(p[0])
+            try:
+                m = pipeline.getModuleById(p[0])
+            except KeyError:
+                raise self.MissingModule(p[0])
             if p[1] >= len(m.functions):
                 f = ModuleFunction()
                 f.name = p[2]
@@ -544,6 +593,9 @@ class DeleteModuleAction(Action):
        
         """
         self.ids.append(id)
+
+    def relevant_for_analogy(self):
+        return True
        
     def serialize(self, dom, element):
         """ serialize(dom,element) -> None  
@@ -588,6 +640,15 @@ class DeleteModuleAction(Action):
         Apply this action to pipeline.
         
         """
+        # Check first so that we're atomic: either perform all of it
+        # or none of it
+        missing = []
+        for id in self.ids:
+            if not pipeline.modules.has_key(id):
+                missing.append(id)
+        if len(missing):
+            raise self.MissingModule(missing)
+        
         for id in self.ids:
             pipeline.deleteModule(id)
 
@@ -605,6 +666,9 @@ class DeleteConnectionAction(Action):
        
         """
         self.ids.append(id)
+
+    def relevant_for_analogy(self):
+        return True
 
     def serialize(self, dom, element):
         """ serialize(dom,element) -> None  
@@ -649,6 +713,15 @@ class DeleteConnectionAction(Action):
         Apply this action to pipeline.
         
         """
+        # Check first so that we're atomic: either perform all of it
+        # or none of it
+        missing = []
+        for id in self.ids:
+            if not pipeline.connections.has_key(id):
+                missing.append(id)
+        if len(missing):
+            raise self.MissingConnection(missing)
+
         for id in self.ids:
             pipeline.deleteConnection(id)
 
@@ -733,8 +806,15 @@ class DeleteFunctionAction(Action):
         Apply this action to pipeline.
         
         """
-        pipeline.getModuleById(self.moduleId).deleteFunction(self.functionId)
+        try:
+            m = pipeline.getModuleById(self.moduleId)
+        except KeyError:
+            raise self.MissingModule(self.moduleId)
+        m.deleteFunction(self.functionId)
         pipeline.removeAliases(mId=self.moduleId,fId=self.functionId)
+
+    def relevant_for_analogy(self):
+        return True
 
     def serialize(self, dom, element):
         """ serialize(dom,element) -> None  
