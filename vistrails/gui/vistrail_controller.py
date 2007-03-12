@@ -413,7 +413,10 @@ class VistrailController(QtCore.QObject):
         assert type(pair[1]) == type('')        
         action = ChangeAnnotationAction()
         action.addAnnotation(moduleId, pair[0], pair[1])
+        savedQuiet = self.quiet
+        self.quiet = not pair[0] in ['__desc__']
         self.performAction(action)
+        self.quiet = savedQuiet
         
     def addModulePort(self, module_id, port):
         """

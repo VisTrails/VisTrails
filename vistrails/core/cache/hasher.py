@@ -34,6 +34,7 @@ class Hasher(object):
         hasher.update(p.type)
         hasher.update(p.strValue)
         hasher.update(p.name)
+        hasher.update(str(p.value))
         return hasher.digest()
 
     @staticmethod

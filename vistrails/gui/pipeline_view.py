@@ -348,11 +348,16 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         self.setZValue(0)
         self.labelFont = CurrentTheme.MODULE_FONT
         self.labelFontMetric = CurrentTheme.MODULE_FONT_METRIC
+        self.descFont = CurrentTheme.MODULE_DESC_FONT
+        self.descFontMetric = CurrentTheme.MODULE_DESC_FONT_METRIC
         self.modulePen = CurrentTheme.MODULE_PEN
         self.moduleBrush = CurrentTheme.MODULE_BRUSH
         self.labelPen = CurrentTheme.MODULE_LABEL_PEN
+        self.labelRect = QtCore.QRectF()
+        self.descRect = QtCore.QRectF()
         self.id = -1
         self.label = ''
+        self.description = ''
         self.inputPorts = {}
         self.outputPorts = {}
         self.dependingConnectionItems = []
@@ -366,13 +371,34 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         Adjust the module size according to the text size
         
         """
-        textRect = self.labelFontMetric.boundingRect(self.label)
-        textRect.translate(-textRect.center().x(), -textRect.center().y())
+        labelRect = self.labelFontMetric.boundingRect(self.label)
+        labelRect.translate(-labelRect.center().x(), -labelRect.center().y())
+        if self.description:
+            descRect = self.descFontMetric.boundingRect(self.description)
+            descRect.adjust(0, 0, 0, CurrentTheme.MODULE_PORT_MARGIN[3])
+        else:
+            descRect = QtCore.QRectF(0, 0, 0, 0)
         self.paddedRect = QtCore.QRectF(
-            textRect.adjusted(-CurrentTheme.MODULE_LABEL_MARGIN[0],
-                              -CurrentTheme.MODULE_LABEL_MARGIN[1],
+            labelRect.adjusted(-CurrentTheme.MODULE_LABEL_MARGIN[0],
+                              -CurrentTheme.MODULE_LABEL_MARGIN[1]
+                              -descRect.height()/2,
                               CurrentTheme.MODULE_LABEL_MARGIN[2],
-                              CurrentTheme.MODULE_LABEL_MARGIN[3]))
+                              CurrentTheme.MODULE_LABEL_MARGIN[3]
+                              +descRect.height()/2))
+        self.description = self.descFontMetric.elidedText(
+            self.description, QtCore.Qt.ElideRight, labelRect.width())
+        self.description.prepend('(').append(')')
+        
+        self.labelRect = QtCore.QRectF(
+            self.paddedRect.left(),
+            -(labelRect.height()+descRect.height())/2,
+            self.paddedRect.width(),
+            labelRect.height())
+        self.descRect = QtCore.QRectF(
+            self.paddedRect.left(),
+            self.labelRect.bottom(),
+            self.paddedRect.width(),
+            descRect.height())
 
     def boundingRect(self):
         """ boundingRect() -> QRectF
@@ -431,7 +457,11 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
     
         setLabelPen()
         painter.setFont(self.labelFont)
-        painter.drawText(self.paddedRect, QtCore.Qt.AlignCenter, self.label)
+        painter.drawText(self.labelRect, QtCore.Qt.AlignCenter, self.label)
+        if self.descRect:
+            painter.setFont(self.descFont)
+            painter.drawText(self.descRect, QtCore.Qt.AlignCenter,
+                             self.description)
 
     def adjustWidthToMin(self, minWidth):
         """ adjustWidthToContain(minWidth: int) -> None
@@ -451,6 +481,8 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         self.id = module.id
         self.module = module
         self.label = module.name
+        self.description = module.annotations.get('__desc__', '').strip()
+        self.setToolTip(self.description)
         self.computeBoundingRect()
         self.resetMatrix()
         self.translate(module.center.x, -module.center.y)

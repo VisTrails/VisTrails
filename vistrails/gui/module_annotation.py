@@ -138,9 +138,6 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
         else:
             value = ''
         
-        if self.table.controller:
-            self.table.controller.quiet = True
-
         if col==0:
             if text=='' and row<self.table.rowCount()-1:
                 self.table.removeRow(row)
@@ -160,8 +157,6 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
             QtGui.QMessageBox.information(None,
                                           "VisTrails",
                                           "Must provide a key first.")
-            if self.table.controller:
-                self.table.controller.quiet = False
             return
             
             
@@ -185,5 +180,3 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
                                                 self.table.module.id)
         
         model.setData(index, QtCore.QVariant(text))        
-        if self.table.controller:
-            self.table.controller.quiet = False
