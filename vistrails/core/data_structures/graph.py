@@ -30,6 +30,7 @@ from core.utils import withIndex, iter_with_index
 from core.data_structures.queue import Queue
 
 ################################################################################
+# Graph
 
 class Graph(object):
     """Graph holds a graph with possible multiple edges. The
@@ -48,6 +49,9 @@ class Graph(object):
     >>> g.outDegree('bar')
     1    
     """
+
+    ##########################################################################
+    # Constructor
     
     def __init__(self):
         """ Graph() -> Graph
@@ -57,6 +61,9 @@ class Graph(object):
         self.vertices = {}
         self.adjacencyList = {}
         self.inverseAdjacencyList = {}
+
+    ##########################################################################
+    # Accessors
 
     def addVertex(self, id):
         """ addVertex(id: id type) -> None
@@ -202,62 +209,16 @@ shares with self.)
         """
         return self.adjacencyList[id]
 
-    def __str__(self):
-        """ __str__() -> str
-        Format the graph for serialization and return a string
+    def get_edge(self, frm, to):
+        """ get_edge(frm, to) -> edge_id
 
-        """
-        vs = self.vertices.keys()
-        vs.sort()
-        al = []
-        for i in [map(lambda (t, i): (f, t, i), l)
-                  for (f, l) in self.adjacencyList.items()]:
-            al.extend(i)
-        al.sort(edge_cmp)
-        return "digraph G { " \
-               + ";".join([str(s) for s in vs]) + ";" \
-               + ";".join(["%s -> %s [label=\"%s\"]" % s for s in al]) + "}"
+        Returns the id from the edge from->to."""
+        for (t, e_id) in self.edgesFrom(frm):
+            if t == to:
+                return e_id
 
-    def __repr__(self):
-        """ __repr__() -> str
-        Similar to __str__ to re-represent the graph and returns a string
-
-        """
-        return self.__str__()
-
-    def fromRandom(size):
-        """ fromRandom(size:int) -> Graph
-        Create a DAG with approximately size/e vertices and 3*|vertex| edges
-        and return a Graph
-
-        Keyword arguments:
-        size -- the estimated size of the graph to generate
-
-        """
-        result = Graph()
-        verts = filter(lambda x: x>0, peckcheck.a_list(peckcheck.an_int)(size))
-        for v in verts:
-            result.addVertex(v)
-        k = size / math.e
-        p = (6*k) / ((k+1)*(k+2))
-        eid = 0
-        for v in verts:
-            for k in verts:
-                if v < k and random.random() > p:
-                    result.addEdge(v, k, eid)
-                    eid = eid + 1
-        return result
-
-    def __copy__(self):
-        """ __copy__() -> Graph
-        Make a copy of the graph and return a Graph
-
-        """
-        cp = Graph()
-        cp.vertices = copy.deepcopy(self.vertices)
-        cp.adjacencyList = copy.deepcopy(self.adjacencyList)
-        cp.inverseAdjacencyList = copy.deepcopy(self.inverseAdjacencyList)
-        return cp
+    ##########################################################################
+    # Graph algorithms
 
     def bfs(self, frm):
         """ bfs(frm:id type) -> dict(id type)
@@ -405,13 +366,14 @@ a pipeline subgraph forms a legal abstraction."""
         except self.GraphContainsCycles:
             return False
 
-
-        
+    ##########################################################################
+    # Subgraphs
 
     def subgraph(self, vertex_set):
         """ subgraph(vertex_set) -> Graph.
 
-Returns a subgraph of self containing all vertices and connections between them."""
+Returns a subgraph of self containing all vertices and connections
+between them."""
         result = Graph()
         vertex_set = set(vertex_set)
         # add vertices
@@ -457,6 +419,9 @@ Returns the list of all edges that connect from a vertex \in subgraph to a verte
                     result.append((v, v_to, e_id))
         return result
 
+    ##########################################################################
+    # Iterators
+
     def iter_edges_from(self, vertex):
         """iter_edges_from(self, vertex) -> iterable
 
@@ -492,7 +457,69 @@ Returns the list of all edges that connect from a vertex \in subgraph to a verte
         Returns an iterator over all vertex ids of the graph."""
         return self.vertices.iterkeys()
 
-    fromRandom = staticmethod(fromRandom) 
+    ##########################################################################
+    # Special Python methods
+
+    def __str__(self):
+        """ __str__() -> str
+        Format the graph for serialization and return a string
+
+        """
+        vs = self.vertices.keys()
+        vs.sort()
+        al = []
+        for i in [map(lambda (t, i): (f, t, i), l)
+                  for (f, l) in self.adjacencyList.items()]:
+            al.extend(i)
+        al.sort(edge_cmp)
+        return "digraph G { " \
+               + ";".join([str(s) for s in vs]) + ";" \
+               + ";".join(["%s -> %s [label=\"%s\"]" % s for s in al]) + "}"
+
+    def __repr__(self):
+        """ __repr__() -> str
+        Similar to __str__ to re-represent the graph and returns a string
+
+        """
+        return self.__str__()
+
+    def __copy__(self):
+        """ __copy__() -> Graph
+        Make a copy of the graph and return a Graph
+
+        """
+        cp = Graph()
+        cp.vertices = copy.deepcopy(self.vertices)
+        cp.adjacencyList = copy.deepcopy(self.adjacencyList)
+        cp.inverseAdjacencyList = copy.deepcopy(self.inverseAdjacencyList)
+        return cp
+
+    ##########################################################################
+    # Etc
+
+    @staticmethod
+    def fromRandom(size):
+        """ fromRandom(size:int) -> Graph
+        Create a DAG with approximately size/e vertices and 3*|vertex| edges
+        and return a Graph
+
+        Keyword arguments:
+        size -- the estimated size of the graph to generate
+
+        """
+        result = Graph()
+        verts = filter(lambda x: x>0, peckcheck.a_list(peckcheck.an_int)(size))
+        for v in verts:
+            result.addVertex(v)
+        k = size / math.e
+        p = (6*k) / ((k+1)*(k+2))
+        eid = 0
+        for v in verts:
+            for k in verts:
+                if v < k and random.random() > p:
+                    result.addEdge(v, k, eid)
+                    eid = eid + 1
+        return result
 
 def edge_cmp(v1, v2):
     """ edge_cmp(v1: id type, v2:id type) -> int
@@ -515,6 +542,7 @@ def edge_cmp(v1, v2):
         return cmp(id1, id2)
 
 ################################################################################
+# Unit testing
 
 import unittest
 import random
