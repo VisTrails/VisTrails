@@ -33,18 +33,21 @@ systemType = platform.system()
 
 if systemType in ['Windows', 'Microsoft']:
     from core.system.windows import guessTotalMemory, temporaryDirectory, \
+        list2cmdline, \
         homeDirectory, remoteCopyProgram, remoteShellProgram, \
         graphVizDotCommandLine, removeGraphvizTemporaries, link_or_copy, \
         executable_is_in_path, TestWindows
 
 elif systemType in ['Linux']:
     from core.system.linux import guessTotalMemory, temporaryDirectory, \
+        list2cmdline, \
         homeDirectory, remoteCopyProgram, remoteShellProgram, \
         graphVizDotCommandLine, removeGraphvizTemporaries, link_or_copy, \
         XDestroyWindow, executable_is_in_path, TestLinux
 
 elif systemType in ['Darwin']:
     from core.system.osx import guessTotalMemory, temporaryDirectory, \
+        list2cmdline, \
         homeDirectory, remoteCopyProgram, remoteShellProgram, \
         graphVizDotCommandLine, removeGraphvizTemporaries, link_or_copy, \
         executable_is_in_path, TestMacOSX

@@ -23,6 +23,7 @@ import os
 import shutil
 import sys
 import stat
+import subprocess
 
 try:
     from ctypes import windll, Structure, c_ulong
@@ -145,6 +146,9 @@ def executable_is_in_path(filename):
         if stat.S_ISREG(st[stat.ST_MODE]):
             return filename
     return ""
+
+def list2cmdline(lst):
+    return '"%s"' % subprocess.list2cmdline(lst)
 
 ################################################################################
 

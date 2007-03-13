@@ -32,6 +32,7 @@ import core.modules.basic_modules
 from core.modules.vistrails_module import Module, ModuleError, newModule, IncompleteImplementation
 import core.requirements
 import core.system
+from core.system import list2cmdline
 import core.bundles
 import os
 
@@ -92,13 +93,14 @@ indicated by the appropriate ports (geometry or width and height)"""
 
     def run(self, *args):
         """run(*args), runs ImageMagick's 'convert' on a shell, passing all
-arguments to the program."""        
-        cmdline = ("convert" + (" %s" * len(args))) % args
+arguments to the program."""
+        cmd = ['convert'] + list(args)
+        cmdline = list2cmdline(cmd)
         if not self.__quiet:
             print cmdline
         r = os.system(cmdline)
         if r != 0:
-            raise ModuleError("system call failed: '%s'" % cmdline)
+            raise ModuleError(self, "system call failed: '%s'" % cmdline)
 
     def compute(self):
         o = self.create_output_file()

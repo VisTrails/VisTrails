@@ -34,6 +34,7 @@ import core.modules.basic_modules
 from core.modules.vistrails_module import Module, ModuleError, newModule
 import core.requirements
 import core.bundles
+from core.system import list2cmdline
 import os
 
 ################################################################################
@@ -41,8 +42,8 @@ import os
 class AfrontRun(object):
 
     def run(self, args):
-        cmdline = ("afront -nogui " + (" %s" * len(args)))
-        cmdline = cmdline % tuple(args)
+        cmd = ['afront', '-nogui'] + args
+        cmdline = list2cmdline(cmd)
         print cmdline
         result = os.system(cmdline)
         if result != 0:
@@ -59,10 +60,10 @@ class Afront(Module, AfrontRun):
         args.append(self.getInputFromPort("file").name)
         if self.hasInputFromPort("rho"):
             args.append("-rho")
-            args.append(self.getInputFromPort("rho"))
+            args.append(str(self.getInputFromPort("rho")))
         if self.hasInputFromPort("eta"):
             args.append("-eta")
-            args.append(self.getInputFromPort("eta"))
+            args.append(str(self.getInputFromPort("eta")))
         args.append("-outname")
         args.append(o.name)
         args.append("-tri")

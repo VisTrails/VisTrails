@@ -37,6 +37,7 @@ import core.modules
 import core.modules.basic_modules
 import core.modules.module_registry
 import core.utils
+from core.system import list2cmdline
 import os
 import os.path
 import stat
@@ -57,11 +58,12 @@ package. It simply define helper methods for subclasses."""
     
     def air_cmd_line(self, cmd, *params):
         """Runs a command-line command for the AIR tools."""
-        return (global_airpath + cmd + " %s" * len(params)) % params
+        return list2cmdline([global_airpath + cmd] + list(params))
 
     def fsl_cmd_line(self, cmd, *params):
         """Runs a command-line command for the FSL tools."""
-        return ('FSLOUTPUTTYPE=NIFTI_GZ ' + global_fslpath + cmd + " %s" * len(params)) % params
+        return ('FSLOUTPUTTYPE=NIFTI_GZ ' +
+                list2cmdline([global_fslpath + cmd] + list(params)))
 
     def run(self, cmd):
         if not self.__quiet:
@@ -115,12 +117,12 @@ class AlignWarp(ProvenanceChallenge):
         model = self.getInputFromPort("model")
         o = self.interpreter.filePool.create_file(suffix='.warp')
         cmd = self.air_cmd_line('align_warp',
-                                  image.name,
-                                  ref.name,
-                                  o.name,
-                                  '-m',
-                                  model,
-                                  '-q')
+                                image.name,
+                                ref.name,
+                                o.name,
+                                '-m',
+                                str(model),
+                                '-q')
         self.run(cmd)
         self.setResult("output", o)
 
@@ -179,13 +181,13 @@ class PGMToPPM(ProvenanceChallenge):
     """PGMToPPM executes the netpbm pgmtoppm tool on the input."""
 
     def compute(self):
-        cmd = ['pgmtoppm white']
+        cmd = ['pgmtoppm', 'white']
         i = self.getInputFromPort("input")
         cmd.append(i.name)
         o = self.interpreter.filePool.create_file(suffix='.ppm')
         cmd.append(' >')
         cmd.append(o.name)
-        self.run(" ".join(cmd))
+        self.run(list2cmdline(cmd))
         self.setResult('output', o)
         
 
@@ -199,7 +201,7 @@ class PNMToJpeg(ProvenanceChallenge):
         o = self.interpreter.filePool.create_file(suffix='.jpg')
         cmd.append(' >')
         cmd.append(o.name)
-        self.run(" ".join(cmd))
+        self.run(list2cmdline(cmd))
         self.setResult('output', o)
 
 ################################################################################

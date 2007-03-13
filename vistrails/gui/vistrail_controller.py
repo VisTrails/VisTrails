@@ -71,7 +71,8 @@ class VistrailController(QtCore.QObject):
         self.changed = False
         self.fullTree = False
 
-    def signal_vistrail_change(self):
+    def invalidate_version_tree(self):
+		#FIXME: in the future, rename the signal
         self.emit(QtCore.SIGNAL('vistrailChanged()'))
 
     def cleanup(self):
@@ -247,7 +248,7 @@ class VistrailController(QtCore.QObject):
         """
         self.search = search
         self.refine = refine
-        self.signal_vistrail_change()
+        self.invalidate_version_tree()
 
     def setFullTree(self, full):
         """ setFullTree(full: bool) -> None        
@@ -256,7 +257,7 @@ class VistrailController(QtCore.QObject):
         
         """
         self.fullTree = full
-        self.signal_vistrail_change()
+        self.invalidate_version_tree()
 
     def refineGraph(self):
         """ refineGraph(controller: VistrailController) -> (Graph, Graph)        
@@ -336,7 +337,7 @@ class VistrailController(QtCore.QObject):
         self.setChanged(True)
 
         self.resetVersionView = False
-        self.signal_vistrail_change()
+        self.invalidate_version_tree()
         self.resetVersionView = True
 
     def updateNotes(self,notes):
@@ -473,7 +474,7 @@ class VistrailController(QtCore.QObject):
         self.setChanged(True)
         
         if not self.quiet:
-            self.signal_vistrail_change()
+            self.invalidate_version_tree()
         return newTimestep
 
     def performBulkActions(self, actions):
@@ -497,7 +498,7 @@ class VistrailController(QtCore.QObject):
 
         if newTimestep != -1 and (not self.quiet):
             self.setChanged(True)
-            self.signal_vistrail_change()
+            self.invalidate_version_tree()
         
         return newTimestep
 
@@ -564,7 +565,7 @@ class VistrailController(QtCore.QObject):
         self.quiet = False
 
         self.currentVersion = currentAction
-        self.signal_vistrail_change()
+        self.invalidate_version_tree()
 
     def replaceFunction(self, module, functionId, paramList):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))

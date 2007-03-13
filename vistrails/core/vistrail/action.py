@@ -988,6 +988,9 @@ class AddModulePortAction(Action):
         self.moduleId = -1
         self.type = 'AddModulePort'
 
+    def relevant_for_analogy(self):
+        return True
+
     def addModulePort(self, moduleId, portType, portName, portSpec):
         """addModulePort(moduleId:int, portType:str, 
                          portName:str, portSpec:str) -> None 
@@ -1073,6 +1076,9 @@ class DeleteModulePortAction(Action):
         Action.__init__(self,timestep,parent,date,user,notes)
         self.moduleId = -1
         self.type = 'DeleteModulePort'
+
+    def relevant_for_analogy(self):
+        return True
         
     def perform(self, pipeline):
         """ perform(pipeline:Pipeline) -> None 

@@ -24,6 +24,7 @@
 
 import popen2
 import core.utils
+import subprocess
 
 def executable_is_in_path(filename):
     """executable_is_in_path(filename): string
@@ -44,3 +45,7 @@ the filename if true, or an empty string if false."""
         conv_output = process.fromchild
         output = conv_output.readlines()[0][:-1]
         return output
+
+def list2cmdline(lst):
+    return subprocess.list2cmdline(lst)
+

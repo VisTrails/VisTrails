@@ -29,7 +29,7 @@ import os
 import shutil
 import popen2
 import core.utils
-from core.system.unix import executable_is_in_path
+from core.system.unix import executable_is_in_path, list2cmdline
 
 ###############################################################################
 # Extract system detailed information of a Mac system

@@ -58,15 +58,16 @@ package. It simply define helper methods for subclasses."""
     
     def air_cmd_line(self, cmd, *params):
         """Runs a command-line command for the AIR tools."""
-        return (global_airpath + cmd + " %s" * len(params)) % params
+        return list2cmdline([global_airpath + cmd] + list(params))
 
     def fsl_cmd_line(self, cmd, *params):
         """Runs a command-line command for the FSL tools."""
-        return ('FSLOUTPUTTYPE=NIFTI_GZ ' + global_fslpath + cmd + " %s" * len(params)) % params
+        return ('FSLOUTPUTTYPE=NIFTI_GZ ' +
+                list2cmdline([global_fslpath + cmd] + list(params)))
 
     def netpbm_cmd_line(self, cmd, *params):
 	"""Runs a command-line command for the netpbm tools."""
-	return (global_netpbmpath + cmd + " %s" * len(params)) % params
+        return list2cmdline([global_netpbmpath + cmd] + list(params))
 
     def run(self, cmd):
         if not self.__quiet:
