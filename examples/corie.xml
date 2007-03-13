@@ -8801,6 +8801,198 @@
     <action date="09 Mar 2007 18:34:36" parent="2523" time="2524" user="hvo" what="changeParameter">
       <set alias="" function="source" functionId="0" moduleId="95" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20vtk%0Afrom%20core.modules.module_registry%20import%20registry%0A%0AprobeFilter%20%3D%20probed.vtkInstance%0AprobeFilter.Update%28%29%0ApolyData%20%3D%20probeFilter.GetOutput%28%29%0ApCount%20%3D%20polyData.GetNumberOfPoints%28%29%0Apoints%20%3D%20polyData.GetPoints%28%29%0Adata%20%3D%20polyData.GetPointData%28%29.GetScalars%28%29%0A%0AcolCount%20%3D%2016%0ArowCount%20%3D%20101%0AcM%20%3D%200.3/%28colCount-1%29%0ArM%20%3D%200.65/%28rowCount-1%29%0A%0AnewPoints%20%3D%20vtk.vtkPoints%28%29%0AnewPoints.Allocate%28rowCount%2AcolCount%2C%201%29%0A%0Afor%20i%20in%20range%28pCount%29%3A%0A%20%20%20%20col%20%3D%20i%25colCount%0A%20%20%20%20row%20%3D%20i/colCount%0A%20%20%20%20newPoints.InsertPoint%28i%2C%200.15%20%2B%20row%2ArM%2C%200.95%20-%20col%2AcM%2C%200%29%0A%0AcellArray%20%3D%20vtk.vtkCellArray%28%29%0AcellArray.Allocate%28%28rowCount-1%29%2A%28colCount-1%29%2C%201%29%0Afor%20i%20in%20range%28rowCount-1%29%3A%0A%20%20%20%20for%20j%20in%20range%28colCount-1%29%3A%0A%20%20%20%20%20%20%20%20quad%20%3D%20vtk.vtkQuad%28%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetNumberOfIds%284%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetId%280%2C%20i%2AcolCount%20%2B%20j%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetId%281%2C%20i%2AcolCount%20%2B%20j%20%2B%201%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetId%282%2C%20%28i%2B1%29%2AcolCount%20%2B%20j%20%2B%201%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetId%283%2C%20%28i%2B1%29%2AcolCount%20%2B%20j%29%0A%20%20%20%20%20%20%20%20cellArray.InsertNextCell%28quad%29%0A%0Apoly%20%3D%20vtk.vtkPolyData%28%29%0Apoly.SetPoints%28newPoints%29%0Apoly.GetPointData%28%29.SetScalars%28data%29%0Apoly.SetPolys%28cellArray%29%0A%0Aif%20not%20globals%28%29.has_key%28%27__polyDataInstance%27%29%3A%0A%20%20%20%20global%20__polyDataInstance%0A%20%20%20%20__polyDataInstance%20%3D%20vtk.vtkPolyData%28%29%0A__polyDataInstance.ShallowCopy%28poly%29%0A%0ApolyData%20%3D%20registry.getDescriptorByName%28%27vtkPolyData%27%29.module%28%29%0ApolyData.vtkInstance%20%3D%20__polyDataInstance%0A%0A%0A"/>
     </action>
+    <action date="12 Mar 2007 13:05:39" parent="2524" time="2525" user="hvo" what="changeAnnotation">
+      <set key="__desc__" moduleId="69" value=""/>
+    </action>
+    <action date="12 Mar 2007 13:06:04" parent="2525" time="2526" user="hvo" what="changeAnnotation">
+      <set key="__desc__" moduleId="69" value="Read Slice"/>
+    </action>
+    <action date="12 Mar 2007 13:06:30" parent="2526" time="2527" user="hvo" what="moveModule">
+      <move dx="56.1933647401" dy="47.9699455099" id="69"/>
+    </action>
+    <action date="12 Mar 2007 13:06:30" parent="2527" time="2528" user="hvo" what="changeAnnotation">
+      <set key="__desc__" moduleId="69" value="where is it"/>
+    </action>
+    <action date="12 Mar 2007 13:07:04" parent="2528" time="2529" user="hvo" what="moveModule">
+      <move dx="60.3050743553" dy="-13.7056987171" id="118"/>
+    </action>
+    <action date="12 Mar 2007 13:07:27" parent="2529" time="2530" user="hvo" what="changeAnnotation">
+      <set key="__desc__" moduleId="120" value=""/>
+    </action>
+    <action date="12 Mar 2007 13:07:38" parent="2530" time="2531" user="hvo" what="changeAnnotation">
+      <set key="__desc__" moduleId="120" value="center"/>
+    </action>
+    <action date="12 Mar 2007 13:07:58" parent="2531" time="2532" user="hvo" what="changeAnnotation">
+      <set key="__desc__" moduleId="119" value=""/>
+    </action>
+    <action date="12 Mar 2007 13:08:03" parent="2532" time="2533" user="hvo" what="changeAnnotation">
+      <set key="__desc__" moduleId="119" value="ray"/>
+    </action>
+    <action date="12 Mar 2007 13:08:35" parent="2533" time="2534" user="hvo" what="moveModule">
+      <move dx="-39.7465262796" dy="-1.37056987171" id="119"/>
+    </action>
+    <action date="12 Mar 2007 13:08:45" parent="2534" time="2535" user="hvo" what="moveModule">
+      <move dx="0.0" dy="-1.37056987171" id="69"/>
+    </action>
+    <action date="12 Mar 2007 13:08:45" parent="2535" time="2536" user="hvo" what="changeAnnotation">
+      <set key="__desc__" moduleId="69" value="read vertical slice"/>
+    </action>
+    <action date="12 Mar 2007 13:09:27" parent="2536" time="2537" user="hvo" what="changeParameter">
+      <set alias="" function="source" functionId="0" moduleId="69" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20vtk%0Aimport%20math%0Afrom%20core.modules.module_registry%20import%20registry%0A%0Af%20%3D%20open%28filename%2C%20%27r%27%29%0Afn%20%3D%20f.readline%28%29.rstrip%28%29%0AvCount%20%3D%20int%28f.readline%28%29.rstrip%28%29%29%0A%0Apoints%20%3D%20vtk.vtkPoints%28%29%0Apoints.SetNumberOfPoints%28vCount%29%0A%0Alength%20%3D%200.0%0AlastXY%20%3D%20None%0Afor%20i%20in%20range%28vCount%29%3A%20%20%20%20%0A%20%20%20%20%28idS%2C%20xS%2C%20yS%2C%20zS%29%20%3D%20f.readline%28%29.rstrip%28%29.split%28%29%0A%20%20%20%20%28x%2C%20y%2C%20z%29%20%3D%20%28float%28xS%29%2C%20float%28yS%29%2C%20float%28zS%29%29%0A%20%20%20%20points.InsertPoint%28i%2C%20x%2C%20y%2C%20z%2BzShift%29%0A%20%20%20%20if%20lastXY%21%3DNone%3A%0A%20%20%20%20%20%20%20%20length%20%2B%3D%20math.sqrt%28%28x-lastXY%5B0%5D%29%2A%28x-lastXY%5B0%5D%29%20%2B%20%28y-lastXY%5B1%5D%29%2A%28y-lastXY%5B1%5D%29%29%0A%20%20%20%20lastXY%20%3D%20%28x%2C%20y%29%0Af.close%28%29%0A%0ApolyLine%20%3D%20vtk.vtkPolyLine%28%29%0ApolyLine.GetPointIds%28%29.SetNumberOfIds%28vCount%29%0Afor%20i%20in%20range%28vCount%29%3A%0A%20%20%20%20polyLine.GetPointIds%28%29.SetId%28i%2Ci%29%0A%0AcellArray%20%3D%20vtk.vtkCellArray%28%29%0AcellArray.InsertNextCell%28polyLine%29%0A%0Apoly%20%3D%20vtk.vtkPolyData%28%29%0Apoly.SetPoints%28points%29%0Apoly.SetLines%28cellArray%29%0A%0Apolydata%3D%20registry.getDescriptorByName%28%27vtkPolyData%27%29.module%28%29%0Apolydata.vtkInstance%20%3D%20poly%0A%0Av1%20%3D%20%28points.GetPoint%280%29%5B1%5D-points.GetPoint%281%29%5B1%5D%2C%0A%20%20%20%20%20%20points.GetPoint%281%29%5B0%5D-points.GetPoint%280%29%5B0%5D%29%0Av2%20%3D%20%28points.GetPoint%281%29%5B1%5D-points.GetPoint%282%29%5B1%5D%2C%0A%20%20%20%20%20%20points.GetPoint%282%29%5B0%5D-points.GetPoint%281%29%5B0%5D%29%0A%0AO1%20%3D%20%28%28points.GetPoint%280%29%5B0%5D%2Bpoints.GetPoint%281%29%5B0%5D%29%2A0.5%2C%0A%20%20%20%20%20%20%28points.GetPoint%280%29%5B1%5D%2Bpoints.GetPoint%281%29%5B1%5D%29%2A0.5%29%0AO2%20%3D%20%28%28points.GetPoint%281%29%5B0%5D%2Bpoints.GetPoint%282%29%5B0%5D%29%2A0.5%2C%0A%20%20%20%20%20%20%28points.GetPoint%281%29%5B1%5D%2Bpoints.GetPoint%282%29%5B1%5D%29%2A0.5%29%0AO%20%3D%20%28O1%5B0%5D-O2%5B0%5D%2C%20O1%5B1%5D-O2%5B1%5D%29%0A%0Au%20%3D%20%28O%5B1%5D%2Av1%5B0%5D-O%5B0%5D%2Av1%5B1%5D%29/%28v2%5B1%5D%2Av1%5B0%5D-v2%5B0%5D%2Av1%5B1%5D%29%0A%28cX%2C%20cY%29%20%3D%20%28O2%5B0%5D%2Bv2%5B0%5D%2Au%2C%20O2%5B1%5D%2Bv2%5B1%5D%2Au%29%0A%28centerX%2C%20centerY%2C%20centerZ%29%20%3D%20%28O2%5B0%5D%2Bv2%5B0%5D%2Au%2A0.9%2C%20O2%5B1%5D%2Bv2%5B1%5D%2Au%2A0.9%2C%201%2BzShift%2B1000%29%0A%28rayX%2C%20rayY%2C%20rayZ%29%20%3D%20%28O2%5B0%5D-v2%5B0%5D%2Au%2C%20O2%5B1%5D-v2%5B1%5D%2Au%2C%201%2BzShift%2B1000%29"/>
+    </action>
+    <action date="12 Mar 2007 13:19:22" parent="2537" time="2538" user="hvo" what="moveModule">
+      <move dx="89.0870416612" dy="-5.48227948684" id="102"/>
+    </action>
+    <action date="12 Mar 2007 13:39:30" parent="2538" time="2539" user="hvo" what="moveModule">
+      <move dx="28.7819673059" dy="-6.85284935855" id="95"/>
+    </action>
+    <action date="12 Mar 2007 13:40:40" parent="2539" time="2540" user="hvo" what="moveModule">
+      <move dx="-448.176348049" dy="-27.4113974342" id="100"/>
+    </action>
+    <action date="12 Mar 2007 13:41:26" parent="2540" time="2541" user="hvo" what="moveModule">
+      <move dx="87.7164717895" dy="-71.269633329" id="100"/>
+    </action>
+    <action date="12 Mar 2007 13:41:28" parent="2541" time="2542" user="hvo" what="moveModule">
+      <move dx="1.37056987171" dy="0.0" id="114"/>
+    </action>
+    <action date="12 Mar 2007 13:41:28" parent="2542" time="2543" user="hvo" what="deleteConnection">
+      <connection connectionId="210"/>
+    </action>
+    <action date="12 Mar 2007 13:41:32" parent="2543" time="2544" user="hvo" what="deleteModulePort">
+      <deletePort moduleId="100" portName="length" portType="input"/>
+    </action>
+    <action date="12 Mar 2007 13:42:47" parent="2544" time="2545" user="hvo" what="changeParameter">
+      <set alias="" function="source" functionId="0" moduleId="69" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20vtk%0Aimport%20math%0Afrom%20core.modules.module_registry%20import%20registry%0A%0Af%20%3D%20open%28filename%2C%20%27r%27%29%0Afn%20%3D%20f.readline%28%29.rstrip%28%29%0AvCount%20%3D%20int%28f.readline%28%29.rstrip%28%29%29%0A%0Apoints%20%3D%20vtk.vtkPoints%28%29%0Apoints.SetNumberOfPoints%28vCount%29%0A%0Alength%20%3D%200.0%0Afor%20i%20in%20range%28vCount%29%3A%20%20%20%20%0A%20%20%20%20%28idS%2C%20xS%2C%20yS%2C%20zS%29%20%3D%20f.readline%28%29.rstrip%28%29.split%28%29%0A%20%20%20%20%28x%2C%20y%2C%20z%29%20%3D%20%28float%28xS%29%2C%20float%28yS%29%2C%20float%28zS%29%29%0A%20%20%20%20points.InsertPoint%28i%2C%20x%2C%20y%2C%20z%2BzShift%29%0Af.close%28%29%0A%0ApolyLine%20%3D%20vtk.vtkPolyLine%28%29%0ApolyLine.GetPointIds%28%29.SetNumberOfIds%28vCount%29%0Afor%20i%20in%20range%28vCount%29%3A%0A%20%20%20%20polyLine.GetPointIds%28%29.SetId%28i%2Ci%29%0A%0AcellArray%20%3D%20vtk.vtkCellArray%28%29%0AcellArray.InsertNextCell%28polyLine%29%0A%0Apoly%20%3D%20vtk.vtkPolyData%28%29%0Apoly.SetPoints%28points%29%0Apoly.SetLines%28cellArray%29%0A%0Apolydata%3D%20registry.getDescriptorByName%28%27vtkPolyData%27%29.module%28%29%0Apolydata.vtkInstance%20%3D%20poly%0A%0Av1%20%3D%20%28points.GetPoint%280%29%5B1%5D-points.GetPoint%281%29%5B1%5D%2C%0A%20%20%20%20%20%20points.GetPoint%281%29%5B0%5D-points.GetPoint%280%29%5B0%5D%29%0Av2%20%3D%20%28points.GetPoint%281%29%5B1%5D-points.GetPoint%282%29%5B1%5D%2C%0A%20%20%20%20%20%20points.GetPoint%282%29%5B0%5D-points.GetPoint%281%29%5B0%5D%29%0A%0AO1%20%3D%20%28%28points.GetPoint%280%29%5B0%5D%2Bpoints.GetPoint%281%29%5B0%5D%29%2A0.5%2C%0A%20%20%20%20%20%20%28points.GetPoint%280%29%5B1%5D%2Bpoints.GetPoint%281%29%5B1%5D%29%2A0.5%29%0AO2%20%3D%20%28%28points.GetPoint%281%29%5B0%5D%2Bpoints.GetPoint%282%29%5B0%5D%29%2A0.5%2C%0A%20%20%20%20%20%20%28points.GetPoint%281%29%5B1%5D%2Bpoints.GetPoint%282%29%5B1%5D%29%2A0.5%29%0AO%20%3D%20%28O1%5B0%5D-O2%5B0%5D%2C%20O1%5B1%5D-O2%5B1%5D%29%0A%0Au%20%3D%20%28O%5B1%5D%2Av1%5B0%5D-O%5B0%5D%2Av1%5B1%5D%29/%28v2%5B1%5D%2Av1%5B0%5D-v2%5B0%5D%2Av1%5B1%5D%29%0A%28cX%2C%20cY%29%20%3D%20%28O2%5B0%5D%2Bv2%5B0%5D%2Au%2C%20O2%5B1%5D%2Bv2%5B1%5D%2Au%29%0A%28centerX%2C%20centerY%2C%20centerZ%29%20%3D%20%28O2%5B0%5D%2Bv2%5B0%5D%2Au%2A0.9%2C%20O2%5B1%5D%2Bv2%5B1%5D%2Au%2A0.9%2C%201%2BzShift%2B1000%29%0A%28rayX%2C%20rayY%2C%20rayZ%29%20%3D%20%28O2%5B0%5D-v2%5B0%5D%2Au%2C%20O2%5B1%5D-v2%5B1%5D%2Au%2C%201%2BzShift%2B1000%29"/>
+    </action>
+    <action date="12 Mar 2007 13:45:26" parent="2545" time="2546" user="hvo" what="addModulePort">
+      <addPort moduleId="95" portName="length" portSpec="(Float)" portType="input"/>
+    </action>
+    <action date="12 Mar 2007 13:45:27" parent="2546" time="2547" user="hvo" what="changeParameter">
+      <set alias="" function="source" functionId="0" moduleId="95" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20vtk%0Aimport%20math%0Afrom%20core.modules.module_registry%20import%20registry%0A%0AprobeFilter%20%3D%20probed.vtkInstance%0AprobeFilter.Update%28%29%0ApolyData%20%3D%20probeFilter.GetOutput%28%29%0ApCount%20%3D%20polyData.GetNumberOfPoints%28%29%0Apoints%20%3D%20polyData.GetPoints%28%29%0Adata%20%3D%20polyData.GetPointData%28%29.GetScalars%28%29%0A%0AcolCount%20%3D%2016%0ArowCount%20%3D%20101%0AcM%20%3D%200.3/%28colCount-1%29%0ArM%20%3D%200.65/%28rowCount-1%29%0A%0AnewPoints%20%3D%20vtk.vtkPoints%28%29%0AnewPoints.Allocate%28rowCount%2AcolCount%2C%201%29%0A%0AlastXY%20%3D%20None%0Alength%20%3D%200.0%0Afor%20i%20in%20range%28pCount%29%3A%0A%20%20%20%20col%20%3D%20i%25colCount%0A%20%20%20%20row%20%3D%20i/colCount%0A%20%20%20%20newPoints.InsertPoint%28i%2C%200.15%20%2B%20row%2ArM%2C%200.95%20-%20col%2AcM%2C%200%29%0A%20%20%20%20thisXY%20%3D%20%28points.GetPoint%28i%29%5B0%5D%2C%20points.GetPoint%28i%29%5B1%5D%29%0A%20%20%20%20if%20lastXY%3A%0A%20%20%20%20%20%20%20%20length%20%2B%3D%20math.sqrt%28%28thisXY%5B0%5D-lastXY%5B0%5D%29%2A%28thisXY%5B0%5D-lastXY%5B0%5D%29%2B%28thisXY%5B1%5D-lastXY%5B1%5D%29%2A%28thisXY%5B1%5D-lastXY%5B1%5D%29%29%0A%0AcellArray%20%3D%20vtk.vtkCellArray%28%29%0AcellArray.Allocate%28%28rowCount-1%29%2A%28colCount-1%29%2C%201%29%0Afor%20i%20in%20range%28rowCount-1%29%3A%0A%20%20%20%20for%20j%20in%20range%28colCount-1%29%3A%0A%20%20%20%20%20%20%20%20quad%20%3D%20vtk.vtkQuad%28%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetNumberOfIds%284%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetId%280%2C%20i%2AcolCount%20%2B%20j%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetId%281%2C%20i%2AcolCount%20%2B%20j%20%2B%201%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetId%282%2C%20%28i%2B1%29%2AcolCount%20%2B%20j%20%2B%201%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetId%283%2C%20%28i%2B1%29%2AcolCount%20%2B%20j%29%0A%20%20%20%20%20%20%20%20cellArray.InsertNextCell%28quad%29%0A%0Apoly%20%3D%20vtk.vtkPolyData%28%29%0Apoly.SetPoints%28newPoints%29%0Apoly.GetPointData%28%29.SetScalars%28data%29%0Apoly.SetPolys%28cellArray%29%0A%0Aif%20not%20globals%28%29.has_key%28%27__polyDataInstance%27%29%3A%0A%20%20%20%20global%20__polyDataInstance%0A%20%20%20%20__polyDataInstance%20%3D%20vtk.vtkPolyData%28%29%0A__polyDataInstance.ShallowCopy%28poly%29%0A%0ApolyData%20%3D%20registry.getDescriptorByName%28%27vtkPolyData%27%29.module%28%29%0ApolyData.vtkInstance%20%3D%20__polyDataInstance%0A%0A%0A"/>
+    </action>
+    <action date="12 Mar 2007 13:45:33" parent="2547" time="2548" user="hvo" what="deleteConnection">
+      <connection connectionId="215"/>
+    </action>
+    <action date="12 Mar 2007 13:45:34" parent="2548" time="2549" user="hvo" what="deleteModulePort">
+      <deletePort moduleId="69" portName="length" portType="output"/>
+    </action>
+    <action date="12 Mar 2007 13:45:58" parent="2549" time="2550" user="hvo" what="moveModule">
+      <move dx="-1.37056987171" dy="0.0" id="95"/>
+    </action>
+    <action date="12 Mar 2007 13:45:58" parent="2550" time="2551" user="hvo" what="deleteModulePort">
+      <deletePort moduleId="95" portName="length" portType="input"/>
+    </action>
+    <action date="12 Mar 2007 13:45:58" parent="2551" time="2552" user="hvo" what="addModulePort">
+      <addPort moduleId="95" portName="length" portSpec="(Float)" portType="output"/>
+    </action>
+    <action date="12 Mar 2007 13:46:02" parent="2552" time="2553" user="hvo" what="addConnection">
+      <connect destinationId="104" destinationModule="PythonSource" destinationPort="length(Float)" id="254" sourceId="95" sourceModule="PythonSource" sourcePort="length(Float)"/>
+    </action>
+    <action date="12 Mar 2007 13:46:50" parent="2553" time="2554" user="hvo" what="changeParameter">
+      <set alias="" function="source" functionId="0" moduleId="95" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20vtk%0Aimport%20math%0Afrom%20core.modules.module_registry%20import%20registry%0A%0AprobeFilter%20%3D%20probed.vtkInstance%0AprobeFilter.Update%28%29%0ApolyData%20%3D%20probeFilter.GetOutput%28%29%0ApCount%20%3D%20polyData.GetNumberOfPoints%28%29%0Apoints%20%3D%20polyData.GetPoints%28%29%0Adata%20%3D%20polyData.GetPointData%28%29.GetScalars%28%29%0A%0AcolCount%20%3D%2016%0ArowCount%20%3D%20101%0AcM%20%3D%200.3/%28colCount-1%29%0ArM%20%3D%200.65/%28rowCount-1%29%0A%0AnewPoints%20%3D%20vtk.vtkPoints%28%29%0AnewPoints.Allocate%28rowCount%2AcolCount%2C%201%29%0A%0AlastXY%20%3D%20None%0Alength%20%3D%200.0%0Afor%20i%20in%20range%28pCount%29%3A%0A%20%20%20%20col%20%3D%20i%25colCount%0A%20%20%20%20row%20%3D%20i/colCount%0A%20%20%20%20newPoints.InsertPoint%28i%2C%200.15%20%2B%20row%2ArM%2C%200.95%20-%20col%2AcM%2C%200%29%0A%20%20%20%20thisXY%20%3D%20%28points.GetPoint%28i%29%5B0%5D%2C%20points.GetPoint%28i%29%5B1%5D%29%0A%20%20%20%20if%20lastXY%3A%0A%20%20%20%20%20%20%20%20length%20%2B%3D%20math.sqrt%28%28thisXY%5B0%5D-lastXY%5B0%5D%29%2A%28thisXY%5B0%5D-lastXY%5B0%5D%29%2B%28thisXY%5B1%5D-lastXY%5B1%5D%29%2A%28thisXY%5B1%5D-lastXY%5B1%5D%29%29%0A%20%20%20%20lastXY%20%3D%20thisXY%0A%0AcellArray%20%3D%20vtk.vtkCellArray%28%29%0AcellArray.Allocate%28%28rowCount-1%29%2A%28colCount-1%29%2C%201%29%0Afor%20i%20in%20range%28rowCount-1%29%3A%0A%20%20%20%20for%20j%20in%20range%28colCount-1%29%3A%0A%20%20%20%20%20%20%20%20quad%20%3D%20vtk.vtkQuad%28%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetNumberOfIds%284%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetId%280%2C%20i%2AcolCount%20%2B%20j%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetId%281%2C%20i%2AcolCount%20%2B%20j%20%2B%201%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetId%282%2C%20%28i%2B1%29%2AcolCount%20%2B%20j%20%2B%201%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetId%283%2C%20%28i%2B1%29%2AcolCount%20%2B%20j%29%0A%20%20%20%20%20%20%20%20cellArray.InsertNextCell%28quad%29%0A%0Apoly%20%3D%20vtk.vtkPolyData%28%29%0Apoly.SetPoints%28newPoints%29%0Apoly.GetPointData%28%29.SetScalars%28data%29%0Apoly.SetPolys%28cellArray%29%0A%0Aif%20not%20globals%28%29.has_key%28%27__polyDataInstance%27%29%3A%0A%20%20%20%20global%20__polyDataInstance%0A%20%20%20%20__polyDataInstance%20%3D%20vtk.vtkPolyData%28%29%0A__polyDataInstance.ShallowCopy%28poly%29%0A%0ApolyData%20%3D%20registry.getDescriptorByName%28%27vtkPolyData%27%29.module%28%29%0ApolyData.vtkInstance%20%3D%20__polyDataInstance%0A%0A%0A"/>
+    </action>
+    <action date="12 Mar 2007 13:47:48" parent="2554" time="2555" user="hvo" what="moveModule">
+      <move dx="-1.37056987171" dy="0.0" id="117"/>
+    </action>
+    <action date="12 Mar 2007 13:49:08" parent="2555" time="2556" user="hvo" what="changeParameter">
+      <set alias="" function="source" functionId="0" moduleId="95" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20vtk%0Afrom%20core.modules.module_registry%20import%20registry%0A%0AprobeFilter%20%3D%20probed.vtkInstance%0AprobeFilter.Update%28%29%0ApolyData%20%3D%20probeFilter.GetOutput%28%29%0ApCount%20%3D%20polyData.GetNumberOfPoints%28%29%0Apoints%20%3D%20polyData.GetPoints%28%29%0Adata%20%3D%20polyData.GetPointData%28%29.GetScalars%28%29%0A%0AcolCount%20%3D%2016%0ArowCount%20%3D%20101%0AcM%20%3D%200.3/%28colCount-1%29%0ArM%20%3D%200.65/%28rowCount-1%29%0A%0AnewPoints%20%3D%20vtk.vtkPoints%28%29%0AnewPoints.Allocate%28rowCount%2AcolCount%2C%201%29%0A%0Afor%20i%20in%20range%28pCount%29%3A%0A%20%20%20%20col%20%3D%20i%25colCount%0A%20%20%20%20row%20%3D%20i/colCount%0A%20%20%20%20newPoints.InsertPoint%28i%2C%200.15%20%2B%20row%2ArM%2C%200.95%20-%20col%2AcM%2C%200%29%0A%0AcellArray%20%3D%20vtk.vtkCellArray%28%29%0AcellArray.Allocate%28%28rowCount-1%29%2A%28colCount-1%29%2C%201%29%0Afor%20i%20in%20range%28rowCount-1%29%3A%0A%20%20%20%20for%20j%20in%20range%28colCount-1%29%3A%0A%20%20%20%20%20%20%20%20quad%20%3D%20vtk.vtkQuad%28%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetNumberOfIds%284%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetId%280%2C%20i%2AcolCount%20%2B%20j%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetId%281%2C%20i%2AcolCount%20%2B%20j%20%2B%201%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetId%282%2C%20%28i%2B1%29%2AcolCount%20%2B%20j%20%2B%201%29%0A%20%20%20%20%20%20%20%20quad.GetPointIds%28%29.SetId%283%2C%20%28i%2B1%29%2AcolCount%20%2B%20j%29%0A%20%20%20%20%20%20%20%20cellArray.InsertNextCell%28quad%29%0A%0Apoly%20%3D%20vtk.vtkPolyData%28%29%0Apoly.SetPoints%28newPoints%29%0Apoly.GetPointData%28%29.SetScalars%28data%29%0Apoly.SetPolys%28cellArray%29%0A%0Aif%20not%20globals%28%29.has_key%28%27__polyDataInstance%27%29%3A%0A%20%20%20%20global%20__polyDataInstance%0A%20%20%20%20__polyDataInstance%20%3D%20vtk.vtkPolyData%28%29%0A__polyDataInstance.ShallowCopy%28poly%29%0A%0ApolyData%20%3D%20registry.getDescriptorByName%28%27vtkPolyData%27%29.module%28%29%0ApolyData.vtkInstance%20%3D%20__polyDataInstance%0A%0A%0A"/>
+    </action>
+    <action date="12 Mar 2007 13:49:26" parent="2556" time="2557" user="hvo" what="changeParameter">
+      <set alias="" function="source" functionId="0" moduleId="69" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20vtk%0Afrom%20core.modules.module_registry%20import%20registry%0A%0Af%20%3D%20open%28filename%2C%20%27r%27%29%0Afn%20%3D%20f.readline%28%29.rstrip%28%29%0AvCount%20%3D%20int%28f.readline%28%29.rstrip%28%29%29%0A%0Apoints%20%3D%20vtk.vtkPoints%28%29%0Apoints.SetNumberOfPoints%28vCount%29%0A%0Alength%20%3D%200.0%0Afor%20i%20in%20range%28vCount%29%3A%20%20%20%20%0A%20%20%20%20%28idS%2C%20xS%2C%20yS%2C%20zS%29%20%3D%20f.readline%28%29.rstrip%28%29.split%28%29%0A%20%20%20%20%28x%2C%20y%2C%20z%29%20%3D%20%28float%28xS%29%2C%20float%28yS%29%2C%20float%28zS%29%29%0A%20%20%20%20points.InsertPoint%28i%2C%20x%2C%20y%2C%20z%2BzShift%29%0Af.close%28%29%0A%0ApolyLine%20%3D%20vtk.vtkPolyLine%28%29%0ApolyLine.GetPointIds%28%29.SetNumberOfIds%28vCount%29%0Afor%20i%20in%20range%28vCount%29%3A%0A%20%20%20%20polyLine.GetPointIds%28%29.SetId%28i%2Ci%29%0A%0AcellArray%20%3D%20vtk.vtkCellArray%28%29%0AcellArray.InsertNextCell%28polyLine%29%0A%0Apoly%20%3D%20vtk.vtkPolyData%28%29%0Apoly.SetPoints%28points%29%0Apoly.SetLines%28cellArray%29%0A%0Apolydata%3D%20registry.getDescriptorByName%28%27vtkPolyData%27%29.module%28%29%0Apolydata.vtkInstance%20%3D%20poly%0A%0Av1%20%3D%20%28points.GetPoint%280%29%5B1%5D-points.GetPoint%281%29%5B1%5D%2C%0A%20%20%20%20%20%20points.GetPoint%281%29%5B0%5D-points.GetPoint%280%29%5B0%5D%29%0Av2%20%3D%20%28points.GetPoint%281%29%5B1%5D-points.GetPoint%282%29%5B1%5D%2C%0A%20%20%20%20%20%20points.GetPoint%282%29%5B0%5D-points.GetPoint%281%29%5B0%5D%29%0A%0AO1%20%3D%20%28%28points.GetPoint%280%29%5B0%5D%2Bpoints.GetPoint%281%29%5B0%5D%29%2A0.5%2C%0A%20%20%20%20%20%20%28points.GetPoint%280%29%5B1%5D%2Bpoints.GetPoint%281%29%5B1%5D%29%2A0.5%29%0AO2%20%3D%20%28%28points.GetPoint%281%29%5B0%5D%2Bpoints.GetPoint%282%29%5B0%5D%29%2A0.5%2C%0A%20%20%20%20%20%20%28points.GetPoint%281%29%5B1%5D%2Bpoints.GetPoint%282%29%5B1%5D%29%2A0.5%29%0AO%20%3D%20%28O1%5B0%5D-O2%5B0%5D%2C%20O1%5B1%5D-O2%5B1%5D%29%0A%0Au%20%3D%20%28O%5B1%5D%2Av1%5B0%5D-O%5B0%5D%2Av1%5B1%5D%29/%28v2%5B1%5D%2Av1%5B0%5D-v2%5B0%5D%2Av1%5B1%5D%29%0A%28cX%2C%20cY%29%20%3D%20%28O2%5B0%5D%2Bv2%5B0%5D%2Au%2C%20O2%5B1%5D%2Bv2%5B1%5D%2Au%29%0A%28centerX%2C%20centerY%2C%20centerZ%29%20%3D%20%28O2%5B0%5D%2Bv2%5B0%5D%2Au%2A0.9%2C%20O2%5B1%5D%2Bv2%5B1%5D%2Au%2A0.9%2C%201%2BzShift%2B1000%29%0A%28rayX%2C%20rayY%2C%20rayZ%29%20%3D%20%28O2%5B0%5D-v2%5B0%5D%2Au%2C%20O2%5B1%5D-v2%5B1%5D%2Au%2C%201%2BzShift%2B1000%29"/>
+    </action>
+    <action date="12 Mar 2007 13:55:56" parent="2557" time="2558" user="hvo" what="moveModule">
+      <move dx="-30.1525371776" dy="-8.22341923027" id="102"/>
+      <move dx="0.0" dy="-1.37056987171" id="104"/>
+    </action>
+    <action date="12 Mar 2007 13:56:14" parent="2558" time="2559" user="hvo" what="deleteConnection">
+      <connection connectionId="254"/>
+    </action>
+    <action date="12 Mar 2007 13:56:14" parent="2559" time="2560" user="hvo" what="deleteModulePort">
+      <deletePort moduleId="104" portName="length" portType="input"/>
+    </action>
+    <action date="12 Mar 2007 13:56:16" parent="2560" time="2561" user="hvo" what="changeParameter">
+      <set alias="" function="source" functionId="0" moduleId="104" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20vtk%0Afrom%20core.modules.module_registry%20import%20registry%0A%0Aactor%20%3D%20Actor2D.vtkInstance%0Aactor.SetPoint1%280.15%2C%200.65%29%0Aactor.GetPositionCoordinate%28%29.SetCoordinateSystemToNormalizedViewport%28%29%0Aactor.SetPoint2%280.8%2C%200.65%29%0Aactor.GetPosition2Coordinate%28%29.SetCoordinateSystemToNormalizedViewport%28%29%0A%0AOutputActor%20%3D%20Actor2D%0A%0A%0A"/>
+    </action>
+    <action date="12 Mar 2007 13:58:42" parent="2561" time="2562" user="hvo" what="moveModule">
+      <move dx="254.925996138" dy="-26.0408275625" id="5"/>
+      <move dx="-120.610148711" dy="-31.5231070494" id="116"/>
+      <move dx="41.1170961513" dy="-31.5231070494" id="122"/>
+    </action>
+    <action date="12 Mar 2007 13:58:42" parent="2562" time="2563" user="hvo" what="addModule">
+      <object cache="0" id="123" name="PythonSource" x="1121.12615506" y="-683.914365984"/>
+    </action>
+    <action date="12 Mar 2007 13:59:45" parent="2563" time="2564" user="hvo" what="moveModule">
+      <move dx="-111.016159609" dy="49.3405153816" id="123"/>
+    </action>
+    <action date="12 Mar 2007 13:59:45" parent="2564" time="2565" user="hvo" what="addModulePort">
+      <addPort moduleId="123" portName="bend" portSpec="(PythonSource)" portType="input"/>
+    </action>
+    <action date="12 Mar 2007 13:59:46" parent="2565" time="2566" user="hvo" what="addModulePort">
+      <addPort moduleId="123" portName="measure" portSpec="(PythonSource)" portType="input"/>
+    </action>
+    <action date="12 Mar 2007 13:59:47" parent="2566" time="2567" user="hvo" what="addModulePort">
+      <addPort moduleId="123" portName="self" portSpec="(PythonSource)" portType="output"/>
+    </action>
+    <action date="12 Mar 2007 13:59:47" parent="2567" time="2568" user="hvo" what="changeParameter">
+      <set alias="" function="source" functionId="0" moduleId="123" parameter="&lt;no description&gt;" parameterId="0" type="String" value="bend.compute%28%29%0Ameasure.compute%28%29"/>
+    </action>
+    <action date="12 Mar 2007 13:59:50" parent="2568" time="2569" user="hvo" what="addConnection">
+      <connect destinationId="122" destinationModule="vtkInteractionHandler" destinationPort="SharedData(Module)" id="255" sourceId="123" sourceModule="PythonSource" sourcePort="self(PythonSource)"/>
+    </action>
+    <action date="12 Mar 2007 13:59:52" parent="2569" time="2570" user="hvo" what="deleteConnection">
+      <connection connectionId="253"/>
+    </action>
+    <action date="12 Mar 2007 13:59:56" parent="2570" time="2571" user="hvo" what="addConnection">
+      <connect destinationId="123" destinationModule="PythonSource" destinationPort="bend(PythonSource)" id="256" sourceId="95" sourceModule="PythonSource" sourcePort="self(PythonSource)"/>
+    </action>
+    <action date="12 Mar 2007 14:00:17" parent="2571" time="2572" user="hvo" what="moveModule">
+      <move dx="-82.2341923027" dy="16.4468384605" id="123"/>
+    </action>
+    <action date="12 Mar 2007 14:00:17" parent="2572" time="2573" user="hvo" what="addModule">
+      <object cache="0" id="124" name="PythonSource" x="855.235599948" y="-487.922874329"/>
+    </action>
+    <action date="12 Mar 2007 14:01:14" parent="2573" time="2574" user="hvo" what="moveModule">
+      <move dx="142.539266658" dy="119.239578839" id="105"/>
+    </action>
+    <action date="12 Mar 2007 14:01:16" parent="2574" time="2575" user="hvo" what="moveModule">
+      <move dx="1.37056987171" dy="0.0" id="124"/>
+    </action>
+    <action date="12 Mar 2007 14:01:16" parent="2575" time="2576" user="hvo" what="deleteConnection"/>
+    <action date="12 Mar 2007 14:01:16" parent="2576" time="2577" user="hvo" what="deleteModule">
+      <module moduleId="124"/>
+    </action>
+    <action date="12 Mar 2007 14:01:25" parent="2577" time="2578" user="hvo" what="addModulePort">
+      <addPort moduleId="104" portName="self" portSpec="(PythonSource)" portType="output"/>
+    </action>
+    <action date="12 Mar 2007 14:01:28" parent="2578" time="2579" user="hvo" what="moveModule">
+      <move dx="-30.1525371776" dy="16.4468384605" id="104"/>
+    </action>
+    <action date="12 Mar 2007 14:01:28" parent="2579" time="2580" user="hvo" what="addConnection">
+      <connect destinationId="123" destinationModule="PythonSource" destinationPort="measure(PythonSource)" id="257" sourceId="104" sourceModule="PythonSource" sourcePort="self(PythonSource)"/>
+    </action>
+    <action date="12 Mar 2007 14:01:44" parent="2580" time="2581" user="hvo" what="moveModule">
+      <move dx="-28.7819673059" dy="-2.74113974342" id="102"/>
+      <move dx="-12.3351288454" dy="-20.5585480757" id="104"/>
+      <move dx="100.051600635" dy="-35.6348166645" id="123"/>
+    </action>
+    <action date="12 Mar 2007 14:01:44" parent="2581" time="2582" user="hvo" what="addModulePort">
+      <addPort moduleId="104" portName="polyline" portSpec="(vtkPolyData)" portType="input"/>
+    </action>
+    <action date="12 Mar 2007 14:01:49" parent="2582" time="2583" user="hvo" what="addConnection">
+      <connect destinationId="104" destinationModule="PythonSource" destinationPort="polyline(vtkPolyData)" id="258" sourceId="69" sourceModule="PythonSource" sourcePort="polydata(vtkPolyData)"/>
+    </action>
+    <action date="12 Mar 2007 14:05:59" parent="2583" time="2584" user="hvo" what="changeParameter">
+      <set alias="" function="source" functionId="0" moduleId="104" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20vtk%0Aimport%20math%0Afrom%20core.modules.module_registry%20import%20registry%0A%0Aactor%20%3D%20Actor2D.vtkInstance%0Aactor.SetPoint1%280.15%2C%200.65%29%0Aactor.GetPositionCoordinate%28%29.SetCoordinateSystemToNormalizedViewport%28%29%0Aactor.SetPoint2%280.8%2C%200.65%29%0Aactor.GetPosition2Coordinate%28%29.SetCoordinateSystemToNormalizedViewport%28%29%0A%0A%23%20Compute%20the%20range%0Apoints%20%3D%20polyline.vtkInstance.GetPoints%28%29%0A%0Alength%20%3D%200.0%0AlastXY%20%3D%20None%0Afor%20p%20in%20range%28points.GetNumberOfPoint%28%29%29%3A%0A%20%20%20%20thisXY%20%3D%20%28points.GetPoint%28p%29%5B0%5D%2C%20points.GetPoint%28p%29%5B1%5D%29%0A%20%20%20%20if%20lastXY%21%3DNone%3A%0A%20%20%20%20%20%20%20%20length%20%2B%3D%20math.sqrt%28%28thisXY%5B0%5D-lastXY%5B0%5D%29%2A%28thisXY%5B0%5D-lastXY%5B0%5D%29%20%2B%20%28thisXY%5B1%5D-lastXY%5B1%5D%29%2A%28thisXY%5B1%5D-lastXY%5B1%5D%29%29%0A%20%20%20%20lastXY%20%3D%20thisXY%0A%0Aactor.SetRange%280%2C%20length%29%0A%0AOutputActor%20%3D%20Actor2D%0A%0A%0A"/>
+    </action>
+    <action date="12 Mar 2007 14:06:36" parent="2584" time="2585" user="hvo" what="changeParameter">
+      <set alias="" function="source" functionId="0" moduleId="104" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20vtk%0Aimport%20math%0Afrom%20core.modules.module_registry%20import%20registry%0A%0Aactor%20%3D%20Actor2D.vtkInstance%0Aactor.SetPoint1%280.15%2C%200.65%29%0Aactor.GetPositionCoordinate%28%29.SetCoordinateSystemToNormalizedViewport%28%29%0Aactor.SetPoint2%280.8%2C%200.65%29%0Aactor.GetPosition2Coordinate%28%29.SetCoordinateSystemToNormalizedViewport%28%29%0A%0A%23%20Compute%20the%20range%0Apoints%20%3D%20polyline.vtkInstance.GetPoints%28%29%0A%0Alength%20%3D%200.0%0AlastXY%20%3D%20None%0Afor%20p%20in%20range%28points.GetNumberOfPoints%28%29%29%3A%0A%20%20%20%20thisXY%20%3D%20%28points.GetPoint%28p%29%5B0%5D%2C%20points.GetPoint%28p%29%5B1%5D%29%0A%20%20%20%20if%20lastXY%21%3DNone%3A%0A%20%20%20%20%20%20%20%20length%20%2B%3D%20math.sqrt%28%28thisXY%5B0%5D-lastXY%5B0%5D%29%2A%28thisXY%5B0%5D-lastXY%5B0%5D%29%20%2B%20%28thisXY%5B1%5D-lastXY%5B1%5D%29%2A%28thisXY%5B1%5D-lastXY%5B1%5D%29%29%0A%20%20%20%20lastXY%20%3D%20thisXY%0A%0Aactor.SetRange%280%2C%20length%29%0A%0AOutputActor%20%3D%20Actor2D%0A%0A%0A"/>
+    </action>
+    <action date="12 Mar 2007 14:08:09" parent="2585" time="2586" user="hvo" what="moveModule">
+      <move dx="0.0" dy="5.48227948684" id="69"/>
+    </action>
+    <action date="12 Mar 2007 14:08:09" parent="2586" time="2587" user="hvo" what="changeAnnotation">
+      <set key="__desc__" moduleId="95" value=""/>
+    </action>
     <tag name="webpage 90" time="268"/>
     <tag name="Both" time="1354"/>
     <tag name="Test2" time="1640"/>

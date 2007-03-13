@@ -63,14 +63,17 @@ class QModuleAnnotation(QtGui.QTableWidget, QToolWindowInterface):
         Update the widget to view the module annotations
         
         """
+        self.setSortingEnabled(False)
         self.module = module
+        self.clear()
         self.setRowCount(0)
         if module:
             self.setRowCount(len(module.annotations)+1)
             curRow = 0
             for (key, value) in module.annotations.items():
                 self.setItem(curRow, 0, QtGui.QTableWidgetItem(key))
-                self.setItem(curRow, 1, QtGui.QTableWidgetItem(value))
+                item = QtGui.QTableWidgetItem(value)
+                self.setItem(curRow, 1, item)
                 curRow += 1
             self.setEnabled(True)
         else:
@@ -78,7 +81,7 @@ class QModuleAnnotation(QtGui.QTableWidget, QToolWindowInterface):
             self.setEnabled(False)
         self.setItem(self.rowCount()-1, 0, QtGui.QTableWidgetItem(''))
         self.setItem(self.rowCount()-1, 1, QtGui.QTableWidgetItem(''))
-        self.makeItemBold(self.model().index(self.rowCount()-1,0))
+        self.setSortingEnabled(True)
 
     def makeItemBold(self, index):
         """ makeItemBold(index: QModelIndex) -> None
@@ -113,7 +116,7 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
         Set the current item (at index) data into editor for editting
         
         """
-        text = index.model().data(index, QtCore.Qt.DisplayRole).toString()
+        text = index.data(QtCore.Qt.DisplayRole).toString()
         editor.setText(text)
 
     def setModelData(self, editor, model, index):
@@ -161,12 +164,14 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
             
             
         if col==0 and key=='' and text!='':
+            self.table.setSortingEnabled(False)
             self.table.resizeRowsToContents()
             self.table.insertRow(self.table.rowCount())
             self.table.setItem(self.table.rowCount()-1, 0,
                                QtGui.QTableWidgetItem(''))
             self.table.setItem(self.table.rowCount()-1, 1,
                                QtGui.QTableWidgetItem(''))
+            self.table.setSortingEnabled(False)
                     
         if col==1:
             if text!=value:

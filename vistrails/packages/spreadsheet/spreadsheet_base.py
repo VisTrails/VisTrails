@@ -224,10 +224,12 @@ class StandardSingleCellSheetTab(QtGui.QWidget,
             self.layout().removeWidget(oldCell)
             if cellType:
                 self.cell = cellType(self)
-                self.cell.setGeometry(self.getCellRect(row, col))
+#                self.cell.setGeometry(self.getCellRect(row, col))
                 self.layout().addWidget(self.cell)
                 self.cell.show()
                 self.cell.updateContents(inputPorts)
+            if hasattr(oldCell, 'deleteLater'):
+                oldCell.deleteLater()
             del oldCell
         else:
             oldCell.updateContents(inputPorts)

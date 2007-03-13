@@ -141,7 +141,6 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 r = desktop.availableGeometry(builderScreen)
                 self.visApp.builderWindow.ensurePolished()
                 self.visApp.builderWindow.updateGeometry()
-                self.visApp.builderWindow.adjustSize()
                 frame = self.visApp.builderWindow.frameGeometry()
                 rect = self.visApp.builderWindow.rect()
                 frameDiff = QtCore.QPoint((frame.width()-rect.width())/2,

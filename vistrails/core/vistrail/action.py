@@ -919,7 +919,8 @@ class ChangeAnnotationAction(Action):
       
     def perform(self, pipeline):
         m = pipeline.getModuleById(self.moduleId)
-        m.annotations[self.key] = self.value
+        if self.key.strip()!='':
+            m.annotations[self.key] = self.value
 
 Action.createFromXMLDispatch['changeAnnotation'] = ChangeAnnotationAction.parse
 

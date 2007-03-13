@@ -410,7 +410,9 @@ class VistrailController(QtCore.QObject):
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
         assert type(pair[0]) == type('')
-        assert type(pair[1]) == type('')        
+        assert type(pair[1]) == type('')
+        if pair[0].strip()=='':
+            return
         action = ChangeAnnotationAction()
         action.addAnnotation(moduleId, pair[0], pair[1])
         savedQuiet = self.quiet
