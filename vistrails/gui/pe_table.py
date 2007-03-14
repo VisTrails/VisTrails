@@ -275,7 +275,7 @@ class QParameterExplorationTable(QPromptWidget):
                                              'size from the step count. '
                                              'Parameter Exploration aborted.'
                                              % pEditor.info[0])
-                                return []
+                                return None
                         if type(interpolator)==QUserFunctionEditor:
                             values = interpolator.getValues()
                             if [True for v in values if type(v)!=realType]:
@@ -286,7 +286,7 @@ class QParameterExplorationTable(QPromptWidget):
                                              'than that specified by the '
                                              'parameter. Parameter Exploration '
                                              'aborted.' % pEditor.info[0])
-                                return []
+                                return None
                         (mId, fId, pId) = tuple(paramInfo[2:5])
                         function = self.pipeline.modules[mId].functions[fId]
                         fName = function.name
@@ -307,7 +307,8 @@ class QParameterExplorationTable(QPromptWidget):
         
         """
         actions = self.collectParameterActions()
-        self.emit(QtCore.SIGNAL('requestParameterExploration'), actions)
+        if actions:
+            self.emit(QtCore.SIGNAL('requestParameterExploration'), actions)
 
 class QDimensionLabel(QtGui.QWidget):
     """

@@ -1,4 +1,4 @@
-############################################################################
+ ############################################################################
 ##
 ## Copyright (C) 2006-2007 University of Utah. All rights reserved.
 ##
@@ -220,13 +220,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             if (e.key() in [QtCore.Qt.Key_PageUp,QtCore.Qt.Key_Left]):
                 self.tabController.showPrevTab()
                 return True
-                
-
-        # Force to show status tip for top-level controller widgets
-#         if (eType==112 and q.parent()==None and
-#             q!=self.visApp.builderWindow):
-#             self.statusBar().showMessage(e.tip())
-            
+                            
         return QtGui.QMainWindow.eventFilter(self,q,e)
 
     def event(self, e):

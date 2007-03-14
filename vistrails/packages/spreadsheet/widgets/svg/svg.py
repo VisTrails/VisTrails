@@ -30,6 +30,7 @@ from packages.spreadsheet.spreadsheet_base import StandardSingleCellSheetReferen
 from packages.spreadsheet.spreadsheet_controller import spreadsheetController
 from packages.spreadsheet.spreadsheet_event import (DisplayCellEvent,
                                                     BatchDisplayCellEvent)
+from packages.spreadsheet.spreadsheet_cell import QCellWidget
 
 ################################################################################
 
@@ -51,7 +52,7 @@ class SVGCell(SpreadsheetCell):
         self.display(SVGCellWidget, (fileValue,))
 
 ### SVG Cell  widget type
-class SVGCellWidget(QtSvg.QSvgWidget):
+class SVGCellWidget(QCellWidget):
     """
     SVGCellWidget derives from QSvgWidget to dispay SVG contents and
     received SVG file from the SVGCell
@@ -61,7 +62,12 @@ class SVGCellWidget(QtSvg.QSvgWidget):
         """ SVGCellWidget(parent: QWidget) -> SVGCellWidget
         Create a SVGCellWidget without any toolbar
         """
-        QtSvg.QSvgWidget.__init__(self, parent)
+        QCellWidget.__init__(self, parent)        
+        self.setLayout(QtGui.QVBoxLayout(self))
+
+        self.svgWidget = QtSvg.QSvgWidget()
+        self.layout().addWidget(self.svgWidget)
+        
         self.controlBarType = None
 
     def updateContents(self, inputPorts):
@@ -70,7 +76,7 @@ class SVGCellWidget(QtSvg.QSvgWidget):
         
         """
         (fileValue,) = inputPorts
-        self.load(fileValue.name)
+        self.svgWidget.load(fileValue.name)
 
 
 # A custom widget to displays SVG slide show

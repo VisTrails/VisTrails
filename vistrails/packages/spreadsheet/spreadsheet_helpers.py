@@ -25,9 +25,9 @@
 #   CellHelpers
 #   CellResizer
 #   CellResizerConfig
-#   CellToolBar
 ################################################################################
 from PyQt4 import QtCore, QtGui
+import celltoolbar_rc
 
 ################################################################################
 
@@ -103,7 +103,6 @@ class CellResizer(QtGui.QLabel):
         
         """
         QtGui.QLabel.__init__(self,sheet)
-        self.setMouseTracking(False)
         self.setFixedSize(config.size, config.size)
         self.setPixmap(config.pixmap())
         self.setMask(config.mask())
@@ -216,113 +215,9 @@ class CellResizer(QtGui.QLabel):
             rect.moveTo(self.sheet.viewport().mapToGlobal(rect.topLeft()))
             self.adjustPosition(rect)
 
-class CellToolBar(QtGui.QToolBar):
-    """
-    CellToolBar is inherited from QToolBar with some functionalities
-    for interacting with CellHelpers
-    
-    """
-    def __init__(self, sheet):
-        """ CellToolBar(sheet: SpreadsheetSheet) -> CellToolBar        
-        Initialize the cell toolbar by calling the user-defined
-        toolbar construction function
-        
-        """
-        QtGui.QToolBar.__init__(self,sheet)
-        self.setAutoFillBackground(True)
-        self.sheet = sheet
-        self.row = -1
-        self.col = -1
-        self.createToolBar()
-    
-    def createToolBar(self):
-        """ createToolBar() -> None        
-        A user-defined method for customizing the toolbar. This is
-        going to be an empty method here for inherited classes to
-        override.
-        
-        """
-        pass
-
-    def snapTo(self, row, col):
-        """ snapTo(row, col) -> None
-        Assign which row and column the toolbar should be snapped to
-        
-        """
-        self.row = row
-        self.col = col
-        self.updateToolBar()
-
-    def adjustPosition(self, rect):
-        """ adjustPosition(rect: QRect) -> None
-        Adjust the position of the toolbar to be top-left
-        
-        """
-        self.adjustSize()
-        p = self.parent().mapFromGlobal(rect.topLeft())
-        self.move(p.x(), p.y())
-
-    def updateToolBar(self):
-        """ updateToolBar() -> None        
-        This will get called when the toolbar widgets need to have
-        their status updated. It sends out needUpdateStatus signal
-        to let the widget have a change to update their own status
-        
-        """
-        cellWidget = self.sheet.getCell(self.row, self.col)
-        for action in self.actions():
-            action.emit(QtCore.SIGNAL('needUpdateStatus'),
-                        (self.sheet, self.row, self.col, cellWidget))
-
-    def connectAction(self, action, widget):
-        """ connectAction(action: QAction, widget: QWidget) -> None
-        Connect actions to special slots of a widget
-        
-        """
-        if hasattr(widget, 'updateStatus'):
-            self.connect(action, QtCore.SIGNAL('needUpdateStatus'),
-                         widget.updateStatus)
-        if hasattr(widget, 'triggeredSlot'):
-            self.connect(action, QtCore.SIGNAL('triggered()'),
-                         widget.triggeredSlot)
-        if hasattr(widget, 'toggledSlot'):
-            self.connect(action, QtCore.SIGNAL('toggled(bool)'),
-                         widget.toggledSlot)
-
-    def appendAction(self, action):
-        """ appendAction(action: QAction) -> QAction
-        Setup and add action to the tool bar
-        
-        """
-        action.toolBar = self
-        self.addAction(action)
-        self.connectAction(action, action)
-        return action
-
-    def appendWidget(self, widget):
-        """ appendWidget(widget: QWidget) -> QAction
-        Setup the widget as an action and add it to the tool bar
-
-        """
-        action = self.addWidget(widget)
-        widget.toolBar = self
-        action.toolBar = self
-        self.connectAction(action, widget)
-        return action
-
-    def getSnappedWidget(self):
-        """ getSnappedWidget() -> QWidget
-        Return the widget being snapped by the toolbar
-        
-        """
-        if self.row>=0 and self.col>=0:
-            return self.sheet.getCell(self.row, self.col)
-        else:
-            return None
-
 class CellHelpers(object):
     """
-    CellHelpers is a container include CellResizer and CellToolbar
+    CellHelpers is a container include CellResizer and QCellToolbar
     that will shows up whenever the Ctrl key is hold down and the
     mouse hovers the cell.
 
@@ -330,7 +225,7 @@ class CellHelpers(object):
     def __init__(self, sheet, resizerInstance=None, toolBarInstance=None):
         """ CellHelpers(sheet: SpreadsheetSheet,
                         resizerInstance: CellResizer,
-                        toolBarinstance: CellToolBar) -> CellHelpers
+                        toolBarinstance: QCellToolBar) -> CellHelpers
         Initialize with no tool bar and a cell resizer
         
         """
@@ -405,3 +300,4 @@ class CellHelpers(object):
             return self.resizer.dragging
         else:
             return False
+

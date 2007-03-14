@@ -287,9 +287,9 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         depending on the status of the Control key and cell location
         
         """
+        if self.helpers.isInteracting():
+            return
         if ctrl:
-            if self.helpers.isInteracting():
-                return
             if row>=0 and col>=0:
                 self.helpers.snapTo(row, col)
                 self.helpers.adjustPosition()

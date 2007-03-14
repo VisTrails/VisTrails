@@ -25,6 +25,7 @@
 from core.modules.vistrails_module import Module
 from PyQt4 import QtCore, QtGui
 from packages.spreadsheet.basic_widgets import SpreadsheetCell
+from packages.spreadsheet.spreadsheet_cell import QCellWidget
 
 ################################################################################
 
@@ -43,9 +44,9 @@ class RichTextCell(SpreadsheetCell):
             fileValue = None
         self.display(RichTextCellWidget, (fileValue,))
 
-class RichTextCellWidget(QtGui.QTextBrowser):
+class RichTextCellWidget(QCellWidget):
     """
-    RichTextCellWidget derives from the QTextBrowser to display HTML files
+    RichTextCellWidget has a QTextBrowser to display HTML files
     
     """
     def __init__(self, parent=None):
@@ -53,9 +54,12 @@ class RichTextCellWidget(QtGui.QTextBrowser):
         Create a rich text cell without a toolbar
         
         """
-        QtGui.QTextBrowser.__init__(self, parent)
-        self.setMouseTracking(True)
-        self.controlBarType = None
+        QCellWidget.__init__(self, parent)
+        self.setLayout(QtGui.QVBoxLayout(self))
+        self.browser = QtGui.QTextBrowser()
+        self.layout().addWidget(self.browser)
+        self.browser.setMouseTracking(True)
+        self.browser.controlBarType = None
 
     def updateContents(self, inputPorts):
         """ updateContents(inputPorts: tuple) -> None
@@ -67,9 +71,9 @@ class RichTextCellWidget(QtGui.QTextBrowser):
             try:
                 fi = open(fileValue.name, "r")
             except IOError:
-                self.setText("Cannot load the HTML file!")
+                self.browser.setText("Cannot load the HTML file!")
                 return            
-            self.setHtml(fi.read())
+            self.browser.setHtml(fi.read())
             fi.close()
         else:
-            self.setText("No HTML file is specified!")
+            self.browser.setText("No HTML file is specified!")

@@ -29,10 +29,8 @@ from PyQt4 import QtCore, QtGui
 from core import system
 from core.modules.module_registry import registry
 from packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
-from packages.spreadsheet.spreadsheet_helpers import CellToolBar
+from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 import vtkcell_rc
-import datetime
-import os
 
 ################################################################################
 
@@ -91,7 +89,7 @@ AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None, None, None, None, None, None, None)
 
 
-class QVTKWidget(QtGui.QWidget):
+class QVTKWidget(QCellWidget):
     """
     QVTKWidget is the actual rendering widget that can display
     vtkRenderer inside a Qt QWidget
@@ -103,7 +101,7 @@ class QVTKWidget(QtGui.QWidget):
         context
         
         """
-        QtGui.QWidget.__init__(self, parent, f | QtCore.Qt.MSWindowsOwnDC)
+        QCellWidget.__init__(self, parent, f | QtCore.Qt.MSWindowsOwnDC)
 
         self.interacting = None
         self.mRenWin = None
@@ -114,18 +112,8 @@ class QVTKWidget(QtGui.QWidget):
         self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
                                              QtGui.QSizePolicy.Expanding))
         self.toolBarType = QVTKWidgetToolBar
-        self.historyImages = []
-        self.player = QtGui.QLabel(self.parent())
-        self.player.setFocusPolicy(QtCore.Qt.NoFocus)
-        self.player.setScaledContents(True)
-        self.playerTimer = QtCore.QTimer()
-        self.playerTimer.setSingleShot(True)
-        self.connect(self.playerTimer,
-                     QtCore.SIGNAL('timeout()'),
-                     self.playNextFrame)
-        self.currentFrame = 0
-        self.playing = False
         self.iHandlers = []
+        self.setAnimationEnabled(True)
         
     def deleteLater(self):
         """ deleteLater() -> None        
@@ -148,9 +136,8 @@ class QVTKWidget(QtGui.QWidget):
             
         del self.mRenWin
         self.mRenWin = None
-        
-        self.clearHistory()
-        QtGui.QWidget.deleteLater(self)
+
+        QCellWidget.deleteLater(self)
 
     def updateContents(self, inputPorts):
         """ updateContents(inputPorts: tuple)
@@ -179,7 +166,8 @@ class QVTKWidget(QtGui.QWidget):
         renWin.Render()
 
         # Capture window into history for playback
-        self.captureWindow(True)
+        # Call this at the end to capture the image after rendering
+        QCellWidget.updateContents(self, inputPorts)
 
     def GetRenderWindow(self):
         """ GetRenderWindow() -> vtkRenderWindow
@@ -261,9 +249,9 @@ class QVTKWidget(QtGui.QWidget):
                     self.mRenWin.Finalize()
         else:
             if e.type==QtCore.QEvent.ParentChange:
-                print 'PARENT CHANGE IS NOT IMPLEMENTED'
+                print 'PARENT CHANGE MIGHT BE WRONG'
                 if self.mRenWin:
-                    self.mRenWin.SetWindowId(windId())
+                    self.mRenWin.SetWindowId(self.winId())
                     if self.isVisible():
                         self.mRenWin.Start()
         
@@ -305,11 +293,8 @@ class QVTKWidget(QtGui.QWidget):
         Re-adjust the vtkRenderWindow size then QVTKWidget resized
         
         """
-        QtGui.QWidget.resizeEvent(self,e)
+        QCellWidget.resizeEvent(self, e)
 
-        if self.player.isVisible():
-            self.player.setGeometry(self.geometry())
-            
         if not self.mRenWin:
             return
 
@@ -327,7 +312,7 @@ class QVTKWidget(QtGui.QWidget):
 
         self.mRenWin.SetPosition(self.x(),self.y())
 
-    def paintEvent(self,e):
+    def paintEvent(self, e):
         """ paintEvent(e: QPaintEvent) -> None
         Paint the QVTKWidget with vtkRenderWindow
         
@@ -792,26 +777,11 @@ class QVTKWidget(QtGui.QWidget):
                         selectedIren.Render()
             istyle.OnChar()
 
-    def captureWindow(self, toHistory):
-        """ captureWindow(toHistory: bool) -> None        
-        Capture the window contents to file (toHistory=False) or to
-        history
+    def saveToPNG(self, filename):
+        """ saveToPNG(filename: str) -> bool
+        Save the current widget contents to an image file
         
         """
-        if not toHistory:
-            fn = QtGui.QFileDialog.getSaveFileName(None,
-                                                   "Save file as...",
-                                                   "screenshot.png",
-                                                   "Images (*.png)")
-            if fn.isNull():
-                return
-            fn = str(fn)
-        else:
-            current = datetime.datetime.now()
-            tmpDir = system.temporaryDirectory()
-            fn = (tmpDir + "hist_" +
-                  current.strftime("%Y_%m_%d__%H_%M_%S") +
-                  "_" + str(current.microsecond)+".png")
         w2i = vtk.vtkWindowToImageFilter()
         w2i.ReadFrontBufferOff()
         w2i.SetInput(self.mRenWin)
@@ -821,72 +791,23 @@ class QVTKWidget(QtGui.QWidget):
         w2i.Update()
         writer = vtk.vtkPNGWriter()
         writer.SetInputConnection(w2i.GetOutputPort())
-        writer.SetFileName(fn)    
+        writer.SetFileName(filename)    
         writer.Write()
-        if toHistory:
-            self.historyImages.append(fn)
+        return True
 
-    def clearHistory(self):
-        """ clearHistory() -> None
-        Clear all history files
+    def captureWindow(self):
+        """ captureWindow() -> None        
+        Capture the window contents to file
         
         """
-        for fn in self.historyImages:
-            os.remove(fn)
-        self.historyImages = []
-
-    def setPlayerFrame(self, frame):
-        """ setPlayerFrame(frame: int) -> None
-        Set the player to display a particular frame number
-        
-        """
-        if frame>=len(self.historyImages):
-            frame = frame % len(self.historyImages)
-        if frame>=len(self.historyImages):
+        fn = QtGui.QFileDialog.getSaveFileName(None,
+                                               "Save file as...",
+                                               "screenshot.png",
+                                               "Images (*.png)")
+        if fn.isNull():
             return
-        self.player.setPixmap(QtGui.QPixmap(self.historyImages[frame]))
-
-    def startPlayer(self):
-        """ startPlayer() -> None
-        Adjust the size of the player to the cell and show it
+        self.saveToPNG(str(fn))
         
-        """
-        self.player.setParent(self.parent())
-        self.player.setGeometry(self.geometry())
-        self.player.raise_()
-        self.currentFrame = -1
-        self.playNextFrame()
-        self.player.show()
-        self.playing = True
-        
-    def stopPlayer(self):
-        """ startPlayer() -> None
-        Adjust the size of the player to the cell and show it
-        
-        """
-        self.playerTimer.stop()
-        self.player.hide()
-        self.playing = False
-
-    def showNextFrame(self):
-        """ showNextFrame() -> None
-        Display the next frame in the history
-        
-        """
-        self.currentFrame += 1
-        if self.currentFrame>=len(self.historyImages):
-            self.currentFrame = 0
-        self.setPlayerFrame(self.currentFrame)
-        
-    def playNextFrame(self):
-        """ playNextFrame() -> None        
-        Display the next frame in the history and start the timer for
-        the frame after
-        
-        """
-        self.showNextFrame()
-        self.playerTimer.start(100)
-
 class QVTKWidgetCapture(QtGui.QAction):
     """
     QVTKWidgetCapture is the action to capture the vtk rendering
@@ -910,126 +831,12 @@ class QVTKWidgetCapture(QtGui.QAction):
         
         """
         cellWidget = self.toolBar.getSnappedWidget()
-        cellWidget.captureWindow(False)        
+        cellWidget.captureWindow()        
 
-class QVTKWidgetCaptureToHistory(QtGui.QAction):
-    """
-    QVTKWidgetCaptureToHistory is the action to capture the vtk rendering
-    window to the history
-    
-    """
-    def __init__(self, parent=None):
-        """ QVTKWidgetCaptureToHistory(parent: QWidget)
-                                       -> QVTKWidgetCaptureToHistory
-        Setup the image, status tip, etc. of the action
-        
-        """
-        QtGui.QAction.__init__(self,
-                               QtGui.QIcon(":/images/camera_mount.png"),
-                               "&Capture image to history",
-                               parent)
-        self.setStatusTip("Capture the rendered image to the history for "
-                          "playback later")
-
-    def triggeredSlot(self, checked=False):
-        """ toggledSlot(checked: boolean) -> None
-        Execute the action when the button is clicked
-        
-        """
-        cellWidget = self.toolBar.getSnappedWidget()
-        self.toolBar.hide()
-        cellWidget.captureWindow(True)
-        self.toolBar.updateToolBar()
-        self.toolBar.show()
-        
-class QVTKWidgetPlayHistory(QtGui.QAction):
-    """
-    QVTKWidgetPlayHistory is the action to play the history as an animation
-    
-    """
-    def __init__(self, parent=None):
-        """ QVTKWidgetPlayHistory(parent: QWidget)
-                                       -> QVTKWidgetPlayHistory
-        Setup the image, status tip, etc. of the action
-        
-        """
-        self.icons = [QtGui.QIcon(":/images/player_play.png"),
-                      QtGui.QIcon(":/images/player_pause.png")]
-        self.toolTips = ["&Play the history",
-                         "Pa&use the history playback"]
-        self.statusTips = ["Playback all image files kept in the history",
-                           "Pause the playback, later it can be resumed"]
-        QtGui.QAction.__init__(self, self.icons[0], self.toolTips[0], parent)
-        self.setStatusTip(self.statusTips[0])
-        self.status = 0
-
-    def triggeredSlot(self, checked=False):
-        """ toggledSlot(checked: boolean) -> None
-        Execute the action when the button is clicked
-        
-        """
-        cellWidget = self.toolBar.getSnappedWidget()
-        if self.status==0:            
-            cellWidget.startPlayer()
-        else:
-            cellWidget.stopPlayer()
-        self.toolBar.updateToolBar()
-
-    def updateStatus(self, info):
-        """ updateStatus(info: tuple) -> None
-        Updates the status of the button based on the input info
-        
-        """
-        (sheet, row, col, cellWidget) = info
-        if cellWidget:            
-            newStatus = int(cellWidget.playing)
-            if newStatus!=self.status:
-                self.status = newStatus
-                self.setIcon(self.icons[self.status])
-                self.setToolTip(self.toolTips[self.status])
-                self.setStatusTip(self.statusTips[self.status])
-            self.setEnabled(len(cellWidget.historyImages)>0)                
-
-class QVTKWidgetClearHistory(QtGui.QAction):
-    """
-    QVTKWidgetClearHistory is the action to reset cell history
-    
-    """
-    def __init__(self, parent=None):
-        """ QVTKWidgetClearHistory(parent: QWidget)
-                                       -> QVTKWidgetClearHistory
-        Setup the image, status tip, etc. of the action
-        
-        """
-        QtGui.QAction.__init__(self,
-                               QtGui.QIcon(":/images/noatunloopsong.png"),
-                               "&Clear this cell history",
-                               parent)
-        self.setStatusTip("Clear the cell history and its temporary "
-                          "image files on disk")        
-        
-    def triggeredSlot(self, checked=False):
-        """ toggledSlot(checked: boolean) -> None
-        Execute the action when the button is clicked
-        
-        """
-        cellWidget = self.toolBar.getSnappedWidget()
-        cellWidget.clearHistory()
-        self.toolBar.updateToolBar()
-        
-    def updateStatus(self, info):
-        """ updateStatus(info: tuple) -> None
-        Updates the status of the button based on the input info
-        
-        """
-        (sheet, row, col, cellWidget) = info
-        if cellWidget:
-            self.setEnabled((len(cellWidget.historyImages)>0
-                             and cellWidget.playing==False))
                 
-class QVTKWidgetToolBar(CellToolBar):
+class QVTKWidgetToolBar(QCellToolBar):
     """
-    QVTKWidgetToolBar derives from CellToolBar to give the VTKCell
+    QVTKWidgetToolBar derives from QCellToolBar to give the VTKCell
     a customizable toolbar
     
     """
@@ -1040,9 +847,7 @@ class QVTKWidgetToolBar(CellToolBar):
         """
         self.setOrientation(QtCore.Qt.Vertical)
         self.appendAction(QVTKWidgetCapture(self))
-        self.appendAction(QVTKWidgetCaptureToHistory(self))
-        self.appendAction(QVTKWidgetPlayHistory(self))
-        self.appendAction(QVTKWidgetClearHistory(self))
+        self.addAnimationButtons()
 
 def registerSelf():
     """ registerSelf() -> None

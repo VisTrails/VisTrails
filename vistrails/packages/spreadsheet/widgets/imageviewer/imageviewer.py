@@ -25,7 +25,7 @@
 from PyQt4 import QtCore, QtGui
 from core.modules.vistrails_module import Module
 from packages.spreadsheet.basic_widgets import SpreadsheetCell
-from packages.spreadsheet.spreadsheet_helpers import CellToolBar
+from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from packages.spreadsheet.spreadsheet_controller import spreadsheetController
 import imageviewer_rc
 
@@ -49,7 +49,7 @@ class ImageViewerCell(SpreadsheetCell):
             fileValue = None
         self.display(ImageViewerCellWidget, (fileValue, ))
 
-class ImageViewerCellWidget(QtGui.QLabel):
+class ImageViewerCellWidget(QCellWidget):
     """
     ImageViewerCellWidget is the actual QLabel that will draw
     labels/images on the spreadsheet
@@ -60,13 +60,19 @@ class ImageViewerCellWidget(QtGui.QLabel):
         Initialize the widget with its toolbar type and aligment
         
         """
-        QtGui.QLabel.__init__(self, parent)
-        self.setAutoFillBackground(True)
-        self.palette().setColor(QtGui.QPalette.Window, QtCore.Qt.white)
-        self.setMouseTracking(False)
-        self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        QCellWidget.__init__(self, parent)
+        self.setLayout(QtGui.QVBoxLayout(self))
+        self.setAnimationEnabled(True)
+        
+        self.label = QtGui.QLabel()
+        self.layout().addWidget(self.label)
+        
+        self.label.setAutoFillBackground(True)
+        self.label.palette().setColor(QtGui.QPalette.Window, QtCore.Qt.white)
+        self.label.setMouseTracking(False)
+        self.label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.label.setScaledContents(True)
         self.toolBarType = ImageViewerToolBar
-        self.setScaledContents(True)
         self.originalPix = None
 
     def updateContents(self, inputPorts):
@@ -79,9 +85,21 @@ class ImageViewerCellWidget(QtGui.QLabel):
             img = QtGui.QImage()
             if img.load(fileValue.name):
                 self.originalPix = QtGui.QPixmap.fromImage(img)
-                self.setPixmap(self.originalPix)
+                self.label.setPixmap(self.originalPix)
             else:
-                self.setText("Invalid image file!")
+                self.label.setText("Invalid image file!")
+
+        QCellWidget.updateContents(self, inputPorts)
+
+    def saveToPNG(self, filename):
+        """ saveToPNG(filename: str) -> bool
+        Save the current widget contents to an image file
+        
+        """
+        pixmap = self.label.pixmap()
+        if pixmap and (not pixmap.isNull()):
+            return pixmap.save(filename)
+        return False
                 
 class ImageViewerFitToCellAction(QtGui.QAction):
     """
@@ -109,7 +127,7 @@ class ImageViewerFitToCellAction(QtGui.QAction):
         
         """
         cellWidget = self.toolBar.getSnappedWidget()
-        cellWidget.setScaledContents(checked)
+        cellWidget.label.setScaledContents(checked)
         self.toolBar.slider.updateStatus((self.toolBar.sheet,
                                           self.toolBar.row,
                                           self.toolBar.col,
@@ -121,7 +139,7 @@ class ImageViewerFitToCellAction(QtGui.QAction):
         
         """
         (sheet, row, col, cellWidget) = info
-        self.setChecked(cellWidget.hasScaledContents())
+        self.setChecked(cellWidget.label.hasScaledContents())
 
 class ImageViewerSaveAction(QtGui.QAction):
     """
@@ -145,14 +163,14 @@ class ImageViewerSaveAction(QtGui.QAction):
         
         """
         cellWidget = self.toolBar.getSnappedWidget()
-        if not cellWidget.pixmap() or cellWidget.pixmap().isNull():
+        if not cellWidget.label.pixmap() or cellWidget.label.pixmap().isNull():
             return
         fn = QtGui.QFileDialog.getSaveFileName(None, "Save image as...",
                                                "screenshot.png",
                                                "Images (*.png)")
         if not fn:
             return
-        cellWidget.pixmap().toImage().save(fn, "png")
+        cellWidget.label.pixmap().toImage().save(fn, "png")
 
 class ImageViewerZoomSlider(QtGui.QSlider):
     """
@@ -180,10 +198,10 @@ class ImageViewerZoomSlider(QtGui.QSlider):
         """
         if self.toolBar:
             cellWidget = self.toolBar.getSnappedWidget()
-            if not cellWidget.hasScaledContents():
-                newWidth = cellWidget.originalPix.width()*value/100
-                pixmap = cellWidget.originalPix.scaledToWidth(newWidth)
-                cellWidget.setPixmap(pixmap)
+            if not cellWidget.label.hasScaledContents():
+                newWidth = cellWidget.label.originalPix.width()*value/100
+                pixmap = cellWidget.label.originalPix.scaledToWidth(newWidth)
+                cellWidget.label.setPixmap(pixmap)
 
     def updateStatus(self, info):
         """ updateStatus(info: tuple) -> None
@@ -192,10 +210,10 @@ class ImageViewerZoomSlider(QtGui.QSlider):
         """
         (sheet, row, col, cellWidget) = info
         if cellWidget:
-            if not cellWidget.hasScaledContents():
+            if not cellWidget.label.hasScaledContents():
                 self.setEnabled(True)
-                originalWidth = cellWidget.originalPix.width()
-                self.setValue(cellWidget.pixmap().width()*100/originalWidth)
+                originalWidth = cellWidget.label.originalPix.width()
+                self.setValue(cellWidget.label.pixmap().width()*100/originalWidth)
             else:
                 self.setEnabled(False)
                 self.setValue(100)
@@ -243,11 +261,11 @@ class ImageViewerRotateAction(QtGui.QAction):
         
         """
         cellWidget = self.toolBar.getSnappedWidget()
-        if not cellWidget.pixmap() or cellWidget.pixmap().isNull():
+        if not cellWidget.label.pixmap() or cellWidget.label.pixmap().isNull():
             return
-        cellWidget.originalPix = cellWidget.originalPix.transformed(
+        cellWidget.label.originalPix = cellWidget.label.originalPix.transformed(
             self.rotationMatrix)
-        cellWidget.setPixmap(cellWidget.pixmap().transformed(
+        cellWidget.label.setPixmap(cellWidget.label.pixmap().transformed(
             self.rotationMatrix))
 
 class ImageViewerFlipAction(QtGui.QAction):
@@ -273,13 +291,14 @@ class ImageViewerFlipAction(QtGui.QAction):
         
         """
         cellWidget = self.toolBar.getSnappedWidget()
-        if not cellWidget.pixmap() or cellWidget.pixmap().isNull():
+        label = cellWidget.label
+        if not label.pixmap() or label.pixmap().isNull():
             return
-        cellWidget.originalPix = cellWidget.originalPix.transformed(
+        label.originalPix = labeloriginalPix.transformed(
             self.flipMatrix)
-        cellWidget.setPixmap(cellWidget.pixmap().transformed(self.flipMatrix))
+        label.setPixmap(label.pixmap().transformed(self.flipMatrix))
 
-class ImageViewerToolBar(CellToolBar):
+class ImageViewerToolBar(QCellToolBar):
     """
     ImageViewerToolBar derives from CellToolBar to give the ImageViewerCellWidget
     a customizable toolbar
@@ -301,3 +320,4 @@ class ImageViewerToolBar(CellToolBar):
                      label.updateValue)
         self.appendWidget(self.slider)
         self.appendWidget(label)
+        self.addAnimationButtons()

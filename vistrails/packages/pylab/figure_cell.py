@@ -25,6 +25,7 @@ Matplotlib viewer into our spreadsheet
 """
 from PyQt4 import QtGui
 from packages.spreadsheet.basic_widgets import SpreadsheetCell
+from packages.spreadsheet.spreadsheet_cell import QCellWidget
 import pylab
 
 ################################################################################
@@ -44,7 +45,7 @@ class MplFigureCell(SpreadsheetCell):
             mfm = self.getInputFromPort('FigureManager')
             self.display(MplFigureCellWidget, (mfm.figManager, ))
 
-class MplFigureCellWidget(QtGui.QWidget):
+class MplFigureCellWidget(QCellWidget):
     """
     MplFigureCellWidget is the actual QWidget taking the FigureManager
     as a child for displaying figures
@@ -55,7 +56,7 @@ class MplFigureCellWidget(QtGui.QWidget):
         Initialize the widget with its central layout
         
         """
-        QtGui.QWidget.__init__(self, parent)
+        QCellWidget.__init__(self, parent)
         centralLayout = QtGui.QVBoxLayout()
         self.setLayout(centralLayout)
         self.figManager = None
