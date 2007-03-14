@@ -306,6 +306,30 @@ def createAllModules(g):
     for children in base.children:
         createModule(vtkObjectBase, children)
 
+##############################################################################
+# Convenience methods
+
+def extract_vtk_instance(vistrails_obj):
+    """extract_vtk_instance(vistrails_obj) -> vtk_object
+
+    takes an instance of a VisTrails module that is a subclass
+    of the vtkObjectBase module and returns the corresponding
+    instance."""
+    vtkObjectBase = registry.getDescriptorByName('vtkObjectBase').module
+    assert isinstance(vistrails_obj, vtkObjectBase)
+    return vistrails_obj.vtkInstance
+
+def wrap_vtk_instance(vtk_obj):
+    """wrap_vtk_instance(vtk_object) -> VisTrails module
+
+    takes a vtk instance and returns a corresponding
+    wrapped instance of a VisTrails module"""
+    assert isinstance(vtk_obj, vtk.vtkObjectBase)
+    m = registry.getDescriptorByName(vtk_obj.GetClassName())
+    result = m.module()
+    result.vtkInstance = vtk_obj
+    return result
+
 ################################################################################
 
 def initialize():

@@ -133,6 +133,11 @@ from places other than packages or userpackages."""
         return self._name
     name = property(_get_name)
 
+    def _get_module(self):
+        return self._module
+
+    module = property(_get_module)
+
 ##############################################################################
 
 global _package_manager
@@ -148,6 +153,12 @@ class PackageManager(object):
             return ("Packages '%s' and '%s' have cyclic dependencies" %
                     (self._package_1,
                      self._package_2))
+
+    class MissingPackage(Exception):
+        def __init__(self, n):
+            self._package_name = n
+        def __str__(self):
+            return "Package '%s' is missing." % self._package_name
 
     def __init__(self, configuration):
         global _package_manager
@@ -179,6 +190,14 @@ To do so, call initialize_packages()"""
         """has_package(name: string) -> Boolean.
 Returns true if given package is installed."""
         return self._package_list.has_key(name)
+
+    def get_package(self, name):
+        """get_package(name: string) -> Package.
+Returns a package with given name if it exists, otherwise throws exception"""
+        if not self.has_package(name):
+            raise self.MissingPackage(name)
+        else:
+            return self._package_list[name]
 
     def add_dependencies(self, package):
         """add_dependencies(package) -> None.  Register all

@@ -29,6 +29,7 @@ from core.modules import vistrails_module
 from core.modules.vistrails_module import Module, newModule, \
      NotCacheable, ModuleError
 from core.modules.tuple_configuration import TupleConfigurationWidget
+import core.packagemanager
 import core.system
 import os
 import zipfile
@@ -312,7 +313,10 @@ class PythonSource(NotCacheable, Module):
         locals_ = locals()
         locals_.update(inputDict)
         locals_.update(outputDict)
-        locals_.update({'fail': fail, 'self': self})
+        _m = core.packagemanager.get_package_manager()
+        locals_.update({'fail': fail,
+                        'package_manager': _m,
+                        'self': self})
         del locals_['source']
         exec s in globals(), locals_
         for k in outputDict.iterkeys():

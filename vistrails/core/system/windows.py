@@ -24,6 +24,7 @@ import shutil
 import sys
 import stat
 import subprocess
+import core.system
 
 try:
     from ctypes import windll, Structure, c_ulong
@@ -129,11 +130,9 @@ def executable_is_in_path(filename):
     the filename if true, or an empty string if false.
     
     """
-    path = sys.path
-#    if path[0] in (".", ""): del path[0]
-    pathlist = os.environ['PATH'].split(os.pathsep)
-    sts = 0
-    ident = ()
+    pathlist = (os.environ['PATH'].split(os.pathsep) +
+                [core.system.visTrailsRootDirectory(),
+                 "."])
     for dir in pathlist:
         fullpath = os.path.join(dir, filename)
         try:
