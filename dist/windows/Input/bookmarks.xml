@@ -1,12 +1,12 @@
   <bookmarks>
     <bookmark id="3" name="aliases" parent="" pipeline="143" type="item">
       <filename>
-        C:/Program Files/VisTrails/examples/head.xml
+        ../examples/head.xml
       </filename>
     </bookmark>
     <bookmark id="4" name="volume rendering" parent="" pipeline="134" type="item">
       <filename>
-        C:/Program Files/VisTrails/examples/head.xml
+        ../examples/head.xml
       </filename>
     </bookmark>
   </bookmarks>

@@ -55,21 +55,22 @@ Source: C:\Python24\sip\*; DestDir: {app}\vistrails\Python24\sip; Flags: recurse
 Source: C:\Python24\tcl\*; DestDir: {app}\vistrails\Python24\tcl; Flags: recursesubdirs
 Source: C:\Python24\Tools\*; DestDir: {app}\vistrails\Python24\Tools; Flags: recursesubdirs
 Source: C:\code\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
-Source: ..\..\examples\*.xml; DestDir: {app}\examples
-Source: ..\..\examples\data\torus.vtk; DestDir: {app}\examples\data
-Source: ..\..\examples\data\carotid.vtk; DestDir: {app}\examples\data
-Source: ..\..\examples\data\gktbhFA.vtk; DestDir: {app}\examples\data
-Source: ..\..\examples\data\gktbhL123.vtk; DestDir: {app}\examples\data
-Source: ..\..\examples\data\head.120.vtk; DestDir: {app}\examples\data
-Source: ..\..\examples\data\spx.vtk; DestDir: {app}\examples\data
+Source: ..\..\examples\*.xml; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\data\torus.vtk; DestDir: {app}\examples\data; Components: examples
+Source: ..\..\examples\data\carotid.vtk; DestDir: {app}\examples\data; Components: examples
+Source: ..\..\examples\data\gktbhFA.vtk; DestDir: {app}\examples\data; Components: examples
+Source: ..\..\examples\data\gktbhL123.vtk; DestDir: {app}\examples\data; Components: examples
+Source: ..\..\examples\data\head.120.vtk; DestDir: {app}\examples\data; Components: examples
+Source: ..\..\examples\data\spx.vtk; DestDir: {app}\examples\data; Components: examples
+Source: ..\..\examples\data\vslice_circ1.bp; DestDir: {app}\examples\data; Components: examples
 Source: ..\..\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
-Source: Input\startup.py; DestDir: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails; Flags: onlyifdoesntexist uninsneveruninstall; Components: ; Tasks: 
+Source: Input\startup.py; DestDir: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails; Flags: onlyifdoesntexist uninsneveruninstall
 Source: Input\unzip.exe; DestDir: {app}\vistrails
-Source: Input\unzip32.dll; DestDir: {app}\vistrails
+Source: Input\*.dll; DestDir: {app}\vistrails
 Source: C:\Qt\4.2.2\bin\*.dll; DestDir: {app}\vistrails
 Source: C:\WINDOWS\system32\python24.dll; DestDir: {app}\vistrails
 Source: C:\code\VTKbuild\bin\release\*.dll; DestDir: {app}\vistrails
-Source: Input\bookmarks.xml; DestDir: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails; Flags: uninsneveruninstall onlyifdoesntexist
+Source: Input\bookmarks.xml; DestDir: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails; Flags: uninsneveruninstall onlyifdoesntexist; Components: examples
 [Dirs]
 Name: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails
 Name: {app}\vistrails
