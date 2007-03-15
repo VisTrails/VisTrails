@@ -60,6 +60,19 @@ class _InvalidOutput(object):
 InvalidOutput = _InvalidOutput
 
 ################################################################################
+# DummyModuleLogging
+
+class DummyModuleLogging(object):
+    def endUpdate(*args, **kwargs): pass
+    def beginUpdate(*args, **kwargs): pass
+    def beginCompute(*args, **kwargs): pass
+    def signalSuccess(*args, **kwargs): pass
+    def annotate(*args, **kwargs): pass
+
+_dummy_logging = DummyModuleLogging()
+
+################################################################################
+# Module
 
 class Module(object):
 
@@ -140,6 +153,7 @@ Designing New Modules
         self.outputRequestTable = {}
         self.upToDate = False
         self.setResult("self", self) # every object can return itself
+        self.logging = _dummy_logging
         
     def clear(self):
         """clear(self) -> None. Removes all references, prepares for
@@ -150,8 +164,7 @@ deletion."""
         self.inputPorts = {}
         self.outputPorts = {}
         self.outputRequestTable = {}
-        if hasattr(self, "logging"):
-            del self.logging
+        self.logging = _dummy_logging
 
     def is_cacheable(self):
         """is_cacheable() -> bool. A Module should return whether it
@@ -184,18 +197,21 @@ context."""
         """
         if self.upToDate:
             return
-        if not hasattr(self, "logging"):
-            self.updateUpstream()
+        self.logging.beginUpdate(self)
+        self.updateUpstream()
+        self.logging.beginCompute(self)
+        try:
             self.compute()
-            self.upToDate = True
-        else:
-            self.logging.beginUpdate(self)
-            self.updateUpstream()
-            self.logging.beginCompute(self)
-            self.compute()
-            self.upToDate = True
-            self.logging.endUpdate(self)
-            self.logging.signalSuccess(self)
+        except ModuleError, me:
+            if hasattr(me.module, 'interpreter'):
+                raise
+            else:
+                msg = "A dynamic module raised an exception: '%s'"
+                msg %= str(me)
+                raise ModuleError(self, msg)
+        self.upToDate = True
+        self.logging.endUpdate(self)
+        self.logging.signalSuccess(self)
 
     def checkInputPort(self, name):
         """checkInputPort(name) -> None.
@@ -211,8 +227,8 @@ Makes sure input port 'name' is filled."""
 
     def requestOutputFromPort(self, port):
         if not self.outputRequestTable.has_key(port):
-            raise ModuleError(("On-demand request port %s not present in table" %
-                               port))
+            raise ModuleError(self, ("On-demand request port %s not present in table" %
+                                     port))
         else:
             v = self.outputRequestTable[port]()
             return v

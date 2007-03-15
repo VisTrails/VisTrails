@@ -35,6 +35,16 @@ class TestTupleExecution(Module):
         v1, v2 = self.getInputFromPort('input')
         self.setResult('output', v1 + v2)
 
+
+class TestDynamicModuleError(Module):
+
+    def compute(self):
+        c = TestDynamicModuleError()
+        c.die()
+
+    def die(self):
+        raise ModuleError(self, "I died!")
+
 ##############################################################################
 
 def initialize():
@@ -42,5 +52,4 @@ def initialize():
     reg.addModule(TestTupleExecution)
     reg.addInputPort(TestTupleExecution, 'input', [Float, Float])
     reg.addOutputPort(TestTupleExecution, 'output', (Float, 'output'))
-
-
+    reg.addModule(TestDynamicModuleError)

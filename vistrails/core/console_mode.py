@@ -76,8 +76,7 @@ def run(input, workflow, parameters=''):
                                                    version,
                                                    view,
                                                    aliases)
-    for obj in objs.itervalues():
-        i = obj.id
+    for i in objs.iterkeys():
         if errors.has_key(i):
             error = True
     if error:
@@ -130,6 +129,11 @@ class TestConsoleMode(unittest.TestCase):
         result = run(core.system.visTrailsRootDirectory() +
                      '/tests/resources/pythonsource.xml',"testPortsAndFail")
         self.assertEquals(result, True)
+
+    def test_dynamic_module_error(self):
+        result = run(core.system.visTrailsRootDirectory() + 
+                     '/tests/resources/dynamic_module_error.xml',"test")
+        self.assertEquals(result, False)
 
 if __name__ == '__main__':
     unittest.main()
