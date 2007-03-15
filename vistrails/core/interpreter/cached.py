@@ -79,6 +79,8 @@ and the modules that depend on them."""
 Executes a pipeline using caching. Caching works by reusing pipelines directly.
 This means that there exists one global pipeline whose parts get executed over
 and over again. This allows nested execution."""
+        if view == None:
+            raise VistrailsInternalError("This shouldn't have happened")
 
         (module_map,
          conn_map,
@@ -96,35 +98,29 @@ and over again. This allows nested execution."""
         # views work on local ids
         def beginCompute(obj):
             i = module_map.inverse[obj.id]
-            if view:
-                view.setModuleComputing(i)
+            view.setModuleComputing(i)
         # views and loggers work on local ids
         def beginUpdate(obj):
             i = module_map.inverse[obj.id]
-            if view:
-                view.setModuleActive(i)
+            view.setModuleActive(i)
             reg = modules.module_registry.registry
             name = reg.getDescriptor(obj.__class__).name
-            if self._logger:
-                self._logger.startModuleExecution(vistrailName, 
-                                            currentVersion, i, name)
+            self._logger.startModuleExecution(vistrailName, 
+                                              currentVersion, i, name)
         # views and loggers work on local ids
         def endUpdate(obj, error=''):
             i = module_map.inverse[obj.id]
-            if view:
-                if not error:
-                    view.setModuleSuccess(i)
-                else:
-                    view.setModuleError(i, error)
-            if self._logger:
-                self._logger.finishModuleExecution(vistrailName, 
-                                             currentVersion, i)
+            if not error:
+                view.setModuleSuccess(i)
+            else:
+                view.setModuleError(i, error)
+            self._logger.finishModuleExecution(vistrailName, 
+                                               currentVersion, i)
         # views and loggers work on local ids
         def annotate(obj, d):
             i = module_map.inverse[obj.id]
-            if self._logger:
-                self._logger.insertAnnotationDB(vistrailName, 
-                                          currentVersion, i, d)
+            self._logger.insertAnnotationDB(vistrailName, 
+                                            currentVersion, i, d)
 
         def createNull():
             """Creates a Null value"""
@@ -156,8 +152,7 @@ and over again. This allows nested execution."""
             obj = self._objects[persistent_id]
             obj.interpreter = self
             obj.id = persistent_id
-            if view:
-                obj.logging = logging_obj
+            obj.logging = logging_obj
             obj.vistrailName = vistrailName
             obj.currentVersion = currentVersion
             reg = modules.module_registry.registry
@@ -224,14 +219,13 @@ and over again. This allows nested execution."""
 #         print "errs:", errs
 #         print "execs:", execs
 
-        if view:
-            for i, obj in objs.iteritems():
-                if errs.has_key(i):
-                    view.setModuleError(i, errs[i].msg)
-                elif execs.has_key(i):
-                    view.setModuleSuccess(i)
-                else:
-                    view.setModuleNotExecuted(i)
+        for i, obj in objs.iteritems():
+            if errs.has_key(i):
+                view.setModuleError(i, errs[i].msg)
+            elif execs.has_key(i):
+                view.setModuleSuccess(i)
+            else:
+                view.setModuleNotExecuted(i)
                     
         return (objs, errs, execs)
         
@@ -259,8 +253,7 @@ whether they were executed or not.
 
 If modules have no error associated with but were not executed, it
 means they were cached."""
-        if self._logger:
-            self._logger.startWorkflowExecution(vistrailName, currentVersion)
+        self._logger.startWorkflowExecution(vistrailName, currentVersion)
 
         self.clean_non_cacheable_modules()
 
@@ -269,8 +262,7 @@ means they were cached."""
                                                     view, aliases,
                                                     **kwargs)
 
-        if self._logger:
-            self._logger.finishWorkflowExecution(vistrailName, currentVersion)
+        self._logger.finishWorkflowExecution(vistrailName, currentVersion)
 
         return (objs, errs, execs)
 

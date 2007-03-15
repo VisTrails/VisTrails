@@ -288,6 +288,9 @@ class Action(object):
         
         raise VistrailsInternalError("element is neither filter nor object")    
 
+##############################################################################
+# AddModuleAction
+
 class AddModuleAction(Action):
     def __init__(self, timestep=0,parent=0,date=None,user=None,notes=None):
         Action.__init__(self,timestep,parent,date,user,notes)
@@ -341,6 +344,9 @@ class AddModuleAction(Action):
         pipeline.addModule(copy.copy(self.module))
 
 Action.createFromXMLDispatch['addModule'] = AddModuleAction.parse
+
+##############################################################################
+# AddConnectionAction
 
 class AddConnectionAction(Action):
     def __init__(self,timestep=0,parent=0,date=None,user=None,notes=None):
@@ -427,6 +433,9 @@ class AddConnectionAction(Action):
         pipeline.addConnection(copy.copy(self.connection))
 
 Action.createFromXMLDispatch['addConnection'] = AddConnectionAction.parse
+
+##############################################################################
+# ChangeParameterAction
 
 class ChangeParameterAction(Action):
     attributes = ['moduleId', 'functionId', 'function', 'parameterId',
@@ -581,6 +590,9 @@ class ChangeParameterAction(Action):
                     
 Action.createFromXMLDispatch['changeParameter'] = ChangeParameterAction.parse
 
+##############################################################################
+# DeleteModuleAction
+
 class DeleteModuleAction(Action):
     def __init__(self, timestep=0,parent=0,date=None,user=None,notes=None):
         Action.__init__(self, timestep,parent,date,user,notes)
@@ -653,6 +665,9 @@ class DeleteModuleAction(Action):
             pipeline.deleteModule(id)
 
 Action.createFromXMLDispatch['deleteModule'] = DeleteModuleAction.parse
+
+##############################################################################
+# DeleteConnectionAction
 
 class DeleteConnectionAction(Action):
     def __init__(self, timestep=0,parent=0,date=None,user=None,notes=None):
@@ -727,6 +742,9 @@ class DeleteConnectionAction(Action):
 
 Action.createFromXMLDispatch['deleteConnection'] = DeleteConnectionAction.parse
 
+##############################################################################
+# MoveModuleAction
+
 class MoveModuleAction(Action):
     def __init__(self, timestep=0,parent=0,date=None,user=None,notes=None):
         Action.__init__(self, timestep,parent,date,user,notes)
@@ -794,6 +812,9 @@ class MoveModuleAction(Action):
 
 Action.createFromXMLDispatch['moveModule'] = MoveModuleAction.parse
 
+##############################################################################
+# DeleteFunctionAction
+
 class DeleteFunctionAction(Action):
     def __init__(self, timestep=0,parent=0,date=None,user=None,notes=None):
         Action.__init__(self,timestep,parent,date,user,notes)
@@ -856,6 +877,9 @@ class DeleteFunctionAction(Action):
             return newAction
  
 Action.createFromXMLDispatch['deleteFunction'] = DeleteFunctionAction.parse
+
+##############################################################################
+# ChangeAnnotationAction
 
 class ChangeAnnotationAction(Action):
     attributes = ['moduleId', 'key', 'value']
@@ -924,6 +948,9 @@ class ChangeAnnotationAction(Action):
 
 Action.createFromXMLDispatch['changeAnnotation'] = ChangeAnnotationAction.parse
 
+##############################################################################
+# DeleteAnnotationAction
+
 class DeleteAnnotationAction(Action):
     def __init__(self, timestep=0,parent=0,date=None,user=None,notes=None):
         Action.__init__(self,timestep,parent,date,user,notes)
@@ -978,6 +1005,9 @@ class DeleteAnnotationAction(Action):
             return newAction
  
 Action.createFromXMLDispatch['deleteAnnotation'] = DeleteAnnotationAction.parse
+
+##############################################################################
+# AddModulePortAction
 
 class AddModulePortAction(Action):
     attributes = ['moduleId', 'portType', 'portName', 'portSpec']
@@ -1071,6 +1101,9 @@ class AddModulePortAction(Action):
 
 Action.createFromXMLDispatch['addModulePort'] = AddModulePortAction.parse
 
+##############################################################################
+# DeleteModulePortAction
+
 class DeleteModulePortAction(Action):
     def __init__(self,timestep=0,parent=0,date=None,user=None,notes=None):
         Action.__init__(self,timestep,parent,date,user,notes)
@@ -1136,6 +1169,7 @@ class DeleteModulePortAction(Action):
 Action.createFromXMLDispatch['deleteModulePort'] = DeleteModulePortAction.parse
 
 ################################################################################
+# Unit tests
 
 import unittest
 

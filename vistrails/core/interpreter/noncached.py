@@ -48,11 +48,12 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
     
     def unlocked_execute(self, pipeline, vistrailName, currentVersion,
                          view, aliases=None, **kwargs):
+        if view == None:
+            raise VistrailsInternalError("This shouldn't have happened")
 
         self.resolveAliases(pipeline, aliases)
 
-        if self._logger:
-            self._logger.startWorkflowExecution(vistrailName, currentVersion)
+        self._logger.startWorkflowExecution(vistrailName, currentVersion)
 
         def addToExecuted(obj):
             executed[obj.id] = True
@@ -60,29 +61,23 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                 for callable_ in kwargs['moduleExecutedHook']:
                     callable_(obj.id)
         def beginCompute(obj):
-            if view:
-                view.setModuleComputing(obj.id)
+            view.setModuleComputing(obj.id)
         def beginUpdate(obj):
-            if view:
-                view.setModuleActive(obj.id)
-            if self._logger:
-                reg = modules.module_registry.registry
-                name = reg.getDescriptor(obj.__class__).name
-                self._logger.startModuleExecution(vistrailName,
-                                            currentVersion, obj.id, name)
+            view.setModuleActive(obj.id)
+            reg = modules.module_registry.registry
+            name = reg.getDescriptor(obj.__class__).name
+            self._logger.startModuleExecution(vistrailName,
+                                              currentVersion, obj.id, name)
         def endUpdate(obj, error=''):
-            if view:
-                if not error:
-                    view.setModuleSuccess(obj.id)
-                else:
-                    view.setModuleError(obj.id, error)
-            if self._logger:
-                self._logger.finishModuleExecution(vistrailName, 
-                                             currentVersion, obj.id)
+            if not error:
+                view.setModuleSuccess(obj.id)
+            else:
+                view.setModuleError(obj.id, error)
+            self._logger.finishModuleExecution(vistrailName, 
+                                               currentVersion, obj.id)
         def annotate(obj, d):
-            if self._logger:
-                self._logger.insertAnnotationDB(vistrailName, 
-                                          currentVersion, obj.id, d)
+            self._logger.insertAnnotationDB(vistrailName, 
+                                            currentVersion, obj.id, d)
 
         try:
             self.filePool = FilePool()
@@ -99,8 +94,7 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                 objects[id] = module.summon()
                 objects[id].interpreter = self
                 objects[id].id = id
-                if view:
-                    objects[id].logging = logging_obj
+                objects[id].logging = logging_obj
                 objects[id].vistrailName = vistrailName
                 objects[id].currentVersion = currentVersion
                 reg = modules.module_registry.registry
@@ -157,8 +151,7 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
             self.filePool.cleanup()
             del self.filePool
 
-        if self._logger:
-            self._logger.finishWorkflowExecution(vistrailName, currentVersion)
+        self._logger.finishWorkflowExecution(vistrailName, currentVersion)
         
         return (objects, errors, executed)
         

@@ -29,7 +29,7 @@ if __name__ == '__main__':
     import gui.application
     import sys
     try:
-        gui.application.start_application()
+        v = gui.application.start_application()
         app = gui.application.VistrailsApplication()
     except SystemExit, e:
         sys.exit(e)
@@ -41,4 +41,4 @@ if __name__ == '__main__':
     if len(QtGui.QApplication.topLevelWidgets()):
         v = app.exec_()
         gui.application.stop_application()
-        sys.exit(v)
+    sys.exit(v)

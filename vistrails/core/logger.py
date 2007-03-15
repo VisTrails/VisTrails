@@ -31,6 +31,28 @@ from datetime import datetime
 _nologger = True
 MySQLdb = None
 
+##############################################################################
+# DummyLogger
+
+class DummyLogger(object):
+    """DummyLogger is a class that has the entire interface for a logger
+    but simply ignores the calls."""
+    def startWorkflowExecution(*args, **kwargs):
+        pass
+    def startModuleExecution(*args, **kwargs):
+        pass
+    def finishModuleExecution(*args, **kwargs):
+        pass
+    def insertAnnotationDB(*args, **kwargs):
+        pass
+    def finishWorkflowExecution(*args, **kwargs):
+        pass
+    def finishSession(*args, **kwargs):
+        pass
+    
+##############################################################################
+# Logger
+
 class Logger(object):
     """ Class that provides an interface for logging workflows. """
     def __init__(self):
@@ -488,7 +510,11 @@ class Logger(object):
     
     @staticmethod
     def get():
-        if not Logger.__instance and not _nologger:
+        if Logger.__instance:
+            return Logger.__instance
+        if _nologger:
+            Logger.__instance = DummyLogger()
+        else:
             import MySQLdb as _MySQLdb
             global MySQLdb
             MySQLdb = _MySQLdb

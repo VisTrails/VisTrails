@@ -92,7 +92,8 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         if self.configuration.interactiveMode:
             self.interactiveMode()
         else:
-            self.noninteractiveMode()
+            return self.noninteractiveMode()
+        return True
 
     def get_python_environment(self):
         """get_python_environment(): returns an environment that
@@ -144,11 +145,15 @@ run in batch mode.')
             if len(self.input) > 1:
                 print "Only one vistrail can be specified for non-interactive mode"
             import core.console_mode
-            core.console_mode.run(self.input[0],
-                                  self.nonInteractiveOpts.workflow,
-                                  self.nonInteractiveOpts.parameters)
+            if self.nonInteractiveOpts.parameters == None:
+                self.nonInteractiveOpts.parameters = ''
+            r = core.console_mode.run(self.input[0],
+                                      self.nonInteractiveOpts.workflow,
+                                      self.nonInteractiveOpts.parameters)
+            return r
         else:
             debug.DebugPrint.critical("no input vistrails provided")
+            return False
 
     def setIcon(self):
         """ setIcon() -> None
@@ -308,7 +313,11 @@ def start_application(optionsDict=None):
         print "Application already started."""
         return
     VistrailsApplication = VistrailsApplicationSingleton()
-    VistrailsApplication.init(optionsDict)
+    x =  VistrailsApplication.init(optionsDict)
+    if x == True:
+        return 0
+    else:
+        return 1
 
 VistrailsApplication = None
 
