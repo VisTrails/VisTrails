@@ -31,11 +31,12 @@ from core.debug import log
 from core.modules.basic_modules import Integer, Float, String
 from core.modules.module_registry import (registry, addModule,
                                           addInputPort, addOutputPort)
-from core.modules.vistrails_module import newModule
+from core.modules.vistrails_module import newModule, ModuleError
 from base_module import vtkBaseModule
 from class_tree import ClassTree
 from vtk_parser import VTKMethodParser
 import re
+import os.path
 
 ################################################################################
 
@@ -280,12 +281,41 @@ def setAllPorts(treeNode):
     for child in treeNode.children:
         setAllPorts(child)
 
+def class_dict(base_module, node):
+    """class_dict(base_module, node) -> dict
+    Returns the class dictionary for the module represented by node and
+    with base class base_module"""
+
+    class_dict_ = {}
+    def update_dict(name, callable_):
+        if class_dict_.has_key(name):
+            class_dict_[name] = callable_(class_dict_[name])
+        else:
+            class_dict_[name] = callable_(getattr(base_module,name))
+
+    def guarded_SetFileName_wrap_compute(old_compute):
+        def compute(self):
+            if not self.hasInputFromPort('SetFileName'):
+                raise ModuleError(self, 'Missing filename')
+            name = self.getInputFromPort('SetFileName')
+            if not os.path.isfile(name):
+                raise ModuleError(self, 'File does not exist')
+            old_compute(self)
+        return compute
+
+    if hasattr(node.klass, 'SetFileName'):
+        update_dict('compute', guarded_SetFileName_wrap_compute)
+
+    return class_dict_
+
+
 def createModule(baseModule, node):
     """ createModule(baseModule: a Module subclass, node: TreeNode) -> None
     Construct a module inherits baseModule with specification from node
     
     """
-    module = newModule(baseModule, node.name)
+    module = newModule(baseModule, node.name,
+                       class_dict(baseModule, node))
     # This is sitting on the class
     module.vtkClass = node.klass
     addModule(module)
