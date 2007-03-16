@@ -225,10 +225,11 @@ class VistrailController(QtCore.QObject):
         notification signal
         
         """
+        self.currentVersion = newVersion
         if newVersion>=0:
             self.currentPipeline = self.vistrail.getPipeline(newVersion)
         else:
-            self.currentPipeline = None            
+            self.currentPipeline = None
         self.emit(QtCore.SIGNAL('versionWasChanged'), newVersion)
             
     def resendVersionWasChanged(self):
