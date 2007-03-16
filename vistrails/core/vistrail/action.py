@@ -147,7 +147,7 @@ class Action(object):
         Action object according to action.what attribute.
 
         """
-        att = action.getAttribute('what')
+        att = str(action.getAttribute('what'))
         return Action.createFromXMLDispatch[att](action,version)
        
     @staticmethod
@@ -157,7 +157,7 @@ class Action(object):
 
         """
         p = ModuleParam()
-        p.name = element.getAttribute('name')
+        p.name = str(element.getAttribute('name'))
         p.type = str(named_elements(element, 
                                     'type').next().firstChild.nodeValue)
         p.strValue = str(named_elements(element, 
@@ -209,10 +209,10 @@ class Action(object):
 
         """
         c = Connection()
-        sourceModule = connection.getAttribute('sourceModule')
-        destinationModule = connection.getAttribute('destinationModule')
-        sourcePort = connection.getAttribute('sourcePort')
-        destinationPort = connection.getAttribute('destinationPort')
+        sourceModule = str(connection.getAttribute('sourceModule'))
+        destinationModule = str(connection.getAttribute('destinationModule'))
+        sourcePort = str(connection.getAttribute('sourcePort'))
+        destinationPort = str(connection.getAttribute('destinationPort'))
         # Leaving this to performing actions to get modules registry
         c.source = registry.portFromRepresentation(sourceModule,
                                                    sourcePort,
