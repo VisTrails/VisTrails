@@ -29,7 +29,7 @@ It defines the following classes:
 """
 import os.path
 import core.interpreter.default
-from core.utils import VistrailsInternalError
+from core.utils import VistrailsInternalError, DummyView
 from core.utils.uxml import named_elements, XMLWrapper
 from core.xml_parser import XMLParser
 from core.ensemble_pipelines import EnsemblePipelines
@@ -223,22 +223,6 @@ class BookmarkCollection(XMLWrapper):
 
 ###############################################################################
 
-class PipelineSceneInterface(object):
-    """Simulates a QPipelineScene. """
-    def setModuleActive(self, id):
-        pass
-
-    def setModuleComputing(self, id):
-        pass
-    
-    def setModuleSuccess(self, id):
-        pass
-    
-    def setModuleError(self, id, error):
-        pass
-
-###############################################################################
-
 class BookmarkTree(object):
     """BookmarkTree implements an n-ary tree of bookmarks. """
     def __init__(self, bookmark):
@@ -383,7 +367,7 @@ class BookmarkController(object):
         Execute the workflows bookmarked with the ids
 
         """
-        view = PipelineSceneInterface()
+        view = DummyView()
         wList = []
         for id in ids:
             bookmark = self.collection.bookmarkMap[id]

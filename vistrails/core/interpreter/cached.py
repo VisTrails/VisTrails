@@ -24,7 +24,7 @@ from core import modules
 from core.data_structures.bijectivedict import Bidict
 from core.modules.module_utils import FilePool
 from core.modules.vistrails_module import ModuleConnector, ModuleError
-from core.utils import withIndex, InstanceObject, lock_method
+from core.utils import withIndex, InstanceObject, lock_method, DummyView
 import copy
 import core.interpreter.base
 import core.interpreter.utils
@@ -231,8 +231,9 @@ and over again. This allows nested execution."""
         
 
     @lock_method(core.interpreter.utils.get_interpreter_lock())
-    def execute(self, pipeline, vistrailName, currentVersion,
-                view, aliases=None, **kwargs):
+    def execute(self, pipeline, vistrailName,
+                currentVersion=-1, view=DummyView(),
+                aliases=None, **kwargs):
         """execute(pipeline, vistrailName, currentVersion, view):
 Executes a pipeline using caching. Caching works by reusing pipelines directly.
 This means that there exists one global pipeline whose parts get executed over

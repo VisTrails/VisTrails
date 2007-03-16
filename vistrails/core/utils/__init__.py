@@ -230,6 +230,16 @@ def appendToDictOfLists(dict, key, value):
         dict[key] = [value]
 
 ##############################################################################
+# DummyView
+
+class DummyView(object):
+    def setModuleActive(*args, **kwargs): pass
+    def setModuleComputing(*args, **kwargs): pass
+    def setModuleSuccess(*args, **kwargs): pass
+    def setModuleError(*args, **kwargs): pass
+    def setModuleNotExecuted(*args, **kwargs): pass
+
+##############################################################################
 
 # FIXME: Add tests
 def no_interrupt(callable_, *args, **kwargs):

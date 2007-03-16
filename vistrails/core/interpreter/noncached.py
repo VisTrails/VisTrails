@@ -24,7 +24,7 @@ from core import modules
 from core.data_structures.bijectivedict import Bidict
 from core.modules.module_utils import FilePool
 from core.modules.vistrails_module import ModuleConnector, ModuleError
-from core.utils import withIndex, InstanceObject, lock_method
+from core.utils import withIndex, InstanceObject, lock_method, DummyView
 import copy
 import core.interpreter.base
 import core.interpreter.utils
@@ -155,7 +155,8 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
         
         return (objects, errors, executed)
         
-    def execute(self, pipeline, vistrailName, currentVersion, view,
+    def execute(self, pipeline, vistrailName,
+                currentVersion=-1, view=DummyView(),
                 useLock=True, **kwargs):
         if useLock:
             method_call = self.locked_execute

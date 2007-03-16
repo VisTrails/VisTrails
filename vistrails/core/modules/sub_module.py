@@ -28,7 +28,7 @@ from core.modules.vistrails_module import Module, InvalidOutput
 from core.interpreter.default import (noncached_interpreter, 
                                       default_interpreter)
 from core.inspector import PipelineInspector
-from core.utils import ModuleAlreadyExists
+from core.utils import ModuleAlreadyExists, DummyView
 import os.path
 
 _reg = module_registry.registry
@@ -146,11 +146,10 @@ class SubModule(NotCacheable, Module):
         interpreter = noncached_interpreter.get()
         interpreter.setDoneSummonHook(self.glueInputPorts)
         interpreter.setDoneUpdateHook(self.glueOutputPorts)        
-        results = interpreter.unlocked_execute(pipeline,
-                                               None,
-                                               None,
-                                               None,
-                                               None)
+        results = interpreter.execute(pipeline,
+                                      '<<SUBMODULE>>',
+                                      None,
+                                      useLock=False)
         interpreter.setDoneSummonHook(None)
         interpreter.setDoneUpdateHook(None)
 
