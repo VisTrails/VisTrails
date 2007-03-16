@@ -156,7 +156,7 @@ class QVerticalWidget(QPromptWidget):
                            QtGui.QSizePolicy.Expanding)
         self.formType = QMethodInputForm
         self.setMinimumHeight(50)
-        self._functions = {}
+        self._functions = []
         
     def addFunction(self, moduleId, fId, function):
         """ addFunction(moduleId: int, fId: int,
@@ -172,8 +172,7 @@ class QVerticalWidget(QPromptWidget):
         inputForm.show()
         self.setMinimumHeight(self.layout().minimumSize().height())
         self.showPrompt(False)
-        self._functions[(moduleId, fId)] = inputForm
-
+        self._functions.append(inputForm)
 
     def clear(self):
         """ clear() -> None
@@ -181,10 +180,10 @@ class QVerticalWidget(QPromptWidget):
         
         """
         self.setEnabled(False)
-        for (k, v) in self._functions.iteritems():
+        for v in self._functions:
             self.layout().removeWidget(v)
             v.deleteLater()
-        self._functions = {}
+        self._functions = []
         self.setEnabled(True)
 
 class QMethodInputForm(QtGui.QGroupBox):
@@ -278,7 +277,7 @@ class QMethodInputForm(QtGui.QGroupBox):
         if e.key() in [QtCore.Qt.Key_Delete, QtCore.Qt.Key_Backspace]:
             methodBox = self.parent().parent().parent()
             self.parent().layout().removeWidget(self)
-            del self.parent()._functions[(methodBox.module.id, self.fId)]
+            self.parent()._functions.remove(self)
             self.deleteLater()
             self.parent().showPromptByChildren()
             for i in range(self.parent().layout().count()):

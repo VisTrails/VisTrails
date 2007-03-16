@@ -31,6 +31,7 @@ from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_tab import (StandardWidgetTabBar,
                              StandardWidgetSheetTab, StandardTabDockWidget)
 from spreadsheet_registry import spreadsheetRegistry
+import gc
 
 ################################################################################
 
@@ -248,6 +249,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.removeSheetReference(widget)
             widget.deleteAllCells()
             widget.deleteLater()
+            QtCore.QCoreApplication.processEvents()
+            gc.collect()
             
     def clearTabs(self):
         """ clearTabs() -> None

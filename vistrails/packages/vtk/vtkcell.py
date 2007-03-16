@@ -31,6 +31,7 @@ from core.modules.module_registry import registry
 from packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
 from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 import vtkcell_rc
+import gc
 
 ################################################################################
 
@@ -124,8 +125,7 @@ class QVTKWidget(QCellWidget):
         """        
         for ren in self.getRendererList():
             self.mRenWin.RemoveRenderer(ren)
-            del ren
-
+            
         iren = self.mRenWin.GetInteractor()
         if iren:
             style = iren.GetInteractorStyle()
@@ -133,9 +133,8 @@ class QVTKWidget(QCellWidget):
             style.RemoveObservers("CharEvent")
             style.RemoveObservers("MouseWheelForwardEvent")
             style.RemoveObservers("MouseWheelBackwardEvent")
-            
-        del self.mRenWin
-        self.mRenWin = None
+
+        self.SetRenderWindow(None)
 
         QCellWidget.deleteLater(self)
 
@@ -153,13 +152,16 @@ class QVTKWidget(QCellWidget):
         oldRenderers = self.getRendererList()
         for renderer in oldRenderers:
             renWin.RemoveRenderer(renderer)
-        
+            renderer.SetRenderWindow(None)
+        del oldRenderers
+
         (renderers, self.iHandlers) = inputPorts
         for renderer in renderers:
             renWin.AddRenderer(renderer.vtkInstance)
             if hasattr(renderer.vtkInstance, 'IsActiveCameraCreated'):
                 if not renderer.vtkInstance.IsActiveCameraCreated():
                     renderer.vtkInstance.ResetCamera()
+
         iren = renWin.GetInteractor()
         for iHandler in self.iHandlers:
             iHandler.observer.vtkInstance.SetInteractor(iren)
@@ -192,12 +194,9 @@ class QVTKWidget(QCellWidget):
             return
         
         if self.mRenWin:
+            self.mRenWin.SetInteractor(None)
             if self.mRenWin.GetMapped():
                 self.mRenWin.Finalize()
-            self.mRenWin.SetDisplayId(None)
-            self.mRenWin.SetParentId(None)
-            self.mRenWin.SetWindowId(None)
-            self.mRenWin.UnRegister(None)
             
         self.mRenWin = w
         
@@ -229,8 +228,6 @@ class QVTKWidget(QCellWidget):
                 s.AddObserver("CharEvent", self.charEvent)
                 s.AddObserver("MouseWheelForwardEvent", self.interactionEvent)
                 s.AddObserver("MouseWheelBackwardEvent", self.interactionEvent)
-                del s
-                del iren
 
     def GetInteractor(self):
         """ GetInteractor() -> vtkInteractor
