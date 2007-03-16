@@ -680,7 +680,8 @@ class VistrailController(QtCore.QObject):
         """
         importModule = False
         inspector = PipelineInspector()
-        for version, tag in self.vistrail.inverseTagMap.iteritems():
+        for version in sorted(self.vistrail.inverseTagMap.keys()):
+            tag = self.vistrail.inverseTagMap[version]
             if tag!='':
                 pipeline = self.vistrail.getPipeline(version)
                 inspector.inspect(pipeline)

@@ -213,6 +213,7 @@ class Tuple(Module):
         self.setResult("value", values)
         
 _reg.addModule(Tuple, None, TupleConfigurationWidget)
+_reg.addOutputPort(Tuple, 'self', Tuple)
 
 class TestTuple(Module):
     def compute(self):
