@@ -438,19 +438,15 @@ destinationModulePort) -> Boolean returns true if there could exist a
 connection connecting these two ports."""
         if sourceModulePort.endPoint == destinationModulePort.endPoint:
             return False
-        if sourceModulePort.type != destinationModulePort.type:
-            return False
         return self.isSpecsMatched(sourceModulePort, destinationModulePort)
 
     def isPortSubType(self, super, sub):
         """ isPortSubType(super: Port, sub: Port) -> bool        
         Check if port super and sub are similar or not. These ports
-        must have exact name and type as well as position
+        must have exact name as well as position
         
         """
         if super.endPoint != sub.endPoint:
-            return False
-        if super.type != sub.type:
             return False
         if super.name != sub.name:
             return False
@@ -682,3 +678,4 @@ addModule     = registry.addModule
 addInputPort  = registry.addInputPort
 addOutputPort = registry.addOutputPort
 setCurrentPackageName = registry.setCurrentPackageName
+

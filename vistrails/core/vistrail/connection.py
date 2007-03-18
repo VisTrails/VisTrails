@@ -31,7 +31,6 @@ import core.modules.module_registry
 from core.modules.vistrails_module import ModuleConnector
 from core.utils import VistrailsInternalError
 from core.vistrail.port import PortEndPoint, Port
-from core.vistrail.module_param import VistrailModuleType
 
 registry = core.modules.module_registry.registry
 
@@ -47,15 +46,6 @@ def moduleConnection(conn):
         oport = conn.source.name
         src.enableOutputPort(oport)
         dst.setInputPort(iport, ModuleConnector(src, oport))
-    return theFunction
-
-def noMakeConnection(conn):
-    """noMakeConnection(conn)-> function 
-    Returns a function that raises an Exception
-
-    """
-    def theFunction(src, dst):
-        raise NoMakeConnection(conn)
     return theFunction
 
 ################################################################################
@@ -75,21 +65,18 @@ class Connection(object):
         conn = Connection()
         conn.source = source
         conn.destination = dest
-        conn.updateMakeConnection()
         return conn
         
     @staticmethod
-    def fromTypeID(type, id):
-        """fromTypeID(type: VistrailModuleType.Module, id: int) -> Connection
-        Static method that creates a Connection given type and id.
+    def fromID(id):
+        """fromTypeID(id: int) -> Connection
+        Static method that creates a Connection given an id.
 
         """
         conn = Connection()
         conn.id = id
-        conn.type = type
         conn.source.endPoint = PortEndPoint.Source
         conn.destination.endPoint = PortEndPoint.Destination
-        conn.updateMakeConnection()
         return conn
     
     def __init__(self):
@@ -101,6 +88,7 @@ class Connection(object):
         self.__dest = Port()
         self.source.endPoint = PortEndPoint.Source
         self.destination.endPoint = PortEndPoint.Destination
+        self.makeConnection = moduleConnection(self)
 
     def findSignature(self, sig, signatures):
         """findSignature(sig:str, signatures:[]) -> str 
@@ -127,7 +115,6 @@ class Connection(object):
 
     def serialize(self, dom, el):
         """ serialize(dom, el) -> None: writes itself as XML """
-        assert self.__source.type == VistrailModuleType.Module
         child = dom.createElement('connect')
         child.setAttribute('id', str(self.__source.connectionId))
         sourceSigs = self.__source.getSignatures()
@@ -170,7 +157,6 @@ class Connection(object):
                                                PortEndPoint.Destination,
                                                None, True)
         c.id = cId
-        c.type = VistrailModuleType.Module
         c.sourceId = int(connection.getAttribute('sourceId'))
         c.destinationId = int(connection.getAttribute('destinationId'))
         return c
@@ -183,18 +169,6 @@ class Connection(object):
         rep = "<Connection>%s %s</Connection>"
         return  rep % (str(self.__source), str(self.__dest))
 
-    def updateMakeConnection(self):
-        """updateMakeConnection() -> None 
-        Updates self.makeConnection to the right function according to 
-        self.type. 
-        
-        """ 
-        if self.type == VistrailModuleType.Module:
-            c = moduleConnection
-        else:
-            c = noMakeConnection
-        self.makeConnection = c(self)
-
     def __copy__(self):
         """__copy__() -> Connection -  Returns a clone of self.
         
@@ -203,7 +177,6 @@ class Connection(object):
         cp.id = self.id
         cp.source = copy.copy(self.source)
         cp.destination = copy.copy(self.destination)
-        cp.type = self.type
         return cp
 
     def _get_id(self):
@@ -262,25 +235,6 @@ class Connection(object):
         self.__dest.moduleId = id
     destinationId = property(_get_destinationId, _set_destinationId)
 
-    def _get_type(self):
-        """_get_type() -> VistrailModuleType - Returns this connection type.
-        Do not use this function, use type property: c.type = t 
-
-        """
-        return self.__source.type
-
-    def _set_type(self, t):
-        """ _set_type(t: VistrailModuleType) -> None 
-        Sets this connection type and updates self.__source.type and 
-        self.__dest.type. It also updates the correct makeConnection function.
-        Do not use this function, use type property: c.type = t
-
-        """
-        self.__source.type = t
-        self.__dest.type = t
-        self.updateMakeConnection()
-    type = property(_get_type, _set_type)
-
     def _get_source(self):
         """_get_source() -> Port
         Returns source port. Do not use this function, use source property: 
@@ -297,7 +251,6 @@ class Connection(object):
 
         """
         self.__source = source        
-        self.updateMakeConnection()
     source = property(_get_source, _set_source)
 
     def _get_destination(self):
@@ -316,7 +269,6 @@ class Connection(object):
 
         """
         self.__dest = dest
-        self.updateMakeConnection()
     destination = property(_get_destination, _set_destination)
     
 ################################################################################
@@ -327,7 +279,7 @@ import unittest
 class TestConnection(unittest.TestCase):
 
     def testModuleConnection(self):
-        a = Connection.fromTypeID(VistrailModuleType.Module, 0)
+        a = Connection.fromID(0)
         c = moduleConnection(a)
         def bogus(asd):
             return 3

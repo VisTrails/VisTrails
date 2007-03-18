@@ -30,8 +30,8 @@ if __name__ == '__main__':
 import copy
 from sets import Set
 from core.data_structures.point import Point
-from core.vistrail.module_param import VistrailModuleType, ModuleParam
 from core.vistrail.module_function import ModuleFunction
+from core.vistrail.module_param import ModuleParam
 from core.utils import NoSummon, VistrailsInternalError
 from core.utils.uxml import named_elements
 import core.modules.module_registry
@@ -57,21 +57,19 @@ class Module(object):
         self.name = ""
         self.portVisible = Set()
         self.registry = None
-
+        def summonCall(*args):
+            getDescriptorByName = registry.getDescriptorByName
+            result = getDescriptorByName(self.name).module()
+            if self.cache != 1:
+                result.is_cacheable = lambda *args: False
+            if hasattr(result, 'srcPortsOrder'):
+                result.srcPortsOrder = [p.name for p in self.destinationPorts()]
+            return result
+        self.summon = summonCall
+        
     def getNumFunctions(self):
         """getNumFunctions() -> int - Returns the number of functions """
         return len(self.functions)
-
-    def findType(self,classname):
-        """ findType(classname: str) -> VistrailModuleType
-        Returns the type of a class given its name. Right now if classname is
-        not in the registry, it returns invalid type.
-
-        """
-        if registry.hasModule(classname):
-            return VistrailModuleType.Module
-        else:
-            return VistrailModuleType.Invalid
 
     def uniqueSortedPorts(self, ports):
         """uniqueSortedPorts(ports) -> list of ports 
@@ -122,31 +120,6 @@ class Module(object):
         for p in ports:
             p.id = self.id
         return ports
-
-    def updateType(self):
-        """updateType() -> None.
-        Updates the type information according to given name, and sets the
-        appropriate summon method.
-        
-        """
-        def summonCall(*args):
-            result = getDescriptorByName(self.name).module()
-            if self.cache != 1:
-                result.is_cacheable = lambda *args: False
-            if hasattr(result, 'srcPortsOrder'):
-                result.srcPortsOrder = [p.name for p in self.destinationPorts()]
-            return result
-
-        self.type = self.findType(self.name)
-        if self.type == VistrailModuleType.Module:
-            getDescriptorByName = registry.getDescriptorByName
-            self.summon = summonCall
-            self.summonProxy = lambda *args: noSummon(self)
-            self.createCacheFixture = lambda *args: noSummon(self)
-        else:
-            self.summon = lambda *args: noSummon(self)
-            self.summonProxy = lambda *args: noSummon(self)
-            self.createCacheFixture = lambda *args: noSummon(self)
 
     def serialize(self, dom, element):
         """serialize(dom, element) -> None - Writes itself as XML """
@@ -359,7 +332,6 @@ class Module(object):
     # autoprop
     def _set_name(self, name):
         self.__name = name
-        self.updateType()
     def _get_name(self):
         return self.__name
     name = property(_get_name, _set_name)
@@ -392,16 +364,6 @@ class TestModule(unittest.TestCase):
         self.assertEquals(x.center.x, 1)
         self.assertEquals(x.name, "")
 
-    def testNoSummon(self):
-        """Check that NoSummon is working properly."""
-        x = Module()
-        try:
-            x.summon()
-        except NoSummon:
-            pass
-        else:
-            self.fail("Expected a NoSummon")
-    
     def testSummonModule(self):
         """Check that summon creates a correct module"""
         

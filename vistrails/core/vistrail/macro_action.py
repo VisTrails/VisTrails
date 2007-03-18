@@ -301,8 +301,6 @@ class MacroActionAddConnection(MacroAction):
         conn = self.endAction.connection
         conn.sourceId = self.macro.modules[oldSourceId]
         conn.destinationId = self.macro.modules[oldDestId]
-        if conn.type == VistrailModuleType.Object:
-            conn.objectType = pipeline.getModuleById(conn.sourceId).name
 
     def info(self):
         """ info() -> [Action.type: str, sourcename:str, destname: str ] 

@@ -100,16 +100,6 @@ class VistrailsInternalError(Exception):
     def __str__(self):
         return "Vistrails Internal Error: " + str(self.emsg)
 
-class InvalidVistrailModuleType(Exception):
-    """InvalidVistrailModuleType is raised when a module type is
-    inconsistent with the surroundings. (For example, a Filter being
-    used where an Object is expected). This is probably an internal
-    error, so please report a bug if you see it."""
-    def __init__(self, mt):
-        self.emt = mt
-    def __str__(self):
-        return "Invalid Module Type: " + str(self.emt)
-
 class VersionTooLow(Exception):
     """VersionTooLow is raised when you're running an outdated version
     of some necessary software or package."""

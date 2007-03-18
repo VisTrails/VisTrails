@@ -31,7 +31,6 @@ import time
 import getpass
 import copy
 import string
-from core.vistrail.module_param import VistrailModuleType
 from core.vistrail.pipeline import Pipeline
 from core.data_structures.graph import Graph
 from core.debug import DebugPrint
@@ -95,16 +94,7 @@ class Vistrail(object):
         Returns a pipeline given a version number.
 
         """
-        result = Pipeline()
-        if version == 0:
-            return result
-        for action in self.actionChain(version):
-            action.perform(result)
-        for connection in result.connections.values():
-            if connection.type == VistrailModuleType.Object:
-                moduleId = connection.sourceId
-                connection.objectType = result.getModuleById(moduleId).name
-        return result
+        return Pipeline(self.actionChain(version))
 
     def getPipelineDiffByAction(self, v1, v2):
         """ getPipelineDiffByAction(v1: int, v2: int) -> tuple(list,list,list)        
@@ -316,6 +306,8 @@ class Vistrail(object):
         pipeline from a  certain time
                       
         """
+        if t == 0:
+            return []
         result = []
         action = self.actionMap[t]
         
@@ -729,6 +721,11 @@ class TestVistrail(unittest.TestCase):
         v3 = 22
         v.getPipelineDiff(v1,v2)
         v.getPipelineDiff(v1,v3)
+
+    def test_empty_action_chain(self):
+        """Tests calling action chain on empty version."""
+        v = Vistrail()
+        p = v.getPipeline(0)
 
 #     def test_abstraction(self):
 #         import core.vistrail

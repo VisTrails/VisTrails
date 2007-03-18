@@ -20,17 +20,10 @@
 ##
 ############################################################################
 """ This module contains class definitions for:
-    * VistrailModuleType
     * ModuleParam
 
  """
 from core.utils import enum
-
-################################################################################
-
-VistrailModuleType = enum('VistrailModuleType',
-                          ['Invalid', 'Abstract', 'Filter', 
-                           'Object', 'Plugin', 'Module'])
 
 ################################################################################
 def bool_conv(x):

@@ -26,7 +26,6 @@
  """
 from core.utils import enum
 from core.utils import VistrailsInternalError, all
-from core.vistrail.module_param import VistrailModuleType
 import core.modules.vistrails_module
 import __builtin__
 
@@ -85,7 +84,6 @@ class Port(object):
         self.connectionId = 0
         self.moduleName = ""
         self.name = ""
-        self.type = VistrailModuleType.Module
         self.spec = None
         self.optional = False
         self.sort_key = -1
@@ -107,7 +105,6 @@ import unittest
 if __name__ == '__main__':
     import core.modules.basic_modules
     import core.modules.module_registry
-    from core.vistrail.module_param import VistrailModuleType
     
 class TestPort(unittest.TestCase):
     def setUp(self):
@@ -115,10 +112,6 @@ class TestPort(unittest.TestCase):
 
     def testPort(self):
         x = Port()
-        a = str(x)
-        x.type = VistrailModuleType.Filter
-        a = str(x)
-        x.type = VistrailModuleType.Object
         a = str(x)
         
     def testPortSpec(self):
@@ -146,6 +139,21 @@ class TestPort(unittest.TestCase):
         except VistrailsInternalError:
             pass
         
+
+    def test_registry_port_subtype(self):
+        """Test registry isPortSubType"""
+        descriptor = self.registry.getDescriptorByName('String')
+        ports = self.registry.sourcePortsFromDescriptor(descriptor)
+        assert self.registry.isPortSubType(ports[0], ports[0])
+
+    def test_registry_ports_can_connect(self):
+        """Test registry isPortSubType"""
+        descriptor = self.registry.getDescriptorByName('String')
+        oport = self.registry.sourcePortsFromDescriptor(descriptor)[0]
+        iport = self.registry.destinationPortsFromDescriptor(descriptor)[0]
+        assert self.registry.portsCanConnect(oport, iport)
+
+
 if __name__ == '__main__':
     unittest.main()
 

@@ -30,7 +30,6 @@ from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
 from core.vistrail.module import Module
 from core.vistrail.pipeline import Pipeline
-from core.vistrail.module_param import VistrailModuleType
 from core.vistrail.vistrail import TagExists
 from core.interpreter.default import default_interpreter
 from core.inspector import PipelineInspector

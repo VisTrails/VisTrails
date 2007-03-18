@@ -39,7 +39,7 @@ from core.utils.uxml import named_elements
 from core.vistrail.module import Module
 from core.vistrail.connection import Connection
 from core.vistrail.port import Port, PortEndPoint
-from core.vistrail.module_param import ModuleParam, VistrailModuleType
+from core.vistrail.module_param import ModuleParam
 from core.vistrail.module_function import ModuleFunction
 from core.data_structures.point import Point
 from core.modules.module_registry import registry, ModuleRegistry
@@ -223,7 +223,6 @@ class Action(object):
                                                         PortEndPoint.Destination,
                                                         None, True)
         c.id = int(connection.getAttribute('id'))
-        c.type = VistrailModuleType.Module
         c.sourceId = int(connection.getAttribute('sourceId'))
         c.destinationId = int(connection.getAttribute('destinationId'))
         return c
