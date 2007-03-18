@@ -786,7 +786,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
 #                     self.create_abstraction)
 
     def addModule(self, module, moduleBrush=None):
-        """ addModule(module: Module, moduleBrush: QBrush) -> None
+        """ addModule(module: Module, moduleBrush: QBrush) -> QGraphicsModuleItem
         Add a module to the scene
         
         """
@@ -804,7 +804,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         return moduleItem
 
     def addConnection(self, connection):
-        """ addConnection(connection: Connection) -> None
+        """ addConnection(connection: Connection) -> QGraphicsConnectionItem
         Add a connection to the scene
         
         """

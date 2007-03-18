@@ -222,8 +222,6 @@ class Action(object):
                                                         destinationPort,
                                                         PortEndPoint.Destination,
                                                         None, True)
-        c.sourceInfo = (sourceModule, sourcePort)
-        c.destinationInfo = (destinationModule, destinationPort)
         c.id = int(connection.getAttribute('id'))
         c.type = VistrailModuleType.Module
         c.sourceId = int(connection.getAttribute('sourceId'))
@@ -402,34 +400,17 @@ class AddConnectionAction(Action):
         Apply this action to pipeline.
         
         """
-        if hasattr(self.connection, 'sourceInfo'):
-            (si, di, cid) = (self.connection.sourceId,
-                             self.connection.destinationId,
-                             self.connection.id)
-            (sourceModuleName, sourcePort) = self.connection.sourceInfo
-            (destModuleName, destPort) = self.connection.destinationInfo
-            try:
-                sourceModule = pipeline.getModuleById(si)
-            except KeyError:
-                raise self.MissingModule(si)
-            try:
-                destModule = pipeline.getModuleById(di)
-            except KeyError:
-                raise self.MissingModule(di)
-            portFromRep = registry.portFromRepresentation
-            self.connection.source = portFromRep(sourceModuleName,
-                                                 sourcePort,
-                                                 PortEndPoint.Source,
-                                                 sourceModule.registry,
-                                                 False)
-            self.connection.destination = portFromRep(destModuleName,
-                                                      destPort,
-                                                      PortEndPoint.Destination,
-                                                      destModule.registry,
-                                                      False)
-            (self.connection.sourceId,
-             self.connection.destinationId,
-             self.connection.id) = (si, di, cid)
+        (si, di, cid) = (self.connection.sourceId,
+                         self.connection.destinationId,
+                         self.connection.id)
+        try:
+            sourceModule = pipeline.getModuleById(si)
+        except KeyError:
+            raise self.MissingModule(si)
+        try:
+            destModule = pipeline.getModuleById(di)
+        except KeyError:
+            raise self.MissingModule(di)
         pipeline.addConnection(copy.copy(self.connection))
 
 Action.createFromXMLDispatch['addConnection'] = AddConnectionAction.parse
@@ -446,6 +427,12 @@ class ChangeParameterAction(Action):
     attributes0_1_0 = ['moduleId', 'functionId', 'function', 
                        'parameterId','parameter', 'value', 'type']
     conversions0_1_0 = [int, int, str, int, str, str, str]
+
+    class ParameterInconsistency(Exception):
+        def __init__(self, p):
+            self.parameter = p
+        def __str__(self):
+            return "Parameter is inconsistent in this context: " + str(p)
 
     def __init__(self, timestep=0,parent=0,date=None,user=None,notes=None):
         Action.__init__(self, timestep,parent,date,user,notes)
@@ -546,22 +533,25 @@ class ChangeParameterAction(Action):
         Apply this action to pipeline.
         
         """
+
+        # FIXME: This is not atomic. It might perform part of the
+        # action and then raise an exception, leaving the pipeline in
+        # a bogus state.
+        
         for p in self.parameters:
             try:
                 m = pipeline.getModuleById(p[0])
             except KeyError:
                 raise self.MissingModule(p[0])
-            if p[1] >= len(m.functions):
+            if p[1] > len(m.functions):
+                raise ParameterInconsistency(p)
+            if p[1] == len(m.functions):
                 f = ModuleFunction()
                 f.name = p[2]
                 m.functions.append(f)
-                if len(m.functions)-1 != p[1]:
-                    msg = "Pipeline function id is inconsistent"
-                    raise VistrailsInternalError(msg)
             f = m.functions[p[1]]
             if f.name != p[2]:
-                msg = "Pipeline function name is inconsistent"
-                raise VistrailsInternalError()
+                raise ParameterInconsistency(p)
             if p[3] == -1:
                 continue
             if p[3] >= len(f.params):
@@ -569,16 +559,15 @@ class ChangeParameterAction(Action):
                 param.name = p[4]
                 f.params.append(param)
                 if len(f.params)-1 != p[3]:
-                    msg = "Pipeline parameter id is inconsistent"
-                    raise VistrailsInternalError()
+                    raise ParameterInconsistency(p)
             param = f.params[p[3]]
             param.name = p[4]
-#            if param.name != p[4]:
-#                msg = "Pipeline parameter name is inconsistent"
-#                raise VistrailsInternalError(msg)
             param.strValue = p[5]
             param.type = p[6]
+
+            # Workaround for strange types on old pipelines
             if param.type.find('char')>-1 or param.type=='str':
+                debug.critical("This is an old pipeline!")
                 param.type = 'string'
             param.alias = p[7]
             if not pipeline.hasAlias(param.alias):

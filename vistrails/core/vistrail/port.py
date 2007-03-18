@@ -132,13 +132,14 @@ class TestPort(unittest.TestCase):
         assert p.moduleName == 'String'
 
     def testPortSpec2(self):
+        """Test passing incompatible specs"""
         descriptor = self.registry.getDescriptorByName('String')
         ports = self.registry.sourcePortsFromDescriptor(descriptor)
         assert all(ports, lambda x: x.moduleName == 'String')
         portRepr = 'value(Float)'
         try:
             p = self.registry.portFromRepresentation('String', portRepr, 
-                                                         PortEndPoint.Source)
+                                                     PortEndPoint.Source)
             msg = "Expected to fail - passed an incompatible spec " \
                 "representation"
             self.fail(msg)

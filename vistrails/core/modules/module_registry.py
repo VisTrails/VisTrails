@@ -28,6 +28,7 @@ import copy
 import core.debug
 import core.modules
 import core.modules.vistrails_module
+from itertools import izip
 
 from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.module_function import ModuleFunction
@@ -141,6 +142,8 @@ using user-defined hasher."""
             return core.cache.hasher.Hasher.module_signature(module)
 
     def hasModule(self, name):
+        """hasModule(name) -> Boolean. True if 'name' is registered
+        as a module."""
         return self.moduleTree.has_key(name)
 
     def get_module_color(self, name):
@@ -488,6 +491,9 @@ connection connecting these two ports."""
         return False
 
     def getModuleHierarchy(self, thing):
+        """getModuleHierarchy(thing) -> [klass].
+        Returns the module hierarchy all the way to Module, excluding
+        any mixins."""
         descriptor = self.getDescriptorByThing(thing)
         return [klass
                 for klass in descriptor.module.mro()
@@ -502,54 +508,69 @@ connection connecting these two ports."""
 
     def makeSpec(self, port, specStr, localRegistry=None, loose=True):
         """Parses a string representation of a port spec and returns
-the spec. Uses own type to decide between source and destination
-ports."""
+        the spec. Uses port type to decide between source and destination
+        ports.
+
+        if 'loose' is true, makeSpec will try to succeed even if the
+        information is missing in the registry. This is useful for loading
+        vistrails when packages are missing."""
+
+        def get_descriptor(reg, name):
+            if reg and reg.hasModule(name):
+                return reg.getDescriptorByName(name)
+            else:
+                return None
+
+        ports = {}
+        def update_ports_from_descriptor(descriptor):
+            """updates 'ports' corresponding to the passed port type
+            (source->outputs, destination->inputs). If descriptor is
+            not present, do nothing"""
+            endpoint = port.endPoint
+            if descriptor == None:
+                return
+            if endpoint == PortEndPoint.Source:
+                ports.update(descriptor.outputPorts)
+            elif endpoint == PortEndPoint.Destination:
+                ports.update(descriptor.inputPorts)
+            else:
+                raise VistrailsInternalError("Invalid port endpoint: %s" %
+                                             endpoint)
+
+        descriptor      = get_descriptor(self,          port.moduleName)
+        localDescriptor = get_descriptor(localRegistry, port.moduleName)
+
+        update_ports_from_descriptor(descriptor)
+        update_ports_from_descriptor(localDescriptor)
+
         if specStr[0] != '(' or specStr[-1] != ')':
             raise VistrailsInternalError("invalid port spec")
-        specStr = specStr[1:-1]
-        if self.hasModule(port.moduleName):            
-            descriptor = self.getDescriptorByName(port.moduleName)
-        else:
-            descriptor = None
-        if localRegistry:
-            name = port.moduleName
-            localDescriptor = localRegistry.getDescriptorByName(name)
-        else:
-            localDescriptor = None
-        if port.endPoint == PortEndPoint.Source:
-            if loose and descriptor==None:
-                ports = {}
-            else:
-                ports = copy.copy(descriptor.outputPorts)
-            if localDescriptor:
-                ports.update(localDescriptor.outputPorts)
-        elif port.endPoint == PortEndPoint.Destination:
-            if loose and descriptor==None:
-                ports = {}
-            else:
-                ports = copy.copy(descriptor.inputPorts)
-            if localDescriptor:
-                ports.update(localDescriptor.inputPorts)
-        else:
-            raise VistrailsInternalError("Invalid port endpoint: %s" %
-                                         port.endPoint)
-        values = specStr.split(",")
-        values = [v.strip() for v in values]
-        if not ports.has_key(port.name):
-            if loose:
-                return [[(self.getDescriptorByName(v).module,
-                         '<no description>')
-                        for v in values]]
-            else:
-                msg = "Port name is inexistent in ModuleDescriptor"
-                raise VistrailsInternalError(msg)
-        specs = ports[port.name]
-        fun = lambda ((klass, descr), name): \
-                      issubclass(self.getDescriptorByName(name).module, klass)
-        for spec in specs:
-            if all(zip(spec, values), fun):
-                return [copy.copy(spec)]
-        raise VistrailsInternalError("No port spec matches the given string")
+        values = [v.strip() for v in specStr[1:-1].split(",")]
+
+        if ports.has_key(port.name): 
+            specs = ports[port.name]
+
+            def param_type_matches(((klass, _), name)):
+                return issubclass(self.getDescriptorByName(name).module,
+                                  klass)
+
+            for spec in specs:
+                if all(izip(spec, values), param_type_matches):
+                    return [copy.copy(spec)]
+
+            msg = "No port spec matches the given string '%s'" % specStr
+            raise VistrailsInternalError(msg)
+
+        if loose:
+            # Attempt to reconstruct the spec without information
+            return [[(self.getDescriptorByName(v).module,
+                      '<no description>')
+                     for v in values]]
+
+        msg = "Port '%s' is inexistent in ModuleDescriptor" % port.name
+        raise VistrailsInternalError(msg)
+
+        
 
     @staticmethod
     def portFromRepresentation(moduleName, portStr, endPoint,

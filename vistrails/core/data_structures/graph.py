@@ -26,7 +26,7 @@ import copy
 
 from itertools import imap, chain, izip
 
-from core.utils import withIndex, iter_with_index
+from core.utils import withIndex, iter_with_index, all
 from core.data_structures.queue import Queue
 
 ################################################################################
@@ -249,12 +249,25 @@ shares with self.)
             return ("Graph contains cycles: back edge %s encountered" %
                     self.back_edge)
 
-    def dfs(self,vertex_set=None,raise_if_cyclic=False):
-        """ dfs(self,vertex_set=None,raise_if_cyclic=False) -> (discovery, parent, finish)
+    def dfs(self,
+            vertex_set=None,
+            raise_if_cyclic=False,
+            enter_vertex=None,
+            leave_vertex=None):
+        """ dfs(self,vertex_set=None,raise_if_cyclic=False,enter_vertex=None,
+                leave_vertex=None) -> (discovery, parent, finish)
         Performs a depth-first search on a graph and returns three dictionaries with
         relevant information. If vertex_set is not None, then it is used as
         the list of ids to perform the DFS on.
-        See CLRS p. 541. """
+        
+        See CLRS p. 541.
+
+        enter_vertex, when present, is called just before visiting a vertex
+        for the first time (and only once) with the vertex id as a parameter.
+
+        leave_vertex, when present, is called just after visiting a vertex
+        for the first time (and only once) with the vertex id as a parameter.
+        """
 
         if not vertex_set:
             vertex_set = self.vertices
@@ -294,7 +307,9 @@ shares with self.)
                     data.color[v] = White
                 if data.color[v] == White:
                     data.parent[v] = u
+                    if enter_vertex: enter_vertex(v)
                     visit(v)
+                    if leave_vertex: leave_vertex(v)
                 if raise_if_cyclic and data.color[v] == Gray:
                     raise self.GraphContainsCycles(u, v)
             data.color[u] = Black
@@ -310,7 +325,6 @@ shares with self.)
         result = (data.discovery, data.parent, data.finish)
         data.clear()
         return result
-        
 
     def parent(self, v):
         """ parent(v: id type) -> id type
@@ -566,7 +580,8 @@ class TestGraph(unittest.TestCase):
          return g
 
      def make_linear(self, v, bw=False):
-         """returns a linear graph with v verts. if bw=True, add bw links."""
+         """returns a linear graph with v verts. if bw=True, add
+         backward links."""
          g = Graph()
          for x in xrange(v):
              g.addVertex(x)
@@ -773,6 +788,20 @@ class TestGraph(unittest.TestCase):
          l = [v for v in g.iter_all_edges()]
          l.sort()
          assert l == [(0,1,0), (0,3,2), (1, 2, 1), (2, 4, 4), (3, 2, 3)]
+
+     def test_dfs_before(self):
+         g = self.make_linear(10)
+         inc = []
+         dec = []
+         def before(id): inc.append(id)
+         def after(id): dec.append(id)
+         g.dfs(enter_vertex=before,
+               leave_vertex=after)
+         assert inc == list(reversed(dec))
+         assert all(izip(inc[:-1], inc[1:]),
+                    lambda (a, b): a < b)
+         assert all(izip(dec[:-1], dec[1:]),
+                    lambda (a, b): a > b)
 
 if __name__ == '__main__':
     unittest.main()

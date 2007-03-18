@@ -56,7 +56,7 @@ class Afront(Module, AfrontRun):
         o = self.interpreter.filePool.create_file(suffix='.m')
         args = []
         if not self.hasInputFromPort("file"):
-            raise ModuleError("Needs input file")
+            raise ModuleError(self, "Needs input file")
         args.append(self.getInputFromPort("file").name)
         if self.hasInputFromPort("rho"):
             args.append("-rho")
@@ -90,7 +90,7 @@ class AfrontIso(Afront):
         o = self.interpreter.filePool.create_file(suffix='.m')
         args = []
         if not self.hasInputFromPort("file"):
-            raise ModuleError("Needs input file")
+            raise ModuleError(self, "Needs input file")
         args.append(self.getInputFromPort("file").name)
         if self.hasInputFromPort("rho"):
             args.append("-rho")

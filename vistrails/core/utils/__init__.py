@@ -168,9 +168,6 @@ def memo_method(method):
         decorated.__doc__ = warn
     return decorated
 
-# Carlos, meet the standard library.
-iterate = itertools.chain
-
 ################################################################################
 
 def all(bool_list, pred = lambda x: x):
@@ -331,16 +328,6 @@ class TestCommon(unittest.TestCase):
         self.assertEquals(count[0], 2)
         t.f(C2, 0)
         self.assertEquals(count[0], 3)
-
-    def testIterate(self):
-        x = [v for v in iterate([1,2,3],[4,5,6])]
-        self.assertEquals(x, [1,2,3,4,5,6])
-        x = [v for v in iterate([], [1,2,3],[4,5,6])]
-        self.assertEquals(x, [1,2,3,4,5,6])
-        x = [v for v in iterate([1,2,3],[], [4,5,6])]
-        self.assertEquals(x, [1,2,3,4,5,6])
-        x = [v for v in iterate([1,2,3],[4,5,6], [])]
-        self.assertEquals(x, [1,2,3,4,5,6])
 
     def test_with_index(self):
         l = [0, 5, 10]
