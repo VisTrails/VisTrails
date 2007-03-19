@@ -36,6 +36,82 @@ class vtkInteractionHandler(NotCacheable, Module):
     with the vtkRenderWindowInteractor InteractionEvent
     
     """
+
+    # Since vtkCommand is not wrapped in Python, we need to hardcoded all events
+    # string from vtkCommand.h
+    vtkEvents = [
+        'AnyEvent',
+        'DeleteEvent',
+        'StartEvent',
+        'EndEvent',
+        'RenderEvent',
+        'ProgressEvent',
+        'PickEvent',
+        'StartPickEvent',
+        'EndPickEvent',
+        'AbortCheckEvent',
+        'ExitEvent',
+        'LeftButtonPressEvent',
+        'LeftButtonReleaseEvent',
+        'MiddleButtonPressEvent',
+        'MiddleButtonReleaseEvent',
+        'RightButtonPressEvent',
+        'RightButtonReleaseEvent',
+        'EnterEvent',
+        'LeaveEvent',
+        'KeyPressEvent',
+        'KeyReleaseEvent',
+        'CharEvent',
+        'ExposeEvent',
+        'ConfigureEvent',
+        'TimerEvent',
+        'MouseMoveEvent',
+        'MouseWheelForwardEvent',
+        'MouseWheelBackwardEvent',
+        'ResetCameraEvent',
+        'ResetCameraClippingRangeEvent',
+        'ModifiedEvent',
+        'WindowLevelEvent',
+        'StartWindowLevelEvent',
+        'EndWindowLevelEvent',
+        'ResetWindowLevelEvent',
+        'SetOutputEvent',
+        'ErrorEvent',
+        'WarningEvent',
+        'StartInteractionEvent',
+        'InteractionEvent',
+        'EndInteractionEvent',
+        'EnableEvent',
+        'DisableEvent',
+        'CreateTimerEvent',
+        'DestroyTimerEvent',
+        'PlacePointEvent',
+        'PlaceWidgetEvent',
+        'CursorChangedEvent',
+        'ExecuteInformationEvent',
+        'RenderWindowMessageEvent',
+        'WrongTagEvent',
+        'StartAnimationCueEvent',
+        'AnimationCueTickEvent',
+        'EndAnimationCueEvent',
+        'VolumeMapperRenderEndEvent',
+        'VolumeMapperRenderProgressEvent',
+        'VolumeMapperRenderStartEvent',
+        'VolumeMapperComputeGradientsEndEvent',
+        'VolumeMapperComputeGradientsProgressEvent',
+        'VolumeMapperComputeGradientsStartEvent',
+        'WidgetModifiedEvent',
+        'WidgetValueChangedEvent',
+        'WidgetActivateEvent',
+        'ConnectionCreatedEvent',
+        'ConnectionClosedEvent',
+        'DomainModifiedEvent',
+        'PropertyModifiedEvent',
+        'UpdateEvent',
+        'RegisterEvent',
+        'UnRegisterEvent',
+        'UpdateInformationEvent']
+    
     def compute(self):
         """ compute() -> None
         Actually compute nothing
@@ -46,51 +122,37 @@ class vtkInteractionHandler(NotCacheable, Module):
         if len(self.shareddata)==1:
             self.shareddata = self.shareddata[0]
         if self.observer:
-            self.observer.vtkInstance.AddObserver('InteractionEvent',
-                                                  self.interactionEvent)
-            self.observer.vtkInstance.AddObserver('EndInteractionEvent',
-                                                  self.endInteractionEvent)
-            self.observer.vtkInstance.AddObserver('StartInteractionEvent',
-                                                  self.startInteractionEvent)
+            source = urllib.unquote(self.handler)
+            observer = self.observer.vtkInstance
+            for e in vtkInteractionHandler.vtkEvents:
+                f = e[0].lower() + e[1:]
+                f = f.replace('Event', 'Handler')
+                source += ('\nif locals().has_key("%s"):\n' % f +
+                           '\tobserver.AddObserver("%s", ' % e +
+                           'self.eventHandler)\n')
+            exec(source)
             if hasattr(self.observer.vtkInstance, 'PlaceWidget'):
                 self.observer.vtkInstance.PlaceWidget()
 
-    def interactionEvent(self, obj, event):
-        """ interactionEvent(obj: vtkObject, event: str) -> None
-        Perform handler on interaction event
+    def eventHandler(self, obj, event):
+        """ eventHandler(obj: vtkObject, event: str) -> None
+        A proxy for all vtk events to direct to the correct calls
         
         """
         if self.handler!='':
             source = urllib.unquote(self.handler)
-            exec(source + '\nif locals().has_key("interactionHandler"):\n' +
-                 '\tinteractionHandler(obj, self.shareddata)')
-
-    def startInteractionEvent(self, obj, event):
-        """ startInteractionEvent(obj: vtkObject, event: str) -> None
-        Perform handler on starting interaction event
-        
-        """
-        if self.handler!='':
-            source = urllib.unquote(self.handler)
-            exec(source + '\nif locals().has_key("startInteractionHandler"):\n' +
-                 '\tstartInteractionHandler(obj, self.shareddata)')
-
-    def endInteractionEvent(self, obj, event):
-        """ endInteractionEvent(obj: vtkObject, event: str) -> None
-        Perform handler on ending interaction event
-        
-        """
-        if self.handler!='':
-            source = urllib.unquote(self.handler)
-            exec(source + '\nif locals().has_key("endInteractionHandler"):\n' +
-                 '\tendInteractionHandler(obj, self.shareddata)')
+            f = event[0].lower() + event[1:]
+            f = f.replace('Event', 'Handler')
+            exec(source + ('\nif locals().has_key("%s"):\n' % f)+
+                 ('\t%s(obj, self.shareddata)' % f))
 
     def clear(self):
         """
         """
-        self.observer.vtkInstance.RemoveObservers("InteractionEvent")
-        self.observer.vtkInstance.RemoveObservers("StartInteractionEvent")
-        self.observer.vtkInstance.RemoveObservers("EndInteractionEvent")
+        # Remove all observers
+        if self.observer:
+            for e in vtkInteractionHandler.vtkEvents:
+                self.observer.vtkInstance.RemoveObservers(e)
         Module.clear(self)
 
 class HandlerConfigurationWidget(StandardModuleConfigurationWidget):
