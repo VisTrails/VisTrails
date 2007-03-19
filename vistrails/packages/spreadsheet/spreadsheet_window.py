@@ -57,6 +57,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.stackedCentralWidget.addWidget(self.fullScreenStackedWidget)
         self.setCentralWidget(self.stackedCentralWidget)
         self.setStatusBar(QtGui.QStatusBar(self))
+        self.modeActionGroup = QtGui.QActionGroup(self)
         self.setupMenu()
         self.visApp = QtCore.QCoreApplication.instance()
         self.visApp.installEventFilter(self)
@@ -64,7 +65,6 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('needChangeTitle'),
                      self.setWindowTitle)
         self.file_pool = module_utils.FilePool()
-
 
     def destroy(self):
         self.tabController.cleanup()
@@ -86,7 +86,14 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.mainMenu.addAction(self.tabController.deleteSheetAction())
         self.viewMenu = QtGui.QMenu('&View', self.menuBar())
         self.menuBar().addAction(self.viewMenu.menuAction())
+        self.viewMenu.addAction(self.interactiveModeAction())
+        self.viewMenu.addAction(self.editingModeAction())
+        self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.fullScreenAction())
+
+        self.connect(self.modeActionGroup,
+                     QtCore.SIGNAL('triggered(QAction*)'),
+                     self.modeChanged)
 
     def fullScreenAction(self):
         """ fullScreenAction() -> QAction
@@ -96,10 +103,12 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         if not hasattr(self, 'fullScreenActionVar'):
             self.fullScreenActionVar = QtGui.QAction('&Full Screen', self)
             self.fullScreenActionVar.setShortcut('Ctrl+F')
+            self.fullScreenActionVar.setCheckable(True)
+            self.fullScreenActionVar.setChecked(False)
             self.fullScreenActionVar.setStatusTip('Show sheets without any '
                                                   'menubar or statusbar')
             self.connect(self.fullScreenActionVar,
-                         QtCore.SIGNAL('triggered()'),
+                         QtCore.SIGNAL('triggered(bool)'),
                          self.fullScreenActivated)
             self.fullScreenAlternativeShortcuts = [QtGui.QShortcut('F11', self),
                                                    QtGui.QShortcut('Alt+Return',
@@ -111,12 +120,16 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                              self.fullScreenActivated)
         return self.fullScreenActionVar
 
-    def fullScreenActivated(self):
-        """ fullScreenActivated() -> None
-        Alt+Enter has pressed, then go fullscreen now
+    def fullScreenActivated(self, full=None):
+        """ fullScreenActivated(full: bool) -> None
+        if fullScreen has been requested has pressed, then go to fullscreen now
+        
         """
-        fs = self.isFullScreen()
-        fs = not fs
+        if full==None:
+            fs = self.isFullScreen()
+            fs = not fs
+        else:
+            fs = full
         if fs:
             self.setWindowState(QtCore.Qt.WindowFullScreen)
         else:
@@ -128,6 +141,48 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                                                  self.fullScreenStackedWidget)
         self.stackedCentralWidget.setCurrentIndex(int(fs))
         
+    def interactiveModeAction(self):
+        """ interactiveModeAction() -> QAction
+        Return the interactive mode action, this is the mode where users can
+        interact with the content of the cells
+        
+        """
+        if not hasattr(self, 'interactiveModeActionVar'):
+            self.interactiveModeActionVar = QtGui.QAction('&Interactive Mode',
+                                                          self.modeActionGroup)
+            self.interactiveModeActionVar.setCheckable(True)
+            self.interactiveModeActionVar.setChecked(True)
+            self.interactiveModeActionVar.setShortcut('Ctrl+I')
+            self.interactiveModeActionVar.setStatusTip('Use this mode to '
+                                                       'interact with '
+                                                       'the cell contents')
+        return self.interactiveModeActionVar
+    
+    def editingModeAction(self):
+        """ editingModeAction() -> QAction
+        Return the editing mode action, this is the mode where users can
+        interact with the content of the cells
+        
+        """
+        if not hasattr(self, 'editingModeActionVar'):
+            self.editingModeActionVar = QtGui.QAction('&Editing Mode',
+                                                      self.modeActionGroup)
+            self.editingModeActionVar.setCheckable(True)
+            self.editingModeActionVar.setShortcut('Ctrl+E')
+            self.editingModeActionVar.setStatusTip('Use this mode to '
+                                                   'layout cells and '
+                                                   'interact cells with '
+                                                   'the builder')
+        return self.editingModeActionVar
+
+    def modeChanged(self, action):
+        """ modeChanged(actoin: QAction) -> None        
+        Handle the new mode (interactive or editing) based on the
+        triggered action
+        
+        """
+        editing = self.editingModeAction().isChecked()
+    
     def configShow(self):
         """ configShow() -> None
         Read VisTrails setting and show the spreadsheet window accordingly

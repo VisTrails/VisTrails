@@ -209,7 +209,6 @@ class QVistrailView(QDockContainer):
         
         """
         self.toolBar.executePipelineAction().setEnabled(versionId>-1)
-        self.toolBar.viewFullTreeAction().setEnabled(versionId>-1)
 
     def queryPipelineChange(self, notEmpty):
         """ versionSelectionChange(notEmpty: bool) -> None
@@ -217,9 +216,9 @@ class QVistrailView(QDockContainer):
         modules on the query canvas
         
         """
-        if not notEmpty and self.toolBar.visualQueryAction().isChecked():
-            self.toolBar.visualQueryAction().trigger()
-            self.toolBar.visualQueryAction().setChecked(False)
+#        if not notEmpty and self.toolBar.visualQueryAction().isChecked():
+#            self.toolBar.visualQueryAction().trigger()
+        self.toolBar.visualQueryAction().setChecked(False)
         self.toolBar.visualQueryAction().setEnabled(notEmpty)
 
     def emitDockBackSignal(self):

@@ -205,6 +205,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         for i in range(newCount):
             vLabels << str(vIdx(i)+1)
         self.setVerticalHeaderLabels(vLabels)
+        self.verticalHeader().setVisible(newCount>1)
 
     def rowMoved(self, row, old, new):
         """ rowMove(row: int, old: int, new: int) -> None
@@ -223,6 +224,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         for i in range(newCount):
             hLabels << chr(vIdx(i)+ord('A'))
         self.setHorizontalHeaderLabels(hLabels)
+        self.horizontalHeader().setVisible(newCount>1)
 
     def columnMoved(self, row, old, new):
         """ columnMoved(row: int, old: int, new: int) -> None

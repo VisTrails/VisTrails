@@ -43,6 +43,8 @@ class ModuleParam(object):
         self.minValue = ""
         self.maxValue = ""
         self.evaluatedStrValue = ""
+        # This is used for visual query and will not get serialize
+        self.queryMethod = 0
         
     def serialize(self, dom, element):
         """ serialize(dom, element) -> None 

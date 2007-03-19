@@ -22,6 +22,7 @@
 from core import query
 from core.utils import appendToDictOfLists
 import copy
+import re
 
 ################################################################################
 
@@ -35,7 +36,6 @@ class VisualQuery(query.Query):
                                 target_ids, template_ids):
         resultIds = set()
         while 1:
-#            print "round starting", target, template, target_ids, template_ids
             templateNames = set([(i, template.modules[i].name)
                                  for i in template_ids])
             targetNames = {}
@@ -47,11 +47,15 @@ class VisualQuery(query.Query):
 
             for (i, templateName) in templateNames:
                 if templateName not in targetNames:
-#                    print "Template",templateName,"is not in",targetNames
                     return (False, resultIds)
                 else:
-                    resultIds.update(targetNames[templateName])
-                    for matchedTargetId in targetNames[templateName]:
+                    templateModule = template.modules[i]
+                    matched = [tId
+                               for tId in targetNames[templateName]
+                               if self.matchQueryModule(target.modules[tId],
+                                                        templateModule)]
+                    resultIds.update(matched)
+                    for matchedTargetId in matched:
                         nextTargetIds.update([moduleId for
                                               (moduleId, edgeId) in
                                               target.graph.edgesFrom(matchedTargetId)])
@@ -60,7 +64,6 @@ class VisualQuery(query.Query):
                                             template.graph.edgesFrom(i)])
 
             if not len(nextTemplateIds):
-#                print "No more templates to be matched, ok!"
                 return (True, resultIds)
 
             target_ids = nextTargetIds
@@ -81,21 +84,30 @@ class VisualQuery(query.Query):
                 if not queryModuleNameIndex.has_key(querySourceName):
                     continue
                 candidates = queryModuleNameIndex[querySourceName]
+                atLeastOneMatch = False
                 for candidateSourceId in candidates:
-#                    print querySourceName
-#                    print p.modules[candidateSourceId].name
+                    querySource = self.queryPipeline.modules[querySourceId]
+                    candidateSource = p.modules[candidateSourceId]
+                    if not self.matchQueryModule(candidateSource,
+                                                 querySource):
+                        continue
                     (match, targetIds) = self.heuristicDAGIsomorphism \
                                              (template = self.queryPipeline, 
                                               target = p,
                                               template_ids = [querySourceId],
                                               target_ids = [candidateSourceId])
                     if match:
+                        atLeastOneMatch = True
                         matches.update(targetIds)
-#                        print matches
+                        
+                # We always perform AND operation
+                if not atLeastOneMatch:
+                    matches = set()
+                    break
+                
             for m in matches:
                 result.append((version, m))
         self.queryResult = result
-#        print result
         self.computeIndices()
         return result
                 
@@ -104,3 +116,95 @@ class VisualQuery(query.Query):
         a visualquery object looks like a class that can be instantiated
         once per vistrail."""
         return VisualQuery(self.queryPipeline)
+
+    def matchQueryModule(self, template, target):
+        """ matchQueryModule(template, target: Module) -> bool        
+        Return true if the target module can be matched to the
+        template module
+        
+        """
+        if target.name != template.name:
+            return False
+        if target.getNumFunctions()>template.getNumFunctions():
+            return False
+        candidateFunctions = {}
+        for fid in range(template.getNumFunctions()):
+            f = template.functions[fid]
+            appendToDictOfLists(candidateFunctions, f.name, f)
+
+        for f in target.functions:
+            if not candidateFunctions.has_key(f.name):
+                return False
+            fNotMatch = True
+            candidates = candidateFunctions[f.name]
+            for cf in candidates:
+                if len(cf.params)!=len(f.params):
+                    continue
+                pMatch = True
+                for pid in range(len(cf.params)):
+                    cp = cf.params[pid]
+                    p = f.params[pid]                    
+                    if not self.matchQueryParam(p, cp):
+                        pMatch= False
+                        break
+                if pMatch:
+                    fNotMatch = False
+                    break
+            if fNotMatch:
+                return False
+        return True
+
+    def matchQueryParam(self, template, target):
+        """ matchQueryParam(template: Param, target: Param) -> bool
+        Check to see if target can match with a query template
+        
+        """
+        if template.type!=target.type:
+            return False
+        if template.type=='String':
+            op = template.queryMethod/2
+            caseInsensitive = template.queryMethod%2==0
+            templateStr = template.strValue
+            targetStr = target.strValue
+            if caseInsensitive:
+                templateStr = templateStr.lower()
+                targetStr = targetStr.lower()
+
+            if op==0:
+                return templateStr in targetStr
+            if op==1:
+                return templateStr==targetStr
+            if op==2:
+                try:
+                    return re.match(templateStr, targetStr)!=None
+                except:
+                    return False
+        else:
+            if template.strValue.strip()=='':
+                return True
+            realTypeDict = {'Integer': int, 'Float': float}
+            realType = realTypeDict[template.type]
+            try:
+                return realType(template.strValue)==realType(target.strValue)
+            except: # not a constant
+                try:
+                    return bool(eval(target.strValue+' '+template.strValue))
+                except: # not a '<', '>', or '==' expression
+                    try:
+                        s = template.strValue.replace(' ', '')
+                        if s[0]=='(':
+                            mid1 = '<%s)' % target.strValue
+                        if s[0]=='[':
+                            mid1 = '<=%s)' % target.strValue
+                        if s[-1]==')':
+                            mid2 = '(%s<' % target.strValue
+                        if s[-1]==']':
+                            mid2 = '(%s<=' % target.strValue
+                            
+                        s = s.replace(',', '%s and %s' % (mid1, mid2))
+                        s = '(' + s[1:-1] + ')'
+                        print 'evaluating "%s"' % s
+                        return eval(s)
+                    except:
+                        print 'Invalid query "%s".' % template.strValue
+                        return False

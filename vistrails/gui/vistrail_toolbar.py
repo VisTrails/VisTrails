@@ -116,7 +116,7 @@ class QVistrailViewToolBar(QtGui.QToolBar):
                                                'tree with all move actions')
             self._viewFullTreeAction.setStatusTip(
                 self._viewFullTreeAction.toolTip())
-            self._viewFullTreeAction.setEnabled(False)
+            self._viewFullTreeAction.setEnabled(True)
         return self._viewFullTreeAction
 
     def cursorMenu(self):

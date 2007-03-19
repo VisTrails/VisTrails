@@ -266,7 +266,7 @@ class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
             painter.setPen(self.versionPen)
         painter.setBrush(self.versionBrush)
         painter.drawEllipse(self.rect())
-        if self.isSelected():
+        if self.isSelected() and not self.ghosted:
             painter.setPen(CurrentTheme.VERSION_LABEL_SELECTED_PEN)
         else:
             painter.setPen(self.versionLabelPen)
