@@ -72,7 +72,7 @@ class VisualQuery(query.Query):
     def run(self, vistrail, name):
         result = []
         self.tupleLength = 2
-        versions = vistrail.tagMap.values()
+        versions = vistrail.getTerseGraph().vertices.keys()
         for version in versions:
             p = vistrail.getPipeline(version)
             matches = set()
