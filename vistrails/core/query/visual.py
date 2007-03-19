@@ -176,7 +176,11 @@ class VisualQuery(query.Query):
                 return templateStr==targetStr
             if op==2:
                 try:
-                    return re.match(templateStr, targetStr)!=None
+                    mo = re.match(templateStr, targetStr)
+                    if mo!=None:
+                        return mo.end()==len(targetStr)
+                    else:
+                        return False
                 except:
                     return False
         else:
