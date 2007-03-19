@@ -112,7 +112,7 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                                                  ModuleConnector(constant, 
                                                                  'value'))
                     if len(f.params)>1:
-                        tupleModule = reg.getDescriptorByName('Tuple').module()
+                        tupleModule = core.interpreter.base.InternalTuple()
                         tupleModule.length = len(f.params)
                         for (i,p) in withIndex(f.params):
                             constant = reg.getDescriptorByName(p.type).module()

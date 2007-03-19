@@ -122,7 +122,7 @@ class QVTKWidget(QCellWidget):
         deallocating. Overriding PyQt deleteLater to free up
         resources
         
-        """        
+        """
         for ren in self.getRendererList():
             self.mRenWin.RemoveRenderer(ren)
             
@@ -134,6 +134,8 @@ class QVTKWidget(QCellWidget):
             style.RemoveObservers("MouseWheelForwardEvent")
             style.RemoveObservers("MouseWheelBackwardEvent")
 
+        self.updateContents(([],[]))
+        
         self.SetRenderWindow(None)
 
         QCellWidget.deleteLater(self)
@@ -194,7 +196,8 @@ class QVTKWidget(QCellWidget):
             return
         
         if self.mRenWin:
-            self.mRenWin.SetInteractor(None)
+            if system.systemType!='Linux':
+                self.mRenWin.SetInteractor(None)
             if self.mRenWin.GetMapped():
                 self.mRenWin.Finalize()
             
@@ -339,7 +342,7 @@ class QVTKWidget(QCellWidget):
         Echo mouse event to vtkRenderWindowwInteractor
         
         """
-        self.emit(QtCore.SIGNAL("mouseEvent(QMouseEvent)"),e)
+#        self.emit(QtCore.SIGNAL("mouseEvent(QMouseEvent)"),e)
 
         iren = None
         if self.mRenWin:
