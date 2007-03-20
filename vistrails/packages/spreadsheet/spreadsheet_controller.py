@@ -66,5 +66,17 @@ class SpreadsheetController(object):
             QtCore.QCoreApplication.postEvent(spreadsheetWindow, QtGui.QShowEvent())
             QtCore.QCoreApplication.postEvent(spreadsheetWindow, event)
 
+    def getBuilderWindow(self):
+        """ getBuilderWindow() -> QWidget        
+        Return the builder window of the application, or None if
+        couldn't fine one
+        
+        """
+        spreadsheetWindow = self.findSpreadsheetWindow()
+        if hasattr(spreadsheetWindow.visApp, 'builderWindow'):
+            return spreadsheetWindow.visApp.builderWindow
+        else:
+            return None
+
 spreadsheetController = SpreadsheetController()
 registeredWidgets = {}

@@ -479,11 +479,12 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.emit(QtCore.SIGNAL('needChangeTitle'),
                   'VisTrails - Spreadsheet - %s' % displayName)
 
-    def addPipeline(self, vistrail):
-        """ addPipeline(vistrail: tuple) -> None
+    def addPipeline(self, pipelineInfo):
+        """ addPipeline(pipelineInfo: dict) -> None
         Add vistrail pipeline executions to history
         
         """
+        vistrail = (pipelineInfo['vistrailName'], pipelineInfo['version'])
         self.executedPipelines[0].append(vistrail)
         if not vistrail in self.executedPipelines[1]:
             self.executedPipelines[1][vistrail] = 0
@@ -491,34 +492,38 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.executedPipelines[1][vistrail] += 1
         self.executedPipelines[2][vistrail] = 0
 
-    def getCurrentPipelineId(self, vistrail):
-        """ getCurrentPipelineId(vistrail: tuple) -> Int
+    def getCurrentPipelineId(self, pipelineInfo):
+        """ getCurrentPipelineId(pipelineInfo: dict) -> Int
         Get the current pipeline id
         
         """
+        vistrail = (pipelineInfo['vistrailName'], pipelineInfo['version'])
         return self.executedPipelines[1][vistrail]
 
-    def increasePipelineCellId(self, vistrail):
-        """ increasePipelineCellId(vistrail: tuple) -> int
+    def increasePipelineCellId(self, pipelineInfo):
+        """ increasePipelineCellId(pipelineInfo: dict) -> int
         Increase the current cell pipeline id
         
         """
+        vistrail = (pipelineInfo['vistrailName'], pipelineInfo['version'])
         cid = self.executedPipelines[2][vistrail]
         self.executedPipelines[2][vistrail] += 1
         return cid
         
-    def getCurrentPipelineCellId(self, vistrail):
-        """ getCurrentPipelineCellId(vistrail: tuple) -> int
+    def getCurrentPipelineCellId(self, pipelineInfo):
+        """ getCurrentPipelineCellId(pipelineInfo: dict) -> int
         Get current pipeline cell id
         
         """
+        vistrail = (pipelineInfo['vistrailName'], pipelineInfo['version'])
         return self.executedPipelines[2][vistrail]
         
-    def addPipelineCell(self, vistrail):
-        """ addPipelineCell(vistrail: tuple) -> None
+    def addPipelineCell(self, pipelineInfo):
+        """ addPipelineCell(pipelineInfo: dict) -> None
         Add vistrail pipeline executions to history
         
         """
+        vistrail = (pipelineInfo['vistrailName'], pipelineInfo['version'])
         self.executedPipelines[0].append(vistrail)
         if not vistrail in self.executedPipelines[1]:
             self.executedPipelines[1][vistrail] = 0
@@ -671,3 +676,11 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         
         """
         self.clearTabs()
+
+    def setEditingMode(self, editing=True):
+        """ setEditingMode(editing: bool) -> None
+        Turn on/off the editing mode of the whole spreadsheet
+        
+        """
+        for w in self.tabWidgets:
+            w.setEditingMode(editing)

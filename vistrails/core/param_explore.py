@@ -166,7 +166,7 @@ class ActionBasedParameterExploration(object):
     
     """
     def explore(self, pipeline, actions):
-        """ explore(pipeline: Pipeline, actions: [action set]) -> [pipeline]
+        """ explore(pipeline: Pipeline, actions: [action set]) -> [(pipeline, actions)]
         Perform the parameter exploration on the pipeline with a set
         of actions. Each 'action set' represent a tuple of actions that we
         need to apply on the pipeline at a step in a dimension. For example:
@@ -176,33 +176,43 @@ class ActionBasedParameterExploration(object):
         which means this is a 2 x 1 parameter exploration resulting of
         executing 2 pipelines. The first one is
         pipeline.action1a.action2a.action3a and the second one is
-        pipeline.action1b.action2b.action3b
+        pipeline.action1b.action2b.action3b.
+        
+        The return values are a list of tuples containing interpolated
+        pipeline and a set of actions leading to that interpolated
+        pipeline. This is useful for update the parameter exploration
+        back to the builder.
         
         """
-        results = []        
+        results = []
+        resultActions = []
         
-        def exploreDimension(pipeline, dim):
-            """ exploreDimension(pipeline: Pipeline, dim: int) -> None
+        def exploreDimension(pipeline, performedActions, dim):
+            """ exploreDimension(pipeline: Pipeline, performedActions: [actions],
+                                 dim: int) -> None
             Start applying actions to the pipeline at dimension
             dim. 'pipeline' will not be modified in the function
             
             """
             if dim<0:
                 results.append(pipeline)
+                resultActions.append(performedActions)
                 return
             currentActions = actions[dim]
             if len(currentActions)==0:
                 # Ignore empty dimension
-                exploreDimension(pipeline, dim-1)
+                exploreDimension(pipeline, performedActions, dim-1)
                 return
             for actionSet in currentActions:
                 currentPipeline = copy.copy(pipeline)
+                currentPeformedActions = copy.copy(performedActions)
                 for action in actionSet:
                     action.perform(currentPipeline)
-                exploreDimension(currentPipeline, dim-1)
+                    currentPeformedActions.append(action)
+                exploreDimension(currentPipeline, currentPeformedActions, dim-1)
                 
-        exploreDimension(pipeline,len(actions)-1)
-        return results
+        exploreDimension(pipeline, [], len(actions)-1)
+        return (results, resultActions)
 
 ################################################################################
         

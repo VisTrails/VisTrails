@@ -147,7 +147,9 @@ class vtkInteractionHandler(NotCacheable, Module):
                  ('\t%s(obj, self.shareddata)' % f))
 
     def clear(self):
-        """
+        """ clear() -> None
+        Remove event handler so the object can be freed correctly
+        
         """
         # Remove all observers
         if self.observer:

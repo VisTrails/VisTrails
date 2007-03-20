@@ -207,7 +207,6 @@ class VisualQuery(query.Query):
                             
                         s = s.replace(',', '%s and %s' % (mid1, mid2))
                         s = '(' + s[1:-1] + ')'
-                        print 'evaluating "%s"' % s
                         return eval(s)
                     except:
                         print 'Invalid query "%s".' % template.strValue

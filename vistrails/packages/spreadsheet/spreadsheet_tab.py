@@ -32,7 +32,16 @@
 from PyQt4 import QtCore, QtGui
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_sheet import StandardWidgetSheet
+from spreadsheet_cell import QCellPresenter
 import spreadsheet_rc
+from core.interpreter.default import default_interpreter
+from core.utils import DummyView
+from core.vistrail.action import AddModuleAction, AddConnectionAction, \
+     DeleteConnectionAction, ChangeParameterAction
+from core.vistrail import module
+from core.vistrail import connection
+from core.modules.module_registry import registry
+import copy
 
 ################################################################################
 
@@ -132,7 +141,20 @@ class StandardWidgetToolBar(QtGui.QToolBar):
             self.connect(self.colSpinBox,
                          QtCore.SIGNAL('editingFinished()'),
                          self.sheetTab.colSpinBoxChanged)
-        return self.colSpinBox        
+        return self.colSpinBox
+
+class FilterDeferredDeleteObject(QtCore.QObject):
+    
+    def eventFilter(self, obj, event):
+        """ eventFilter(obj: QObject, event: QEvent) -> bool
+        Prevent the cell widget to be deleted by DeferredDelete Event
+        
+        """
+        if event.type()==QtCore.QEvent.DeferredDelete:
+            return True
+        else:
+            return QtGui.QWidget.eventFilter(self, obj, event)
+    
         
 class StandardWidgetSheetTabInterface(object):
     """
@@ -197,6 +219,14 @@ class StandardWidgetSheetTabInterface(object):
         Get a free cell location (row, col) on the spreadsheet 
 
         """
+        (rowCount, colCount) = self.getDimension()
+        for r in range(rowCount):
+            for c in range(colCount):
+                w = self.getCell(r, c)
+                row = self.sheet.verticalHeader().logicalIndex(r)
+                col = self.sheet.horizontalHeader().logicalIndex(c)
+                if w==None or (type(w)==QCellPresenter and w.cellWidget==None):
+                    return (r,c)
         return (0, 0)
 
     def setCellByType(self, row, col, cellType, inputPorts):
@@ -255,6 +285,261 @@ class StandardWidgetSheetTabInterface(object):
         for r in range(rowCount):
             for c in range(columnCount):
                 self.setCellByType(r, c, None, None)
+
+    def takeCell(self, row, col):
+        """ takeCell(row, col) -> QWidget        
+        Free the cell widget at (row, col) from the tab and return as
+        the result of the function. If there is no widget at (row,
+        col). This returns None. The ownership of the widget is passed
+        to the caller.
+        
+        """
+        cell = self.getCell(row, col)
+        if cell:
+            obj = FilterDeferredDeleteObject()
+            cell.installEventFilter(obj)
+            self.setCellByWidget(row, col, None)
+            QtCore.QCoreApplication.processEvents(
+                QtCore.QEventLoop.DeferredDeletion)
+            cell.removeEventFilter(obj)
+            obj.deleteLater()
+        return cell
+
+    def setCellByWidget(self, row, col, cellWidget):
+        """ setCellByWidget(row: int,
+                            col: int,                            
+                            cellWidget: QWidget) -> None 
+        Replace the current location (row, col) with a cell widget
+        
+        """
+        pass
+
+    def setCellEditingMode(self, r, c, editing=True):
+        """ setCellEditingMode(r: int, c: int, editing: bool) -> None
+        Turn on/off the editing mode of a single cell
+        
+        """
+        if editing:
+            cellWidget = self.getCell(r, c)
+            if type(cellWidget)==QCellPresenter:
+                return
+            presenter = QCellPresenter()
+            presenter.assignCell(self, r, c)
+            cellWidget = self.takeCell(r, c)
+            self.setCellByWidget(r, c, presenter)
+            if cellWidget:
+                cellWidget.hide()
+        else:
+            presenter = self.getCell(r, c)
+            if type(presenter)!=QCellPresenter:
+                return
+            if presenter:
+                cellWidget = presenter.releaseCellWidget()
+                self.setCellByWidget(r, c, cellWidget)
+        
+    
+    def setEditingMode(self, editing=True):
+        """ setEditingMode(editing: bool) -> None
+        Turn on/off the editing mode of the tab
+        
+        """
+        # Go over all the cells and set the editing widget up
+        (rowCount, colCount) = self.getDimension()
+        for r in range(rowCount):
+            for c in range(colCount):
+                self.setCellEditingMode(r, c, editing)
+        QtCore.QCoreApplication.processEvents()
+
+    def swapCell(self, row, col, newSheet, newRow, newCol):
+        """ swapCell(row, col: int, newSheet: Sheet,
+                     newRow, newCol: int) -> None
+        Swap the (row, col) of this sheet to (newRow, newCol) of newSheet
+        
+        """
+        myWidget = self.takeCell(row, col)
+        theirWidget = newSheet.takeCell(newRow, newCol)
+        self.setCellByWidget(row, col, theirWidget)
+        newSheet.setCellByWidget(newRow, newCol, myWidget)
+        info = self.getCellPipelineInfo(row, col)
+        self.setCellPipelineInfo(row, col,
+                                 newSheet.getCellPipelineInfo(newRow, newCol))
+        newSheet.setCellPipelineInfo(newRow, newCol, info)        
+
+    def copyCell(self, row, col, newSheet, newRow, newCol):
+        """ copyCell(row, col: int, newSheet: Sheet,
+                     newRow, newCol: int) -> None
+        Copy the (row, col) of this sheet to (newRow, newCol) of newSheet
+        
+        """
+        info = self.getCellPipelineInfo(row, col)
+        if info:
+            info = info[0]
+            mId = info['moduleId']
+            pipeline = newSheet.setPipelineToLocateAt(newRow, newCol,
+                                                      info['pipeline'], [mId])
+
+            totalProgress = len(pipeline.graph.inverse().bfs(mId))+1
+            progress = QtGui.QProgressDialog('Copying...',
+                                             '&Cancel',
+                                             0, totalProgress)
+            progress.setWindowTitle('Copy Cell')
+            progress.setWindowModality(QtCore.Qt.WindowModal)
+            progress.show()
+            def moduleExecuted(objId):
+                if not progress.wasCanceled():
+                    progress.setValue(progress.value()+1)
+                    QtCore.QCoreApplication.processEvents()
+            interpreter = default_interpreter.get()
+            interpreter.execute(pipeline,
+                                info['vistrailName'],
+                                info['version'],
+                                DummyView(),
+                                moduleExecutedHook = [moduleExecuted],
+                                reason=info['reason'],
+                                actions=info['actions'],
+                                sinks=[mId])
+            progress.setValue(totalProgress)
+
+    def executePipelineToCell(self, pInfo, row, col, reason=''):
+        """ executePipelineToCell(p: tuple, row: int, col: int) -> None
+        p: (vistrailName, version, actions, pipeline)
+        
+        Execute a pipeline and put all of its cell to (row, col). This
+        need to be fixed to layout all cells inside the pipeline
+        
+        """        
+        pipeline = self.setPipelineToLocateAt(row, col, pInfo[3])
+
+        totalProgress = len(pipeline.modules)
+        progress = QtGui.QProgressDialog('Executing...',
+                                         '&Cancel',
+                                         0, totalProgress)
+        progress.setWindowTitle('Copy Cell')
+        progress.setWindowModality(QtCore.Qt.WindowModal)
+        progress.show()
+        def moduleExecuted(objId):
+            if not progress.wasCanceled():
+                progress.setValue(progress.value()+1)
+                QtCore.QCoreApplication.processEvents()
+        interpreter = default_interpreter.get()
+        interpreter.execute(pipeline,
+                            pInfo[0], pInfo[1],
+                            DummyView(),
+                            moduleExecutedHook = [moduleExecuted],
+                            actions=pInfo[2],
+                            reason=reason)
+        progress.setValue(totalProgress)
+
+    def setPipelineToLocateAt(self, row, col, inPipeline, cellIds=[]):
+        """ setPipelineToLocateAt(row: int, col: int, inPipeline: Pipeline,
+                                  cellIds: [ids]) -> Pipeline                                  
+        Modify the pipeline to have its cells (provided by cellIds) to
+        be located at (row, col) of this sheet
+        
+        """
+        sheetName = str(self.tabWidget.tabText(self.tabWidget.indexOf(self)))
+        pipeline = copy.copy(inPipeline)
+        if cellIds==[]:
+            cellIds = pipeline.modules.keys()
+        SpreadsheetCell = registry.getDescriptorByName('SpreadsheetCell').module
+        for mId in cellIds:
+            md = pipeline.modules[mId]
+            moduleClass = registry.getDescriptorByName(md.name).module
+            if not issubclass(moduleClass, SpreadsheetCell):
+                continue
+            # Walk through all connection and remove all
+            # CellLocation connected to this spreadsheet cell
+            delConn = DeleteConnectionAction()
+            for (cId,c) in pipeline.connections.iteritems():
+                if (c.destinationId==mId and
+                    pipeline.modules[c.sourceId].name=="CellLocation"):
+                    delConn.addId(cId)
+            delConn.perform(pipeline)
+
+            # Add a sheet reference with a specific name
+            sheetReference = module.Module()
+            sheetReference.id = pipeline.fresh_module_id()
+            sheetReference.name = "SheetReference"
+            addModule = AddModuleAction()
+            addModule.module = sheetReference
+            addModule.perform(pipeline)
+            addParam = ChangeParameterAction()
+            addParam.addParameter(sheetReference.id, 0, 0,
+                                  "SheetName", "", sheetName, "String", "" )
+            addParam.addParameter(sheetReference.id, 1, 0,
+                                  "MinRowCount", "",
+                                  str(row+1), "Integer", "" )
+            addParam.addParameter(sheetReference.id, 2, 0,
+                                  "MinColumnCount", "",
+                                  str(col+1), "Integer", "" )
+            addParam.perform(pipeline)
+
+            # Add a cell location module with a specific row and column
+            cellLocation = module.Module()
+            cellLocation.id = pipeline.fresh_module_id()
+            cellLocation.name = "CellLocation"
+            addModule = AddModuleAction()
+            addModule.module = cellLocation
+            addModule.perform(pipeline)
+
+            addParam = ChangeParameterAction()                
+            addParam.addParameter(cellLocation.id, 0, 0,
+                                  "Row", "", str(row+1),
+                                  "Integer", "" )
+            addParam.addParameter(cellLocation.id, 1, 0,
+                                  "Column", "", str(col+1),
+                                  "Integer", "" )
+            addParam.perform(pipeline)
+
+            # Then connect the SheetReference to the CellLocation
+            conn = connection.Connection()
+            conn.id = pipeline.fresh_connection_id()
+            conn.source.moduleId = sheetReference.id
+            conn.source.moduleName = sheetReference.name
+            conn.source.name = "self"
+            conn.source.spec = registry.getOutputPortSpec(
+                sheetReference, "self")
+            conn.connectionId = conn.id
+            conn.destination.moduleId = cellLocation.id
+            conn.destination.moduleName = cellLocation.name
+            conn.destination.name = "SheetReference"
+            conn.destination.spec = registry.getInputPortSpec(
+                cellLocation, "SheetReference")
+            addConnection = AddConnectionAction()
+            addConnection.connection = conn
+            addConnection.perform(pipeline)
+
+            # Then connect the CellLocation to the spreadsheet cell
+            conn = connection.Connection()
+            conn.id = pipeline.fresh_connection_id()
+            conn.source.moduleId = cellLocation.id
+            conn.source.moduleName = cellLocation.name
+            conn.source.name = "self"
+            conn.source.spec = registry.getOutputPortSpec(
+                cellLocation, "self")
+            conn.connectionId = conn.id
+            conn.destination.moduleId = mId
+            conn.destination.moduleName = pipeline.modules[mId].name
+            conn.destination.name = "Location"
+            conn.destination.spec = registry.getInputPortSpec(
+                cellLocation, "Location")
+            addConnection = AddConnectionAction()
+            addConnection.connection = conn
+            addConnection.perform(pipeline)
+        return pipeline
+
+    def getPipelineInfo(self, row, col):
+        """ getPipelineInfo(row: int, col: int) -> tuple
+        Return (vistrailName, versionNumber, actions, pipeline) for a cell
+        
+        """
+        info = self.getCellPipelineInfo(row, col)
+        if info:
+            return (info[0]['vistrailName'],
+                    info[0]['version'],
+                    info[0]['actions'],
+                    info[0]['pipeline'])
+        return None
 
 class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
     """
@@ -324,7 +609,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         Get cell at a specific row and column.
         
         """
-        return self.sheet.cellWidget(row, col)
+        return self.sheet.getCell(row, col)
 
     def getCellToolBar(self, row, col):
         """ getCellToolBar(row: int, col: int) -> QWidget
@@ -348,13 +633,6 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         
         """
         return self.sheet.getCellGlobalRect(row, col)
-
-    def getFreeCell(self):
-        """ getFreeCell() -> tuple
-        Get a free cell location (row, col) on the spreadsheet 
-
-        """
-        return self.sheet.getFreeCell()
 
     def setCellByType(self, row, col, cellType, inputPorts):
         """ setCellByType(row: int,
@@ -387,7 +665,20 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         indexes = self.sheet.selectedIndexes()
         return [(idx.row(), idx.column()) for idx in indexes]
 
-class StandardWidgetTabBarEditor(QtGui.QLineEdit):
+    def setCellByWidget(self, row, col, cellWidget):
+        """ setCellByWidget(row: int,
+                            col: int,                            
+                            cellWidget: QWidget) -> None                            
+        Replace the current location (row, col) with a cell widget
+        
+        """
+        if cellWidget:
+            # Relax the size constraint of the widget
+            cellWidget.setMinimumSize(QtCore.QSize(0, 0))
+            cellWidget.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        self.sheet.setCellByWidget(row, col, cellWidget)
+
+class StandardWidgetTabBarEditor(QtGui.QLineEdit):    
     """
     StandardWidgetTabBarEditor overrides QLineEdit to enable canceling
     edit when Esc is pressed
@@ -426,6 +717,7 @@ class StandardWidgetTabBar(QtGui.QTabBar):
         
         """
         QtGui.QTabBar.__init__(self, parent)
+        self.setAcceptDrops(True)
         self.setStatusTip('Move the sheet in, out and around'
                           'by dragging the tabs')
         self.setDrawBase(False)
@@ -607,6 +899,31 @@ class StandardWidgetTabBar(QtGui.QTabBar):
             rect = QtCore.QRect(rect.x()+rect.width()-5, rect.y(),
                                 5*2, rect.height())
             return rect
+
+    def dragEnterEvent(self, event):
+        """ dragEnterEvent(event: QDragEnterEvent) -> None
+        Set to accept drops from the other cell info
+        
+        """
+        mimeData = event.mimeData()
+        if hasattr(mimeData, 'cellInfo'):
+            event.setDropAction(QtCore.Qt.MoveAction)
+            event.accept()
+            idx = self.indexAtPos(event.pos())
+            if idx>=0:
+                self.setCurrentIndex(idx)
+        else:
+            event.ignore()
+            
+    def dragMoveEvent(self, event):
+        """ dragMoveEvent(event: QDragMoveEvent) -> None
+        Set to accept drops from the other cell info
+        
+        """
+        idx = self.indexAtPos(event.pos())
+        if idx>=0:
+            self.setCurrentIndex(idx)
+            
             
 class StandardTabDockWidget(QtGui.QDockWidget):
     """

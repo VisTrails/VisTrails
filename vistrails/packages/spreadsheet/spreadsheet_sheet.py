@@ -291,6 +291,9 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         """
         if self.helpers.isInteracting():
             return
+        if not hasattr(self.getCell(row, col), 'toolBarType'):
+            self.helpers.hide()
+            return
         if ctrl:
             if row>=0 and col>=0:
                 self.helpers.snapTo(row, col)
@@ -313,6 +316,8 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         Get cell at a specific row and column
         
         """
+        row = self.verticalHeader().logicalIndex(row)
+        col = self.horizontalHeader().logicalIndex(col)
         return self.cellWidget(row, col)
 
     def getCellToolBar(self, row, col):
@@ -320,6 +325,8 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         Return the toolbar widget at cell location (row, col)
         
         """
+        row = self.verticalHeader().logicalIndex(row)
+        col = self.horizontalHeader().logicalIndex(col)
         cell = self.getCell(row, col)
         if cell and hasattr(cell, 'toolBarType'):
             if not self.toolBars.has_key(cell.toolBarType):
@@ -334,6 +341,8 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         in parent coordinates
         
         """
+        row = self.verticalHeader().logicalIndex(row)
+        col = self.horizontalHeader().logicalIndex(col)
         idx = self.model().index(row, col)
         return self.visualRect(idx)
 
@@ -343,22 +352,11 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         in global coordinates
         
         """
+        row = self.verticalHeader().logicalIndex(row)
+        col = self.horizontalHeader().logicalIndex(col)
         rect = self.getCellRect(row, col)
         rect.moveTo(self.viewport().mapToGlobal(rect.topLeft()))
         return rect
-
-    def getFreeCell(self):
-        """ getFreeCell() -> tuple
-        Get a free cell location (row, col) on the spreadsheet 
-
-        """
-        vIdx = self.verticalHeader().logicalIndex
-        hIdx = self.horizontalHeader().logicalIndex
-        for r in range(self.rowCount()):
-            for c in range(self.columnCount()):
-                if self.getCell(vIdx(r), hIdx(c))==None:
-                    return (r,c)
-        return (0, 0)
 
     def setCellByType(self, row, col, cellType, inputPorts):
         """ setCellByType(row: int,
@@ -370,9 +368,9 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         cellType, only the contents is updated with inputPorts.
         
         """
+        oldCell = self.getCell(row, col)
         row = self.verticalHeader().logicalIndex(row)
         col = self.horizontalHeader().logicalIndex(col)
-        oldCell = self.getCell(row, col)
         if type(oldCell)!=cellType:
             if cellType:
                 newCell = cellType(self)
@@ -390,3 +388,16 @@ class StandardWidgetSheet(QtGui.QTableWidget):
             del oldCell
         else:
             oldCell.updateContents(inputPorts)
+
+    def setCellByWidget(self, row, col, cellWidget):
+        """ setCellByWidget(row: int,
+                            col: int,                            
+                            cellWidget: QWidget) -> None
+        Replace the current location (row, col) with a cell widget
+        
+        """
+        if cellWidget:
+            cellWidget.setParent(self.viewport())
+        row = self.verticalHeader().logicalIndex(row)
+        col = self.horizontalHeader().logicalIndex(col)
+        self.setCellWidget(row, col, cellWidget)

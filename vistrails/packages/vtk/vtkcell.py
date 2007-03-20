@@ -808,6 +808,13 @@ class QVTKWidget(QCellWidget):
             return
         self.saveToPNG(str(fn))
         
+    def hideEvent(self, event):
+        """ hideEvent(event: QHideEvent) -> None
+        Ignore grabbing widget in hide event
+        
+        """
+        QtGui.QWidget.hideEvent(self, event)
+
 class QVTKWidgetCapture(QtGui.QAction):
     """
     QVTKWidgetCapture is the action to capture the vtk rendering

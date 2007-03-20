@@ -152,7 +152,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                                                           self.modeActionGroup)
             self.interactiveModeActionVar.setCheckable(True)
             self.interactiveModeActionVar.setChecked(True)
-            self.interactiveModeActionVar.setShortcut('Ctrl+I')
+            self.interactiveModeActionVar.setShortcut('Ctrl+Shift+I')
             self.interactiveModeActionVar.setStatusTip('Use this mode to '
                                                        'interact with '
                                                        'the cell contents')
@@ -168,7 +168,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             self.editingModeActionVar = QtGui.QAction('&Editing Mode',
                                                       self.modeActionGroup)
             self.editingModeActionVar.setCheckable(True)
-            self.editingModeActionVar.setShortcut('Ctrl+E')
+            self.editingModeActionVar.setShortcut('Ctrl+Shift+E')
             self.editingModeActionVar.setStatusTip('Use this mode to '
                                                    'layout cells and '
                                                    'interact cells with '
@@ -182,6 +182,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         
         """
         editing = self.editingModeAction().isChecked()
+        self.tabController.setEditingMode(editing)
     
     def configShow(self):
         """ configShow() -> None
@@ -253,8 +254,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             sheetWidget = self.tabController.tabWidgetUnderMouse()
             if sheetWidget:
                 if eType!=117:
-                    ctrl = (e.modifiers()&QtCore.Qt.ControlModifier
-                            !=QtCore.Qt.NoModifier)
+                    ctrl = (e.modifiers()==QtCore.Qt.ControlModifier)
                 else:
                     ctrl = False
                 sheetWidget.showHelpers(ctrl, QtGui.QCursor.pos())
@@ -326,6 +326,13 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             sheet.tabWidget.setCurrentWidget(sheet)
             sheet.setCellPipelineInfo(row, col, (e.vistrail, pid, cid))
             sheet.setCellByType(row, col, e.cellType, e.inputPorts)
+            QtCore.QCoreApplication.processEvents()
+            if self.editingModeAction().isChecked():
+                sheet.setCellEditingMode(row, col, True)
+            else:
+                cellWidget = sheet.getCell(row, col)
+                if cellWidget and hasattr(cellWidget, 'grabWindowPixmap'):
+                    cellWidget.grabWindowPixmap()
 
     def batchDisplayCellEvent(self, batchEvent):
         """ batchDisplayCellEvent(batchEvent: BatchDisplayCellEvent) -> None

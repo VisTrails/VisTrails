@@ -414,3 +414,19 @@ class QViewManager(QtGui.QTabWidget):
         if view:
             view.toolBar.executePipelineAction().trigger()
         
+    def ensureVistrail(self, filename):
+        """ ensureVistrail(filename: str) -> QVistrailView        
+        This will first find among the opened vistrails to see if
+        'filename' has been opened. If not, it will try to open it.
+        
+        """
+        for view in self.splittedViews.keys():
+            if view.controller.fileName==filename:
+                self.setCurrentWidget(view)
+                return view
+        for i in range(self.count()):
+            view = self.widget(i)
+            if view.controller.fileName==filename:
+                self.setCurrentWidget(view)
+                return view
+        view = self.openVistrail(filename)

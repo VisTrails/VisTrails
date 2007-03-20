@@ -180,7 +180,7 @@ class SpreadsheetCell(NotCacheable, Module):
         
         """
         e = DisplayCellEvent()
-        e.vistrail = (self.vistrailName, self.currentVersion)
+        e.vistrail = self.moduleInfo
         if self.location:
             location = self.location
         else:

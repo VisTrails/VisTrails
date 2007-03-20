@@ -112,8 +112,8 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         """
         if self.controller.currentPipeline:
             explorer = ActionBasedParameterExploration()
-            pipelines = explorer.explore(self.controller.currentPipeline,
-                                         actions)
+            (pipelines, performedActions) = explorer.explore(
+                self.controller.currentPipeline, actions)
             
             dim = [max(1, len(a)) for a in actions]
             if (registry.hasModule('CellLocation') and
@@ -155,8 +155,10 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                         QtCore.QCoreApplication.processEvents()
                 interpreter.execute(
                     modifiedPipelines[pi],
-                    self.controller.name,
+                    self.controller.fileName,
                     self.controller.currentVersion,
                     self.controller.currentPipelineView,
-                    moduleExecutedHook=[moduleExecuted])
+                    moduleExecutedHook=[moduleExecuted],
+                    reason='Parameter Exploration',
+                    actions=performedActions[pi])
             progress.setValue(totalProgress)

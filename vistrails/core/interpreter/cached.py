@@ -134,9 +134,16 @@ and over again. This allows nested execution."""
             constant.setValue(p.evaluatedStrValue)
             return constant
                 
-        persistent_sinks = [module_map[sink]
-                            for sink
-                            in pipeline.graph.sinks()]
+        ## Checking 'sinks' from kwagrs to resolve only requested sinks
+        if kwargs.has_key('sinks'):
+            requestedSinks = kwargs['sinks']
+            persistent_sinks = [module_map[sink]
+                                for sink in pipeline.graph.sinks()
+                                if sink in requestedSinks]
+        else:
+            persistent_sinks = [module_map[sink]
+                                for sink in pipeline.graph.sinks()]
+            
         logging_obj = InstanceObject(signalSuccess=addToExecuted,
                                      beginUpdate=beginUpdate,
                                      beginCompute=beginCompute,
@@ -153,8 +160,17 @@ and over again. This allows nested execution."""
             obj.interpreter = self
             obj.id = persistent_id
             obj.logging = logging_obj
-            obj.vistrailName = vistrailName
-            obj.currentVersion = currentVersion
+            
+            # Update object pipeline information
+            obj.moduleInfo['vistrailName'] = vistrailName
+            obj.moduleInfo['version'] = currentVersion
+            obj.moduleInfo['moduleId'] = i
+            obj.moduleInfo['pipeline'] = pipeline
+            if kwargs.has_key('reason'):
+                obj.moduleInfo['reason'] = kwargs['reason']
+            if kwargs.has_key('actions'):
+                obj.moduleInfo['actions'] = kwargs['actions']
+            
             reg = modules.module_registry.registry
             for f in module.functions:
                 if len(f.params) == 0:

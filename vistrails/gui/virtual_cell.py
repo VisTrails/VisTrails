@@ -164,7 +164,6 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
                         pipeline.modules[c.sourceId].name=="CellLocation"):
                         delConn.addId(cId)
                 delConn.perform(pipeline)
-
                 
                 # Add a sheet reference with a specific name
                 sheetReference = module.Module()

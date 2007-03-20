@@ -154,6 +154,19 @@ Designing New Modules
         self.upToDate = False
         self.setResult("self", self) # every object can return itself
         self.logging = _dummy_logging
+
+        # Pipeline info that a module should know about This is useful
+        # for a spreadsheet cell to know where it is from. It will be
+        # also used for talking back and forth between the spreadsheet
+        # and the builder besides Parameter Exploration.
+        self.moduleInfo = {
+            'vistrailName': 'Unknown',
+            'version': -1,
+            'pipeline': None,
+            'moduleId': -1,
+            'reason': 'Pipeline Execution',
+            'actions': []
+            }
         
     def clear(self):
         """clear(self) -> None. Removes all references, prepares for

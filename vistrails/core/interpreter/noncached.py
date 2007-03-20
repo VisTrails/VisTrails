@@ -95,8 +95,19 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                 objects[id].interpreter = self
                 objects[id].id = id
                 objects[id].logging = logging_obj
-                objects[id].vistrailName = vistrailName
-                objects[id].currentVersion = currentVersion
+
+                
+                # Update object pipeline information
+                obj = objects[id]
+                obj.moduleInfo['vistrailName'] = vistrailName
+                obj.moduleInfo['version'] = currentVersion
+                obj.moduleInfo['moduleId'] = i
+                obj.moduleInfo['pipeline'] = pipeline
+                if kwargs.has_key('reason'):
+                    obj.moduleInfo['reason'] = kwargs['reason']
+                if kwargs.has_key('actions'):
+                    obj.moduleInfo['actions'] = kwargs['actions']
+                
                 reg = modules.module_registry.registry
                 for f in module.functions:
                     if len(f.params)==0:
@@ -137,7 +148,15 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                 for callable_ in kwargs['doneSummonHook']:
                     callable_(pipeline, objects)
 
-            for v in pipeline.graph.sinks():
+            if kwargs.has_key('sinks'):
+                requestedSinks = kwargs['sinks']
+                allSinks = [module_map[sink]
+                            for sink in pipeline.graph.sinks()
+                            if sink in requestedSinks]
+            else:
+                allSinks = [module_map[sink]
+                            for sink in pipeline.graph.sinks()]
+            for v in allSinks:
                 try:
                     objects[v].update()
                 except ModuleError, me:
