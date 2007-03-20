@@ -83,6 +83,8 @@ class ElementMultiply(MatrixOperation):
     def compute(self):
         a = self.getInputFromPort("InputMatrix1")
         b = self.getInputFromPort("InputMatrix2")
+	c = SparseMatrix()
+	c.matrix = sparse.csc_matrix((a.matrix.shape[0], b.matrix.shape[1]))
         if a.matrix.shape != b.matrix.shape:
             raise ModuleError(self, 'Mismatching input dimensions!')
 
@@ -90,11 +92,11 @@ class ElementMultiply(MatrixOperation):
         j = 0
         while i < a.matrix.shape[0]:
             while j < a.matrix.shape[1]:
-                a.matrix[i,j] = a.matrix[i,j] * b.matrix[i,j]
+                c.matrix[i,j] = a.matrix[i,j] * b.matrix[i,j]
                 j = j+1
             i = i+1
 
-        self.setResult("OutputMatrix", a)
+        self.setResult("OutputMatrix", c)
 
 class Transpose(MatrixOperation):
     def compute(self):

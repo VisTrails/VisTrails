@@ -50,17 +50,17 @@ class Matrix(SciPy):
 
     def Reals(self):
         out = SparseMatrix()
-        out.matrix = self.matrix.real
+        out.matrix = self.matrix.real.copy()
         return out
 
     def Imaginaries(self):
         out = SparseMatrix()
-        out.matrix = self.matrix.imag
+        out.matrix = self.matrix.imag.copy()
         return out
  
     def Conjugate(self):
         out = SparseMatrix()
-        out.matrix = self.matrix.conjugate()
+        out.matrix = self.matrix.conjugate().copy()
         return out
 
     def GetRow(self, i):
