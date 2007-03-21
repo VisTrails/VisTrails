@@ -39,11 +39,8 @@ registry = core.modules.module_registry.registry
 
 ################################################################################
 
-# A Module stores not only the information, but a method (summon)
-# that creates a 'live' object suitable for use in the vtk_graph class.
-
-def noSummon(obj):
-    raise NoSummon(obj)
+# A Module stores not only the information, but a method (summon) that
+# creates a 'live' object, subclass of core/modules/vistrail_module/Module
 
 class Module(object):
     """ Represents a module from a Pipeline """

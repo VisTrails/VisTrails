@@ -87,6 +87,7 @@ and over again. This allows nested execution."""
          module_added_set,
          conn_added_set) = self.add_to_persistent_pipeline(pipeline)
 
+
         self.resolveAliases(self._persistent_pipeline,aliases)
 
         # the executed dict works on persistent ids
@@ -242,8 +243,12 @@ and over again. This allows nested execution."""
                 view.setModuleSuccess(i)
             else:
                 view.setModuleNotExecuted(i)
-                    
-        return (objs, errs, execs)
+
+        if (kwargs.has_key('return_added') and
+            kwargs['return_added']):
+            return (objs, errs, execs, module_added_set, conn_added_set)
+        else:
+            return (objs, errs, execs)
         
 
     @lock_method(core.interpreter.utils.get_interpreter_lock())
@@ -274,14 +279,14 @@ means they were cached."""
 
         self.clean_non_cacheable_modules()
 
-        (objs, errs, execs) = self.unlocked_execute(pipeline, vistrailName,
-                                                    currentVersion,
-                                                    view, aliases,
-                                                    **kwargs)
+        result = self.unlocked_execute(pipeline, vistrailName,
+                                       currentVersion,
+                                       view, aliases,
+                                       **kwargs)
 
         self._logger.finishWorkflowExecution(vistrailName, currentVersion)
 
-        return (objs, errs, execs)
+        return result
 
     def add_to_persistent_pipeline(self, pipeline):
         """add_to_persistent_pipeline(pipeline):
@@ -350,7 +355,6 @@ all connection ids added to the persistent pipeline."""
         if CachedInterpreter.__instance:
             CachedInterpreter.__instance.clear()
         objs = gc.collect()
-        print "Number of objects collected:", objs
 
 
     @staticmethod

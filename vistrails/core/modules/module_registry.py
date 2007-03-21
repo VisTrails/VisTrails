@@ -257,8 +257,6 @@ set moduleLeftFringe and moduleRightFringe to set two different fringes.
         if moduleFringe:
             checkFringe(moduleFringe)
             leftFringe = list(reversed([(-x, 1.0-y) for (x, y) in moduleFringe]))
-            print leftFringe
-            print moduleFringe
             self._module_fringe[name] = (leftFringe, moduleFringe)
         elif moduleLeftFringe and moduleRightFringe:
             checkFringe(moduleLeftFringe)
