@@ -28,7 +28,7 @@ from core.bundles import py_import
 vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk'})
 
 from core.debug import log
-from core.modules.basic_modules import Integer, Float, String
+from core.modules.basic_modules import Integer, Float, String, File
 from core.modules.module_registry import (registry, addModule,
                                           addInputPort, addOutputPort)
 from core.modules.vistrails_module import newModule, ModuleError
@@ -176,6 +176,10 @@ def addSetGetPorts(module, get_set_dict):
                     addInputPort(module, 'Set'+name,
                                  [typeMap(i) for i in setter[1]],
                                  True)
+                # Wrap SetFileNames for VisTrails file access
+                if name == 'FileName':
+                    addInputPort(module, 'SetFile', (File, 'input file'),
+                                 False)
             except IndexError, e:
                 print "module", module, "name", name, setter
                 raise
@@ -290,21 +294,35 @@ def class_dict(base_module, node):
     def update_dict(name, callable_):
         if class_dict_.has_key(name):
             class_dict_[name] = callable_(class_dict_[name])
+        elif hasattr(base_module, name):
+            class_dict_[name] = callable_(getattr(base_module, name))
         else:
-            class_dict_[name] = callable_(getattr(base_module,name))
+            class_dict_[name] = callable_(None)
 
     def guarded_SetFileName_wrap_compute(old_compute):
         def compute(self):
-            if not self.hasInputFromPort('SetFileName'):
+            if self.hasInputFromPort('SetFileName'):
+                name = self.getInputFromPort('SetFileName')
+            elif self.hasInputFromPort('SetFile'):
+                name = self.getInputFromPort('SetFile').name
+            else:
                 raise ModuleError(self, 'Missing filename')
-            name = self.getInputFromPort('SetFileName')
             if not os.path.isfile(name):
                 raise ModuleError(self, 'File does not exist')
             old_compute(self)
         return compute
 
+    def compute_SetFile(old_compute_SetFile):
+        if old_compute_SetFile != None:
+            return old_compute_SetFile
+        def call_SetFile(self, file_obj):
+            print "Called SetFile"
+            self.vtkInstance.SetFileName(file_obj.name)
+        return call_SetFile
+
     if hasattr(node.klass, 'SetFileName'):
         update_dict('compute', guarded_SetFileName_wrap_compute)
+        update_dict('_special_input_function_SetFile', compute_SetFile)
 
     return class_dict_
 

@@ -50,6 +50,15 @@ class vtkBaseModule(Module):
         return (issubclass(self.vtkClass, vtk.vtkAlgorithm)
                 and (not issubclass(self.vtkClass, vtk.vtkAbstractMapper)))
 
+    def call_input_function(self, function, params):
+        """self.call_input_function(function, params) -> None
+        Calls the input function on the vtkInstance, or a special
+        input function if one exists in the class."""
+        if hasattr(self, '_special_input_function_' + function):
+            getattr(self, '_special_input_function_' + function)(*params)
+        else:
+            getattr(self.vtkInstance, function)(*params)
+
     def compute(self):
         """ compute() -> None
         Actually perform real VTK task by directing all input/output ports
@@ -83,7 +92,8 @@ class vtkBaseModule(Module):
                     if hasattr(param[i], 'vtkInstance'):
                         param[i] = param[i].vtkInstance
                 try:
-                    getattr(self.vtkInstance, function)(*param)
+                    self.call_input_function(function, param)
+#                     getattr(self.vtkInstance, function)(*param)
                 except:
                     print "Cannot execute", function, param
 
