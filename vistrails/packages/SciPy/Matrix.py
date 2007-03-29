@@ -50,12 +50,14 @@ class Matrix(SciPy):
 
     def Reals(self):
         out = SparseMatrix()
-        out.matrix = self.matrix.real.copy()
+	tmp = self.matrix.copy()
+        out.matrix = tmp._real()
         return out
 
     def Imaginaries(self):
         out = SparseMatrix()
-        out.matrix = self.matrix.imag.copy()
+	tmp = self.matrix.copy()
+        out.matrix = tmp._imag()
         return out
  
     def Conjugate(self):

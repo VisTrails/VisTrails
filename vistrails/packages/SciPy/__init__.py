@@ -112,6 +112,12 @@ def initialize(*args, **keywords):
     reg.addInputPort(ElementMultiply, "InputMatrix2", (Matrix, 'Input Matrix 2'))
     reg.addOutputPort(ElementMultiply, "OutputMatrix", (SparseMatrix, 'Output Matrix'))
 
+    reg.addModule(ATan2)
+    reg.addInputPort(ATan2, "InputMatrix", (SparseMatrix, 'Complex Matrix'))
+    reg.addInputPort(ATan2, "RealMatrix", (SparseMatrix, 'Real Matrix'), True)
+    reg.addInputPort(ATan2, "ImaginaryMatrix", (SparseMatrix, 'Imaginary Matrix'), True)
+    reg.addOutputPort(ATan2, "Output", (SparseMatrix, 'Output Matrix'))
+
     reg.addModule(FFT)
     reg.addInputPort(FFT, "Signals", (Matrix, 'Input Signal Matrix'))
     reg.addInputPort(FFT, "FFT Samples", (basic.Integer, 'FFT Samples'))

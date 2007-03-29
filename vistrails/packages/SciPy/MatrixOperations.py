@@ -25,6 +25,8 @@ import core.modules.module_registry
 from core.modules.vistrails_module import Module, ModuleError
 from SciPy import SciPy
 from Matrix import *
+import math
+import scipy
 
 class MatrixOperation(SciPy):
     def compute(self):
@@ -127,3 +129,16 @@ class GetColumnRange(Matrix):
         m.matrix = self.matrix
         self.setResult("Output", m)
         
+class ATan2(MatrixOperation):
+    def compute(self):
+	if self.hasInputFromPort("InputMatrix"):
+	    m = self.getInputFromPort("InputMatrix")
+	    r = m.Reals().matrix
+	    im = m.Imaginaries().matrix
+	else:
+	    r = self.getInputFromPort("RealMatrix").matrix
+	    im = self.getInputFromPort("ImaginaryMatrix").matrix
+
+	out = SparseMatrix()
+	out.matrix = sparse.csc_matrix(scipy.vectorize(math.atan2)(r.toarray(),im.toarray()))
+	self.setResult("Output", out)
