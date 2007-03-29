@@ -23,10 +23,19 @@
 
 version = '0.1'
 
+import core.bundles.utils
+import core.requirements
+
+# Ugly, but Carlos doesnt know any better
+if core.bundles.utils.guess_system() == 'linux-ubuntu':
+    import sys
+    sys.path.append('/usr/local/lib/VisTrailsITK')
+
 try:
-    import itk
+    from core.bundles import py_import
+    itk = py_import('itk', {'linux-ubuntu': 'vistrails-itk'})
 except ImportError:
-    raise PackageError("This package requires ITK and WrapITK")
+    raise core.requirements.MissingRequirement("ITK and WrapITK")
 
 import core.modules
 import core.modules.module_registry
@@ -40,6 +49,7 @@ from FeatureExtractionFilters import *
 from IntensityFilters import *
 from SegmentationFilters import *
 from SelectionFilters import *
+from SmoothingFilters import *
 
 def initialize(*args, **keywords):
     reg = core.modules.module_registry
@@ -193,3 +203,17 @@ def initialize(*args, **keywords):
     reg.addOutputPort(ExtractImageFilter, "Output Image", (Image, 'Output Image'))
     reg.addOutputPort(ExtractImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
     reg.addOutputPort(ExtractImageFilter, "Dimension", (basic.Integer, 'Dimension'), True)
+
+    reg.addModule(SmoothingFilter, "Image Smoothing Filters")
+    reg.addModule(CurvatureAnisotropicDiffusionFilter)
+    reg.addInputPort(CurvatureAnisotropicDiffusionFilter, "Input Image", (Image, 'Input Image'))
+    reg.addInputPort(CurvatureAnisotropicDiffusionFilter, "Input Dimension", (basic.Integer, 'Input Dimension'))
+    reg.addInputPort(CurvatureAnisotropicDiffusionFilter, "Input PixelType", (PixelType, 'Input PixelType'))
+    reg.addInputPort(CurvatureAnisotropicDiffusionFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
+    reg.addInputPort(CurvatureAnisotropicDiffusionFilter, "Iterations", (basic.Integer, 'Iterations'), True)
+    reg.addInputPort(CurvatureAnisotropicDiffusionFilter, "TimeStep", (basic.Float, 'TimeStep'), True)
+    reg.addInputPort(CurvatureAnisotropicDiffusionFilter, "Conductance", (basic.Float, 'Conductance'), True)
+    reg.addOutputPort(CurvatureAnisotropicDiffusionFilter, "Output Image", (Image, 'Output Image'))
+    reg.addOutputPort(CurvatureAnisotropicDiffusionFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
+    reg.addOutputPort(CurvatureAnisotropicDiffusionFilter, "Output Dimension", (basic.Integer, 'Output Dimension'), True)
+    reg.addOutputPort(CurvatureAnisotropicDiffusionFilter, "Filter", (Filter, 'Filter'), True)

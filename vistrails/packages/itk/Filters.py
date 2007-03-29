@@ -38,3 +38,7 @@ class SegmentationFilter(Filter):
 class SelectionFilter(Filter):
     def compute(self):
 	pass
+
+class SmoothingFilter(Filter):
+    def compute(self):
+	pass
