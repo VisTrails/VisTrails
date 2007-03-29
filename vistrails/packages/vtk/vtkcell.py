@@ -243,15 +243,14 @@ class QVTKWidget(QCellWidget):
         Process window and interaction events
         
         """
-        if e.type()==QtCore.QEvent.ParentAboutToChange:            
+        if e.type()==QtCore.QEvent.ParentAboutToChange:
             if self.mRenWin:
                 if self.mRenWin.GetMapped():
                     self.mRenWin.Finalize()
         else:
-            if e.type==QtCore.QEvent.ParentChange:
-                print 'PARENT CHANGE MIGHT BE WRONG'
+            if e.type()==QtCore.QEvent.ParentChange:
                 if self.mRenWin:
-                    self.mRenWin.SetWindowId(self.winId())
+                    self.mRenWin.SetWindowInfo(str(int(self.winId())))
                     if self.isVisible():
                         self.mRenWin.Start()
         
