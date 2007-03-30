@@ -92,8 +92,6 @@ class QAliasExplorationPanel(QtGui.QFrame, QToolWindowInterface):
         start a parameter exploration
         
         """
-        if not self.manager.controller:
-            return
         specs = []
         dimCount = 0
         for dim in range(self.dimTab.count()):

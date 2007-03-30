@@ -34,6 +34,7 @@ from core.utils.uxml import named_elements, XMLWrapper
 from core.xml_parser import XMLParser
 from core.ensemble_pipelines import EnsemblePipelines
 from core.interpreter.default import default_interpreter
+from core.param_explore import InterpolateDiscreteParam, ParameterExploration
 
 ################################################################################
 
@@ -401,7 +402,7 @@ class BookmarkController(object):
         Build parameter exploration in original format for each bookmark id.
         
         """
-        view = PipelineSceneInterface()
+        view = DummyView()
         for id in ids:
             newSpecs = []
             bookmark = self.collection.bookmarkMap[id]
@@ -413,9 +414,8 @@ class BookmarkController(object):
                 vistrails += ((bookmark.filename,
                                bookmark.pipeline,
                                pipeline,
-                               view,
-                               None),)
-            self.controller.executeWorkflowList(vistrails)
+                               view),)
+            self.executeWorkflowList(vistrails)
     
     def mergeParameters(self, id, specs):
         """mergeParameters(id: int, specs: list) -> list
