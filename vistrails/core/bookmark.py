@@ -264,7 +264,7 @@ class BookmarkController(object):
         self.filename = ''
         self.pipelines = {}
         self.activePipelines = []
-        self.ensemble = None
+        self.ensemble = EnsemblePipelines()
 
     def loadBookmarks(self):
         """loadBookmarks() -> None
