@@ -32,48 +32,9 @@ import os.path
 import shutil
 import sys
 import tempfile
+import core.configuration
 
 ################################################################################
-
-def vistrailsDefaultConfiguration():
-    """ vistrailsDefaultConfiguration() -> InstanceObject
-    Return the default configuration of VisTrails
-    
-    """            
-    return InstanceObject(
-        packageDirectory=None,
-        userPackageDirectory=None,
-        pythonPrompt=False,
-        debugSignals=False,
-        showSplash=True,
-        verbosenessLevel=-1,
-        useCache=True,
-        minMemory=-1,
-        maxMemory=-1,
-        pluginList=[],
-        multiHeads=False,
-        maximizeWindows=False,
-        showMovies=True,
-        interactiveMode=True,
-        nologger=False,
-        rootDirectory=None,
-        dataDirectory=None,
-        dotVistrails=system.defaultDotVistrails(),
-        fileRepository=InstanceObject(dbHost='',
-                                      dbPort=0,
-                                      dbUser='',
-                                      dbPasswd='',
-                                      dbName='',
-                                      sshHost='',
-                                      sshPort=0,
-                                      sshUser='',
-                                      sshDir='',
-                                      localDir=''),
-        logger=InstanceObject(dbHost='',
-                              dbPort=0,
-                              dbUser='',
-                              dbPasswd='',
-                              dbName=''))
 
 class VistrailsStartup(object):
     """
@@ -95,7 +56,7 @@ class VistrailsStartup(object):
         if config:
             self.configuration = config
         else:
-            self.configuration = vistrailsDefaultConfiguration()
+            self.configuration = core.configuration.default()
         self._package_manager = core.packagemanager.PackageManager(
             self.configuration)
         self.startupHooks = []
