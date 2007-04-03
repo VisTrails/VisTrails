@@ -316,7 +316,6 @@ def class_dict(base_module, node):
         if old_compute_SetFile != None:
             return old_compute_SetFile
         def call_SetFile(self, file_obj):
-            print "Called SetFile"
             self.vtkInstance.SetFileName(file_obj.name)
         return call_SetFile
 
