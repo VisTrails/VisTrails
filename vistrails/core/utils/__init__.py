@@ -207,6 +207,14 @@ def uniq(l):
 class InstanceObject(object):
     def __init__(self, **kw):
         self.__dict__.update(kw)
+    def __str__(self):
+        pre = "(InstanceObject "
+        items = [('%s: %s' % (k, str(v)))
+                 for (k, v)
+                 in sorted(self.__dict__.items())]
+        items_str = ('\n' + (' ' * len(pre))).join(items)
+        post = ')@%X' % id(self)
+        return pre + items_str + post
 
 def appendToDictOfLists(dict, key, value):
     """Appends /value/ to /dict/[/key/], or creates entry such that
