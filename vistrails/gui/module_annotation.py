@@ -179,9 +179,10 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
                     self.table.controller.addAnnotation((key, text),
                                                         self.table.module.id)
         elif text!='' and self.table.controller and self.table.module:
+            moduleId = self.table.module.id
             if key!=text and key!='':
                 self.table.controller.deleteAnnotation(key, moduleId)
             self.table.controller.addAnnotation((text, value),
-                                                self.table.module.id)
+                                                moduleId)
         
         model.setData(index, QtCore.QVariant(text))        
