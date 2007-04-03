@@ -124,10 +124,23 @@ class ModuleFunction(object):
 #         f3.returnType = 'void'
 #         return [f1,f2,f3]
 
+    ##########################################################################
+    # Constructor and copy
+    
     def __init__(self):
         self.name = ""
 	self.returnType = ""
 	self.params = []
+
+    def __copy__(self):
+        """ __copy__() -> ModuleFunction - Returns a clone of itself """
+        cp = ModuleFunction()
+        cp.name = self.name
+        cp.returnType = self.returnType
+        cp.params = [copy.copy(p) for p in self.params]
+        return cp
+
+    ##########################################################################
 
     def getNumParams(self):
         """ getNumParams() -> int Returns the number of params. """
@@ -153,12 +166,6 @@ class ModuleFunction(object):
             result = result + " "
         result = result + ")"
         return result
-    
-    def __str__(self):
-        """ __str__() -> str - Returns a string representation of itself """
-        return "<<name='%s' returnType='%s' params=%s>>" % (self.name,
-                                                            self.returnType,
-                                                            self.params)
 
     def stringAsUserSetter(self):
         """ stringAsUserSetter() -> str. 
@@ -171,13 +178,39 @@ class ModuleFunction(object):
         s += " >>"
         return s
 
-    def __copy__(self):
-        """ __copy__() -> ModuleFunction - Returns a clone of itself """
-        cp = ModuleFunction()
-        cp.name = self.name
-        cp.returnType = self.returnType
-        cp.params = [copy.copy(p) for p in self.params]
-        return cp
+    ##########################################################################
+    # Debugging
+
+    def show_comparison(self, other):
+        if type(self) != type(other):
+            print "type mismatch"
+            return
+        if self.name != other.name:
+            print "name mismatch"
+            return
+        if self.returnType != other.returnType:
+            print "return type mismatch"
+            return
+        if len(self.params) != len(other.params):
+            print "params length mismatch"
+            return
+        for p,q in zip(self.params, other.params):
+            if p != q:
+                print "params mismatch"
+                p.show_comparison(q)
+                return
+        print "no difference found"
+        assert self == other
+        return
+
+    ##########################################################################
+    # Operators
+    
+    def __str__(self):
+        """ __str__() -> str - Returns a string representation of itself """
+        return "<<name='%s' returnType='%s' params=[%s]>>" % (self.name,
+                                                            self.returnType,
+                                                            ', '.join([str(p) for p in self.params]))
 
     def __eq__(self, other):
         """ __eq__(other: ModuleFunction) -> boolean
@@ -185,6 +218,8 @@ class ModuleFunction(object):
         operator. 
         
         """
+        if type(self) != type(other):
+            return False
         if self.name != other.name:
             return False
         if self.returnType != other.returnType:
