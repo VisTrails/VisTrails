@@ -181,15 +181,10 @@ class QShell(QtGui.QTextEdit):
         self.setAcceptRichText(False)
         self.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
         
+        app = gui.application.VistrailsApplication
+        shell_conf = app.configuration.shell
         # font
-        if core.system.systemType == 'Linux':
-            font = QtGui.QFont("Fixed", 12)
-        elif core.system.systemType in ['Windows', 'Microsoft']:
-            font = QtGui.QFont("Courier New", 8)
-        elif core.system.systemType == 'Darwin':
-            font = QtGui.QFont("Monaco", 12)
-        else:
-            raise SystemExit, "FIXME for 'os2', 'ce' or 'riscos'"
+        font = QtGui.QFont(shell_conf.font_face, shell_conf.font_size)
         font.setFixedPitch(1)
         self.setCurrentFont(font)
         self.reset(locals)
