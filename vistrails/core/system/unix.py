@@ -47,5 +47,7 @@ the filename if true, or an empty string if false."""
         return output
 
 def list2cmdline(lst):
+    for el in lst:
+        assert type(el) == str
     return subprocess.list2cmdline(lst)
 
