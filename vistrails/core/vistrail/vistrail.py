@@ -25,17 +25,23 @@ if __name__ == '__main__':
     global app
     app = qt.createBogusQtApp()
 
-import xml.dom.minidom
-import copy
-import time
-import getpass
-import copy
-import string
-from core.vistrail.pipeline import Pipeline
 from core.data_structures.graph import Graph
+from core.data_structures.bijectivedict import Bidict
 from core.debug import DebugPrint
-from core.utils import enum, VistrailsInternalError
+from core.utils import enum, VistrailsInternalError, InstanceObject, \
+     withIndex
+from core.vistrail.action import ActionDirection, CompositeAction, \
+     DeleteConnectionAction, AddConnectionAction, DeleteModuleAction, \
+     AddModuleAction, MoveModuleAction, ChangeParameterAction
+from core.vistrail.pipeline import Pipeline
+import copy
+import copy
 import core.vistrail.module
+import getpass
+import itertools
+import string
+import time
+import xml.dom.minidom
 
 ################################################################################
 
@@ -162,6 +168,192 @@ class Vistrail(object):
                     
         return (v1andv2,v1Only,v2Only)
 
+    def make_actions_from_diff(self, diff):
+        """ make_actions_from_diff(diff) -> [action]
+        Returns a sequence of actions that performs the diff.
+
+        (The point is that this might be smaller than the
+        algebra-based one).
+        """
+        (p1,
+         p2,
+         m_shared,
+         m_to_be_deleted,
+         m_to_be_added,
+         parameter_changes,
+         c_shared,
+         c_to_be_deleted,
+         c_to_be_added) = (diff.p1,
+                           diff.p2,
+                           diff.v1andv2,
+                           diff.v1only,
+                           diff.v2only,
+                           diff.paramchanged,
+                           diff.c1andc2,
+                           diff.c1only,
+                           diff.c2only)
+
+        p1_c = copy.copy(p1)
+        result = []
+
+        module_id_remap = Bidict()
+        module_id_remap.update(m_shared)
+
+        connection_id_remap = Bidict()
+        connection_id_remap.update(c_shared)
+        
+        for ((m_id_from, m_id_to), _) in parameter_changes:
+            module_id_remap[m_id_from] = m_id_to
+
+        # First all the modules to get the remap
+        for p2_m_id in m_to_be_added:
+            add_module = AddModuleAction()
+            add_module.module = copy.copy(p2.modules[p2_m_id])
+            add_module.module.id = p1_c.fresh_module_id()
+            module_id_remap[add_module.module.id] = p2_m_id
+            result.append(add_module)
+            add_module.perform(p1_c)
+
+
+        # Then all the connections using the remap
+        for p2_c_id in c_to_be_added:
+            c2 = p2.connections[p2_c_id]
+            add_connection = AddConnectionAction()
+            new_c = copy.copy(c2)
+            add_connection.connection = new_c
+            new_c.id = p1_c.fresh_connection_id()
+            new_c.sourceId = module_id_remap.inverse[c2.sourceId]
+            new_c.destinationId = module_id_remap.inverse[c2.destinationId]
+            connection_id_remap[c2.id] = new_c.id
+            result.append(add_connection)
+            add_connection.perform(p1_c)
+
+
+        # Now delete all connections:
+        delete_conns = DeleteConnectionAction()
+        delete_conns.ids = copy.copy(c_to_be_deleted)
+        if len(delete_conns.ids) > 0:
+            delete_conns.perform(p1_c)
+            result.append(delete_conns)
+
+        # And then all the modules
+        delete_modules = DeleteModuleAction()
+        delete_modules.ids = copy.copy(m_to_be_deleted)
+        if len(delete_modules.ids) > 0:
+            delete_modules.perform(p1_c)
+            result.append(delete_modules)
+
+        # From now on, module_id_remap is not necessary, we can act
+        # on p1 ids without worry. (they still exist)
+
+        # Now move everyone
+        move_action = MoveModuleAction()
+        for (p1_m_id, p2_m_id) in m_shared.iteritems():
+            delta = p2.modules[p2_m_id].center - p1.modules[p1_m_id].center
+            move_action.addMove(p1_m_id, delta.x, delta.y)
+        move_action.perform(p1_c)
+        result.append(move_action)
+
+        # Now change parameters
+        def make_param_change(fto_name, fto_params,
+                              m_id, f_id, m):
+            action = ChangeParameterAction()
+            for (p_id, param) in withIndex(fto_params):
+                p_name = m.functions[f_id].params[p_id].name
+                p_alias = m.functions[f_id].params[p_id].alias
+                (p_type, p_value) = param
+                action.addParameter(m_id, f_id, p_id, fto_name,
+                                    p_name, p_value, p_type, p_alias)
+            return action
+        
+        if len(parameter_changes):
+            # print parameter_changes
+            for ((m_from_id, m_to_id), plist) in parameter_changes:
+                m_from = p1.modules[m_to_id]
+                for ((ffrom_name, ffrom_params),
+                     (fto_name, fto_params)) in plist:
+                    for (f_id, f) in withIndex(m_from.functions):
+                        if f.name != fto_name: continue
+                        new_action = make_param_change(fto_name,
+                                                       fto_params,
+                                                       m_from_id,
+                                                       f_id,
+                                                       m_from)
+                        new_action.perform(p1_c)
+                        result.append(new_action)
+
+        return (result,
+                module_id_remap,
+                connection_id_remap)
+
+    def get_pipeline_diff_with_connections(self, v1, v2):
+        """like get_pipeline_diff but returns connection info"""
+        (p1, p2, v1andv2, v1only,
+         v2only, paramchanged) = self.getPipelineDiff(v1, v2)
+
+        v1andv2 = Bidict(v1andv2)
+
+        # Now, do the connections between shared modules
+
+        c1andc2 = []
+        c1only = []
+        c2only = []
+
+        used = set()
+        for (edge_from_1, edge_to_1,
+             edge_id_1) in p1.graph.iter_all_edges():
+            try:
+                edge_from_2 = v1andv2[edge_from_1]
+                edge_to_2 = v1andv2[edge_to_1]
+            except KeyError:
+                # edge is clearly in c1, so must not be in c2
+                c1only.append(edge_id_1)
+                continue
+            c1 = p1.connections[edge_id_1]
+            found = False
+            for (_, _, edge_id_2) in [x for x
+                                      in p2.graph.iter_edges_from(edge_from_2)
+                                      if x[1] == edge_to_2]:
+                c2 = p2.connections[edge_id_2]
+                if c1.equals_no_id(c2) and not edge_id_2 in used:
+                    # Found edge in both
+                    c1andc2.append((edge_id_1, edge_id_2))
+                    used.add(edge_id_2)
+                    found = True
+                    continue
+            if not found:
+                c1only.append(edge_id_1)
+
+        used = set()
+        for (edge_from_2, edge_to_2,
+             edge_id_2) in p2.graph.iter_all_edges():
+            try:
+                edge_from_1 = v1andv2.inverse[edge_from_2]
+                edge_to_1 = v1andv2.inverse[edge_to_2]
+            except KeyError:
+                # edge is clearly in c2, so must not be in c1
+                c2only.append(edge_id_2)
+                continue
+            c2 = p2.connections[edge_id_2]
+            found = False
+            for (_, _, edge_id_1) in [x for x
+                                      in p1.graph.iter_edges_from(edge_from_1)
+                                      if x[1] == edge_to_1]:
+                c1 = p1.connections[edge_id_1]
+                if c2.equals_no_id(c1) and not edge_id_1 in used:
+                    # Found edge in both, but it was already added. just mark
+                    # and continue
+                    found = True
+                    used.add(edge_id_1)
+                    continue
+            if not found:
+                c2only.append(edge_id_2)
+
+        return InstanceObject(p1=p1, p2=p2, v1andv2=v1andv2, v1only=v1only,
+                              v2only=v2only, paramchanged=paramchanged,
+                              c1andc2=Bidict(c1andc2),
+                              c1only=c1only, c2only=c2only)
+
     def getPipelineDiff(self, v1, v2):
         """ getPipelineDiff(v1: int, v2: int) -> tuple        
         Perform a diff between 2 versions, this will obtain the shared
@@ -267,12 +459,11 @@ class Vistrail(object):
          version number 2
 
         """
-        t1 = []
-        t2 = []
-        t1.append(v1)
+        t1 = set()
+        t1.add(v1)
         t = self.actionMap[v1].parent
         while  t != 0:
-            t1.append(t)
+            t1.add(t)
             t = self.actionMap[t].parent
         
         t = v2
@@ -299,6 +490,25 @@ class Vistrail(object):
                 timestep = time
 
         return timestep	
+
+    def general_action_chain(self, v1, v2):
+        """general_action_chain(v1, v2): Returns a chain of actions
+        to turn pipeline v1 into v2."""
+        if v1 == v2:
+            return []
+        a = v1
+        b = v2
+        c = self.getFirstCommonVersion(a, b)
+        if a == c:
+            a_to_c = []
+        else:
+            c_to_a = self.actionChain(a, c)
+            a_to_c = [a._inverse for a in reversed(c_to_a)]
+        if b == c:
+            c_to_b = []
+        else:
+            c_to_b = self.actionChain(b, c)
+        return a_to_c + c_to_b
 		    
     def actionChain(self, t, start=0):
         """ actionChain(t:int, start=0) -> [Action]  
@@ -306,7 +516,8 @@ class Vistrail(object):
         pipeline from a  certain time
                       
         """
-        if t == 0:
+        assert t >= start
+        if t == start:
             return []
         result = []
         action = self.actionMap[t]
@@ -476,7 +687,6 @@ class Vistrail(object):
              (highest,-1) in result.edgesTo(lowest) ):
             result.deleteEdge(highest,lowest,-1)
             
-        #self.currentGraph=result.__copy__()
         self.expand=[]
         return result
 
@@ -678,7 +888,11 @@ class MacroExists(Exception):
         return "Macro '"+ self.name + "' already exists"
     pass
 
+##############################################################################
+# Testing
+
 import unittest
+import random
 
 class TestVistrail(unittest.TestCase):
     def test1(self):
@@ -726,6 +940,82 @@ class TestVistrail(unittest.TestCase):
         """Tests calling action chain on empty version."""
         v = Vistrail()
         p = v.getPipeline(0)
+
+    def test_empty_action_chain_2(self):
+        import core.xml_parser
+        parser = core.xml_parser.XMLParser()
+        parser.openVistrail(core.system.visTrailsRootDirectory() +
+                            '/tests/resources/dummy.xml')
+        v = parser.getVistrail()
+        parser.closeVistrail()
+        assert v.actionChain(17, 17) == []
+
+    def test_inverse(self):
+        """Test if inverses and general_action_chain are working by
+        doing a lot of action-based transformations on a pipeline and
+        checking against another way of getting the same one."""
+        def check_pipelines(p, p2):
+            if p != p2:
+                print "FAILED"
+                for m_id, m in p.modules.iteritems():
+                    if m_id not in p2.modules:
+                        print "Missing module %d in p2" % m_id
+                    if m != p2.modules[m_id]:
+                        print "Module mismatch ", m_id, m, p2.modules[m_id]
+                for m_id, m in p2.modules.iteritems():
+                    if m_id not in p.modules:
+                        print "Missing module %d in p" % m_id
+                    if m != p.modules[m_id]:
+                        print "Module mismatch ", m_id, m, p.modules[m_id]
+                for c_id, c in p.connections.iteritems():
+                    if c_id not in p2.connections:
+                        print "Missing connection %d in p2" % c_id
+                    if c != p2.connections[c_id]:
+                        print "Connection mismatch ", c_id, c, p2.connections[c_id]
+                for c_id, c in p2.connections.iteritems():
+                    if c_id not in p.connections:
+                        print "Missing connection %d in p" % c_id
+                    if c != p.connections[c_id]:
+                        print "Connection mismatch ", c_id, c, p.connections[c_id]
+                print p.modules
+                print p.connections
+                print p2.modules
+                print p2.connections
+                return False
+            return True
+        import core.xml_parser
+        import sys
+
+        def do_test(filename):
+            parser = core.xml_parser.XMLParser()
+            parser.openVistrail(core.system.visTrailsRootDirectory() +
+                                filename)
+            v = parser.getVistrail()
+            version_ids = v.actionMap.keys()
+            old_v = random.choice(version_ids)
+            p = v.getPipeline(old_v)
+            for i in xrange(100):
+                if i % 10 == 0:
+                    sys.stderr.write('o')
+                new_v = random.choice(version_ids)
+                p2 = v.getPipeline(new_v)
+                for a in v.general_action_chain(old_v, new_v):
+                    try:
+                        a.perform(p)
+                    except:
+                        print "Failed"
+                        print a._natural_direction
+                        print a, type(a)
+                        print p, p.graph
+                        raise
+                if not check_pipelines(p, p2):
+                    print i
+                assert p == p2
+                old_v = new_v
+                sys.stderr.flush()
+
+        #do_test('/tests/resources/v1.xml')
+        #do_test('/tests/resources/vtk.xml')
 
 #     def test_abstraction(self):
 #         import core.vistrail
