@@ -365,3 +365,38 @@ all connection ids added to the persistent pipeline."""
         objs = gc.collect()
 
 ##############################################################################
+# Testing
+
+import unittest
+
+class TestCachedInterpreter(unittest.TestCase):
+
+    def test_cache(self):
+        import core.xml_parser
+        """Test if basic caching is working."""
+        parser = core.xml_parser.XMLParser()
+        parser.openVistrail(core.system.visTrailsRootDirectory() +
+                            '/tests/resources/dummy.xml')
+        v = parser.getVistrail()
+        p1 = v.getPipeline('int chain')
+        n = v.get_version_number('int chain')
+        view = DummyView()
+        interpreter = core.interpreter.cached.CachedInterpreter.get()
+        (objs, errors, executed,
+         modules_added, conns_added) = interpreter.execute(p1,
+                                                           'dummy.xml',
+                                                           n,
+                                                           view,
+                                                           return_added=True)
+        # to force new params
+        p2 = v.getPipeline('int chain')
+        (objs, errors, executed,
+         modules_added, conns_added) = interpreter.execute(p2,
+                                                           'dummy.xml',
+                                                           n,
+                                                           view,
+                                                           return_added=True)
+        assert len(modules_added) == 1
+
+if __name__ == '__main__':
+    unittest.main()
