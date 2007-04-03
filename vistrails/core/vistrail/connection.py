@@ -55,6 +55,10 @@ class Connection(object):
     Right now there's only Module connections.
 
     """
+
+    ##########################################################################
+    # Constructors and copy
+    
     @staticmethod
     def fromPorts(source, dest):
         """fromPorts(source: Port, dest: Port) -> Connection
@@ -89,6 +93,18 @@ class Connection(object):
         self.source.endPoint = PortEndPoint.Source
         self.destination.endPoint = PortEndPoint.Destination
         self.makeConnection = moduleConnection(self)
+
+    def __copy__(self):
+        """__copy__() -> Connection -  Returns a clone of self.
+        
+        """
+        cp = Connection()
+        cp.id = self.id
+        cp.source = copy.copy(self.source)
+        cp.destination = copy.copy(self.destination)
+        return cp
+
+    ##########################################################################
 
     def findSignature(self, sig, signatures):
         """findSignature(sig:str, signatures:[]) -> str 
@@ -161,23 +177,53 @@ class Connection(object):
         c.destinationId = int(connection.getAttribute('destinationId'))
         return c
 
+    ##########################################################################
+    # Debugging
+
+    def show_comparison(self, other):
+        if type(other) != type(self):
+            print "Type mismatch"
+            return
+        if self.__source != other.__source:
+            print "Source mismatch"
+            self.__source.show_comparison(other.__source)
+            return
+        if self.__dest != other.__dest:
+            print "Dest mismatch"
+            self.__dest.show_comparison(other.__dest)
+            return
+        print "no difference found"
+        assert self == other
+
+    ##########################################################################
+    # Operators
+
     def __str__(self):
         """__str__() -> str - Returns a string representation of a Connection
         object. 
 
         """
         rep = "<Connection>%s %s</Connection>"
-        return  rep % (str(self.__source), str(self.__dest))
+        return rep % (str(self.__source), str(self.__dest))
 
-    def __copy__(self):
-        """__copy__() -> Connection -  Returns a clone of self.
-        
-        """
-        cp = Connection()
-        cp.id = self.id
-        cp.source = copy.copy(self.source)
-        cp.destination = copy.copy(self.destination)
-        return cp
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __eq__(self, other):
+        if type(other) != type(self):
+            return False
+        return (self.__source == other.__source and
+                self.__dest == other.__dest)
+
+    def equals_no_id(self, other):
+        """Checks equality up to ids (connection and ports)."""
+        if type(self) != type(other):
+            return False
+        return (self.__source.equals_no_id(other.__source) and
+                self.__dest.equals_no_id(other.__dest))
+    
+    ##########################################################################
+    # Properties
 
     def _get_id(self):
         """ _get_id() -> int
@@ -186,7 +232,7 @@ class Connection(object):
 
         """
         return self.__source.connectionId
-    
+
     def _set_id(self, i):
         """ _set_id(i : int) -> None 
         Sets this connection id. It updates both connection ids of 
@@ -205,7 +251,7 @@ class Connection(object):
 
         """
         return self.__source.moduleId
-    
+
     def _set_sourceId(self, id):
         """ _set_sourceId(id : int) -> None 
         Sets this connection source id. It updates both self.__source.moduleId
@@ -216,7 +262,7 @@ class Connection(object):
         self.__source.moduleId = id
         self.__source.id = id
     sourceId = property(_get_sourceId, _set_sourceId)
-    
+
     def _get_destinationId(self):
         """ _get_destinationId() -> int
         Returns the module id of dest port. Do not use this function, 
@@ -270,7 +316,7 @@ class Connection(object):
         """
         self.__dest = dest
     destination = property(_get_destination, _set_destination)
-    
+
 ################################################################################
 # Testing
 
