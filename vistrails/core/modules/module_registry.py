@@ -39,6 +39,8 @@ import core.cache.hasher
 
 class ModuleDescriptor(object):
 
+    ##########################################################################
+
     def __init__(self, module, name = None):
         if not name:
             name = module.__name__
@@ -56,6 +58,19 @@ class ModuleDescriptor(object):
         self.inputPortsOptional = {}
         self.outputPortsOptional = {}
         self.inputPortsConfigureWidgetType = {}
+
+    def __copy__(self):
+        result = ModuleDescriptor(self.module, self.name)
+        result.baseDescriptor = self.baseDescriptor
+        result.inputPorts = copy.deepcopy(self.inputPorts)
+        result.portOrder = copy.deepcopy(self.portOrder)
+        result.outputPorts = copy.deepcopy(self.outputPorts)
+        result.inputPortsOptional = copy.deepcopy(self.inputPortsOptional)
+        result.outputPortsOptional = copy.deepcopy(self.outputPortsOptional)
+        result.inputPortsConfigureWidgetType = copy.deepcopy(self.inputPortsConfigureWidgetType)
+        return result
+
+    ##########################################################################
     
     def appendToPortList(self, port, optionals, name, spec, optional):
         def canonicalize(specItem):
@@ -108,10 +123,11 @@ class ModuleDescriptor(object):
 # ModuleRegistry
 
 class ModuleRegistry(QtCore.QObject):
-    """ModuleRegistry serves as a global registry of all VisTrails modules.
+    """ModuleRegistry serves as a registry of VisTrails modules.
+    """
 
-(To compare with the previous implementation, it is both VTKRTTI and
-PluginRTTI put together, with the ability to extend it at runtime)"""
+    ##########################################################################
+    # Constructor and copy
 
     def __init__(self):
         QtCore.QObject.__init__(self)
@@ -132,6 +148,22 @@ PluginRTTI put together, with the ability to extend it at runtime)"""
         self.currentPackageName = 'Basic Modules'
         self.modulePackage = {"Module": 'Basic Modules'}
         self.packageModules = {'Basic Modules': ["Module"]}
+
+    def __copy__(self):
+        result = ModuleRegistry()
+        result.classTree = copy.copy(self.classTree)
+        result.moduleName = copy.copy(self.moduleName)
+        result.moduleTree = result.classTree.make_dictionary()
+        result.moduleWidget = copy.copy(self.moduleWidget)
+        result._hasher_callable = copy.copy(self._hasher_callable)
+        result._module_color = copy.copy(self._module_color)
+        result._module_fringe = copy.copy(self._module_fringe)
+        result.currentPackageName = copy.copy(self.currentPackageName)
+        result.modulePackage = copy.copy(self.modulePackage)
+        result.packageModules = copy.copy(self.packageModules)
+        return result
+        
+    ##########################################################################
 
     def module_signature(self, module):
         """Returns signature of a given core.vistrail.Module, possibly
@@ -656,10 +688,24 @@ base classes that subclass from Module."""
 
 class Tree(object):
     """Tree implements an n-ary tree of module descriptors. """
+
+    ##########################################################################
+    # Constructor and copy
     def __init__(self, *args):
         self.descriptor = ModuleDescriptor(*args)
         self.children = []
         self.parent = None
+
+    def __copy__(self):
+        cp = Tree(self.descriptor.module, self.descriptor.name)
+        cp.descriptor = copy.copy(self.descriptor)
+        cp.children = [copy.copy(child)
+                       for child in self.children]
+        for child in cp.children:
+            child.parent = cp
+        return cp
+
+    ##########################################################################
 
     def addModule(self, submodule, name=None):
         assert self.descriptor.module in submodule.__bases__
@@ -667,6 +713,16 @@ class Tree(object):
         result.parent = self
         self.children.append(result)
         return result
+
+    def make_dictionary(self):
+        """make_dictionary(): recreate ModuleRegistry dictionary
+for copying module registries around"""
+        # This is inefficient
+        result = {self.descriptor.name: self}
+        for child in self.children:
+            result.update(child.make_dictionary())
+        return result
+        
 
 ###############################################################################
 
@@ -676,4 +732,9 @@ addModule     = registry.addModule
 addInputPort  = registry.addInputPort
 addOutputPort = registry.addOutputPort
 setCurrentPackageName = registry.setCurrentPackageName
+
+
+##############################################################################
+
+import unittest
 
