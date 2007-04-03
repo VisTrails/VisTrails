@@ -27,6 +27,7 @@ from core.utils import VistrailsInternalError
 from core.utils.uxml import named_elements, XMLWrapper
 from core.vistrail.action import Action
 from core.data_structures.graph import Graph
+from core.vistrail.pipeline import Pipeline
 
 ################################################################################
 
@@ -58,6 +59,7 @@ class XMLParser(XMLWrapper):
         Parses a XML file.
 
         """
+        self._filename = filename
         self.openFile(filename)
 
     def closeVistrail(self):
@@ -213,7 +215,42 @@ class XMLParser(XMLWrapper):
                     a.module.cache = 1
 
 	return vistrail
-        
+
+
+    def translate0_3_1to0_4_0(self, vistrail):
+        # The change here is that every action will now contain
+        # a field _inverse, that is another action such that
+
+        # p' = copy.copy(p)
+        # x.perform(p')
+        # x._inverse.perform(p')
+        # p' == p
+
+        # for all actions x and pipelines p
+
+        vistrail_graph = vistrail.getVersionGraph()
+        pipeline = Pipeline()
+        def enter_vertex(action_timestep):
+            action = vistrail.actionMap[action_timestep]
+            action._inverse = action.make_inverse(pipeline)
+            action.perform(pipeline)
+        def leave_vertex(action_timestep):
+            action = vistrail.actionMap[action_timestep]
+            try:
+                action._inverse.perform(pipeline)
+            except:
+                print "FAILED"
+                print self._filename
+                print action, type(action), id(action)
+                print action._inverse, type(action._inverse), id(action._inverse)
+                print action.moduleId, action._inverse.moduleId
+                print action.portType, action._inverse.portType
+                print action.portName, action._inverse.portName
+                print action.portSpec
+                raise
+        vistrail_graph.dfs(enter_vertex=enter_vertex,
+                           leave_vertex=leave_vertex)
+        return vistrail
         
 
     parseVersion = {'0': getVistrailBase,
@@ -229,6 +266,7 @@ class XMLParser(XMLWrapper):
     graph.addEdge('0', '0.1.0')
     graph.addEdge('0.1.0','0.3.0')
     graph.addEdge('0.3.0','0.3.1')
+#     graph.addEdge('0.3.1','0.4.0')
 
     currentVersion = '0.3.1'
 
