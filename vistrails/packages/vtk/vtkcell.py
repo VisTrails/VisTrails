@@ -46,7 +46,8 @@ class VTKCell(SpreadsheetCell):
         """
         renderers = self.forceGetInputListFromPort('AddRenderer')
         iHandlers = self.forceGetInputListFromPort('InteractionHandler')
-        self.display(QVTKWidget, (renderers, iHandlers))
+        iStyle = self.forceGetInputFromPort('InteractorStyle')
+        self.display(QVTKWidget, (renderers, iHandlers, iStyle))
 
 AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None,
@@ -115,7 +116,34 @@ class QVTKWidget(QCellWidget):
         self.toolBarType = QVTKWidgetToolBar
         self.iHandlers = []
         self.setAnimationEnabled(True)
+
+    def removeObserversFromInteractorStyle(self):
+        """ removeObserversFromInteractorStyle() -> None        
+        Remove all python binding from interactor style observers for
+        safely freeing the cell
         
+        """
+        iren = self.mRenWin.GetInteractor()
+        if iren:
+            style = iren.GetInteractorStyle()
+            style.RemoveObservers("InteractionEvent")
+            style.RemoveObservers("CharEvent")
+            style.RemoveObservers("MouseWheelForwardEvent")
+            style.RemoveObservers("MouseWheelBackwardEvent")
+        
+    def addObserversToInteractorStyle(self):
+        """ addObserversToInteractorStyle() -> None        
+        Assign observer to the current interactor style
+        
+        """
+        iren = self.mRenWin.GetInteractor()
+        if iren:
+            style = iren.GetInteractorStyle()
+            style.AddObserver("InteractionEvent", self.interactionEvent)
+            style.AddObserver("CharEvent", self.charEvent)
+            style.AddObserver("MouseWheelForwardEvent", self.interactionEvent)
+            style.AddObserver("MouseWheelBackwardEvent", self.interactionEvent)
+
     def deleteLater(self):
         """ deleteLater() -> None        
         Make sure to free render window resource when
@@ -126,15 +154,9 @@ class QVTKWidget(QCellWidget):
         for ren in self.getRendererList():
             self.mRenWin.RemoveRenderer(ren)
             
-        iren = self.mRenWin.GetInteractor()
-        if iren:
-            style = iren.GetInteractorStyle()
-            style.RemoveObservers("InteractionEvent")
-            style.RemoveObservers("CharEvent")
-            style.RemoveObservers("MouseWheelForwardEvent")
-            style.RemoveObservers("MouseWheelBackwardEvent")
-
-        self.updateContents(([],[]))
+        self.removeObserversFromInteractorStyle()
+        
+        self.updateContents(([],[], None))
         
         self.SetRenderWindow(None)
 
@@ -157,14 +179,24 @@ class QVTKWidget(QCellWidget):
             renderer.SetRenderWindow(None)
         del oldRenderers
 
-        (renderers, self.iHandlers) = inputPorts
+        (renderers, self.iHandlers, iStyle) = inputPorts
         for renderer in renderers:
             renWin.AddRenderer(renderer.vtkInstance)
             if hasattr(renderer.vtkInstance, 'IsActiveCameraCreated'):
                 if not renderer.vtkInstance.IsActiveCameraCreated():
                     renderer.vtkInstance.ResetCamera()
-
+            
         iren = renWin.GetInteractor()
+
+        # Update interactor style
+        self.removeObserversFromInteractorStyle()
+        if iStyle==None:
+            iStyleInstance = vtk.vtkInteractorStyleTrackballCamera()
+        else:
+            iStyleInstance = iStyle.vtkInstance
+        iren.SetInteractorStyle(iStyleInstance)
+        self.addObserversToInteractorStyle()
+        
         for iHandler in self.iHandlers:
             iHandler.observer.vtkInstance.SetInteractor(iren)
         renWin.Render()
@@ -225,12 +257,9 @@ class QVTKWidget(QCellWidget):
                 self.mRenWin.SetWindowInfo(str(int(self.winId())))
                 self.resizeWindow(self.width(), self.height())
                 self.mRenWin.SetPosition(self.x(), self.y())
-                s = vtk.vtkInteractorStyleTrackballCamera()
-                iren.SetInteractorStyle(s)
-                s.AddObserver("InteractionEvent", self.interactionEvent)
-                s.AddObserver("CharEvent", self.charEvent)
-                s.AddObserver("MouseWheelForwardEvent", self.interactionEvent)
-                s.AddObserver("MouseWheelBackwardEvent", self.interactionEvent)
+#                s = vtk.vtkInteractorStyleTrackballCamera()
+#                iren.SetInteractorStyle(s)
+#                self.addObserversToInteractorStyle()
 
     def GetInteractor(self):
         """ GetInteractor() -> vtkInteractor
@@ -886,3 +915,5 @@ def registerSelf():
                  registry.getDescriptorByName('vtkRenderer').module)
     vIH = registry.getDescriptorByName('vtkInteractionHandler').module
     registry.addInputPort(VTKCell, "InteractionHandler", vIH)
+    vIS = registry.getDescriptorByName('vtkInteractorStyle').module
+    registry.addInputPort(VTKCell, "InteractorStyle", vIS)
