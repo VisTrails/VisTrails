@@ -28,6 +28,7 @@ from core.utils import enum
 from core.utils import VistrailsInternalError, all
 import core.modules.vistrails_module
 import __builtin__
+import copy
 
 ################################################################################
 
@@ -42,12 +43,40 @@ class Port(object):
     self.spec: list of list of (module, str) 
     
     """
+
+    ##########################################################################
+    # Constructor and copy
+    
+    def __init__(self):
+        self.endPoint = PortEndPoint.Invalid
+        self.moduleId = 0
+        self.connectionId = 0
+        self.moduleName = ""
+        self.name = ""
+        self.spec = None
+        self.optional = False
+        self.sort_key = -1
+
+    def __copy__(self):
+        cp = Port()
+        cp.endPoint = self.endPoint
+        cp.moduleId = self.moduleId
+        cp.connectionId = self.connectionId
+        cp.moduleName = self.moduleName
+        cp.name = self.name
+        cp.spec = copy.copy(self.spec)
+        cp.optional = self.optional
+        cp.sort_key = self.sort_key
+        return cp
+    
+    ##########################################################################
+
     def getSig(self, spec):
         """ getSig(spec: tuple) -> str
         Return a string of signature based a port spec
         
         """
-        if type(spec) == __builtin__.list:
+        if type(spec) == list:
             return "(" + ",".join([self.getSig(s) for s in spec]) + ")"
         assert type(spec == __builtin__.tuple)
         spec = spec[0]
@@ -77,16 +106,48 @@ class Port(object):
         return "%s port %s\n%s" % (endPointType(), 
                                    self.name, 
                                    "; ".join(self.getSignatures()))
-    
-    def __init__(self):
-        self.endPoint = PortEndPoint.Invalid
-        self.moduleId = 0
-        self.connectionId = 0
-        self.moduleName = ""
-        self.name = ""
-        self.spec = None
-        self.optional = False
-        self.sort_key = -1
+
+    ##########################################################################
+    # Debugging
+
+    def show_comparison(self, other):
+        if type(self) != type(other):
+            print "Type mismatch"
+        elif self.endPoint != other.endPoint:
+            print "endpoint mismatch"
+        elif self.connectionId != other.connectionId:
+            print "connectionId mismatch"
+        elif self.moduleName != other.moduleName:
+            print "moduleName mismatch"
+        elif self.name != other.name:
+            print "name mismatch"
+        elif self.spec != other.spec:
+            print "spec mismatch"
+        elif self.optional != self.optional:
+            print "optional mismatch"
+        elif self.sort_key != self.sort_key:
+            print "sort_key mismatch"
+        else:
+            print "no difference found"
+            assert self == other
+
+    ##########################################################################
+    # Operators
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+        return (self.endPoint == other.endPoint and
+                self.moduleId == other.moduleId and
+                self.connectionId == other.connectionId and
+                self.moduleName == other.moduleName and
+                self.name == other.name and
+                self.spec == other.spec and
+                self.optional == other.optional and
+                self.sort_key == other.sort_key)
     
     def __str__(self):
         """ __str__() -> str 
@@ -97,6 +158,16 @@ class Port(object):
                                   self.connectionId,
                                   self.name,
                                   self.spec)
+
+    def equals_no_id(self, other):
+        if type(self) != type(other):
+            return False
+        return (self.endPoint == other.endPoint and
+                self.moduleName == other.moduleName and
+                self.name == other.name and
+                self.spec == other.spec and
+                self.optional == other.optional and
+                self.sort_key == other.sort_key)
 
 ###############################################################################
 
@@ -152,6 +223,8 @@ class TestPort(unittest.TestCase):
         oport = self.registry.sourcePortsFromDescriptor(descriptor)[0]
         iport = self.registry.destinationPortsFromDescriptor(descriptor)[0]
         assert self.registry.portsCanConnect(oport, iport)
+
+    # TODO: Exercise obvious bug on line 80.
 
 
 if __name__ == '__main__':
