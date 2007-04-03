@@ -147,6 +147,8 @@ def executable_is_in_path(filename):
     return ""
 
 def list2cmdline(lst):
+    for el in lst:
+        assert type(el) == str
     return '"%s"' % subprocess.list2cmdline(lst)
 
 ################################################################################
