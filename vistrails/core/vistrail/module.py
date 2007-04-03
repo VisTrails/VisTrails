@@ -45,6 +45,9 @@ registry = core.modules.module_registry.registry
 class Module(object):
     """ Represents a module from a Pipeline """
 
+    ##########################################################################
+    # Constructor and copy
+
     def __init__(self):
         self.id = -1
         self.cache = 1
@@ -63,6 +66,21 @@ class Module(object):
                 result.srcPortsOrder = [p.name for p in self.destinationPorts()]
             return result
         self.summon = summonCall
+
+    def __copy__(self):
+        """__copy__() -> Module - Returns a clone of itself"""
+        cp = Module()
+        cp.center = Point(self.center.x, self.center.y)
+        cp.functions = [copy.copy(f) for f in self.functions]
+        cp.id = self.id
+        cp.cache = self.cache
+        cp.name = self.name
+        cp.registry = copy.copy(self.registry)
+        cp.annotations = copy.copy(self.annotations)
+        cp.portVisible = copy.copy(self.portVisible)
+        return cp
+
+    ##########################################################################
         
     def getNumFunctions(self):
         """getNumFunctions() -> int - Returns the number of functions """
@@ -275,25 +293,53 @@ class Module(object):
         Deletes function invocation of given index
           
         """
-        del self.functions[functionId]
+        try:
+            del self.functions[functionId]
+        except:
+            raise VistrailsInternalError('Invalid functionId in deleteFunction')
 
     def deleteAnnotation(self, key):
         """deleteAnnotation(key:str) -> None 
         Deletes annotation of given key
           
         """
-        del self.annotations[key]
+        try:
+            del self.annotations[key]
+        except:
+            raise VistrailsInternalError('Invalid key in deleteAnnotation')
 
-    def __copy__(self):
-        """__copy__() -> Module - Returns a clone of itself"""
-        cp = Module()
-        cp.center = Point(self.center.x, self.center.y)
-        cp.functions = [copy.copy(f) for f in self.functions]
-        cp.id = self.id
-        cp.cache = self.cache
-        cp.name = self.name
-        cp.registry = self.registry
-        return cp
+    ##########################################################################
+    # Debugging
+
+    def show_comparison(self, other):
+        if type(other) != type(self):
+            print "Type mismatch"
+            print type(self), type(other)
+        elif self.id != other.id:
+            print "id mismatch"
+            print self.id, other.id
+        elif self.name != other.name:
+            print "name mismatch"
+            print self.name, other.name
+        elif self.cache != other.cache:
+            print "cache mismatch"
+            print self.cache, other.cache
+        elif self.center != other.center:
+            print "center mismatch"
+            self.center.show_comparison(other.center)
+        elif len(self.functions) != len(other.functions):
+            print "function length mismatch"
+            print len(self.functions), len(other.functions)
+        else:
+            for f, g in zip(self.functions, other.functions):
+                if f != g:
+                    f.show_comparison(other)
+                    return
+            print "No difference found"
+            assert self == other
+
+    ##########################################################################
+    # Operators
 
     def __str__(self):
         """__str__() -> str Returns a string representation of itself. """
@@ -306,7 +352,7 @@ class Module(object):
         operator. 
         
         """
-        if not other:
+        if type(other) != type(self):
             return False
         if self.id != other.id:
             return False
@@ -325,8 +371,9 @@ class Module(object):
 
     def __ne__(self, other):
         return not (self == other)
-        
-    # autoprop
+
+    ##########################################################################
+    # Properties
     def _set_name(self, name):
         self.__name = name
     def _get_name(self):
