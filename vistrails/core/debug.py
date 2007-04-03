@@ -153,17 +153,6 @@ log      = DebugPrint().log
 
 ################################################################################
 
-def notify(method):
-    """notify is a method decorator that wraps any call in debugging messages
-    so we get 'before' and 'after' debugging messages."""
-    def call(self, *args, **kwargs):
-        caller = inspect.currentframe().f_back
-        DebugPrint.logger.critical(DebugPrint.message(caller, "before"))
-        method(self, *args, **kwargs)
-        DebugPrint.logger.critical(DebugPrint.message(caller, "after"))
-    call.__doc__ = method.__doc__
-    return call
-
 def timecall(method):
     """timecall is a method decorator that wraps any call in timing calls
     so we get the total time taken by a function call as a debugging message."""
@@ -178,11 +167,19 @@ def timecall(method):
 
 ################################################################################
 
-def startVisTrailsREPL(dict):
-    """startVisTrailsREPL(locals: dict) -> None. Starts a
-    read-eval-print-loop with the given dictionary as the bound
-    variables."""
-    def vistrailsREPL():
-        code.InteractiveConsole(dict).interact()
-    x = threading.Thread(target=vistrailsREPL)
-    x.start()
+def object_at(desc):
+    """object_at(id) -> object
+
+    id is an int returning from id() or a hex string of id()
+
+    Fetches all live objects, finds the one with given id, and returns
+    it.  Warning: THIS IS FOR DEBUGGING ONLY. IT IS SLOW."""
+    if type(desc) == int:
+        target_id = desc
+    elif type(desc) == str:
+        target_id = int(desc, 16) # Reads desc as the hex address
+    import gc
+    for obj in gc.get_objects():
+        if id(obj) == target_id:
+            return obj
+    raise Exception("Couldn't find object")
