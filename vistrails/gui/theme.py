@@ -331,6 +331,11 @@ class DefaultTheme(object):
             core.system.visTrailsRootDirectory() +
             '/gui/resources/images/show_legends.png')
 
+        # Toolbar icon for creating an analogy
+        self.VISUAL_DIFF_CREATE_ANALOGY_ICON = QtGui.QIcon(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/analogy.png')
+
         # Toolbar icon for close button on the vistrail tabbar
         self.VIEW_MANAGER_CLOSE_ICON = QtGui.QIcon(
             core.system.visTrailsRootDirectory() +
