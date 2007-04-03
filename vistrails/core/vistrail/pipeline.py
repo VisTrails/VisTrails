@@ -35,7 +35,7 @@ from types import ListType
 import sha
 from xml.dom.minidom import getDOMImplementation, parseString
 
-################################################################################
+##############################################################################
 
 class Pipeline(object):
     """ A Pipeline is a set of modules and connections between them. """
@@ -49,6 +49,25 @@ class Pipeline(object):
         if action_chain:
             for action in action_chain:
                 action.perform(self)
+
+    def __copy__(self):
+        """ __copy__() -> Pipeline - Returns a clone of itself """ 
+        cp = Pipeline()
+        cp.modules = dict([(k,copy.copy(v))
+                           for (k,v)
+                           in self.modules.iteritems()])
+        cp.connections = dict([(k,copy.copy(v))
+                               for (k,v)
+                               in self.connections.iteritems()])
+        cp.graph = copy.copy(self.graph)
+        cp.aliases = Bidict([(k,copy.copy(v))
+                           for (k,v)
+                           in self.aliases.iteritems()]) 
+        cp._fresh_module_id = self._fresh_module_id
+        cp._fresh_connection_id = self._fresh_connection_id
+        return cp
+
+    ##########################################################################
 
     def clear(self):
         """clear() -> None. Erases pipeline contents."""
@@ -319,23 +338,6 @@ class Pipeline(object):
         """outDegree(id: int) -> int - Returns the out-degree of a module. """
         return self.graph.outDegree(id)
 
-    def __copy__(self):
-        """ __copy__() -> Pipeline - Returns a clone of itself """ 
-        cp = Pipeline()
-        cp.modules = dict([(k,copy.copy(v))
-                           for (k,v)
-                           in self.modules.iteritems()])
-        cp.connections = dict([(k,copy.copy(v))
-                               for (k,v)
-                               in self.connections.iteritems()])
-        cp.graph = copy.copy(self.graph)
-        cp.aliases = Bidict([(k,copy.copy(v))
-                           for (k,v)
-                           in self.aliases.iteritems()]) 
-        cp._fresh_module_id = self._fresh_module_id
-        cp._fresh_connection_id = self._fresh_connection_id
-        return cp
-
     def dumpToXML(self, dom, root, timeAttr=None):
 	"""dumpToXML(dom, root, timeAttr=None) -> None - outputs self to xml"""
 	node = dom.createElement('pipeline')
@@ -465,6 +467,56 @@ pipeline."""
             add_connection.connection = copy.copy(c)
             result.append(add_connection)
         return result
+
+    ##########################################################################
+    # Debugging
+
+    def show_comparison(self, other):
+        if type(other) != type(self):
+            print "Type mismatch"
+            return
+        for m_id, m in self.modules.iteritems():
+            if not other.modules.has_key(m_id):
+                print "Module",m_id,"missing"
+                return
+            if m != other.modules[m_id]:
+                print "Module",m_id,"mismatch"
+                m.show_comparison(other.modules[m_id])
+                return
+        for c_id, c in self.connections.iteritems():
+            if not other.connections.has_key(c_id):
+                print "Connection",c_id,"missing"
+                return
+            if c != other.connections[c_id]:
+                print "Connection",c_id,"mismatch"
+                c.show_comparison(other.connections[c_id])
+                return
+        print "pipelines are equal"
+        assert self == other
+
+    ##########################################################################
+    # Operators
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __eq__(self, other):
+        if type(other) != type(self):
+            return False
+        for m_id, m in self.modules.iteritems():
+            if not other.modules.has_key(m_id):
+                return False
+            if m != other.modules[m_id]:
+                return False
+        for c_id, c in self.connections.iteritems():
+            if not other.connections.has_key(c_id):
+                return False
+            if c != other.connections[c_id]:
+                return False
+        return True
+
+
+
 
 ################################################################################
 
