@@ -231,6 +231,7 @@ class QVisualDiff(QtGui.QMainWindow):
     
     """
     def __init__(self, vistrail, v1, v2,
+                 controller,
                  parent=None, f=QtCore.Qt.WindowFlags()):
         """ QVisualDiff(vistrail: Vistrail, v1: str, v2: str,
                         parent: QWidget, f: WindowFlags) -> QVisualDiff
@@ -246,12 +247,18 @@ class QVisualDiff(QtGui.QMainWindow):
         # Actually perform the diff and store its result
         self.diff = vistrail.getPipelineDiff(v1, v2)
 
+        self.v1_name = v1Name
+        self.v2_name = v2Name
+        self.v1 = v1
+        self.v2 = v2
+        self.controller = controller
+
         # Create the top-level Visual Diff window
         visDiffParent = QtCore.QCoreApplication.instance().visDiffParent
         windowDecors = f | QtCore.Qt.Dialog |QtCore.Qt.WindowMaximizeButtonHint
         QtGui.QMainWindow.__init__(self, visDiffParent,
                                    )
-        self.setWindowTitle('Visual Diff - %s vs. %s' % (v1Name, v2Name))
+        self.setWindowTitle('Visual Diff - from %s to %s' % (v1Name, v2Name))
         self.setMouseTracking(True)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
@@ -303,6 +310,32 @@ class QVisualDiff(QtGui.QMainWindow):
         self.connect(self.showLegendsAction, QtCore.SIGNAL("toggled(bool)"),
                      self.toggleShowLegend)
 
+        # Add the create analogy action
+        self.createAnalogyAction = self.toolBar.addAction(
+            CurrentTheme.VISUAL_DIFF_CREATE_ANALOGY_ICON,
+            'Create analogy')
+        self.connect(self.createAnalogyAction, QtCore.SIGNAL("triggered()"),
+                     self.createAnalogy)
+
+    def createAnalogy(self):
+        default = 'from %s to %s' % (self.v1_name, self.v2_name)
+        (result, ok) = QtGui.QInputDialog.getText(None, "Enter Analogy Name",
+                                                  "Name of analogy:",
+                                                  QtGui.QLineEdit.Normal,
+                                                  default)
+        if not ok:
+            return
+        result = str(result)
+        try:
+            self.controller.add_analogy(result, self.v1, self.v2)
+        except:
+            QtGui.QMessageBox.warning(self,
+                                      QtCore.QString("Error"),
+                                      QtCore.QString("Analogy name already exists"),
+                                      QtGui.QMessageBox.Ok,
+                                      QtGui.QMessageBox.NoButton,
+                                      QtGui.QMessageBox.NoButton)
+        
     def createToolWindows(self, v1Name, v2Name):
         """ createToolWindows(v1Name: str, v2Name: str) -> None
         Create Inspector and Legend window
