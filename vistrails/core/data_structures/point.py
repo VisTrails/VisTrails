@@ -26,8 +26,11 @@ import math
 
 class Point(object):
     """Point is a point in 2D. It behaves as a vector, too, because that's
-convenient."""
+    convenient."""
 
+    ##########################################################################
+    # Constructor
+    
     def __init__(self, x=0, y=0):
         """ Point(x: float, y: float) -> Point
         Initialize and return a Point
@@ -36,6 +39,10 @@ convenient."""
         self.x = float(x)
         self.y = float(y)
 
+    # copy is implicit - all fields are immutable
+
+    ##########################################################################
+
     def reset(self,x,y):
         """ reset(x: float, y: float) -> None
         Resets the point to given coordinates and return nothing
@@ -43,6 +50,45 @@ convenient."""
         """
         self.x = float(x)
         self.y = float(y)
+
+    def isInside(self, rect):
+        """ isInside(rect: Rect) -> boolean
+        Check if the point is falling inside rect and return a boolean
+        
+        """
+        return (self.x >= rect.lowerLeft.x and
+                self.x <= rect.upperRight.x and
+                self.y >= rect.lowerLeft.y and
+                self.y <= rect.upperRight.y)
+    
+    def length(self):
+        """ length() -> float
+        Interprets self as a vector to compute the L_2 norm and return a float
+
+        """
+        return math.sqrt(self.x * self.x + self.y * self.y)
+
+    ##########################################################################
+    # Debugging
+
+    def show_comparison(self, other):
+        if type(self) != type(other):
+            print "Type mismatch"
+            return
+        l = (self - other).length()
+        if l < self.eq_delta:
+            print "Points are too far away:"
+            print self
+            print other
+        else:
+            print "No difference found: delta is %f" % l
+            assert self == other
+
+    ##########################################################################
+    # Operators
+
+    def __str__(self):
+        return "(%f, %f)@%X" % (self.x, self.y, id(self))
 
     def __neg__(self):
         """ __neg__() -> Point
@@ -73,18 +119,15 @@ convenient."""
         """
         return Point(self.x * other, self.y * other)
 
+    eq_delta = 0.0001
     def __eq__(self, other):
         """__eq__(other: Point) -> boolean 
         Two points are equal if they have the same components 
         
         """
-        if other:
-            if self.x == other.x and self.y == other.y:
-                return True
-            else:
-                return False
-        else:
+        if type(self) != type(other):
             return False
+        return (self - other).length() < self.eq_delta
         
     def __ne__(self, other):
         """__ne__(other: Point) -> boolean 
@@ -101,22 +144,6 @@ convenient."""
         """
         return Point(self.x * other, self.y * other)
 
-    def isInside(self, rect):
-        """ isInside(rect: Rect) -> boolean
-        Check if the point is falling inside rect and return a boolean
-        
-        """
-        return (self.x >= rect.lowerLeft.x and
-                self.x <= rect.upperRight.x and
-                self.y >= rect.lowerLeft.y and
-                self.y <= rect.upperRight.y)
-    
-    def length(self):
-        """ length() -> float
-        Interprets self as a vector to compute the L_2 norm and return a float
-
-        """
-        return math.sqrt(self.x * self.x + self.y * self.y)
 
 ################################################################################
 # Unit tests
