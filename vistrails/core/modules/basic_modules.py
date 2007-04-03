@@ -125,12 +125,14 @@ class File(Module):
         self.checkInputPort("name")
         n = self.getInputFromPort("name")
         self.name = n
+        if not os.path.isfile(n):
+            raise ModuleError(self, "File '%s' not existent" % n)
         self.setResult("local_filename", self.name)
 
 _reg.addModule(File)
 _reg.addInputPort(File, "name", String)
 _reg.addOutputPort(File, "self", File)
-_reg.addOutputPort(File, "local_filename", String)
+_reg.addOutputPort(File, "local_filename", String, True)
 
 ##############################################################################
 
@@ -325,7 +327,7 @@ class PythonSource(NotCacheable, Module):
                 self.setResult(k, locals_[k])
 
 _reg.addModule(PythonSource,
-              None, module_configure.PythonSourceConfigurationWidget)
+               None, module_configure.PythonSourceConfigurationWidget)
 _reg.addInputPort(PythonSource, 'source', String, True)
 
 ##############################################################################
