@@ -195,6 +195,17 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         self.setColumnCount(cols)
         self.setFitToWindow(True)
 
+    def updateHeaderStatus(self):
+        """ updateHeaderStatus() -> None
+        Update the visibility of the row and column header
+        
+        """
+        return
+        self.horizontalHeader().setVisible(self.columnCount() > 1 or
+                                           self.rowCount() > 1)
+        self.verticalHeader().setVisible(self.columnCount() > 1 or
+                                         self.rowCount() > 1)
+
     def updateRowLabels(self, oldCount, newCount):
         """ updateRowLabels(oldCount: int, newCount: int) -> None
         Update vertical labels when the number of row changed
@@ -205,7 +216,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         for i in range(newCount):
             vLabels << str(vIdx(i)+1)
         self.setVerticalHeaderLabels(vLabels)
-        self.verticalHeader().setVisible(self.rowCount() > 1)
+        self.updateHeaderStatus()
 
     def rowMoved(self, row, old, new):
         """ rowMove(row: int, old: int, new: int) -> None
@@ -224,7 +235,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         for i in range(newCount):
             hLabels << chr(vIdx(i)+ord('A'))
         self.setHorizontalHeaderLabels(hLabels)
-        self.horizontalHeader().setVisible(self.columnCount() > 1)
+        self.updateHeaderStatus()
         
     def columnMoved(self, row, old, new):
         """ columnMoved(row: int, old: int, new: int) -> None
