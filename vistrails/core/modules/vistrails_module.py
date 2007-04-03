@@ -222,6 +222,10 @@ context."""
                 msg = "A dynamic module raised an exception: '%s'"
                 msg %= str(me)
                 raise ModuleError(self, msg)
+        except KeyboardInterrupt, e:
+            raise ModuleError(self, 'Interrupted by user')
+        except Exception, e: 
+            raise ModuleError(self, 'Uncaught exception: "%s"' % str(e))
         self.upToDate = True
         self.logging.endUpdate(self)
         self.logging.signalSuccess(self)
