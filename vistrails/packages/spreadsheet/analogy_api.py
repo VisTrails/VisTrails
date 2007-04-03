@@ -25,6 +25,9 @@
 # and the analogy
 ################################################################################
 
+import os
+import core.analogy
+
 class SpreadsheetAnalogyObject(object):
     """
     SpreadsheetAnalogyObject provides a API functions to integrate
@@ -80,11 +83,22 @@ class SpreadsheetAnalogyObject(object):
         analogy is not applicable, this should return None
         
         """
+        def get_vistrail_by_name(vname):
+            import gui.application
+            v = gui.application.VistrailsApplication
+            m = v.builderWindow.viewManager
+            # slow, but who cares
+            for v in v.builderWindow.viewManager._views.values():
+                if v.name == vname:
+                    return v.vistrail
+            if not v:
+                raise Exception("Couldn't find")
+
 
         (p1_vistrail, p1_number, p1_actions, p1_pipeline) = self._p1Info
         (p2_vistrail, p2_number, p2_actions, p2_pipeline) = self._p2Info
         (p3_vistrail, p3_number, p3_actions, p3_pipeline) = pInfo
-        
+
         if (p1_vistrail != p2_vistrail or
             p1_vistrail != p3_vistrail or
             p1_actions or
@@ -93,13 +107,14 @@ class SpreadsheetAnalogyObject(object):
             return None
         p1_vistrail = os.path.split(p1_vistrail)[1]
 
-        import core.analogy
         perform = core.analogy.perform_analogy_on_vistrail
-        
-        (new_version,
-         new_pipeline) = perform(p1_vistrail,
-                                 p1_number, p2_number, p3_number,
-                                 0.15)
+
+
+        vt = get_vistrail_by_name(p1_vistrail)
+        new_version = perform(vt,
+                              p1_number, p2_number, p3_number,
+                              0.15)
+        new_pipeline = vt.getPipeline(new_version)
         
         return (p1_vistrail, new_version, [], new_pipeline)
 
