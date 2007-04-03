@@ -35,6 +35,10 @@ def bool_conv(x):
 
 class ModuleParam(object):
     """ Stores a parameter setting for a vistrail function """
+
+    ##########################################################################
+    # Constructor
+
     def __init__(self):
         self.type = ""
         self.strValue = ""
@@ -45,6 +49,10 @@ class ModuleParam(object):
         self.evaluatedStrValue = ""
         # This is used for visual query and will not get serialize
         self.queryMethod = 0
+
+    # Copy is implicit (every field is immutable)
+
+    ##########################################################################
         
     def serialize(self, dom, element):
         """ serialize(dom, element) -> None 
@@ -87,16 +95,16 @@ class ModuleParam(object):
                     'Boolean': ("False", False)}
 
 
-#     dispatchValue = {'float': float,
-#                      'double': float,
-#                      'int': int,
-#                      'vtkIdType': int,
-#                      'string': str,
-#                      'str': str,
-#                      'const char *': str,
-#                      'const char*': str,
-#                      'char *': str,
-#                      'char*': str}
+    #     dispatchValue = {'float': float,
+    #                      'double': float,
+    #                      'int': int,
+    #                      'vtkIdType': int,
+    #                      'string': str,
+    #                      'str': str,
+    #                      'const char *': str,
+    #                      'const char*': str,
+    #                      'char *': str,
+    #                      'char*': str}
 
     def quoteValue(self):
         """ quoteValue() -> str -  Returns its strValue as an quote string."""
@@ -112,6 +120,42 @@ class ModuleParam(object):
                           'const char*': lambda x: "'" + str(x) + "'",
                           'char *': lambda x: "'" + str(x) + "'",
                           'char*': lambda x: "'" + str(x) + "'"}
+
+    ##########################################################################
+    # Debugging
+
+    def show_comparison(self, other):
+        if type(self) != type(other):
+            print "type mismatch"
+            return
+        if self.type != other.type:
+            print "paramtype mismatch"
+            return
+        if self.strValue != other.strValue:
+            print "strvalue mismatch"
+            return
+        if self.name != other.name:
+            print "name mismatch"
+            return
+        if self.alias != other.alias:
+            print "alias mismatch"
+            return
+        if self.minValue != other.minValue:
+            print "minvalue mismatch"
+            return
+        if self.maxValue != other.maxValue:
+            print "maxvalue mismatch"
+            return
+        if self.evaluatedStrValue != other.evaluatedStrValue:
+            print "evaluatedStrValue mismatch"
+            return
+        print "no difference found"
+        assert self == other
+        return
+        
+
+    ##########################################################################
+    # Operators
 
     def __str__(self):
         """ __str__() -> str - Returns a string representation of itself """
@@ -133,6 +177,8 @@ class ModuleParam(object):
         operator. 
         
         """
+        if type(self) != type(other):
+            return False
         if self.type != other.type:
             return False
         if self.strValue != other.strValue:
