@@ -35,6 +35,7 @@ from core.interpreter.default import default_interpreter
 from core.inspector import PipelineInspector
 from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 from core.modules.sub_module import addSubModule, DupplicateSubModule
+import core.analogy
 import copy
 import os.path
 
@@ -69,9 +70,10 @@ class VistrailController(QtCore.QObject):
         self.refine = False
         self.changed = False
         self.fullTree = False
+        self.analogy = {}
 
     def invalidate_version_tree(self):
-		#FIXME: in the future, rename the signal
+        #FIXME: in the future, rename the signal
         self.emit(QtCore.SIGNAL('vistrailChanged()'))
 
     def cleanup(self):
@@ -266,9 +268,9 @@ class VistrailController(QtCore.QObject):
         
         """
         if self.fullTree:
-            terse = self.vistrail.getVersionGraph().__copy__()
+            terse = copy.copy(self.vistrail.getVersionGraph())
         else:
-            terse = self.vistrail.getTerseGraph().__copy__()
+            terse = copy.copy(self.vistrail.getTerseGraph())
         full = self.vistrail.getVersionGraph()
         if (not self.refine) or (not self.search): return (terse, full)
         am = self.vistrail.actionMap
@@ -704,3 +706,33 @@ class VistrailController(QtCore.QObject):
         self.vistrail.create_abstraction(self.currentVersion,
                                          subgraph,
                                          'FOOBAR')
+
+    ##########################################################################
+    # analogies
+
+    def add_analogy(self, analogy_name, version_from, version_to):
+        assert type(analogy_name) == str
+        assert type(version_from) == int
+        assert type(version_to) == int
+        if analogy_name in self.analogy:
+            raise VistrailsInternalError("duplicated analogy name '%s'" %
+                                         analogy_name)
+        self.analogy[analogy_name] = (version_from, version_to)
+
+    def remove_analogy(self, analogy_name):
+        if analogy_name not in self.analogy:
+            raise VistrailsInternalError("missing analogy '%s'" %
+                                         analogy_name)
+        del self.analogy[analogy_name]
+
+    def perform_analogy(self, analogy_name, analogy_target, invalidate=True):
+        if analogy_name not in self.analogy:
+            raise VistrailsInternalError("missing analogy '%s'" %
+                                         analogy_name)
+        (a, b) = self.analogy[analogy_name]
+        c = analogy_target
+        core.analogy.perform_analogy_on_vistrail(self.vistrail,
+                                                 a, b, c)
+        self.setChanged(True)
+        if invalidate:
+            self.invalidate_version_tree()
