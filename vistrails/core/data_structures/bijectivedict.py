@@ -20,6 +20,8 @@
 ##
 ############################################################################
 
+import copy
+
 class Bidict(dict):
     """Subclass of mapping that automatically keeps track of the
 inverse mapping. Note: self.inverse is a simple dict, so it won't keep
@@ -45,7 +47,20 @@ presence of deletions.)"""
         # Might not be true if mapping was not bijective
         if v in self.inverse:
             del self.inverse[v]
-            
+
+    def __copy__(self):
+        r = Bidict()
+        r.inverse = copy.copy(self.inverse)
+        r.update(self)
+        return r
+
+    def update(self, other):
+        try:
+            for i in other.iterkeys():
+                self[i] = other[i]
+        except:
+            for (k,v) in other:
+                self[k] = v
 
 ##############################################################################
 
@@ -71,6 +86,25 @@ class TestBidict(unittest.TestCase):
         x[3] = 2
         del x[1]
         del x[3]
+
+    def testCopy(self):
+        """Tests copying a Bidict."""
+        x = Bidict()
+        x[1] = 2
+        x[3] = 4
+        y = copy.copy(x)
+        assert y.inverse[4] == x.inverse[4]
+        assert y.inverse[2] == x.inverse[2]
+
+    def testUpdate(self):
+        """Tests if updating a bidict with a dict works"""
+        x = {1:2, 3:4}
+        y = Bidict()
+        y.update(x)
+        assert y.inverse[4] == 3
+        assert y.inverse[2] == 1
+        
+
 
 if __name__ == '__main__':
     unittest.main()
