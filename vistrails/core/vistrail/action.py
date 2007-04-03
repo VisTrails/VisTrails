@@ -43,8 +43,14 @@ from core.vistrail.module_param import ModuleParam
 from core.vistrail.module_function import ModuleFunction
 from core.data_structures.point import Point
 from core.modules.module_registry import registry, ModuleRegistry
-from core.utils import report_stack
+from core.utils import report_stack, enum
 import copy
+
+ActionDirection = enum('ActionDirection',
+                       ['Direct', 'Inverse'],
+                       ["Natural direction of an action"])
+
+# TODO: Add __copy__ to all actions!!
 
 ################################################################################
     
@@ -74,7 +80,7 @@ class Action(object):
             else:
                 self.module_ids = module_ids
         def __str__(self):
-            return ("Pipeline is missing necessary module ids: %d" %
+            return ("Pipeline is missing necessary module ids: %s" %
                     self.module_ids)
 
     class MissingConnection(Exception):
@@ -87,9 +93,12 @@ class Action(object):
             else:
                 self.connection_ids = connection_ids
         def __str__(self):
-            return ("Pipeline is missing necessary connection ids: %d" %
+            return ("Pipeline is missing necessary connection ids: %s" %
                     self.connection_ids)
         
+
+    ##########################################################################
+    # Constructors
     
     def __init__(self, timestep=0, parent=0, date=None, user=None, notes=None):
         """ __init__(timestep=0, parent=0, date=None, user=None, 
@@ -108,37 +117,8 @@ class Action(object):
         self.date = date
         self.user = user
         self.notes = notes
-
-    def relevant_for_analogy(self):
-        """If an action is important for analogies, it should return true."""
-        return False
-
-    def perform(self, pipeline):
-        """ perform(pipeline) -> None 
-        Abstract method called for each subclassed action when an action is 
-        performed on a given pipeline. 
-        
-        """
-        abstract()
-
-    def serialize(self,dom,element):
-        """ serialize(dom,element) -> None  
-        Abstract method called to convert the object to an XML representation. 
-        
-        """
-        abstract()
-
-    def __str__(self):
-        """__str__() -> str 
-        Returns a string representation of an action object.
-
-        """
-        msg = "<<timestep='%s' parent='%s' date='%s' user='%s' notes='%s'>>"
-        return  msg % (self.timestep,
-                       self.parent,
-                       self.date,
-                       self.user,
-                       self.notes)
+        self._natural_direction = ActionDirection.Direct
+        self._inverse = None
 
     @staticmethod
     def createFromXML(action, version=None):
@@ -285,25 +265,50 @@ class Action(object):
         
         raise VistrailsInternalError("element is neither filter nor object")    
 
+    ##########################################################################
+
+    def relevant_for_analogy(self):
+        """If an action is important for analogies, it should return true."""
+        return False
+
+    def perform(self, pipeline):
+        """ perform(pipeline) -> None 
+        Abstract method called for each subclassed action when an action is 
+        performed on a given pipeline. 
+        
+        """
+        abstract()
+
+    def serialize(self,dom,element):
+        """ serialize(dom,element) -> None  
+        Abstract method called to convert the object to an XML representation. 
+        
+        """
+        abstract()
+
+    ##########################################################################
+    # Operators
+
+    def __str__(self):
+        """__str__() -> str 
+        Returns a string representation of an action object.
+
+        """
+        msg = "<<type='%s' timestep='%s' parent='%s' date='%s' user='%s' notes='%s'>>"
+        return msg % (type(self),
+                      self.timestep,
+                      self.parent,
+                      self.date,
+                      self.user,
+                      self.notes)
+
 ##############################################################################
 # AddModuleAction
 
 class AddModuleAction(Action):
-    def __init__(self, timestep=0,parent=0,date=None,user=None,notes=None):
-        Action.__init__(self,timestep,parent,date,user,notes)
-        self.module = None
-        self.type = 'AddModule'
 
-    def relevant_for_analogy(self):
-        return True
-        
-    def serialize(self, dom, element):
-        """ serialize(dom,element) -> None  
-        Convert this object to an XML representation. 
-        
-        """
-        element.setAttribute('what', 'addModule')
-        self.module.serialize(dom, element)
+    ##########################################################################
+    # Constructors
 
     @staticmethod
     def parse(element, version=None):
@@ -333,23 +338,12 @@ class AddModuleAction(Action):
             return newAction
         raise VistrailsInternalError("No objects in addModule action")
     
-    def perform(self, pipeline):
-        """ perform(pipeline:Pipeline) -> None 
-        Apply this action to pipeline.
-        
-        """
-        pipeline.addModule(copy.copy(self.module))
+    def __init__(self, timestep=0,parent=0,date=None,user=None,notes=None):
+        Action.__init__(self,timestep,parent,date,user,notes)
+        self.module = None
+        self.type = 'AddModule'
 
-Action.createFromXMLDispatch['addModule'] = AddModuleAction.parse
-
-##############################################################################
-# AddConnectionAction
-
-class AddConnectionAction(Action):
-    def __init__(self,timestep=0,parent=0,date=None,user=None,notes=None):
-        Action.__init__(self, timestep, parent, date, user,notes)
-        self.connection = None
-        self.type = 'AddConnection'
+    ##########################################################################
 
     def relevant_for_analogy(self):
         return True
@@ -359,8 +353,47 @@ class AddConnectionAction(Action):
         Convert this object to an XML representation. 
         
         """
-        element.setAttribute('what', 'addConnection')
-        self.connection.serialize(dom, element)
+        element.setAttribute('what', 'addModule')
+        self.module.serialize(dom, element)
+    
+    def perform(self, pipeline):
+        """ perform(pipeline:Pipeline) -> None 
+        Apply this action to pipeline.
+        
+        """
+        pipeline.addModule(copy.copy(self.module))
+
+    def make_inverse(self, pipeline):
+        """ make_inverse(pipeline: Pipeline) -> Action
+        Returns an inverse of this action with respect to the given pipeline.
+        """
+        delete_module = DeleteModuleAction()
+        delete_module._natural_direction = ActionDirection.Inverse
+        delete_module.ids.append(self.module.id)
+        delete_module._inverse = self
+        return delete_module
+
+    ##########################################################################
+    # Operators
+
+    def __str__(self):
+        return "(AddModuleAction %s)@%X" % (str(self.module),
+                                            id(self))
+
+Action.createFromXMLDispatch['addModule'] = AddModuleAction.parse
+
+##############################################################################
+# AddConnectionAction
+
+class AddConnectionAction(Action):
+
+    ##########################################################################
+    # Constructors
+
+    def __init__(self,timestep=0,parent=0,date=None,user=None,notes=None):
+        Action.__init__(self, timestep, parent, date, user,notes)
+        self.connection = None
+        self.type = 'AddConnection'
 
     @staticmethod
     def parse(element, version=None):
@@ -393,7 +426,20 @@ class AddConnectionAction(Action):
                 newAction.connection = Action.getConnection(c)
             return newAction
         raise VistrailsInternalError("No connections in addConnection action")
-     
+
+    ##########################################################################
+
+    def relevant_for_analogy(self):
+        return True
+        
+    def serialize(self, dom, element):
+        """ serialize(dom,element) -> None  
+        Convert this object to an XML representation. 
+        
+        """
+        element.setAttribute('what', 'addConnection')
+        self.connection.serialize(dom, element)
+
     def perform(self, pipeline):
         """ perform(pipeline:Pipeline) -> None 
         Apply this action to pipeline.
@@ -411,6 +457,23 @@ class AddConnectionAction(Action):
         except KeyError:
             raise self.MissingModule(di)
         pipeline.addConnection(copy.copy(self.connection))
+
+    def make_inverse(self, pipeline):
+        """ make_inverse(pipeline: Pipeline) -> Action
+        Returns an inverse of this action with respect to the given pipeline.
+        """
+        delete_connection = DeleteConnectionAction()
+        delete_connection._natural_direction = ActionDirection.Inverse
+        delete_connection.ids.append(self.connection.id)
+        delete_connection._inverse = self
+        return delete_connection
+
+    ##########################################################################
+    # Operators
+
+    def __str__(self):
+        return "(AddConnectionAction %s)@%X" % (str(self.connection),
+                                                id(self))
 
 Action.createFromXMLDispatch['addConnection'] = AddConnectionAction.parse
 
@@ -433,52 +496,13 @@ class ChangeParameterAction(Action):
         def __str__(self):
             return "Parameter is inconsistent in this context: " + str(p)
 
+    ##########################################################################
+    # Constructors
+
     def __init__(self, timestep=0,parent=0,date=None,user=None,notes=None):
         Action.__init__(self, timestep,parent,date,user,notes)
         self.parameters = []
         self.type = 'ChangeParameter'
-
-    def relevant_for_analogy(self):
-        return True
-
-    def addParameter(self, moduleId, functionId, paramId,
-                     function, param, value, type_, alias):
-        """ addParameter(moduleId, functionId, paramID, function, 
-                         param, value, type, alias) -> None
-        Add a new parameter to the action.
-        Keyword arguments: 
-          - moduleId : 'int'
-          - functionId : 'int'
-          - paramId: 'int'
-          - function: 'str'
-          - param : 'str'
-          - value : 'str'
-          - type : 'str'
-          - alias : 'str'
-        
-        """
-        assert type(moduleId) == int
-        assert type(functionId) == int
-        assert type(paramId) == int
-        assert type(function) == str
-        assert type(param) == str
-        assert type(value) == str
-        assert type(type_) == str
-        assert type(alias) == str
-        p = [moduleId, functionId,function, paramId, param, value, type_, alias]
-        self.parameters.append(p)
-    
-    def serialize(self, dom, element):
-        """ serialize(dom,element) -> None  
-        Convert this object to an XML representation. 
-        
-        """
-        element.setAttribute('what', 'changeParameter')
-        for parameter in self.parameters:
-            child = dom.createElement('set')
-            for a, v in zip(ChangeParameterAction.attributes, parameter):
-                child.setAttribute(a,str(v))
-            element.appendChild(child)
 
     @staticmethod
     def parse(element, version=None):
@@ -526,7 +550,96 @@ class ChangeParameterAction(Action):
         
         newAction.parameters = p
         return newAction
-      
+
+    ##########################################################################
+
+    def relevant_for_analogy(self):
+        return True
+
+    def addParameter(self, moduleId, functionId, paramId,
+                     function, param, value, type_, alias):
+        """ addParameter(moduleId, functionId, paramID, function, 
+                         param, value, type, alias) -> None
+        Add a new parameter to the action.
+        Keyword arguments: 
+          - moduleId : 'int'
+          - functionId : 'int'
+          - paramId: 'int'
+          - function: 'str'
+          - param : 'str'
+          - value : 'str'
+          - type : 'str'
+          - alias : 'str'
+        
+        """
+        assert type(moduleId) == int
+        assert type(functionId) == int
+        assert type(paramId) == int
+        assert type(function) == str
+        assert type(param) == str
+        assert type(value) == str
+        assert type(type_) == str
+        assert type(alias) == str
+        p = [moduleId, functionId,function, paramId, param, value, type_, alias]
+        self.parameters.append(p)
+    
+    def serialize(self, dom, element):
+        """ serialize(dom,element) -> None  
+        Convert this object to an XML representation. 
+        
+        """
+        element.setAttribute('what', 'changeParameter')
+        for parameter in self.parameters:
+            child = dom.createElement('set')
+            for a, v in zip(ChangeParameterAction.attributes, parameter):
+                child.setAttribute(a,str(v))
+            element.appendChild(child)
+
+    def perform_parameter(self, parameter, pipeline):
+        """ perform_parameter(parameter, pipeline) -> None
+        perform a single parameter change to pipeline."""
+        # FIXME: This is not atomic. It might perform part of the
+        # action and then raise an exception, leaving the pipeline in
+        # a bogus state.
+        p = parameter
+        try:
+            m = pipeline.getModuleById(p[0])
+        except KeyError:
+            raise self.MissingModule(p[0])
+        if p[1] > len(m.functions):
+            raise ParameterInconsistency(p)
+        if p[1] == len(m.functions):
+            f = ModuleFunction()
+            f.name = p[2]
+            m.functions.append(f)
+        f = m.functions[p[1]]
+        if f.name != p[2]:
+            raise ParameterInconsistency(p)
+        if p[3] == -1:
+            return
+        if p[3] >= len(f.params):
+            param = ModuleParam()
+            param.name = p[4]
+            f.params.append(param)
+            if len(f.params)-1 != p[3]:
+                raise ParameterInconsistency(p)
+        param = f.params[p[3]]
+        param.name = p[4]
+        param.strValue = p[5]
+        param.type = p[6]
+
+        # Workaround for strange types in old pipelines
+        if param.type.find('char')>-1 or param.type=='str':
+            debug.critical("This is an old pipeline!")
+            param.type = 'string'
+        param.alias = p[7]
+        if not pipeline.hasAlias(param.alias):
+            pipeline.changeAlias(param.alias, 
+                                 param.type, 
+                                 p[0], #module id  
+                                 p[1], #function id
+                                 p[3]) #parameter id
+    
     def perform(self, pipeline):
         """ perform(pipeline:Pipeline) -> None 
         Apply this action to pipeline.
@@ -538,75 +651,76 @@ class ChangeParameterAction(Action):
         # a bogus state.
         
         for p in self.parameters:
-            try:
-                m = pipeline.getModuleById(p[0])
-            except KeyError:
-                raise self.MissingModule(p[0])
-            if p[1] > len(m.functions):
-                raise ParameterInconsistency(p)
-            if p[1] == len(m.functions):
-                f = ModuleFunction()
-                f.name = p[2]
-                m.functions.append(f)
-            f = m.functions[p[1]]
-            if f.name != p[2]:
-                raise ParameterInconsistency(p)
-            if p[3] == -1:
-                continue
-            if p[3] >= len(f.params):
-                param = ModuleParam()
-                param.name = p[4]
-                f.params.append(param)
-                if len(f.params)-1 != p[3]:
-                    raise ParameterInconsistency(p)
-            param = f.params[p[3]]
-            param.name = p[4]
-            param.strValue = p[5]
-            param.type = p[6]
+            self.perform_parameter(p, pipeline)
 
-            # Workaround for strange types on old pipelines
-            if param.type.find('char')>-1 or param.type=='str':
-                debug.critical("This is an old pipeline!")
-                param.type = 'string'
-            param.alias = p[7]
-            if not pipeline.hasAlias(param.alias):
-                pipeline.changeAlias(param.alias, 
-                                     param.type, 
-                                     p[0], #module id  
-                                     p[1], #function id
-                                     p[3]) #parameter id
-                    
+    def make_inverse(self, pipeline):
+        """ make_inverse(pipeline: Pipeline) -> Action
+        Returns an inverse of this action with respect to the given pipeline.
+        """
+        pipeline_copy = copy.copy(pipeline)
+        inverse = CompositeAction()
+        inverse._natural_direction = ActionDirection.Inverse
+        lst = []
+        for p in self.parameters:
+            (module_id,
+             function_id,
+             function_name,
+             param_id,
+             param_name,
+             param_value,
+             param_type,
+             param_alias) = p
+            m = pipeline_copy.modules[module_id]
+            if len(m.functions) == function_id:
+                action = DeleteFunctionAction()
+                action.functionId = function_id
+                action.moduleId = module_id
+            else:
+                action = None
+                if len(m.functions) == function_id:
+                    continue
+                f = m.functions[function_id]
+                if len(f.params) <= param_id:
+                    continue
+                param = f.params[param_id]
+                action = ChangeParameterAction()
+                action.parameters.append((module_id,
+                                          function_id,
+                                          function_name,
+                                          param_id,
+                                          param_name,
+                                          param.strValue,
+                                          param.type,
+                                          param.alias))
+            if action != None:
+                lst.append(action)
+            self.perform_parameter(p, pipeline_copy)
+        lst.reverse()
+        inverse._action_list = lst
+        return inverse
+
+    ##########################################################################
+    # Operators
+
+    def __str__(self):
+        return "(ChangeParameterAction %s)@%X" % ([str(x) for x
+                                                   in self.parameters],
+                                                  id(self))
+
 Action.createFromXMLDispatch['changeParameter'] = ChangeParameterAction.parse
 
 ##############################################################################
 # DeleteModuleAction
 
 class DeleteModuleAction(Action):
+
+    ##########################################################################
+    # Constructors
+    
     def __init__(self, timestep=0,parent=0,date=None,user=None,notes=None):
         Action.__init__(self, timestep,parent,date,user,notes)
         self.ids = []
         self.type = 'DeleteModule'
-
-    def addId(self, id):
-        """ addId(id:int) -> None  
-        Adds a module id to the list of modules to be deleted.
-       
-        """
-        self.ids.append(id)
-
-    def relevant_for_analogy(self):
-        return True
-       
-    def serialize(self, dom, element):
-        """ serialize(dom,element) -> None  
-        Convert this object to an XML representation. 
-        
-        """
-        element.setAttribute('what','deleteModule')
-        for id in self.ids:
-            child = dom.createElement('module')
-            child.setAttribute('moduleId', str(id))
-            element.appendChild(child)
 
     @staticmethod
     def parse(element, version=None):
@@ -635,6 +749,29 @@ class DeleteModuleAction(Action):
                     for m in named_elements(element, 'module')]
         return newAction
       
+    ##########################################################################
+
+    def addId(self, id):
+        """ addId(id:int) -> None  
+        Adds a module id to the list of modules to be deleted.
+       
+        """
+        self.ids.append(id)
+
+    def relevant_for_analogy(self):
+        return True
+       
+    def serialize(self, dom, element):
+        """ serialize(dom,element) -> None  
+        Convert this object to an XML representation. 
+        
+        """
+        element.setAttribute('what','deleteModule')
+        for id in self.ids:
+            child = dom.createElement('module')
+            child.setAttribute('moduleId', str(id))
+            element.appendChild(child)
+
     def perform(self, pipeline):
         """ perform(pipeline:Pipeline) -> None 
         Apply this action to pipeline.
@@ -652,37 +789,42 @@ class DeleteModuleAction(Action):
         for id in self.ids:
             pipeline.deleteModule(id)
 
+    def make_inverse(self, pipeline):
+        """ make_inverse(pipeline: Pipeline) -> Action
+        Returns an inverse of this action with respect to the given pipeline.
+        """
+        recreate_modules = CompositeAction()
+        recreate_modules._natural_direction = ActionDirection.Inverse
+        recreate_modules._inverse = self
+        for id in self.ids:
+            m = id
+            create_module = AddModuleAction()
+            # This actually takes care of everything, but will be a
+            # pain to serialize
+            create_module.module = copy.copy(pipeline.modules[m])
+            recreate_modules._action_list.append(create_module)
+        return recreate_modules
+
+    ##########################################################################
+    # Operators
+
+    def __str__(self):
+        return "(DeleteModuleAction %s)@%X" % (self.ids, id(self))
+
 Action.createFromXMLDispatch['deleteModule'] = DeleteModuleAction.parse
 
 ##############################################################################
 # DeleteConnectionAction
 
 class DeleteConnectionAction(Action):
+
+    ##########################################################################
+    # Constructors
+    
     def __init__(self, timestep=0,parent=0,date=None,user=None,notes=None):
         Action.__init__(self, timestep,parent,date,user,notes)
         self.ids = []
         self.type = 'DeleteConnection'
-        
-    def addId(self, id):
-        """ addId(id:int) -> None  
-        Adds a connection id to the list of connections to be deleted
-       
-        """
-        self.ids.append(id)
-
-    def relevant_for_analogy(self):
-        return True
-
-    def serialize(self, dom, element):
-        """ serialize(dom,element) -> None  
-        Convert this object to an XML representation. 
-        
-        """
-        element.setAttribute('what','deleteConnection')
-        for id in self.ids:
-            child = dom.createElement('connection')
-            child.setAttribute('connectionId', str(id))
-            element.appendChild(child)
 
     @staticmethod
     def parse(element, version=None):
@@ -710,6 +852,29 @@ class DeleteConnectionAction(Action):
         newAction.ids = [int(m.getAttribute('connectionId'))
                          for m in named_elements(element, 'connection')]
         return newAction
+        
+    ##########################################################################
+
+    def addId(self, id):
+        """ addId(id:int) -> None  
+        Adds a connection id to the list of connections to be deleted
+       
+        """
+        self.ids.append(id)
+
+    def relevant_for_analogy(self):
+        return True
+
+    def serialize(self, dom, element):
+        """ serialize(dom,element) -> None  
+        Convert this object to an XML representation. 
+        
+        """
+        element.setAttribute('what','deleteConnection')
+        for id in self.ids:
+            child = dom.createElement('connection')
+            child.setAttribute('connectionId', str(id))
+            element.appendChild(child)
        
     def perform(self, pipeline):
         """ perform(pipeline:Pipeline) -> None 
@@ -728,12 +893,38 @@ class DeleteConnectionAction(Action):
         for id in self.ids:
             pipeline.deleteConnection(id)
 
+    def make_inverse(self, pipeline):
+        """ make_inverse(pipeline: Pipeline) -> Action
+        Returns an inverse of this action with respect to the given pipeline.
+        """
+        recreate_connections = CompositeAction()
+        recreate_connections._natural_direction = ActionDirection.Inverse
+        recreate_connections._inverse = self
+        for id in self.ids:
+            c = id
+            create_connection = AddConnectionAction()
+            # This actually takes care of everything, but will be a
+            # pain to serialize
+            create_connection.connection = copy.copy(pipeline.connections[c])
+            recreate_connections._action_list.append(create_connection)
+        return recreate_connections
+
+    ##########################################################################
+    # Operators
+
+    def __str__(self):
+        return "(DeleteConnectionAction %s)@%X" % (self.ids, id(self))
+
 Action.createFromXMLDispatch['deleteConnection'] = DeleteConnectionAction.parse
 
 ##############################################################################
 # MoveModuleAction
 
 class MoveModuleAction(Action):
+
+    ##########################################################################
+    # Constructors
+    
     def __init__(self, timestep=0,parent=0,date=None,user=None,notes=None):
         Action.__init__(self, timestep,parent,date,user,notes)
         self.moves = []
@@ -767,6 +958,8 @@ class MoveModuleAction(Action):
                             float(m.getAttribute('dy')))
                            for m in named_elements(element, 'move')]
         return newAction
+
+    ##########################################################################
   
     def addMove(self, id, dx, dy):
         """addMove(id:int, dx:float, dy:float) -> None 
@@ -797,6 +990,23 @@ class MoveModuleAction(Action):
             child.setAttribute('dx', str(move[1]))
             child.setAttribute('dy', str(move[2]))
             element.appendChild(child)
+
+    def make_inverse(self, pipeline):
+        """ make_inverse(pipeline: Pipeline) -> Action
+        Returns an inverse of this action with respect to the given pipeline.
+        """
+        move_modules_back = MoveModuleAction()
+        move_modules_back._natural_direction = ActionDirection.Inverse
+        move_modules_back._inverse = self
+        for move_id, dx, dy in self.moves:
+            move_modules_back.addMove(move_id, -dx, -dy)
+        return move_modules_back
+
+    ##########################################################################
+    # Operators
+
+    def __str__(self):
+        return "(MoveModuleAction %s)@%X" % (self.moves, id(self))
 
 Action.createFromXMLDispatch['moveModule'] = MoveModuleAction.parse
 
@@ -863,6 +1073,19 @@ class DeleteFunctionAction(Action):
             newAction.moduleId = int(el.getAttribute('moduleId'))
             newAction.functionId = int(el.getAttribute('functionId'))
             return newAction
+
+    def make_inverse(self, pipeline):
+        """ make_inverse(pipeline: Pipeline) -> Action
+        Returns an inverse of this action with respect to the given pipeline.
+        """
+        insert_function = InsertFunctionAction()
+        insert_function._natural_direction = ActionDirection.Inverse
+        insert_function.module_id = self.moduleId
+        insert_function.function_id = self.functionId
+        f = pipeline.modules[self.moduleId].functions[self.functionId]
+        insert_function.function = copy.copy(f)
+        insert_function._inverse = self
+        return insert_function
  
 Action.createFromXMLDispatch['deleteFunction'] = DeleteFunctionAction.parse
 
@@ -901,8 +1124,8 @@ class ChangeAnnotationAction(Action):
 
     @staticmethod
     def parse(element, version=None):
-        """ parse(element, version=None) -> AddModuleAction
-        Static method that parses an xml element and creates an AddModuleAction.
+        """ parse(element, version=None) -> ChangeAnnotationAction
+        Static method that parses an xml element and creates an ChangeAnnotationAction.
         Keyword arguments:
           - element : xml.dom.minidom.Element
           - version : str
@@ -933,6 +1156,38 @@ class ChangeAnnotationAction(Action):
         m = pipeline.getModuleById(self.moduleId)
         if self.key.strip()!='':
             m.annotations[self.key] = self.value
+
+    def make_inverse(self, pipeline):
+        """ make_inverse(pipeline: Pipeline) -> Action
+        Returns an inverse of this action with respect to the given pipeline.
+        """
+        if self.key == '' and self.value == '':
+            change_annotation = ChangeAnnotationAction()
+            change_annotation._natural_direction = ActionDirection.Inverse
+            change_annotation._inverse = self
+            change_annotation.key = self.key
+            change_annotation.value = self.value
+            change_annotation.moduleId = self.moduleId
+            return change_annotation
+        annots = pipeline.modules[self.moduleId].annotations
+        if not annots.has_key(self.key):
+            delete_annotation = DeleteAnnotationAction()
+            delete_annotation._natural_direction = ActionDirection.Inverse
+            delete_annotation._inverse = self
+            delete_annotation.key = self.key
+            delete_annotation.moduleId = self.moduleId
+            return delete_annotation
+        change_annotation = ChangeAnnotationAction()
+        change_annotation._natural_direction = ActionDirection.Inverse
+        change_annotation._inverse = self
+        change_annotation.key = self.key
+        change_annotation.moduleId = self.moduleId
+        if self.key == '':
+            change_annotation.value = ''
+        else:
+            annot = annots[self.key]
+            change_annotation.value = annot
+        return change_annotation
 
 Action.createFromXMLDispatch['changeAnnotation'] = ChangeAnnotationAction.parse
 
@@ -966,8 +1221,8 @@ class DeleteAnnotationAction(Action):
 
     @staticmethod
     def parse(element, version = None):
-        """ parse(element, version=None) -> AddModuleAction
-        Static method that parses an xml element and creates an AddModuleAction.
+        """ parse(element, version=None) -> DeleteAnnotationAction
+        Static method that parses an xml element and creates an DeleteAnotationAction.
         Keyword arguments:
           - element : xml.dom.minidom.Element
           - version : str
@@ -991,7 +1246,20 @@ class DeleteAnnotationAction(Action):
             newAction.moduleId = int(el.getAttribute('moduleId'))
             newAction.key = str(el.getAttribute('key'))
             return newAction
- 
+
+    def make_inverse(self, pipeline):
+        """ make_inverse(pipeline: Pipeline) -> Action
+        Returns an inverse of this action with respect to the given pipeline.
+        """
+        change_annotation = ChangeAnnotationAction()
+        change_annotation._natural_direction = ActionDirection.Inverse
+        change_annotation._inverse = self
+        change_annotation.key = self.key
+        change_annotation.moduleId = self.moduleId
+        annot = pipeline.modules[self.moduleId].annotations[self.key]
+        change_annotation.value = annot
+        return change_annotation
+
 Action.createFromXMLDispatch['deleteAnnotation'] = DeleteAnnotationAction.parse
 
 ##############################################################################
@@ -1087,6 +1355,18 @@ class AddModulePortAction(Action):
                                      [registry.getDescriptorByName(spec).module
                                       for spec in portSpecs])
 
+    def make_inverse(self, pipeline):
+        """ make_inverse(pipeline: Pipeline) -> Action
+        Returns an inverse of this action with respect to the given pipeline.
+        """
+        delete_module_port = DeleteModulePortAction()
+        delete_module_port._natural_direction = ActionDirection.Inverse
+        delete_module_port._inverse = self
+        delete_module_port.moduleId = self.moduleId
+        delete_module_port.portType = self.portType
+        delete_module_port.portName = self.portName
+        return delete_module_port
+
 Action.createFromXMLDispatch['addModulePort'] = AddModulePortAction.parse
 
 ##############################################################################
@@ -1153,8 +1433,80 @@ class DeleteModulePortAction(Action):
             newAction.portType = str(el.getAttribute('portType'))
             newAction.portName = str(el.getAttribute('portName'))
             return newAction
+
+    def make_inverse(self, pipeline):
+        """ make_inverse(pipeline: Pipeline) -> Action
+        Returns an inverse of this action with respect to the given pipeline.
+        """
+        import core.modules.module_registry
+        reg = core.modules.module_registry.registry
+        add_module_port = AddModulePortAction()
+        add_module_port._natural_direction = ActionDirection.Inverse
+        add_module_port._inverse = self
+        add_module_port.moduleId = self.moduleId
+        add_module_port.portType = self.portType
+        add_module_port.portName = self.portName
+        m = pipeline.modules[self.moduleId]
+        if self.portType == 'input':
+            spec = (reg.getInputPortSpec(m, self.portName) or
+                    m.registry.getInputPortSpec(m, self.portName))
+        else:
+            spec = (reg.getOutputPortSpec(m, self.portName) or
+                    m.registry.getOutputPortSpec(m, self.portName))
+        add_module_port.portSpec = '(' + spec[0][0][0].__name__ + ')'
+        return add_module_port
+        
  
 Action.createFromXMLDispatch['deleteModulePort'] = DeleteModulePortAction.parse
+
+##############################################################################
+# CompositeAction
+
+class CompositeAction(Action):
+
+    def __init__(self, *args, **kwargs):
+        Action.__init__(self, *args, **kwargs)
+        self._action_list = []
+
+    def add_action(self, action):
+        self._action_list.append(action)
+
+    def make_inverse(self, pipeline):
+        inverse = CompositeAction()
+        inverse._natural_direction = ActionDirection.Inverse
+        pipeline_copy = copy.copy(pipeline)
+        lst = []
+        for action in self._action_list:
+            inv_item = action.make_inverse(pipeline_copy)
+            inv_item._inverse = action
+            action.perform(pipeline_copy)
+            lst.append(inv_item)
+        inverse._action_list = reversed(lst)
+        return inverse
+
+    def perform(self, pipeline):
+        for a in self._action_list:
+            a.perform(pipeline)
+
+    def relevant_for_analogy(self):
+        for a in self._action_list:
+            if a.relevant_for_analogy():
+                return True
+        return False
+
+################################################################################
+# InsertFunctionAction
+
+class InsertFunctionAction(Action):
+
+    def perform(self, pipeline):
+        if not pipeline.modules.has_key(self.module_id):
+            raise self.MissingModule(self.module_id)
+        pipeline.modules[self.module_id].functions.insert(self.function_id,
+                                                          copy.copy(self.function))
+
+    def relevant_for_analogy(self):
+        return True
 
 ################################################################################
 # Unit tests
