@@ -34,13 +34,14 @@ from core.utils import InstanceObject
 from gui import qt
 from gui.builder_window import QBuilderWindow
 from gui.theme import CurrentTheme
+import core.configuration
 import core.interpreter.cached
 import core.requirements
+import core.startup
 import gui.bookmark_window
 import gui.theme
 import os.path
 import sys
-import core.startup
 
 ################################################################################
 
@@ -73,7 +74,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         gui.theme.initializeCurrentTheme()
         self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         
-        self.configuration = core.startup.vistrailsDefaultConfiguration()
+        self.configuration = core.configuration.default()
         self.setupOptions()
         self.readOptions()
         if optionsDict:
