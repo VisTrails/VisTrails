@@ -23,7 +23,6 @@ import math
 import random
 import copy
 
-
 from itertools import imap, chain, izip
 
 from core.utils import withIndex, iter_with_index, all
@@ -93,8 +92,8 @@ class Graph(object):
     def inverse_immutable(self):
         """inverse_immutable() -> Graph
         
-Fast version of inverse(), but requires that output not be mutated (it
-shares with self.)
+        Fast version of inverse(), but requires that output not be
+        mutated (it shares with self.)
         """
         result = Graph()
         result.vertices = self.vertices
@@ -345,10 +344,11 @@ shares with self.)
     
     def vertices_topological_sort(self,vertex_set=None):
         """ vertices_topological_sort(self,vertex_set=None) ->
-sequence(vertices) Returns a sequence of all vertices, so that they
-are in topological sort order (every node traversed is such that their
-parent nodes have already been traversed). vertex_set is optionally a
-list of vertices on which to perform the topological sort.
+        sequence(vertices) Returns a sequence of all vertices, so that
+        they are in topological sort order (every node traversed is
+        such that their parent nodes have already been
+        traversed). vertex_set is optionally a list of vertices on
+        which to perform the topological sort.
         """
         (d, p, f) = self.dfs(vertex_set,raise_if_cyclic=True)
         lst = [(v, k) for (k,v) in f.iteritems()]
@@ -359,9 +359,9 @@ list of vertices on which to perform the topological sort.
     def topologically_contractible(self, subgraph):
         """topologically_contractible(subgraph) -> Boolean.
 
-Returns true if contracting the subgraph to a single vertex doesn't create
-cycles. This is equivalent to checking whether
-a pipeline subgraph forms a legal abstraction."""
+        Returns true if contracting the subgraph to a single vertex
+        doesn't create cycles. This is equivalent to checking whether
+        a pipeline subgraph forms a legal abstraction."""
 
         x = copy.copy(self)
         conns_to_subgraph = self.connections_to_subgraph(subgraph)
@@ -386,8 +386,8 @@ a pipeline subgraph forms a legal abstraction."""
     def subgraph(self, vertex_set):
         """ subgraph(vertex_set) -> Graph.
 
-Returns a subgraph of self containing all vertices and connections
-between them."""
+        Returns a subgraph of self containing all vertices and
+        connections between them."""
         result = Graph()
         vertex_set = set(vertex_set)
         # add vertices
@@ -403,8 +403,8 @@ between them."""
     def connections_to_subgraph(self, subgraph):
         """connections_to_subgraph(subgraph) -> [(vert_from, vert_to, edge_id)]
 
-Returns the list of all edges that connect to a vertex \in subgraph. subgraph
-is assumed to be a subgraph of self"""
+        Returns the list of all edges that connect to a vertex \in
+        subgraph. subgraph is assumed to be a subgraph of self"""
         vertices_to_traverse = set(self.vertices.iterkeys())
         subgraph_verts = set(subgraph.vertices.iterkeys())
         vertices_to_traverse -= subgraph_verts
@@ -420,8 +420,9 @@ is assumed to be a subgraph of self"""
     def connections_from_subgraph(self, subgraph):
         """connections_from_subgraph(subgraph) -> [(vert_from, vert_to, edge_id)]
 
-Returns the list of all edges that connect from a vertex \in subgraph to a vertex
-\not \in subgraph. subgraph is assumed to be a subgraph of self"""
+        Returns the list of all edges that connect from a vertex \in
+        subgraph to a vertex \not \in subgraph. subgraph is assumed to
+        be a subgraph of self"""
         subgraph_verts = set(subgraph.vertices.iterkeys())
         vertices_to_traverse = subgraph_verts
 
@@ -788,6 +789,25 @@ class TestGraph(unittest.TestCase):
          l = [v for v in g.iter_all_edges()]
          l.sort()
          assert l == [(0,1,0), (0,3,2), (1, 2, 1), (2, 4, 4), (3, 2, 3)]
+
+     def test_iter_edges_empty(self):
+         """Test iterators on empty parts of the graph."""
+         g = Graph()
+         for a in g.iter_vertices():
+             assert False
+         g.addVertex(0)
+         for a in g.iter_edges_from(0):
+             assert False
+         for a in g.iter_edges_to(0):
+             assert False
+         for a in g.iter_all_edges():
+             assert False
+
+     def test_get_edge_none(self):
+         g = Graph()
+         g.addVertex(0)
+         g.addVertex(1)
+         assert g.get_edge(0, 1) == None
 
      def test_dfs_before(self):
          g = self.make_linear(10)
