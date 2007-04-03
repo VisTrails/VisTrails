@@ -337,16 +337,21 @@ class BookmarkController(object):
 
     def loadAllPipelines(self):
         """loadAllPipelines() -> None
-        Load all bookmarks' pipelines and sets an ensemble 
+        Load all bookmarks' pipelines and sets an ensemble
 
         """
         parser = XMLParser()
         self.pipelines = {}
+        vistrails = {}
         for id, bookmark in self.collection.bookmarkMap.iteritems():
-            parser.openVistrail(bookmark.filename)
-            v = parser.getVistrail()
+            if vistrails.has_key(bookmark.filename):
+                v = vistrails[bookmark.filename]
+            else:
+                parser.openVistrail(bookmark.filename)
+                v = parser.getVistrail()
+                vistrails[bookmark.filename] = v
+                parser.closeVistrail()
             self.pipelines[id] = v.getPipeline(bookmark.pipeline)
-            parser.closeVistrail()
         self.ensemble = EnsemblePipelines(self.pipelines)
         self.ensemble.assembleAliases()
 

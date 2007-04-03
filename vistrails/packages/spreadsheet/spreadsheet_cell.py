@@ -30,7 +30,7 @@ import datetime
 import os
 from core import system
 import cell_rc
-import  spreadsheet_controller
+import spreadsheet_controller
 import analogy_api
 
 ################################################################################
@@ -198,9 +198,17 @@ class QCellWidget(QtGui.QWidget):
         Widget special grabbing function
         
         """
-        self.cachedPixmap = QtGui.QPixmap.grabWindow(self.winId())
-        return self.cachedPixmap
+#        return QtGui.QPixmap.grabWindow(self.winId())
+        return QtGui.QPixmap.grabWidget(self)
         
+    def cacheWindowPixmap(self):
+        """ cacheWindowPixmap() -> QPixmap
+        Cached the window pixmap for later use and return it
+        
+        """
+        self.cachedPixmap = self.grabWindowPixmap()
+        return self.cachedPixmap
+
 ################################################################################
 
 class QCellToolBar(QtGui.QToolBar):
@@ -475,12 +483,11 @@ class QCellPresenter(QtGui.QLabel):
         """
         self.cellWidget = cellWidget
         if cellWidget:
-            if ((not cellWidget.isVisible()) and
-                hasattr(cellWidget, 'cachedPixmap') and
+            if (hasattr(cellWidget, 'cachedPixmap') and
                 (not cellWidget.cachedPixmap.isNull())):
                 pixmap = cellWidget.cachedPixmap
             else:
-                pixmap = QtGui.QPixmap.grabWindow(cellWidget.winId())
+                pixmap = cellWidget.cacheWindowPixmap()
             self.info.show()
             bgPixmap = QtGui.QPixmap(pixmap)            
         else:

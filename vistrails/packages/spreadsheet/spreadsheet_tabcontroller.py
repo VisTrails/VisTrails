@@ -71,6 +71,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.monitoredPipelines = {}
         self.spreadsheetFileName = None
         self.loadingMode = False
+        self.editingMode = False
 
     def isLoadingMode(self):
         """ isLoadingMode() -> boolean
@@ -682,5 +683,6 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Turn on/off the editing mode of the whole spreadsheet
         
         """
+        self.editingMode = editing
         for w in self.tabWidgets:
             w.setEditingMode(editing)

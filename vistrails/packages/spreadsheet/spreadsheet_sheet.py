@@ -205,7 +205,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         for i in range(newCount):
             vLabels << str(vIdx(i)+1)
         self.setVerticalHeaderLabels(vLabels)
-        self.horizontalHeader().setVisible(self.rowCount() > 1)
+        self.verticalHeader().setVisible(self.rowCount() > 1)
 
     def rowMoved(self, row, old, new):
         """ rowMove(row: int, old: int, new: int) -> None
@@ -224,7 +224,8 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         for i in range(newCount):
             hLabels << chr(vIdx(i)+ord('A'))
         self.setHorizontalHeaderLabels(hLabels)
-        self.verticalHeader().setVisible(self.columnCount() > 1)
+        self.horizontalHeader().setVisible(self.columnCount() > 1)
+        
     def columnMoved(self, row, old, new):
         """ columnMoved(row: int, old: int, new: int) -> None
         Renumber the horizontal header labels when columns moved
@@ -289,9 +290,6 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         
         """
         if self.helpers.isInteracting():
-            return
-        if not hasattr(self.getCell(row, col), 'toolBarType'):
-            self.helpers.hide()
             return
         if ctrl:
             if row>=0 and col>=0:

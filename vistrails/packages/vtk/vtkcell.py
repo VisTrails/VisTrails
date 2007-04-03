@@ -777,8 +777,11 @@ class QVTKWidget(QCellWidget):
             istyle.OnChar()
 
     def saveToPNG(self, filename):
-        """ saveToPNG(filename: str) -> bool
-        Save the current widget contents to an image file
+        """ saveToPNG(filename: str) -> filename or vtkUnsignedCharArray
+        
+        Save the current widget contents to an image file. If
+        str==None, then it returns the vtkUnsignedCharArray containing
+        the PNG image. Otherwise, the filename is returned.
         
         """
         w2i = vtk.vtkWindowToImageFilter()
@@ -790,9 +793,15 @@ class QVTKWidget(QCellWidget):
         w2i.Update()
         writer = vtk.vtkPNGWriter()
         writer.SetInputConnection(w2i.GetOutputPort())
-        writer.SetFileName(filename)    
+        if filename!=None:
+            writer.SetFileName(filename)
+        else:
+            writer.WriteToMemoryOn()
         writer.Write()
-        return True
+        if filename:
+            return filename
+        else:
+            return writer.GetResult()
 
     def captureWindow(self):
         """ captureWindow() -> None        
@@ -807,12 +816,24 @@ class QVTKWidget(QCellWidget):
             return
         self.saveToPNG(str(fn))
         
-    def hideEvent(self, event):
-        """ hideEvent(event: QHideEvent) -> None
-        Ignore grabbing widget in hide event
+    def grabWindowPixmap(self):
+        """ grabWindowImage() -> QPixmap
+        Widget special grabbing function
         
         """
-        QtGui.QWidget.hideEvent(self, event)
+        uchar = self.saveToPNG(None)
+
+        ba = QtCore.QByteArray()
+        buf = QtCore.QBuffer(ba)
+        buf.open(QtCore.QIODevice.WriteOnly)
+        for i in range(uchar.GetNumberOfTuples()):
+            c = uchar.GetValue(i)
+            buf.putChar(chr(c))
+        buf.close()
+        
+        pixmap = QtGui.QPixmap()
+        pixmap.loadFromData(ba, 'PNG')
+        return pixmap
 
 class QVTKWidgetCapture(QtGui.QAction):
     """

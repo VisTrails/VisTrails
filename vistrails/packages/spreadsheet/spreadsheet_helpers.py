@@ -119,7 +119,6 @@ class CellResizer(QtGui.QLabel):
         self.col = -1
         self.hide()
 
-
     def setDragging(self,b):        
         """ setDragging(b: boolean) -> None
         Set the resizer state to busy dragging
@@ -154,11 +153,11 @@ class CellResizer(QtGui.QLabel):
             if e.button()==QtCore.Qt.LeftButton:
                 self.resizeAll = False
                 self.dragging = True
-                self.lastPos = QtCore.QPoint(e.globalX(),e.globalY())
             if e.button()==QtCore.Qt.RightButton and not self.sheet.fitToWindow:
                 self.resizeAll = True
                 self.dragging = True
-                self.lastPos = QtCore.QPoint(e.globalX(),e.globalY())
+            self.lastPos = (e.globalX()-self.sheet.columnWidth(self.col),
+                            e.globalY()-self.sheet.rowHeight(self.row))
 
     def mouseReleaseEvent(self,e):
         """ mouseReleaseEvent(e: QMouseEvent) -> None
@@ -178,17 +177,14 @@ class CellResizer(QtGui.QLabel):
         
         """
         if self.dragging:
-            hd = e.globalX() - self.lastPos.x()
-            vd = e.globalY() - self.lastPos.y()
-            self.lastPos.setX(e.globalX())
-            self.lastPos.setY(e.globalY())
             hSize = self.sheet.columnWidth(self.col)
             vSize = self.sheet.rowHeight(self.row)
-            fit = self.sheet.fitToWindow
+            hd = e.globalX() - self.lastPos[0] - hSize
+            vd = e.globalY() - self.lastPos[1] - vSize
             
             # All sections should have the same size (Right-Click)
             if self.resizeAll:
-                # Resize the columnds first
+                # Resize the columns first
                 dS = int(hd / (self.col+1))
                 mS = hd % (self.col+1)
                 for i in range(self.sheet.columnCount()):                    

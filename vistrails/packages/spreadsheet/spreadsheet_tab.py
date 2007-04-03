@@ -385,11 +385,11 @@ class StandardWidgetSheetTabInterface(object):
             progress.setWindowTitle('Copy Cell')
             progress.setWindowModality(QtCore.Qt.WindowModal)
             progress.show()
+            interpreter = default_interpreter.get()
             def moduleExecuted(objId):
                 if not progress.wasCanceled():
                     progress.setValue(progress.value()+1)
                     QtCore.QCoreApplication.processEvents()
-            interpreter = default_interpreter.get()
             interpreter.execute(pipeline,
                                 info['vistrailName'],
                                 info['version'],
@@ -414,7 +414,7 @@ class StandardWidgetSheetTabInterface(object):
         progress = QtGui.QProgressDialog('Executing...',
                                          '&Cancel',
                                          0, totalProgress)
-        progress.setWindowTitle('Copy Cell')
+        progress.setWindowTitle('Execute Cell')
         progress.setWindowModality(QtCore.Qt.WindowModal)
         progress.show()
         def moduleExecuted(objId):
@@ -577,6 +577,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         if self.toolBar.rowSpinBox.value()!=self.sheet.rowCount():
             self.sheet.setRowCount(self.toolBar.rowSpinBox.value())
             self.sheet.stretchCells()
+            self.setEditingMode(self.tabWidget.editingMode)
         
     def colSpinBoxChanged(self):
         """ colSpinBoxChanged() -> None
@@ -586,6 +587,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         if self.toolBar.colSpinBox.value()!=self.sheet.columnCount():
             self.sheet.setColumnCount(self.toolBar.colSpinBox.value())
             self.sheet.stretchCells()
+            self.setEditingMode(self.tabWidget.editingMode)
 
     ### Belows are API Wrappers to connect to self.sheet
 
