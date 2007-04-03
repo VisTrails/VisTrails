@@ -135,7 +135,7 @@ def initialize(*args, **keywords):
     reg.addModule(HTTPFile)
     reg.addInputPort(HTTPFile, "url", (basic.String, 'URL'))
     reg.addOutputPort(HTTPFile, "file", (basic.File, 'local File object'))
-    reg.addOutputPort(HTTPFile, "local_filename", (basic.String, 'local filename'))
+    reg.addOutputPort(HTTPFile, "local_filename", (basic.String, 'local filename'), optional=True)
 
     global package_directory
     package_directory = core.system.defaultDotVistrails() + "/HTTP"
