@@ -371,10 +371,20 @@ class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
             visDiff = QVisualDiff(self.scene().controller.vistrail,
                                   data.versionId,
                                   self.id,
+                                  self.scene().controller,
                                   self.scene().views()[0])
             visDiff.show()
         else:
             event.ignore()  
+
+    def perform_analogy(self):
+        sender = self.scene().sender()
+        analogy_name = str(sender.text())
+        selectedItems = self.scene().selectedItems()
+        controller = self.scene().controller
+        for item in selectedItems:
+            controller.perform_analogy(analogy_name, item.id, invalidate=False)
+        controller.invalidate_version_tree()
 
     def contextMenuEvent(self, event):
         """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None
@@ -383,6 +393,16 @@ class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
         """
         menu = QtGui.QMenu()
         menu.addAction(self.addToBookmarksAct)
+        controller = self.scene().controller
+        if len(controller.analogy) > 0:
+            analogies = QtGui.QMenu("Perform analogy...")
+            for title in sorted(controller.analogy.keys()):
+                act = QtGui.QAction(title, self.scene())
+                analogies.addAction(act)
+                QtCore.QObject.connect(act,
+                                       QtCore.SIGNAL("triggered()"),
+                                       self.perform_analogy)
+            menu.addMenu(analogies)
         menu.exec_(event.screenPos())
 
     def createActions(self):
