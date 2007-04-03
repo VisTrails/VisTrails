@@ -61,7 +61,6 @@ class QCellWidget(QtGui.QWidget):
         self.connect(self._playerTimer,
                      QtCore.SIGNAL('timeout()'),
                      self.playNextFrame)
-        self.cachedPixmap = QtGui.QPixmap()
 
     def setAnimationEnabled(self, enabled):
         """ setAnimationEnabled(enabled: bool) -> None
@@ -201,14 +200,6 @@ class QCellWidget(QtGui.QWidget):
 #        return QtGui.QPixmap.grabWindow(self.winId())
         return QtGui.QPixmap.grabWidget(self)
         
-    def cacheWindowPixmap(self):
-        """ cacheWindowPixmap() -> QPixmap
-        Cached the window pixmap for later use and return it
-        
-        """
-        self.cachedPixmap = self.grabWindowPixmap()
-        return self.cachedPixmap
-
 ################################################################################
 
 class QCellToolBar(QtGui.QToolBar):
@@ -483,11 +474,7 @@ class QCellPresenter(QtGui.QLabel):
         """
         self.cellWidget = cellWidget
         if cellWidget:
-            if (hasattr(cellWidget, 'cachedPixmap') and
-                (not cellWidget.cachedPixmap.isNull())):
-                pixmap = cellWidget.cachedPixmap
-            else:
-                pixmap = cellWidget.cacheWindowPixmap()
+            pixmap = cellWidget.grabWindowPixmap()
             self.info.show()
             bgPixmap = QtGui.QPixmap(pixmap)            
         else:
