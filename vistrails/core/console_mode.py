@@ -95,6 +95,7 @@ import core.system
 import sys
 import unittest
 import core.vistrail
+import random
 
 class TestConsoleMode(unittest.TestCase):
 
@@ -134,32 +135,6 @@ class TestConsoleMode(unittest.TestCase):
         result = run(core.system.visTrailsRootDirectory() + 
                      '/tests/resources/dynamic_module_error.xml',"test")
         self.assertEquals(result, False)
-
-    def test_cache(self):
-        """Test if basic caching is working."""
-        parser = xml_parser.XMLParser()
-        parser.openVistrail(core.system.visTrailsRootDirectory() +
-                            '/tests/resources/dummy.xml')
-        v = parser.getVistrail()
-        p1 = v.getPipeline('int chain')
-        n = v.get_version_number('int chain')
-        view = DummyView()
-        interpreter = core.interpreter.cached.CachedInterpreter.get()
-        (objs, errors, executed,
-         modules_added, conns_added) = interpreter.execute(p1,
-                                                           'dummy.xml',
-                                                           n,
-                                                           view,
-                                                           return_added=True)
-        # to force new params
-        p2 = v.getPipeline('int chain')
-        (objs, errors, executed,
-         modules_added, conns_added) = interpreter.execute(p2,
-                                                           'dummy.xml',
-                                                           n,
-                                                           view,
-                                                           return_added=True)
-        assert len(modules_added) == 1
 
 if __name__ == '__main__':
     unittest.main()
