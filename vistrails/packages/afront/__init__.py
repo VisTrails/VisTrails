@@ -94,15 +94,15 @@ class AfrontIso(Afront):
         args.append(self.getInputFromPort("file").name)
         if self.hasInputFromPort("rho"):
             args.append("-rho")
-            args.append(self.getInputFromPort("rho"))
+            args.append(str(self.getInputFromPort("rho")))
         if self.hasInputFromPort("eta"):
             args.append("-eta")
-            args.append(self.getInputFromPort("eta"))
+            args.append(str(self.getInputFromPort("eta")))
         self.checkInputPort("iso")
         args.append("-outname")
         args.append(o.name)
         args.append("-tri")
-        args.append(self.getInputFromPort("iso"))
+        args.append(str(self.getInputFromPort("iso")))
         self.run(args)
         self.setResult("output", o)
         
