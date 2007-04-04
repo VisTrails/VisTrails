@@ -30,6 +30,7 @@ from pipeline_utils import *
 
 reg = core.modules.module_registry.registry
 from core.utils import appendToDictOfLists
+from core.system import temporaryDirectory
 
 ##############################################################################
 # This is the analogy implementation
@@ -37,9 +38,21 @@ from core.utils import appendToDictOfLists
 ##############################################################################
 # EigenBase
 
-mzeros = lambda *args, **kwargs: scipy.matrix(scipy.zeros(*args, **kwargs))
-mones = lambda *args, **kwargs: scipy.matrix(scipy.ones(*args, **kwargs))
+def mzeros(*args, **kwargs):
+    nkwargs = copy.copy(kwargs)
+    nkwargs['dtype'] = float
+    az = scipy.zeros(*args, **nkwargs)
+    return scipy.matrix(az)
 
+def mones(*args, **kwargs):
+    nkwargs = copy.copy(kwargs)
+    nkwargs['dtype'] = float
+    az = scipy.ones(*args, **nkwargs)
+    return scipy.matrix(az)
+
+#mzeros = lambda *args, **kwargs: scipy.matrix(scipy.zeros(*args, **kwargs))
+# mones = lambda *args, **kwargs: scipy.matrix(scipy.ones(*args, **kwargs))
+ 
 class EigenBase(object):
 
     ##########################################################################
@@ -72,6 +85,8 @@ class EigenBase(object):
                 (in_s8y, out_s8y) = self.compare_modules(v1_id, v2_id)
                 m_i[i,j] = in_s8y
                 m_o[i,j] = out_s8y
+        print m_i
+        print m_o
         self._input_vertex_s8y = m_i
         self._output_vertex_s8y = m_o
         self._vertex_s8y = (m_i + m_o) / 2.0
@@ -172,6 +187,11 @@ class EigenBase(object):
         if (self._p1.modules[p1_id].name !=
             self._p2.modules[p2_id].name):
             input_similarity *= 0.99
+
+        print (self._p1.modules[p1_id].name,
+               self._p2.modules[p2_id].name,
+               input_similarity,
+               output_similarity)
 
         return (input_similarity, output_similarity)
 
@@ -430,7 +450,8 @@ class EigenPipelineSimilarity2(EigenBase):
         v = copy.copy(self._e)
         step = 0
         def write_current_matrix():
-            f = file('/tmp/%s_%03d.v' % (self._debug_matrix_file, step), 'w')
+            f = file('%s/%s_%03d.v' % (temporaryDirectory(),
+                                       self._debug_matrix_file, step), 'w')
             x = v.reshape(len(self._p1.modules),
                           len(self._p2.modules))
             for i in xrange(len(self._p1.modules)):
@@ -466,9 +487,10 @@ class EigenPipelineSimilarity2(EigenBase):
                 f.write('%d %d %d\n' % (i, c.sourceId, c.destinationId))
             
         if self._debug:
-            out = file('/tmp/pipelines.txt', 'w')
+            out = file('%s/pipelines.txt' % temporaryDirectory(), 'w')
             write_debug_pipeline_positions(self._p1, self._g1_vertex_map, out)
             write_debug_pipeline_positions(self._p2, self._g2_vertex_map, out)
+            self.print_s8ys()
             
         self._debug_matrix_file = 'input_matrix'
         r_in  = self.solve_v(self._input_vertex_s8y)
