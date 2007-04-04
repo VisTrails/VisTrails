@@ -31,6 +31,7 @@ from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_tab import (StandardWidgetTabBar,
                              StandardWidgetSheetTab, StandardTabDockWidget)
 from spreadsheet_registry import spreadsheetRegistry
+from core.utils import DummyView
 import gc
 
 ################################################################################
@@ -542,34 +543,26 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             fileName = self.spreadsheetFileName
         if fileName:
             indexFile = open(fileName, 'w')
-            try:
-                try:
-                    indexFile.write(str(len(self.tabWidgets))+'\n')
-                    for t in self.tabWidgets:
-                        dim = t.getDimension()
-                        sheet = spreadsheetRegistry.getSheetByType(type(t))
-                        indexFile.write('%s\n'%str((str(t.windowTitle()),
-                                                    sheet,
-                                                    dim[0], dim[1])))
-                        for r in range(dim[0]):
-                            for c in range(dim[1]):
-                                info = t.getCellPipelineInfo(r,c)
-                                if info:
-                                    indexFile.write('%s\n'
-                                                    %str((r, c, info[0],
-                                                          info[1], info[2])))
-                        indexFile.write('---\n')
-                    indexFile.write(str(len(self.executedPipelines[0]))+'\n')
-                    for vistrail in self.executedPipelines[0]:
-                        indexFile.write('%s\n'%str(vistrail))
-                    self.changeSpreadsheetFileName(fileName)
-                except:
-                    QtGui.QMessageBox.warning(self,
-                                              'Save Spreadsheet Error',
-                                              'Cannot save spreadsheet'
-                                              'to %s' % fileName)
-            finally:
-                indexFile.close()
+            indexFile.write(str(len(self.tabWidgets))+'\n')
+            for t in self.tabWidgets:
+                dim = t.getDimension()
+                sheet = spreadsheetRegistry.getSheetByType(type(t))
+                indexFile.write('%s\n'%str((str(t.windowTitle()),
+                                            sheet,
+                                            dim[0], dim[1])))
+                for r in range(dim[0]):
+                    for c in range(dim[1]):
+                        info = t.getCellPipelineInfo(r,c)
+                        if info:
+                            indexFile.write('%s\n'
+                                            %str((r, c, info[0],
+                                                  info[1], info[2])))
+                indexFile.write('---\n')
+            indexFile.write(str(len(self.executedPipelines[0]))+'\n')
+            for vistrail in self.executedPipelines[0]:
+                indexFile.write('%s\n'%str(vistrail))
+            self.changeSpreadsheetFileName(fileName)
+            indexFile.close()
         else:
             self.saveSpreadsheetAs()
         
@@ -597,65 +590,57 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         all the version using the saved spreadsheet
         
         """
-        try:
-            try:
-                indexFile = open(fileName, 'r')
-                contents = indexFile.read()
-                self.clearTabs()
-                lidx = 0
-                lines = contents.split('\n')
-                tabCount = int(lines[lidx])
+        indexFile = open(fileName, 'r')
+        contents = indexFile.read()
+        self.clearTabs()
+        lidx = 0
+        lines = contents.split('\n')
+        tabCount = int(lines[lidx])
+        lidx += 1
+        for tabIdx in range(tabCount):
+            tabInfo = eval(lines[lidx])
+            lidx += 1
+            sheet = spreadsheetRegistry.getSheet(tabInfo[1])(self)
+            sheet.setDimension(tabInfo[2], tabInfo[3])
+            self.addTabWidget(sheet, tabInfo[0])
+            while lines[lidx]!='---':
+                (r, c, vistrail, pid, cid) = eval(lines[lidx])
+                if not (vistrail,pid,cid) in self.monitoredPipelines:
+                    self.monitoredPipelines[(vistrail,pid,cid)] = []
+                self.monitoredPipelines[(vistrail,pid,cid)].append(
+                    (sheet,r,c))
                 lidx += 1
-                for tabIdx in range(tabCount):
-                    tabInfo = eval(lines[lidx])
-                    lidx += 1
-                    sheet = spreadsheetRegistry.getSheet(tabInfo[1])(self)
-                    sheet.setDimension(tabInfo[2], tabInfo[3])
-                    self.addTabWidget(sheet, tabInfo[0])
-                    while lines[lidx]!='---':
-                        (r, c, vistrail, pid, cid) = eval(lines[lidx])
-                        if not (vistrail,pid,cid) in self.monitoredPipelines:
-                            self.monitoredPipelines[(vistrail,pid,cid)] = []
-                        self.monitoredPipelines[(vistrail,pid,cid)].append(
-                            (sheet,r,c))
-                        lidx += 1
-                    lidx += 1
-                pipelineCount = int(lines[lidx])
-                lidx += 1
-                self.loadingMode = True
-                progress = QtGui.QProgressDialog("Loading spreadsheet...",
-                                                 "&Cancel", 0, pipelineCount,
-                                                 self,
-                                                 QtCore.Qt.WindowStaysOnTopHint
-                                                 );
-                progress.show()
-                for pipelineIdx in range(pipelineCount):
-                    (vistrailFileName, version) = eval(lines[lidx])
-                    parser = XMLParser()
-                    parser.openVistrail(vistrailFileName)
-                    vistrail = parser.getVistrail()
-                    pipeline = vistrail.getPipeline(version)
-                    execution = noncached_interpreter.get()
-                    progress.setValue(pipelineIdx)
-                    QtCore.QCoreApplication.processEvents()
-                    if progress.wasCanceled():
-                        parser.closeVistrail()
-                        break
-                    execution.execute(pipeline, vistrailFileName,
-                                      version, None, None)
-                    parser.closeVistrail()
-                    lidx += 1
-                progress.setValue(pipelineCount)
-                QtCore.QCoreApplication.processEvents()
-                self.changeSpreadsheetFileName(fileName)
-            except:
-                QtGui.QMessageBox.warning(self,
-                                          'Open Spreadsheet Error',
-                                          'Cannot open spreadsheet'
-                                          ' from %s' % fileName)
-        finally:
-            self.loadingMode = False
-            indexFile.close()
+            lidx += 1
+        pipelineCount = int(lines[lidx])
+        lidx += 1
+        self.loadingMode = True
+        progress = QtGui.QProgressDialog("Loading spreadsheet...",
+                                         "&Cancel", 0, pipelineCount,
+                                         self,
+                                         QtCore.Qt.WindowStaysOnTopHint
+                                         );
+        progress.show()
+        for pipelineIdx in range(pipelineCount):
+            (vistrailFileName, version) = eval(lines[lidx])
+            parser = XMLParser()
+            parser.openVistrail(vistrailFileName)
+            vistrail = parser.getVistrail()
+            pipeline = vistrail.getPipeline(version)
+            execution = default_interpreter.get()
+            progress.setValue(pipelineIdx)
+            QtCore.QCoreApplication.processEvents()
+            if progress.wasCanceled():
+                parser.closeVistrail()
+                break
+            execution.execute(pipeline, vistrailFileName,
+                              version, DummyView(), None)
+            parser.closeVistrail()
+            lidx += 1
+        progress.setValue(pipelineCount)
+        QtCore.QCoreApplication.processEvents()
+        self.changeSpreadsheetFileName(fileName)
+        self.loadingMode = False
+        indexFile.close()
 
     def openSpreadsheetAs(self):
         """ openSpreadsheetAs() -> None

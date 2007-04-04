@@ -311,8 +311,9 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         cid = self.tabController.increasePipelineCellId(e.vistrail)
         pid = self.tabController.getCurrentPipelineId(e.vistrail)
         if self.tabController.isLoadingMode():
-            locations = self.tabController.getMonitoredLocations((e.vistrail,
-                                                                  pid, cid))
+            locations = self.tabController.getMonitoredLocations((
+                (e.vistrail['vistrailName'],e.vistrail['version']),
+                 pid, cid))
             for (sheet, row, col) in locations:
                 sheet.tabWidget.setCurrentWidget(sheet)
                 sheet.setCellPipelineInfo(row, col, (e.vistrail, pid, cid))
@@ -327,7 +328,9 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             if row<0 or col<0:
                 (row, col) = sheet.getFreeCell()
             sheet.tabWidget.setCurrentWidget(sheet)
-            sheet.setCellPipelineInfo(row, col, (e.vistrail, pid, cid))
+            sheet.setCellPipelineInfo(row, col,
+                                      ((e.vistrail['vistrailName'],e.vistrail['version']),
+                                       pid, cid))
             sheet.setCellByType(row, col, e.cellType, e.inputPorts)
             QtCore.QCoreApplication.processEvents()
             if self.editingModeAction().isChecked():
