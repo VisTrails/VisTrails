@@ -26,7 +26,8 @@
 import sys
 from PyQt4 import QtCore, QtGui
 from spreadsheet_base import StandardSheetReference
-from spreadsheet_event import BatchDisplayCellEventType, DisplayCellEventType
+from spreadsheet_event import BatchDisplayCellEventType, DisplayCellEventType, \
+     RepaintCurrentSheetEventType
 from spreadsheet_tabcontroller import StandardWidgetTabController
 from core.modules import module_utils
 from core.utils import trace_method
@@ -284,7 +285,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         
         """
         if self.eventMap.has_key(e.type()):
-            self.tabController.addPipeline(e.vistrail)            
+            if e.type() in [DisplayCellEventType, BatchDisplayCellEventType]:
+                self.tabController.addPipeline(e.vistrail)
             self.eventMap[e.type()](e)
             return False
         return QtGui.QMainWindow.event(self, e)
@@ -297,7 +299,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         """
         self.eventMap = {
             DisplayCellEventType : self.displayCellEvent,
-            BatchDisplayCellEventType : self.batchDisplayCellEvent
+            BatchDisplayCellEventType : self.batchDisplayCellEvent,
+            RepaintCurrentSheetEventType: self.repaintCurrentSheetEvent
             }
 
     def displayCellEvent(self, e):
@@ -342,3 +345,17 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         for e in batchEvent.displayEvents:
             e.vistrail = batchEvent.vistrail
             self.displayCellEvent(e)
+
+    def repaintCurrentSheetEvent(self, e):
+        """ repaintCurrentSheetEvent(e: RepaintCurrentSheetEvent) -> None
+        Repaint the current sheet
+        
+        """
+        currentTab = self.tabController.currentWidget()
+        if currentTab:
+            (rCount, cCount) = currentTab.getDimension()
+            for r in range(rCount):
+                for c in range(cCount):
+                    widget = currentTab.getCell(r, c)
+                    if widget:
+                        widget.repaint()

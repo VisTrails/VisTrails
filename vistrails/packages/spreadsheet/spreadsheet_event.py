@@ -29,6 +29,7 @@ from PyQt4 import QtCore, QtGui
 # A list of newly added events starting from QtCore.QEvent.User
 DisplayCellEventType = QtCore.QEvent.Type(QtCore.QEvent.User)
 BatchDisplayCellEventType = QtCore.QEvent.Type(QtCore.QEvent.User+1)
+RepaintCurrentSheetEventType = QtCore.QEvent.Type(QtCore.QEvent.User+2)
 
 class DisplayCellEvent(QtCore.QEvent):
     """
@@ -66,3 +67,16 @@ class BatchDisplayCellEvent(QtCore.QEvent):
         QtCore.QEvent.__init__(self, BatchDisplayCellEventType)
         self.displayEvents = []
         self.vistrail = None
+
+class RepaintCurrentSheetEvent(QtCore.QEvent):
+    """
+    RepaintCurrentSheetEvent signal the spreadsheet to call repaint
+    for all cells in the current sheet
+    
+    """    
+    def __init__(self):
+        """ RepaintCurrentSheetEvent() -> RepaintCurrentSheetEvent
+        Initialize the event type
+        
+        """
+        QtCore.QEvent.__init__(self, RepaintCurrentSheetEventType)

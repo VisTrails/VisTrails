@@ -143,8 +143,10 @@ class vtkInteractionHandler(NotCacheable, Module):
             source = urllib.unquote(self.handler)
             f = event[0].lower() + event[1:]
             f = f.replace('Event', 'Handler')
+            myGlobals = globals()
+            myGlobals.update({'self':self})
             exec(source + ('\nif locals().has_key("%s"):\n' % f)+
-                 ('\t%s(obj, self.shareddata)' % f))
+                 ('\t%s(obj, self.shareddata)' % f)) in myGlobals, locals()
 
     def clear(self):
         """ clear() -> None
@@ -156,6 +158,17 @@ class vtkInteractionHandler(NotCacheable, Module):
             for e in vtkInteractionHandler.vtkEvents:
                 self.observer.vtkInstance.RemoveObservers(e)
         Module.clear(self)
+
+    def repaintCells(self):
+        """ repaintCells() -> None
+        Redraw all cells on the current sheet
+        
+        """
+        from packages.spreadsheet.spreadsheet_controller \
+             import spreadsheetController
+        from packages.spreadsheet.spreadsheet_event \
+             import RepaintCurrentSheetEvent
+        spreadsheetController.postEventToSpreadsheet(RepaintCurrentSheetEvent())
 
 class HandlerConfigurationWidget(StandardModuleConfigurationWidget):
     """
