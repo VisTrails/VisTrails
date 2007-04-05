@@ -32,6 +32,7 @@ from spreadsheet_tab import (StandardWidgetTabBar,
                              StandardWidgetSheetTab, StandardTabDockWidget)
 from spreadsheet_registry import spreadsheetRegistry
 from core.utils import DummyView
+import copy
 import gc
 
 ################################################################################
@@ -86,10 +87,22 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Return the monitored location associated with spec
         
         """
-        if spec in self.monitoredPipelines:
-            return self.monitoredPipelines[spec]
+        key = ((spec[0]['vistrailName'], spec[0]['version']), spec[1], spec[2])
+        if key in self.monitoredPipelines:
+            return self.monitoredPipelines[key]
         else:
             return []
+
+    def appendMonitoredLocations(self, spec, value):
+        """ getMonitoredLocations(spec: tuple, value: location) -> None
+        Return the monitored location associated with spec
+        
+        """
+        key = ((spec[0]['vistrailName'], spec[0]['version']), spec[1], spec[2])
+        if key in self.monitoredPipelines:
+            self.monitoredPipelines[key].append(value)
+        else:
+            self.monitoredPipelines[key] = [value]
 
     def newSheetAction(self):
         """ newSheetAction() -> QAction
@@ -554,8 +567,12 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                     for c in range(dim[1]):
                         info = t.getCellPipelineInfo(r,c)
                         if info:
+                            info = copy.copy(info)
+                            info[0]['pipeline'] = None
+                            info[0]['actions'] = []
                             indexFile.write('%s\n'
-                                            %str((r, c, info[0],
+                                            %str((r, c,
+                                                  info[0],
                                                   info[1], info[2])))
                 indexFile.write('---\n')
             indexFile.write(str(len(self.executedPipelines[0]))+'\n')
@@ -605,10 +622,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.addTabWidget(sheet, tabInfo[0])
             while lines[lidx]!='---':
                 (r, c, vistrail, pid, cid) = eval(lines[lidx])
-                if not (vistrail,pid,cid) in self.monitoredPipelines:
-                    self.monitoredPipelines[(vistrail,pid,cid)] = []
-                self.monitoredPipelines[(vistrail,pid,cid)].append(
-                    (sheet,r,c))
+                self.appendMonitoredLocations((vistrail, pid, cid),
+                                              (sheet, r, c))
                 lidx += 1
             lidx += 1
         pipelineCount = int(lines[lidx])
