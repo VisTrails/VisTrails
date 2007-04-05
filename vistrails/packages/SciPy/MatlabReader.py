@@ -25,6 +25,7 @@ from core.modules.vistrails_module import Module, ModuleError
 from SciPy import SciPy
 from Matrix import *
 from scipy import io, sparse
+import numpy
 
 #######################################################################
 
@@ -37,7 +38,10 @@ class MatlabReader(SciPy):
     def readFileAsCSC(self, filename):
         m = io.loadmat(filename, None, 0)
         vals = m.values()
-        mat = vals[2]
+	for t in vals:
+	    if type(t) == numpy.ndarray:
+	        mat = t
+
         cscmat = sparse.csr_matrix(mat)
         self.matrix = SparseMatrix()
         self.matrix.matrix = cscmat
