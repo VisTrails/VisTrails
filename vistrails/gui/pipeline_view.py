@@ -926,8 +926,10 @@ mutual connections."""
 
     def keyPressEvent(self, event):
         """ keyPressEvent(event: QKeyEvent) -> None
-        Capture 'Del', 'Backspace' for deleting modules
-        """
+        Capture 'Del', 'Backspace' for deleting modules.
+        Ctrl+C, Ctrl+V, Ctrl+A for copy, paste and select all
+        
+        """        
         if (self.controller and
             event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
             selectedItems = self.selectedItems()
@@ -957,6 +959,9 @@ mutual connections."""
         elif (event.key()==QtCore.Qt.Key_V and
               event.modifiers()==QtCore.Qt.ControlModifier):
             self.pasteFromClipboard()
+        elif (event.key()==QtCore.Qt.Key_A and
+              event.modifiers()==QtCore.Qt.ControlModifier):
+            self.selectAll()
         else:
             QInteractiveGraphicsScene.keyPressEvent(self, event)
 
@@ -1034,6 +1039,15 @@ mutual connections."""
                 item.update()
             return True
         return False
+
+    def selectAll(self):
+        """ selectAll() -> None
+        Select all module items in the scene
+        
+        """
+        for item in self.items():
+            if type(item)==QGraphicsModuleItem:
+                item.setSelected(True)
 
     def setModuleSuccess(self, moduleId):
         """ setModuleSuccess(moduleId: int) -> None

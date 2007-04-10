@@ -111,7 +111,7 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
             if controller:
                 self.vistrailChanged()
                 self.versionProp.updateController(controller)
-                self.versionSearch.controller = controller
+                self.versionSearch.updateController(controller)
 
     def vistrailChanged(self):
         """ vistrailChanged() -> None        

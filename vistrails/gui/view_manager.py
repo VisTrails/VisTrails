@@ -176,6 +176,35 @@ class QViewManager(QtGui.QTabWidget):
         if vistrailView:
             vistrailView.pipelineTab.pipelineView.scene().pasteFromClipboard()
 
+    def selectAllModules(self):
+        """ selectAllModules() -> None
+        Select all modules in the current view
+        
+        """
+        vistrailView = self.currentWidget()
+        if vistrailView:
+            vistrailView.pipelineTab.pipelineView.scene().selectAll()
+
+    def canSelectAll(self):
+        """ canSelectAll() -> bool        
+        Check to see if there is any module in the pipeline view to be
+        selected
+        
+        """
+        vistrailView = self.currentWidget()
+        if vistrailView and vistrailView.controller.currentPipeline:
+            return len(vistrailView.controller.currentPipeline.modules)>0
+        return False
+
+    def showPreviousVersion(self):
+        """ showPreviousVersion() -> None
+        Go back one from the current version and display it
+        
+        """
+        vistrailView = self.currentWidget()
+        if vistrailView:
+            vistrailView.controller.showPreviousVersion()
+
     def newVistrail(self):
         """ newVistrail() -> None
         Create a new vistrail with no name
@@ -203,7 +232,7 @@ class QViewManager(QtGui.QTabWidget):
             self.setCurrentWidget(vistrailView)
             vistrailView.controller.inspectAndImportModules()        
             # Make sure to select the latest time step
-            vistrailView.controller.changeSelectedVersion(vistrail.latestTime-1)
+            vistrailView.controller.selectLatestVersion()
             vistrailView.versionTab.vistrailChanged()
         
             return vistrailView

@@ -171,6 +171,11 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.quitVistrailsAction.setShortcut('Ctrl+Q')
         self.quitVistrailsAction.setStatusTip('Exit Vistrails')
        
+        self.undoAction = QtGui.QAction('Undo', self)
+        self.undoAction.setEnabled(False)
+        self.undoAction.setStatusTip('Go back to the previous version')
+        self.undoAction.setShortcut('Ctrl+Z')
+        
         self.copyAction = QtGui.QAction('Copy\tCtrl+C', self)
         self.copyAction.setEnabled(False)
         self.copyAction.setStatusTip('Copy selected modules in '
@@ -180,6 +185,11 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.pasteAction.setEnabled(False)
         self.pasteAction.setStatusTip('Paste copied modules in the clipboard '
                                       'into the current pipeline view')
+        
+        self.selectAllAction = QtGui.QAction('Select All\tCtrl+A', self)
+        self.selectAllAction.setEnabled(False)
+        self.selectAllAction.setStatusTip('Select all modules in '
+                                          'the current pipeline view')
         
         self.shellAction = QtGui.QAction(CurrentTheme.CONSOLE_MODE_ICON,
                                          'VisTrails Console', self)
@@ -228,8 +238,11 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.fileMenu.addAction(self.quitVistrailsAction)
 
         self.editMenu = self.menuBar().addMenu('&Edit')
+        self.editMenu.addAction(self.undoAction)
+        self.editMenu.addSeparator()
         self.editMenu.addAction(self.copyAction)
         self.editMenu.addAction(self.pasteAction)
+        self.editMenu.addAction(self.selectAllAction)
 
         self.viewMenu = self.menuBar().addMenu('&View')
         self.viewMenu.addAction(self.shellAction)
@@ -294,12 +307,18 @@ class QBuilderWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('dataChanged()'),
                      self.clipboardChanged)
         
+        self.connect(self.undoAction,
+                     QtCore.SIGNAL('triggered()'),
+                     self.viewManager.showPreviousVersion)
         self.connect(self.copyAction,
                      QtCore.SIGNAL('triggered()'),
-                     self.copySelectedModules)                     
+                     self.viewManager.copySelection)
         self.connect(self.pasteAction,
                      QtCore.SIGNAL('triggered()'),
-                     self.pasteToCurrentPipeline)
+                     self.viewManager.pasteToCurrentPipeline)
+        self.connect(self.pasteAction,
+                     QtCore.SIGNAL('triggered()'),
+                     self.viewManager.selectAllModules)
         
         self.connect(self.newVistrailAction,
                      QtCore.SIGNAL('triggered()'),
@@ -375,6 +394,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         
         """
         self.executeCurrentWorkflowAction.setEnabled(versionId>-1)
+        self.undoAction.setEnabled(versionId>0)
+        self.selectAllAction.setEnabled(self.viewManager.canSelectAll())
     
     def clipboardChanged(self, mode=QtGui.QClipboard.Clipboard):
         """ clipboardChanged(mode: QClipboard) -> None        
@@ -384,20 +405,6 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         clipboard = QtGui.QApplication.clipboard()
         self.pasteAction.setEnabled(not clipboard.text().isEmpty())
-
-    def copySelectedModules(self):
-        """ copySelectedModules() -> None
-        Copy the selected modules of the active pipeline into memory
-        
-        """
-        self.viewManager.copySelection()
-
-    def pasteToCurrentPipeline(self):
-        """ pasteToCurrentPipeline() -> None
-        Paste what is on the clipboard to the current pipeline
-        
-        """        
-        self.viewManager.pasteToCurrentPipeline()
 
     def currentVistrailChanged(self, vistrailView):
         """ currentVistrailChanged(vistrailView: QVistrailView) -> None

@@ -338,7 +338,7 @@ class Graph(object):
         except KeyError:
             return -1
         if len(l):
-            (froom, a) = l.pop()
+            (froom, a) = l[-1]
         else: froom=0
         return froom
     

@@ -101,6 +101,24 @@ class XMLParser(XMLWrapper):
                 tagName = tag.getAttribute('name')
                 tagTime = tag.getAttribute('time')
                 vistrail.addTag(str(tagName), int(tagTime))
+        def createPrunedVersions(vistrail):
+            """createPrunedVersions(vistrail) -> None
+            Creates the vistrail.prunedVersions for the just-parsed XML file"""
+            root = self.dom.documentElement
+            for prune in named_elements(root, 'prune'):
+                version = prune.getAttribute('time')
+                vistrail.pruneVersion(int(version))
+        def createSavedQueries(vistrail):
+            """createSavedQueries(vistrail) -> None
+            Creates the vistrail.savedQueries for the just-parsed XML file"""
+            root = self.dom.documentElement
+            savedQueries = []
+            for query in named_elements(root, 'query'):
+                qType = query.getAttribute('type')
+                qName = query.getAttribute('name')
+                qText = query.getAttribute('text')
+                savedQueries.append((qType, qName, qText))
+            vistrail.setSavedQueries(savedQueries)
         def createActionMap(vistrail):
             """createActionMap(vistrail) -> None 
             Creates the action map for the just-parsed XML file """
@@ -123,6 +141,8 @@ class XMLParser(XMLWrapper):
         result = Vistrail()
         createActionMap(result)
         createTagMap(result)
+        createPrunedVersions(result)
+        createSavedQueries(result)
         result.invalidateCurrentTime()
         result.changed = False
         return result
@@ -141,6 +161,24 @@ class XMLParser(XMLWrapper):
                 tagName = tag.getAttribute('name')
                 tagTime = tag.getAttribute('time')
                 vistrail.addTag(str(tagName), int(tagTime))
+        def createPrunedVersions(vistrail):
+            """createPrunedVersions(vistrail) -> None
+            Creates the vistrail.prunedVersions for the just-parsed XML file"""
+            root = self.dom.documentElement
+            for prune in named_elements(root, 'prune'):
+                version = prune.getAttribute('time')
+                vistrail.pruneVersion(int(version))
+        def createSavedQueries(vistrail):
+            """createSavedQueries(vistrail) -> None
+            Creates the vistrail.savedQueries for the just-parsed XML file"""
+            root = self.dom.documentElement
+            savedQueries = []
+            for query in named_elements(root, 'query'):
+                qType = query.getAttribute('type')
+                qName = query.getAttribute('name')
+                qText = query.getAttribute('text')
+                savedQueries.append((qType, qName, qText))
+            vistrail.setSavedQueries(savedQueries)
         def createActionMap(vistrail):
             """createActionMap(vistrail) -> None 
             Creates the action map for the just-parsed XML file """
@@ -156,6 +194,8 @@ class XMLParser(XMLWrapper):
         result = Vistrail()
         createActionMap(result)
         createTagMap(result)
+        createPrunedVersions(result)
+        createSavedQueries(result)
         result.invalidateCurrentTime()
         result.changed = False
         return result

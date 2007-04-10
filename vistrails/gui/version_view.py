@@ -526,6 +526,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         """
         # Clean the previous scene
         self.clear()
+        
+        self.controller = controller
 
         # Call dotty to perform graph layout
         (graph, self.fullGraph) = controller.refineGraph()
@@ -552,6 +554,24 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             
         # Update bounding rects and fit to all view
         self.updateSceneBoundingRect()
+
+    def keyPressEvent(self, event):
+        """ keyPressEvent(event: QKeyEvent) -> None
+        Capture 'Del', 'Backspace' for pruning versions.
+        
+        """        
+        selectedItems = self.selectedItems()
+        if (self.controller and len(selectedItems)>0 and
+            event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
+            versions = [item.id for item in selectedItems]
+            res = gui.utils.show_question("VisTrails",
+                                          "Are you sure that you want to "
+                                          "prune the selected version(s)?",
+                                          [gui.utils.YES_BUTTON,
+                                           gui.utils.NO_BUTTON],
+                                          gui.utils.NO_BUTTON)
+            if res == gui.utils.YES_BUTTON:
+                self.controller.pruneVersions(versions)
 
 class QVersionTreeView(QInteractiveGraphicsView):
     """

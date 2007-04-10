@@ -67,6 +67,7 @@ class VistrailController(QtCore.QObject):
         self.resetVersionView = True
         self.quiet = False
         self.search = None
+        self.searchStr = None
         self.refine = False
         self.changed = False
         self.fullTree = False
@@ -242,14 +243,27 @@ class VistrailController(QtCore.QObject):
         self.resetPipelineView = False
         self.emit(QtCore.SIGNAL('versionWasChanged'), self.currentVersion)
 
-    def setSearch(self, search, refine = False):
-        """ setSearch(search: SearchStmt, refine: bool) -> None
+    def setSearch(self, search, text='Visual Query'):
+        """ setSearch(search: SearchStmt, text: str) -> None
         Change the currrent version tree search statement
         
         """
-        self.search = search
-        self.refine = refine
-        self.invalidate_version_tree()
+        if search != search or self.searchStr != text:
+            self.search = search
+            self.searchStr = text
+            self.invalidate_version_tree()
+            self.emit(QtCore.SIGNAL('searchChanged'))
+
+    def setRefine(self, refine):
+        """ setRefine(refine: bool) -> None
+        Set the refine state to True or False
+        
+        """
+        if self.refine!=refine:
+            self.refine = refine
+            if self.refine:
+                self.changeSelectedVersion(0)
+            self.invalidate_version_tree()
 
     def setFullTree(self, full):
         """ setFullTree(full: bool) -> None        
@@ -272,7 +286,8 @@ class VistrailController(QtCore.QObject):
         else:
             terse = copy.copy(self.vistrail.getTerseGraph())
         full = self.vistrail.getVersionGraph()
-        if (not self.refine) or (not self.search): return (terse, full)
+        if (not self.refine) or (not self.search):
+            return self.ensureCurrentVersion(terse, full)
         am = self.vistrail.actionMap
         
         x=[0]
@@ -302,8 +317,114 @@ class VistrailController(QtCore.QObject):
                         terse.addEdge(to_me, f_me, annotated)
                 terse.deleteVertex(current)
         self.vistrail.setCurrentGraph(terse)
+        return self.ensureCurrentVersion(terse, full)
+
+    def ensureCurrentVersion(self, terse, full):
+        """ ensureCurrentVersion(terse: Graph, full: Graph) -> (terse, full)
+        Make sure the current version is in the terse graph
+        
+        """
+        prev = self.currentVersion
+        if prev>=0 and (not terse.vertices.has_key(prev)):
+            if not full.vertices.has_key(prev):
+                self.changeSelectedVersion(-1)
+                return (terse, full)
+            terse = copy.copy(terse)
+            # Up-Stream
+            parent = prev
+            while parent!=-1:
+                parent = full.parent(parent)
+                if terse.vertices.has_key(parent):
+                    terse.addEdge(parent, prev)
+                    break
+
+            # Down-Stream
+            child = prev
+            while True:
+                edges = full.edgesFrom(child)
+                assert len(edges)<=1
+                if len(edges)==0:
+                    break
+                child = edges[0][0]
+                if terse.vertices.has_key(child):
+                    terse.addEdge(prev, child)
+                    terse.deleteEdge(parent, child)
+                    break
         return (terse, full)
 
+    def showPreviousVersion(self):
+        """ showPreviousVersion() -> None
+        Go back one from the current version and display it
+        
+        """
+        full = self.vistrail.getVersionGraph()
+        prev = None
+        v = self.currentVersion
+        am = self.vistrail.actionMap
+        while True:
+            parent = full.parent(v)
+            if parent==-1:
+                prev = 0
+                break
+            if (self.refine and self.search and
+                (not self.search.match(am[parent]))):
+                v = prev
+            else:
+                prev = parent
+                break
+        if prev!=None:
+            self.changeSelectedVersion(prev)
+            self.resetVersionView = False
+            self.invalidate_version_tree()
+            self.resetVersionView = True
+
+    def pruneVersions(self, versions):
+        """ pruneVersions(versions: list of version numbers) -> None
+        Prune all versions in 'versions' out of the view
+        
+        """
+        # We need to go up-stream to the highest invisible node
+        current = self.vistrail.currentGraph
+        if not current:
+            (current, full) = self.refineGraph()
+        else:
+            full = self.vistrail.getVersionGraph()
+        changed = False
+        for v in versions:
+            if v!=0: # not root
+                highest = v
+                while True:
+                    p = full.parent(highest)
+                    if p==-1:
+                        break
+                    if current.vertices.has_key(p):
+                        break
+                    highest = p
+                if highest!=0:
+                    changed = True
+                self.vistrail.pruneVersion(highest)
+        if changed:
+            self.setChanged(True)
+        self.invalidate_version_tree()
+
+    def selectLatestVersion(self):
+        """ selectLatestVersion() -> None
+        Try to select the latest visible version on the tree
+        
+        """
+        current = self.vistrail.currentGraph
+        if not current:
+            (current, full) = self.refineGraph()        
+        self.changeSelectedVersion(max(current.iter_vertices()))
+
+    def setSavedQueries(self, queries):
+        """ setSavedQueries(queries: list of (str, str, str)) -> None
+        Set the saved queries of a vistail
+        
+        """
+        self.vistrail.setSavedQueries(queries)
+        self.setChanged(True)
+        
     def updateCurrentTag(self,tag):
         """ updateCurrentTag(tag: str) -> None
         Update the current vistrail tag

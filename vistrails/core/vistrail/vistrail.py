@@ -59,6 +59,8 @@ class Vistrail(object):
         self.currentGraph=None
         self.lastDBTime = 0
         self.remoteFilename = ""
+        self.prunedVersions = set()
+        self.savedQueries = []
 
     def getVersionName(self, version):
         """ getVersionName(version) -> str 
@@ -619,9 +621,11 @@ class Vistrail(object):
         result = Graph()
         result.addVertex(0)
         for action in self.actionMap.values():
-            result.addEdge(action.parent,
-                           action.timestep,
-                           0)
+            if (result.vertices.has_key(action.parent) and
+                action.timestep not in self.prunedVersions):
+                result.addEdge(action.parent,
+                               action.timestep,
+                               0)
         return result
 
     def getTerseGraph(self):
@@ -761,6 +765,19 @@ class Vistrail(object):
             tagElement.setAttribute('name', str(name))
             tagElement.setAttribute('time', str(time))
             root.appendChild(tagElement)
+        for v in self.prunedVersions:
+            pruneElement = dom.createElement('prune')
+            pruneElement.setAttribute('time', str(v))
+            root.appendChild(pruneElement)
+        for (qType, qName, qText) in self.savedQueries:
+            queryElement = dom.createElement('query')
+            if qType=='string':
+                queryElement.setAttribute('type', str(qType))
+                queryElement.setAttribute('name', str(qName))
+                queryElement.setAttribute('text', str(qText))
+                root.appendChild(queryElement)
+            else:
+                print 'Visual Query serialization is not yet done'
         for macro in self.macroMap.values():
             macro.serialize(dom,root)
         if len(self.remoteFilename) > 0:
@@ -825,6 +842,21 @@ class Vistrail(object):
     def setExp(self, exp):
         """setExp(exp) -> None - Set current list of nodes to be expanded"""
         self.expand=exp
+
+    def pruneVersion(self, version):
+        """ pruneVersion(version: int) -> None
+        Add a version into the prunedVersion set
+        
+        """
+        if version!=0: # not root
+            self.prunedVersions.add(version)
+
+    def setSavedQueries(self, savedQueries):
+        """ setSavedQueries(savedQueries: list of (str, str, str)) -> None
+        Set the saved queries of this vistrail
+        
+        """
+        self.savedQueries = savedQueries
 
     # Dispatch in runtime according to type
     getPipelineDispatcher = {}
