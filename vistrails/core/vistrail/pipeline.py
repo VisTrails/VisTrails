@@ -34,6 +34,8 @@ import copy
 from types import ListType
 import sha
 from xml.dom.minidom import getDOMImplementation, parseString
+from core.utils.uxml import named_elements
+from core.vistrail.module import Module
 
 ##############################################################################
 
@@ -339,15 +341,49 @@ class Pipeline(object):
         return self.graph.outDegree(id)
 
     def dumpToXML(self, dom, root, timeAttr=None):
-	"""dumpToXML(dom, root, timeAttr=None) -> None - outputs self to xml"""
-	node = dom.createElement('pipeline')
-	if timeAttr is not None:
-	    node.setAttribute('time',str(timeAttr))
-	for module in self.modules.values():
-	    module.dumpToXML(dom, node)
-	for connection in self.connections.values():
-	    connection.serialize(dom, node)
-	root.appendChild(node)
+        """dumpToXML(dom, root, timeAttr=None) -> None - outputs self to xml"""
+        node = dom.createElement('pipeline')
+        if timeAttr is not None:
+            node.setAttribute('time',str(timeAttr))
+        for module in self.modules.values():
+            module.dumpToXML(dom, node)
+        for connection in self.connections.values():
+            connection.serialize(dom, node)
+        root.appendChild(node)
+
+    def dumpToString(self):
+        """ dumpToString() -> str
+        Serialize this pipeline to an XML string
+        
+        """
+        dom = getDOMImplementation().createDocument(None, 'network', None)
+        root = dom.documentElement
+        self.dumpToXML(dom, root)
+        return str(dom.toxml())
+
+    @staticmethod
+    def loadFromXML(root):
+        """ loadFromXML(root) -> Pipeline
+        Return the pipeline from the XML elements
+        
+        """
+        p = Pipeline()
+        for rootXML in named_elements(root, 'pipeline'):
+            for moduleXML in named_elements(rootXML, 'module'):
+                p.addModule(Module.loadFromXML(moduleXML))
+            for connectXML in named_elements(rootXML, 'connect'):
+                p.addConnection(Connection.loadFromXML(connectXML))
+        return p
+
+    @staticmethod
+    def loadFromString(s):
+        """ loadFromString(s: str) -> Pipeline
+        Load a pipeline from an XML string
+        '
+        """
+        dom = parseString(s)
+        root = dom.documentElement
+        return Pipeline.loadFromXML(root)
 
     ##########################################################################
     # Caching-related

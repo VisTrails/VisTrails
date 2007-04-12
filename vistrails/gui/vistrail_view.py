@@ -82,6 +82,7 @@ class QVistrailView(QDockContainer):
 
         # Initialize the vistrail controller
         self.controller = VistrailController()
+        self.controller.vistrailView = self
         self.connect(self.controller,
                      QtCore.SIGNAL('stateChanged'),
                      self.stateChanged)

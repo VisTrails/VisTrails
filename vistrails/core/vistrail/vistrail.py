@@ -771,13 +771,10 @@ class Vistrail(object):
             root.appendChild(pruneElement)
         for (qType, qName, qText) in self.savedQueries:
             queryElement = dom.createElement('query')
-            if qType=='string':
-                queryElement.setAttribute('type', str(qType))
-                queryElement.setAttribute('name', str(qName))
-                queryElement.setAttribute('text', str(qText))
-                root.appendChild(queryElement)
-            else:
-                print 'Visual Query serialization is not yet done'
+            queryElement.setAttribute('type', str(qType))
+            queryElement.setAttribute('name', str(qName))
+            queryElement.setAttribute('text', str(qText))
+            root.appendChild(queryElement)
         for macro in self.macroMap.values():
             macro.serialize(dom,root)
         if len(self.remoteFilename) > 0:

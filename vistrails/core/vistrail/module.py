@@ -169,6 +169,7 @@ class Module(object):
                 xmlfunc.setAttribute('value', "")
                 xmlfunc.setAttribute('type',"")
                 xmlfunc.setAttribute('alias',"")
+                xmlfunc.setAttribute('queryMethod',"0")
                 child.appendChild(xmlfunc)                
             for i in range(f.getNumParams()):
                 p = f.params[i]
@@ -180,6 +181,7 @@ class Module(object):
                 xmlfunc.setAttribute('value', p.strValue)
                 xmlfunc.setAttribute('type',p.type)
                 xmlfunc.setAttribute('alias',p.alias)
+                xmlfunc.setAttribute('queryMethod',str(p.queryMethod))
                 child.appendChild(xmlfunc)
         annot = dom.createElement('annotation')	
         for (k,v) in self.annotations.items():
@@ -239,6 +241,7 @@ class Module(object):
                 p.append(str(n.getAttribute('value')))
                 p.append(str(n.getAttribute('type')))
                 p.append(str(n.getAttribute('alias')))
+                p.append(int(n.getAttribute('queryMethod')))
 
                 if p[1] >= len(m.functions):
                     f = ModuleFunction()
@@ -267,6 +270,7 @@ class Module(object):
                 if param.type.find('char')>-1 or param.type=='str':
                     param.type = 'string'
                 param.alias = p[7]
+                param.queryMethod = p[8]
             elif n.localName in ["inputport", "outputport"]:
                 if not m.registry:
                     m.registry = core.modules.module_registry.ModuleRegistry()

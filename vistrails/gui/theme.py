@@ -79,6 +79,9 @@ class DefaultTheme(object):
 
     # Virtual Cell Label default  size
     VIRTUAL_CELL_LABEL_SIZE = (40, 40)
+
+    # Query Preview Size
+    QUERY_PREVIEW_SIZE = (256, 256)
     
     def __init__(self):
         """ DefaultTheme() -> DefaultTheme
@@ -426,6 +429,12 @@ class DefaultTheme(object):
         self.ZOOM_ICON = QtGui.QIcon(QtGui.QPixmap(
             core.system.visTrailsRootDirectory() +
             '/gui/resources/images/zoom_icon.png'))
+
+        # Saved Queries icons
+        self.QUERY_VIEW_ICON = self.ZOOM_ICON
+        self.QUERY_EDIT_ICON = QtGui.QIcon(QtGui.QPixmap(
+            core.system.visTrailsRootDirectory() +
+            '/gui/resources/images/edit.png'))
 
         #### COLORS ####
         # Color for the PIP frame

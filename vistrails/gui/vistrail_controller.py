@@ -62,6 +62,7 @@ class VistrailController(QtCore.QObject):
         self.currentVersion = -1
         self.currentPipeline = None
         self.currentPipelineView = None
+        self.vistrailView = None
         self.previousModuleIds = []
         self.resetPipelineView = False
         self.resetVersionView = True
@@ -243,7 +244,7 @@ class VistrailController(QtCore.QObject):
         self.resetPipelineView = False
         self.emit(QtCore.SIGNAL('versionWasChanged'), self.currentVersion)
 
-    def setSearch(self, search, text='Visual Query'):
+    def setSearch(self, search, text=''):
         """ setSearch(search: SearchStmt, text: str) -> None
         Change the currrent version tree search statement
         
@@ -251,6 +252,8 @@ class VistrailController(QtCore.QObject):
         if search != search or self.searchStr != text:
             self.search = search
             self.searchStr = text
+            if self.search:
+                self.search.run(self.vistrail, '')
             self.invalidate_version_tree()
             self.emit(QtCore.SIGNAL('searchChanged'))
 
@@ -262,7 +265,7 @@ class VistrailController(QtCore.QObject):
         if self.refine!=refine:
             self.refine = refine
             if self.refine:
-                self.changeSelectedVersion(0)
+                self.selectLatestVersion()
             self.invalidate_version_tree()
 
     def setFullTree(self, full):
@@ -765,10 +768,7 @@ class VistrailController(QtCore.QObject):
         else:
             search = VisualQuery(pipeline)
 
-        search.run(self.vistrail, '')
-            
-        self.setSearch(search)
-
+        self.setSearch(search, pipeline.dumpToString())
 
     def addSubModule(self, moduleName, packageName, vistrail,
                      fileName, version, inspector):

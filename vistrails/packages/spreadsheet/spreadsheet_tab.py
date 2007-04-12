@@ -33,15 +33,9 @@ from PyQt4 import QtCore, QtGui
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_sheet import StandardWidgetSheet
 from spreadsheet_cell import QCellPresenter
+from spreadsheet_execute import assignPipelineCellLocations, \
+     executePipelineWithProgress
 import spreadsheet_rc
-from core.interpreter.default import default_interpreter
-from core.utils import DummyView
-from core.vistrail.action import AddModuleAction, AddConnectionAction, \
-     DeleteConnectionAction, ChangeParameterAction
-from core.vistrail import module
-from core.vistrail import connection
-from core.modules.module_registry import registry
-import copy
 
 ################################################################################
 
@@ -363,7 +357,7 @@ class StandardWidgetSheetTabInterface(object):
         info = self.getCellPipelineInfo(row, col)
         self.setCellPipelineInfo(row, col,
                                  newSheet.getCellPipelineInfo(newRow, newCol))
-        newSheet.setCellPipelineInfo(newRow, newCol, info)        
+        newSheet.setCellPipelineInfo(newRow, newCol, info)
 
     def copyCell(self, row, col, newSheet, newRow, newCol):
         """ copyCell(row, col: int, newSheet: Sheet,
@@ -377,28 +371,12 @@ class StandardWidgetSheetTabInterface(object):
             mId = info['moduleId']
             pipeline = newSheet.setPipelineToLocateAt(newRow, newCol,
                                                       info['pipeline'], [mId])
-
-            totalProgress = len(pipeline.graph.inverse().bfs(mId))+1
-            progress = QtGui.QProgressDialog('Copying...',
-                                             '&Cancel',
-                                             0, totalProgress)
-            progress.setWindowTitle('Copy Cell')
-            progress.setWindowModality(QtCore.Qt.WindowModal)
-            progress.show()
-            interpreter = default_interpreter.get()
-            def moduleExecuted(objId):
-                if not progress.wasCanceled():
-                    progress.setValue(progress.value()+1)
-                    QtCore.QCoreApplication.processEvents()
-            interpreter.execute(pipeline,
-                                info['vistrailName'],
-                                info['version'],
-                                DummyView(),
-                                moduleExecutedHook = [moduleExecuted],
-                                reason=info['reason'],
-                                actions=info['actions'],
-                                sinks=[mId])
-            progress.setValue(totalProgress)
+            executePipelineWithProgress(pipeline, 'Copy Cell',
+                                        vistrailName=info['vistrailName'],
+                                        currentVersion=info['version'],
+                                        actions=info['actions'],
+                                        reason=info['reason'],
+                                        sinks=[mId])
 
     def executePipelineToCell(self, pInfo, row, col, reason=''):
         """ executePipelineToCell(p: tuple, row: int, col: int) -> None
@@ -409,26 +387,11 @@ class StandardWidgetSheetTabInterface(object):
         
         """        
         pipeline = self.setPipelineToLocateAt(row, col, pInfo[3])
-
-        totalProgress = len(pipeline.modules)
-        progress = QtGui.QProgressDialog('Executing...',
-                                         '&Cancel',
-                                         0, totalProgress)
-        progress.setWindowTitle('Execute Cell')
-        progress.setWindowModality(QtCore.Qt.WindowModal)
-        progress.show()
-        def moduleExecuted(objId):
-            if not progress.wasCanceled():
-                progress.setValue(progress.value()+1)
-                QtCore.QCoreApplication.processEvents()
-        interpreter = default_interpreter.get()
-        interpreter.execute(pipeline,
-                            pInfo[0], pInfo[1],
-                            DummyView(),
-                            moduleExecutedHook = [moduleExecuted],
-                            actions=pInfo[2],
-                            reason=reason)
-        progress.setValue(totalProgress)
+        executePipelineWithProgress(pipeline, 'Execute Cell',
+                                    vistrailName=pInfo[0],
+                                    currentVersion=pInfo[1],
+                                    actions=pInfo[2],
+                                    reason=reason)
 
     def setPipelineToLocateAt(self, row, col, inPipeline, cellIds=[]):
         """ setPipelineToLocateAt(row: int, col: int, inPipeline: Pipeline,
@@ -438,95 +401,8 @@ class StandardWidgetSheetTabInterface(object):
         
         """
         sheetName = str(self.tabWidget.tabText(self.tabWidget.indexOf(self)))
-        pipeline = copy.copy(inPipeline)
-        if cellIds==[]:
-            cellIds = pipeline.modules.keys()
-        SpreadsheetCell = registry.getDescriptorByName('SpreadsheetCell').module
-        for mId in cellIds:
-            md = pipeline.modules[mId]
-            moduleClass = registry.getDescriptorByName(md.name).module
-            if not issubclass(moduleClass, SpreadsheetCell):
-                continue
-            # Walk through all connection and remove all
-            # CellLocation connected to this spreadsheet cell
-            delConn = DeleteConnectionAction()
-            for (cId,c) in pipeline.connections.iteritems():
-                if (c.destinationId==mId and
-                    pipeline.modules[c.sourceId].name=="CellLocation"):
-                    delConn.addId(cId)
-            delConn.perform(pipeline)
-
-            # Add a sheet reference with a specific name
-            sheetReference = module.Module()
-            sheetReference.id = pipeline.fresh_module_id()
-            sheetReference.name = "SheetReference"
-            addModule = AddModuleAction()
-            addModule.module = sheetReference
-            addModule.perform(pipeline)
-            addParam = ChangeParameterAction()
-            addParam.addParameter(sheetReference.id, 0, 0,
-                                  "SheetName", "", sheetName, "String", "" )
-            addParam.addParameter(sheetReference.id, 1, 0,
-                                  "MinRowCount", "",
-                                  str(row+1), "Integer", "" )
-            addParam.addParameter(sheetReference.id, 2, 0,
-                                  "MinColumnCount", "",
-                                  str(col+1), "Integer", "" )
-            addParam.perform(pipeline)
-
-            # Add a cell location module with a specific row and column
-            cellLocation = module.Module()
-            cellLocation.id = pipeline.fresh_module_id()
-            cellLocation.name = "CellLocation"
-            addModule = AddModuleAction()
-            addModule.module = cellLocation
-            addModule.perform(pipeline)
-
-            addParam = ChangeParameterAction()                
-            addParam.addParameter(cellLocation.id, 0, 0,
-                                  "Row", "", str(row+1),
-                                  "Integer", "" )
-            addParam.addParameter(cellLocation.id, 1, 0,
-                                  "Column", "", str(col+1),
-                                  "Integer", "" )
-            addParam.perform(pipeline)
-
-            # Then connect the SheetReference to the CellLocation
-            conn = connection.Connection()
-            conn.id = pipeline.fresh_connection_id()
-            conn.source.moduleId = sheetReference.id
-            conn.source.moduleName = sheetReference.name
-            conn.source.name = "self"
-            conn.source.spec = registry.getOutputPortSpec(
-                sheetReference, "self")
-            conn.connectionId = conn.id
-            conn.destination.moduleId = cellLocation.id
-            conn.destination.moduleName = cellLocation.name
-            conn.destination.name = "SheetReference"
-            conn.destination.spec = registry.getInputPortSpec(
-                cellLocation, "SheetReference")
-            addConnection = AddConnectionAction()
-            addConnection.connection = conn
-            addConnection.perform(pipeline)
-
-            # Then connect the CellLocation to the spreadsheet cell
-            conn = connection.Connection()
-            conn.id = pipeline.fresh_connection_id()
-            conn.source.moduleId = cellLocation.id
-            conn.source.moduleName = cellLocation.name
-            conn.source.name = "self"
-            conn.source.spec = registry.getOutputPortSpec(
-                cellLocation, "self")
-            conn.connectionId = conn.id
-            conn.destination.moduleId = mId
-            conn.destination.moduleName = pipeline.modules[mId].name
-            conn.destination.name = "Location"
-            conn.destination.spec = registry.getInputPortSpec(
-                cellLocation, "Location")
-            addConnection = AddConnectionAction()
-            addConnection.connection = conn
-            addConnection.perform(pipeline)
-        return pipeline
+        return assignPipelineCellLocations(inPipeline, sheetName,
+                                             row, col, cellIds)
 
     def getPipelineInfo(self, row, col):
         """ getPipelineInfo(row: int, col: int) -> tuple

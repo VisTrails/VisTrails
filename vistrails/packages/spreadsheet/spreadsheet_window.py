@@ -333,10 +333,6 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             QtCore.QCoreApplication.processEvents()
             if self.editingModeAction().isChecked():
                 sheet.setCellEditingMode(row, col, True)
-            else:
-                cellWidget = sheet.getCell(row, col)
-                if cellWidget and hasattr(cellWidget, 'grabWindowPixmap'):
-                    cellWidget.grabWindowPixmap()
 
     def batchDisplayCellEvent(self, batchEvent):
         """ batchDisplayCellEvent(batchEvent: BatchDisplayCellEvent) -> None
