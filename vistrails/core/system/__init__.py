@@ -36,21 +36,21 @@ if systemType in ['Windows', 'Microsoft']:
         list2cmdline, \
         homeDirectory, remoteCopyProgram, remoteShellProgram, \
         graphVizDotCommandLine, removeGraphvizTemporaries, link_or_copy, \
-        executable_is_in_path, TestWindows
+        executable_is_in_path, executable_is_in_pythonpath, TestWindows
 
 elif systemType in ['Linux']:
     from core.system.linux import guessTotalMemory, temporaryDirectory, \
         list2cmdline, \
         homeDirectory, remoteCopyProgram, remoteShellProgram, \
         graphVizDotCommandLine, removeGraphvizTemporaries, link_or_copy, \
-        XDestroyWindow, executable_is_in_path, TestLinux
+        XDestroyWindow, executable_is_in_path, executable_is_in_pythonpath, TestLinux
 
 elif systemType in ['Darwin']:
     from core.system.osx import guessTotalMemory, temporaryDirectory, \
         list2cmdline, \
         homeDirectory, remoteCopyProgram, remoteShellProgram, \
         graphVizDotCommandLine, removeGraphvizTemporaries, link_or_copy, \
-        executable_is_in_path, TestMacOSX
+        executable_is_in_path, executable_is_in_pythonpath, TestMacOSX
 else:
     print "Critical error"
     print "VisTrails could not detect your operating system."
@@ -164,7 +164,7 @@ def vistrailsRevision():
     shows the latest release revision
 
     """
-    release = "559"
+    release = "606"
     if core.requirements.executable_file_exists('svn'):
         if systemType not in ['Windows', 'Microsoft']:
             process = popen2.Popen4("svn info")

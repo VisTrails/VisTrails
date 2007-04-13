@@ -146,6 +146,26 @@ def executable_is_in_path(filename):
             return filename
     return ""
 
+def executable_is_in_pythonpath(filename):
+    """ executable_is_in_pythonpath(filename: str) -> string    
+    Check if exename can be reached in the PYTHONPATH environment. Return
+    the filename if true, or an empty string if false.
+    
+    """
+    pathlist = sys.path
+    for dir in pathlist:
+        fullpath = os.path.join(dir, filename)
+        try:
+            st = os.stat(fullpath)
+        except os.error:
+            try:
+                st = os.stat(fullpath+'.exe')
+            except:
+                continue        
+        if stat.S_ISREG(st[stat.ST_MODE]):
+            return filename
+    return ""
+
 def list2cmdline(lst):
     for el in lst:
         assert type(el) == str

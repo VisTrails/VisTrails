@@ -24,13 +24,25 @@
 from xml import dom
 from xml.dom.xmlbuilder import DOMInputSource, DOMBuilder
 import datetime
-import time
 import os
-import shutil
+import os.path
 import popen2
+import shutil
+import sys
+import time
+from core.system.unix import executable_is_in_path, list2cmdline, \
+     executable_is_in_pythonpath
 import core.utils
-from core.system.unix import executable_is_in_path, list2cmdline
 
+#are we building a binary distribution?
+__building_app__ = False
+
+if __building_app__:
+    path_vistrails = os.getenv("EXECUTABLEPATH").strip("\n \t")
+    path_dot = os.path.dirname(path_vistrails)
+    os.environ['PATH'] += os.path.pathsep + path_dot
+    sys.path.append(path_dot)
+    
 ###############################################################################
 # Extract system detailed information of a Mac system
 #

@@ -21,10 +21,13 @@
 ############################################################################
 
 """Routines common to Linux and OSX."""
-
+import os
+import os.path
 import popen2
-import core.utils
+import stat
 import subprocess
+import sys
+import core.utils
 
 def executable_is_in_path(filename):
     """executable_is_in_path(filename): string
@@ -45,6 +48,23 @@ the filename if true, or an empty string if false."""
         conv_output = process.fromchild
         output = conv_output.readlines()[0][:-1]
         return output
+
+def executable_is_in_pythonpath(filename):
+    """executable_is_in_pythonpath(filename: str)
+    Check if exename can be reached in the PYTHONPATH environment. Return
+    the filename if true, or an empty string if false.
+    
+    """
+    pathlist = sys.path
+    for dir in pathlist:
+        fullpath = os.path.join(dir, filename)
+        try:
+            st = os.stat(fullpath)
+        except os.error:
+            continue        
+        if stat.S_ISREG(st[stat.ST_MODE]):
+            return filename
+    return ""
 
 def list2cmdline(lst):
     for el in lst:

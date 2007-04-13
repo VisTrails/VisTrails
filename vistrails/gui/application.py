@@ -180,6 +180,9 @@ run in batch mode.')
         
         """
         self.setupSplashScreen()
+        if system.systemType in ['Darwin']:
+            #to make all widgets to have the mac's nice looking
+            self.installEventFilter(self)
         self.builderWindow = QBuilderWindow()
         if self.configuration.maximizeWindows:
             self.builderWindow.showMaximized()
@@ -303,6 +306,18 @@ run in batch mode.')
         if logger:
             logger.finishSession()
         core.interpreter.cached.CachedInterpreter.cleanup()
+   
+    def eventFilter(self, o, event):
+        """eventFilter(obj,event)-> boolean
+        This will filter all create events and will set on the WA_MacMetalStyle
+        attribute of a QWidget.
+        
+        """
+        if(event.type() == QtCore.QEvent.Create and 
+           issubclass(type(o),QtGui.QWidget) and
+           type(o) != QtGui.QSplashScreen):
+            o.setAttribute(QtCore.Qt.WA_MacMetalStyle)
+        return QtGui.QApplication.eventFilter(self,o,event)
 
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire

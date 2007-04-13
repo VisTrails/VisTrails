@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+echo "removing build and dist folders..."
+rm -rf dist/ build/
+echo "building bundle..."
+python setup.py py2app
+echo "copying dot and its libraries to the right place..."
+cp Input/dot dist/VisTrails.app/Contents/MacOS/
+cp -r Input/Frameworks/* dist/VisTrails.app/Contents/Frameworks/
+echo "Done."
