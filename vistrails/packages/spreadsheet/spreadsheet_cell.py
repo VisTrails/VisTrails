@@ -184,20 +184,11 @@ class QCellWidget(QtGui.QWidget):
         self.showNextFrame()
         self._playerTimer.start(100)
 
-    def hideEvent(self, event):
-        """ hideEvent(event: QHideEvent) -> None
-        Grab the widget pixmap when it is hidden
-        
-        """
-        self.grabWindowPixmap()
-        QtGui.QWidget.hideEvent(self, event)
-
     def grabWindowPixmap(self):
-        """ grabWindowImage() -> QPixmap
+        """ grabWindowPixmap() -> QPixmap
         Widget special grabbing function
         
         """
-#        return QtGui.QPixmap.grabWindow(self.winId())
         return QtGui.QPixmap.grabWidget(self)
         
 ################################################################################
@@ -437,6 +428,62 @@ class QCellToolBarClearHistory(QtGui.QAction):
 
 ################################################################################
 
+class QCellContainer(QtGui.QWidget):
+    """ QCellContainer is a simple QWidget containing the actual cell
+    widget as a child. This also acts as a sentinel protecting the
+    actual cell widget from being destroyed by sheet widgets
+    (e.g. QTableWidget) where they take control of the cell widget.
+    
+    """
+    def __init__(self, widget=None, parent=None):
+        """ QCellContainer(parent: QWidget) -> QCellContainer
+        Create an empty container
+        
+        """
+        QtGui.QWidget.__init__(self, parent)
+        layout = QtGui.QVBoxLayout()
+        layout.setSpacing(0)
+        layout.setMargin(0)
+        self.setLayout(layout)
+        self.containedWidget = None
+        self.setWidget(widget)
+
+    def setWidget(self, widget):
+        """ setWidget(widget: QWidget) -> None
+        Set the contained widget of this container
+        
+        """
+        if widget!=self.containedWidget:
+            if self.containedWidget:
+                self.layout().removeWidget(self.containedWidget)
+                self.containedWidget.deleteLater()
+            if widget:
+                widget.setParent(self)
+                self.layout().addWidget(widget)
+                widget.show()
+            self.containedWidget = widget
+
+    def widget(self):
+        """ widget() -> QWidget
+        Return the contained widget
+        
+        """
+        return self.containedWidget
+
+    def takeWidget(self):
+        """ widget() -> QWidget
+        Take the contained widget out without deleting
+        
+        """
+        widget = self.containedWidget
+        if self.containedWidget:
+            self.layout().removeWidget(self.containedWidget)
+            self.containedWidget.setParent(None)
+            self.containedWidget = None
+        return widget
+
+################################################################################
+
 class QCellPresenter(QtGui.QLabel):
     """
     QCellPresenter represents a cell in the Editing Mode. It has an
@@ -464,7 +511,7 @@ class QCellPresenter(QtGui.QLabel):
         self.info = QPipelineInfo()
         layout.addWidget(self.info, 0, 0, 1, 2)        
 
-        self.manipulator = QCellManipulator()        
+        self.manipulator = QCellManipulator()
         layout.addWidget(self.manipulator, 1, 0, 1, 2)
 
     def assignCellWidget(self, cellWidget):
@@ -474,9 +521,11 @@ class QCellPresenter(QtGui.QLabel):
         """
         self.cellWidget = cellWidget
         if cellWidget:
-            pixmap = cellWidget.grabWindowPixmap()
+            if hasattr(cellWidget, 'grabWindowPixmap'):
+                bgPixmap = cellWidget.grabWindowPixmap()
+            else:
+                bgPixmap = QtGui.QPixmap.grabWidget(cellWidget)
             self.info.show()
-            bgPixmap = QtGui.QPixmap(pixmap)            
         else:
             self.info.hide()
             bgPixmap = QtGui.QPixmap.grabWidget(self)
@@ -504,6 +553,8 @@ class QCellPresenter(QtGui.QLabel):
         cellWidget = self.cellWidget
         self.assignCellWidget(None)
         self.manipulator.assignCell(None, -1, -1)
+        if cellWidget:
+            cellWidget.setParent(None)
         return cellWidget
 
 ################################################################################

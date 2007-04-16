@@ -366,37 +366,6 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         rect.moveTo(self.viewport().mapToGlobal(rect.topLeft()))
         return rect
 
-    def setCellByType(self, row, col, cellType, inputPorts):
-        """ setCellByType(row: int,
-                          col: int,
-                          cellType: a type inherits from QWidget,
-                          inpurPorts: tuple) -> None
-        Replace the current location (row, col) with a cell of
-        cellType. If the current type of that cell is the same as
-        cellType, only the contents is updated with inputPorts.
-        
-        """
-        oldCell = self.getCell(row, col)
-        row = self.verticalHeader().logicalIndex(row)
-        col = self.horizontalHeader().logicalIndex(col)
-        if type(oldCell)!=cellType:
-            if cellType:
-                newCell = cellType(self)
-                self.setCellWidget(row, col, newCell)
-                index = self.model().index(row, col)
-                self.delegate.updateEditorGeometry(newCell,
-                                                   None,
-                                                   index)
-                newCell.show()
-                newCell.updateContents(inputPorts)                
-            else:
-                self.setCellWidget(row, col, None)
-            if hasattr(oldCell, 'deleteLater'):
-                oldCell.deleteLater()
-            del oldCell
-        else:
-            oldCell.updateContents(inputPorts)
-
     def setCellByWidget(self, row, col, cellWidget):
         """ setCellByWidget(row: int,
                             col: int,                            
@@ -405,7 +374,13 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         
         """
         if cellWidget:
+            # Relax the size constraint of the widget
+            cellWidget.setMinimumSize(QtCore.QSize(0, 0))
+            cellWidget.setMaximumSize(QtCore.QSize(16777215, 16777215))
             cellWidget.setParent(self.viewport())
         row = self.verticalHeader().logicalIndex(row)
         col = self.horizontalHeader().logicalIndex(col)
+        index = self.model().index(row, col)
         self.setCellWidget(row, col, cellWidget)
+        if cellWidget:
+            self.delegate.updateEditorGeometry(cellWidget, None, index)

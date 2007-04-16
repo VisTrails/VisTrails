@@ -32,7 +32,7 @@
 from PyQt4 import QtCore, QtGui
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_sheet import StandardWidgetSheet
-from spreadsheet_cell import QCellPresenter
+from spreadsheet_cell import QCellPresenter, QCellContainer
 from spreadsheet_execute import assignPipelineCellLocations, \
      executePipelineWithProgress
 import spreadsheet_rc
@@ -179,11 +179,48 @@ class StandardWidgetSheetTabInterface(object):
         pass
             
     def getCell(self, row, col):
-        """ getCell(row: int, col: int) -> QWidget
-        Get cell at a specific row and column.
+        """ getCell(row: int, col: int) -> QWidget        
+        Get cell at a specific row and column. In reality, this cell
+        widget is inside a QCellContainer and the cell container is
+        the actual widget under the cell
+        
+        """
+        cellWidget = self.getCellWidget(row, col)
+        if type(cellWidget)==QCellContainer:
+            return cellWidget.widget()
+        return cellWidget
+
+    def getCellWidget(self, row, col):
+        """ getCellWidget(row: int, col: int) -> QWidget        
+        Get actual cell at a specific row and column. This will in
+        fact return the container widget of a cell
         
         """
         return None
+
+    def setCellWidget(self, row, col, cellWidget):
+        """ setCellWidget(row: int,
+                          col: int,                            
+                          cellWidget: QWidget) -> None                            
+        Replace the current location (row, col) with a 
+        widget. The widget will be put into a container to be
+        protected from being destroyed when taken out.
+        
+        """
+        pass
+
+    def setCellByWidget(self, row, col, cellWidget):
+        """ setCellByWidget(row: int,
+                            col: int,                            
+                            cellWidget: QWidget) -> None
+        Put the cellWidget inside a container and place it on the sheet
+
+        """
+        if type(cellWidget)!=QCellContainer:
+            container = QCellContainer(cellWidget)
+        else:
+            container = cellWidget
+        self.setCellWidget(row, col, container)
 
     def getCellToolBar(self, row, col):
         """ getCellToolBar(row: int, col: int) -> QWidget
@@ -233,7 +270,19 @@ class StandardWidgetSheetTabInterface(object):
         cellType, only the contents is updated with inputPorts.
         
         """
-        pass
+        oldCell = self.getCell(row, col)
+        if type(oldCell)!=cellType:
+            if cellType:
+                newCell = cellType(self)
+                self.setCellByWidget(row, col, newCell)
+                newCell.show()
+                newCell.updateContents(inputPorts)
+            else:
+                self.setCellByWidget(row, col, None)
+            if hasattr(oldCell, 'deleteLater'):
+                oldCell.deleteLater()
+        else:
+            oldCell.updateContents(inputPorts)
 
     def showHelpers(self, ctrl, globalPos):
         """ showHelpers(ctrl: boolean, globalPos: QPoint) -> None
@@ -288,25 +337,13 @@ class StandardWidgetSheetTabInterface(object):
         to the caller.
         
         """
-        cell = self.getCell(row, col)
-        if cell:
-            obj = FilterDeferredDeleteObject()
-            cell.installEventFilter(obj)
-            self.setCellByWidget(row, col, None)
-            QtCore.QCoreApplication.processEvents(
-                QtCore.QEventLoop.DeferredDeletion)
-            cell.removeEventFilter(obj)
-            obj.deleteLater()
-        return cell
-
-    def setCellByWidget(self, row, col, cellWidget):
-        """ setCellByWidget(row: int,
-                            col: int,                            
-                            cellWidget: QWidget) -> None 
-        Replace the current location (row, col) with a cell widget
-        
-        """
-        pass
+        cell = self.getCellWidget(row, col)
+        if type(cell)==QCellContainer:
+            widget = cell.takeWidget()
+            self.setCellWidget(row, col, None)
+            return widget
+        else:
+            return cell
 
     def setCellEditingMode(self, r, c, editing=True):
         """ setCellEditingMode(r: int, c: int, editing: bool) -> None
@@ -327,9 +364,11 @@ class StandardWidgetSheetTabInterface(object):
             presenter = self.getCell(r, c)
             if type(presenter)!=QCellPresenter:
                 return
+            presenter = self.takeCell(r, c)
             if presenter:
                 cellWidget = presenter.releaseCellWidget()
                 self.setCellByWidget(r, c, cellWidget)
+                presenter.hide()
         
     
     def setEditingMode(self, editing=True):
@@ -482,8 +521,8 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         self.toolBar.rowCountSpinBox().setValue(rc)
         self.toolBar.colCountSpinBox().setValue(cc)
             
-    def getCell(self, row, col):
-        """ getCell(row: int, col: int) -> QWidget
+    def getCellWidget(self, row, col):
+        """ getCellWidget(row: int, col: int) -> QWidget
         Get cell at a specific row and column.
         
         """
@@ -512,18 +551,6 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         """
         return self.sheet.getCellGlobalRect(row, col)
 
-    def setCellByType(self, row, col, cellType, inputPorts):
-        """ setCellByType(row: int,
-                          col: int,
-                          cellType: a type inherits from QWidget,
-                          inpurPorts: tuple) -> None                          
-        Replace the current location (row, col) with a cell of
-        cellType. If the current type of that cell is the same as
-        cellType, only the contents is updated with inputPorts.
-        
-        """
-        self.sheet.setCellByType(row, col, cellType, inputPorts)
-
     def showHelpers(self, ctrl, globalPos):
         """ showHelpers(ctrl: boolean, globalPos: QPoint) -> None
         Show the helpers (toolbar, resizer) when the Control key
@@ -543,17 +570,13 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         indexes = self.sheet.selectedIndexes()
         return [(idx.row(), idx.column()) for idx in indexes]
 
-    def setCellByWidget(self, row, col, cellWidget):
-        """ setCellByWidget(row: int,
+    def setCellWidget(self, row, col, cellWidget):
+        """ setCellWidget(row: int,
                             col: int,                            
                             cellWidget: QWidget) -> None                            
         Replace the current location (row, col) with a cell widget
         
         """
-        if cellWidget:
-            # Relax the size constraint of the widget
-            cellWidget.setMinimumSize(QtCore.QSize(0, 0))
-            cellWidget.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.sheet.setCellByWidget(row, col, cellWidget)
 
 class StandardWidgetTabBarEditor(QtGui.QLineEdit):    

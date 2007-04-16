@@ -116,7 +116,7 @@ class QVTKWidget(QCellWidget):
         self.toolBarType = QVTKWidgetToolBar
         self.iHandlers = []
         self.setAnimationEnabled(True)
-
+        
     def removeObserversFromInteractorStyle(self):
         """ removeObserversFromInteractorStyle() -> None        
         Remove all python binding from interactor style observers for
@@ -257,9 +257,6 @@ class QVTKWidget(QCellWidget):
                 self.mRenWin.SetWindowInfo(str(int(self.winId())))
                 self.resizeWindow(self.width(), self.height())
                 self.mRenWin.SetPosition(self.x(), self.y())
-#                s = vtk.vtkInteractorStyleTrackballCamera()
-#                iren.SetInteractorStyle(s)
-#                self.addObserversToInteractorStyle()
 
     def GetInteractor(self):
         """ GetInteractor() -> vtkInteractor
@@ -351,7 +348,8 @@ class QVTKWidget(QCellWidget):
 
         if (not iren) or (not iren.GetEnabled()):
             return
-        iren.Render()        
+
+        self.mRenWin.Render()
 
     def SelectActiveRenderer(self,iren):
         """ SelectActiveRenderer(iren: vtkRenderWindowIteractor) -> None
@@ -370,8 +368,6 @@ class QVTKWidget(QCellWidget):
         Echo mouse event to vtkRenderWindowwInteractor
         
         """
-#        self.emit(QtCore.SIGNAL("mouseEvent(QMouseEvent)"),e)
-
         iren = None
         if self.mRenWin:
             iren = self.mRenWin.GetInteractor()
@@ -387,7 +383,6 @@ class QVTKWidget(QCellWidget):
                                       chr(0),
                                       isDoubleClick,
                                       None)
-
         invoke = {QtCore.Qt.LeftButton:"LeftButtonPressEvent",
                   QtCore.Qt.MidButton:"MiddleButtonPressEvent",
                   QtCore.Qt.RightButton:"RightButtonPressEvent"}
@@ -397,7 +392,7 @@ class QVTKWidget(QCellWidget):
         if ctrl:
             e.ignore()
             return
-        
+
         self.interacting = self.getActiveRenderer(iren)
         
         if e.button() in invoke:
@@ -771,7 +766,7 @@ class QVTKWidget(QCellWidget):
                 cpos = cam.GetPosition()
                 cfol = cam.GetFocalPoint()
                 cup = cam.GetViewUp()
-                cells = sheet.getSelectedLocations()                
+                cells = sheet.getSelectedLocations()
                 for (row, col) in cells:
                     cell = sheet.getCell(row, col)
                     if hasattr(cell, 'getRendererList'):
@@ -783,7 +778,7 @@ class QVTKWidget(QCellWidget):
                                 dcam.SetFocalPoint(cfol)
                                 dcam.SetViewUp(cup)
                                 r.ResetCameraClippingRange()
-                        cell.GetRenderWindow().Render()
+                        cell.update()
 
     def charEvent(self, istyle, name):
         """ charEvent(istyle: vtkInteractorStyle, name: str) -> None
