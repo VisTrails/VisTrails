@@ -68,7 +68,7 @@ import unittest
 
 class TestStack(unittest.TestCase):
 
-    def testBasic(self):
+    def test_basic(self):
         s = Stack()
         self.assertEquals(s.size, 0)
         s.push(10)
@@ -78,11 +78,11 @@ class TestStack(unittest.TestCase):
         self.assertEquals(len(s), 0)
         self.assertEquals(0, s.size)
 
-    def testPopEmptyRaises(self):
+    def test_pop_empty_raises(self):
         s = Stack()
         self.assertRaises(EmptyStack, s.pop)
 
-    def testTopEmptyRaises(self):
+    def test_top_empty_raises(self):
         s = Stack()
         self.assertRaises(EmptyStack, s.top)
 

@@ -26,22 +26,22 @@ from core.data_structures.point import Point
 # Rect
 
 class Rect(object):
-    def __init__(self, lowerLeft=None, upperRight=None):
-        """ Rect(lowerLeft: Point, upperRight: Point) -> Rect
-        Creates a Rect given the lowerLeft and the upperRight points. It creates
+    def __init__(self, lower_left=None, upper_right=None):
+        """ Rect(lower_left: Point, upper_right: Point) -> Rect
+        Creates a Rect given the lower_left and the upper_right points. It creates
         a copy of the given points. Return a Rect
 
         """        
-        if lowerLeft == None:
-            self.lowerLeft = Point()
+        if lower_left == None:
+            self.lower_left = Point()
         else:
-            self.lowerLeft = copy.copy(lowerLeft)
+            self.lower_left = copy.copy(lower_left)
 
-        if upperRight == None:
-            self.upperRight = Point()
+        if upper_right == None:
+            self.upper_right = Point()
         else:
-            self.upperRight = copy.copy(upperRight)
-        self.checkExtent()
+            self.upper_right = copy.copy(upper_right)
+        self.check_extent()
 
     @staticmethod
     def create(left, right, down, up):
@@ -54,59 +54,59 @@ class Rect(object):
                     Point(max(left, right),
                           max(down, up)))
     
-    def setLeft(self, x):
-        """ setLeft(x: float) -> None
+    def set_left(self, x):
+        """ set_left(x: float) -> None
         Sets the left limit of the Rect and return nothing
 
         """
-        self.lowerLeft.x = x
+        self.lower_left.x = x
 
-    def setRight(self, x):
-        """ setRight(x: float) -> None
+    def set_right(self, x):
+        """ set_right(x: float) -> None
         Sets the right limit of the Rect and return nothing
 
         """
-        self.upperRight.x = x
+        self.upper_right.x = x
 
-    def setUp(self,y):
-        """ setUp(y: float) -> None
+    def set_up(self,y):
+        """ set_up(y: float) -> None
         Sets the upper limit of the Rect and return nothing
 
         """
-        self.upperRight.y = y
+        self.upper_right.y = y
 
-    def setDown(self, y):
-        """ setDown(y: float) -> None
+    def set_down(self, y):
+        """ set_down(y: float) -> None
         Sets the lower limit of the Rect and return nothing
 
         """
-        self.lowerLeft.y = y
+        self.lower_left.y = y
 
     def center(self):
         """ center() -> Point
         Compute the center of the Rect and return a Point
 
         """
-        return (self.upperRight + self.lowerLeft) * 0.5
+        return (self.upper_right + self.lower_left) * 0.5
 
-    def checkExtent(self):
-        """ checkExtent() -> None
+    def check_extent(self):
+        """ check_extent() -> None
         Makes sure left limit is less than right limit, and lower limit is less
         than upper limit. In other words, ensures that, immediately after the
         call:
-        self.lowerLeft.x <= self.upperRight.x and
-        self.lowerLeft.y <= self.upperRight.y
+        self.lower_left.x <= self.upper_right.x and
+        self.lower_left.y <= self.upper_right.y
 
         """
-        if self.lowerLeft.x > self.upperRight.x:
-            dlx = self.lowerLeft.x
-            self.lowerLeft.x = self.upperRight.x
-            self.upperRight.y = dlx
+        if self.lower_left.x > self.upper_right.x:
+            dlx = self.lower_left.x
+            self.lower_left.x = self.upper_right.x
+            self.upper_right.y = dlx
 
-        if self.lowerLeft.y > self.upperRight.y:
-            dly = self.lowerLeft.y
-            self.lowerLeft.y = self.upperRight.y
-            self.upperRight.y = dly
+        if self.lower_left.y > self.upper_right.y:
+            dly = self.lower_left.y
+            self.lower_left.y = self.upper_right.y
+            self.upper_right.y = dly
 
 ################################################################################
 # Unit tests
@@ -116,7 +116,7 @@ import random
 
 class TestRect(unittest.TestCase):
 
-    def testCreate(self):
+    def test_create(self):
         """Exercises Rect.create()"""
         for i in range(100):
             a = random.uniform(-1.0, 1.0)
@@ -125,10 +125,10 @@ class TestRect(unittest.TestCase):
             d = random.uniform(-1.0, 1.0)
 
             r = Rect.create(a, b, c, d)
-            assert r.lowerLeft.x == min(a, b)
-            assert r.upperRight.x == max(a, b)
-            assert r.lowerLeft.y == min(c, d)
-            assert r.upperRight.y == max(c, d)
+            assert r.lower_left.x == min(a, b)
+            assert r.upper_right.x == max(a, b)
+            assert r.lower_left.y == min(c, d)
+            assert r.upper_right.y == max(c, d)
 
 if __name__ == '__main__':
     unittest.main()

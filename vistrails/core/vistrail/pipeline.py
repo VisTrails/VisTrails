@@ -147,8 +147,8 @@ class Pipeline(object):
         """
         if not self.hasModuleWithId(id):
             raise VistrailsInternalError("id missing in modules")
-        adj = copy.copy(self.graph.adjacencyList[id])
-        inv_adj = copy.copy(self.graph.inverseAdjacencyList[id])
+        adj = copy.copy(self.graph.adjacency_list[id])
+        inv_adj = copy.copy(self.graph.inverse_adjacency_list[id])
         for (_, conn_id) in adj:
             self.deleteConnection(conn_id)
         for (_, conn_id) in inv_adj:

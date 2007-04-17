@@ -58,8 +58,8 @@ class Graph(object):
 
         """
         self.vertices = {}
-        self.adjacencyList = {}
-        self.inverseAdjacencyList = {}
+        self.adjacency_list = {}
+        self.inverse_adjacency_list = {}
 
     ##########################################################################
     # Accessors
@@ -75,8 +75,8 @@ class Graph(object):
         """
         if not self.vertices.has_key(id):
             self.vertices[id] = None
-            self.adjacencyList[id] = []
-            self.inverseAdjacencyList[id] = []
+            self.adjacency_list[id] = []
+            self.inverse_adjacency_list[id] = []
             
     def inverse(self):
         """inverse() -> Graph
@@ -84,9 +84,9 @@ class Graph(object):
 
         """
         result = copy.copy(self)
-        t = result.adjacencyList
-        result.adjacencyList = result.inverseAdjacencyList
-        result.inverseAdjacencyList = t
+        t = result.adjacency_list
+        result.adjacency_list = result.inverse_adjacency_list
+        result.inverse_adjacency_list = t
         return result
 
     def inverse_immutable(self):
@@ -97,8 +97,8 @@ class Graph(object):
         """
         result = Graph()
         result.vertices = self.vertices
-        result.adjacencyList = self.inverseAdjacencyList
-        result.inverseAdjacencyList = self.adjacencyList
+        result.adjacency_list = self.inverse_adjacency_list
+        result.inverse_adjacency_list = self.adjacency_list
         return result
 
     def add_edge(self, froom, to, id=None):
@@ -113,8 +113,8 @@ class Graph(object):
         """
         self.add_vertex(froom)
         self.add_vertex(to)
-        self.adjacencyList[froom].append((to, id))
-        self.inverseAdjacencyList[to].append((froom, id))
+        self.adjacency_list[froom].append((to, id))
+        self.inverse_adjacency_list[to].append((froom, id))
         
     def delete_vertex(self, id):
         """ delete_vertex(id: id type) -> None
@@ -125,14 +125,14 @@ class Graph(object):
           
         """
         
-        for (origin, edge_id) in self.inverseAdjacencyList[id]:
+        for (origin, edge_id) in self.inverse_adjacency_list[id]:
             t = (id, edge_id)
-            self.adjacencyList[origin].remove(t)
-        for (dest, edge_id) in self.adjacencyList[id]:
+            self.adjacency_list[origin].remove(t)
+        for (dest, edge_id) in self.adjacency_list[id]:
             t = (id, edge_id)
-            self.inverseAdjacencyList[dest].remove(t)
-        self.adjacencyList.pop(id)
-        self.inverseAdjacencyList.pop(id)
+            self.inverse_adjacency_list[dest].remove(t)
+        self.adjacency_list.pop(id)
+        self.inverse_adjacency_list.pop(id)
         self.vertices.pop(id)
         
     def delete_edge(self, froom, to, id=None):
@@ -146,13 +146,13 @@ class Graph(object):
           
         """
         if id == None:
-            efroom = self.adjacencyList[froom]
+            efroom = self.adjacency_list[froom]
             for edge in efroom:
                 if edge[0] == to:
                     id = edge[1]
                     break
-        self.adjacencyList[froom].remove((to, id))
-        self.inverseAdjacencyList[to].remove((froom, id))
+        self.adjacency_list[froom].remove((to, id))
+        self.inverse_adjacency_list[to].remove((froom, id))
         
     def out_degree(self, froom):
         """ out_degree(froom: id type) -> int
@@ -162,7 +162,7 @@ class Graph(object):
         froom -- 'immutable' vertex id
 
         """
-        return len(self.adjacencyList[froom])
+        return len(self.adjacency_list[froom])
     
     def in_degree(self, to):
         """ in_degree(to: id type) -> int
@@ -172,7 +172,7 @@ class Graph(object):
         to -- 'immutable' vertex id
 
         """
-        return len(self.inverseAdjacencyList[to])
+        return len(self.inverse_adjacency_list[to])
     
     def sinks(self):
         """ sinks() -> list(id type)
@@ -197,7 +197,7 @@ class Graph(object):
         id : 'immutable' vertex id
         
         """
-        return self.inverseAdjacencyList[id]
+        return self.inverse_adjacency_list[id]
 
     def edges_from(self, id):
         """ edges_from(id: id type) -> list(list)
@@ -207,7 +207,7 @@ class Graph(object):
         id : 'immutable' vertex id
 
         """
-        return self.adjacencyList[id]
+        return self.adjacency_list[id]
 
     def get_edge(self, frm, to):
         """ get_edge(frm, to) -> edge_id
@@ -303,7 +303,7 @@ class Graph(object):
             data.color[u] = Gray
             data.t += 1
             data.discovery[u] = data.t
-            for (v, edge_id) in self.adjacencyList[u]:
+            for (v, edge_id) in self.adjacency_list[u]:
                 if not v in data.color:
                     data.color[v] = White
                 if data.color[v] == White:
@@ -336,7 +336,7 @@ class Graph(object):
 
         """
         try:
-            l=self.inverseAdjacencyList[v]
+            l=self.inverse_adjacency_list[v]
         except KeyError:
             return -1
         if len(l):
@@ -413,7 +413,7 @@ class Graph(object):
 
         result = []
         for v in vertices_to_traverse:
-            for e in self.adjacencyList[v]:
+            for e in self.adjacency_list[v]:
                 (v_to, e_id) = e
                 if v_to in subgraph_verts:
                     result.append((v, v_to, e_id))
@@ -430,7 +430,7 @@ class Graph(object):
 
         result = []
         for v in vertices_to_traverse:
-            for e in self.adjacencyList[v]:
+            for e in self.adjacency_list[v]:
                 (v_to, e_id) = e
                 if v_to not in subgraph_verts:
                     result.append((v, v_to, e_id))
@@ -448,7 +448,7 @@ class Graph(object):
         def fn(edge):
             (edge_to, edge_id) = edge
             return (vertex, edge_to, edge_id)
-        return imap(fn, self.adjacencyList[vertex])
+        return imap(fn, self.adjacency_list[vertex])
 
     def iter_edges_to(self, vertex):
         """iter_edges_to(self, vertex) -> iterable
@@ -458,7 +458,7 @@ class Graph(object):
         def fn(edge):
             (edge_from, edge_id) = edge
             return (edge_from, vertex, edge_id)
-        return imap(fn, self.inverseAdjacencyList[vertex])
+        return imap(fn, self.inverse_adjacency_list[vertex])
 
     def iter_all_edges(self):
         """iter_all_edges() -> iterable
@@ -487,7 +487,7 @@ class Graph(object):
         vs.sort()
         al = []
         for i in [map(lambda (t, i): (f, t, i), l)
-                  for (f, l) in self.adjacencyList.items()]:
+                  for (f, l) in self.adjacency_list.items()]:
             al.extend(i)
         al.sort(edge_cmp)
         return "digraph G { " \
@@ -508,8 +508,8 @@ class Graph(object):
         """
         cp = Graph()
         cp.vertices = copy.deepcopy(self.vertices)
-        cp.adjacencyList = copy.deepcopy(self.adjacencyList)
-        cp.inverseAdjacencyList = copy.deepcopy(self.inverseAdjacencyList)
+        cp.adjacency_list = copy.deepcopy(self.adjacency_list)
+        cp.inverse_adjacency_list = copy.deepcopy(self.inverse_adjacency_list)
         return cp
 
     ##########################################################################
@@ -696,7 +696,7 @@ class TestGraph(unittest.TestCase):
          g.add_edge(0, 1, 0)
          g.add_edge(1, 2, 1)
          g.delete_vertex(2)
-         self.assertEquals(g.adjacencyList[1], [])
+         self.assertEquals(g.adjacency_list[1], [])
 
      def test_raising_DFS(self):
          """Tests if DFS with cycle-checking will raise exceptions."""
@@ -732,15 +732,15 @@ class TestGraph(unittest.TestCase):
          sub = g.subgraph([0,1])
          assert sub.vertices.has_key(0)
          assert sub.vertices.has_key(1)
-         assert (1,1) in sub.adjacencyList[0]
-         assert (0,1) in sub.inverseAdjacencyList[1]
+         assert (1,1) in sub.adjacency_list[0]
+         assert (0,1) in sub.inverse_adjacency_list[1]
 
          g = self.make_linear(3)
          sub = g.subgraph([0, 2])
          assert sub.vertices.has_key(0)
          assert sub.vertices.has_key(2)
-         assert sub.adjacencyList[0] == []
-         assert sub.adjacencyList[2] == []
+         assert sub.adjacency_list[0] == []
+         assert sub.adjacency_list[2] == []
          
      def test_connections_to_subgraph(self):
          """Test connections_to_subgraph."""

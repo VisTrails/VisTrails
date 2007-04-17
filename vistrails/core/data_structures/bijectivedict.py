@@ -79,7 +79,7 @@ class TestBidict(unittest.TestCase):
         self.assertRaises(KeyError, x.__getitem__, 1)
         self.assertRaises(KeyError, x.inverse.__getitem__, 8)
 
-    def testNonBijective(self):
+    def test_non_bijective(self):
         """Tests resilience (not correctness!) under non-bijectiveness."""
         x = Bidict()
         x[1] = 2
@@ -87,7 +87,7 @@ class TestBidict(unittest.TestCase):
         del x[1]
         del x[3]
 
-    def testCopy(self):
+    def test_copy(self):
         """Tests copying a Bidict."""
         x = Bidict()
         x[1] = 2
@@ -96,7 +96,7 @@ class TestBidict(unittest.TestCase):
         assert y.inverse[4] == x.inverse[4]
         assert y.inverse[2] == x.inverse[2]
 
-    def testUpdate(self):
+    def test_update(self):
         """Tests if updating a bidict with a dict works"""
         x = {1:2, 3:4}
         y = Bidict()

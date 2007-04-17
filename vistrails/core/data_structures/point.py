@@ -51,15 +51,15 @@ class Point(object):
         self.x = float(x)
         self.y = float(y)
 
-    def isInside(self, rect):
-        """ isInside(rect: Rect) -> boolean
+    def is_inside(self, rect):
+        """ is_inside(rect: Rect) -> boolean
         Check if the point is falling inside rect and return a boolean
         
         """
-        return (self.x >= rect.lowerLeft.x and
-                self.x <= rect.upperRight.x and
-                self.y >= rect.lowerLeft.y and
-                self.y <= rect.upperRight.y)
+        return (self.x >= rect.lower_left.x and
+                self.x <= rect.upper_right.x and
+                self.y >= rect.lower_left.y and
+                self.y <= rect.upper_right.y)
     
     def length(self):
         """ length() -> float
@@ -154,25 +154,25 @@ import random
 class TestPoint(unittest.TestCase):
 
     @staticmethod
-    def assertDoubleEquals(a, b, eps = 0.00001):
+    def assert_double_equals(a, b, eps = 0.00001):
         assert abs(a-b) < eps
 
-    def testAddLength(self):
+    def test_add_length(self):
         """Uses triangle inequality to exercise add and length"""
         for i in range(100):
             x = Point(random.uniform(-1.0, 1.0), random.uniform(-1.0, 1.0))
             y = Point(random.uniform(-1.0, 1.0), random.uniform(-1.0, 1.0))
             assert (x+y).length() <= x.length() + y.length()
 
-    def testMulLength(self):
+    def test_mul_length(self):
         """Uses vector space properties to exercise mul, rmul and length"""
         for i in range(100):
             x = Point(random.uniform(-1.0, 1.0), random.uniform(-1.0, 1.0))
             s = random.uniform(0.0, 10.0)
-            self.assertDoubleEquals(s * x.length(), (s * x).length())
-            self.assertDoubleEquals(s * x.length(), (x * s).length())
+            self.assert_double_equals(s * x.length(), (s * x).length())
+            self.assert_double_equals(s * x.length(), (x * s).length())
 
-    def testComparisonOperators(self):
+    def test_comparison_operators(self):
         """ Test comparison operators """
         a = Point(0, 1)
         b = Point(0, 1)

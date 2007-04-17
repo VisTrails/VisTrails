@@ -129,7 +129,7 @@ import random
 
 class TestQueue(unittest.TestCase):
     
-    def testBasic(self):
+    def test_basic(self):
         """Test push/pop operations"""
         q = Queue()
         q.push(1)
@@ -141,7 +141,7 @@ class TestQueue(unittest.TestCase):
         self.assertEquals(q.pop(), 3)
         self.assertEquals(q.pop(), 4)
         
-    def testExpandBasic(self):
+    def test_expand_basic(self):
         """Test if the queue is expanding its capacity right with push()"""
         q = Queue()
         for i in range(12):
@@ -150,7 +150,7 @@ class TestQueue(unittest.TestCase):
         for i in range(12):
             self.assertEquals(q.pop(), i)
             
-    def testExpandContract(self):
+    def test_expand_contract(self):
         """Test if the queue is expanding and contracting with push()/pop()"""
         pushed = 0
         popped = 0
