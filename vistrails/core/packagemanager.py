@@ -184,7 +184,7 @@ To do so, call initialize_packages()"""
         self._package_list[packageName] = Package(packageName, args, keywords)
         if self._dependency_graph.vertices.has_key('packageName'):
             raise VistrailsInternalError('duplicate package name')
-        self._dependency_graph.addVertex(packageName)
+        self._dependency_graph.add_vertex(packageName)
 
     def has_package(self, name):
         """has_package(name: string) -> Boolean.
@@ -211,7 +211,7 @@ dependencies a package contains by calling the appropriate callback."""
                               (package.name,
                                missing_packages))
         for name in deps:
-            self._dependency_graph.addEdge(package.name, name)
+            self._dependency_graph.add_edge(package.name, name)
 
     def initialize_packages(self,package_dictionary={}):
         """initialize_packages(package_dictionary={}): None

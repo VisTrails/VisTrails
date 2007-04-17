@@ -108,13 +108,13 @@ class Pipeline(object):
         """
         result = []
         if p.endPoint == Port.DestinationEndPoint:
-            el = self.graph.edgesTo(p.moduleId)
+            el = self.graph.edges_to(p.moduleId)
             for (edgeto, edgeid) in el:
                 dest = self.connection[edgeid].destination
                 if VTKRTTI().intrinsicPortEqual(dest, p):
                     result.append(self.connection[edgeid])
         elif p.endPoint == Port.SourceEndPoint:
-            el = self.graph.edgesFrom(p.moduleId)
+            el = self.graph.edges_from(p.moduleId)
             for (edgeto, edgeid) in el:
                 source = self.connection[edgeid].source
                 if VTKRTTI().intrinsicPortEqual(source, p):
@@ -154,7 +154,7 @@ class Pipeline(object):
         for (_, conn_id) in inv_adj:
             self.deleteConnection(conn_id)
         self.modules.pop(id)
-        self.graph.deleteVertex(id)
+        self.graph.delete_vertex(id)
         if id in self._module_signatures:
             del self._module_signatures[id]
         if id in self._subpipeline_signatures:
@@ -169,7 +169,7 @@ class Pipeline(object):
         if self.hasModuleWithId(m.id):
             raise VistrailsInternalError("duplicate module id")
         self.modules[m.id] = m
-        self.graph.addVertex(m.id)
+        self.graph.add_vertex(m.id)
         self._fresh_module_id = max(self._fresh_module_id,
                                     m.id + 1)
     
@@ -270,7 +270,7 @@ class Pipeline(object):
             raise VistrailsInternalError("id %s missing in connections" % id)
         conn = self.connections[id]
         self.connections.pop(id)
-        self.graph.deleteEdge(conn.sourceId, conn.destinationId, conn.id)
+        self.graph.delete_edge(conn.sourceId, conn.destinationId, conn.id)
         if id in self._connection_signatures:
             del self._connection_signatures[id]
         
@@ -283,7 +283,7 @@ class Pipeline(object):
             raise VistrailsInternalError("duplicate connection id " + str(c.id))
         self.connections[c.id] = c
         assert(c.sourceId != c.destinationId)        
-        self.graph.addEdge(c.sourceId, c.destinationId, c.id)
+        self.graph.add_edge(c.sourceId, c.destinationId, c.id)
         self._fresh_connection_id = max(self._fresh_connection_id,
                                         c.id + 1)
         
@@ -338,7 +338,7 @@ class Pipeline(object):
 
     def outDegree(self, id):
         """outDegree(id: int) -> int - Returns the out-degree of a module. """
-        return self.graph.outDegree(id)
+        return self.graph.out_degree(id)
 
     def dumpToXML(self, dom, root, timeAttr=None):
         """dumpToXML(dom, root, timeAttr=None) -> None - outputs self to xml"""
@@ -418,7 +418,7 @@ Returns the signature for the subpipeline whose sink id is module_id."""
                               Hasher.connection_signature(
                                   self.connections[edge_id]))
                              for (m, edge_id) in
-                             self.graph.edgesTo(module_id)]
+                             self.graph.edges_to(module_id)]
             module_sig = self.module_signature(module_id)
             sig = Hasher.subpipeline_signature(module_sig,
                                                upstream_sigs)

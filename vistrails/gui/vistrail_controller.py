@@ -122,11 +122,11 @@ class VistrailController(QtCore.QObject):
         action = DeleteConnectionAction()
 
         added = False
-        for v, id in graph.edgesFrom(module_id):
+        for v, id in graph.edges_from(module_id):
             added = True
             action.addId(id)
 
-        for v, id in graph.edgesTo(module_id):
+        for v, id in graph.edges_to(module_id):
             added = True
             action.addId(id)
 
@@ -150,11 +150,11 @@ class VistrailController(QtCore.QObject):
         action2 = DeleteModuleAction()
 
         for module_id in mList:
-            for v, id in graph.edgesFrom(module_id):
+            for v, id in graph.edges_from(module_id):
                 if id not in action.ids:
                     action.addId(id)
 
-            for v, id in graph.edgesTo(module_id):
+            for v, id in graph.edges_to(module_id):
                 if id not in action.ids:
                     action.addId(id)
             
@@ -298,9 +298,9 @@ class VistrailController(QtCore.QObject):
             current=x.pop()
             efrom = []
             eto = []
-            for f in terse.edgesFrom(current):
+            for f in terse.edges_from(current):
                 efrom.append(f)
-            for t in terse.edgesTo(current):
+            for t in terse.edges_to(current):
                 eto.append(t)
             for (e1,e2) in efrom:
                 x.append(e1)
@@ -309,16 +309,16 @@ class VistrailController(QtCore.QObject):
                 terse.vertices.__contains__(current)):
                 to_me = eto[0][0]
                 if terse.vertices.__contains__(to_me):
-                    terse.deleteEdge(to_me, current, None)
+                    terse.delete_edge(to_me, current, None)
                 for from_me in efrom:
                     f_me = from_me[0]
                     if terse.vertices.__contains__(f_me):
                         annotated = -1
                         if full.parent(f_me)==to_me:
                             annotated=0
-                        terse.deleteEdge(current, f_me, None)
-                        terse.addEdge(to_me, f_me, annotated)
-                terse.deleteVertex(current)
+                        terse.delete_edge(current, f_me, None)
+                        terse.add_edge(to_me, f_me, annotated)
+                terse.delete_vertex(current)
         self.vistrail.setCurrentGraph(terse)
         return self.ensureCurrentVersion(terse, full)
 
@@ -338,20 +338,20 @@ class VistrailController(QtCore.QObject):
             while parent!=-1:
                 parent = full.parent(parent)
                 if terse.vertices.has_key(parent):
-                    terse.addEdge(parent, prev)
+                    terse.add_edge(parent, prev)
                     break
 
             # Down-Stream
             child = prev
             while True:
-                edges = full.edgesFrom(child)
+                edges = full.edges_from(child)
                 assert len(edges)<=1
                 if len(edges)==0:
                     break
                 child = edges[0][0]
                 if terse.vertices.has_key(child):
-                    terse.addEdge(prev, child)
-                    terse.deleteEdge(parent, child)
+                    terse.add_edge(prev, child)
+                    terse.delete_edge(parent, child)
                     break
         return (terse, full)
 

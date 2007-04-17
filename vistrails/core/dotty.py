@@ -110,7 +110,7 @@ class DotLayout(object):
         self.maxId = 0
         self.minid = 0
         for id in graph.vertices.keys():
-            froom = graph.edgesFrom(id)
+            froom = graph.edges_from(id)
             for (first,second) in froom:
                 f.write('%s -> %s;\n' % (id, first))
 

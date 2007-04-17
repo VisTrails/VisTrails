@@ -299,14 +299,14 @@ class XMLParser(XMLWrapper):
                     '0.3.1': getVistrailBase}
 
     graph = Graph()
-    graph.addVertex('0')
-    graph.addVertex('0.1.0')
-    graph.addVertex('0.3.0')
-    graph.addVertex('0.3.1')
-    graph.addEdge('0', '0.1.0')
-    graph.addEdge('0.1.0','0.3.0')
-    graph.addEdge('0.3.0','0.3.1')
-#     graph.addEdge('0.3.1','0.4.0')
+    graph.add_vertex('0')
+    graph.add_vertex('0.1.0')
+    graph.add_vertex('0.3.0')
+    graph.add_vertex('0.3.1')
+    graph.add_edge('0', '0.1.0')
+    graph.add_edge('0.1.0','0.3.0')
+    graph.add_edge('0.3.0','0.3.1')
+#     graph.add_edge('0.3.1','0.4.0')
 
     currentVersion = '0.3.1'
 

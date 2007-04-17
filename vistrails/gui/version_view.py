@@ -547,7 +547,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             
         # Add version links
         for nodeId in graph.vertices.keys():
-            eFrom = graph.edgesFrom(nodeId)
+            eFrom = graph.edges_from(nodeId)
             for (v1, v2) in eFrom:
                 if self.versions.has_key(nodeId) and self.versions.has_key(v1):
                     self.addLink(self.versions[nodeId], self.versions[v1])

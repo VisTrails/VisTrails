@@ -619,11 +619,11 @@ class Vistrail(object):
         
         """
         result = Graph()
-        result.addVertex(0)
+        result.add_vertex(0)
         for action in self.actionMap.values():
             if (result.vertices.has_key(action.parent) and
                 action.timestep not in self.prunedVersions):
-                result.addEdge(action.parent,
+                result.add_edge(action.parent,
                                action.timestep,
                                0)
         return result
@@ -639,18 +639,18 @@ class Vistrail(object):
         x.append(0)
         while len(x):
             current = x.pop()
-            efrom = complete.edgesFrom(current)
-            eto = complete.edgesTo(current)
+            efrom = complete.edges_from(current)
+            eto = complete.edges_to(current)
 
             for (e1,e2) in efrom:
                 x.append(e1)
             if len(efrom) == 1 and len(eto) == 1 and not self.hasTag(current):
                 to_me = eto[0][0]
                 from_me = efrom[0][0]
-                complete.deleteEdge(to_me, current, None)
-                complete.deleteEdge(current, from_me, None)
-                complete.addEdge(to_me, from_me, -1)
-                complete.deleteVertex(current)
+                complete.delete_edge(to_me, current, None)
+                complete.delete_edge(current, from_me, None)
+                complete.add_edge(to_me, from_me, -1)
+                complete.delete_vertex(current)
         return complete
 
     def getSemiTerseGraph(self):
@@ -678,18 +678,18 @@ class Vistrail(object):
             V = result.vertices
             #check to see if the edge is there, since the graph may be refined
             if V.has_key(top) and V.has_key(bottom):
-                if ( (bottom,-1) in result.edgesFrom(top) and 
-                     (top,-1) in result.edgesTo(bottom) ):
-                    result.deleteEdge(top,bottom,-1)
+                if ( (bottom,-1) in result.edges_from(top) and 
+                     (top,-1) in result.edges_to(bottom) ):
+                    result.delete_edge(top,bottom,-1)
             while bottom>top:
                 p=fullgraph.parent(bottom)
-                result.addVertex(p)
-                result.addEdge(p,bottom,0) #0 means not annotated
+                result.add_vertex(p)
+                result.add_edge(p,bottom,0) #0 means not annotated
                 bottom=p
          #on a refined expansion, this is necessary
-        if ( (lowest,-1) in result.edgesFrom(highest) and 
-             (highest,-1) in result.edgesTo(lowest) ):
-            result.deleteEdge(highest,lowest,-1)
+        if ( (lowest,-1) in result.edges_from(highest) and 
+             (highest,-1) in result.edges_to(lowest) ):
+            result.delete_edge(highest,lowest,-1)
             
         self.expand=[]
         return result

@@ -58,10 +58,10 @@ class VisualQuery(query.Query):
                     for matchedTargetId in matched:
                         nextTargetIds.update([moduleId for
                                               (moduleId, edgeId) in
-                                              target.graph.edgesFrom(matchedTargetId)])
+                                              target.graph.edges_from(matchedTargetId)])
                     nextTemplateIds.update([moduleId for
                                             (moduleId, edgeId) in
-                                            template.graph.edgesFrom(i)])
+                                            template.graph.edges_from(i)])
 
             if not len(nextTemplateIds):
                 return (True, resultIds)

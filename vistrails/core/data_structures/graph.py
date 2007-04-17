@@ -38,14 +38,14 @@ class Graph(object):
     
     >>> import graph
     >>> g = graph.Graph()
-    >>> g.addVertex('foo')
-    >>> g.addVertex('bar')
-    >>> g.addEdge('foo', 'bar', 'edge_foo')
-    >>> g.addEdge('foo', 'bar', 'edge_bar')
-    >>> g.addEdge('bar', 'foo', 'edge_back')
-    >>> g.outDegree('foo')
+    >>> g.add_vertex('foo')
+    >>> g.add_vertex('bar')
+    >>> g.add_edge('foo', 'bar', 'edge_foo')
+    >>> g.add_edge('foo', 'bar', 'edge_bar')
+    >>> g.add_edge('bar', 'foo', 'edge_back')
+    >>> g.out_degree('foo')
     2
-    >>> g.outDegree('bar')
+    >>> g.out_degree('bar')
     1    
     """
 
@@ -64,8 +64,8 @@ class Graph(object):
     ##########################################################################
     # Accessors
 
-    def addVertex(self, id):
-        """ addVertex(id: id type) -> None
+    def add_vertex(self, id):
+        """ add_vertex(id: id type) -> None
         Add a vertex to the graph if it is not already in the graph
         and return nothing
 
@@ -101,8 +101,8 @@ class Graph(object):
         result.inverseAdjacencyList = self.adjacencyList
         return result
 
-    def addEdge(self, froom, to, id=None):
-        """ addEdge(froom: id type, to: id type, id: id type) -> None
+    def add_edge(self, froom, to, id=None):
+        """ add_edge(froom: id type, to: id type, id: id type) -> None
         Add an edge from vertex 'froom' to vertex 'to' and return nothing
 
         Keyword arguments:
@@ -111,13 +111,13 @@ class Graph(object):
         id    -- 'immutable' edge id (default None)
           
         """
-        self.addVertex(froom)
-        self.addVertex(to)
+        self.add_vertex(froom)
+        self.add_vertex(to)
         self.adjacencyList[froom].append((to, id))
         self.inverseAdjacencyList[to].append((froom, id))
         
-    def deleteVertex(self, id):
-        """ deleteVertex(id: id type) -> None
+    def delete_vertex(self, id):
+        """ delete_vertex(id: id type) -> None
         Remove a vertex from graph and return nothing
 
         Keyword arguments:
@@ -135,8 +135,8 @@ class Graph(object):
         self.inverseAdjacencyList.pop(id)
         self.vertices.pop(id)
         
-    def deleteEdge(self, froom, to, id=None):
-        """ deleteEdge(froom: id type, to: id type, id: id type) -> None
+    def delete_edge(self, froom, to, id=None):
+        """ delete_edge(froom: id type, to: id type, id: id type) -> None
         Remove an edge from graph and return nothing
 
         Keyword arguments:
@@ -154,8 +154,8 @@ class Graph(object):
         self.adjacencyList[froom].remove((to, id))
         self.inverseAdjacencyList[to].remove((froom, id))
         
-    def outDegree(self, froom):
-        """ outDegree(froom: id type) -> int
+    def out_degree(self, froom):
+        """ out_degree(froom: id type) -> int
         Compute the number of edges leaving 'froom' and return an int
 
         Keyword arguments:
@@ -164,8 +164,8 @@ class Graph(object):
         """
         return len(self.adjacencyList[froom])
     
-    def inDegree(self, to):
-        """ inDegree(to: id type) -> int
+    def in_degree(self, to):
+        """ in_degree(to: id type) -> int
         Compute the number of edges entering 'to' and return an int
 
         Keyword arguments:
@@ -176,20 +176,21 @@ class Graph(object):
     
     def sinks(self):
         """ sinks() -> list(id type)
-        Find all vertices whose outDegree is zero and return a list of ids
+        Find all vertices whose out_degree is zero and return a list of ids
 
         """
-        return [idx for idx in self.vertices.keys() if self.outDegree(idx) == 0]
+        return [idx for idx in self.vertices.keys() \
+                if self.out_degree(idx) == 0]
     
     def sources(self):
         """ sources() -> list(id type)
-        Find all vertices whose inDegree is zero and return a list of ids
+        Find all vertices whose in_degree is zero and return a list of ids
 
         """
-        return [idx for idx in self.vertices.keys() if self.inDegree(idx) == 0]
+        return [idx for idx in self.vertices.keys() if self.in_degree(idx) == 0]
 
-    def edgesTo(self, id):
-        """ edgesTo(id: id type) -> list(list)
+    def edges_to(self, id):
+        """ edges_to(id: id type) -> list(list)
         Find edges entering a vertex id and return a list of tuples (id,id)
 
         Keyword arguments:
@@ -198,8 +199,8 @@ class Graph(object):
         """
         return self.inverseAdjacencyList[id]
 
-    def edgesFrom(self, id):
-        """ edgesFrom(id: id type) -> list(list)
+    def edges_from(self, id):
+        """ edges_from(id: id type) -> list(list)
         Find edges leaving a vertex id and return a list of tuples (id,id)
         
         Keyword arguments:
@@ -212,12 +213,13 @@ class Graph(object):
         """ get_edge(frm, to) -> edge_id
 
         Returns the id from the edge from->to."""
-        for (t, e_id) in self.edgesFrom(frm):
+        for (t, e_id) in self.edges_from(frm):
             if t == to:
                 return e_id
 
     ##########################################################################
     # Graph algorithms
+
 
     def bfs(self, frm):
         """ bfs(frm:id type) -> dict(id type)
@@ -233,7 +235,7 @@ class Graph(object):
         q.push(frm)
         while len(q):
             current = q.pop()
-            efrom = self.edgesFrom(current)
+            efrom = self.edges_from(current)
             for (to, eid) in efrom:
                 if to not in visited:
                     parent[to] = current
@@ -367,13 +369,13 @@ class Graph(object):
         conns_to_subgraph = self.connections_to_subgraph(subgraph)
         conns_from_subgraph = self.connections_from_subgraph(subgraph)
         for v in subgraph.vertices.iterkeys():
-            x.deleteVertex(v)
+            x.delete_vertex(v)
         free_vertex = max(subgraph.vertices.iterkeys()) + 1
-        x.addVertex(free_vertex)
+        x.add_vertex(free_vertex)
         for (edge_from, edge_to, edge_id) in conns_to_subgraph:
-            x.addEdge(free_vertex, edge_to)
+            x.add_edge(free_vertex, edge_to)
         for (edge_from, edge_to, edge_id) in conns_from_subgraph:
-            x.addEdge(edge_from, free_vertex)
+            x.add_edge(edge_from, free_vertex)
         try:
             x.vertices_topological_sort()
             return True
@@ -392,12 +394,12 @@ class Graph(object):
         vertex_set = set(vertex_set)
         # add vertices
         for vertex in vertex_set:
-            result.addVertex(vertex)
+            result.add_vertex(vertex)
         # add edges
         for vertex_from in vertex_set:
-            for (vertex_to, edge_id) in self.edgesFrom(vertex_from):
+            for (vertex_to, edge_id) in self.edges_from(vertex_from):
                 if vertex_to in vertex_set:
-                    result.addEdge(vertex_from, vertex_to, edge_id)
+                    result.add_edge(vertex_from, vertex_to, edge_id)
         return result
 
     def connections_to_subgraph(self, subgraph):
@@ -436,6 +438,7 @@ class Graph(object):
 
     ##########################################################################
     # Iterators
+
 
     def iter_edges_from(self, vertex):
         """iter_edges_from(self, vertex) -> iterable
@@ -513,8 +516,8 @@ class Graph(object):
     # Etc
 
     @staticmethod
-    def fromRandom(size):
-        """ fromRandom(size:int) -> Graph
+    def from_random(size):
+        """ from_random(size:int) -> Graph
         Create a DAG with approximately size/e vertices and 3*|vertex| edges
         and return a Graph
 
@@ -525,14 +528,14 @@ class Graph(object):
         result = Graph()
         verts = filter(lambda x: x>0, peckcheck.a_list(peckcheck.an_int)(size))
         for v in verts:
-            result.addVertex(v)
+            result.add_vertex(v)
         k = size / math.e
         p = (6*k) / ((k+1)*(k+2))
         eid = 0
         for v in verts:
             for k in verts:
                 if v < k and random.random() > p:
-                    result.addEdge(v, k, eid)
+                    result.add_edge(v, k, eid)
                     eid = eid + 1
         return result
 
@@ -565,8 +568,8 @@ import random
 class TestGraph(unittest.TestCase):
      """ Class to test Graph
 
-     It tests vertex addition, the outDegree of a sink and inDegree of a source
-     consistencies.
+     It tests vertex addition, the out_degree of a sink and in_degree of a
+     source consistencies.
     
      """
 
@@ -574,10 +577,10 @@ class TestGraph(unittest.TestCase):
          """returns a complete graph with v verts."""
          g = Graph()
          for x in xrange(v):
-             g.addVertex(x)
+             g.add_vertex(x)
          for f in xrange(v):
              for t in xrange(f+1, v):
-                 g.addEdge(f, t, f * v + t)
+                 g.add_edge(f, t, f * v + t)
          return g
 
      def make_linear(self, v, bw=False):
@@ -585,37 +588,37 @@ class TestGraph(unittest.TestCase):
          backward links."""
          g = Graph()
          for x in xrange(v):
-             g.addVertex(x)
+             g.add_vertex(x)
          for x,y in izip(xrange(v-1), xrange(1, v)):
-             g.addEdge(x, y, x)
+             g.add_edge(x, y, x)
              if bw:
-                 g.addEdge(y, x, x + v)
+                 g.add_edge(y, x, x + v)
          return g
 
      def get_default_graph(self):
          g = Graph()
-         g.addVertex(0)
-         g.addVertex(1)
-         g.addVertex(2)
-         g.addVertex(3)
-         g.addVertex(4)
-         g.addEdge(0,1,0)
-         g.addEdge(1,2,1)
-         g.addEdge(0,3,2)
-         g.addEdge(3,2,3)
-         g.addEdge(2,4,4)
+         g.add_vertex(0)
+         g.add_vertex(1)
+         g.add_vertex(2)
+         g.add_vertex(3)
+         g.add_vertex(4)
+         g.add_edge(0,1,0)
+         g.add_edge(1,2,1)
+         g.add_edge(0,3,2)
+         g.add_edge(3,2,3)
+         g.add_edge(2,4,4)
          return g
      
      def test1(self):
          """Test adding edges and vertices"""
          g = Graph()
-         g.addVertex('0')
-         g.addVertex('1')
-         g.addVertex('2')
-         g.addVertex('3')
-         g.addEdge('0', '1', 0)
-         g.addEdge('1', '2', 1)
-         g.addEdge('2', '3', 2)
+         g.add_vertex('0')
+         g.add_vertex('1')
+         g.add_vertex('2')
+         g.add_vertex('3')
+         g.add_edge('0', '1', 0)
+         g.add_edge('1', '2', 1)
+         g.add_edge('2', '3', 2)
          parent = g.bfs('0')
          self.assertEquals(parent['3'], '2')
          self.assertEquals(parent['2'], '1')
@@ -638,72 +641,72 @@ class TestGraph(unittest.TestCase):
          """Test sink and source degree consistency"""
          g = Graph()
          for i in range(100):
-             g.addVertex(i);
+             g.add_vertex(i);
          for i in range(1000):
              v1 = random.randint(0,99)
              v2 = random.randint(0,99)
-             g.addEdge(v1, v2, i)
-         sinkResult = [None for i in g.sinks() if g.outDegree(i) == 0]
-         sourceResult = [None for i in g.sources() if g.inDegree(i) == 0]
+             g.add_edge(v1, v2, i)
+         sinkResult = [None for i in g.sinks() if g.out_degree(i) == 0]
+         sourceResult = [None for i in g.sources() if g.in_degree(i) == 0]
          if len(sinkResult) <> len(g.sinks()):
              assert False
          if len(sourceResult) <> len(g.sources()):
              assert False
 
-     def testRemoveVertices(self):
+     def test_remove_vertices(self):
          g = self.make_linear(5)
-         g.deleteVertex(1)
-         g.deleteVertex(2)
-         
-     def testDFS(self):
+         g.delete_vertex(1)
+         g.delete_vertex(2)
+     
+     def test_DFS(self):
          """Test DFS on graph."""
          g = self.get_default_graph()
          g.dfs()
 
-     def testTopologicalSort(self):
+     def test_topologicals_sort(self):
          """Test toposort on graph."""
          g = self.get_default_graph()
          g.vertices_topological_sort()
 
-     def testLimitedDFS(self):
+     def test_limited_DFS(self):
          """Test DFS on graph using a limited set of starting vertices."""
          g = self.get_default_graph()
          g.dfs(vertex_set=[1])
          g.dfs(vertex_set=[1,3])
          g.dfs(vertex_set=[1,2])
 
-     def testLimitedTopologicalSort(self):
+     def test_limited_topological_sort(self):
          """Test toposort on graph using a limited set of starting vertices."""
          g = self.get_default_graph()
          g.vertices_topological_sort(vertex_set=[1])
          g.vertices_topological_sort(vertex_set=[1,3])
          g.vertices_topological_sort(vertex_set=[1,2])
 
-     def testPrintEmptyGraph(self):
+     def test_print_empty_graph(self):
          """Test print on empty graph"""
          g = Graph()
          g.__str__()
 
-     def testDelete(self):
+     def test_delete(self):
          """Tests consistency of data structure after deletion."""
          g = Graph()
-         g.addVertex(0)
-         g.addVertex(1)
-         g.addVertex(2)
-         g.addEdge(0, 1, 0)
-         g.addEdge(1, 2, 1)
-         g.deleteVertex(2)
+         g.add_vertex(0)
+         g.add_vertex(1)
+         g.add_vertex(2)
+         g.add_edge(0, 1, 0)
+         g.add_edge(1, 2, 1)
+         g.delete_vertex(2)
          self.assertEquals(g.adjacencyList[1], [])
 
-     def testRaisingDFS(self):
+     def test_raising_DFS(self):
          """Tests if DFS with cycle-checking will raise exceptions."""
          g = Graph()
-         g.addVertex(0)
-         g.addVertex(1)
-         g.addVertex(2)
-         g.addEdge(0, 1)
-         g.addEdge(1, 2)
-         g.addEdge(2, 0)
+         g.add_vertex(0)
+         g.add_vertex(1)
+         g.add_vertex(2)
+         g.add_edge(0, 1)
+         g.add_edge(1, 2)
+         g.add_edge(2, 0)
          try:
              g.dfs(raise_if_cyclic=True)
          except Graph.GraphContainsCycles, e:
@@ -711,15 +714,15 @@ class TestGraph(unittest.TestCase):
          else:
              raise Exception("Should have thrown")
 
-     def testCallInverse(self):
+     def test_call_inverse(self):
          """Test if calling inverse methods work."""
          g = Graph()
-         g.addVertex(0)
-         g.addVertex(1)
-         g.addVertex(2)
-         g.addEdge(0, 1)
-         g.addEdge(1, 2)
-         g.addEdge(2, 0)
+         g.add_vertex(0)
+         g.add_vertex(1)
+         g.add_vertex(2)
+         g.add_edge(0, 1)
+         g.add_edge(1, 2)
+         g.add_edge(2, 0)
          g2 = g.inverse()
          g3 = g.inverse_immutable()
      
@@ -766,12 +769,12 @@ class TestGraph(unittest.TestCase):
          assert not g.topologically_contractible(sub)
 
          g = Graph()
-         g.addVertex(0)
-         g.addVertex(1)
-         g.addVertex(2)
-         g.addVertex(3)
-         g.addEdge(0, 1)
-         g.addEdge(2, 3)
+         g.add_vertex(0)
+         g.add_vertex(1)
+         g.add_vertex(2)
+         g.add_vertex(3)
+         g.add_edge(0, 1)
+         g.add_edge(2, 3)
          for i in xrange(1, 16):
              s = []
              for j in xrange(4):
@@ -795,7 +798,7 @@ class TestGraph(unittest.TestCase):
          g = Graph()
          for a in g.iter_vertices():
              assert False
-         g.addVertex(0)
+         g.add_vertex(0)
          for a in g.iter_edges_from(0):
              assert False
          for a in g.iter_edges_to(0):
@@ -805,8 +808,8 @@ class TestGraph(unittest.TestCase):
 
      def test_get_edge_none(self):
          g = Graph()
-         g.addVertex(0)
-         g.addVertex(1)
+         g.add_vertex(0)
+         g.add_vertex(1)
          assert g.get_edge(0, 1) == None
 
      def test_dfs_before(self):

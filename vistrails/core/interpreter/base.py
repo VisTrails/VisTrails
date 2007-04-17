@@ -96,11 +96,11 @@ class BaseInterpreter(object):
     def compute_evaluation_order(self, aliases):
         dp = Graph()
         for alias,(atype,(base,exp)) in aliases.iteritems():
-            dp.addVertex(alias)
+            dp.add_vertex(alias)
             for e in exp:
                 astList = parser.expr(e[1]).tolist()
                 for edge in self.getNameDependencies(astList):
-                    dp.addEdge(alias, edge)
+                    dp.add_edge(alias, edge)
         return dp.vertices_topological_sort()
 
     def computeEvaluationOrder(self, aliases):
