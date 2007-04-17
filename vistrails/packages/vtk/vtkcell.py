@@ -249,6 +249,8 @@ class QVTKWidget(QCellWidget):
 
             if not self.mRenWin.GetInteractor():
                 iren = vtk.vtkRenderWindowInteractor()
+                if system.systemType=='Darwin':
+                    iren.InstallMessageProcOff()
                 iren.SetRenderWindow(self.mRenWin)
                 iren.Initialize()
                 if system.systemType=='Linux':

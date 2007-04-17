@@ -103,5 +103,4 @@ def initialize(*args, **keywords):
 
 def finalize():
     spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
-    spreadsheetWindow.destroy()
     spreadsheetWindow.deleteLater()
