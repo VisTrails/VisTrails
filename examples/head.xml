@@ -1,4 +1,4 @@
-  <visTrail version="0.3.0">
+  <visTrail version="0.3.1">
     <action date="" parent="0" time="2" user="" what="addModule">
       <object cache="1" id="0" name="vtkStructuredPointsReader" x="-0.291970795933" y="3.10948905109"/>
     </action>
@@ -26,14 +26,14 @@
       <move dx="85.9912338257" dy="7.04846191406" id="1"/>
     </action>
     <action date="" parent="9" time="10" user="" what="addModule">
-      <object cache="0" id="2" name="vtkRenderer" x="10.9354065586" y="-591.915664351"/>
+      <object cache="1" id="2" name="vtkRenderer" x="10.9354065586" y="-591.915664351"/>
     </action>
     <action date="" parent="10" time="11" user="" what="moveModule">
       <move dx="85.9912338257" dy="7.04846191406" id="1"/>
       <move dx="85.9912338257" dy="7.04846191406" id="1"/>
     </action>
     <action date="" parent="11" time="12" user="" what="addModule">
-      <object cache="0" id="3" name="VTKCell" x="39.0608815312" y="-738.492757793"/>
+      <object cache="1" id="3" name="VTKCell" x="39.0608815312" y="-738.492757793"/>
     </action>
     <action date="" parent="12" time="13" user="" what="addConnection">
       <connect destinationId="3" destinationModule="VTKCell" destinationPort="AddRenderer(vtkRenderer)" id="1" sourceId="2" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
@@ -42,7 +42,7 @@
       <move dx="-149.274765015" dy="30.8844337463" id="1"/>
     </action>
     <action date="" parent="14" time="15" user="" what="addModule">
-      <object cache="0" id="4" name="vtkDataSetMapper" x="167.838497215" y="-267.043881891"/>
+      <object cache="1" id="4" name="vtkDataSetMapper" x="167.838497215" y="-267.043881891"/>
     </action>
     <action date="" parent="15" time="16" user="" what="moveModule">
       <move dx="0.0" dy="0.0" id="4"/>
@@ -51,10 +51,10 @@
       <set alias="" function="ScalarVisibilityOff" functionId="0" moduleId="4" parameter="" parameterId="-1" type="" value=""/>
     </action>
     <action date="" parent="17" time="18" user="" what="addModule">
-      <object cache="0" id="5" name="vtkProperty" x="506.160692379" y="-345.534633047"/>
+      <object cache="1" id="5" name="vtkProperty" x="506.160692379" y="-345.534633047"/>
     </action>
     <action date="" parent="18" time="19" user="" what="addModule">
-      <object cache="0" id="6" name="vtkActor" x="154.305609408" y="-442.971427586"/>
+      <object cache="1" id="6" name="vtkActor" x="154.305609408" y="-442.971427586"/>
     </action>
     <action date="" parent="19" time="20" user="" what="addConnection">
       <connect destinationId="4" destinationModule="vtkDataSetMapper" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="2" sourceId="1" sourceModule="vtkContourFilter" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
@@ -132,7 +132,7 @@
       <set alias="" function="SetDiffuseColor" functionId="0" moduleId="5" parameter="" parameterId="2" type="Float" value="1"/>
     </action>
     <action date="" parent="38" time="39" user="" what="addModule">
-      <object cache="0" id="8" name="vtkCamera" x="685.061946355" y="90.4907194525"/>
+      <object cache="1" id="8" name="vtkCamera" x="685.061946355" y="90.4907194525"/>
     </action>
     <action date="" parent="39" time="40" user="" what="moveModule">
       <move dx="-285.871337891" dy="-656.954345703" id="8"/>
@@ -328,34 +328,34 @@
       <move dx="354.641265012" dy="-302.488148793" id="8"/>
     </action>
     <action date="18 Jan 2007 21:53:56" parent="0" time="82" user="emanuele" what="addModule">
-      <object cache="0" id="0" name="vtkRenderer" x="-92.778004541" y="188.007195793"/>
+      <object cache="1" id="0" name="vtkRenderer" x="-92.778004541" y="188.007195793"/>
     </action>
     <action date="18 Jan 2007 21:53:56" parent="82" time="83" user="emanuele" what="addModule">
-      <object cache="0" id="1" name="vtkVolumeRayCastCompositeFunction" x="301.228744527" y="912.019521544"/>
+      <object cache="1" id="1" name="vtkVolumeRayCastCompositeFunction" x="301.228744527" y="912.019521544"/>
     </action>
     <action date="18 Jan 2007 21:53:56" parent="83" time="84" user="emanuele" what="addModule">
-      <object cache="0" id="2" name="vtkVolume" x="-302.781599414" y="374.01036295"/>
+      <object cache="1" id="2" name="vtkVolume" x="-302.781599414" y="374.01036295"/>
     </action>
     <action date="18 Jan 2007 21:53:56" parent="84" time="85" user="emanuele" what="addModule">
-      <object cache="0" id="3" name="vtkVolumeProperty" x="133.225841211" y="608.014362987"/>
+      <object cache="1" id="3" name="vtkVolumeProperty" x="133.225841211" y="608.014362987"/>
     </action>
     <action date="18 Jan 2007 21:53:56" parent="85" time="86" user="emanuele" what="addModule">
-      <object cache="0" id="4" name="vtkVolumeRayCastMapper" x="-276.78115568" y="694.015817945"/>
+      <object cache="1" id="4" name="vtkVolumeRayCastMapper" x="-276.78115568" y="694.015817945"/>
     </action>
     <action date="18 Jan 2007 21:53:56" parent="86" time="87" user="emanuele" what="addModule">
-      <object cache="0" id="5" name="vtkPiecewiseFunction" x="386.635861667" y="764.713039031"/>
+      <object cache="1" id="5" name="vtkPiecewiseFunction" x="386.635861667" y="764.713039031"/>
     </action>
     <action date="18 Jan 2007 21:53:56" parent="87" time="88" user="emanuele" what="addModule">
-      <object cache="0" id="6" name="vtkCamera" x="42.8653901863" y="341.997799227"/>
+      <object cache="1" id="6" name="vtkCamera" x="42.8653901863" y="341.997799227"/>
     </action>
     <action date="18 Jan 2007 21:53:56" parent="88" time="89" user="emanuele" what="addModule">
-      <object cache="0" id="7" name="vtkColorTransferFunction" x="400.117686921" y="422.144131346"/>
+      <object cache="1" id="7" name="vtkColorTransferFunction" x="400.117686921" y="422.144131346"/>
     </action>
     <action date="18 Jan 2007 21:53:56" parent="89" time="90" user="emanuele" what="addModule">
-      <object cache="0" id="8" name="vtkStructuredPointsReader" x="-224.09634285" y="1071.9296888"/>
+      <object cache="1" id="8" name="vtkStructuredPointsReader" x="-224.09634285" y="1071.9296888"/>
     </action>
     <action date="18 Jan 2007 21:53:56" parent="90" time="91" user="emanuele" what="addModule">
-      <object cache="0" id="9" name="VTKCell" x="173.226528487" y="46.0047728391"/>
+      <object cache="1" id="9" name="VTKCell" x="173.226528487" y="46.0047728391"/>
     </action>
     <action date="18 Jan 2007 21:53:56" parent="91" time="92" user="emanuele" what="changeParameter">
       <set alias="Background_R" function="SetBackground" functionId="0" moduleId="0" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.0"/>
@@ -486,7 +486,7 @@
       <module moduleId="6"/>
     </action>
     <action date="18 Jan 2007 21:54:38" parent="127" time="128" user="emanuele" what="addModule">
-      <object cache="0" id="6" name="vtkCamera" x="475.211758196" y="-724.262382954"/>
+      <object cache="1" id="6" name="vtkCamera" x="475.211758196" y="-724.262382954"/>
     </action>
     <action date="18 Jan 2007 21:54:38" parent="128" time="129" user="emanuele" what="changeParameter">
       <set alias="" function="SetPosition" functionId="0" moduleId="6" parameter="" parameterId="0" type="Float" value="744.495278753"/>
@@ -552,8 +552,8 @@
       <set alias="" function="SetValue" functionId="0" moduleId="1" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="0"/>
       <set alias="isovalue" function="SetValue" functionId="0" moduleId="1" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="67"/>
     </action>
-    <tag name="aliases" time="143"/>
     <tag name="volume rendering" time="134"/>
     <tag name="bone_camera" time="81"/>
     <tag name="bone" time="38"/>
+    <tag name="aliases" time="143"/>
   </visTrail>
