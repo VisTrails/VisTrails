@@ -351,6 +351,8 @@ class QVTKWidget(QCellWidget):
         if (not iren) or (not iren.GetEnabled()):
             return
 
+        if hasattr(self.mRenWin, 'UpdateGLRegion'):
+            self.mRenWin.UpdateGLRegion()
         self.mRenWin.Render()
 
     def SelectActiveRenderer(self,iren):
