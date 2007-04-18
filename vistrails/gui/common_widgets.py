@@ -140,12 +140,22 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
             
             """
             visible = testFunction(item)
+            enabled = visible
             for childIndex in range(item.childCount()):
                 if recursiveSetVisible(item.child(childIndex),
                                        testFunction):
                     visible = True
             if item.isHidden()!=(not visible) or (not visible):
                 item.setHidden(not visible)
+            if visible:
+                f = item.flags()
+                b = f & QtCore.Qt.ItemIsEnabled
+                if enabled:
+                    if not b:
+                        item.setFlags(f | QtCore.Qt.ItemIsEnabled)
+                elif b:
+                    item.setFlags(f & (~QtCore.Qt.ItemIsEnabled))
+                
             return visible
 
         if str(name)=='':
