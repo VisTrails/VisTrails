@@ -447,6 +447,7 @@ class QCellContainer(QtGui.QWidget):
         self.setLayout(layout)
         self.containedWidget = None
         self.setWidget(widget)
+        self.toolBar = None
 
     def setWidget(self, widget):
         """ setWidget(widget: QWidget) -> None
@@ -457,6 +458,7 @@ class QCellContainer(QtGui.QWidget):
             if self.containedWidget:
                 self.layout().removeWidget(self.containedWidget)
                 self.containedWidget.deleteLater()
+                self.toolBar = None
             if widget:
                 widget.setParent(self)
                 self.layout().addWidget(widget)
@@ -480,6 +482,7 @@ class QCellContainer(QtGui.QWidget):
             self.layout().removeWidget(self.containedWidget)
             self.containedWidget.setParent(None)
             self.containedWidget = None
+        self.toolBar = None
         return widget
 
 ################################################################################

@@ -226,7 +226,14 @@ class StandardWidgetSheetTabInterface(object):
         """ getCellToolBar(row: int, col: int) -> QWidget
         Return the toolbar widget at cell location (row, col)
         
-        """
+        """        
+        cell = self.getCell(row, col)
+        if cell and hasattr(cell, 'toolBarType'):
+            container = self.getCellWidget(row, col)
+            if type(container)==QCellContainer:
+                if container.toolBar==None:
+                    container.toolBar = cell.toolBarType(self)
+                return container.toolBar
         return None
 
     def getCellRect(self, row, col):
@@ -527,13 +534,6 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         
         """
         return self.sheet.getCell(row, col)
-
-    def getCellToolBar(self, row, col):
-        """ getCellToolBar(row: int, col: int) -> QWidget
-        Return the toolbar widget at cell location (row, col)
-        
-        """
-        return self.sheet.getCellToolBar(row, col)
 
     def getCellRect(self, row, col):
         """ getCellRect(row: int, col: int) -> QRect

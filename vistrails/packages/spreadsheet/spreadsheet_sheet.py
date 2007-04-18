@@ -188,7 +188,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
                      self.rowMoved)
         self.delegate = StandardWidgetItemDelegate(self)
         self.setItemDelegate(self.delegate)
-        self.helpers = CellHelpers(self, CellResizer(self))
+        self.helpers = CellHelpers(parent, CellResizer(self))
         self.toolBars = {}
         self.blankCellToolBar = None
         self.setRowCount(rows)
@@ -327,21 +327,6 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         row = self.verticalHeader().logicalIndex(row)
         col = self.horizontalHeader().logicalIndex(col)
         return self.cellWidget(row, col)
-
-    def getCellToolBar(self, row, col):
-        """ getCellToolBar(row: int, col: int) -> QWidget
-        Return the toolbar widget at cell location (row, col)
-        
-        """
-        row = self.verticalHeader().logicalIndex(row)
-        col = self.horizontalHeader().logicalIndex(col)
-        cell = self.getCell(row, col)
-        if cell and hasattr(cell, 'toolBarType'):
-            if not self.toolBars.has_key(cell.toolBarType):
-                self.toolBars[cell.toolBarType] = cell.toolBarType(self)
-            return self.toolBars[cell.toolBarType]
-        else:
-            return self.blankCellToolBar
 
     def getCellRect(self, row, col):
         """ getCellRect(row: int, col: int) -> QRect
