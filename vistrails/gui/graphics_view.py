@@ -460,6 +460,21 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         """
         return QtCore.QSize(512, 512)
 
+    def setScene(self, scene):
+        """ setScene(scene: QGraphicsScene) -> None
+        Make sure the viewport background brush the same as the scene
+        one. This is only neccessary on the Mac to work around Qt/Mac
+        bug. We can remove this if any future release of Qt fixes
+        this.
+
+        """
+        QtGui.QGraphicsView.setScene(self, scene)
+        if self.scene():
+            palette = QtGui.QPalette(self.viewport().palette())
+            palette.setBrush(QtGui.QPalette.Base, 
+                             self.scene().backgroundBrush())
+            self.viewport().setPalette(palette)
+
 class QPIPGraphicsView(QtGui.QWidget):
     """
     QPIPGraphicsView is a tool window contain a
