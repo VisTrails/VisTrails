@@ -95,13 +95,12 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                 objects[id].interpreter = self
                 objects[id].id = id
                 objects[id].logging = logging_obj
-
                 
                 # Update object pipeline information
                 obj = objects[id]
                 obj.moduleInfo['vistrailName'] = vistrailName
                 obj.moduleInfo['version'] = currentVersion
-                obj.moduleInfo['moduleId'] = i
+                obj.moduleInfo['moduleId'] = id
                 obj.moduleInfo['pipeline'] = pipeline
                 if kwargs.has_key('reason'):
                     obj.moduleInfo['reason'] = kwargs['reason']
@@ -150,22 +149,24 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
 
             if kwargs.has_key('sinks'):
                 requestedSinks = kwargs['sinks']
-                allSinks = [module_map[sink]
+                allSinks = [sink
                             for sink in pipeline.graph.sinks()
                             if sink in requestedSinks]
             else:
-                allSinks = [module_map[sink]
-                            for sink in pipeline.graph.sinks()]
+                allSinks = pipeline.graph.sinks()
+            
             for v in allSinks:
                 try:
                     objects[v].update()
+                    
                 except ModuleError, me:
                     me.module.logging.endUpdate(me.module, me.msg)
                     errors[me.module.id] = me
-                    
+        
             if self.doneUpdateHook:
                 self.doneUpdateHook(pipeline, objects)
-                
+        
+
         finally:
             self.filePool.cleanup()
             del self.filePool

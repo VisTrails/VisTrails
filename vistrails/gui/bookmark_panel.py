@@ -261,8 +261,19 @@ class QBookmarkTreeWidget(QSearchTreeWidget):
                                                    parentFolder,
                                                    labels)
             if bObj.type == "item":
-                bookmarkItem.setToolTip(0,bObj.filename)
-                bookmarkItem.setCheckState(0,QtCore.Qt.Unchecked)
+                if bObj.error == 0:
+                    bookmarkItem.setToolTip(0,bObj.filename)
+                    bookmarkItem.setCheckState(0,QtCore.Qt.Unchecked)
+                else:
+                    if bObj.error == 1:
+                        tooltip = "File not found: %s" % bObj.filename
+                    elif bObj.error == 2:
+                        msg = "Couldn't find version %s in %s"
+                        tooltip =  msg % (bObj.pipeline, bObj.filename)
+                        
+                    bookmarkItem.setToolTip(0,tooltip)
+                    bookmarkItem.setIcon(0,
+                                         QtGui.QIcon(CurrentTheme.EXPLORE_SKIP_PIXMAP))
             
             for child in bookmark.children:
                 createBookmarkItem(bookmarkItem, child)

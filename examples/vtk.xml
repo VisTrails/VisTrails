@@ -886,196 +886,103 @@
       <connect destinationId="10" destinationModule="vtkViewport" destinationPort="AddViewProp(vtkProp)" id="10" sourceId="8" sourceModule="vtkActor" sourcePort="self(vtkActor)"/>
     </action>
     <action date="19 Feb 2007 15:08:31" parent="0" time="216" user="hvo" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="0" name="vtkSphereSource" x="-114.288728978" y="288.442982659"/>
     </action>
     <action date="19 Feb 2007 15:08:43" parent="216" time="217" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="110.66051536" dy="-10.8846408551" id="0"/>
     </action>
     <action date="19 Feb 2007 15:08:43" parent="217" time="218" user="hvo" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="1" name="vtkConeSource" x="-72.4388138813" y="167.92634127"/>
     </action>
     <action date="19 Feb 2007 15:08:55" parent="218" time="219" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="213.200599946" dy="-110.304557501" id="0"/>
       <move dx="-40.3352486384" dy="18.1097034703" id="1"/>
     </action>
     <action date="19 Feb 2007 15:08:55" parent="219" time="220" user="hvo" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="2" name="vtkGlyph3D" x="-239.541986812" y="50.2132687131"/>
     </action>
     <action date="19 Feb 2007 15:09:06" parent="220" time="221" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="302.102780618" dy="-27.1645552055" id="2"/>
     </action>
     <action date="19 Feb 2007 15:09:06" parent="221" time="222" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="2" destinationModule="vtkAlgorithm" destinationPort="AddInputConnection(vtkAlgorithmOutput)" id="0" sourceId="0" sourceModule="vtkSphereSource" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
     </action>
     <action date="19 Feb 2007 15:09:21" parent="222" time="223" user="hvo" what="deleteConnection">
-      <notes>
-        None
-      </notes>
       <connection connectionId="0"/>
     </action>
     <action date="19 Feb 2007 15:09:25" parent="223" time="224" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="2" destinationModule="vtkGlyph3D" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="1" sourceId="0" sourceModule="vtkSphereSource" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
     </action>
     <action date="19 Feb 2007 15:09:43" parent="224" time="225" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="2" destinationModule="vtkGlyph3D" destinationPort="SetInputConnection1(vtkAlgorithmOutput)" id="2" sourceId="1" sourceModule="vtkConeSource" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
     </action>
     <action date="19 Feb 2007 15:10:00" parent="225" time="226" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="-276.584562092" dy="41.9815853176" id="0"/>
       <move dx="279.054067111" dy="25.5182185264" id="1"/>
     </action>
     <action date="19 Feb 2007 15:10:00" parent="226" time="227" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetVectorModeToUseNormal" functionId="0" moduleId="2" parameter="" parameterId="-1" type="" value=""/>
     </action>
     <action date="19 Feb 2007 15:10:13" parent="227" time="228" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetScaleModeToScaleByVector" functionId="1" moduleId="2" parameter="" parameterId="-1" type="" value=""/>
     </action>
     <action date="19 Feb 2007 15:10:22" parent="228" time="229" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetScaleFactor" functionId="2" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.0"/>
     </action>
     <action date="19 Feb 2007 15:10:27" parent="229" time="230" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetScaleFactor" functionId="2" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.25"/>
     </action>
     <action date="19 Feb 2007 15:10:28" parent="230" time="231" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetScaleFactor" functionId="2" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.25"/>
     </action>
     <action date="19 Feb 2007 15:10:41" parent="231" time="232" user="hvo" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="3" name="vtkAppendPolyData" x="68.3229721835" y="-100.426537426"/>
     </action>
     <action date="19 Feb 2007 15:11:03" parent="232" time="233" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="-50.2132687131" dy="155.578816177" id="0"/>
       <move dx="-50.2132687131" dy="155.578816177" id="1"/>
       <move dx="-50.2132687131" dy="155.578816177" id="2"/>
       <move dx="13.170693433" dy="123.475250934" id="3"/>
     </action>
     <action date="19 Feb 2007 15:11:03" parent="233" time="234" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="3" destinationModule="vtkAlgorithm" destinationPort="AddInputConnection(vtkAlgorithmOutput)" id="3" sourceId="1" sourceModule="vtkConeSource" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
     </action>
     <action date="19 Feb 2007 15:11:39" parent="234" time="235" user="hvo" what="deleteConnection">
-      <notes>
-        None
-      </notes>
       <connection connectionId="3"/>
     </action>
     <action date="19 Feb 2007 15:13:42" parent="235" time="236" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="98.7802007472" dy="2.46950501868" id="3"/>
     </action>
     <action date="19 Feb 2007 15:13:49" parent="236" time="237" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="3" destinationModule="vtkAppendPolyData" destinationPort="AddInput(vtkPolyData)" id="4" sourceId="1" sourceModule="vtkPolyDataAlgorithm" sourcePort="GetOutput(vtkPolyData)"/>
     </action>
     <action date="19 Feb 2007 15:13:55" parent="237" time="238" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="3" destinationModule="vtkAppendPolyData" destinationPort="AddInput(vtkPolyData)" id="5" sourceId="2" sourceModule="vtkPolyDataAlgorithm" sourcePort="GetOutput(vtkPolyData)"/>
     </action>
     <action date="19 Feb 2007 15:14:13" parent="238" time="239" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="-41.158416978" dy="-0.82316833956" id="2"/>
     </action>
     <action date="19 Feb 2007 15:14:13" parent="239" time="240" user="hvo" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="4" name="vtkPolyDataMapper" x="80.6704972769" y="-76.5546555791"/>
     </action>
     <action date="19 Feb 2007 15:14:25" parent="240" time="241" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="-3.29267335824" dy="63.3839621461" id="2"/>
       <move dx="-41.158416978" dy="109.481389161" id="3"/>
       <move dx="66.6766355043" dy="80.6704972769" id="4"/>
     </action>
     <action date="19 Feb 2007 15:14:25" parent="241" time="242" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="4" destinationModule="vtkPolyDataMapper" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="6" sourceId="3" sourceModule="vtkAppendPolyData" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
     </action>
     <action date="19 Feb 2007 15:14:35" parent="242" time="243" user="hvo" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="5" name="vtkLODActor" x="13.170693433" y="-120.182577576"/>
     </action>
     <action date="19 Feb 2007 15:14:47" parent="243" time="244" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="VisibilityOn" functionId="0" moduleId="5" parameter="" parameterId="-1" type="" value=""/>
     </action>
     <action date="19 Feb 2007 15:14:50" parent="244" time="245" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="5" destinationModule="vtkActor" destinationPort="SetMapper(vtkMapper)" id="7" sourceId="4" sourceModule="vtkPolyDataMapper" sourcePort="self(vtkPolyDataMapper)"/>
     </action>
     <action date="19 Feb 2007 15:15:26" parent="245" time="246" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="-141.584954404" dy="88.9021806725" id="0"/>
       <move dx="-141.584954404" dy="88.9021806725" id="1"/>
       <move dx="-141.584954404" dy="88.9021806725" id="2"/>
@@ -1084,450 +991,249 @@
       <move dx="45.2742586758" dy="94.6643590494" id="5"/>
     </action>
     <action date="19 Feb 2007 15:15:26" parent="246" time="247" user="hvo" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="6" name="vtkPlane" x="260.94436364" y="59.2681204483"/>
     </action>
     <action date="19 Feb 2007 15:15:36" parent="247" time="248" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="40.3352486384" dy="155.578816177" id="6"/>
     </action>
     <action date="19 Feb 2007 15:15:36" parent="248" time="249" user="hvo" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="7" name="vtkClipPolyData" x="304.572285637" y="86.4326756538"/>
     </action>
     <action date="19 Feb 2007 15:15:39" parent="249" time="250" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="4.1158416978" dy="17.2865351308" id="7"/>
     </action>
     <action date="19 Feb 2007 15:15:39" parent="250" time="251" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="7" destinationModule="vtkClipPolyData" destinationPort="SetClipFunction(vtkImplicitFunction)" id="8" sourceId="6" sourceModule="vtkPlane" sourcePort="self(vtkPlane)"/>
     </action>
     <action date="19 Feb 2007 15:16:02" parent="251" time="252" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="7" destinationModule="vtkClipPolyData" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="9" sourceId="3" sourceModule="vtkAppendPolyData" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
     </action>
     <action date="19 Feb 2007 15:16:23" parent="252" time="253" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="78.2009922582" dy="-13.170693433" id="4"/>
       <move dx="111.127725841" dy="-10.7011884143" id="5"/>
       <move dx="-575.394669352" dy="-14.8170301121" id="6"/>
       <move dx="-483.199815322" dy="-17.2865351308" id="7"/>
     </action>
     <action date="19 Feb 2007 15:16:23" parent="253" time="254" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="InsideOutOn" functionId="0" moduleId="7" parameter="" parameterId="-1" type="" value=""/>
     </action>
     <action date="19 Feb 2007 15:16:58" parent="254" time="255" user="hvo" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="8" name="vtkPolyDataMapper" x="-170.395846289" y="-16.4633667912"/>
     </action>
     <action date="19 Feb 2007 15:17:02" parent="255" time="256" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="47.7437636945" dy="-27.1645552055" id="8"/>
     </action>
     <action date="19 Feb 2007 15:17:02" parent="256" time="257" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="8" destinationModule="vtkPolyDataMapper" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="10" sourceId="7" sourceModule="vtkClipPolyData" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
     </action>
     <action date="19 Feb 2007 15:17:12" parent="257" time="258" user="hvo" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="9" name="vtkLODActor" x="179.572677949" y="-26.2194069406"/>
     </action>
     <action date="19 Feb 2007 15:17:12" parent="258" time="259" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="VisibilityOn" functionId="0" moduleId="9" parameter="" parameterId="-1" type="" value=""/>
     </action>
     <action date="19 Feb 2007 15:17:12" parent="259" time="260" user="hvo" what="changeAnnotation">
-      <notes>
-        None
-      </notes>
       <set key="" moduleId="9" value=""/>
     </action>
     <action date="19 Feb 2007 15:17:17" parent="260" time="261" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="-262.59070032" dy="-133.353271009" id="9"/>
     </action>
     <action date="19 Feb 2007 15:17:17" parent="261" time="262" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="9" destinationModule="vtkActor" destinationPort="SetMapper(vtkMapper)" id="11" sourceId="8" sourceModule="vtkPolyDataMapper" sourcePort="self(vtkPolyDataMapper)"/>
     </action>
     <action date="19 Feb 2007 15:17:46" parent="262" time="263" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="-13.9938617725" dy="44.4510903362" id="6"/>
       <move dx="34.5730702615" dy="35.3962386011" id="7"/>
       <move dx="-43.6279219967" dy="70.7924772021" id="8"/>
       <move dx="-2.46950501868" dy="76.5546555791" id="9"/>
     </action>
     <action date="19 Feb 2007 15:17:46" parent="263" time="264" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="VisibilityOff" functionId="1" moduleId="9" parameter="" parameterId="-1" type="" value=""/>
     </action>
     <action date="19 Feb 2007 15:17:48" parent="264" time="265" user="hvo" what="deleteFunction">
-      <notes>
-        None
-      </notes>
       <function functionId="0" moduleId="9"/>
     </action>
     <action date="19 Feb 2007 15:18:01" parent="265" time="266" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="-0.82316833956" dy="-0.82316833956" id="9"/>
     </action>
     <action date="19 Feb 2007 15:18:01" parent="266" time="267" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetScale" functionId="1" moduleId="9" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.0"/>
       <set alias="" function="SetScale" functionId="1" moduleId="9" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.0"/>
       <set alias="" function="SetScale" functionId="1" moduleId="9" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0.0"/>
     </action>
     <action date="19 Feb 2007 15:18:04" parent="267" time="268" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetScale" functionId="1" moduleId="9" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="1.01"/>
       <set alias="" function="SetScale" functionId="1" moduleId="9" parameter="&lt;no description&gt;" parameterId="1" type="Float" value=""/>
       <set alias="" function="SetScale" functionId="1" moduleId="9" parameter="&lt;no description&gt;" parameterId="2" type="Float" value=""/>
     </action>
     <action date="19 Feb 2007 15:18:06" parent="268" time="269" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetScale" functionId="1" moduleId="9" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="1.01"/>
       <set alias="" function="SetScale" functionId="1" moduleId="9" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="1.01"/>
       <set alias="" function="SetScale" functionId="1" moduleId="9" parameter="&lt;no description&gt;" parameterId="2" type="Float" value=""/>
     </action>
     <action date="19 Feb 2007 15:18:08" parent="269" time="270" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetScale" functionId="1" moduleId="9" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="1.01"/>
       <set alias="" function="SetScale" functionId="1" moduleId="9" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="1.01"/>
       <set alias="" function="SetScale" functionId="1" moduleId="9" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="1.01"/>
     </action>
     <action date="19 Feb 2007 15:18:08" parent="270" time="271" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetScale" functionId="1" moduleId="9" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="1.01"/>
       <set alias="" function="SetScale" functionId="1" moduleId="9" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="1.01"/>
       <set alias="" function="SetScale" functionId="1" moduleId="9" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="1.01"/>
     </action>
     <action date="19 Feb 2007 15:19:16" parent="271" time="272" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="-16.4633667912" dy="-39.5120802989" id="9"/>
     </action>
     <action date="19 Feb 2007 15:19:16" parent="272" time="273" user="hvo" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="10" name="vtkProperty" x="8.2316833956" y="16.4633667912"/>
     </action>
     <action date="19 Feb 2007 15:19:20" parent="273" time="274" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="0.0" dy="-34.5730702615" id="10"/>
     </action>
     <action date="19 Feb 2007 15:19:20" parent="274" time="275" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="9" destinationModule="vtkActor" destinationPort="SetProperty(vtkProperty)" id="12" sourceId="10" sourceModule="vtkProperty" sourcePort="self(vtkProperty)"/>
     </action>
     <action date="19 Feb 2007 15:19:55" parent="275" time="276" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="-51.8596053923" dy="-7.40851505604" id="8"/>
       <move dx="-16.4633667912" dy="29.6340602242" id="10"/>
     </action>
     <action date="19 Feb 2007 15:19:55" parent="276" time="277" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetColor" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.0"/>
       <set alias="" function="SetColor" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.0"/>
       <set alias="" function="SetColor" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0.0"/>
     </action>
     <action date="19 Feb 2007 15:20:00" parent="277" time="278" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetColor" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
       <set alias="" function="SetColor" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="1" type="Float" value=""/>
       <set alias="" function="SetColor" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="2" type="Float" value=""/>
     </action>
     <action date="19 Feb 2007 15:20:01" parent="278" time="279" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetColor" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
       <set alias="" function="SetColor" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="1"/>
       <set alias="" function="SetColor" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="2" type="Float" value=""/>
     </action>
     <action date="19 Feb 2007 15:20:03" parent="279" time="280" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetColor" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
       <set alias="" function="SetColor" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="1"/>
       <set alias="" function="SetColor" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0"/>
     </action>
     <action date="19 Feb 2007 15:20:04" parent="280" time="281" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetColor" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
       <set alias="" function="SetColor" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="1"/>
       <set alias="" function="SetColor" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0"/>
     </action>
     <action date="19 Feb 2007 15:20:20" parent="281" time="282" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="57.6217837692" dy="-23.0487135077" id="9"/>
     </action>
     <action date="19 Feb 2007 15:20:20" parent="282" time="283" user="hvo" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="11" name="vtkRenderer" x="48.566932034" y="-250.243175226"/>
     </action>
     <action date="19 Feb 2007 15:20:45" parent="283" time="284" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="11" destinationModule="vtkRenderer" destinationPort="AddActor(vtkProp)" id="13" sourceId="9" sourceModule="vtkLODActor" sourcePort="self(vtkLODActor)"/>
     </action>
     <action date="19 Feb 2007 15:20:49" parent="284" time="285" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="11" destinationModule="vtkRenderer" destinationPort="AddActor(vtkProp)" id="14" sourceId="5" sourceModule="vtkLODActor" sourcePort="self(vtkLODActor)"/>
     </action>
     <action date="19 Feb 2007 15:21:14" parent="285" time="286" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="120.182577576" dy="106.188715803" id="11"/>
     </action>
     <action date="19 Feb 2007 15:21:14" parent="286" time="287" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.0"/>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.0"/>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0.0"/>
     </action>
     <action date="19 Feb 2007 15:21:20" parent="287" time="288" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="1"/>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="1" type="Float" value=""/>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="2" type="Float" value=""/>
     </action>
     <action date="19 Feb 2007 15:21:21" parent="288" time="289" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="1"/>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="1"/>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="2" type="Float" value=""/>
     </action>
     <action date="19 Feb 2007 15:21:21" parent="289" time="290" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="1"/>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="1"/>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="1"/>
     </action>
     <action date="19 Feb 2007 15:21:33" parent="290" time="291" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.1"/>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="1"/>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="1"/>
     </action>
     <action date="19 Feb 2007 15:21:34" parent="291" time="292" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.1"/>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.2"/>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="1"/>
     </action>
     <action date="19 Feb 2007 15:21:35" parent="292" time="293" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.1"/>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.2"/>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0.4"/>
     </action>
     <action date="19 Feb 2007 15:21:35" parent="293" time="294" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.1"/>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.2"/>
       <set alias="" function="SetBackground" functionId="0" moduleId="11" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0.4"/>
     </action>
     <action date="19 Feb 2007 15:21:45" parent="294" time="295" user="hvo" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="12" name="VTKCell" x="100.426537426" y="-264.237036999"/>
     </action>
     <action date="19 Feb 2007 15:21:47" parent="295" time="296" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="12" destinationModule="VTKCell" destinationPort="AddRenderer(vtkRenderer)" id="15" sourceId="11" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
     </action>
     <action date="19 Feb 2007 15:22:03" parent="296" time="297" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="93.0180223703" dy="3.29267335824" id="12"/>
     </action>
     <action date="19 Feb 2007 15:22:03" parent="297" time="298" user="hvo" what="deleteConnection">
-      <notes>
-        None
-      </notes>
       <connection connectionId="4"/>
     </action>
     <action date="19 Feb 2007 15:22:09" parent="298" time="299" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="3" destinationModule="vtkAppendPolyData" destinationPort="AddInput(vtkPolyData)" id="16" sourceId="0" sourceModule="vtkPolyDataAlgorithm" sourcePort="GetOutput(vtkPolyData)"/>
     </action>
     <action date="19 Feb 2007 15:25:15" parent="299" time="300" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="175.551814811" dy="0.750221430817" id="2"/>
       <move dx="-222.815764953" dy="1.50044286163" id="12"/>
     </action>
     <action date="19 Feb 2007 15:25:15" parent="300" time="301" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetScaleFactor" functionId="2" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.23"/>
     </action>
     <action date="19 Feb 2007 16:03:47" parent="301" time="302" user="hvo" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="13" name="vtkInteractionHandler" x="-275.549024657" y="-159.488973511"/>
     </action>
     <action date="19 Feb 2007 16:03:49" parent="302" time="303" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="12" destinationModule="VTKCell" destinationPort="InteractionHandler(vtkInteractionHandler)" id="17" sourceId="13" sourceModule="vtkInteractionHandler" sourcePort="self(vtkInteractionHandler)"/>
     </action>
     <action date="19 Feb 2007 16:04:11" parent="303" time="304" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="16.4730395175" dy="11.9803923764" id="13"/>
     </action>
     <action date="19 Feb 2007 16:04:11" parent="304" time="305" user="hvo" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="14" name="vtkImplicitPlaneWidget" x="-368.397065574" y="-28.4534318939"/>
     </action>
     <action date="19 Feb 2007 16:04:15" parent="305" time="306" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="25.4583337998" dy="-35.9411771292" id="13"/>
       <move dx="61.399510929" dy="-31.448529988" id="14"/>
     </action>
     <action date="19 Feb 2007 16:04:15" parent="306" time="307" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="13" destinationModule="vtkInteractionHandler" destinationPort="Observer(vtkInteractorObserver)" id="18" sourceId="14" sourceModule="vtkImplicitPlaneWidget" sourcePort="self(vtkImplicitPlaneWidget)"/>
     </action>
     <action date="19 Feb 2007 16:04:40" parent="307" time="308" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="-49.4191185526" dy="38.9362752233" id="13"/>
     </action>
     <action date="19 Feb 2007 16:04:40" parent="308" time="309" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetPlaceFactor" functionId="0" moduleId="14" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.0"/>
     </action>
     <action date="19 Feb 2007 16:04:44" parent="309" time="310" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetPlaceFactor" functionId="0" moduleId="14" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="1.25"/>
     </action>
     <action date="19 Feb 2007 16:04:44" parent="310" time="311" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetPlaceFactor" functionId="0" moduleId="14" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="1.25"/>
     </action>
     <action date="19 Feb 2007 16:04:56" parent="311" time="312" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="14" destinationModule="vtk3DWidget" destinationPort="SetInput(vtkDataSet)" id="19" sourceId="2" sourceModule="vtkPolyDataAlgorithm" sourcePort="GetOutput(vtkPolyData)"/>
     </action>
     <action date="19 Feb 2007 16:10:34" parent="312" time="313" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="-108.504535357" dy="20.0079285056" id="2"/>
       <move dx="-120.817106745" dy="0.769535711753" id="3"/>
       <move dx="-90.8052139869" dy="11.5430356763" id="4"/>
@@ -1543,63 +1249,33 @@
       <move dx="465.569105611" dy="332.439427477" id="14"/>
     </action>
     <action date="19 Feb 2007 16:10:34" parent="313" time="314" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetScaleFactor" functionId="2" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.24"/>
     </action>
     <action date="19 Feb 2007 17:28:20" parent="314" time="315" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="Handler" functionId="0" moduleId="13" parameter="&lt;no description&gt;" parameterId="0" type="String" value="def%20interactionHandler%28observer%2C%20shareddata%29%3A%0A%20%20%20%20print%20type%28observer%29%2C%20type%28shareddata%29"/>
     </action>
     <action date="19 Feb 2007 17:32:20" parent="315" time="316" user="hvo" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="4.20935399938" dy="130.489973981" id="6"/>
     </action>
     <action date="19 Feb 2007 17:32:20" parent="316" time="317" user="hvo" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="13" destinationModule="vtkInteractionHandler" destinationPort="SharedData(Module)" id="20" sourceId="6" sourceModule="vtkPlane" sourcePort="self(vtkPlane)"/>
     </action>
     <action date="19 Feb 2007 17:34:24" parent="317" time="318" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="Handler" functionId="0" moduleId="13" parameter="&lt;no description&gt;" parameterId="0" type="String" value="def%20interactionHandler%28observer%2C%20shareddata%29%3A%0A%20%20%20%20observer.GetPlane%28shareddata.vtkInstance%29"/>
     </action>
     <action date="19 Feb 2007 17:35:07" parent="318" time="319" user="hvo" what="deleteFunction">
-      <notes>
-        None
-      </notes>
       <function functionId="0" moduleId="9"/>
     </action>
     <action date="19 Feb 2007 17:35:10" parent="319" time="320" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="VisibilityOn" functionId="1" moduleId="9" parameter="" parameterId="-1" type="" value=""/>
     </action>
     <action date="19 Feb 2007 17:37:06" parent="320" time="321" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="Handler" functionId="0" moduleId="13" parameter="&lt;no description&gt;" parameterId="0" type="String" value="def%20interactionHandler%28observer%2C%20shareddata%29%3A%0A%20%20%20%20return%0A%20%20%20%20observer.GetPlane%28shareddata.vtkInstance%29"/>
     </action>
     <action date="19 Feb 2007 17:37:28" parent="321" time="322" user="hvo" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="Handler" functionId="0" moduleId="13" parameter="&lt;no description&gt;" parameterId="0" type="String" value="def%20interactionHandler%28observer%2C%20shareddata%29%3A%0A%20%20%20%20observer.GetPlane%28shareddata.vtkInstance%29"/>
     </action>
     <action date="06 Mar 2007 17:31:12" parent="43" time="323" user="stew" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="-325.54942923" dy="5.49914576403" id="0"/>
       <move dx="-325.54942923" dy="5.49914576403" id="1"/>
       <move dx="-325.54942923" dy="5.49914576403" id="2"/>
@@ -1607,117 +1283,60 @@
       <move dx="-325.54942923" dy="5.49914576403" id="7"/>
     </action>
     <action date="06 Mar 2007 17:31:12" parent="323" time="324" user="stew" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="8" name="VTKCell" x="-180.664206774" y="-165.520338043"/>
     </action>
     <action date="06 Mar 2007 17:31:12" parent="324" time="325" user="stew" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="9" name="vtkDataSetMapper" x="-237.282186703" y="301.998142802"/>
     </action>
     <action date="06 Mar 2007 17:31:13" parent="325" time="326" user="stew" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="10" name="vtkDataSetReader" x="-213.587813996" y="421.279032959"/>
     </action>
     <action date="06 Mar 2007 17:31:13" parent="326" time="327" user="stew" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="11" name="vtkRenderer" x="-220.460112232" y="-3.1201219181"/>
     </action>
     <action date="06 Mar 2007 17:31:13" parent="327" time="328" user="stew" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="12" name="vtkActor" x="-258.041526728" y="119.069528254"/>
     </action>
     <action date="06 Mar 2007 17:31:14" parent="328" time="329" user="stew" what="changeAnnotation">
-      <notes>
-        None
-      </notes>
       <set key="" moduleId="8" value=""/>
     </action>
     <action date="06 Mar 2007 17:31:14" parent="329" time="330" user="stew" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="ScalarVisibilityOn" functionId="0" moduleId="9" parameter="" parameterId="-1" type="" value=""/>
     </action>
     <action date="06 Mar 2007 17:31:14" parent="330" time="331" user="stew" what="changeAnnotation">
-      <notes>
-        None
-      </notes>
       <set key="" moduleId="9" value=""/>
     </action>
     <action date="06 Mar 2007 17:31:14" parent="331" time="332" user="stew" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetFileName" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="0" type="String" value="../examples/data/spx.vtk"/>
     </action>
     <action date="06 Mar 2007 17:31:14" parent="332" time="333" user="stew" what="changeAnnotation">
-      <notes>
-        None
-      </notes>
       <set key="" moduleId="10" value=""/>
     </action>
     <action date="06 Mar 2007 17:31:14" parent="333" time="334" user="stew" what="changeAnnotation">
-      <notes>
-        None
-      </notes>
       <set key="" moduleId="11" value=""/>
     </action>
     <action date="06 Mar 2007 17:31:14" parent="334" time="335" user="stew" what="changeAnnotation">
-      <notes>
-        None
-      </notes>
       <set key="" moduleId="12" value=""/>
     </action>
     <action date="06 Mar 2007 17:31:14" parent="335" time="336" user="stew" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="8" destinationModule="VTKCell" destinationPort="AddRenderer(vtkRenderer)" id="6" sourceId="11" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
     </action>
     <action date="06 Mar 2007 17:31:14" parent="336" time="337" user="stew" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="9" destinationModule="vtkDataSetMapper" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="7" sourceId="10" sourceModule="vtkDataSetReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
     </action>
     <action date="06 Mar 2007 17:31:15" parent="337" time="338" user="stew" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="12" destinationModule="vtkActor" destinationPort="SetMapper(vtkMapper)" id="8" sourceId="9" sourceModule="vtkDataSetMapper" sourcePort="self(vtkDataSetMapper)"/>
     </action>
     <action date="06 Mar 2007 17:31:15" parent="338" time="339" user="stew" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="11" destinationModule="vtkRenderer" destinationPort="AddActor(vtkProp)" id="9" sourceId="12" sourceModule="vtkActor" sourcePort="self(vtkActor)"/>
     </action>
     <action date="06 Mar 2007 17:31:21" parent="339" time="340" user="stew" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetFileName" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="0" type="String" value="../examples/data/torus.vtk"/>
     </action>
     <action date="06 Mar 2007 17:31:22" parent="340" time="341" user="stew" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="SetFileName" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="0" type="String" value="../examples/data/torus.vtk"/>
     </action>
     <action date="06 Mar 2007 17:38:56" parent="341" time="342" user="stew" what="moveModule">
-      <notes>
-        None
-      </notes>
       <move dx="-316.51698693" dy="44.0371460076" id="0"/>
       <move dx="-316.51698693" dy="44.0371460076" id="1"/>
       <move dx="-316.51698693" dy="44.0371460076" id="2"/>
@@ -1730,159 +1349,81 @@
       <move dx="-316.51698693" dy="44.0371460076" id="12"/>
     </action>
     <action date="06 Mar 2007 17:38:57" parent="342" time="343" user="stew" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="13" name="MplPlot" x="-361.0" y="199.0"/>
     </action>
     <action date="06 Mar 2007 17:38:57" parent="343" time="344" user="stew" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="14" name="MplFigureCell" x="37.0688549561" y="-60.0259508645"/>
     </action>
     <action date="06 Mar 2007 17:38:57" parent="344" time="345" user="stew" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="15" name="MplPlot" x="-210.08155986" y="198.305077955"/>
     </action>
     <action date="06 Mar 2007 17:38:58" parent="345" time="346" user="stew" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="16" name="MplPlot" x="-104.504769347" y="212.057733157"/>
     </action>
     <action date="06 Mar 2007 17:38:58" parent="346" time="347" user="stew" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="17" name="MplPlot" x="-305.0" y="279.0"/>
     </action>
     <action date="06 Mar 2007 17:38:58" parent="347" time="348" user="stew" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="18" name="MplFigure" x="-202.707626949" y="33.3776401774"/>
     </action>
     <action date="06 Mar 2007 17:38:59" parent="348" time="349" user="stew" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="19" name="MplFigure" x="-2.3575207408" y="92.971924974"/>
     </action>
     <action date="06 Mar 2007 17:38:59" parent="349" time="350" user="stew" what="addModule">
-      <notes>
-        None
-      </notes>
       <object cache="0" id="20" name="MplFigureCell" x="-200.077852594" y="-92.979339507"/>
     </action>
     <action date="06 Mar 2007 17:38:59" parent="350" time="351" user="stew" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="source" functionId="0" moduleId="13" parameter="&lt;no description&gt;" parameterId="0" type="String" value="subplot%28212%29%0A%0Adashes%20%3D%20%5B5%2C2%2C10%2C5%5D%20%23%205%20points%20on%2C%202%20off%2C%203%20on%2C%201%20off%0A%0Al%2C%20%3D%20plot%28arange%2820%29%2C%20%27--%27%29%0Al.set_dashes%28dashes%29%0A"/>
     </action>
     <action date="06 Mar 2007 17:38:59" parent="351" time="352" user="stew" what="changeAnnotation">
-      <notes>
-        None
-      </notes>
       <set key="" moduleId="13" value=""/>
     </action>
     <action date="06 Mar 2007 17:38:59" parent="352" time="353" user="stew" what="changeAnnotation">
-      <notes>
-        None
-      </notes>
       <set key="" moduleId="14" value=""/>
     </action>
     <action date="06 Mar 2007 17:38:59" parent="353" time="354" user="stew" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="source" functionId="0" moduleId="15" parameter="&lt;no description&gt;" parameterId="0" type="String" value="subplot%28221%29%0A%0A%0AN%20%3D%205%0AmenMeans%20%3D%20%2820%2C%2035%2C%2030%2C%2035%2C%2027%29%0AmenStd%20%3D%20%20%20%282%2C%203%2C%204%2C%201%2C%202%29%0A%0Aind%20%3D%20arange%28N%29%20%20%23%20the%20x%20locations%20for%20the%20groups%0Awidth%20%3D%200.35%20%20%20%20%20%20%20%23%20the%20width%20of%20the%20bars%0Ap1%20%3D%20bar%28ind%2C%20menMeans%2C%20width%2C%20color%3D%27r%27%2C%20yerr%3DmenStd%29%0A%0AwomenMeans%20%3D%20%2825%2C%2032%2C%2034%2C%2020%2C%2025%29%0AwomenStd%20%3D%20%20%20%283%2C%205%2C%202%2C%203%2C%203%29%0Ap2%20%3D%20bar%28ind%2Bwidth%2C%20womenMeans%2C%20width%2C%20color%3D%27y%27%2C%20yerr%3DwomenStd%29%0A%0Aylabel%28%27Scores%27%29%0Atitle%28%27Scores%20by%20group%20and%20gender%27%29%0Axticks%28ind%2Bwidth%2C%20%28%27G1%27%2C%20%27G2%27%2C%20%27G3%27%2C%20%27G4%27%2C%20%27G5%27%29%20%29%0A%0Alegend%28%20%28p1%5B0%5D%2C%20p2%5B0%5D%29%2C%20%28%27Men%27%2C%20%27Women%27%29%20%29%0A"/>
     </action>
     <action date="06 Mar 2007 17:38:59" parent="354" time="355" user="stew" what="changeAnnotation">
-      <notes>
-        None
-      </notes>
       <set key="" moduleId="15" value=""/>
     </action>
     <action date="06 Mar 2007 17:38:59" parent="355" time="356" user="stew" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="source" functionId="0" moduleId="16" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20matplotlib.axes3d%20as%20axes3d%0A%0Afig%20%3D%20gcf%28%29%0A%0Aax3d%20%3D%20axes3d.Axes3D%28fig%29%0Aplt%20%3D%20fig.axes.append%28ax3d%29%0A%0Adelta%20%3D%20pi%20/%20199.0%0Au%20%3D%20arange%280%2C%202%2Api%2B%28delta%2A2%29%2C%20delta%2A2%29%0Av%20%3D%20arange%280%2C%20pi%2Bdelta%2C%20delta%29%0A%0Ax%20%3D%20outer%28cos%28u%29%2Csin%28v%29%29%0Ay%20%3D%20outer%28sin%28u%29%2Csin%28v%29%29%0Az%20%3D%20outer%28ones%28u.shape%29%2C%20cos%28v%29%29%0A%0A%23ax3d.plot_wireframe%28x%2Cy%2Cz%29%0Asurf%20%3D%20ax3d.plot_surface%28x%2C%20y%2C%20z%29%0Asurf.set_array%28linspace%280%2C%201.0%2C%20len%28v%29%29%29%0A%20%20%20%20%20%20%20%20%0Aax3d.set_xlabel%28%27X%27%29%0Aax3d.set_ylabel%28%27Y%27%29%0Aax3d.set_zlabel%28%27Z%27%29"/>
     </action>
     <action date="06 Mar 2007 17:38:59" parent="356" time="357" user="stew" what="changeAnnotation">
-      <notes>
-        None
-      </notes>
       <set key="" moduleId="16" value=""/>
     </action>
     <action date="06 Mar 2007 17:38:59" parent="357" time="358" user="stew" what="changeParameter">
-      <notes>
-        None
-      </notes>
       <set alias="" function="source" functionId="0" moduleId="17" parameter="&lt;no description&gt;" parameterId="0" type="String" value="subplot%28222%29%0Amu%2C%20sigma%20%3D%20100%2C%2015%0Ax%20%3D%20mu%20%2B%20sigma%2Arandn%2810000%29%0A%0A%23%20the%20histogram%20of%20the%20data%0An%2C%20bins%2C%20patches%20%3D%20hist%28x%2C%2050%2C%20normed%3D1%29%0Asetp%28patches%2C%20%27facecolor%27%2C%20%27g%27%2C%20%27alpha%27%2C%200.75%29%0A%0A%23%20add%20a%20%27best%20fit%27%20line%0Ay%20%3D%20normpdf%28%20bins%2C%20mu%2C%20sigma%29%0Al%20%3D%20plot%28bins%2C%20y%2C%20%27r--%27%29%0Asetp%28l%2C%20%27linewidth%27%2C%201%29%0A%0Axlabel%28%27Smarts%27%29%0Aylabel%28%27Probability%27%29%0Atitle%28r%27%24%5Crm%7BHistogram%5C%20of%5C%20IQ%3A%7D%5C%20%5Cmu%3D100%2C%5C%20%5Csigma%3D15%24%27%29%0Aaxis%28%5B40%2C%20160%2C%200%2C%200.03%5D%29%0Agrid%28True%29%0A"/>
     </action>
     <action date="06 Mar 2007 17:38:59" parent="358" time="359" user="stew" what="changeAnnotation">
-      <notes>
-        None
-      </notes>
       <set key="" moduleId="17" value=""/>
     </action>
     <action date="06 Mar 2007 17:38:59" parent="359" time="360" user="stew" what="changeAnnotation">
-      <notes>
-        None
-      </notes>
       <set key="" moduleId="18" value=""/>
     </action>
     <action date="06 Mar 2007 17:38:59" parent="360" time="361" user="stew" what="changeAnnotation">
-      <notes>
-        None
-      </notes>
       <set key="" moduleId="19" value=""/>
     </action>
     <action date="06 Mar 2007 17:38:59" parent="361" time="362" user="stew" what="changeAnnotation">
-      <notes>
-        None
-      </notes>
       <set key="" moduleId="20" value=""/>
     </action>
     <action date="06 Mar 2007 17:39:00" parent="362" time="363" user="stew" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="18" destinationModule="MplFigure" destinationPort="Script(String)" id="10" sourceId="13" sourceModule="MplPlot" sourcePort="source(String)"/>
     </action>
     <action date="06 Mar 2007 17:39:00" parent="363" time="364" user="stew" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="14" destinationModule="MplFigureCell" destinationPort="FigureManager(MplFigureManager)" id="11" sourceId="19" sourceModule="MplFigure" sourcePort="FigureManager(MplFigureManager)"/>
     </action>
     <action date="06 Mar 2007 17:39:01" parent="364" time="365" user="stew" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="18" destinationModule="MplFigure" destinationPort="Script(String)" id="12" sourceId="15" sourceModule="MplPlot" sourcePort="source(String)"/>
     </action>
     <action date="06 Mar 2007 17:39:01" parent="365" time="366" user="stew" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="19" destinationModule="MplFigure" destinationPort="Script(String)" id="13" sourceId="16" sourceModule="MplPlot" sourcePort="source(String)"/>
     </action>
     <action date="06 Mar 2007 17:39:01" parent="366" time="367" user="stew" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="18" destinationModule="MplFigure" destinationPort="Script(String)" id="14" sourceId="17" sourceModule="MplPlot" sourcePort="source(String)"/>
     </action>
     <action date="06 Mar 2007 17:39:02" parent="367" time="368" user="stew" what="addConnection">
-      <notes>
-        None
-      </notes>
       <connect destinationId="20" destinationModule="MplFigureCell" destinationPort="FigureManager(MplFigureManager)" id="15" sourceId="18" sourceModule="MplFigure" sourcePort="FigureManager(MplFigureManager)"/>
     </action>
     <tag name="Four Cells" time="368"/>

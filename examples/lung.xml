@@ -1072,7 +1072,7 @@
       <set alias="" function="AddRGBPoint" functionId="7" moduleId="6" parameter="" parameterId="2" type="Float" value="0.957"/>
       <set alias="" function="AddRGBPoint" functionId="7" moduleId="6" parameter="" parameterId="3" type="Float" value="1.0"/>
     </action>
-    <action date="28 Mar 2006 09:39:40" parent="238" time="239" user="juliana" what="changeParameter">
+    <action date="28 Feb 2006 09:39:40" parent="238" time="239" user="juliana" what="changeParameter">
       <notes>
         &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;/head&gt;&lt;body style=&quot; white-space: pre-wrap; font-family:MS Shell Dlg; font-size:8.25pt; font-weight:400; font-style:normal; text-decoration:none;&quot;&gt;&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Attempted to modify the visualization by including a colomap to color the various scalar values in the dataset.&lt;/p&gt;&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
       </notes>
@@ -1128,7 +1128,7 @@
       <set alias="" function="AddPoint" functionId="10" moduleId="2" parameter="" parameterId="0" type="Float" value="167"/>
       <set alias="" function="AddPoint" functionId="10" moduleId="2" parameter="" parameterId="1" type="Float" value="1"/>
     </action>
-    <action date="28 Mar 2006 09:39:40" parent="251" time="252" user="juliana" what="changeParameter">
+    <action date="28 Feb 2006 09:39:40" parent="251" time="252" user="juliana" what="changeParameter">
       <notes>
         &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;/head&gt;&lt;body style=&quot; white-space: pre-wrap; font-family:MS Shell Dlg; font-size:8.25pt; font-weight:400; font-style:normal; text-decoration:none;&quot;&gt;&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The values in the datset seem to be offset by a scalar.  I believe this is the result of the scanner producing some outlying values, so I am trying to overcome this with an appropriate color and opacity map.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
       </notes>
@@ -1512,7 +1512,7 @@
     <action date="28 Mar 2006 09:39:40" parent="348" time="349" user="juliana" what="moveModule">
       <move dx="0.0" dy="0.0" id="1"/>
     </action>
-    <action date="28 Mar 2006 09:39:40" parent="349" time="350" user="juliana" what="changeParameter">
+    <action date="28 Feb 2006 09:39:40" parent="349" time="350" user="juliana" what="changeParameter">
       <notes>
         &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;/head&gt;&lt;body style=&quot; white-space: pre-wrap; font-family:MS Shell Dlg; font-size:8.25pt; font-weight:400; font-style:normal; text-decoration:none;&quot;&gt;&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;To initially explore the dataset, I am using a simple linear opacity function.  This is appropriate as I anticipate boney material to belong to the high-end of the scalar field.  However, this simple exploration will supress some of the low-density material requiring futher exploration once the upper-bound of the scalar field (bone) is determined.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
       </notes>
@@ -3298,7 +3298,7 @@
       <move dx="0.0" dy="0.0" id="3"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="758" time="759" user="eranders" what="changeParameter">
-      <set alias="" function="SetFileName" functionId="0" moduleId="3" parameter="" parameterId="0" type="String" value="test_files/anon_4877_unq.vtk"/>
+      <set alias="" function="SetFileName" functionId="0" moduleId="3" parameter="" parameterId="0" type="String" value="../examples/data/anon_4877_unq.vtk"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="400" time="760" user="eranders" what="moveModule">
       <move dx="0.0" dy="0.0" id="2"/>
@@ -3342,7 +3342,7 @@
       <move dx="0.0" dy="0.0" id="3"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="771" time="772" user="eranders" what="changeParameter">
-      <set alias="" function="SetFileName" functionId="0" moduleId="3" parameter="" parameterId="0" type="String" value="test_files/anon_4877_unq.vtk"/>
+      <set alias="" function="SetFileName" functionId="0" moduleId="3" parameter="" parameterId="0" type="String" value="../examples/data/anon_4877_unq.vtk"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="772" time="773" user="eranders" what="moveModule">
       <move dx="0.0" dy="0.0" id="2"/>

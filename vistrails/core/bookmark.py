@@ -28,13 +28,13 @@ It defines the following classes:
  - BookmarkController 
 """
 import os.path
-import core.interpreter.default
-from core.utils import VistrailsInternalError, DummyView
-from core.utils.uxml import named_elements, XMLWrapper
-from core.xml_parser import XMLParser
 from core.ensemble_pipelines import EnsemblePipelines
 from core.interpreter.default import default_interpreter
 from core.param_explore import InterpolateDiscreteParam, ParameterExploration
+from core.utils import VistrailsInternalError, DummyView
+from core.utils.uxml import named_elements, XMLWrapper
+from core.xml_parser import XMLParser
+import core.interpreter.default
 
 ################################################################################
 
@@ -42,15 +42,25 @@ class Bookmark(object):
     """Stores a Vistrail Bookmark"""
     def __init__(self, parent='', id=-1, vistrailsFile='', pipeline=0, name='', 
                  type=''):
-        """__init__(vistrailsFile: str, number: int, tag: str) -> Bookmark"""
+        """__init__(parent: int, id: int, vistrailsFile: str,
+                    pipeline: int, name: str, type: str) -> Bookmark
+        It creates a vistrail bookmark."""
         self.id = id
         self.parent = parent
         self.filename = vistrailsFile
         self.pipeline = pipeline
         self.name = name
         self.type = type
+        if os.path.exists(self.filename):
+            self.error = 0
+        else:
+            self.error = 1 #error = 1: file not found
+                           #error = 2: version not found
 
     def serialize(self, dom, element):
+        """serialize(dom, element) -> None
+        Convert this object to an XML representation.
+        """
         bmark = dom.createElement('bookmark')
         bmark.setAttribute('id', str(self.id))
         bmark.setAttribute('parent', str(self.parent))
@@ -61,23 +71,29 @@ class Bookmark(object):
             node = dom.createElement('filename')
             filename = dom.createTextNode(str(self.filename))
             node.appendChild(filename)
-            bmark.appendChild(node)
-            
+            bmark.appendChild(node)           
         element.appendChild(bmark)
 
     def __str__(self):
         """ __str__() -> str - Writes itself as a string """ 
         return """<<id= '%s' name='%s' type='%s' parent='%s' 
-        filename='%s' pipeline='%s'>>""" %  (
+        filename='%s' pipeline='%s' error='%s'>>""" %  (
             self.id,
             self.name,
             self.type,
             self.parent,
             self.filename,
-            self.pipeline)
+            self.pipeline,
+            self.error)
 
     @staticmethod
     def parse(element):
+        """ parse(element) -> Bookmark
+        Parse an XML object representing a bookmark and returns a Bookmark
+        object. 
+        It checks if the vistrails file exists.
+        
+        """
         bookmark = Bookmark()
         bookmark.id = int(element.getAttribute('id'))
         bookmark.parent = element.getAttribute('parent')
@@ -86,7 +102,11 @@ class Bookmark(object):
         if bookmark.type == "item":
             for n in element.childNodes:
                 if n.localName == "filename":
-                    bookmark.filename = str(n.firstChild.nodeValue).strip()
+                    bookmark.filename = str(n.firstChild.nodeValue).strip(" \n\t")
+                    if os.path.exists(bookmark.filename):
+                        bookmark.error = 0
+                    else:
+                        bookmark.error = 1
                     break
             bookmark.pipeline = int(element.getAttribute('pipeline'))
         return bookmark
@@ -125,6 +145,7 @@ class BookmarkCollection(XMLWrapper):
         root.id = 0
         root.name = "Bookmarks"
         root.type = "folder"
+        root.error = 0
         self.bookmarks = BookmarkTree(root)
         self.bookmarkMap = {}
         self.changed = False
@@ -134,10 +155,10 @@ class BookmarkCollection(XMLWrapper):
     def addBookmark(self, bookmark):
         """addBookmark(bookmark: Bookmark) -> None
         Adds a bookmark to the collection """
-        self.bookmarks.addBookmark(bookmark)
+        
         if self.bookmarkMap.has_key(bookmark.id):
             raise VistrailsInternalError("Bookmark with repeated id")
-
+        self.bookmarks.addBookmark(bookmark)
         self.currentId = max(self.currentId, bookmark.id+1)
         self.bookmarkMap[bookmark.id] = bookmark
         self.changed = True
@@ -184,7 +205,7 @@ class BookmarkCollection(XMLWrapper):
         self.currentId = 1
 
     def parse(self, filename):
-        """loadBookmarks(filename: str) -> None  
+        """parse(filename: str) -> None  
         Loads a collection of bookmarks from a XML file, appending it to
         self.bookmarks.
         
@@ -287,21 +308,24 @@ class BookmarkController(object):
         bookmark = Bookmark(parent, id, vistrailsFile,pipeline,name,"item")
         self.collection.addBookmark(bookmark)
         self.collection.serialize(self.filename)
-        self.loadPipeline(id)
+        if not bookmark.error:
+            self.loadPipeline(id)
 
     def removeBookmark(self, id):
         """removeBookmark(id: int) -> None 
         Remove bookmark with id from the collection 
         
         """
+        bookmark = self.collection.bookmarkMap[id]
         self.collection.removeBookmark(id)
-        del self.pipelines[id]
-        del self.ensemble.pipelines[id]
-        if id in self.activePipelines:
-            del self.activePipelines[id]
-        if id in self.ensemble.activePipelines:
-            del self.ensemble.activePipelines[id]
-        self.ensemble.assembleAliases()
+        if not bookmark.error:
+            del self.pipelines[id]
+            del self.ensemble.pipelines[id]
+            if id in self.activePipelines:
+                del self.activePipelines[id]
+            if id in self.ensemble.activePipelines:
+                del self.ensemble.activePipelines[id]
+            self.ensemble.assembleAliases()
         self.collection.serialize(self.filename)
     
     def updateAlias(self, alias, value):
@@ -330,10 +354,13 @@ class BookmarkController(object):
         bookmark = self.collection.bookmarkMap[id]
         parser.openVistrail(bookmark.filename)
         v = parser.getVistrail()
-        self.pipelines[id] = v.getPipeline(bookmark.pipeline)
+        if v.hasVersion(bookmark.pipeline):
+            self.pipelines[id] = v.getPipeline(bookmark.pipeline)
+            self.ensemble.addPipeline(id, self.pipelines[id])
+            self.ensemble.assembleAliases()
+        else:
+            bookmark.error = 2
         parser.closeVistrail()
-        self.ensemble.addPipeline(id, self.pipelines[id])
-        self.ensemble.assembleAliases()
 
     def loadAllPipelines(self):
         """loadAllPipelines() -> None
@@ -344,14 +371,23 @@ class BookmarkController(object):
         self.pipelines = {}
         vistrails = {}
         for id, bookmark in self.collection.bookmarkMap.iteritems():
-            if vistrails.has_key(bookmark.filename):
-                v = vistrails[bookmark.filename]
+            if os.path.exists(bookmark.filename):
+                if vistrails.has_key(bookmark.filename):
+                    v = vistrails[bookmark.filename]
+                else:
+                    parser.openVistrail(bookmark.filename)
+                    v = parser.getVistrail()
+                    parser.closeVistrail()
+                    vistrails[bookmark.filename] = v
+                    
+                if v.hasVersion(bookmark.pipeline):
+                    self.pipelines[id] = v.getPipeline(bookmark.pipeline)
+                    bookmark.error = 0
+                else:
+                    bookmark.error = 2
             else:
-                parser.openVistrail(bookmark.filename)
-                v = parser.getVistrail()
-                vistrails[bookmark.filename] = v
-                parser.closeVistrail()
-            self.pipelines[id] = v.getPipeline(bookmark.pipeline)
+                bookmark.error = 1
+
         self.ensemble = EnsemblePipelines(self.pipelines)
         self.ensemble.assembleAliases()
 
