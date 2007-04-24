@@ -29,6 +29,7 @@ QPIPGraphicsView
 
 from PyQt4 import QtCore, QtGui
 from gui.theme import CurrentTheme
+import core.system
 import math
 
 ################################################################################
@@ -460,20 +461,25 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         """
         return QtCore.QSize(512, 512)
 
-    def setScene(self, scene):
-        """ setScene(scene: QGraphicsScene) -> None
-        Make sure the viewport background brush the same as the scene
-        one. This is only neccessary on the Mac to work around Qt/Mac
-        bug. We can remove this if any future release of Qt fixes
-        this.
+    # Workaround for border aliasing on OSX
+    # However, it breaks things on Linux, because it
+    # makes zooming _extremely_ slow, so we check it
+    # before we run.
+    if core.system.systemType == 'Darwin':
+        def setScene(self, scene):
+            """ setScene(scene: QGraphicsScene) -> None
+            Make sure the viewport background brush the same as the scene
+            one. This is only neccessary on the Mac to work around Qt/Mac
+            bug. We can remove this if any future release of Qt fixes
+            this.
 
-        """
-        QtGui.QGraphicsView.setScene(self, scene)
-        if self.scene():
-            palette = QtGui.QPalette(self.viewport().palette())
-            palette.setBrush(QtGui.QPalette.Base, 
-                             self.scene().backgroundBrush())
-            self.viewport().setPalette(palette)
+            """
+            QtGui.QGraphicsView.setScene(self, scene)
+            if self.scene():
+                palette = QtGui.QPalette(self.viewport().palette())
+                palette.setBrush(QtGui.QPalette.Base, 
+                                 self.scene().backgroundBrush())
+                self.viewport().setPalette(palette)
 
 class QPIPGraphicsView(QtGui.QWidget):
     """
