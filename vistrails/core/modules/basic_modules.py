@@ -72,7 +72,7 @@ class Constant(Module):
 #         if not self.upToDate:
 #             return str(self.value)
 #         else:
-#             return str(self.getOutput("value"))
+#             return str(self.get_output("value"))
 
     def valueAsString(self):
         return str(self.value)

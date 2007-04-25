@@ -41,10 +41,10 @@ class InternalTuple(object):
     def compute(self):
         return
 
-    def setInputPort(self, index, connector):
+    def set_input_port(self, index, connector):
         self._values[index] = connector()
 
-    def getOutput(self, port):
+    def get_output(self, port):
         return tuple(self._values)
 
     def update(self):
@@ -60,12 +60,12 @@ class BaseInterpreter(object):
         Initialize class members
         
         """
-        self.doneSummonHook = None
-        self.doneUpdateHook = None
+        self.done_summon_hook = None
+        self.done_update_hook = None
         self._logger = core.logger.Logger.get()
 
-    def getNameDependencies(self, astList):
-        """getNameDependencies(astList) -> list of something 
+    def get_name_dependencies(self, astList):
+        """get_name_dependencies(astList) -> list of something 
         
         """
         
@@ -75,10 +75,10 @@ class BaseInterpreter(object):
         else:
             for e in astList:
                 if type(e) is ListType:
-                    result += self.getNameDependencies(e)
+                    result += self.get_name_dependencies(e)
         return result
 
-    def buildAliasDictionary(self, pipeline):
+    def build_alias_dictionary(self, pipeline):
         aliases = {}
         for mid in pipeline.modules:
             for f in pipeline.modules[mid].functions:
@@ -94,22 +94,12 @@ class BaseInterpreter(object):
         return aliases
 
     def compute_evaluation_order(self, aliases):
-        dp = Graph()
-        for alias,(atype,(base,exp)) in aliases.iteritems():
-            dp.add_vertex(alias)
-            for e in exp:
-                astList = parser.expr(e[1]).tolist()
-                for edge in self.getNameDependencies(astList):
-                    dp.add_edge(alias, edge)
-        return dp.vertices_topological_sort()
-
-    def computeEvaluationOrder(self, aliases):
         # Build the dependencies graph
         dp = {}
         for alias,(atype,(base,exp)) in aliases.items():
             edges = []
             for e in exp:
-                edges += self.getNameDependencies()
+                edges += self.get_name_dependencies()
             dp[alias] = edges
             
         # Topological Sort to find the order to compute aliases
@@ -137,7 +127,7 @@ class BaseInterpreter(object):
                 del unordered[i]
         return ordered
 
-    def evaluateExp(self, atype, base, exps, aliases):
+    def evaluate_exp(self, atype, base, exps, aliases):
         import datetime        
         for e in exps: base = (base[:e[0]] +
                                str(eval(e[1],
@@ -150,22 +140,22 @@ class BaseInterpreter(object):
             base = eval(base,None,None)
         return base
 
-    def resolveAliases(self, pipeline,
-                       customAliases=None):
+    def resolve_aliases(self, pipeline,
+                        customAliases=None):
         # Compute the 'locals' dictionary by evaluating named expressions
-        aliases = self.buildAliasDictionary(pipeline)
+        aliases = self.build_alias_dictionary(pipeline)
         if customAliases:
             #customAliases can be only a subset of the aliases
             #so we need to build the Alias Dictionary always
             for k,v in customAliases.iteritems():
                 aliases[k] = v
         
-        ordered = self.computeEvaluationOrder(aliases)
+        ordered = self.compute_evaluation_order(aliases)
         casting = {'int': int, 'float': float, 'double': float, 'string': str,
                    'Integer': int, 'Float': float, 'String': str}
         for alias in reversed(ordered):
             (atype,(base,exps)) = aliases[alias]
-            value = self.evaluateExp(atype,base,exps,aliases)
+            value = self.evaluate_exp(atype,base,exps,aliases)
             aliases[alias] = casting[atype](value)
 
         for mid in pipeline.modules:
@@ -177,24 +167,24 @@ class BaseInterpreter(object):
                         (base,exps) = expression.parseExpression(
                             str(p.strValue))
                         p.evaluatedStrValue = str(
-                            self.evaluateExp(p.type,base,exps,aliases))
+                            self.evaluate_exp(p.type,base,exps,aliases))
         return aliases
     
 
-    def setDoneSummonHook(self, hook):
-        """ setDoneSummonHook(hook: function(pipeline, objects)) -> None        
+    def set_done_summon_hook(self, hook):
+        """ set_done_summon_hook(hook: function(pipeline, objects)) -> None
         Assign a function to call right after every objects has been
         summoned during execution
         
         """
-        self.doneSummonHook = hook
+        self.done_summon_hook = hook
 
-    def setDoneUpdateHook(self, hook):
-        """ setDoneUpdateHook(hook: function(pipeline, objects)) -> None        
+    def set_done_update_hook(self, hook):
+        """ set_done_update_hook(hook: function(pipeline, objects)) -> None
         Assign a function to call right after every objects has been
         updated
         
         """
-        self.doneUpdateHook = hook
+        self.done_update_hook = hook
 
 ##############################################################################

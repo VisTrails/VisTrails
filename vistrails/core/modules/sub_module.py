@@ -144,14 +144,14 @@ class SubModule(NotCacheable, Module):
         """
         pipeline = self.Vistrail.getPipeline(self.VersionNumber)
         interpreter = noncached_interpreter.get()
-        interpreter.setDoneSummonHook(self.glueInputPorts)
-        interpreter.setDoneUpdateHook(self.glueOutputPorts)        
+        interpreter.set_done_summon_hook(self.glueInputPorts)
+        interpreter.set_done_update_hook(self.glueOutputPorts)        
         results = interpreter.execute(pipeline,
                                       '<<SUBMODULE>>',
                                       None,
                                       useLock=False)
-        interpreter.setDoneSummonHook(None)
-        interpreter.setDoneUpdateHook(None)
+        interpreter.set_done_summon_hook(None)
+        interpreter.set_done_update_hook(None)
 
     def glueInputPorts(self, pipeline, objects):
         """ glueInputPorts(pipeline: Pipeline, objects: [object]) -> None
@@ -167,7 +167,7 @@ class SubModule(NotCacheable, Module):
         for iport, conn in self.inputPorts.iteritems():
             inputPortId = self.inspector.inputPortByName[iport]
             inputPortModule = objects[inputPortId]
-            inputPortModule.setInputPort('ExternalPipe', conn[0])
+            inputPortModule.set_input_port('ExternalPipe', conn[0])
         
     def glueOutputPorts(self, pipeline, objects):
         """ glueOutputPorts(pipeline: Pipeline, objects: [object]) -> None
@@ -180,7 +180,7 @@ class SubModule(NotCacheable, Module):
                 outputPortId = self.inspector.outputPortByName[oport]
                 outputPortModule = objects[outputPortId]
                 self.setResult(oport,
-                               outputPortModule.getOutput('ExternalPipe'))
+                               outputPortModule.get_output('ExternalPipe'))
         
 _reg.addModule(SubModule)
 

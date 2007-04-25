@@ -63,9 +63,9 @@ InvalidOutput = _InvalidOutput
 # DummyModuleLogging
 
 class DummyModuleLogging(object):
-    def endUpdate(*args, **kwargs): pass
-    def beginUpdate(*args, **kwargs): pass
-    def beginCompute(*args, **kwargs): pass
+    def end_update(*args, **kwargs): pass
+    def begin_update(*args, **kwargs): pass
+    def begin_compute(*args, **kwargs): pass
     def signalSuccess(*args, **kwargs): pass
     def annotate(*args, **kwargs): pass
 
@@ -199,7 +199,7 @@ context."""
                 connector.obj.update()
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             for connector in connectorList:
-                if connector.obj.getOutput(connector.port)==InvalidOutput:
+                if connector.obj.get_output(connector.port)==InvalidOutput:
                     self.removeInputConnector(iport, connector)
                     
     def update(self):
@@ -210,9 +210,9 @@ context."""
         """
         if self.upToDate:
             return
-        self.logging.beginUpdate(self)
+        self.logging.begin_update(self)
         self.updateUpstream()
-        self.logging.beginCompute(self)
+        self.logging.begin_compute(self)
         try:
             self.compute()
         except ModuleError, me:
@@ -227,7 +227,7 @@ context."""
         except Exception, e: 
             raise ModuleError(self, 'Uncaught exception: "%s"' % str(e))
         self.upToDate = True
-        self.logging.endUpdate(self)
+        self.logging.end_update(self)
         self.logging.signalSuccess(self)
 
     def checkInputPort(self, name):
@@ -253,7 +253,7 @@ Makes sure input port 'name' is filled."""
     def setResult(self, port, value):
         self.outputPorts[port] = value
 
-    def getOutput(self, port):
+    def get_output(self, port):
         if self.outputPorts.has_key(port) or not self.outputPorts[port]:
             return self.outputPorts[port]
         return self.requestOutputFromPort(port)
@@ -288,7 +288,7 @@ Makes sure input port 'name' is filled."""
         else:
             return defaultValue
 
-    def setInputPort(self, inputPort, conn):
+    def set_input_port(self, inputPort, conn):
         if self.inputPorts.has_key(inputPort):
             self.inputPorts[inputPort].append(conn)
         else:
@@ -353,7 +353,7 @@ class ModuleConnector(object):
         self.port = None
     
     def __call__(self):
-        return self.obj.getOutput(self.port)
+        return self.obj.get_output(self.port)
 
 def newModule(baseModule, name, dict={}):
     assert issubclass(baseModule, Module)

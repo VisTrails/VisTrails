@@ -51,24 +51,24 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
         if view == None:
             raise VistrailsInternalError("This shouldn't have happened")
 
-        self.resolveAliases(pipeline, aliases)
+        self.resolve_aliases(pipeline, aliases)
 
         self._logger.startWorkflowExecution(vistrailName, currentVersion)
 
-        def addToExecuted(obj):
+        def add_to_executed(obj):
             executed[obj.id] = True
             if kwargs.has_key('moduleExecutedHook'):
                 for callable_ in kwargs['moduleExecutedHook']:
                     callable_(obj.id)
-        def beginCompute(obj):
+        def begin_compute(obj):
             view.setModuleComputing(obj.id)
-        def beginUpdate(obj):
+        def begin_update(obj):
             view.setModuleActive(obj.id)
             reg = modules.module_registry.registry
             name = reg.getDescriptor(obj.__class__).name
             self._logger.startModuleExecution(vistrailName,
                                               currentVersion, obj.id, name)
-        def endUpdate(obj, error=''):
+        def end_update(obj, error=''):
             if not error:
                 view.setModuleSuccess(obj.id)
             else:
@@ -84,10 +84,10 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
             objects = {}
             errors = {}
             executed = {}
-            logging_obj = InstanceObject(signalSuccess=addToExecuted,
-                                         beginUpdate=beginUpdate,
-                                         beginCompute=beginCompute,
-                                         endUpdate=endUpdate,
+            logging_obj = InstanceObject(signalSuccess=add_to_executed,
+                                         begin_update=begin_update,
+                                         begin_compute=begin_compute,
+                                         end_update=end_update,
                                          annotate=annotate)
             # create objects
             for id, module in pipeline.modules.items():
@@ -111,14 +111,14 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                 for f in module.functions:
                     if len(f.params)==0:
                         nullObject = reg.getDescriptorByName('Null').module()
-                        objects[id].setInputPort(f.name, 
+                        objects[id].set_input_port(f.name, 
                                                  ModuleConnector(nullObject,
                                                                  'value'))
                     if len(f.params)==1:
                         p = f.params[0]
                         constant = reg.getDescriptorByName(p.type).module()
                         constant.setValue(p.evaluatedStrValue)
-                        objects[id].setInputPort(f.name, 
+                        objects[id].set_input_port(f.name, 
                                                  ModuleConnector(constant, 
                                                                  'value'))
                     if len(f.params)>1:
@@ -127,10 +127,10 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                         for (i,p) in withIndex(f.params):
                             constant = reg.getDescriptorByName(p.type).module()
                             constant.setValue(p.evaluatedStrValue)
-                            tupleModule.setInputPort(i, 
+                            tupleModule.set_input_port(i, 
                                                      ModuleConnector(constant, 
                                                                      'value'))
-                        objects[id].setInputPort(f.name, 
+                        objects[id].set_input_port(f.name, 
                                                  ModuleConnector(tupleModule,
                                                                  'value'))
             
@@ -141,10 +141,10 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                 dstModule = pipeline.modules[conn.destinationId]
                 conn.makeConnection(src, dst)
 
-            if self.doneSummonHook:
-                self.doneSummonHook(pipeline, objects)
-            if kwargs.has_key('doneSummonHook'):
-                for callable_ in kwargs['doneSummonHook']:
+            if self.done_summon_hook:
+                self.done_summon_hook(pipeline, objects)
+            if kwargs.has_key('done_summon_hook'):
+                for callable_ in kwargs['done_summon_hook']:
                     callable_(pipeline, objects)
 
             if kwargs.has_key('sinks'):
@@ -160,11 +160,11 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                     objects[v].update()
                     
                 except ModuleError, me:
-                    me.module.logging.endUpdate(me.module, me.msg)
+                    me.module.logging.end_update(me.module, me.msg)
                     errors[me.module.id] = me
         
-            if self.doneUpdateHook:
-                self.doneUpdateHook(pipeline, objects)
+            if self.done_update_hook:
+                self.done_update_hook(pipeline, objects)
         
 
         finally:

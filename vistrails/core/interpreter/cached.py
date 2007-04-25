@@ -88,20 +88,20 @@ and over again. This allows nested execution."""
          conn_added_set) = self.add_to_persistent_pipeline(pipeline)
 
 
-        self.resolveAliases(self._persistent_pipeline,aliases)
+        self.resolve_aliases(self._persistent_pipeline,aliases)
 
         # the executed dict works on persistent ids
-        def addToExecuted(obj):
+        def add_to_executed(obj):
             executed[obj.id] = True
             if kwargs.has_key('moduleExecutedHook'):
                 for callable_ in kwargs['moduleExecutedHook']:
                     callable_(obj.id)
         # views work on local ids
-        def beginCompute(obj):
+        def begin_compute(obj):
             i = module_map.inverse[obj.id]
             view.setModuleComputing(i)
         # views and loggers work on local ids
-        def beginUpdate(obj):
+        def begin_update(obj):
             i = module_map.inverse[obj.id]
             view.setModuleActive(i)
             reg = modules.module_registry.registry
@@ -109,7 +109,7 @@ and over again. This allows nested execution."""
             self._logger.startModuleExecution(vistrailName, 
                                               currentVersion, i, name)
         # views and loggers work on local ids
-        def endUpdate(obj, error=''):
+        def end_update(obj, error=''):
             i = module_map.inverse[obj.id]
             if not error:
                 view.setModuleSuccess(i)
@@ -123,12 +123,12 @@ and over again. This allows nested execution."""
             self._logger.insertAnnotationDB(vistrailName, 
                                             currentVersion, i, d)
 
-        def createNull():
+        def create_null():
             """Creates a Null value"""
             reg = modules.module_registry.registry
             return reg.getDescriptorByName('Null').module()
         
-        def createConstant(param):
+        def create_constant(param):
             """Creates a Constant from a parameter spec"""
             reg = modules.module_registry.registry
             constant = reg.getDescriptorByName(param.type).module()
@@ -145,10 +145,10 @@ and over again. This allows nested execution."""
             persistent_sinks = [module_map[sink]
                                 for sink in pipeline.graph.sinks()]
             
-        logging_obj = InstanceObject(signalSuccess=addToExecuted,
-                                     beginUpdate=beginUpdate,
-                                     beginCompute=beginCompute,
-                                     endUpdate=endUpdate,
+        logging_obj = InstanceObject(signalSuccess=add_to_executed,
+                                     begin_update=begin_update,
+                                     begin_compute=begin_compute,
+                                     end_update=end_update,
                                      annotate=annotate)
         errors = {}
         executed = {}
@@ -175,20 +175,20 @@ and over again. This allows nested execution."""
             reg = modules.module_registry.registry
             for f in module.functions:
                 if len(f.params) == 0:
-                    connector = ModuleConnector(createNull(), 'value')
+                    connector = ModuleConnector(create_null(), 'value')
                 elif len(f.params) == 1:
                     p = f.params[0]
-                    connector = ModuleConnector(createConstant(p), 'value')
+                    connector = ModuleConnector(create_constant(p), 'value')
                 else:
                     tupleModule = core.interpreter.base.InternalTuple()
                     tupleModule.length = len(f.params)
                     for (i,p) in withIndex(f.params):
-                        constant = createConstant(p)
+                        constant = create_constant(p)
                         constant.update()
                         connector = ModuleConnector(constant, 'value')
-                        tupleModule.setInputPort(i, connector)
+                        tupleModule.set_input_port(i, connector)
                     connector = ModuleConnector(tupleModule, 'value')
-                obj.setInputPort(f.name, connector)
+                obj.set_input_port(f.name, connector)
 
         # Create the new connections
         for i in conn_added_set:
@@ -198,10 +198,10 @@ and over again. This allows nested execution."""
             dst = self._objects[conn.destinationId]
             conn.makeConnection(src, dst)
 
-        if self.doneSummonHook:
-            self.doneSummonHook(self._persistent_pipeline, self._objects)
-        if kwargs.has_key('doneSummonHook'):
-            for callable_ in kwargs['doneSummonHook']:
+        if self.done_summon_hook:
+            self.done_summon_hook(self._persistent_pipeline, self._objects)
+        if kwargs.has_key('done_summon_hook'):
+            for callable_ in kwargs['done_summon_hook']:
                 callable_(self._persistent_pipeline, self._objects)
                 
         # Update new sinks
@@ -209,11 +209,11 @@ and over again. This allows nested execution."""
             try:
                 self._objects[v].update()
             except ModuleError, me:
-                me.module.logging.endUpdate(me.module, me.msg)
+                me.module.logging.end_update(me.module, me.msg)
                 errors[me.module.id] = me
 
-        if self.doneUpdateHook:
-            self.doneUpdateHook(self._persistent_pipeline, self._objects)
+        if self.done_update_hook:
+            self.done_update_hook(self._persistent_pipeline, self._objects)
                 
         # objs, errs, and execs are mappings that use the local ids as keys,
         # as opposed to the persistent ids.
