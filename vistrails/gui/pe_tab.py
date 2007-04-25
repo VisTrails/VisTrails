@@ -25,7 +25,7 @@ QParameterExplorationTab
 """
 
 from PyQt4 import QtCore, QtGui
-from core.interpreter.default import default_interpreter, noncached_interpreter
+from core.interpreter.default import get_default_interpreter
 from core.modules.module_registry import registry
 from core.param_explore import ActionBasedParameterExploration
 from gui.common_widgets import QDockContainer, QToolWindowInterface
@@ -143,7 +143,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
             progress.show()
 
             QParameterExplorationTab.explorationId += 1
-            interpreter = default_interpreter.get()
+            interpreter = get_default_interpreter()
             for pi in range(len(modifiedPipelines)):
                 progress.setValue(mCount[pi])
                 QtCore.QCoreApplication.processEvents()

@@ -35,19 +35,46 @@ __current_method_name = Stack()
 def _indent():
     _output_file.write(' ' * (len(__current_method_name)-1))
 
-def trace_method(method):
-    """trace_method is a method decorator that traces entry-exit of
-    functions."""
+def trace_method_options(method,
+                         with_args=False,
+                         with_kwargs=False,
+                         with_return=False):
+    """trace_method_options is a method decorator that traces
+    entry-exit of functions. It also prints args, kwargs and return
+    values if optional parameters with_args, with_kwargs and
+    with_return are set to True."""
     def decorated(self, *args, **kwargs):
         __current_method_name.push([method.__name__, 0])
-        _indent()
-        _output_file.write(method.__name__ + ".enter\n")
-        result = method(self, *args, **kwargs)
-        _indent()
-        _output_file.write(method.__name__ + ".exit\n")
-        __current_method_name.pop()
+        try:
+            _indent()
+            _output_file.write(method.__name__ +  ".enter")
+            if with_args:
+                _output_file.write(" (args: ")
+                _output_file.write(str([str(arg) for arg in args]))
+                _output_file.write(")")
+            if with_kwargs:
+                _output_file.write(" (kwargs: ")
+                kwarglist = [(k, str(v)) for (k,v) in kwargs.iteritems()]
+                kwarglist.sort()
+                _output_file.write(str(kwarglist))
+                _output_file.write(")")
+            _output_file.write('\n')
+            result = method(self, *args, **kwargs)
+            _indent()
+            _output_file.write(method.__name__ + ".exit")
+            if with_return:
+                _output_file.write(" (return: %s)" % str(result))
+            _output_file.write('\n')
+        finally:
+            __current_method_name.pop()
         return result
     return decorated
+
+def trace_method(method):
+    return trace_method_options(method)
+
+def trace_method_args(method):
+    return trace_method_options(method, with_args=True)
 
 def bump_trace():
     __current_method_name.top()[1] += 1

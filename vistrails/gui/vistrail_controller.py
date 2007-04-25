@@ -20,6 +20,7 @@
 ##
 ############################################################################
 from PyQt4 import QtCore, QtGui
+from core.common import *
 from core.utils import VistrailsInternalError, ModuleAlreadyExists
 from core.modules import module_registry
 from core.vistrail.action import Action, AddModuleAction, DeleteModuleAction, \
@@ -29,9 +30,12 @@ from core.vistrail.action import Action, AddModuleAction, DeleteModuleAction, \
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
 from core.vistrail.module import Module
+from core.vistrail.module_function import ModuleFunction
+from core.vistrail.module_param import ModuleParam
+
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.vistrail import TagExists
-from core.interpreter.default import default_interpreter
+from core.interpreter.default import get_default_interpreter
 from core.inspector import PipelineInspector
 from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 from core.modules.sub_module import addSubModule, DupplicateSubModule
@@ -205,11 +209,70 @@ class VistrailController(QtCore.QObject):
 
         self.performAction(action)
 
+    def add_parameter_changes_from_execution(self, pipeline, version,
+                                             parameter_changes):
+        """add_parameter_changes_from_execution(pipeline, version,
+        parameter_changes) -> int.
+
+        Adds new versions to the current vistrail as a result of an
+        execution. Returns the version number of the new version."""
+
+        type_map = {float: 'Float',
+                    int: 'Integer',
+                    str: 'String',
+                    bool: 'Boolean'}
+
+        def convert_function_parameters(params):
+            if (type(function_values) == tuple or
+                type(function_values) == list):
+                result = []
+                for v in params:
+                    result.extend(convert_function_parameters(v))
+                return result
+            else:
+                t = type(function_values)
+                assert t in type_map
+                return [(type_map[t], str(function_values))]
+
+        def add_aliases(m_id, f_index, params):
+            function = pipeline.modules[m_id].functions[f_index]
+            result = []
+            for (index,
+                 (param_type, param_value)) in iter_with_index(params):
+                result.append((param_value, param_type,
+                               function.params[index].alias))
+            return result
+
+        for (m_id, function_name, function_values) in parameter_changes:
+            params = convert_function_parameters(function_values)
+            print params
+            f_index = pipeline.find_method(m_id, function_name)
+            if f_index == -1:
+                new_method = ModuleFunction(function_name, params)
+                self.addMethod(m_id, new_method)
+            else:
+                params = add_aliases(m_id, f_index, params)
+                print params
+                self.replace_method(pipeline.modules[m_id],
+                                    f_index,
+                                    params)
+
     def executeWorkflowList(self, vistrails):
-        interpreter = default_interpreter.get()
+        interpreter = get_default_interpreter()
+        changed = False
+        old_quiet = self.quiet
+        self.quiet = True
         for vis in vistrails:
             (name, version, pipeline, view) = vis
-            (objs, errors, executed) = interpreter.execute(pipeline, name, version, view)
+            result = interpreter.execute(self, pipeline, name, version, view)
+            if result.parameter_changes:
+                l = result.parameter_changes
+                self.add_parameter_changes_from_execution(pipeline,
+                                                          version, l)
+                changed = True
+        self.quiet = old_quiet
+        if changed:
+            self.invalidate_version_tree()
 
     def executeCurrentWorkflow(self):
         """ executeCurrentWorkflow() -> None
@@ -511,6 +574,23 @@ class VistrailController(QtCore.QObject):
                                     f.name, p.name, str(p.value()), p.type, "")
         self.performAction(action)
                    
+    def replace_method(self, module, functionId, paramList):
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        functionName= module.functions[functionId].name
+        action = ChangeParameterAction()        
+        for pId in range(len(paramList)):
+            (pValue, pType, pAlias) = paramList[pId]
+            print (pValue, pType, pAlias)
+            action.addParameter(module.id,
+                                functionId,
+                                pId,
+                                functionName,
+                                '<no description>',
+                                pValue,
+                                pType,
+                                pAlias)
+        self.performAction(action)
+
     def deleteAnnotation(self, key, module_id):
         """
         Parameters
@@ -541,11 +621,8 @@ class VistrailController(QtCore.QObject):
             return
         action = ChangeAnnotationAction()
         action.addAnnotation(moduleId, pair[0], pair[1])
-        savedQuiet = self.quiet
-        self.quiet = not pair[0] in ['__desc__']
-        self.performAction(action)
-        self.quiet = savedQuiet
-        
+        self.performAction(action, pair[0] != '__desc__')
+
     def addModulePort(self, module_id, port):
         """
         Parameters
@@ -580,10 +657,17 @@ class VistrailController(QtCore.QObject):
         action.portName = port[1]
         self.performAction(action)
         
-    def performAction(self, action):
-        """ performAction(action: Action) -> timestep
+    def performAction(self, action, quiet=None):
+        """ performAction(action: Action, quiet=None) -> timestep
         Add version to vistrail, updates the current pipeline, and the
         rest of the UI know a new pipeline is selected.
+
+        quiet and self.quiet controlds invalidation of version
+        tree. If quiet is set to any value, it overrides the field
+        value self.quiet.
+
+        If the value is True, then no invalidation happens (gui is not
+        updated.)
         
         """
         newTimestep = self.vistrail.getFreshTimestep()
@@ -597,9 +681,13 @@ class VistrailController(QtCore.QObject):
         self.currentVersion = newTimestep
         
         self.setChanged(True)
-        
-        if not self.quiet:
-            self.invalidate_version_tree()
+
+        if quiet is None:
+            if not self.quiet:
+                self.invalidate_version_tree()
+        else:
+            if not quiet:
+                self.invalidate_version_tree()
         return newTimestep
 
     def performBulkActions(self, actions):
@@ -692,22 +780,7 @@ class VistrailController(QtCore.QObject):
         self.currentVersion = currentAction
         self.invalidate_version_tree()
 
-    def replaceFunction(self, module, functionId, paramList):
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
-        functionName= module.functions[functionId].name
-        action = ChangeParameterAction()        
-        for pId in range(len(paramList)):
-            (pValue, pType, pAlias) = paramList[pId]
-            action.addParameter(module.id,
-                                functionId,
-                                pId,
-                                functionName,
-                                '<no description>',
-                                pValue,
-                                pType,
-                                pAlias)
-        self.performAction(action)
-        
+       
     def setVersion(self, newVersion):
         """ setVersion(newVersion: int) -> None
         Change the controller to newVersion

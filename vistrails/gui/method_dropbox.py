@@ -236,9 +236,9 @@ class QMethodInputForm(QtGui.QGroupBox):
                                   str(self.labels[i].alias)))
             methodBox.lockUpdate()
             methodBox.controller.previousModuleIds = [methodBox.module.id]
-            methodBox.controller.replaceFunction(methodBox.module,
-                                                 self.fId,
-                                                 paramList)
+            methodBox.controller.replace_method(methodBox.module,
+                                                self.fId,
+                                                paramList)
             methodBox.unlockUpdate()
 
     def checkAlias(self, name):

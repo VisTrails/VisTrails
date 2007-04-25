@@ -48,13 +48,17 @@ class Module(object):
     ##########################################################################
     # Constructor and copy
 
-    def __init__(self):
-        self.id = -1
+    def __init__(self, name='', id_=-1, funs=None):
+        self.name = name
+        self.id = id_
+        if funs is not None:
+            self.functions = [ModuleFunction(*fun)
+                              for fun in funs]
+        else:
+            self.functions = []
         self.cache = 1
-        self.functions = []
         self.annotations = {}
         self.center = Point(-1.0, -1.0)
-        self.name = ""
         self.portVisible = Set()
         self.registry = None
         def summonCall(*args):
@@ -347,9 +351,12 @@ class Module(object):
 
     def __str__(self):
         """__str__() -> str Returns a string representation of itself. """
-        return "<<name='%s' id='%s' functions=%s>>" % (self.name,
-                                                       self.id,
-                                                       self.functions)
+        return ("(Module '%s' id=%s functions:%s)@%X" %
+                (self.name,
+                 self.id,
+                 [str(f) for f in self.functions],
+                 id(self)))
+
     def __eq__(self, other):
         """ __eq__(other: Module) -> boolean
         Returns True if self and other have the same attributes. Used by == 
@@ -374,7 +381,7 @@ class Module(object):
         return True
 
     def __ne__(self, other):
-        return not (self == other)
+        return not self.__eq__(other)
 
     ##########################################################################
     # Properties
@@ -452,6 +459,27 @@ class TestModule(unittest.TestCase):
         for xmlmodule in named_elements(root, 'module'):
             mnew = Module.loadFromXML(xmlmodule)
         assert m == mnew        
+
+    def test_constructor(self):
+        m1 = Module('Float', 0,
+                   [('value', [('Float', '1.2')])])
+        m2 = Module()
+        m2.name = "Float"
+        m2.id = 0
+        f = ModuleFunction()
+        f.name = "value"
+        m2.functions.append(f)
+        param = ModuleParam()
+        param.strValue = "1.2"
+        param.type = "Float"
+        param.alias = ""
+        f.params.append(param)
+        assert m1 == m2
+
+    def test_str(self):
+        m = Module('Float', 0,
+                   [('value', [('Float', '1.2')])])
+        str(m)
         
 if __name__ == '__main__':
     unittest.main()

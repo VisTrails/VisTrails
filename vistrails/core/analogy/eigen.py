@@ -29,7 +29,7 @@ import math
 from pipeline_utils import *
 
 reg = core.modules.module_registry.registry
-from core.utils import appendToDictOfLists
+from core.utils import append_to_dict_of_lists
 from core.system import temporaryDirectory
 
 ##############################################################################
@@ -120,7 +120,7 @@ class EigenBase(object):
         for port_name, port_descs in ports.iteritems():
             for port_desc in port_descs:
                 sp = tuple(port_desc)
-                appendToDictOfLists(result, sp, port_name)
+                append_to_dict_of_lists(result, sp, port_name)
         return result
 
     def compare_modules(self, p1_id, p2_id):
@@ -130,6 +130,7 @@ class EigenBase(object):
         ports, the second to output ports."""
         (m1_inputs, m1_outputs) = self.get_ports(self._p1.modules[p1_id])
         (m2_inputs, m2_outputs) = self.get_ports(self._p2.modules[p2_id])
+
 
         m2_input_hist = self.create_type_portmap(m2_inputs)
         m2_output_hist = self.create_type_portmap(m2_outputs)
@@ -187,11 +188,6 @@ class EigenBase(object):
         if (self._p1.modules[p1_id].name !=
             self._p2.modules[p2_id].name):
             input_similarity *= 0.99
-
-        print (self._p1.modules[p1_id].name,
-               self._p2.modules[p2_id].name,
-               input_similarity,
-               output_similarity)
 
         return (input_similarity, output_similarity)
 

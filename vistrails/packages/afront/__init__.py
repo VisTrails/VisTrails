@@ -45,9 +45,9 @@ class AfrontRun(object):
         cmd = ['afront', '-nogui'] + args
         cmdline = list2cmdline(cmd)
         print cmdline
-        result = os.system(cmdline)
-        if result != 0:
-            raise ModuleError(self, "Execution failed")
+        os.system(cmdline)
+#         if result != 0:
+#             raise ModuleError(self, "Execution failed")
 
 
 class Afront(Module, AfrontRun):
@@ -62,7 +62,7 @@ class Afront(Module, AfrontRun):
             args.append("-rho")
             args.append(str(self.getInputFromPort("rho")))
         if self.hasInputFromPort("eta"):
-            args.append("-eta")
+            args.append("-reduction")
             args.append(str(self.getInputFromPort("eta")))
         args.append("-outname")
         args.append(o.name)

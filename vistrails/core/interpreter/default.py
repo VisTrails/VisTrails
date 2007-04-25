@@ -25,4 +25,35 @@ import core.interpreter.noncached
 
 cached_interpreter = core.interpreter.cached.CachedInterpreter
 noncached_interpreter = core.interpreter.noncached.Interpreter
-default_interpreter = cached_interpreter
+__default_interpreter = cached_interpreter
+
+##############################################################################
+
+def get_default_interpreter():
+    """Returns an instance of the default interpreter class."""
+    return __default_interpreter.get()
+
+def set_default_interpreter(interpreter_class):
+    """Sets the default interpreter class."""
+    global __default_interpreter
+    __default_interpreter = interpreter_class
+
+##############################################################################
+
+import unittest
+
+class TestDefaultInterpreter(unittest.TestCase):
+
+    def test_set(self):
+        old_interpreter = type(get_default_interpreter())
+        try:
+            set_default_interpreter(noncached_interpreter)
+            self.assertEquals(type(get_default_interpreter()),
+                              noncached_interpreter)
+            set_default_interpreter(cached_interpreter)
+            self.assertEquals(type(get_default_interpreter()),
+                              cached_interpreter)
+        finally:
+            set_default_interpreter(old_interpreter)
+            self.assertEquals(type(get_default_interpreter()),
+                              old_interpreter)

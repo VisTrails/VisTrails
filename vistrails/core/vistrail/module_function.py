@@ -46,6 +46,17 @@ PipelineElementType = enum('PipelineElementType',
 class ModuleFunction(object):
     __fields__ = ['name', 'returnType', 'params']
     """ Stores a function from a vistrail module """
+
+    ##########################################################################
+    # Constructors and copy
+    
+    def __init__(self, name="", params=None):
+        self.name = name
+        self.returnType = "void"
+        if params is not None:
+            self.params = [ModuleParam(*param) for param in params]
+        else:
+            self.params = []
     
     @staticmethod
     def fromSpec(port, spec):
@@ -77,60 +88,6 @@ class ModuleFunction(object):
             return fromDestinationPort()
         else:
             raise VistrailsInternalError("Wasn't expecting an invalid endpoint")
-        
-#     @staticmethod
-#     def fromSetterSignature(name,sig):
-#         """fromSetterSignature(name,sig) -> ModuleFunction
-# Creates a ModuleFunction from a vtk_rtti signature."""
-#         params = sig[1]
-#         f = ModuleFunction()
-#         f.name = name
-#         f.returnType = 'void'
-#         if params == None:
-#             return f
-#         for param in params:
-#             p = ModuleParam()
-#             p.name = '(unnamed)'
-#             if type(param) == type(()):
-#                 p.type = param[0]
-#                 p.minValue = param[1]
-#                 p.maxValue = param[2]
-#             else:
-#                 p.type = param
-#             f.params.append(p)
-#         return f
-
-#     @staticmethod
-#     def fromStateSignature(name, state):
-#         f = ModuleFunction()
-#         f.name = 'Set' + name + 'To' + state
-#         f.returnType = 'void'
-#         return f
-
-#     @staticmethod
-#     def fromToggleSignatures(name):
-#         f1 = ModuleFunction()
-#         f1.name = 'Set' + name
-#         f1.returnType = 'void'
-#         p = ModuleParam()
-#         p.type = 'int'
-#         p.name = '(unnamed)'
-#         f1.params.append(p)
-#         f2 = ModuleFunction()
-#         f2.name = name + 'On'
-#         f2.returnType = 'void'
-#         f3 = ModuleFunction()
-#         f3.name = name + 'Off'
-#         f3.returnType = 'void'
-#         return [f1,f2,f3]
-
-    ##########################################################################
-    # Constructor and copy
-    
-    def __init__(self):
-        self.name = ""
-	self.returnType = ""
-	self.params = []
 
     def __copy__(self):
         """ __copy__() -> ModuleFunction - Returns a clone of itself """
@@ -139,7 +96,7 @@ class ModuleFunction(object):
         cp.returnType = self.returnType
         cp.params = [copy.copy(p) for p in self.params]
         return cp
-
+        
     ##########################################################################
 
     def getNumParams(self):
@@ -208,9 +165,10 @@ class ModuleFunction(object):
     
     def __str__(self):
         """ __str__() -> str - Returns a string representation of itself """
-        return "<<name='%s' returnType='%s' params=[%s]>>" % (self.name,
-                                                            self.returnType,
-                                                            ', '.join([str(p) for p in self.params]))
+        return ("(ModuleFunction '%s' params=%s)@%X" %
+                (self.name,
+                 [str(p) for p in self.params],
+                 id(self)))
 
     def __eq__(self, other):
         """ __eq__(other: ModuleFunction) -> boolean
@@ -253,7 +211,6 @@ class TestModuleFunction(unittest.TestCase):
         f = ModuleFunction()
         f.name = "value"
         param = ModuleParam()
-        param.name = "&lt;no description&gt;"
         param.strValue = "1.2"
         param.type = "Float"
         param.alias = ""
@@ -261,20 +218,22 @@ class TestModuleFunction(unittest.TestCase):
         g = ModuleFunction()
         g.name = "value"
         param = ModuleParam()
-        param.name = "&lt;no description&gt;"
         param.strValue = "1.2"
         param.type = "Float"
         param.alias = ""
         g.params.append(param)
         assert f == g
         param = ModuleParam()
-        param.name = "&lt;no description&gt;"
         param.strValue = "1.2"
         param.type = "Float"
         param.alias = ""
         g.params.append(param)
         assert f != g
-        
+
+    def test_str(self):
+        f = ModuleFunction('value',
+                           [('Float', '1.2')])
+        str(f)
 
 if __name__ == '__main__':
     unittest.main()

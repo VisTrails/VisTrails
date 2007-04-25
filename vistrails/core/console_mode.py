@@ -70,12 +70,10 @@ def run(input, workflow, parameters=''):
                 aliases[key] = (ptype,expression.parseExpression(value))
     error = False
     view = DummyView()
-    interpreter = core.interpreter.default.default_interpreter.get()
-    (objs, errors, executed) = interpreter.execute(pip,
-                                                   input,
-                                                   version,
-                                                   view,
-                                                   aliases)
+    interpreter = core.interpreter.default.get_default_interpreter()
+    result = interpreter.execute(None, pip, input, version, view, aliases)
+    (objs, errors, executed) = (result.objects,
+                                result.errors, result.executed)
     for i in objs.iterkeys():
         if errors.has_key(i):
             error = True
@@ -96,6 +94,7 @@ import sys
 import unittest
 import core.vistrail
 import random
+from core.vistrail import Module
 
 class TestConsoleMode(unittest.TestCase):
 
@@ -118,13 +117,12 @@ class TestConsoleMode(unittest.TestCase):
         self.assertEquals(result, True)
 
     def test_tuple(self):
-        interpreter = core.interpreter.default.default_interpreter.get()
+        interpreter = core.interpreter.default.get_default_interpreter()
         v = DummyView()
         p = core.vistrail.pipeline.Pipeline()
-        shm = core.vistrail.pipeline.shorthand_module
-        p.addModule(shm('TestTupleExecution', 0,
-                        [('input', [('Float', '2.0'), ('Float', '2.0')])]))
-        interpreter.execute(p, 'foo', 1, v, None)
+        p.addModule(Module('TestTupleExecution', 0,
+                           [('input', [('Float', '2.0'), ('Float', '2.0')])]))
+        interpreter.execute(None, p, 'foo', 1, v, None)
 
     def test_python_source(self):
         result = run(core.system.visTrailsRootDirectory() +

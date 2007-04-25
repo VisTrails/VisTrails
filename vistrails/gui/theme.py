@@ -230,13 +230,13 @@ class DefaultTheme(object):
             QtGui.QColor(157, 0, 0, 255))
     
         #### FONTS ####        
-        # Font for shape engine text
+        # Font for module text
         self.MODULE_FONT = QtGui.QFont("Arial", 14, QtGui.QFont.Bold)
         self.MODULE_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_FONT)
         self.MODULE_DESC_FONT = QtGui.QFont("Arial", 12)
         self.MODULE_DESC_FONT_METRIC = QtGui.QFontMetrics(self.MODULE_DESC_FONT)
     
-        # Font for shape engine text
+        # Font for version text
         self.VERSION_FONT = QtGui.QFont("Arial", 15, QtGui.QFont.Bold)
         self.VERSION_FONT_METRIC = QtGui.QFontMetrics(self.VERSION_FONT)
 

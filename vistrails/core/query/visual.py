@@ -20,7 +20,7 @@
 ##
 ############################################################################
 from core import query
-from core.utils import appendToDictOfLists
+from core.utils import append_to_dict_of_lists
 import copy
 import re
 
@@ -40,7 +40,7 @@ class VisualQuery(query.Query):
                                  for i in template_ids])
             targetNames = {}
             for i in target_ids:
-                appendToDictOfLists(targetNames, target.modules[i].name, i)
+                append_to_dict_of_lists(targetNames, target.modules[i].name, i)
 
             nextTargetIds = set()
             nextTemplateIds = set()
@@ -78,7 +78,7 @@ class VisualQuery(query.Query):
             matches = set()
             queryModuleNameIndex = {}
             for moduleId, module in p.modules.iteritems():
-                appendToDictOfLists(queryModuleNameIndex, module.name, moduleId)
+                append_to_dict_of_lists(queryModuleNameIndex, module.name, moduleId)
             for querySourceId in self.queryPipeline.graph.sources():
                 querySourceName = self.queryPipeline.modules[querySourceId].name
                 if not queryModuleNameIndex.has_key(querySourceName):
@@ -130,7 +130,7 @@ class VisualQuery(query.Query):
         candidateFunctions = {}
         for fid in range(template.getNumFunctions()):
             f = template.functions[fid]
-            appendToDictOfLists(candidateFunctions, f.name, f)
+            append_to_dict_of_lists(candidateFunctions, f.name, f)
 
         for f in target.functions:
             if not candidateFunctions.has_key(f.name):

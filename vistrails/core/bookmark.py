@@ -29,12 +29,11 @@ It defines the following classes:
 """
 import os.path
 from core.ensemble_pipelines import EnsemblePipelines
-from core.interpreter.default import default_interpreter
+from core.interpreter.default import get_default_interpreter
 from core.param_explore import InterpolateDiscreteParam, ParameterExploration
 from core.utils import VistrailsInternalError, DummyView
 from core.utils.uxml import named_elements, XMLWrapper
 from core.xml_parser import XMLParser
-import core.interpreter.default
 
 ################################################################################
 
@@ -430,10 +429,11 @@ class BookmarkController(object):
          - view: interface to a QPipelineScene
         
         """
-        interpreter = default_interpreter.get()
+        interpreter = get_default_interpreter()
         for vis in vistrails:
             (name, version, pipeline, view) = vis
-            (objs, errors, executed) = interpreter.execute(pipeline, 
+            (objs, errors, executed) = interpreter.execute(None,
+                                                           pipeline, 
                                                            name, 
                                                            version, 
                                                            view)

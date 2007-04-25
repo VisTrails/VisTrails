@@ -25,8 +25,7 @@
 from core.modules import module_registry
 from core.modules.basic_modules import String, Variant, NotCacheable
 from core.modules.vistrails_module import Module, InvalidOutput
-from core.interpreter.default import (noncached_interpreter, 
-                                      default_interpreter)
+from core.interpreter.default import noncached_interpreter
 from core.inspector import PipelineInspector
 from core.utils import ModuleAlreadyExists, DummyView
 import os.path
@@ -146,10 +145,11 @@ class SubModule(NotCacheable, Module):
         interpreter = noncached_interpreter.get()
         interpreter.set_done_summon_hook(self.glueInputPorts)
         interpreter.set_done_update_hook(self.glueOutputPorts)        
-        results = interpreter.execute(pipeline,
-                                      '<<SUBMODULE>>',
-                                      None,
-                                      useLock=False)
+        interpreter.execute(None,
+                            pipeline,
+                            '<<SUBMODULE>>',
+                            None,
+                            useLock=False)
         interpreter.set_done_summon_hook(None)
         interpreter.set_done_update_hook(None)
 

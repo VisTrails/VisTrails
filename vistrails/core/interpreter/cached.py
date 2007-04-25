@@ -21,10 +21,11 @@
 ############################################################################
 
 from core import modules
+from core.common import *
 from core.data_structures.bijectivedict import Bidict
 from core.modules.module_utils import FilePool
 from core.modules.vistrails_module import ModuleConnector, ModuleError
-from core.utils import withIndex, InstanceObject, lock_method, DummyView
+from core.utils import DummyView
 import copy
 import core.interpreter.base
 import core.interpreter.utils
@@ -60,8 +61,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
     def clean_non_cacheable_modules(self):
         """clean_non_cacheable_modules() -> None
 
-Removes all modules that are not cacheable from the persistent pipeline,
-and the modules that depend on them."""
+        Removes all modules that are not cacheable from the persistent
+        pipeline, and the modules that depend on them."""
         non_cacheable_modules = [i for
                                  (i, mod) in self._objects.iteritems()
                                  if not mod.is_cacheable()]
@@ -73,12 +74,14 @@ and the modules that depend on them."""
             self._persistent_pipeline.deleteModule(v)
             del self._objects[v]
 
-    def unlocked_execute(self, pipeline, vistrailName, currentVersion,
+    def unlocked_execute(self, controller,
+                         pipeline, vistrailName, currentVersion,
                          view, aliases=None, **kwargs):
-        """unlocked_execute(pipeline, vistrailName, currentVersion, view):
-Executes a pipeline using caching. Caching works by reusing pipelines directly.
-This means that there exists one global pipeline whose parts get executed over
-and over again. This allows nested execution."""
+        """unlocked_execute(controller, pipeline, vistrailName,
+        currentVersion, view): Executes a pipeline using
+        caching. Caching works by reusing pipelines directly.  This
+        means that there exists one global pipeline whose parts get
+        executed over and over again. This allows nested execution."""
         if view == None:
             raise VistrailsInternalError("This shouldn't have happened")
 
@@ -89,6 +92,11 @@ and over again. This allows nested execution."""
 
 
         self.resolve_aliases(self._persistent_pipeline,aliases)
+
+        parameter_changes = []
+        def change_parameter(obj, name, value):
+            parameter_changes.append((module_map.inverse[obj.id],
+                                      name, value))
 
         # the executed dict works on persistent ids
         def add_to_executed(obj):
@@ -152,6 +160,10 @@ and over again. This allows nested execution."""
                                      annotate=annotate)
         errors = {}
         executed = {}
+        
+        def make_change_parameter(obj):
+            return lambda *args: change_parameter(obj, *args)
+    
         # Create the new objects
         for i in module_added_set:
             persistent_id = module_map[i]
@@ -161,6 +173,7 @@ and over again. This allows nested execution."""
             obj.interpreter = self
             obj.id = persistent_id
             obj.logging = logging_obj
+            obj.change_parameter = make_change_parameter(obj)
             
             # Update object pipeline information
             obj.moduleInfo['vistrailName'] = vistrailName
@@ -182,7 +195,7 @@ and over again. This allows nested execution."""
                 else:
                     tupleModule = core.interpreter.base.InternalTuple()
                     tupleModule.length = len(f.params)
-                    for (i,p) in withIndex(f.params):
+                    for (i,p) in iter_with_index(f.params):
                         constant = create_constant(p)
                         constant.update()
                         connector = ModuleConnector(constant, 'value')
@@ -232,9 +245,9 @@ and over again. This allows nested execution."""
             else:
                 execs[i] = False
 
-#         print "objs:", objs
-#         print "errs:", errs
-#         print "execs:", execs
+        #         print "objs:", objs
+        #         print "errs:", errs
+        #         print "execs:", execs
 
         for i, obj in objs.iteritems():
             if errs.has_key(i):
@@ -244,42 +257,42 @@ and over again. This allows nested execution."""
             else:
                 view.setModuleNotExecuted(i)
 
-        if (kwargs.has_key('return_added') and
-            kwargs['return_added']):
-            return (objs, errs, execs, module_added_set, conn_added_set)
-        else:
-            return (objs, errs, execs)
-        
+        return InstanceObject(objects=objs,
+                              errors=errs,
+                              executed=execs,
+                              modules_added=module_added_set,
+                              connections_added=conn_added_set,
+                              parameter_changes=parameter_changes)
 
     @lock_method(core.interpreter.utils.get_interpreter_lock())
-    def execute(self, pipeline, vistrailName,
+    def execute(self, controller, pipeline, vistrailName,
                 currentVersion=-1, view=DummyView(),
                 aliases=None, **kwargs):
-        """execute(pipeline, vistrailName, currentVersion, view):
-Executes a pipeline using caching. Caching works by reusing pipelines directly.
-This means that there exists one global pipeline whose parts get executed over
-and over again.
+        """execute(controller, pipeline, vistrailName, currentVersion, view):
+        Executes a pipeline using caching. Caching works by reusing
+        pipelines directly.  This means that there exists one global
+        pipeline whose parts get executed over and over again.
 
-This function returns a triple of dictionaries (objs, errs, execs).
+        This function returns a triple of dictionaries (objs, errs, execs).
 
-objs is a mapping from local ids (the ids in the pipeline) to
-objects **in the persistent pipeline**. Notice, these are not the objects
-inside the passed pipeline, but the objects they were mapped to in the
-persistent pipeline.
+        objs is a mapping from local ids (the ids in the pipeline) to
+        objects **in the persistent pipeline**. Notice, these are not
+        the objects inside the passed pipeline, but the objects they
+        were mapped to in the persistent pipeline.
 
-errs is a dictionary from local ids to error messages of modules
-that might have returns errors.
+        errs is a dictionary from local ids to error messages of modules
+        that might have returns errors.
 
-execs is a dictionary from local ids to boolean values indicating
-whether they were executed or not.
+        execs is a dictionary from local ids to boolean values indicating
+        whether they were executed or not.
 
-If modules have no error associated with but were not executed, it
-means they were cached."""
+        If modules have no error associated with but were not executed, it
+        means they were cached."""
         self._logger.startWorkflowExecution(vistrailName, currentVersion)
 
         self.clean_non_cacheable_modules()
 
-        result = self.unlocked_execute(pipeline, vistrailName,
+        result = self.unlocked_execute(controller, pipeline, vistrailName,
                                        currentVersion,
                                        view, aliases,
                                        **kwargs)
@@ -291,13 +304,14 @@ means they were cached."""
     def add_to_persistent_pipeline(self, pipeline):
         """add_to_persistent_pipeline(pipeline):
         (module_id_map, connection_id_map, modules_added)
-Adds a pipeline to the persistent pipeline of the cached interpreter.
+        Adds a pipeline to the persistent pipeline of the cached interpreter.
 
-Returns four things: two dictionaries describing the mapping of ids
-from the passed pipeline to the persistent one (the first one has the
-module id mapping, the second one has the connection id mapping), a
-set of all module ids added to the persistent pipeline, and a set of
-all connection ids added to the persistent pipeline."""
+        Returns four things: two dictionaries describing the mapping
+        of ids from the passed pipeline to the persistent one (the
+        first one has the module id mapping, the second one has the
+        connection id mapping), a set of all module ids added to the
+        persistent pipeline, and a set of all connection ids added to
+        the persistent pipeline."""
         module_id_map = Bidict()
         connection_id_map = Bidict()
         modules_added = set()
@@ -323,7 +337,6 @@ all connection ids added to the persistent pipeline."""
             new_sig = pipeline.connection_signature(connection.id)
             if not self._persistent_pipeline.has_connection_signature(new_sig):
                 # Must add connection to persistent pipeline
-#                 print connection.id, new_sig
                 persistent_connection = copy.copy(connection)
                 persistent_id = self._persistent_pipeline.fresh_connection_id()
                 persistent_connection.id = persistent_id
@@ -342,7 +355,7 @@ all connection ids added to the persistent pipeline."""
         self._persistent_pipeline.compute_signatures()
         return (module_id_map, connection_id_map,
                 modules_added, connections_added)
-
+        
     __instance = None
     @staticmethod
     def get():
@@ -368,6 +381,7 @@ all connection ids added to the persistent pipeline."""
 # Testing
 
 import unittest
+import core.packagemanager
 
 class TestCachedInterpreter(unittest.TestCase):
 
@@ -382,21 +396,18 @@ class TestCachedInterpreter(unittest.TestCase):
         n = v.get_version_number('int chain')
         view = DummyView()
         interpreter = core.interpreter.cached.CachedInterpreter.get()
-        (objs, errors, executed,
-         modules_added, conns_added) = interpreter.execute(p1,
-                                                           'dummy.xml',
-                                                           n,
-                                                           view,
-                                                           return_added=True)
+        result = interpreter.execute(None, p1,
+                                     'dummy.xml',
+                                     n,
+                                     view)
         # to force new params
         p2 = v.getPipeline('int chain')
-        (objs, errors, executed,
-         modules_added, conns_added) = interpreter.execute(p2,
-                                                           'dummy.xml',
-                                                           n,
-                                                           view,
-                                                           return_added=True)
-        assert len(modules_added) == 1
+        result = interpreter.execute(None, p2,
+                                     'dummy.xml',
+                                     n,
+                                     view)
+        assert len(result.modules_added) == 1
+
 
 if __name__ == '__main__':
     unittest.main()

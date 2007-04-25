@@ -71,6 +71,24 @@ class Pipeline(object):
 
     ##########################################################################
 
+    def find_method(self, module_id, parameter_name):
+        """find_method(module_id, parameter_name) -> int.
+
+        Finds the function_id for a given method name.
+        Returns -1 if method name is not there.
+
+        WARNING: Might not work for overloaded methods (where types
+        also matter)
+        """
+        try:
+            return [f.name
+                    for f
+                    in self.modules[module_id].functions].index(parameter_name)
+        except ValueError:
+            return -1
+
+    ##########################################################################
+
     def clear(self):
         """clear() -> None. Erases pipeline contents."""
         self.graph = Graph()
@@ -328,7 +346,7 @@ class Pipeline(object):
 
         """
         return self.connections.has_key(id)
-    
+
     def hasAlias(self, name):
         """hasAlias(name: str) -> boolean 
         Checks whether given alias exists.
@@ -392,7 +410,7 @@ class Pipeline(object):
 
     def module_signature(self, module_id):
         """module_signature(module_id): string
-Returns the signature for the module with given module_id."""
+        Returns the signature for the module with given module_id."""
         if not self._module_signatures.has_key(module_id):
             m = self.modules[module_id]
             sig = core.modules.module_registry.registry.module_signature(m)
@@ -402,7 +420,7 @@ Returns the signature for the module with given module_id."""
     def module_id_from_signature(self, signature):
         """module_id_from_signature(sig): int
         Returns the module_id that corresponds to the given signature.
-This must have been previously computed."""
+        This must have been previously computed."""
         return self._module_signatures.inverse[signature]
 
     def has_module_signature(self, signature):
@@ -412,7 +430,7 @@ This must have been previously computed."""
 
     def subpipeline_signature(self, module_id):
         """subpipeline_signature(module_id): string
-Returns the signature for the subpipeline whose sink id is module_id."""
+        Returns the signature for the subpipeline whose sink id is module_id."""
         if not self._subpipeline_signatures.has_key(module_id):
             upstream_sigs = [(self.subpipeline_signature(m) +
                               Hasher.connection_signature(
@@ -428,7 +446,7 @@ Returns the signature for the subpipeline whose sink id is module_id."""
     def subpipeline_id_from_signature(self, signature):
         """subpipeline_id_from_signature(sig): int
         Returns the module_id that corresponds to the given signature.
-This must have been previously computed."""
+        This must have been previously computed."""
         return self._subpipeline_signatures.inverse[signature]
 
     def has_subpipeline_signature(self, signature):
@@ -438,7 +456,7 @@ This must have been previously computed."""
 
     def connection_signature(self, connection_id):
         """connection_signature(id): string
-Returns the signature for the connection with given id."""
+        Returns the signature for the connection with given id."""
         if not self._connection_signatures.has_key(connection_id):
             c = self.connections[connection_id]
             source_sig = self.subpipeline_signature(c.sourceId)
@@ -462,7 +480,7 @@ Returns the signature for the connection with given id."""
 
     def compute_signatures(self):
         """compute_signatures(): compute all module and subpipeline signatures
-for this pipeline."""
+        for this pipeline."""
         for i in self.modules.iterkeys():
             self.subpipeline_signature(i)
         for c in self.connections.iterkeys():
@@ -472,7 +490,7 @@ for this pipeline."""
         """get_subpipeline([module_id] or subgraph) -> Pipeline
 
         Returns a subset of the current pipeline with the modules passed
-in as module_ids and the internal connections between them."""
+        in as module_ids and the internal connections between them."""
         if type(module_set) == list:
             subgraph = self.graph.subgraph(module_set)
         elif type(module_set) == Graph:
@@ -492,7 +510,7 @@ in as module_ids and the internal connections between them."""
         """dump_actions() -> [Action].
 
         Returns a list of actions that can be used to create a copy of the
-pipeline."""
+        pipeline."""
         result = []
         for m in self.modules.itervalues():
             add_module = core.vistrail.action.AddModuleAction()
@@ -551,33 +569,12 @@ pipeline."""
                 return False
         return True
 
+    def __str__(self):
+        return ("(Pipeline Modules: %s Graph:%s)@%X" %
+                ([(m, str(v)) for (m,v) in sorted(self.modules.items())],
+                 str(self.graph),
+                 id(self)))
 
-
-
-################################################################################
-
-def shorthand_param(t, v, a=''):
-    p = ModuleParam()
-    p.type = t
-    p.strValue = v
-    p.alias = a
-    return p
-
-def shorthand_function(name, params):
-    f = ModuleFunction()
-    f.name = name
-    f.returnType = 'void'
-    for param in params:
-        f.params.append(shorthand_param(*param))
-    return f
-
-def shorthand_module(name, i, funs):
-    m = Module()
-    m.id = i
-    m.name = name
-    for fun in funs:
-        m.functions.append(shorthand_function(*fun))
-    return m
 
 ################################################################################
 
@@ -707,15 +704,32 @@ class TestPipeline(unittest.TestCase):
         """Tests signatures for modules with similar (but not equal)
         parameter specs."""
         p1 = Pipeline()
-        p1.addModule(shorthand_module('CacheBug', 3,
-                                      [('i1', [('Float', '1.0')]),
-                                       ('i2', [('Float', '2.0')])]))
+        p1.addModule(Module('CacheBug', 3,
+                            [('i1', [('Float', '1.0')]),
+                             ('i2', [('Float', '2.0')])]))
         p2 = Pipeline()
-        p2.addModule(shorthand_module('CacheBug', 3,
-                                      [('i1', [('Float', '2.0')]),
-                                       ('i2', [('Float', '1.0')])]))
+        p2.addModule(Module('CacheBug', 3,
+                            [('i1', [('Float', '2.0')]),
+                             ('i2', [('Float', '1.0')])]))
         self.assertNotEquals(p1.module_signature(3),
                              p2.module_signature(3))
+
+    def test_find_method(self):
+        p1 = Pipeline()
+        p1.addModule(Module('CacheBug', 3,
+                            [('i1', [('Float', '1.0')]),
+                             ('i2', [('Float', '2.0')])]))
+        self.assertEquals(p1.find_method(3, 'i1'), 0)
+        self.assertEquals(p1.find_method(3, 'i2'), 1)
+        self.assertEquals(p1.find_method(3, 'i3'), -1)
+        self.assertRaises(KeyError, p1.find_method, 4, 'i1')
+
+    def test_str(self):
+        p1 = Pipeline()
+        p1.addModule(Module('CacheBug', 3,
+                            [('i1', [('Float', '1.0')]),
+                             ('i2', [('Float', '2.0')])]))
+        str(p1)
 
 #     def test_subpipeline(self):
 #         p = self.create_default_pipeline()

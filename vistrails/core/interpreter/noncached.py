@@ -21,10 +21,11 @@
 ############################################################################
 
 from core import modules
+from core.common import *
 from core.data_structures.bijectivedict import Bidict
 from core.modules.module_utils import FilePool
 from core.modules.vistrails_module import ModuleConnector, ModuleError
-from core.utils import withIndex, InstanceObject, lock_method, DummyView
+from core.utils import DummyView
 import copy
 import core.interpreter.base
 import core.interpreter.utils
@@ -41,15 +42,16 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                       'String': lambda x: x}
 
     @lock_method(core.interpreter.utils.get_interpreter_lock())
-    def locked_execute(self, pipeline, vistrailName, currentVersion,
-                       view, aliases=None, **kwargs):
-        return self.unlocked_execute(pipeline, vistrailName,
+    def locked_execute(self, controller, pipeline, vistrailName,
+                       currentVersion, view, aliases=None, **kwargs):
+        return self.unlocked_execute(controller, pipeline, vistrailName,
                                      currentVersion, view, aliases, **kwargs)
     
-    def unlocked_execute(self, pipeline, vistrailName, currentVersion,
+    def unlocked_execute(self, controller, pipeline,
+                         vistrailName, currentVersion,
                          view, aliases=None, **kwargs):
         if view == None:
-            raise VistrailsInternalError("This shouldn't have happened")
+            raise VistrailsInternalError("Must pass a view object")
 
         self.resolve_aliases(pipeline, aliases)
 
@@ -124,7 +126,7 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                     if len(f.params)>1:
                         tupleModule = core.interpreter.base.InternalTuple()
                         tupleModule.length = len(f.params)
-                        for (i,p) in withIndex(f.params):
+                        for (i,p) in iter_with_index(f.params):
                             constant = reg.getDescriptorByName(p.type).module()
                             constant.setValue(p.evaluatedStrValue)
                             tupleModule.set_input_port(i, 
@@ -173,9 +175,11 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
 
         self._logger.finishWorkflowExecution(vistrailName, currentVersion)
         
-        return (objects, errors, executed)
+        return InstanceObject(objects=objects,
+                              errors=errors,
+                              executed=executed)
         
-    def execute(self, pipeline, vistrailName,
+    def execute(self, controller, pipeline, vistrailName,
                 currentVersion=-1, view=DummyView(),
                 useLock=True, **kwargs):
         if useLock:
@@ -183,8 +187,8 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
         else:
             method_call = self.unlocked_execute
 
-        return method_call(pipeline, vistrailName, currentVersion,
-                           view, **kwargs)
+        return method_call(controller, pipeline, vistrailName,
+                           currentVersion, view, **kwargs)
 
 
     @staticmethod

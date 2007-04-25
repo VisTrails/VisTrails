@@ -25,7 +25,7 @@ import copy
 
 from itertools import imap, chain, izip
 
-from core.utils import withIndex, iter_with_index, all
+from core.utils import iter_with_index, all
 from core.data_structures.queue import Queue
 
 ################################################################################

@@ -39,11 +39,11 @@ class ModuleParam(object):
     ##########################################################################
     # Constructor
 
-    def __init__(self):
-        self.type = ""
-        self.strValue = ""
+    def __init__(self, type_="", strValue="", alias=""):
+        self.type = type_
+        self.strValue = strValue
+        self.alias = alias
         self.name = ""
-        self.alias = ""
         self.minValue = ""
         self.maxValue = ""
         self.evaluatedStrValue = ""
@@ -93,18 +93,6 @@ class ModuleParam(object):
                     'Integer': ("0", 0),
                     'String': ("", ""),
                     'Boolean': ("False", False)}
-
-
-    #     dispatchValue = {'float': float,
-    #                      'double': float,
-    #                      'int': int,
-    #                      'vtkIdType': int,
-    #                      'string': str,
-    #                      'str': str,
-    #                      'const char *': str,
-    #                      'const char*': str,
-    #                      'char *': str,
-    #                      'char*': str}
 
     def quoteValue(self):
         """ quoteValue() -> str -  Returns its strValue as an quote string."""
@@ -160,16 +148,14 @@ class ModuleParam(object):
     def __str__(self):
         """ __str__() -> str - Returns a string representation of itself """
         if self.minValue != "":
-            f = (self.name, self.type, self.strValue, 
-                 self.minValue, self.maxValue, self.alias)
-            return "<<name='%s' type='%s' strValue='%s' minValue='%s' " \
-                " maxValue='%s' alias='%s'>>" % f
+            assert False
         else:
-            return "<<name='%s' type='%s' strValue='%s' " \
-                "alias='%s'>>" % (self.name,
-                                  self.type,
-                                  self.strValue,
-                                  self.alias)
+            return ("(Param '%s' type='%s' strValue='%s' alias='%s')@%X" %
+                    (self.name,
+                     self.type,
+                     self.strValue,
+                     self.alias,
+                     id(self)))
 
     def __eq__(self, other):
         """ __eq__(other: ModuleParam) -> boolean
@@ -245,6 +231,10 @@ class TestModuleParam(unittest.TestCase):
         assert p == q
         q.type = "Float"
         assert p != q
+
+    def test_str(self):
+        p = ModuleParam('Float', '1.5')
+        str(p)
 
 if __name__ == '__main__':
     unittest.main()

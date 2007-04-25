@@ -24,7 +24,8 @@ This module defines common functions and exception class definitions
 used all over VisTrails.
 """
 from core.utils.enum import enum
-from core.utils.tracemethod import trace_method, bump_trace, report_stack
+from core.utils.tracemethod import trace_method, bump_trace, report_stack, \
+     trace_method_options, trace_method_args
 from core.utils.color import ColorByName
 from core.utils.lockmethod import lock_method
 import errno
@@ -34,7 +35,9 @@ import itertools
 
 def invert(d):
     """invert(dict) -> dict. Returns an inverted dictionary by
-    switching key-value pairs."""
+    switching key-value pairs. If you use this repeatedly,
+    consider switching the underlying data structure to a
+    core.data_structures.bijectivedict.Bidict instead."""
     return dict([[v,k] for k,v in d.items()])
 
 ################################################################################
@@ -67,14 +70,6 @@ class NoSummon(Exception):
         self.obj = obj
     def __str__(self):
         return "Module %s has no summon method" % self.obj
-
-class MissingPlugin(Exception):
-    """MissingPlugin is raised when a plugin is needed by a pipeline,
-    but the plugin is not present in the VisTrails registry."""
-    def __init__(self, pluginName):
-        self.name = pluginName
-    def __str__(self):
-        return "Plugin '%s' is missing" % pluginName
 
 class UnimplementedException(Exception):
     """UnimplementedException is raised when some interface hasn't
@@ -121,7 +116,7 @@ a class that's being registered as a module within VisTrails."""
         self.klass = klass
 
     def __str__(self):
-        return ("klass '%s' cannot be registered in VisTrails. Please" +
+        return ("class '%s' cannot be registered in VisTrails. Please" +
                 " consult the documentation." % klass.__name__)
 
 class ModuleAlreadyExists(Exception):
@@ -177,16 +172,28 @@ def any(bool_list, pred = lambda x: x):
             return True
     return False
 
-def withIndex(lst):
-    """withIndex(list) -> [(index, element)] - Returns a list with
+def with_index(lst):
+    """with_index(list) -> [(index, element)] - Returns a list with
     elements and their indices. Useful for iterating through the list."""
     return zip(range(len(lst)), lst)
 
 def iter_with_index(iterable):
     """iter_with_index(iterable) -> iterable - Iterator version
-    of withIndex."""
+    of with_index."""
     return itertools.izip(itertools.count(0),
                           iterable)
+
+def iter_index(iterable, item):
+    """iter_index(iterable, item) -> int - Iterates through iterator
+    until item is found, and returns the index inside the iterator.
+
+    iter_index is analogous to list.index for iterators."""
+    try:
+        itor = itertools.izip(iterable, itertools.count(0))
+        return itertools.dropwhile(lambda (v,c): v != item, itor).next()[1]
+    except StopIteration:
+        return -1
+                                              
 
 def eprint(*args):
     """eprint(*args) -> False - Prints the arguments, then returns
@@ -196,6 +203,9 @@ def eprint(*args):
     print
 
 def uniq(l):
+    """uniq(l) -> List. Returns a new list consisting of elements that
+    test pairwise different for equality. Requires all elements to be
+    sortable, and runs in O(n log n) time."""
     if len(l) == 0:
         return []
     a = copy.copy(l)
@@ -205,6 +215,10 @@ def uniq(l):
     return [a[0]] + [next for (i, next) in zip(l1, l2) if i != next]
 
 class InstanceObject(object):
+    """InstanceObject is a convenience class created to facilitate
+    creating of one-off objects with many fields. It simply translates
+    the passed kwargs on the constructor to a set of fields with
+    the right values."""
     def __init__(self, **kw):
         self.__dict__.update(kw)
     def __str__(self):
@@ -216,7 +230,7 @@ class InstanceObject(object):
         post = ')@%X' % id(self)
         return pre + items_str + post
 
-def appendToDictOfLists(dict, key, value):
+def append_to_dict_of_lists(dict, key, value):
     """Appends /value/ to /dict/[/key/], or creates entry such that
     /dict/[/key/] == [/value/]."""
     try:
@@ -268,16 +282,16 @@ class TestCommon(unittest.TestCase):
     def testAppendToDictOfLists(self):
         f = {}
         self.assertEquals(f.has_key(1), False)
-        appendToDictOfLists(f, 1, 1)
+        append_to_dict_of_lists(f, 1, 1)
         self.assertEquals(f.has_key(1), True)
         self.assertEquals(f[1], [1])
-        appendToDictOfLists(f, 1, 1)
+        append_to_dict_of_lists(f, 1, 1)
         self.assertEquals(f.has_key(1), True)
         self.assertEquals(f[1], [1, 1])
-        appendToDictOfLists(f, 1, 2)
+        append_to_dict_of_lists(f, 1, 2)
         self.assertEquals(f.has_key(1), True)
         self.assertEquals(f[1], [1, 1, 2])
-        appendToDictOfLists(f, 2, "Foo")
+        append_to_dict_of_lists(f, 2, "Foo")
         self.assertEquals(f.has_key(2), True)
         self.assertEquals(f[2], ["Foo"])
         
@@ -329,9 +343,18 @@ class TestCommon(unittest.TestCase):
 
     def test_with_index(self):
         l = [0, 5, 10]
-        l1 = withIndex(l)
+        l1 = with_index(l)
         l2 = [v for v in iter_with_index(l)]
         self.assertEquals(l1, l2)
 
+    def test_iter_index(self):
+        l = [0, 2, 4, 6, 8, 9, 11, 13, 15]
+        x = itertools.chain(l)
+        self.assertEquals(iter_index(l, 9), 5)
+        self.assertEquals(iter_index(x, 9), 5)
+        x = itertools.chain(l)
+        self.assertEquals(iter_index(l, 14), -1)
+        self.assertEquals(iter_index(x, 14), -1)
+        
 if __name__ == '__main__':
     unittest.main()

@@ -27,7 +27,9 @@ downloading. The check is performed efficiently using the HTTP GET
 headers.
 """
 
-from core.modules.vistrails_module import Module, ModuleError
+
+from core.modules.vistrails_module import ModuleError
+import core.modules.vistrails_module
 import core.modules
 import core.modules.basic_modules
 import core.modules.module_registry
@@ -46,7 +48,7 @@ package_directory = None
 
 ###############################################################################
 
-class HTTP(Module):
+class HTTP(core.modules.vistrails_module.Module):
     pass
 
 class HTTPFile(HTTP):
@@ -176,25 +178,27 @@ class TestHTTPFile(unittest.TestCase):
 
     def testIncorrectURL(self):
         import core.vistrail
+        from core.vistrail.module import Module
         import core.interpreter
         p = core.vistrail.pipeline.Pipeline()
-        shm = core.vistrail.pipeline.shorthand_module
-        p.addModule(shm('HTTPFile', 0,
-                        [('url', [('String',
-                                   'http://illbetyouthisdoesnotexistohrly')])]))
-        interpreter = core.interpreter.default.default_interpreter.get()
-        interpreter.execute(p, 'foo', 1, self.DummyView(), None)
+        p.addModule(Module('HTTPFile', 0,
+                           [('url',
+                             [('String',
+                               'http://illbetyouthisdoesnotexistohrly')])]))
+        interpreter = core.interpreter.default.get_default_interpreter()
+        interpreter.execute(None, p, 'foo', 1, self.DummyView(), None)
 
     def testIncorrectURL_2(self):
         import core.vistrail
+        from core.vistrail.module import Module
         import core.interpreter
         p = core.vistrail.pipeline.Pipeline()
-        shm = core.vistrail.pipeline.shorthand_module
-        p.addModule(shm('HTTPFile', 0,
-                        [('url', [('String',
-                                   'foobarttp://illbetyouthisdoesnotexistohrly')])]))
-        interpreter = core.interpreter.default.default_interpreter.get()
-        interpreter.execute(p, 'foo', 1, self.DummyView(), None)
+        p.addModule(Module('HTTPFile', 0,
+                           [('url',
+                             [('String',
+                               'foobarttp://neitherdoesthisohrly')])]))
+        interpreter = core.interpreter.default.get_default_interpreter()
+        interpreter.execute(None, p, 'foo', 1, self.DummyView(), None)
 
 
 if __name__ == '__main__':

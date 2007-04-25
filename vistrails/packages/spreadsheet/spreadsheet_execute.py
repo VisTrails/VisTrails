@@ -31,7 +31,7 @@ from core.vistrail.action import AddModuleAction, AddConnectionAction, \
 from core.modules.module_registry import registry
 from core.vistrail import module
 from core.vistrail import connection
-from core.interpreter.default import default_interpreter
+from core.interpreter.default import get_default_interpreter
 from core.utils import DummyView
 import copy
 
@@ -169,7 +169,7 @@ def executePipelineWithProgress(pipeline,
             QtCore.QCoreApplication.processEvents()
         else:
             withoutCancel = False
-    interpreter = default_interpreter.get()
+    interpreter = get_default_interpreter()
     if kwargs.has_key('moduleExecutedHook'):
         kwargs['moduleExecutedHook'].append(moduleExecuted)
     else:
