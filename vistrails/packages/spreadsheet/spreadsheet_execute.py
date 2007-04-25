@@ -176,6 +176,6 @@ def executePipelineWithProgress(pipeline,
         kwargs['moduleExecutedHook'] = [moduleExecuted]
     kwargs['pipeline'] = pipeline
     kwargs['view'] = DummyView()
-    interpreter.execute(**kwargs)                        
+    interpreter.execute(None, **kwargs)                        
     progress.setValue(totalProgress)
     return withoutCancel

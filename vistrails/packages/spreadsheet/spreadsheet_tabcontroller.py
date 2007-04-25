@@ -647,7 +647,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             if progress.wasCanceled():
                 parser.closeVistrail()
                 break
-            execution.execute(pipeline, vistrailFileName,
+            execution.execute(None, pipeline, vistrailFileName,
                               version, DummyView(), None)
             parser.closeVistrail()
             lidx += 1

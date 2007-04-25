@@ -154,6 +154,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                         progress.setValue(progress.value()+1)
                         QtCore.QCoreApplication.processEvents()
                 interpreter.execute(
+                    None,
                     modifiedPipelines[pi],
                     self.controller.fileName,
                     self.controller.currentVersion,
