@@ -120,7 +120,7 @@ class DotLayout(object):
         
         """
         # Create VisTrail graph input
-        tmpGraphFile = file(core.system.temporaryDirectory() +
+        tmpGraphFile = file(core.system.temporary_directory() +
                             'dot_tmp_vistrails.txt', 'w')
         tmpGraphFile.write('digraph G {\n')
         self.outputVistrailGraph(tmpGraphFile, vistrail, graph)
@@ -128,8 +128,8 @@ class DotLayout(object):
         tmpGraphFile.close()
 
         # Run Dotty
-        tempDir = core.system.temporaryDirectory()
-        cmdline = (core.system.graphVizDotCommandLine() +
+        tempDir = core.system.temporary_directory()
+        cmdline = (core.system.graph_viz_dot_command_line() +
                    tempDir + 'dot_output_vistrails.txt ' +
                    tempDir + 'dot_tmp_vistrails.txt')
         os.system(cmdline)
@@ -146,4 +146,4 @@ class DotLayout(object):
 
         # Parse Dotty's output
         self.parseDottyOutput(fileIn)
-        core.system.removeGraphvizTemporaries()
+        core.system.remove_graph_viz_temporaries()

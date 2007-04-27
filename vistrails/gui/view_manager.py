@@ -256,7 +256,7 @@ class QViewManager(QtGui.QTabWidget):
                 fileName = QtGui.QFileDialog.getSaveFileName(
                     self,
                     "Save Vistrail...",
-                    system.vistrailsDirectory(),
+                    system.vistrails_directory(),
                     "Vistrail files (*.xml)\nOther files (*)")
             if fileName!='' and fileName!=None:
                 vistrailView.controller.writeVistrail(str(fileName))

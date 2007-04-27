@@ -85,7 +85,7 @@ class QCellWidget(QtGui.QWidget):
         """
         # Generate filename
         current = datetime.datetime.now()
-        tmpDir = system.temporaryDirectory()
+        tmpDir = system.temporary_directory()
         fn = (tmpDir + "hist_" +
               current.strftime("%Y_%m_%d__%H_%M_%S") +
               "_" + str(current.microsecond)+".png")

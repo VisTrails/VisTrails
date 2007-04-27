@@ -573,7 +573,7 @@ class TestBookmarkCollection(unittest.TestCase):
     def test_empty_bookmark(self):
         """ Exercises doing things on an empty bookmark. """
         collection = BookmarkCollection()
-        collection.parse(core.system.visTrailsRootDirectory() +
+        collection.parse(core.system.vistrails_root_directory() +
                          'tests/resources/empty_bookmarks.xml')
 
 if __name__ == '__main__':

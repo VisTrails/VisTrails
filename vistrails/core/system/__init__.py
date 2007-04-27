@@ -32,25 +32,28 @@ import core.requirements
 systemType = platform.system()
 
 if systemType in ['Windows', 'Microsoft']:
-    from core.system.windows import guessTotalMemory, temporaryDirectory, \
+    from core.system.windows import guess_total_memory, temporary_directory, \
         list2cmdline, \
-        homeDirectory, remoteCopyProgram, remoteShellProgram, \
-        graphVizDotCommandLine, removeGraphvizTemporaries, link_or_copy, \
-        executable_is_in_path, executable_is_in_pythonpath, TestWindows
+        home_directory, remote_copy_program, remote_shell_program, \
+        graph_viz_dot_command_line, remove_graph_viz_temporaries, \
+        link_or_copy,executable_is_in_path, executable_is_in_pythonpath, \
+        TestWindows
 
 elif systemType in ['Linux']:
-    from core.system.linux import guessTotalMemory, temporaryDirectory, \
+    from core.system.linux import guess_total_memory, temporary_directory, \
         list2cmdline, \
-        homeDirectory, remoteCopyProgram, remoteShellProgram, \
-        graphVizDotCommandLine, removeGraphvizTemporaries, link_or_copy, \
-        XDestroyWindow, executable_is_in_path, executable_is_in_pythonpath, TestLinux
+        home_directory, remote_copy_program, remote_shell_program, \
+        graph_viz_dot_command_line, remove_graph_viz_temporaries, \
+        link_or_copy, XDestroyWindow, executable_is_in_path, \
+        executable_is_in_pythonpath, TestLinux
 
 elif systemType in ['Darwin']:
-    from core.system.osx import guessTotalMemory, temporaryDirectory, \
+    from core.system.osx import guess_total_memory, temporary_directory, \
         list2cmdline, \
-        homeDirectory, remoteCopyProgram, remoteShellProgram, \
-        graphVizDotCommandLine, removeGraphvizTemporaries, link_or_copy, \
-        executable_is_in_path, executable_is_in_pythonpath, TestMacOSX
+        home_directory, remote_copy_program, remote_shell_program, \
+        graph_viz_dot_command_line, remove_graph_viz_temporaries, \
+        link_or_copy, executable_is_in_path, executable_is_in_pythonpath, \
+        TestMacOSX
 else:
     print "Critical error"
     print "VisTrails could not detect your operating system."
@@ -66,8 +69,8 @@ __rootDir = _thisDir + '/../../'
 
 __dataDir = __rootDir + 'data/'
 
-def setVistrailsDataDirectory(d):
-    """ setVistrailsDataDirectory(d:str) -> None 
+def set_vistrails_data_directory(d):
+    """ set_vistrails_data_directory(d:str) -> None 
     Sets vistrails data directory taking into account environment variables
 
     """
@@ -79,8 +82,8 @@ def setVistrailsDataDirectory(d):
         new_d = os.path.expandvars(d)
     __dataDir = d + '/'
 
-def setVistrailsDirectory(d):
-    """ setVistrailsDirectory(d:str) -> None 
+def set_vistrails_directory(d):
+    """ set_vistrails_directory(d:str) -> None 
     Sets vistrails root directory taking into account environment variables
 
     """
@@ -93,73 +96,73 @@ def setVistrailsDirectory(d):
         new_d = os.path.expandvars(d)
     __rootDir = d + '/'
 
-def visTrailsRootDirectory():
-    """ visTrailsRootDirectory() -> str
+def vistrails_root_directory():
+    """ vistrails_root_directory() -> str
     Returns vistrails root directory
 
     """
     return __rootDir
 
-def vistrailsDirectory():
-    """ vistrailsDirectory() -> str 
+def vistrails_directory():
+    """ vistrails_directory() -> str 
     Returns vistrails examples directory
 
     """
-    return visTrailsRootDirectory() + '../examples/'
+    return vistrails_root_directory() + '../examples/'
 
-def packagesDirectory():
-    """ packagesDirectory() -> str 
+def packages_directory():
+    """ packages_directory() -> str 
     Returns vistrails packages directory
 
     """
-    return visTrailsRootDirectory() + 'packages/'
+    return vistrails_root_directory() + 'packages/'
 
-def blankVistrailFile():
+def blank_vistrail_file():
     unimplemented()
 
-def resourceDirectory():
-    """ resourceDirectory() -> str 
+def resource_directory():
+    """ resource_directory() -> str 
     Returns vistrails gui resource directory
 
     """
-    return visTrailsRootDirectory() + 'gui/resources/'
+    return vistrails_root_directory() + 'gui/resources/'
 
-def defaultOptionsFile():
-    """ defaultOptionsFile() -> str 
+def default_options_file():
+    """ default_options_file() -> str 
     Returns vistrails default options file
 
     """
-    return homeDirectory() + "/.vistrailsrc"
+    return home_directory() + "/.vistrailsrc"
 
-def defaultDotVistrails():
-    """ defaultDotVistrails() -> str 
+def default_dot_vistrails():
+    """ default_dot_vistrails() -> str 
     Returns VisTrails per-user directory.
 
     """
-    return homeDirectory() + "/.vistrails"
+    return home_directory() + "/.vistrails"
 
-def defaultBookmarksFile():
-    """ defaultBookmarksFile() -> str
+def default_bookmarks_file():
+    """ default_bookmarks_file() -> str
     Returns default Vistrails per-user bookmarks file
 
     """
-    return defaultDotVistrails() + "/bookmarks.xml"
+    return default_dot_vistrails() + "/bookmarks.xml"
 
-def pythonVersion():
-   """pythonVersion() -> (major, minor, micro, release, serial)
+def python_version():
+   """python_version() -> (major, minor, micro, release, serial)
 Returns python version info."""
    return sys.version_info
 
-def vistrailsVersion():
-   """vistrailsVersion() -> string - Returns the current VisTrails version."""
+def vistrails_version():
+   """vistrails_version() -> string - Returns the current VisTrails version."""
    # 0.1 was the Vis2005 version
    # 0.2 was the SIGMOD demo version
    # 0.3 was the plugin/vtk version
    # 0.4 is cleaned up version with new GUI
    return '0.4'
 
-def vistrailsRevision():
-    """vistrailsRevision() -> str 
+def vistrails_revision():
+    """vistrails_revision() -> str 
     When run on a working copy, shows the current svn revision else
     shows the latest release revision
 
@@ -184,8 +187,8 @@ def vistrailsRevision():
                     return revision_line[1]
     return release
         
-def aboutString():
-   """aboutString() -> string - Returns the about string for VisTrails."""
+def about_string():
+   """about_string() -> string - Returns the about string for VisTrails."""
    return """VisTrails version %s.%s -- vistrails@sci.utah.edu
 
 Copyright (c) 2006-2007 University of Utah. All rights reserved.
@@ -208,7 +211,7 @@ PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING \
 RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A \
 FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF \
 SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH \
-DAMAGES.""" % (vistrailsVersion(), vistrailsRevision())
+DAMAGES.""" % (vistrails_version(), vistrails_revision())
 
 ################################################################################
 

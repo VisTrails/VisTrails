@@ -929,7 +929,7 @@ class TestVistrail(unittest.TestCase):
         import core.xml_parser
         import core.system
         parser = core.xml_parser.XMLParser()
-        parser.openVistrail(core.system.visTrailsRootDirectory() +
+        parser.openVistrail(core.system.vistrails_root_directory() +
                             '/tests/resources/dummy.xml')
         v = parser.getVistrail()
         parser.closeVistrail()
@@ -954,7 +954,7 @@ class TestVistrail(unittest.TestCase):
         import core.vistrail
         import core.xml_parser
         parser = core.xml_parser.XMLParser()
-        parser.openVistrail(core.system.visTrailsRootDirectory() +
+        parser.openVistrail(core.system.vistrails_root_directory() +
                             '/tests/resources/dummy.xml')
         v = parser.getVistrail()
         parser.closeVistrail()
@@ -973,7 +973,7 @@ class TestVistrail(unittest.TestCase):
     def test_empty_action_chain_2(self):
         import core.xml_parser
         parser = core.xml_parser.XMLParser()
-        parser.openVistrail(core.system.visTrailsRootDirectory() +
+        parser.openVistrail(core.system.vistrails_root_directory() +
                             '/tests/resources/dummy.xml')
         v = parser.getVistrail()
         parser.closeVistrail()
@@ -1017,7 +1017,7 @@ class TestVistrail(unittest.TestCase):
 
         def do_test(filename):
             parser = core.xml_parser.XMLParser()
-            parser.openVistrail(core.system.visTrailsRootDirectory() +
+            parser.openVistrail(core.system.vistrails_root_directory() +
                                 filename)
             v = parser.getVistrail()
             version_ids = v.actionMap.keys()
@@ -1050,7 +1050,7 @@ class TestVistrail(unittest.TestCase):
 #         import core.vistrail
 #         import core.xml_parser
 #         parser = core.xml_parser.XMLParser()
-#         parser.openVistrail(core.system.visTrailsRootDirectory() +
+#         parser.openVistrail(core.system.vistrails_root_directory() +
 #                             '/tests/resources/ect.xml')
 #         v = parser.getVistrail()
 #         parser.closeVistrail()

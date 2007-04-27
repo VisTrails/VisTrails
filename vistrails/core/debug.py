@@ -81,9 +81,9 @@ class DebugPrintSingleton(QtCore.QObject):
                             stream=f)
         return logging.getLogger("VisLog")
 
-    if system.pythonVersion() >= (2,4,0,'',0):
+    if system.python_version() >= (2,4,0,'',0):
         makeLogger = makeLogger240
-    elif system.pythonVersion() >= (2,3,5,'',0):
+    elif system.python_version() >= (2,3,5,'',0):
         makeLogger = makeLogger235
     else:
         raise VersionTooLow('Python', '2.3.5')

@@ -103,7 +103,7 @@ class TestConsoleMode(unittest.TestCase):
         if manager.has_package('console_mode_test'):
             return
         old_path = sys.path
-        sys.path.append(core.system.visTrailsRootDirectory() +
+        sys.path.append(core.system.vistrails_root_directory() +
                         '/tests/resources')
         m = __import__('console_mode_test')
         sys.path = old_path
@@ -112,7 +112,7 @@ class TestConsoleMode(unittest.TestCase):
         manager.initialize_packages(d)
 
     def test1(self):
-        result = run(core.system.visTrailsRootDirectory() +
+        result = run(core.system.vistrails_root_directory() +
                      '/tests/resources/dummy.xml',"int chain")
         self.assertEquals(result, True)
 
@@ -125,12 +125,12 @@ class TestConsoleMode(unittest.TestCase):
         interpreter.execute(None, p, 'foo', 1, v, None)
 
     def test_python_source(self):
-        result = run(core.system.visTrailsRootDirectory() +
+        result = run(core.system.vistrails_root_directory() +
                      '/tests/resources/pythonsource.xml',"testPortsAndFail")
         self.assertEquals(result, True)
 
     def test_dynamic_module_error(self):
-        result = run(core.system.visTrailsRootDirectory() + 
+        result = run(core.system.vistrails_root_directory() + 
                      '/tests/resources/dynamic_module_error.xml',"test")
         self.assertEquals(result, False)
 

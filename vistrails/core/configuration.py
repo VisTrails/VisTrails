@@ -44,7 +44,7 @@ def default():
     base_dir = {
         'dataDirectory': None,
         'debugSignals': False,
-        'dotVistrails': system.defaultDotVistrails(),
+        'dotVistrails': system.default_dot_vistrails(),
         'fileRepository': default_file_repository(),
         'interactiveMode': True,
         'logger': default_logger(),

@@ -123,7 +123,7 @@ by startup.py. This should only be called after init()."""
         def install_default_startup():
             debug.critical('Will try to create default startup script')
             try:
-                shutil.copyfile((core.system.visTrailsRootDirectory() +
+                shutil.copyfile((core.system.vistrails_root_directory() +
                                  'core/resources/default_vistrails_startup'),
                                 self.configuration.dotVistrails + '/startup.py')
                 debug.critical('Succeeded!')
@@ -190,7 +190,7 @@ by startup.py. This should only be called after init()."""
                 try:
                     dotVistrails = file(self.configuration.dotVistrails + '/startup.py')
                     code = compile("".join(dotVistrails.readlines()),
-                                   system.temporaryDirectory() +
+                                   system.temporary_directory() +
                                    "dotVistrailsErrors.txt",
                                    'exec')
                     g = {}
@@ -233,9 +233,10 @@ by startup.py. This should only be called after init()."""
         
         """
         if self.configuration.rootDirectory:
-            system.setVistrailsDirectory(self.configuration.rootDirectory)
+            system.set_vistrails_directory(self.configuration.rootDirectory)
         if self.configuration.dataDirectory:
-            system.setVistrailsDataDirectory(self.configuration.dataDirectory)
+            system.set_vistrails_data_directory( \
+                self.configuration.dataDirectory)
         if self.configuration.verbosenessLevel != -1:
             dbg = debug.DebugPrint
             verbose = self.configuration.verbosenessLevel
@@ -253,7 +254,7 @@ by startup.py. This should only be called after init()."""
             dbg.setMessageLevel(levels[verbose])
             dbg.log("Set verboseness level to %s" % verbose)
         if not self.configuration.userPackageDirectory:
-            s = core.system.defaultDotVistrails() + '/userpackages'
+            s = core.system.default_dot_vistrails() + '/userpackages'
             self.configuration.userPackageDirectory = s
 
     def setupBaseModules(self):

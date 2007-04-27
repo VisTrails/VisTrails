@@ -1520,7 +1520,7 @@ class TestAction(unittest.TestCase):
         import core.vistrail
         import core.xml_parser
         parser = core.xml_parser.XMLParser()
-        parser.openVistrail(core.system.visTrailsRootDirectory() +
+        parser.openVistrail(core.system.vistrails_root_directory() +
                             '/tests/resources/dummy.xml')
         v = parser.getVistrail()
         parser.closeVistrail()
@@ -1537,7 +1537,7 @@ class TestAction(unittest.TestCase):
         import core.xml_parser
         import core.system
         parser = core.xml_parser.XMLParser()
-        parser.openVistrail(core.system.visTrailsRootDirectory() +
+        parser.openVistrail(core.system.vistrails_root_directory() +
                             '/tests/resources/dummy.xml')
         v = parser.getVistrail()
         parser.closeVistrail()
@@ -1557,7 +1557,7 @@ class TestAction(unittest.TestCase):
         import core.vistrail
         import core.xml_parser
         parser = core.xml_parser.XMLParser()
-        parser.openVistrail(core.system.visTrailsRootDirectory() +
+        parser.openVistrail(core.system.vistrails_root_directory() +
                             '/tests/resources/test_alias.xml')
         v = parser.getVistrail()
         parser.closeVistrail()

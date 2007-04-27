@@ -70,8 +70,8 @@ class Logger(object):
         if not self.processor:
             self.processor = 'n/a'
         self.ip = self.getIpAddress()
-        self.vistVer = system.vistrailsVersion()
-        self.ram = system.guessTotalMemory()/(1024*1024)
+        self.vistVer = system.vistrails_version()
+        self.ram = system.guess_total_memory()/(1024*1024)
         self.getSettingsFromApp()
         self.ssid = -1
         self.vistrailsMap = {} #maps vistrailsNames to vistrails_id in db

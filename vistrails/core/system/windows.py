@@ -50,9 +50,9 @@ except ImportError:
     importSuccess = False
     
 ##############################################################################
-def parseMeminfo():
+def parse_meminfo():
     """ 
-    parseMeminfo() -> int
+    parse_meminfo() -> int
     Calls Windows 32 API GlobalMemoryStatus(Ex) to get memory information 
     It requires ctypes module
     
@@ -67,18 +67,18 @@ def parseMeminfo():
         return -1
     return result.dwTotalPhys
 
-def guessTotalMemory():
-    """ guessTotalMemory() -> int 
+def guess_total_memory():
+    """ guess_total_memory() -> int 
     Return system memory in bytes. If ctypes is not installed it returns -1 
     
     """
     if importSuccess:
-        return parseMeminfo()
+        return parse_meminfo()
     else:
         return -1
 
-def temporaryDirectory():
-    """ temporaryDirectory() -> str 
+def temporary_directory():
+    """ temporary_directory() -> str 
     Returns the path to the system's temporary directory. Tries to use the $TMP 
     environment variable, if it is present. Else, tries $TEMP, else uses 'c:/' 
     
@@ -90,8 +90,8 @@ def temporaryDirectory():
     else:
         return 'c:/'
 
-def homeDirectory():
-    """ homeDirectory() -> str 
+def home_directory():
+    """ home_directory() -> str 
     Returns user's home directory using windows environment variables
     $HOMEDRIVE and $HOMEPATH
     
@@ -101,20 +101,20 @@ def homeDirectory():
     else:
 	return os.environ['HOMEDRIVE'] + os.environ['HOMEPATH']
 
-def remoteCopyProgram():
+def remote_copy_program():
     return "pscp -P"
 
-def remoteShellProgram():
+def remote_shell_program():
     return "plink -P"
 
-def graphVizDotCommandLine():
-    """ graphVizDotCommandLine() -> str
+def graph_viz_dot_command_line():
+    """ graph_viz_dot_command_line() -> str
     Returns dot command line
 
     """
     return 'dot -Tplain -o'
 
-def removeGraphvizTemporaries():
+def remove_graph_viz_temporaries():
     pass
 
 def link_or_copy(src, dst):
@@ -131,7 +131,7 @@ def executable_is_in_path(filename):
     
     """
     pathlist = (os.environ['PATH'].split(os.pathsep) +
-                [core.system.visTrailsRootDirectory(),
+                [core.system.vistrails_root_directory(),
                  "."])
     for dir in pathlist:
         fullpath = os.path.join(dir, filename)
@@ -179,19 +179,19 @@ class TestWindows(unittest.TestCase):
      """ Class to test Windows specific functions """
      
      def test1(self):
-         """ Test if guessTotalMemory() is returning an int >= 0"""
-         result = guessTotalMemory()
+         """ Test if guess_total_memory() is returning an int >= 0"""
+         result = guess_total_memory()
          assert type(result) == type(1) or type(result) == type(1L)
          assert result >= 0
 
      def test2(self):
-         """ Test if homeDirectory is not empty """
-         result = homeDirectory()
+         """ Test if home_directory is not empty """
+         result = home_directory()
          assert result != ""
 
      def test3(self):
-         """ Test if temporaryDirectory is not empty """
-         result = temporaryDirectory()
+         """ Test if temporary_directory is not empty """
+         result = temporary_directory()
          assert result != ""
 
      def test_executable_file_in_path(self):

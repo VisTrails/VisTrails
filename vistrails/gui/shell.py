@@ -122,7 +122,7 @@ class QShellDialog(QtGui.QDialog):
 
         """
         default = 'visTrails' + '-' + time.strftime("%Y%m%d-%H%M.log")
-        default = os.path.join(core.system.vistrailsDirectory(),default)
+        default = os.path.join(core.system.vistrails_directory(),default)
         fileName = QtGui.QFileDialog.getSaveFileName(self,
                                                      "Save Session As..",
                                                      default,

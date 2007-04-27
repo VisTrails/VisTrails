@@ -343,7 +343,7 @@ class TestXmlParser(unittest.TestCase):
     def test1(self):
         """ Exercising reading file """
         parser = XMLParser()
-        parser.openVistrail(core.system.visTrailsRootDirectory() +
+        parser.openVistrail(core.system.vistrails_root_directory() +
                             '/tests/resources/dummy.xml')
         v = parser.getVistrail()
         parser.closeVistrail()
@@ -353,12 +353,12 @@ class TestXmlParser(unittest.TestCase):
         parser = XMLParser()
 
         self.assertRaises(IOError, parser.openVistrail,
-                          core.system.visTrailsRootDirectory() +
+                          core.system.vistrails_root_directory() +
                           '/tests/resources/file_that_does_not_exist.xml')
         import xml.parsers.expat
         self.assertRaises(XMLParser.XMLParseError,
                           parser.openVistrail,
-                          (core.system.visTrailsRootDirectory() +
+                          (core.system.vistrails_root_directory() +
                            '/tests/resources/dummy_broken.xml'))
         
 

@@ -30,7 +30,7 @@ from pipeline_utils import *
 
 reg = core.modules.module_registry.registry
 from core.utils import append_to_dict_of_lists
-from core.system import temporaryDirectory
+from core.system import temporary_directory
 
 ##############################################################################
 # This is the analogy implementation
@@ -446,7 +446,7 @@ class EigenPipelineSimilarity2(EigenBase):
         v = copy.copy(self._e)
         step = 0
         def write_current_matrix():
-            f = file('%s/%s_%03d.v' % (temporaryDirectory(),
+            f = file('%s/%s_%03d.v' % (temporary_directory(),
                                        self._debug_matrix_file, step), 'w')
             x = v.reshape(len(self._p1.modules),
                           len(self._p2.modules))
@@ -483,7 +483,7 @@ class EigenPipelineSimilarity2(EigenBase):
                 f.write('%d %d %d\n' % (i, c.sourceId, c.destinationId))
             
         if self._debug:
-            out = file('%s/pipelines.txt' % temporaryDirectory(), 'w')
+            out = file('%s/pipelines.txt' % temporary_directory(), 'w')
             write_debug_pipeline_positions(self._p1, self._g1_vertex_map, out)
             write_debug_pipeline_positions(self._p2, self._g2_vertex_map, out)
             self.print_s8ys()

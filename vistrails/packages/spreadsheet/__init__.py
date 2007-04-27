@@ -25,7 +25,7 @@
 from PyQt4 import QtCore, QtGui
 from core.modules import basic_modules, module_registry
 from core.modules.vistrails_module import Module
-from core.system import visTrailsRootDirectory
+from core.system import vistrails_root_directory
 from spreadsheet_controller import spreadsheetController
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_window import SpreadsheetWindow
@@ -74,7 +74,7 @@ def importWidgetModules(basicWidgets):
     Find all widget package under ./widgets/* to add to the spreadsheet registry
     
     """
-    widgetDir = (visTrailsRootDirectory()+
+    widgetDir = (vistrails_root_directory()+
                  '/'+string.replace(__name__, '.', '/')+'/widgets/')
     candidates = os.listdir(widgetDir)
     for folder in candidates:

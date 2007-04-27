@@ -140,7 +140,7 @@ def initialize(*args, **keywords):
     reg.addOutputPort(HTTPFile, "local_filename", (basic.String, 'local filename'), optional=True)
 
     global package_directory
-    package_directory = core.system.defaultDotVistrails() + "/HTTP"
+    package_directory = core.system.default_dot_vistrails() + "/HTTP"
 
     if not os.path.isdir(package_directory):
         try:

@@ -91,17 +91,17 @@ class DefaultTheme(object):
         #### BRUSH & PEN ####
         # Background brush of the pipeline view
         self.PIPELINE_VIEW_BACKGROUND_BRUSH = QtGui.QBrush(
-            QtGui.QImage(core.system.visTrailsRootDirectory() +
+            QtGui.QImage(core.system.vistrails_root_directory() +
                          '/gui/resources/images/pipeline_bg.png'))
 
         # Background brush of the version tree
         self.VERSION_TREE_BACKGROUND_BRUSH = QtGui.QBrush(
-            QtGui.QImage(core.system.visTrailsRootDirectory() +
+            QtGui.QImage(core.system.vistrails_root_directory() +
                          '/gui/resources/images/version_bg.png'))
         
         # Background brush of the query pipeline view
         self.QUERY_BACKGROUND_BRUSH = QtGui.QBrush(
-            QtGui.QImage(core.system.visTrailsRootDirectory() +
+            QtGui.QImage(core.system.vistrails_root_directory() +
                          '/gui/resources/images/query_bg.png'))
 
         # Pen to draw a module shape at regular state
@@ -250,190 +250,190 @@ class DefaultTheme(object):
         #### ICONS & IMAGES ####
         #The application icon
         self.APPLICATION_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/vistrails_icon_small.png')
 
         #The application pixmap
         self.APPLICATION_PIXMAP = QtGui.QPixmap(
-             core.system.visTrailsRootDirectory() +
+             core.system.vistrails_root_directory() +
             '/gui/resources/images/vistrails_icon_small.png')
 
         # The execute icons in the first spot of vistrail view toolbar
         self.EXECUTE_PIPELINE_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/execute_pipeline.png')
     
         # Icon to select the tabbed view
         self.TABBED_VIEW_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/tabbed_view.png')
     
         # Icon to select the horizontal split view
         self.HORIZONTAL_VIEW_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/hor_view.png')
     
         # Icon to select the vertical split view
         self.VERTICAL_VIEW_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/ver_view.png')
     
         # Icon to select the docking-style view
         self.DOCK_VIEW_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/dock_view.png')
     
         # Toolbar icon for creating a new Vistrail
         self.NEW_VISTRAIL_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/new_vistrail.png')
         
         # Toolbar icon for openning a new Vistrail
         self.OPEN_VISTRAIL_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/open_vistrail.png')
         
         # Toolbar icon for save the current Vistrail
         self.SAVE_VISTRAIL_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/save_vistrail.png')
     
         # Toolbar icon for toggling console mode window
         self.CONSOLE_MODE_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/console.png')
 
         # Toolbar icon for toggling bookmarks window
         self.BOOKMARKS_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/bookmarks.png')
         
         # BOOKMARKS WINDOW
         #Toolbar icon for removing bookmark
         self.BOOKMARKS_REMOVE_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/edittrash.png')
 
         #Toolbar icon for reloading a bookmark
         self.BOOKMARKS_RELOAD_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/reload.png')
 
         # Background image of the Visual Diff pipeline view
         self.VISUAL_DIFF_BACKGROUND_IMAGE = QtGui.QImage(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/pipeline_bg.png')
         
         # Toolbar icon for showing the Parameter Inspector window
         self.VISUAL_DIFF_SHOW_PARAM_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/show_params.png')
         
         # Toolbar icon for showing the Legend window
         self.VISUAL_DIFF_SHOW_LEGEND_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/show_legends.png')
 
         # Toolbar icon for creating an analogy
         self.VISUAL_DIFF_CREATE_ANALOGY_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/analogy.png')
 
         # Toolbar icon for close button on the vistrail tabbar
         self.VIEW_MANAGER_CLOSE_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/closeview.png')
 
         # Toolbar icon for the dock toolbutton on the splitted window
         self.DOCK_BACK_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/dockback.png')
 
         # Icon for adding string in the parameter exploration widget
         self.ADD_STRING_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/edit_add.png')
 
         # Icon for moving string up in the parameter exploration widget
         self.UP_STRING_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/up.png')
 
         # Icon for moving string up in the parameter exploration widget
         self.DOWN_STRING_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/down.png')
 
         # Toolbar icon for visual query on a vistrail
         self.VISUAL_QUERY_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/visual_query.png')
         
         # Toolbar icon for viewing the whole version tree
         self.VIEW_FULL_TREE_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/full_tree.png')
 
         # Toolbar icon for viewing the whole version tree
         self.PERFORM_PARAMETER_EXPLORATION_ICON = QtGui.QIcon(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/perform_pe.png')
 
         # Toolbar icon for dragging pixmap of VisDiff
         self.VERSION_DRAG_PIXMAP = QtGui.QPixmap(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/dragging.png')
 
         # Parameter Exploration Pixmaps
         self.EXPLORE_COLUMN_PIXMAP = QtGui.QPixmap(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/column.png')
         self.EXPLORE_ROW_PIXMAP = QtGui.QPixmap(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/row.png')
         self.EXPLORE_SHEET_PIXMAP = QtGui.QPixmap(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/sheet.png')
         self.EXPLORE_TIME_PIXMAP = QtGui.QPixmap(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/time.png')        
         self.EXPLORE_SKIP_PIXMAP = QtGui.QPixmap(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/skip.png')        
         self.REMOVE_PARAM_PIXMAP = QtGui.QPixmap(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/remove_param.png')        
         self.RIGHT_ARROW_PIXMAP = QtGui.QPixmap(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/right.png')        
 
         # Cursor for zoom in/out graphics views
         self.SELECT_CURSOR = QtGui.QCursor(QtCore.Qt.ArrowCursor)
         self.OPEN_HAND_CURSOR = QtGui.QCursor(QtGui.QPixmap(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/open_hand.png'))
         self.CLOSE_HAND_CURSOR = QtGui.QCursor(QtGui.QPixmap(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/close_hand.png'))
         self.ZOOM_CURSOR = QtGui.QCursor(QtGui.QPixmap(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/zoom.png'))
                 
         # Cursor icon for zoom in/out graphics views
         self.SELECT_ICON = QtGui.QIcon(QtGui.QPixmap(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/select_icon.png'))
         self.PAN_ICON = QtGui.QIcon(QtGui.QPixmap(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/pan_icon.png'))
         self.ZOOM_ICON = QtGui.QIcon(QtGui.QPixmap(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/zoom_icon.png'))
 
         # Saved Queries icons
         self.QUERY_VIEW_ICON = self.ZOOM_ICON
         self.QUERY_EDIT_ICON = QtGui.QIcon(QtGui.QPixmap(
-            core.system.visTrailsRootDirectory() +
+            core.system.vistrails_root_directory() +
             '/gui/resources/images/edit.png'))
 
         #### COLORS ####

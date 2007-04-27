@@ -36,7 +36,7 @@ def linux_ubuntu_install(package_name):
     except:
         pass
 
-    cmd = core.system.visTrailsRootDirectory()
+    cmd = core.system.vistrails_root_directory()
     cmd += '/core/bundles/linux_ubuntu_install.py '
     cmd += package_name
 

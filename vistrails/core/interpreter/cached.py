@@ -389,7 +389,7 @@ class TestCachedInterpreter(unittest.TestCase):
         import core.xml_parser
         """Test if basic caching is working."""
         parser = core.xml_parser.XMLParser()
-        parser.openVistrail(core.system.visTrailsRootDirectory() +
+        parser.openVistrail(core.system.vistrails_root_directory() +
                             '/tests/resources/dummy.xml')
         v = parser.getVistrail()
         p1 = v.getPipeline('int chain')

@@ -168,7 +168,7 @@ run in batch mode.')
         
         """
         if self.configuration.showSplash:
-            splashPath = (system.visTrailsRootDirectory() +
+            splashPath = (system.vistrails_root_directory() +
                           "/gui/resources/images/vistrails_splash.png")
             pixmap = QtGui.QPixmap(splashPath)
             self.splashScreen = QtGui.QSplashScreen(pixmap, QtCore.Qt.WindowStaysOnTopHint)
@@ -247,7 +247,7 @@ run in batch mode.')
         Print version of Vistrail and exit
         
         """
-        print system.aboutString()
+        print system.about_string()
         sys.exit(0)
 
     def readOptions(self):
@@ -263,7 +263,7 @@ run in batch mode.')
         self.configuration.debugSignals = get('debugsignals')
         self.configuration.dotVistrails = get('dotVistrails')
         if not self.configuration.dotVistrails:
-            self.configuration.dotVistrails = system.defaultDotVistrails()
+            self.configuration.dotVistrails = system.default_dot_vistrails()
         self.configuration.multiHeads = get('multiheads')
         self.configuration.maximizeWindows = get('maximized')
         self.configuration.showMovies = get('movies')
@@ -294,7 +294,7 @@ run in batch mode.')
                 not os.path.isfile(self.configuration.dotVistrails)):
                 #create .vistrails dir
                 os.mkdir(self.configuration.dotVistrails)
-            gui.bookmark_window.initBookmarks(system.defaultBookmarksFile())    
+            gui.bookmark_window.initBookmarks(system.default_bookmarks_file())    
             
         initBookmarks()
         if self.configuration.pythonPrompt:

@@ -455,7 +455,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         fileName = QtGui.QFileDialog.getOpenFileName(
             self,
             "Open Vistrail...",
-            system.vistrailsDirectory(),
+            system.vistrails_directory(),
             "Vistrail files (*.xml)\nOther files (*)")
         if not fileName.isEmpty():
             self.viewManager.openVistrail(str(fileName))
@@ -480,7 +480,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         fileName = QtGui.QFileDialog.getSaveFileName(
             self,
             "Save Vistrail As..",
-            system.vistrailsDirectory(),
+            system.vistrails_directory(),
             "XML files (*.xml)")
             
         if not fileName:
@@ -599,7 +599,7 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         """
         QtGui.QMessageBox.about(self,self.tr("About VisTrails..."),
-                                self.tr(system.aboutString()))
+                                self.tr(system.about_string()))
 
     def flush_cache(self):
         core.interpreter.cached.CachedInterpreter.flush()
