@@ -1049,8 +1049,8 @@ mutual connections."""
             if type(item)==QGraphicsModuleItem:
                 item.setSelected(True)
 
-    def setModuleSuccess(self, moduleId):
-        """ setModuleSuccess(moduleId: int) -> None
+    def set_module_success(self, moduleId):
+        """ set_module_success(moduleId: int) -> None
         Post an event to the scene (self) for updating the module color
         
         """
@@ -1058,8 +1058,8 @@ mutual connections."""
                                      QModuleStatusEvent(moduleId, 0, ''))
         QtCore.QCoreApplication.processEvents()
 
-    def setModuleError(self, moduleId, error):
-        """ setModuleError(moduleId: int, error: str) -> None
+    def set_module_error(self, moduleId, error):
+        """ set_module_error(moduleId: int, error: str) -> None
         Post an event to the scene (self) for updating the module color
         
         """
@@ -1067,8 +1067,8 @@ mutual connections."""
                                      QModuleStatusEvent(moduleId, 1, error))
         QtCore.QCoreApplication.processEvents()
         
-    def setModuleNotExecuted(self, moduleId):
-        """ setModuleNotExecuted(moduleId: int) -> None
+    def set_module_not_executed(self, moduleId):
+        """ set_module_not_executed(moduleId: int) -> None
         Post an event to the scene (self) for updating the module color
         
         """
@@ -1076,8 +1076,8 @@ mutual connections."""
                                      QModuleStatusEvent(moduleId, 2, ''))
         QtCore.QCoreApplication.processEvents()
 
-    def setModuleActive(self, moduleId):
-        """ setModuleActive(moduleId: int) -> None
+    def set_module_active(self, moduleId):
+        """ set_module_active(moduleId: int) -> None
         Post an event to the scene (self) for updating the module color
         
         """
@@ -1085,8 +1085,8 @@ mutual connections."""
                                      QModuleStatusEvent(moduleId, 3, ''))
         QtCore.QCoreApplication.processEvents()
 
-    def setModuleComputing(self, moduleId):
-        """ setModuleComputing(moduleId: int) -> None
+    def set_module_computing(self, moduleId):
+        """ set_module_computing(moduleId: int) -> None
         Post an event to the scene (self) for updating the module color
         
         """

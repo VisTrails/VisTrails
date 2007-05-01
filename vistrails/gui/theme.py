@@ -106,117 +106,117 @@ class DefaultTheme(object):
 
         # Pen to draw a module shape at regular state
         self.MODULE_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('black')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('black')))), 2)
         # Pen to draw a module shape when selected
         self.MODULE_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('banana')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('banana')))), 2)
         # Brush and pen to draw a module label
         self.MODULE_LABEL_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('black')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('black')))), 2)
         self.MODULE_LABEL_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('black')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('black')))), 2)
         # Pen to draw module label when it is unmatched due to a query
         self.GHOSTED_MODULE_LABEL_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('dark_dim_grey')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('dark_dim_grey')))), 2)
         # Brush to draw a module shape at different states
         self.MODULE_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('light_grey'))))
+            QtGui.QColor(*(ColorByName.get_int('light_grey'))))
         self.ERROR_MODULE_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('salmon'))))
+            QtGui.QColor(*(ColorByName.get_int('salmon'))))
         self.SUCCESS_MODULE_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('mint'))))
+            QtGui.QColor(*(ColorByName.get_int('mint'))))
         self.ACTIVE_MODULE_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('navajo_white'))))
+            QtGui.QColor(*(ColorByName.get_int('navajo_white'))))
         self.COMPUTING_MODULE_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('yellow'))))
+            QtGui.QColor(*(ColorByName.get_int('yellow'))))
         self.NOT_EXECUTED_MODULE_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('light_goldenrod'))))
+            QtGui.QColor(*(ColorByName.get_int('light_goldenrod'))))
 
         # Pen and brush for un-matched queried modules
         self.GHOSTED_MODULE_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('dark_dim_grey')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('dark_dim_grey')))), 2)
         self.GHOSTED_MODULE_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('light_dim_grey'))))
+            QtGui.QColor(*(ColorByName.get_int('light_dim_grey'))))
 
         # Brush and pen to draw a port shape at regular state
         self.PORT_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('black')))), 1)
+            QtGui.QColor(*(ColorByName.get_int('black')))), 1)
         self.PORT_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('light_grey'))))
+            QtGui.QColor(*(ColorByName.get_int('light_grey'))))
         self.PORT_OPTIONAL_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('lamp_black')))), 1)
+            QtGui.QColor(*(ColorByName.get_int('lamp_black')))), 1)
         self.PORT_OPTIONAL_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('titanium_white'))))
+            QtGui.QColor(*(ColorByName.get_int('titanium_white'))))
         
         # Pen and brush for drawing ports of ghosted modules
         self.GHOSTED_PORT_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('dark_dim_grey')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('dark_dim_grey')))), 2)
         self.GHOSTED_PORT_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('light_dim_grey'))))
+            QtGui.QColor(*(ColorByName.get_int('light_dim_grey'))))
 
         # Brush and pen to draw connections
         self.CONNECTION_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('black')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('black')))), 2)
         self.CONNECTION_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('banana')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('banana')))), 2)
         self.CONNECTION_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('black'))))
+            QtGui.QColor(*(ColorByName.get_int('black'))))
 
         # Pen for drawing while connecting any ghosted modules
         self.GHOSTED_CONNECTION_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('dark_dim_grey')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('dark_dim_grey')))), 2)
 
         # Pen to draw version tree node
         self.VERSION_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('black')))), 2)    
+            QtGui.QColor(*(ColorByName.get_int('black')))), 2)    
         self.GHOSTED_VERSION_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('light_grey')))), 2)    
+            QtGui.QColor(*(ColorByName.get_int('light_grey')))), 2)    
         self.VERSION_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('banana')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('banana')))), 2)
 
         # Brush and pen to draw a version label
         self.VERSION_LABEL_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('black')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('black')))), 2)
         self.GHOSTED_VERSION_LABEL_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('light_grey')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('light_grey')))), 2)
         self.VERSION_LABEL_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('black')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('black')))), 2)
 
         # Brush to draw version belongs to the current user
         self.VERSION_USER_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('desatcornflower'))))
+            QtGui.QColor(*(ColorByName.get_int('desatcornflower'))))
         self.GHOSTED_VERSION_USER_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('very_light_grey'))))
+            QtGui.QColor(*(ColorByName.get_int('very_light_grey'))))
 
         # Brush to draw version belongs to the other users
         self.VERSION_OTHER_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('melon'))))
+            QtGui.QColor(*(ColorByName.get_int('melon'))))
     
         # Brush and pen to draw a link between two versions
         self.LINK_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('black')))), 1.5)
+            QtGui.QColor(*(ColorByName.get_int('black')))), 1.5)
         self.LINK_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('banana')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('banana')))), 2)
         self.GHOSTED_LINK_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.getInt('light_grey')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('light_grey')))), 2)
 
         # Selection box color
         self.SELECTION_BOX_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*ColorByName.getInt('light_grey')))
+            QtGui.QColor(*ColorByName.get_int('light_grey')))
         self.SELECTION_BOX_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*ColorByName.getInt('lamp_black'))), 1)
+            QtGui.QColor(*ColorByName.get_int('lamp_black'))), 1)
         
         # Color of the version is being diff from in
         self.VISUAL_DIFF_FROM_VERSION_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*ColorByName.getInt('melon')))
+            QtGui.QColor(*ColorByName.get_int('melon')))
         
         # Color of the version is being diff to in
         self.VISUAL_DIFF_TO_VERSION_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*ColorByName.getInt('steel_blue_light')))
+            QtGui.QColor(*ColorByName.get_int('steel_blue_light')))
         
         # Color of the paramter changed modules in Visual Diff
         self.VISUAL_DIFF_PARAMETER_CHANGED_BRUSH = QtGui.QBrush(
-            QtGui.QColor(*ColorByName.getInt('light_grey')))
+            QtGui.QColor(*ColorByName.get_int('light_grey')))
         
         # Color of the shared modules in Visual Diff
         self.VISUAL_DIFF_SHARED_BRUSH = QtGui.QBrush(
@@ -439,17 +439,17 @@ class DefaultTheme(object):
         #### COLORS ####
         # Color for the PIP frame
         self.PIP_FRAME_COLOR = QtGui.QColor(
-            *(ColorByName.getInt('yellow_light')))
+            *(ColorByName.get_int('yellow_light')))
 
         # Color of selected methods in the modules method area
         self.METHOD_SELECT_COLOR = QtGui.QColor(
-            *ColorByName.getInt('yellow_light'))
+            *ColorByName.get_int('yellow_light'))
 
         # Color of the hover/unhover alias labels
         self.HOVER_DEFAULT_COLOR = QtGui.QColor(
-            *ColorByName.getInt('black'))
+            *ColorByName.get_int('black'))
         self.HOVER_SELECT_COLOR = QtGui.QColor(
-            *ColorByName.getInt('blue'))
+            *ColorByName.get_int('blue'))
 
 
 class ThemeHolder(object):

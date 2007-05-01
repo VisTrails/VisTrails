@@ -53,13 +53,13 @@ def enum(className, enumValues, doc = None):
         self.__v = v
         
     def str(v):
-        return theEnum.st[v]
+        return the_enum.st[v]
     
     def __str__(self):
-        return theEnum.str(self.__v)
+        return the_enum.str(self.__v)
     
     def __repr__(self):
-        return className + "." + theEnum.str(self.__v)
+        return className + "." + the_enum.str(self.__v)
     
     def __eq__(self, other):
         try:
@@ -71,7 +71,7 @@ def enum(className, enumValues, doc = None):
     def __ne__(self, other):
         return not (self == other)
         
-    theEnum = type(className, (object, ),
+    the_enum = type(className, (object, ),
                    {'__init__': __init__,
                     'str': staticmethod(str),
                     '__str__': __str__,
@@ -81,8 +81,8 @@ def enum(className, enumValues, doc = None):
                     '__eq__': __eq__,
                     '__doc__': doc})
     for (v, x) in zip(enumValues, range(len(enumValues))):
-        setattr(theEnum, v, theEnum(x))
-    return theEnum
+        setattr(the_enum, v, the_enum(x))
+    return the_enum
 
 ################################################################################
 

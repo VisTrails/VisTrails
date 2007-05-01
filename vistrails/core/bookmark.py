@@ -209,7 +209,7 @@ class BookmarkCollection(XMLWrapper):
         self.bookmarks.
         
         """
-        self.openFile(filename)
+        self.open_file(filename)
         root = self.dom.documentElement
         for element in named_elements(root, 'bookmark'):    
             self.addBookmark(Bookmark.parse(element))
@@ -222,13 +222,13 @@ class BookmarkCollection(XMLWrapper):
         Writes bookmark collection to disk under given filename.
           
         """
-        dom = self.createDocument('bookmarks')
+        dom = self.create_document('bookmarks')
         root = dom.documentElement
         
         for bookmark in self.bookmarkMap.values():
             bookmark.serialize(dom, root)
 
-        self.writeDocument(root, filename)
+        self.write_document(root, filename)
         self.changed = False
 
     def refreshCurrentId(self):

@@ -23,12 +23,12 @@
 
 ################################################################################
 
-def evaluateExpressions(expressions):
-    """ evaluateExpressions(expressions: str) -> int/float/string        
+def evaluate_expressions(expressions):
+    """ evaluate_expressions(expressions: str) -> int/float/string        
     Evaluate the contents of the line edit inside each '$' pair
     
     """
-    (base, exps) = parseExpression(str(expressions))
+    (base, exps) = parse_expression(str(expressions))
     for e in exps:
         try:                        
             base = base[:e[0]] + str(eval(e[1],None,None)) + base[e[0]:]
@@ -36,8 +36,8 @@ def evaluateExpressions(expressions):
             base = base[:e[0]] + '$' + e[1] + '$' + base[e[0]:]
     return base
 
-def parseExpression(expression):
-    """ parseExpression(expression: str) -> output (see below)        
+def parse_expression(expression):
+    """ parse_expression(expression: str) -> output (see below)        
     Parse the mixed expression string into expressions and string
     constants
 

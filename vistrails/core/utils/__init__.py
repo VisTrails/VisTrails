@@ -242,11 +242,11 @@ def append_to_dict_of_lists(dict, key, value):
 # DummyView
 
 class DummyView(object):
-    def setModuleActive(*args, **kwargs): pass
-    def setModuleComputing(*args, **kwargs): pass
-    def setModuleSuccess(*args, **kwargs): pass
-    def setModuleError(*args, **kwargs): pass
-    def setModuleNotExecuted(*args, **kwargs): pass
+    def set_module_active(*args, **kwargs): pass
+    def set_module_computing(*args, **kwargs): pass
+    def set_module_success(*args, **kwargs): pass
+    def set_module_error(*args, **kwargs): pass
+    def set_module_not_executed(*args, **kwargs): pass
 
 ##############################################################################
 
@@ -279,7 +279,7 @@ class _TestFibo(object):
         return self.f(x-1) + self.f(x-2)
 
 class TestCommon(unittest.TestCase):
-    def testAppendToDictOfLists(self):
+    def test_append_to_dict_of_lists(self):
         f = {}
         self.assertEquals(f.has_key(1), False)
         append_to_dict_of_lists(f, 1, 1)
@@ -295,7 +295,7 @@ class TestCommon(unittest.TestCase):
         self.assertEquals(f.has_key(2), True)
         self.assertEquals(f[2], ["Foo"])
         
-    def testMemo(self):
+    def test_memo(self):
         import time
         t1 = time.time()
         for i in xrange(10000):
@@ -317,7 +317,7 @@ class TestCommon(unittest.TestCase):
         self.assertEquals(r1 < 2.618, True)
         self.assertEquals(r2 < 2.618, True)
 
-    def testMemo2(self):
+    def test_memo_2(self):
         count = [0]
         class C1(object):
             pass

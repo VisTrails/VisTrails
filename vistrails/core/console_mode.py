@@ -27,16 +27,16 @@ from core.utils import VistrailsInternalError, expression
 ################################################################################
 
 class DummyView(object):
-    def setModuleActive(self, id):
+    def set_module_active(self, id):
         pass
 
-    def setModuleComputing(self, id):
+    def set_module_computing(self, id):
         pass
     
-    def setModuleSuccess(self, id):
+    def set_module_success(self, id):
         pass
     
-    def setModuleError(self, id, error):
+    def set_module_error(self, id, error):
         pass
     
 def run(input, workflow, parameters=''):
@@ -67,7 +67,7 @@ def run(input, workflow, parameters=''):
             
             if pip.hasAlias(key):
                 ptype = pip.aliases[key][0]
-                aliases[key] = (ptype,expression.parseExpression(value))
+                aliases[key] = (ptype,expression.parse_expression(value))
     error = False
     view = DummyView()
     interpreter = core.interpreter.default.get_default_interpreter()

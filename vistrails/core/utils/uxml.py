@@ -51,8 +51,8 @@ class XMLWrapper(object):
                      self._char,
                      xml.parsers.expat.ErrorString(self._code)))
 
-    def openFile(self, filename):
-        """openFile(filename: str) -> None 
+    def open_file(self, filename):
+        """open_file(filename: str) -> None 
         Parses a XML file.
 
         """
@@ -62,9 +62,9 @@ class XMLWrapper(object):
         except xml.parsers.expat.ExpatError, e:
             raise self.XMLParseError(e.lineno, e.offset, e.code) 
     
-    def closeFile(self):
-        """closeFile() -> None 
-        Removes the association with the XML file loaded by openFile 
+    def close_file(self):
+        """close_file() -> None 
+        Removes the association with the XML file loaded by open_file 
         method. 
 
         """
@@ -73,8 +73,8 @@ class XMLWrapper(object):
         self.filename = None
         self.dom = None
     
-    def createDocument(self, nodename):
-        """createDocument(nodename: str) -> xml element 
+    def create_document(self, nodename):
+        """create_document(nodename: str) -> xml element 
         Creates a documentElement 
         
         """
@@ -82,14 +82,14 @@ class XMLWrapper(object):
         dom = impl.createDocument(None, nodename, None)
         return dom
 
-    def writeDocument(self, root, filename):
-        """writeDocument(root:xml element, filename: str) -> None
+    def write_document(self, root, filename):
+        """write_document(root:xml element, filename: str) -> None
         Save as an XML file 
         
         """
-        outputFile = file(filename,'w')
-        root.writexml(outputFile, "  ", "  ", '\n')
-        outputFile.close()
+        output_file = file(filename,'w')
+        root.writexml(output_file, "  ", "  ", '\n')
+        output_file.close()
 
     def __str__(self):
         """ __str__() -> str 
@@ -104,7 +104,7 @@ class XMLWrapper(object):
 import unittest
 
 class TestXmlUtils(unittest.TestCase):
-    def testNamed_elements(self):
+    def test_named_elements(self):
         """ Exercises searching for elements """
         xmlStr = """<root> 
                         <child>

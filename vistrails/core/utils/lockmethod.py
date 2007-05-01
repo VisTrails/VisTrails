@@ -47,11 +47,11 @@ class TestLockMethod(unittest.TestCase):
         self.assertEquals(self.lock.locked(), True)
 
     @lock_method(lock)
-    def fooThrows(self):
+    def foo_throws(self):
         raise Exception()
 
     @lock_method(lock)
-    def fooFinally(self):
+    def foo_finally(self):
         try:
             raise Exception
             return False
@@ -59,27 +59,27 @@ class TestLockMethod(unittest.TestCase):
             return True
 
     @lock_method(lock)
-    def fooDocstring(self):
+    def foo_docstring(self):
         """FOO"""
         pass
 
-    def testCommon(self):
+    def test_common(self):
         self.assertEquals(self.lock.locked(), False)
         self.foo()
         self.assertEquals(self.lock.locked(), False)
 
-    def testThrows(self):
+    def test_throws(self):
         self.assertEquals(self.lock.locked(), False)
-        self.assertRaises(Exception, self.fooThrows)
-        self.assertEquals(self.lock.locked(), False)
-
-    def testFinally(self):
-        self.assertEquals(self.lock.locked(), False)
-        self.assertEquals(self.fooFinally(), True)
+        self.assertRaises(Exception, self.foo_throws)
         self.assertEquals(self.lock.locked(), False)
 
-    def testDocstring(self):
-        self.assertEquals(self.fooDocstring.__doc__, "FOO")
+    def test_finally(self):
+        self.assertEquals(self.lock.locked(), False)
+        self.assertEquals(self.foo_finally(), True)
+        self.assertEquals(self.lock.locked(), False)
+
+    def test_docstring(self):
+        self.assertEquals(self.foo_docstring.__doc__, "FOO")
         
 
 if __name__ == '__main__':

@@ -260,8 +260,8 @@ class ColorByName(object):
             return [0.0, 0.0, 0.0, 1.0]
 
     @staticmethod
-    def getInt(name):
-        """ getInt(str) -> Color in int range
+    def get_int(name):
+        """ get_int(str) -> Color in int range
         Similar to get() but color ranges are from 0 to 255
         
         """
@@ -274,8 +274,8 @@ class ColorByName(object):
             return [0, 0, 0, 255]
 
     @staticmethod
-    def getNoAlpha(name):
-        """ getNoAlpha(str) -> Color        
+    def get_no_alpha(name):
+        """ get_no_alpha(str) -> Color        
         This is a static method returning a color with the given name
         or black if name not found. Alpha channel is not included
         
@@ -286,9 +286,9 @@ class ColorByName(object):
             return [0.0, 0.0, 0.0]
 
     @staticmethod
-    def getNoAlphaInt(name):
-        """ getNoAlphaInt(str) -> Color in int range
-        Similar to getNoAlphaInt() but color ranges are from 0 to 255
+    def get_no_alpha_int(name):
+        """ get_no_alpha_int(str) -> Color in int range
+        Similar to get_no_alpha() but color ranges are from 0 to 255
         
         """
         if ColorByName.colors.has_key(name):
@@ -327,14 +327,14 @@ class TestColorByName(unittest.TestCase):
     A few simple tests to make sure ColorByName is working as expected
     
     """
-    def testAlphaChannel(self):
+    def test_alpha_channel(self):
         self.assertEquals(ColorByName.get('blue'),
                           [0.0, 0.0, 1.0 , 1.0])
-        self.assertEquals(ColorByName.getNoAlpha('red'),
+        self.assertEquals(ColorByName.get_no_alpha('red'),
                           [1.0, 0.0, 0.0])
         self.assertEquals(ColorByName.get('not exist'),
                           [0.0, 0.0, 0.0, 1.0]),        
-        self.assertEquals(ColorByName.getNoAlpha('another not exist'),
+        self.assertEquals(ColorByName.get_no_alpha('another not exist'),
                           [0.0, 0.0, 0.0]),
                 
 if __name__ == '__main__':

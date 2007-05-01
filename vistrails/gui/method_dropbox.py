@@ -467,7 +467,7 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
         Update the text to the result of the evaluation
         
         """
-        base = expression.evaluateExpressions(self.text())
+        base = expression.evaluate_expressions(self.text())
         if self.contentIsString:
             self.setText(base)
         else:

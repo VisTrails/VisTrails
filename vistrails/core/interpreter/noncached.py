@@ -63,18 +63,18 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                 for callable_ in kwargs['moduleExecutedHook']:
                     callable_(obj.id)
         def begin_compute(obj):
-            view.setModuleComputing(obj.id)
+            view.set_module_computing(obj.id)
         def begin_update(obj):
-            view.setModuleActive(obj.id)
+            view.set_module_active(obj.id)
             reg = modules.module_registry.registry
             name = reg.getDescriptor(obj.__class__).name
             self._logger.startModuleExecution(vistrailName,
                                               currentVersion, obj.id, name)
         def end_update(obj, error=''):
             if not error:
-                view.setModuleSuccess(obj.id)
+                view.set_module_success(obj.id)
             else:
-                view.setModuleError(obj.id, error)
+                view.set_module_error(obj.id, error)
             self._logger.finishModuleExecution(vistrailName, 
                                                currentVersion, obj.id)
         def annotate(obj, d):

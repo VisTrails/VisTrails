@@ -89,7 +89,7 @@ class BaseInterpreter(object):
                         for f1 in reversed(pipeline.modules[mid].functions):
                             if f1.getSignature()==fsig:
                                 p = f1.params[pidx]
-                                aliases[palias] = (p.type, expression.parseExpression(str(p.strValue)))
+                                aliases[palias] = (p.type, expression.parse_expression(str(p.strValue)))
                                 break
         return aliases
 
@@ -164,7 +164,7 @@ class BaseInterpreter(object):
                     if p.alias and p.alias!='':
                         p.evaluatedStrValue = str(aliases[p.alias])
                     else:
-                        (base,exps) = expression.parseExpression(
+                        (base,exps) = expression.parse_expression(
                             str(p.strValue))
                         p.evaluatedStrValue = str(
                             self.evaluate_exp(p.type,base,exps,aliases))

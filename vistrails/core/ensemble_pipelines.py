@@ -73,7 +73,7 @@ class EnsemblePipelines(object):
             for name, info in pipeline.aliases.iteritems():
                 if not union.has_key(name):
                     value = str(pipeline.getAliasStrValue(name))
-                    e = expression.parseExpression(value)
+                    e = expression.parse_expression(value)
                     union[name] = (info[0], e)
                     sources[name] = [(pi, info[1], info[2], info[3])]
                 else:

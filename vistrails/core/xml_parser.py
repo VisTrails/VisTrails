@@ -60,7 +60,7 @@ class XMLParser(XMLWrapper):
 
         """
         self._filename = filename
-        self.openFile(filename)
+        self.open_file(filename)
 
     def closeVistrail(self):
         """closeVistrail() -> None 
@@ -68,7 +68,7 @@ class XMLParser(XMLWrapper):
         method. 
 
         """
-        self.closeFile()
+        self.close_file()
 
     def vistrailVersion(self):
         """vistrailVersion() -> str 

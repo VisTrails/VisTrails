@@ -161,13 +161,13 @@ import unittest
 class TestHTTPFile(unittest.TestCase):
 
     class DummyView(object):
-        def setModuleActive(self, id):
+        def set_module_active(self, id):
             pass
-        def setModuleComputing(self, id):
+        def set_module_computing(self, id):
             pass
-        def setModuleSuccess(self, id):
+        def set_module_success(self, id):
             pass
-        def setModuleError(self, id, error):
+        def set_module_error(self, id, error):
             pass
 
     def testParseURL(self):

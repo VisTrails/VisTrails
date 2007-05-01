@@ -116,7 +116,7 @@ def test_fun_2(p1):
 
 class TestTraceMethod(unittest.TestCase):
 
-    def testTrace1(self):
+    def test_trace_1(self):
         global _output_file
         (fd, name) = tempfile.mkstemp()
         os.close(fd)
@@ -134,7 +134,7 @@ class TestTraceMethod(unittest.TestCase):
                           'test_fun.exit\n')
         os.unlink(name)
 
-    def testTrace2(self):
+    def test_trace_2(self):
         global _output_file
         (fd, name) = tempfile.mkstemp()
         os.close(fd)

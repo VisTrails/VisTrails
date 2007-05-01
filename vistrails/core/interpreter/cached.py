@@ -107,11 +107,11 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         # views work on local ids
         def begin_compute(obj):
             i = module_map.inverse[obj.id]
-            view.setModuleComputing(i)
+            view.set_module_computing(i)
         # views and loggers work on local ids
         def begin_update(obj):
             i = module_map.inverse[obj.id]
-            view.setModuleActive(i)
+            view.set_module_active(i)
             reg = modules.module_registry.registry
             name = reg.getDescriptor(obj.__class__).name
             self._logger.startModuleExecution(vistrailName, 
@@ -120,9 +120,9 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         def end_update(obj, error=''):
             i = module_map.inverse[obj.id]
             if not error:
-                view.setModuleSuccess(i)
+                view.set_module_success(i)
             else:
-                view.setModuleError(i, error)
+                view.set_module_error(i, error)
             self._logger.finishModuleExecution(vistrailName, 
                                                currentVersion, i)
         # views and loggers work on local ids
@@ -251,11 +251,11 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
         for i, obj in objs.iteritems():
             if errs.has_key(i):
-                view.setModuleError(i, errs[i].msg)
+                view.set_module_error(i, errs[i].msg)
             elif execs.has_key(i):
-                view.setModuleSuccess(i)
+                view.set_module_success(i)
             else:
-                view.setModuleNotExecuted(i)
+                view.set_module_not_executed(i)
 
         return InstanceObject(objects=objs,
                               errors=errs,
