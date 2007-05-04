@@ -99,7 +99,7 @@ class QAliasTable(QtGui.QTableWidget):
         if col == 0:
             value = str(self.item(row,col).text())
             alias = str(self.verticalHeaderItem(row).text())
-            self.manager.updateAlias(alias, value)
+            self.manager.update_alias(alias, value)
         
     def updateFromEnsemble(self, aliases):
         """ updateFromEnsemble(aliases: dict) -> None        

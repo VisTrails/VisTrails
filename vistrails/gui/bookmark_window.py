@@ -166,41 +166,41 @@ class BookmarksManagerSingleton(QtCore.QObject, BookmarkController):
         """
         return self
 
-    def addBookmark(self, parent, vistrailsFile, pipeline, name=''):
-        """addBookmark(parent: int, vistrailsFile: str, pipeline: int,
+    def add_bookmark(self, parent, vistrailsFile, pipeline, name=''):
+        """add_bookmark(parent: int, vistrailsFile: str, pipeline: int,
                        name: str) -> None
         creates a bookmark with the given information and adds it to the 
         collection
 
         """
-        BookmarkController.addBookmark(self, parent, vistrailsFile, 
+        BookmarkController.add_bookmark(self, parent, vistrailsFile, 
                                        pipeline, name)
         self.emit(QtCore.SIGNAL("updateBookmarksGUI"))
         self.collection.updateGUI = False
         
-    def loadPipeline(self, id):
-        """loadPipeline(id: int) -> None
+    def load_pipeline(self, id):
+        """load_pipeline(id: int) -> None
         Given a bookmark id, loads its correspondent pipeline and include it in
         the ensemble 
 
         """
-        BookmarkController.loadPipeline(self,id)
+        BookmarkController.load_pipeline(self,id)
         self.emit(QtCore.SIGNAL("updateAliasGUI"), self.ensemble.aliases)
 
-    def loadAllPipelines(self):
-        """loadAllPipelines() -> None
+    def load_all_pipelines(self):
+        """load_all_pipelines() -> None
         Load all bookmarks' pipelines and sets an ensemble 
 
         """
-        BookmarkController.loadAllPipelines(self)
+        BookmarkController.load_all_pipelines(self)
         self.emit(QtCore.SIGNAL("updateAliasGUI"), self.ensemble.aliases)
 
-    def setActivePipelines(self, ids):
-        """ setActivePipelines(ids: list) -> None
+    def set_active_pipelines(self, ids):
+        """ set_active_pipelines(ids: list) -> None
         updates the list of active pipelines 
         
         """
-        BookmarkController.setActivePipelines(self, ids)
+        BookmarkController.set_active_pipelines(self, ids)
         self.emit(QtCore.SIGNAL("updateAliasGUI"), self.ensemble.aliases)
         
 ###############################################################################
@@ -212,7 +212,7 @@ def initBookmarks(filename):
 
     """
     BookmarksManager.filename = filename
-    BookmarksManager.loadBookmarks()
+    BookmarksManager.load_bookmarks()
 
 
 #singleton technique

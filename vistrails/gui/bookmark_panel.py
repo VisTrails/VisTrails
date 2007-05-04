@@ -153,7 +153,7 @@ class QBookmarkPalette(QSearchTreeWindow):
                      self.processItemChanges)
         self.connect(self.treeWidget,
                      QtCore.SIGNAL("itemRemoved(int)"),
-                     self.removeBookmark)
+                     self.remove_bookmark)
         self.connect(self.treeWidget,
                      QtCore.SIGNAL("reloadBookmark"),
                      self.reloadBookmark)
@@ -171,7 +171,7 @@ class QBookmarkPalette(QSearchTreeWindow):
 
         """
         if len(self.checkedList) > 0:
-            self.manager.executeWorkflows(self.checkedList)
+            self.manager.execute_workflows(self.checkedList)
 
     def processItemChanges(self, item, col):
         """processItemChanges(item: QBookmarkTreeWidgetItem, col:int)
@@ -184,26 +184,26 @@ class QBookmarkPalette(QSearchTreeWindow):
                 if item.checkState(0) ==QtCore.Qt.Unchecked:
                     if id in self.checkedList:
                         self.checkedList.remove(id)
-                        self.manager.setActivePipelines(self.checkedList)
+                        self.manager.set_active_pipelines(self.checkedList)
                 elif item.checkState(0) ==QtCore.Qt.Checked:
                     if id not in self.checkedList:
                         self.checkedList.append(id)
-                        self.manager.setActivePipelines(self.checkedList)
+                        self.manager.set_active_pipelines(self.checkedList)
                 self.emit(QtCore.SIGNAL("checkedListChanged"),
                           len(self.checkedList))
             if str(item.text(0)) != item.bookmark.name:
                 item.bookmark.name = str(item.text(0))
-                self.manager.writeBookmarks()
+                self.manager.write_bookmarks()
     
-    def removeBookmark(self, id):
-        """removeBookmark(id: int) -> None 
+    def remove_bookmark(self, id):
+        """remove_bookmark(id: int) -> None 
         Tell manager to remove bookmark with id 
 
         """
         if id in self.checkedList:
             self.checkedList.remove(id)
-            self.manager.setActivePipelines(self.checkedList)
-        self.manager.removeBookmark(id)
+            self.manager.set_active_pipelines(self.checkedList)
+        self.manager.remove_bookmark(id)
     
     def reloadBookmark(self, id):
         """reloadBookmark(id : int) -> None 
@@ -212,8 +212,8 @@ class QBookmarkPalette(QSearchTreeWindow):
         """
         if id in self.checkedList:
             self.checkedList.remove(id)
-            self.manager.setActivePipelines(self.checkedList)
-        self.manager.reloadPipeline(id)
+            self.manager.set_active_pipelines(self.checkedList)
+        self.manager.reload_pipeline(id)
 
 class QBookmarkTreeWidget(QSearchTreeWidget):
     """

@@ -66,7 +66,7 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
                      self.versionSelected)
         self.connect(self.versionView.scene(),
                      QtCore.SIGNAL('addToBookmarks'),
-                     self.addBookmark)
+                     self.add_bookmark)
 
     def updateWindowTitle(self, topLevel):
         """ updateWindowTitle(topLevel: bool) -> None
@@ -123,11 +123,11 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
             self.versionView.scene().fitToAllViews()
         self.emit(QtCore.SIGNAL("vistrailChanged()"))
 
-    def addBookmark(self, id, name):
-        """addBookmark(id: int, label:name) -> None
+    def add_bookmark(self, id, name):
+        """add_bookmark(id: int, label:name) -> None
         Gather all information concerning the new bookmark and send it to 
         BookmarksManager
 
         """
         vistrailsFile = self.controller.fileName
-        BookmarksManager.addBookmark('',vistrailsFile,id,name)
+        BookmarksManager.add_bookmark('',vistrailsFile,id,name)

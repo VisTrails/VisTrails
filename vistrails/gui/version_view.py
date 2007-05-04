@@ -414,10 +414,10 @@ class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
         self.addToBookmarksAct.setStatusTip("Add this pipeline to bookmarks")
         QtCore.QObject.connect(self.addToBookmarksAct, 
                                QtCore.SIGNAL("triggered()"),
-                               self.addBookmark)
+                               self.add_bookmark)
 
-    def addBookmark(self):
-        """addBookmark() -> None
+    def add_bookmark(self):
+        """add_bookmark() -> None
         Emit signal containing version info: tag and number 
         
         """
