@@ -73,9 +73,18 @@ class Vistrail(object):
         else:
             return ""
 
+    def get_version_count(self):
+        """get_version_count() -> Integer
+        Returns the total number of versions in this vistrail.
+
+        """
+        return len(self.actionMap)
+
     def get_version_number(self, version):
         """get_version_number(version) -> Integer
-        Returns the version number given a tag."""
+        Returns the version number given a tag.
+
+        """
         return self.tagMap[version]
     
     def getPipeline(self, version):

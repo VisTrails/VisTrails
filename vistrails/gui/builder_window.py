@@ -73,6 +73,9 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.shell = None
         self.vistrailViewToolBar = None
         self.setSDIMode(self.sdiModeAction.isChecked())
+        self.newVistrailAction.trigger()
+
+        self.viewManager.set_first_view(self.viewManager.currentView())
         
     def sizeHint(self):
         """ sizeHint() -> QRect

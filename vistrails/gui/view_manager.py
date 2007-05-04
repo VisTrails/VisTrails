@@ -222,6 +222,20 @@ class QViewManager(QtGui.QTabWidget):
         Open a new vistrail and return a QVistrailView        
         
         """
+        def close_first_vistrail_if_necessary():
+            # Close first vistrail of no change was made
+            if not self._first_view:
+                return
+            vt = self._first_view.controller.vistrail
+            if vt.get_version_count() == 0:
+                self.closeVistrail(self._first_view)
+                self._first_view = None
+            else:
+                # We set it to none, since it's been changed, so
+                # we don't want to ever close it again.
+                self._first_view = None
+
+        close_first_vistrail_if_necessary()
         try:
             parser = XMLParser()
             parser.openVistrail(fileName)
@@ -294,6 +308,8 @@ class QViewManager(QtGui.QTabWidget):
             self.removeVistrailView(vistrailView)
             if self.count()==0:
                 self.emit(QtCore.SIGNAL('currentVistrailChanged'), None)
+        if vistrailView == self._first_view:
+            self._first_view = None
         return True
     
     def closeAllVistrails(self):
@@ -459,3 +475,6 @@ class QViewManager(QtGui.QTabWidget):
                 self.setCurrentWidget(view)
                 return view
         view = self.openVistrail(filename)
+
+    def set_first_view(self, view):
+        self._first_view = view
