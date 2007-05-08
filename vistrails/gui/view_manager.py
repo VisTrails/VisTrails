@@ -55,7 +55,8 @@ class QViewManager(QtGui.QTabWidget):
         self.setCornerWidget(self.closeButton)
         self.sdiMode = False
         self.splittedViews = {}
-
+        self.activeIndex = -1;
+        
         self.connect(self, QtCore.SIGNAL('currentChanged(int)'),
                      self.currentChanged)
         self.connect(self.closeButton, QtCore.SIGNAL('clicked()'),
@@ -118,8 +119,12 @@ class QViewManager(QtGui.QTabWidget):
                             QtCore.SIGNAL('vistrailChanged()'),
                             self.vistrailChanged)
             self.emit(QtCore.SIGNAL('vistrailViewRemoved'), view)
-            if self.indexOf(view)!=-1:
+            index = self.indexOf(view) 
+            if index !=-1:
                 self.removeTab(self.currentIndex())
+                if self.currentIndex()  >= 0:
+                    self.updateViewMenu(self.currentIndex(), -1)
+                self.activeIndex = self.currentIndex()
             elif self.splittedViews.has_key(view):
                 del self.splittedViews[view]
             view.controller.cleanup()
@@ -257,8 +262,9 @@ class QViewManager(QtGui.QTabWidget):
             
 
     def saveVistrail(self, vistrailView=None, fileName=''):
-        """ openVistrail(vistrailView: QVistrailView) -> QVistrailView
+        """ openVistrail(vistrailView: QVistrailView) -> Bool
         Save the current active vistrail to a file
+        It returns True if file was written successfully.
         
         """
         if not vistrailView:
@@ -274,6 +280,9 @@ class QViewManager(QtGui.QTabWidget):
                     "Vistrail files (*.xml)\nOther files (*)")
             if fileName!='' and fileName!=None:
                 vistrailView.controller.writeVistrail(str(fileName))
+                return True
+            else:
+                return False
                 
     def closeVistrail(self, vistrailView=None, quiet=False):
         """ closeVistrail(vistrailView: QVistrailView, quiet: bool) -> bool
@@ -302,7 +311,7 @@ class QViewManager(QtGui.QTabWidget):
             else:
                 res = 1
             if res == 0:
-                self.saveVistrail(vistrailView)
+                return self.saveVistrail(vistrailView)
             elif res == 2:
                 return False
             self.removeVistrailView(vistrailView)
@@ -332,9 +341,27 @@ class QViewManager(QtGui.QTabWidget):
         builder
         
         """
+        self.updateViewMenu(index, -1)
+        self.activeIndex = index
         self.emit(QtCore.SIGNAL('currentVistrailChanged'),
                   self.currentWidget())
 
+    def updateViewMenu(self, index, internal_index):
+        """updateViewMenu(index: int, internal_index:int) -> None
+           Tell previous tab to remove menu entries and current tab to
+           add menu entries
+           internal_index indicates which tab will be the current tab of
+           the vistrail view.
+           
+        """
+        if self.activeIndex != -1 and self.count() > 1:
+            previousTab = self.widget(self.activeIndex)
+            previousTab.updateViewMenu(internal_index)
+            previousTab.activeIndex = -1
+        if index != -1 and self.count() > 0:
+            currentTab = self.widget(index)
+            currentTab.updateViewMenu()
+        
     def eventFilter(self, object, event):
         """ eventFilter(object: QVistrailView, event: QEvent) -> None
         Filter the window title change event for the view widget

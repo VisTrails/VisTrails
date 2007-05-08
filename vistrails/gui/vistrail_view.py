@@ -64,7 +64,7 @@ class QVistrailView(QDockContainer):
         self.peTab = QParameterExplorationTab()
         self.peTab.annotatedPipelineView.setScene(
             self.pipelineTab.pipelineView.scene())
-
+        
         # Setup a central stacked widget for pipeline view and version
         # tree view in tabbed mode
         self.stackedWidget = QtGui.QStackedWidget()
@@ -75,6 +75,9 @@ class QVistrailView(QDockContainer):
         self.stackedWidget.addWidget(self.peTab)
         self.stackedWidget.setCurrentIndex(1)
 
+        #Keeping track of previous active tab to update menus accordingly
+        self.activeIndex = 1
+        
         # Add the customized toolbar at the top
         self.toolBar = QVistrailViewToolBar(self)
         self.addToolBar(QtCore.Qt.TopToolBarArea,
@@ -151,6 +154,38 @@ class QVistrailView(QDockContainer):
         pipeline, version and query."""
         self.toolBar.tabBar.setCurrentIndex(viewIndex)
 
+    def updateViewMenu(self, viewIndex = None):
+        """updateViewMenu(viewIndex: int) -> None
+        Update the Builder View Menu to be consistent with the current tab
+        being shown.
+        
+        """
+        if viewIndex == None:
+            viewIndex = self.toolBar.tabBar.currentIndex()
+        builderMenu = self.parent().parent().parent().viewMenu
+        if self.activeIndex == 0: #pipelineTab
+            self.pipelineTab.removeViewActionsFromMenu(builderMenu)
+        elif self.activeIndex == 1: #versionTab
+            self.versionTab.removeViewActionsFromMenu(builderMenu)
+        elif self.activeIndex == 2: #queryTab
+            self.queryTab.removeViewActionsFromMenu(builderMenu)
+        elif self.activeIndex == 3: #peTab
+            self.peTab.removeViewActionsFromMenu(builderMenu)
+        currentTab = None
+        if viewIndex == 0:
+            currentTab = self.pipelineTab
+        elif viewIndex == 1:
+            currentTab = self.versionTab
+        elif viewIndex == 2:
+            currentTab = self.queryTab
+        elif viewIndex == 3:
+            currentTab = self.peTab
+            
+        if currentTab:
+            currentTab.addViewActionsToMenu(builderMenu)
+
+        self.activeIndex = viewIndex
+        
     def setInitialView(self):
         """setInitialView(): sets up the correct initial view for a
         new vistrail, that is, select empty version and focus on pipeline view."""
@@ -164,6 +199,7 @@ class QVistrailView(QDockContainer):
         
         """
         if self.stackedWidget.count()>index:
+            self.updateViewMenu(index)
             self.stackedWidget.setCurrentIndex(index)
 
     def pipChanged(self, checked=True):

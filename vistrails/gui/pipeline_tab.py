@@ -74,8 +74,26 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         self.connect(self.pipelineView.scene(),
                      QtCore.SIGNAL('moduleSelected'),
                      self.moduleSelected)
-
+        
         self.controller = None
+
+    def addViewActionsToMenu(self, menu):
+        """addViewActionsToMenu(menu: QMenu) -> None
+        Add toggle view actions to menu
+        
+        """
+        menu.addAction(self.methodPalette.toolWindow().toggleViewAction())
+        menu.addAction(self.moduleMethods.toolWindow().toggleViewAction())
+        menu.addAction(self.moduleAnnotations.toolWindow().toggleViewAction())
+
+    def removeViewActionsFromMenu(self, menu):
+        """removeViewActionsFromMenu(menu: QMenu) -> None
+        Remove toggle view actions from menu
+        
+        """
+        menu.removeAction(self.methodPalette.toolWindow().toggleViewAction())
+        menu.removeAction(self.moduleMethods.toolWindow().toggleViewAction())
+        menu.removeAction(self.moduleAnnotations.toolWindow().toggleViewAction())
 
     def updatePipeline(self, pipeline):
         """ updatePipeline(pipeline: Pipeline) -> None        

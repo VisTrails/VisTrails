@@ -77,6 +77,24 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         self.controller = None
         self.currentVersion = -1
 
+    def addViewActionsToMenu(self, menu):
+        """addViewActionsToMenu(menu: QMenu) -> None
+        Add toggle view actions to menu
+        
+        """
+        menu.addAction(self.paramView.toolWindow().toggleViewAction())
+        menu.addAction(self.annotatedPipelineView.toolWindow().toggleViewAction())
+        menu.addAction(self.virtualCell.toolWindow().toggleViewAction())
+
+    def removeViewActionsFromMenu(self, menu):
+        """removeViewActionsFromMenu(menu: QMenu) -> None
+        Remove toggle view actions from menu
+        
+        """
+        menu.removeAction(self.paramView.toolWindow().toggleViewAction())
+        menu.removeAction(self.annotatedPipelineView.toolWindow().toggleViewAction())
+        menu.removeAction(self.virtualCell.toolWindow().toggleViewAction())
+        
     def setController(self, controller):
         """ setController(controller: VistrailController) -> None
         Assign a controller to the parameter exploration tab

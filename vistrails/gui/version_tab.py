@@ -67,7 +67,22 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         self.connect(self.versionView.scene(),
                      QtCore.SIGNAL('addToBookmarks'),
                      self.add_bookmark)
+    def addViewActionsToMenu(self, menu):
+        """addViewActionsToMenu(menu: QMenu) -> None
+        Add toggle view actions to menu
+        
+        """
+        menu.addAction(self.versionSearch.toolWindow().toggleViewAction())
+        menu.addAction(self.versionProp.toolWindow().toggleViewAction())
 
+    def removeViewActionsFromMenu(self, menu):
+        """removeViewActionsFromMenu(menu: QMenu) -> None
+        Remove toggle view actions from menu
+        
+        """
+        menu.removeAction(self.versionSearch.toolWindow().toggleViewAction())
+        menu.removeAction(self.versionProp.toolWindow().toggleViewAction())
+        
     def updateWindowTitle(self, topLevel):
         """ updateWindowTitle(topLevel: bool) -> None
         Change the current widget title depends on the top level status

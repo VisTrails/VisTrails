@@ -254,6 +254,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.viewMenu.addAction(self.bookmarksAction)
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.sdiModeAction)
+        self.viewMenu.addSeparator()
 
         self.runMenu = self.menuBar().addMenu('&Run')
         self.runMenu.addAction(self.executeCurrentWorkflowAction)
@@ -441,7 +442,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             vistrailView.viewAction.setText(vistrailView.windowTitle())
             if not vistrailView.viewAction.isChecked():
                 vistrailView.viewAction.setChecked(True)
-
+    
     def vistrailChanged(self):
         """ vistrailChanged() -> None
         An action was performed on the current vistrail
