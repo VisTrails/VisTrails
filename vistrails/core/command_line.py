@@ -32,40 +32,40 @@ class CommandLineParserSingleton(object):
     
     def __init__(self):
         self.parser = optparse.OptionParser()
-        self.optionsWereRead = False
+        self.options_were_read = False
         self.args = []
 
-    def initOptions(self):
-        """self.initOptions() -> None. Initialize option dictionary,
+    def init_options(self):
+        """self.init_options() -> None. Initialize option dictionary,
         by parsing command line arguments according to the options set
-        by previous addOption calls.
+        by previous add_option calls.
 
-        Few programs should call this. Call self.parseOptions() unless
+        Few programs should call this. Call self.parse_options() unless
         you know what you're doing."""
         (self.options, self.args) = self.parser.parse_args()
-        self.optionsWereRead = True
+        self.options_were_read = True
 
-    def addOption(self, *args, **kwargs):
-        """self.addOption(*args, **kwargs) -> None. Adds a new option
+    def add_option(self, *args, **kwargs):
+        """self.add_option(*args, **kwargs) -> None. Adds a new option
         to the command line parser. Behaves identically to the
         optparse.OptionParser.add_option."""
         self.parser.add_option(*args, **kwargs)
 
-    def getOption(self, key):
-        """self.getOption(key) -> value. Returns a value corresponding
+    def get_option(self, key):
+        """self.get_option(key) -> value. Returns a value corresponding
         to the given key that was parsed from the command line. Throws
         AttributeError if key is not present."""
-        self.parseOptions()
+        self.parse_options()
         return getattr(self.options, key)
 
-    def parseOptions(self):
-        """self.parseOptions() -> None. Parse command line arguments,
-        according to the options set by previous addOption calls."""
-        if not self.optionsWereRead:
-            self.initOptions()
+    def parse_options(self):
+        """self.parse_options() -> None. Parse command line arguments,
+        according to the options set by previous add_option calls."""
+        if not self.options_were_read:
+            self.init_options()
 
-    def getArg(self,number):
-        """self.getArg(number) -> value. Returns the value corresponding
+    def get_arg(self,number):
+        """self.get_arg(number) -> value. Returns the value corresponding
         to the argument at position number from the command line. Returns 
         None if number is greater or equal the number of arguments. """
         if len(self.args) > number:
@@ -73,8 +73,8 @@ class CommandLineParserSingleton(object):
         else:
             return None 
 
-    def positionalArguments(self):
-        """positionalArguments() -> [string]. Returns a list of strings
+    def positional_arguments(self):
+        """positional_arguments() -> [string]. Returns a list of strings
         representing the positional arguments in the command line."""
         return self.args
 

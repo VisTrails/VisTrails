@@ -251,7 +251,7 @@ by startup.py. This should only be called after init()."""
                 dbg.critical(msg)
                 verbose = 2
             levels = [dbg.Critical, dbg.Warning, dbg.Log]
-            dbg.setMessageLevel(levels[verbose])
+            dbg.set_message_level(levels[verbose])
             dbg.log("Set verboseness level to %s" % verbose)
         if not self.configuration.userPackageDirectory:
             s = core.system.default_dot_vistrails() + '/userpackages'

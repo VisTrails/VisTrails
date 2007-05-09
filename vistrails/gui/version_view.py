@@ -532,7 +532,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         # Call dotty to perform graph layout
         (graph, self.fullGraph) = controller.refineGraph()
         layout = DotLayout()
-        layout.layoutFrom(controller.vistrail, graph)
+        layout.layout_from(controller.vistrail, graph)
 
         # Put the layout to the graphics view
         for node in layout.nodes.itervalues():

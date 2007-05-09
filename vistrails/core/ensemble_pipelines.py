@@ -33,10 +33,10 @@ class EnsemblePipelines(object):
                                    in pipelines.iteritems()])
         self.aliases = {}
         self.sources = []
-        self.activePipelines = []
+        self.active_pipelines = []
 
-    def addPipeline(self, id, pipeline):
-        """addPipeline(id: int, pipeline: Pipeline) -> None 
+    def add_pipeline(self, id, pipeline):
+        """add_pipeline(id: int, pipeline: Pipeline) -> None 
         adds a copy of pipeline to the local dictionary 
         
         """
@@ -51,13 +51,13 @@ class EnsemblePipelines(object):
         value - the new value of the variable
         returns - void
         """
-        self.changeParameter(name, value)
-        for id in self.activePipelines:
+        self.change_parameter(name, value)
+        for id in self.active_pipelines:
             pipeline = self.pipelines[id]
             pipeline.setAliasStrValue(name, value)
             
-    def assembleAliases(self):
-        """assembleAliases() -> None
+    def assemble_aliases(self):
+        """assemble_aliases() -> None
         Generate a list of all aliases across the active pipelines
         in self.pipelines, which is stored in self.aliases
         Also, for each key in self.aliases, self.sources has the same key,
@@ -68,7 +68,7 @@ class EnsemblePipelines(object):
         """
         union = {}
         sources = {}
-        for pi in self.activePipelines:
+        for pi in self.active_pipelines:
             pipeline = self.pipelines[pi]
             for name, info in pipeline.aliases.iteritems():
                 if not union.has_key(name):
@@ -82,8 +82,8 @@ class EnsemblePipelines(object):
         self.sources = sources
         self.aliases = union
 
-    def changeParameter (self, name, value):
-        """changeParameter(name:str, value:str) -> None
+    def change_parameter(self, name, value):
+        """change_parameter(name:str, value:str) -> None
         Changes a parameter in the internal alias dictionary.
         In order to have the changes propagated in the pipelines, call 
         update(name,value) instead.
@@ -94,12 +94,12 @@ class EnsemblePipelines(object):
             #tuples don't allow changing in place
             self.aliases[name] = (info[0],(value,info[1][1]))
     
-    def getSource(self, id, alias):
-        """getSource(id: int, alias: str) -> tuple
+    def get_source(self, id, alias):
+        """get_source(id: int, alias: str) -> tuple
         Return a tuple containing the module id, function id, and parameter id
         of an alias in a given pipeline """
-        pList = self.sources[alias]
-        for info in pList:
+        p_list = self.sources[alias]
+        for info in p_list:
             if id == info[0]:
                 return (info[1], info[2], info[3])
         return None

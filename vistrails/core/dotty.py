@@ -61,8 +61,8 @@ class DotLayout(object):
         self.scale = 0.0
         self.width = 0.0
 
-    def parseDottyOutput(self, file, scale=120.0):
-        """ parseDottyOutput(file: str, scale: float) -> None
+    def parse_dotty_output(self, file, scale=120.0):
+        """ parse_dotty_output(file: str, scale: float) -> None
         Parse dotty output file into this DotLayout object
         
         """
@@ -97,8 +97,8 @@ class DotLayout(object):
                     break
             token = src.next()
 
-    def outputVistrailGraph(self, f, vistrail, graph ):
-        """ outputVistrailGraph(f: str) -> None
+    def output_vistrail_graph(self, f, vistrail, graph ):
+        """ output_vistrail_graph(f: str) -> None
         Using vistrail and graph to prepare a dotty graph input
         
         """
@@ -114,27 +114,27 @@ class DotLayout(object):
             for (first,second) in froom:
                 f.write('%s -> %s;\n' % (id, first))
 
-    def layoutFrom(self, vistrail, graph):
-        """ layoutFrom(vistrail: VisTrail, graph: Graph) -> None
+    def layout_from(self, vistrail, graph):
+        """ layout_from(vistrail: VisTrail, graph: Graph) -> None
         Take a graph from VisTrail version and use Dotty to lay it out
         
         """
         # Create VisTrail graph input
-        tmpGraphFile = file(core.system.temporary_directory() +
+        tmp_graph_file = file(core.system.temporary_directory() +
                             'dot_tmp_vistrails.txt', 'w')
-        tmpGraphFile.write('digraph G {\n')
-        self.outputVistrailGraph(tmpGraphFile, vistrail, graph)
-        tmpGraphFile.write('}\n')
-        tmpGraphFile.close()
+        tmp_graph_file.write('digraph G {\n')
+        self.output_vistrail_graph(tmp_graph_file, vistrail, graph)
+        tmp_graph_file.write('}\n')
+        tmp_graph_file.close()
 
         # Run Dotty
-        tempDir = core.system.temporary_directory()
+        temp_dir = core.system.temporary_directory()
         cmdline = (core.system.graph_viz_dot_command_line() +
-                   tempDir + 'dot_output_vistrails.txt ' +
-                   tempDir + 'dot_tmp_vistrails.txt')
+                   temp_dir + 'dot_output_vistrails.txt ' +
+                   temp_dir + 'dot_tmp_vistrails.txt')
         os.system(cmdline)
 
-        dtty_file = tempDir + 'dot_output_vistrails.txt'
+        dtty_file = temp_dir + 'dot_output_vistrails.txt'
 
         if not os.path.exists(dtty_file) :
             print ""
@@ -142,8 +142,8 @@ class DotLayout(object):
             print "Is GraphViz installed and is dotty in your PATH?"
             print ""
             
-        fileIn = open(dtty_file)
+        file_in = open(dtty_file)
 
         # Parse Dotty's output
-        self.parseDottyOutput(fileIn)
+        self.parse_dotty_output(file_in)
         core.system.remove_graph_viz_temporaries()

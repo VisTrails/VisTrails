@@ -196,7 +196,7 @@ run in batch mode.')
         Check and store all command-line arguments
         
         """
-        add = command_line.CommandLineParser.addOption
+        add = command_line.CommandLineParser.add_option
         add("-S", "--startup", action="store", type="str", default="",
             dest="dotVistrails",
             help="Set startup file (default is ~/.vistrails/startup.py)")
@@ -240,7 +240,7 @@ run in batch mode.')
             help="debug Qt Signals")
         add("-a", "--parameters", action="store", dest="parameters",
             help="workflow parameter settings (non-interactive mode only)")
-        command_line.CommandLineParser.parseOptions()
+        command_line.CommandLineParser.parse_options()
 
     def printVersion(self):
         """ printVersion() -> None
@@ -255,7 +255,7 @@ run in batch mode.')
         Read arguments from the command line
         
         """
-        get = command_line.CommandLineParser().getOption
+        get = command_line.CommandLineParser().get_option
         if get('prompt'):
             self.configuration.pythonPrompt = True
         if get('nosplash'):
@@ -274,7 +274,7 @@ run in batch mode.')
             self.nonInteractiveOpts = InstanceObject(workflow=get('workflow'),
                                                      parameters=get('parameters'))
         self.configuration.nologger = get('nologger')
-        self.input = command_line.CommandLineParser().positionalArguments()
+        self.input = command_line.CommandLineParser().positional_arguments()
         if get('workflow') and not get('noninteractive'):
             print "Workflow option only allowed in noninteractive mode."
             sys.exit(1)

@@ -21,7 +21,8 @@
 ############################################################################
 """ This file contains classes related to loading and saving a set of
 bookmarks in a XML file. 
-It defines the following classes:
+It defines the following
+classes:
  - Bookmark
  - BookmarkCollection
  - BookmarkTree
@@ -324,7 +325,7 @@ class BookmarkController(object):
                 del self.active_pipelines[id]
             if id in self.ensemble.active_pipelines:
                 del self.ensemble.active_pipelines[id]
-            self.ensemble.assembleAliases()
+            self.ensemble.assemble_aliases()
         self.collection.serialize(self.filename)
     
     def update_alias(self, alias, value):
@@ -340,8 +341,8 @@ class BookmarkController(object):
 
         """
         if self.pipelines.has_key(id):
-            self.ensemble.addPipeline(id, self.pipelines[id])
-            self.ensemble.assembleAliases()
+            self.ensemble.add_pipeline(id, self.pipelines[id])
+            self.ensemble.assemble_aliases()
 
     def load_pipeline(self, id):
         """load_pipeline(id: int) -> None
@@ -355,8 +356,8 @@ class BookmarkController(object):
         v = parser.getVistrail()
         if v.hasVersion(bookmark.pipeline):
             self.pipelines[id] = v.getPipeline(bookmark.pipeline)
-            self.ensemble.addPipeline(id, self.pipelines[id])
-            self.ensemble.assembleAliases()
+            self.ensemble.add_pipeline(id, self.pipelines[id])
+            self.ensemble.assemble_aliases()
         else:
             bookmark.error = 2
         parser.closeVistrail()
@@ -388,7 +389,7 @@ class BookmarkController(object):
                 bookmark.error = 1
 
         self.ensemble = EnsemblePipelines(self.pipelines)
-        self.ensemble.assembleAliases()
+        self.ensemble.assemble_aliases()
 
     def set_active_pipelines(self, ids):
         """ set_active_pipelines(ids: list) -> None
@@ -397,7 +398,7 @@ class BookmarkController(object):
         """
         self.active_pipelines = ids
         self.ensemble.active_pipelines = ids
-        self.ensemble.assembleAliases()
+        self.ensemble.assemble_aliases()
 
     def write_bookmarks(self):
         """write_bookmarks() -> None - Write collection to disk."""
@@ -471,7 +472,7 @@ class BookmarkController(object):
             for interpolator in specs_per_dim:
                 #build alias dictionary
                  alias = interpolator[0]
-                 info = self.ensemble.getSource(id,alias)
+                 info = self.ensemble.get_source(id,alias)
                  if info:
                      if aliases.has_key(alias):
                          aliases[alias].append((info, 

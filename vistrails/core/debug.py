@@ -47,7 +47,7 @@ class DebugPrintSingleton(QtCore.QObject):
     so it will only get information of who called the DebugPrint functions. 
 
     Example of usage:
-        >>> DebugPrint.setMessageLevel(DebugPrint.Warning)
+        >>> DebugPrint.set_message_level(DebugPrint.Warning)
         >>> DebugPrint.warning('This is a warning message') #message that will be shown
         >>> DebugPrint.log('This is a log message and it will not be shown') #only warnings and above are shown
         
@@ -59,8 +59,8 @@ class DebugPrintSingleton(QtCore.QObject):
     def __call__(self):
 	return self
 
-    def makeLogger235(self, f):
-        """self.makeLogger235(file) -> logger. Creates a logging object to
+    def make_logger_235(self, f):
+        """self.make_logger_235(file) -> logger. Creates a logging object to
         be used within the DebugPrint class that sends the debugging
         output to file."""
         logger = logging.getLogger("VisLog")
@@ -71,8 +71,8 @@ class DebugPrintSingleton(QtCore.QObject):
         logger.setLevel(logging.CRITICAL)
         return logger
 
-    def makeLogger240(self, f):
-        """self.makeLogger235(file) -> logger. Creates a logging object to
+    def make_logger_240(self, f):
+        """self.make_logger_240(file) -> logger. Creates a logging object to
         be used within the DebugPrint class that sends the debugging
         output to file."""
         #setting basic configuration
@@ -82,25 +82,25 @@ class DebugPrintSingleton(QtCore.QObject):
         return logging.getLogger("VisLog")
 
     if system.python_version() >= (2,4,0,'',0):
-        makeLogger = makeLogger240
+        make_logger = make_logger_240
     elif system.python_version() >= (2,3,5,'',0):
-        makeLogger = makeLogger235
+        make_logger = make_logger_235
     else:
         raise VersionTooLow('Python', '2.3.5')
                 
     def __init__(self):
         QtCore.QObject.__init__(self)
-        self.logger = self.makeLogger(sys.stderr)
+        self.logger = self.make_logger(sys.stderr)
         self.level = logging.CRITICAL
 
-    def redirectToFile(self, f):
-        """self.redirectToFile(file) -> None. Redirects debugging
+    def redirect_to_file(self, f):
+        """self.redirect_to_file(file) -> None. Redirects debugging
         output to file."""
-        self.logger = self.makeLogger(f)
-        self.logger.setMessageLevel(self.level)
+        self.logger = self.make_logger(f)
+        self.logger.set_message_level(self.level)
             
-    def setMessageLevel(self,level):
-        """self.setMessageLevel(level) -> None. Sets the logging
+    def set_message_level(self,level):
+        """self.set_message_level(level) -> None. Sets the logging
         verboseness.  level must be one of (DebugPrint.Critical,
         DebugPrint.Warning, DebugPrint.Log)."""
         self.level = logging.CRITICAL
@@ -136,10 +136,10 @@ class DebugPrintSingleton(QtCore.QObject):
 	caller = inspect.currentframe().f_back # who called us?
 	self.logger.critical(self.message(caller, msg))
 
-    def watchSignal(self, obj, sig):
-        """self.watchSignal(QObject, QSignal) -> None. Connects a debugging call
-        to a signal so that every time signal is emitted, it gets registered
-        on the log."""
+    def watch_signal(self, obj, sig):
+        """self.watch_signal(QObject, QSignal) -> None. Connects a debugging
+        call to a signal so that every time signal is emitted, it gets
+        registered on the log."""
         self.connect(obj, sig, self.__debugSignal)
 
     def __debugSignal(self, *args):
