@@ -91,13 +91,13 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         """
         self.pipeline = pipeline
         if pipeline:
-            self.inspector.inspectSpreadsheetCells(pipeline)
-            self.inspector.inspectAmbiguousModules(pipeline)
+            self.inspector.inspect_spreadsheet_cells(pipeline)
+            self.inspector.inspect_ambiguous_modules(pipeline)
             cells = []
-            for mId in self.inspector.spreadsheetCells:
+            for mId in self.inspector.spreadsheet_cells:
                 name = pipeline.modules[mId].name
-                if self.inspector.annotatedModules.has_key(mId):
-                    cells.append((name, self.inspector.annotatedModules[mId]))
+                if self.inspector.annotated_modules.has_key(mId):
+                    cells.append((name, self.inspector.annotated_modules[mId]))
                 else:
                     cells.append((name, -1))
             self.config.configVirtualCells(cells)
@@ -123,12 +123,12 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         """
         decodedCells = []
         inspector = PipelineInspector()
-        inspector.inspectSpreadsheetCells(pipeline)
-        inspector.inspectAmbiguousModules(pipeline)
-        for mId in inspector.spreadsheetCells:
+        inspector.inspect_spreadsheet_cells(pipeline)
+        inspector.inspect_ambiguous_modules(pipeline)
+        for mId in inspector.spreadsheet_cells:
             name = pipeline.modules[mId].name
-            if inspector.annotatedModules.has_key(mId):
-                idx = inspector.annotatedModules[mId]
+            if inspector.annotated_modules.has_key(mId):
+                idx = inspector.annotated_modules[mId]
             else:
                 idx = -1
             (vRow, vCol) = cells[(name, idx)]

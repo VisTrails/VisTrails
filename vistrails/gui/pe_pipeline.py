@@ -59,7 +59,8 @@ class QAnnotatedPipelineView(QPipelineView, QToolWindowInterface):
         QPipelineView.paintEvent(self, event)
         if self.scene():
             painter = QtGui.QPainter(self.viewport())
-            for mId, annotatedId in self.inspector.annotatedModules.iteritems():
+            for mId, annotatedId in \
+                    self.inspector.annotated_modules.iteritems():
                 item = self.scene().modules[mId]
                 br = item.sceneBoundingRect()
                 rect = QtCore.QRect(self.mapFromScene(br.topLeft()),
@@ -72,7 +73,7 @@ class QAnnotatedPipelineView(QPipelineView, QToolWindowInterface):
         Re-inspect the pipeline to get annotated ids
         
         """
-        self.inspector.inspectAmbiguousModules(pipeline)
+        self.inspector.inspect_ambiguous_modules(pipeline)
         self.scene().fitToView(self)
 
     @staticmethod

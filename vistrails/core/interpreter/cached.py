@@ -114,8 +114,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             view.set_module_active(i)
             reg = modules.module_registry.registry
             name = reg.getDescriptor(obj.__class__).name
-            self._logger.startModuleExecution(vistrailName, 
-                                              currentVersion, i, name)
+            self._logger.start_module_execution(vistrailName, 
+                                                currentVersion, i, name)
         # views and loggers work on local ids
         def end_update(obj, error=''):
             i = module_map.inverse[obj.id]
@@ -123,12 +123,12 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 view.set_module_success(i)
             else:
                 view.set_module_error(i, error)
-            self._logger.finishModuleExecution(vistrailName, 
-                                               currentVersion, i)
+            self._logger.finish_module_execution(vistrailName, 
+                                                 currentVersion, i)
         # views and loggers work on local ids
         def annotate(obj, d):
             i = module_map.inverse[obj.id]
-            self._logger.insertAnnotationDB(vistrailName, 
+            self._logger.insert_annotation_DB(vistrailName, 
                                             currentVersion, i, d)
 
         def create_null():
@@ -288,7 +288,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
         If modules have no error associated with but were not executed, it
         means they were cached."""
-        self._logger.startWorkflowExecution(vistrailName, currentVersion)
+        self._logger.start_workflow_execution(vistrailName, currentVersion)
 
         self.clean_non_cacheable_modules()
 
@@ -297,7 +297,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                                        view, aliases,
                                        **kwargs)
 
-        self._logger.finishWorkflowExecution(vistrailName, currentVersion)
+        self._logger.finish_workflow_execution(vistrailName, currentVersion)
 
         return result
 

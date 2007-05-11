@@ -72,10 +72,10 @@ def addSubModule(moduleName, packageName, vistrail,
                         NewSubModuleInfo)
     module_registry.registry.setCurrentPackageName(packageName)
     module_registry.registry.addModule(NewSubModule, moduleName)
-    for (name, spec) in inspector.inputPorts.itervalues():
+    for (name, spec) in inspector.input_ports.itervalues():
         module_registry.registry.addInputPort(NewSubModule,
                                               name, spec)
-    for (name, spec) in inspector.outputPorts.itervalues():
+    for (name, spec) in inspector.output_ports.itervalues():
         module_registry.registry.addOutputPort(NewSubModule,
                                                name, spec)
     module_registry.registry.setCurrentPackageName(None)
@@ -163,9 +163,9 @@ class SubModule(NotCacheable, Module):
         for obj in objects.itervalues():
             obj.interpreter = self.interpreter
         
-        self.inspector.inspectInputOutputPorts(pipeline)
+        self.inspector.inspect_input_output_ports(pipeline)
         for iport, conn in self.inputPorts.iteritems():
-            inputPortId = self.inspector.inputPortByName[iport]
+            inputPortId = self.inspector.input_port_by_name[iport]
             inputPortModule = objects[inputPortId]
             inputPortModule.set_input_port('ExternalPipe', conn[0])
         
@@ -174,10 +174,10 @@ class SubModule(NotCacheable, Module):
         Added additional output port to sub module
         
         """
-        self.inspector.inspectInputOutputPorts(pipeline)
+        self.inspector.inspect_input_output_ports(pipeline)
         for oport in self.outputPorts.keys():
-            if self.inspector.outputPortByName.has_key(oport):
-                outputPortId = self.inspector.outputPortByName[oport]
+            if self.inspector.output_port_by_name.has_key(oport):
+                outputPortId = self.inspector.output_port_by_name[oport]
                 outputPortModule = objects[outputPortId]
                 self.setResult(oport,
                                outputPortModule.get_output('ExternalPipe'))

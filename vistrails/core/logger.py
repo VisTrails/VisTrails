@@ -37,17 +37,17 @@ MySQLdb = None
 class DummyLogger(object):
     """DummyLogger is a class that has the entire interface for a logger
     but simply ignores the calls."""
-    def startWorkflowExecution(*args, **kwargs):
+    def start_workflow_execution(*args, **kwargs):
         pass
-    def startModuleExecution(*args, **kwargs):
+    def start_module_execution(*args, **kwargs):
         pass
-    def finishModuleExecution(*args, **kwargs):
+    def finish_module_execution(*args, **kwargs):
         pass
-    def insertAnnotationDB(*args, **kwargs):
+    def insert_annotation_DB(*args, **kwargs):
         pass
-    def finishWorkflowExecution(*args, **kwargs):
+    def finish_workflow_execution(*args, **kwargs):
         pass
-    def finishSession(*args, **kwargs):
+    def finish_session(*args, **kwargs):
         pass
     
 ##############################################################################
@@ -61,26 +61,26 @@ class Logger(object):
 
         """
         self.username = getpass.getuser()
-        self.machineName = socket.getfqdn()
-        self.machineId = -1 #it will be retrieved from DB
+        self.machine_name = socket.getfqdn()
+        self.machine_id = -1 #it will be retrieved from DB
         self.os = system.systemType
-        self.architecture = self.extractBitNumber(platform.architecture()[0]) 
+        self.architecture = self.extract_bit_number(platform.architecture()[0]) 
         #the following ugly expression avoids getting '127.0.0.1' 
         self.processor = platform.processor()
         if not self.processor:
             self.processor = 'n/a'
-        self.ip = self.getIpAddress()
-        self.vistVer = system.vistrails_version()
+        self.ip = self.get_ip_address()
+        self.vist_ver = system.vistrails_version()
         self.ram = system.guess_total_memory()/(1024*1024)
-        self.getSettingsFromApp()
+        self.get_settings_from_app()
         self.ssid = -1
-        self.vistrailsMap = {} #maps vistrailsNames to vistrails_id in db
-	self.wfDict = {} #vistrails_id : {version_number:wf_exec_id}
-        self.modDict = {}#wf_exec_id : {module_id: exec_id}
-        self.initSession()
+        self.vistrails_map = {} #maps vistrailsNames to vistrails_id in db
+	self.wf_dict = {} #vistrails_id : {version_number:wf_exec_id}
+        self.mod_dict = {}#wf_exec_id : {module_id: exec_id}
+        self.init_session()
 
-    def getIpAddress(self):
-        """ getIpAddress() -> str
+    def get_ip_address(self):
+        """ get_ip_address() -> str
         Gets current IP address trying to avoid the IPv6 interface """
 	info = socket.getaddrinfo(socket.gethostname(), None)
 	for i in info:
@@ -89,8 +89,8 @@ class Logger(object):
 	else:
 	    return '0.0.0.0'
 
-    def extractBitNumber(self, bitString):
-        """ self.extractBitNumber(bitString) -> int 
+    def extract_bit_number(self, bitString):
+        """ self.extract_bit_number(bitString) -> int 
         Given a string with a number followed by the word bit, it extracts only
         the number.
         """
@@ -100,8 +100,8 @@ class Logger(object):
         else:
             return 32 #default value 
     
-    def createDBConnection(self):
-        """ createDBConnection() -> MySQLdb.connection 
+    def create_DB_connection(self):
+        """ create_DB_connection() -> MySQLdb.connection 
         Creates a database connection 
         
         """
@@ -116,8 +116,8 @@ class Logger(object):
             raise Exception(msg)
         return db
 
-    def getSettingsFromApp(self):
-        """ self.getSettingsFromApp()->None 
+    def get_settings_from_app(self):
+        """ self.get_settings_from_app()->None 
         Get information from configuration.logger in vis_application.py 
         
         """
@@ -129,28 +129,28 @@ class Logger(object):
         self.dbPasswd = app.configuration.logger.dbPasswd
         self.dbName = app.configuration.logger.dbName
 
-    def initSession(self):
-        """ initSession() -> None - 
+    def init_session(self):
+        """ init_session() -> None - 
         Init a log session keeping the session on self.ssid 
 
         """
         self.ssid = -1
-        self.vistrailsMap = {} 
-	self.wfDict = {} 
-        self.modDict = {}
-        self.db = self.createDBConnection()
+        self.vistrails_map = {} 
+	self.wf_dict = {} 
+        self.mod_dict = {}
+        self.db = self.create_DB_connection()
         #check if machine_id is there
-        self.machineId = self.getMachineIdDB()
-        if self.machineId == -1:
-            self.machineId = self.insertMachineDB()
-        self.ssid = self.insertSessionIdDB()
+        self.machine_id = self.get_machine_id_DB()
+        if self.machine_id == -1:
+            self.machine_id = self.insert_machine_DB()
+        self.ssid = self.insert_session_id_DB()
         
-    def finishSession(self):
-        """ self.finishSession()->None 
+    def finish_session(self):
+        """ self.finish_session()->None 
         Finish Log session """ 
         if self.ssid != -1:
             try:
-                timestamp = self.getCurrentTimeDB()
+                timestamp = self.get_current_time_DB()
                 c = self.db.cursor()
                 c.execute("""UPDATE session
                 SET ts_end = %s 
@@ -161,8 +161,8 @@ class Logger(object):
             c.close()
             self.db.close()
 
-    def getMachineIdDB(self):
-        """ getMachineIdDB() -> int 
+    def get_machine_id_DB(self):
+        """ get_machine_id_DB() -> int 
         Get machine id from db given machine name, os, architecture,
         processor and memory. Return -1 if not found """
         result = -1
@@ -175,7 +175,7 @@ class Logger(object):
             AND os = %s 
             AND architecture = %s 
             AND processor = %s 
-            AND ram = %s """, (self.machineName, self.os, 
+            AND ram = %s """, (self.machine_name, self.os, 
                                self.architecture, self.processor, self.ram))
             row = c.fetchone()
             if row:
@@ -188,8 +188,8 @@ class Logger(object):
 
         return result
 
-    def insertMachineDB(self):
-        """ self.insertMachineInfo() -> int 
+    def insert_machine_DB(self):
+        """ self.insert_machine_DB() -> int 
         Insert machine information into the database and return the 
         machine_id 
 
@@ -199,19 +199,19 @@ class Logger(object):
             c = self.db.cursor()
             c.execute("""
             INSERT INTO machine(name,os,architecture,processor,ram)
-            VALUES(%s,%s,%s,%s,%s) """, (self.machineName, self.os, 
+            VALUES(%s,%s,%s,%s,%s) """, (self.machine_name, self.os, 
                                          self.architecture,
                                          self.processor, self.ram))
             self.db.commit()
-            result = self.getMachineIdDB()
+            result = self.get_machine_id_DB()
             
         except MySQLdb.Error, e:
             print "Logger Error %d: %s" % (e.args[0], e.args[1])
         c.close()
         return result
 
-    def getVistrailsIdDB(self, vistrailsName):
-        """ self.getVistrailsIdDB(vistrailsName)->int 
+    def get_vistrails_id_DB(self, vistrailsName):
+        """ self.get_vistrails_id_DB(vistrailsName)->int 
         Get vistrails_id from database given full path of a vistrails. 
         
         """
@@ -233,8 +233,8 @@ class Logger(object):
 
         return result
     
-    def insertVistrailsDB(self, vistrailsName):
-        """ self.insertVistrailsDB() -> int 
+    def insert_vistrails_DB(self, vistrailsName):
+        """ self.insert_vistrails_DB() -> int 
         Insert vistrailsName information into the database and return the 
         vistrails_id 
         
@@ -246,23 +246,23 @@ class Logger(object):
             INSERT INTO vistrails(vistrails_name)
             VALUES(%s) """, (vistrailsName))
             self.db.commit()
-            result = self.getVistrailsIdDB(vistrailsName)
+            result = self.get_vistrails_id_DB(vistrailsName)
         except MySQLdb.Error, e:
             print "Logger Error %d: %s" % (e.args[0], e.args[1])
         c.close()
         return result
     
-    def insertSessionIdDB(self):
-        """ self.insertSessionIdDB()->int It creates an entry in the 
+    def insert_session_id_DB(self):
+        """ self.insert_session_id_DB()->int It creates an entry in the 
         database and return the ss_id of the new entry."""
         result = -1
         try:
-            timestamp = self.getCurrentTimeDB()
+            timestamp = self.get_current_time_DB()
             c = self.db.cursor()
             c.execute("""
             INSERT INTO session(user,machine_id,ip,vis_ver, ts_start)
-            VALUES(%s,%s,%s,%s,%s) """, (self.username, self.machineId,
-                                      self.ip, self.vistVer, timestamp.strftime("%Y-%m-%d %H:%M:%S")))
+            VALUES(%s,%s,%s,%s,%s) """, (self.username, self.machine_id,
+                                      self.ip, self.vist_ver, timestamp.strftime("%Y-%m-%d %H:%M:%S")))
             self.db.commit()
             c.execute("""
             SELECT ss_id
@@ -278,8 +278,8 @@ class Logger(object):
         c.close()
         return result
         
-    def getCurrentTimeDB(self):
-        """ getCurrentTimeDB() -> datetime.datetime 
+    def get_current_time_DB(self):
+        """ get_current_time_DB() -> datetime.datetime 
         Get current time on database to keep consistency across applications
 
         """
@@ -296,22 +296,22 @@ class Logger(object):
         c.close()
         return timestamp
 
-    def startWorkflowExecution(self, vistrailsName, version_number):
-        """ startWorkflowExecution(vistrailsName, version_number)->None 
+    def start_workflow_execution(self, vistrailsName, version_number):
+        """ start_workflow_execution(vistrailsName, version_number)->None 
         Log the start of a workflow execution 
         
         """
         try:
             #vistrails information
-	    if self.vistrailsMap.has_key(vistrailsName):
-		vistrails_id = self.vistrailsMap[vistrailsName]
+	    if self.vistrails_map.has_key(vistrailsName):
+		vistrails_id = self.vistrails_map[vistrailsName]
 	    else:
-		vistrails_id = self.getVistrailsIdDB(vistrailsName) 
+		vistrails_id = self.get_vistrails_id_DB(vistrailsName) 
 		if vistrails_id == -1:
-		    vistrails_id = self.insertVistrailsDB(vistrailsName)
-		self.vistrailsMap[vistrailsName] = vistrails_id
+		    vistrails_id = self.insert_vistrails_DB(vistrailsName)
+		self.vistrails_map[vistrailsName] = vistrails_id
 
-            ts = self.getCurrentTimeDB()
+            ts = self.get_current_time_DB()
             c = self.db.cursor()
             c.execute(""" INSERT INTO wf_exec(ss_id,vistrails_id,wf_version,ts_start)
 	    VALUES (%s,%s,%s,%s)""",(self.ssid, vistrails_id, version_number, ts))
@@ -327,12 +327,12 @@ class Logger(object):
 	    if row:
 		wf_exec_id = row[0]
 		
-		if not self.wfDict.has_key(vistrails_id):
+		if not self.wf_dict.has_key(vistrails_id):
 		    dict = {}
 		    dict[version_number] = wf_exec_id
-		    self.wfDict[vistrails_id] = dict
+		    self.wf_dict[vistrails_id] = dict
 		else:
-		    d = self.wfDict[vistrails_id]
+		    d = self.wf_dict[vistrails_id]
 		    d[version_number] = wf_exec_id
         
         except MySQLdb.Error, e:
@@ -340,39 +340,39 @@ class Logger(object):
         
         c.close()
       
-    def finishWorkflowExecution(self, vistrailsName, version_number):
-        """ finishWorkflowExecution(vistrailsName, version_number) -> None 
+    def finish_workflow_execution(self, vistrailsName, version_number):
+        """ finish_workflow_execution(vistrailsName, version_number) -> None 
         Log the end of a workflow execution
         
         """
 	try:
-	    vistrails_id = self.vistrailsMap[vistrailsName]
-	    wf_exec_id = self.wfDict[vistrails_id][version_number]
+	    vistrails_id = self.vistrails_map[vistrailsName]
+	    wf_exec_id = self.wf_dict[vistrails_id][version_number]
 	    
-	    timestamp = self.getCurrentTimeDB()
+	    timestamp = self.get_current_time_DB()
 	    c = self.db.cursor()
 	    c.execute("""UPDATE wf_exec
 	    SET ts_end = %s 
 	    WHERE wf_exec_id = %s""", (timestamp,wf_exec_id))
             self.db.commit()
-	    del self.wfDict[vistrails_id][version_number]
+	    del self.wf_dict[vistrails_id][version_number]
 	except MySQLdb.Error, e:
 	    print "Logger Error %d: %s" % (e.args[0], e.args[1])
 		
 	c.close()
 
-    def startModuleExecution(self, vistrailsName, version_number, module_id, 
+    def start_module_execution(self, vistrailsName, version_number, module_id, 
                              module_name):
-        """ startModuleExecution(vistrailsName, version_number, module_id, 
+        """ start_module_execution(vistrailsName, version_number, module_id, 
                                  module_name) -> None
         Log the start of the execution of a module
 
         """
 	try:
-	    vistrails_id = self.vistrailsMap[vistrailsName]
-	    wf_exec_id = self.wfDict[vistrails_id][version_number]
+	    vistrails_id = self.vistrails_map[vistrailsName]
+	    wf_exec_id = self.wf_dict[vistrails_id][version_number]
 
-            ts = self.getCurrentTimeDB()
+            ts = self.get_current_time_DB()
             c = self.db.cursor()
             c.execute(""" INSERT INTO 
             exec(ts_start,wf_exec_id,module_id,module_name)
@@ -389,12 +389,12 @@ class Logger(object):
 	    if row:
 		exec_id = row[0]
 		
-		if not self.modDict.has_key(wf_exec_id):
+		if not self.mod_dict.has_key(wf_exec_id):
 		    dict = {}
 		    dict[module_id] = exec_id
-		    self.modDict[wf_exec_id] = dict
+		    self.mod_dict[wf_exec_id] = dict
 		else:
-		    d = self.modDict[wf_exec_id]
+		    d = self.mod_dict[wf_exec_id]
 		    d[module_id] = exec_id
         
         except MySQLdb.Error, e:
@@ -402,24 +402,24 @@ class Logger(object):
         
         c.close()
    
-    def finishModuleExecution(self, vistrailsName, version_number, module_id):
-        """ finishModuleExecution(vistrailsName, version_number, 
+    def finish_module_execution(self, vistrailsName, version_number, module_id):
+        """ finish_module_execution(vistrailsName, version_number, 
                                   module_id) -> None
         Log the end of the execution of a module
 
         """
         try:
-	    vistrails_id = self.vistrailsMap[vistrailsName]
-	    wf_exec_id = self.wfDict[vistrails_id][version_number]
-            exec_id = self.modDict[wf_exec_id][module_id]
+	    vistrails_id = self.vistrails_map[vistrailsName]
+	    wf_exec_id = self.wf_dict[vistrails_id][version_number]
+            exec_id = self.mod_dict[wf_exec_id][module_id]
 
-	    timestamp = self.getCurrentTimeDB()
+	    timestamp = self.get_current_time_DB()
 	    c = self.db.cursor()
 	    c.execute("""UPDATE exec
 	    SET ts_end = %s 
 	    WHERE exec_id = %s""", (timestamp,exec_id))
             self.db.commit()
-	    del self.modDict[wf_exec_id][module_id]
+	    del self.mod_dict[wf_exec_id][module_id]
 
 	except MySQLdb.Error, e:
 	    print "Logger Error %d: %s" % (e.args[0], e.args[1])
@@ -427,14 +427,14 @@ class Logger(object):
 	c.close()
 
 
-    def insertAnnotationDB(self, vistrailsName, version_number, module_id, annot_dict):
-        """ insertAnnotationDB(vistrailsName, version_number, 
+    def insert_annotation_DB(self, vistrailsName, version_number, module_id, annot_dict):
+        """ insert_annotation_DB(vistrailsName, version_number, 
                                module_id, annot_dict:dict[str:str]) -> None
         Log a module annotation (key, value) on the database"""
         try:
-	    vistrails_id = self.vistrailsMap[vistrailsName]
-	    wf_exec_id = self.wfDict[vistrails_id][version_number]
-            exec_id = self.modDict[wf_exec_id][module_id]
+	    vistrails_id = self.vistrails_map[vistrailsName]
+	    wf_exec_id = self.wf_dict[vistrails_id][version_number]
+            exec_id = self.mod_dict[wf_exec_id][module_id]
 
             insert_values = []
             c = self.db.cursor()
@@ -451,8 +451,8 @@ class Logger(object):
         
         c.close()
 
-    def getExecIdInfo(self, exec_id):
-        """ getExecIdInfo(exec_id) -> dict 
+    def get_exec_id_info(self, exec_id):
+        """ get_exec_id_info(exec_id) -> dict 
         Returns a dictionary containing execution time_start, duration 
         and username of a execution """ 
         try:
@@ -475,8 +475,8 @@ class Logger(object):
         
         c.close()
 
-    def getExecIdDetails(self, exec_id):
-        """ getExecIdDetails(exec_id) -> dict 
+    def get_exec_id_details(self, exec_id):
+        """ get_exec_id_details(exec_id) -> dict 
         Get more dataied information of a workflow execution.
         
         """

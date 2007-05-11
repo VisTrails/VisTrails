@@ -500,7 +500,7 @@ class VistrailController(QtCore.QObject):
 
         pInspector = PipelineInspector()
         if self.currentPipeline:
-            pInspector.inspectInputOutputPorts(self.currentPipeline)
+            pInspector.inspect_input_output_ports(self.currentPipeline)
             
         try:
             if self.vistrail.hasTag(self.currentVersion):
@@ -513,7 +513,7 @@ class VistrailController(QtCore.QObject):
                          "Please enter a different one." % tag)
             return
 
-        if pInspector.isSubModule() and tag!='':
+        if pInspector.is_sub_module() and tag!='':
             ans = show_question("Add Sub-Module",
                                 "'%s' can be used as a module in VisTrails. "
                                 "Do you want to add it to VisTrails Modules?"
@@ -880,7 +880,7 @@ class VistrailController(QtCore.QObject):
             if tag!='':
                 pipeline = self.vistrail.getPipeline(version)
                 inspector.inspect(pipeline)
-                if inspector.isSubModule():
+                if inspector.is_sub_module():
                     if importModule==False:
                         res = show_question('Import Modules',
                                             "'%s' contains importable modules. "

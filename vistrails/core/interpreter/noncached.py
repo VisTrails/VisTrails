@@ -55,7 +55,7 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
 
         self.resolve_aliases(pipeline, aliases)
 
-        self._logger.startWorkflowExecution(vistrailName, currentVersion)
+        self._logger.start_workflow_execution(vistrailName, currentVersion)
 
         def add_to_executed(obj):
             executed[obj.id] = True
@@ -68,17 +68,17 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
             view.set_module_active(obj.id)
             reg = modules.module_registry.registry
             name = reg.getDescriptor(obj.__class__).name
-            self._logger.startModuleExecution(vistrailName,
+            self._logger.start_module_execution(vistrailName,
                                               currentVersion, obj.id, name)
         def end_update(obj, error=''):
             if not error:
                 view.set_module_success(obj.id)
             else:
                 view.set_module_error(obj.id, error)
-            self._logger.finishModuleExecution(vistrailName, 
+            self._logger.finish_module_execution(vistrailName, 
                                                currentVersion, obj.id)
         def annotate(obj, d):
-            self._logger.insertAnnotationDB(vistrailName, 
+            self._logger.insert_annotation_DB(vistrailName, 
                                             currentVersion, obj.id, d)
 
         try:
@@ -173,7 +173,7 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
             self.filePool.cleanup()
             del self.filePool
 
-        self._logger.finishWorkflowExecution(vistrailName, currentVersion)
+        self._logger.finish_workflow_execution(vistrailName, currentVersion)
         
         return InstanceObject(objects=objects,
                               errors=errors,

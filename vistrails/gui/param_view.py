@@ -92,7 +92,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
         # Now go through all modules and functions
 
         inspector = PipelineInspector()
-        inspector.inspectAmbiguousModules(pipeline)
+        inspector.inspect_ambiguous_modules(pipeline)
         sortedModules = sorted(pipeline.modules.iteritems(),
                                key=lambda item: item[1].name)
         for mId, module in sortedModules:
@@ -103,8 +103,8 @@ class QParameterTreeWidget(QSearchTreeWidget):
                     function = module.functions[fId]
                     if len(function.params)==0: continue
                     if moduleItem==None:
-                        if inspector.annotatedModules.has_key(mId):
-                            annotatedId = inspector.annotatedModules[mId]
+                        if inspector.annotated_modules.has_key(mId):
+                            annotatedId = inspector.annotated_modules[mId]
                             moduleItem = QParameterTreeWidgetItem(annotatedId,
                                                                   self, mLabel)
                         else:
