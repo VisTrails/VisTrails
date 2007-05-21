@@ -26,6 +26,7 @@ These are the classes defined here:
  - InvalidActionFound
 
 """
+from db.domain import DBMacro
 import copy
 from core.utils import unimplemented, abstract, VistrailsInternalError, enum
 from core.vistrail.connection import Connection
@@ -34,7 +35,7 @@ from core.vistrail.action import Action
 
 ###############################################################################
 
-class Macro(object):
+class Macro(DBMacro):
     """ Class that represents a Vistrail Macro.
     
     Member Description
@@ -70,6 +71,7 @@ class Macro(object):
               Vistrail object
           
         """
+	DBMacro.__init__(self)
         self.vistrail = vis
         self.name = ''
         self.description = ''
@@ -97,6 +99,32 @@ class Macro(object):
         return self.__endTime
 
     endTime = property(_get_endTime, _set_endTime)
+
+    def _get_id(self):
+	return _Macro._get_id(self)
+    def _set_id(self, id):
+	_Macro._set_id(self, id)
+    id = property(_get_id, _set_id)
+
+    def _get_name(self):
+	return _Macro._get_name(self)
+    def _set_name(self, name):
+	_Macro._set_name(self, name)
+    name = property(_get_name, _set_name)
+
+    def _get_description(self):
+	return _Macro._get_descrptn(self)
+    def _set_description(self, description):
+	return _Macro._set_descrptn(self, description)
+    description = property(_get_description, _set_description)
+
+    @staticmethod
+    def convert(_macro):
+	_macro.__class__ = Macro
+
+    @staticmethod
+    def convertToDB(macro):
+	macro.__class__ = _Macro
 
     def clear(self):
         """ clear() -> None 

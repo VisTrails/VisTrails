@@ -29,7 +29,10 @@ if __name__ == '__main__':
 
 import copy
 from sets import Set
+from db.domain import DBModule
 from core.data_structures.point import Point
+from core.vistrail.annotation import Annotation
+from core.vistrail.location import Location
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
 from core.utils import NoSummon, VistrailsInternalError
@@ -42,50 +45,159 @@ registry = core.modules.module_registry.registry
 # A Module stores not only the information, but a method (summon) that
 # creates a 'live' object, subclass of core/modules/vistrail_module/Module
 
-class Module(object):
+class Module(DBModule):
     """ Represents a module from a Pipeline """
 
     ##########################################################################
     # Constructor and copy
 
     def __init__(self, name='', id_=-1, funs=None):
-        self.name = name
-        self.id = id_
+	DBModule.__init__(self, id_, 1, name, None)
+#         self.name = name
+#         self.id = id_
         if funs is not None:
             self.functions = [ModuleFunction(*fun)
                               for fun in funs]
         else:
             self.functions = []
-        self.cache = 1
-        self.annotations = {}
-        self.center = Point(-1.0, -1.0)
+#        self.cache = 1
+#        self.annotations = {}
+#        self.center = Point(-1.0, -1.0)
+        self.annotationMap = {}
+        self.annotationValueMap = {}
         self.portVisible = Set()
         self.registry = None
-        def summonCall(*args):
-            getDescriptorByName = registry.getDescriptorByName
-            result = getDescriptorByName(self.name).module()
-            if self.cache != 1:
-                result.is_cacheable = lambda *args: False
-            if hasattr(result, 'srcPortsOrder'):
-                result.srcPortsOrder = [p.name for p in self.destinationPorts()]
-            return result
-        self.summon = summonCall
 
     def __copy__(self):
         """__copy__() -> Module - Returns a clone of itself"""
-        cp = Module()
-        cp.center = Point(self.center.x, self.center.y)
-        cp.functions = [copy.copy(f) for f in self.functions]
-        cp.id = self.id
-        cp.cache = self.cache
-        cp.name = self.name
+        cp = DBModule.__copy__(self)
+        cp.__class__ = Module
+#         cp.center = Point(self.center.x, self.center.y)
+#         cp.functions = [copy.copy(f) for f in self.functions]
+#         cp.id = self.id
+#         cp.cache = self.cache
+#         cp.name = self.name
+#         cp.annotations = copy.copy(self.annotations)
+        cp.annotationMap = copy.copy(self.annotationMap)
+        cp.annotationValueMap = copy.copy(self.annotationValueMap)
         cp.registry = copy.copy(self.registry)
-        cp.annotations = copy.copy(self.annotations)
         cp.portVisible = copy.copy(self.portVisible)
         return cp
 
+    @staticmethod
+    def convert(_module):
+	_module.__class__ = Module
+	for _function in _module.db_functions:
+	    ModuleFunction.convert(_function)
+        _module.annotationMap = {}
+        _module.annotationValueMap = {}
+        for annotation in _module.db_get_annotations():
+            _module.annotationMap[annotation.db_key] = annotation
+            _module.annotationValueMap[annotation.db_key] = annotation.db_value
+        _module.portVisible = Set()
+	_module.registry = None
+
     ##########################################################################
         
+    def _get_id(self):
+	return self.db_id
+    def _set_id(self, id):
+        self.db_id = id
+    id = property(_get_id, _set_id)
+
+    def _get_cache(self):
+        return self.db_cache
+    def _set_cache(self, cache):
+        self.db_cache = cache
+    cache = property(_get_cache, _set_cache)
+
+    # type check this (list, hash)
+    def _get_functions(self):
+        return self.db_functions
+    def _set_functions(self, functions):
+	# want to convert functions to hash...?
+        self.db_functions = functions
+    functions = property(_get_functions, _set_functions)
+
+    # type check this (list, hash)
+    def _get_annotations(self):
+        return self.annotationValueMap
+    def _set_annotations(self, annotations):
+        # this should not be called! -- use the actions to update annotations!
+        for (key, value) in annotations:
+            new_annotation = DBAnnotation(id=-1,
+                                          key=key,
+                                          value=value)
+            self.db_add_annotation(new_annotation)
+            self.annotationMap[key] = new_annotation
+            self.annotationValueMap[key] = value
+    annotations = property(_get_annotations, _set_annotations)
+
+    # grrr this doesn't capture deep access like center.x = 1.2344
+    def _get_center(self):
+        if self.db_location is not None:
+            return Point(self.db_location.db_x, 
+                         self.db_location.db_y)
+        return Point(-1.0, -1.0)
+    def _set_center(self, center):
+        # this should not be called! -- use the actions to update location!
+        if self.db_location is None:
+            self.db_location = Location(id=-1,
+                                        x=center.x, 
+                                        y=center.y)
+        else:
+            self.db_location.db_x = center.x
+            self.db_location.db_y = center.y
+    center = property(_get_center, _set_center)
+
+    def _get_name(self):
+        return self.db_name
+    def _set_name(self, name):
+        self.db_name = name
+    name = property(_get_name, _set_name)
+
+    def addFunction(self, function):
+	self.db_add_function(function)
+
+    def deleteFunction(self, functionId):
+        """deleteFunction(functionId:int) -> None 
+        Deletes function invocation of given index
+          
+        """
+        try:
+            del self.db_functions[functionId]
+        except:
+            raise VistrailsInternalError('Invalid functionId in deleteFunction')
+
+    def addAnnotation(self, key, value):
+        new_annotation = Annotation(id=-1, key=key, value=value)
+	self.db_add_annotation(new_annotation)
+        self.annotationMap[key] = new_annotation
+        self.annotationValueMap[key] = value
+
+    def deleteAnnotation(self, key):
+        """deleteAnnotation(key:str) -> None 
+        Deletes annotation of given key
+          
+        """
+        try:
+            to_delete = self.annotationMap[key]
+            self.db_delete_annotation(to_delete)
+            del self.annotationMap[key]
+            del self.annotationValueMap[key]
+        except:
+            raise VistrailsInternalError('Invalid key in deleteAnnotation')
+
+
+    def summon(self):
+        getDescriptorByName = registry.getDescriptorByName
+        result = getDescriptorByName(self.name).module()
+        if self.cache != 1:
+            result.is_cacheable = lambda *args: False
+        if hasattr(result, 'srcPortsOrder'):
+            result.srcPortsOrder = [p.name for p in self.destinationPorts()]
+        return result
+
     def getNumFunctions(self):
         """getNumFunctions() -> int - Returns the number of functions """
         return len(self.functions)
@@ -164,7 +276,7 @@ class Module(object):
         child.setAttribute('y',     str(self.center.y))
         for fi in range(len(self.functions)):
             f = self.functions[fi]
-            if f.getNumParams() == 0:
+            if f.getNumParams() == 0 or f.params[0].id == -1:
                 xmlfunc = dom.createElement('function')
                 xmlfunc.setAttribute('functionId', str(fi))
                 xmlfunc.setAttribute('function', f.name)
@@ -174,26 +286,33 @@ class Module(object):
                 xmlfunc.setAttribute('type',"")
                 xmlfunc.setAttribute('alias',"")
                 xmlfunc.setAttribute('queryMethod',"0")
-                child.appendChild(xmlfunc)                
-            for i in range(f.getNumParams()):
-                p = f.params[i]
-                xmlfunc = dom.createElement('function')
-                xmlfunc.setAttribute('functionId', str(fi))
-                xmlfunc.setAttribute('function', f.name)
-                xmlfunc.setAttribute('parameterId',str(i))
-                xmlfunc.setAttribute('parameter', p.name)
-                xmlfunc.setAttribute('value', p.strValue)
-                xmlfunc.setAttribute('type',p.type)
-                xmlfunc.setAttribute('alias',p.alias)
-                xmlfunc.setAttribute('queryMethod',str(p.queryMethod))
                 child.appendChild(xmlfunc)
-        annot = dom.createElement('annotation')	
-        for (k,v) in self.annotations.items():
-            set = dom.createElement('set')
-            set.setAttribute('key',str(k))
-            set.setAttribute('value',str(v))
-            annot.appendChild(set)
-        child.appendChild(annot)
+            else:
+                for i in range(f.getNumParams()):
+                    p = f.params[i]
+                    xmlfunc = dom.createElement('function')
+                    xmlfunc.setAttribute('functionId', str(fi))
+                    xmlfunc.setAttribute('function', f.name)
+                    xmlfunc.setAttribute('parameterId',str(i))
+                    xmlfunc.setAttribute('parameter', p.name)
+                    xmlfunc.setAttribute('value', p.strValue)
+                    xmlfunc.setAttribute('type',p.type)
+                    xmlfunc.setAttribute('alias',p.alias)
+                    xmlfunc.setAttribute('queryMethod',str(p.queryMethod))
+                    child.appendChild(xmlfunc)
+	if len(self.annotations.values()) > 0:
+	    annot = dom.createElement('annotation')
+	    #         for (k,v) in self.annotations.items():
+	    #             set = dom.createElement('set')
+	    #             set.setAttribute('key',str(k))
+	    #             set.setAttribute('value',str(v))
+	    #             annot.appendChild(set)
+	    for annotation in self.annotations.values():
+		set = dom.createElement('set')
+		set.setAttribute('key', annotation.key)
+		set.setAttribute('value', annotation.value)
+		annot.appendChild(set)
+	    child.appendChild(annot)
         # Also dump the local registry
         # Nothing fancy here. Only the port name and its type
         if self.registry:            
@@ -250,7 +369,7 @@ class Module(object):
                 if p[1] >= len(m.functions):
                     f = ModuleFunction()
                     f.name = p[2]
-                    m.functions.append(f)
+                    m.addFunction(f)
                     if len(m.functions)-1 != p[1]:
                         msg = "Pipeline function id is inconsistent"
                         raise VistrailsInternalError(msg)
@@ -293,28 +412,9 @@ class Module(object):
         for a in named_elements(element, 'annotation'):
             akey = str(a.getAttribute('key'))
             avalue = str(a.getAttribute('value'))
-            m.annotations[akey] = avalue
+#            m.annotations[akey] = avalue
+	    m.addAnnotation(akey, avalue)
         return m
-
-    def deleteFunction(self, functionId):
-        """deleteFunction(functionId:int) -> None 
-        Deletes function invocation of given index
-          
-        """
-        try:
-            del self.functions[functionId]
-        except:
-            raise VistrailsInternalError('Invalid functionId in deleteFunction')
-
-    def deleteAnnotation(self, key):
-        """deleteAnnotation(key:str) -> None 
-        Deletes annotation of given key
-          
-        """
-        try:
-            del self.annotations[key]
-        except:
-            raise VistrailsInternalError('Invalid key in deleteAnnotation')
 
     ##########################################################################
     # Debugging
@@ -341,7 +441,8 @@ class Module(object):
         else:
             for f, g in zip(self.functions, other.functions):
                 if f != g:
-                    f.show_comparison(other)
+                    print "function mismatch"
+                    f.show_comparison(g)
                     return
             print "No difference found"
             assert self == other
@@ -385,11 +486,7 @@ class Module(object):
 
     ##########################################################################
     # Properties
-    def _set_name(self, name):
-        self.__name = name
-    def _get_name(self):
-        return self.__name
-    name = property(_get_name, _set_name)
+
 
 ################################################################################
 # Testing
@@ -415,7 +512,7 @@ class TestModule(unittest.TestCase):
         x.cache = 1
         self.assertEquals(x.cache, 1)
         self.assertEquals(x.center.x, -1.0)
-        x.center.x = 1
+        x.center = Point(1, x.center.y)
         self.assertEquals(x.center.x, 1)
         self.assertEquals(x.name, "")
 
@@ -432,32 +529,38 @@ class TestModule(unittest.TestCase):
             self.fail(msg)
 
     def testLoadAndDumpModule(self):
-        """ Check that loadFromXML and dumpToXML are working properly """
+        """ Check that fromXML and toXML are working properly """
+        from core.vistrail import dbservice
+
         m = Module()
         m.name = "Float"
         m.cache = 0
         m.id = 0
-        m.center.x = -59.7779886737
-        m.center.y = 142.491920766
+        m.center = Point(-59.7779886737, 142.491920766)
         f = ModuleFunction()
         f.name = "value"
-        m.functions.append(f)
+        m.addFunction(f)
         param = ModuleParam()
         param.name = "&lt;no description&gt;"
         param.strValue = "1.2"
         param.type = "Float"
         param.alias = ""
         f.params.append(param)
+
+        dom = dbservice.toXML(m)
+        mnew = dbservice.fromXML('module', dom)
+        Module.convert(mnew)
         
-        impl = xml.dom.minidom.getDOMImplementation()
-        dom = impl.createDocument(None, 'test',None)
-        root = dom.documentElement
-        m.dumpToXML(dom,root)
-        xmlstr = str(dom.toxml())
-        dom = xml.dom.minidom.parseString(xmlstr)
-        root = dom.documentElement
-        for xmlmodule in named_elements(root, 'module'):
-            mnew = Module.loadFromXML(xmlmodule)
+#         impl = xml.dom.minidom.getDOMImplementation()
+#         dom = impl.createDocument(None, 'test',None)
+#         root = dom.documentElement
+#         m.dumpToXML(dom,root)
+#         xmlstr = str(dom.toxml())
+#         dom = xml.dom.minidom.parseString(xmlstr)
+#         root = dom.documentElement
+#         for xmlmodule in named_elements(root, 'module'):
+#             mnew = Module.loadFromXML(xmlmodule)
+        m.show_comparison(mnew)
         assert m == mnew        
 
     def test_constructor(self):

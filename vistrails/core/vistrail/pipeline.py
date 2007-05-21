@@ -21,13 +21,14 @@
 ############################################################################
 ##TODO Tests
 """ This module defines the class Pipeline """
+from db.domain import DBWorkflow
 from core.vistrail.port import Port
 from core.data_structures.graph import Graph
 from core.data_structures.bijectivedict import Bidict
 from core.utils import VistrailsInternalError
 from core.utils import expression
 from core.cache.hasher import Hasher
-import core.modules.module_registry
+from core.modules.module_registry import registry, ModuleRegistry
 import core.vistrail.action
 
 import copy
@@ -35,18 +36,21 @@ from types import ListType
 import sha
 from xml.dom.minidom import getDOMImplementation, parseString
 from core.utils.uxml import named_elements
+from core.vistrail.connection import Connection
 from core.vistrail.module import Module
+from core.vistrail.port_spec import PortSpec
 
 ##############################################################################
 
-class Pipeline(object):
+class Pipeline(DBWorkflow):
     """ A Pipeline is a set of modules and connections between them. """
     
     def __init__(self, action_chain=None):
-        """ __init__() -> Pipeline
+        """ __init__() -> Pipelines
         Initializes modules, connections and graph.
 
         """
+	DBWorkflow.__init__(self, id=0, name='untitled')
         self.clear()
         if action_chain:
             for action in action_chain:
@@ -54,13 +58,14 @@ class Pipeline(object):
 
     def __copy__(self):
         """ __copy__() -> Pipeline - Returns a clone of itself """ 
-        cp = Pipeline()
-        cp.modules = dict([(k,copy.copy(v))
-                           for (k,v)
-                           in self.modules.iteritems()])
-        cp.connections = dict([(k,copy.copy(v))
-                               for (k,v)
-                               in self.connections.iteritems()])
+        cp = DBWorkflow.__copy__(self)
+        cp.__class__ = Pipeline
+#         cp.modules = dict([(k,copy.copy(v))
+#                            for (k,v)
+#                            in self.modules.iteritems()])
+#         cp.connections = dict([(k,copy.copy(v))
+#                                for (k,v)
+#                                in self.connections.iteritems()])
         cp.graph = copy.copy(self.graph)
         cp.aliases = Bidict([(k,copy.copy(v))
                            for (k,v)
@@ -68,6 +73,30 @@ class Pipeline(object):
         cp._fresh_module_id = self._fresh_module_id
         cp._fresh_connection_id = self._fresh_connection_id
         return cp
+
+    @staticmethod
+    def convert(_workflow):
+        # do clear plus get the modules and connections
+	_workflow.__class__ = Pipeline
+        _workflow.addedPorts = {}
+        _workflow.graph = Graph()
+        _workflow.aliases = Bidict()
+        _workflow._subpipeline_signatures = Bidict()
+        _workflow._module_signatures = Bidict()
+        _workflow._connection_signatures = Bidict()
+        _workflow._fresh_module_id = 0
+        _workflow._fresh_connection_id = 0
+	for _module in _workflow.db_modules.values():
+	    Module.convert(_module)
+            _workflow.graph.add_vertex(_module.id)
+            for _portSpec in _module.db_portSpecs:
+                _workflow.addModulePort(_portSpec, _module.db_id)
+	for _connection in _workflow.db_connections.values():
+            Connection.convert(_connection)
+            _workflow.graph.add_edge( \
+                _connection.source.moduleId,
+                _connection.destination.moduleId,
+                _connection.db_id)
 
     ##########################################################################
 
@@ -88,19 +117,44 @@ class Pipeline(object):
             return -1
 
     ##########################################################################
+    # Properties
 
+    def _get_id(self):
+        return self.db_id
+    def _set_id(self,id):
+        self.db_id = id
+    id = property(_get_id, _set_id)
+
+    def _get_name(self):
+        return self.db_name
+    def _set_name(self, name):
+        self.db_name = name
+    name = property(_get_name, _set_name)
+
+    def _get_modules(self):
+        return self.db_modules
+    def _set_modules(self, modules):
+        self.db_modules = modules
+    modules = property(_get_modules, _set_modules)
+
+    def _get_connections(self):
+        return self.db_connections
+    def _set_connections(self, connections):
+        self.db_connections = connections
+    connections = property(_get_connections, _set_connections)
+	
     def clear(self):
         """clear() -> None. Erases pipeline contents."""
         self.graph = Graph()
         self.modules = {}
         self.connections = {}
+        self.addedPorts = {}
         self.aliases = Bidict()
         self._subpipeline_signatures = Bidict()
         self._module_signatures = Bidict()
         self._connection_signatures = Bidict()
         self._fresh_module_id = 0
         self._fresh_connection_id = 0
-
 
     def checkConnection(self, c):
         """checkConnection(c: Connection) -> boolean 
@@ -157,7 +211,133 @@ class Pipeline(object):
         
         """
         return self._fresh_connection_id
+
+    def performActionChain(self, actionChain):
+        for action in actionChain:
+            self.performAction(action)
+
+    def performAction(self, action):
+        for operation in action.operations:
+            self.performOperation(operation)
+
+    def performOperationChain(self, opChain):
+        for op in opChain:
+            self.performOperation(op)
+
+    def performOperation(self, op):
+        print "doing %s %s" % (op.vtType, op.what)
+        opMap = {('add','module'): self.performAddModule,
+                 ('add','connection'): self.performAddConnection,
+                 ('add','portSpec'): self.performAddPortSpec,
+                 ('add','parameter'): self.performAddParameter,
+                 ('change','module'): self.performChangeModule,
+                 ('change','connection'): self.performChangeConnection,
+                 ('change','portSpec'): self.performChangePortSpec,
+                 ('change','parameter'): self.performChangeParameter,
+                 ('delete','module'): self.performDeleteModule,
+                 ('delete','connection'): self.performDeleteConnection,
+                 ('delete','portSpec'): self.performDeletePortSpec,
+                 ('delete','parameter'): self.performDeleteParameter,
+                 }
+        if opMap.has_key((op.vtType, op.what)):
+            opMap[(op.vtType, op.what)](op)
+        elif op.vtType == 'add':
+            self.db_add_object(op.data, op.parentObjType, 
+                               op.parentObjId)
+        elif op.vtType == 'change':
+            # FIXME: change to use old, newId
+            self.db_change_object(op.data, op.parentObjType,
+                                  op.parentObjId)
+        elif op.vtType == 'delete':
+            self.db_delete_object(op.objectId, op.what,
+                                  op.parentObjType, op.parentObjId)
+    def performAddModule(self, op):
+        self.addModule(op.data)
+    def performChangeModule(self, op):
+        self.deleteModule(op.oldObjId)
+        self.addModule(op.data)
+    def performDeleteModule(self, op):
+        self.deleteModule(op.objectId)
+    def performAddConnection(self, op):
+        self.addConnection(op.data)
+    def performChangeConnection(self, op):
+        self.deleteConnection(op.objObjId)
+        self.addConnection(op.data)
+    def performDeleteConnection(self, op):
+        self.deleteConnection(op.objectId)
+    def performAddPortSpec(self, op):
+        self.addModulePort(op.data, op.parentObjId)
+    def performDeletePortSpec(self, op):
+        self.deleteModulePort(op.objectId, op.parentObjId)
+    def performChangePortSpec(self, op):
+        self.deleteModulePort(op.oldObjId, op.parentObjId)
+        self.addModulePort(op.data, op.parentObjId)
+
+    def performAddParameter(self, op):
+        self.db_add_object(op.data, op.parentObjType, 
+                           op.parentObjId)
+        param = op.data
+
+# FIXME param ids are unique now
+#         if not self.hasAlias(param.alias):
+#             self.changeAlias(param.alias, 
+#                              param.type, 
+#                              op.db_moduleId,
+#                              op.db_parentObjId,
+#                              param.id)
     
+    def performDeleteParameter(self, op):
+        self.db_delete_object(op.objectId, op.what,
+                              op.parentObjType, op.parentObjId)
+
+# FIXME param ids are unique now
+#         self.removeAliases(mId=op.db_moduleId,
+#                            fId=op.db_parentObjId)
+
+    def performChangeParameter(self, op):
+        op.objectId = op.oldObjId
+        self.performDeleteParameter(op)
+        self.performAddParameter(op)
+
+    def addModulePort(self, portSpec, moduleId):
+        PortSpec.convert(portSpec)
+        m = self.getModuleById(moduleId)
+        moduleThing = registry.getDescriptorByName(m.name).module
+        if m.registry is None:
+            m.registry = ModuleRegistry()
+            m.registry.addModule(moduleThing)
+        
+        portSpecs = portSpec.spec[1:-1].split(',')
+        if portSpec.type == 'input':
+            m.registry.addInputPort(moduleThing,
+                                    portSpec.name,
+                                    [registry.getDescriptorByName(spec).module
+                                     for spec in portSpecs])
+        else:
+            m.registry.addOutputPort(moduleThing,
+                                     portSpec.name,
+                                     [registry.getDescriptorByName(spec).module
+                                      for spec in portSpecs])
+        
+        self.addedPorts[portSpec.id] = \
+            (moduleId, portSpec.name, portSpec.type)
+
+    def deleteModulePort(self, id, moduleId):
+        # translation from old DeleteModulePort.perform
+        if not self.addedPorts.has_key(id):
+            raise VistrailsInternalError("id missing in addedPorts")
+
+        (parentId, portSpecName, portSpecType) = self.addedPorts[id]
+        if parentId != moduleId:
+            raise VistrailsInternalError("stored moduleId doesn't match parent")
+
+        m = self.getModuleById(moduleId)
+        moduleThing = registry.getDescriptorByName(m.name).module
+        if portSpecType == 'input':
+            m.registry.deleteInputPort(moduleThing, portSpecName)
+        else:
+            m.registry.deleteOutputPort(moduleThing, portSpecName)
+        
     def deleteModule(self, id):
         """deleteModule(id:int) -> None 
         Delete a module from pipeline given an id.
@@ -165,12 +345,14 @@ class Pipeline(object):
         """
         if not self.hasModuleWithId(id):
             raise VistrailsInternalError("id missing in modules")
+
         adj = copy.copy(self.graph.adjacency_list[id])
         inv_adj = copy.copy(self.graph.inverse_adjacency_list[id])
         for (_, conn_id) in adj:
             self.deleteConnection(conn_id)
         for (_, conn_id) in inv_adj:
             self.deleteConnection(conn_id)
+
         self.modules.pop(id)
         self.graph.delete_vertex(id)
         if id in self._module_signatures:
@@ -413,7 +595,7 @@ class Pipeline(object):
         Returns the signature for the module with given module_id."""
         if not self._module_signatures.has_key(module_id):
             m = self.modules[module_id]
-            sig = core.modules.module_registry.registry.module_signature(m)
+            sig = registry.module_signature(m)
             self._module_signatures[module_id] = sig
         return self._module_signatures[module_id]
 
@@ -723,6 +905,10 @@ class TestPipeline(unittest.TestCase):
         self.assertEquals(p1.find_method(3, 'i2'), 1)
         self.assertEquals(p1.find_method(3, 'i3'), -1)
         self.assertRaises(KeyError, p1.find_method, 4, 'i1')
+
+    def test_load_and_dump(self):
+        # FIXME write this test
+        pass
 
     def test_str(self):
         p1 = Pipeline()

@@ -24,6 +24,7 @@
     * PortEndPoint
 
  """
+from db.domain import DBPort
 from core.utils import enum
 from core.utils import VistrailsInternalError, all
 import core.modules.vistrails_module
@@ -37,7 +38,7 @@ PortEndPoint = enum('PortEndPoint',
 
 ################################################################################
 
-class Port(object):
+class Port(DBPort):
     """ A port denotes one endpoint of a Connection.
 
     self.spec: list of list of (module, str) 
@@ -47,29 +48,97 @@ class Port(object):
     ##########################################################################
     # Constructor and copy
     
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+	DBPort.__init__(self, *args, **kwargs)
+
         self.endPoint = PortEndPoint.Invalid
         self.moduleId = 0
         self.connectionId = 0
         self.moduleName = ""
         self.name = ""
-        self.spec = None
+#        self.spec = None
+        self.spec = []
         self.optional = False
         self.sort_key = -1
 
     def __copy__(self):
-        cp = Port()
-        cp.endPoint = self.endPoint
-        cp.moduleId = self.moduleId
-        cp.connectionId = self.connectionId
-        cp.moduleName = self.moduleName
+        cp = DBPort.__copy__(self)
+        cp.__class__ = Port
+#         cp.endPoint = self.endPoint
+#         cp.moduleId = self.moduleId
+#         cp.connectionId = self.connectionId
+#         cp.moduleName = self.moduleName
+#         cp.sig = self.sig
         cp.name = self.name
         cp.spec = copy.copy(self.spec)
         cp.optional = self.optional
         cp.sort_key = self.sort_key
+
         return cp
     
+    @staticmethod
+    def convert(_port):
+	_port.__class__ = Port
+        _port.name = ""
+        _port.spec = []
+        _port.optional = False
+
     ##########################################################################
+
+    def _get_endPoint(self):
+	map = {'source': PortEndPoint.Source,
+	       'destination': PortEndPoint.Destination}
+	endPoint = self.db_type
+	if map.has_key(endPoint):
+	    return map[endPoint]
+	return PortEndPoint.Invalid
+    def _set_endPoint(self, endPoint):
+	map = {PortEndPoint.Source: 'source',
+	       PortEndPoint.Destination: 'destination'}
+	if map.has_key(endPoint):
+            self.db_type = map[endPoint]
+	else:
+            self.db_type = ''
+    endPoint = property(_get_endPoint, _set_endPoint)
+
+    def _get_moduleId(self):
+        return self.db_moduleId
+    def _set_moduleId(self, moduleId):
+        self.db_moduleId = moduleId
+    moduleId = property(_get_moduleId, _set_moduleId)
+
+    def _get_connectionId(self):
+        return self.db_id
+    def _set_connectionId(self, connectionId):
+        self.db_id = connectionId
+    connectionId = property(_get_connectionId, _set_connectionId)
+
+    def _get_moduleName(self):
+        return self.db_moduleName
+    def _set_moduleName(self, moduleName):
+        self.db_moduleName = moduleName
+    moduleName = property(_get_moduleName, _set_moduleName)
+
+# have to redo these...
+    def _get_spec(self):
+# 	return _Port._get_spec(self)
+	return self._spec
+    def _set_spec(self, spec):
+# 	_Port._set_spec(self, spec)
+	self._spec = spec
+    spec = property(_get_spec, _set_spec)
+
+    def _get_sig(self):
+        return self.db_sig
+    def _set_sig(self, sig):
+        self.db_sig = sig
+    sig = property(_get_sig, _set_sig)
+		     
+    def _get_type(self):
+ 	return self._type
+    def _set_type(self, type):
+ 	self._type = type
+    type = property(_get_type, _set_type)
 
     def getSig(self, spec):
         """ getSig(spec: tuple) -> str

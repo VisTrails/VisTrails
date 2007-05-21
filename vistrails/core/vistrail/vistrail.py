@@ -25,42 +25,337 @@ if __name__ == '__main__':
     global app
     app = qt.createBogusQtApp()
 
+
+import copy
+import datetime
+import getpass
+import itertools
+import string
+import traceback
+import xml.dom.minidom
+
+from db.domain import DBVistrail
 from core.data_structures.graph import Graph
 from core.data_structures.bijectivedict import Bidict
 from core.debug import DebugPrint
 from core.utils import enum, VistrailsInternalError, InstanceObject, \
      iter_with_index
-from core.vistrail.action import ActionDirection, CompositeAction, \
-     DeleteConnectionAction, AddConnectionAction, DeleteModuleAction, \
-     AddModuleAction, MoveModuleAction, ChangeParameterAction
+from core.vistrail.action import Action
+from core.vistrail.annotation import Annotation
+from core.vistrail.connection import Connection
+from core.vistrail.location import Location
+from core.vistrail.macro import Macro
+from core.vistrail.module import Module
+from core.vistrail.module_function import ModuleFunction
+from core.vistrail.module_param import ModuleParam
+from core.vistrail.operation import AddOp, ChangeOp, DeleteOp
 from core.vistrail.pipeline import Pipeline
-import copy
-import copy
-import core.vistrail.module
-import getpass
-import itertools
-import string
-import time
-import xml.dom.minidom
-
+from core.vistrail.port_spec import PortSpec
+from core.vistrail.tag import Tag
+from core.vistrail import dbservice
 ################################################################################
 
-class Vistrail(object):
+class Vistrail(DBVistrail):
+	
     def __init__(self):
+	DBVistrail.__init__(self)
+
         self.changed = False
-        self.actionMap = {}
-        self.tagMap = {}
         self.inverseTagMap = {}
-        self.latestTime = 1
-        self.macroMap = {}
         self.macroIdMap = {}
         self.currentVersion = -1
         self.expand=[] #to expand selections in versiontree
         self.currentGraph=None
-        self.lastDBTime = 0
-        self.remoteFilename = ""
         self.prunedVersions = set()
         self.savedQueries = []
+
+    def _get_actionMap(self):
+        return self.db_actions
+    def _set_actionMap(self, actionMap):
+        self.db_actions = actionMap
+    actionMap = property(_get_actionMap, _set_actionMap)
+
+    def _get_tagMap(self):
+        return self.db_tags
+    def _set_tagMap(self, tagMap):
+        self.db_tags = tagMap
+    tagMap = property(_get_tagMap, _set_tagMap)
+
+    def _get_macroMap(self):
+        return self.db_macros
+    def _set_macroMap(self, macroMap):
+        self.db_macros = macroMap
+    macroMap = property(_get_macroMap, _set_macroMap)
+
+    @staticmethod
+    def convert(_vistrail):
+	_vistrail.__class__ = Vistrail
+        _vistrail.changed = False
+        _vistrail.inverseTagMap = {}
+        _vistrail.macroIdMap = {}
+        _vistrail.currentVersion = -1
+        _vistrail.expand=[] #to expand selections in versiontree
+        _vistrail.currentGraph=None
+        _vistrail.prunedVersions = set()
+        _vistrail.savedQueries = []
+
+	for action in _vistrail.actionMap.values():
+	    Action.convert(action)
+
+            # update idScope
+            # FIXME phase out latestTime and use idScope instead
+            _vistrail.idScope.updateBeginId('action', action.timestep+1)
+            for operation in action.operations:
+                _vistrail.idScope.updateBeginId('operation', operation.id+1)
+                if operation.vtType == 'add':
+                    _vistrail.idScope.updateBeginId(operation.what, 
+                                                    operation.objectId+1)
+                elif operation.vtType == 'change':
+                    _vistrail.idScope.updateBeginId(operation.what,
+                                                    operation.newObjId+1)
+	for tag in _vistrail.tagMap.values():
+            Tag.convert(tag)
+	    _vistrail.inverseTagMap[tag.time] = tag.name
+# 	for macro in _vistrail.macroMap.values():
+# 	    Macro.convert(macro)
+
+	_vistrail.changed = False
+
+    def create_add_operation(self, data, parentObjId=None, parentObjType=None):
+        return AddOp(id=self.idScope.getNewId('operation'),
+                     what=data.vtType,
+                     objectId=data.getPrimaryKey(),
+                     parentObjId=parentObjId,
+                     parentObjType=parentObjType,
+                     data=data,
+                     )
+
+    def create_delete_operation(self, objectId, objectType, 
+                                parentObjId=None, parentObjType=None):
+        return DeleteOp(id=self.idScope.getNewId('operation'),
+                        what=objectType,
+                        objectId=objectId,
+                        parentObjId=parentObjId,
+                        parentObjType=parentObjType
+                        )
+
+    def create_change_operation(self, data, oldId,
+                                parentObjId=None, parentObjType=None):
+        return ChangeOp(id=self.idScope.getNewId('operation'),
+                        what=data.vtType,
+                        oldObjId=oldId,
+                        newObjId=data.getPrimaryKey(),
+                        parentObjId=parentObjId,
+                        parentObjType=parentObjType,
+                        data=data,
+                        )
+
+    def create_action(self, operations, parent):
+        new_id = self.idScope.getNewId('action')
+        new_action = Action(timestep=new_id,
+                            parent=parent,
+                            date=self.getDate(),
+                            user=self.getUser(),
+                            operations=operations)
+        self.addVersion(new_action)
+        return new_action
+
+    def add_modules_action(self, parent, modules):
+        ops = []
+        for (name, x, y) in modules:
+            module_id = self.idScope.getNewId('module')
+            location_id = self.idScope.getNewId('location')
+            new_module = Module(name=str(name),
+                                id_=module_id)
+            new_location = Location(id=location_id,x=x,y=y)
+            ops.append(self.create_add_operation(new_module))
+            ops.append(self.create_add_operation(new_location,
+                                                 module_id, 'module'))
+        return self.create_action(ops, parent)
+
+    def del_modules_links_action(self, parent, module_ids=None, 
+                                 connection_ids=None):
+        ops = []
+        if connection_ids:
+            for connection_id in connection_ids:
+                ops.append(self.create_delete_operation(connection_id,
+                                                        'connection'))
+        if module_ids:
+            for module_id in module_ids:
+                ops.append(self.create_delete_operation(module_id,'module'))
+        return self.create_action(ops, parent)
+                              
+    def chg_locations_action(self, parent, locations):
+        ops = []
+        for (old_id, x, y, module_id) in locations:
+            location_id = self.idScope.getNewId('location')
+            new_location = Location(id=location_id,x=x,y=y)
+            ops.append(self.create_change_operation(new_location, old_id,
+                                                    module_id, 'module'))
+        return self.create_action(ops, parent)
+
+    def add_connects_action(self, parent, connections):
+        ops = []
+        for new_connection in connections:
+            connect_id = self.idScope.getNewId('connection')
+            new_connection.id = connect_id
+            new_connection.genSignatures()
+            for port in new_connection.ports:
+                port_id = self.idScope.getNewId('port')
+                port.id = port_id
+            ops.append(self.create_add_operation(new_connection))
+        return self.create_action(ops, parent)
+
+    def add_function_action(self, parent, function, module_id):
+        ops = []
+        function_id = self.idScope.getNewId('function')
+        # FIXME shouldn't have to do a copy, but gui kinda demands it
+        # FIXME pos needs to be set correctly
+        new_function = ModuleFunction(id=function_id,
+                                      pos=function.db_pos,
+                                      name=function.name)
+        ops.append(self.create_add_operation(new_function, module_id, 'module'))
+        for i in range(function.getNumParams()):
+            param = function.params[i]
+            param_id = self.idScope.getNewId('parameter')
+            new_parameter = ModuleParam(id=param_id,
+                                        pos=i,
+                                        name=param.name,
+                                        alias='',
+                                        strValue=str(param.value()),
+                                        type_=param.type)
+            ops.append(self.create_add_operation(new_parameter,
+                                                 function_id, 'function'))
+        return self.create_action(ops, parent)
+
+    def del_function_action(self, parent, function_id, module_id):
+        ops = []
+        ops.append(self.create_delete_operation(function_id, 'function',
+                                                module_id, 'module'))
+        return self.create_action(ops, parent)
+
+    def chg_params_action(self, parent, params, function_id):
+        ops = []
+        for i in range(len(params)):
+            (old_id, p_val, p_type, p_alias) = params[i]
+            param_id = self.idScope.getNewId('parameter')
+            new_parameter = ModuleParam(id=param_id,
+                                        pos=i,
+                                        name='<no description>',
+                                        alias=p_alias,
+                                        strValue=p_val,
+                                        type_=p_type)
+            ops.append(self.create_change_operation(new_parameter, old_id,
+                                                    function_id, 'function'))
+        return self.create_action(ops, parent)
+
+    def chg_annotation_action(self, parent, pair, module):
+        ops = []
+        annotation_id = self.idScope.getNewId('annotation')
+        new_annotation = Annotation(id=annotation_id,
+                                    key=pair[0], 
+                                    value=pair[1])
+        old_id = -1
+        for db_annotation in module.db_get_annotations():
+            if pair[0] == db_annotation.key:
+                old_id = db_annotation.id
+                break
+        if old_id == -1:
+            ops.append(self.create_add_operation(new_annotation,
+                                                 module.id, 'module'))
+        else:
+            ops.append(self.create_change_operation(new_annotation, old_id,
+                                                    module.id, 'module'))
+        return self.create_action(ops, parent)
+
+    def del_annotation_action(self, parent, key, module):
+        ops = []
+        id = -1
+        for db_annotation in module.db_get_annotations():
+            if key == db_annotation.key:
+                id = db_annotation.id
+                break
+        if id == -1:
+            raise Exception("Cannot delete annotation with key '%s'" % key)
+
+        ops.append(self.create_delete_operation(id, 'annotation',
+                                                module.id, 'module'))
+        return self.create_action(ops, parent)
+
+    def add_port_spec_action(self, parent, spec, module_id):
+        ops = []
+        port_spec_id = self.idScope.getNewId('portSpec')
+        new_port_spec = PortSpec(id=port_spec_id,
+                                 type=spec[0],
+                                 name=spec[1],
+                                 spec=spec[2])
+        ops.append(self.create_add_operation(new_port_spec, 
+                                             module_id, 'module'))
+        return self.create_action(ops, parent)
+
+    def del_port_spec_action(self, parent, spec_id, module_id):
+        ops = []
+        ops.append(self.create_delete_operation(spec_id, 'portSpec',
+                                                module_id, 'module'))
+        return self.create_action(ops, parent)
+
+    # need to do a paste action, too
+
+    def find_data(self, what, objectId):
+        # this is slow for the time being, a lookup would improve
+        for action in self.actionMap.values():
+            for op in action.operations:
+                if op.what == what and op.objectId == objectId and \
+                        (op.vtType == 'add' or op.vtType == 'change'):
+                    return op.data
+
+        raise Exception("data ('%s', %d) cannot be found" % (what, objectId))                    
+
+    def get_inverse_operation(self, op):
+        if op.vtType == 'add':
+            return DeleteOp(id=-1,
+                            what=op.what,
+                            objectId=op.objectId,
+                            parentObjId=op.parentObjId,
+                            parentObjType=op.parentObjType,
+                            )
+        elif op.vtType == 'delete':
+            # need to find data
+            data = self.find_data(op.what, op.objectId)
+            return AddOp(id=-1,
+                         what=op.what,
+                         objectId=op.objectId,
+                         parentObjId=op.parentObjId,
+                         parentObjType=op.parentObjType,
+                         data=data,
+                         )
+                         
+        elif op.vtType == 'change':
+            # need to find data
+            data = self.find_data(op.what, op.oldObjId)
+            return ChangeOp(id=-1,
+                            what=op.what,
+                            oldObjId=op.newObjId,
+                            newObjId=op.oldObjId,
+                            parentObjId=op.parentObjId,
+                            parentObjType=op.parentObjType,
+                            data=data,
+                            )
+            
+
+    def get_inverse_action(self, action):
+        new_ops = []
+        for op in action.operations:
+            new_ops.append(self.get_inverse_operation(op))
+        new_ops.reverse()
+        
+        new_action = Action(timestep=-1,
+                            parent=-1,
+                            date=self.getDate(),
+                            user=self.getUser(),
+                            operations=new_ops)
+        Action.convert(new_action)
+        return new_action
 
     def getVersionName(self, version):
         """ getVersionName(version) -> str 
@@ -85,8 +380,11 @@ class Vistrail(object):
         Returns the version number given a tag.
 
         """
-        return self.tagMap[version]
+        return self.tagMap[version].time
     
+    def oldGetPipeline(self, version):
+        return Pipeline(self.actionChain(version))
+
     def getPipeline(self, version):
         """getPipeline(number or tagname) -> Pipeline
         Return a pipeline object given a version number or a version name. 
@@ -101,20 +399,33 @@ class Vistrail(object):
 
         """
         if self.tagMap.has_key(version):
-            number = self.tagMap[version]
+#             number = self.tagMap[version]
+	    number = self.tagMap[version].time
             return self.getPipelineVersionNumber(number)
         else:
             return None
+
+    def getPipelineVersionTag(self, version):
+        """getPipelineVersionTag(version:Tag) -> Pipeline
+        Returns a pipeline given a version tag. If version tag doesn't exist
+        it will return None.
+
+        """
+	return self.getPipelineVersionNumber(version.time)
     
     def getPipelineVersionNumber(self, version):
         """getPipelineVersionNumber(version:int) -> Pipeline
         Returns a pipeline given a version number.
 
         """
-        return Pipeline(self.actionChain(version))
+#        return Pipeline(self.actionChain(version))
+        workflow = dbservice.getWorkflow(self, version)
+        Pipeline.convert(workflow)
+        return workflow
+
 
     def getPipelineDiffByAction(self, v1, v2):
-        """ getPipelineDiffByAction(v1: int, v2: int) -> tuple(list,list,list)        
+        """ getPipelineDiffByAction(v1: int, v2: int) -> tuple(list,list,list)
         Compute the diff between v1 and v2 just by looking at the
         action chains. The value returned is a tuple containing lists
         of shared, v1 not v2, and v2 not v1 modules
@@ -559,17 +870,15 @@ class Vistrail(object):
         """
         if self.actionMap.has_key(action.timestep):
             raise VistrailsInternalError("existing timestep")
-        self.latestTime = max(self.latestTime, action.timestep+1)
         self.actionMap[action.timestep] = action
         self.changed = True
-        action.vistrail = self
 
     def hasTag(self, tag):
         """ hasTag(tag) -> boolean 
         Returns True if a tag with given name or number exists
        
         """
-        if type(tag) == type(0):
+        if type(tag) == type(0) or type(tag) == type(0L):
             return self.inverseTagMap.has_key(tag)
         elif type(tag) == type('str'):
             return self.tagMap.has_key(tag)
@@ -585,7 +894,8 @@ class Vistrail(object):
         if self.tagMap.has_key(version_name):
             DebugPrint.log("Tag already exists")
             raise TagExists()
-        self.tagMap[version_name] = version_number
+#         self.tagMap\[version_name] = version_number
+	self.tagMap[version_name] = Tag(version_name, version_number)
         self.inverseTagMap[version_number] = version_name
         self.changed = True
         
@@ -609,7 +919,8 @@ class Vistrail(object):
             self.inverseTagMap.pop(version_number)
         else:
             self.inverseTagMap[version_number] = version_name
-            self.tagMap[version_name] = version_number
+#             self.tagMap[version_name] = version_number
+	    self.tagMap[version_name] = Tag(version_name, version_number)
         self.changed = True
 
     def changenotes(self, notes, version_number):
@@ -720,27 +1031,19 @@ class Vistrail(object):
         """
         self.currentGraph=copy.copy(newGraph)
 
-    def invalidateCurrentTime(self):
-        """ invalidateCurrentTime() -> None 
-        Recomputes the next unused timestep from scratch  
-        """
-        self.latestTime = max(self.actionMap.keys())
-        self.latestTime += 1
-                
-    def getFreshTimestep(self):
-        """getFreshTimestep() -> int - Returns an unused timestep. """
-
-        return self.latestTime
-
     def getDate(self):
 	""" getDate() -> str - Returns the current date and time. """
-	return time.strftime("%d %b %Y %H:%M:%S", time.localtime())
+    #	return time.strftime("%d %b %Y %H:%M:%S", time.localtime())
+        return datetime.datetime.now()
     
     def getUser(self):
 	""" getUser() -> str - Returns the username. """
 	return getpass.getuser()
 
     def serialize(self, filename):
+        dbservice.saveVistrail(self, filename)
+
+    def old_serialize(self, filename):
         """serialize(filename:str) -> None 
         Writes vistrail to disk under given filename.
           
@@ -769,11 +1072,17 @@ class Vistrail(object):
                     actionElement.appendChild(notesElement)
             root.appendChild(actionElement)
             action.serialize(dom, actionElement)
-        for (name, time) in self.tagMap.items():
+#         for (name, time) in self.tagMap.items():
+#             tagElement = dom.createElement('tag')
+#             tagElement.setAttribute('name', str(name))
+#             tagElement.setAttribute('time', str(time))
+#             root.appendChild(tagElement)
+        for (name, tag) in self.tagMap.items():
             tagElement = dom.createElement('tag')
-            tagElement.setAttribute('name', str(name))
-            tagElement.setAttribute('time', str(time))
+            tagElement.setAttribute('name', str(tag.name))
+            tagElement.setAttribute('time', str(tag.time))
             root.appendChild(tagElement)
+
         for v in self.prunedVersions:
             pruneElement = dom.createElement('prune')
             pruneElement.setAttribute('time', str(v))
@@ -784,13 +1093,9 @@ class Vistrail(object):
             queryElement.setAttribute('name', str(qName))
             queryElement.setAttribute('text', str(qText))
             root.appendChild(queryElement)
+
         for macro in self.macroMap.values():
             macro.serialize(dom,root)
-        if len(self.remoteFilename) > 0:
-            el = dom.createElement('dbinfo')
-            el.setAttribute('remoteFilename', str(self.remoteFilename))
-            el.setAttribute('remoteTime', str(self.lastDBTime))
-            root.appendChild(el)
         outputFile = file(filename,'w')
         root.writexml(outputFile, "  ", "  ", '\n')
         outputFile.close()
@@ -867,7 +1172,9 @@ class Vistrail(object):
     # Dispatch in runtime according to type
     getPipelineDispatcher = {}
     getPipelineDispatcher[type(0)] = getPipelineVersionNumber
+    getPipelineDispatcher[type(0L)] = getPipelineVersionNumber
     getPipelineDispatcher[type('0')] = getPipelineVersionName
+    getPipelineDispatcher[Tag] = getPipelineVersionTag
 
     class InvalidAbstraction(Exception):
         pass
@@ -890,7 +1197,7 @@ class Vistrail(object):
 
         for (frm, to, conn_id) in input_ports:
             fresh_id = sub_pipeline.fresh_module_id()
-            m = core.vistrail.module.Module()
+            m = Module()
             m.id = fresh_id
             m.center = copy.copy(pipeline.modules[frm].center)
             m.name = "InputPort"
@@ -959,6 +1266,7 @@ class TestVistrail(unittest.TestCase):
         if p1 == 0 or p2 == 0:
             self.fail("vistrails tree is not single rooted.")
 
+    # FIXME this dies because diff isn't fixed (moving to db.services.vistrail)
     def test2(self):
         import core.vistrail
         import core.xml_parser

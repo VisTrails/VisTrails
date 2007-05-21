@@ -27,6 +27,7 @@ if __name__ == '__main__':
     app = qt.createBogusQtApp()
 
 import copy
+from db.domain import DBConnection
 import core.modules.module_registry
 from core.modules.vistrails_module import ModuleConnector
 from core.utils import VistrailsInternalError
@@ -50,7 +51,7 @@ def moduleConnection(conn):
 
 ################################################################################
 
-class Connection(object):
+class Connection(DBConnection):
     """ A Connection is a connection between two modules.
     Right now there's only Module connections.
 
@@ -88,8 +89,14 @@ class Connection(object):
         Initializes source and destination ports.
         
         """
-        self.__source = Port()
-        self.__dest = Port()
+	DBConnection.__init__(self)
+	#        self.__source = Port()
+	#	_Connection._get_ports(self)['source'] = Port()
+	#       self.__dest = Port()
+	#	_Connection._get_ports(self)['destination'] = Port()
+        self.connectionMap = {}
+	self.source = Port()
+	self.destination = Port()
         self.source.endPoint = PortEndPoint.Source
         self.destination.endPoint = PortEndPoint.Destination
         self.makeConnection = moduleConnection(self)
@@ -98,13 +105,64 @@ class Connection(object):
         """__copy__() -> Connection -  Returns a clone of self.
         
         """
-        cp = Connection()
-        cp.id = self.id
-        cp.source = copy.copy(self.source)
-        cp.destination = copy.copy(self.destination)
+        cp = DBConnection.__copy__(self)
+        cp.__class__ = Connection
+#         cp.id = self.id
+#         cp.source = copy.copy(self.source)
+#         cp.destination = copy.copy(self.destination)
+        cp.makeConnection = moduleConnection(cp)
+        cp.connectionMap = copy.copy(self.connectionMap)
         return cp
 
     ##########################################################################
+
+    @staticmethod
+    def convert(_connection):
+#	print "converting connection: %s" % _connection
+#	print "ports: %s" % _Connection._get_ports(_connection)
+        _connection.__class__ = Connection
+
+        # set connection map here
+        _connection.connectionMap = {}
+        for port in _connection.db_get_ports():
+            Port.convert(port)
+            if port.db_type == 'source':
+                _connection.connectionMap['source'] = port
+            elif port.db_type == 'destination':
+                _connection.connectionMap['destination'] = port
+
+        _connection.sourceInfo = \
+	    (_connection.source.moduleName, _connection.source.sig)
+        _connection.destinationInfo = \
+	    (_connection.destination.moduleName, _connection.destination.sig)
+#        print _connection.sourceInfo
+#        print _connection.destinationInfo
+        portFromRepresentation = registry.portFromRepresentation
+        newSource = \
+	    portFromRepresentation(_connection.source.moduleName, 
+				   _connection.source.sig,
+				   PortEndPoint.Source, None, True)
+	newDestination = \
+	    portFromRepresentation(_connection.destination.moduleName,
+				   _connection.destination.sig,
+				   PortEndPoint.Destination, None, True)
+	newSource.moduleId = _connection.source.moduleId
+	newDestination.moduleId = _connection.destination.moduleId
+	_connection.source = newSource
+	_connection.destination = newDestination
+        _connection.makeConnection = moduleConnection(_connection)
+
+    def genSignatures(self):
+	sourceSigs = self.source.getSignatures()
+	if type(sourceSigs) == list and len(sourceSigs) == 1:
+	    self.source.sig = str(self.source.name) + sourceSigs[0]
+
+	destSigs = self.destination.getSignatures()
+	if type(destSigs) == list:
+	    destSig = self.findSignature(sourceSigs[0], destSigs)
+	    if destSig is not None:
+		self.destination.sig = \
+		    str(self.destination.name) + destSig
 
     def findSignature(self, sig, signatures):
         """findSignature(sig:str, signatures:[]) -> str 
@@ -131,22 +189,25 @@ class Connection(object):
 
     def serialize(self, dom, el):
         """ serialize(dom, el) -> None: writes itself as XML """
+
         child = dom.createElement('connect')
-        child.setAttribute('id', str(self.__source.connectionId))
-        sourceSigs = self.__source.getSignatures()
+        child.setAttribute('id', str(self.id))
+        sourceSigs = self.source.getSignatures()
         assert type(sourceSigs) == list
         assert len(sourceSigs) == 1
-        destSigs = self.__dest.getSignatures()
+        destSigs = self.destination.getSignatures()
         assert type(destSigs) == list
         destSig = self.findSignature(sourceSigs[0], destSigs)
         assert destSig != None
-        child.setAttribute('sourceId', str(self.__source.moduleId))
-        child.setAttribute('sourceModule', str(self.__source.moduleName))
-        child.setAttribute('sourcePort', 
-                           str(self.__source.name) + sourceSigs[0])
-        child.setAttribute('destinationId', str(self.__dest.moduleId))
-        child.setAttribute('destinationModule', str(self.__dest.moduleName))
-        child.setAttribute('destinationPort', str(self.__dest.name) + destSig)
+        child.setAttribute('sourceId', str(self.source.moduleId))
+        child.setAttribute('sourceModule', str(self.source.moduleName))
+	child.setAttribute('sourcePort', 
+			   str(self.source.name) + sourceSigs[0])
+        child.setAttribute('destinationId', str(self.destination.moduleId))
+        child.setAttribute('destinationModule', 
+			   str(self.destination.moduleName))
+        child.setAttribute('destinationPort', 
+			   str(self.destination.name) + destSig)
         el.appendChild(child)
 
     @staticmethod
@@ -167,11 +228,11 @@ class Connection(object):
         c.source = portFromRepresentation(sourceModule, sourcePort, 
                                           PortEndPoint.Source,
                                           None, True)
-
         c.destination = portFromRepresentation(destinationModule, 
                                                destinationPort, 
                                                PortEndPoint.Destination,
                                                None, True)
+	c.genSignatures()
         c.id = cId
         c.sourceId = int(connection.getAttribute('sourceId'))
         c.destinationId = int(connection.getAttribute('destinationId'))
@@ -204,7 +265,7 @@ class Connection(object):
 
         """
         rep = "<Connection>%s %s</Connection>"
-        return rep % (str(self.__source), str(self.__dest))
+        return  rep % (str(self.source), str(self.destination))
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -231,7 +292,7 @@ class Connection(object):
         use id property: c.id 
 
         """
-        return self.__source.connectionId
+        return self.db_id
 
     def _set_id(self, i):
         """ _set_id(i : int) -> None 
@@ -240,8 +301,9 @@ class Connection(object):
         property: c.id = i
 
         """
-        self.__source.connectionId = i
-        self.__dest.connectionId = i
+        self.db_id = i
+        self.source.connectionId = i
+        self.destination.connectionId = i
     id = property(_get_id, _set_id)
 
     def _get_sourceId(self):
@@ -250,7 +312,7 @@ class Connection(object):
         use sourceId property: c.sourceId 
 
         """
-        return self.__source.moduleId
+        return self.source.moduleId
 
     def _set_sourceId(self, id):
         """ _set_sourceId(id : int) -> None 
@@ -259,8 +321,8 @@ class Connection(object):
         property: c.sourceId = id
 
         """
-        self.__source.moduleId = id
-        self.__source.id = id
+        self.source.moduleId = id
+        self.source.id = id
     sourceId = property(_get_sourceId, _set_sourceId)
 
     def _get_destinationId(self):
@@ -269,7 +331,7 @@ class Connection(object):
         use sourceId property: c.destinationId 
 
         """
-        return self.__dest.moduleId
+        return self.destination.moduleId
 
     def _set_destinationId(self, id):
         """ _set_destinationId(id : int) -> None 
@@ -278,8 +340,27 @@ class Connection(object):
         c.destinationId = id
 
         """
-        self.__dest.moduleId = id
+        self.destination.moduleId = id
     destinationId = property(_get_destinationId, _set_destinationId)
+
+    def _get_type(self):
+        """_get_type() -> VistrailModuleType - Returns this connection type.
+        Do not use this function, use type property: c.type = t 
+
+        """
+        return self.source.type
+
+    def _set_type(self, t):
+        """ _set_type(t: VistrailModuleType) -> None 
+        Sets this connection type and updates self.__source.type and 
+        self.__dest.type. It also updates the correct makeConnection function.
+        Do not use this function, use type property: c.type = t
+
+        """
+        self.source.type = t
+        self.destination.type = t
+        self.updateMakeConnection()
+    type = property(_get_type, _set_type)
 
     def _get_source(self):
         """_get_source() -> Port
@@ -287,7 +368,8 @@ class Connection(object):
         c.source 
 
         """
-        return self.__source
+#	return self.db_ports['source']
+        return self.connectionMap['source']
 
     def _set_source(self, source):
         """_set_source(source: Port) -> None 
@@ -296,7 +378,10 @@ class Connection(object):
         property instead: c.source = source
 
         """
-        self.__source = source        
+        if self.connectionMap.has_key('source'):
+            self.db_delete_port(self.connectionMap['source'])
+        self.db_add_port(source)
+        self.connectionMap['source'] = source
     source = property(_get_source, _set_source)
 
     def _get_destination(self):
@@ -305,7 +390,8 @@ class Connection(object):
         property: c.destination 
 
         """
-        return self.__dest
+#	return self.db_ports['destination']
+        return self.connectionMap['destination']
 
     def _set_destination(self, dest):
         """_set_destination(dest: Port) -> None 
@@ -314,7 +400,10 @@ class Connection(object):
         property instead: c.destination = dest
 
         """
-        self.__dest = dest
+        if self.connectionMap.has_key('destination'):
+            self.db_delete_port(self.connectionMap['destination'])
+        self.db_add_port(dest)
+        self.connectionMap['destination'] = dest
     destination = property(_get_destination, _set_destination)
 
 ################################################################################

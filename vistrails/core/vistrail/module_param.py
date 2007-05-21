@@ -23,6 +23,7 @@
     * ModuleParam
 
  """
+from db.domain import DBParameter
 from core.utils import enum
 
 ################################################################################
@@ -33,26 +34,82 @@ def bool_conv(x):
     if s == 'FALSE':
         return False
 
-class ModuleParam(object):
+class ModuleParam(DBParameter):
     """ Stores a parameter setting for a vistrail function """
 
     ##########################################################################
     # Constructor
 
-    def __init__(self, type_="", strValue="", alias=""):
-        self.type = type_
-        self.strValue = strValue
-        self.alias = alias
-        self.name = ""
+    def __init__(self, type_="", strValue="", alias="", name="", pos=-1, id=-1):
+	DBParameter.__init__(self,
+                             id=id,
+                             pos=pos,
+                             name=name,
+                             alias=alias,
+                             val=strValue,
+                             type=type_)
         self.minValue = ""
         self.maxValue = ""
         self.evaluatedStrValue = ""
-        # This is used for visual query and will not get serialize
+
+        # This is used for visual query and will not get serialized
         self.queryMethod = 0
 
-    # Copy is implicit (every field is immutable)
+    def __copy__(self):
+        cp = DBParameter.__copy__(self)
+        cp.__class__ = ModuleParam
+        cp.minValue = self.minValue
+        cp.maxValue = self.maxValue
+        cp.evaluatedStrValue = self.evaluatedStrValue
+        cp.queryMethod = 0
+        return cp
+
+    @staticmethod
+    def convert(_parameter):
+	_parameter.__class__ = ModuleParam
+        _parameter.queryMethod = 0
+        _parameter.minValue = ""
+        _parameter.maxValue = ""
+        _parameter.evaluatedStrValue = ""
 
     ##########################################################################
+
+    # id isn't really the id, it's a relative position
+    def _get_id(self):
+        return self.db_pos
+    def _set_id(self, id):
+        self.db_pos = id
+    id = property(_get_id, _set_id)
+
+    def _get_real_id(self):
+        return self.db_id
+    def _set_real_id(self, id):
+        self.db_id = id
+    real_id = property(_get_real_id, _set_real_id)
+
+    def _get_name(self):
+        return self.db_name
+    def _set_name(self, name):
+        self.db_name = name
+    name = property(_get_name, _set_name)
+
+    def _get_type(self):
+        return self.db_type
+    def _set_type(self, type):
+        self.db_type = type
+    type = property(_get_type, _set_type)
+
+    def _get_strValue(self):
+        return self.db_val
+    def _set_strValue(self, value):
+        self.db_val = value
+    strValue = property(_get_strValue, _set_strValue)
+    
+    def _get_alias(self):
+        return self.db_alias
+    def _set_alias(self, alias):
+        self.db_alias = alias
+    alias = property(_get_alias, _set_alias)
         
     def serialize(self, dom, element):
         """ serialize(dom, element) -> None 
@@ -231,6 +288,23 @@ class TestModuleParam(unittest.TestCase):
         assert p == q
         q.type = "Float"
         assert p != q
+
+    def test_load_and_dump_param(self):
+        """ Check that fromXML and toXML are working properly """
+        from core.vistrail import dbservice
+        
+        p = ModuleParam()
+        p.type = "Float"
+        assert p.value() == 0.0
+        p.strValue = "1.5"
+        assert p.value() == 1.5
+        
+        dom = dbservice.toXML(p)
+        pnew = dbservice.fromXML('parameter', dom)
+        ModuleParam.convert(pnew)
+
+        assert p == pnew
+
 
     def test_str(self):
         p = ModuleParam('Float', '1.5')

@@ -24,6 +24,7 @@
     * ModuleFunction
 """
 
+from db.domain import DBFunction
 from core.utils import enum, VistrailsInternalError, all, eprint
 from core.vistrail.port import PortEndPoint
 from core.vistrail.module_param import ModuleParam
@@ -43,15 +44,19 @@ PipelineElementType = enum('PipelineElementType',
 
 ################################################################################
 
-class ModuleFunction(object):
+class ModuleFunction(DBFunction):
     __fields__ = ['name', 'returnType', 'params']
     """ Stores a function from a vistrail module """
 
     ##########################################################################
     # Constructors and copy
     
-    def __init__(self, name="", params=None):
-        self.name = name
+    def __init__(self, name="", params=None, id=-1, pos=-1):
+	DBFunction.__init__(self,
+                            id=id,
+                            pos=pos,
+                            name=name)
+        # self.name = name
         self.returnType = "void"
         if params is not None:
             self.params = [ModuleParam(*param) for param in params]
@@ -79,7 +84,7 @@ class ModuleFunction(object):
                 p = ModuleParam()
                 p.type = specitem[0].__name__
                 p.name = specitem[1]
-                f.params.append(p)
+                f.addParameter(p)
             return f
         
         if port.endPoint == PortEndPoint.Source:
@@ -91,12 +96,51 @@ class ModuleFunction(object):
 
     def __copy__(self):
         """ __copy__() -> ModuleFunction - Returns a clone of itself """
-        cp = ModuleFunction()
-        cp.name = self.name
+        cp = DBFunction.__copy__(self)
+        cp.__class__ = ModuleFunction
+#         cp.name = self.name
+#         cp.params = [copy.copy(p) for p in self.params]
         cp.returnType = self.returnType
-        cp.params = [copy.copy(p) for p in self.params]
         return cp
+
+    @staticmethod
+    def convert(_function):
+	_function.__class__ = ModuleFunction
+	for _parameter in _function.db_get_parameters():
+	    ModuleParam.convert(_parameter)
+        _function.returnType = "void"
+
+    ##########################################################################
+    # Properties
         
+    # id isn't really the id, it's a relative position
+    def _get_id(self):
+        return self.db_pos
+    def _set_id(self, id):
+        self.db_pos = id
+    id = property(_get_id, _set_id)
+    
+    def _get_real_id(self):
+        return self.db_id
+    def _set_real_id(self, id):
+        self.db_id = id
+    real_id = property(_get_real_id, _set_real_id)
+
+    def _get_params(self):
+        return self.db_parameters
+    def _set_params(self, params):
+        self.db_parameters = params
+    params = property(_get_params, _set_params)
+    
+    def _get_name(self):
+        return self.db_name
+    def _set_name(self, name):
+        self.db_name = name
+    name = property(_get_name, _set_name)
+
+    def addParameter(self, param):
+        self.db_add_parameter(param)
+
     ##########################################################################
 
     def getNumParams(self):
@@ -214,21 +258,39 @@ class TestModuleFunction(unittest.TestCase):
         param.strValue = "1.2"
         param.type = "Float"
         param.alias = ""
-        f.params.append(param)
+        f.addParameter(param)
         g = ModuleFunction()
         g.name = "value"
         param = ModuleParam()
         param.strValue = "1.2"
         param.type = "Float"
         param.alias = ""
-        g.params.append(param)
+        g.addParameter(param)
         assert f == g
         param = ModuleParam()
         param.strValue = "1.2"
         param.type = "Float"
         param.alias = ""
-        g.params.append(param)
+        g.addParameter(param)
         assert f != g
+
+    def test_load_and_dump_function(self):
+        """ Check that fromXML and toXML are working properly """
+        from core.vistrail import dbservice
+
+        f = ModuleFunction()
+        f.name = "value"
+        param = ModuleParam()
+        param.strValue = "1.2"
+        param.type = "Float"
+        param.alias = ""
+        f.addParameter(param)        
+        
+        dom = dbservice.toXML(f)
+        fnew = dbservice.fromXML('function', dom)
+        ModuleFunction.convert(fnew)
+
+        assert f == fnew
 
     def test_str(self):
         f = ModuleFunction('value',
