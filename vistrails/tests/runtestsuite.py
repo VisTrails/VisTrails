@@ -97,7 +97,8 @@ for (p, subdirs, files) in os.walk(root_directory):
         # skip files that don't look like VisTrails python modules
         if not filename.endswith('.py'):
             continue
-        module = p[5:] + '/' + filename[:-3]
+#        module = p[5:] + '/' + filename[:-3]
+        module = p[len(root_directory):] + '/' + filename[:-3]
         if (module.startswith('tests') or
             module.startswith('/') or
             module.startswith('\\') or
