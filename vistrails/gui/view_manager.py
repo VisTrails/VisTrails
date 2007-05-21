@@ -354,7 +354,8 @@ class QViewManager(QtGui.QTabWidget):
            the vistrail view.
            
         """
-        if self.activeIndex != -1 and self.count() > 1:
+        if (self.activeIndex != -1 and self.count() > 1
+            and self.activeIndex < self.count()) :
             previousTab = self.widget(self.activeIndex)
             previousTab.updateViewMenu(internal_index)
             previousTab.activeIndex = -1
