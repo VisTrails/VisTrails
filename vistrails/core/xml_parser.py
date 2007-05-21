@@ -28,6 +28,7 @@ from core.utils.uxml import named_elements, XMLWrapper
 from core.vistrail.action import Action
 from core.data_structures.graph import Graph
 from core.vistrail.pipeline import Pipeline
+from core.vistrail import dbservice
 
 ################################################################################
 
@@ -54,21 +55,27 @@ class XMLParser(XMLWrapper):
         >>> v = parser.getVistrail()
 
     """
-    def openVistrail(self, filename):
-        """openVistrail(filename: str) -> None 
+    def oldOpenVistrail(self, filename):
+        """oldOpenVistrail(filename: str) -> None 
         Parses a XML file.
 
         """
         self._filename = filename
         self.open_file(filename)
+    
+    def openVistrail(self, filename):
+        self.myVistrail = dbservice.openVistrail(filename)
 
-    def closeVistrail(self):
+    def oldCloseVistrail(self):
         """closeVistrail() -> None 
         Removes the association with the XML file loaded by openVistrail 
         method. 
 
         """
         self.close_file()
+    
+    def closeVistrail(self):
+        pass
 
     def vistrailVersion(self):
         """vistrailVersion() -> str 
@@ -310,7 +317,7 @@ class XMLParser(XMLWrapper):
 
     currentVersion = '0.3.1'
 
-    def getVistrail(self):
+    def oldGetVistrail(self):
         """getVistrail() -> Vistrail
         Parses a vistrail file calling the specific functions according to 
         version. Returns a fresh vistrail.
@@ -334,6 +341,10 @@ class XMLParser(XMLWrapper):
             vistrail = getattr(self, funname)(vistrail)
         return vistrail
 
+    def getVistrail(self):
+        Vistrail.convert(self.myVistrail)
+        return self.myVistrail
+
 ################################################################################
 
 import unittest
@@ -348,18 +359,20 @@ class TestXmlParser(unittest.TestCase):
         v = parser.getVistrail()
         parser.closeVistrail()
 
-    def test2(self):
-        """ Exercise malformed loading. """
-        parser = XMLParser()
+# FIXME this test doesn't apply since we're redirectory to db.services.io
+#
+#     def test2(self):
+#         """ Exercise malformed loading. """
+#         parser = XMLParser()
 
-        self.assertRaises(IOError, parser.openVistrail,
-                          core.system.vistrails_root_directory() +
-                          '/tests/resources/file_that_does_not_exist.xml')
-        import xml.parsers.expat
-        self.assertRaises(XMLParser.XMLParseError,
-                          parser.openVistrail,
-                          (core.system.vistrails_root_directory() +
-                           '/tests/resources/dummy_broken.xml'))
+#         self.assertRaises(IOError, parser.openVistrail,
+#                           core.system.vistrails_root_directory() +
+#                           '/tests/resources/file_that_does_not_exist.xml')
+#         import xml.parsers.expat
+#         self.assertRaises(XMLParser.XMLParseError,
+#                           parser.openVistrail,
+#                           (core.system.vistrails_root_directory() +
+#                            '/tests/resources/dummy_broken.xml'))
         
 
 if __name__ == '__main__':

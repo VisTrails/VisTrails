@@ -94,7 +94,7 @@ import sys
 import unittest
 import core.vistrail
 import random
-from core.vistrail import Module
+from core.vistrail.module import Module
 
 class TestConsoleMode(unittest.TestCase):
 

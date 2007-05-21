@@ -22,7 +22,9 @@
 from PyQt4 import QtCore, QtGui
 from core.utils import any
 from core.modules.module_registry import registry, ModuleRegistry
-from core.vistrail.action import ChangeParameterAction
+# from core.vistrail.action import ChangeParameterAction
+from core.vistrail.module_function import ModuleFunction
+from core.vistrail.module_param import ModuleParam
 import urllib
 
 class StandardModuleConfigurationWidget(QtGui.QDialog):
@@ -431,13 +433,29 @@ class PythonSourceConfigurationWidget(StandardModuleConfigurationWidget):
         if self.codeEditor.document().isModified():
             code = urllib.quote(str(self.codeEditor.toPlainText()))
             fid = self.findSourceFunction()
+            
+            # FIXME make sure that this makes sense
             if fid==-1:
+                # do add function
                 fid = self.module.getNumFunctions()
-            action = ChangeParameterAction()
-            action.addParameter(self.module.id, fid, 0, 'source',
-                                '<no description>',code,'String', '')
-            controller.performAction(action)
-        
+                f = ModuleFunction(pos=fid,
+                                   name='source')
+                param = ModuleParam(type='String',
+                                    strValue=code,
+                                    alias='',
+                                    name='<no description>',
+                                    pos=0)
+                f.addParameter(param)
+                controller.addMethod(self.module.id, f)
+            else:
+                # do change parameter
+                paramList = [(code, 'String', '')]
+                controller.replace_method(self.module, fid, paramList)
+#             action = ChangeParameterAction()
+#             action.addParameter(self.module.id, fid, 0, 'source',
+#                                 '<no description>',code,'String', '')
+#             controller.performAction(action)
+                
     def okTriggered(self, checked = False):
         self.updateActionsHandler(self.controller)
         self.emit(QtCore.SIGNAL('doneConfigure()'))

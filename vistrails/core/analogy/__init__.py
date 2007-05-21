@@ -28,15 +28,16 @@ import core.modules.module_registry
 from core.vistrail.port import PortEndPoint
 from core.vistrail.module import Module
 import copy
-from core.vistrail.action import (Action,
-                                  MoveModuleAction,
-                                  AddModuleAction,
-                                  DeleteModuleAction,
-                                  ChangeParameterAction,
-                                  AddConnectionAction,
-                                  DeleteConnectionAction,
-                                  AddModulePortAction,
-                                  DeleteModulePortAction)
+# FIXME Actions don't work this way anymore
+# from core.vistrail.action import (Action,
+#                                   MoveModuleAction,
+#                                   AddModuleAction,
+#                                   DeleteModuleAction,
+#                                   ChangeParameterAction,
+#                                   AddConnectionAction,
+#                                   DeleteConnectionAction,
+#                                   AddModulePortAction,
+#                                   DeleteModulePortAction)
 from core.vistrail.pipeline import Pipeline
 reg = core.modules.module_registry.registry
 
