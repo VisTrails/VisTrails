@@ -193,9 +193,11 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         moves = []
         for (mId, item) in self.pipelineView.scene().modules.items():
             module = controller.currentPipeline.modules[mId]
-            (dx,dy) = (item.scenePos().x() - module.center.x,
-                       -item.scenePos().y() - module.center.y)
-            if (dx!=0 or dy!=0):
+# Doing absolute positions now!
+#             (dx,dy) = (item.scenePos().x() - module.center.x,
+#                        -item.scenePos().y() - module.center.y)
+            (dx,dy) = (item.scenePos().x(), -item.scenePos().y())
+            if (dx != module.center.x or dy != module.center.y):
                 moves.append((mId, dx, dy))
         if len(moves)>0:
             controller.quiet = True

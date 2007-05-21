@@ -26,8 +26,10 @@
 ################################################################################
 
 from PyQt4 import QtCore, QtGui
-from core.vistrail.action import AddModuleAction, AddConnectionAction, \
-     DeleteConnectionAction, ChangeParameterAction
+# FIXME broke this as Actions have been changed around
+#
+# from core.vistrail.action import AddModuleAction, AddConnectionAction, \
+#      DeleteConnectionAction, ChangeParameterAction
 from core.modules.module_registry import registry
 from core.vistrail import module
 from core.vistrail import connection

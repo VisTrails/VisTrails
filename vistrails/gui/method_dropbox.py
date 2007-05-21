@@ -93,6 +93,9 @@ class QMethodDropBox(QtGui.QScrollArea):
                     if item.port:
                         function = ModuleFunction.fromSpec(item.port,
                                                            item.spec)
+                        # FIXME need to get the position,
+                        # but not sure if this is correct
+                        function.id = item.module.getNumFunctions()
                         self.vWidget.addFunction(item.module,
                                                  item.module.getNumFunctions(),
                                                  function)

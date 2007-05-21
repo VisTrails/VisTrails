@@ -27,8 +27,10 @@ from core.inspector import PipelineInspector
 from core.modules.module_registry import registry
 from core.vistrail import module
 from core.vistrail import connection
-from core.vistrail.action import AddModuleAction, AddConnectionAction, \
-     DeleteConnectionAction, ChangeParameterAction
+# FIXME broke this as Actions have been changed around
+#
+# from core.vistrail.action import AddModuleAction, AddConnectionAction, \
+#      DeleteConnectionAction, ChangeParameterAction
 from gui.common_widgets import QToolWindowInterface
 from gui.pe_pipeline import QAnnotatedPipelineView
 from gui.theme import CurrentTheme

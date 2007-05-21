@@ -27,7 +27,6 @@ from PyQt4 import QtCore, QtGui
 from core.modules.vistrails_module import Module, NotCacheable
 from core.modules.module_configure import StandardModuleConfigurationWidget, \
      PythonSourceConfigurationWidget, PythonEditor
-from core.vistrail.action import ChangeParameterAction
 import urllib
 
 ############################################################################
@@ -159,12 +158,31 @@ class _MplPlotConfigurationWidget(StandardModuleConfigurationWidget):
         if self.codeEditor.document().isModified():
             code = urllib.quote(str(self.codeEditor.toPlainText()))
             fid = self.findSourceFunction()
+
+            # FIXME make sure that this makes sense
             if fid==-1:
+                # do add function
                 fid = self.module.getNumFunctions()
-            action = ChangeParameterAction()
-            action.addParameter(self.module.id, fid, 0, 'source',
-                                '<no description>',code,'String', '')
-            controller.performAction(action)
+                f = ModuleFunction(pos=fid,
+                                   name='source')
+                param = ModuleParam(type='String',
+                                    strValue=code,
+                                    alias='',
+                                    name='<no description>',
+                                    pos=0)
+                f.addParameter(param)
+                controller.addMethod(self.module.id, f)
+            else:
+                # do change parameter
+                paramList = [(code, 'String', '')]
+                controller.replace_method(self.module, fid, paramList)
+
+#             if fid==-1:
+#                 fid = self.module.getNumFunctions()
+#             action = ChangeParameterAction()
+#             action.addParameter(self.module.id, fid, 0, 'source',
+#                                 '<no description>',code,'String', '')
+#             controller.performAction(action)
 
     def okTriggered(self, checked = False):
         """ okTriggered(checked: bool) -> None

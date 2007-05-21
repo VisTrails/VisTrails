@@ -26,8 +26,10 @@ QQueryTab
 """
 
 from PyQt4 import QtCore, QtGui
-from core.vistrail.action import ChangeParameterAction, \
-     ChangeAnnotationAction, AddModulePortAction
+# FIXME broke this as Actions have been changed
+#
+# from core.vistrail.action import ChangeParameterAction, \
+#      ChangeAnnotationAction, AddModulePortAction
 from core.vistrail.vistrail import Vistrail
 from gui.method_dropbox import QMethodInputForm, QPythonValueLineEdit
 from gui.pipeline_tab import QPipelineTab

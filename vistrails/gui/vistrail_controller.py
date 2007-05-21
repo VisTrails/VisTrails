@@ -21,12 +21,14 @@
 ############################################################################
 from PyQt4 import QtCore, QtGui
 from core.common import *
+from core.data_structures.point import Point
 from core.utils import VistrailsInternalError, ModuleAlreadyExists
 from core.modules import module_registry
-from core.vistrail.action import Action, AddModuleAction, DeleteModuleAction, \
-    ChangeParameterAction, AddConnectionAction, DeleteConnectionAction, \
-    DeleteFunctionAction, ChangeAnnotationAction, DeleteAnnotationAction,\
-    AddModulePortAction, DeleteModulePortAction, MoveModuleAction
+from core.vistrail.action import Action
+# from core.vistrail.action import AddModuleAction, DeleteModuleAction, \
+#     ChangeParameterAction, AddConnectionAction, DeleteConnectionAction, \
+#     DeleteFunctionAction, ChangeAnnotationAction, DeleteAnnotationAction,\
+#     AddModulePortAction, DeleteModulePortAction, MoveModuleAction
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
 from core.vistrail.module import Module
@@ -42,6 +44,7 @@ from core.modules.sub_module import addSubModule, DupplicateSubModule
 import core.analogy
 import copy
 import os.path
+import traceback
 
 ################################################################################
 
@@ -95,6 +98,99 @@ class VistrailController(QtCore.QObject):
         self.currentPipeline = None
         self.setFileName(name)
         
+#     def addModule(self, name, x, y):
+#         """ addModule(name: str, x: int, y: int) -> version id
+#         Add a new module into the current pipeline
+        
+#         """
+#         self.emit(QtCore.SIGNAL("flushMoveActions()"))
+
+#         if self.currentPipeline:
+#             newModule = Module()
+#             newModule.id = self.currentPipeline.fresh_module_id()
+#             newModule.center.reset(x,y)
+#             newModule.name = str(name)
+#             newModule.cache = 0
+#             newAction = AddModuleAction()
+#             newAction.module = newModule
+#             self.performAction(newAction)
+#             return newModule
+#         else:
+#             return None
+
+#     def performAction(self, action, quiet=None):
+#         """ performAction(action: Action, quiet=None) -> timestep
+#         Add version to vistrail, updates the current pipeline, and the
+#         rest of the UI know a new pipeline is selected.
+
+#         quiet and self.quiet controlds invalidation of version
+#         tree. If quiet is set to any value, it overrides the field
+#         value self.quiet.
+
+#         If the value is True, then no invalidation happens (gui is not
+#         updated.)
+        
+#         """
+#         newTimestep = self.vistrail.getFreshTimestep()
+#         action.timestep = newTimestep
+#         action.parent = self.currentVersion
+#         action.date = self.vistrail.getDate()
+#         action.user = self.vistrail.getUser()
+#         self.vistrail.addVersion(action)
+
+#         action.perform(self.currentPipeline)
+#         self.currentVersion = newTimestep
+        
+#         self.setChanged(True)
+
+#         if quiet is None:
+#             if not self.quiet:
+#                 self.invalidate_version_tree()
+#         else:
+#             if not quiet:
+#                 self.invalidate_version_tree()
+#         return newTimestep
+
+#     def deleteModule(self, moduleId):
+#         """ deleteModule(moduleId: int) -> version id
+#         Delete a module from the current pipeline
+        
+#         """
+#         self.emit(QtCore.SIGNAL("flushMoveActions()"))
+#         graph = self.currentPipeline.graph
+
+#         action = DeleteConnectionAction()
+
+#         added = False
+#         for v, id in graph.edges_from(module_id):
+#             added = True
+#             action.addId(id)
+
+#         for v, id in graph.edges_to(module_id):
+#             added = True
+#             action.addId(id)
+
+#         if added:
+#             self.performAction(action)
+
+#         action2 = DeleteModuleAction()
+#         action2.addId(module_id)
+#         return self.performAction(action2)
+
+
+    def perform_action(self, action, quiet=None):        
+        self.currentPipeline.performAction(action)
+        self.currentVersion = action.db_id
+        self.setChanged(True)
+        
+        if quiet is None:
+            if not self.quiet:
+                self.invalidate_version_tree()
+        else:
+            if not quiet:
+                self.invalidate_version_tree()
+        return action.db_id
+
     def addModule(self, name, x, y):
         """ addModule(name: str, x: int, y: int) -> version id
         Add a new module into the current pipeline
@@ -103,17 +199,28 @@ class VistrailController(QtCore.QObject):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
         if self.currentPipeline:
-            newModule = Module()
-            newModule.id = self.currentPipeline.fresh_module_id()
-            newModule.center.reset(x,y)
-            newModule.name = str(name)
-            newModule.cache = 0
-            newAction = AddModuleAction()
-            newAction.module = newModule
-            self.performAction(newAction)
-            return newModule
+            action = \
+                self.vistrail.add_modules_action(parent=self.currentVersion,
+                                                 modules=[(name,x,y)])
+            self.perform_action(action)
+
+            # FIXME we shouldn't have to return a module
+            # we don't do it for any other type
+            # doesn't match documentation either
+            module_id = action.db_operations[0].db_data.id            
+            return self.currentPipeline.getModuleById(module_id)
         else:
             return None
+            
+    def get_module_connection_ids(self, module_ids, graph):
+        # FIXME should probably use a Set here
+        connection_ids = {}
+        for module_id in module_ids:
+            for v, id in graph.edges_from(module_id):
+                connection_ids[id] = 1
+            for v, id in graph.edges_to(module_id):
+                connection_ids[id] = 1
+        return connection_ids.keys()
 
     def deleteModule(self, moduleId):
         """ deleteModule(moduleId: int) -> version id
@@ -121,26 +228,15 @@ class VistrailController(QtCore.QObject):
         
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
+
         graph = self.currentPipeline.graph
+        connect_ids = self.get_module_connection_ids([moduleId],graph)
 
-        action = DeleteConnectionAction()
-
-        added = False
-        for v, id in graph.edges_from(module_id):
-            added = True
-            action.addId(id)
-
-        for v, id in graph.edges_to(module_id):
-            added = True
-            action.addId(id)
-
-        if added:
-            self.performAction(action)
-
-        action2 = DeleteModuleAction()
-        action2.addId(module_id)
-        return self.performAction(action2)
-
+        action = \
+            self.vistrail.del_modules_links_action(parent=self.currentVersion,
+                                                   module_ids=[moduleId],
+                                                   connection_ids=connect_ids)
+        return self.perform_action(action)
 
     def deleteModuleList(self, mList):
         """ deleteModule(mList: [int]) -> [version id]
@@ -148,23 +244,15 @@ class VistrailController(QtCore.QObject):
         
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
+
         graph = self.currentPipeline.graph
+        connect_ids = self.get_module_connection_ids(mList,graph)
 
-        action = DeleteConnectionAction()
-        action2 = DeleteModuleAction()
-
-        for module_id in mList:
-            for v, id in graph.edges_from(module_id):
-                if id not in action.ids:
-                    action.addId(id)
-
-            for v, id in graph.edges_to(module_id):
-                if id not in action.ids:
-                    action.addId(id)
-            
-            action2.addId(module_id)
-        l = [action, action2]
-        return self.performBulkActions(l)
+        action = \
+            self.vistrail.del_modules_links_action(parent=self.currentVersion,
+                                                   module_ids=mList,
+                                                   connection_ids=connect_ids)
+        return self.perform_action(action)
 
     def moveModuleList(self, mList):
         """ moveModuleList(mList: [(id,dx,dy)]) -> [version id]        
@@ -172,9 +260,19 @@ class VistrailController(QtCore.QObject):
         allowed to to emit to avoid recursive actions
         
         """
-        action = MoveModuleAction()
-        action.moves = copy.copy(mList)
-        return self.performAction(action)
+        locations = []
+        # really want to use absolute dx, dy...
+        for (id,dx,dy) in mList:
+            module = self.currentPipeline.getModuleById(id)
+            if module.db_location:
+                old_id = module.db_location.db_id
+            else:
+                # FIXME probably should be an error
+                old_id = None
+            locations.append((old_id, dx, dy, id))
+        action = self.vistrail.chg_locations_action(parent=self.currentVersion,
+                                                    locations=locations)
+        return self.perform_action(action)
             
     def addConnection(self, conn):
         """ addConnection(conn: Connection) -> version id
@@ -182,9 +280,10 @@ class VistrailController(QtCore.QObject):
         
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
-        action = AddConnectionAction()
-        action.connection = conn
-        return self.performAction(action)
+
+        action = self.vistrail.add_connects_action(parent=self.currentVersion,
+                                                   connections=[conn])
+        return self.perform_action(action)
     
     def deleteConnection(self, id):
         """ deleteConnection(id: int) -> version id
@@ -192,10 +291,11 @@ class VistrailController(QtCore.QObject):
         
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
-        action = DeleteConnectionAction()
-        action.addId(id)
 
-        return self.performAction(action)
+        action = \
+            self.vistrail.del_modules_links_action(parent=self.currentVersion,
+                                                   connection_ids=[id])
+        return self.perform_action(action)
 
     def deleteConnectionList(self, cList):
         """ deleteConnections(cList: list) -> version id
@@ -203,11 +303,138 @@ class VistrailController(QtCore.QObject):
         
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
-        action = DeleteConnectionAction()
-        for id in cList:
-            action.addId(id)
 
-        self.performAction(action)
+        action = \
+            self.vistrail.del_modules_links_action(parent=self.currentVersion,
+                                                   connection_ids=cList)
+        return self.perform_action(action)
+
+    def deleteMethod(self, function_id, module_id):
+        """ deleteMethod(function_id: int, module_id: int) -> version id
+        Delete a method with function_id from module module_id
+
+        """
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+
+        action = self.vistrail.del_function_action(parent=self.currentVersion,
+                                                   function_id=function_id,
+                                                   module_id=module_id)
+        return self.perform_action(action)
+
+    def addMethod(self, moduleId, f):
+        """ addMethod(moduleId: int, function: ModuleFunction) -> None
+        Add a new method into the module's function list
+        
+        """
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+
+        action = self.vistrail.add_function_action(parent=self.currentVersion,
+                                                   function=f,
+                                                   module_id=moduleId)
+        return self.perform_action(action)
+
+    def replace_method(self, module, functionId, paramList):
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+
+        params = []
+        for i in range(len(paramList)):
+            (p_val, p_type, p_alias) = paramList[i]
+            function_id = module.functions[functionId].db_id
+            old_id = module.functions[functionId].params[i].db_id
+            params.append((old_id, p_val, p_type, p_alias))
+
+        action = \
+            self.vistrail.chg_params_action(parent=self.currentVersion,
+                                            params=params,
+                                            function_id=function_id)
+        return self.perform_action(action)
+
+    def deleteAnnotation(self, key, module_id):
+        """
+        Parameters
+        ----------
+
+        - key : 'string'
+
+        - module_id : 'int'
+
+        """
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+
+        module = self.currentPipeline.getModuleById(module_id)
+        action = self.vistrail.del_annotation_action(parent=self.currentVersion,
+                                                     key=key,
+                                                     module=module)
+        return self.perform_action(action)
+
+    def addAnnotation(self, pair, module_id):
+        """ addAnnotation(pair: (str, str), moduleId: int)        
+        Add/Update a key/value pair annotation into the module of
+        moduleId
+        
+        """
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+
+        assert type(pair[0]) == type('')
+        assert type(pair[1]) == type('')
+        if pair[0].strip()=='':
+            return
+
+        module = self.currentPipeline.getModuleById(module_id)
+        action = self.vistrail.chg_annotation_action(parent=self.currentVersion,
+                                                     pair=pair,
+                                                     module=module)
+        return self.perform_action(action, pair[0] != '__desc__')
+
+    def addModulePort(self, module_id, port):
+        """
+        Parameters
+        ----------
+        
+        - module_id : 'int'        
+        - port : (portType, portName, portSpec)
+        
+        """
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        
+        action = self.vistrail.add_port_spec_action(parent=self.currentVersion,
+                                                    spec=port,
+                                                    module_id=module_id)
+        return self.perform_action(action)
+
+    def deleteModulePort(self, module_id, port):
+        """
+        Parameters
+        ----------
+        
+        - module_id : 'int'
+        - port : (portType, portName, portSpec)
+        
+        """
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+
+        # FIXME need to be able to find port id
+        # know that port[0] is portType
+        # and port[1] is portName
+        spec_id = -1
+
+        action = self.vistrail.del_port_spec_action(parent=self.currentVersion,
+                                                    spec_id=spec_id,
+                                                    module_id=module_id)
+        return self.perform_action(action)
+
+    def updateNotes(self,notes):
+        """
+        Parameters
+        ----------
+
+        - notes : 'QtCore.QString'
+        
+        """
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        
+        self.vistrail.changenotes(str(notes),self.currentVersion)
+        self.setChanged(True)
 
     def add_parameter_changes_from_execution(self, pipeline, version,
                                              parameter_changes):
@@ -527,135 +754,6 @@ class VistrailController(QtCore.QObject):
         self.resetVersionView = False
         self.invalidate_version_tree()
         self.resetVersionView = True
-
-    def updateNotes(self,notes):
-        """
-        Parameters
-        ----------
-
-        - notes : 'QtCore.QString'
-        
-        """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
-        
-        self.vistrail.changenotes(str(notes),self.currentVersion)
-
-        self.setChanged(True)
-      
-    def deleteMethod(self, function_id, module_id):
-        """ deleteMethod(function_id: int, module_id: int) -> version id
-        Delete a method with function_id from module module_id
-
-        """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
-
-        action = DeleteFunctionAction()
-        action.functionId = function_id
-        action.moduleId = module_id
-        self.performAction(action)
-
-    def addMethod(self, moduleId, f):
-        """ addMethod(moduleId: int, function: ModuleFunction) -> None
-        Add a new method into the module's function list
-        
-        """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
-
-        m = self.currentPipeline.modules[moduleId]
-
-        action = ChangeParameterAction()
-        if f.getNumParams() == 0:
-            action.addParameter(moduleId, m.getNumFunctions(), -1,
-                                f.name,"", "","", "")
-        else:
-            for i in range(f.getNumParams()):
-                p = f.params[i]
-                action.addParameter(moduleId, m.getNumFunctions(),i,
-                                    f.name, p.name, str(p.value()), p.type, "")
-        self.performAction(action)
-                   
-    def replace_method(self, module, functionId, paramList):
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
-        functionName= module.functions[functionId].name
-        action = ChangeParameterAction()        
-        for pId in range(len(paramList)):
-            (pValue, pType, pAlias) = paramList[pId]
-            print (pValue, pType, pAlias)
-            action.addParameter(module.id,
-                                functionId,
-                                pId,
-                                functionName,
-                                '<no description>',
-                                pValue,
-                                pType,
-                                pAlias)
-        self.performAction(action)
-
-    def deleteAnnotation(self, key, module_id):
-        """
-        Parameters
-        ----------
-
-        - key : 'string'
-
-        - module_id : 'int'
-
-        """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
-
-        action = DeleteAnnotationAction()
-        action.key = key
-        action.moduleId = module_id
-        self.performAction(action)
-
-    def addAnnotation(self, pair, moduleId):
-        """ addAnnotation(pair: (str, str), moduleId: int)        
-        Add/Update a key/value pair annotation into the module of
-        moduleId
-        
-        """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
-        assert type(pair[0]) == type('')
-        assert type(pair[1]) == type('')
-        if pair[0].strip()=='':
-            return
-        action = ChangeAnnotationAction()
-        action.addAnnotation(moduleId, pair[0], pair[1])
-        self.performAction(action, pair[0] != '__desc__')
-
-    def addModulePort(self, module_id, port):
-        """
-        Parameters
-        ----------
-        
-        - module_id : 'int'
-        
-        - port : (portType, portName, portSpec)
-        
-        """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
-        
-        action = AddModulePortAction()
-        action.addModulePort(module_id, port[0], port[1], port[2])
-        self.performAction(action)
-        
-    def deleteModulePort(self, module_id, port):
-        """
-        Parameters
-        ----------
-        
-        - module_id : 'int'
-        
-        - port : (portType, portName, portSpec)
-        
-        """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
-        
-        action = DeleteModulePortAction()
-        action.moduleId = module_id
-        action.portType = port[0]
-        action.portName = port[1]
-        self.performAction(action)
         
     def performAction(self, action, quiet=None):
         """ performAction(action: Action, quiet=None) -> timestep
@@ -722,7 +820,7 @@ class VistrailController(QtCore.QObject):
 
         """
         self.quiet = True
-        modulesMap ={}
+        modulesMap = {}
         modulesToSelect = []
         actions = []
         self.previousModuleIds = []

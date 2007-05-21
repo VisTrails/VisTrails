@@ -31,7 +31,9 @@ from gui.param_view import QParameterTreeWidget
 from gui.theme import CurrentTheme
 from gui.utils import show_warning
 from core.modules.module_configure import PythonEditor
-from core.vistrail.action import ChangeParameterAction
+# FIXME broke this as Actions have been changed around
+#
+# from core.vistrail.action import ChangeParameterAction
 
 ################################################################################
 class QParameterExplorationWidget(QtGui.QScrollArea):
