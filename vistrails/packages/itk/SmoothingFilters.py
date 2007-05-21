@@ -40,7 +40,7 @@ class CurvatureAnisotropicDiffusionFilter(SmoothingFilter):
 	self.inIm = itk.Image[inType,indim]
 	self.outIm = itk.Image[outType,outdim]
 
-	self.filter_ = itk.CurvatureAnisotropicDiffusionImageFilter[self.inIm,self.outIm].New()
+	self.filter_ = itk.CurvatureAnisotropicDiffusionImageFilter[self.inIm,self.outIm].New(im)
 
 	if self.hasInputFromPort("Iterations"):
 	    iterations = self.getInputFromPort("Iterations")
@@ -64,9 +64,37 @@ class CurvatureAnisotropicDiffusionFilter(SmoothingFilter):
 	self.filter_.SetTimeStep(timestep)
 	self.filter_.SetConductanceParameter(conductance)
 
-	self.filter_.SetInput(im)
 	self.filter_.Update()
+
 	self.setResult("Output Image", self.filter_.GetOutput())
 	self.setResult("Output PixelType", out)
 	self.setResult("Filter", self)
+	self.setResult("Output Dimension", outdim)
+
+
+class RecursiveGaussianImageFilter(SmoothingFilter):
+    def compute(self):
+	im = self.getInputFromPort("Input Image")
+
+	if self.hasInputFromPort("Output PixelType"):
+	    out = self.getInputFromPort("Output PixelType")
+	else:
+	    out = self.getInputFromPort("Input PixelType")
+
+	inType = self.getInputFromPort("Input PixelType")._type
+	outType = out._type
+	indim = self.getInputFromPort("Input Dimension")
+	outdim = indim
+	self.inIm = itk.Image[inType,indim]
+	self.outIm = itk.Image[outType,outdim]
+
+	self.filter_ = itk.RecursiveGaussianImageFilter[self.inIm,self.outIm].New(im)
+
+	sigma = self.getInputFromPort("Sigma")
+	self.filter_.SetSigma(sigma)
+
+	self.filter_.Update()
+
+	self.setResult("Output Image", self.filter_.GetOutput())
+	self.setResult("Output PixelType", out)
 	self.setResult("Output Dimension", outdim)

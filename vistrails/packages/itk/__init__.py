@@ -153,6 +153,33 @@ def initialize(*args, **keywords):
     reg.addOutputPort(RescaleIntensityImageFilter, "Filter", (Filter, 'Filter'), True)
     reg.addOutputPort(RescaleIntensityImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
 
+    reg.addModule(SigmoidImageFilter)
+    reg.addInputPort(SigmoidImageFilter, "Input Filter", (Filter, 'Input Filter'), True)
+    reg.addInputPort(SigmoidImageFilter, "Input Image", (Image, 'Input Image'))
+    reg.addInputPort(SigmoidImageFilter, "Input PixelType", (PixelType, 'Input PixelType'))
+    reg.addInputPort(SigmoidImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
+    reg.addInputPort(SigmoidImageFilter, "Dimension", (basic.Integer, 'Dimension'))
+    reg.addInputPort(SigmoidImageFilter, "Minimum", (basic.Integer, 'Minimum'), True)
+    reg.addInputPort(SigmoidImageFilter, "Maximum", (basic.Integer, 'Maximum'), True)
+    reg.addInputPort(SigmoidImageFilter, "Alpha", (basic.Float, 'Alpha'), True)
+    reg.addInputPort(SigmoidImageFilter, "Beta", (basic.Float, 'Beta'), True)
+    
+    reg.addOutputPort(SigmoidImageFilter, "Output Image", (Image, 'Output Image'))
+    reg.addOutputPort(SigmoidImageFilter, "Filter", (Filter, 'Output Filter'), True)
+    reg.addOutputPort(SigmoidImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
+    reg.addOutputPort(SigmoidImageFilter, "Output Dimension", (basic.Integer, 'Output Dimension'), True)
+
+    reg.addModule(ThresholdImageFilter)
+    reg.addInputPort(ThresholdImageFilter, "Input Image", (Image, 'Input Image'))
+    reg.addInputPort(ThresholdImageFilter, "Dimension", (basic.Integer, 'Dimension'))
+    reg.addInputPort(ThresholdImageFilter, "Input PixelType", (PixelType, 'Input PixelType'))
+    reg.addInputPort(ThresholdImageFilter, "Upper Value", (basic.Integer, 'Upper Value'))
+    reg.addInputPort(ThresholdImageFilter, "Lower Value", (basic.Integer, 'Lower Value'))
+
+    reg.addOutputPort(ThresholdImageFilter, "Output Image", (Image, 'Output Image'))
+    reg.addOutputPort(ThresholdImageFilter, "Output Dimension", (basic.Integer, 'Output Dimension'))
+    reg.addOutputPort(ThresholdImageFilter, "Output PixelType", (PixelType, 'Output PixelType'))
+
     reg.addModule(SegmentationFilter, "Segmentation Filters")
     reg.addModule(IsolatedWatershedImageFilter)
     reg.addInputPort(IsolatedWatershedImageFilter, "Input Image", (Image, 'Input Image'))
@@ -168,6 +195,20 @@ def initialize(*args, **keywords):
 
     reg.addOutputPort(IsolatedWatershedImageFilter, "Output Image", (Image, 'Output Image'))
     reg.addOutputPort(IsolatedWatershedImageFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
+
+    reg.addModule(ConnectedThresholdImageFilter)
+    reg.addInputPort(ConnectedThresholdImageFilter, "Input Image", (Image, 'Input Image'))
+    reg.addInputPort(ConnectedThresholdImageFilter, "Input PixelType", (PixelType, 'Input PixelType'))
+    reg.addInputPort(ConnectedThresholdImageFilter, "Dimension", (basic.Integer, 'Dimension'))
+    reg.addInputPort(ConnectedThresholdImageFilter, "Seed2D", (Index2D, 'Seed Point'))
+    reg.addInputPort(ConnectedThresholdImageFilter, "Seed3D", (Index3D, 'Seed Point'))
+    reg.addInputPort(ConnectedThresholdImageFilter, "Replace Value", (basic.Float, 'Replacement Value'))
+    reg.addInputPort(ConnectedThresholdImageFilter, "Upper Value", (basic.Float, 'Upper Threshold Value'))
+    reg.addInputPort(ConnectedThresholdImageFilter, "Lower Value", (basic.Float, 'Lower Threshold Value'))
+
+    reg.addOutputPort(ConnectedThresholdImageFilter, "Output Image", (Image, 'Output Image'))
+    reg.addOutputPort(ConnectedThresholdImageFilter, "Output Dimension", (basic.Integer, 'Output Dimension'))
+    reg.addOutputPort(ConnectedThresholdImageFilter, "Output PixelType", (PixelType, 'Output PixelType'))
 
     reg.addModule(SelectionFilter, "Image Selection Filters")
     reg.addModule(CastImageFilter)
@@ -217,3 +258,13 @@ def initialize(*args, **keywords):
     reg.addOutputPort(CurvatureAnisotropicDiffusionFilter, "Output PixelType", (PixelType, 'Output PixelType'), True)
     reg.addOutputPort(CurvatureAnisotropicDiffusionFilter, "Output Dimension", (basic.Integer, 'Output Dimension'), True)
     reg.addOutputPort(CurvatureAnisotropicDiffusionFilter, "Filter", (Filter, 'Filter'), True)
+
+    reg.addModule(RecursiveGaussianImageFilter)
+    reg.addInputPort(RecursiveGaussianImageFilter, "Input Image", (Image, 'Input Image'))
+    reg.addInputPort(RecursiveGaussianImageFilter, "Input Dimension", (basic.Integer, 'Input Dimension'))
+    reg.addInputPort(RecursiveGaussianImageFilter, "Input PixelType", (PixelType, 'Input PixelType'))
+    reg.addInputPort(RecursiveGaussianImageFilter, "Sigma", (basic.Float, 'Sigma'))
+
+    reg.addOutputPort(RecursiveGaussianImageFilter, "Output Image", (Image, 'Output Image'))
+    reg.addOutputPort(RecursiveGaussianImageFilter, "Output Dimension", (basic.Integer, 'Output Dimension'))
+    reg.addOutputPort(RecursiveGaussianImageFilter, "Output PixelType", (PixelType, 'Output PixelType'))

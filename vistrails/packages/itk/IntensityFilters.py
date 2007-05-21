@@ -52,3 +52,73 @@ class RescaleIntensityImageFilter(IntensityFilter):
         self.setResult("Output Image", self.filter_.GetOutput())
         self.setResult("Filter", self)
 	self.setResult("Output PixelType", out)
+
+class SigmoidImageFilter(IntensityFilter):
+    def compute(self):
+	inFilter = self.forceGetInputFromPort("Input Filter")
+        im = self.getInputFromPort("Input Image")
+
+      	if self.hasInputFromPort("Output PixelType"):
+	    out = self.getInputFromPort("Output PixelType")
+	else:
+	    out = self.getInputFromPort("Input PixelType")
+
+
+        inType = self.getInputFromPort("Input PixelType")._type
+        outType = out._type
+        dim = self.getInputFromPort("Dimension")
+        inType = itk.Image[inType, dim]
+        outType= itk.Image[outType, dim]
+
+	if self.hasInputFromPort("Minimum"):
+	    min = self.getInputFromPort("Minimum")
+	else:
+	    min = 10
+
+	if self.hasInputFromPort("Maximum"):
+	    max = self.getInputFromPort("Maximum")
+	else:
+	    max = 240
+
+	if self.hasInputFromPort("Alpha"):
+	    alpha = self.getInputFromPort("Alpha")
+	else:
+	    alpha = 10
+
+	if self.hasInputFromPort("Beta"):
+	    beta = self.getInputFromPort("Beta")
+	else:
+	    beta = 170
+
+	self.filter_ = itk.SigmoidImageFilter[inType,outType].New(im)
+	self.filter_.SetOutputMinimum(min)
+	self.filter_.SetOutputMaximum(max)
+	self.filter_.SetAlpha(alpha)
+	self.filter_.SetBeta(beta)
+	self.filter_.Update()
+
+        self.setResult("Output Image", self.filter_.GetOutput())
+        self.setResult("Filter", self)
+	self.setResult("Output PixelType", out)
+	self.setResult("Output Dimension", dim)	
+
+class ThresholdImageFilter(IntensityFilter):
+    def compute(self):
+	im = self.getInputFromPort("Input Image")
+	up = self.getInputFromPort("Upper Value")
+	lo = self.getInputFromPort("Lower Value")
+	
+	inty = self.getInputFromPort("Input PixelType")._type
+        dim = self.getInputFromPort("Dimension")
+        inType = itk.Image[inty, dim]
+        
+	self.filter_ = itk.ThresholdImageFilter[inType].New(im)
+
+	self.filter_.SetUpper(up)
+	self.filter_.SetLower(lo)
+#	self.filter_.ThresholdAbove(up)
+	self.filter_.Update()
+
+	self.setResult("Output Image", self.filter_.GetOutput())
+	self.setResult("Output PixelType", self.getInputFromPort("Input PixelType"))
+	self.setResult("Output Dimension", dim)

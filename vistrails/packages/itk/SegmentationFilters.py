@@ -54,8 +54,7 @@ class IsolatedWatershedImageFilter(SegmentationFilter):
 	inType = itk.Image[inType,dim]
 	outType = itk.Image[outType,dim]
 
-	self.filter_ = itk.IsolatedWatershedImageFilter[inType,outType].New()
-        self.filter_.SetInput(im)
+	self.filter_ = itk.IsolatedWatershedImageFilter[inType,outType].New(im)
 
 	if self.hasInputFromPort("Seed2"):
 	    self.setSeed2(self.getInputFromPort("Seed2"))
@@ -74,3 +73,53 @@ class IsolatedWatershedImageFilter(SegmentationFilter):
 	self.setResult("Output Image", self.filter_.GetOutput())
 	self.setResult("Filter", self)
 
+class ConnectedThresholdImageFilter(SegmentationFilter):
+    def set_seed(self, ind):
+	self.filter_.SetSeed(ind.ind_)
+
+    def set_replace(self, v):
+	self.filter_.SetReplaceValue(v)
+
+    def set_lower(self, v):
+	self.filter_.SetLower(v)
+
+    def set_upper(self, v):
+	self.filter_.SetUpper(v)
+
+    def compute(self):
+	im = self.getInputFromPort("Input Image")
+	if self.hasInputFromPort("Seed2D"):
+	    seed = self.getInputFromPort("Seed2D")
+	else:
+	    seed = self.getInputFromPort("Seed3D")
+	replace = self.getInputFromPort("Replace Value")
+	t_lower = self.getInputFromPort("Lower Value")
+	t_upper = self.getInputFromPort("Upper Value")
+
+	if self.hasInputFromPort("Output PixelType"):
+	    out = self.getInputFromPort("Output PixelType")
+	else:
+	    out = self.getInputFromPort("Input PixelType")
+
+	inType = self.getInputFromPort("Input PixelType")._type
+	outType = out._type
+	dim = self.getInputFromPort("Dimension")
+	inType = itk.Image[inType,dim]
+	outType = itk.Image[outType,dim]
+
+	self.filter_ = itk.ConnectedThresholdImageFilter[inType,outType].New(im)
+
+	self.set_seed(seed)
+	self.set_replace(replace)
+	self.set_upper(t_upper)
+	self.set_lower(t_lower)
+
+	self.filter_.Update()
+
+	self.setResult("Output Image", self.filter_.GetOutput())
+	self.setResult("Output PixelType", out)
+	self.setResult("Output Dimension", dim)
+
+class ThresholdSegmentationLevelSet(SegmentationFilter):
+    def compute(self):
+	im = self.getInputFromPort("Input Image")

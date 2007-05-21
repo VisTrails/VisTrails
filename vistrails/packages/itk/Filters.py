@@ -42,3 +42,7 @@ class SelectionFilter(Filter):
 class SmoothingFilter(Filter):
     def compute(self):
 	pass
+
+class MorphologicalFilter(Filter):
+    def compute(self):
+	pass
