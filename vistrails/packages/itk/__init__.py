@@ -268,3 +268,13 @@ def initialize(*args, **keywords):
     reg.addOutputPort(RecursiveGaussianImageFilter, "Output Image", (Image, 'Output Image'))
     reg.addOutputPort(RecursiveGaussianImageFilter, "Output Dimension", (basic.Integer, 'Output Dimension'))
     reg.addOutputPort(RecursiveGaussianImageFilter, "Output PixelType", (PixelType, 'Output PixelType'))
+
+    reg.addModule(CurvatureFlowImageFilter)
+    reg.addInputPort(CurvatureFlowImageFilter, "Input Image", (Image, 'Input Image'))
+    reg.addInputPort(CurvatureFlowImageFilter, "Input Dimension", (basic.Integer, 'Input Dimension'))
+    reg.addInputPort(CurvatureFlowImageFilter, "Input PixelType", (PixelType, 'Input PixelType'))
+    reg.addInputPort(CurvatureFlowImageFilter, "TimeStep", (basic.Float, 'TimeStep'), True)
+    reg.addInputPort(CurvatureFlowImageFilter, "Iterations", (basic.Integer, 'Iterations'), True)
+    reg.addOutputPort(CurvatureFlowImageFilter, "Output Image", (Image, 'Output Image'))
+    reg.addOutputPort(CurvatureFlowImageFilter, "Output Dimension", (basic.Integer, 'Output Dimension'))
+    reg.addOutputPort(CurvatureFlowImageFilter, "Output PixelType", (PixelType, 'Output PixelType'))

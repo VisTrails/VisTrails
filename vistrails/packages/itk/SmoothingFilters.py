@@ -98,3 +98,36 @@ class RecursiveGaussianImageFilter(SmoothingFilter):
 	self.setResult("Output Image", self.filter_.GetOutput())
 	self.setResult("Output PixelType", out)
 	self.setResult("Output Dimension", outdim)
+
+class CurvatureFlowImageFilter(SmoothingFilter):
+    def compute(self):
+	im = self.getInputFromPort("Input Image")
+	dim = self.getInputFromPort("Input Dimension")
+
+	inType = self.getInputFromPort("Input PixelType")._type
+	if self.hasInputFromPort("Output PixelType"):
+	    out = self.getInputFromPort("Output PixelType")
+	else:
+	    out = self.getInputFromPort("Input PixelType")
+
+	i = itk.Image[inType, dim]
+	o = itk.Image[out._type, dim]
+	self.filter_ = itk.CurvatureFlowImageFilter[i, o].New(im)
+	if self.hasInputFromPort("TimeStep"):
+	    self.ts = self.getInputFromPort("TimeStep")
+	else:
+	    self.ts = 0.125
+
+	if self.hasInputFromPort("Iterations"):
+	    self.iterations = self.getInputFromPort("Iterations")
+	else:
+	    self.iterations = 5
+
+	self.filter_.SetTimeStep(self.ts)
+	self.filter_.SetNumberOfIterations(self.iterations)
+	
+	self.filter_.Update()
+
+	self.setResult("Output Image", self.filter_.GetOutput())
+	self.setResult("Output PixelType", out)
+	self.setResult("Output Dimension", dim)
