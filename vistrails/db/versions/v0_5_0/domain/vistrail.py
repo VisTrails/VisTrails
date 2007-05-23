@@ -27,3 +27,4 @@ class DBVistrail(_DBVistrail):
     def __init__(self, *args, **kwargs):
 	_DBVistrail.__init__(self, *args, **kwargs)
         self.idScope = IdScope()
+        self.idScope.setBeginId('action', 1)

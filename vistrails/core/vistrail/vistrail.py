@@ -68,7 +68,7 @@ class Vistrail(DBVistrail):
         self.currentGraph=None
         self.prunedVersions = set()
         self.savedQueries = []
-
+        
     def _get_actionMap(self):
         return self.db_actions
     def _set_actionMap(self, actionMap):
@@ -200,7 +200,7 @@ class Vistrail(DBVistrail):
             connect_id = self.idScope.getNewId('connection')
             new_connection.id = connect_id
             new_connection.genSignatures()
-            for port in new_connection.ports:
+            for port in new_connection.db_get_ports():
                 port_id = self.idScope.getNewId('port')
                 port.id = port_id
             ops.append(self.create_add_operation(new_connection))
