@@ -210,6 +210,20 @@ def initialize(*args, **keywords):
     reg.addOutputPort(ConnectedThresholdImageFilter, "Output Dimension", (basic.Integer, 'Output Dimension'))
     reg.addOutputPort(ConnectedThresholdImageFilter, "Output PixelType", (PixelType, 'Output PixelType'))
 
+    reg.addModule(ConfidenceConnectedImageFilter)
+    reg.addInputPort(ConfidenceConnectedImageFilter, "Input Image", (Image, 'Input Image'))
+    reg.addInputPort(ConfidenceConnectedImageFilter, "Input PixelType", (PixelType, 'Input PixelType'))
+    reg.addInputPort(ConfidenceConnectedImageFilter, "Dimension", (basic.Integer, 'Dimension'))
+    reg.addInputPort(ConfidenceConnectedImageFilter, "Seed2D", (Index2D, 'Seed Point'))
+    reg.addInputPort(ConfidenceConnectedImageFilter, "Seed3D", (Index3D, 'Seed Point'))
+    reg.addInputPort(ConfidenceConnectedImageFilter, "Replace Value", (basic.Float, 'Replacement Value'))
+    reg.addInputPort(ConfidenceConnectedImageFilter, "Multiplier", (basic.Float, 'Multiplier'))
+
+    reg.addOutputPort(ConfidenceConnectedImageFilter, "Output Image", (Image, 'Output Image'))
+    reg.addOutputPort(ConfidenceConnectedImageFilter, "Output Dimension", (basic.Integer, 'Output Dimension'))
+    reg.addOutputPort(ConfidenceConnectedImageFilter, "Output PixelType", (PixelType, 'Output PixelType'))
+
+
     reg.addModule(SelectionFilter, "Image Selection Filters")
     reg.addModule(CastImageFilter)
     reg.addInputPort(CastImageFilter, "Input Image", (Image, 'Input Image'))

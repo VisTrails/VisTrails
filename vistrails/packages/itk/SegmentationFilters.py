@@ -120,6 +120,37 @@ class ConnectedThresholdImageFilter(SegmentationFilter):
 	self.setResult("Output PixelType", out)
 	self.setResult("Output Dimension", dim)
 
-class ThresholdSegmentationLevelSet(SegmentationFilter):
+class ConfidenceConnectedImageFilter(SegmentationFilter):
     def compute(self):
 	im = self.getInputFromPort("Input Image")
+	if self.hasInputFromPort("Seed2D"):
+	    seed = self.getInputFromPort("Seed2D")
+	else:
+	    seed = self.getInputFromPort("Seed3D")
+
+	replace = self.getInputFromPort("Replace Value")
+	multiplier = self.getInputFromPort("Multiplier")
+
+	if self.hasInputFromPort("Output PixelType"):
+	    out = self.getInputFromPort("Output PixelType")
+	else:
+	    out = self.getInputFromPort("Input PixelType")
+
+	inType = self.getInputFromPort("Input PixelType")._type
+	outType = out._type
+	dim = self.getInputFromPort("Dimension")
+	inType = itk.Image[inType,dim]
+	outType = itk.Image[outType,dim]
+
+	self.filter_ = itk.ConfidenceConnectedImageFilter[inType,outType].New(im)
+
+	self.filter_.SetReplaceValue(replace)
+	self.filter_.SetMultiplier(multiplier)
+
+	self.filter_.SetSeed(seed.ind_)
+
+	self.filter_.Update()
+
+	self.setResult("Output Image", self.filter_.GetOutput())
+	self.setResult("Output PixelType", out)
+	self.setResult("Output Dimension", dim)
