@@ -1,0 +1,1236 @@
+  <visTrail version="0.3.1">
+    <action date="31 May 2007 10:46:29" parent="0" time="1" user="stevec" what="addModule">
+      <object cache="0" id="0" name="vtkActor" x="164.305609408" y="-432.971427586"/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="1" time="2" user="stevec" what="addModule">
+      <object cache="0" id="1" name="VTKCell" x="49.0608815312" y="-728.492757793"/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="2" time="3" user="stevec" what="addModule">
+      <object cache="0" id="2" name="vtkRenderer" x="20.9354065586" y="-581.915664351"/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="3" time="4" user="stevec" what="addModule">
+      <object cache="0" id="3" name="vtkContourFilter" x="263.555115764" y="-109.797516937"/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="4" time="5" user="stevec" what="addModule">
+      <object cache="0" id="4" name="vtkStructuredPointsReader" x="9.70802920407" y="13.1094890511"/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="5" time="6" user="stevec" what="addModule">
+      <object cache="0" id="5" name="vtkDataSetMapper" x="177.838497215" y="-257.043881891"/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="6" time="7" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="0" value=""/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="7" time="8" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="1" value=""/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="8" time="9" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="2" value=""/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="9" time="10" user="stevec" what="changeParameter">
+      <set alias="" function="SetValue" functionId="0" moduleId="3" parameter="" parameterId="0" type="Integer" value="0"/>
+      <set alias="" function="SetValue" functionId="0" moduleId="3" parameter="" parameterId="1" type="Float" value="67"/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="10" time="11" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="3" value=""/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="11" time="12" user="stevec" what="changeParameter">
+      <set alias="" function="SetFileName" functionId="0" moduleId="4" parameter="" parameterId="0" type="String" value="../examples/data/head.120.vtk"/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="12" time="13" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="4" value=""/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="13" time="14" user="stevec" what="changeParameter">
+      <set alias="" function="ScalarVisibilityOff" functionId="0" moduleId="5" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="14" time="15" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="5" value=""/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="15" time="16" user="stevec" what="addConnection">
+      <connect destinationId="0" destinationModule="vtkActor" destinationPort="SetMapper(vtkMapper)" id="0" sourceId="5" sourceModule="vtkDataSetMapper" sourcePort="self(vtkDataSetMapper)"/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="16" time="17" user="stevec" what="addConnection">
+      <connect destinationId="2" destinationModule="vtkRenderer" destinationPort="AddActor(vtkProp)" id="1" sourceId="0" sourceModule="vtkActor" sourcePort="self(vtkActor)"/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="17" time="18" user="stevec" what="addConnection">
+      <connect destinationId="1" destinationModule="VTKCell" destinationPort="AddRenderer(vtkRenderer)" id="2" sourceId="2" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="18" time="19" user="stevec" what="addConnection">
+      <connect destinationId="3" destinationModule="vtkContourFilter" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="3" sourceId="4" sourceModule="vtkStructuredPointsReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="31 May 2007 10:46:29" parent="19" time="20" user="stevec" what="addConnection">
+      <connect destinationId="5" destinationModule="vtkDataSetMapper" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="4" sourceId="3" sourceModule="vtkContourFilter" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="31 May 2007 10:46:52" parent="20" time="21" user="stevec" what="moveModule">
+      <move dx="55.9007295941" dy="107.735951581" id="0"/>
+      <move dx="167.702188782" dy="183.96421921" id="1"/>
+      <move dx="201.242626539" dy="146.358273846" id="2"/>
+      <move dx="-31.5076839531" dy="5.08188450856" id="3"/>
+      <move dx="208.357264851" dy="-13.2128997223" id="4"/>
+      <move dx="47.7697143805" dy="42.6878298719" id="5"/>
+    </action>
+    <action date="31 May 2007 10:46:52" parent="21" time="22" user="stevec" what="addModule">
+      <object cache="0" id="6" name="vtkCamera" x="-94.5230518592" y="-403.50162998"/>
+    </action>
+    <action date="31 May 2007 10:46:58" parent="22" time="23" user="stevec" what="changeParameter">
+      <set alias="" function="SetViewUp" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.0"/>
+      <set alias="" function="SetViewUp" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.0"/>
+      <set alias="" function="SetViewUp" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0.0"/>
+    </action>
+    <action date="31 May 2007 10:47:00" parent="23" time="24" user="stevec" what="changeParameter">
+      <set alias="" function="SetViewUp" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
+      <set alias="" function="SetViewUp" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value=""/>
+      <set alias="" function="SetViewUp" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value=""/>
+    </action>
+    <action date="31 May 2007 10:47:01" parent="24" time="25" user="stevec" what="changeParameter">
+      <set alias="" function="SetViewUp" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
+      <set alias="" function="SetViewUp" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0"/>
+      <set alias="" function="SetViewUp" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value=""/>
+    </action>
+    <action date="31 May 2007 10:47:03" parent="25" time="26" user="stevec" what="changeParameter">
+      <set alias="" function="SetViewUp" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
+      <set alias="" function="SetViewUp" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0"/>
+      <set alias="" function="SetViewUp" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="-1"/>
+    </action>
+    <action date="31 May 2007 10:47:09" parent="26" time="27" user="stevec" what="changeParameter">
+      <set alias="" function="SetPosition" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.0"/>
+      <set alias="" function="SetPosition" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.0"/>
+      <set alias="" function="SetPosition" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0.0"/>
+    </action>
+    <action date="31 May 2007 10:47:32" parent="27" time="28" user="stevec" what="changeParameter">
+      <set alias="" function="SetPosition" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="(745, -453, 369)"/>
+      <set alias="" function="SetPosition" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value=""/>
+      <set alias="" function="SetPosition" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value=""/>
+    </action>
+    <action date="31 May 2007 10:47:36" parent="28" time="29" user="stevec" what="changeParameter">
+      <set alias="" function="SetPosition" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="(745, -453, 369)"/>
+      <set alias="" function="SetPosition" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="-453"/>
+      <set alias="" function="SetPosition" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value=""/>
+    </action>
+    <action date="31 May 2007 10:47:40" parent="29" time="30" user="stevec" what="changeParameter">
+      <set alias="" function="SetPosition" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="(745, -453, 369)"/>
+      <set alias="" function="SetPosition" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="-453"/>
+      <set alias="" function="SetPosition" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="369"/>
+    </action>
+    <action date="31 May 2007 10:47:45" parent="30" time="31" user="stevec" what="changeParameter">
+      <set alias="" function="SetPosition" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="745"/>
+      <set alias="" function="SetPosition" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="-453"/>
+      <set alias="" function="SetPosition" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="369"/>
+    </action>
+    <action date="31 May 2007 10:48:09" parent="31" time="32" user="stevec" what="changeParameter">
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.0"/>
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.0"/>
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0.0"/>
+    </action>
+    <action date="31 May 2007 10:48:19" parent="32" time="33" user="stevec" what="changeParameter">
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="135"/>
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value=""/>
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value=""/>
+    </action>
+    <action date="31 May 2007 10:48:21" parent="33" time="34" user="stevec" what="changeParameter">
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="135"/>
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="135"/>
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value=""/>
+    </action>
+    <action date="31 May 2007 10:48:23" parent="34" time="35" user="stevec" what="changeParameter">
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="135"/>
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="135"/>
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="150"/>
+    </action>
+    <action date="31 May 2007 10:48:31" parent="35" time="36" user="stevec" what="moveModule">
+      <move dx="107.735951581" dy="-42.6878298719" id="6"/>
+    </action>
+    <action date="31 May 2007 10:48:31" parent="36" time="37" user="stevec" what="addConnection">
+      <connect destinationId="2" destinationModule="vtkRenderer" destinationPort="SetActiveCamera(vtkCamera)" id="5" sourceId="6" sourceModule="vtkCamera" sourcePort="self(vtkCamera)"/>
+    </action>
+    <action date="31 May 2007 10:49:14" parent="37" time="38" user="stevec" what="moveModule">
+      <notes>
+        A workflow that extracts an isosurface and renders into an interactive spreadsheet cell. This workflow almost directly corresponds to the python source specified in the script node of the history tree.  Notice that the visual representation is much easier to understand even for this very simple example.
+      </notes>
+      <move dx="84.3592828421" dy="3.04913070514" id="0"/>
+      <move dx="117.899720599" dy="123.997982009" id="6"/>
+    </action>
+    <action date="31 May 2007 10:49:31" parent="0" time="39" user="stevec" what="addModule">
+      <object cache="0" id="0" name="PythonSource" x="-365.203857235" y="422.724242959"/>
+    </action>
+    <action date="31 May 2007 10:49:31" parent="39" time="40" user="stevec" what="changeParameter">
+      <set alias="" function="source" functionId="0" moduleId="0" parameter="&lt;no description&gt;" parameterId="0" type="String" value="import%20vtk%0A%0Adata%20%3D%20vtk.vtkStructuredPointsReader%28%29%0Adata.SetFileName%28%22../examples/data/head.120.vtk%22%29%0A%0Acontour%20%3D%20vtk.vtkContourFilter%28%29%0Acontour.SetInput%280%2Cdata.GetOutput%28%29%29%0Acontour.SetValue%280%2C%2067%29%0A%0Amapper%20%3D%20vtk.vtkPolyDataMapper%28%29%0Amapper.SetInput%28contour.GetOutput%28%29%29%0Amapper.ScalarVisibilityOff%28%29%0A%0Aactor%20%3D%20vtk.vtkActor%28%29%0Aactor.SetMapper%28mapper%29%0A%0Acam%20%3D%20vtk.vtkCamera%28%29%0Acam.SetViewUp%280%2C0%2C-1%29%0Acam.SetPosition%28745%2C-453%2C369%29%0Acam.SetFocalPoint%28135%2C135%2C150%29%0Acam.ComputeViewPlaneNormal%28%29%0A%0Aren%20%3D%20vtk.vtkRenderer%28%29%0Aren.AddActor%28actor%29%0Aren.SetActiveCamera%28cam%29%0Aren.ResetCamera%28%29%0A%0Arenwin%20%3D%20vtk.vtkRenderWindow%28%29%0Arenwin.AddRenderer%28ren%29%0A%0Astyle%20%3D%20vtk.vtkInteractorStyleTrackballCamera%28%29%0Airen%20%3D%20vtk.vtkRenderWindowInteractor%28%29%0Airen.SetRenderWindow%28renwin%29%0Airen.SetInteractorStyle%28style%29%0Airen.Initialize%28%29%0Airen.Start%28%29%0A"/>
+    </action>
+    <action date="31 May 2007 10:49:31" parent="40" time="41" user="stevec" what="changeAnnotation">
+      <notes>
+        A simple VTK script implemented as a single python source. The script simply reads the data, extracts an isosurface, and renders to an interactive window. 
+
+This example demonstrates the traditional manner in which workflows are specified, using scripts.  VisTrails still allows the ability to script.
+      </notes>
+      <set key="" moduleId="0" value=""/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="0" time="42" user="stevec" what="addModule">
+      <object cache="0" id="0" name="vtkVolumeTextureMapper3D" x="-317.519433149" y="1045.39647555"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="42" time="43" user="stevec" what="addModule">
+      <object cache="0" id="1" name="vtkStructuredPointsReader" x="-149.822941711" y="1328.99123478"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="43" time="44" user="stevec" what="addModule">
+      <object cache="0" id="2" name="vtkColorTransferFunction" x="-220.380186217" y="922.401173876"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="44" time="45" user="stevec" what="addModule">
+      <object cache="0" id="3" name="vtkPiecewiseFunction" x="-529.371357065" y="914.282823603"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="45" time="46" user="stevec" what="addModule">
+      <object cache="0" id="4" name="VTKCell" x="53.346546795" y="145.462640002"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="46" time="47" user="stevec" what="addModule">
+      <object cache="0" id="5" name="vtkVolumeProperty" x="-318.034919629" y="731.418852802"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="47" time="48" user="stevec" what="addModule">
+      <object cache="0" id="6" name="vtkCamera" x="-571.865625063" y="647.419143278"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="48" time="49" user="stevec" what="addModule">
+      <object cache="0" id="7" name="vtkRenderer" x="-432.87830307" y="370.217658725"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="49" time="50" user="stevec" what="addModule">
+      <object cache="0" id="8" name="vtkVolume" x="-420.679586222" y="495.726873003"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="50" time="51" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="0" value=""/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="51" time="52" user="stevec" what="changeParameter">
+      <set alias="filename" function="SetFileName" functionId="0" moduleId="1" parameter="&lt;no description&gt;" parameterId="0" type="String" value="../examples/data/head.120.vtk"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="52" time="53" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="1" value=""/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="53" time="54" user="stevec" what="changeParameter">
+      <set alias="" function="AddRGBPoint" functionId="0" moduleId="2" parameter="(unnamed)" parameterId="0" type="Float" value="79.0"/>
+      <set alias="" function="AddRGBPoint" functionId="0" moduleId="2" parameter="(unnamed)" parameterId="1" type="Float" value="0.0"/>
+      <set alias="" function="AddRGBPoint" functionId="0" moduleId="2" parameter="(unnamed)" parameterId="2" type="Float" value="0.0"/>
+      <set alias="" function="AddRGBPoint" functionId="0" moduleId="2" parameter="(unnamed)" parameterId="3" type="Float" value="0.0"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="54" time="55" user="stevec" what="changeParameter">
+      <set alias="" function="AddRGBPoint" functionId="1" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="80.0"/>
+      <set alias="" function="AddRGBPoint" functionId="1" moduleId="2" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="1.0"/>
+      <set alias="" function="AddRGBPoint" functionId="1" moduleId="2" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="1.0"/>
+      <set alias="" function="AddRGBPoint" functionId="1" moduleId="2" parameter="&lt;no description&gt;" parameterId="3" type="Float" value="1.0"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="55" time="56" user="stevec" what="changeParameter">
+      <set alias="" function="AddRGBPoint" functionId="2" moduleId="2" parameter="(unnamed)" parameterId="0" type="Float" value="110.0"/>
+      <set alias="" function="AddRGBPoint" functionId="2" moduleId="2" parameter="(unnamed)" parameterId="1" type="Float" value="1.0"/>
+      <set alias="" function="AddRGBPoint" functionId="2" moduleId="2" parameter="(unnamed)" parameterId="2" type="Float" value="1.0"/>
+      <set alias="" function="AddRGBPoint" functionId="2" moduleId="2" parameter="(unnamed)" parameterId="3" type="Float" value="1.0"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="56" time="57" user="stevec" what="changeParameter">
+      <set alias="" function="AddRGBPoint" functionId="3" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="45"/>
+      <set alias="" function="AddRGBPoint" functionId="3" moduleId="2" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.8"/>
+      <set alias="" function="AddRGBPoint" functionId="3" moduleId="2" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0.5"/>
+      <set alias="" function="AddRGBPoint" functionId="3" moduleId="2" parameter="&lt;no description&gt;" parameterId="3" type="Float" value="0.5"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="57" time="58" user="stevec" what="changeParameter">
+      <set alias="" function="AddRGBPoint" functionId="4" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="18.0"/>
+      <set alias="" function="AddRGBPoint" functionId="4" moduleId="2" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.8"/>
+      <set alias="" function="AddRGBPoint" functionId="4" moduleId="2" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0.5"/>
+      <set alias="" function="AddRGBPoint" functionId="4" moduleId="2" parameter="&lt;no description&gt;" parameterId="3" type="Float" value="0.5"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="58" time="59" user="stevec" what="changeParameter">
+      <set alias="" function="AddRGBPoint" functionId="5" moduleId="2" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="35"/>
+      <set alias="" function="AddRGBPoint" functionId="5" moduleId="2" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.8"/>
+      <set alias="" function="AddRGBPoint" functionId="5" moduleId="2" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0.5"/>
+      <set alias="" function="AddRGBPoint" functionId="5" moduleId="2" parameter="&lt;no description&gt;" parameterId="3" type="Float" value="0.5"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="59" time="60" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="2" value=""/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="60" time="61" user="stevec" what="changeParameter">
+      <set alias="" function="AddPoint" functionId="0" moduleId="3" parameter="(unnamed)" parameterId="0" type="Float" value="79"/>
+      <set alias="" function="AddPoint" functionId="0" moduleId="3" parameter="(unnamed)" parameterId="1" type="Float" value="0.0"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="61" time="62" user="stevec" what="changeParameter">
+      <set alias="" function="AddPoint" functionId="1" moduleId="3" parameter="(unnamed)" parameterId="0" type="Float" value="80"/>
+      <set alias="" function="AddPoint" functionId="1" moduleId="3" parameter="(unnamed)" parameterId="1" type="Float" value="0.1"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="62" time="63" user="stevec" what="changeParameter">
+      <set alias="" function="AddPoint" functionId="2" moduleId="3" parameter="(unnamed)" parameterId="0" type="Float" value="110"/>
+      <set alias="" function="AddPoint" functionId="2" moduleId="3" parameter="(unnamed)" parameterId="1" type="Float" value="0.8"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="63" time="64" user="stevec" what="changeParameter">
+      <set alias="" function="AddPoint" functionId="3" moduleId="3" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="23"/>
+      <set alias="" function="AddPoint" functionId="3" moduleId="3" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.0"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="64" time="65" user="stevec" what="changeParameter">
+      <set alias="" function="AddPoint" functionId="4" moduleId="3" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="35"/>
+      <set alias="" function="AddPoint" functionId="4" moduleId="3" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.7"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="65" time="66" user="stevec" what="changeParameter">
+      <set alias="" function="AddPoint" functionId="5" moduleId="3" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="46"/>
+      <set alias="" function="AddPoint" functionId="5" moduleId="3" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.0"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="66" time="67" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="3" value=""/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="67" time="68" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="4" value=""/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="68" time="69" user="stevec" what="changeParameter">
+      <set alias="" function="SetInterpolationTypeToLinear" functionId="0" moduleId="5" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="69" time="70" user="stevec" what="changeParameter">
+      <set alias="" function="ShadeOn" functionId="1" moduleId="5" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="70" time="71" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="5" value=""/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="71" time="72" user="stevec" what="changeParameter">
+      <set alias="" function="SetPosition" functionId="0" moduleId="6" parameter="" parameterId="0" type="Float" value="744.495278753"/>
+      <set alias="" function="SetPosition" functionId="0" moduleId="6" parameter="" parameterId="1" type="Float" value="-452.645563908"/>
+      <set alias="" function="SetPosition" functionId="0" moduleId="6" parameter="" parameterId="2" type="Float" value="369.493592636"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="72" time="73" user="stevec" what="changeParameter">
+      <set alias="" function="SetViewUp" functionId="1" moduleId="6" parameter="" parameterId="0" type="Float" value="-0.0112199962915"/>
+      <set alias="" function="SetViewUp" functionId="1" moduleId="6" parameter="" parameterId="1" type="Float" value="-0.180037940492"/>
+      <set alias="" function="SetViewUp" functionId="1" moduleId="6" parameter="" parameterId="2" type="Float" value="-0.983595674892"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="73" time="74" user="stevec" what="changeParameter">
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="134.736557007"/>
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="135.585741997"/>
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="148.703317642"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="74" time="75" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="6" value=""/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="75" time="76" user="stevec" what="changeParameter">
+      <set alias="Background_R" function="SetBackground" functionId="0" moduleId="7" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.0"/>
+      <set alias="Background_G" function="SetBackground" functionId="0" moduleId="7" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.0"/>
+      <set alias="Background_B" function="SetBackground" functionId="0" moduleId="7" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0.0"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="76" time="77" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="7" value=""/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="77" time="78" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="8" value=""/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="78" time="79" user="stevec" what="addConnection">
+      <connect destinationId="0" destinationModule="vtkAlgorithm" destinationPort="AddInputConnection(vtkAlgorithmOutput)" id="0" sourceId="1" sourceModule="vtkStructuredPointsReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="79" time="80" user="stevec" what="addConnection">
+      <connect destinationId="8" destinationModule="vtkVolume" destinationPort="SetMapper(vtkAbstractVolumeMapper)" id="1" sourceId="0" sourceModule="vtkVolumeTextureMapper3D" sourcePort="self(vtkVolumeTextureMapper3D)"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="80" time="81" user="stevec" what="addConnection">
+      <connect destinationId="5" destinationModule="vtkVolumeProperty" destinationPort="SetColor(vtkPiecewiseFunction)" id="2" sourceId="2" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="81" time="82" user="stevec" what="addConnection">
+      <connect destinationId="5" destinationModule="vtkVolumeProperty" destinationPort="SetScalarOpacity(vtkPiecewiseFunction)" id="3" sourceId="3" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="82" time="83" user="stevec" what="addConnection">
+      <connect destinationId="4" destinationModule="VTKCell" destinationPort="AddRenderer(vtkRenderer)" id="4" sourceId="7" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="83" time="84" user="stevec" what="addConnection">
+      <connect destinationId="8" destinationModule="vtkVolume" destinationPort="SetProperty(vtkVolumeProperty)" id="5" sourceId="5" sourceModule="vtkVolumeProperty" sourcePort="self(vtkVolumeProperty)"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="84" time="85" user="stevec" what="addConnection">
+      <connect destinationId="7" destinationModule="vtkRenderer" destinationPort="SetActiveCamera(vtkCamera)" id="6" sourceId="6" sourceModule="vtkCamera" sourcePort="self(vtkCamera)"/>
+    </action>
+    <action date="31 May 2007 10:53:22" parent="85" time="86" user="stevec" what="addConnection">
+      <connect destinationId="7" destinationModule="vtkRenderer" destinationPort="AddVolume(vtkProp)" id="7" sourceId="8" sourceModule="vtkVolume" sourcePort="self(vtkVolume)"/>
+    </action>
+    <action date="31 May 2007 10:55:25" parent="86" time="87" user="stevec" what="moveModule">
+      <move dx="-108.509683949" dy="-230.93086584" id="0"/>
+      <move dx="-285.185707815" dy="-378.392744028" id="1"/>
+      <move dx="435.429885591" dy="-20.8672469133" id="2"/>
+      <move dx="428.474136619" dy="-15.3026477364" id="3"/>
+      <move dx="-229.539716046" dy="262.927311107" id="4"/>
+      <move dx="374.219294645" dy="30.6052954728" id="5"/>
+      <move dx="230.93086584" dy="-4.17344938266" id="6"/>
+      <move dx="260.145011519" dy="150.244177776" id="7"/>
+      <move dx="314.399853493" dy="147.461878187" id="8"/>
+    </action>
+    <action date="31 May 2007 10:55:25" parent="87" time="88" user="stevec" what="changeParameter">
+      <set alias="" function="SetPosition" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="745"/>
+      <set alias="" function="SetPosition" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="-452.645563908"/>
+      <set alias="" function="SetPosition" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="369.493592636"/>
+    </action>
+    <action date="31 May 2007 10:55:26" parent="88" time="89" user="stevec" what="changeParameter">
+      <set alias="" function="SetPosition" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="745"/>
+      <set alias="" function="SetPosition" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="-452.645563908"/>
+      <set alias="" function="SetPosition" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="369.493592636"/>
+    </action>
+    <action date="31 May 2007 10:55:30" parent="89" time="90" user="stevec" what="changeParameter">
+      <set alias="" function="SetPosition" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="745"/>
+      <set alias="" function="SetPosition" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="-453"/>
+      <set alias="" function="SetPosition" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="369.493592636"/>
+    </action>
+    <action date="31 May 2007 10:55:34" parent="90" time="91" user="stevec" what="changeParameter">
+      <set alias="" function="SetPosition" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="745"/>
+      <set alias="" function="SetPosition" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="-453"/>
+      <set alias="" function="SetPosition" functionId="0" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="370"/>
+    </action>
+    <action date="31 May 2007 10:55:36" parent="91" time="92" user="stevec" what="changeParameter">
+      <set alias="" function="SetViewUp" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
+      <set alias="" function="SetViewUp" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="-0.180037940492"/>
+      <set alias="" function="SetViewUp" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="-0.983595674892"/>
+    </action>
+    <action date="31 May 2007 10:55:39" parent="92" time="93" user="stevec" what="changeParameter">
+      <set alias="" function="SetViewUp" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
+      <set alias="" function="SetViewUp" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0"/>
+      <set alias="" function="SetViewUp" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="-0.983595674892"/>
+    </action>
+    <action date="31 May 2007 10:55:44" parent="93" time="94" user="stevec" what="changeParameter">
+      <set alias="" function="SetViewUp" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
+      <set alias="" function="SetViewUp" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0"/>
+      <set alias="" function="SetViewUp" functionId="1" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="-1"/>
+    </action>
+    <action date="31 May 2007 10:55:48" parent="94" time="95" user="stevec" what="changeParameter">
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="135"/>
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="135.585741997"/>
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="148.703317642"/>
+    </action>
+    <action date="31 May 2007 10:55:50" parent="95" time="96" user="stevec" what="changeParameter">
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="135"/>
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="135"/>
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="148.703317642"/>
+    </action>
+    <action date="31 May 2007 10:55:53" parent="96" time="97" user="stevec" what="changeParameter">
+      <notes>
+        Similar to the Isosurface workflow, except using a full volume renderer in place of isosurfacing. The skin is rendered semi-transparently while the bone is left opaque.  By dragging the node in the history tree onto the isosurface node, a visual difference is presented and it becomes easy to determine the difference in algorithms.
+      </notes>
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="135"/>
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="135"/>
+      <set alias="" function="SetFocalPoint" functionId="2" moduleId="6" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="150"/>
+    </action>
+    <action date="31 May 2007 10:57:51" parent="38" time="98" user="stevec" what="addModule">
+      <object cache="0" id="7" name="MplPlot" x="-562.606734399" y="961.319684489"/>
+    </action>
+    <action date="31 May 2007 10:57:51" parent="98" time="99" user="stevec" what="addModule">
+      <object cache="0" id="8" name="MplFigureCell" x="-554.37164966" y="646.939327285"/>
+    </action>
+    <action date="31 May 2007 10:57:51" parent="99" time="100" user="stevec" what="addModule">
+      <object cache="0" id="9" name="MplFigure" x="-556.200957447" y="790.106104894"/>
+    </action>
+    <action date="31 May 2007 10:57:51" parent="100" time="101" user="stevec" what="changeParameter">
+      <set alias="" function="source" functionId="0" moduleId="7" parameter="&lt;no description&gt;" parameterId="0" type="String" value="vspr%20%3D%20self.getInputFromPort%28%27preader%27%29.vtkInstance%0Avspr.Update%28%29%0ApData%20%3D%20vspr.GetOutput%28%29.GetPointData%28%29%0ApScalars%20%3D%20pData.GetScalars%28%29%0A%0A%23%20vtkUnsignedCharArray%3A%3AGetPointer%20is%20not%20wrapped%20in%20Python%0A%23%20We%20have%20to%20loop%20through%20and%20collect%20the%20scalars%0Ascalars%20%3D%20%5BpScalars.GetValue%28i%29%20%0A%20%20%20%20%20%20%20%20%20%20%20for%20i%20in%20range%28pScalars.GetNumberOfTuples%28%29%29%5D%0A%0Ahist%28scalars%2C%20100%29"/>
+    </action>
+    <action date="31 May 2007 10:57:51" parent="101" time="102" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="7" value=""/>
+    </action>
+    <action date="31 May 2007 10:57:51" parent="102" time="103" user="stevec" what="addModulePort">
+      <addPort moduleId="7" portName="preader" portSpec="(vtkStructuredPointsReader)" portType="input"/>
+    </action>
+    <action date="31 May 2007 10:57:51" parent="103" time="104" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="8" value=""/>
+    </action>
+    <action date="31 May 2007 10:57:51" parent="104" time="105" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="9" value=""/>
+    </action>
+    <action date="31 May 2007 10:57:51" parent="105" time="106" user="stevec" what="addConnection">
+      <connect destinationId="9" destinationModule="MplFigure" destinationPort="Script(String)" id="6" sourceId="7" sourceModule="MplPlot" sourcePort="source(String)"/>
+    </action>
+    <action date="31 May 2007 10:57:51" parent="106" time="107" user="stevec" what="addConnection">
+      <connect destinationId="8" destinationModule="MplFigureCell" destinationPort="FigureManager(MplFigureManager)" id="7" sourceId="9" sourceModule="MplFigure" sourcePort="FigureManager(MplFigureManager)"/>
+    </action>
+    <action date="31 May 2007 10:58:42" parent="107" time="108" user="stevec" what="moveModule">
+      <move dx="131.105906136" dy="9.20041446572" id="0"/>
+      <move dx="131.105906136" dy="9.20041446572" id="1"/>
+      <move dx="131.105906136" dy="9.20041446572" id="2"/>
+      <move dx="131.105906136" dy="9.20041446572" id="3"/>
+      <move dx="131.105906136" dy="9.20041446572" id="5"/>
+      <move dx="131.105906136" dy="9.20041446572" id="6"/>
+      <move dx="625.646381482" dy="-1083.0483316" id="7"/>
+      <move dx="624.496329674" dy="-1055.4470882" id="8"/>
+      <move dx="617.596018825" dy="-1055.4470882" id="9"/>
+    </action>
+    <action date="31 May 2007 10:58:42" parent="108" time="109" user="stevec" what="addConnection">
+      <notes>
+        One advantage of a general workflow system is the ability to combine modules from multiple libraries. The isosurface is extracted and rendered using vtk as before. In addition, the scalar values are taken from the data set and used to generate a matplotlib histogram that is useful for exploring the isosurface space.  Each visualization is rendered in a separate cell in the spreadsheet.
+      </notes>
+      <connect destinationId="7" destinationModule="MplPlot" destinationPort="preader(vtkStructuredPointsReader)" id="8" sourceId="4" sourceModule="vtkStructuredPointsReader" sourcePort="self(vtkStructuredPointsReader)"/>
+    </action>
+    <action date="31 May 2007 11:01:31" parent="97" time="110" user="stevec" what="addModule">
+      <object cache="0" id="9" name="vtkImplicitPlaneWidget" x="370.629696279" y="864.023347863"/>
+    </action>
+    <action date="31 May 2007 11:01:31" parent="110" time="111" user="stevec" what="addModule">
+      <object cache="0" id="10" name="vtkInteractionHandler" x="309.622381745" y="679.526556738"/>
+    </action>
+    <action date="31 May 2007 11:01:31" parent="111" time="112" user="stevec" what="addModule">
+      <object cache="0" id="11" name="vtkPlane" x="89.2223087903" y="1085.15004037"/>
+    </action>
+    <action date="31 May 2007 11:01:31" parent="112" time="113" user="stevec" what="changeParameter">
+      <set alias="" function="SetPlaceFactor" functionId="0" moduleId="9" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="1.25"/>
+    </action>
+    <action date="31 May 2007 11:01:31" parent="113" time="114" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="9" value=""/>
+    </action>
+    <action date="31 May 2007 11:01:31" parent="114" time="115" user="stevec" what="changeParameter">
+      <set alias="" function="Handler" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="0" type="String" value="def%20interactionHandler%28observer%2C%20shareddata%29%3A%0A%20%20%20%20observer.GetPlane%28shareddata.vtkInstance%29"/>
+    </action>
+    <action date="31 May 2007 11:01:31" parent="115" time="116" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="10" value=""/>
+    </action>
+    <action date="31 May 2007 11:01:31" parent="116" time="117" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="11" value=""/>
+    </action>
+    <action date="31 May 2007 11:01:31" parent="117" time="118" user="stevec" what="addConnection">
+      <connect destinationId="10" destinationModule="vtkInteractionHandler" destinationPort="Observer(vtkInteractorObserver)" id="8" sourceId="9" sourceModule="vtkImplicitPlaneWidget" sourcePort="self(vtkImplicitPlaneWidget)"/>
+    </action>
+    <action date="31 May 2007 11:01:31" parent="118" time="119" user="stevec" what="addConnection">
+      <connect destinationId="10" destinationModule="vtkInteractionHandler" destinationPort="SharedData(Module)" id="9" sourceId="11" sourceModule="vtkPlane" sourcePort="self(vtkPlane)"/>
+    </action>
+    <action date="31 May 2007 11:02:01" parent="119" time="120" user="stevec" what="moveModule">
+      <move dx="160.269170151" dy="-0.937246609072" id="4"/>
+      <move dx="-36.5526177538" dy="-220.252953132" id="9"/>
+      <move dx="-74.0424821167" dy="-150.896704061" id="10"/>
+      <move dx="14.0586991361" dy="-437.694166437" id="11"/>
+    </action>
+    <action date="31 May 2007 11:02:01" parent="120" time="121" user="stevec" what="addConnection">
+      <connect destinationId="4" destinationModule="VTKCell" destinationPort="InteractionHandler(vtkInteractionHandler)" id="10" sourceId="10" sourceModule="vtkInteractionHandler" sourcePort="self(vtkInteractionHandler)"/>
+    </action>
+    <action date="31 May 2007 11:02:42" parent="121" time="122" user="stevec" what="addConnection">
+      <connect destinationId="9" destinationModule="vtk3DWidget" destinationPort="SetProp3D(vtkProp3D)" id="11" sourceId="8" sourceModule="vtkVolume" sourcePort="self(vtkVolume)"/>
+    </action>
+    <action date="31 May 2007 11:02:58" parent="122" time="123" user="stevec" what="addConnection">
+      <connect destinationId="0" destinationModule="vtkAbstractMapper" destinationPort="AddClippingPlane(vtkPlane)" id="12" sourceId="11" sourceModule="vtkPlane" sourcePort="self(vtkPlane)"/>
+    </action>
+    <action date="31 May 2007 11:04:18" parent="123" time="124" user="stevec" what="moveModule">
+      <move dx="-12.1842059179" dy="-44.0505906264" id="4"/>
+      <move dx="29.9918914903" dy="8.43521948165" id="6"/>
+      <move dx="154.645690497" dy="0.0" id="7"/>
+      <move dx="65.6072626351" dy="0.937246609072" id="8"/>
+      <move dx="-629.829721297" dy="-118.093072743" id="9"/>
+      <move dx="-588.590870497" dy="-135.900758315" id="10"/>
+      <move dx="-667.319585659" dy="1.87449321814" id="11"/>
+    </action>
+    <action date="31 May 2007 11:04:18" parent="124" time="125" user="stevec" what="deleteConnection">
+      <connection connectionId="12"/>
+    </action>
+    <action date="31 May 2007 11:04:22" parent="125" time="126" user="stevec" what="addConnection">
+      <notes>
+        Introduce a clipping plane to the volume rendering workflow. In the spreadsheet cell, the clipping plane is shown using the _i_ key, after which it can be interactively moved. The plane will cull all data on one side. This workflow primarily demonstrates the ability to update the specification with an interactive widget.  This complication results in a workflow that does not just flow from top to bottom.
+      </notes>
+      <connect destinationId="0" destinationModule="vtkAbstractMapper" destinationPort="AddClippingPlane(vtkPlane)" id="13" sourceId="11" sourceModule="vtkPlane" sourcePort="self(vtkPlane)"/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="126" time="127" user="stevec" what="addModule">
+      <object cache="0" id="12" name="vtkPolyDataMapper" x="413.760978437" y="578.982374276"/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="127" time="128" user="stevec" what="addModule">
+      <object cache="0" id="13" name="vtkContourFilter" x="541.571447218" y="793.907894155"/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="128" time="129" user="stevec" what="addModule">
+      <object cache="0" id="14" name="vtkClipPolyData" x="436.555399448" y="686.441998364"/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="129" time="130" user="stevec" what="addModule">
+      <object cache="0" id="15" name="vtkActor" x="549.267681987" y="463.591730811"/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="130" time="131" user="stevec" what="addModule">
+      <object cache="0" id="16" name="vtkProperty" x="819.7501609" y="590.760839596"/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="131" time="132" user="stevec" what="changeParameter">
+      <set alias="" function="ScalarVisibilityOff" functionId="0" moduleId="12" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="132" time="133" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="12" value=""/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="133" time="134" user="stevec" what="changeParameter">
+      <set alias="" function="SetValue" functionId="0" moduleId="13" parameter="" parameterId="0" type="Integer" value="0"/>
+      <set alias="" function="SetValue" functionId="0" moduleId="13" parameter="" parameterId="1" type="Float" value="67"/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="134" time="135" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="13" value=""/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="135" time="136" user="stevec" what="changeParameter">
+      <set alias="" function="InsideOutOn" functionId="0" moduleId="14" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="136" time="137" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="14" value=""/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="137" time="138" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="15" value=""/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="138" time="139" user="stevec" what="changeParameter">
+      <set alias="" function="SetDiffuseColor" functionId="0" moduleId="16" parameter="" parameterId="0" type="Float" value="1"/>
+      <set alias="" function="SetDiffuseColor" functionId="0" moduleId="16" parameter="" parameterId="1" type="Float" value="1"/>
+      <set alias="" function="SetDiffuseColor" functionId="0" moduleId="16" parameter="" parameterId="2" type="Float" value="1"/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="139" time="140" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="16" value=""/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="140" time="141" user="stevec" what="addConnection">
+      <connect destinationId="12" destinationModule="vtkPolyDataMapper" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="14" sourceId="14" sourceModule="vtkClipPolyData" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="141" time="142" user="stevec" what="addConnection">
+      <connect destinationId="15" destinationModule="vtkActor" destinationPort="SetMapper(vtkMapper)" id="15" sourceId="12" sourceModule="vtkPolyDataMapper" sourcePort="self(vtkPolyDataMapper)"/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="142" time="143" user="stevec" what="addConnection">
+      <connect destinationId="14" destinationModule="vtkClipPolyData" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="16" sourceId="13" sourceModule="vtkContourFilter" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="31 May 2007 11:06:51" parent="143" time="144" user="stevec" what="addConnection">
+      <connect destinationId="15" destinationModule="vtkActor" destinationPort="SetProperty(vtkProperty)" id="17" sourceId="16" sourceModule="vtkProperty" sourcePort="self(vtkProperty)"/>
+    </action>
+    <action date="31 May 2007 11:07:27" parent="144" time="145" user="stevec" what="moveModule">
+      <move dx="-1242.62045623" dy="30.5145541776" id="12"/>
+      <move dx="-1346.03088984" dy="35.6003132072" id="13"/>
+      <move dx="-1252.79197429" dy="35.6003132072" id="14"/>
+      <move dx="-1268.04925138" dy="-45.7718312664" id="15"/>
+      <move dx="-1435.87929936" dy="-57.6386023355" id="16"/>
+    </action>
+    <action date="31 May 2007 11:07:27" parent="145" time="146" user="stevec" what="addConnection">
+      <connect destinationId="13" destinationModule="vtkContourFilter" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="18" sourceId="1" sourceModule="vtkStructuredPointsReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="31 May 2007 11:08:04" parent="146" time="147" user="stevec" what="addConnection">
+      <connect destinationId="14" destinationModule="vtkClipPolyData" destinationPort="SetClipFunction(vtkImplicitFunction)" id="19" sourceId="11" sourceModule="vtkPlane" sourcePort="self(vtkPlane)"/>
+    </action>
+    <action date="31 May 2007 11:08:38" parent="147" time="148" user="stevec" what="moveModule">
+      <move dx="132.22973477" dy="-210.211373224" id="12"/>
+      <move dx="-5.0857590296" dy="-13.5620240789" id="13"/>
+      <move dx="123.75346972" dy="-211.906626233" id="14"/>
+      <move dx="61.0291083552" dy="-233.944915362" id="15"/>
+      <move dx="120.362963701" dy="-239.030674391" id="16"/>
+    </action>
+    <action date="31 May 2007 11:08:38" parent="148" time="149" user="stevec" what="addConnection">
+      <connect destinationId="7" destinationModule="vtkRenderer" destinationPort="AddActor(vtkProp)" id="20" sourceId="15" sourceModule="vtkActor" sourcePort="self(vtkActor)"/>
+    </action>
+    <action date="31 May 2007 11:10:31" parent="149" time="150" user="stevec" what="moveModule">
+      <move dx="67.8101203947" dy="-150.877517878" id="4"/>
+      <move dx="189.868337105" dy="-191.563590115" id="6"/>
+      <move dx="89.848409523" dy="-108.496192632" id="7"/>
+      <move dx="-133.92498778" dy="22.0382891283" id="8"/>
+      <move dx="-59.3338553454" dy="1.69525300987" id="9"/>
+      <move dx="-47.4670842763" dy="28.8193011678" id="10"/>
+      <move dx="-22.0382891283" dy="-8.47626504934" id="11"/>
+      <move dx="25.428795148" dy="-28.8193011678" id="12"/>
+      <move dx="22.0382891283" dy="-45.7718312664" id="13"/>
+      <move dx="-45.7718312664" dy="8.47626504934" id="14"/>
+      <move dx="284.802505658" dy="33.9050601974" id="15"/>
+      <move dx="-125.44872273" dy="-37.2955662171" id="16"/>
+    </action>
+    <action date="31 May 2007 11:10:31" parent="150" time="151" user="stevec" what="deleteConnection">
+      <connection connectionId="17"/>
+    </action>
+    <action date="31 May 2007 11:10:37" parent="151" time="152" user="stevec" what="addConnection">
+      <notes>
+        Instead of culling the volume with the clipping plane, now we use the plane to specify different rendering algorithms. One side of the plane remains a full volume rendering of the skin and bone, the other renders an isosurface of the just the bone.  This example shows how pieces from previous versions in the history tree can be copied into the current version for a more complete visualization.
+      </notes>
+      <connect destinationId="15" destinationModule="vtkActor" destinationPort="SetProperty(vtkProperty)" id="21" sourceId="16" sourceModule="vtkProperty" sourcePort="self(vtkProperty)"/>
+    </action>
+    <action date="31 May 2007 11:12:45" parent="152" time="153" user="stevec" what="addModule">
+      <object cache="0" id="17" name="CellLocation" x="182.719703542" y="257.815226822"/>
+    </action>
+    <action date="31 May 2007 11:12:45" parent="153" time="154" user="stevec" what="changeParameter">
+      <set alias="" function="Row" functionId="0" moduleId="17" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="1"/>
+    </action>
+    <action date="31 May 2007 11:12:45" parent="154" time="155" user="stevec" what="changeParameter">
+      <set alias="" function="Column" functionId="1" moduleId="17" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="2"/>
+    </action>
+    <action date="31 May 2007 11:12:45" parent="155" time="156" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="17" value=""/>
+    </action>
+    <action date="31 May 2007 11:12:52" parent="156" time="157" user="stevec" what="moveModule">
+      <move dx="100.019927582" dy="8.47626504934" id="17"/>
+    </action>
+    <action date="31 May 2007 11:12:52" parent="157" time="158" user="stevec" what="addConnection">
+      <connect destinationId="4" destinationModule="VTKCell" destinationPort="Location(CellLocation)" id="22" sourceId="17" sourceModule="CellLocation" sourcePort="self(CellLocation)"/>
+    </action>
+    <action date="31 May 2007 11:13:29" parent="158" time="159" user="stevec" what="moveModule">
+      <move dx="-430.594264506" dy="-57.6386023355" id="17"/>
+    </action>
+    <action date="31 May 2007 11:13:29" parent="159" time="160" user="stevec" what="addModule">
+      <object cache="0" id="18" name="vtkTransform" x="-244.184047824" y="-412.56473995"/>
+    </action>
+    <action date="31 May 2007 11:13:30" parent="160" time="161" user="stevec" what="addModule">
+      <object cache="0" id="19" name="vtkTransform" x="107.261910487" y="-185.280948298"/>
+    </action>
+    <action date="31 May 2007 11:13:30" parent="161" time="162" user="stevec" what="addModule">
+      <object cache="0" id="20" name="vtkPlaneSource" x="467.908929945" y="-121.14372085"/>
+    </action>
+    <action date="31 May 2007 11:13:31" parent="162" time="163" user="stevec" what="addModule">
+      <object cache="0" id="21" name="CellLocation" x="647.190948686" y="-567.907725218"/>
+    </action>
+    <action date="31 May 2007 11:13:31" parent="163" time="164" user="stevec" what="addModule">
+      <object cache="0" id="22" name="vtkRenderer" x="632.623363306" y="-444.023475128"/>
+    </action>
+    <action date="31 May 2007 11:13:32" parent="164" time="165" user="stevec" what="addModule">
+      <object cache="0" id="23" name="CellLocation" x="-600.077659171" y="-1137.0736972"/>
+    </action>
+    <action date="31 May 2007 11:13:32" parent="165" time="166" user="stevec" what="addModule">
+      <object cache="0" id="24" name="VTKCell" x="257.356359871" y="-1369.99390729"/>
+    </action>
+    <action date="31 May 2007 11:13:33" parent="166" time="167" user="stevec" what="addModule">
+      <object cache="0" id="25" name="vtkPlaneSource" x="15.5225898937" y="-797.820314853"/>
+    </action>
+    <action date="31 May 2007 11:13:33" parent="167" time="168" user="stevec" what="addModule">
+      <object cache="0" id="26" name="vtkInteractorStyleImage" x="901.659881736" y="-423.553911876"/>
+    </action>
+    <action date="31 May 2007 11:13:34" parent="168" time="169" user="stevec" what="addModule">
+      <object cache="0" id="27" name="vtkTexture" x="228.265991877" y="-640.864623639"/>
+    </action>
+    <action date="31 May 2007 11:13:34" parent="169" time="170" user="stevec" what="addModule">
+      <object cache="0" id="28" name="vtkPlaneSource" x="-468.954261266" y="-608.27397558"/>
+    </action>
+    <action date="31 May 2007 11:13:34" parent="170" time="171" user="stevec" what="addModule">
+      <object cache="0" id="29" name="vtkInteractorStyleImage" x="544.612348226" y="-1115.75077671"/>
+    </action>
+    <action date="31 May 2007 11:13:35" parent="171" time="172" user="stevec" what="addModule">
+      <object cache="0" id="30" name="vtkInteractorStyleImage" x="-283.527642792" y="-1212.22085706"/>
+    </action>
+    <action date="31 May 2007 11:13:36" parent="172" time="173" user="stevec" what="addModule">
+      <object cache="0" id="31" name="vtkPolyDataMapper" x="41.130186842" y="-964.89913372"/>
+    </action>
+    <action date="31 May 2007 11:13:36" parent="173" time="174" user="stevec" what="addModule">
+      <object cache="0" id="32" name="vtkTransform" x="612.860607678" y="76.7826963275"/>
+    </action>
+    <action date="31 May 2007 11:13:37" parent="174" time="175" user="stevec" what="addModule">
+      <object cache="0" id="33" name="vtkImageReslice" x="569.086395288" y="-53.6160230389"/>
+    </action>
+    <action date="31 May 2007 11:13:38" parent="175" time="176" user="stevec" what="addModule">
+      <object cache="0" id="34" name="CellLocation" x="10.778540194" y="-1129.29087876"/>
+    </action>
+    <action date="31 May 2007 11:13:38" parent="176" time="177" user="stevec" what="addModule">
+      <object cache="0" id="35" name="vtkTexture" x="866.895581916" y="-210.295181406"/>
+    </action>
+    <action date="31 May 2007 11:13:39" parent="177" time="178" user="stevec" what="addModule">
+      <object cache="0" id="36" name="VTKCell" x="793.995598726" y="-660.059590072"/>
+    </action>
+    <action date="31 May 2007 11:13:39" parent="178" time="179" user="stevec" what="addModule">
+      <object cache="0" id="37" name="vtkWindowLevelLookupTable" x="912.649955512" y="-17.773844785"/>
+    </action>
+    <action date="31 May 2007 11:13:40" parent="179" time="180" user="stevec" what="addModule">
+      <object cache="0" id="38" name="vtkTexture" x="-238.473406903" y="-768.375245656"/>
+    </action>
+    <action date="31 May 2007 11:13:40" parent="180" time="181" user="stevec" what="addModule">
+      <object cache="0" id="39" name="vtkActor" x="682.699909175" y="-310.67101102"/>
+    </action>
+    <action date="31 May 2007 11:13:41" parent="181" time="182" user="stevec" what="addModule">
+      <object cache="0" id="40" name="vtkWindowLevelLookupTable" x="-119.55204224" y="-584.722635224"/>
+    </action>
+    <action date="31 May 2007 11:13:41" parent="182" time="183" user="stevec" what="addModule">
+      <object cache="0" id="41" name="vtkImageReslice" x="-442.119422286" y="-491.968283725"/>
+    </action>
+    <action date="31 May 2007 11:13:42" parent="183" time="184" user="stevec" what="addModule">
+      <object cache="0" id="42" name="vtkRenderer" x="324.353823841" y="-1184.99833401"/>
+    </action>
+    <action date="31 May 2007 11:13:43" parent="184" time="185" user="stevec" what="addModule">
+      <object cache="0" id="43" name="vtkPolyDataMapper" x="411.480809636" y="-268.267905789"/>
+    </action>
+    <action date="31 May 2007 11:13:44" parent="185" time="186" user="stevec" what="addModule">
+      <object cache="0" id="44" name="vtkActor" x="265.788473883" y="-1080.46923002"/>
+    </action>
+    <action date="31 May 2007 11:13:44" parent="186" time="187" user="stevec" what="addModule">
+      <object cache="0" id="45" name="vtkRenderer" x="-470.528443965" y="-1024.27535485"/>
+    </action>
+    <action date="31 May 2007 11:13:45" parent="187" time="188" user="stevec" what="addModule">
+      <object cache="0" id="46" name="PythonSource" x="-257.612929025" y="-219.609946783"/>
+    </action>
+    <action date="31 May 2007 11:13:46" parent="188" time="189" user="stevec" what="addModule">
+      <object cache="0" id="47" name="vtkActor" x="-416.017535002" y="-873.185438365"/>
+    </action>
+    <action date="31 May 2007 11:13:46" parent="189" time="190" user="stevec" what="addModule">
+      <object cache="0" id="48" name="vtkPolyDataMapper" x="-627.372732758" y="-806.393336111"/>
+    </action>
+    <action date="31 May 2007 11:13:47" parent="190" time="191" user="stevec" what="addModule">
+      <object cache="0" id="49" name="vtkImageReslice" x="55.6605181589" y="-322.331212306"/>
+    </action>
+    <action date="31 May 2007 11:13:48" parent="191" time="192" user="stevec" what="addModule">
+      <object cache="0" id="50" name="VTKCell" x="-646.167803762" y="-1346.73618408"/>
+    </action>
+    <action date="31 May 2007 11:13:48" parent="192" time="193" user="stevec" what="addModule">
+      <object cache="0" id="51" name="vtkWindowLevelLookupTable" x="280.671910115" y="-459.429194756"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="193" time="194" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="18" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="194" time="195" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="19" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="195" time="196" user="stevec" what="changeParameter">
+      <set alias="" function="SetXResolution" functionId="0" moduleId="20" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="1"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="196" time="197" user="stevec" what="changeParameter">
+      <set alias="" function="SetYResolution" functionId="1" moduleId="20" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="1"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="197" time="198" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="20" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="198" time="199" user="stevec" what="changeParameter">
+      <set alias="" function="Row" functionId="0" moduleId="21" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="1"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="199" time="200" user="stevec" what="changeParameter">
+      <set alias="" function="Column" functionId="1" moduleId="21" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="1"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="200" time="201" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="21" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="201" time="202" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="22" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="202" time="203" user="stevec" what="changeParameter">
+      <set alias="" function="Row" functionId="0" moduleId="23" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="2"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="203" time="204" user="stevec" what="changeParameter">
+      <set alias="" function="Column" functionId="1" moduleId="23" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="1"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="204" time="205" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="23" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="205" time="206" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="24" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="206" time="207" user="stevec" what="changeParameter">
+      <set alias="" function="SetXResolution" functionId="0" moduleId="25" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="1"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="207" time="208" user="stevec" what="changeParameter">
+      <set alias="" function="SetYResolution" functionId="1" moduleId="25" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="1"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="208" time="209" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="25" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="209" time="210" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="26" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="210" time="211" user="stevec" what="changeParameter">
+      <set alias="" function="InterpolateOn" functionId="0" moduleId="27" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="211" time="212" user="stevec" what="changeParameter">
+      <set alias="" function="MapColorScalarsThroughLookupTableOn" functionId="1" moduleId="27" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="212" time="213" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="27" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="213" time="214" user="stevec" what="changeParameter">
+      <set alias="" function="SetXResolution" functionId="0" moduleId="28" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="1"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="214" time="215" user="stevec" what="changeParameter">
+      <set alias="" function="SetYResolution" functionId="1" moduleId="28" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="1"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="215" time="216" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="28" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="216" time="217" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="29" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="217" time="218" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="30" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="218" time="219" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="31" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="219" time="220" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="32" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="220" time="221" user="stevec" what="changeParameter">
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="33" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="33" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="33" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="1.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="33" parameter="&lt;no description&gt;" parameterId="3" type="Float" value="1.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="33" parameter="&lt;no description&gt;" parameterId="4" type="Float" value="0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="33" parameter="&lt;no description&gt;" parameterId="5" type="Float" value="0.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="33" parameter="&lt;no description&gt;" parameterId="6" type="Float" value="0.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="33" parameter="&lt;no description&gt;" parameterId="7" type="Float" value="1.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="33" parameter="&lt;no description&gt;" parameterId="8" type="Float" value="0.0"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="221" time="222" user="stevec" what="changeParameter">
+      <set alias="" function="SetOutputDimensionality" functionId="1" moduleId="33" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="2"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="222" time="223" user="stevec" what="changeParameter">
+      <set alias="" function="SetResliceAxesOrigin" functionId="2" moduleId="33" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
+      <set alias="" function="SetResliceAxesOrigin" functionId="2" moduleId="33" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0"/>
+      <set alias="" function="SetResliceAxesOrigin" functionId="2" moduleId="33" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="223" time="224" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="33" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="224" time="225" user="stevec" what="changeParameter">
+      <set alias="" function="Row" functionId="0" moduleId="34" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="2"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="225" time="226" user="stevec" what="changeParameter">
+      <set alias="" function="Column" functionId="1" moduleId="34" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="2"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="226" time="227" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="34" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="227" time="228" user="stevec" what="changeParameter">
+      <set alias="" function="InterpolateOn" functionId="0" moduleId="35" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="228" time="229" user="stevec" what="changeParameter">
+      <set alias="" function="MapColorScalarsThroughLookupTableOn" functionId="1" moduleId="35" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="229" time="230" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="35" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="230" time="231" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="36" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="231" time="232" user="stevec" what="changeParameter">
+      <set alias="" function="SetWindow" functionId="0" moduleId="37" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="178"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="232" time="233" user="stevec" what="changeParameter">
+      <set alias="" function="SetLevel" functionId="1" moduleId="37" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="128"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="233" time="234" user="stevec" what="changeParameter">
+      <set alias="" function="Build" functionId="2" moduleId="37" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="234" time="235" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="37" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="235" time="236" user="stevec" what="changeParameter">
+      <set alias="" function="InterpolateOn" functionId="0" moduleId="38" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="236" time="237" user="stevec" what="changeParameter">
+      <set alias="" function="MapColorScalarsThroughLookupTableOn" functionId="1" moduleId="38" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="237" time="238" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="38" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="238" time="239" user="stevec" what="changeParameter">
+      <set alias="" function="RotateX" functionId="0" moduleId="39" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="239" time="240" user="stevec" what="changeParameter">
+      <set alias="" function="RotateY" functionId="1" moduleId="39" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="240" time="241" user="stevec" what="changeParameter">
+      <set alias="" function="RotateZ" functionId="2" moduleId="39" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="-90"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="241" time="242" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="39" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="242" time="243" user="stevec" what="changeParameter">
+      <set alias="" function="SetWindow" functionId="0" moduleId="40" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="178"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="243" time="244" user="stevec" what="changeParameter">
+      <set alias="" function="SetLevel" functionId="1" moduleId="40" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="128"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="244" time="245" user="stevec" what="changeParameter">
+      <set alias="" function="Build" functionId="2" moduleId="40" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="245" time="246" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="40" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="246" time="247" user="stevec" what="changeParameter">
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="41" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="1.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="41" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="41" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="41" parameter="&lt;no description&gt;" parameterId="3" type="Float" value="0.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="41" parameter="&lt;no description&gt;" parameterId="4" type="Float" value="-1.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="41" parameter="&lt;no description&gt;" parameterId="5" type="Float" value="0.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="41" parameter="&lt;no description&gt;" parameterId="6" type="Float" value="0.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="41" parameter="&lt;no description&gt;" parameterId="7" type="Float" value="0.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="41" parameter="&lt;no description&gt;" parameterId="8" type="Float" value="1.0"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="247" time="248" user="stevec" what="changeParameter">
+      <set alias="" function="SetOutputDimensionality" functionId="1" moduleId="41" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="2"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="248" time="249" user="stevec" what="changeParameter">
+      <set alias="" function="SetResliceAxesOrigin" functionId="2" moduleId="41" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
+      <set alias="" function="SetResliceAxesOrigin" functionId="2" moduleId="41" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0"/>
+      <set alias="" function="SetResliceAxesOrigin" functionId="2" moduleId="41" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="249" time="250" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="41" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="250" time="251" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="42" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="251" time="252" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="43" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="252" time="253" user="stevec" what="changeParameter">
+      <set alias="" function="RotateX" functionId="0" moduleId="44" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="253" time="254" user="stevec" what="changeParameter">
+      <set alias="" function="RotateY" functionId="1" moduleId="44" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="254" time="255" user="stevec" what="changeParameter">
+      <set alias="" function="RotateZ" functionId="2" moduleId="44" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="180"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="255" time="256" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="44" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="256" time="257" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="45" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="257" time="258" user="stevec" what="changeParameter">
+      <set alias="" function="source" functionId="0" moduleId="46" parameter="&lt;no description&gt;" parameterId="0" type="String" value="o%20%3D%20input.vtkInstance.GetOrigin%28%29%0A%0Avoi%20%3D%20%5Bo%5B0%5D%2C%20o%5B1%5D%2C%20o%5B2%5D%5D%0Aprint%20voi%0AsagVOI.vtkInstance.Identity%28%29%0AsagVOI.vtkInstance.Translate%280.0%2C%200.0%2C%20o%5B2%5D%29%0A%23sagVOI.vtkInstance.Translate%280.0%2C%20o%5B1%5D%2C%200.0%29%0A%0AcorVOI.vtkInstance.Identity%28%29%0AcorVOI.vtkInstance.Translate%28o%5B0%5D%2C%200.0%2C%200.0%29%0A%0AaxVOI.vtkInstance.Identity%28%29%0AaxVOI.vtkInstance.Translate%280.0%2C%20o%5B1%5D%2C%200.0%29"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="258" time="259" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="46" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="259" time="260" user="stevec" what="addModulePort">
+      <addPort moduleId="46" portName="corVOI" portSpec="(vtkTransform)" portType="input"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="260" time="261" user="stevec" what="addModulePort">
+      <addPort moduleId="46" portName="input" portSpec="(vtkPlane)" portType="input"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="261" time="262" user="stevec" what="addModulePort">
+      <addPort moduleId="46" portName="axVOI" portSpec="(vtkTransform)" portType="input"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="262" time="263" user="stevec" what="addModulePort">
+      <addPort moduleId="46" portName="sagVOI" portSpec="(vtkTransform)" portType="input"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="263" time="264" user="stevec" what="addModulePort">
+      <addPort moduleId="46" portName="self" portSpec="(PythonSource)" portType="output"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="264" time="265" user="stevec" what="changeParameter">
+      <set alias="" function="RotateX" functionId="0" moduleId="47" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="265" time="266" user="stevec" what="changeParameter">
+      <set alias="" function="RotateY" functionId="1" moduleId="47" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="266" time="267" user="stevec" what="changeParameter">
+      <set alias="" function="RotateZ" functionId="2" moduleId="47" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="-90"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="267" time="268" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="47" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="268" time="269" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="48" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="269" time="270" user="stevec" what="changeParameter">
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="49" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="49" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="1.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="49" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="49" parameter="&lt;no description&gt;" parameterId="3" type="Float" value="0.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="49" parameter="&lt;no description&gt;" parameterId="4" type="Float" value="0.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="49" parameter="&lt;no description&gt;" parameterId="5" type="Float" value="1.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="49" parameter="&lt;no description&gt;" parameterId="6" type="Float" value="1.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="49" parameter="&lt;no description&gt;" parameterId="7" type="Float" value="0.0"/>
+      <set alias="" function="SetResliceAxesDirectionCosines" functionId="0" moduleId="49" parameter="&lt;no description&gt;" parameterId="8" type="Float" value="0.0"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="270" time="271" user="stevec" what="changeParameter">
+      <set alias="" function="SetOutputDimensionality" functionId="1" moduleId="49" parameter="&lt;no description&gt;" parameterId="0" type="Integer" value="2"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="271" time="272" user="stevec" what="changeParameter">
+      <set alias="" function="SetResliceAxesOrigin" functionId="2" moduleId="49" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="0"/>
+      <set alias="" function="SetResliceAxesOrigin" functionId="2" moduleId="49" parameter="&lt;no description&gt;" parameterId="1" type="Float" value="0"/>
+      <set alias="" function="SetResliceAxesOrigin" functionId="2" moduleId="49" parameter="&lt;no description&gt;" parameterId="2" type="Float" value="0"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="272" time="273" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="49" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="273" time="274" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="50" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="274" time="275" user="stevec" what="changeParameter">
+      <set alias="" function="SetWindow" functionId="0" moduleId="51" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="178"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="275" time="276" user="stevec" what="changeParameter">
+      <set alias="" function="SetLevel" functionId="1" moduleId="51" parameter="&lt;no description&gt;" parameterId="0" type="Float" value="128"/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="276" time="277" user="stevec" what="changeParameter">
+      <set alias="" function="Build" functionId="2" moduleId="51" parameter="" parameterId="-1" type="" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:49" parent="277" time="278" user="stevec" what="changeAnnotation">
+      <set key="" moduleId="51" value=""/>
+    </action>
+    <action date="31 May 2007 11:13:50" parent="278" time="279" user="stevec" what="addConnection">
+      <connect destinationId="41" destinationModule="vtkImageReslice" destinationPort="SetResliceTransform(vtkAbstractTransform)" id="23" sourceId="18" sourceModule="vtkTransform" sourcePort="self(vtkTransform)"/>
+    </action>
+    <action date="31 May 2007 11:13:51" parent="279" time="280" user="stevec" what="addConnection">
+      <connect destinationId="46" destinationModule="PythonSource" destinationPort="sagVOI(vtkTransform)" id="24" sourceId="18" sourceModule="vtkTransform" sourcePort="self(vtkTransform)"/>
+    </action>
+    <action date="31 May 2007 11:13:52" parent="280" time="281" user="stevec" what="addConnection">
+      <connect destinationId="49" destinationModule="vtkImageReslice" destinationPort="SetResliceTransform(vtkAbstractTransform)" id="25" sourceId="19" sourceModule="vtkTransform" sourcePort="self(vtkTransform)"/>
+    </action>
+    <action date="31 May 2007 11:13:52" parent="281" time="282" user="stevec" what="addConnection">
+      <connect destinationId="46" destinationModule="PythonSource" destinationPort="corVOI(vtkTransform)" id="26" sourceId="19" sourceModule="vtkTransform" sourcePort="self(vtkTransform)"/>
+    </action>
+    <action date="31 May 2007 11:13:53" parent="282" time="283" user="stevec" what="addConnection">
+      <connect destinationId="43" destinationModule="vtkPolyDataMapper" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="27" sourceId="20" sourceModule="vtkPlaneSource" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="31 May 2007 11:13:54" parent="283" time="284" user="stevec" what="addConnection">
+      <connect destinationId="36" destinationModule="VTKCell" destinationPort="Location(CellLocation)" id="28" sourceId="21" sourceModule="CellLocation" sourcePort="self(CellLocation)"/>
+    </action>
+    <action date="31 May 2007 11:13:54" parent="284" time="285" user="stevec" what="addConnection">
+      <connect destinationId="22" destinationModule="vtkRenderer" destinationPort="AddActor(vtkProp)" id="29" sourceId="39" sourceModule="vtkActor" sourcePort="self(vtkActor)"/>
+    </action>
+    <action date="31 May 2007 11:13:55" parent="285" time="286" user="stevec" what="addConnection">
+      <connect destinationId="36" destinationModule="VTKCell" destinationPort="AddRenderer(vtkRenderer)" id="30" sourceId="22" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
+    </action>
+    <action date="31 May 2007 11:13:56" parent="286" time="287" user="stevec" what="addConnection">
+      <connect destinationId="50" destinationModule="VTKCell" destinationPort="Location(CellLocation)" id="31" sourceId="23" sourceModule="CellLocation" sourcePort="self(CellLocation)"/>
+    </action>
+    <action date="31 May 2007 11:13:57" parent="287" time="288" user="stevec" what="addConnection">
+      <connect destinationId="24" destinationModule="VTKCell" destinationPort="InteractorStyle(vtkInteractorStyle)" id="32" sourceId="29" sourceModule="vtkInteractorStyleImage" sourcePort="self(vtkInteractorStyleImage)"/>
+    </action>
+    <action date="31 May 2007 11:13:57" parent="288" time="289" user="stevec" what="addConnection">
+      <connect destinationId="24" destinationModule="VTKCell" destinationPort="Location(CellLocation)" id="33" sourceId="34" sourceModule="CellLocation" sourcePort="self(CellLocation)"/>
+    </action>
+    <action date="31 May 2007 11:13:58" parent="289" time="290" user="stevec" what="addConnection">
+      <connect destinationId="24" destinationModule="VTKCell" destinationPort="AddRenderer(vtkRenderer)" id="34" sourceId="42" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
+    </action>
+    <action date="31 May 2007 11:13:59" parent="290" time="291" user="stevec" what="addConnection">
+      <connect destinationId="31" destinationModule="vtkPolyDataMapper" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="35" sourceId="25" sourceModule="vtkPlaneSource" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="31 May 2007 11:14:00" parent="291" time="292" user="stevec" what="addConnection">
+      <connect destinationId="36" destinationModule="VTKCell" destinationPort="InteractorStyle(vtkInteractorStyle)" id="36" sourceId="26" sourceModule="vtkInteractorStyleImage" sourcePort="self(vtkInteractorStyleImage)"/>
+    </action>
+    <action date="31 May 2007 11:14:01" parent="292" time="293" user="stevec" what="addConnection">
+      <connect destinationId="44" destinationModule="vtkActor" destinationPort="SetTexture(vtkTexture)" id="37" sourceId="27" sourceModule="vtkTexture" sourcePort="self(vtkTexture)"/>
+    </action>
+    <action date="31 May 2007 11:14:01" parent="293" time="294" user="stevec" what="addConnection">
+      <connect destinationId="27" destinationModule="vtkTexture" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="38" sourceId="49" sourceModule="vtkImageReslice" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="31 May 2007 11:14:02" parent="294" time="295" user="stevec" what="addConnection">
+      <connect destinationId="27" destinationModule="vtkTexture" destinationPort="SetLookupTable(vtkLookupTable)" id="39" sourceId="51" sourceModule="vtkWindowLevelLookupTable" sourcePort="self(vtkWindowLevelLookupTable)"/>
+    </action>
+    <action date="31 May 2007 11:14:03" parent="295" time="296" user="stevec" what="addConnection">
+      <connect destinationId="48" destinationModule="vtkPolyDataMapper" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="40" sourceId="28" sourceModule="vtkPlaneSource" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="31 May 2007 11:14:03" parent="296" time="297" user="stevec" what="addConnection">
+      <connect destinationId="50" destinationModule="VTKCell" destinationPort="InteractorStyle(vtkInteractorStyle)" id="41" sourceId="30" sourceModule="vtkInteractorStyleImage" sourcePort="self(vtkInteractorStyleImage)"/>
+    </action>
+    <action date="31 May 2007 11:14:04" parent="297" time="298" user="stevec" what="addConnection">
+      <connect destinationId="44" destinationModule="vtkActor" destinationPort="SetMapper(vtkMapper)" id="42" sourceId="31" sourceModule="vtkPolyDataMapper" sourcePort="self(vtkPolyDataMapper)"/>
+    </action>
+    <action date="31 May 2007 11:14:05" parent="298" time="299" user="stevec" what="addConnection">
+      <connect destinationId="33" destinationModule="vtkImageReslice" destinationPort="SetResliceTransform(vtkAbstractTransform)" id="43" sourceId="32" sourceModule="vtkTransform" sourcePort="self(vtkTransform)"/>
+    </action>
+    <action date="31 May 2007 11:14:06" parent="299" time="300" user="stevec" what="addConnection">
+      <connect destinationId="46" destinationModule="PythonSource" destinationPort="axVOI(vtkTransform)" id="44" sourceId="32" sourceModule="vtkTransform" sourcePort="self(vtkTransform)"/>
+    </action>
+    <action date="31 May 2007 11:14:07" parent="300" time="301" user="stevec" what="addConnection">
+      <connect destinationId="35" destinationModule="vtkTexture" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="45" sourceId="33" sourceModule="vtkImageReslice" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="31 May 2007 11:14:07" parent="301" time="302" user="stevec" what="addConnection">
+      <connect destinationId="39" destinationModule="vtkActor" destinationPort="SetTexture(vtkTexture)" id="46" sourceId="35" sourceModule="vtkTexture" sourcePort="self(vtkTexture)"/>
+    </action>
+    <action date="31 May 2007 11:14:08" parent="302" time="303" user="stevec" what="addConnection">
+      <connect destinationId="35" destinationModule="vtkTexture" destinationPort="SetLookupTable(vtkLookupTable)" id="47" sourceId="37" sourceModule="vtkWindowLevelLookupTable" sourcePort="self(vtkWindowLevelLookupTable)"/>
+    </action>
+    <action date="31 May 2007 11:14:09" parent="303" time="304" user="stevec" what="addConnection">
+      <connect destinationId="38" destinationModule="vtkTexture" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="48" sourceId="41" sourceModule="vtkImageReslice" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="31 May 2007 11:14:10" parent="304" time="305" user="stevec" what="addConnection">
+      <connect destinationId="38" destinationModule="vtkTexture" destinationPort="SetLookupTable(vtkLookupTable)" id="49" sourceId="40" sourceModule="vtkWindowLevelLookupTable" sourcePort="self(vtkWindowLevelLookupTable)"/>
+    </action>
+    <action date="31 May 2007 11:14:11" parent="305" time="306" user="stevec" what="addConnection">
+      <connect destinationId="47" destinationModule="vtkActor" destinationPort="SetTexture(vtkTexture)" id="50" sourceId="38" sourceModule="vtkTexture" sourcePort="self(vtkTexture)"/>
+    </action>
+    <action date="31 May 2007 11:14:12" parent="306" time="307" user="stevec" what="addConnection">
+      <connect destinationId="39" destinationModule="vtkActor" destinationPort="SetMapper(vtkMapper)" id="51" sourceId="43" sourceModule="vtkPolyDataMapper" sourcePort="self(vtkPolyDataMapper)"/>
+    </action>
+    <action date="31 May 2007 11:14:12" parent="307" time="308" user="stevec" what="addConnection">
+      <connect destinationId="42" destinationModule="vtkRenderer" destinationPort="AddActor(vtkProp)" id="52" sourceId="44" sourceModule="vtkActor" sourcePort="self(vtkActor)"/>
+    </action>
+    <action date="31 May 2007 11:14:13" parent="308" time="309" user="stevec" what="addConnection">
+      <connect destinationId="45" destinationModule="vtkRenderer" destinationPort="AddActor(vtkProp)" id="53" sourceId="47" sourceModule="vtkActor" sourcePort="self(vtkActor)"/>
+    </action>
+    <action date="31 May 2007 11:14:14" parent="309" time="310" user="stevec" what="addConnection">
+      <connect destinationId="50" destinationModule="VTKCell" destinationPort="AddRenderer(vtkRenderer)" id="54" sourceId="45" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
+    </action>
+    <action date="31 May 2007 11:14:15" parent="310" time="311" user="stevec" what="addConnection">
+      <connect destinationId="47" destinationModule="vtkActor" destinationPort="SetMapper(vtkMapper)" id="55" sourceId="48" sourceModule="vtkPolyDataMapper" sourcePort="self(vtkPolyDataMapper)"/>
+    </action>
+    <action date="31 May 2007 11:15:58" parent="311" time="312" user="stevec" what="moveModule">
+      <move dx="-598.286813544" dy="425.757592894" id="18"/>
+      <move dx="-358.972088126" dy="-16.6963761919" id="19"/>
+      <move dx="-205.921973034" dy="-47.3063992104" id="32"/>
+      <move dx="97.3955277862" dy="80.6991515943" id="33"/>
+      <move dx="-595.504084178" dy="403.495757971" id="41"/>
+      <move dx="13.9136468266" dy="250.445642879" id="46"/>
+      <move dx="-8.34818809596" dy="114.091903978" id="49"/>
+    </action>
+    <action date="31 May 2007 11:22:14" parent="312" time="313" user="stevec" what="moveModule">
+      <move dx="0.0" dy="69.568234133" id="1"/>
+      <move dx="-58.4373166717" dy="105.743715882" id="18"/>
+      <move dx="114.091903978" dy="166.963761919" id="19"/>
+      <move dx="-166.963761919" dy="36.1754817492" id="20"/>
+      <move dx="-247.662913513" dy="0.0" id="21"/>
+      <move dx="-141.919197631" dy="19.4791055572" id="22"/>
+      <move dx="-709.595988157" dy="587.155896082" id="23"/>
+      <move dx="-509.239473853" dy="756.902387367" id="24"/>
+      <move dx="-517.587661949" dy="634.462295293" id="25"/>
+      <move dx="-144.701926997" dy="-11.1309174613" id="26"/>
+      <move dx="-456.367615912" dy="347.841170665" id="27"/>
+      <move dx="-848.732456422" dy="537.066767507" id="28"/>
+      <move dx="-659.506859581" dy="626.114107197" id="29"/>
+      <move dx="-665.072318311" dy="787.512410385" id="30"/>
+      <move dx="-556.545873064" dy="695.68234133" id="31"/>
+      <move dx="-125.222821439" dy="66.7855047677" id="32"/>
+      <move dx="-150.267385727" dy="-2.78272936532" id="33"/>
+      <move dx="-492.543097662" dy="517.587661949" id="34"/>
+      <move dx="-236.531996052" dy="27.8272936532" id="35"/>
+      <move dx="-175.311950015" dy="102.960986517" id="36"/>
+      <move dx="-139.136468266" dy="-55.6545873064" id="37"/>
+      <move dx="-873.77702071" dy="570.459519891" id="38"/>
+      <move dx="-175.311950015" dy="0.0" id="39"/>
+      <move dx="-784.72968102" dy="503.674015123" id="40"/>
+      <move dx="-83.4818809596" dy="133.571009535" id="41"/>
+      <move dx="-695.68234133" dy="695.68234133" id="42"/>
+      <move dx="-116.874633343" dy="77.9164222289" id="43"/>
+      <move dx="-628.896836562" dy="695.68234133" id="44"/>
+      <move dx="-740.206011175" dy="603.852272274" id="45"/>
+      <move dx="-102.960986517" dy="75.1336928636" id="46"/>
+      <move dx="-784.72968102" dy="559.328602429" id="47"/>
+      <move dx="-715.161446887" dy="612.20046037" id="48"/>
+      <move dx="-550.980414333" dy="147.484656362" id="49"/>
+      <move dx="-450.802157182" dy="795.860598481" id="50"/>
+      <move dx="-414.626675433" dy="320.013877012" id="51"/>
+    </action>
+    <action date="31 May 2007 11:22:14" parent="313" time="314" user="stevec" what="addConnection">
+      <connect destinationId="41" destinationModule="vtkImageReslice" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="56" sourceId="1" sourceModule="vtkStructuredPointsReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="31 May 2007 11:22:39" parent="314" time="315" user="stevec" what="moveModule">
+      <move dx="8.34818809596" dy="0.0" id="1"/>
+    </action>
+    <action date="31 May 2007 11:22:39" parent="315" time="316" user="stevec" what="addConnection">
+      <connect destinationId="49" destinationModule="vtkImageReslice" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="57" sourceId="1" sourceModule="vtkStructuredPointsReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="31 May 2007 11:22:50" parent="316" time="317" user="stevec" what="addConnection">
+      <connect destinationId="33" destinationModule="vtkImageReslice" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="58" sourceId="1" sourceModule="vtkStructuredPointsReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+    </action>
+    <action date="31 May 2007 11:23:16" parent="317" time="318" user="stevec" what="addConnection">
+      <connect destinationId="46" destinationModule="PythonSource" destinationPort="input(vtkPlane)" id="59" sourceId="11" sourceModule="vtkPlane" sourcePort="self(vtkPlane)"/>
+    </action>
+    <action date="31 May 2007 11:24:32" parent="318" time="319" user="stevec" what="moveModule">
+      <move dx="25.4914286282" dy="21.5696703777" id="18"/>
+      <move dx="47.0610990059" dy="86.2786815107" id="20"/>
+      <move dx="47.0610990059" dy="86.2786815107" id="21"/>
+      <move dx="47.0610990059" dy="86.2786815107" id="22"/>
+      <move dx="-13.7261538767" dy="96.083077137" id="23"/>
+      <move dx="47.0610990059" dy="86.2786815107" id="26"/>
+      <move dx="-13.7261538767" dy="96.083077137" id="28"/>
+      <move dx="-13.7261538767" dy="96.083077137" id="30"/>
+      <move dx="-49.0219781311" dy="27.4523077534" id="32"/>
+      <move dx="47.0610990059" dy="172.557363021" id="33"/>
+      <move dx="47.0610990059" dy="86.2786815107" id="35"/>
+      <move dx="47.0610990059" dy="86.2786815107" id="36"/>
+      <move dx="47.0610990059" dy="86.2786815107" id="37"/>
+      <move dx="-13.7261538767" dy="96.083077137" id="38"/>
+      <move dx="47.0610990059" dy="86.2786815107" id="39"/>
+      <move dx="-13.7261538767" dy="96.083077137" id="40"/>
+      <move dx="-76.4742858845" dy="154.909450894" id="41"/>
+      <move dx="47.0610990059" dy="86.2786815107" id="43"/>
+      <move dx="-13.7261538767" dy="96.083077137" id="45"/>
+      <move dx="-13.7261538767" dy="96.083077137" id="47"/>
+      <move dx="-13.7261538767" dy="96.083077137" id="48"/>
+      <move dx="-13.7261538767" dy="96.083077137" id="50"/>
+    </action>
+    <action date="31 May 2007 11:24:32" parent="319" time="320" user="stevec" what="deleteConnection">
+      <connection connectionId="28"/>
+    </action>
+    <action date="31 May 2007 11:24:37" parent="320" time="321" user="stevec" what="addConnection">
+      <connect destinationId="36" destinationModule="VTKCell" destinationPort="Location(CellLocation)" id="60" sourceId="21" sourceModule="CellLocation" sourcePort="self(CellLocation)"/>
+    </action>
+    <action date="31 May 2007 11:30:51" parent="321" time="322" user="stevec" what="changeParameter">
+      <set alias="" function="Handler" functionId="0" moduleId="10" parameter="&lt;no description&gt;" parameterId="0" type="String" value="def%20interactionHandler%28observer%2C%20shareddata%29%3A%0A%20%20%20%20if%20hasattr%28shareddata%5B0%5D%2C%20%27vtkInstance%27%29%3A%0A%20%20%20%20%20%20%20%20%28plane%2C%20ps%29%20%3D%20shareddata%0A%20%20%20%20else%3A%0A%20%20%20%20%20%20%20%20%28ps%2C%20plane%29%20%3D%20shareddata%0A%0A%20%20%20%20ps.compute%28%29%0A%20%20%20%20observer.GetPlane%28plane.vtkInstance%29%0A%20%20%20%20self.repaintCells%28%29%0A"/>
+    </action>
+    <action date="31 May 2007 11:36:57" parent="322" time="323" user="stevec" what="moveModule">
+      <move dx="-115.474109265" dy="16.0380707312" id="46"/>
+    </action>
+    <action date="31 May 2007 11:36:57" parent="323" time="324" user="stevec" what="addConnection">
+      <connect destinationId="10" destinationModule="vtkInteractionHandler" destinationPort="SharedData(Module)" id="61" sourceId="46" sourceModule="PythonSource" sourcePort="self(PythonSource)"/>
+    </action>
+    <action date="31 May 2007 11:37:29" parent="324" time="325" user="stevec" what="moveModule">
+      <move dx="-25.6609131699" dy="-48.1142121936" id="46"/>
+    </action>
+    <action date="31 May 2007 11:37:29" parent="325" time="326" user="stevec" what="deleteConnection">
+      <connection connectionId="33"/>
+    </action>
+    <action date="31 May 2007 11:37:35" parent="326" time="327" user="stevec" what="addConnection">
+      <notes>
+        This workflow uses the origin of the clipping plane to extract axis-aligned slices of the volume. These slices are rendered in separate cells of the spreadsheet. The main purpose of this example is to demonstrate the ability to synchronize multiple visualizations using an interactive widget. It also demonstrates how a simple set of visualizations can cause the workflow to become difficult to manage without important features that a provenance aware visualization system such as VisTrails.
+      </notes>
+      <connect destinationId="24" destinationModule="VTKCell" destinationPort="Location(CellLocation)" id="62" sourceId="34" sourceModule="CellLocation" sourcePort="self(CellLocation)"/>
+    </action>
+    <tag name="Combined Rendering" time="152"/>
+    <tag name="Image Slices" time="327"/>
+    <tag name="Clipping Plane" time="126"/>
+    <tag name="Histogram" time="109"/>
+    <tag name="Volume Rendering" time="97"/>
+    <tag name="Isosurface Script" time="41"/>
+    <tag name="Isosurface" time="38"/>
+  </visTrail>
