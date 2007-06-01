@@ -51,3 +51,14 @@ def toXML(object):
     root = io.writeXMLObjects([object], dom)
     dom.appendChild(root)
     return dom
+
+def getWorkflowDiff(vt, v1, v2):
+    (v1, v2, pairs, v1Only, v2Only, paramChanges) = \
+        vistrail.getWorkflowDiff(vt, v1, v2, True)
+    Pipeline.convert(v1)
+    Pipeline.convert(v2)
+    #     print 'pairs:', pairs
+    #     print 'v1Only:', v1Only
+    #     print 'v2Only:', v2Only
+    #     print 'paramChanges:', paramChanges
+    return (v1, v2, pairs, v1Only, v2Only, paramChanges)

@@ -698,6 +698,8 @@ class Vistrail(DBVistrail):
                                       ...]
         
         """
+        return dbservice.getWorkflowDiff(self, v1, v2)
+
         # Instantiate pipelines associated with v1 and v2
         p1 = self.getPipelineVersionNumber(v1)
         p2 = self.getPipelineVersionNumber(v2)
