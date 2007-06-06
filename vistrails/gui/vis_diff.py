@@ -25,6 +25,7 @@ from PyQt4 import QtCore, QtGui
 from core.utils.color import ColorByName
 from gui.pipeline_view import QPipelineView
 from gui.theme import CurrentTheme
+from core import system
 import copy
 
 ################################################################################
@@ -156,8 +157,11 @@ class QLegendBox(QtGui.QFrame):
         self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
         self.setAutoFillBackground(True)
         self.palette().setBrush(QtGui.QPalette.Window, brush)
-        self.setFixedSize(*size)        
-
+        self.setFixedSize(*size)
+        if system.systemType in ['Darwin']:
+            #the mac's nice looking mess up with the colors
+            self.setAttribute(QtCore.Qt.WA_MacMetalStyle, False)
+        
 class QLegendWindow(QtGui.QWidget):
     """
     QLegendWindow contains a list of QLegendBox and its description
