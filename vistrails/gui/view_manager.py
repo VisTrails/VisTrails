@@ -32,6 +32,7 @@ from gui.vistrail_view import QVistrailView
 from core.xml_parser import XMLParser
 from core import system
 from core.vistrail.vistrail import Vistrail
+import db.services.io
 
 ################################################################################
 
@@ -222,47 +223,71 @@ class QViewManager(QtGui.QTabWidget):
         vistrailView.setInitialView()
         vistrailView.versionTab.vistrailChanged()
 
+    def close_first_vistrail_if_necessary(self):
+        # Close first vistrail of no change was made
+        if not self._first_view:
+            return
+        vt = self._first_view.controller.vistrail
+        if vt.get_version_count() == 0:
+            self.closeVistrail(self._first_view)
+            self._first_view = None
+        else:
+            # We set it to none, since it's been changed, so
+            # we don't want to ever close it again.
+            self._first_view = None
+
+    def setVistrailView(self, vistrail, name):
+        """setVistrailView(vistrai: Vistrail, name: String) -> QVistrailView
+        Sets a new vistrail view for the vistrail object
+        
+        """
+        vistrailView = QVistrailView()
+        vistrailView.setVistrail(vistrail, name)
+        self.addVistrailView(vistrailView)
+        self.setCurrentWidget(vistrailView)
+        vistrailView.controller.inspectAndImportModules()        
+        # Make sure to select the latest time step
+        vistrailView.controller.selectLatestVersion()
+        vistrailView.versionTab.vistrailChanged()
+        
+        return vistrailView
+    
     def openVistrail(self, fileName):
         """ openVistrail(fileName) -> QVistrailView
         Open a new vistrail and return a QVistrailView        
         
         """
-        def close_first_vistrail_if_necessary():
-            # Close first vistrail of no change was made
-            if not self._first_view:
-                return
-            vt = self._first_view.controller.vistrail
-            if vt.get_version_count() == 0:
-                self.closeVistrail(self._first_view)
-                self._first_view = None
-            else:
-                # We set it to none, since it's been changed, so
-                # we don't want to ever close it again.
-                self._first_view = None
-
-        close_first_vistrail_if_necessary()
+        self.close_first_vistrail_if_necessary()
         try:
-            parser = XMLParser()
-            parser.openVistrail(fileName)
-            vistrail = parser.getVistrail()
-            vistrailView = QVistrailView()
-            vistrailView.setVistrail(vistrail, fileName)
-            self.addVistrailView(vistrailView)
-            self.setCurrentWidget(vistrailView)
-            vistrailView.controller.inspectAndImportModules()        
-            # Make sure to select the latest time step
-            vistrailView.controller.selectLatestVersion()
-            vistrailView.versionTab.vistrailChanged()
+            vistrail = db.services.io.openVistrailFromXML(fileName)
+            Vistrail.convert(vistrail)
+            
+            return self.setVistrailView(vistrail,fileName)
         
-            return vistrailView
-        except XMLParser.XMLParseError, e:
+        except Exception, e:
+            QtGui.QMessageBox.critical(None,
+                                       'Vistrails',
+                                       str(e))
+
+    def openVistrailFromDB(self, conn_id, vt_id):
+        """openVistrailFromDB(conn_id: int, vt_id: int) -> vistrailView
+        Open a new vistrail and return a QVistrailView
+        
+        """
+        self.close_first_vistrail_if_necessary()
+        try:
+            vistrail = db.services.io.open_from_db(conn_id, vt_id)
+            Vistrail.convert(vistrail)
+                
+            return self.setVistrailView(vistrail,vistrail.db_name)
+        
+        except Exception, e:
             QtGui.QMessageBox.critical(None,
                                        'Vistrails',
                                        str(e))
             
-
     def saveVistrail(self, vistrailView=None, fileName=''):
-        """ openVistrail(vistrailView: QVistrailView) -> Bool
+        """ saveVistrail(vistrailView: QVistrailView) -> Bool
         Save the current active vistrail to a file
         It returns True if file was written successfully.
         

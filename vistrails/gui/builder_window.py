@@ -499,7 +499,11 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         """
         connId,vistrailId = QOpenDBWindow.getOpenVistrail()
-        print connId, vistrailId
+        self.viewManager.openVistrailFromDB(connId,vistrailId)
+        self.closeVistrailAction.setEnabled(True)
+        self.saveVistrailAsAction.setEnabled(True)
+        #self.vistrailActionGroup.setEnabled(True)
+        self.vistrailMenu.menuAction().setEnabled(True)
 
     def saveVistrail(self):
         """ saveVistrail() -> None

@@ -29,6 +29,8 @@ from db.domain import DBVistrail, DBWorkflow, DBLog
 from db.versions import getVersionDAO, currentVersion, translateVistrail, \
     getVersionSchemaDir
 
+myconnections = {}
+
 def openDBConnection(config=None):
     import MySQLdb
     if config is None:
@@ -67,7 +69,9 @@ def get_db_vistrail_list(conn_id):
     import MySQLdb
     #conn = get_connection_from id(conn_id)
     if conn_id == 1:
+        global myconnections
         db = openDBConnection()
+        myconnections[1] = db
         #FIXME Create a DBGetVistrailListSQLDAOBase for this
         # and maybe there's another way to build this query
         command = """SELECT v.id, v.name, a.date, a.user
@@ -145,6 +149,15 @@ def openVistrailFromXML(filename):
         return importVistrailFromXML(filename, version)
     else:
         return readXMLObjects(DBVistrail.vtType, dom.documentElement)[0]
+
+def open_from_db(conn_id, vt_id):
+    """open_from_db(conn_id: int, vt_id:int) -> DBVistrail
+    Opens a vistrail from db given a connection id and the vistrail id
+
+    """
+    #get connection given conn_id
+    db = myconnections[conn_id]
+    return openVistrailFromDB(db, vt_id)
 
 def openVistrailFromDB(dbConnection, id):
     """openVistrailFromDB(dbConnection, id) -> Vistrail """
