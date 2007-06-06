@@ -36,7 +36,7 @@ def openDBConnection(config=None):
         import gui.application
         startup = gui.application.VistrailsApplication.vistrailsStartup
         config = {'host': startup.configuration.db.host,
-                  'port': startup.configuation.db.port,
+                  'port': startup.configuration.db.port,
                   'user': startup.configuration.db.user,
                   'passwd': startup.configuration.db.passwd,
                   'db': startup.configuration.db.database}
@@ -48,6 +48,50 @@ def openDBConnection(config=None):
         # should have a DB exception type
         msg = "MySQL returned the following error %d: %s" % (e.args[0], e.args[1])
         raise Exception(msg)
+
+def get_db_connection_list():
+    # when we have a separate file for the connections, change code
+    # to get connection names
+    result = []
+    # get settings from config
+    import gui.application
+    startup = gui.application.VistrailsApplication.vistrailsStartup
+
+    result.append((1,startup.configuration.db.host))
+    return result
+
+def get_db_vistrail_list(conn_id):
+    #FIXME
+    # when we have more than one connection, change code to get
+    #connection from id
+    import MySQLdb
+    #conn = get_connection_from id(conn_id)
+    if conn_id == 1:
+        db = openDBConnection()
+        #FIXME Create a DBGetVistrailListSQLDAOBase for this
+        # and maybe there's another way to build this query
+        command = """SELECT v.id, v.name, a.date, a.user
+        FROM vistrail v, action a,
+        (SELECT a.vt_id, MAX(a.date) as recent, a.user
+        FROM action a
+        GROUP BY vt_id) latest
+        WHERE v.id = latest.vt_id 
+        AND a.vt_id = v.id
+        AND a.date = latest.recent 
+        """
+
+        try:
+            c = db.cursor()
+            c.execute(command)
+            rows = c.fetchall()
+            result = rows
+            c.close()
+            
+        except MySQLdb.Error, e:
+            print "ERROR: Couldn't get list of vistrails from db (%d : %s)" % (
+                e.args[0], e.args[1])
+            
+        return result
 
 def openXMLFile(filename):
     try:
