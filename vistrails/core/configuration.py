@@ -48,6 +48,7 @@ def default():
         'fileRepository': default_file_repository(),
         'interactiveMode': True,
         'logger': default_logger(),
+        'db': default_db(),
         'maxMemory': -1,
         'maximizeWindows': False,
         'minMemory': -1,
@@ -97,6 +98,20 @@ def default_logger():
         'dbUser': '',
         }
     return InstanceObject(**logger_dir)
+
+def default_db():
+    """default_db() -> InstanceObject
+    Returns the default configuration for VisTrails db
+    
+    """
+    db = {
+        'host': '',
+        'database': '',
+        'passwd': '',
+        'port': 0,
+        'user': '',
+        }
+    return InstanceObject(**db)
 
 def default_shell():
     """default_shell() -> InstanceObject
