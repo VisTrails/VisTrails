@@ -28,6 +28,7 @@ from core import system
 from gui.bookmark_window import QBookmarksWindow
 from gui.graphics_view import QInteractiveGraphicsView
 from gui.module_palette import QModulePalette
+from gui.open_db_window import QOpenDBWindow
 from gui.shell import QShellDialog
 from gui.theme import CurrentTheme
 from gui.view_manager import QViewManager
@@ -147,12 +148,20 @@ class QBuilderWindow(QtGui.QMainWindow):
                                                '&New', self)
         self.newVistrailAction.setShortcut('Ctrl+N')
         self.newVistrailAction.setStatusTip('Create a new Vistrail')
-
+        
         self.openVistrailAction = QtGui.QAction(CurrentTheme.OPEN_VISTRAIL_ICON,
-                                                '&Open...', self)
+                                                '&Open from File', self)
         self.openVistrailAction.setShortcut('Ctrl+O')
-        self.openVistrailAction.setStatusTip('Open an existing VisTrail')
+        self.openVistrailAction.setStatusTip('Open an existing VisTrail from '
+                                             'the filesystem')
 
+        self.openVistrailDBAction = QtGui.QAction(CurrentTheme.OPEN_VISTRAIL_DB_ICON,
+                                                '&Open from Database', self)
+        self.openVistrailDBAction.setShortcut('Ctrl+Shift+O')
+        self.openVistrailDBAction.setStatusTip('Open an existing VisTrail from '
+                                             'database')
+        self.openVistrailDefaultAction = self.openVistrailAction
+        
         self.saveVistrailAction = QtGui.QAction(CurrentTheme.SAVE_VISTRAIL_ICON,
                                                 '&Save', self)
         self.saveVistrailAction.setShortcut('Ctrl+S')
@@ -232,7 +241,9 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         self.fileMenu = self.menuBar().addMenu('&File')
         self.fileMenu.addAction(self.newVistrailAction)
-        self.fileMenu.addAction(self.openVistrailAction)
+        self.openMenu = self.fileMenu.addMenu('Open...')
+        self.openMenu.addAction(self.openVistrailAction)
+        self.openMenu.addAction(self.openVistrailDBAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.saveVistrailAction)
         self.fileMenu.addAction(self.saveVistrailAsAction)
@@ -277,7 +288,13 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.toolBar.setWindowTitle('Vistrail File')
         self.addToolBar(self.toolBar)
         self.toolBar.addAction(self.newVistrailAction)
-        self.toolBar.addAction(self.openVistrailAction)
+        self.openVistrailButton = QtGui.QToolButton()
+        self.openVistrailButton.setIcon(CurrentTheme.OPEN_VISTRAIL_ICON)
+        self.openVistrailButton.setMenu(self.openMenu)
+        self.openVistrailButton.setPopupMode(QtGui.QToolButton.MenuButtonPopup)
+        self.toolBar.addWidget(self.openVistrailButton)
+        #self.toolBar.addAction(self.openVistrailDefaultAction)
+        #self.openVistrailDefaultAction.setMenu(self.openMenu)
         self.toolBar.addAction(self.saveVistrailAction)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.shellAction)
@@ -330,6 +347,14 @@ class QBuilderWindow(QtGui.QMainWindow):
         
         self.connect(self.openVistrailAction,
                      QtCore.SIGNAL('triggered()'),
+                     self.openVistrail)
+
+        self.connect(self.openVistrailDBAction,
+                     QtCore.SIGNAL('triggered()'),
+                     self.openVistrailDB)
+        
+        self.connect(self.openVistrailButton,
+                     QtCore.SIGNAL('clicked()'),
                      self.openVistrail)
         
         self.connect(self.saveVistrailAction,
@@ -467,6 +492,14 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.saveVistrailAsAction.setEnabled(True)
             #self.vistrailActionGroup.setEnabled(True)
             self.vistrailMenu.menuAction().setEnabled(True)
+
+    def openVistrailDB(self):
+        """ openVistrailDB() -> None
+        Open a vistrail from the database
+
+        """
+        connId,vistrailId = QOpenDBWindow.getOpenVistrail()
+        print connId, vistrailId
 
     def saveVistrail(self):
         """ saveVistrail() -> None
