@@ -288,10 +288,25 @@ class DefaultTheme(object):
             core.system.vistrails_root_directory() +
             '/gui/resources/images/new_vistrail.png')
         
-        # Toolbar icon for openning a new Vistrail
+        # Toolbar icon for opening a vistrail
         self.OPEN_VISTRAIL_ICON = QtGui.QIcon(
             core.system.vistrails_root_directory() +
             '/gui/resources/images/open_vistrail.png')
+
+        #Toolbar icon for opening a vistrail from a database
+        self.OPEN_VISTRAIL_DB_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/openfromdb.png')
+
+        #Icon for database connections
+        self.DB_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/database.png')
+
+        #Icon for vistrails files
+        self.FILE_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/file.png')
         
         # Toolbar icon for save the current Vistrail
         self.SAVE_VISTRAIL_ICON = QtGui.QIcon(
