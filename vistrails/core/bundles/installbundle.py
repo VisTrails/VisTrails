@@ -29,18 +29,40 @@ import os
 ##############################################################################
 
 def linux_ubuntu_install(package_name):
-    # HACK, otherwise splashscreen stays in front of screens
+    
+    try:
+        import PyQt4
+        has_qt = True
+    except ImportError:
+        has_qt = False
+
+    # HACK, otherwise splashscreen stays in front of windows
     try:
         import PyQt4.QtCore
         PyQt4.QtCore.QCoreApplication.instance().splashScreen.hide()
     except:
         pass
+        
+    if has_qt:
+        cmd = core.system.vistrails_root_directory()
+        cmd += '/core/bundles/linux_ubuntu_install.py'
+    else:
+        cmd = 'apt-get install'
 
-    cmd = core.system.vistrails_root_directory()
-    cmd += '/core/bundles/linux_ubuntu_install.py '
-    cmd += package_name
+    if type(package_name) == str:
+        cmd += ' ' + package_name
+    elif type(package_name) == list:
+        for package in package_name:
+            if type(package) != str:
+                raise TypeError("Expected string or list of strings")
+            cmd += ' ' + package
 
-    sucmd = guess_graphical_sudo() + " '" + cmd + "'"
+    if has_qt:
+        sucmd = guess_graphical_sudo() + " '" + cmd + "'"
+    else:
+        print "VisTrails wants to install package(s) '%s'" % package_name
+        sucmd = "sudo " + cmd
+
     result = os.system(sucmd)
 
     return (result == 0) # 0 indicates success

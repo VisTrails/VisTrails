@@ -26,6 +26,7 @@ runtime components such as binaries, libraries, other python modules, etc."""
 import imp
 import sys
 import core.system
+import core.bundles.installbundle
 
 ##############################################################################
 
@@ -63,11 +64,32 @@ def require_executable(filename):
         raise MissingRequirement(filename)
 
 def check_all_vistrails_requirements():
-    # check dot
-    require_executable('dot')
     # check pyqt4
-    require_python_module('PyQt4')
+    try:
+        require_python_module('PyQt4')
+    except MissingRequirement:
+        r = core.bundles.installbundle.install({'linux-ubuntu': ['python-qt4',
+                                                                 'python-qt4-gl',
+                                                                 'python-qt4-sql']})
+        if not r:
+            raise
 
+    # check dot
+    try:
+        require_executable('dot')
+    except MissingRequirement:
+        r = core.bundles.installbundle.install({'linux-ubuntu': 'graphviz'})
+        if not r:
+            raise
+
+    # check scipy
+    try:
+        require_python_module('python-scipy')
+    except MissingRequirement:
+        r = core.bundles.installbundle.install({'linux-ubuntu': 'python-scipy'})
+        if not r:
+            raise
+        
 
 ##############################################################################
 
