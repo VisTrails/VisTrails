@@ -48,8 +48,63 @@ def openDBConnection(config=None):
         return dbConnection
     except MySQLdb.Error, e:
         # should have a DB exception type
-        msg = "MySQL returned the following error %d: %s" % (e.args[0], e.args[1])
+        msg = "MySQL returned the following error %d: %s" % (e.args[0],
+                                                             e.args[1])
         raise Exception(msg)
+    
+def test_db_connection(config):
+    """testDBConnection(config: dict) -> None
+    Tests a connection raising an exception in case of error.
+    
+    """
+    import MySQLdb
+    try:
+        dbConnection = MySQLdb.connect(**config)
+        closeDBConnection(dbConnection)
+    
+    except MySQLdb.Error, e:
+        # should have a DB exception type
+        msg = "MySQL returned the following error %d: %s" % (e.args[0],
+                                                             e.args[1])
+        raise Exception(msg)
+
+def get_db_connection_info(conn_id):
+    config = None
+    #FIXME
+    # when we have more than one connection, change code to get
+    #connection from id
+    if conn_id == 1:
+        # get settings from config
+        import gui.application
+        startup = gui.application.VistrailsApplication.vistrailsStartup
+        config = {'host': startup.configuration.db.host,
+                  'port': startup.configuration.db.port,
+                  'user': startup.configuration.db.user,
+                  'passwd': startup.configuration.db.passwd,
+                  'db': startup.configuration.db.database}
+    return config
+
+def set_db_connection_info(*args, **kwargs):
+    
+    if kwargs.has_key("host"):
+        host = kwargs["host"]
+    if kwargs.has_key("port"):
+        port = kwargs["port"]
+    if kwargs.has_key("user"):
+        user = kwargs["user"]
+    if kwargs.has_key("passwd"):
+        passwd = kwargs["passwd"]
+    if kwargs.has_key("db"):
+        db = kwargs["db"]
+
+    import gui.application
+    startup = gui.application.VistrailsApplication.vistrailsStartup
+    startup.configuration.db.host = host
+    startup.configuration.db.port = port
+    startup.configuration.db.user = user
+    startup.configuration.db.database = db
+    startup.write_configuration_db()
+    startup.configuration.db.passwd = passwd
 
 def get_db_connection_list():
     # when we have a separate file for the connections, change code
@@ -58,11 +113,12 @@ def get_db_connection_list():
     # get settings from config
     import gui.application
     startup = gui.application.VistrailsApplication.vistrailsStartup
-
-    result.append((1,startup.configuration.db.host))
+    if startup.configuration.db.host != '':
+        result.append((1,startup.configuration.db.host))
     return result
 
 def get_db_vistrail_list(conn_id):
+    result = []
     #FIXME
     # when we have more than one connection, change code to get
     #connection from id

@@ -221,6 +221,7 @@ class InstanceObject(object):
     the right values."""
     def __init__(self, **kw):
         self.__dict__.update(kw)
+
     def __str__(self):
         pre = "(InstanceObject "
         items = [('%s: %s' % (k, str(v)))
@@ -229,6 +230,21 @@ class InstanceObject(object):
         items_str = ('\n' + (' ' * len(pre))).join(items)
         post = ')@%X' % id(self)
         return pre + items_str + post
+    
+    def write_source(self, prefix=""):
+        result = ""
+        for (k, v) in  sorted(self.__dict__.items()):
+            if type(v) == InstanceObject:
+                newprefix = prefix + "." + k
+                result += v.write_source(newprefix)
+            else:
+                result += prefix
+                result += "." + str(k) + " = " 
+                if type(v) == type('string'):
+                    result +=  "'" + str(v) + "'\n"
+                else:
+                    result += str(v) + "\n"
+        return result
 
 def append_to_dict_of_lists(dict, key, value):
     """Appends /value/ to /dict/[/key/], or creates entry such that
