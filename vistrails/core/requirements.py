@@ -84,7 +84,7 @@ def check_all_vistrails_requirements():
 
     # check scipy
     try:
-        require_python_module('python-scipy')
+        require_python_module('scipy')
     except MissingRequirement:
         r = core.bundles.installbundle.install({'linux-ubuntu': 'python-scipy'})
         if not r:
