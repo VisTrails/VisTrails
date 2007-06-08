@@ -26,6 +26,7 @@
 ################################################################################
 import vtk
 from PyQt4 import QtCore, QtGui
+import sip
 from core import system
 from core.modules.module_registry import registry
 from packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
@@ -240,7 +241,13 @@ class QVTKWidget(QCellWidget):
             if self.mRenWin.GetMapped():
                 self.mRenWin.Finalize()
             if system.systemType=='Linux':
-                vp = '_%s_void_p' % (hex(int(QtGui.QX11Info.display()))[2:])
+                try:
+                    vp = '_%s_void_p' % (hex(int(QtGui.QX11Info.display()))[2:])
+                except TypeError:
+                    #This was change for PyQt4.2
+                    if isinstance(QtGui.QX11Info.display(),QtGui.Display):
+                        display = sip.unwrapinstance(QtGui.QX11Info.display())
+                        vp = '_%s_void_p' % (hex(display)[2:])
                 self.mRenWin.SetDisplayId(vp)
                 self.resizeWindow(1,1)
             self.mRenWin.SetWindowInfo(str(int(self.winId())))
