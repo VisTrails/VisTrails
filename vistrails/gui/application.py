@@ -29,6 +29,7 @@ from PyQt4 import QtGui, QtCore, Qt
 from core import command_line
 from core import debug
 from core import system
+from core import keychain
 from core.modules.module_registry import registry
 from core.utils import InstanceObject
 from gui import qt
@@ -75,6 +76,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         
         self.configuration = core.configuration.default()
+        self.keyChain = keychain.KeyChain()
         self.setupOptions()
         self.readOptions()
         if optionsDict:

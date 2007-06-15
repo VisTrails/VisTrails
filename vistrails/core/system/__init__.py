@@ -148,6 +148,13 @@ def default_bookmarks_file():
     """
     return default_dot_vistrails() + "/bookmarks.xml"
 
+def default_connections_file():
+    """ default_connections_file() -> str
+    Returns default Vistrails per-user connections file
+
+    """
+    return default_dot_vistrails() + "/connections.xml"
+
 def python_version():
    """python_version() -> (major, minor, micro, release, serial)
 Returns python version info."""

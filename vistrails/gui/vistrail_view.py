@@ -90,6 +90,10 @@ class QVistrailView(QDockContainer):
                      QtCore.SIGNAL('stateChanged'),
                      self.stateChanged)
 
+        # We also keep track where this vistrail is
+        # So we can save in the right place
+        self.origin = 'FILESYSTEM' # or DB
+        
         # Make sure we can change view when requested
         self.connect(self.toolBar.tabBar,
                      QtCore.SIGNAL('currentChanged(int)'),

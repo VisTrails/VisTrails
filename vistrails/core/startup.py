@@ -294,29 +294,3 @@ by startup.py. This should only be called after init()."""
         """
         self._package_manager.finalize_packages()
 
-    def write_configuration_db(self):
-        try:
-            strMatch = "\n# DO NOT WRITE AFTER THIS LINE\n"
-            dotVistrails = self.configuration.dotVistrails + '/startup.py'
-            backup = self.configuration.dotVistrails + '/startup.py.backup'
-            #make a backup
-            shutil.copy(dotVistrails,backup)
-            dotFile = open(dotVistrails, "r")
-            text = dotFile.read()
-            dotFile.close()
-            found = text.find(strMatch)
-            
-            if found != -1:
-                previous = text[:found]
-            else:
-                previous = text
-            
-            newtext = previous + strMatch
-            newtext += self.configuration.db.write_source('configuration.db')
-            dotFile = open(dotVistrails,"w")
-            dotFile.write(newtext)
-            dotFile.close()
-        except Exception, e:
-            dbg = debug.DebugPrint
-            msg = "Exception raised during write configuration file: %s - %s"
-            dbg.critical(msg % (e.__class__, e))

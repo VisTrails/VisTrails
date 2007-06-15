@@ -236,13 +236,16 @@ class QViewManager(QtGui.QTabWidget):
             # we don't want to ever close it again.
             self._first_view = None
 
-    def setVistrailView(self, vistrail, name):
-        """setVistrailView(vistrai: Vistrail, name: String) -> QVistrailView
+    def setVistrailView(self, vistrail, name, origin='FILESYSTEM', conn_id=-1):
+        """setVistrailView(vistrai: Vistrail, name: String, origin: str)
+                          -> QVistrailView
         Sets a new vistrail view for the vistrail object
-        
+        origin can be 'FILESYSTEM' or 'DB'
         """
         vistrailView = QVistrailView()
         vistrailView.setVistrail(vistrail, name)
+        vistrailView.origin = origin
+        vistrailView.conn_id = conn_id
         self.addVistrailView(vistrailView)
         self.setCurrentWidget(vistrailView)
         vistrailView.controller.inspectAndImportModules()        
@@ -258,10 +261,12 @@ class QViewManager(QtGui.QTabWidget):
         
         """
         self.close_first_vistrail_if_necessary()
+        view = self.ensureVistrailFile(fileName)
+        if view:
+            return view
         try:
             vistrail = db.services.io.openVistrailFromXML(fileName)
             Vistrail.convert(vistrail)
-            
             return self.setVistrailView(vistrail,fileName)
         
         except Exception, e:
@@ -269,24 +274,31 @@ class QViewManager(QtGui.QTabWidget):
                                        'Vistrails',
                                        str(e))
 
-    def openVistrailFromDB(self, conn_id, vt_id):
-        """openVistrailFromDB(conn_id: int, vt_id: int) -> vistrailView
+    def openVistrailFromDB(self, config, vt_id):
+        """openVistrailFromDB(config: dict, vt_id: int) -> QVistrailView
         Open a new vistrail and return a QVistrailView
         
         """
         self.close_first_vistrail_if_necessary()
+        view = self.ensureVistrailDB(config, vt_id)
+        if view:
+            return view
+        id = -1
+        
         try:
-            vistrail = db.services.io.open_from_db(conn_id, vt_id)
+            if config.has_key('id'):
+                id = config['id']
+            vistrail = db.services.io.open_from_db(config, vt_id)
             Vistrail.convert(vistrail)
-                
-            return self.setVistrailView(vistrail,vistrail.db_name)
+            
+            return self.setVistrailView(vistrail,vistrail.db_name,'DB',id)
         
         except Exception, e:
             QtGui.QMessageBox.critical(None,
                                        'Vistrails',
                                        str(e))
             
-    def saveVistrail(self, vistrailView=None, fileName=''):
+    def saveVistrailFile(self, vistrailView=None, fileName=''):
         """ saveVistrail(vistrailView: QVistrailView) -> Bool
         Save the current active vistrail to a file
         It returns True if file was written successfully.
@@ -305,9 +317,57 @@ class QViewManager(QtGui.QTabWidget):
                     "Vistrail files (*.xml)\nOther files (*)")
             if fileName!='' and fileName!=None:
                 vistrailView.controller.writeVistrail(str(fileName))
+                vistrailView.origin == 'FILESYSTEM'
                 return True
             else:
                 return False
+            
+    def saveVistrailDB(self, vistrailView=None, name='', config=None):
+        """saveVistrailDB(vistrailView: QVistrailView) -> Boolean
+        Save vistrailView or the current active vistrail to the database
+        It returns True if the operation was successful
+        
+        """
+        if not vistrailView:
+            vistrailView = self.currentWidget()
+        if vistrailView:
+            if name == '':
+                name = vistrailView.controller.fileName
+            if name == '':
+                ok = False
+                name = QtGui.QInputDialog.getText(self,
+                                                  "Save Vistrail...",
+                                                  "Vistrail name:",
+                                                  QtGui.QLineEdit.Normal,
+                                                  "",
+                                                  ok)
+                
+            if name != '' and name != None:
+                if config != None:
+                    if config.has_key('id'):
+                        vistrailView.conn_id = config['id']
+                    
+                vistrailView.controller.writeVistrailDB(vistrailView.conn_id,
+                                                        name)        
+                vistrailView.origin == 'DB'
+                return True
+            else:
+                return False
+            
+    def saveVistrail(self, vistrailView=None, fileName=''):
+        """ saveVistrail(vistrailView: QVistrailView) -> Bool
+        Save the current active vistrail to a file
+        It returns True if file was written successfully.
+        
+        """
+        if not vistrailView:
+            vistrailView = self.currentWidget()
+        if vistrailView:
+            if vistrailView.origin == 'FILESYSTEM':
+                return self.saveVistrailFile(vistrailView,fileName)
+            elif vistrailView.origin == 'DB':
+                return self.saveVistrailDB(vistrailView)
+            
                 
     def closeVistrail(self, vistrailView=None, quiet=False):
         """ closeVistrail(vistrailView: QVistrailView, quiet: bool) -> bool
@@ -512,10 +572,10 @@ class QViewManager(QtGui.QTabWidget):
         if view:
             view.toolBar.executePipelineAction().trigger()
         
-    def ensureVistrail(self, filename):
-        """ ensureVistrail(filename: str) -> QVistrailView        
+    def ensureVistrailFile(self, filename):
+        """ ensureVistrailFile(filename: str) -> QVistrailView        
         This will first find among the opened vistrails to see if
-        'filename' has been opened. If not, it will try to open it.
+        'filename' has been opened. If not, it will return None.
         
         """
         for view in self.splittedViews.keys():
@@ -527,7 +587,32 @@ class QViewManager(QtGui.QTabWidget):
             if view.controller.fileName==filename:
                 self.setCurrentWidget(view)
                 return view
-        view = self.openVistrail(filename)
+        return None
 
+    def ensureVistrailDB(self, config, vt_id):
+        """ ensureVistrailDB(config: dict, vt_id: int) -> QVistrailView        
+        This will first find among the opened vistrails to see if
+        vt_id from config has been opened. If not, it will return None.
+        
+        """
+        for view in self.splittedViews.keys():
+            vt = view.controller.vistrail
+            if vt.db_id == vt_id:
+                if(vt.db_dbHost == config['host'] and
+                   vt.db_dbPort == config['port'] and
+                   vt.db_dbName == config['db']):
+                    self.setCurrentWidget(view)
+                    return view
+        for i in range(self.count()):
+            view = self.widget(i)
+            vt = view.controller.vistrail
+            if vt.db_id == vt_id:
+                if(vt.db_dbHost == config['host'] and
+                   vt.db_dbPort == config['port'] and
+                   vt.db_dbName == config['db']):
+                    self.setCurrentWidget(view)
+                    return view
+        return None
+    
     def set_first_view(self, view):
         self._first_view = view

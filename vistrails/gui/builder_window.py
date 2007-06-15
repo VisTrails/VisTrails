@@ -155,10 +155,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.openVistrailAction.setStatusTip('Open an existing VisTrail from '
                                              'the filesystem')
 
-        self.openVistrailDBAction = QtGui.QAction(CurrentTheme.OPEN_VISTRAIL_DB_ICON,
-                                                '&Open from Database', self)
-        self.openVistrailDBAction.setShortcut('Ctrl+Shift+O')
-        self.openVistrailDBAction.setStatusTip('Open an existing VisTrail from '
+        self.openDBAction = QtGui.QAction(CurrentTheme.OPEN_VISTRAIL_DB_ICON,
+                                          '&Open from Database', self)
+        self.openDBAction.setShortcut('Ctrl+Shift+O')
+        self.openDBAction.setStatusTip('Open an existing VisTrail from '
                                              'database')
         self.openVistrailDefaultAction = self.openVistrailAction
         
@@ -168,11 +168,16 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.saveVistrailAction.setStatusTip('Save the current VisTrail')
         self.saveVistrailAction.setEnabled(False)
         
-        self.saveVistrailAsAction = QtGui.QAction('Save as...', self)
+        self.saveVistrailAsAction = QtGui.QAction('Save as file...', self)
         self.saveVistrailAsAction.setShortcut('Ctrl+Shift+S')
         self.saveVistrailAsAction.setStatusTip('Save the current VisTrail at '
-                                             'a different location')
+                                             'a different disk location')
         self.saveVistrailAsAction.setEnabled(False)
+
+        self.saveDBAction = QtGui.QAction('Save to database...', self)
+        self.saveDBAction.setStatusTip('Save the current VisTrail on '
+                                             'the database')
+        self.saveDBAction.setEnabled(False)
 
         self.closeVistrailAction = QtGui.QAction('Close', self)
         self.closeVistrailAction.setShortcut('Ctrl+W')
@@ -243,10 +248,12 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.fileMenu.addAction(self.newVistrailAction)
         self.openMenu = self.fileMenu.addMenu('Open...')
         self.openMenu.addAction(self.openVistrailAction)
-        self.openMenu.addAction(self.openVistrailDBAction)
-        self.fileMenu.addSeparator()
+        self.openMenu.addAction(self.openDBAction)
+        #self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.saveVistrailAction)
-        self.fileMenu.addAction(self.saveVistrailAsAction)
+        self.saveAsMenu = self.fileMenu.addMenu('Save As...')
+        self.saveAsMenu.addAction(self.saveVistrailAsAction)
+        self.saveAsMenu.addAction(self.saveDBAction)
         self.fileMenu.addAction(self.closeVistrailAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.quitVistrailsAction)
@@ -349,7 +356,7 @@ class QBuilderWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('triggered()'),
                      self.openVistrail)
 
-        self.connect(self.openVistrailDBAction,
+        self.connect(self.openDBAction,
                      QtCore.SIGNAL('triggered()'),
                      self.openVistrailDB)
         
@@ -364,6 +371,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.saveVistrailAsAction,
                      QtCore.SIGNAL('triggered()'),
                      self.saveVistrailAs)
+
+        self.connect(self.saveDBAction,
+                     QtCore.SIGNAL('triggered()'),
+                     self.saveVistrailDB)
         
         self.connect(self.closeVistrailAction,
                      QtCore.SIGNAL('triggered()'),
@@ -448,6 +459,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.saveVistrailAction.setEnabled(False)
             self.closeVistrailAction.setEnabled(False)
             self.saveVistrailAsAction.setEnabled(False)
+            self.saveDBAction.setEnabled(False)
             self.executeCurrentWorkflowAction.setEnabled(False)
             #self.vistrailActionGroup.setEnabled(False)
             self.vistrailMenu.menuAction().setEnabled(False)
@@ -475,6 +487,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         self.saveVistrailAction.setEnabled(True)
         self.saveVistrailAsAction.setEnabled(True)
+        self.saveDBAction.setEnabled(True)
 
     def openVistrail(self):
         """ openVistrail() -> None
@@ -490,6 +503,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.viewManager.openVistrail(str(fileName))
             self.closeVistrailAction.setEnabled(True)
             self.saveVistrailAsAction.setEnabled(True)
+            self.saveDBAction.setEnabled(True)
             #self.vistrailActionGroup.setEnabled(True)
             self.vistrailMenu.menuAction().setEnabled(True)
 
@@ -498,11 +512,12 @@ class QBuilderWindow(QtGui.QMainWindow):
         Open a vistrail from the database
 
         """
-        connId,vistrailId = QOpenDBWindow.getOpenVistrail()
-        if connId != -1 and vistrailId != -1:
-            self.viewManager.openVistrailFromDB(connId,vistrailId)
+        config, vistrailId = QOpenDBWindow.getOpenVistrail()
+        if config != {} and vistrailId != -1:
+            self.viewManager.openVistrailFromDB(config, vistrailId)
             self.closeVistrailAction.setEnabled(True)
             self.saveVistrailAsAction.setEnabled(True)
+            self.saveDBAction.setEnabled(True)
             #self.vistrailActionGroup.setEnabled(True)
             self.vistrailMenu.menuAction().setEnabled(True)
 
@@ -528,8 +543,15 @@ class QBuilderWindow(QtGui.QMainWindow):
         if not fileName:
             return
         else:
-            self.viewManager.saveVistrail(None, str(fileName))
+            self.viewManager.saveVistrailFile(None, str(fileName))
 
+    def saveVistrailDB(self):
+        config, name = QOpenDBWindow.getSaveVistrail()
+        if config != {} and name != "":
+            self.viewManager.saveVistrailDB(None, name, config)
+        else:
+            return
+    
     def quitVistrails(self):
         """ quitVistrails() -> bool
         Quit Vistrail, return False if not succeeded

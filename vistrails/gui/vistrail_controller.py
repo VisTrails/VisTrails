@@ -42,6 +42,7 @@ from core.inspector import PipelineInspector
 from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 from core.modules.sub_module import addSubModule, DupplicateSubModule
 import core.analogy
+import db.services.io
 import copy
 import os.path
 import traceback
@@ -905,6 +906,8 @@ class VistrailController(QtCore.QObject):
         Change the controller file name
         
         """
+        if fileName == None:
+            fileName = ''
         if self.fileName!=fileName:
             self.fileName = fileName
             self.name = os.path.split(fileName)[1]
@@ -916,6 +919,24 @@ class VistrailController(QtCore.QObject):
         """checkAlias(alias) -> Boolean 
         Returns True if current pipeline has an alias named name """
         return self.currentPipeline.hasAlias(name)
+
+    def writeVistrailDB(self, conn_id, name):
+        """writeVistrailDB(conn_id: int) -> None
+        Write vistrail to database and emit changed signal
+        
+        """
+        if self.vistrail and (self.changed or name != self.fileName):
+            try:
+                self.vistrail.db_name = name
+                db.services.io.save_to_db(conn_id, self.vistrail)
+                self.fileName = name
+                self.name = name
+                self.changed = False
+                self.emit(QtCore.SIGNAL('stateChanged'))
+            except Exception, e:
+                QtGui.QMessageBox.critical(None,
+                                           'Vistrails',
+                                           str(e))
 
     def writeVistrail(self, fileName):
         """ writeVistrail(fileName: str) -> None
