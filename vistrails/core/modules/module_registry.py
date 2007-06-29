@@ -34,10 +34,25 @@ from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.module_function import ModuleFunction
 import core.cache.hasher
 
+##############################################################################
+
+def _check_fringe(fringe):
+    assert type(fringe) == list
+    assert len(fringe) >= 1
+    for v in fringe:
+        assert type(v) == tuple
+        assert len(v) == 2
+        assert type(v[0]) == float
+        assert type(v[1]) == float
+
 ###############################################################################
 # ModuleDescriptor
 
 class ModuleDescriptor(object):
+    """ModuleDescriptor is a class that holds information about
+    modules in the registry.
+
+    """
 
     ##########################################################################
 
@@ -58,7 +73,15 @@ class ModuleDescriptor(object):
         self.inputPortsOptional = {}
         self.outputPortsOptional = {}
         self.inputPortsConfigureWidgetType = {}
-
+        
+        self._is_abstract = False
+        self._configuration_widget = None
+        self._left_fringe = None # Fringes are lists of pairs of floats
+        self._right_fringe = None
+        self._module_color = None
+        self._module_package = None
+        self._hasher_callable = None
+        
     def __copy__(self):
         result = ModuleDescriptor(self.module, self.name)
         result.baseDescriptor = self.baseDescriptor
@@ -68,6 +91,14 @@ class ModuleDescriptor(object):
         result.inputPortsOptional = copy.deepcopy(self.inputPortsOptional)
         result.outputPortsOptional = copy.deepcopy(self.outputPortsOptional)
         result.inputPortsConfigureWidgetType = copy.deepcopy(self.inputPortsConfigureWidgetType)
+        
+        result._is_abstract = self._is_abstract
+        result._configuration_widget = self._configuration_widget
+        result._left_fringe = copy.copy(self._left_fringe)
+        result._right_fringe = copy.copy(self._right_fringe)
+        result._module_color = self._module_color
+        result._module_package = self._module_package
+        result._hasher_callable = self._hasher_callable
         return result
 
     ##########################################################################
@@ -119,6 +150,56 @@ class ModuleDescriptor(object):
             del self.outputPorts[name]
             del self.outputPortsOptional[name]
 
+    def set_abstract(self, v):
+        self._is_abtract = v
+
+    def abstract(self):
+        return self._is_abtract
+
+    def set_configuration_widget(self, configuration_widget_type):
+        self._configuration_widget = configuration_widget_type
+
+    def configuration_widget(self):
+        return self._configuration_widget
+
+    def set_module_color(self, color):
+        if color:
+            assert type(color) == tuple
+            assert len(color) == 3
+            for i in 0,1,2:
+                assert type(color[i]) == float
+        self._module_color = color
+
+    def module_color(self):
+        return self._module_color
+
+    def set_module_fringe(self, left_fringe, right_fringe):
+        if left_fringe is None:
+            assert right_fringe is None
+            self._left_fringe = None
+            self._right_fringe = None
+        else:
+            _check_fringe(left_fringe, right_fringe)
+            self._left_fringe = left_fringe
+            self._right_fringe = right_fringe
+
+    def module_fringe(self):
+        if self._left_fringe is None and self._right_fringe is None:
+            return None
+        return (self._left_fringe, self._right_fringe)
+
+    def set_module_package(self, package_name):
+        self._module_package = package_name
+
+    def module_package(self):
+        return self._module_package
+
+    def set_hasher_callable(self, callable_):
+        self._hasher_callable = callable_
+
+    def hasher_callable(self):
+        return self._hasher_callable
+
 ###############################################################################
 # ModuleRegistry
 
@@ -141,12 +222,8 @@ class ModuleRegistry(QtCore.QObject):
         self.classTree = n
         self.moduleName = { core.modules.vistrails_module.Module: "Module" }
         self.moduleTree = { "Module": n }
-        self.moduleWidget = { "Module": None }
-        self._hasher_callable = {}
-        self._module_color = {}
-        self._module_fringe = {}
         self.currentPackageName = 'Basic Modules'
-        self.modulePackage = {"Module": 'Basic Modules'}
+        n.descriptor.set_module_package(self.currentPackageName)
         self.packageModules = {'Basic Modules': ["Module"]}
 
     def __copy__(self):
@@ -154,12 +231,7 @@ class ModuleRegistry(QtCore.QObject):
         result.classTree = copy.copy(self.classTree)
         result.moduleName = copy.copy(self.moduleName)
         result.moduleTree = result.classTree.make_dictionary()
-        result.moduleWidget = copy.copy(self.moduleWidget)
-        result._hasher_callable = copy.copy(self._hasher_callable)
-        result._module_color = copy.copy(self._module_color)
-        result._module_fringe = copy.copy(self._module_fringe)
         result.currentPackageName = copy.copy(self.currentPackageName)
-        result.modulePackage = copy.copy(self.modulePackage)
         result.packageModules = copy.copy(self.packageModules)
         return result
         
@@ -168,8 +240,12 @@ class ModuleRegistry(QtCore.QObject):
     def module_signature(self, module):
         """Returns signature of a given core.vistrail.Module, possibly
 using user-defined hasher."""
-        if self._hasher_callable.has_key(module.name):
-            return self._hasher_callable[module.name](module)
+        descriptor = self.getDescriptorByName(module.name)
+        if not descriptor:
+            return core.cache.hasher.Hasher.module_signature(module)
+        c = descriptor.hasher_callable()
+        if c:
+            return c(module)
         else:
             return core.cache.hasher.Hasher.module_signature(module)
 
@@ -179,16 +255,10 @@ using user-defined hasher."""
         return self.moduleTree.has_key(name)
 
     def get_module_color(self, name):
-        if self._module_color.has_key(name):
-            return self._module_color[name]
-        else:
-            return None
+        return self.getDescriptorByName(name).module_color()
 
     def get_module_fringe(self, name):
-        if self._module_fringe.has_key(name):
-            return self._module_fringe[name]
-        else:
-            return None
+        return self.getDescriptorByName(name).module_fringe()
 
     def getDescriptorByName(self, name):
         """getDescriptorByName(name: string) -> ModuleDescriptor
@@ -211,19 +281,17 @@ subclasses from modules.vistrails_module.Module)"""
         name = self.moduleName[module]
         return self.getDescriptorByName(name)
 
-    def addModule(self, module,
-                  name=None,
-                  configureWidgetType=None,
-                  cacheCallable=None,
-                  moduleColor=None,
-                  moduleFringe=None,
-                  moduleLeftFringe=None,
-                  moduleRightFringe=None):
-        """addModule(module: class,
-        name=None, configureWidgetType=None,
-        cacheCallable=None, moduleColor=None,
-        moduleFringe=None,
-        moduleLeftFringe=None, moduleRightFringe=None) -> Tree
+    def addModule(self, module, name=None, **kwargs):
+        """addModule(module: class, name=None, **kwargs) -> Tree
+
+        kwargs:
+          configureWidgetType=None,
+          cacheCallable=None,
+          moduleColor=None,
+          moduleFringe=None,
+          moduleLeftFringe=None,
+          moduleRightFringe=None,
+          abstract=None
 
 Registers a new module with VisTrails. Receives the class itself and
 an optional name that will be the name of the module (if not given,
@@ -242,7 +310,31 @@ module boxes. It must be the case that all x values must be positive, and
 all y values must be between 0.0 and 1.0. Alternatively, the user can
 set moduleLeftFringe and moduleRightFringe to set two different fringes.
 
+Notice: in the future, more named parameters might be added to this
+method, and the order is not specified.
+
 """
+        # Setup named arguments. We don't use passed parameters so
+        # that positional parameter calls fail earlier
+        def fetch(name, default):
+            r = kwargs.get(name, default)
+            try:
+                del kwargs[name]
+            except KeyError:
+                pass
+            return r
+        name = fetch('name', module.__name__)
+        configureWidgetType = fetch('configureWidgetType', None)
+        cacheCallable = fetch('cacheCallable', None)
+        moduleColor = fetch('moduleColor', None)
+        moduleFringe = fetch('moduleFringe', None)
+        moduleLeftFringe = fetch('moduleLeftFringe', None) 
+        moduleRightFringe = fetch('moduleRightFringe', None)
+        is_abstract = fetch('abstract', False)
+        
+        if len(kwargs) > 0:
+            raise VistrailsInternalError('Wrong parameters passed to addModule: %s' % kwargs)
+        
         if not name:
             name = module.__name__
         if self.moduleTree.has_key(name):
@@ -259,46 +351,31 @@ set moduleLeftFringe and moduleRightFringe to set two different fringes.
         moduleNode = baseNode.addModule(module, name)
         self.moduleTree[name] = moduleNode
         self.moduleName[module] = name
-        self.moduleWidget[name] = configureWidgetType
-        self.modulePackage[name] = self.currentPackageName
+
+        descriptor = moduleNode.descriptor
+        descriptor.set_abstract(is_abstract)
+        descriptor.set_configuration_widget(configureWidgetType)
+        descriptor.set_module_package(self.currentPackageName)
+
+        if cacheCallable:
+            raise VistrailsInternalError("Unimplemented!")
+        descriptor.set_hasher_callable(cacheCallable)
+        descriptor.set_module_color(moduleColor)
+
+        if moduleFringe:
+            _check_fringe(moduleFringe)
+            leftFringe = list(reversed([(-x, 1.0-y) for (x, y) in moduleFringe]))
+            descriptor.set_module_fringe(leftFringe, moduleFringe)
+        elif moduleLeftFringe and moduleRightFringe:
+            checkFringe(moduleLeftFringe)
+            checkFringe(moduleRightFringe)
+            descriptor.set_module_fringe(moduleLeftFringe, moduleRightFringe)
+
         if self.packageModules.has_key(self.currentPackageName):
             self.packageModules[self.currentPackageName].append(name)
         else:
             self.packageModules[self.currentPackageName] = [name]
-        
-        if cacheCallable:
-            raise VistrailsInternalError("Unimplemented!")
-            self._hasher_callable[name] = cacheCallable
 
-        if moduleColor:
-            assert type(moduleColor) == tuple
-            assert len(moduleColor) == 3
-            for i in 0,1,2:
-                assert type(moduleColor[i]) == float
-            self._module_color[name] = moduleColor
-
-        def checkFringe(fringe):
-            assert type(fringe) == list
-            assert len(fringe) >= 1
-            for v in fringe:
-                assert type(v) == tuple
-                assert len(v) == 2
-                assert type(v[0]) == float
-                assert type(v[1]) == float
-
-        if moduleFringe:
-            checkFringe(moduleFringe)
-            leftFringe = list(reversed([(-x, 1.0-y) for (x, y) in moduleFringe]))
-            self._module_fringe[name] = (leftFringe, moduleFringe)
-        elif moduleLeftFringe and moduleRightFringe:
-            checkFringe(moduleLeftFringe)
-            checkFringe(moduleRightFringe)
-            self._module_fringe[name] = (moduleLeftFringe, moduleRightFringe)
-            
-            
-
-        # self requires object magic, it's an open type! I want OCaml :(
-        # self.addOutputPort(module, 'self', (module, 'self'))
         self.emit(QtCore.SIGNAL("newModule"), name)
         return moduleNode
 
@@ -674,15 +751,18 @@ base classes that subclass from Module."""
             pName = 'Basic Modules'
         self.currentPackageName = pName
 
-    def getModulePackage(self, moduleName):
-        """ getModulePackage(moduleName: str) -> str
-        Return the name associate of a module
+    def get_module_package(self, moduleName):
+        """ get_module_package(moduleName: str) -> str
+        Return the name of the package where the module is registered.
         
         """
-        if self.modulePackage.has_key(moduleName):
-            return self.modulePackage[moduleName]
-        else:
-            return None
+        descriptor = self.getDescriptorByName(moduleName)
+        return descriptor.module_package()
+
+    def get_configuration_widget(self, moduleName):
+        descriptor = self.getDescriptorByName(moduleName)
+        return descriptor.configuration_widget()
+        
 
 ###############################################################################
 

@@ -297,7 +297,7 @@ def registerSelf():
     Registry module with the registry
     """
     vIO = registry.getDescriptorByName('vtkInteractorObserver').module
-    registry.addModule(vtkInteractionHandler, None, HandlerConfigurationWidget)
+    registry.addModule(vtkInteractionHandler, configureWidgetType=HandlerConfigurationWidget)
     registry.addInputPort(vtkInteractionHandler, 'Observer', vIO)
     registry.addInputPort(vtkInteractionHandler, 'Handler', String, True)
     registry.addInputPort(vtkInteractionHandler, 'SharedData', Module)

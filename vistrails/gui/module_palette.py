@@ -55,7 +55,7 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         A new module has been added to Vistrail
         
         """
-        packageName = registry.modulePackage[moduleName]
+        packageName = registry.get_module_package(moduleName)
         packageItems = self.treeWidget.findItems(packageName,
                                                  QtCore.Qt.MatchExactly |
                                                  QtCore.Qt.MatchWrap)
@@ -72,8 +72,9 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         hierarchy = registry.getModuleHierarchy(moduleName)
         prevModule = None
         for module in hierarchy[1:]:
-            mName = registry.getDescriptorByThing(module).name
-            pName = registry.modulePackage[mName]
+            descriptor = registry.getDescriptor(module)
+            mName = descriptor.name
+            pName = descriptor.module_package()
             if pName!=packageName:
                 break
             else:
@@ -133,7 +134,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
             
             """
             labels = QtCore.QStringList(module.descriptor.name)
-            packageName = registry.modulePackage[module.descriptor.name]
+            packageName = module.descriptor.module_package()
             parentItem = parentItems[packageName]
             moduleItem = QModuleTreeWidgetItem(module.descriptor,
                                                parentItem,

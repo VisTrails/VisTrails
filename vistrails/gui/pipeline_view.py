@@ -744,7 +744,7 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         if self.controller:
             self.controller.resendVersionWasChanged
             module = self.controller.currentPipeline.modules[self.id]
-            widgetType = registry.moduleWidget[module.name]
+            widgetType = registry.get_configuration_widget(module.name)
             if not widgetType:
                 widgetType = DefaultModuleConfigurationWidget
             global widget

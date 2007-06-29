@@ -60,7 +60,7 @@ def addSubModule(moduleName, packageName, vistrail,
         currentDesc = _reg.getDescriptorByName(moduleName)
         if issubclass(currentDesc.module, SubModule):
             # Need a way to check VistrailLocator. Just check package for now
-            if (packageName==_reg.modulePackage[moduleName] and
+            if (packageName==_reg.get_module_package(moduleName) and
                 currentDesc.module.VersionNumber==version):
                 raise DupplicateSubModule(moduleName)
         raise ModuleAlreadyExists(moduleName)

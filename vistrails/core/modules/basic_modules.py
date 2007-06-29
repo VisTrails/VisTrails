@@ -214,7 +214,7 @@ class Tuple(Module):
                         for p in self.srcPortsOrder])
         self.setResult("value", values)
         
-_reg.addModule(Tuple, None, TupleConfigurationWidget)
+_reg.addModule(Tuple, configureWidgetType=TupleConfigurationWidget)
 _reg.addOutputPort(Tuple, 'self', Tuple)
 
 class TestTuple(Module):
@@ -327,7 +327,7 @@ class PythonSource(NotCacheable, Module):
                 self.setResult(k, locals_[k])
 
 _reg.addModule(PythonSource,
-               None, module_configure.PythonSourceConfigurationWidget)
+               configureWidgetType=module_configure.PythonSourceConfigurationWidget)
 _reg.addInputPort(PythonSource, 'source', String, True)
 
 ##############################################################################

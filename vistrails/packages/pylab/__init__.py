@@ -106,7 +106,7 @@ def initialize(*args, **keywords):
     reg = core.modules.module_registry
     reg.setCurrentPackageName('Matplotlib/pylab')
     
-    reg.addModule(MplPlot, None, MplPlotConfigurationWidget)
+    reg.addModule(MplPlot, configureWidgetType=MplPlotConfigurationWidget)
     reg.addInputPort(MplPlot, 'source', String, True)
     reg.addOutputPort(MplPlot, 'source', String)
     
