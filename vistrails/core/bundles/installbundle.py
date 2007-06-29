@@ -71,10 +71,25 @@ def install(dependency_dictionary):
     """Tries to import a python module. If unsuccessful, tries to install
 the appropriate bundle and then reimport. py_import tries to be smart
 about which system it runs on."""
+
+    # Ugly fix to avoid circular import
+    import gui.utils
     distro = guess_system()
     if not dependency_dictionary.has_key(distro):
         return False
     else:
-        callable_ = getattr(core.bundles.installbundle,
-                            distro.replace('-', '_') + '_install')
-        return callable_(dependency_dictionary[distro])
+        v = gui.utils.show_question("Required package missing",
+                                    "A required package is missing, but VisTrails can " +
+                                    "automaticallly install it. " +
+                                    "If you click OK, VisTrails will need "+
+                                    "administrator privileges, and you" +
+                                    "might be asked for the administrator password.",
+                                    buttons=[gui.utils.OK_BUTTON,
+                                             gui.utils.CANCEL_BUTTON],
+                                    default=gui.utils.OK_BUTTON)
+        if v == gui.utils.OK_BUTTON:
+            callable_ = getattr(core.bundles.installbundle,
+                                distro.replace('-', '_') + '_install')
+            return callable_(dependency_dictionary[distro])
+        else:
+            return False
