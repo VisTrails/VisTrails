@@ -51,15 +51,18 @@ class Module(DBModule):
     ##########################################################################
     # Constructor and copy
 
-    def __init__(self, name='', id_=-1, funs=None):
-	DBModule.__init__(self, id_, 1, name, None)
-#         self.name = name
-#         self.id = id_
-        if funs is not None:
-            self.functions = [ModuleFunction(*fun)
-                              for fun in funs]
-        else:
-            self.functions = []
+    def __init__(self, *args, **kwargs):
+	DBModule.__init__(self, *args, **kwargs)
+        if self.cache is None:
+            self.cache = 1
+        if self.id is None:
+            self.id = -1
+        if self.location is None:
+            self.location = Location(x=-1.0, y=-1.0)
+        if self.name is None:
+            self.name = ''
+#        self.name = name
+#        self.id = id
 #        self.cache = 1
 #        self.annotations = {}
 #        self.center = Point(-1.0, -1.0)
@@ -86,7 +89,11 @@ class Module(DBModule):
 
     @staticmethod
     def convert(_module):
+        if _module.__class__ == Module:
+            return
 	_module.__class__ = Module
+        if _module.db_location:
+            Location.convert(_module.db_location)
 	for _function in _module.db_functions:
 	    ModuleFunction.convert(_function)
         _module.annotationMap = {}
@@ -132,6 +139,13 @@ class Module(DBModule):
             self.annotationMap[key] = new_annotation
             self.annotationValueMap[key] = value
     annotations = property(_get_annotations, _set_annotations)
+
+
+    def _get_location(self):
+        return self.db_location
+    def _set_location(self, location):
+        self.db_location = location
+    location = property(_get_location, _set_location)
 
     # grrr this doesn't capture deep access like center.x = 1.2344
     def _get_center(self):
@@ -564,8 +578,18 @@ class TestModule(unittest.TestCase):
         assert m == mnew        
 
     def test_constructor(self):
-        m1 = Module('Float', 0,
-                   [('value', [('Float', '1.2')])])
+        m1_param = ModuleParam(val="1.2",
+                               type="Float",
+                               alias="",
+                               )
+        m1_function = ModuleFunction(name="value",
+                                     parameters=[m1_param],
+                                     )
+        m1 = Module(id=0,
+                    name='Float',
+                    functions=[m1_function],
+                    )
+                    
         m2 = Module()
         m2.name = "Float"
         m2.id = 0
@@ -580,8 +604,14 @@ class TestModule(unittest.TestCase):
         assert m1 == m2
 
     def test_str(self):
-        m = Module('Float', 0,
-                   [('value', [('Float', '1.2')])])
+        m = Module(id=0,
+                   name='Float',
+                   functions=[ModuleFunction(name='value',
+                                             parameters=[ModuleParam(type='Int',
+                                                                     val='1',
+                                                                     )],
+                                             )],
+                   )
         str(m)
         
 if __name__ == '__main__':

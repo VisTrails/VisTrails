@@ -50,14 +50,19 @@ class Port(DBPort):
     
     def __init__(self, *args, **kwargs):
 	DBPort.__init__(self, *args, **kwargs)
-
-        self.endPoint = PortEndPoint.Invalid
-        self.moduleId = 0
-        self.connectionId = 0
-        self.moduleName = ""
-        self.name = ""
-#        self.spec = None
-        self.spec = []
+        if self.id is None:
+            self.id = -1
+        if self.db_sig is not None:
+            (self._name, self._spec) = self.make_name_spec_tuple()
+        else:
+            self._name = ""
+            self._spec = []
+        if self.moduleId is None:
+            self.moduleId = 0
+        if self.connectionId is None:
+            self.connectionId = 0
+        if self.moduleName is None:
+            self.moduleName = ""
         self.optional = False
         self.sort_key = -1
 
@@ -69,8 +74,8 @@ class Port(DBPort):
 #         cp.connectionId = self.connectionId
 #         cp.moduleName = self.moduleName
 #         cp.sig = self.sig
-        cp.name = self.name
-        cp.spec = copy.copy(self.spec)
+        cp._name = self._name
+        cp._spec = copy.copy(self._spec)
         cp.optional = self.optional
         cp.sort_key = self.sort_key
 
@@ -79,11 +84,21 @@ class Port(DBPort):
     @staticmethod
     def convert(_port):
 	_port.__class__ = Port
-        _port.name = ""
-        _port.spec = []
+        if _port.db_sig is not None:
+            (_port._name, _port._spec) = _port.make_name_spec_tuple()
+        else:
+            _port._name = ""
+            _port._spec = []
         _port.optional = False
+        _port.sort_key = -1
 
     ##########################################################################
+
+    def _get_id(self):
+        return self.db_id
+    def _set_id(self, id):
+        self.db_id = id
+    id = property(_get_id, _set_id)
 
     def _get_endPoint(self):
 	map = {'source': PortEndPoint.Source,
@@ -119,26 +134,61 @@ class Port(DBPort):
         self.db_moduleName = moduleName
     moduleName = property(_get_moduleName, _set_moduleName)
 
-# have to redo these...
+    def _get_name(self):
+        # FIXME sync with sig
+        return self._name
+    def _set_name(self, name):
+        self._name = name
+        
+        # update self.db_sig
+        self.db_sig = self.make_sig()
+    name = property(_get_name, _set_name)
+
     def _get_spec(self):
-# 	return _Port._get_spec(self)
 	return self._spec
     def _set_spec(self, spec):
-# 	_Port._set_spec(self, spec)
 	self._spec = spec
+
+        # update self.db_sig
+        self.db_sig = self.make_sig()            
     spec = property(_get_spec, _set_spec)
 
     def _get_sig(self):
         return self.db_sig
     def _set_sig(self, sig):
         self.db_sig = sig
+
+        # update self._name and self._spec
+        (self._name, self._spec) = self.make_name_spec_tuple()
     sig = property(_get_sig, _set_sig)
 		     
-    def _get_type(self):
- 	return self._type
-    def _set_type(self, type):
- 	self._type = type
-    type = property(_get_type, _set_type)
+#     def _get_type(self):
+#  	return self._type
+#     def _set_type(self, type):
+#  	self._type = type
+#     type = property(_get_type, _set_type)
+
+    def make_name_spec_tuple(self):
+        x = self.db_sig.find('(')
+        assert x != -1
+        portName = self.db_sig[:x]
+        portSpec = self.db_sig[x:]
+
+        values = [v.strip() for v in portSpec[1:-1].split(",")]
+        spec = [[(v, '<no description>') for v in values]]
+        return (portName, spec)
+
+    def make_sig(self):
+        def get_type_str(s):
+            if type(s[0]) == type(''):
+                return s[0]
+            else:
+                return s[0].__name__
+            
+        if self._spec is not None and len(self._spec) > 0:
+            return self._name + "(" + \
+                ",".join(get_type_str(s) for s in self._spec[0]) + ")"
+        return self._name + "()"
 
     def getSig(self, spec):
         """ getSig(spec: tuple) -> str

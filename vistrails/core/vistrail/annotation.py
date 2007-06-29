@@ -29,6 +29,8 @@ class Annotation(DBAnnotation):
 
     def __init__(self, *args, **kwargs):
         DBAnnotation.__init__(self, *args, **kwargs)
+        if self.id is None:
+            self.id = -1
         
     def __copy__(self):
         cp = DBAnnotation.__copy__(self)

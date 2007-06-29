@@ -31,36 +31,16 @@ class Action(DBAction):
     ##########################################################################
     # Constructors and copy
 
-    def __init__(self, timestep=0, parent=0, date=None, user=None, notes=None, 
-                 operations=None):
-        """ __init__(timestep=0, parent=0, date=None, user=None, 
-                     notes=None) -> Action
-        Action constructor. 
-        Keyword Arguments:
-         - timestep: int
-         - parent: int
-         - date: str or datetime
-         - user: str
-         - notes: str
-
-        """
-
-        if date is not None and type(date) == type(''):
-            if date.strip() != '':
-                date = datetime(*strptime(date, '%d %b %Y %H:%M:%S')[0:6])
-            else:
-                date = None
-
-        if operations is None:
-            operations = []
-        DBAction.__init__(self,
-                          id=timestep,
-                          prevId=parent,
-                          date=date,
-                          user=user,
-                          operations=operations)
-        # FIXME notes should be an anontation on the action?
-        self.notes = notes
+    def __init__(self, *args, **kwargs):
+        DBAction.__init__(self, *args, **kwargs)
+        if self.timestep is None:
+            self.timestep = -1
+        if self.parent is None:
+            self.parent = -1
+        if kwargs.has_key('notes'):
+            self.notes = kwargs['notes']
+        else:
+            self.notes = None
 
     def __copy__(self):
         cp = DBAction.__copy__(self)
@@ -70,18 +50,20 @@ class Action(DBAction):
     
     ##########################################################################
     # Properties
-    
+
     def _get_timestep(self):
 	return self.db_id
     def _set_timestep(self, timestep):
 	self.db_id = timestep
     timestep = property(_get_timestep, _set_timestep)
+    id = property(_get_timestep, _set_timestep)
 
     def _get_parent(self):
 	return self.db_prevId
     def _set_parent(self, parent):
         self.db_prevId = parent
     parent = property(_get_parent, _set_parent)
+    prevId = property(_get_parent, _set_parent)
 
     def _get_date(self):
 	if self.db_date is not None:
@@ -89,7 +71,9 @@ class Action(DBAction):
 	return datetime(1900,1,1).strftime('%d %b %Y %H:%M:%S')
 
     def _set_date(self, date):
-	if date is not None and date.strip() != '':
+        if type(date) == datetime:
+            self.db_date = date
+        elif type(date) == type('') and date.strip() != '':
             newDate = datetime(*strptime(date, '%d %b %Y %H:%M:%S')[0:6])
 	    self.db_date = newDate
     date = property(_get_date, _set_date)
@@ -121,6 +105,8 @@ class Action(DBAction):
     
     @staticmethod
     def convert(_action):
+        if _action.__class__ == Action:
+            return
         _action.__class__ = Action
         for _operation in _action.operations:
             if _operation.vtType == 'add':

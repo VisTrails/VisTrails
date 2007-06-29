@@ -84,21 +84,19 @@ class Connection(DBConnection):
         conn.destination.endPoint = PortEndPoint.Destination
         return conn
     
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """__init__() -> Connection 
         Initializes source and destination ports.
         
         """
-	DBConnection.__init__(self)
-	#        self.__source = Port()
-	#	_Connection._get_ports(self)['source'] = Port()
-	#       self.__dest = Port()
-	#	_Connection._get_ports(self)['destination'] = Port()
-        self.connectionMap = {}
-	self.source = Port()
-	self.destination = Port()
-        self.source.endPoint = PortEndPoint.Source
-        self.destination.endPoint = PortEndPoint.Destination
+	DBConnection.__init__(self, *args, **kwargs)
+        if self.id is None:
+            self.db_id = -1
+        if not len(self.ports) > 0:
+            self.source = Port(type='source')
+            self.destination = Port(type='destination')
+#             self.source.endPoint = PortEndPoint.Source
+#             self.destination.endPoint = PortEndPoint.Destination
         self.makeConnection = moduleConnection(self)
 
     def __copy__(self):
@@ -111,45 +109,43 @@ class Connection(DBConnection):
 #         cp.source = copy.copy(self.source)
 #         cp.destination = copy.copy(self.destination)
         cp.makeConnection = moduleConnection(cp)
-        cp.connectionMap = copy.copy(self.connectionMap)
+
+        for port in cp.ports:
+            Port.convert(port)
+
         return cp
 
     ##########################################################################
 
     @staticmethod
     def convert(_connection):
-#	print "converting connection: %s" % _connection
 #	print "ports: %s" % _Connection._get_ports(_connection)
+        if _connection.__class__ == Connection:
+            return
         _connection.__class__ = Connection
 
-        # set connection map here
-        _connection.connectionMap = {}
-        for port in _connection.db_get_ports():
+        for port in _connection.ports:
             Port.convert(port)
-            if port.db_type == 'source':
-                _connection.connectionMap['source'] = port
-            elif port.db_type == 'destination':
-                _connection.connectionMap['destination'] = port
 
-        _connection.sourceInfo = \
-	    (_connection.source.moduleName, _connection.source.sig)
-        _connection.destinationInfo = \
-	    (_connection.destination.moduleName, _connection.destination.sig)
-#        print _connection.sourceInfo
-#        print _connection.destinationInfo
-        portFromRepresentation = registry.portFromRepresentation
-        newSource = \
-	    portFromRepresentation(_connection.source.moduleName, 
-				   _connection.source.sig,
-				   PortEndPoint.Source, None, True)
-	newDestination = \
-	    portFromRepresentation(_connection.destination.moduleName,
-				   _connection.destination.sig,
-				   PortEndPoint.Destination, None, True)
-	newSource.moduleId = _connection.source.moduleId
-	newDestination.moduleId = _connection.destination.moduleId
-	_connection.source = newSource
-	_connection.destination = newDestination
+#         _connection.sourceInfo = \
+# 	    (_connection.source.moduleName, _connection.source.sig)
+#         _connection.destinationInfo = \
+# 	    (_connection.destination.moduleName, _connection.destination.sig)
+# #        print _connection.sourceInfo
+# #        print _connection.destinationInfo
+#         portFromRepresentation = registry.portFromRepresentation
+#         newSource = \
+# 	    portFromRepresentation(_connection.source.moduleName, 
+# 				   _connection.source.sig,
+# 				   PortEndPoint.Source, None, True)
+# 	newDestination = \
+# 	    portFromRepresentation(_connection.destination.moduleName,
+# 				   _connection.destination.sig,
+# 				   PortEndPoint.Destination, None, True)
+# 	newSource.moduleId = _connection.source.moduleId
+# 	newDestination.moduleId = _connection.destination.moduleId
+# 	_connection.source = newSource
+# 	_connection.destination = newDestination
         _connection.makeConnection = moduleConnection(_connection)
 
     def genSignatures(self):
@@ -302,9 +298,19 @@ class Connection(DBConnection):
 
         """
         self.db_id = i
-        self.source.connectionId = i
-        self.destination.connectionId = i
+        if self.source is not None:
+            self.source.connectionId = i
+        if self.destination is not None:
+            self.destination.connectionId = i
     id = property(_get_id, _set_id)
+
+    def _get_ports(self):
+        return self.db_ports
+    def _set_ports(self, ports):
+        self.db_ports = ports
+    ports = property(_get_ports, _set_ports)
+    def add_port(self, port):
+        self.db_add_port(port)
 
     def _get_sourceId(self):
         """ _get_sourceId() -> int
@@ -369,7 +375,11 @@ class Connection(DBConnection):
 
         """
 #	return self.db_ports['source']
-        return self.connectionMap['source']
+        try:
+            return self.db_get_port_by_type('source')
+        except KeyError:
+            pass
+        return None
 
     def _set_source(self, source):
         """_set_source(source: Port) -> None 
@@ -378,10 +388,13 @@ class Connection(DBConnection):
         property instead: c.source = source
 
         """
-        if self.connectionMap.has_key('source'):
-            self.db_delete_port(self.connectionMap['source'])
-        self.db_add_port(source)
-        self.connectionMap['source'] = source
+        try:
+            port = self.db_get_port_by_type('source')
+            self.db_delete_port(port)
+        except KeyError:
+            pass
+        if source is not None:
+            self.db_add_port(source)
     source = property(_get_source, _set_source)
 
     def _get_destination(self):
@@ -391,7 +404,11 @@ class Connection(DBConnection):
 
         """
 #	return self.db_ports['destination']
-        return self.connectionMap['destination']
+        try:
+            return self.db_get_port_by_type('destination')
+        except KeyError:
+            pass
+        return None
 
     def _set_destination(self, dest):
         """_set_destination(dest: Port) -> None 
@@ -400,10 +417,13 @@ class Connection(DBConnection):
         property instead: c.destination = dest
 
         """
-        if self.connectionMap.has_key('destination'):
-            self.db_delete_port(self.connectionMap['destination'])
-        self.db_add_port(dest)
-        self.connectionMap['destination'] = dest
+        try:
+            port = self.db_get_port_by_type('destination')
+            self.db_delete_port(port)
+        except KeyError:
+            pass
+        if dest is not None:
+            self.db_add_port(dest)
     destination = property(_get_destination, _set_destination)
 
 ################################################################################

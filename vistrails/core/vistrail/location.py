@@ -29,6 +29,8 @@ class Location(DBLocation):
 
     def __init__(self, *args, **kwargs):
         DBLocation.__init__(self, *args, **kwargs)
+        if self.id is None:
+            self.id = -1
         
     def __copy__(self):
         cp = DBLocation.__copy__(self)

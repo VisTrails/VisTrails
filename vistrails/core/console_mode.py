@@ -120,8 +120,17 @@ class TestConsoleMode(unittest.TestCase):
         interpreter = core.interpreter.default.get_default_interpreter()
         v = DummyView()
         p = core.vistrail.pipeline.Pipeline()
-        p.addModule(Module('TestTupleExecution', 0,
-                           [('input', [('Float', '2.0'), ('Float', '2.0')])]))
+        params = [ModuleParam(type='Float',
+                              val='2.0',
+                              ),
+                  ModuleParam(type='Float',
+                              val='2.0',
+                              )]
+        p.addModule(Module(id=0,
+                           name='TestTupleExecution',
+                           functions=[ModuleFunction(name='input',
+                                                     parameters=params)],
+                           )
         interpreter.execute(None, p, 'foo', 1, v, None)
 
     def test_python_source(self):

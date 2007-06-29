@@ -51,17 +51,15 @@ class ModuleFunction(DBFunction):
     ##########################################################################
     # Constructors and copy
     
-    def __init__(self, name="", params=None, id=-1, pos=-1):
-	DBFunction.__init__(self,
-                            id=id,
-                            pos=pos,
-                            name=name)
-        # self.name = name
+    def __init__(self, *args, **kwargs):
+	DBFunction.__init__(self, *args, **kwargs)
+        if self.name is None:
+            self.name = ""
+        if self.real_id is None:
+            self.real_id = -1
+        if self.pos is None:
+            self.pos = -1
         self.returnType = "void"
-        if params is not None:
-            self.params = [ModuleParam(*param) for param in params]
-        else:
-            self.params = []
     
     @staticmethod
     def fromSpec(port, spec):
@@ -105,6 +103,8 @@ class ModuleFunction(DBFunction):
 
     @staticmethod
     def convert(_function):
+        if _function.__class__ == ModuleFunction:
+            return
 	_function.__class__ = ModuleFunction
 	for _parameter in _function.db_get_parameters():
 	    ModuleParam.convert(_parameter)
@@ -119,6 +119,7 @@ class ModuleFunction(DBFunction):
     def _set_id(self, id):
         self.db_pos = id
     id = property(_get_id, _set_id)
+    pos = property(_get_id, _set_id)
     
     def _get_real_id(self):
         return self.db_id
@@ -131,7 +132,8 @@ class ModuleFunction(DBFunction):
     def _set_params(self, params):
         self.db_parameters = params
     params = property(_get_params, _set_params)
-    
+    parameters = property(_get_params, _set_params)
+
     def _get_name(self):
         return self.db_name
     def _set_name(self, name):
@@ -293,8 +295,10 @@ class TestModuleFunction(unittest.TestCase):
         assert f == fnew
 
     def test_str(self):
-        f = ModuleFunction('value',
-                           [('Float', '1.2')])
+        f = ModuleFunction(name='value',
+                           parameters=[ModuleParam(type='Float',
+                                                   val='1.2')],
+                           )
         str(f)
 
 if __name__ == '__main__':

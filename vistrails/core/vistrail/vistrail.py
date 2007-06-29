@@ -104,15 +104,16 @@ class Vistrail(DBVistrail):
 
             # update idScope
             # FIXME phase out latestTime and use idScope instead
-            _vistrail.idScope.updateBeginId('action', action.timestep+1)
-            for operation in action.operations:
-                _vistrail.idScope.updateBeginId('operation', operation.id+1)
-                if operation.vtType == 'add':
-                    _vistrail.idScope.updateBeginId(operation.what, 
-                                                    operation.objectId+1)
-                elif operation.vtType == 'change':
-                    _vistrail.idScope.updateBeginId(operation.what,
-                                                    operation.newObjId+1)
+# moved this to db.services.vistrail - DAK
+#             _vistrail.idScope.updateBeginId('action', action.timestep+1)
+#             for operation in action.operations:
+#                 _vistrail.idScope.updateBeginId('operation', operation.id+1)
+#                 if operation.vtType == 'add':
+#                     _vistrail.idScope.updateBeginId(operation.what, 
+#                                                     operation.objectId+1)
+#                 elif operation.vtType == 'change':
+#                     _vistrail.idScope.updateBeginId(operation.what,
+#                                                     operation.newObjId+1)
 	for tag in _vistrail.tagMap.values():
             Tag.convert(tag)
 	    _vistrail.inverseTagMap[tag.time] = tag.name
@@ -120,242 +121,6 @@ class Vistrail(DBVistrail):
 # 	    Macro.convert(macro)
 
 	_vistrail.changed = False
-
-    def create_add_operation(self, data, parentObjId=None, parentObjType=None):
-        return AddOp(id=self.idScope.getNewId('operation'),
-                     what=data.vtType,
-                     objectId=data.getPrimaryKey(),
-                     parentObjId=parentObjId,
-                     parentObjType=parentObjType,
-                     data=data,
-                     )
-
-    def create_delete_operation(self, objectId, objectType, 
-                                parentObjId=None, parentObjType=None):
-        return DeleteOp(id=self.idScope.getNewId('operation'),
-                        what=objectType,
-                        objectId=objectId,
-                        parentObjId=parentObjId,
-                        parentObjType=parentObjType
-                        )
-
-    def create_change_operation(self, data, oldId,
-                                parentObjId=None, parentObjType=None):
-        return ChangeOp(id=self.idScope.getNewId('operation'),
-                        what=data.vtType,
-                        oldObjId=oldId,
-                        newObjId=data.getPrimaryKey(),
-                        parentObjId=parentObjId,
-                        parentObjType=parentObjType,
-                        data=data,
-                        )
-
-    def create_action(self, operations, parent):
-        new_id = self.idScope.getNewId('action')
-        new_action = Action(timestep=new_id,
-                            parent=parent,
-                            date=self.getDate(),
-                            user=self.getUser(),
-                            operations=operations)
-        self.addVersion(new_action)
-        return new_action
-
-    def add_modules_action(self, parent, modules):
-        ops = []
-        for (name, x, y) in modules:
-            module_id = self.idScope.getNewId('module')
-            location_id = self.idScope.getNewId('location')
-            new_module = Module(name=str(name),
-                                id_=module_id)
-            new_location = Location(id=location_id,x=x,y=y)
-            ops.append(self.create_add_operation(new_module))
-            ops.append(self.create_add_operation(new_location,
-                                                 module_id, 'module'))
-        return self.create_action(ops, parent)
-
-    def del_modules_links_action(self, parent, module_ids=None, 
-                                 connection_ids=None):
-        ops = []
-        if connection_ids:
-            for connection_id in connection_ids:
-                ops.append(self.create_delete_operation(connection_id,
-                                                        'connection'))
-        if module_ids:
-            for module_id in module_ids:
-                ops.append(self.create_delete_operation(module_id,'module'))
-        return self.create_action(ops, parent)
-                              
-    def chg_locations_action(self, parent, locations):
-        ops = []
-        for (old_id, x, y, module_id) in locations:
-            location_id = self.idScope.getNewId('location')
-            new_location = Location(id=location_id,x=x,y=y)
-            ops.append(self.create_change_operation(new_location, old_id,
-                                                    module_id, 'module'))
-        return self.create_action(ops, parent)
-
-    def add_connects_action(self, parent, connections):
-        ops = []
-        for new_connection in connections:
-            connect_id = self.idScope.getNewId('connection')
-            new_connection.id = connect_id
-            new_connection.genSignatures()
-            for port in new_connection.db_get_ports():
-                port_id = self.idScope.getNewId('port')
-                port.id = port_id
-            ops.append(self.create_add_operation(new_connection))
-        return self.create_action(ops, parent)
-
-    def add_function_action(self, parent, function, module_id):
-        ops = []
-        function_id = self.idScope.getNewId('function')
-        # FIXME shouldn't have to do a copy, but gui kinda demands it
-        # FIXME pos needs to be set correctly
-        new_function = ModuleFunction(id=function_id,
-                                      pos=function.db_pos,
-                                      name=function.name)
-        ops.append(self.create_add_operation(new_function, module_id, 'module'))
-        for i in range(function.getNumParams()):
-            param = function.params[i]
-            param_id = self.idScope.getNewId('parameter')
-            new_parameter = ModuleParam(id=param_id,
-                                        pos=i,
-                                        name=param.name,
-                                        alias='',
-                                        strValue=str(param.value()),
-                                        type_=param.type)
-            ops.append(self.create_add_operation(new_parameter,
-                                                 function_id, 'function'))
-        return self.create_action(ops, parent)
-
-    def del_function_action(self, parent, function_id, module_id):
-        ops = []
-        ops.append(self.create_delete_operation(function_id, 'function',
-                                                module_id, 'module'))
-        return self.create_action(ops, parent)
-
-    def chg_params_action(self, parent, params, function_id):
-        ops = []
-        for i in range(len(params)):
-            (old_id, p_val, p_type, p_alias) = params[i]
-            param_id = self.idScope.getNewId('parameter')
-            new_parameter = ModuleParam(id=param_id,
-                                        pos=i,
-                                        name='<no description>',
-                                        alias=p_alias,
-                                        strValue=p_val,
-                                        type_=p_type)
-            ops.append(self.create_change_operation(new_parameter, old_id,
-                                                    function_id, 'function'))
-        return self.create_action(ops, parent)
-
-    def chg_annotation_action(self, parent, pair, module):
-        ops = []
-        annotation_id = self.idScope.getNewId('annotation')
-        new_annotation = Annotation(id=annotation_id,
-                                    key=pair[0], 
-                                    value=pair[1])
-        old_id = -1
-        for db_annotation in module.db_get_annotations():
-            if pair[0] == db_annotation.key:
-                old_id = db_annotation.id
-                break
-        if old_id == -1:
-            ops.append(self.create_add_operation(new_annotation,
-                                                 module.id, 'module'))
-        else:
-            ops.append(self.create_change_operation(new_annotation, old_id,
-                                                    module.id, 'module'))
-        return self.create_action(ops, parent)
-
-    def del_annotation_action(self, parent, key, module):
-        ops = []
-        id = -1
-        for db_annotation in module.db_get_annotations():
-            if key == db_annotation.key:
-                id = db_annotation.id
-                break
-        if id == -1:
-            raise Exception("Cannot delete annotation with key '%s'" % key)
-
-        ops.append(self.create_delete_operation(id, 'annotation',
-                                                module.id, 'module'))
-        return self.create_action(ops, parent)
-
-    def add_port_spec_action(self, parent, spec, module_id):
-        ops = []
-        port_spec_id = self.idScope.getNewId('portSpec')
-        new_port_spec = PortSpec(id=port_spec_id,
-                                 type=spec[0],
-                                 name=spec[1],
-                                 spec=spec[2])
-        ops.append(self.create_add_operation(new_port_spec, 
-                                             module_id, 'module'))
-        return self.create_action(ops, parent)
-
-    def del_port_spec_action(self, parent, spec_id, module_id):
-        ops = []
-        ops.append(self.create_delete_operation(spec_id, 'portSpec',
-                                                module_id, 'module'))
-        return self.create_action(ops, parent)
-
-    # need to do a paste action, too
-
-    def find_data(self, what, objectId):
-        # this is slow for the time being, a lookup would improve
-        for action in self.actionMap.values():
-            for op in action.operations:
-                if op.what == what and op.objectId == objectId and \
-                        (op.vtType == 'add' or op.vtType == 'change'):
-                    return op.data
-
-        raise Exception("data ('%s', %d) cannot be found" % (what, objectId))                    
-
-    def get_inverse_operation(self, op):
-        if op.vtType == 'add':
-            return DeleteOp(id=-1,
-                            what=op.what,
-                            objectId=op.objectId,
-                            parentObjId=op.parentObjId,
-                            parentObjType=op.parentObjType,
-                            )
-        elif op.vtType == 'delete':
-            # need to find data
-            data = self.find_data(op.what, op.objectId)
-            return AddOp(id=-1,
-                         what=op.what,
-                         objectId=op.objectId,
-                         parentObjId=op.parentObjId,
-                         parentObjType=op.parentObjType,
-                         data=data,
-                         )
-                         
-        elif op.vtType == 'change':
-            # need to find data
-            data = self.find_data(op.what, op.oldObjId)
-            return ChangeOp(id=-1,
-                            what=op.what,
-                            oldObjId=op.newObjId,
-                            newObjId=op.oldObjId,
-                            parentObjId=op.parentObjId,
-                            parentObjType=op.parentObjType,
-                            data=data,
-                            )
-            
-
-    def get_inverse_action(self, action):
-        new_ops = []
-        for op in action.operations:
-            new_ops.append(self.get_inverse_operation(op))
-        new_ops.reverse()
-        
-        new_action = Action(timestep=-1,
-                            parent=-1,
-                            date=self.getDate(),
-                            user=self.getUser(),
-                            operations=new_ops)
-        Action.convert(new_action)
-        return new_action
 
     def getVersionName(self, version):
         """ getVersionName(version) -> str 
@@ -420,7 +185,6 @@ class Vistrail(DBVistrail):
         """
 #        return Pipeline(self.actionChain(version))
         workflow = dbservice.getWorkflow(self, version)
-        Pipeline.convert(workflow)
         return workflow
 
 
@@ -858,6 +622,18 @@ class Vistrail(DBVistrail):
         result.reverse()
         return result
     
+    def add_action(self, action, parent):
+        Action.convert(action)
+        if action.id < 0:
+            action.id = self.idScope.getNewId(action.vtType)
+        action.prevId = parent
+        action.date = self.getDate()
+        action.user = self.getUser()
+        for op in action.operations:
+            if op.id < 0:
+                op.id = self.idScope.getNewId('operation')
+        self.addVersion(action)                
+
     def hasVersion(self, version):
         """hasVersion(version:int) -> boolean
         Returns True if version with given timestamp exists

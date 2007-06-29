@@ -40,14 +40,21 @@ class ModuleParam(DBParameter):
     ##########################################################################
     # Constructor
 
-    def __init__(self, type_="", strValue="", alias="", name="", pos=-1, id=-1):
-	DBParameter.__init__(self,
-                             id=id,
-                             pos=pos,
-                             name=name,
-                             alias=alias,
-                             val=strValue,
-                             type=type_)
+    def __init__(self, *args, **kwargs):
+	DBParameter.__init__(self, *args, **kwargs)
+        if self.real_id is None:
+            self.real_id = -1
+        if self.type is None:
+            self.type = ""
+        if self.strValue is None:
+            self.strValue = ""
+        if self.alias is None:
+            self.alias = ""
+        if self.pos is None:
+            self.pos = -1
+        if self.name is None:
+            self.name = ""
+
         self.minValue = ""
         self.maxValue = ""
         self.evaluatedStrValue = ""
@@ -66,6 +73,8 @@ class ModuleParam(DBParameter):
 
     @staticmethod
     def convert(_parameter):
+        if _parameter.__class__ == ModuleParam:
+            return
 	_parameter.__class__ = ModuleParam
         _parameter.queryMethod = 0
         _parameter.minValue = ""
@@ -80,6 +89,7 @@ class ModuleParam(DBParameter):
     def _set_id(self, id):
         self.db_pos = id
     id = property(_get_id, _set_id)
+    pos = property(_get_id, _set_id)
 
     def _get_real_id(self):
         return self.db_id
@@ -307,7 +317,7 @@ class TestModuleParam(unittest.TestCase):
 
 
     def test_str(self):
-        p = ModuleParam('Float', '1.5')
+        p = ModuleParam(type='Float', val='1.5')
         str(p)
 
 if __name__ == '__main__':

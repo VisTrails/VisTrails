@@ -29,6 +29,8 @@ class PortSpec(DBPortSpec):
 
     def __init__(self, *args, **kwargs):
         DBPortSpec.__init__(self, *args, **kwargs)
+        if self.id is None:
+            self.id = -1
         
     def __copy__(self):
         cp = DBPortSpec.__copy__(self)

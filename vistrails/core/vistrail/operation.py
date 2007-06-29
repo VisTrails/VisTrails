@@ -21,6 +21,35 @@
 ############################################################################
 
 from db.domain import DBAdd, DBChange, DBDelete
+from db.domain import DBAnnotation, DBConnection, DBLocation, DBModule, \
+    DBFunction, DBParameter, DBPort, DBPortSpec, DBTag
+
+from core.vistrail.annotation import Annotation
+from core.vistrail.connection import Connection
+from core.vistrail.location import Location
+from core.vistrail.module import Module
+from core.vistrail.module_function import ModuleFunction
+from core.vistrail.module_param import ModuleParam
+from core.vistrail.port import Port
+from core.vistrail.port_spec import PortSpec
+from core.vistrail.tag import Tag
+
+def convert_data(_data):
+    map = {
+        DBAnnotation.vtType: Annotation,
+        DBConnection.vtType: Connection,
+        DBLocation.vtType: Location,
+        DBModule.vtType: Module,
+        DBFunction.vtType: ModuleFunction,
+        DBParameter.vtType: ModuleParam,
+        DBPort.vtType: Port,
+        DBPortSpec.vtType: PortSpec,
+        DBTag.vtType: Tag,
+        }
+    try:
+        map[_data.vtType].convert(_data)
+    except KeyError:
+        raise Exception('cannot convert data of type %s' % _data.vtType)
 
 class AddOp(DBAdd):
 
@@ -37,8 +66,11 @@ class AddOp(DBAdd):
 
     @staticmethod
     def convert(_add_op):
+        if _add_op.__class__ == AddOp:
+            return
         _add_op.__class__ = AddOp
-
+        if _add_op.data is not None:
+            convert_data(_add_op.data)
     ##########################################################################
     # Properties
 
@@ -59,6 +91,8 @@ class AddOp(DBAdd):
     def _set_objectId(self, objectId):
         self.db_objectId = objectId
     objectId = property(_get_objectId, _set_objectId)
+    old_obj_id = property(_get_objectId, _set_objectId)
+    new_obj_id = property(_get_objectId, _set_objectId)
     
     def _get_parentObjId(self):
         return self.db_parentObjId
@@ -120,7 +154,11 @@ class ChangeOp(DBChange):
 
     @staticmethod
     def convert(_change_op):
+        if _change_op.__class__ == ChangeOp:
+            return
         _change_op.__class__ = ChangeOp
+        if _change_op.data is not None:
+            convert_data(_change_op.data)
 
     ##########################################################################
     # Properties
@@ -142,12 +180,14 @@ class ChangeOp(DBChange):
     def _set_oldObjId(self, oldObjId):
         self.db_oldObjId = oldObjId
     oldObjId = property(_get_oldObjId, _set_oldObjId)
+    old_obj_id = property(_get_oldObjId, _set_oldObjId)
 
     def _get_newObjId(self):
         return self.db_newObjId
     def _set_newObjId(self, newObjId):
         self.db_newObjId = newObjId
     newObjId = property(_get_newObjId, _set_newObjId)
+    new_obj_id = property(_get_newObjId, _set_newObjId)
     
     def _get_parentObjId(self):
         return self.db_parentObjId
@@ -232,6 +272,8 @@ class DeleteOp(DBDelete):
     def _set_objectId(self, objectId):
         self.db_objectId = objectId
     objectId = property(_get_objectId, _set_objectId)
+    old_obj_id = property(_get_objectId, _set_objectId)
+    new_obj_id = property(_get_objectId, _set_objectId)
     
     def _get_parentObjId(self):
         return self.db_parentObjId
