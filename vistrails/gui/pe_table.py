@@ -31,9 +31,9 @@ from gui.param_view import QParameterTreeWidget
 from gui.theme import CurrentTheme
 from gui.utils import show_warning
 from core.modules.module_configure import PythonEditor
-# FIXME broke this as Actions have been changed around
-#
-# from core.vistrail.action import ChangeParameterAction
+from core.vistrail.action import Action
+from core.vistrail.module_param import ModuleParam
+import db.services.action
 
 ################################################################################
 class QParameterExplorationWidget(QtGui.QScrollArea):
@@ -292,14 +292,28 @@ class QParameterExplorationTable(QPromptWidget):
                         (mId, fId, pId) = tuple(paramInfo[2:5])
                         function = self.pipeline.modules[mId].functions[fId]
                         fName = function.name
+                        old_param = function.params[pId]
                         pName = function.params[pId].name
                         pAlias = function.params[pId].alias
                         actions = []
                         for v in values:
-                            action = ChangeParameterAction()
-                            action.addParameter(mId, fId, pId, fName, pName,
-                                                str(v), paramInfo[0], pAlias)
+                            new_param = ModuleParam(id=-1,
+                                                    pos=pId,
+                                                    name=pName,
+                                                    alias=pAlias,
+                                                    val=str(v),
+                                                    type=paramInfo[0]
+                                                    )
+                            action_spec = ('change', old_param, new_param,
+                                           function.vtType, function.real_id)
+                            action = \
+                                db.services.action.create_action([action_spec])
+                            Action.convert(action)
                             actions.append(action)
+#                             action = ChangeParameterAction()
+#                             action.addParameter(mId, fId, pId, fName, pName,
+#                                                 str(v), paramInfo[0], pAlias)
+#                             actions.append(action)
                         parameterValues[dim].append(actions)
         return [zip(*p) for p in parameterValues]
 

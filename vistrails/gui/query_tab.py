@@ -30,7 +30,11 @@ from PyQt4 import QtCore, QtGui
 #
 # from core.vistrail.action import ChangeParameterAction, \
 #      ChangeAnnotationAction, AddModulePortAction
+from core.vistrail.action import Action
+from core.vistrail.location import Location
+from core.vistrail.pipeline import Pipeline
 from core.vistrail.vistrail import Vistrail
+import db.services.io
 from gui.method_dropbox import QMethodInputForm, QPythonValueLineEdit
 from gui.pipeline_tab import QPipelineTab
 from gui.theme import CurrentTheme
@@ -290,76 +294,106 @@ class QueryVistrailController(VistrailController):
     
     """
     
-    def pasteModulesAndConnections(self, modules, connections):
+    def pasteModulesAndConnections(self, str):
         """ pasteModulesAndConnections(modules: [Module],
                                        connections: [Connection]) -> version id
         Paste a list of modules and connections into the current
         pipeline. Also paste the queryMethod attribute
 
         """
-        self.quiet = True
-        modulesMap ={}
-        modulesToSelect = []
-        actions = []
-        self.previousModuleIds = []
-        for module in modules:
-            name = module.name
-            x = module.center.x + 10.0
-            y = module.center.y + 10.0
-            t = self.addModule(name,x,y)
-            newId = self.vistrail.actionMap[self.currentVersion].module.id
-            self.previousModuleIds.append(newId)
-            modulesMap[module.id]=newId
-            modulesToSelect.append(newId)
-            for fi in range(len(module.functions)):
-                f = module.functions[fi]
-                action = ChangeParameterAction()
-                if f.getNumParams() == 0:
-                    action.addParameter(newId, fi, -1, f.name, "",
-                                        "","", "")
-                queryMethods = []
-                for i in range(f.getNumParams()):
-                    p = f.params[i]
-                    if self.currentPipeline.hasAlias(p.alias):
-                        p.alias = ""
-                    action.addParameter(newId, fi, i, f.name, p.name,
-                                        p.strValue, p.type, p.alias)
-                    queryMethods.append(p.queryMethod)
-                self.performAction(action)
-                newF = self.currentPipeline.modules[newId].functions[fi]
-                for i in range(f.getNumParams()):
-                    newF.params[i].queryMethod = queryMethods[i]
-            for (key,value) in module.annotations.items():
-                action = ChangeAnnotationAction()
-                action.addAnnotation(newId,key,value)
-                actions.append(action)
-            if module.registry:
-                desc = module.registry.getDescriptorByName(module.name)
-                for (name, spec) in desc.inputPorts.iteritems():
-                    names = [module_registry.registry.getDescriptor(p[0]).name
-                             for p in spec[0]]                    
-                    action = AddModulePortAction()
-                    action.addModulePort(newId, 'input', name, '('+','.join(names)+')')
-                    actions.append(action)
-                for (name, spec) in desc.outputPorts.iteritems():
-                    names = [module_registry.registry.getDescriptor(p[0]).name
-                             for p in spec[0]]
-                    action = AddModulePortAction()
-                    action.addModulePort(newId, 'output', name, '('+','.join(names)+')')
-                    actions.append(action)
+        pipeline = db.services.io.getWorkflowFromXML(str)
+        Pipeline.convert(pipeline)
 
-        currentAction = self.performBulkActions(actions)
+        ops = []
+        module_remap = {}
+        for module in pipeline.modules.itervalues():
+            module = copy.copy(module)
+            old_id = module.id
+            if module.location is not None:
+                loc_id = self.vistrail.idScope.getNewId(Location.vtType)
+                module.location = Location(id=loc_id,
+                                           x=module.location.x + 10.0,
+                                           y=module.location.y + 10.0,
+                                           )
+            mops = db.services.action.create_copy_op_chain(object=module,
+                                               id_scope=self.vistrail.idScope)
+            module_remap[old_id] = mops[0].db_objectId
+            ops.extend(mops)
+        for connection in pipeline.connections.itervalues():
+            connection = copy.copy(connection)
+            for port in connection.ports:
+                port.moduleId = module_remap[port.moduleId]
+            ops.extend( \
+                db.services.action.create_copy_op_chain(object=connection,
+                                               id_scope=self.vistrail.idScope))
+        action = db.services.action.create_action_from_ops(ops)
+        Action.convert(action)
+        self.vistrail.add_action(action, self.currentVersion)
+        self.perform_action(action)
+
+#         self.quiet = True
+#         modulesMap ={}
+#         modulesToSelect = []
+#         actions = []
+#         self.previousModuleIds = []
+#         for module in modules:
+#             name = module.name
+#             x = module.center.x + 10.0
+#             y = module.center.y + 10.0
+#             t = self.addModule(name,x,y)
+#             newId = self.vistrail.actionMap[self.currentVersion].module.id
+#             self.previousModuleIds.append(newId)
+#             modulesMap[module.id]=newId
+#             modulesToSelect.append(newId)
+#             for fi in range(len(module.functions)):
+#                 f = module.functions[fi]
+#                 action = ChangeParameterAction()
+#                 if f.getNumParams() == 0:
+#                     action.addParameter(newId, fi, -1, f.name, "",
+#                                         "","", "")
+#                 queryMethods = []
+#                 for i in range(f.getNumParams()):
+#                     p = f.params[i]
+#                     if self.currentPipeline.hasAlias(p.alias):
+#                         p.alias = ""
+#                     action.addParameter(newId, fi, i, f.name, p.name,
+#                                         p.strValue, p.type, p.alias)
+#                     queryMethods.append(p.queryMethod)
+#                 self.performAction(action)
+#                 newF = self.currentPipeline.modules[newId].functions[fi]
+#                 for i in range(f.getNumParams()):
+#                     newF.params[i].queryMethod = queryMethods[i]
+#             for (key,value) in module.annotations.items():
+#                 action = ChangeAnnotationAction()
+#                 action.addAnnotation(newId,key,value)
+#                 actions.append(action)
+#             if module.registry:
+#                 desc = module.registry.getDescriptorByName(module.name)
+#                 for (name, spec) in desc.inputPorts.iteritems():
+#                     names = [module_registry.registry.getDescriptor(p[0]).name
+#                              for p in spec[0]]                    
+#                     action = AddModulePortAction()
+#                     action.addModulePort(newId, 'input', name, '('+','.join(names)+')')
+#                     actions.append(action)
+#                 for (name, spec) in desc.outputPorts.iteritems():
+#                     names = [module_registry.registry.getDescriptor(p[0]).name
+#                              for p in spec[0]]
+#                     action = AddModulePortAction()
+#                     action.addModulePort(newId, 'output', name, '('+','.join(names)+')')
+#                     actions.append(action)
+
+#         currentAction = self.performBulkActions(actions)
         
-        for c in connections:
-            conn = copy.copy(c)
-            conn.id = self.currentPipeline.fresh_connection_id()
-            conn.sourceId = modulesMap[conn.sourceId]
-            conn.destinationId = modulesMap[conn.destinationId]
-            currentAction = self.addConnection(conn)            
-        self.quiet = False
+#         for c in connections:
+#             conn = copy.copy(c)
+#             conn.id = self.currentPipeline.fresh_connection_id()
+#             conn.sourceId = modulesMap[conn.sourceId]
+#             conn.destinationId = modulesMap[conn.destinationId]
+#             currentAction = self.addConnection(conn)            
+#         self.quiet = False
 
-        self.currentVersion = currentAction
-        self.invalidate_version_tree()
+#         self.currentVersion = currentAction
+#         self.invalidate_version_tree()
 
     def setPipeline(self, pipeline):
         """ setPipeline(pipeline) -> None

@@ -25,8 +25,13 @@ Parameter Exploration Tab """
 from PyQt4 import QtCore, QtGui
 from core.inspector import PipelineInspector
 from core.modules.module_registry import registry
+from core.vistrail.action import Action
+from core.vistrail.module_function import ModuleFunction
+from core.vistrail.module_param import ModuleParam
+from core.vistrail.port import Port
 from core.vistrail import module
 from core.vistrail import connection
+import db.services.action
 # FIXME broke this as Actions have been changed around
 #
 # from core.vistrail.action import AddModuleAction, AddConnectionAction, \
@@ -160,86 +165,228 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
             for (mId, vRow, vCol) in decodedCells:
                 # Walk through all connection and remove all
                 # CellLocation connected to this spreadsheet cell
-                delConn = DeleteConnectionAction()
+                #  delConn = DeleteConnectionAction()
+                action_list = []
                 for (cId,c) in self.pipeline.connections.iteritems():
-                    if (c.destinationId==mId and
+                    if (c.destinationId==mId and 
                         pipeline.modules[c.sourceId].name=="CellLocation"):
-                        delConn.addId(cId)
-                delConn.perform(pipeline)
+                        action_list.append(('delete', c))
+                        # delConn.addId(cId)
+                # delConn.perform(pipeline)
+                action = db.services.action.create_action(action_list)
+                Action.convert(action)
+                pipeline.performAction(action)
                 
                 # Add a sheet reference with a specific name
-                sheetReference = module.Module()
-                sheetReference.id = pipeline.fresh_module_id()
-                sheetReference.name = "SheetReference"
-                addModule = AddModuleAction()
-                addModule.module = sheetReference
-                addModule.perform(pipeline)
-                addParam = ChangeParameterAction()
-                addParam.addParameter(sheetReference.id, 0, 0,
-                                      "SheetName", "",
-                                      '%s %d' % (sheetPrefix, sheet),
-                                      "String", "" )
-                addParam.addParameter(sheetReference.id, 1, 0,
-                                      "MinRowCount", "",
-                                      str(rowCount*vRCount), "Integer", "" )
-                addParam.addParameter(sheetReference.id, 2, 0,
-                                      "MinColumnCount", "",
-                                      str(colCount*vCCount), "Integer", "" )
-                addParam.perform(pipeline)
+                param_id = -pipeline.tmp_id.getNewId(ModuleParam.vtType)
+                sheetNameParam = ModuleParam(id=param_id,
+                                             pos=0,
+                                             name="",
+                                             val="%s %d" % (sheetPrefix, sheet),
+                                             type="String",
+                                             alias="",
+                                             )
+                function_id = -pipeline.tmp_id.getNewId(ModuleFunction.vtType)
+                sheetNameFunction = ModuleFunction(id=function_id,
+                                                   pos=0,
+                                                   name="SheetName",
+                                                   parameters=[sheetNameParam],
+                                                   )
+                param_id = -pipeline.tmp_id.getNewId(ModuleParam.vtType)
+                minRowParam = ModuleParam(id=param_id,
+                                          pos=0,
+                                          name="",
+                                          val=str(rowCount*vRCount),
+                                          type="Integer",
+                                          alias="",
+                                          )
+                function_id = -pipeline.tmp_id.getNewId(ModuleFunction.vtType)
+                minRowFunction = ModuleFunction(id=function_id,
+                                                pos=1,
+                                                name="MinRowCount",
+                                                parameters=[minRowParam],
+                                                )
+                param_id = -pipeline.tmp_id.getNewId(ModuleParam.vtType)
+                minColParam = ModuleParam(id=param_id,
+                                          pos=0,
+                                          name="",
+                                          val=str(colCount*vCCount),
+                                          type="Integer",
+                                          alias="",
+                                          )
+                function_id = -pipeline.tmp_id.getNewId(ModuleFunction.vtType)
+                minColFunction = ModuleFunction(id=function_id,
+                                                pos=2,
+                                                name="MinColumnCount",
+                                                parameters=[minColParam],
+                                                )
+                module_id = -pipeline.tmp_id.getNewId(module.Module.vtType)
+                sheetReference = module.Module(id=module_id,
+                                               name="SheetReference",
+                                               functions=[sheetNameFunction,
+                                                          minRowFunction,
+                                                          minColFunction])
+                action = db.services.action.create_action([('add', 
+                                                           sheetReference)])
+                Action.convert(action)
+                pipeline.performAction(action)
+
+#                 sheetReference.id = pipeline.fresh_module_id()
+#                 sheetReference.name = "SheetReference"
+#                 addModule = AddModuleAction()
+#                 addModule.module = sheetReference
+#                 addModule.perform(pipeline)
+#
+#                 addParam = ChangeParameterAction()
+#                 addParam.addParameter(sheetReference.id, 0, 0,
+#                                       "SheetName", "",
+#                                       '%s %d' % (sheetPrefix, sheet),
+#                                       "String", "" )
+#                 addParam.addParameter(sheetReference.id, 1, 0,
+#                                       "MinRowCount", "",
+#                                       str(rowCount*vRCount), "Integer", "" )
+#                 addParam.addParameter(sheetReference.id, 2, 0,
+#                                       "MinColumnCount", "",
+#                                       str(colCount*vCCount), "Integer", "" )
+#                 addParam.perform(pipeline)
 
                 # Add a cell location module with a specific row and column
-                cellLocation = module.Module()
-                cellLocation.id = pipeline.fresh_module_id()
-                cellLocation.name = "CellLocation"
-                addModule = AddModuleAction()
-                addModule.module = cellLocation
-                addModule.perform(pipeline)
+                param_id = -pipeline.tmp_id.getNewId(ModuleParam.vtType)
+                rowParam = ModuleParam(id=param_id,
+                                       pos=0,
+                                       name="",
+                                       val=str(row*vRCount+vRow+1),
+                                       type="Integer",
+                                       alias="",
+                                       )
+                function_id = -pipeline.tmp_id.getNewId(ModuleFunction.vtType)
+                rowFunction = ModuleFunction(id=function_id,
+                                             pos=0,
+                                             name="Row",
+                                             parameters=[rowParam],
+                                             )
+                param_id = -pipeline.tmp_id.getNewId(ModuleParam.vtType)
+                colParam = ModuleParam(id=param_id,
+                                       pos=0,
+                                       name="",
+                                       val=str(col*vCCount+vCol+1),
+                                       type="Integer",
+                                       alias="",
+                                       )
+                function_id = -pipeline.tmp_id.getNewId(ModuleFunction.vtType)
+                colFunction = ModuleFunction(id=function_id,
+                                             pos=1,
+                                             name="Column",
+                                             parameters=[colParam],
+                                             )
+                module_id = -pipeline.tmp_id.getNewId(module.Module.vtType)
+                cellLocation = module.Module(id=module_id,
+                                             name="CellLocation",
+                                             functions=[rowFunction,
+                                                        colFunction])
+                action = db.services.action.create_action([('add', 
+                                                           cellLocation)])
+                Action.convert(action)
+                pipeline.performAction(action)
                 
-                addParam = ChangeParameterAction()                
-                addParam.addParameter(cellLocation.id, 0, 0,
-                                      "Row", "", str(row*vRCount+vRow+1),
-                                      "Integer", "" )
-                addParam.addParameter(cellLocation.id, 1, 0,
-                                      "Column", "", str(col*vCCount+vCol+1),
-                                      "Integer", "" )
-                addParam.perform(pipeline)
+#                 cellLocation.id = pipeline.fresh_module_id()
+#                 cellLocation.name = "CellLocation"
+#                 addModule = AddModuleAction()
+#                 addModule.module = cellLocation
+#                 addModule.perform(pipeline)
+#                
+#                 addParam = ChangeParameterAction()                
+#                 addParam.addParameter(cellLocation.id, 0, 0,
+#                                       "Row", "", str(row*vRCount+vRow+1),
+#                                       "Integer", "" )
+#                 addParam.addParameter(cellLocation.id, 1, 0,
+#                                       "Column", "", str(col*vCCount+vCol+1),
+#                                       "Integer", "" )
+#                 addParam.perform(pipeline)
                 
                 # Then connect the SheetReference to the CellLocation
-                conn = connection.Connection()
-                conn.id = pipeline.fresh_connection_id()
-                conn.source.moduleId = sheetReference.id
-                conn.source.moduleName = sheetReference.name
-                conn.source.name = "self"
-                conn.source.spec = registry.getOutputPortSpec(
-                    sheetReference, "self")
-                conn.connectionId = conn.id
-                conn.destination.moduleId = cellLocation.id
-                conn.destination.moduleName = cellLocation.name
-                conn.destination.name = "SheetReference"
-                conn.destination.spec = registry.getInputPortSpec(
-                    cellLocation, "SheetReference")
-                addConnection = AddConnectionAction()
-                addConnection.connection = conn
-                addConnection.perform(pipeline)
+                port_id = -pipeline.tmp_id.getNewId(Port.vtType)
+                source = Port(id=port_id,
+                              type='source',
+                              moduleId=sheetReference.id,
+                              moduleName=sheetReference.name)
+                source.name = "self"
+                source.spec = registry.getOutputPortSpec(sheetReference, "self")
+                port_id = -pipeline.tmp_id.getNewId(Port.vtType)
+                destination = Port(id=port_id,
+                                   type='destination',
+                                   moduleId=cellLocation.id,
+                                   moduleName=cellLocation.name)
+                destination.name = "SheetReference"
+                destination.spec = registry.getInputPortSpec(cellLocation,
+                                                             "SheetReference")
+                c_id = -pipeline.tmp_id.getNewId(connection.Connection.vtType)
+                conn = connection.Connection(id=c_id,
+                                             ports=[source, destination])
+                action = db.services.action.create_action([('add', 
+                                                           conn)])
+                Action.convert(action)
+                pipeline.performAction(action)
+                              
+#                 conn = connection.Connection()
+#                 conn.id = pipeline.fresh_connection_id()
+#                 conn.source.moduleId = sheetReference.id
+#                 conn.source.moduleName = sheetReference.name
+#                 conn.source.name = "self"
+#                 conn.source.spec = registry.getOutputPortSpec(
+#                     sheetReference, "self")
+#                 conn.connectionId = conn.id
+#                 conn.destination.moduleId = cellLocation.id
+#                 conn.destination.moduleName = cellLocation.name
+#                 conn.destination.name = "SheetReference"
+#                 conn.destination.spec = registry.getInputPortSpec(
+#                     cellLocation, "SheetReference")
+#                 addConnection = AddConnectionAction()
+#                 addConnection.connection = conn
+#                 addConnection.perform(pipeline)
                 
                 # Then connect the CellLocation to the spreadsheet cell
-                conn = connection.Connection()
-                conn.id = pipeline.fresh_connection_id()
-                conn.source.moduleId = cellLocation.id
-                conn.source.moduleName = cellLocation.name
-                conn.source.name = "self"
-                conn.source.spec = registry.getOutputPortSpec(
-                    cellLocation, "self")
-                conn.connectionId = conn.id
-                conn.destination.moduleId = mId
-                conn.destination.moduleName = pipeline.modules[mId].name
-                conn.destination.name = "Location"
-                conn.destination.spec = registry.getInputPortSpec(
-                    cellLocation, "Location")
-                addConnection = AddConnectionAction()
-                addConnection.connection = conn
-                addConnection.perform(pipeline)
-                
+                port_id = -pipeline.tmp_id.getNewId(Port.vtType)
+                source = Port(id=port_id,
+                              type='source',
+                              moduleId=cellLocation.id,
+                              moduleName=cellLocation.name)
+                source.name = "self"
+                source.spec = registry.getOutputPortSpec(cellLocation, "self")
+                port_id = -pipeline.tmp_id.getNewId(Port.vtType)
+                cell_module = pipeline.getModuleById(mId)
+                destination = Port(id=port_id,
+                                   type='destination',
+                                   moduleId=mId,
+                                   moduleName=pipeline.modules[mId].name)
+                destination.name = "Location"
+                destination.spec = registry.getInputPortSpec(cell_module,
+                                                             "Location")
+                c_id = -pipeline.tmp_id.getNewId(connection.Connection.vtType)
+                conn = connection.Connection(id=c_id,
+                                             ports=[source, destination])
+                action = db.services.action.create_action([('add', 
+                                                           conn)])
+                Action.convert(action)
+                pipeline.performAction(action)
+
+#                 conn = connection.Connection()
+#                 conn.id = pipeline.fresh_connection_id()
+#                 conn.source.moduleId = cellLocation.id
+#                 conn.source.moduleName = cellLocation.name
+#                 conn.source.name = "self"
+#                 conn.source.spec = registry.getOutputPortSpec(
+#                     cellLocation, "self")
+#                 conn.connectionId = conn.id
+#                 conn.destination.moduleId = mId
+#                 conn.destination.moduleName = pipeline.modules[mId].name
+#                 conn.destination.name = "Location"
+#                 conn.destination.spec = registry.getInputPortSpec(
+#                     cellLocation, "Location")
+#                 addConnection = AddConnectionAction()
+#                 addConnection.connection = conn
+#                 addConnection.perform(pipeline)
+
             modifiedPipelines.append(pipeline)
 
         return modifiedPipelines

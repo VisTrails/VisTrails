@@ -973,23 +973,25 @@ mutual connections."""
         selectedItems = self.selectedItems()
         if len(selectedItems)>0:
             cb = QtGui.QApplication.clipboard()
-            dom = getDOMImplementation().createDocument(None, 'network', None)
-            root = dom.documentElement
-            copiedConnections = {}
+#             dom = getDOMImplementation().createDocument(None, 'network', None)
+#             root = dom.documentElement
+            connections = {}
             modules = {}
             for item in selectedItems:
                 module = item.module
-                module.dumpToXML(dom,root)
-                modules[module.id] = True
+#                 module.dumpToXML(dom,root)
+                modules[module.id] = module
             for item in selectedItems:
                 for (connItem, start) in item.dependingConnectionItems:
                     conn = connItem.connection
-                    if ((not copiedConnections.has_key(conn)) and
+                    if ((not connections.has_key(conn)) and
                         modules.has_key(conn.sourceId) and
                         modules.has_key(conn.destinationId)):
-                        conn.serialize(dom, root)
-                        copiedConnections[conn] = True
-            cb.setText(dom.toxml())
+#                         conn.serialize(dom, root)
+                        connections[conn] = conn
+            text = self.controller.copyModulesAndConnections(modules.values(), 
+                                                          connections.values())
+            cb.setText(text)
             
     def pasteFromClipboard(self):
         """ pasteFromClipboard() -> None
@@ -1000,18 +1002,20 @@ mutual connections."""
             cb = QtGui.QApplication.clipboard()        
             text = str(cb.text())
             if text=='': return
-            dom = parseString(str(cb.text()))
-            root = dom.documentElement
-            modules = []
-            connections = []
-            for xmlmodule in named_elements(root, 'module'):
-                module = Module.loadFromXML(xmlmodule)
-                modules.append(module)
+            self.controller.pasteModulesAndConnections(text)
+
+#             dom = parseString(str(cb.text()))
+#             root = dom.documentElement
+#             modules = []
+#             connections = []
+#             for xmlmodule in named_elements(root, 'module'):
+#                 module = Module.loadFromXML(xmlmodule)
+#                 modules.append(module)
 	
-            for xmlconnection in named_elements(root, 'connect'):
-                conn = Connection.loadFromXML(xmlconnection)
-                connections.append(conn)
-            self.controller.pasteModulesAndConnections(modules, connections)
+#             for xmlconnection in named_elements(root, 'connect'):
+#                 conn = Connection.loadFromXML(xmlconnection)
+#                 connections.append(conn)
+#             self.controller.pasteModulesAndConnections(modules, connections)
             
     def eventFilter(self, object, e):
         """ eventFilter(object: QObject, e: QEvent) -> None        
