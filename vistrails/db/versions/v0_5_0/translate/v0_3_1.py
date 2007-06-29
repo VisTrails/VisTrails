@@ -143,7 +143,7 @@ def translateAddModulePortAction(_action):
                               spec=_portSpec.db_portSpec)
         operation = DBAdd(id=_action.db_time,
                           what='portSpec',
-                          objectId=_portSpec.db_moduleId,
+                          objectId=_portSpec.db_portName,
                           parentObjId=_portSpec.db_moduleId,
                           parentObjType='module',
                           data=portSpec)
@@ -246,7 +246,7 @@ def translateDeleteModulePortAction(_action):
     for _portSpec in _action.db_datas:
         operation = DBDelete(id=_action.db_time,
                              what='portSpec',
-                             objectId=_portSpec.db_moduleId,
+                             objectId=_portSpec.db_portName,
                              parentObjId=_portSpec.db_moduleId,
                              parentObjType='module')
         operations.append(operation)
@@ -354,6 +354,8 @@ def getOldId(object):
         return object.db_key
     elif object.vtType == 'port':
         return object.db_type
+    elif object.vtType == 'portSpec':
+        return object.db_name
     else:
         return object.getPrimaryKey()
 
