@@ -67,19 +67,19 @@ def getCurrentOperationDict(actions, currentOperations=None):
     # any add adds to the dict, delete removes from the dict, and
     # change replaces the current value in the dict
     for action in actions:
-        print 'action: %d' % action.db_id
+#         print 'action: %d' % action.db_id
         for operation in action.db_operations:
             if operation.vtType == 'add':
-                print "add: %s %s" % (operation.db_what, 
-                                      operation.db_objectId)
-                print "    to:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
+#                 print "add: %s %s" % (operation.db_what, 
+#                                       operation.db_objectId)
+#                 print "    to:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
                 currentOperations[(operation.db_what, 
                                    operation.db_objectId)] = \
                                    operation
             elif operation.vtType == 'delete':
-                print "del: %s %s" % (operation.db_what, 
-                                      operation.db_objectId)
-                print "    from:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
+#                 print "del: %s %s" % (operation.db_what, 
+#                                       operation.db_objectId)
+#                 print "    from:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
                 if currentOperations.has_key((operation.db_what,
                                               operation.db_objectId)):
                     del currentOperations[(operation.db_what, 
@@ -88,10 +88,10 @@ def getCurrentOperationDict(actions, currentOperations=None):
                     msg = "Illegal delete operation"
                     raise Exception(msg)
             elif operation.vtType == 'change':
-                print "chg: %s %s %s" % (operation.db_what, 
-                                         operation.db_oldObjId,
-                                         operation.db_newObjId)
-                print "    at:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
+#                 print "chg: %s %s %s" % (operation.db_what, 
+#                                          operation.db_oldObjId,
+#                                          operation.db_newObjId)
+#                 print "    at:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
                 if currentOperations.has_key((operation.db_what,
                                               operation.db_oldObjId)):
                     del currentOperations[(operation.db_what, 
@@ -281,11 +281,11 @@ def addAndFixActions(startDict, actions):
     curDict = copy.copy(startDict)
     # print curDict
     for action in actions:
-        print "fixing action:", action.db_id
+#         print "fixing action:", action.db_id
         new_ops = []
         for op in action.db_operations:
-            print "op:", op.vtType, op.db_what, getOldObjId(op)
-            print "   ", op.db_parentObjType, op.db_parentObjId
+#             print "op:", op.vtType, op.db_what, getOldObjId(op)
+#             print "   ", op.db_parentObjType, op.db_parentObjId
             if op.vtType == 'add':
                 if op.db_parentObjId is None or \
                         curDict.has_key((op.db_parentObjType, 
