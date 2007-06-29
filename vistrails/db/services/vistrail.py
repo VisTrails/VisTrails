@@ -20,8 +20,20 @@
 ##
 ############################################################################
 
-from db.domain import DBWorkflow
+from db.domain import DBWorkflow, DBAdd, DBDelete, DBAction
 import copy
+import datetime
+import getpass
+
+def updateIdScope(vistrail):
+    for action in vistrail.db_actions.itervalues():
+        vistrail.idScope.updateBeginId('action', action.db_id+1)
+        for operation in action.db_operations:
+            vistrail.idScope.updateBeginId('operation', operation.db_id+1)
+            if operation.vtType == 'add' or operation.vtType == 'change':
+                # update ids of data
+                vistrail.idScope.updateBeginId(operation.db_what, 
+                                               getNewObjId(operation)+1)
 
 def materializeWorkflow(vistrail, version):
     # construct path up through tree and perform each action
@@ -40,7 +52,7 @@ def materializeWorkflow(vistrail, version):
 def getActionChain(vistrail, version, start=0):
     result = []
     currentId = version
-    while currentId >= start and currentId > 0:
+    while currentId > start: #and currentId > 0:
         action = vistrail.db_get_action(currentId)
         result.append(action)
         currentId = action.db_prevId
@@ -55,19 +67,19 @@ def getCurrentOperationDict(actions, currentOperations=None):
     # any add adds to the dict, delete removes from the dict, and
     # change replaces the current value in the dict
     for action in actions:
-#         print 'action: %d' % action.db_id
+        print 'action: %d' % action.db_id
         for operation in action.db_operations:
             if operation.vtType == 'add':
-#                 print "add: %s %s" % (operation.db_what, 
-#                                       operation.db_objectId)
-#                 print "    to:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
+                print "add: %s %s" % (operation.db_what, 
+                                      operation.db_objectId)
+                print "    to:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
                 currentOperations[(operation.db_what, 
                                    operation.db_objectId)] = \
                                    operation
             elif operation.vtType == 'delete':
-#                 print "del: %s %s" % (operation.db_what, 
-#                                       operation.db_objectId)
-#                 print "    from:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
+                print "del: %s %s" % (operation.db_what, 
+                                      operation.db_objectId)
+                print "    from:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
                 if currentOperations.has_key((operation.db_what,
                                               operation.db_objectId)):
                     del currentOperations[(operation.db_what, 
@@ -76,10 +88,10 @@ def getCurrentOperationDict(actions, currentOperations=None):
                     msg = "Illegal delete operation"
                     raise Exception(msg)
             elif operation.vtType == 'change':
-#                 print "chg: %s %s %s" % (operation.db_what, 
-#                                          operation.db_oldObjId,
-#                                          operation.db_newObjId)
-#                 print "    at:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
+                print "chg: %s %s %s" % (operation.db_what, 
+                                         operation.db_oldObjId,
+                                         operation.db_newObjId)
+                print "    at:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
                 if currentOperations.has_key((operation.db_what,
                                               operation.db_oldObjId)):
                     del currentOperations[(operation.db_what, 
@@ -134,7 +146,6 @@ def performAdds(addOps, workflow):
 #         print "operation %d: %s %s" % (operation.db_id, operation.vtType,
 #                                        operation.db_what)
 #         print "    to:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
-
         workflow.db_add_object(operation.db_data,
                                operation.db_parentObjType,
                                operation.db_parentObjId)
@@ -145,6 +156,165 @@ def performActions(actions, workflow):
     # a change after an add is effectively an add if the add is discarded
     performAdds(getCurrentOperations(actions), workflow)
 
+################################################################################
+# Analogy methods
+
+def find_data(what, id, op_dict):
+    if op_dict.has_key((what, id)):
+        return op_dict[(what, id)].db_data
+    else:
+        msg = 'cannot find data (%s, %s)'  % (what, id)
+        raise Exception(msg)
+    return None
+
+def invertOperations(op_dict, adds, deletes):
+    inverse_ops = []                                
+    deletes.reverse()
+    for op in deletes:
+        data = copy.copy(find_data(op.db_what, getOldObjId(op), op_dict))
+        inv_op = DBAdd(id=-1,
+                       what=op.db_what,
+                       objectId=getOldObjId(op),
+                       parentObjId=op.db_parentObjId,
+                       parentObjType=op.db_parentObjType,
+                       data=data
+                       )
+        inverse_ops.append(inv_op)
+    adds.reverse()
+    for op in adds:
+        inv_op = DBDelete(id=-1,
+                          what=op.db_what,
+                          objectId=getNewObjId(op),
+                          parentObjId=op.db_parentObjId,
+                          parentObjType=op.db_parentObjType,
+                          )
+        inverse_ops.append(inv_op)
+    return inverse_ops
+
+def normalOperations(adds, deletes):
+    new_ops = []
+    for op in deletes:
+        new_op = DBDelete(id=-1,
+                          what=op.db_what,
+                          objectId=getOldObjId(op),
+                          parentObjId=op.db_parentObjId,
+                          parentObjType=op.db_parentObjType,
+                          )
+        new_ops.append(new_op)
+    for op in adds:
+        new_op = DBAdd(id=-1,
+                       what=op.db_what,
+                       objectId=getNewObjId(op),
+                       parentObjId=op.db_parentObjId,
+                       parentObjType=op.db_parentObjType,
+                       data=copy.copy(op.db_data))
+        new_ops.append(new_op)
+    return new_ops        
+
+def simplifyOps(ops):
+    addDict = {}
+    deleteDict = {}
+    opCount = -1
+    for op in ops:
+        op.db_id = opCount
+        if op.vtType == 'add':
+            addDict[(op.db_what, op.db_objectId)] = op
+        elif op.vtType == 'delete':
+            if addDict.has_key((op.db_what, op.db_objectId)):
+                del addDict[(op.db_what, op.db_objectId)]
+            else:
+                deleteDict[(op.db_what, op.db_objectId)] = op
+        elif op.vtType == 'change':
+            if addDict.has_key((op.db_what, op.db_oldObjId)):
+                old_old_id = getOldObjId(addDict[(op.db_what, op.db_oldObjId)])
+                del addDict[(op.db_what, op.db_oldObjId)]
+                addDict[(op.db_what, op.db_newObjId)] = \
+                    DBChange(id=opCount,
+                             what=op.db_what,
+                             oldObjId=old_old_id,
+                             newObjId=op.db_newObjId,
+                             parentObjId=op.db_parentObjId,
+                             parentObjType=op.db_parentObjType,
+                             )
+            else:
+                addDict[(op.db_what, op.db_newObjId)] = op
+        opCount -= 1
+
+    deletes = deleteDict.values()
+    deletes.sort(lambda x, y: -cmp(x.db_id, y.db_id))
+    adds = addDict.values()
+    adds.sort(lambda x, y: -cmp(x.db_id, y.db_id))
+    return deletes + adds
+
+def getPathAsAction(vistrail, v1, v2):
+    sharedRoot = getSharedRoot(vistrail, [v1, v2])
+    sharedActionChain = getActionChain(vistrail, sharedRoot)
+    sharedOperationDict = getCurrentOperationDict(sharedActionChain)
+    v1Actions = getActionChain(vistrail, v1, sharedRoot)
+    v2Actions = getActionChain(vistrail, v2, sharedRoot)
+    (v1AddDict, v1DeleteDict) = getOperationDiff(v1Actions, 
+                                                 sharedOperationDict)
+    (v2AddDict, v2DeleteDict) = getOperationDiff(v2Actions,
+                                                 sharedOperationDict)
+    
+    # need to invert one of them (v1)
+    v1Adds = v1AddDict.values()
+    v1Adds.sort(lambda x, y: cmp(x.db_id, y.db_id))
+    v1Deletes = v1DeleteDict.values()
+    v1Deletes.sort(lambda x, y: cmp(x.db_id, y.db_id))
+    v1InverseOps = invertOperations(sharedOperationDict, v1Adds, v1Deletes)
+    
+    # need to normalize ops of the other (v2)
+    v2Adds = v2AddDict.values()
+    v2Adds.sort(lambda x, y: cmp(x.db_id, y.db_id))
+    v2Deletes = v2DeleteDict.values()
+    v2Deletes.sort(lambda x, y: cmp(x.db_id, y.db_id))
+    v2Ops = normalOperations(v2Adds, v2Deletes)
+
+    allOps = v1InverseOps + v2Ops
+    simplifiedOps = simplifyOps(allOps)
+    return DBAction(id=-1, 
+                    operations=simplifiedOps,
+                    )
+
+def addAndFixActions(startDict, actions):
+    curDict = copy.copy(startDict)
+    # print curDict
+    for action in actions:
+        print "fixing action:", action.db_id
+        new_ops = []
+        for op in action.db_operations:
+            print "op:", op.vtType, op.db_what, getOldObjId(op)
+            print "   ", op.db_parentObjType, op.db_parentObjId
+            if op.vtType == 'add':
+                if op.db_parentObjId is None or \
+                        curDict.has_key((op.db_parentObjType, 
+                                         op.db_parentObjId)):
+                    curDict[(op.db_what, op.db_objectId)] = op
+                    new_ops.append(op)                    
+            elif op.vtType == 'change':
+                if curDict.has_key((op.db_what, op.db_oldObjId)) and \
+                        (op.db_parentObjId is None or \
+                             curDict.has_key((op.db_parentObjType, 
+                                              op.db_parentObjId))):
+                    del curDict[(op.db_what, op.db_oldObjId)]
+                    curDict[(op.db_what, op.db_newObjId)] = op
+                    new_ops.append(op)
+            elif op.vtType == 'delete':
+                if (op.db_parentObjId is None or
+                    curDict.has_key((op.db_parentObjType, 
+                                     op.db_parentObjId))) and \
+                    curDict.has_key((op.db_what, op.db_objectId)):
+                    del curDict[(op.db_what, op.db_objectId)]
+                    new_ops.append(op)
+        action.db_operations = new_ops
+    return curDict
+
+def fixActions(vistrail, v, actions):
+    startingChain = getActionChain(vistrail, v)
+    startingDict = getCurrentOperationDict(startingChain)
+    addAndFixActions(startingDict, actions)
+    
 ################################################################################
 # Diff methods
 
@@ -200,7 +370,7 @@ def getOperationDiff(actions, operationDict):
 #                                        operation.db_oldObjId)]
                 elif addDict.has_key((operation.db_what,
                                       operation.db_oldObjId)):
-                    del addDict[(operation.db_what, operation.oldObjId)]
+                    del addDict[(operation.db_what, operation.db_oldObjId)]
 
                 addDict[(operation.db_what,
                          operation.db_newObjId)] = operation
@@ -324,6 +494,36 @@ def heurisitcParameterMatch(p1, p2):
         return 1
     return -1
 
+def heuristicConnectionMatch(c1, c2):
+    c1_ports = copy.copy(c1.db_get_ports())
+    c2_ports = copy.copy(c2.db_get_ports())
+    for p1 in c1_ports[:]:
+        match = None
+        for p2 in c2_ports:
+            isMatch = heuristicPortMatch(p1, p2)
+            if isMatch == 1:
+                match = p2
+                break
+            elif isMatch == 0:
+                match = p2
+        if match is not None:
+            c1_ports.remove(p1)
+            c2_ports.remove(match)
+        else:
+            return -1
+    if len(c1_ports) == len(c2_ports) == 0:
+        return 1
+    return -1
+
+def heuristicPortMatch(p1, p2):
+    if p1.db_moduleId == p2.db_moduleId:
+        return 1
+    elif p1.db_type == p2.db_type and \
+            p1.db_moduleName == p2.db_moduleName and \
+            p1.db_sig == p2.db_sig:
+        return 0
+    return -1
+
 def function_sig(function):
     return (function.db_name,
             [(param.db_type, param.db_val)
@@ -401,6 +601,18 @@ def getNewObjId(operation):
         return operation.db_newObjId
     return operation.db_objectId
 
+def setOldObjId(operation, id):
+    if operation.vtType == 'change':
+        operation.db_oldObjId = id
+    else:
+        operation.db_objectId = id
+
+def setNewObjId(operation, id):
+    if operation.vtType == 'change':
+        operation.db_newObjId = id
+    else:
+        operation.db_objectId = id
+
 def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
     (sharedOps, vOnlyOps) = \
         getVersionDifferences(vistrail, [v1, v2])
@@ -417,20 +629,24 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
     v2Ops = vOnlyOps[1][2]
     performAdds(v2Ops, v2Workflow)
 
-    # want to materialize the modules, then do comparison
-
+    # FIXME connections do not check their ports
     sharedModuleIds = []
+    sharedConnectionIds = []
     sharedFunctionIds = {}
     for op in sharedOps:
         if op.what == 'module':
             sharedModuleIds.append(getNewObjId(op))
+        elif op.what == 'connection':
+            sharedConnectionIds.append(getNewObjId(op))
         elif op.what == 'function':
             sharedFunctionIds[getNewObjId(op)] = op.db_parentObjId
     
     vOnlyModules = []
+    vOnlyConnections = []
     paramChgModules = {}
     for (vAdds, vDeletes, _) in vOnlyOps:
         moduleDeleteIds = []
+        connectionDeleteIds = []
         for op in vDeletes:
             if op.what == 'module':
                 moduleDeleteIds.append(getOldObjId(op))
@@ -450,8 +666,13 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
                 if moduleId in sharedModuleIds:
                     paramChgModules[moduleId] = None
                     sharedModuleIds.remove(moduleId)
+            elif op.what == 'connection':
+                connectionDeleteIds.append(getOldObjId(op))
+                if getOldObjId(op) in sharedConnectionIds:
+                    sharedConnectionIds.remove(getOldObjId(op))
 
         moduleAddIds = []
+        connectionAddIds = []
         for op in vAdds:
             if op.what == 'module':
                 moduleAddIds.append(getNewObjId(op))
@@ -467,9 +688,13 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
                 if moduleId in sharedModuleIds:
                     paramChgModules[moduleId] = None
                     sharedModuleIds.remove(moduleId)
-        vOnlyModules.append((moduleAddIds, moduleDeleteIds))
+            elif op.what == 'connection':
+                connectionAddIds.append(getOldObjId(op))
 
-    sharedPairs = [(id, id) for id in sharedModuleIds]
+        vOnlyModules.append((moduleAddIds, moduleDeleteIds))
+        vOnlyConnections.append((connectionAddIds, connectionDeleteIds))
+
+    sharedModulePairs = [(id, id) for id in sharedModuleIds]
     v1Only = vOnlyModules[0][0]
     v2Only = vOnlyModules[1][0]
     for id in vOnlyModules[1][1]:
@@ -479,16 +704,28 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
         if id not in vOnlyModules[1][1]:
             v2Only.append(id)
 
+    sharedConnectionPairs = [(id, id) for id in sharedConnectionIds]
+    c1Only = vOnlyConnections[0][0]
+    c2Only = vOnlyConnections[1][0]
+    for id in vOnlyConnections[1][1]:
+        if id not in vOnlyConnections[0][1]:
+            c1Only.append(id)
+    for id in vOnlyConnections[0][1]:
+        if id not in vOnlyConnections[1][1]:
+            c2Only.append(id)
+
     paramChgModulePairs = [(id, id) for id in paramChgModules.keys()]
 
     # add heuristic matches
     if heuristic_match:
+        # match modules
         for (m1_id, m2_id) in paramChgModulePairs[:]:
             m1 = v1Workflow.db_get_module(m1_id)
             m2 = v2Workflow.db_get_module(m2_id)
             if heuristicModuleMatch(m1, m2) == 1:
                 paramChgModulePairs.remove((m1_id, m2_id))
-                sharedPairs.append((m1_id, m2_id))
+                sharedModulePairs.append((m1_id, m2_id))
+
         for m1_id in v1Only[:]:
             m1 = v1Workflow.db_get_module(m1_id)
             match = None
@@ -504,14 +741,32 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
                 if isMatch == 1:
                     v1Only.remove(match[0])
                     v2Only.remove(match[1])
-                    sharedPairs.append(match)
+                    sharedModulePairs.append(match)
                 else:
                     v1Only.remove(match[0])
                     v2Only.remove(match[1])
                     paramChgModulePairs.append(match)
+
+        # match connections
+        for c1_id in c1Only[:]:
+            c1 = v1Workflow.db_get_connection(c1_id)
+            match = None
+            for c2_id in c2Only:
+                c2 = v2Workflow.db_get_connection(c2_id)
+                isMatch = heuristicConnectionMatch(c1, c2)
+                if isMatch == 1:
+                    match = (c1_id, c2_id)
+                    break
+                elif isMatch == 0:
+                    match = (c1_id, c2_id)
+            if match is not None:
+                # don't have port changes yet
+                c1Only.remove(match[0])
+                c2Only.remove(match[1])
+                sharedConnectionPairs.append(match)
                     
     paramChanges = []
-    #     print sharedPairs
+    #     print sharedModulePairs
     #     print paramChgModulePairs
     for (m1_id, m2_id) in paramChgModulePairs:
         m1 = v1Workflow.db_get_module(m1_id)
@@ -519,5 +774,6 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
         paramChanges.append(((m1_id, m2_id),
                              getParamChanges(m1, m2, heuristic_match)))
 
-    return (v1Workflow, v2Workflow, sharedPairs, 
-            v1Only, v2Only, paramChanges)
+    return (v1Workflow, v2Workflow, 
+            sharedModulePairs, v1Only, v2Only, paramChanges,
+            sharedConnectionPairs, c1Only, c2Only)

@@ -20,10 +20,17 @@
 ##
 ############################################################################
 
+import copy
+
 class IdScope:
     def __init__(self, beginId=0L):
         self.ids = {}
         self.beginId = beginId
+
+    def __copy__(self):
+        cp = IdScope(beginId=self.beginId)
+        cp.ids = copy.copy(self.ids)
+        return cp
 
     def __str__(self):
         return str(self.ids)

@@ -9,7 +9,8 @@
     <sql type="int"/>
   </property>
 
-  <property ref="true" object="port" type="list" mapping="one-to-many">
+  <property ref="true" object="port" type="list" mapping="one-to-many"
+	    index="type">
     <xml nodeType="xs:element"/>
   </property>
 

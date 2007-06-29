@@ -378,16 +378,17 @@ class XMLAutoGen(AutoGen):
 	    self.unindent(2)
 
         self.printLine('\n')
-        returnStr = 'return %s(' % object.getClassName()
+        returnStr = 'obj = %s(' % object.getClassName()
         sep = ',\n' + (' ' * (len(returnStr) + 8))
-	self.printLine('return %s(%s)\n' % \
+	self.printLine('obj = %s(%s)\n' % \
 		       (object.getClassName(), sep.join(varPairs)))
+        self.printLine('obj.is_dirty = False\n')
+        self.printLine('return obj\n')
 	self.unindent(1)
 	self.printLine('\n')
 
 	# define toXML function
 	self.printLine('def toXML(self, %s, doc):\n' % object.getRegularName())
-	
 	self.indentLine('node = doc.createElement(\'%s\')\n' % \
 			object.getName())
 

@@ -20,12 +20,14 @@
 ##
 ############################################################################
 
+from datetime import datetime
 import sys
 import os
 from xml.parsers.expat import ExpatError
-from xml.dom.minidom import parse, getDOMImplementation
+from xml.dom.minidom import parse, parseString, getDOMImplementation
 
 from db.domain import DBVistrail, DBWorkflow, DBLog
+import db.services.vistrail
 from db.versions import getVersionDAO, currentVersion, translateVistrail, \
     getVersionSchemaDir
 
@@ -148,9 +150,11 @@ def openVistrailFromXML(filename):
     dom = openXMLFile(filename)
     version = getVersionForXML(dom.documentElement)
     if version != currentVersion:
-        return importVistrailFromXML(filename, version)
+        vistrail = importVistrailFromXML(filename, version)
     else:
-        return readXMLObjects(DBVistrail.vtType, dom.documentElement)[0]
+        vistrail = readXMLObjects(DBVistrail.vtType, dom.documentElement)[0]
+    db.services.vistrail.updateIdScope(vistrail)
+    return vistrail
 
 def open_from_db(config, vt_id):
     """open_from_db(config: dict, vt_id:int) -> DBVistrail
@@ -185,6 +189,7 @@ def openVistrailFromDB(dbConnection, id):
     # need them ordered by their id
     for db_action in vt.db_get_actions():
         db_action.db_operations.sort(lambda x,y: cmp(x.db_id, y.db_id))
+    db.services.vistrail.updateIdScope(vt)
     return vt
 
 def setDBParameters(vistrail, config):
@@ -229,6 +234,10 @@ def openWorkflowFromSQL(dbConnection, id):
         raise Exception(msg)
     readSQLObjects(dbConnection, DBWorkflow.vtType, id)[0]
 
+def getWorkflowFromXML(str):
+    dom = parseString(str)
+    return readXMLObjects(DBWorkflow.vtType, dom.documentElement)[0]
+
 def saveWorkflowToXML(workflow, filename):
     dom = getDOMImplementation().createDocument(None, None, None)
     root = writeXMLObjects([workflow], dom)
@@ -238,6 +247,15 @@ def saveWorkflowToXML(workflow, filename):
     dom.appendChild(root)
     writeXMLFile(filename, dom)
 
+def getWorkflowAsXML(workflow):
+    dom = getDOMImplementation().createDocument(None, None, None)
+    root = writeXMLObjects([workflow], dom)
+    root.setAttribute('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
+    root.setAttribute('xsi:schemaLocation', 
+                      'http://www.vistrails.org/workflow.xsd')
+    dom.appendChild(root)
+    return dom.toxml()
+    
 def openLogFromXML(filename):
     dom = openXMLFile(filename)
     return readXMLObjects(DBLog.vtType, dom.documentElement)[0]
@@ -311,6 +329,22 @@ def getVersionForXML(node):
         pass
     msg = "Cannot find version information"
     raise Exception(msg)
+
+def getCurrentTime(dbConnection=None):
+    timestamp = datetime.now()
+    if dbConnection is not None:
+        try:
+            c = dbConnection.cursor()
+            c.execute("SELECT NOW()")
+            row = c.fetchone()
+            if row:
+                timestamp = row[0]
+            c.close()
+        except MySQLdb.Error, e:
+            print "Logger Error %d: %s" % (e.args[0], e.args[1])
+
+    return timestamp
+
 
 ##############################################################################
 # Testing

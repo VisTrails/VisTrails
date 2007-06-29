@@ -43,10 +43,12 @@ class DBPortSpecXMLDAOBase(XMLDAO):
         type = self.convertFromStr(self.getAttribute(node, 'type'), 'str')
         spec = self.convertFromStr(self.getAttribute(node, 'spec'), 'str')
         
-        return DBPortSpec(id=id,
-                          name=name,
-                          type=type,
-                          spec=spec)
+        obj = DBPortSpec(id=id,
+                         name=name,
+                         type=type,
+                         spec=spec)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, portSpec, doc):
         node = doc.createElement('portSpec')
@@ -99,13 +101,15 @@ class DBModuleXMLDAOBase(XMLDAO):
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
-        return DBModule(id=id,
-                        cache=cache,
-                        name=name,
-                        location=location,
-                        functions=functions,
-                        annotations=annotations,
-                        portSpecs=portSpecs)
+        obj = DBModule(id=id,
+                       cache=cache,
+                       name=name,
+                       location=location,
+                       functions=functions,
+                       annotations=annotations,
+                       portSpecs=portSpecs)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, module, doc):
         node = doc.createElement('module')
@@ -163,14 +167,16 @@ class DBSessionXMLDAOBase(XMLDAO):
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
-        return DBSession(id=id,
-                         user=user,
-                         ip=ip,
-                         visVersion=visVersion,
-                         tsStart=tsStart,
-                         tsEnd=tsEnd,
-                         machineId=machineId,
-                         wfExecs=wfExecs)
+        obj = DBSession(id=id,
+                        user=user,
+                        ip=ip,
+                        visVersion=visVersion,
+                        tsStart=tsStart,
+                        tsEnd=tsEnd,
+                        machineId=machineId,
+                        wfExecs=wfExecs)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, session, doc):
         node = doc.createElement('session')
@@ -210,11 +216,13 @@ class DBPortXMLDAOBase(XMLDAO):
         moduleName = self.convertFromStr(self.getAttribute(node, 'moduleName'), 'str')
         sig = self.convertFromStr(self.getAttribute(node, 'sig'), 'str')
         
-        return DBPort(id=id,
-                      type=type,
-                      moduleId=moduleId,
-                      moduleName=moduleName,
-                      sig=sig)
+        obj = DBPort(id=id,
+                     type=type,
+                     moduleId=moduleId,
+                     moduleName=moduleName,
+                     sig=sig)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, port, doc):
         node = doc.createElement('port')
@@ -258,9 +266,11 @@ class DBLogXMLDAOBase(XMLDAO):
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
-        return DBLog(id=id,
-                     sessions=sessions,
-                     machines=machines)
+        obj = DBLog(id=id,
+                    sessions=sessions,
+                    machines=machines)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, log, doc):
         node = doc.createElement('log')
@@ -298,12 +308,14 @@ class DBMachineXMLDAOBase(XMLDAO):
         processor = self.convertFromStr(self.getAttribute(node, 'processor'), 'str')
         ram = self.convertFromStr(self.getAttribute(node, 'ram'), 'int')
         
-        return DBMachine(id=id,
-                         name=name,
-                         os=os,
-                         architecture=architecture,
-                         processor=processor,
-                         ram=ram)
+        obj = DBMachine(id=id,
+                        name=name,
+                        os=os,
+                        architecture=architecture,
+                        processor=processor,
+                        ram=ram)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, machine, doc):
         node = doc.createElement('machine')
@@ -362,12 +374,14 @@ class DBAddXMLDAOBase(XMLDAO):
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
-        return DBAdd(id=id,
-                     what=what,
-                     objectId=objectId,
-                     parentObjId=parentObjId,
-                     parentObjType=parentObjType,
-                     data=data)
+        obj = DBAdd(id=id,
+                    what=what,
+                    objectId=objectId,
+                    parentObjId=parentObjId,
+                    parentObjType=parentObjType,
+                    data=data)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, add, doc):
         node = doc.createElement('add')
@@ -427,9 +441,11 @@ class DBOtherXMLDAOBase(XMLDAO):
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
-        return DBOther(id=id,
-                       key=key,
-                       value=value)
+        obj = DBOther(id=id,
+                      key=key,
+                      value=value)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, other, doc):
         node = doc.createElement('other')
@@ -465,9 +481,11 @@ class DBLocationXMLDAOBase(XMLDAO):
         x = self.convertFromStr(self.getAttribute(node, 'x'), 'float')
         y = self.convertFromStr(self.getAttribute(node, 'y'), 'float')
         
-        return DBLocation(id=id,
-                          x=x,
-                          y=y)
+        obj = DBLocation(id=id,
+                         x=x,
+                         y=y)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, location, doc):
         node = doc.createElement('location')
@@ -510,13 +528,15 @@ class DBWfExecXMLDAOBase(XMLDAO):
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
-        return DBWfExec(id=id,
-                        tsStart=tsStart,
-                        tsEnd=tsEnd,
-                        wfVersion=wfVersion,
-                        vistrailId=vistrailId,
-                        vistrailName=vistrailName,
-                        execRecs=execRecs)
+        obj = DBWfExec(id=id,
+                       tsStart=tsStart,
+                       tsEnd=tsEnd,
+                       wfVersion=wfVersion,
+                       vistrailId=vistrailId,
+                       vistrailName=vistrailName,
+                       execRecs=execRecs)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, wfExec, doc):
         node = doc.createElement('wfExec')
@@ -556,12 +576,14 @@ class DBParameterXMLDAOBase(XMLDAO):
         val = self.convertFromStr(self.getAttribute(node, 'val'), 'str')
         alias = self.convertFromStr(self.getAttribute(node, 'alias'), 'str')
         
-        return DBParameter(id=id,
-                           pos=pos,
-                           name=name,
-                           type=type,
-                           val=val,
-                           alias=alias)
+        obj = DBParameter(id=id,
+                          pos=pos,
+                          name=name,
+                          type=type,
+                          val=val,
+                          alias=alias)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, parameter, doc):
         node = doc.createElement('parameter')
@@ -604,10 +626,12 @@ class DBFunctionXMLDAOBase(XMLDAO):
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
-        return DBFunction(id=id,
-                          pos=pos,
-                          name=name,
-                          parameters=parameters)
+        obj = DBFunction(id=id,
+                         pos=pos,
+                         name=name,
+                         parameters=parameters)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, function, doc):
         node = doc.createElement('function')
@@ -664,12 +688,14 @@ class DBWorkflowXMLDAOBase(XMLDAO):
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
-        return DBWorkflow(id=id,
-                          name=name,
-                          modules=modules,
-                          connections=connections,
-                          annotations=annotations,
-                          others=others)
+        obj = DBWorkflow(id=id,
+                         name=name,
+                         modules=modules,
+                         connections=connections,
+                         annotations=annotations,
+                         others=others)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, workflow, doc):
         node = doc.createElement('workflow')
@@ -729,11 +755,13 @@ class DBActionXMLDAOBase(XMLDAO):
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
-        return DBAction(id=id,
-                        prevId=prevId,
-                        date=date,
-                        user=user,
-                        operations=operations)
+        obj = DBAction(id=id,
+                       prevId=prevId,
+                       date=date,
+                       user=user,
+                       operations=operations)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, action, doc):
         node = doc.createElement('action')
@@ -773,9 +801,11 @@ class DBAnnotationXMLDAOBase(XMLDAO):
         key = self.convertFromStr(self.getAttribute(node, 'key'), 'str')
         value = self.convertFromStr(self.getAttribute(node, 'value'), 'str')
         
-        return DBAnnotation(id=id,
-                            key=key,
-                            value=value)
+        obj = DBAnnotation(id=id,
+                           key=key,
+                           value=value)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, annotation, doc):
         node = doc.createElement('annotation')
@@ -832,13 +862,15 @@ class DBChangeXMLDAOBase(XMLDAO):
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
-        return DBChange(id=id,
-                        what=what,
-                        oldObjId=oldObjId,
-                        newObjId=newObjId,
-                        parentObjId=parentObjId,
-                        parentObjType=parentObjType,
-                        data=data)
+        obj = DBChange(id=id,
+                       what=what,
+                       oldObjId=oldObjId,
+                       newObjId=newObjId,
+                       parentObjId=parentObjId,
+                       parentObjType=parentObjType,
+                       data=data)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, change, doc):
         node = doc.createElement('change')
@@ -902,10 +934,12 @@ class DBMacroXMLDAOBase(XMLDAO):
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
-        return DBMacro(id=id,
-                       name=name,
-                       descrptn=descrptn,
-                       actions=actions)
+        obj = DBMacro(id=id,
+                      name=name,
+                      descrptn=descrptn,
+                      actions=actions)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, macro, doc):
         node = doc.createElement('macro')
@@ -948,8 +982,10 @@ class DBConnectionXMLDAOBase(XMLDAO):
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
-        return DBConnection(id=id,
-                            ports=ports)
+        obj = DBConnection(id=id,
+                           ports=ports)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, connection, doc):
         node = doc.createElement('connection')
@@ -980,8 +1016,10 @@ class DBTagXMLDAOBase(XMLDAO):
         name = self.convertFromStr(self.getAttribute(node, 'name'), 'str')
         time = self.convertFromStr(self.getAttribute(node, 'time'), 'long')
         
-        return DBTag(name=name,
-                     time=time)
+        obj = DBTag(name=name,
+                    time=time)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, tag, doc):
         node = doc.createElement('tag')
@@ -1022,12 +1060,14 @@ class DBExecRecXMLDAOBase(XMLDAO):
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
-        return DBExecRec(id=id,
-                         tsStart=tsStart,
-                         tsEnd=tsEnd,
-                         moduleId=moduleId,
-                         moduleName=moduleName,
-                         annotations=annotations)
+        obj = DBExecRec(id=id,
+                        tsStart=tsStart,
+                        tsEnd=tsEnd,
+                        moduleId=moduleId,
+                        moduleName=moduleName,
+                        annotations=annotations)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, execRec, doc):
         node = doc.createElement('exec')
@@ -1085,15 +1125,17 @@ class DBVistrailXMLDAOBase(XMLDAO):
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
-        return DBVistrail(id=id,
-                          version=version,
-                          name=name,
-                          dbHost=dbHost,
-                          dbPort=dbPort,
-                          dbName=dbName,
-                          actions=actions,
-                          tags=tags,
-                          macros=macros)
+        obj = DBVistrail(id=id,
+                         version=version,
+                         name=name,
+                         dbHost=dbHost,
+                         dbPort=dbPort,
+                         dbName=dbName,
+                         actions=actions,
+                         tags=tags,
+                         macros=macros)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, vistrail, doc):
         node = doc.createElement('vistrail')
@@ -1138,11 +1180,13 @@ class DBDeleteXMLDAOBase(XMLDAO):
         parentObjId = self.convertFromStr(self.getAttribute(node, 'parentObjId'), 'long')
         parentObjType = self.convertFromStr(self.getAttribute(node, 'parentObjType'), 'str')
         
-        return DBDelete(id=id,
-                        what=what,
-                        objectId=objectId,
-                        parentObjId=parentObjId,
-                        parentObjType=parentObjType)
+        obj = DBDelete(id=id,
+                       what=what,
+                       objectId=objectId,
+                       parentObjId=parentObjId,
+                       parentObjType=parentObjType)
+        obj.is_dirty = False
+        return obj
     
     def toXML(self, delete, doc):
         node = doc.createElement('delete')

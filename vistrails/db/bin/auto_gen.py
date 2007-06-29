@@ -184,6 +184,8 @@ class AutoGen:
 
 	for field in self.getPythonFields(object):
 	    if field.isPlural():
+                for index in field.getIndices():
+                    self.printLine('self.db_%s_index = {}\n' % index)
 		self.printLine('if %s is None:\n' % field.getRegularName())
 		if field.getPythonType() == 'hash':
     		    self.indentLine('self.%s = {}\n' % field.getPrivateName())
@@ -192,10 +194,23 @@ class AutoGen:
 		self.unindentLine('else:\n')
 		self.indentLine('self.%s = %s\n' % (field.getPrivateName(),
 						    field.getRegularName()))
-		self.unindent()
+                if len(field.getIndices()) > 0:
+                    if field.getPythonType() == 'hash':
+                        self.printLine('for v in self.%s.itervalues():\n' % \
+                                           field.getPrivateName())
+                    else:
+                        self.printLine('for v in self.%s:\n' % \
+                                           field.getPrivateName())
+                    self.indent()
+                    for index in field.getIndices():
+                        self.printLine('self.db_%s_index[v.db_%s] = v\n' % \
+                                           (index, index))
+                    self.unindent()
+                self.unindent()
 	    else:
 		self.printLine('self.%s = %s\n' % (field.getPrivateName(),
 						   field.getRegularName()))
+        self.printLine('self.is_dirty = True\n')
 	self.unindentLine('\n')
 
         # create copy constructor
@@ -210,11 +225,59 @@ class AutoGen:
                     self.indentLine('cp.%s = dict([(k,copy.copy(v)) for (k,v) in self.%s.iteritems()])\n' % (field.getFieldName(), field.getFieldName()))
                 else:
                     self.indentLine('cp.%s = [copy.copy(v) for v in self.%s]\n' % (field.getFieldName(), field.getFieldName()))
+
+                # recreate indices
+                if len(field.getIndices()) > 0:
+                    if field.getPythonType() == 'hash':
+                        self.printLine('for v in cp.%s.itervalues():\n' % \
+                                           field.getPrivateName())
+                    else:
+                        self.printLine('for v in cp.%s:\n' % \
+                                           field.getPrivateName())
+                    self.indent()
+                    for index in field.getIndices():
+                        self.printLine('cp.db_%s_index[v.db_%s] = v\n' % \
+                                           (index, index))
+                    self.unindent()
                 self.unindent()
             else:
                 self.printLine('cp.%s = self.%s\n' % (field.getFieldName(),
                                                        field.getFieldName()))
+            self.printLine('cp.is_dirty = self.is_dirty\n')
         self.printLine('return cp\n\n')
+
+        # create child methods
+        self.unindentLine('def %s(self, parent=(None,None), orphan=False):\n' \
+                              % object.getChildren())
+        refs = self.getReferenceProperties(object)
+        self.indentLine('children = []\n')
+        for ref in refs:
+            refObj = self.getReferencedObject(ref.getReference())
+            if not ref.isPlural():
+                self.printLine('children.extend(self.%s.%s(' % \
+                                   (ref.getFieldName(), refObj.getChildren())+ \
+                                   '(self.vtType, self.db_id), orphan))\n')
+                self.printLine('if orphan:\n')
+                self.indentLine('self.%s = None\n' % ref.getFieldName())
+                self.unindent()
+            else:
+                if ref.getType() == 'hash':
+                    self.printLine('for child in self.%s.itervalues():\n' % \
+                                       ref.getFieldName())
+                else:
+                    self.printLine('for child in self.%s:\n' % \
+                                       ref.getFieldName())
+                self.indentLine('children.extend(child.%s(' % \
+                                    refObj.getChildren() + \
+                                    '(self.vtType, self.db_id), orphan))\n')
+                self.unindentLine('if orphan:\n')
+                if ref.getType() == 'hash':
+                    self.indentLine('self.%s = {}\n' % ref.getFieldName())
+                else:
+                    self.indentLine('self.%s = []\n' % ref.getFieldName())
+                self.unindent()
+        self.printLine('children.append((self, parent[0], parent[1]))\n')
+        self.printLine('return children\n')
         self.unindent()
 
         # create methods
@@ -228,6 +291,7 @@ class AutoGen:
 	    self.indentLine('self.%s = %s\n' % \
 			    (field.getPrivateName(), 
 			     field.getRegularName()))
+            self.printLine('self.is_dirty = True\n')
 	    self.unindentLine('%s = property(%s, %s)\n' % \
 			     (field.getFieldName(),
 			      field.getDefineAccessor(),
@@ -258,30 +322,36 @@ class AutoGen:
 		self.printLine('def %s(self, %s):\n' % \
 			       (field.getAppender(),
 				field.getName()))
+                self.indentLine('self.is_dirty = True\n')
 		if field.getPythonType() == 'hash':
 		    childObj = self.getReferencedObject(field.getReference())
-		    self.indentLine('self.%s[%s.%s] = %s\n' % \
+		    self.printLine('self.%s[%s.%s] = %s\n' % \
 				    (field.getPrivateName(),
 				     field.getName(),
 				     childObj.getKey().getPythonName(),
 				     field.getName()))
 		else:
-		    self.indentLine('self.%s.append(%s)\n' % \
-				    (field.getPrivateName(), field.getName()))
+		    self.printLine('self.%s.append(%s)\n' % \
+                                     (field.getPrivateName(), field.getName()))
+                for index in field.getIndices():
+                    self.printLine('self.db_%s_index[%s.db_%s] = %s\n' % \
+                                       (index, field.getName(),
+                                        index, field.getName()))
 		self.unindent()
 
 		self.printLine('def %s(self, %s):\n' % \
 			       (field.getModifier(), field.getName()))
+                self.indentLine('self.is_dirty = True\n')
 		if field.getPythonType() == 'hash':
 		    childObj = self.getReferencedObject(field.getReference())
-		    self.indentLine('self.%s[%s.%s] = %s\n' % \
+		    self.printLine('self.%s[%s.%s] = %s\n' % \
 				    (field.getPrivateName(),
 				     field.getName(),
 				     childObj.getKey().getPythonName(),
 				     field.getName()))
 		else:
 		    childObj = self.getReferencedObject(field.getReference())
-		    self.indentLine('found = False\n')
+		    self.printLine('found = False\n')
 		    self.printLine('for i in xrange(len(self.%s)):\n' % \
 				    field.getPrivateName())
 		    self.indentLine('if self.%s[i].%s == %s.%s:\n' % \
@@ -300,19 +370,24 @@ class AutoGen:
 				    (field.getPrivateName(),
 				     field.getName()))
 		    self.unindent()
+                for index in field.getIndices():
+                    self.printLine('self.db_%s_index[%s.db_%s] = %s\n' % \
+                                       (index, field.getName(),
+                                        index, field.getName()))
 		self.unindent()
 
 		self.printLine('def %s(self, %s):\n' % \
 			       (field.getRemover(), field.getName()))
+                self.indentLine('self.is_dirty = True\n')
 		if field.getPythonType() == 'hash':
 		    childObj = self.getReferencedObject(field.getReference())
-		    self.indentLine('del self.%s[%s.%s]\n' % \
+		    self.printLine('del self.%s[%s.%s]\n' % \
 				    (field.getPrivateName(),
 				     field.getName(),
 				     childObj.getKey().getPythonName()))
 		else:
 		    childObj = self.getReferencedObject(field.getReference())
-		    self.indentLine('for i in xrange(len(self.%s)):\n' % \
+		    self.printLine('for i in xrange(len(self.%s)):\n' % \
 				    field.getPrivateName())
 		    self.indentLine('if self.%s[i].%s == %s.%s:\n' % \
 				    (field.getPrivateName(),
@@ -322,6 +397,9 @@ class AutoGen:
 		    self.indentLine('del self.%s[i]\n' % field.getPrivateName())
 		    self.printLine('break\n')
 		    self.unindent(2)
+                for index in field.getIndices():
+                    self.printLine('del self.db_%s_index[%s.db_%s]\n' % \
+                                       (index, field.getName(), index))
 		self.unindent()
 
 		self.printLine('def %s(self, key):\n' % field.getLookup())
@@ -342,6 +420,12 @@ class AutoGen:
 		    self.unindent(2)
 		    self.printLine('return None\n')
 		self.unindent()
+                for index in field.getIndices():
+                    self.printLine('def db_get_%s_by_%s(self, key):\n' % \
+                                       (field.getSingleName(), index))
+                    self.indentLine('return self.db_%s_index[key]\n' % index)
+                    self.unindent()
+                                    
 	    self.printLine('\n')
 	 
 	self.printLine('def getPrimaryKey(self):\n')

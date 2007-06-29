@@ -105,6 +105,14 @@ class Field:
     def getPythonType(self):
 	return Field.getType(self)
 
+    def getIndices(self):
+        try:
+            str = self.params['index']
+            return str.split()
+        except KeyError:
+            pass
+        return []
+
     def isInverse(self):
 	try:
 	    return self.params['inverse'] == 'true'
@@ -208,6 +216,9 @@ class Object:
 
     def getClassName(self):
 	return 'DB%s' % capitalizeOne(Object.getName(self))
+
+    def getChildren(self):
+        return 'db_children'
 
     def getKey(self):
 	for property in self.properties:

@@ -450,20 +450,22 @@ class SQLAutoGen(AutoGen):
 	self.printLine('%s = %s(%s)\n' % (object.getRegularName(), 
                                           object.getClassName(),
                                           sep.join(varPairs)))
+        self.printLine('%s.is_dirty = False\n' % object.getRegularName())
 	self.printLine('list.append(%s)\n\n' % object.getRegularName())
 	self.unindentLine('return list\n\n')
 
 	# toSQL
 	self.unindentLine('def toSQL(self, db, obj, foreignKey=None, ' +
                           'globalProps=None):\n')
-
+        self.indentLine("keyStr = self.convertToDB(obj.%s, '%s', '%s')\n" % \
+                           (key.getPythonName(), key.getPythonType(),
+                            key.getType()))
+        self.printLine("if obj.is_dirty:\n")
         self.indentLine("columns = ['%s']\n" % key.getColumn())
         self.printLine("table = '%s'\n" % object.getName())
         self.printLine("whereMap = {}\n")
         self.printLine("columnMap = {}\n\n")
-        self.printLine("keyStr = self.convertToDB(obj.%s, '%s', '%s')\n" % \
-                           (key.getPythonName(), key.getPythonType(),
-                            key.getType()))
+
 # 	if key.isText():
 # 	    keyStr = """'"' + str(obj.%s) + '"'""" % key.getFieldName()
 # 	else:
@@ -520,8 +522,8 @@ class SQLAutoGen(AutoGen):
                                       (property.getPythonName(),
                                        property.getPythonType(),
                                        property.getType()))
-        self.printLine('\n')
-
+        self.unindentLine('\n\n')
+        
         count = 0
         for property in refs:
             refObj = self.getReferencedObject(property.getReference())
