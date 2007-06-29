@@ -27,6 +27,7 @@ from core.bundles import py_import
 
 vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk'})
 
+from core.utils import all
 from core.debug import log
 from core.modules.basic_modules import Integer, Float, String, File
 from core.modules.module_registry import (registry, addModule,
@@ -117,6 +118,39 @@ def get_method_signature(method):
             sig.append(([ret], arg))
     return sig    
 
+disallowed_classes = set(
+    [
+    'vtkCriticalSection',
+    'vtkDataArraySelection',
+    'vtkDebugLeaks',
+    'vtkDirectory',
+    'vtkDynamicLoader',
+    'vtkFunctionParser',
+    'vtkGarbageCollector',
+    'vtkHeap',
+    'vtkInformationKey',
+    'vtkInstantiator',
+    'vtkMath',
+    'vtkModelMetadata',
+    'vtkMultiProcessController',
+    'vtkMutexLock',
+    'vtkOutputWindow',
+    'vtkPriorityQueue',
+    'vtkReferenceCount',
+    'vtkRenderWindowInteractor',
+    'vtkTesting',
+    'vtkWindow',
+     ])
+
+def is_class_allowed(module):
+    if module is None:
+        return False
+    try:
+        name = module.__name__
+        return not (name in disallowed_classes)
+    except AttributeError:
+        return True
+
 def addAlgorithmPorts(module):
     """ addAlgorithmPorts(module: Module) -> None
     If module is a subclass of vtkAlgorithm, this function will add all
@@ -140,6 +174,13 @@ def addAlgorithmPorts(module):
             except:
                 pass
 
+disallowed_set_get_ports = set(['ReferenceCount',
+                                'InputConnection',
+                                'OutputPort',
+                                'Progress',
+                                'ProgressText',
+                                'InputArrayToProcess',
+                                ])
 def addSetGetPorts(module, get_set_dict):
     """ addSetGetPorts(module: Module, get_set_dict: dict) -> None
     Convert all Setxxx methods of module into input ports and all Getxxx
@@ -151,7 +192,7 @@ def addSetGetPorts(module, get_set_dict):
 
     """
     for name in get_set_dict.iterkeys():
-        if name in ['InputConnection', 'OutputPort']: continue
+        if name in disallowed_set_get_ports: continue
         getterMethod = getattr(module.vtkClass, 'Get%s'%name)
         setterMethod = getattr(module.vtkClass, 'Set%s'%name)
         getterSig = get_method_signature(getterMethod)
@@ -165,17 +206,19 @@ def addSetGetPorts(module, get_set_dict):
                 log("Can't handle getter %s (%s) of class %s: More than a "
                     "single output" % (order, name, str(module.vtkClass)))
                 continue
-            addOutputPort(module, 'Get'+name, typeMap(getter[0][0]), True)
+            class_ = typeMap(getter[0][0])
+            if is_class_allowed(class_):
+                addOutputPort(module, 'Get'+name, class_, True)
         for setter, order in zip(setterSig, range(1, len(setterSig)+1)):
             try:
-                if len(setter[1])==1:                    
+                if len(setter[1]) == 1 and is_class_allowed(typeMap(setter[1][0])):
                     addInputPort(module, 'Set'+name,
                                  typeMap(setter[1][0]),
                                  setter[1][0] in typeMapDict)
                 else:
-                    addInputPort(module, 'Set'+name,
-                                 [typeMap(i) for i in setter[1]],
-                                 True)
+                    classes = [typeMap(i) for i in setter[1]]
+                    if all(classes, is_class_allowed):
+                        addInputPort(module, 'Set'+name, classes, True)
                 # Wrap SetFileNames for VisTrails file access
                 if name == 'FileName':
                     addInputPort(module, 'SetFile', (File, 'input file'),
@@ -184,6 +227,9 @@ def addSetGetPorts(module, get_set_dict):
                 print "module", module, "name", name, setter
                 raise
 
+disallowed_toggle_ports = set(['GlobalWarningDisplay',
+                               'Debug',
+                               ])
 def addTogglePorts(module, toggle_dict):
     """ addTogglePorts(module: Module, toggle_dict: dict) -> None
     Convert all xxxOn/Off methods of module into input ports
@@ -194,9 +240,12 @@ def addTogglePorts(module, toggle_dict):
 
     """
     for name in toggle_dict.iterkeys():
+        if name in disallowed_toggle_ports:
+            continue
         addInputPort(module, name+'On', [], True)
         addInputPort(module, name+'Off', [], True)
-    
+
+disallowed_state_ports = set(['SetInputArrayToProcess'])
 def addStatePorts(module, state_dict):
     """ addStatePorts(module: Module, state_dict: dict) -> None
     Convert all SetxxxToyyy methods of module into input ports
@@ -208,8 +257,39 @@ def addStatePorts(module, state_dict):
     """
     for name in state_dict.iterkeys():
         for mode in state_dict[name]:
-            addInputPort(module, 'Set'+name+'To'+mode[0], [], True)
-    
+            field = 'Set'+name+'To'+mode[0]
+            if field in disallowed_state_ports:
+                continue
+            addInputPort(module, field, [], True)
+
+disallowed_other_ports = set(
+    ['DeepCopy',
+     'IsA',
+     'NewInstance',
+     'ShallowCopy',
+     'SafeDownCast',
+     'BreakOnError',
+     'FastDelete',
+     'PrintRevisions',
+     'Modified',
+     'RemoveObserver',
+     'RemoveObservers',
+     'INPUT_IS_OPTIONAL',
+     'INPUT_IS_REPEATABLE',
+     'INPUT_REQUIRED_FIELDS',
+     'HasExecutive',
+     'INPUT_REQUIRED_DATA_TYPE',
+     'INPUT_ARRAYS_TO_PROCESS',
+     'INPUT_CONNECTION',
+     'INPUT_PORT',
+     'RemoveAllInputs',
+     'Update',
+     'UpdateProgress',
+     'UpdateInformation',
+     'UpdateWholeExtent',
+     'SetInputArrayToProcess'
+     ])
+
 def addOtherPorts(module, other_list):
     """ addOtherPorts(module: Module, other_list: list) -> None
     Convert all other ports such as Insert/Add.... into input/output
@@ -222,6 +302,8 @@ def addOtherPorts(module, other_list):
     """
     for name in other_list:
         if name[:3] in ['Add','Set'] or name[:6]=='Insert':
+            if name in disallowed_other_ports:
+                continue
             method = getattr(module.vtkClass, name)
             signatures = get_method_signature(method)
             for sig in signatures:
@@ -237,12 +319,17 @@ def addOtherPorts(module, other_list):
                 else:
                     types = [[]]
                 if types:
+                    if not all(types, is_class_allowed):
+                        continue
                     if len(types)<=1:
                         addInputPort(module, name, types[0],
                                      types[0] in typeMapDictValues)
                     else:
                         addInputPort(module, name, types, True)
         else:
+            if name in disallowed_other_ports:
+                continue
+#             print "other: %s %s" % (module.vtkClass.__name__, name)
             method = getattr(module.vtkClass, name)
             signatures = get_method_signature(method)
             for sig in signatures:
@@ -252,6 +339,8 @@ def addOtherPorts(module, other_list):
                     types = [typeMap(p) for p in params]
                 else:
                     types = []
+                if not all(types, is_class_allowed):
+                    continue
                 if types==[] or (result==None):
                     addInputPort(module, name, types, True)
     
@@ -274,7 +363,7 @@ def addPorts(module):
     # Somehow vtkProbeFilter.GetOutput cannot be found in any port list
     if module.vtkClass==vtk.vtkProbeFilter:
         addOutputPort(module, 'GetOutput',
-                     typeMap('vtkPolyData'), True)
+                      typeMap('vtkPolyData'), True)
 
 def setAllPorts(treeNode):
     """ setAllPorts(treeNode: TreeNode) -> None
@@ -325,7 +414,6 @@ def class_dict(base_module, node):
 
     return class_dict_
 
-
 def createModule(baseModule, node):
     """ createModule(baseModule: a Module subclass, node: TreeNode) -> None
     Construct a module inherits baseModule with specification from node
@@ -337,6 +425,8 @@ def createModule(baseModule, node):
     module.vtkClass = node.klass
     addModule(module)
     for child in node.children:
+        if child.name in disallowed_classes:
+            continue
         createModule(module, child)
 
 def createAllModules(g):
@@ -350,8 +440,10 @@ def createAllModules(g):
     vtkObjectBase = newModule(vtkBaseModule, 'vtkObjectBase')
     vtkObjectBase.vtkClass = vtk.vtkObjectBase
     addModule(vtkObjectBase)
-    for children in base.children:
-        createModule(vtkObjectBase, children)
+    for child in base.children:
+        if child.name in disallowed_classes:
+            continue
+        createModule(vtkObjectBase, child)
 
 ##############################################################################
 # Convenience methods
