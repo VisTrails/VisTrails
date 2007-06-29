@@ -513,15 +513,13 @@ class TestPresetColor(unittest.TestCase):
     A few simple tests to make sure Preset is working as expected
     
     """
-    pass
-#     def setUp(self):
-#         gui.qt.createBogusQtGuiApp()
+    def setUp(self):
+        gui.qt.createBogusQtGuiApp()
 
-    # FIXME: This test segfaults
-#     def testColorValues(self):
-#         initializeCurrentTheme()
-#         self.assertEquals(CurrentTheme.CONNECTION_CONTROL_POINTS,
-#                           20)
+    def testColorValues(self):
+        initializeCurrentTheme()
+        self.assertEquals(CurrentTheme.CONNECTION_CONTROL_POINTS,
+                          20)
         
 if __name__ == '__main__':
     unittest.main()
