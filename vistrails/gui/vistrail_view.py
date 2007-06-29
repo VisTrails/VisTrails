@@ -30,6 +30,7 @@ from gui.query_tab import QQueryTab
 from gui.version_tab import QVersionTab
 from gui.vistrail_controller import VistrailController
 from gui.vistrail_toolbar import QVistrailViewToolBar
+from core.debug import critical
 import os.path
 
 ################################################################################
@@ -153,6 +154,10 @@ class QVistrailView(QDockContainer):
             self.connect(self.toolBar, QtCore.SIGNAL('cursorChanged(int)'),
                          versionPIPView.setDefaultCursorState)
 
+        # the redo stack stores the undone action ids 
+        # (undo is automatic with us, through the version tree)
+        self.redo_stack = []
+
     def changeView(self, viewIndex):
         """changeView(viewIndex) -> None. Changes the view between
         pipeline, version and query."""
@@ -243,6 +248,7 @@ class QVistrailView(QDockContainer):
         if self.controller.changed:
             title += '*'
         self.setWindowTitle(title)
+        self.redo_stack = []
 
     def versionSelectionChange(self, versionId):
         """ versionSelectionChange(versionId: int) -> None
@@ -310,6 +316,31 @@ class QVistrailView(QDockContainer):
         
         """
         return self.stackedWidget.currentWidget().createPopupMenu()
+
+    ##########################################################################
+    # Undo/redo
+
+    def undo(self):
+        """Performs one undo step, moving up the version tree."""
+        self.redo_stack.append(self.controller.currentVersion)
+        self.controller.showPreviousVersion()
+        return self.controller.currentVersion
+
+    def redo(self):
+        """Performs one redo step if possible, moving down the version tree."""
+        if not self.can_redo():
+            critical("Redo on an empty redo stack. Ignoring.")
+            return
+        next_version = self.redo_stack[-1]
+        self.redo_stack = self.redo_stack[:-1]
+        self.controller.changeSelectedVersion(next_version)
+        self.controller.resetVersionView = False
+        self.controller.invalidate_version_tree()
+        self.controller.resetVersionView = True
+        return next_version
+
+    def can_redo(self):
+        return len(self.redo_stack) <> 0
 
 ################################################################################
 

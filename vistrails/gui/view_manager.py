@@ -56,7 +56,7 @@ class QViewManager(QtGui.QTabWidget):
         self.setCornerWidget(self.closeButton)
         self.sdiMode = False
         self.splittedViews = {}
-        self.activeIndex = -1;
+        self.activeIndex = -1
         
         self.connect(self, QtCore.SIGNAL('currentChanged(int)'),
                      self.currentChanged)
@@ -202,14 +202,27 @@ class QViewManager(QtGui.QTabWidget):
             return len(vistrailView.controller.currentPipeline.modules)>0
         return False
 
-    def showPreviousVersion(self):
-        """ showPreviousVersion() -> None
-        Go back one from the current version and display it
-        
+    def redo(self):
+        """ redo() -> none
+        Performs a redo step.
+
         """
         vistrailView = self.currentWidget()
-        if vistrailView:
-            vistrailView.controller.showPreviousVersion()
+        if not vistrailView:
+            return
+        new_version = vistrailView.redo()
+        self.emit(QtCore.SIGNAL('versionSelectionChange'), new_version)
+
+    def undo(self):
+        """ undo() -> None
+        Performs an undo step.
+
+        """
+        vistrailView = self.currentWidget()
+        if not vistrailView:
+            return
+        new_version = vistrailView.undo()
+        self.emit(QtCore.SIGNAL('versionSelectionChange'), new_version)
 
     def newVistrail(self):
         """ newVistrail() -> None

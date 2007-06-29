@@ -192,7 +192,12 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.undoAction.setEnabled(False)
         self.undoAction.setStatusTip('Go back to the previous version')
         self.undoAction.setShortcut('Ctrl+Z')
-        
+
+        self.redoAction = QtGui.QAction('Redo', self)
+        self.redoAction.setEnabled(False)
+        self.redoAction.setStatusTip('Redo an undone version')
+        self.redoAction.setShortcut('Ctrl+Y')
+
         self.copyAction = QtGui.QAction('Copy\tCtrl+C', self)
         self.copyAction.setEnabled(False)
         self.copyAction.setStatusTip('Copy selected modules in '
@@ -260,6 +265,7 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         self.editMenu = self.menuBar().addMenu('&Edit')
         self.editMenu.addAction(self.undoAction)
+        self.editMenu.addAction(self.redoAction)
         self.editMenu.addSeparator()
         self.editMenu.addAction(self.copyAction)
         self.editMenu.addAction(self.pasteAction)
@@ -335,9 +341,12 @@ class QBuilderWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('dataChanged()'),
                      self.clipboardChanged)
         
+        self.connect(self.redoAction,
+                     QtCore.SIGNAL('triggered()'),
+                     self.viewManager.redo)
         self.connect(self.undoAction,
                      QtCore.SIGNAL('triggered()'),
-                     self.viewManager.showPreviousVersion)
+                     self.viewManager.undo)
         self.connect(self.copyAction,
                      QtCore.SIGNAL('triggered()'),
                      self.viewManager.copySelection)
@@ -435,6 +444,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         self.executeCurrentWorkflowAction.setEnabled(versionId>-1)
         self.undoAction.setEnabled(versionId>0)
+        self.redoAction.setEnabled(self.viewManager.currentWidget().can_redo())
         self.selectAllAction.setEnabled(self.viewManager.canSelectAll())
     
     def clipboardChanged(self, mode=QtGui.QClipboard.Clipboard):

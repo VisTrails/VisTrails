@@ -70,6 +70,7 @@ to create QObjects."""
         raise QApplicationNotYetCreated()
 
 global _appHolder
+_appHolder = None
 
 def createBogusQtApp():
     """createBogusQtApp creates a bogus Qt App so that we can use QObjects."""
@@ -78,7 +79,8 @@ def createBogusQtApp():
             QtCore.QCoreApplication.__init__(self, ["bogus"])
             allowQObjects()
     global _appHolder
-    _appHolder = BogusApplication()
+    if not _appHolder:
+        _appHolder = BogusApplication()
     return _appHolder
 
 def createBogusQtGuiApp(argv=["bogus"]):    
@@ -89,7 +91,8 @@ def createBogusQtGuiApp(argv=["bogus"]):
             QtGui.QApplication.__init__(self, argv)
             allowQObjects()
     global _appHolder
-    _appHolder = BogusApplication()
+    if not _appHolder:
+        _appHolder = BogusApplication()
     return _appHolder
 
 def destroyBogusQtApp():
