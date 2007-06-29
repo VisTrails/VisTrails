@@ -179,24 +179,40 @@ class TestHTTPFile(unittest.TestCase):
     def testIncorrectURL(self):
         import core.vistrail
         from core.vistrail.module import Module
+        from core.vistrail.module_function import ModuleFunction
+        from core.vistrail.module_param import ModuleParam
         import core.interpreter
         p = core.vistrail.pipeline.Pipeline()
-        p.addModule(Module('HTTPFile', 0,
-                           [('url',
-                             [('String',
-                               'http://illbetyouthisdoesnotexistohrly')])]))
+        m_param = ModuleParam(type='String',
+                              val='http://illbetyouthisdoesnotexistohrly',
+                              )
+        m_function = ModuleFunction(name='url',
+                                    parameters=[m_param],
+                                    )
+        p.addModule(Module(name='HTTPFile', 
+                           id=0,
+                           functions=[m_function],
+                           ))
         interpreter = core.interpreter.default.get_default_interpreter()
         interpreter.execute(None, p, 'foo', 1, self.DummyView(), None)
 
     def testIncorrectURL_2(self):
         import core.vistrail
         from core.vistrail.module import Module
+        from core.vistrail.module_function import ModuleFunction
+        from core.vistrail.module_param import ModuleParam
         import core.interpreter
         p = core.vistrail.pipeline.Pipeline()
-        p.addModule(Module('HTTPFile', 0,
-                           [('url',
-                             [('String',
-                               'foobarttp://neitherdoesthisohrly')])]))
+        m_param = ModuleParam(type='String',
+                              val='http://neitherodesthisohrly',
+                              )
+        m_function = ModuleFunction(name='url',
+                                    parameters=[m_param],
+                                    )
+        p.addModule(Module(name='HTTPFile', 
+                           id=0,
+                           functions=[m_function],
+                           ))
         interpreter = core.interpreter.default.get_default_interpreter()
         interpreter.execute(None, p, 'foo', 1, self.DummyView(), None)
 
