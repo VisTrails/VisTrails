@@ -26,7 +26,7 @@
 #   SingleCellSheetReference
 #   SpreadsheetCell
 ################################################################################
-from core.modules.vistrails_module import Module, NotCacheable
+from core.modules.vistrails_module import Module, NotCacheable, ModuleError
 from spreadsheet_base import (StandardSheetReference,
                               StandardSingleCellSheetReference)
 from spreadsheet_controller import spreadsheetController
@@ -128,6 +128,13 @@ class CellLocation(Module):
         Translate input ports into (row, column) location
         
         """
+        def set_row_col(row, col):
+            try:
+                self.col = ord(col)-ord('A')
+                self.row = int(row)-1
+            except:
+                raise ModuleError(self, 'ColumnRowAddress format error')
+            
         ref = self.forceGetInputFromPort("SheetReference")
         if ref:
             self.sheetReference = ref.getSheetReference()
@@ -139,11 +146,10 @@ class CellLocation(Module):
             address = self.getInputFromPort("ColumnRowAddress")
             address = address.replace(' ', '').upper()
             if len(address)>1:
-                self.col = ord(address[0])-ord('A')
-                try:
-                    self.row = int(address[1:])-1
-                except:
-                    self.row = -1
+                if address[0] >= 'A' and address[0] <= 'Z':
+                    set_row_col(address[1:], address[0])
+                else:
+                    set_row_col(address[:-1], address[-1])
 
 class SpreadsheetCell(NotCacheable, Module):
     """
