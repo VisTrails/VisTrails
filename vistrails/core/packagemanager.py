@@ -224,16 +224,17 @@ creating a class that behaves similarly)."""
         # Imports standard packages directory
         conf = self._configuration
         old_sys_path = sys.path
-        if conf.packageDirectory:
+        if conf.check('packageDirectory'):
             sys.path.append(conf.packageDirectory)
         import packages
         sys.path = old_sys_path
 
         try:
             old_sys_path = sys.path
-            sys.path.append(conf.userPackageDirectory
-                            + '/'
-                            + os.path.pardir)
+            if conf.has('userPackageDirectory'):
+                sys.path.append(conf.userPackageDirectory
+                                + '/'
+                                + os.path.pardir)
             import userpackages
         finally:
             sys.path = old_sys_path

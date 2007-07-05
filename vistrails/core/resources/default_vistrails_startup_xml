@@ -1,0 +1,54 @@
+<!--
+    This is what a "regular" startup file would look like.
+
+<startup>
+  <configuration>
+    <key name="nologger">
+      <bool value="True"/>
+    </key>
+    <key name="shell">
+      <key name="font_face">
+	<str value="Bitstream Vera mono"/>
+      </key>
+      <key name="font_size">
+	<int value="9"/>
+      </key>
+    </key>
+  </configuration>
+  <packages>
+    <package name="vtk"/>
+    <package name="spreadsheet"/>
+    <package name="pythonCalc"/>
+    <package name="ImageMagick"/>
+    <package name="HTTP"/>
+    <package name="teem"/>
+    <package name="pylab"/>
+    <package name="ectmc">
+      <str value="/home/cscheid/vgc/src/ectmc/EdgeTransform/TestMarchingCubes"/>
+    </package>
+    <package name="macet">
+      <str value="/tmp/macet/Macet/Macet/bin"/>
+    </package>
+    <package name="trimesh2"/>
+    <package name="meshutils">
+      <str value="/home/cscheid/code/mesh_utils"/>
+    </package>
+    <package name="afront"/>
+    <package name="metro"/>
+    <package name="console_mode_test"/>
+    <package name="ProteinDataBank"/>
+    <package name="dialogs"/>
+    <package name="SciPy"/>
+  </packages>
+</startup>
+-->
+
+<startup>
+  <configuration>
+    <key name="nologger">
+      <bool value="True"/>
+    </key>
+  </configuration>
+  <packages>
+  </packages>
+</startup>

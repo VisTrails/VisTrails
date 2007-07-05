@@ -32,6 +32,7 @@ from gui.open_db_window import QOpenDBWindow
 from gui.shell import QShellDialog
 from gui.theme import CurrentTheme
 from gui.view_manager import QViewManager
+from gui.preferences import QPreferencesDialog
 import copy
 import core.interpreter.cached
 import sys
@@ -41,7 +42,7 @@ import sys
 class QBuilderWindow(QtGui.QMainWindow):
     """
     QBuilderWindow is a main widget containing an editin area for
-    Vistrails and several tool windows. Also remarks that almost all
+    VisTrails and several tool windows. Also remarks that almost all
     of QBuilderWindow components are floating dockwidget. This mimics
     a setup of an IDE
     
@@ -212,6 +213,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.selectAllAction.setEnabled(False)
         self.selectAllAction.setStatusTip('Select all modules in '
                                           'the current pipeline view')
+
+        self.editPreferencesAction = QtGui.QAction('Preferences...', self)
+        self.editPreferencesAction.setEnabled(True)
+        self.editPreferencesAction.setStatusTip('Edit system preferences')
         
         self.shellAction = QtGui.QAction(CurrentTheme.CONSOLE_MODE_ICON,
                                          'VisTrails Console', self)
@@ -270,7 +275,9 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editMenu.addAction(self.copyAction)
         self.editMenu.addAction(self.pasteAction)
         self.editMenu.addAction(self.selectAllAction)
-
+        # self.editMenu.addSeparator()
+        # self.editMenu.addAction(self.editPreferencesAction)
+        
         self.viewMenu = self.menuBar().addMenu('&View')
         self.viewMenu.addAction(self.shellAction)
         self.viewMenu.addAction(
@@ -340,54 +347,30 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(QtGui.QApplication.clipboard(),
                      QtCore.SIGNAL('dataChanged()'),
                      self.clipboardChanged)
-        
-        self.connect(self.redoAction,
-                     QtCore.SIGNAL('triggered()'),
-                     self.viewManager.redo)
-        self.connect(self.undoAction,
-                     QtCore.SIGNAL('triggered()'),
-                     self.viewManager.undo)
-        self.connect(self.copyAction,
-                     QtCore.SIGNAL('triggered()'),
-                     self.viewManager.copySelection)
-        self.connect(self.pasteAction,
-                     QtCore.SIGNAL('triggered()'),
-                     self.viewManager.pasteToCurrentPipeline)
-        self.connect(self.pasteAction,
-                     QtCore.SIGNAL('triggered()'),
-                     self.viewManager.selectAllModules)
-        
-        self.connect(self.newVistrailAction,
-                     QtCore.SIGNAL('triggered()'),
-                     self.viewManager.newVistrail)
-        
-        self.connect(self.openVistrailAction,
-                     QtCore.SIGNAL('triggered()'),
-                     self.openVistrail)
 
-        self.connect(self.openDBAction,
-                     QtCore.SIGNAL('triggered()'),
-                     self.openVistrailDB)
-        
-        self.connect(self.openVistrailButton,
-                     QtCore.SIGNAL('clicked()'),
-                     self.openVistrail)
-        
-        self.connect(self.saveVistrailAction,
-                     QtCore.SIGNAL('triggered()'),
-                     self.saveVistrail)
-        
-        self.connect(self.saveVistrailAsAction,
-                     QtCore.SIGNAL('triggered()'),
-                     self.saveVistrailAs)
+        trigger_actions = [
+            (self.redoAction, self.viewManager.redo),
+            (self.undoAction, self.viewManager.undo),
+            (self.copyAction, self.viewManager.copySelection),
+            (self.pasteAction, self.viewManager.pasteToCurrentPipeline),
+            (self.pasteAction, self.viewManager.selectAllModules),
+            (self.newVistrailAction, self.viewManager.newVistrail),
+            (self.openVistrailAction, self.openVistrail),
+            (self.openDBAction, self.openVistrailDB),
+            (self.saveVistrailAction, self.saveVistrail),
+            (self.saveVistrailAsAction, self.saveVistrailAs),
+            (self.saveDBAction, self.saveVistrailDB),
+            (self.closeVistrailAction, self.viewManager.closeVistrail),
+            (self.helpAction, self.showAboutMessage),
+            (self.editPreferencesAction, self.showPreferences),
+            (self.executeCurrentWorkflowAction,
+             self.viewManager.executeCurrentPipeline),
+            (self.flushCacheAction, self.flush_cache),
+            (self.quitVistrailsAction, self.quitVistrails),
+            ]
 
-        self.connect(self.saveDBAction,
-                     QtCore.SIGNAL('triggered()'),
-                     self.saveVistrailDB)
-        
-        self.connect(self.closeVistrailAction,
-                     QtCore.SIGNAL('triggered()'),
-                     self.viewManager.closeVistrail)
+        for (emitter, receiver) in trigger_actions:
+            self.connect(emitter, QtCore.SIGNAL('triggered()'), receiver)
 
         self.connect(self.sdiModeAction,
                      QtCore.SIGNAL('triggered(bool)'),
@@ -397,10 +380,6 @@ class QBuilderWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('triggered(QAction *)'),
                      self.vistrailSelectFromMenu)
         
-        self.connect(self.quitVistrailsAction,
-                     QtCore.SIGNAL('triggered()'),
-                     self.quitVistrails)
-        
         self.connect(self.shellAction,
                      QtCore.SIGNAL('triggered(bool)'),
                      self.showShell)
@@ -409,21 +388,9 @@ class QBuilderWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('triggered(bool)'),
                      self.showBookmarks)
 
-        self.connect(self.helpAction,
-                     QtCore.SIGNAL("triggered()"),
-                     self.showAboutMessage)
-
         self.connect(self.bookmarksWindow,
                      QtCore.SIGNAL("bookmarksHidden()"),
                      self.bookmarksAction.toggle)
-
-        self.connect(self.executeCurrentWorkflowAction,
-                     QtCore.SIGNAL("triggered()"),
-                     self.viewManager.executeCurrentPipeline)
-
-        self.connect(self.flushCacheAction,
-                     QtCore.SIGNAL("triggered()"),
-                     self.flush_cache)
         
         for shortcut in self.executeShortcuts:
             self.connect(shortcut,
@@ -674,6 +641,14 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         QtGui.QMessageBox.about(self,self.tr("About VisTrails..."),
                                 self.tr(system.about_string()))
+
+    def showPreferences(self):
+        """showPreferences() -> None
+        Display Preferences dialog
+
+        """
+        dialog = QPreferencesDialog(self)
+        dialog.exec_()
 
     def flush_cache(self):
         core.interpreter.cached.CachedInterpreter.flush()

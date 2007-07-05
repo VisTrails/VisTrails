@@ -35,39 +35,80 @@ import tempfile
 
 ##############################################################################
 
+class ConfigurationObject(InstanceObject):
+    """A ConfigurationObject is an InstanceObject that respects the
+    following convention: values that are not 'present' in the object
+    should have value (None, type), where type is the type of the
+    expected object.
+
+    ConfigurationObject exists so that the GUI can automatically infer
+    the right types for the widgets.
+
+    """
+
+    def has(self, key):
+        """has(key) -> bool.
+
+        Returns true if key has valid value in the object.
+        """
+        
+        if not hasattr(self, key):
+            return False
+        v = getattr(self, key)
+        if type(v) == tuple and v[0] is None and type(v[1]) == type:
+            return False
+        return True
+
+    def check(self, key):
+        """check(key) -> obj
+
+        Returns False if key is absent in object, and returns object
+        otherwise.
+        """
+        
+        return self.has(key) and getattr(self, key)
+
+    def keys(self):
+        """keys() -> list of strings
+
+        Returns all options stored in this object.
+        """
+        
+        return self.__dict__.keys()
+
 def default():
-    """ default() -> InstanceObject
+    """ default() -> ConfigurationObject
     Returns the default configuration of VisTrails
     
     """
 
     base_dir = {
-        'dataDirectory': None,
+        'dataDirectory': (None, str),
         'debugSignals': False,
         'dotVistrails': system.default_dot_vistrails(),
         'fileRepository': default_file_repository(),
         'interactiveMode': True,
         'logger': default_logger(),
         'db': default_db(),
-        'maxMemory': -1,
+        'maxMemory': (None, int),
         'maximizeWindows': False,
-        'minMemory': -1,
+        'minMemory': (None, int),
         'multiHeads': False,
         'nologger': False,
-        'packageDirectory': None,
+        'packageDirectory': (None, str),
         'pythonPrompt': False,
-        'rootDirectory': None,
+        'rootDirectory': (None, str),
         'shell': default_shell(),
         'showMovies': True,
         'showSplash': True,
         'useCache': True,
-        'userPackageDirectory': None,
-        'verbosenessLevel': -1,
+        'userPackageDirectory': (None, str),
+        'verbosenessLevel': (None, int),
         }
-    return InstanceObject(**base_dir)
+    return ConfigurationObject(**base_dir)
 
 def default_file_repository():
-    """default_file_repository() -> InstanceObject
+    """default_file_repository() -> ConfigurationObject
     Returns the default configuration for the VisTrails file repository
     
     """
@@ -83,10 +124,10 @@ def default_file_repository():
         'sshPort': 0,
         'sshUser': '',
         }
-    return InstanceObject(**file_repository_dir)
+    return ConfigurationObject(**file_repository_dir)
 
 def default_logger():
-    """default_logger() -> InstanceObject
+    """default_logger() -> ConfigurationObject
     Returns the default configuration for the VisTrails logger
     
     """
@@ -97,10 +138,10 @@ def default_logger():
         'dbPort': 0,
         'dbUser': '',
         }
-    return InstanceObject(**logger_dir)
+    return ConfigurationObject(**logger_dir)
 
 def default_db():
-    """default_db() -> InstanceObject
+    """default_db() -> ConfigurationObject
     Returns the default configuration for VisTrails db
     
     """
@@ -111,10 +152,10 @@ def default_db():
         'port': 0,
         'user': '',
         }
-    return InstanceObject(**db)
+    return ConfigurationObject(**db)
 
 def default_shell():
-    """default_shell() -> InstanceObject
+    """default_shell() -> ConfigurationObject
     Returns the default configuration for the VisTrails shell
     
     """
@@ -135,4 +176,4 @@ def default_shell():
             }
     else:
         raise VistrailsInternalError('system type not recognized')
-    return InstanceObject(**shell_dir)
+    return ConfigurationObject(**shell_dir)

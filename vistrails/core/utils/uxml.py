@@ -21,6 +21,23 @@
 ############################################################################
 from xml.dom import minidom
 import xml.parsers.expat
+import __builtin__
+
+def eval_xml_value(node):
+    """eval_xml_value(node) -> value
+
+       evaluates an xml node as the following examples:
+
+       <str value='foo'/> -> 'foo'
+       <int value='3'/> -> 3
+       <float value='3.141592'> -> 3.141592
+       <bool value='False'> -> False
+    """
+    
+    key_name = node.nodeName
+    type_ = getattr(__builtin__, key_name)
+    str_value = str(node.attributes['value'].value)
+    return type_(str_value)
 
 def named_elements(element, elname):
     """named_elements(element, elname) -> Node 
@@ -30,6 +47,18 @@ def named_elements(element, elname):
     """
     for node in element.childNodes:
         if node.nodeName == elname:
+            yield node
+
+def elements_filter(element, element_predicate):
+    """elements_filter(element, element_predicate) -> Node iterator
+    Helper function that iterates over the element child Nodes searching
+    for nodes that pass element_predicate, that is, node for which
+
+    element_predicate(node) == True
+
+    """
+    for node in element.childNodes:
+        if element_predicate(node):
             yield node
 
 class XMLWrapper(object):

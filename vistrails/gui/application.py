@@ -83,7 +83,8 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
             for (k, v) in optionsDict.iteritems():
                 setattr(self.configuration, k, v)
         self.vistrailsStartup = core.startup.VistrailsStartup()
-        if self.configuration.interactiveMode:
+        interactive = self.configuration.check('interactiveMode')
+        if interactive:
             self.setIcon()
             self.createWindows()
             self.processEvents()
@@ -92,7 +93,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         self.runInitialization()
         self._python_environment = self.vistrailsStartup.get_python_environment()
         
-        if self.configuration.interactiveMode:
+        if interactive:
             self.interactiveMode()
         else:
             return self.noninteractiveMode()
@@ -127,7 +128,7 @@ after self.init()"""
         self.builderWindow.modulePalette.treeWidget.updateFromModuleRegistry()
         registry.connect(registry, registry.newModuleSignal, 
                          self.builderWindow.modulePalette.newModule)
-        if self.configuration.showSplash:
+        if self.configuration.check('showSplash'):
             self.splashScreen.finish(self.builderWindow)
         if self.input:
             for filename in self.input:
@@ -169,7 +170,7 @@ run in batch mode.')
         Create the splash-screen at startup
         
         """
-        if self.configuration.showSplash:
+        if self.configuration.check('showSplash'):
             splashPath = (system.vistrails_root_directory() +
                           "/gui/resources/images/vistrails_splash.png")
             pixmap = QtGui.QPixmap(splashPath)
@@ -186,7 +187,7 @@ run in batch mode.')
             #to make all widgets to have the mac's nice looking
             self.installEventFilter(self)
         self.builderWindow = QBuilderWindow()
-        if self.configuration.maximizeWindows:
+        if self.configuration.check('maximizeWindows'):
             self.builderWindow.showMaximized()
         else:
             self.builderWindow.show()
@@ -264,7 +265,7 @@ run in batch mode.')
             self.configuration.showSplash = False
         self.configuration.debugSignals = get('debugsignals')
         self.configuration.dotVistrails = get('dotVistrails')
-        if not self.configuration.dotVistrails:
+        if not self.configuration.check('dotVistrails'):
             self.configuration.dotVistrails = system.default_dot_vistrails()
         self.configuration.multiHeads = get('multiheads')
         self.configuration.maximizeWindows = get('maximized')
@@ -299,7 +300,7 @@ run in batch mode.')
             gui.bookmark_window.initBookmarks(system.default_bookmarks_file())    
             
         initBookmarks()
-        if self.configuration.pythonPrompt:
+        if self.configuration.check('pythonPrompt'):
             debug.startVisTrailsREPL(locals())
         self.showSplash = self.configuration.showSplash
 

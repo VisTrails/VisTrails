@@ -24,7 +24,7 @@
 
 from core import debug
 from core import system
-from core.utils import InstanceObject
+from core.utils.uxml import named_elements, elements_filter, eval_xml_value
 import copy
 import core.logger
 import core.packagemanager
@@ -33,6 +33,7 @@ import shutil
 import sys
 import tempfile
 import core.configuration
+import xml.dom.minidom
 
 ################################################################################
 
@@ -48,11 +49,13 @@ class VistrailsStartup(object):
     """
 
     def init(self, config=None):
-        """ init(config: InstanceObject) -> None        
+        """ init(config: ConfigurationObject) -> None        
         Initialize VisTrails with optionsDict. optionsDict can be
-        another VisTrails Configuration object, e.g. InstanceObject
+        another VisTrails Configuration object, e.g. ConfigurationObject
         
         """
+        assert (config is None or
+                isinstance(config, core.configuration.ConfigurationObject))
         if config:
             self.configuration = config
         else:
@@ -61,13 +64,71 @@ class VistrailsStartup(object):
             self.configuration)
         self.startupHooks = []
         self._python_environment = self.runDotVistrails()
+        self.load_configuration()
+        self.load_packages()
         self.setupDefaultFolders()
         self.setupBaseModules()
         self.installPackages()
         self.runStartupHooks()
-        if not self.configuration.nologger:
+        if not self.configuration.check('nologger'):
             core.logger._nologger = False
             core.logger.Logger.get()
+
+    ##########################################################################
+    # startup.xml related
+
+    def load_configuration(self):
+        """load_configuration() -> None
+
+        Loads the appropriate configuration from .vistrails/startup.xml.
+        """
+        
+        def parse_configuration(node,
+                                configuration_parent,
+                                configuration_object,
+                                configuration_name):
+            for key in elements_filter(node, lambda node: node.nodeName in
+                                       ['key', 'bool', 'str', 'int', 'float']):
+                key_name = str(key.nodeName)
+                if key_name == 'key':
+                    value = str(key.attributes['name'].value)
+                    parse_configuration(key,
+                                        configuration_object,
+                                        getattr(configuration_object, value),
+                                        value)
+                elif key_name in ['bool', 'str', 'int', 'float']:
+                    value = eval_xml_value(key)
+                    setattr(configuration_parent, configuration_name, value)
+                else:
+                    raise Exception("configuration type not recognized:" +
+                                    key_name)
+        dom = xml.dom.minidom.parse(self.configuration.dotVistrails +
+                                    '/startup.xml')
+        parse_configuration(dom.getElementsByTagName("configuration")[0],
+                            None,
+                            self.configuration,
+                            'configuration')
+
+    def load_packages(self):
+        """load_packages() -> None
+
+        Loads the appropriate packages from .vistrails/startup.xml.
+        """
+        
+        def parse_package(node):
+            is_value = (lambda node: node.nodeName in
+                        set(['bool', 'str', 'int', 'float']))
+            params = [eval_xml_value(child)
+                      for child in elements_filter(node, is_value)]
+            package_name = str(node.attributes['name'].value)
+            self._package_manager.add_package(package_name, params)
+        dom = xml.dom.minidom.parse(self.configuration.dotVistrails +
+                                    '/startup.xml')
+        package_list = dom.getElementsByTagName("package")
+        for package_node in package_list:
+            parse_package(package_node)
+
+    ##########################################################################
 
     def get_python_environment(self):
         """get_python_environment(): returns the python environment generated
@@ -126,13 +187,29 @@ by startup.py. This should only be called after init()."""
                 shutil.copyfile((core.system.vistrails_root_directory() +
                                  'core/resources/default_vistrails_startup'),
                                 self.configuration.dotVistrails + '/startup.py')
-                debug.critical('Succeeded!')
+                debug.log('Succeeded!')
             except:
                 debug.critical("""Failed to copy default file to .vistrails.
                 This could be an indication of a permissions problem.
                 Make sure directory '%s' is writable"""
                 % self.configuration.dotVistrails)
                 sys.exit(1)
+
+        def install_default_startupxml_if_needed():
+            fname = (self.configuration.dotVistrails +
+                     '/startup.xml')
+            origin = (core.system.vistrails_root_directory() +
+                      'core/resources/default_vistrails_startup_xml')
+            if os.path.isfile(fname):
+                return
+            try:
+                shutil.copyfile(origin, fname)
+                debug.log('Succeeded!')
+            except:
+                debug.critical("""Failed to copy default configuration
+                file to .vistrails. This could be an indication of a
+                permissions problem. Please make sure '%s' is writable."""
+                               % self.configuration.dotVistrails)
 
         def create_default_directory():
             debug.critical('Will try to create default directory')
@@ -189,17 +266,13 @@ by startup.py. This should only be called after init()."""
                     create_user_packages_dir()
                 try:
                     dotVistrails = file(self.configuration.dotVistrails + '/startup.py')
-                    code = compile("".join(dotVistrails.readlines()),
-                                   system.temporary_directory() +
-                                   "dotVistrailsErrors.txt",
-                                   'exec')
                     g = {}
                     localsDir = {'configuration': self.configuration,
                                  'addStartupHook': addStartupHook,
                                  'addPackage': addPackage}
                     old_path = copy.copy(sys.path)
                     sys.path.append(self.configuration.dotVistrails)
-                    eval(code, g, localsDir)
+                    exec dotVistrails in localsDir
                     sys.path = old_path
                     del localsDir['addPackage']
                     del localsDir['addStartupHook']
@@ -217,13 +290,17 @@ by startup.py. This should only be called after init()."""
                     debug.critical('Will try to install default' +
                                               'startup file')
                     install_default_startup()
+                    install_default_startupxml_if_needed()
                     return execDotVistrails(True)
             elif not os.path.lexists(self.configuration.dotVistrails):
                 debug.critical('%s not found' % self.configuration.dotVistrails)
                 create_default_directory()
                 install_default_startup()
+                install_default_startupxml_if_needed()
                 return execDotVistrails(True)
 
+
+        install_default_startupxml_if_needed()
         # Now execute the dot vistrails
         return execDotVistrails()
 
@@ -232,12 +309,13 @@ by startup.py. This should only be called after init()."""
         Give default values to folders when there are no values specified
         
         """
-        if self.configuration.rootDirectory:
+        if self.configuration.has('rootDirectory'):
             system.set_vistrails_directory(self.configuration.rootDirectory)
-        if self.configuration.dataDirectory:
+        if self.configuration.has('dataDirectory'):
             system.set_vistrails_data_directory( \
                 self.configuration.dataDirectory)
-        if self.configuration.verbosenessLevel != -1:
+        if (self.configuration.has('verbosenessLevel') and
+            self.configuration.verbosenessLevel != -1):
             dbg = debug.DebugPrint
             verbose = self.configuration.verbosenessLevel
             if verbose < 0:
@@ -253,7 +331,7 @@ by startup.py. This should only be called after init()."""
             levels = [dbg.Critical, dbg.Warning, dbg.Log]
             dbg.set_message_level(levels[verbose])
             dbg.log("Set verboseness level to %s" % verbose)
-        if not self.configuration.userPackageDirectory:
+        if not self.configuration.has('userPackageDirectory'):
             s = core.system.default_dot_vistrails() + '/userpackages'
             self.configuration.userPackageDirectory = s
 
