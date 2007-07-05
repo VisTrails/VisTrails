@@ -217,110 +217,241 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
 
 ##############################################################################
 # QGraphicsConnectionItem
-    
-class QGraphicsConnectionItem(QtGui.QGraphicsPolygonItem,
-                              QGraphicsItemInterface):
-    """
-    QGraphicsConnectionItem is a connection shape connecting two port items
-    
-    """
-    def __init__(self, parent=None, scene=None):
-        """ QGraphicsConnectionItem(parent: QGraphicsItem,
-                                    scene: QGraphicsScene)
-                                    -> QGraphicsConnectionItem
-        Create the shape, initialize its pen and brush accordingly
-        
-        """
-        QtGui.QGraphicsPolygonItem.__init__(self, parent, scene)
-        self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
-        self.setZValue(2)
-        self.connectionPen = CurrentTheme.CONNECTION_PEN
-        self.startPos = QtCore.QPointF()
-        self.endPos = QtCore.QPointF()
-        self.visualPolygon = QtGui.QPolygonF()
-        self.connectingModules = (None, None)
-        self.id = -1
-        self.ghosted = False
-        self.connection = None
 
-    def setupConnection(self, startPos, endPos):
-        """ setupConnection(startPos: QPointF, endPos: QPointF) -> None
-        Setup curve ends and store info
-        
-        """
-        self.startPos = startPos
-        self.endPos = endPos
+# set this to True to have old sine-wave connections
+__old_connection = False
 
-        # Generate the polygon passing through two points
-        steps = CurrentTheme.CONNECTION_CONTROL_POINTS
-        polygon = QtGui.QPolygonF()
-        self.visualPolygon = QtGui.QPolygonF()
-        p1 = self.startPos
-        p2 = self.endPos
-        r = p2-p1
-        horizontal = False        
-        if p2.y() > p1.y() and p2.x() > p1.x():
-            horizontal = True
-        p1x = p1.x()
-        p1y = p1.y()
-        rx = r.x()
-        ry = r.y()
-        points = []
-        for i in range(steps):
-            t = float(i)/float(steps-1)
-            s = (0.5+math.sin(math.pi*(t-0.5))*0.5)
-            if horizontal:
-                x = p1x+rx*t
-                y = p1y+ry*s
-                polygon.append(QtCore.QPointF(x,y-2))
-                self.visualPolygon.append(QtCore.QPointF(x,y))
-                points.append(QtCore.QPointF(x, y+2))
-            else:
-                x = p1x+rx*s
-                y = p1y+ry*t
-                polygon.append(QtCore.QPointF(x-2, y))
-                self.visualPolygon.append(QtCore.QPointF(x, y))
-                points.append(QtCore.QPointF(x+2, y))
-                
-        for p in reversed(points):
-            polygon.append(p)
-        polygon.append(polygon.at(0))
-        self.setPolygon(polygon)
-
-    def setGhosted(self, ghosted):
-        """ setGhosted(ghosted: True) -> None
-        Set this link to be ghosted or not
-        
+if __old_connection:
+    class QGraphicsConnectionItem(QtGui.QGraphicsPolygonItem,
+                                  QGraphicsItemInterface):
         """
-        self.ghosted = ghosted
-        if ghosted:
-            self.connectionPen = CurrentTheme.GHOSTED_CONNECTION_PEN
-        else:
+        QGraphicsConnectionItem is a connection shape connecting two port items
+
+        """
+        def __init__(self, parent=None, scene=None):
+            """ QGraphicsConnectionItem(parent: QGraphicsItem,
+                                        scene: QGraphicsScene)
+                                        -> QGraphicsConnectionItem
+            Create the shape, initialize its pen and brush accordingly
+
+            """
+            QtGui.QGraphicsPolygonItem.__init__(self, parent, scene)
+            self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+            self.setZValue(2)
             self.connectionPen = CurrentTheme.CONNECTION_PEN
+            self.startPos = QtCore.QPointF()
+            self.endPos = QtCore.QPointF()
+            self.visualPolygon = QtGui.QPolygonF()
+            self.connectingModules = (None, None)
+            self.id = -1
+            self.ghosted = False
+            self.connection = None
 
-    def paint(self, painter, option, widget=None):
-        """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
-                  widget: QWidget) -> None
-        Peform actual painting of the connection
-        
-        """
-        if self.isSelected():
-            painter.setPen(CurrentTheme.CONNECTION_SELECTED_PEN)
-        else:
-            painter.setPen(self.connectionPen)
-        painter.drawPolyline(self.visualPolygon)
+        def setupConnection(self, startPos, endPos):
+            """ setupConnection(startPos: QPointF, endPos: QPointF) -> None
+            Setup curve ends and store info
 
-    def itemChange(self, change, value):
-        """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
-        Do not allow connection to be selected with modules
-        
+            """
+            self.startPos = startPos
+            self.endPos = endPos
+
+            # Generate the polygon passing through two points
+            steps = CurrentTheme.CONNECTION_CONTROL_POINTS
+            polygon = QtGui.QPolygonF()
+            self.visualPolygon = QtGui.QPolygonF()
+            p1 = self.startPos
+            p2 = self.endPos
+            r = p2-p1
+            horizontal = False        
+            if p2.y() > p1.y() and p2.x() > p1.x():
+                horizontal = True
+            p1x = p1.x()
+            p1y = p1.y()
+            rx = r.x()
+            ry = r.y()
+            points = []
+            for i in range(steps):
+                t = float(i)/float(steps-1)
+                s = (0.5+math.sin(math.pi*(t-0.5))*0.5)
+                if horizontal:
+                    x = p1x+rx*t
+                    y = p1y+ry*s
+                    polygon.append(QtCore.QPointF(x,y-2))
+                    self.visualPolygon.append(QtCore.QPointF(x,y))
+                    points.append(QtCore.QPointF(x, y+2))
+                else:
+                    x = p1x+rx*s
+                    y = p1y+ry*t
+                    polygon.append(QtCore.QPointF(x-2, y))
+                    self.visualPolygon.append(QtCore.QPointF(x, y))
+                    points.append(QtCore.QPointF(x+2, y))
+
+            for p in reversed(points):
+                polygon.append(p)
+            polygon.append(polygon.at(0))
+            self.setPolygon(polygon)
+
+        def setGhosted(self, ghosted):
+            """ setGhosted(ghosted: True) -> None
+            Set this link to be ghosted or not
+
+            """
+            self.ghosted = ghosted
+            if ghosted:
+                self.connectionPen = CurrentTheme.GHOSTED_CONNECTION_PEN
+            else:
+                self.connectionPen = CurrentTheme.CONNECTION_PEN
+
+        def paint(self, painter, option, widget=None):
+            """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
+                      widget: QWidget) -> None
+            Peform actual painting of the connection
+
+            """
+            if self.isSelected():
+                painter.setPen(CurrentTheme.CONNECTION_SELECTED_PEN)
+            else:
+                painter.setPen(self.connectionPen)
+            painter.drawPolyline(self.visualPolygon)
+
+        def itemChange(self, change, value):
+            """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
+            Do not allow connection to be selected with modules
+
+            """
+            if change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool():
+                selectedItems = self.scene().selectedItems()
+                for item in selectedItems:
+                    if type(item)==QGraphicsModuleItem:
+                        return QtCore.QVariant(False)
+            return QtGui.QGraphicsPolygonItem.itemChange(self, change, value)
+else:
+    class QGraphicsConnectionItem(QtGui.QGraphicsPathItem,
+                                  QGraphicsItemInterface):
         """
-        if change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool():
-            selectedItems = self.scene().selectedItems()
-            for item in selectedItems:
-                if type(item)==QGraphicsModuleItem:
-                    return QtCore.QVariant(False)
-        return QtGui.QGraphicsPolygonItem.itemChange(self, change, value)    
+        QGraphicsConnectionItem is a connection shape connecting two port items
+
+        """
+        def __init__(self, parent=None, scene=None):
+            """ QGraphicsConnectionItem(parent: QGraphicsItem,
+                                        scene: QGraphicsScene)
+                                        -> QGraphicsConnectionItem
+            Create the shape, initialize its pen and brush accordingly
+
+            """
+            QtGui.QGraphicsPolygonItem.__init__(self, parent, scene)
+            self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+            self.setZValue(2)
+            self.connectionPen = CurrentTheme.CONNECTION_PEN
+            self.startPos = QtCore.QPointF()
+            self.endPos = QtCore.QPointF()
+            self.connectingModules = (None, None)
+            self.id = -1
+            self.ghosted = False
+            self.connection = None
+
+        def setupConnection(self, startPos, endPos):
+            """ setupConnection(startPos: QPointF, endPos: QPointF) -> None
+            Setup curve ends and store info
+
+            """
+            self.startPos = startPos
+            self.endPos = endPos
+
+            dx = abs(self.endPos.x() - self.startPos.x())
+            dy = (self.startPos.y() - self.endPos.y())
+
+            # This is reasonably ugly logic to get reasonably nice
+            # curves. Here goes: we use a cubic bezier p0,p1,p2,p3, where:
+
+            # p0 is the source port center
+            # p3 is the destination port center
+            # p1 is a control point displaced vertically from p0
+            # p2 is a control point displaced vertically from p3
+
+            # We want most curves to be "straight": they shouldn't bend
+            # much.  However, we want "inverted" connections (connections
+            # that go against the natural up-down flow) to bend a little
+            # as they go out of the ports. So the logic is:
+
+            # As dy/dx -> oo, we want the control point displacement to go
+            # to max(dy/2, m) (m is described below)
+
+            # As dy/dx -> 0, we want the control point displacement to go
+            # to m 
+
+            # As dy/dx -> -oo, we want the control point displacement to go
+            # to max(-dy/2, m)
+
+            # On points away from infinity, we want some smooth transition.
+            # I'm using f(x) = 2/pi arctan (x) as the mapping, since:
+
+            # f(-oo) = -1
+            # f(0) = 0
+            # f(oo) = 1
+
+            # m is the monotonicity breakdown point: this is the minimum
+            # displacement when dy/dx is low
+            m = float(CurrentTheme.MODULE_LABEL_MARGIN[0]) * 3.0
+
+            # positive_d and negative_d are the displacements when dy/dx is
+            # large positive and large negative
+            positive_d = max(m/3.0, dy / 2.0)
+            negative_d = max(m/3.0, -dy / 4.0)
+
+            if dx == 0.0:
+                v = 0.0
+            else:
+                w = math.atan(dy/dx) * (2 / math.pi)
+                if w < 0:
+                    w = -w
+                    v = w * negative_d + (1.0 - w) * m
+                else:
+                    v = w * positive_d + (1.0 - w) * m
+
+            displacement = QtCore.QPointF(0.0, v)
+            self._control_1 = startPos - displacement
+            self._control_2 = endPos + displacement
+
+            path = QtGui.QPainterPath(self.startPos)
+            path.cubicTo(self._control_1, self._control_2, self.endPos)
+
+            self.setPath(path)
+
+        def setGhosted(self, ghosted):
+            """ setGhosted(ghosted: True) -> None
+            Set this link to be ghosted or not
+
+            """
+            self.ghosted = ghosted
+            if ghosted:
+                self.connectionPen = CurrentTheme.GHOSTED_CONNECTION_PEN
+            else:
+                self.connectionPen = CurrentTheme.CONNECTION_PEN
+
+        def paint(self, painter, option, widget=None):
+            """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
+                      widget: QWidget) -> None
+            Peform actual painting of the connection
+
+            """
+            if self.isSelected():
+                painter.setPen(CurrentTheme.CONNECTION_SELECTED_PEN)
+            else:
+                painter.setPen(self.connectionPen)
+            painter.drawPath(self.path())
+
+        def itemChange(self, change, value):
+            """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
+            Do not allow connection to be selected with modules
+
+            """
+            if change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool():
+                selectedItems = self.scene().selectedItems()
+                for item in selectedItems:
+                    if type(item)==QGraphicsModuleItem:
+                        return QtCore.QVariant(False)
+            return QtGui.QGraphicsPathItem.itemChange(self, change, value)    
 
 ##############################################################################
 # QGraphicsModuleItem
