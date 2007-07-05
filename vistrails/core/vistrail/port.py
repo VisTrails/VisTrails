@@ -150,7 +150,7 @@ class Port(DBPort):
 	self._spec = spec
 
         # update self.db_sig
-        self.db_sig = self.make_sig()            
+        self.db_sig = self.make_sig()
     spec = property(_get_spec, _set_spec)
 
     def _get_sig(self):

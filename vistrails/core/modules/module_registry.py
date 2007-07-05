@@ -48,7 +48,7 @@ def _check_fringe(fringe):
 ###############################################################################
 # ModuleDescriptor
 
-class ModuleDescriptor(object):
+class ModuleDescriptor(QtCore.QObject):
     """ModuleDescriptor is a class that holds information about
     modules in the registry.
 
@@ -57,6 +57,7 @@ class ModuleDescriptor(object):
     ##########################################################################
 
     def __init__(self, module, name = None):
+        QtCore.QObject.__init__(self)
         if not name:
             name = module.__name__
         self.module = module
@@ -64,8 +65,16 @@ class ModuleDescriptor(object):
         if len(candidates) > 0:
             base = candidates[0]
             self.baseDescriptor = registry.getDescriptor(base)
+            self.connect(self.baseDescriptor,
+                         QtCore.SIGNAL("added_input_port"),
+                         self.new_input_port)
+            self.connect(self.baseDescriptor,
+                         QtCore.SIGNAL("added_output_port"),
+                         self.new_output_port)
+            self._port_count = self.baseDescriptor.port_count()
         else:
             self.baseDescriptor = None
+            self._port_count = 0
         self.name = name
         self.inputPorts = {}
         self.portOrder = {}
@@ -73,7 +82,8 @@ class ModuleDescriptor(object):
         self.inputPortsOptional = {}
         self.outputPortsOptional = {}
         self.inputPortsConfigureWidgetType = {}
-        
+
+
         self._is_abstract = False
         self._configuration_widget = None
         self._left_fringe = None # Fringes are lists of pairs of floats
@@ -102,7 +112,33 @@ class ModuleDescriptor(object):
         return result
 
     ##########################################################################
+    # Abstract module detection support
+
+    def has_ports(self):
+        """Returns True is module has any ports (this includes
+        superclasses).  This method exists to make automatic abstract
+        module detection efficient."""
+        return self._port_count > 0
+
+    def port_count(self):
+        """Return the total number of available for the module."""
+        return self._port_count
     
+    # Signal handling
+    def new_input_port(self):
+        """Updates needed variables when new input port is added
+        to either this module or the superclass."""
+        self._port_count += 1
+        self.emit(QtCore.SIGNAL("added_input_port"))
+        
+    def new_output_port(self):
+        """Updates needed variables when new output port is added
+        to either this module or the superclass."""
+        self._port_count += 1
+        self.emit(QtCore.SIGNAL("added_output_port"))
+
+    ##########################################################################
+
     def appendToPortList(self, port, optionals, name, spec, optional):
         def canonicalize(specItem):
             if type(specItem) == __builtin__.type:
@@ -135,6 +171,7 @@ class ModuleDescriptor(object):
         self.appendToPortList(self.inputPorts,
                               self.inputPortsOptional, name, spec, optional)
         self.inputPortsConfigureWidgetType[name] = configureWidgetType
+        self.new_input_port()
 
     def deleteInputPort(self, name):
         if self.inputPorts.has_key(name):
@@ -144,17 +181,20 @@ class ModuleDescriptor(object):
     def addOutputPort(self, name, spec, optional):
         self.appendToPortList(self.outputPorts,
                               self.outputPortsOptional, name, spec, optional)
+        self.new_output_port()
 
     def deleteOutputPort(self, name):
         if self.outputPorts.has_key(name):
             del self.outputPorts[name]
             del self.outputPortsOptional[name]
 
-    def set_abstract(self, v):
-        self._is_abtract = v
+    def set_module_abstract(self, v):
+        self._is_abstract = v
 
-    def abstract(self):
-        return self._is_abtract
+    def module_abstract(self):
+        if not self.has_ports():
+            return True
+        return self._is_abstract
 
     def set_configuration_widget(self, configuration_widget_type):
         self._configuration_widget = configuration_widget_type
@@ -311,7 +351,8 @@ all y values must be between 0.0 and 1.0. Alternatively, the user can
 set moduleLeftFringe and moduleRightFringe to set two different fringes.
 
 Notice: in the future, more named parameters might be added to this
-method, and the order is not specified.
+method, and the order is not specified. Always call addModule with
+named parameters.
 
 """
         # Setup named arguments. We don't use passed parameters so
@@ -353,7 +394,7 @@ method, and the order is not specified.
         self.moduleName[module] = name
 
         descriptor = moduleNode.descriptor
-        descriptor.set_abstract(is_abstract)
+        descriptor.set_module_abstract(is_abstract)
         descriptor.set_configuration_widget(configureWidgetType)
         descriptor.set_module_package(self.currentPackageName)
 
@@ -376,7 +417,7 @@ method, and the order is not specified.
         else:
             self.packageModules[self.currentPackageName] = [name]
 
-        self.emit(QtCore.SIGNAL("newModule"), name)
+        self.emit(QtCore.SIGNAL("newModule"), descriptor)
         return moduleNode
 
     def addInputPort(self, module, portName, portSpec, optional=False,

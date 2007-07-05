@@ -400,7 +400,7 @@ class TestCachedInterpreter(unittest.TestCase):
                                      'dummy.xml',
                                      n,
                                      view)
-        # to force new params
+        # to force fresh params
         p2 = v.getPipeline('int chain')
         result = interpreter.execute(None, p2,
                                      'dummy.xml',

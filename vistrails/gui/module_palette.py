@@ -50,11 +50,12 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         self.setWindowTitle('Modules')
         return QModuleTreeWidget(self)
 
-    def newModule(self, moduleName):
-        """ newModule(moduleName: str) -> None
+    def newModule(self, descriptor):
+        """ newModule(descriptor: core.modules.module_registry.ModuleDescriptor)
         A new module has been added to Vistrail
         
         """
+        moduleName = descriptor.name
         packageName = registry.get_module_package(moduleName)
         packageItems = self.treeWidget.findItems(packageName,
                                                  QtCore.Qt.MatchExactly |
@@ -64,8 +65,6 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
             parentItem = QModuleTreeWidgetItem(None,
                                                None,
                                                QtCore.QStringList(packageName))
-            parentItem.setFlags((parentItem.flags() &
-                                 ~(QtCore.Qt.ItemIsDragEnabled)))
             self.treeWidget.insertTopLevelItem(0, parentItem)
         else:
             parentItem = packageItems[0]
@@ -148,7 +147,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
             item = QModuleTreeWidgetItem(None,
                                          self,
                                          QtCore.QStringList(packageName))
-            item.setFlags(item.flags() & ~(QtCore.Qt.ItemIsDragEnabled))
+            item.setFlags(item.flags() & ~QtCore.Qt.ItemIsDragEnabled)
             parentItems[packageName] = item
         module = registry.classTree
         createModuleItem(module)
@@ -197,10 +196,10 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
             style.drawControl(QtGui.QStyle.CE_PushButton,
                               buttonOption,
                               painter,
-                              self.treeView);
+                              self.treeView)
 
             branchOption = QtGui.QStyleOption()
-            i = 9; ### hardcoded in qcommonstyle.cpp
+            i = 9 ### hardcoded in qcommonstyle.cpp
             r = option.rect
             branchOption.rect = QtCore.QRect(r.left() + i/2,
                                              r.top() + (r.height() - i)/2,
@@ -240,15 +239,19 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
         """
         return (QtGui.QItemDelegate.sizeHint(self, option, index) +
                 QtCore.QSize(2, 2))
-            
+
+
 
 class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
     """
     QModuleTreeWidgetItem represents module on QModuleTreeWidget
     
     """
+    
     def __init__(self, descriptor, parent, labelList):
-        """ QModuleTreeWidgetItem(parent: QTreeWidgetItem
+        """ QModuleTreeWidgetItem(descriptor: ModuleDescriptor
+                                    (or None for top-level),
+                                  parent: QTreeWidgetItem
                                   labelList: QStringList)
                                   -> QModuleTreeWidget                                  
         Create a new tree widget item with a specific parent and
@@ -257,4 +260,20 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
         """
         self.descriptor = descriptor
         QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
-        
+
+        # This is necessary since we override setFlags
+        self.setFlags(self.flags())
+
+    def setFlags(self, flags):
+        d = self.descriptor
+        if d is None:
+            # toplevel moduletree widgets are never draggable
+            flags = flags & ~QtCore.Qt.ItemIsDragEnabled
+        elif d.module_abstract():
+            # moduletree widgets for abstract modules are never
+            # draggable or enabled
+            flags = flags & ~(QtCore.Qt.ItemIsDragEnabled |
+                              QtCore.Qt.ItemIsSelectable |
+                              QtCore.Qt.ItemIsEnabled)
+        QtGui.QTreeWidgetItem.setFlags(self, flags)
+            

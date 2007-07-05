@@ -139,22 +139,26 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
             Pass through all items of a item
             
             """
-            visible = testFunction(item)
-            enabled = visible
+            enabled = testFunction(item)
+            flags = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDragEnabled
+
+            visible = enabled
             for childIndex in range(item.childCount()):
-                if recursiveSetVisible(item.child(childIndex),
-                                       testFunction):
-                    visible = True
-            if item.isHidden()!=(not visible) or (not visible):
+                visible |= recursiveSetVisible(item.child(childIndex),
+                                               testFunction)
+
+            # if item is hidden or has changed visibility
+            if not visible or (item.isHidden() != (not visible)):
                 item.setHidden(not visible)
+            
             if visible:
                 f = item.flags()
-                b = f & QtCore.Qt.ItemIsEnabled
+                b = f & flags
                 if enabled:
                     if not b:
-                        item.setFlags(f | QtCore.Qt.ItemIsEnabled)
+                        item.setFlags(f | flags)
                 elif b:
-                    item.setFlags(f & (~QtCore.Qt.ItemIsEnabled))
+                    item.setFlags(f & ~flags)
                 
             return visible
 

@@ -419,11 +419,19 @@ def createModule(baseModule, node):
     Construct a module inherits baseModule with specification from node
     
     """
+    def is_abstract():
+        """is_abstract tries to instantiate the class. If it's
+        abstract, this will raise."""
+        try:
+            getattr(vtk, node.name)()
+        except TypeError: # VTK raises type error on abstract classes
+            return True
+        return False
     module = newModule(baseModule, node.name,
                        class_dict(baseModule, node))
     # This is sitting on the class
     module.vtkClass = node.klass
-    addModule(module)
+    addModule(module, abstract=is_abstract())
     for child in node.children:
         if child.name in disallowed_classes:
             continue

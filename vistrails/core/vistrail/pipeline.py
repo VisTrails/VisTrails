@@ -219,7 +219,7 @@ class Pipeline(DBWorkflow):
             self.performOperation(op)
 
     def performOperation(self, op):
-        print "doing %s %s" % (op.vtType, op.what)
+        # print "doing %s %s" % (op.vtType, op.what)
         opMap = {('add','annotation'): self.performAddAnnotation,
                  ('add','module'): self.performAddModule,
                  ('add','connection'): self.performAddConnection,
