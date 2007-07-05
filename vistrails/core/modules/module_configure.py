@@ -441,7 +441,7 @@ class PythonSourceConfigurationWidget(StandardModuleConfigurationWidget):
                 f = ModuleFunction(pos=fid,
                                    name='source')
                 param = ModuleParam(type='String',
-                                    strValue=code,
+                                    val=code,
                                     alias='',
                                     name='<no description>',
                                     pos=0)

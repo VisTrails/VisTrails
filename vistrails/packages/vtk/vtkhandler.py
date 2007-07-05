@@ -264,7 +264,7 @@ class HandlerConfigurationWidget(StandardModuleConfigurationWidget):
                 f = ModuleFunction(pos=fid,
                                    name='Handler')
                 param = ModuleParam(type='String',
-                                    strValue=code,
+                                    val=code,
                                     alias='',
                                     name='<no description>',
                                     pos=0)
