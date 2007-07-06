@@ -27,6 +27,7 @@ to checking dependencies to initializing them."""
 from core import debug
 from core.modules.module_registry import registry
 from core.utils import VistrailsInternalError
+from core.configuration import ConfigurationObject
 import core.data_structures.graph
 import os
 import sys
@@ -138,6 +139,20 @@ from places other than packages or userpackages."""
 
     module = property(_get_module)
 
+    def _get_configuration(self):
+        if hasattr(self._module, 'configuration'):
+            return self._module.configuration
+        else:
+            return None
+    configuration = property(_get_configuration)
+
+    def _get_description(self):
+        if hasattr(self._module, '__doc__'):
+            return self._module.__doc__ or "No description available"
+        else:
+            return "No description available"
+    description = property(_get_description)
+
 ##############################################################################
 
 global _package_manager
@@ -159,6 +174,14 @@ class PackageManager(object):
             self._package_name = n
         def __str__(self):
             return "Package '%s' is missing." % self._package_name
+
+    class PackageInternalError(Exception):
+        def __init__(self, n, d):
+            self._package_name = n
+            self._description = d
+        def __str__(self):
+            return "Package '%s' has a bug: %s" % (self._package_name,
+                                                   self._description)
 
     def __init__(self, configuration):
         global _package_manager
@@ -198,6 +221,25 @@ Returns a package with given name if it exists, otherwise throws exception"""
             raise self.MissingPackage(name)
         else:
             return self._package_list[name]
+
+    def get_package_configuration(self, name):
+        """get_package_configuration(name: string) ->
+        ConfigurationObject or None
+        
+        Returns the configuration object for the package, if existing,
+        or None. Throws MissingPackage if package doesn't exist.
+        """
+
+        pkg = self.get_package(name)
+
+        if not hasattr(pkg.module, 'configuration'):
+            return None
+        else:
+            c = pkg.module.configuration
+            if not isinstance(c, ConfigurationObject):
+                d = "'configuration' attribute should be a ConfigurationObject"
+                raise self.PackageInternalError(name, d)
+            return c
 
     def add_dependencies(self, package):
         """add_dependencies(package) -> None.  Register all
@@ -265,6 +307,10 @@ creating a class that behaves similarly)."""
             if not package.initialized():
                 package.check_requirements()
                 package.initialize()
+
+    def installed_package_list(self):
+        """package_list() -> returns list of all installed packages."""
+        return self._package_list.values()
 
 def get_package_manager():
     global _package_manager

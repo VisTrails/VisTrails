@@ -23,6 +23,11 @@
 # VTK Package for VisTrails
 ################################################################################
 
+"""The Visualization ToolKit (VTK) is an open source, freely available
+software system for 3D computer graphics, image processing, and
+visualization used by thousands of researchers and developers around
+the world. http://www.vtk.org"""
+
 from core.bundles import py_import
 
 vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk'})
