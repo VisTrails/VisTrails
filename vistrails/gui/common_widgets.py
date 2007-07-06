@@ -125,6 +125,7 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
                            QtGui.QSizePolicy.Expanding)
         self.setRootIsDecorated(True)
         self.setDragEnabled(True)
+        self.flags = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDragEnabled
 
     def searchItemName(self, name):
         """ searchItemName(name: QString) -> None        
@@ -140,7 +141,6 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
             
             """
             enabled = testFunction(item)
-            flags = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDragEnabled
 
             visible = enabled
             for childIndex in range(item.childCount()):
@@ -153,12 +153,12 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
             
             if visible:
                 f = item.flags()
-                b = f & flags
+                b = f & self.flags
                 if enabled:
                     if not b:
-                        item.setFlags(f | flags)
+                        item.setFlags(f | self.flags)
                 elif b:
-                    item.setFlags(f & ~flags)
+                    item.setFlags(f & ~self.flags)
                 
             return visible
 
@@ -184,6 +184,14 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
         data = QtGui.QTreeWidget.mimeData(self, itemList)
         data.items = itemList
         return data
+
+    def setMatchedFlags(self, flags):
+        """ setMatchedFlags(flags: QItemFlags) -> None Set the flags
+        for matched item in the search tree. Parents of matched node
+        will be visible with these flags off.
+        
+        """
+        self.flags = flags
     
 class QSearchTreeWindow(QtGui.QWidget):
     """

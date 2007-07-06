@@ -275,8 +275,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editMenu.addAction(self.copyAction)
         self.editMenu.addAction(self.pasteAction)
         self.editMenu.addAction(self.selectAllAction)
-        # self.editMenu.addSeparator()
-        # self.editMenu.addAction(self.editPreferencesAction)
+        self.editMenu.addSeparator()
+        self.editMenu.addAction(self.editPreferencesAction)
         
         self.viewMenu = self.menuBar().addMenu('&View')
         self.viewMenu.addAction(self.shellAction)

@@ -422,6 +422,11 @@ def createModule(baseModule, node):
     def is_abstract():
         """is_abstract tries to instantiate the class. If it's
         abstract, this will raise."""
+        # Consider obsolete classes abstract        
+        if (node.klass in [vtk.vtkInteractorStyleTrackball,
+                           vtk.vtkStructuredPointsGeometryFilter,
+                           vtk.vtkConstrainedPointHandleRepresentation]):
+            return True
         try:
             getattr(vtk, node.name)()
         except TypeError: # VTK raises type error on abstract classes

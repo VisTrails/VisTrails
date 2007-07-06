@@ -42,16 +42,73 @@ class QConfigurationTreeWidgetItem(QtGui.QTreeWidgetItem):
             self._obj_type = obj[1]
             lst << '' << obj[1].__name__
             QtGui.QTreeWidget.__init__(self, parent, lst)
-            self.setFlags(self.flags() & ~QtCore.Qt.ItemIsDragEnabled)
+            self.setFlags((self.flags() & ~QtCore.Qt.ItemIsDragEnabled) |
+                          QtCore.Qt.ItemIsEditable)
         else:
             lst << str(obj) << type(obj).__name__
             QtGui.QTreeWidgetItem.__init__(self, parent, lst)
-            self.setFlags(self.flags() & ~QtCore.Qt.ItemIsDragEnabled)
+            self.setFlags((self.flags() & ~QtCore.Qt.ItemIsDragEnabled) |
+                          QtCore.Qt.ItemIsEditable)
+
+class QConfigurationTreeWidgetItemDelegate(QtGui.QItemDelegate):
+    """
+    QConfigurationTreeWidgetItemDelegate allows a custom editor for
+    each column of the QConfigurationTreeWidget    
+    """
+    
+    def createEditor(self, parent, option, index):
+        """ createEditor(parent: QWidget,
+                         option: QStyleOptionViewItem,
+                         index: QModelIndex) -> QWidget
+        Return the editing widget depending on columns
+        
+        """
+        # We only allow users to edit the  second column
+        if index.column()==1:
+            dataType = str(index.sibling(index.row(), 2).data().toString())
+            
+            # Create the editor based on dataType
+            if dataType=='int':
+                editor = QtGui.QLineEdit(parent)
+                editor.setValidator(QtGui.QIntValidator(parent))
+            elif dataType=='bool':
+                editor = QtGui.QComboBox(parent)
+                editor.addItem('True')
+                editor.addItem('False')
+            else:
+                editor = QtGui.QItemDelegate.createEditor(self, parent,
+                                                          option, index)
+            return editor            
+        return None
+
+    def setEditorData(self, editor, index):
+        """ setEditorData(editor: QWidget, index: QModelIndex) -> None
+        Set the editor to reflects data at index
+        
+        """
+        if type(editor)==QtGui.QComboBox:           
+            editor.setCurrentIndex(editor.findText(index.data().toString()))
+        else:
+            QtGui.QItemDelegate.setEditorData(self, editor, index)
+
+    def setModelData(self, editor, model, index):
+        """ setModelData(editor: QStringEdit,
+                         model: QAbstractItemModel,
+                         index: QModelIndex) -> None
+        Set the text of the editor back to the item model
+        
+        """
+        if type(editor)==QtGui.QComboBox:
+            model.setData(index, QtCore.QVariant(editor.currentText()))
+        else:
+            model.setData(index, QtCore.QVariant(editor.text()))
+    
 
 class QConfigurationTreeWidget(QSearchTreeWidget):
 
     def __init__(self, parent):
         QSearchTreeWidget.__init__(self, parent)
+        self.setMatchedFlags(QtCore.Qt.ItemIsEnabled)
         self.setColumnCount(3)
         lst = QtCore.QStringList()
         lst << 'Name'
@@ -59,6 +116,8 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
         lst << 'Type'
         self.setHeaderLabels(lst)
         self.create_tree()
+        self.expandAll()
+        self.resizeColumnToContents(0)
 
     def create_tree(self):
         def create_item(parent, obj, name):
@@ -69,29 +128,40 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
         from gui.application import VistrailsApplication
         c = VistrailsApplication.vistrailsStartup.configuration
         create_item(self, c, 'configuration')
-        
 
 class QConfigurationTreeWindow(QSearchTreeWindow):
 
     def createTreeWidget(self):
         self.setWindowTitle('Configuration')
-        return QConfigurationTreeWidget(self)
-
+        treeWidget = QConfigurationTreeWidget(self)
+        
+        # The delegate has to be around (self._delegate) to
+        # work, else the instance will be clean by Python...
+        self._delegate = QConfigurationTreeWidgetItemDelegate()
+        treeWidget.setItemDelegate(self._delegate)
+        return treeWidget
 
 class QPreferencesDialog(QtGui.QDialog):
 
     def __init__(self, parent):
         QtGui.QDialog.__init__(self, parent)
-#         self._tab_widget = QtGui.QTabWidget(self)
+        layout = QtGui.QHBoxLayout(self)
+        layout.setMargin(0)
+        layout.setSpacing(0)
+        self.setLayout(layout)
+        
+        self._tab_widget = QtGui.QTabWidget()
+        layout.addWidget(self._tab_widget)
+        self._tab_widget.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         
         self._configuration_tab = self.create_configuration_tab()
-#         self._tab_widget.addTab(self._configuration_tab, 'configuration')
+        self._tab_widget.addTab(self._configuration_tab, 'configuration')
 
-#         self._packages_tab = QtGui.QFrame(self)
+#         self._packages_tab = QtGui.QFrame()
 #         self._tab_widget.addTab(self._packages_tab, 'packages')
 
     def create_configuration_tab(self):
-        self._tree_widget = QConfigurationTreeWindow(self)
-#         return self.
-        
-        
+        return QConfigurationTreeWindow()
+
+    def sizeHint(self):
+        return QtCore.QSize(348, 512)
