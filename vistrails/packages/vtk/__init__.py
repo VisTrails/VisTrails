@@ -419,13 +419,27 @@ def createModule(baseModule, node):
     Construct a module inherits baseModule with specification from node
     
     """
+    def obsolete_class_list():
+        lst = []
+        items = ['vtkInteractorStyleTrackball',
+                 'vtkStructuredPointsGeometryFilter',
+                 'vtkConstrainedPointHandleRepresentation']
+        def try_to_add_item(item):
+            try:
+                lst.append(getattr(vtk, item))
+            except AttributeError:
+                pass
+        for item in items:
+            try_to_add_item(item)
+        return lst
+
+    obsolete_list = obsolete_class_list()
+    
     def is_abstract():
         """is_abstract tries to instantiate the class. If it's
         abstract, this will raise."""
         # Consider obsolete classes abstract        
-        if (node.klass in [vtk.vtkInteractorStyleTrackball,
-                           vtk.vtkStructuredPointsGeometryFilter,
-                           vtk.vtkConstrainedPointHandleRepresentation]):
+        if node.klass in obsolete_list:
             return True
         try:
             getattr(vtk, node.name)()
