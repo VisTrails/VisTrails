@@ -312,6 +312,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.openVistrailButton.setIcon(CurrentTheme.OPEN_VISTRAIL_ICON)
         self.openVistrailButton.setMenu(self.openMenu)
         self.openVistrailButton.setPopupMode(QtGui.QToolButton.MenuButtonPopup)
+	self.openVistrailButton.setDefaultAction(self.openVistrailAction)
         self.toolBar.addWidget(self.openVistrailButton)
         #self.toolBar.addAction(self.openVistrailDefaultAction)
         #self.openVistrailDefaultAction.setMenu(self.openMenu)
