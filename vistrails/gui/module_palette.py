@@ -57,11 +57,14 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         """
         moduleName = descriptor.name
         packageName = registry.get_module_package(moduleName)
+
+        # NB: only looks for toplevel matches
         packageItems = self.treeWidget.findItems(packageName,
                                                  QtCore.Qt.MatchExactly |
                                                  QtCore.Qt.MatchWrap)
         assert(len(packageItems)<=1)
         if packageItems==[]:
+            # didn't find a top-level package item, so let's create one
             parentItem = QModuleTreeWidgetItem(None,
                                                None,
                                                QtCore.QStringList(packageName))
@@ -69,21 +72,28 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         else:
             parentItem = packageItems[0]
 
-        hierarchy = registry.getModuleHierarchy(moduleName)
-        prevModule = None
-        for module in hierarchy[1:]:
-            descriptor = registry.getDescriptor(module)
-            mName = descriptor.name
-            pName = descriptor.module_package()
-            if pName!=packageName:
-                break
-            else:
-                prevModule = mName
-        if prevModule!=None:
-            parentItem = self.treeWidget.findItems(prevModule,
-                                                   QtCore.Qt.MatchExactly |
-                                                   QtCore.Qt.MatchWrap |
-                                                   QtCore.Qt.MatchRecursive)[0]
+        # Determines where to attach the new item
+        direct_parent = registry.getModuleHierarchy(moduleName)[1]
+        parent_descriptor = registry.getDescriptor(direct_parent)
+
+        # if module package is different, attach to toplevel of this package.
+
+        if (parent_descriptor.module_package() == packageName):
+            # if module package is the same, then find the parent in this package
+
+            # filtering is necessary for cases where module name is
+            # the same as top-level
+            lst = [x
+                   for x in
+                   self.treeWidget.findItems(parent_descriptor.name,
+                                             QtCore.Qt.MatchExactly |
+                                             QtCore.Qt.MatchWrap |
+                                             QtCore.Qt.MatchRecursive)
+                   if not x.is_top_level()]
+
+            assert len(lst) == 1
+            parentItem = lst[0]
+        
         desc = registry.getDescriptorByName(moduleName)
         item = QModuleTreeWidgetItem(desc,
                                      parentItem,
@@ -296,3 +306,5 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
                               QtCore.Qt.ItemIsEnabled)
         QtGui.QTreeWidgetItem.setFlags(self, flags)
             
+    def is_top_level(self):
+        return self.descriptor is None
