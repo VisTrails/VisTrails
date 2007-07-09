@@ -212,9 +212,16 @@ class QPackagesWidget(QtGui.QWidget):
         assert self._current_package
         p = self._current_package
         self._name_label.setText(p.name)
-        deps = ', '.join(p.dependencies()) or 'No package dependencies.'
-        self._dependencies_label.setText(deps)
-        self._description_label.setText(' '.join(p.description.split('\n')))
+        try:
+            p.load()
+        except:
+            msg = 'ERROR: Could not load package.'
+            self._dependencies_label.setText(msg)
+            self._description_label.setText(msg)
+        else:
+            deps = ', '.join(p.dependencies()) or 'No package dependencies.'
+            self._dependencies_label.setText(deps)
+            self._description_label.setText(' '.join(p.description.split('\n')))
         
 
     ##########################################################################
