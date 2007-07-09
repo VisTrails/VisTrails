@@ -28,6 +28,7 @@ from core import debug
 from core.modules.module_registry import registry
 from core.utils import VistrailsInternalError
 from core.configuration import ConfigurationObject
+import copy
 import core.data_structures.graph
 import os
 import sys
@@ -54,39 +55,46 @@ class Package(object):
         self._module = None
         self._initialized = False
 
-    def load_existing_module(self, module):
-        """Loads an already imported module. Useful for getting a package
-from places other than packages or userpackages."""
-        self._module = module
-        self._package_type = self.Other
+    def load(self, module=None):
+        """load(module=None). Loads package's module. If module is not None,
+        then uses that as the module instead of 'import'ing it.
 
-    def load(self):
-        def import_from_base():
+        If package is already initialized, this is a NOP.
+
+        """
+        
+        class InternalImportError(ImportError):
+            def __init__(self, import_error):
+                self.import_error = import_error
+        
+        def module_import(name):
+            return 
+            
+        if self._initialized:
+            return
+        if module is not None:
+            self._module = module
+            self._package_type = self.Other
+            return
+        def import_from(prefix):
             try:
-                self._module = getattr(__import__('packages.'+self.name,
+                self._module = getattr(__import__(prefix+self.name,
                                                   globals(),
                                                   locals(), []),
                                        self.name)
                 self._package_type = self.Base
-            except ImportError:
-                return False
-            return True
-        def import_from_user():
-            try:
-                self._module = getattr(__import__('userpackages.'+self.name,
-                                                  globals(),
-                                                  locals(), []),
-                                       self.name)
-                self._package_type = self.User
+            except InternalImportError, e:
+                raise e.import_error
             except ImportError:
                 return False
             return True
 
-        if (not import_from_base() and
-            not import_from_user()):
+        if (not import_from('packages.') and
+            not import_from('userpackages.')):
             dbg = debug.DebugPrint
-            dbg.critical("Could not install package %s" % self._name)
-            raise ImportError("Package %s not present" % self._name)
+            dbg.critical("Could not enable package %s" % self._name)
+            raise ImportError("Package %s not present "
+                              "(or one of its imports failed)" % self._name)
 
     def initialize(self):
         if self._initialized:
@@ -183,6 +191,40 @@ class PackageManager(object):
             return "Package '%s' has a bug: %s" % (self._package_name,
                                                    self._description)
 
+    def import_packages_module(self):
+        """Imports the packages module using path trickery to find it
+        in the right place.
+
+        """
+        # Imports standard packages directory
+        conf = self._configuration
+        old_sys_path = sys.path
+        if conf.check('packageDirectory'):
+            sys.path.append(conf.packageDirectory)
+        try:
+            import packages
+        finally:
+            sys.path = old_sys_path
+        return packages
+
+
+    def import_user_packages_module(self):
+        """Imports the packages module using path trickery to find it
+        in the right place.
+
+        """
+        # Imports user packages directory
+        conf = self._configuration
+        old_sys_path = sys.path
+        if conf.check('userPackageDirectory'):
+            sys.path.append(conf.userPackageDirectory + '/' + os.path.pardir)
+        try:
+            import userpackages
+        finally:
+            sys.path = old_sys_path
+        return userpackages
+        
+
     def __init__(self, configuration):
         global _package_manager
         if _package_manager:
@@ -209,14 +251,30 @@ To do so, call initialize_packages()"""
             raise VistrailsInternalError('duplicate package name')
         self._dependency_graph.add_vertex(packageName)
 
+    def remove_package(self, name):
+        """remove_package(name): Removes a package from the system."""
+        pkg = self._package_list[name]
+        self._dependency_graph.remove_vertex(name)
+        pkg.finalize()
+        del self._package_list[name]
+
     def has_package(self, name):
         """has_package(name: string) -> Boolean.
 Returns true if given package is installed."""
         return self._package_list.has_key(name)
 
+    def look_at_available_package(self, name):
+        """look_at_available_package(name: string) -> Package
+
+        Returns a Package object for an uninstalled package. This does
+        NOT install a package.
+        """
+        return Package(name, [], {})
+
     def get_package(self, name):
         """get_package(name: string) -> Package.
-Returns a package with given name if it exists, otherwise throws exception"""
+Returns a package with given name if it is enabled, otherwise throws exception
+        """
         if not self.has_package(name):
             raise self.MissingPackage(name)
         else:
@@ -243,7 +301,10 @@ Returns a package with given name if it exists, otherwise throws exception"""
 
     def add_dependencies(self, package):
         """add_dependencies(package) -> None.  Register all
-dependencies a package contains by calling the appropriate callback."""
+dependencies a package contains by calling the appropriate callback.
+
+        Does not add multiple dependencies.
+        """
         deps = package.dependencies()
         missing_packages = [name
                             for name in deps
@@ -252,8 +313,22 @@ dependencies a package contains by calling the appropriate callback."""
             raise ImportError("Package '%s' has unmet dependencies: %s" %
                               (package.name,
                                missing_packages))
+        
         for name in deps:
-            self._dependency_graph.add_edge(package.name, name)
+            if name not in self._dependency_graph.adjacency_list:
+                self._dependency_graph.add_edge(package.name, name)
+
+    def late_enable_package(self, package_name):
+        """late_enable_package enables a package 'late', that is,
+        after VisTrails initialization. All dependencies need to be
+        already enabled.
+        """
+
+        self.add_package(package_name)
+        pkg = self.get_package(package_name)
+        pkg.load()
+        pkg.check_requirements()
+        pkg.initialize()
 
     def initialize_packages(self,package_dictionary={}):
         """initialize_packages(package_dictionary={}): None
@@ -263,37 +338,16 @@ not {}, then it should be a dictionary from package names to preloaded
 package-like objects (in theory they have to be modules that respect
 the correct interface, but nothing actually prevents anyone from
 creating a class that behaves similarly)."""
-        # Imports standard packages directory
-        conf = self._configuration
-        old_sys_path = sys.path
-        if conf.check('packageDirectory'):
-            sys.path.append(conf.packageDirectory)
-        import packages
-        sys.path = old_sys_path
-
-        try:
-            old_sys_path = sys.path
-            if conf.has('userPackageDirectory'):
-                sys.path.append(conf.userPackageDirectory
-                                + '/'
-                                + os.path.pardir)
-            import userpackages
-        finally:
-            sys.path = old_sys_path
+        packages = self.import_packages_module()
+        userpackages = self.import_user_packages_module()
 
         # import the modules
         for package in self._package_list.itervalues():
-            if not package.initialized():
-                if package.name in package_dictionary:
-                    mod = package_dictionary[package.name]
-                    package.load_existing_module(mod)
-                else:
-                    package.load()
+            package.load(package_dictionary.get(package.name, None))
 
         # determine dependencies
         for package in self._package_list.itervalues():
-            if not package.initialized():
-                self.add_dependencies(package)
+            self.add_dependencies(package)
             
         # perform actual initialization
         try:
@@ -302,15 +356,51 @@ creating a class that behaves similarly)."""
         except core.data_structures.Graph.GraphContainsCycles, e:
             raise self.DependencyCycle(e.back_edge[0],
                                        e.back_edge[1])
+        
         for name in sorted_packages:
-            package = self._package_list[name]
-            if not package.initialized():
-                package.check_requirements()
-                package.initialize()
+            pkg = self._package_list[name]
+            if not pkg.initialized():
+                pkg.check_requirements()
+                pkg.initialize()
 
-    def installed_package_list(self):
-        """package_list() -> returns list of all installed packages."""
+    def enabled_package_list(self):
+        """package_list() -> returns list of all enabled packages."""
         return self._package_list.values()
+
+    def available_package_names_list(self):
+        """available_package_names_list() -> returns list of all
+        available packages, by looking at the appropriate directories."""
+        
+        lst = []
+
+        def is_vistrails_package(path):
+            return ((path.endswith('.py') and
+                     not path.endswith('__init__.py') and
+                     os.path.isfile(path)) or
+                    os.path.isdir(path) and os.path.isfile(path + '/__init__.py'))
+
+        def visit(_, dirname, names):
+            for name in names:
+                if is_vistrails_package(dirname + '/' + name):
+                    if name.endswith('.py'):
+                        name = name[:-3]
+                    lst.append(name)
+            # We want a shallow walk, so we prune the names list
+            del names[:]
+
+        # Finds standard packages
+        import packages
+        os.path.walk(os.path.dirname(packages.__file__), visit, None)
+        import userpackages
+        os.path.walk(os.path.dirname(userpackages.__file__), visit, None)
+
+        return lst
+
+    def dependency_graph(self):
+        """dependency_graph() -> Graph.  Returns a graph with package
+        dependencies, where u -> v if u depends on v.  Vertices are
+        strings representing package names."""
+        return self._dependency_graph
 
 def get_package_manager():
     global _package_manager

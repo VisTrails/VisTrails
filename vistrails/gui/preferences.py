@@ -24,6 +24,7 @@ from PyQt4 import QtGui, QtCore
 from gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
 from gui.configuration import QConfigurationWidget
 from core.packagemanager import get_package_manager
+import os.path
 
 ##############################################################################
 
@@ -49,24 +50,24 @@ class QPackagesWidget(QtGui.QWidget):
         left_layout.setMargin(2)
         left_layout.setSpacing(2)
        
-        left_layout.addWidget(QtGui.QLabel("Available packages:", left))
+        left_layout.addWidget(QtGui.QLabel("Disabled packages:", left))
         self._available_packages_list = QtGui.QListWidget(left)
         left_layout.addWidget(self._available_packages_list)
-        left_layout.addWidget(QtGui.QLabel("Installed packages:", left))
-        self._installed_packages_list = QtGui.QListWidget(left)
-        left_layout.addWidget(self._installed_packages_list)
+        left_layout.addWidget(QtGui.QLabel("Enabled packages:", left))
+        self._enabled_packages_list = QtGui.QListWidget(left)
+        left_layout.addWidget(self._enabled_packages_list)
 
         self.connect(self._available_packages_list,
                      QtCore.SIGNAL('itemClicked(QListWidgetItem*)'),
                      self.clicked_on_available_list)
 
-        self.connect(self._installed_packages_list,
+        self.connect(self._enabled_packages_list,
                      QtCore.SIGNAL('itemClicked(QListWidgetItem*)'),
-                     self.clicked_on_installed_list)
+                     self.clicked_on_enabled_list)
 
         sm = QtGui.QAbstractItemView.SingleSelection
         self._available_packages_list.setSelectionMode(sm)
-        self._installed_packages_list.setSelectionMode(sm)
+        self._enabled_packages_list.setSelectionMode(sm)
 
 
         ######################################################################
@@ -74,7 +75,6 @@ class QPackagesWidget(QtGui.QWidget):
         info_frame = QtGui.QFrame(right)
 
         info_layout = QtGui.QVBoxLayout(info_frame)
-#         info_layout.addWidget(QtGui.QLabel("Package Information", info_frame))
         grid_frame = QtGui.QFrame(info_frame)
         grid_frame.setSizePolicy(QtGui.QSizePolicy.Expanding,
                                  QtGui.QSizePolicy.Expanding)
@@ -107,12 +107,15 @@ class QPackagesWidget(QtGui.QWidget):
 
         right_layout.addWidget(info_frame)
         
-        self._install_button = QtGui.QPushButton("Install...")
-        self._uninstall_button = QtGui.QPushButton("Uninstall...")
+        self._enable_button = QtGui.QPushButton("Enable...")
+        self.connect(self._enable_button,
+                     QtCore.SIGNAL("clicked()"),
+                     self.enable_current_package)
+        self._disable_button = QtGui.QPushButton("Disable...")
         self._configure_button = QtGui.QPushButton("Configure...")
         button_box = QtGui.QDialogButtonBox()
-        button_box.addButton(self._install_button, QtGui.QDialogButtonBox.ActionRole)
-        button_box.addButton(self._uninstall_button, QtGui.QDialogButtonBox.ActionRole)
+        button_box.addButton(self._enable_button, QtGui.QDialogButtonBox.ActionRole)
+        button_box.addButton(self._disable_button, QtGui.QDialogButtonBox.ActionRole)
         button_box.addButton(self._configure_button, QtGui.QDialogButtonBox.ActionRole)
         right_layout.addWidget(button_box)
         
@@ -122,23 +125,88 @@ class QPackagesWidget(QtGui.QWidget):
 
     def populate_lists(self):
         pkg_manager = get_package_manager()
-        installed_pkgs = sorted(pkg_manager.installed_package_list())
-        for pkg in installed_pkgs:
-            self._installed_packages_list.addItem(pkg.name)
+        enabled_pkgs = sorted(pkg_manager.enabled_package_list())
+        enabled_pkg_dict = dict([(pkg.name, pkg) for
+                                   pkg in enabled_pkgs])
+        for pkg in enabled_pkgs:
+            self._enabled_packages_list.addItem(pkg.name)
+        available_pkg_names = [pkg for pkg in 
+                               sorted(pkg_manager.available_package_names_list())
+                               if pkg not in enabled_pkg_dict]
+        for pkg in available_pkg_names:
+            self._available_packages_list.addItem(pkg)
 
     ##########################################################################
 
-    def set_buttons_to_installed_package(self):
-        self._install_button.setEnabled(False)
-        self._uninstall_button.setEnabled(True)
+    def enable_current_package(self):
+        av = self._available_packages_list
+        inst = self._enabled_packages_list
+        item = av.currentItem()
+        pos = av.indexFromItem(item).row()
+        name = str(item.text())
+        pm = get_package_manager()
+
+        dependency_graph = pm.dependency_graph()
+        new_deps = self._current_package.dependencies()
+
+        unmet_dep = None
+
+        for dep in new_deps:
+            if dep not in dependency_graph.vertices:
+                unmet_dep = dep
+                break
+        if unmet_dep:
+            msg = QtGui.QMessageBox(QtGui.QMessageBox.Critical,
+                                    "Missing dependency",
+                                    ("This package requires package '%s'\n" +
+                                     "to be enabled. (Complete dependency list is:\n" +
+                                     "%s)") % (dep, new_deps),
+                                    QtGui.QMessageBox.Ok, self)
+            msg.exec_()
+        else:
+            pm.late_enable_package(name)
+            self._current_package = pm.get_package(name)
+            av.takeItem(pos)
+            av.setCurrentRow(-1)
+            inst.addItem(item)
+            inst.sortItems()
+            inst.setCurrentItem(item)
+
+    def disable_current_package(self):
+        av = self._available_packages_list
+        inst = self._enabled_packages_list
+        item = av.currentItem()
+        pos = inst.indexFromItem(item).row()
+        name = str(item.text())
+        pm = get_package_manager()
+
+        dependency_graph = pm.dependency_graph()
+
+        if dependency_graph.in_degree(name) > 0:
+            rev_deps = dependency_graph.inverse_adjacency_list[name]
+            msg = QtGui.QMessageBox(QtGui.QMessageBox.Critical,
+                                    "Missing dependency",
+                                    ("There are other packages that depend on this:\n %s" +
+                                     "Please disable those first.") % rev_deps,
+                                    QtGui.QMessageBox.Ok, self)
+            msg.exec_()
+        else:
+            pm.remove_package(name)
+            inst.takeItem(pos)
+            av.addItem(item)
+            av.sortItems()
+
+    def set_buttons_to_enabled_package(self):
+        self._enable_button.setEnabled(False)
+        self._disable_button.setEnabled(True)
         assert self._current_package
         conf = not (self._current_package.configuration is None)
         self._configure_button.setEnabled(conf)
 
     def set_buttons_to_available_package(self):
         self._configure_button.setEnabled(False)
-        self._uninstall_button.setEnabled(False)
-        self._install_button.setEnabled(True)
+        self._disable_button.setEnabled(False)
+        self._enable_button.setEnabled(True)
 
     def set_package_information(self):
         assert self._current_package
@@ -152,17 +220,17 @@ class QPackagesWidget(QtGui.QWidget):
     ##########################################################################
     # Signal handling
 
-    def clicked_on_installed_list(self, item):
+    def clicked_on_enabled_list(self, item):
         name = str(item.text())
         self._current_package = get_package_manager().get_package(name)
         self._available_packages_list.setCurrentItem(None)
-        self.set_buttons_to_installed_package()
+        self.set_buttons_to_enabled_package()
         self.set_package_information()
 
     def clicked_on_available_list(self, item):
         name = str(item.text())
-        self._current_package = get_package_manager().get_package(name)
-        self._installed_packages_list.setCurrentItem(None)
+        self._current_package = get_package_manager().look_at_available_package(name)
+        self._enabled_packages_list.setCurrentItem(None)
         self.set_buttons_to_available_package()
         self.set_package_information()
 
@@ -196,8 +264,7 @@ class QPreferencesDialog(QtGui.QDialog):
         self._configuration_tab = self.create_configuration_tab()
         self._tab_widget.addTab(self._configuration_tab, 'General Configuration')
 
-        self._button_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok |
-                                                  QtGui.QDialogButtonBox.Cancel,
+        self._button_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close,
                                                   QtCore.Qt.Horizontal,
                                                   f)
         l.addWidget(self._button_box)

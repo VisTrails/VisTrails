@@ -52,7 +52,7 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
 
     def newModule(self, descriptor):
         """ newModule(descriptor: core.modules.module_registry.ModuleDescriptor)
-        A new module has been added to Vistrail
+        A new module has been added to VisTrails
         
         """
         moduleName = descriptor.name
@@ -68,6 +68,7 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
             self.treeWidget.insertTopLevelItem(0, parentItem)
         else:
             parentItem = packageItems[0]
+
         hierarchy = registry.getModuleHierarchy(moduleName)
         prevModule = None
         for module in hierarchy[1:]:
@@ -81,7 +82,8 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         if prevModule!=None:
             parentItem = self.treeWidget.findItems(prevModule,
                                                    QtCore.Qt.MatchExactly |
-                                                   QtCore.Qt.MatchWrap)
+                                                   QtCore.Qt.MatchWrap |
+                                                   QtCore.Qt.MatchRecursive)[0]
         desc = registry.getDescriptorByName(moduleName)
         item = QModuleTreeWidgetItem(desc,
                                      parentItem,
@@ -259,12 +261,29 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
 
         """
         self.descriptor = descriptor
+        if descriptor:
+            descriptor.connect(descriptor,
+                               QtCore.SIGNAL("added_input_port"),
+                               self.added_input_port)
+            descriptor.connect(descriptor,
+                               QtCore.SIGNAL("added_output_port"),
+                               self.added_output_port)
+        # Real flags store the widget's flags prior to masking related
+        # to abstract modules, etc.
         QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
+        self._real_flags = self.flags()
 
         # This is necessary since we override setFlags
-        self.setFlags(self.flags())
+        self.setFlags(self._real_flags)
+
+    def added_input_port(self):
+        self.setFlags(self._real_flags)
+
+    def added_output_port(self):
+        self.setFlags(self._real_flags)
 
     def setFlags(self, flags):
+        self._real_flags = flags
         d = self.descriptor
         if d is None:
             # toplevel moduletree widgets are never draggable
