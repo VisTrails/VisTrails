@@ -30,8 +30,8 @@ if __name__ == '__main__':
     import sys
     try:
         v = gui.application.start_application()
-        app = gui.application.VistrailsApplication()
         core.requirements.check_all_vistrails_requirements()
+        app = gui.application.VistrailsApplication()
     except SystemExit, e:
         sys.exit(e)
     except Exception, e:
