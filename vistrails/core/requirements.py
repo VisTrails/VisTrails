@@ -23,7 +23,6 @@
 """module that allows online inspection of environment to test presence of
 runtime components such as binaries, libraries, other python modules, etc."""
 
-import imp
 import sys
 import core.system
 import core.bundles.installbundle
@@ -33,13 +32,14 @@ import core.bundles.installbundle
 def python_module_exists(module_name):
     """python_module_exists(module_name): Boolean.
 Returns if python module of given name can be safely imported."""
+    
     try:
         sys.modules[module_name]
         return True
     except KeyError:
         pass
     try:
-        imp.find_module(module_name)
+        __import__(module_name)
         return True
     except ImportError:
         return False

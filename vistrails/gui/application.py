@@ -58,12 +58,15 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         Return self for calling method
         
         """
+        if not self._initialized:
+            self.init()
         return self
 
     def __init__(self):
         QtGui.QApplication.__init__(self, sys.argv)
         if Qt.QT_VERSION < 0x40200: # 0x40200 = 4.2.0
             raise core.requirements.MissingRequirement("Qt version >= 4.2")
+        self._initialized = False
         qt.allowQObjects()
 
     def init(self, optionsDict=None):
@@ -92,6 +95,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         self.vistrailsStartup.init(self.configuration)
         self.runInitialization()
         self._python_environment = self.vistrailsStartup.get_python_environment()
+        self._initialized = True
         
         if interactive:
             self.interactiveMode()

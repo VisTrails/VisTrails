@@ -34,15 +34,15 @@ def has_qt():
         # Must import this on Ubuntu linux, because PyQt4 doesn't come with
         # PyQt4.QtOpenGL by default
         import PyQt4.QtOpenGL
-        has_qt = True
+        return True
     except ImportError:
-        has_qt = False
+        return False
 
 def linux_ubuntu_install(package_name):
     
     qt = has_qt()
     # HACK, otherwise splashscreen stays in front of windows
-    if qt():
+    if qt:
         try:
             import PyQt4.QtCore
             PyQt4.QtCore.QCoreApplication.instance().splashScreen.hide()
