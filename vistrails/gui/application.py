@@ -33,13 +33,10 @@ from core import keychain
 from core.modules.module_registry import registry
 from core.utils import InstanceObject
 from gui import qt
-from gui.builder_window import QBuilderWindow
-from gui.theme import CurrentTheme
 import core.configuration
 import core.interpreter.cached
 import core.requirements
 import core.startup
-import gui.bookmark_window
 import gui.theme
 import os.path
 import sys
@@ -167,7 +164,7 @@ run in batch mode.')
         """ setIcon() -> None
         Setup Vistrail Icon
         """
-        self.setWindowIcon(CurrentTheme.APPLICATION_ICON)
+        self.setWindowIcon(gui.theme.CurrentTheme.APPLICATION_ICON)
         
     def setupSplashScreen(self):
         """ setupSplashScreen() -> None
@@ -190,6 +187,11 @@ run in batch mode.')
         if system.systemType in ['Darwin']:
             #to make all widgets to have the mac's nice looking
             self.installEventFilter(self)
+
+        # This is so that we don't import too many things before we
+        # have to. Otherwise, requirements are checked too late.
+        from gui.builder_window import QBuilderWindow
+
         self.builderWindow = QBuilderWindow()
         if self.configuration.check('maximizeWindows'):
             self.builderWindow.showMaximized()
@@ -301,6 +303,10 @@ run in batch mode.')
                 not os.path.isfile(self.configuration.dotVistrails)):
                 #create .vistrails dir
                 os.mkdir(self.configuration.dotVistrails)
+
+            # This is so that we don't import too many things before we
+            # have to. Otherwise, requirements are checked too late.
+            import gui.bookmark_window
             gui.bookmark_window.initBookmarks(system.default_bookmarks_file())    
             
         initBookmarks()
@@ -336,7 +342,8 @@ def start_application(optionsDict=None):
         print "Application already started."""
         return
     VistrailsApplication = VistrailsApplicationSingleton()
-    x =  VistrailsApplication.init(optionsDict)
+    core.requirements.check_all_vistrails_requirements()
+    x = VistrailsApplication.init(optionsDict)
     if x == True:
         return 0
     else:

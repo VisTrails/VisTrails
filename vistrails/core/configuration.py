@@ -27,7 +27,6 @@ from core import system
 from core.utils import InstanceObject
 import copy
 import core.logger
-import core.packagemanager
 import os.path
 import shutil
 import sys
