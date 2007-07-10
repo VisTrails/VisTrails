@@ -28,22 +28,28 @@ import os
 
 ##############################################################################
 
-def linux_ubuntu_install(package_name):
-    
+def has_qt():
     try:
         import PyQt4
+        # Must import this on Ubuntu linux, because PyQt4 doesn't come with
+        # PyQt4.QtOpenGL by default
+        import PyQt4.QtOpenGL
         has_qt = True
     except ImportError:
         has_qt = False
 
+def linux_ubuntu_install(package_name):
+    
+    qt = has_qt()
     # HACK, otherwise splashscreen stays in front of windows
-    try:
-        import PyQt4.QtCore
-        PyQt4.QtCore.QCoreApplication.instance().splashScreen.hide()
-    except:
-        pass
+    if qt():
+        try:
+            import PyQt4.QtCore
+            PyQt4.QtCore.QCoreApplication.instance().splashScreen.hide()
+        except:
+            pass
         
-    if has_qt:
+    if qt:
         cmd = core.system.vistrails_root_directory()
         cmd += '/core/bundles/linux_ubuntu_install.py'
     else:
@@ -57,7 +63,7 @@ def linux_ubuntu_install(package_name):
                 raise TypeError("Expected string or list of strings")
             cmd += ' ' + package
 
-    if has_qt:
+    if qt:
         sucmd = guess_graphical_sudo() + " '" + cmd + "'"
     else:
         print "VisTrails wants to install package(s) '%s'" % package_name
@@ -67,17 +73,10 @@ def linux_ubuntu_install(package_name):
 
     return (result == 0) # 0 indicates success
 
-def install(dependency_dictionary):
-    """Tries to import a python module. If unsuccessful, tries to install
-the appropriate bundle and then reimport. py_import tries to be smart
-about which system it runs on."""
-
-    # Ugly fix to avoid circular import
-    import gui.utils
-    distro = guess_system()
-    if not dependency_dictionary.has_key(distro):
-        return False
-    else:
+def show_question():
+    qt = has_qt()
+    if qt:
+        import gui.utils
         v = gui.utils.show_question("Required package missing",
                                     "A required package is missing, but VisTrails can " +
                                     "automaticallly install it. " +
@@ -87,7 +86,30 @@ about which system it runs on."""
                                     buttons=[gui.utils.OK_BUTTON,
                                              gui.utils.CANCEL_BUTTON],
                                     default=gui.utils.OK_BUTTON)
-        if v == gui.utils.OK_BUTTON:
+        return v == gui.utils.OK_BUTTON
+    else:
+        print "Required package missing"
+        print ("A required package is missing, but VisTrails can " +
+               "automaticallly install it. " +
+               "If you say Yes, VisTrails will need "+
+               "administrator privileges, and you" +
+               "might be asked for the administrator password.")
+        print "Give VisTrails permission to try to install package? (Y/n)"
+        v = raw_input().upper()
+        return v == 'Y' or v == 'YES'
+
+
+def install(dependency_dictionary):
+    """Tries to import a python module. If unsuccessful, tries to install
+the appropriate bundle and then reimport. py_import tries to be smart
+about which system it runs on."""
+
+    # Ugly fix to avoid circular import
+    distro = guess_system()
+    if not dependency_dictionary.has_key(distro):
+        return False
+    else:
+        if show_question():
             callable_ = getattr(core.bundles.installbundle,
                                 distro.replace('-', '_') + '_install')
             return callable_(dependency_dictionary[distro])
