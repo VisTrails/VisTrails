@@ -53,7 +53,7 @@ def linux_ubuntu_install(package_name):
         cmd = core.system.vistrails_root_directory()
         cmd += '/core/bundles/linux_ubuntu_install.py'
     else:
-        cmd = 'apt-get install'
+        cmd = 'apt-get install -y'
 
     if type(package_name) == str:
         cmd += ' ' + package_name
@@ -94,7 +94,7 @@ def show_question():
                "If you say Yes, VisTrails will need "+
                "administrator privileges, and you" +
                "might be asked for the administrator password.")
-        print "Give VisTrails permission to try to install package? (Y/n)"
+        print "Give VisTrails permission to try to install package? (y/N)"
         v = raw_input().upper()
         return v == 'Y' or v == 'YES'
 
