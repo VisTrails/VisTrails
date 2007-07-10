@@ -300,6 +300,13 @@ using user-defined hasher."""
     def get_module_fringe(self, name):
         return self.getDescriptorByName(name).module_fringe()
 
+    def get_module_by_name(self, name):
+        """get_module_by_name(name: string): class
+
+        Returns the VisTrails module (the class) registered under the
+        given name."""
+        return self.getDescriptorByName(name).module
+
     def getDescriptorByName(self, name):
         """getDescriptorByName(name: string) -> ModuleDescriptor
 
@@ -853,7 +860,8 @@ addModule     = registry.addModule
 addInputPort  = registry.addInputPort
 addOutputPort = registry.addOutputPort
 setCurrentPackageName = registry.setCurrentPackageName
-
+getDescriptorByName = registry.getDescriptorByName
+get_module_by_name = registry.get_module_by_name
 
 ##############################################################################
 
