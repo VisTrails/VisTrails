@@ -32,7 +32,10 @@ import numpy
 class MatlabReader(SciPy):
 
     def compute(self):
-        fname = self.getInputFromPort("Filename")
+        if self.hasInputFromPort("Filename"):
+            fname = self.getInputFromPort("Filename")
+        else:
+            fname = self.getInputFromPort("File").name
         self.readFileAsCSC(fname)
    
     def readFileAsCSC(self, filename):

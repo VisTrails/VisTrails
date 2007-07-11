@@ -26,7 +26,7 @@ from SciPy import SciPy
 from Matrix import *
 from MatlabReader import MatlabReader
 from MatrixInfo import MatrixInfo
-from MatrixConvert import MatrixConvert
+from MatrixConvert import MatrixConvert, vtkDataSetToMatrix
 from MatrixOperations import *
 from DSP import *
 import core.modules.basic_modules
@@ -60,7 +60,8 @@ def initialize(*args, **keywords):
     reg.addModule(MatlabReader)
     reg.addInputPort(MatlabReader, "Filename", (basic.String, 'Filename'))
     reg.addOutputPort(MatlabReader, "sparseoutput", (SparseMatrix, 'Output Sparse Matrix'))
-
+    reg.addInputPort(MatlabReader, "File", (basic.File, 'File'))
+    
     reg.addModule(MatrixInfo)
     reg.addInputPort(MatrixInfo, "InputMatrix", (Matrix, 'Matrix'))
     reg.addOutputPort(MatrixInfo, "output", (basic.String, 'Output String'))
@@ -122,3 +123,16 @@ def initialize(*args, **keywords):
     reg.addInputPort(FFT, "Signals", (Matrix, 'Input Signal Matrix'))
     reg.addInputPort(FFT, "FFT Samples", (basic.Integer, 'FFT Samples'))
     reg.addOutputPort(FFT, "FFT Output", (SparseMatrix, 'FFT Output'))
+
+    if reg.registry.hasModule('vtkAlgorithmOutput'):
+        reg.addModule(vtkDataSetToMatrix)
+        reg.addInputPort(vtkDataSetToMatrix, "vtkUnstructuredGrid", (reg.registry.getDescriptorByName('vtkAlgorithmOutput').module, 'Input Unstructured Grid'))
+        reg.addOutputPort(vtkDataSetToMatrix, "Output Matrix", (SparseMatrix, 'Output Matrix'))
+
+def package_dependencies():
+    import core.packagemanager
+    manager = core.packagemanager.get_package_manager()
+    if manager.has_package('vtk'):
+        return ['vtk']
+    else:
+        return []
