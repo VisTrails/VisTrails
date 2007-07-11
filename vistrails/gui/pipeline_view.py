@@ -27,6 +27,7 @@ e.g. core.vistrails
 
 QGraphicsConnectionItem
 QGraphicsPortItem
+QGraphicsConfigureItem
 QGraphicsModuleItem
 QPipelineScene
 QPipelineView
@@ -214,6 +215,94 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         if change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool():
             return QtCore.QVariant(False)
         return QtGui.QGraphicsRectItem.itemChange(self, change, value)
+
+
+################################################################################
+# QGraphicsConfigureItem
+
+class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
+    """
+    QGraphicsConfigureItem is a small triangle shape drawing on top (a child)
+    of QGraphicsModuleItem
+    
+    """
+    def __init__(self, parent=None, scene=None):
+        """ QGraphicsConfigureItem(parent: QGraphicsItem, scene: QGraphicsScene)
+                              -> QGraphicsConfigureItem
+        Create the shape, initialize its pen and brush accordingly
+        
+        """
+        QtGui.QGraphicsPolygonItem.__init__(self, parent, scene)
+        self.setZValue(1)
+        self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+        self.setPen(CurrentTheme.CONFIGURE_PEN)
+        self.setBrush(CurrentTheme.CONFIGURE_BRUSH)
+        poly = QtGui.QPolygon(3)
+        poly.setPoint(0, 0, 0)
+        poly.setPoint(1, 0, CurrentTheme.CONFIGURE_HEIGHT)
+        poly.setPoint(2, CurrentTheme.CONFIGURE_WIDTH,
+                      CurrentTheme.CONFIGURE_HEIGHT/2)
+        self.setPolygon(QtGui.QPolygonF(poly))
+        self.ghosted = False
+        self.controller = None
+        self.moduleId = None
+        self.createActions()
+
+    def setGhosted(self, ghosted):
+        """ setGhosted(ghosted: True) -> None
+        Set this link to be ghosted or not
+        
+        """
+        self.ghosted = ghosted
+        if ghosted:
+            self.setPen(CurrentTheme.GHOSTED_CONFIGURE_PEN)
+            self.setBrush(CurrentTheme.GHOSTED_CONFIGURE_BRUSH)
+        else:
+            self.setPen(CurrentTheme.CONFIGURE_PEN)
+            self.setBrush(CurrentTheme.CONFIGURE_BRUSH)
+
+    def mousePressEvent(self, event):
+        """ mousePressEvent(event: QMouseEvent) -> None
+        Open the context menu
+        
+        """
+        self.contextMenuEvent(event)
+
+    def contextMenuEvent(self, event):
+        """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None
+        Captures context menu event.
+
+        """
+        menu = QtGui.QMenu()
+        menu.addAction(self.configureAct)
+        menu.exec_(event.screenPos())
+
+    def createActions(self):
+        """ createActions() -> None
+        Create actions related to context menu 
+
+        """
+        self.configureAct = QtGui.QAction("Configure", self.scene())
+        self.configureAct.setStatusTip("Configure the module")
+        QtCore.QObject.connect(self.configureAct, 
+                               QtCore.SIGNAL("triggered()"),
+                               self.configure)
+    def configure(self):
+        """ configure() -> None
+        Open the modal configuration window
+        """
+        if self.controller:
+            self.controller.resendVersionWasChanged
+            module = self.controller.currentPipeline.modules[self.moduleId]
+            widgetType = registry.get_configuration_widget(module.name)
+            if not widgetType:
+                widgetType = DefaultModuleConfigurationWidget
+            global widget
+            widget = widgetType(module, self.controller, None)
+            widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+            widget.exec_()
+            self.controller.resendVersionWasChanged()
+
 
 ##############################################################################
 # QGraphicsConnectionItem
@@ -459,7 +548,7 @@ else:
 class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
     """
     QGraphicsModuleItem knows how to draw a Vistrail Module into the
-    pipeline view. It is usually a recntangular shape with a bold text
+    pipeline view. It is usually a rectangular shape with a bold text
     in the center. It also has its input/output port shapes as its
     children. Another remark is that connections are also children of
     module shapes. Each connection belongs to its source module
@@ -677,6 +766,12 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
             x -= CurrentTheme.PORT_WIDTH + CurrentTheme.MODULE_PORT_SPACE
         self.nextOutputPortPos = [x, y]
 
+        # Add a configure button
+        y = self.paddedRect.y() + CurrentTheme.MODULE_PORT_MARGIN[1]
+        x = (self.paddedRect.right() - CurrentTheme.CONFIGURE_WIDTH
+             - CurrentTheme.MODULE_PORT_MARGIN[2])
+        self.createConfigureItem(x, y)
+        
         # Update module shape, if necessary
         fringe = registry.get_module_fringe(module.name)
         if fringe:
@@ -722,6 +817,18 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         portShape.setupPort(port)
         portShape.translate(x, y)
         return portShape
+
+    def createConfigureItem(self, x, y):
+        """ createConfigureItem(x: int, y: int) -> QGraphicsConfigureItem
+        Create a item from the configure spec
+        
+        """
+        configureShape = QGraphicsConfigureItem(self, self.scene())
+        configureShape.controller = self.controller
+        configureShape.moduleId = self.id
+        configureShape.setGhosted(self.ghosted)
+        configureShape.translate(x, y)
+        return configureShape
 
     def getPortPosition(self, port, portDict):
         """ getPortPosition(port: Port,
@@ -867,22 +974,6 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
                     result = srcItem
         return result
 
-    def mouseDoubleClickEvent(self, event):
-        """ mouseDoubleClickEvent(event: QGraphicsSceneMouseEvent) -> None
-        Bring up the module configuration widget (if any)
-        
-        """
-        if self.controller:
-            self.controller.resendVersionWasChanged
-            module = self.controller.currentPipeline.modules[self.id]
-            widgetType = registry.get_configuration_widget(module.name)
-            if not widgetType:
-                widgetType = DefaultModuleConfigurationWidget
-            global widget
-            widget = widgetType(module, self.controller, None)
-            widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-            widget.exec_()
-            self.controller.resendVersionWasChanged()
 
 ##############################################################################
 # QPipelineScene

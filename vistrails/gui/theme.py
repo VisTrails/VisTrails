@@ -56,6 +56,10 @@ class DefaultTheme(object):
     PORT_WIDTH = 10
     PORT_HEIGHT = 10
 
+    # Width and Height of Configure button shape
+    CONFIGURE_WIDTH = 6
+    CONFIGURE_HEIGHT = 10
+
     # The number of control points when drawing connection curve
     CONNECTION_CONTROL_POINTS = 20
 
@@ -153,6 +157,18 @@ class DefaultTheme(object):
             QtGui.QColor(*(ColorByName.get_int('dark_dim_grey')))), 2)
         self.GHOSTED_PORT_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('light_dim_grey'))))
+
+        # Pen and brush for drawing the configure button
+        self.CONFIGURE_PEN = QtGui.QPen(QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.get_int('black')))), 1)
+        self.CONFIGURE_BRUSH= QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.get_int('black'))))
+
+        # Pen and brush for drawing the ghosted configure button
+        self.GHOSTED_CONFIGURE_PEN = QtGui.QPen(QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.get_int('dark_dim_grey')))), 2)
+        self.GHOSTED_CONFIGURE_BRUSH = QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.get_int('dark_dim_grey'))))
 
         # Brush and pen to draw connections
         self.CONNECTION_PEN = QtGui.QPen(QtGui.QBrush(
