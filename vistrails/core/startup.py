@@ -134,7 +134,7 @@ by startup.py. This should only be called after init()."""
         def addPackage(packageName, *args, **keywords):
             """ addPackage(packageName: str, *args) -> None
             """
-            self._package_manager.add_package(packageName, args, keywords)
+            self._package_manager.add_package(packageName)
 
         def create_user_packages_dir():
             debug.critical('Will try to create userpackages directory')
