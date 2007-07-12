@@ -127,8 +127,14 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         if pipeline:            
             if pipeline.modules.has_key(moduleId):
                 module = pipeline.modules[moduleId]
+                self.methodPalette.setEnabled(True)
+                self.moduleMethods.setEnabled(True)
+                self.moduleAnnotations.setEnabled(True)
             else:
                 module = None
+                self.methodPalette.setEnabled(False)
+                self.moduleMethods.setEnabled(False)
+                self.moduleAnnotations.setEnabled(False)
             self.methodPalette.treeWidget.updateModule(module)
             self.moduleMethods.updateModule(module)
             self.moduleAnnotations.updateModule(module)

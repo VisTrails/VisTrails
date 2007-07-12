@@ -104,6 +104,8 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         Peform actual painting of the optional port
         
         """
+        painter.setBrush(self.brush())
+        painter.setPen(self.pen())
         painter.drawEllipse(self.rect())
 
     def paintRect(self, painter, option, widget=None):
@@ -129,6 +131,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         """
         if self.controller and event.buttons() & QtCore.Qt.LeftButton:
             self.dragging = True
+            self.setPen(CurrentTheme.PORT_SELECTED_PEN);
             event.accept()
         QtGui.QGraphicsRectItem.mousePressEvent(self, event)
         
@@ -156,6 +159,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
             self.scene().removeItem(self.connection)
             self.connection = None
         self.dragging = False
+        self.setPen(CurrentTheme.PORT_PEN);
         QtGui.QGraphicsRectItem.mouseReleaseEvent(self, event)
         
     def mouseMoveEvent(self, event):
@@ -166,16 +170,23 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         if self.dragging:
             if not self.connection:
                 self.connection = QtGui.QGraphicsLineItem(None, self.scene())
-                self.connection.setPen(CurrentTheme.CONNECTION_PEN)
+                self.connection.setPen(CurrentTheme.CONNECTION_SELECTED_PEN)
                 self.connection.setZValue(2)
+                self.connection.snapPort = None
             startPos = self.sceneBoundingRect().center()
             endPos = event.scenePos()
+            # Return connected port to unselected color
+            if (self.connection.snapPort):
+                self.connection.snapPort.setPen(CurrentTheme.PORT_PEN)
+            # Find new connected port
             self.connection.snapPort = self.findSnappedPort(endPos)
             if self.connection.snapPort:
                 endPos = self.connection.snapPort.sceneBoundingRect().center()
                 QtGui.QToolTip.showText(event.screenPos(),
                                         self.connection.snapPort.toolTip())
-                
+                # Change connected port to selected color
+                self.connection.snapPort.setPen(
+                    CurrentTheme.PORT_SELECTED_PEN)
             self.connection.prepareGeometryChange()
             self.connection.setLine(startPos.x(), startPos.y(),
                                     endPos.x(), endPos.y())
@@ -234,7 +245,6 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         """
         QtGui.QGraphicsPolygonItem.__init__(self, parent, scene)
         self.setZValue(1)
-        self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
         self.setPen(CurrentTheme.CONFIGURE_PEN)
         self.setBrush(CurrentTheme.CONFIGURE_BRUSH)
         poly = QtGui.QPolygon(3)
@@ -309,7 +319,6 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
 
 # set this to True to have old sine-wave connections
 __old_connection = False
-
 if __old_connection:
     class QGraphicsConnectionItem(QtGui.QGraphicsPolygonItem,
                                   QGraphicsItemInterface):
@@ -335,6 +344,7 @@ if __old_connection:
             self.id = -1
             self.ghosted = False
             self.connection = None
+            self.useSelectionRules = True
 
         def setupConnection(self, startPos, endPos):
             """ setupConnection(startPos: QPointF, endPos: QPointF) -> None
@@ -405,14 +415,34 @@ if __old_connection:
 
         def itemChange(self, change, value):
             """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
-            Do not allow connection to be selected with modules
+            Do not allow connection to be selected unless both modules 
+            are selected
 
             """
-            if change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool():
+            # Selection rules to be used only when a module isn't forcing 
+            # the update
+            if (change==QtGui.QGraphicsItem.ItemSelectedChange and 
+                self.useSelectionRules):
+                # Check for a selected module
                 selectedItems = self.scene().selectedItems()
+                selectedModules = False
                 for item in selectedItems:
                     if type(item)==QGraphicsModuleItem:
-                        return QtCore.QVariant(False)
+                        selectedModules = True
+                        break
+                if selectedModules:
+                    # Don't allow a connection between selected
+                    # modules to be deselected
+                    if (self.connectingModules[0].isSelected() and
+                        self.connectingModules[1].isSelected()):
+                        if not value.toBool():
+                            return QtCore.QVariant(True)
+                    # Don't allow a connection to be selected if
+                    # it is not between selected modules
+                    else:
+                        if value.toBool():
+                            return QtCore.QVariant(False)
+            self.useSelectionRules = True
             return QtGui.QGraphicsPolygonItem.itemChange(self, change, value)
 else:
     class QGraphicsConnectionItem(QtGui.QGraphicsPathItem,
@@ -438,6 +468,8 @@ else:
             self.id = -1
             self.ghosted = False
             self.connection = None
+            # Keep a flag for changing selection state during module selection
+            self.useSelectionRules = True
 
         def setupConnection(self, startPos, endPos):
             """ setupConnection(startPos: QPointF, endPos: QPointF) -> None
@@ -532,14 +564,34 @@ else:
 
         def itemChange(self, change, value):
             """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
-            Do not allow connection to be selected with modules
+            If modules are selected, only allow connections between 
+            selected modules 
 
             """
-            if change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool():
+            # Selection rules to be used only when a module isn't forcing 
+            # the update
+            if (change==QtGui.QGraphicsItem.ItemSelectedChange and 
+                self.useSelectionRules):
+                # Check for a selected module
                 selectedItems = self.scene().selectedItems()
+                selectedModules = False
                 for item in selectedItems:
                     if type(item)==QGraphicsModuleItem:
-                        return QtCore.QVariant(False)
+                        selectedModules = True
+                        break
+                if selectedModules:
+                    # Don't allow a connection between selected
+                    # modules to be deselected
+                    if (self.connectingModules[0].isSelected() and
+                        self.connectingModules[1].isSelected()):
+                        if not value.toBool():
+                            return QtCore.QVariant(True)
+                    # Don't allow a connection to be selected if
+                    # it is not between selected modules
+                    else:
+                        if value.toBool():
+                            return QtCore.QVariant(False)
+            self.useSelectionRules = True
             return QtGui.QGraphicsPathItem.itemChange(self, change, value)    
 
 ##############################################################################
@@ -888,9 +940,11 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
 
     def itemChange(self, change, value):
         """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
-        Capture move event to also move the connections
+        Capture move event to also move the connections.  Also unselect any
+        connections between unselected modules
         
         """
+        # Move connections with modules
         if change==QtGui.QGraphicsItem.ItemPositionChange:
             oldPos = self.pos()
             newPos = value.toPointF()
@@ -910,31 +964,45 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
                         connectionItem.setupConnection(
                             connectionItem.startPos,
                             connectionItem.endPos+dis)
-        # Do not allow connection to be selected with modules
+        # Do not allow lone connections to be selected with modules.
+        # Also autoselect connections between selected modules.  Thus the
+        # selection is always the subgraph
         elif change==QtGui.QGraphicsItem.ItemSelectedChange:
-            for item in self.scene().selectedItems():
-                if type(item)==QGraphicsConnectionItem:
-                    item.setSelected(False)
-            selectedItems = self.scene().selectedItems()
+            if value.toBool():
+                for (connectionItem, start) in self.dependingConnectionItems:
+                    (srcModule, dstModule) = connectionItem.connectingModules
+                    # Select any connections between this module and other
+                    # selected modules
+                    select = False
+                    if (srcModule==self and dstModule.isSelected() or
+                        dstModule==self and srcModule.isSelected() or
+                        srcModule.isSelected() and dstModule.isSelected()):
+                        select = True
+                    # Because we are setting a state variable in the
+                    # connection, do not make the change unless it is
+                    # actually going to be performed
+                    if connectionItem.isSelected() != select:
+                        connectionItem.useSelectionRules = False
+                        connectionItem.setSelected(select)
+            else:
+                for (connectionItem, start) in self.dependingConnectionItems:
+                    # Unselect any connections attached to this module
+                    if connectionItem.isSelected():
+                        connectionItem.useSelectionRules = False
+                        connectionItem.setSelected(False)
+            # Capture only selected modules + or - self for selection signal
+            selectedItems = []
             selectedId = -1
-            if not self.scene().multiSelecting:
-                if value.toBool():
-                    for item in selectedItems:
-                        if type(item)!=QGraphicsModuleItem:
-                            item.setSelected(False)
-                            item.update()
-                    if len(selectedItems)==0:
-                        selectedId = self.id
-                        selectedItems.append(self)
-                elif len(selectedItems)==2:
-                    if selectedItems[0]==self:
-                        selectedId = selectedItems[1].id
-                        selectedItems = selectedItems[1:]
-                    else:
-                        selectedId = selectedItems[0].id
-                        selectedItems = selectedItems[:1]
-                else:
-                    selectedItems = [m for m in selectedItems if m!=self]
+            if value.toBool():
+                selectedItems = [m for m in self.scene().selectedItems() 
+                                 if isinstance(m,QGraphicsModuleItem)]
+                selectedItems.append(self)
+            else:
+                selectedItems = [m for m in self.scene().selectedItems()
+                                 if (isinstance(m,QGraphicsModuleItem) and 
+                                     m != self)]
+            if len(selectedItems)==1:
+                selectedId = selectedItems[0].id
             self.scene().emit(QtCore.SIGNAL('moduleSelected'),
                               selectedId, selectedItems)
         return QtGui.QGraphicsItem.itemChange(self, change, value)
@@ -1156,12 +1224,16 @@ mutual connections."""
             event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
             selectedItems = self.selectedItems()
             if len(selectedItems)>0:
-                if type(selectedItems[0])==QGraphicsModuleItem:
+                modules = []
+                for m in selectedItems:
+                    if type(m)==QGraphicsModuleItem:
+                        modules.append(m)
+                if len(modules)>0:
                     self.noUpdate = True
-                    idList = [m.id for m in selectedItems]
+                    idList = [m.id for m in modules]
                     self.controller.deleteModuleList(idList)
                     connections = []
-                    for m in selectedItems:
+                    for m in modules:
                         connections += [c[0] for c in m.dependingConnectionItems]
                     self.removeItems(connections)
                     for (mId, item) in self.modules.items():
@@ -1171,7 +1243,7 @@ mutual connections."""
                     self.updateSceneBoundingRect()
                     self.update()
                     self.noUpdate = False
-                elif type(selectedItems[0])==QGraphicsConnectionItem:
+                else:
                     self.controller.resetPipelineView = False
                     idList = [conn.id for conn in selectedItems]
                     self.controller.deleteConnectionList(idList)
@@ -1200,17 +1272,19 @@ mutual connections."""
             connections = {}
             modules = {}
             for item in selectedItems:
-                module = item.module
-#                 module.dumpToXML(dom,root)
-                modules[module.id] = module
+                if type(item)==QGraphicsModuleItem:
+                    module = item.module
+#                   module.dumpToXML(dom,root)
+                    modules[module.id] = module
             for item in selectedItems:
-                for (connItem, start) in item.dependingConnectionItems:
-                    conn = connItem.connection
-                    if ((not connections.has_key(conn)) and
-                        modules.has_key(conn.sourceId) and
-                        modules.has_key(conn.destinationId)):
-#                         conn.serialize(dom, root)
-                        connections[conn] = conn
+                if type(item)==QGraphicsModuleItem:
+                    for (connItem, start) in item.dependingConnectionItems:
+                        conn = connItem.connection
+                        if ((not connections.has_key(conn)) and
+                            modules.has_key(conn.sourceId) and
+                            modules.has_key(conn.destinationId)):
+#                           conn.serialize(dom, root)
+                            connections[conn] = conn
             text = self.controller.copyModulesAndConnections(modules.values(), 
                                                           connections.values())
             cb.setText(text)
@@ -1273,7 +1347,7 @@ mutual connections."""
         """
         for item in self.items():
             if type(item)==QGraphicsModuleItem:
-                item.setSelected(True)
+            item.setSelected(True)
 
     def set_module_success(self, moduleId):
         """ set_module_success(moduleId: int) -> None

@@ -73,7 +73,7 @@ class DefaultTheme(object):
     PIP_OUT_FRAME_WIDTH = 1
 
     # The size of the frame containing the PIP graphics view
-    PIP_DEFAULT_SIZE = (256, 256)
+    PIP_DEFAULT_SIZE = (128, 128)
 
     # Default Paramter Inspector Window dimension
     VISUAL_DIFF_PARAMETER_WINDOW_SIZE = (348,256)
@@ -113,7 +113,7 @@ class DefaultTheme(object):
             QtGui.QColor(*(ColorByName.get_int('black')))), 2)
         # Pen to draw a module shape when selected
         self.MODULE_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('banana')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))), 3)
         # Brush and pen to draw a module label
         self.MODULE_LABEL_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('black')))), 2)
@@ -147,6 +147,8 @@ class DefaultTheme(object):
             QtGui.QColor(*(ColorByName.get_int('black')))), 1)
         self.PORT_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('light_grey'))))
+        self.PORT_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))), 3)
         self.PORT_OPTIONAL_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('lamp_black')))), 1)
         self.PORT_OPTIONAL_BRUSH = QtGui.QBrush(
@@ -174,7 +176,7 @@ class DefaultTheme(object):
         self.CONNECTION_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('black')))), 2)
         self.CONNECTION_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('banana')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))), 3)
         self.CONNECTION_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('black'))))
 
@@ -188,7 +190,7 @@ class DefaultTheme(object):
         self.GHOSTED_VERSION_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('light_grey')))), 2)    
         self.VERSION_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('banana')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))), 4)
 
         # Brush and pen to draw a version label
         self.VERSION_LABEL_PEN = QtGui.QPen(QtGui.QBrush(
@@ -212,7 +214,7 @@ class DefaultTheme(object):
         self.LINK_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('black')))), 1.5)
         self.LINK_SELECTED_PEN = QtGui.QPen(QtGui.QBrush(
-            QtGui.QColor(*(ColorByName.get_int('banana')))), 2)
+            QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))), 3)
         self.GHOSTED_LINK_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('light_grey')))), 2)
 

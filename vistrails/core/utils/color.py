@@ -151,6 +151,7 @@ class ColorByName(object):
                'cadmium_yellow_light': [ 1.0000, 0.6900, 0.0600 ],  
                'gold': [ 1.0000, 0.8431, 0.0000 ],  
                'goldenrod': [ 0.8549, 0.6471, 0.1255 ],  
+               'goldenrod_medium': [0.8549, 0.6971, 0.2255],
                'goldenrod_dark': [ 0.7216, 0.5255, 0.0431 ],  
                'goldenrod_light': [ 0.9804, 0.9804, 0.8235 ],  
                'goldenrod_pale': [ 0.9333, 0.9098, 0.6667 ],  

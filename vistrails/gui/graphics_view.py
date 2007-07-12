@@ -633,11 +633,3 @@ class QPIPGraphicsView(QtGui.QWidget):
         
         """
         self.layout().setMargin(CurrentTheme.PIP_OUT_FRAME_WIDTH)
-
-    def sizeHint(self):
-        """ sizeHint(self) -> QSize
-        Return recommended size of the widget
-        
-        """
-        return QtCore.QSize(200, 200)
-        
