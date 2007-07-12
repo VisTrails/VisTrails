@@ -123,7 +123,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         if self.pipelineView.scene().controller:
             pipeline = self.pipelineView.scene().controller.currentPipeline
         else:
-            pipieline = None
+            pipeline = None
         if pipeline:            
             if pipeline.modules.has_key(moduleId):
                 module = pipeline.modules[moduleId]
@@ -135,11 +135,20 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
                 self.methodPalette.setEnabled(False)
                 self.moduleMethods.setEnabled(False)
                 self.moduleAnnotations.setEnabled(False)
-            self.methodPalette.treeWidget.updateModule(module)
-            self.moduleMethods.updateModule(module)
-            self.moduleAnnotations.updateModule(module)
-            self.emit(QtCore.SIGNAL('moduleSelectionChange'),
-                      [m.id for m in selection])
+            self.methodPalette.setUpdatesEnabled(False)
+            self.moduleMethods.setUpdatesEnabled(False)
+            self.moduleAnnotations.setUpdatesEnabled(False)
+            try:
+                self.methodPalette.treeWidget.updateModule(module)
+                self.moduleMethods.updateModule(module)
+                self.moduleAnnotations.updateModule(module)
+                self.emit(QtCore.SIGNAL('moduleSelectionChange'),
+                          [m.id for m in selection])
+            finally:
+                self.methodPalette.setUpdatesEnabled(True)
+                self.moduleMethods.setUpdatesEnabled(True)
+                self.moduleAnnotations.setUpdatesEnabled(True)
+                
 
     def setController(self, controller):
         """ setController(controller: VistrailController) -> None
