@@ -254,8 +254,10 @@ class QPackagesWidget(QtGui.QWidget):
         else:
             palette = QtGui.QApplication.instance().builderWindow.modulePalette
             palette.setUpdatesEnabled(False)
-            pm.late_enable_package(name)
-            palette.setUpdatesEnabled(True)
+            try:
+                pm.late_enable_package(name)
+            finally:
+                palette.setUpdatesEnabled(True)
             self._current_package = pm.get_package(name)
             av.takeItem(pos)
             av.clearSelection()
