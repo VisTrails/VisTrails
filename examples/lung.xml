@@ -125,10 +125,7 @@
     <action date="28 Mar 2006 09:39:40" parent="37" time="38" user="juliana" what="addModule">
       <object cache="0" id="8" name="VTKCell" x="-259.332" y="-208.483"/>
     </action>
-    <action date="28 Mar 2006 09:39:40" parent="38" time="39" user="juliana" what="addModule">
-      <object cache="0" id="9" name="vtkRenderWindowInteractor" x="282.214" y="-399.168"/>
-    </action>
-    <action date="28 Mar 2006 09:39:40" parent="39" time="40" user="juliana" what="addModule">
+    <action date="28 Mar 2006 09:39:40" parent="38" time="40" user="juliana" what="addModule">
       <object cache="0" id="10" name="vtkCamera" x="-539.004" y="66.1043"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="36" time="41" user="juliana" what="addModule">
@@ -6438,14 +6435,7 @@
       <set alias="" function="SetViewUp" functionId="1" moduleId="9" parameter="" parameterId="1" type="Float" value="0"/>
       <set alias="" function="SetViewUp" functionId="1" moduleId="9" parameter="" parameterId="2" type="Float" value="-1"/>
     </action>
-    <action date="29 Mar 2006 08:56:35" parent="1505" time="1506" user="stevec" what="addModule">
-      <object cache="0" id="11" name="vtkRenderWindowInteractor" x="-165.504820725" y="1296.99205251"/>
-    </action>
-    <action date="29 Mar 2006 08:56:51" parent="1506" time="1507" user="stevec" what="deleteConnection"/>
-    <action date="29 Mar 2006 08:56:51" parent="1507" time="1508" user="stevec" what="deleteModule">
-      <module moduleId="11"/>
-    </action>
-    <action date="29 Mar 2006 08:57:11" parent="1508" time="1509" user="stevec" what="changeParameter">
+    <action date="29 Mar 2006 08:57:11" parent="1505" time="1509" user="stevec" what="changeParameter">
       <notes>
         &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;/head&gt;&lt;body style=&quot; white-space: pre-wrap; font-family:Lucida Grande; font-size:13pt; font-weight:400; font-style:normal; text-decoration:none;&quot;&gt;&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:MS Shell Dlg; font-size:8pt;&quot;&gt;Set the vtkRenderer to disallow the camera reset that happens upon interaction.  This preserves the orientation and position of the camera and ensures that any zoom and translate operations performed will not change the basic orientation of the camera.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
       </notes>
