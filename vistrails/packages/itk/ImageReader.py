@@ -51,48 +51,48 @@ class ImageToFile(ITK):
 
 class GDCMReader(ITK):
     def compute(self):
-	dir = self.getInputFromPort("Directory")
-	dim = self.getInputFromPort("Dimension")
-	self.dicomNames_ = itk.GDCMSeriesFileNames.New()
+        dir = self.getInputFromPort("Directory")
+        dim = self.getInputFromPort("Dimension")
+        self.dicomNames_ = itk.GDCMSeriesFileNames.New()
 
-	self.dicomNames_.SetDirectory(dir)
-	self.dicomNames_.SetUseSeriesDetails(True)
-	self.dicomNames_.SetRecursive(True)
-	self.dicomNames_.LoadSequencesOn()
+        self.dicomNames_.SetDirectory(dir)
+        self.dicomNames_.SetUseSeriesDetails(True)
+        self.dicomNames_.SetRecursive(True)
+        self.dicomNames_.LoadSequencesOn()
 
-	self.iType_ = itk.Image[itk.US,dim]
-	self.reader_ = itk.ImageSeriesReader[self.iType_].New()
-	self.reader_.SetFileNames(self.dicomNames_.GetInputFileNames())
-	self.io_ = itk.GDCMImageIO.New()
-	self.reader_.SetImageIO(self.io_.GetPointer())
-	self.reader_.Update()
+        self.iType_ = itk.Image[itk.US,dim]
+        self.reader_ = itk.ImageSeriesReader[self.iType_].New()
+        self.reader_.SetFileNames(self.dicomNames_.GetInputFileNames())
+        self.io_ = itk.GDCMImageIO.New()
+        self.reader_.SetImageIO(self.io_.GetPointer())
+        self.reader_.Update()
 
-	self.setResult("Image Series", self.reader_.GetOutput())
+        self.setResult("Image Series", self.reader_.GetOutput())
 
 class DICOMReader(ITK):
     def compute(self):
-	dir = self.getInputFromPort("Directory")
-	dim = self.getInputFromPort("Dimension")
-	self.dicomNames_ = itk.DICOMSeriesFileNames.New()
+        dir = self.getInputFromPort("Directory")
+        dim = self.getInputFromPort("Dimension")
+        self.dicomNames_ = itk.DICOMSeriesFileNames.New()
 
-	self.dicomNames_.SetFileNameSortingOrderToSortByImagePositionPatient()
-	self.dicomNames_.SetDirectory(dir)
+        self.dicomNames_.SetFileNameSortingOrderToSortByImagePositionPatient()
+        self.dicomNames_.SetDirectory(dir)
 
-	self.iType_ = itk.Image[itk.US,dim]
-	self.reader_ = itk.ImageSeriesReader[self.iType_].New()
-	self.reader_.SetFileNames(self.dicomNames_.GetFileNames(False))
-	self.reader_.Update()
+        self.iType_ = itk.Image[itk.US,dim]
+        self.reader_ = itk.ImageSeriesReader[self.iType_].New()
+        self.reader_.SetFileNames(self.dicomNames_.GetFileNames(False))
+        self.reader_.Update()
 
-	self.setResult("Image Series", self.reader_.GetOutput())
-	
+        self.setResult("Image Series", self.reader_.GetOutput())
+        
 
 class ITKImageToVTKData(ITK):
     def compute(self):
-	dim = self.getInputFromPort("Dimension")
-	pType = self.getInputFromPort("Input PixelType")
-	iType = itk.Image[itk.pType,dim]
-	self.vtkExport_ = itk.VTKImageExport[iType].New()
-	im = self.getInputFromPort("Input Image")
-	self.vtkExport_.SetInput(im)
-	self.vtkExport_.Update()
-	self.setResult("VTK Output", self.vtkExport_.GetOutput())
+        dim = self.getInputFromPort("Dimension")
+        pType = self.getInputFromPort("Input PixelType")
+        iType = itk.Image[itk.pType,dim]
+        self.vtkExport_ = itk.VTKImageExport[iType].New()
+        im = self.getInputFromPort("Input Image")
+        self.vtkExport_.SetInput(im)
+        self.vtkExport_.Update()
+        self.setResult("VTK Output", self.vtkExport_.GetOutput())

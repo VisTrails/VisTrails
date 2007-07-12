@@ -22,7 +22,9 @@
 """ The file describes a container widget consisting of a pipeline
 view and a version tree for each opened Vistrail """
 
+import os.path
 from PyQt4 import QtCore, QtGui
+from core.debug import critical
 from gui.common_widgets import QDockContainer, QToolWindowInterface
 from gui.pe_tab import QParameterExplorationTab
 from gui.pipeline_tab import QPipelineTab
@@ -30,8 +32,7 @@ from gui.query_tab import QQueryTab
 from gui.version_tab import QVersionTab
 from gui.vistrail_controller import VistrailController
 from gui.vistrail_toolbar import QVistrailViewToolBar
-from core.debug import critical
-import os.path
+
 
 ################################################################################
 
@@ -91,9 +92,9 @@ class QVistrailView(QDockContainer):
                      QtCore.SIGNAL('stateChanged'),
                      self.stateChanged)
 
-        # We also keep track where this vistrail is
+        # We also keep track where this vistrail comes from
         # So we can save in the right place
-        self.origin = 'FILESYSTEM' # or DB
+        self.locator = None
         
         # Make sure we can change view when requested
         self.connect(self.toolBar.tabBar,
@@ -226,13 +227,14 @@ class QVistrailView(QDockContainer):
         """
         return QtCore.QSize(1024, 768)
 
-    def setVistrail(self, vistrail, name=''):
-        """ setVistrail(vistrail: Vistrail) -> None
+    def setVistrail(self, vistrail, locator=None):
+        """ setVistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
         Assign a vistrail to this view, and start interacting with it
         
         """
         self.vistrail = vistrail
-        self.controller.setVistrail(vistrail, name)
+        self.locator = locator
+        self.controller.setVistrail(vistrail, locator)
         self.versionTab.setController(self.controller)
         self.pipelineTab.setController(self.controller)
         self.peTab.setController(self.controller)
@@ -286,6 +288,10 @@ class QVistrailView(QDockContainer):
             else:
                 event.ignore()
         else:
+            #I think there's a problem with two pipeline views and the same
+            #scene on Macs. After assigning a new scene just before deleting
+            #seems to solve the problem
+            self.peTab.annotatedPipelineView.setScene(QtGui.QGraphicsScene())
             return QDockContainer.closeEvent(self, event)
 
     def queryVistrail(self, checked=True):

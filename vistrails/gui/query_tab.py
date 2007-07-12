@@ -30,6 +30,7 @@ from PyQt4 import QtCore, QtGui
 #
 # from core.vistrail.action import ChangeParameterAction, \
 #      ChangeAnnotationAction, AddModulePortAction
+from core.utils import VistrailLocator
 from core.vistrail.action import Action
 from core.vistrail.location import Location
 from core.vistrail.pipeline import Pipeline
@@ -63,7 +64,8 @@ class QQueryTab(QPipelineTab):
         self.moduleMethods.vWidget.formType = QFunctionQueryForm
         
         controller = QueryVistrailController()
-        controller.setVistrail(Vistrail(), 'Query Vistrail')
+        controller.setVistrail(Vistrail(),
+                               VistrailLocator(name='Query Vistrail'))
         self.setController(controller)
         controller.changeSelectedVersion(0)
         self.connect(controller,

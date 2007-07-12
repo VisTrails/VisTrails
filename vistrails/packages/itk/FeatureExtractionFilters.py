@@ -32,10 +32,10 @@ class GradientMagnitudeRecursiveGaussianImageFilter(FeatureFilter):
         inFilter = self.forceGetInputFromPort("Input Filter")
         im = self.getInputFromPort("Input Image")
 
-      	if self.hasInputFromPort("Output PixelType"):
-	    out = self.getInputFromPort("Output PixelType")
-	else:
-	    out = self.getInputFromPort("Input PixelType")
+        if self.hasInputFromPort("Output PixelType"):
+            out = self.getInputFromPort("Output PixelType")
+        else:
+            out = self.getInputFromPort("Input PixelType")
 
         inType = self.getInputFromPort("Input PixelType")._type
         outType = out._type
@@ -51,4 +51,4 @@ class GradientMagnitudeRecursiveGaussianImageFilter(FeatureFilter):
 
         self.setResult("Output Image", self.filter_.GetOutput())
         self.setResult("Filter", self)
-	self.setResult("Output PixelType", out)
+        self.setResult("Output PixelType", out)

@@ -22,7 +22,7 @@
 """ Module used when running  vistrails uninteractively """
 from core import xml_parser
 import core.interpreter.default
-from core.utils import VistrailsInternalError, expression
+from core.utils import VistrailsInternalError, expression, VistrailLocator
 
 ################################################################################
 
@@ -39,17 +39,27 @@ class DummyView(object):
     def set_module_error(self, id, error):
         pass
     
-def run(input, workflow, parameters=''):
-    """run(input: str, workflow: int or str) -> boolean 
+def run(locator, workflow, parameters=''):
+    """run(locator: VistrailLocator, workflow: int or str) -> boolean 
     Run the workflow 'workflow' in the 'input' file and generates 
     Returns False in case of error. workflow can be a tag name or a version.
 
     """ 
     elements = parameters.split(",")
     aliases = {}
-    parser = xml_parser.XMLParser()
-    parser.openVistrail(input)
-    v = parser.getVistrail()
+    if locator.origin == VistrailLocator.ORIGIN.FILE:
+        v = db.services.io.openVistrailFromXML(locator.name)
+        Vistrail.convert(v)
+    elif locator.origin == VistrailLocator.ORIGIN.DB:
+        config = {}
+        config['host'] = locator.host
+        config['port'] = locator.port
+        config['db'] = locator.db
+        config['user'] = locator.user
+        config['passwd'] = locator.db
+        v = vistrail = db.services.io.open_from_db(config, locator.vt_id)
+        Vistrail.convert(v)
+    
     if type(workflow) == type("str"):
         version = v.tagMap[workflow]
     elif type(workflow) == type(1):
@@ -71,7 +81,8 @@ def run(input, workflow, parameters=''):
     error = False
     view = DummyView()
     interpreter = core.interpreter.default.get_default_interpreter()
-    result = interpreter.execute(None, pip, input, version, view, aliases)
+    
+    result = interpreter.execute(None, pip, locator, version, view, aliases)
     (objs, errors, executed) = (result.objects,
                                 result.errors, result.executed)
     for i in objs.iterkeys():

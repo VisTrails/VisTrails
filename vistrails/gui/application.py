@@ -31,7 +31,7 @@ from core import debug
 from core import system
 from core import keychain
 from core.modules.module_registry import registry
-from core.utils import InstanceObject
+from core.utils import InstanceObject, VistrailLocator
 from gui import qt
 import core.configuration
 import core.interpreter.cached
@@ -152,7 +152,8 @@ run in batch mode.')
             import core.console_mode
             if self.nonInteractiveOpts.parameters == None:
                 self.nonInteractiveOpts.parameters = ''
-            r = core.console_mode.run(self.input[0],
+            locator = VistrailLocator(name=self.input[0])
+            r = core.console_mode.run(locator,
                                       self.nonInteractiveOpts.workflow,
                                       self.nonInteractiveOpts.parameters)
             return r

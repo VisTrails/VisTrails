@@ -40,5 +40,5 @@ class PixelTypeUnsignedShort(PixelType):
 
 class PixelTypeRGB(PixelType):
     def compute(self):
-	self._type = itk.RGBPixel[itk.US]
-	self.setResult("Pixel Type", self)
+        self._type = itk.RGBPixel[itk.US]
+        self.setResult("Pixel Type", self)

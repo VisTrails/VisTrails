@@ -871,7 +871,7 @@ class QCellManipulator(QtGui.QFrame):
             if info:
                 info = info[0]
                 viewManager = builderWindow.viewManager
-                view = viewManager.ensureVistrail(info['vistrailName'])
+                view = viewManager.ensureVistrail(info['locator'])
                 if view:
                     controller = view.controller
                     controller.changeSelectedVersion(info['version'])

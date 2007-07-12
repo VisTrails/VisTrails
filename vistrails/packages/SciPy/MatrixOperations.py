@@ -85,8 +85,8 @@ class ElementMultiply(MatrixOperation):
     def compute(self):
         a = self.getInputFromPort("InputMatrix1")
         b = self.getInputFromPort("InputMatrix2")
-	c = SparseMatrix()
-	c.matrix = sparse.csc_matrix((a.matrix.shape[0], b.matrix.shape[1]))
+        c = SparseMatrix()
+        c.matrix = sparse.csc_matrix((a.matrix.shape[0], b.matrix.shape[1]))
         if a.matrix.shape != b.matrix.shape:
             raise ModuleError(self, 'Mismatching input dimensions!')
 
@@ -131,14 +131,14 @@ class GetColumnRange(Matrix):
         
 class ATan2(MatrixOperation):
     def compute(self):
-	if self.hasInputFromPort("InputMatrix"):
-	    m = self.getInputFromPort("InputMatrix")
-	    r = m.Reals().matrix
-	    im = m.Imaginaries().matrix
-	else:
-	    r = self.getInputFromPort("RealMatrix").matrix
-	    im = self.getInputFromPort("ImaginaryMatrix").matrix
+        if self.hasInputFromPort("InputMatrix"):
+            m = self.getInputFromPort("InputMatrix")
+            r = m.Reals().matrix
+            im = m.Imaginaries().matrix
+        else:
+            r = self.getInputFromPort("RealMatrix").matrix
+            im = self.getInputFromPort("ImaginaryMatrix").matrix
 
-	out = SparseMatrix()
-	out.matrix = sparse.csc_matrix(scipy.vectorize(math.atan2)(r.toarray(),im.toarray()))
-	self.setResult("Output", out)
+        out = SparseMatrix()
+        out.matrix = sparse.csc_matrix(scipy.vectorize(math.atan2)(r.toarray(),im.toarray()))
+        self.setResult("Output", out)

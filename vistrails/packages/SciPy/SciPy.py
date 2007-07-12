@@ -26,8 +26,8 @@ from core.modules.vistrails_module import Module, ModuleError
 ################################################################################
 
 class SciPy(Module):
-	def compute(self):
-		pass
+        def compute(self):
+                pass
 #    def __init__(self):
 #        Module.__init__(self)
 

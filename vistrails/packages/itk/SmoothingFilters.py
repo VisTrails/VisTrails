@@ -26,108 +26,108 @@ from Filters import *
 
 class CurvatureAnisotropicDiffusionFilter(SmoothingFilter):
     def compute(self):
-	im = self.getInputFromPort("Input Image")
+        im = self.getInputFromPort("Input Image")
 
-	if self.hasInputFromPort("Output PixelType"):
-	    out = self.getInputFromPort("Output PixelType")
-	else:
-	    out = self.getInputFromPort("Input PixelType")
-
-	inType = self.getInputFromPort("Input PixelType")._type
-	outType = out._type
-	indim = self.getInputFromPort("Input Dimension")
-	outdim = indim
-	self.inIm = itk.Image[inType,indim]
-	self.outIm = itk.Image[outType,outdim]
-
-	self.filter_ = itk.CurvatureAnisotropicDiffusionImageFilter[self.inIm,self.outIm].New(im)
-
-	if self.hasInputFromPort("Iterations"):
-	    iterations = self.getInputFromPort("Iterations")
+        if self.hasInputFromPort("Output PixelType"):
+            out = self.getInputFromPort("Output PixelType")
         else:
-	    iterations = 5
+            out = self.getInputFromPort("Input PixelType")
 
-	if self.hasInputFromPort("TimeStep"):
-	    timestep = self.getInputFromPort("TimeStep")
-	else:
-	    if indim == 2:
-  	        timestep = 0.125
-	    else:
-		timestep = 0.0625
+        inType = self.getInputFromPort("Input PixelType")._type
+        outType = out._type
+        indim = self.getInputFromPort("Input Dimension")
+        outdim = indim
+        self.inIm = itk.Image[inType,indim]
+        self.outIm = itk.Image[outType,outdim]
 
-	if self.hasInputFromPort("Conductance"):
-	    conductance = self.getInputFromPort("Conductance")
-	else:
-	    conductance = 3.0
+        self.filter_ = itk.CurvatureAnisotropicDiffusionImageFilter[self.inIm,self.outIm].New(im)
 
-	self.filter_.SetNumberOfIterations(iterations)
-	self.filter_.SetTimeStep(timestep)
-	self.filter_.SetConductanceParameter(conductance)
+        if self.hasInputFromPort("Iterations"):
+            iterations = self.getInputFromPort("Iterations")
+        else:
+            iterations = 5
 
-	self.filter_.Update()
+        if self.hasInputFromPort("TimeStep"):
+            timestep = self.getInputFromPort("TimeStep")
+        else:
+            if indim == 2:
+                timestep = 0.125
+            else:
+                timestep = 0.0625
 
-	self.setResult("Output Image", self.filter_.GetOutput())
-	self.setResult("Output PixelType", out)
-	self.setResult("Filter", self)
-	self.setResult("Output Dimension", outdim)
+        if self.hasInputFromPort("Conductance"):
+            conductance = self.getInputFromPort("Conductance")
+        else:
+            conductance = 3.0
+
+        self.filter_.SetNumberOfIterations(iterations)
+        self.filter_.SetTimeStep(timestep)
+        self.filter_.SetConductanceParameter(conductance)
+
+        self.filter_.Update()
+
+        self.setResult("Output Image", self.filter_.GetOutput())
+        self.setResult("Output PixelType", out)
+        self.setResult("Filter", self)
+        self.setResult("Output Dimension", outdim)
 
 
 class RecursiveGaussianImageFilter(SmoothingFilter):
     def compute(self):
-	im = self.getInputFromPort("Input Image")
+        im = self.getInputFromPort("Input Image")
 
-	if self.hasInputFromPort("Output PixelType"):
-	    out = self.getInputFromPort("Output PixelType")
-	else:
-	    out = self.getInputFromPort("Input PixelType")
+        if self.hasInputFromPort("Output PixelType"):
+            out = self.getInputFromPort("Output PixelType")
+        else:
+            out = self.getInputFromPort("Input PixelType")
 
-	inType = self.getInputFromPort("Input PixelType")._type
-	outType = out._type
-	indim = self.getInputFromPort("Input Dimension")
-	outdim = indim
-	self.inIm = itk.Image[inType,indim]
-	self.outIm = itk.Image[outType,outdim]
+        inType = self.getInputFromPort("Input PixelType")._type
+        outType = out._type
+        indim = self.getInputFromPort("Input Dimension")
+        outdim = indim
+        self.inIm = itk.Image[inType,indim]
+        self.outIm = itk.Image[outType,outdim]
 
-	self.filter_ = itk.RecursiveGaussianImageFilter[self.inIm,self.outIm].New(im)
+        self.filter_ = itk.RecursiveGaussianImageFilter[self.inIm,self.outIm].New(im)
 
-	sigma = self.getInputFromPort("Sigma")
-	self.filter_.SetSigma(sigma)
+        sigma = self.getInputFromPort("Sigma")
+        self.filter_.SetSigma(sigma)
 
-	self.filter_.Update()
+        self.filter_.Update()
 
-	self.setResult("Output Image", self.filter_.GetOutput())
-	self.setResult("Output PixelType", out)
-	self.setResult("Output Dimension", outdim)
+        self.setResult("Output Image", self.filter_.GetOutput())
+        self.setResult("Output PixelType", out)
+        self.setResult("Output Dimension", outdim)
 
 class CurvatureFlowImageFilter(SmoothingFilter):
     def compute(self):
-	im = self.getInputFromPort("Input Image")
-	dim = self.getInputFromPort("Input Dimension")
+        im = self.getInputFromPort("Input Image")
+        dim = self.getInputFromPort("Input Dimension")
 
-	inType = self.getInputFromPort("Input PixelType")._type
-	if self.hasInputFromPort("Output PixelType"):
-	    out = self.getInputFromPort("Output PixelType")
-	else:
-	    out = self.getInputFromPort("Input PixelType")
+        inType = self.getInputFromPort("Input PixelType")._type
+        if self.hasInputFromPort("Output PixelType"):
+            out = self.getInputFromPort("Output PixelType")
+        else:
+            out = self.getInputFromPort("Input PixelType")
 
-	i = itk.Image[inType, dim]
-	o = itk.Image[out._type, dim]
-	self.filter_ = itk.CurvatureFlowImageFilter[i, o].New(im)
-	if self.hasInputFromPort("TimeStep"):
-	    self.ts = self.getInputFromPort("TimeStep")
-	else:
-	    self.ts = 0.125
+        i = itk.Image[inType, dim]
+        o = itk.Image[out._type, dim]
+        self.filter_ = itk.CurvatureFlowImageFilter[i, o].New(im)
+        if self.hasInputFromPort("TimeStep"):
+            self.ts = self.getInputFromPort("TimeStep")
+        else:
+            self.ts = 0.125
 
-	if self.hasInputFromPort("Iterations"):
-	    self.iterations = self.getInputFromPort("Iterations")
-	else:
-	    self.iterations = 5
+        if self.hasInputFromPort("Iterations"):
+            self.iterations = self.getInputFromPort("Iterations")
+        else:
+            self.iterations = 5
 
-	self.filter_.SetTimeStep(self.ts)
-	self.filter_.SetNumberOfIterations(self.iterations)
-	
-	self.filter_.Update()
+        self.filter_.SetTimeStep(self.ts)
+        self.filter_.SetNumberOfIterations(self.iterations)
+        
+        self.filter_.Update()
 
-	self.setResult("Output Image", self.filter_.GetOutput())
-	self.setResult("Output PixelType", out)
-	self.setResult("Output Dimension", dim)
+        self.setResult("Output Image", self.filter_.GetOutput())
+        self.setResult("Output PixelType", out)
+        self.setResult("Output Dimension", dim)

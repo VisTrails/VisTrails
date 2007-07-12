@@ -75,9 +75,9 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             del self._objects[v]
 
     def unlocked_execute(self, controller,
-                         pipeline, vistrailName, currentVersion,
+                         pipeline, locator, currentVersion,
                          view, aliases=None, **kwargs):
-        """unlocked_execute(controller, pipeline, vistrailName,
+        """unlocked_execute(controller, pipeline, locator,
         currentVersion, view): Executes a pipeline using
         caching. Caching works by reusing pipelines directly.  This
         means that there exists one global pipeline whose parts get
@@ -114,7 +114,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             view.set_module_active(i)
             reg = modules.module_registry.registry
             name = reg.getDescriptor(obj.__class__).name
-            self._logger.start_module_execution(vistrailName, 
+            self._logger.start_module_execution(locator, 
                                                 currentVersion, i, name)
         # views and loggers work on local ids
         def end_update(obj, error=''):
@@ -123,12 +123,12 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 view.set_module_success(i)
             else:
                 view.set_module_error(i, error)
-            self._logger.finish_module_execution(vistrailName, 
+            self._logger.finish_module_execution(locator, 
                                                  currentVersion, i)
         # views and loggers work on local ids
         def annotate(obj, d):
             i = module_map.inverse[obj.id]
-            self._logger.insert_annotation_DB(vistrailName, 
+            self._logger.insert_annotation_DB(locator, 
                                             currentVersion, i, d)
 
         def create_null():
@@ -176,7 +176,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             obj.change_parameter = make_change_parameter(obj)
             
             # Update object pipeline information
-            obj.moduleInfo['vistrailName'] = vistrailName
+            obj.moduleInfo['locator'] = locator
             obj.moduleInfo['version'] = currentVersion
             obj.moduleInfo['moduleId'] = i
             obj.moduleInfo['pipeline'] = pipeline
@@ -265,10 +265,10 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                               parameter_changes=parameter_changes)
 
     @lock_method(core.interpreter.utils.get_interpreter_lock())
-    def execute(self, controller, pipeline, vistrailName,
+    def execute(self, controller, pipeline, vistrailLocator,
                 currentVersion=-1, view=DummyView(),
                 aliases=None, **kwargs):
-        """execute(controller, pipeline, vistrailName, currentVersion, view):
+        """execute(controller, pipeline, vistrailLocator, currentVersion, view):
         Executes a pipeline using caching. Caching works by reusing
         pipelines directly.  This means that there exists one global
         pipeline whose parts get executed over and over again.
@@ -288,16 +288,16 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
         If modules have no error associated with but were not executed, it
         means they were cached."""
-        self._logger.start_workflow_execution(vistrailName, currentVersion)
+        self._logger.start_workflow_execution(vistrailLocator, currentVersion)
 
         self.clean_non_cacheable_modules()
 
-        result = self.unlocked_execute(controller, pipeline, vistrailName,
+        result = self.unlocked_execute(controller, pipeline, vistrailLocator,
                                        currentVersion,
                                        view, aliases,
                                        **kwargs)
 
-        self._logger.finish_workflow_execution(vistrailName, currentVersion)
+        self._logger.finish_workflow_execution(vistrailLocator, currentVersion)
 
         return result
 

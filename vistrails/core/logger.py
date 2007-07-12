@@ -74,7 +74,7 @@ class Logger(object):
         self.ram = system.guess_total_memory()/(1024*1024)
         self.get_settings_from_app()
         self.ssid = -1
-        self.vistrails_map = {} #maps vistrailsNames to vistrails_id in db
+        self.vistrails_map = {} #maps locators to vistrails_id in db
 	self.wf_dict = {} #vistrails_id : {version_number:wf_exec_id}
         self.mod_dict = {}#wf_exec_id : {module_id: exec_id}
         self.init_session()
@@ -295,21 +295,22 @@ class Logger(object):
         
         c.close()
         return timestamp
-
-    def start_workflow_execution(self, vistrailsName, version_number):
-        """ start_workflow_execution(vistrailsName, version_number)->None 
+        
+    def start_workflow_execution(self, locator, version_number):
+        """ start_workflow_execution(locator: VistrailLocator,
+                                     version_number)->None 
         Log the start of a workflow execution 
         
         """
         try:
             #vistrails information
-	    if self.vistrails_map.has_key(vistrailsName):
-		vistrails_id = self.vistrails_map[vistrailsName]
+	    if self.vistrails_map.has_key(locator.name):
+		vistrails_id = self.vistrails_map[locator.name]
 	    else:
-		vistrails_id = self.get_vistrails_id_DB(vistrailsName) 
+		vistrails_id = self.get_vistrails_id_DB(locator.name) 
 		if vistrails_id == -1:
-		    vistrails_id = self.insert_vistrails_DB(vistrailsName)
-		self.vistrails_map[vistrailsName] = vistrails_id
+		    vistrails_id = self.insert_vistrails_DB(locator.name)
+		self.vistrails_map[locator.name] = vistrails_id
 
             ts = self.get_current_time_DB()
             c = self.db.cursor()
@@ -340,13 +341,14 @@ class Logger(object):
         
         c.close()
       
-    def finish_workflow_execution(self, vistrailsName, version_number):
-        """ finish_workflow_execution(vistrailsName, version_number) -> None 
+    def finish_workflow_execution(self, locator, version_number):
+        """ finish_workflow_execution(locator: VistrailLocator,
+                                       version_number) -> None 
         Log the end of a workflow execution
         
         """
 	try:
-	    vistrails_id = self.vistrails_map[vistrailsName]
+	    vistrails_id = self.vistrails_map[locator.name]
 	    wf_exec_id = self.wf_dict[vistrails_id][version_number]
 	    
 	    timestamp = self.get_current_time_DB()
@@ -361,15 +363,16 @@ class Logger(object):
 		
 	c.close()
 
-    def start_module_execution(self, vistrailsName, version_number, module_id, 
+    def start_module_execution(self, locator, version_number, module_id, 
                              module_name):
-        """ start_module_execution(vistrailsName, version_number, module_id, 
+        """ start_module_execution(locator: VistrailLocator,
+                                   version_number, module_id, 
                                  module_name) -> None
         Log the start of the execution of a module
 
         """
 	try:
-	    vistrails_id = self.vistrails_map[vistrailsName]
+	    vistrails_id = self.vistrails_map[locator.name]
 	    wf_exec_id = self.wf_dict[vistrails_id][version_number]
 
             ts = self.get_current_time_DB()
@@ -402,14 +405,14 @@ class Logger(object):
         
         c.close()
    
-    def finish_module_execution(self, vistrailsName, version_number, module_id):
-        """ finish_module_execution(vistrailsName, version_number, 
+    def finish_module_execution(self, locator, version_number, module_id):
+        """ finish_module_execution(locator, version_number, 
                                   module_id) -> None
         Log the end of the execution of a module
 
         """
         try:
-	    vistrails_id = self.vistrails_map[vistrailsName]
+	    vistrails_id = self.vistrails_map[locator.name]
 	    wf_exec_id = self.wf_dict[vistrails_id][version_number]
             exec_id = self.mod_dict[wf_exec_id][module_id]
 
@@ -427,12 +430,12 @@ class Logger(object):
 	c.close()
 
 
-    def insert_annotation_DB(self, vistrailsName, version_number, module_id, annot_dict):
-        """ insert_annotation_DB(vistrailsName, version_number, 
+    def insert_annotation_DB(self, locator, version_number, module_id, annot_dict):
+        """ insert_annotation_DB(locator, version_number, 
                                module_id, annot_dict:dict[str:str]) -> None
         Log a module annotation (key, value) on the database"""
         try:
-	    vistrails_id = self.vistrails_map[vistrailsName]
+	    vistrails_id = self.vistrails_map[locator.name]
 	    wf_exec_id = self.wf_dict[vistrails_id][version_number]
             exec_id = self.mod_dict[wf_exec_id][module_id]
 

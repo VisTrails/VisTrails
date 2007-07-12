@@ -87,6 +87,7 @@ class VistrailController(QtCore.QObject):
         self.changed = False
         self.fullTree = False
         self.analogy = {}
+        self.locator = None
 
     def invalidate_version_tree(self):
         #FIXME: in the future, rename the signal
@@ -95,16 +96,20 @@ class VistrailController(QtCore.QObject):
     def cleanup(self):
         pass
 
-    def setVistrail(self, vistrail, name):
-        """ setVistrail(vistrail: Vistrail, name: str) -> None
+    def setVistrail(self, vistrail, locator):
+        """ setVistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
         Start controlling a vistrail
         
         """
         self.vistrail = vistrail
         self.currentVersion = -1
         self.currentPipeline = None
-        self.setFileName(name)
-        
+        self.locator = locator
+        if locator != None:
+            self.setFileName(locator.name)
+        else:
+            self.setFileName('')
+            
     def perform_action(self, action, quiet=None):        
         self.currentPipeline.performAction(action)
         self.currentVersion = action.db_id
@@ -466,8 +471,8 @@ class VistrailController(QtCore.QObject):
         old_quiet = self.quiet
         self.quiet = True
         for vis in vistrails:
-            (name, version, pipeline, view) = vis
-            result = interpreter.execute(self, pipeline, name, version, view)
+            (locator, version, pipeline, view) = vis
+            result = interpreter.execute(self, pipeline, locator, version, view)
             if result.parameter_changes:
                 l = result.parameter_changes
                 self.add_parameter_changes_from_execution(pipeline,
@@ -483,7 +488,7 @@ class VistrailController(QtCore.QObject):
         
         """
         if self.currentPipeline:
-            self.executeWorkflowList([(self.fileName,
+            self.executeWorkflowList([(self.locator,
                                        self.currentVersion,
                                        self.currentPipeline,
                                        self.currentPipelineView)])
@@ -930,15 +935,19 @@ class VistrailController(QtCore.QObject):
         Returns True if current pipeline has an alias named name """
         return self.currentPipeline.hasAlias(name)
 
-    def writeVistrailDB(self, conn_id, name):
-        """writeVistrailDB(conn_id: int) -> None
+    def writeVistrailDB(self, locator):
+        """writeVistrailDB(locator: VistrailLocator) -> None
         Write vistrail to database and emit changed signal
         
         """
+        if locator:
+            name = locator.name
+            conn_id = locator.conn_id
         if self.vistrail and (self.changed or name != self.fileName):
             try:
                 self.vistrail.db_name = name
                 db.services.io.save_to_db(conn_id, self.vistrail)
+                print self.vistrail.vt_id
                 self.fileName = name
                 self.name = name
                 self.changed = False
@@ -948,16 +957,18 @@ class VistrailController(QtCore.QObject):
                                            'Vistrails',
                                            str(e))
 
-    def writeVistrail(self, fileName):
-        """ writeVistrail(fileName: str) -> None
+    def writeVistrail(self, locator):
+        """ writeVistrail(locator: VistrailLocator) -> None
         Write vistrail to file and emit changed signal
         
         """
-        if self.vistrail and (self.changed or fileName!=self.fileName):
-            self.vistrail.serialize(fileName)
+        if self.vistrail and (self.changed or
+                              locator.name!=self.fileName):
+            self.vistrail.serialize(locator.name)
             self.changed = False
-            self.fileName = fileName
-            self.name = os.path.split(fileName)[1]
+            self.locator = locator
+            self.setFileName(locator.name)
+            self.name = os.path.split(locator.name)[1]
             self.emit(QtCore.SIGNAL('stateChanged'))
 
     def queryByExample(self, pipeline):

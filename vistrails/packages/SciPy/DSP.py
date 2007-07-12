@@ -36,10 +36,10 @@ class FFT(DSP):
     def compute(self):
         mat = self.getInputFromPort("Signals")
         pts = self.getInputFromPort("FFT Samples")
-	if hasattr(fft,"fft"):
-	    phasors = fft.fft(mat.matrix.data, pts)
-	else:
-	    phasors = fft(mat.matrix.data, pts)
+        if hasattr(fft,"fft"):
+            phasors = fft.fft(mat.matrix.data, pts)
+        else:
+            phasors = fft(mat.matrix.data, pts)
         outmat = sparse.csc_matrix(phasors)
         out = SparseMatrix()
         out.matrix = outmat

@@ -174,7 +174,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                 interpreter.execute(
                     None,
                     modifiedPipelines[pi],
-                    self.controller.fileName,
+                    self.controller.locator,
                     self.controller.currentVersion,
                     self.controller.currentPipelineView,
                     moduleExecutedHook=[moduleExecuted],

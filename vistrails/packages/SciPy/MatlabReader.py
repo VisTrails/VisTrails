@@ -41,9 +41,9 @@ class MatlabReader(SciPy):
     def readFileAsCSC(self, filename):
         m = io.loadmat(filename, None, 0)
         vals = m.values()
-	for t in vals:
-	    if type(t) == numpy.ndarray:
-	        mat = t
+        for t in vals:
+            if type(t) == numpy.ndarray:
+                mat = t
 
         cscmat = sparse.csr_matrix(mat)
         self.matrix = SparseMatrix()

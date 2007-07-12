@@ -32,7 +32,11 @@ class MatrixInfo(SciPy):
         numel = m.numElements()
         maxel = m.maxNumElements()
 
-        out = "Matrix Info:\n\tNumber of Rows:  " + str(numrows) + "\n\tNumber of Columns:  " + str(numcols) + "\n\tNumber of Elements:  " + str(numel) + "\n\tMaximum Number of Elements for compressed matrix:  " + str(maxel)
+        out = "Matrix Info:\n\tNumber of Rows:  " + str(numrows) + \
+              "\n\tNumber of Columns:  " + str(numcols) + \
+              "\n\tNumber of Elements:  " + str(numel) + \
+              "\n\tMaximum Number of Elements for compressed matrix:  " + \
+              str(maxel)
 
         return out
 

@@ -42,20 +42,20 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                       'String': lambda x: x}
 
     @lock_method(core.interpreter.utils.get_interpreter_lock())
-    def locked_execute(self, controller, pipeline, vistrailName,
+    def locked_execute(self, controller, pipeline, locator,
                        currentVersion, view, aliases=None, **kwargs):
-        return self.unlocked_execute(controller, pipeline, vistrailName,
+        return self.unlocked_execute(controller, pipeline, locator,
                                      currentVersion, view, aliases, **kwargs)
     
     def unlocked_execute(self, controller, pipeline,
-                         vistrailName, currentVersion,
+                         locator, currentVersion,
                          view, aliases=None, **kwargs):
         if view == None:
             raise VistrailsInternalError("Must pass a view object")
 
         self.resolve_aliases(pipeline, aliases)
 
-        self._logger.start_workflow_execution(vistrailName, currentVersion)
+        self._logger.start_workflow_execution(locator, currentVersion)
 
         def add_to_executed(obj):
             executed[obj.id] = True
@@ -68,17 +68,17 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
             view.set_module_active(obj.id)
             reg = modules.module_registry.registry
             name = reg.getDescriptor(obj.__class__).name
-            self._logger.start_module_execution(vistrailName,
+            self._logger.start_module_execution(locator,
                                               currentVersion, obj.id, name)
         def end_update(obj, error=''):
             if not error:
                 view.set_module_success(obj.id)
             else:
                 view.set_module_error(obj.id, error)
-            self._logger.finish_module_execution(vistrailName, 
+            self._logger.finish_module_execution(locator, 
                                                currentVersion, obj.id)
         def annotate(obj, d):
-            self._logger.insert_annotation_DB(vistrailName, 
+            self._logger.insert_annotation_DB(locator, 
                                             currentVersion, obj.id, d)
 
         try:
@@ -100,7 +100,7 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                 
                 # Update object pipeline information
                 obj = objects[id]
-                obj.moduleInfo['vistrailName'] = vistrailName
+                obj.moduleInfo['locator'] = locator
                 obj.moduleInfo['version'] = currentVersion
                 obj.moduleInfo['moduleId'] = id
                 obj.moduleInfo['pipeline'] = pipeline
@@ -173,13 +173,13 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
             self.filePool.cleanup()
             del self.filePool
 
-        self._logger.finish_workflow_execution(vistrailName, currentVersion)
+        self._logger.finish_workflow_execution(locator, currentVersion)
         
         return InstanceObject(objects=objects,
                               errors=errors,
                               executed=executed)
         
-    def execute(self, controller, pipeline, vistrailName,
+    def execute(self, controller, pipeline, vistrailLocator,
                 currentVersion=-1, view=DummyView(),
                 useLock=True, **kwargs):
         if useLock:
@@ -187,7 +187,7 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
         else:
             method_call = self.unlocked_execute
 
-        return method_call(controller, pipeline, vistrailName,
+        return method_call(controller, pipeline, vistrailLocator,
                            currentVersion, view, **kwargs)
 
 

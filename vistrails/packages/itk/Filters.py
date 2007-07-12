@@ -25,24 +25,24 @@ from ITK import *
 
 class FeatureFilter(Filter):
     def compute(self):
-	pass
+        pass
 
 class IntensityFilter(Filter):
     def compute(self):
-	pass
+        pass
 
 class SegmentationFilter(Filter):
     def compute(self):
-	pass
+        pass
 
 class SelectionFilter(Filter):
     def compute(self):
-	pass
+        pass
 
 class SmoothingFilter(Filter):
     def compute(self):
-	pass
+        pass
 
 class MorphologicalFilter(Filter):
     def compute(self):
-	pass
+        pass
