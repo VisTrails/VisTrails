@@ -27,7 +27,9 @@ to checking dependencies to initializing them."""
 from core import debug
 from core.modules.module_registry import registry
 from core.utils import VistrailsInternalError
-from core.configuration import ConfigurationObject
+from core.utils.uxml import (named_elements,
+                             elements_filter, enter_named_element)
+from core.configuration import ConfigurationObject, get_vistrails_configuration
 import copy
 import core.data_structures.graph
 import os
@@ -48,10 +50,10 @@ class Package(object):
                     (self.package.name,
                      self.exception))
 
-    def __init__(self, packageName, args, keywords):
+    def __init__(self, packageName, load_configuration=True):
         self._name = packageName
-        self._args = args
-        self._kwargs = keywords
+        self._registry_name = packageName
+        self._load_configuration = load_configuration
         self._module = None
         self._initialized = False
 
@@ -63,10 +65,7 @@ class Package(object):
 
         """
         
-        class InternalImportError(ImportError):
-            def __init__(self, import_error):
-                self.import_error = import_error
-        
+       
         def module_import(name):
             return 
             
@@ -83,8 +82,6 @@ class Package(object):
                                                   locals(), []),
                                        self.name)
                 self._package_type = self.Base
-            except InternalImportError, e:
-                raise e.import_error
             except ImportError:
                 return False
             return True
@@ -96,15 +93,29 @@ class Package(object):
             raise ImportError("Package %s not present "
                               "(or one of its imports failed)" % self._name)
 
+        # Sometimes we don't want to change startup.xml, for example
+        # when peeking at a package that's on the available package list
+        # on edit -> preferences. That's what the _load_configuration field
+        # is for
+        if self._load_configuration:
+            if hasattr(self._module, 'configuration'):
+                # hold a copy of the initial configuration so it can be reset
+                self._initial_configuration = copy.copy(self._module.configuration)
+            self.load_persistent_configuration()
+            self.create_startup_package_node()
+
     def initialize(self):
         if self._initialized:
             return
         print "Initializing", self._name
         registry.setCurrentPackageName(self._name)
         try:
-            self._module.initialize(*self._args, **self._kwargs)
+            self._module.initialize()
         except Exception, e:
             raise self.InitializationFailed(self, e)
+
+        # The package might have decided to rename itself, let's store that
+        self._registry_name = registry.currentPackageName
         registry.setCurrentPackageName(None)
         self._initialized = True
 
@@ -115,17 +126,24 @@ class Package(object):
             return
         else:
             callable_()
+
+    def can_be_disabled(self):
+        """Returns whether has no reverse dependencies (other
+        packages that depend on it."""
+        mgr = get_package_manager()
+        return mgr.dependency_graph().in_degree(self.name) == 0
     
     def finalize(self):
         if not self._initialized:
             return
+        print "Finalizing",self.name
         try:
             callable_ = self._module.finalize
         except AttributeError:
             pass
         else:
             callable_()
-            self._initialized = False
+        self._initialized = False
             
     def dependencies(self):
         try:
@@ -134,6 +152,12 @@ class Package(object):
             return []
         else:
             return callable_()
+
+    def reverse_dependencies(self):
+        mgr = get_package_manager()
+        lst = [x[0] for x in
+               mgr.dependency_graph().inverse_adjacency_list[self.name]]
+        return lst
 
     def initialized(self):
         return self._initialized
@@ -152,7 +176,12 @@ class Package(object):
             return self._module.configuration
         else:
             return None
-    configuration = property(_get_configuration)
+    def _set_configuration(self, configuration):
+        if hasattr(self._module, 'configuration'):
+            self._module.configuration = configuration
+        else:
+            raise AttributeError("Can't set configuration on a module without one")
+    configuration = property(_get_configuration, _set_configuration)
 
     def _get_description(self):
         if hasattr(self._module, '__doc__'):
@@ -161,6 +190,137 @@ class Package(object):
             return "No description available"
     description = property(_get_description)
 
+    def _get_registry_name(self):
+        return self._registry_name
+    registry_name = property(_get_registry_name)
+    
+
+    ##########################################################################
+    # Configuration
+
+    def find_disabledpackage_element(self, doc):
+        """find_disabledpackage_element(documentElement) -> Node or None
+
+        Returns the package's disabledpackage element, if
+        present. Returns None otherwise.
+
+        """
+        packages = enter_named_element(doc, 'disabledpackages')
+        assert packages
+        for package_node in named_elements(packages, 'package'):
+            if str(package_node.attributes['name'].value) == self.name:
+                return package_node
+        return None
+
+    def remove_own_dom_element(self):
+        """remove_own_dom_element() -> None
+
+        Opens the startup DOM, looks for the element that belongs to the package.
+        If it is there and there's a configuration, moves it to disabledpackages
+        node. This is done as part of package disable.
+
+        """
+        from PyQt4 import QtCore
+        startup = QtCore.QCoreApplication.instance().vistrailsStartup
+        dom = startup.startup_dom()
+        doc = dom.documentElement
+
+        def find_it():
+            packages = enter_named_element(doc, 'packages')
+            for package_node in named_elements(packages, 'package'):
+                if str(package_node.attributes['name'].value) == self.name:
+                    return package_node
+
+        package_node = find_it()
+        oldpackage_element = self.find_disabledpackage_element(doc)
+
+        assert oldpackage_element is None
+        packages = enter_named_element(doc, 'packages')
+        disabledpackages = enter_named_element(doc, 'disabledpackages')
+        packages.removeChild(package_node)
+        disabledpackages.appendChild(package_node)
+        startup.write_startup_dom(dom)
+        
+    def reset_configuration(self):
+        """Reset_configuration() -> Resets configuration to original
+        package settings."""
+        
+        (dom, element) = self.find_own_dom_element()
+        doc = dom.documentElement
+        configuration = enter_named_element(element, 'configuration')
+        if configuration:
+            element.removeChild(configuration)
+        self.configuration = copy.copy(self._initial_configuration)
+
+        from PyQt4 import QtCore
+        startup = QtCore.QCoreApplication.instance().vistrailsStartup
+        startup.write_startup_dom(dom)
+        
+    def find_own_dom_element(self):
+        """find_own_dom_element() -> (DOM, Node)
+
+        Opens the startup DOM, looks for the element that belongs to the package,
+        and returns DOM and node. Creates a new one if element is not there.
+        
+        """
+        from PyQt4 import QtCore
+        dom = QtCore.QCoreApplication.instance().vistrailsStartup.startup_dom()
+        doc = dom.documentElement
+        packages = enter_named_element(doc, 'packages')
+        for package_node in named_elements(packages, 'package'):
+            if str(package_node.attributes['name'].value) == self.name:
+                return (dom, package_node)
+
+        # didn't find anything, create a new node
+
+        package_node = dom.createElement("package")
+        package_node.setAttribute('name', self.name)
+        packages.appendChild(package_node)
+        
+        from PyQt4 import QtCore
+        QtCore.QCoreApplication.instance().vistrailsStartup.write_startup_dom(dom)
+        return (dom, package_node)
+
+    def load_persistent_configuration(self):
+        (dom, element) = self.find_own_dom_element()
+        
+        configuration = enter_named_element(element, 'configuration')
+        if configuration:
+            self.configuration.set_from_dom_node(configuration)
+        dom.unlink()
+
+    def set_persistent_configuration(self):
+        (dom, element) = self.find_own_dom_element()
+        child = enter_named_element(element, 'configuration')
+        if child:
+            element.removeChild(child)
+        self.configuration.write_to_dom(dom, element)
+        from PyQt4 import QtCore
+        QtCore.QCoreApplication.instance().vistrailsStartup.write_startup_dom(dom)
+        dom.unlink()
+
+    def create_startup_package_node(self):
+        (dom, element) = self.find_own_dom_element()
+        doc = dom.documentElement
+        disabledpackages = enter_named_element(doc, 'disabledpackages')
+        packages = enter_named_element(doc, 'packages')
+
+        oldpackage = self.find_disabledpackage_element(doc)
+
+        if oldpackage is not None:
+            # Must remove element from oldpackages,
+            # _and_ the element that was just created in find_own_dom_element()
+            disabledpackages.removeChild(oldpackage)
+            packages.removeChild(element)
+            packages.appendChild(oldpackage)
+            configuration = enter_named_element(oldpackage, 'configuration')
+            if configuration:
+                self.configuration.set_from_dom_node(configuration)
+            from PyQt4 import QtCore
+            QtCore.QCoreApplication.instance().vistrailsStartup.write_startup_dom(dom)
+        dom.unlink()
+        
+         
 ##############################################################################
 
 global _package_manager
@@ -239,14 +399,13 @@ class PackageManager(object):
         """Finalizes all installed packages. Call this only prior to
 exiting VisTrails."""
         for package in self._package_list.itervalues():
-            print "Finalizing",package.name
             package.finalize()
         self._package_list = {}
 
-    def add_package(self, packageName, args=[], keywords={}):
+    def add_package(self, packageName):
         """Adds a new package to the manager. This does not initialize it.
 To do so, call initialize_packages()"""
-        self._package_list[packageName] = Package(packageName, args, keywords)
+        self._package_list[packageName] = Package(packageName)
         if self._dependency_graph.vertices.has_key('packageName'):
             raise VistrailsInternalError('duplicate package name')
         self._dependency_graph.add_vertex(packageName)
@@ -254,9 +413,10 @@ To do so, call initialize_packages()"""
     def remove_package(self, name):
         """remove_package(name): Removes a package from the system."""
         pkg = self._package_list[name]
-        self._dependency_graph.remove_vertex(name)
+        self._dependency_graph.delete_vertex(name)
         pkg.finalize()
         del self._package_list[name]
+        registry.deletePackage(pkg.registry_name)
 
     def has_package(self, name):
         """has_package(name: string) -> Boolean.
@@ -269,7 +429,7 @@ Returns true if given package is installed."""
         Returns a Package object for an uninstalled package. This does
         NOT install a package.
         """
-        return Package(name, [], {})
+        return Package(name, False)
 
     def get_package(self, name):
         """get_package(name: string) -> Package.
@@ -303,7 +463,8 @@ Returns a package with given name if it is enabled, otherwise throws exception
         """add_dependencies(package) -> None.  Register all
 dependencies a package contains by calling the appropriate callback.
 
-        Does not add multiple dependencies.
+        Does not add multiple dependencies - if a dependency is already there,
+        add_dependencies ignores it.
         """
         deps = package.dependencies()
         missing_packages = [name
@@ -314,21 +475,35 @@ dependencies a package contains by calling the appropriate callback.
                               (package.name,
                                missing_packages))
         
-        for name in deps:
-            if name not in self._dependency_graph.adjacency_list:
-                self._dependency_graph.add_edge(package.name, name)
+        for dep_name in deps:
+            if (dep_name not in
+                self._dependency_graph.adjacency_list[package.name]):
+                self._dependency_graph.add_edge(package.name, dep_name)
 
     def late_enable_package(self, package_name):
         """late_enable_package enables a package 'late', that is,
         after VisTrails initialization. All dependencies need to be
         already enabled.
         """
-
+        import time
         self.add_package(package_name)
         pkg = self.get_package(package_name)
         pkg.load()
         pkg.check_requirements()
+        t1 = time.time()
         pkg.initialize()
+        t2 = time.time()
+        print t2 - t1
+        t1 = t2
+
+    def late_disable_package(self, package_name):
+        """late_disable_package disables a package 'late', that is,
+        after VisTrails initialization. All reverse dependencies need to be
+        already disabled.
+        """
+        pkg = self.get_package(package_name)
+        self.remove_package(package_name)
+        pkg.remove_own_dom_element()
 
     def initialize_packages(self,package_dictionary={}):
         """initialize_packages(package_dictionary={}): None

@@ -64,22 +64,22 @@ configuration.nologger = True
 # the spreadsheet package.
 
 # the vtk package is the main visualization package for VisTrails
-addPackage('vtk')
+# addPackage('vtk')
 
 # pythonCalc is an example package intended simply to demonstrate how to
 # create new packages
-addPackage('pythonCalc')
+# addPackage('pythonCalc')
 
 # ImageMagick uses the ImageMagick command-line suite to perform various
 # tasks on images (conversion, filtering, etc).
 #addPackage('ImageMagick')
 
 # The spreadsheet package enables the Visualization Spreadsheet
-addPackage('spreadsheet')
+# addPackage('spreadsheet')
 
 # The HTTP package provides an easy way to access files from http and use
 # them as regular files in VisTrails pipelines.
-addPackage('HTTP')
+# addPackage('HTTP')
 
 
 ################################################################################

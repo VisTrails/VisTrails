@@ -24,10 +24,12 @@
 
 from core import debug
 from core import system
-from core.utils.uxml import named_elements, elements_filter, eval_xml_value
+from core.utils.uxml import named_elements, elements_filter, \
+     eval_xml_value, enter_named_element
 import copy
 import core.logger
 import core.packagemanager
+import core.utils
 import os.path
 import shutil
 import sys
@@ -77,37 +79,21 @@ class VistrailsStartup(object):
     ##########################################################################
     # startup.xml related
 
+    def startup_dom(self):
+        return xml.dom.minidom.parse(self.configuration.dotVistrails +
+                                     '/startup.xml')
+
+    def write_startup_dom(self, dom):
+        f = file(self.configuration.dotVistrails + '/startup.xml', 'w')
+        f.write(dom.toxml())
+    
     def load_configuration(self):
         """load_configuration() -> None
 
         Loads the appropriate configuration from .vistrails/startup.xml.
         """
-        
-        def parse_configuration(node,
-                                configuration_parent,
-                                configuration_object,
-                                configuration_name):
-            for key in elements_filter(node, lambda node: node.nodeName in
-                                       ['key', 'bool', 'str', 'int', 'float']):
-                key_name = str(key.nodeName)
-                if key_name == 'key':
-                    value = str(key.attributes['name'].value)
-                    parse_configuration(key,
-                                        configuration_object,
-                                        getattr(configuration_object, value),
-                                        value)
-                elif key_name in ['bool', 'str', 'int', 'float']:
-                    value = eval_xml_value(key)
-                    setattr(configuration_parent, configuration_name, value)
-                else:
-                    raise Exception("configuration type not recognized:" +
-                                    key_name)
-        dom = xml.dom.minidom.parse(self.configuration.dotVistrails +
-                                    '/startup.xml')
-        parse_configuration(dom.getElementsByTagName("configuration")[0],
-                            None,
-                            self.configuration,
-                            'configuration')
+        dom = self.startup_dom()
+        self.configuration.set_from_dom_node(dom.getElementsByTagName("configuration")[0])
 
     def load_packages(self):
         """load_packages() -> None
@@ -118,14 +104,12 @@ class VistrailsStartup(object):
         def parse_package(node):
             is_value = (lambda node: node.nodeName in
                         set(['bool', 'str', 'int', 'float']))
-            params = [eval_xml_value(child)
-                      for child in elements_filter(node, is_value)]
             package_name = str(node.attributes['name'].value)
-            self._package_manager.add_package(package_name, params)
-        dom = xml.dom.minidom.parse(self.configuration.dotVistrails +
-                                    '/startup.xml')
-        package_list = dom.getElementsByTagName("package")
-        for package_node in package_list:
+            self._package_manager.add_package(package_name)
+        dom = self.startup_dom()
+        doc = dom.documentElement
+        packages_node = enter_named_element(doc, 'packages')
+        for package_node in named_elements(packages_node, 'package'):
             parse_package(package_node)
 
     ##########################################################################
@@ -200,7 +184,18 @@ by startup.py. This should only be called after init()."""
                      '/startup.xml')
             origin = (core.system.vistrails_root_directory() +
                       'core/resources/default_vistrails_startup_xml')
-            if os.path.isfile(fname):
+            def skip():
+                if os.path.isfile(fname):
+                    try:
+                        d = self.startup_dom()
+                        v = str(d.getElementsByTagName('startup')[0].attributes['version'].value)
+                        r = core.utils.version_string_to_list(v)
+                        return r >= [0, 1]
+                    except:
+                        return False
+                else:
+                    return False
+            if skip():
                 return
             try:
                 shutil.copyfile(origin, fname)
@@ -371,4 +366,3 @@ by startup.py. This should only be called after init()."""
         
         """
         self._package_manager.finalize_packages()
-

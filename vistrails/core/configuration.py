@@ -25,6 +25,10 @@
 from core import debug
 from core import system
 from core.utils import InstanceObject
+from core.utils.uxml import (named_elements,
+                             elements_filter, eval_xml_value,
+                             quote_xml_value)
+from PyQt4 import QtCore
 import copy
 import core.logger
 import os.path
@@ -74,6 +78,43 @@ class ConfigurationObject(InstanceObject):
         """
         
         return self.__dict__.keys()
+
+    def write_to_dom(self, dom, element):
+        conf_element = dom.createElement('configuration')
+        element.appendChild(conf_element)
+        for (key, value) in self.__dict__.iteritems():
+            key_element = dom.createElement('key')
+            key_element.setAttribute('name', key)
+            if type(value) in [int, str, bool, float]:
+                conf_element.appendChild(key_element)
+                value_element = quote_xml_value(dom, value)
+                key_element.appendChild(value_element)
+            elif type(value) == tuple:
+                pass
+            else:
+                assert isinstance(value, ConfigurationObject)
+                conf_element.appendChild(key_element)
+                value.write_to_dom(self, dom, key_element)
+
+    def set_from_dom_node(self, node):
+        assert str(node.nodeName) == 'configuration'
+        for key in elements_filter(node, lambda node: node.nodeName == 'key'):
+            key_name = str(key.attributes['name'].value)
+            value = [x for x in
+                     elements_filter(key, lambda node: node.nodeName in
+                                    ['bool', 'str', 'int', 'float', 'configuration'])][0]
+            value_type = value.nodeName
+            if value_type == 'configuration':
+                getattr(self, key_name).set_from_dom_node(value)
+            elif value_type in ['bool', 'str', 'int', 'float']:
+                setattr(self, key_name, eval_xml_value(value))
+        
+
+    def __copy__(self):
+        result = ConfigurationObject()
+        for (key, value) in self.__dict__.iteritems():
+            setattr(result, key, copy.copy(value))
+        return result
 
 def default():
     """ default() -> ConfigurationObject
@@ -176,3 +217,6 @@ def default_shell():
     else:
         raise VistrailsInternalError('system type not recognized')
     return ConfigurationObject(**shell_dir)
+
+def get_vistrails_configuration():
+    return QtCore.QCoreApplication.instance().configuration

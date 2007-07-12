@@ -1,18 +1,36 @@
-<!--
-    This is what a "regular" startup file would look like.
+<startup version="0.1">
+  <configuration>
+    <key name="nologger">
+      <bool value="True"/>
+    </key>
+  </configuration>
+  <packages>
+    <package name="vtk"/>
+    <package name="pythonCalc"/>
+    <package name="spreadsheet"/>
+    <package name="dialogs"/>
+    <package name="HTTP"/>
+  </packages>
+  <disabledpackages/>
+</startup>
 
-<startup>
+<!--
+	This is what a "regular" startup file looks like.
+
+<startup version="0.1">
   <configuration>
     <key name="nologger">
       <bool value="True"/>
     </key>
     <key name="shell">
-      <key name="font_face">
-	<str value="Bitstream Vera mono"/>
-      </key>
-      <key name="font_size">
-	<int value="9"/>
-      </key>
+      <configuration>
+        <key name="font_face">
+  	  <str value="Bitstream Vera mono"/>
+        </key>
+        <key name="font_size">
+	  <int value="9"/>
+        </key>
+      </configuration>
     </key>
   </configuration>
   <packages>
@@ -23,17 +41,17 @@
     <package name="HTTP"/>
     <package name="teem"/>
     <package name="pylab"/>
-    <package name="ectmc">
-      <str value="/home/cscheid/vgc/src/ectmc/EdgeTransform/TestMarchingCubes"/>
-    </package>
-    <package name="macet">
-      <str value="/tmp/macet/Macet/Macet/bin"/>
-    </package>
+    <package name="ectmc"/>
+    <package name="macet"/>
     <package name="trimesh2"/>
-    <package name="meshutils">
-      <str value="/home/cscheid/code/mesh_utils"/>
+    <package name="meshutils"/>
+    <package name="afront">
+      <configuration>
+	<key name="debug">
+	  <bool value="True"/>
+	</key>
+      </configuration>
     </package>
-    <package name="afront"/>
     <package name="metro"/>
     <package name="console_mode_test"/>
     <package name="ProteinDataBank"/>
@@ -42,13 +60,3 @@
   </packages>
 </startup>
 -->
-
-<startup>
-  <configuration>
-    <key name="nologger">
-      <bool value="True"/>
-    </key>
-  </configuration>
-  <packages>
-  </packages>
-</startup>

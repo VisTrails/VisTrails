@@ -254,6 +254,21 @@ def append_to_dict_of_lists(dict, key, value):
     except KeyError:
         dict[key] = [value]
 
+def version_string_to_list(version):
+    """version_string_to_list converts a version string to a list of
+    numbers and strings:
+
+    version_string('0.1') -> [0, 1]
+    version_string('0.9.9alpha') -> [0, 9, '9alpha']
+
+    """
+    def convert(value):
+        try:
+            return int(value)
+        except ValueError:
+            return value
+    return [convert(value) for value in version.split('.')]
+
 ##############################################################################
 # DummyView
 
@@ -433,6 +448,11 @@ class TestCommon(unittest.TestCase):
         x = itertools.chain(l)
         self.assertEquals(iter_index(l, 14), -1)
         self.assertEquals(iter_index(x, 14), -1)
+
+    def test_version_string_to_list(self):
+        self.assertEquals(version_string_to_list("0.1"), [0, 1])
+        self.assertEquals(version_string_to_list("1.0.2"), [1, 0, 2])
+        self.assertEquals(version_string_to_list("1.0.2beta"), [1, 0, '2beta'])
         
 if __name__ == '__main__':
     unittest.main()

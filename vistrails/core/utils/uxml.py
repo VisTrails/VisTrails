@@ -37,7 +37,32 @@ def eval_xml_value(node):
     key_name = node.nodeName
     type_ = getattr(__builtin__, key_name)
     str_value = str(node.attributes['value'].value)
+
+    # Tricky case bool('False') == True
+    if type_ == bool:
+        if str_value == 'True':
+            return True
+        elif str_value == 'False':
+            return False
+        else:
+            raise Exception("eval_xml_value: Bogus bool value '%s'" % str_value)
     return type_(str_value)
+
+def quote_xml_value(dom, value):
+    """quote_xml_value(dom, value) -> value
+
+       quotes a value as an xml node so that
+       eval_xml_value(quote_xml_value(dom, value)) == value
+
+       <str value='foo'/> <- 'foo'
+       <int value='3'/> <- 3
+       <float value='3.141592'> <- 3.141592
+       <bool value='False'> <- False
+    """
+
+    el = dom.createElement(type(value).__name__)
+    el.setAttribute('value', str(value))
+    return el
 
 def named_elements(element, elname):
     """named_elements(element, elname) -> Node 
@@ -48,6 +73,15 @@ def named_elements(element, elname):
     for node in element.childNodes:
         if node.nodeName == elname:
             yield node
+
+def enter_named_element(element, elname):
+    """enter_named_element(element, elname) -> Node 
+    Returns first child of element with name elname
+
+    """
+    for node in named_elements(element, elname):
+        return node
+    return None
 
 def elements_filter(element, element_predicate):
     """elements_filter(element, element_predicate) -> Node iterator
@@ -154,6 +188,35 @@ class TestXmlUtils(unittest.TestCase):
             grandchildcount += 1
         self.assertEquals(grandchildcount,0)
 
+    def test_eval_quote(self):
+        xmlStr = """<root> 
+                        <child>
+                            <grandchild></grandchild>
+                            <grandchild></grandchild>
+                         </child>
+                         <child></child>
+                     </root>"""
+        dom = minidom.parseString(xmlStr)
+        def do_it_1(v):
+            q = quote_xml_value(dom, v)
+            v2 = eval_xml_value(q)
+            self.assertEquals(v, v2)
+        def do_it_2(q):
+            q = minidom.parseString(q).documentElement
+            v = eval_xml_value(q)
+            self.assertEquals(q.toxml(), quote_xml_value(dom, v).toxml())
+        do_it_1(2)
+        do_it_1(3.0)
+        do_it_1(False)
+        do_it_1(True)
+        do_it_1('Foobar')
+        do_it_1('with<brackets>')
+
+        do_it_2('<str value="Foo"/>')
+        do_it_2('<bool value="False"/>')
+        do_it_2('<bool value="True"/>')
+        do_it_2('<int value="3"/>')
+        do_it_2('<float value="4.0"/>')
         
 if __name__ == "__main__":
     unittest.main()

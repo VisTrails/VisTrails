@@ -21,18 +21,18 @@
 ############################################################################
 from PyQt4 import QtCore
 
-from core.utils import VistrailsInternalError, memo_method, all, \
-     InvalidModuleClass, ModuleAlreadyExists
 import __builtin__
 import copy
+from core.data_structures.graph import Graph
 import core.debug
 import core.modules
 import core.modules.vistrails_module
-from itertools import izip
-
+from core.utils import VistrailsInternalError, memo_method, all, \
+     InvalidModuleClass, ModuleAlreadyExists
 from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.module_function import ModuleFunction
 import core.cache.hasher
+from itertools import izip
 
 ##############################################################################
 
@@ -252,8 +252,12 @@ class ModuleRegistry(QtCore.QObject):
 
     def __init__(self):
         QtCore.QObject.__init__(self)
-        # newModuleSignal is emitted with name of new module
+        # newModuleSignal is emitted with descriptor of new module
         self.newModuleSignal = QtCore.SIGNAL("newModule")
+        # deletedModuleSignal is emitted with descriptor of deleted module
+        self.deletedModuleSignal = QtCore.SIGNAL("deletedModule")
+        # deletedPackageSignal is emitted with package name
+        self.deletedPackageSignal = QtCore.SIGNAL("deletedPackage")
         # newInputPortSignal is emitted with name of module, new port and spec
         self.newInputPortSignal = QtCore.SIGNAL("newInputPortSignal")
         # newOutputPortSignal is emitted with name of module, new port and spec
@@ -264,7 +268,7 @@ class ModuleRegistry(QtCore.QObject):
         self.moduleTree = { "Module": n }
         self.currentPackageName = 'Basic Modules'
         n.descriptor.set_module_package(self.currentPackageName)
-        self.packageModules = {'Basic Modules': ["Module"]}
+        self.packageModules = {self.currentPackageName: ["Module"]}
 
     def __copy__(self):
         result = ModuleRegistry()
@@ -424,7 +428,7 @@ named parameters.
         else:
             self.packageModules[self.currentPackageName] = [name]
 
-        self.emit(QtCore.SIGNAL("newModule"), descriptor)
+        self.emit(self.newModuleSignal, descriptor)
         return moduleNode
 
     def addInputPort(self, module, portName, portSpec, optional=False,
@@ -468,6 +472,43 @@ elements is of either of the above formats."""
         descriptor.addOutputPort(portName, portSpec, optional)
         self.emit(self.newOutputPortSignal,
                   descriptor.name, portName, portSpec)
+
+    def deleteModule(self, module_name):
+        """deleteModule(module_name): Removes a module from the registry."""
+        descriptor = self.getDescriptorByName(module_name)
+        tree_node = self.moduleTree[descriptor.name]
+        assert len(tree_node.children) == 0
+        self.emit(self.deletedModuleSignal, descriptor)
+        self.packageModules[descriptor.module_package()].remove(module_name)
+        del self.moduleTree[descriptor.name]
+        del self.moduleName[descriptor.module]
+        tree_node.parent.children.remove(tree_node)
+
+    def deletePackage(self, package):
+        """deletePackage(package_name): Removes an entire package from the registry."""
+
+        # graph is the class hierarchy graph for this subset
+        graph = Graph()
+        modules = self.packageModules[package]
+        for module_name in modules:
+            graph.add_vertex(module_name)
+        for module_name in modules:
+            tree_node = self.moduleTree[module_name]
+
+            # Module is the only one that has no parent,
+            # and basic package should never be deleted
+            assert tree_node.parent
+            
+            parent_name = tree_node.parent.descriptor.name
+            if parent_name in modules:
+                graph.add_edge(module_name, parent_name)
+
+        top_sort = graph.vertices_topological_sort()
+        for module in top_sort:
+            self.deleteModule(module)
+        del self.packageModules[package]
+
+        self.emit(self.deletedPackageSignal, package)
 
     def deleteInputPort(self, module, portName):
         """ Just remove a name input port with all of its specs """

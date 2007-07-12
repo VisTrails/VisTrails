@@ -30,10 +30,12 @@ from core.configuration import ConfigurationObject
 
 class QConfigurationTreeWidgetItem(QtGui.QTreeWidgetItem):
 
-    def __init__(self, parent, obj, name):
+    def __init__(self, parent, obj, parent_obj, name):
         lst = QtCore.QStringList(name)
         t = type(obj)
         self._obj_type = t
+        self._parent_obj = parent_obj
+        self._name = name
         if t == ConfigurationObject:
             lst << '' << ''
             QtGui.QTreeWidgetItem.__init__(self, parent, lst)
@@ -51,6 +53,13 @@ class QConfigurationTreeWidgetItem(QtGui.QTreeWidgetItem):
             QtGui.QTreeWidgetItem.__init__(self, parent, lst)
             self.setFlags((self.flags() & ~QtCore.Qt.ItemIsDragEnabled) |
                           QtCore.Qt.ItemIsEditable)
+
+    def change_value(self, new_value):
+        setattr(self._parent_obj, self._name, self._obj_type(new_value))
+
+    def _get_name(self):
+        return self._name
+    name = property(_get_name)
 
 class QConfigurationTreeWidgetItemDelegate(QtGui.QItemDelegate):
     """
@@ -102,13 +111,16 @@ class QConfigurationTreeWidgetItemDelegate(QtGui.QItemDelegate):
         """
         if type(editor)==QtGui.QComboBox:
             model.setData(index, QtCore.QVariant(editor.currentText()))
-        else:
+        elif type(editor) == QtGui.QLineEdit:
             model.setData(index, QtCore.QVariant(editor.text()))
+        else:
+            # Should never get here
+            assert False
     
 
 class QConfigurationTreeWidget(QSearchTreeWidget):
 
-    def __init__(self, parent):
+    def __init__(self, parent, configuration_object):
         QSearchTreeWidget.__init__(self, parent)
         self.setMatchedFlags(QtCore.Qt.ItemIsEnabled)
         self.setColumnCount(3)
@@ -117,25 +129,45 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
         lst << 'Value'
         lst << 'Type'
         self.setHeaderLabels(lst)
-        self.create_tree()
-        self.expandAll()
-        self.resizeColumnToContents(0)
+        self.create_tree(configuration_object)
 
-    def create_tree(self):
-        def create_item(parent, obj, name):
-            item = QConfigurationTreeWidgetItem(parent, obj, name)
+    def create_tree(self, configuration_object):
+        def create_item(parent, obj, parent_obj, name):
+            item = QConfigurationTreeWidgetItem(parent, obj, parent_obj, name)
             if type(obj) == ConfigurationObject:
                 for key in sorted(obj.keys()):
-                    create_item(item, getattr(obj, key), key)
-        from gui.application import VistrailsApplication
-        c = VistrailsApplication.vistrailsStartup.configuration
-        create_item(self, c, 'configuration')
+                    create_item(item, getattr(obj, key), obj, key)
 
+        # disconnect() and clear() are here because create_tree might
+        # also be called when an entirely new configuration object is set.
+
+        self.disconnect(self, QtCore.SIGNAL('itemChanged(QTreeWidgetItem *, int)'),
+                        self.change_configuration)
+        self.clear()
+        self._configuration = configuration_object
+        create_item(self, self._configuration, None, 'configuration')
+
+        self.expandAll()
+        self.resizeColumnToContents(0)
+        self.connect(self,
+                     QtCore.SIGNAL('itemChanged(QTreeWidgetItem *, int)'),
+                     self.change_configuration)
+
+    def change_configuration(self, item, col):
+        new_value = self.indexFromItem(item, col).data().toString()
+        item.change_value(new_value)
+        self.emit(QtCore.SIGNAL('configuration_changed'),
+                  item, new_value)
+        
 class QConfigurationTreeWindow(QSearchTreeWindow):
+
+    def __init__(self, parent, configuration_object):
+        self._configuration_object = configuration_object
+        QSearchTreeWindow.__init__(self, parent)
 
     def createTreeWidget(self):
         self.setWindowTitle('Configuration')
-        treeWidget = QConfigurationTreeWidget(self)
+        treeWidget = QConfigurationTreeWidget(self, self._configuration_object)
         
         # The delegate has to be around (self._delegate) to
         # work, else the instance will be clean by Python...
@@ -143,15 +175,19 @@ class QConfigurationTreeWindow(QSearchTreeWindow):
         treeWidget.setItemDelegate(self._delegate)
         return treeWidget
 
+
 class QConfigurationWidget(QtGui.QWidget):
 
-    def __init__(self, parent, status_bar):
+    def __init__(self, parent, configuration_object, status_bar):
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QVBoxLayout(self)
         self.setLayout(layout)
         self._status_bar = status_bar
 
-        self._tree = QConfigurationTreeWindow()
+        self._tree = QConfigurationTreeWindow(self, configuration_object)
         lbl = QtGui.QLabel("Set configuration variables for VisTrails here.", self)
         layout.addWidget(lbl)
         layout.addWidget(self._tree)
+
+    def configuration_changed(self, new_configuration):
+        self._tree.treeWidget.create_tree(new_configuration)

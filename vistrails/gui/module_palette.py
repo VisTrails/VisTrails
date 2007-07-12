@@ -50,6 +50,40 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         self.setWindowTitle('Modules')
         return QModuleTreeWidget(self)
 
+    def deletedModule(self, descriptor):
+        """ deletedModule(descriptor: core.modules.module_registry.ModuleDescriptor)
+        A module has been removed from VisTrails
+
+        """
+        moduleName = descriptor.name
+
+        items = [x
+                 for x in
+                 self.treeWidget.findItems(moduleName,
+                                           QtCore.Qt.MatchExactly |
+                                           QtCore.Qt.MatchWrap |
+                                           QtCore.Qt.MatchRecursive)
+                 if not x.is_top_level()]
+        assert len(items) == 1
+        item = items[0]
+
+        parent = item.parent()
+        parent.takeChild(parent.indexOfChild(item))
+
+    def deletedPackage(self, package_name):
+        """ deletedPackage(package_name):
+        A package has been deleted from VisTrails
+        """
+        
+        items = self.treeWidget.findItems(package_name,
+                                          QtCore.Qt.MatchExactly |
+                                          QtCore.Qt.MatchWrap)
+        assert len(items) == 1
+        item = items[0]
+
+        index = self.treeWidget.indexOfTopLevelItem(item)
+        self.treeWidget.takeTopLevelItem(index)
+
     def newModule(self, descriptor):
         """ newModule(descriptor: core.modules.module_registry.ModuleDescriptor)
         A new module has been added to VisTrails
@@ -78,7 +112,7 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
 
         # if module package is different, attach to toplevel of this package.
 
-        if (parent_descriptor.module_package() == packageName):
+        if parent_descriptor.module_package() == packageName:
             # if module package is the same, then find the parent in this package
 
             # filtering is necessary for cases where module name is
