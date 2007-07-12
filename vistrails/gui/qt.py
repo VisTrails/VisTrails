@@ -140,6 +140,7 @@ class SignalSet(object):
 
 _oldConnect = QtCore.QObject.connect
 _oldDisconnect = QtCore.QObject.disconnect
+_oldEmit = QtCore.QObject.emit
 
 def _wrapConnect(callableObject):
     """Returns a wrapped call to the old version of QtCore.QObject.connect"""
@@ -157,12 +158,30 @@ def _wrapDisconnect(callableObject):
         _oldDisconnect(*args)
     return call
 
-def enableSignalDebugging(connectCall = None, disconnectCall = None):
+def enableSignalDebugging(**kwargs):
     """Call this to enable Qt Signal debugging. This will trap all
-    connect, and disconnect calls."""
+    connect, disconnect and emit calls. For example:
+
+	enableSignalDebugging(connectCall=callable1, disconnectCall=callable2,
+                          emitCall=callable3)
+
+	will call callable1, 2 and 3 when the respective Qt methods are issued.
+	"""
+
+    f = lambda *args: None
+    connectCall = kwargs.get('connectCall', f)
+    disconnectCall = kwargs.get('disconnectCall', f)
+    emitCall = kwargs.get('emitCall', f)
+
     def printIt(msg):
         def call(*args):
             print msg, args
         return call
-    QtCore.QObject.connect = _wrapConnect(connectCall or (lambda *args: None))
-    QtCore.QObject.disconnect = _wrapDisconnect(disconnectCall or (lambda *args: None))
+    QtCore.QObject.connect = _wrapConnect(connectCall)
+    QtCore.QObject.disconnect = _wrapDisconnect(disconnectCall)
+
+    def new_emit(self, *args):
+        emitCall(self, *args)
+        _oldEmit(self, *args)
+
+    QtCore.QObject.emit = new_emit
