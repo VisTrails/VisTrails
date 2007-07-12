@@ -1346,7 +1346,6 @@ mutual connections."""
         
         """
         for item in self.items():
-            if type(item)==QGraphicsModuleItem:
             item.setSelected(True)
 
     def set_module_success(self, moduleId):
