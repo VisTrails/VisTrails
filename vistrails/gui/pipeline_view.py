@@ -968,28 +968,32 @@ class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
         # Also autoselect connections between selected modules.  Thus the
         # selection is always the subgraph
         elif change==QtGui.QGraphicsItem.ItemSelectedChange:
-            if value.toBool():
-                for (connectionItem, start) in self.dependingConnectionItems:
-                    (srcModule, dstModule) = connectionItem.connectingModules
-                    # Select any connections between this module and other
-                    # selected modules
-                    select = False
+            # Unselect any connections between modules that are not selected
+            for item in self.scene().selectedItems():
+                if isinstance(item,QGraphicsConnectionItem):
+                    (srcModule, dstModule) = item.connectingModules
+                    if (not srcModule.isSelected() or 
+                        not dstModule.isSelected()):
+                        item.useSelectionRules = False
+                        item.setSelected(False)
+            # Handle connections from self
+            for (item, start) in self.dependingConnectionItems:
+                # Select any connections between self and other selected modules
+                (srcModule, dstModule) = item.connectingModules
+                if value.toBool():
                     if (srcModule==self and dstModule.isSelected() or
-                        dstModule==self and srcModule.isSelected() or
-                        srcModule.isSelected() and dstModule.isSelected()):
-                        select = True
-                    # Because we are setting a state variable in the
-                    # connection, do not make the change unless it is
-                    # actually going to be performed
-                    if connectionItem.isSelected() != select:
-                        connectionItem.useSelectionRules = False
-                        connectionItem.setSelected(select)
-            else:
-                for (connectionItem, start) in self.dependingConnectionItems:
-                    # Unselect any connections attached to this module
-                    if connectionItem.isSelected():
-                        connectionItem.useSelectionRules = False
-                        connectionItem.setSelected(False)
+                        dstModule==self and srcModule.isSelected()):
+                        # Because we are setting a state variable in the
+                        # connection, do not make the change unless it is
+                        # actually going to be performed
+                        if not item.isSelected():
+                            item.useSelectionRules = False
+                            item.setSelected(True)
+                # Unselect any connections between self and other modules
+                else:
+                    if item.isSelected():
+                        item.useSelectionRules = False
+                        item.setSelected(False)
             # Capture only selected modules + or - self for selection signal
             selectedItems = []
             selectedId = -1
