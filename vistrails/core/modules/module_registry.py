@@ -87,25 +87,27 @@ class ModuleDescriptor(object):
         self._module_package = None
         self._hasher_callable = None
         self._widget_item = None
+
+    def assign(self, other):
+        """assign(ModuleDescriptor) -> None. Assigns values from other
+        ModuleDescriptor. Should only be called from Tree's copy
+        constructor.""" 
+        self.baseDescriptor = other.baseDescriptor
+        self.inputPorts = copy.deepcopy(other.inputPorts)
+        self.portOrder = copy.deepcopy(other.portOrder)
+        self.outputPorts = copy.deepcopy(other.outputPorts)
+        self.inputPortsOptional = copy.deepcopy(other.inputPortsOptional)
+        self.outputPortsOptional = copy.deepcopy(other.outputPortsOptional)
+        self.inputPortsConfigureWidgetType = copy.deepcopy(other.inputPortsConfigureWidgetType)
         
-    def __copy__(self):
-        result = ModuleDescriptor(self.module, self.name)
-        result.baseDescriptor = self.baseDescriptor
-        result.inputPorts = copy.deepcopy(self.inputPorts)
-        result.portOrder = copy.deepcopy(self.portOrder)
-        result.outputPorts = copy.deepcopy(self.outputPorts)
-        result.inputPortsOptional = copy.deepcopy(self.inputPortsOptional)
-        result.outputPortsOptional = copy.deepcopy(self.outputPortsOptional)
-        result.inputPortsConfigureWidgetType = copy.deepcopy(self.inputPortsConfigureWidgetType)
+        self._is_abstract = other._is_abstract
+        self._configuration_widget = other._configuration_widget
+        self._left_fringe = copy.copy(other._left_fringe)
+        self._right_fringe = copy.copy(other._right_fringe)
+        self._module_color = other._module_color
+        self._module_package = other._module_package
+        self._hasher_callable = other._hasher_callable
         
-        result._is_abstract = self._is_abstract
-        result._configuration_widget = self._configuration_widget
-        result._left_fringe = copy.copy(self._left_fringe)
-        result._right_fringe = copy.copy(self._right_fringe)
-        result._module_color = self._module_color
-        result._module_package = self._module_package
-        result._hasher_callable = self._hasher_callable
-        return result
 
     ##########################################################################
     # Abstract module detection support
@@ -874,7 +876,7 @@ class Tree(object):
 
     def __copy__(self):
         cp = Tree(self.descriptor.module, self.descriptor.name)
-        cp.descriptor = copy.copy(self.descriptor)
+        cp.descriptor.assign(self.descriptor)
         cp.children = [copy.copy(child)
                        for child in self.children]
         for child in cp.children:
