@@ -156,7 +156,6 @@ class TestConsoleMode(unittest.TestCase):
                                   core.system.vistrails_root_directory() +
                                   '/tests/resources/pythonsource.xml')
         result = run_and_get_results(locator, "test_simple_success")
-        print result.objects
         self.assertEquals(len(result.executed), 1)
 
     def test_dynamic_module_error(self):

@@ -70,9 +70,16 @@ def get_test_cases(module):
 
 ###############################################################################
 
+verbose = 0
+if len(sys.argv) > 2:
+    if sys.argv[1] == '-verbose':
+        verbose = int(sys.argv[2])
+        sys.argv = [sys.argv[0]] + sys.argv[3:]
+
 test_modules = None
 if len(sys.argv) > 1:
     test_modules = set(sys.argv[1:])
+
 
 # creates the app so that testing can happen
 import gui.application
@@ -109,7 +116,7 @@ for (p, subdirs, files) in os.walk(root_directory):
             continue
         if test_modules and not module in test_modules:
             continue
-        print "%s %s |" % (" " * (40 - len(module)), module),
+        msg = ("%s %s |" % (" " * (40 - len(module)), module))
 
         # use qualified import names with periods instead of
         # slashes to avoid duplicates in sys.modules
@@ -123,7 +130,7 @@ for (p, subdirs, files) in os.walk(root_directory):
             else:
                 m = __import__(module)
         except:
-            print "ERROR: Could not import module!"
+            print msg, "ERROR: Could not import module!"
             continue
 
         test_cases = get_test_cases(m)
@@ -131,10 +138,10 @@ for (p, subdirs, files) in os.walk(root_directory):
             suite = unittest.TestLoader().loadTestsFromTestCase(test_case)
             main_test_suite.addTests(suite)
 
-        if not test_cases:
-            print "WARNING: %s has no tests!" % filename
-        else:
-            print "Ok: %s test cases." % len(test_cases)
+        if not test_cases and verbose >= 1:
+            print msg, "WARNING: %s has no tests!" % filename
+        elif verbose >= 2:
+            print msg, "Ok: %s test cases." % len(test_cases)
 
 unittest.TextTestRunner().run(main_test_suite)
 
