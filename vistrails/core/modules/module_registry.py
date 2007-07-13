@@ -33,6 +33,7 @@ from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.module_function import ModuleFunction
 import core.cache.hasher
 from itertools import izip
+import weakref
 
 ##############################################################################
 
@@ -48,7 +49,7 @@ def _check_fringe(fringe):
 ###############################################################################
 # ModuleDescriptor
 
-class ModuleDescriptor(QtCore.QObject):
+class ModuleDescriptor(object):
     """ModuleDescriptor is a class that holds information about
     modules in the registry.
 
@@ -56,8 +57,8 @@ class ModuleDescriptor(QtCore.QObject):
 
     ##########################################################################
 
-    def __init__(self, module, name = None):
-        QtCore.QObject.__init__(self)
+    def __init__(self, tree_node, module, name = None):
+        self._tree_node = weakref.proxy(tree_node)
         if not name:
             name = module.__name__
         self.module = module
@@ -65,12 +66,6 @@ class ModuleDescriptor(QtCore.QObject):
         if len(candidates) > 0:
             base = candidates[0]
             self.baseDescriptor = registry.getDescriptor(base)
-            self.connect(self.baseDescriptor,
-                         QtCore.SIGNAL("added_input_port"),
-                         self.new_input_port)
-            self.connect(self.baseDescriptor,
-                         QtCore.SIGNAL("added_output_port"),
-                         self.new_output_port)
             self._port_count = self.baseDescriptor.port_count()
         else:
             self.baseDescriptor = None
@@ -91,6 +86,7 @@ class ModuleDescriptor(QtCore.QObject):
         self._module_color = None
         self._module_package = None
         self._hasher_callable = None
+        self._widget_item = None
         
     def __copy__(self):
         result = ModuleDescriptor(self.module, self.name)
@@ -114,6 +110,9 @@ class ModuleDescriptor(QtCore.QObject):
     ##########################################################################
     # Abstract module detection support
 
+    def set_widget(self, widget_item):
+        self._widget_item = widget_item
+
     def has_ports(self):
         """Returns True is module has any ports (this includes
         superclasses).  This method exists to make automatic abstract
@@ -129,13 +128,21 @@ class ModuleDescriptor(QtCore.QObject):
         """Updates needed variables when new input port is added
         to either this module or the superclass."""
         self._port_count += 1
-        self.emit(QtCore.SIGNAL("added_input_port"))
+        if self._widget_item:
+            self._widget_item.added_input_port()
+        for child in self._tree_node.children:
+            d = child.descriptor
+            d.new_input_port()
         
     def new_output_port(self):
         """Updates needed variables when new output port is added
         to either this module or the superclass."""
         self._port_count += 1
-        self.emit(QtCore.SIGNAL("added_output_port"))
+        if self._widget_item:
+            self._widget_item.added_output_port()
+        for child in self._tree_node.children:
+            d = child.descriptor
+            d.new_output_port()
 
     ##########################################################################
 
@@ -861,7 +868,7 @@ class Tree(object):
     ##########################################################################
     # Constructor and copy
     def __init__(self, *args):
-        self.descriptor = ModuleDescriptor(*args)
+        self.descriptor = ModuleDescriptor(self, *args)
         self.children = []
         self.parent = None
 

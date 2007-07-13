@@ -304,17 +304,12 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
         labels
 
         """
+        QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
         self.descriptor = descriptor
         if descriptor:
-            descriptor.connect(descriptor,
-                               QtCore.SIGNAL("added_input_port"),
-                               self.added_input_port)
-            descriptor.connect(descriptor,
-                               QtCore.SIGNAL("added_output_port"),
-                               self.added_output_port)
+            descriptor.set_widget(self)
         # Real flags store the widget's flags prior to masking related
         # to abstract modules, etc.
-        QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
         self._real_flags = self.flags()
 
         # This is necessary since we override setFlags
