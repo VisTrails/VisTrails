@@ -25,6 +25,7 @@ view and a version tree for each opened Vistrail """
 import os.path
 from PyQt4 import QtCore, QtGui
 from core.debug import critical
+from core.utils import VistrailLocator
 from gui.common_widgets import QDockContainer, QToolWindowInterface
 from gui.pe_tab import QParameterExplorationTab
 from gui.pipeline_tab import QPipelineTab
@@ -94,7 +95,7 @@ class QVistrailView(QDockContainer):
 
         # We also keep track where this vistrail comes from
         # So we can save in the right place
-        self.locator = None
+        self.locator = VistrailLocator()
         
         # Make sure we can change view when requested
         self.connect(self.toolBar.tabBar,

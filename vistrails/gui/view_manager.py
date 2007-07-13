@@ -230,7 +230,7 @@ class QViewManager(QtGui.QTabWidget):
         
         """
         vistrailView = QVistrailView()
-        vistrailView.setVistrail(Vistrail())
+        vistrailView.setVistrail(Vistrail(), VistrailLocator())
         self.addVistrailView(vistrailView)
         self.setCurrentWidget(vistrailView)
         vistrailView.setInitialView()
@@ -331,7 +331,7 @@ class QViewManager(QtGui.QTabWidget):
                     system.vistrails_directory(),
                     "Vistrail files (*.xml)\nOther files (*)")
             if fileName!='' and fileName!=None:
-                locator == VistrailLocator(VistrailLocator.ORIGIN.FILE,
+                locator = VistrailLocator(VistrailLocator.ORIGIN.FILE,
                                            str(fileName))
                 vistrailView.controller.writeVistrail(locator)
                 vistrailView.locator = locator
