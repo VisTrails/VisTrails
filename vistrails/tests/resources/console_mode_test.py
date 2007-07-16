@@ -27,7 +27,7 @@
 import core.modules
 import core.modules.module_registry
 from core.modules.vistrails_module import Module, ModuleError
-from core.modules.basic_modules import Float
+from core.modules.basic_modules import Float, Integer
 
 class TestTupleExecution(Module):
 
@@ -45,6 +45,13 @@ class TestDynamicModuleError(Module):
     def die(self):
         raise ModuleError(self, "I died!")
 
+class TestChangeVistrail(Module):
+
+    def compute(self):
+        v1 = self.getInputFromPort('foo')
+        if v1 != 12:
+            self.change_parameter('foo', v1 + 1)
+
 ##############################################################################
 
 def initialize():
@@ -53,3 +60,5 @@ def initialize():
     reg.addInputPort(TestTupleExecution, 'input', [Float, Float])
     reg.addOutputPort(TestTupleExecution, 'output', (Float, 'output'))
     reg.addModule(TestDynamicModuleError)
+    reg.addModule(TestChangeVistrail)
+    reg.addInputPort(TestChangeVistrail, 'foo', Integer)

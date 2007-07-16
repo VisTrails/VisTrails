@@ -288,12 +288,13 @@ class VistrailController(QtCore.QObject):
 
     def replace_method(self, module, function_pos, param_list):
         """ replace_method(module: Module, function_pos: int, param_list: list)
-               -> version_id
+               -> version_id or None, if new parameter was equal to old one.
         Replaces parameters for a given function
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
         action_list = []
+        must_change = False
         for i in range(len(param_list)):
             (p_val, p_type, p_alias) = param_list[i]
             function = module.functions[function_pos]
@@ -306,11 +307,15 @@ class VistrailController(QtCore.QObject):
                                     val=p_val,
                                     type=p_type,
                                     )
+            must_change |= (new_param != old_param)
             action_list.append(('change', old_param, new_param, 
                                 function.vtType, function.real_id))
-        action = db.services.action.create_action(action_list)
-        self.vistrail.add_action(action, self.currentVersion)
-        return self.perform_action(action)
+        if must_change:
+            action = db.services.action.create_action(action_list)
+            self.vistrail.add_action(action, self.currentVersion)
+            return self.perform_action(action)
+        else:
+            return None
 
     def deleteAnnotation(self, key, module_id):
         """ deleteAnnotation(key: str, module_id: long) -> version_id

@@ -194,7 +194,7 @@ dynamically create a VisTrails module."""
 
 ################################################################################
 
-def initialize(*args, **keywords):
+def initialize():
     
     def parse_error_if_not_equal(s, expected):
         if s != expected:
@@ -233,7 +233,7 @@ def initialize(*args, **keywords):
 
     reg = core.modules.module_registry
     basic = core.modules.basic_modules
-    reg.addModule(ImageMagick)
+    reg.addModule(ImageMagick, abstract=True)
     reg.addInputPort(ImageMagick, "input", (basic.File, 'the input file'))
     reg.addInputPort(ImageMagick, "inputFormat", (basic.String, 'coerce interpretation of file to this format'))
     reg.addInputPort(ImageMagick, "outputFormat", (basic.String, 'Force output to be of this format'))

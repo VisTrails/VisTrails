@@ -165,5 +165,13 @@ class TestConsoleMode(unittest.TestCase):
         result = run(locator, "test")
         self.assertEquals(result, False)
 
+    def test_change_parameter(self):
+        locator = VistrailLocator(VistrailLocator.ORIGIN.FILE,
+                                  core.system.vistrails_root_directory() + 
+                                  '/tests/resources/test_change_vistrail.xml')
+        result = run(locator, "v1")
+        self.assertEquals(result, True)
+        
+
 if __name__ == '__main__':
     unittest.main()

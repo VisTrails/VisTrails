@@ -19,8 +19,8 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
-"""The package afront defines a single module, Afront, which runs the meshing code
-described in
+"""The package afront defines three modules, Afront, AfrontIso and
+MeshQualityHistogram. These run the meshing code described in
 
 Schreiner et al, Vis 2006
 Schreiner et al, Eurographics 2006
@@ -28,14 +28,17 @@ Scheidegger et al, SGP 2005
 
 """
 
-import core.modules
-import core.modules.module_registry
-import core.modules.basic_modules
-from core.modules.vistrails_module import Module, ModuleError, newModule
-import core.requirements
-import core.bundles
+from core.configuration import ConfigurationObject
+from core.modules.vistrails_module import Module, ModuleError
 from core.system import list2cmdline
+import core.bundles
+import core.modules.basic_modules
+import core.modules.module_registry
+import core.requirements
 import os
+
+configuration = ConfigurationObject(path=(None, str),
+                                    debug=False)
 
 ################################################################################
 
@@ -109,7 +112,7 @@ class AfrontIso(Afront):
 
 ################################################################################
 
-def initialize(*args, **keywords):
+def initialize():
 
     print "Afront VisTrails package"
     print "------------------------"
