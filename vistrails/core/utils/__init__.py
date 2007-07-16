@@ -24,6 +24,7 @@ This module defines common functions and exception class definitions
 used all over VisTrails.
 """
 from core.utils.enum import enum
+from core.utils.timemethod import time_method, time_call
 from core.utils.tracemethod import trace_method, bump_trace, report_stack, \
      trace_method_options, trace_method_args
 from core.utils.color import ColorByName
