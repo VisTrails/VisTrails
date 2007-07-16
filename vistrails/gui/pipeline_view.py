@@ -292,8 +292,8 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         Create actions related to context menu 
 
         """
-        self.configureAct = QtGui.QAction("Configure", self.scene())
-        self.configureAct.setStatusTip("Configure the module")
+        self.configureAct = QtGui.QAction("Edit Configuration\tCtrl+E", self.scene())
+        self.configureAct.setStatusTip("Edit the Configure of the module")
         QtCore.QObject.connect(self.configureAct, 
                                QtCore.SIGNAL("triggered()"),
                                self.configure)
@@ -301,17 +301,8 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         """ configure() -> None
         Open the modal configuration window
         """
-        if self.controller:
-            self.controller.resendVersionWasChanged
-            module = self.controller.currentPipeline.modules[self.moduleId]
-            widgetType = registry.get_configuration_widget(module.name)
-            if not widgetType:
-                widgetType = DefaultModuleConfigurationWidget
-            global widget
-            widget = widgetType(module, self.controller, None)
-            widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-            widget.exec_()
-            self.controller.resendVersionWasChanged()
+        if self.moduleId>0:
+            self.scene().open_configure_window(self.moduleId)
 
 
 ##############################################################################
@@ -1260,6 +1251,18 @@ mutual connections."""
         elif (event.key()==QtCore.Qt.Key_A and
               event.modifiers()==QtCore.Qt.ControlModifier):
             self.selectAll()
+        elif (event.key()==QtCore.Qt.Key_E and
+              event.modifiers()==QtCore.Qt.ControlModifier):
+            selected_items = self.selectedItems()
+            module_id = -1
+            module_count = 0
+            for i in selected_items:
+                if isinstance(i,QGraphicsModuleItem):
+                    module_count+=1
+                    module_id = i.id
+            if module_count==1:
+                self.open_configure_window(module_id)
+
         else:
             QInteractiveGraphicsScene.keyPressEvent(self, event)
 
@@ -1351,6 +1354,22 @@ mutual connections."""
         """
         for item in self.items():
             item.setSelected(True)
+
+    def open_configure_window(self, id):
+        """ configure(int) -> None
+        Open the modal configuration window for module with given id
+        """
+        if self.controller:
+            self.controller.resendVersionWasChanged
+            module = self.controller.currentPipeline.modules[id]
+            widgetType = registry.get_configuration_widget(module.name)
+            if not widgetType:
+                widgetType = DefaultModuleConfigurationWidget
+            global widget
+            widget = widgetType(module, self.controller, None)
+            widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+            widget.exec_()
+            self.controller.resendVersionWasChanged()
 
     def set_module_success(self, moduleId):
         """ set_module_success(moduleId: int) -> None
