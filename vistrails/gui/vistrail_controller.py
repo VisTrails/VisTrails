@@ -260,7 +260,7 @@ class VistrailController(QtCore.QObject):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
         module = self.currentPipeline.getModuleById(module_id)
-        function = module.functions(function_pos)
+        function = module.functions[function_pos]
         action = db.services.action.create_action([('delete', function,
                                                     module.vtType, module.id)])
         self.vistrail.add_action(action, self.currentVersion)
