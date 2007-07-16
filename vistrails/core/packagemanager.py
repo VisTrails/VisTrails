@@ -490,11 +490,7 @@ dependencies a package contains by calling the appropriate callback.
         pkg = self.get_package(package_name)
         pkg.load()
         pkg.check_requirements()
-        t1 = time.time()
         pkg.initialize()
-        t2 = time.time()
-        print t2 - t1
-        t1 = t2
 
     def late_disable_package(self, package_name):
         """late_disable_package disables a package 'late', that is,

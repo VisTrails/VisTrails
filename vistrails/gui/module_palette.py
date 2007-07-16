@@ -33,6 +33,7 @@ from gui.common_widgets import (QSearchTreeWindow,
                                 QToolWindowInterface)
 from core.modules.module_registry import registry
 from core.system import systemType
+import weakref
 
 ################################################################################
                 
@@ -69,6 +70,7 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
 
         parent = item.parent()
         parent.takeChild(parent.indexOfChild(item))
+        del self.treeWidget._item_map[moduleName]
 
     def deletedPackage(self, package_name):
         """ deletedPackage(package_name):
@@ -117,22 +119,13 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
 
             # filtering is necessary for cases where module name is
             # the same as top-level
-            lst = [x
-                   for x in
-                   self.treeWidget.findItems(parent_descriptor.name,
-                                             QtCore.Qt.MatchExactly |
-                                             QtCore.Qt.MatchWrap |
-                                             QtCore.Qt.MatchRecursive)
-                   if not x.is_top_level()]
-
-            assert len(lst) == 1
-            parentItem = lst[0]
+            parentItem = self.treeWidget._item_map[parent_descriptor.name]()
         
         desc = registry.getDescriptorByName(moduleName)
         item = QModuleTreeWidgetItem(desc,
                                      parentItem,
                                      QtCore.QStringList(moduleName))
-        self.treeWidget.setCurrentItem(item)
+        self.treeWidget._item_map[desc.name] = weakref.ref(item)
 
 class QModuleTreeWidget(QSearchTreeWidget):
     """
@@ -153,6 +146,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
         self.connect(self,
                      QtCore.SIGNAL('itemPressed(QTreeWidgetItem *,int)'),
                      self.onItemPressed)
+        self._item_map = {}
 
     def onItemPressed(self, item, column):
         """ onItemPressed(item: QTreeWidgetItem, column: int) -> None
@@ -184,6 +178,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
             moduleItem = QModuleTreeWidgetItem(module.descriptor,
                                                parentItem,
                                                labels)
+            self._item_map[module.descriptor.name] = weakref.ref(moduleItem)
             parentItems[packageName] = moduleItem
             for child in module.children:
                 createModuleItem(child)

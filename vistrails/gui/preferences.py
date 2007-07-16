@@ -186,17 +186,17 @@ class QPackagesWidget(QtGui.QWidget):
 
         right_layout.addWidget(info_frame)
         
-        self._enable_button = QtGui.QPushButton("Enable")
+        self._enable_button = QtGui.QPushButton("&Enable")
         self._enable_button.setEnabled(False)
         self.connect(self._enable_button,
                      QtCore.SIGNAL("clicked()"),
                      self.enable_current_package)
-        self._disable_button = QtGui.QPushButton("Disable")
+        self._disable_button = QtGui.QPushButton("&Disable")
         self._disable_button.setEnabled(False)
         self.connect(self._disable_button,
                      QtCore.SIGNAL("clicked()"),
                      self.disable_current_package)
-        self._configure_button = QtGui.QPushButton("Configure...")
+        self._configure_button = QtGui.QPushButton("&Configure...")
         self._configure_button.setEnabled(False)
         self.connect(self._configure_button,
                      QtCore.SIGNAL("clicked()"),
@@ -258,6 +258,7 @@ class QPackagesWidget(QtGui.QWidget):
                 pm.late_enable_package(name)
             finally:
                 palette.setUpdatesEnabled(True)
+                palette.treeWidget.expandAll()
             self._current_package = pm.get_package(name)
             av.takeItem(pos)
             av.clearSelection()
