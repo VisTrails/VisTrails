@@ -297,7 +297,8 @@ def convertIds(vistrail):
         graph.add_edge(action.db_prevId, action.db_id)
 
     def convertAction(actionId):
-#        print 'converting %s' % actionId
+        if actionId == 0:
+            return
 
         allOps = []
         action = vistrail.db_get_action(actionId)
@@ -314,6 +315,8 @@ def convertIds(vistrail):
         action.db_operations = allOps
 
     def removeObjects(actionId):
+        if actionId == 0:
+            return
 #        print "removeObjects(%s)" % actionId
         action = vistrail.db_get_action(actionId)
 

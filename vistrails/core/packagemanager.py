@@ -524,7 +524,7 @@ creating a class that behaves similarly)."""
         try:
             g = self._dependency_graph.inverse_immutable()
             sorted_packages = g.vertices_topological_sort()
-        except core.data_structures.Graph.GraphContainsCycles, e:
+        except core.data_structures.graph.Graph.GraphContainsCycles, e:
             raise self.DependencyCycle(e.back_edge[0],
                                        e.back_edge[1])
         

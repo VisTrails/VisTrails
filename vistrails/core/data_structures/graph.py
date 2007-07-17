@@ -27,6 +27,7 @@ from itertools import imap, chain, izip
 
 from core.utils import iter_with_index, all
 from core.data_structures.queue import Queue
+from core.data_structures.stack import Stack
 
 ################################################################################
 # Graph
@@ -278,50 +279,71 @@ class Graph(object):
 
         # We cannot explicitly "del data":
         # http://www.python.org/dev/peps/pep-0227/
-        
+
         class Closure(object):
             
             def clear(self):
-                del self.color
                 del self.discovery
                 del self.parent
                 del self.finish
                 del self.t
         
         # Straight CLRS p.541
-        White = 0
-        Gray = 1
-        Black = 2
         data = Closure()
-        data.color = {}
         data.discovery = {} # d in CLRS
         data.parent = {} # \pi in CLRS
         data.finish = {}  # f in CLRS
         data.t = 0
 
-        def visit(u):
-            data.color[u] = Gray
-            data.t += 1
-            data.discovery[u] = data.t
-            for (v, edge_id) in self.adjacency_list[u]:
-                if not v in data.color:
-                    data.color[v] = White
-                if data.color[v] == White:
-                    data.parent[v] = u
-                    if enter_vertex: enter_vertex(v)
-                    visit(v)
-                    if leave_vertex: leave_vertex(v)
-                if raise_if_cyclic and data.color[v] == Gray:
-                    raise self.GraphContainsCycles(u, v)
-            data.color[u] = Black
-            data.t += 1
-            data.finish[u] = data.t
+        (enter, leave, back, other) = range(4)
 
+        # inspired by http://www.ics.uci.edu/~eppstein/PADS/DFS.py
+
+        def handle(v, w, edgetype):
+            data.t += 1
+            if edgetype == enter:
+                data.discovery[v] = data.t
+                if enter_vertex:
+                    enter_vertex(w)
+                if v != w:
+                    data.parent[w] = v
+            elif edgetype == leave:
+                data.finish[w] = data.t
+                if leave_vertex:
+                    leave_vertex(w)
+            elif edgetype == back and raise_if_cyclic:
+                raise self.GraphContainsCycles(v, w)
+        
+        visited = set()
+        gray = set()
+        # helper function to build stack structure
+        def st(v): return (v, iter(self.adjacency_list[v]))
         for vertex in vertex_set:
-            data.color[vertex] = White
-        for vertex in vertex_set:
-            if data.color[vertex] == White:
-                visit(vertex)
+            if vertex not in visited:
+                handle(vertex, vertex, enter)
+                visited.add(vertex)
+                stack = Stack()
+                stack.push(st(vertex))
+                gray.add(vertex)
+                while stack.size:
+                    parent, children = stack.top()
+                    try:
+                        child, _ = children.next()
+                        if child in visited:
+                            handle(parent, child, (child in gray
+                                                   and back
+                                                   or other))
+                        else:
+                            handle(parent, child, enter)
+                            visited.add(child)
+                            stack.push(st(child))
+                            gray.add(child)
+                    except StopIteration:
+                        gray.remove(parent)
+                        stack.pop()
+                        if stack.size:
+                            handle(stack.top()[0], parent, leave)
+                handle(vertex, vertex, leave)
 
         result = (data.discovery, data.parent, data.finish)
         data.clear()
@@ -663,10 +685,22 @@ class TestGraph(unittest.TestCase):
          g = self.get_default_graph()
          g.dfs()
 
-     def test_topologicals_sort(self):
+     def test_topological_sort(self):
          """Test toposort on graph."""
          g = self.get_default_graph()
          g.vertices_topological_sort()
+
+         g = self.make_linear(10)
+         r = g.vertices_topological_sort()
+         assert r == [0,1,2,3,4,5,6,7,8,9]
+
+         g = Graph()
+         g.add_vertex('a')
+         g.add_vertex('b')
+         g.add_vertex('c')
+         g.add_edge('a', 'b')
+         g.add_edge('b', 'c')
+         assert g.vertices_topological_sort() == ['a', 'b', 'c']
 
      def test_limited_DFS(self):
          """Test DFS on graph using a limited set of starting vertices."""
@@ -820,6 +854,7 @@ class TestGraph(unittest.TestCase):
          def after(id): dec.append(id)
          g.dfs(enter_vertex=before,
                leave_vertex=after)
+         assert inc == [0,1,2,3,4,5,6,7,8,9]
          assert inc == list(reversed(dec))
          assert all(izip(inc[:-1], inc[1:]),
                     lambda (a, b): a < b)
