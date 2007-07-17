@@ -128,6 +128,12 @@ class Module(DBModule):
 
     # type check this (list, hash)
     def _get_annotations(self):
+        if self.is_dirty:
+            self.annotationMap = {}
+            self.annotationValueMap = {}
+            for annotation in self.db_get_annotations():
+                self.annotationMap[annotation.db_key] = annotation
+                self.annotationValueMap[annotation.db_key] = annotation.db_value
         return self.annotationValueMap
     def _set_annotations(self, annotations):
         # this should not be called! -- use the actions to update annotations!

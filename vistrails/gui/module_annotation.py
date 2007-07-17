@@ -57,6 +57,7 @@ class QModuleAnnotation(QtGui.QTableWidget, QToolWindowInterface):
         self.setItemDelegate(self.delegate)
         self.module = None
         self.controller = None
+        self.updateLocked = False
 
     def updateModule(self, module):
         """ updateModule(module: Module) -> None
@@ -65,6 +66,7 @@ class QModuleAnnotation(QtGui.QTableWidget, QToolWindowInterface):
         """
         self.setSortingEnabled(False)
         self.module = module
+        if self.updateLocked: return
         self.clear()
         self.setRowCount(0)
         if module:
@@ -93,7 +95,34 @@ class QModuleAnnotation(QtGui.QTableWidget, QToolWindowInterface):
         oldFont.setPointSize(20)
         self.model().setData(index, QtCore.QVariant(oldFont),
                              QtCore.Qt.FontRole)
+
+    def lockUpdate(self):
+        """ lockUpdate() -> None
+        Do not allow updateModule()
         
+        """
+        self.updateLocked = True
+        
+    def unlockUpdate(self):
+        """ unlockUpdate() -> None
+        Allow updateModule()
+        
+        """
+        self.updateLocked = False
+
+    def addRow(self):
+        """ addRow() -> None
+        Adds a new empty row to the table
+
+        """
+        self.setSortingEnabled(False)
+        self.resizeRowsToContents()
+        self.insertRow(self.rowCount())
+        self.setItem(self.rowCount()-1, 0,
+                     QtGui.QTableWidgetItem(''))
+        self.setItem(self.rowCount()-1, 1,
+                     QtGui.QTableWidgetItem(''))
+        self.setSortingEnabled(False)
 
 class QKeyValueDelegate(QtGui.QItemDelegate):
     """    
@@ -140,13 +169,17 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
             value = str(valueItem.text())
         else:
             value = ''
-        
+            
         if col==0:
             if text=='' and row<self.table.rowCount()-1:
                 self.table.removeRow(row)
                 if self.table.controller and self.table.module:
+                    self.table.lockUpdate()
+                    self.table.controller.previousModuleIds = [self.table.module.id]
                     self.table.controller.deleteAnnotation(key,
                                                            self.table.module.id)
+                    self.table.unlockUpdate()
+                return
             if text!='' and text!=key:
                 if (self.table.module and
                     self.table.module.annotations.has_key(text)):
@@ -163,26 +196,28 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
             return
             
             
-        if col==0 and key=='' and text!='':
-            self.table.setSortingEnabled(False)
-            self.table.resizeRowsToContents()
-            self.table.insertRow(self.table.rowCount())
-            self.table.setItem(self.table.rowCount()-1, 0,
-                               QtGui.QTableWidgetItem(''))
-            self.table.setItem(self.table.rowCount()-1, 1,
-                               QtGui.QTableWidgetItem(''))
-            self.table.setSortingEnabled(False)
+        if col==0 and key=='' and text!='' and value!='':
+            self.table.addRow()
                     
         if col==1:
             if text!=value:
                 if self.table.controller and self.table.module:
+                    self.table.lockUpdate()
+                    self.table.controller.previousModuleIds = [self.table.module.id]
                     self.table.controller.addAnnotation((key, text),
                                                         self.table.module.id)
+                    self.table.unlockUpdate()
+            if row == self.table.rowCount()-1:
+                self.table.addRow()
+            
         elif text!='' and self.table.controller and self.table.module:
             moduleId = self.table.module.id
+            self.table.lockUpdate()
+            self.table.controller.previousModuleIds = [moduleId]
             if key!=text and key!='':
                 self.table.controller.deleteAnnotation(key, moduleId)
             self.table.controller.addAnnotation((text, value),
                                                 moduleId)
+            self.table.unlockUpdate()
         
         model.setData(index, QtCore.QVariant(text))        

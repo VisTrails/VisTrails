@@ -325,7 +325,7 @@ class VistrailController(QtCore.QObject):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
         module = self.currentPipeline.getModuleById(module_id)
-        annotation = module.annotations[key]
+        annotation = module.annotationMap[key]
         action = db.services.action.create_action([('delete', annotation,
                                                     module.vtType, module.id)])
         self.vistrail.add_action(action, self.currentVersion)
@@ -361,7 +361,8 @@ class VistrailController(QtCore.QObject):
                                                         module.vtType, 
                                                         module.id)])
         self.vistrail.add_action(action, self.currentVersion)
-        return self.perform_action(action, pair[0] != '__desc__')
+        
+        return self.perform_action(action)
 
     def addModulePort(self, module_id, port_tuple):
         """ addModulePort(module_id: int, port_tuple: (str, str, list)
@@ -952,7 +953,6 @@ class VistrailController(QtCore.QObject):
             try:
                 self.vistrail.db_name = name
                 db.services.io.save_to_db(conn_id, self.vistrail)
-                print self.vistrail.vt_id
                 self.fileName = name
                 self.name = name
                 self.changed = False
