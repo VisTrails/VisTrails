@@ -59,7 +59,7 @@ def translateAddModuleAction(_action):
     for _module in _action.db_datas:
         module = DBModule(id=_module.db_id,
                           name=_module.db_name,
-                          cache=_module.db_cache,
+                          cache=1,
                           location=DBLocation(id=_module.db_id,
                                               x=_module.db_x,
                                               y=_module.db_y))
