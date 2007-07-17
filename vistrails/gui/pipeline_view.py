@@ -46,6 +46,7 @@ from core.vistrail.vistrail import Vistrail
 from gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface)
+from gui.module_annotation import QModuleAnnotation
 from gui.module_palette import QModuleTreeWidget
 from gui.theme import CurrentTheme
 from xml.dom.minidom import getDOMImplementation, parseString
@@ -285,6 +286,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         """
         menu = QtGui.QMenu()
         menu.addAction(self.configureAct)
+        menu.addAction(self.annotateAct)
         menu.exec_(event.screenPos())
 
     def createActions(self):
@@ -297,12 +299,25 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.configureAct, 
                                QtCore.SIGNAL("triggered()"),
                                self.configure)
+        self.annotateAct = QtGui.QAction("Annotate", self.scene())
+        self.annotateAct.setStatusTip("Annotate the module")
+        QtCore.QObject.connect(self.annotateAct,
+                               QtCore.SIGNAL("triggered()"),
+                               self.annotate)
+
     def configure(self):
         """ configure() -> None
         Open the modal configuration window
         """
         if self.moduleId>0:
             self.scene().open_configure_window(self.moduleId)
+
+    def annotate(self):
+        """ anotate() -> None
+        Open the annotations window
+        """
+        if self.moduleId>0:
+            self.scene().open_annotations_window(self.moduleId)
 
 
 ##############################################################################
@@ -1356,17 +1371,27 @@ mutual connections."""
             item.setSelected(True)
 
     def open_configure_window(self, id):
-        """ configure(int) -> None
+        """ open_configure_window(int) -> None
         Open the modal configuration window for module with given id
         """
         if self.controller:
-            self.controller.resendVersionWasChanged
             module = self.controller.currentPipeline.modules[id]
             widgetType = registry.get_configuration_widget(module.name)
             if not widgetType:
                 widgetType = DefaultModuleConfigurationWidget
             global widget
             widget = widgetType(module, self.controller, None)
+            widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+            widget.exec_()
+            self.controller.resendVersionWasChanged()
+
+    def open_annotations_window(self, id):
+        """ open_annotations_window(int) -> None
+        Opens the modal annotations window for module with given id
+        """
+        if self.controller:
+            module = self.controller.currentPipeline.modules[id]
+            widget = QModuleAnnotation(module, self.controller, None)
             widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
             widget.exec_()
             self.controller.resendVersionWasChanged()

@@ -41,4 +41,9 @@ class QModuleMethods(QMethodDropBox, QToolWindowInterface):
         
         """
         QMethodDropBox.__init__(self, parent)
-        self.setWindowTitle('Properties')
+        self.setWindowTitle('Set Methods')
+
+    def sizeHint(self):
+        """ sizeHint() -> None
+        """
+        return QtCore.QSize(self.size().width(), 300)

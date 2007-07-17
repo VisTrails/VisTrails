@@ -30,7 +30,6 @@ from core.vistrail.module import Module
 from core.vistrail.connection import Connection
 from gui.common_widgets import QDockContainer, QToolWindowInterface
 from gui.method_palette import QMethodPalette
-from gui.module_annotation import QModuleAnnotation
 from gui.module_methods import QModuleMethods
 from gui.pipeline_view import QPipelineView
 
@@ -64,10 +63,6 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
                            self.moduleMethods.toolWindow())
         
-        self.moduleAnnotations = QModuleAnnotation(self)
-        self.tabifyDockWidget(self.moduleMethods.toolWindow(),
-                              self.moduleAnnotations.toolWindow())
-                
         self.connect(self.toolWindow(),
                      QtCore.SIGNAL('topLevelChanged(bool)'),
                      self.updateWindowTitle)
@@ -84,7 +79,6 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         """
         menu.addAction(self.methodPalette.toolWindow().toggleViewAction())
         menu.addAction(self.moduleMethods.toolWindow().toggleViewAction())
-        menu.addAction(self.moduleAnnotations.toolWindow().toggleViewAction())
 
     def removeViewActionsFromMenu(self, menu):
         """removeViewActionsFromMenu(menu: QMenu) -> None
@@ -93,7 +87,6 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         """
         menu.removeAction(self.methodPalette.toolWindow().toggleViewAction())
         menu.removeAction(self.moduleMethods.toolWindow().toggleViewAction())
-        menu.removeAction(self.moduleAnnotations.toolWindow().toggleViewAction())
 
     def updatePipeline(self, pipeline):
         """ updatePipeline(pipeline: Pipeline) -> None        
@@ -129,26 +122,20 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
                 module = pipeline.modules[moduleId]
                 self.methodPalette.setEnabled(True)
                 self.moduleMethods.setEnabled(True)
-                self.moduleAnnotations.setEnabled(True)
             else:
                 module = None
                 self.methodPalette.setEnabled(False)
                 self.moduleMethods.setEnabled(False)
-                self.moduleAnnotations.setEnabled(False)
             self.methodPalette.setUpdatesEnabled(False)
             self.moduleMethods.setUpdatesEnabled(False)
-            self.moduleAnnotations.setUpdatesEnabled(False)
             try:
                 self.methodPalette.treeWidget.updateModule(module)
                 self.moduleMethods.updateModule(module)
-                self.moduleAnnotations.updateModule(module)
                 self.emit(QtCore.SIGNAL('moduleSelectionChange'),
                           [m.id for m in selection])
             finally:
                 self.methodPalette.setUpdatesEnabled(True)
                 self.moduleMethods.setUpdatesEnabled(True)
-                self.moduleAnnotations.setUpdatesEnabled(True)
-                
 
     def setController(self, controller):
         """ setController(controller: VistrailController) -> None
@@ -174,7 +161,6 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
                          QtCore.SIGNAL('flushMoveActions()'),
                          self.flushMoveActions)
             self.moduleMethods.controller = controller
-            self.moduleAnnotations.controller = controller
             controller.currentPipelineView = self.pipelineView.scene()
 
     def versionChanged(self, newVersion):

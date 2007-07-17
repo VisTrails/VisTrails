@@ -150,7 +150,7 @@ class QVerticalWidget(QPromptWidget):
         
         """
         QPromptWidget.__init__(self, parent)
-        self.setPromptText("Drag methods here to add properties")
+        self.setPromptText("Drag methods here to set parameters")
         self.setLayout(QtGui.QVBoxLayout())
         self.layout().setMargin(0)
         self.layout().setSpacing(5)

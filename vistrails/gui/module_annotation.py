@@ -19,11 +19,12 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
-""" This file contains widgets related to the module annotation
+""" This file contains a dialog and widgets related to the module annotation
 displaying a list of all pairs (key,value) for a module
 
 QKeyValueDelegate
 QModuleAnnotation
+QModuleAnnotationTable
 """
 
 from PyQt4 import QtCore, QtGui
@@ -32,20 +33,57 @@ from core.modules.module_registry import registry
 
 ################################################################################
 
-class QModuleAnnotation(QtGui.QTableWidget, QToolWindowInterface):
+class QModuleAnnotation(QtGui.QDialog):
     """
-    QModuleAnnotation is a table widget that can be dock inside a
+    QModuleAnnotation is a dialog for annotating modules
+
+    """
+    def __init__(self, module, controller, parent=None):
+        """ 
+        QModuleAnnotation(module: Module, controller: VistrailController)
+        -> None
+
+        """
+        QtGui.QDialog.__init__(self, parent)
+        self.module = module
+        self.controller = controller
+        self.setModal(True)
+        self.setWindowTitle('Module Annotations')
+        self.setLayout(QtGui.QVBoxLayout())
+        self.layout().setMargin(0)
+        self.layout().setSpacing(0)
+        self.scrollArea = QtGui.QScrollArea(self)
+        self.layout().addWidget(self.scrollArea)
+        self.scrollArea.setFrameStyle(QtGui.QFrame.NoFrame)
+        self.annotationTable = QModuleAnnotationTable(self.module,
+                                                      self.controller,
+                                                      self)
+        self.scrollArea.setWidget(self.annotationTable)
+        self.scrollArea.setWidgetResizable(True)
+        self.buttonLayout = QtGui.QHBoxLayout()
+        self.buttonLayout.setMargin(5)
+        self.closeButton = QtGui.QPushButton('Close', self)
+        self.closeButton.setFixedWidth(100)
+        self.buttonLayout.addWidget(self.closeButton)
+        self.closeButton.setShortcut('Esc')
+        self.layout().addLayout(self.buttonLayout)
+        self.connect(self.closeButton, QtCore.SIGNAL('clicked(bool)'), self.close)
+
+        
+class QModuleAnnotationTable(QtGui.QTableWidget, QModuleAnnotation):
+    """
+    QModuleAnnotationTable is a table widget that can be dock inside a
     window. It has two columns for key and value pairs to view/edit at
     run-time
     
     """    
-    def __init__(self, parent=None):
-        """ QModuleAnnotation(parent: QWidget) -> QModuleAnnotation
+    def __init__(self, module, controller, parent=None):
+        """ QModuleAnnotationTable(module: Module, controller: 
+        VistrailController, parent: QWidget) -> QModuleAnnotationTable
         Construct the 1x2 table
         
         """
         QtGui.QTableWidget.__init__(self, 1, 2, parent)
-        self.setWindowTitle('Annotations')
         self.setHorizontalHeaderLabels(QtCore.QStringList() << 'Key' << 'Value')
         self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
         self.horizontalHeader().setMovable(False)
@@ -55,24 +93,23 @@ class QModuleAnnotation(QtGui.QTableWidget, QToolWindowInterface):
         self.verticalHeader().hide()
         self.delegate = QKeyValueDelegate(self)
         self.setItemDelegate(self.delegate)
-        self.module = None
-        self.controller = None
+        self.module = module
+        self.controller = controller
         self.updateLocked = False
+        self.updateModule()
 
-    def updateModule(self, module):
-        """ updateModule(module: Module) -> None
+    def updateModule(self):
+        """ updateModule() -> None
         Update the widget to view the module annotations
-        
         """
         self.setSortingEnabled(False)
-        self.module = module
         if self.updateLocked: return
         self.clear()
         self.setRowCount(0)
-        if module:
-            self.setRowCount(len(module.annotations)+1)
+        if self.module:
+            self.setRowCount(len(self.module.annotations)+1)
             curRow = 0
-            for (key, value) in module.annotations.items():
+            for (key, value) in self.module.annotations.items():
                 self.setItem(curRow, 0, QtGui.QTableWidgetItem(key))
                 item = QtGui.QTableWidgetItem(value)
                 self.setItem(curRow, 1, item)
@@ -133,7 +170,7 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
     """
 
     def __init__(self, table):
-        """ QKeyValueDelegate(table: QModuleAnnotation) -> QKeyValueDelegate
+        """ QKeyValueDelegate(table: QModuleAnnotationTable) -> QKeyValueDelegate
         Save a reference to table and perform a default initialization
         
         """
