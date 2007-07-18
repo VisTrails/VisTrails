@@ -1383,6 +1383,7 @@ mutual connections."""
             widget = widgetType(module, self.controller, None)
             widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
             widget.exec_()
+            self.controller.previousModuleIds = [id]
             self.controller.resendVersionWasChanged()
 
     def open_annotations_window(self, id):
@@ -1394,7 +1395,6 @@ mutual connections."""
             widget = QModuleAnnotation(module, self.controller, None)
             widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
             widget.exec_()
-            self.controller.resendVersionWasChanged()
 
     def set_module_success(self, moduleId):
         """ set_module_success(moduleId: int) -> None
