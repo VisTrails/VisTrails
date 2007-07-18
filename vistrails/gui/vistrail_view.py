@@ -112,6 +112,16 @@ class QVistrailView(QDockContainer):
                      QtCore.SIGNAL('triggered(bool)'),
                      self.executeCurrentWorkflow)
 
+        # Undo action
+        self.connect(self.toolBar.undoAction(),
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.undo)
+
+        # Redo action
+        self.connect(self.toolBar.redoAction(),
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.redo)
+
         # Query pipeline action
         self.connect(self.toolBar.visualQueryAction(),
                      QtCore.SIGNAL('triggered(bool)'),
@@ -159,6 +169,7 @@ class QVistrailView(QDockContainer):
         # the redo stack stores the undone action ids 
         # (undo is automatic with us, through the version tree)
         self.redo_stack = []
+
 
     def changeView(self, viewIndex):
         """changeView(viewIndex) -> None. Changes the view between
@@ -259,6 +270,8 @@ class QVistrailView(QDockContainer):
         
         """
         self.toolBar.executePipelineAction().setEnabled(versionId>-1)
+        self.toolBar.undoAction().setEnabled(versionId>0)
+        self.toolBar.redoAction().setEnabled(self.can_redo())
 
     def queryPipelineChange(self, notEmpty):
         """ versionSelectionChange(notEmpty: bool) -> None
@@ -329,7 +342,7 @@ class QVistrailView(QDockContainer):
 
     def undo(self):
         """Performs one undo step, moving up the version tree."""
-        self.redo_stack.append(self.controller.currentVersion)
+        self.redo_stack.append(self.controller.currentVersion) 
         self.controller.showPreviousVersion()
         return self.controller.currentVersion
 

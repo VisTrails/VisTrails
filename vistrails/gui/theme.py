@@ -281,6 +281,16 @@ class DefaultTheme(object):
             core.system.vistrails_root_directory() +
             '/gui/resources/images/execute_pipeline.png')
     
+        # The undo icons for the vistrail view toolbar
+        self.UNDO_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/up.png')
+
+        # The redo icons for the vistrail view toolbar
+        self.REDO_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/down.png')
+
         # Icon to select the tabbed view
         self.TABBED_VIEW_ICON = QtGui.QIcon(
             core.system.vistrails_root_directory() +

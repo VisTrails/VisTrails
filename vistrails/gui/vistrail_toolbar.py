@@ -50,6 +50,9 @@ class QVistrailViewToolBar(QtGui.QToolBar):
         # First, add all the tool buttons on the left
         self.addAction(self.executePipelineAction())
         self.addSeparator()
+        self.addAction(self.undoAction())
+        self.addAction(self.redoAction())
+        self.addSeparator()
         self.addAction(self.visualQueryAction())
         self.addAction(self.viewFullTreeAction())
         self.addSeparator()
@@ -82,6 +85,36 @@ class QVistrailViewToolBar(QtGui.QToolBar):
                 self._executePipelineAction.toolTip())
             self._executePipelineAction.setEnabled(False)
         return self._executePipelineAction
+
+    def undoAction(self):
+        """ undoAction() -> QAction
+        Undo last action
+        """
+        if not hasattr(self, '_undoAction'):
+            self._undoAction = QtGui.QAction(
+                CurrentTheme.UNDO_ICON,
+                'Undo',
+                self)
+            self._undoAction.setToolTip('Undo the previous action (Ctrl+Z)')
+            self._undoAction.setStatusTip(
+                self._undoAction.toolTip())
+            self._undoAction.setEnabled(False)
+        return self._undoAction
+    
+    def redoAction(self):
+        """ redoAction() -> QAction
+        Redo last undo
+        """
+        if not hasattr(self, '_redoAction'):
+            self._redoAction = QtGui.QAction(
+                CurrentTheme.REDO_ICON,
+                'Redo',
+                self)
+            self._redoAction.setToolTip('Redo the undone action (Ctrl+Y)')
+            self._redoAction.setStatusTip(
+                self._redoAction.toolTip())
+            self._redoAction.setEnabled(False)
+        return self._redoAction
 
     def visualQueryAction(self):
         """ visualQueryAction() -> QAction        
