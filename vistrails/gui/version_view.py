@@ -314,7 +314,7 @@ class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
         if event.button()==QtCore.Qt.LeftButton:
             self.dragging = True
             self.dragPos = QtCore.QPoint(event.screenPos())
-        QtGui.QGraphicsEllipseItem.mousePressEvent(self, event)
+        super(QGraphicsVersionItem, self).mousePressEvent(event)
         
     def mouseMoveEvent(self, event):
         """ mouseMoveEvent(event: QMouseEvent) -> None        
@@ -327,7 +327,7 @@ class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
             (event.screenPos()-self.dragPos).manhattanLength()>2):
             self.dragging = False
             self.dragTimer.start(1)
-        QtGui.QGraphicsEllipseItem.mouseMoveEvent(self, event)
+        super(QGraphicsVersionItem, self).mouseMoveEvent(event)
 
     def startDrag(self):
         """ startDrag() -> None
@@ -348,7 +348,8 @@ class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
         
         """
         self.dragging = False
-        QtGui.QGraphicsEllipseItem.mouseReleaseEvent(self, event)
+
+        super(QGraphicsVersionItem, self).mouseReleaseEvent(event)
 
     def dragEnterEvent(self, event):
         """ dragEnterEvent(event: QDragEnterEvent) -> None

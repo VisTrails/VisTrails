@@ -59,6 +59,8 @@ class QGraphicsItemInterface(object):
                         if item!=self:
                             item.setSelected(False)
                 self.setSelected(True)
+        else:
+            super(QGraphicsItemInterface, self).mouseReleaseEvent(event)
 
 class QGraphicsRubberBandItem(QtGui.QGraphicsRectItem):
     """
@@ -241,6 +243,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         """
         self.validateCursorState()
         return QtGui.QGraphicsView.enterEvent(self, event)
+        # super(QInteractiveGraphicsView, self).enterEvent(event)
 
     def setCursorState(self, state):
         """ setCursorState(state: int) -> None        
@@ -307,6 +310,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                     self.selectionBox.setVisible(True)
             else:
                 QtGui.QGraphicsView.mousePressEvent(self, e)
+                # super(QInteractiveGraphicsView, self).mousePressEvent(e)
         else:
             if buttons & QtCore.Qt.RightButton:
                 self.setCursorState(2)
@@ -337,6 +341,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                 self.selectModules()
             else:
                 QtGui.QGraphicsView.mouseMoveEvent(self, e)
+                # super(QInteractiveGraphicsView, self).mousePressEvent(e)
         elif self.lastPos:
             if buttons == QtCore.Qt.RightButton:
                 globalPos = QtGui.QCursor.pos()
@@ -383,6 +388,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.validateCursorState(e.modifiers())
         self.setUpdatesEnabled(True)
         QtGui.QGraphicsView.mouseReleaseEvent(self, e)        
+        # super(QInteractiveGraphicsView, self).mouseReleaseEvent(e)
 
     def selectModules(self):
         """ selectModules() -> None
@@ -443,6 +449,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         if self.pipFrame!=None:
             self.pipFrame.updateGeometry()
         return QtGui.QGraphicsView.resizeEvent(self, event)
+        # super(QInteractiveGraphicsView, self).resizeEvent(event)
 
     def keyPressEvent(self, event):
         """ keyPressEvent(event: QKeyEvent) -> None
@@ -453,6 +460,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
             self.scene().fitToView(self)
         else:
             QtGui.QGraphicsView.keyPressEvent(self, event)
+            # super(QInteractiveGraphicsView, self).keyPressEvent(event)
 
     def sizeHint(self):
         """ sizeHint(self) -> QSize
@@ -617,6 +625,7 @@ class QPIPGraphicsView(QtGui.QWidget):
             self.firstShow = False
             self.graphicsView.scene().fitToView(self.graphicsView)
         return QtGui.QWidget.showEvent(self, event)        
+        # super(QPIPGraphicsView, self).showEvent(event)
 
     def enterEvent(self, event):
         """ enterEvent(event: QEnterEvent) -> None        
