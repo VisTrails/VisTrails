@@ -26,7 +26,7 @@
 
 import core.modules
 import core.modules.module_registry
-from core.modules.vistrails_module import Module, ModuleError
+from core.modules.vistrails_module import Module, ModuleError, NotCacheable
 from core.modules.basic_modules import Float, Integer
 
 class TestTupleExecution(Module):
@@ -45,10 +45,13 @@ class TestDynamicModuleError(Module):
     def die(self):
         raise ModuleError(self, "I died!")
 
-class TestChangeVistrail(Module):
+class TestChangeVistrail(NotCacheable, Module):
 
     def compute(self):
-        v1 = self.getInputFromPort('foo')
+        if self.hasInputFromPort('foo'):
+            v1 = self.getInputFromPort('foo')
+        else:
+            v1 = 0
         if v1 != 12:
             self.change_parameter('foo', v1 + 1)
 

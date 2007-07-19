@@ -21,5 +21,10 @@
       <parameter alias="" id="1" name="&lt;no description&gt;" pos="0" type="Integer" val="10"/>
     </change>
   </action>
+  <action date="2007-07-19 16:38:29" id="4" prevId="3" user="cscheid">
+    <delete id="5" objectId="1" parentObjId="0" parentObjType="function" what="parameter"/>
+    <delete id="6" objectId="0" parentObjId="0" parentObjType="module" what="function"/>
+  </action>
   <tag name="v1" time="3"/>
+  <tag name="v2" time="4"/>
 </vistrail>

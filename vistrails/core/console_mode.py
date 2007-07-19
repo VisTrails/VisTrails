@@ -171,7 +171,10 @@ class TestConsoleMode(unittest.TestCase):
                                   '/tests/resources/test_change_vistrail.xml')
         result = run(locator, "v1")
         self.assertEquals(result, True)
-        
+
+        result = run(locator, "v2")
+        self.assertEquals(result, True)
+
 
 if __name__ == '__main__':
     unittest.main()

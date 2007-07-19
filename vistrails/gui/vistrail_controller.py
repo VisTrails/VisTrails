@@ -445,28 +445,27 @@ class VistrailController(QtCore.QObject):
             else:
                 t = type(function_values)
                 assert t in type_map
-                return [(type_map[t], str(function_values))]
+                return [ModuleParam(type=type_map[t],
+                                    val=str(function_values))]
 
         def add_aliases(m_id, f_index, params):
             function = pipeline.modules[m_id].functions[f_index]
             result = []
-            for (index,
-                 (param_type, param_value)) in iter_with_index(params):
-                result.append((param_value, param_type,
+            for (index, param) in iter_with_index(params):
+                result.append((param.strValue, param.type,
                                function.params[index].alias))
             return result
 
         for (m_id, function_name, function_values) in parameter_changes:
             params = convert_function_parameters(function_values)
-            print params
+
             f_index = pipeline.find_method(m_id, function_name)
             if f_index == -1:
-                new_method = ModuleFunction(name=function_name, 
+                new_method = ModuleFunction(name=function_name,
                                             parameters=params)
                 self.addMethod(m_id, new_method)
             else:
                 params = add_aliases(m_id, f_index, params)
-                print params
                 self.replace_method(pipeline.modules[m_id],
                                     f_index,
                                     params)
