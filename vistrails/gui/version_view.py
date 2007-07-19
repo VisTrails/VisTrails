@@ -39,13 +39,14 @@ from gui.graphics_view import (QInteractiveGraphicsScene,
                                QGraphicsRubberBandItem)
 from gui.theme import CurrentTheme
 from gui.vis_diff import QVisualDiff
+from gui.qt import qt_super
 import gui.utils
 import math
 
 ################################################################################
 # QGraphicsLinkItem
 
-class QGraphicsLinkItem(QtGui.QGraphicsPolygonItem, QGraphicsItemInterface):
+class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
     """
     QGraphicsLinkItem is a connection shape connecting two versions
     
@@ -172,7 +173,8 @@ class QGraphicsLinkItem(QtGui.QGraphicsPolygonItem, QGraphicsItemInterface):
 ##############################################################################
 # QGraphicsVersionItem
 
-class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
+
+class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
     """
     QGraphicsVersionItem is the version shape holding version id and
     label
@@ -351,7 +353,7 @@ class QGraphicsVersionItem(QtGui.QGraphicsEllipseItem, QGraphicsItemInterface):
         """
         self.dragging = False
 
-        super(QGraphicsVersionItem, self).mouseReleaseEvent(event)
+        qt_super(QGraphicsVersionItem, self).mouseReleaseEvent(event)
 
     def dragEnterEvent(self, event):
         """ dragEnterEvent(event: QDragEnterEvent) -> None

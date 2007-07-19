@@ -33,6 +33,34 @@ As the python saying goes, 'we are all consenting adults here'."""
 
 import inspect
 from PyQt4 import QtGui, QtCore
+import types
+
+################################################################################
+
+class qt_super(object):
+
+    def __init__(self, class_, obj):
+        self._class = class_
+        self._obj = obj
+
+    def __getattr__(self, attr):
+        s = super(self._class, self._obj)
+        try:
+            return getattr(s, attr)
+        except AttributeError, e:
+            mro = type(self._obj).mro()
+            try:
+                ix = mro.index(self._class)
+            except ValueError:
+                raise TypeError("qt_super: obj must be an instance of class")
+            
+            for class_ in mro[ix+1:]:
+                try:
+                    unbound_meth = getattr(class_, attr)
+                    return types.MethodType(unbound_meth, self._obj, class_)
+                except AttributeError:
+                    pass
+            raise e
 
 ################################################################################
 

@@ -31,7 +31,7 @@ from PyQt4 import QtCore, QtGui
 from gui.theme import CurrentTheme
 import core.system
 import math
-
+from gui.qt import qt_super
 ################################################################################
 
 class QGraphicsItemInterface(object):
@@ -60,7 +60,7 @@ class QGraphicsItemInterface(object):
                             item.setSelected(False)
                 self.setSelected(True)
         else:
-            super(QGraphicsItemInterface, self).mouseReleaseEvent(event)
+            qt_super(QGraphicsItemInterface, self).mouseReleaseEvent(event)
 
 class QGraphicsRubberBandItem(QtGui.QGraphicsRectItem):
     """
