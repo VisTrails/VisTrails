@@ -65,9 +65,9 @@ if __name__ == '__main__':
 else:
     _thisDir = sys.modules[__name__].__file__
 _thisDir = os.path.split(_thisDir)[0]
-__rootDir = _thisDir + '/../../'
+__rootDir = os.path.realpath(_thisDir + '/../../') + '/'
 
-__dataDir = __rootDir + 'data/'
+__dataDir = os.path.realpath(__rootDir + 'data/') + '/'
 
 def set_vistrails_data_directory(d):
     """ set_vistrails_data_directory(d:str) -> None 
@@ -80,7 +80,7 @@ def set_vistrails_data_directory(d):
     while new_d != d:
         d = new_d
         new_d = os.path.expandvars(d)
-    __dataDir = d + '/'
+    __dataDir = os.path.realpath(d) + '/'
 
 def set_vistrails_directory(d):
     """ set_vistrails_directory(d:str) -> None 
@@ -94,7 +94,7 @@ def set_vistrails_directory(d):
     while new_d != d:
         d = new_d
         new_d = os.path.expandvars(d)
-    __rootDir = d + '/'
+    __rootDir = os.path.realpath(d) + '/'
 
 def vistrails_root_directory():
     """ vistrails_root_directory() -> str
@@ -174,25 +174,30 @@ def vistrails_revision():
     shows the latest release revision
 
     """
-    release = "606"
-    if core.requirements.executable_file_exists('svn'):
-        if systemType not in ['Windows', 'Microsoft']:
-            process = popen2.Popen4("svn info")
-            result = -1
-            while result == -1:
-                result = process.poll()
-            svn_output = process.fromchild
-        else:
-            #Popen4 does not seem to be present on Windows
-            svn_output, input = popen2.popen4("svn info")
-            result = 0
-        lines = svn_output.readlines()
-        if len(lines) > 5:
-            revision_line = lines[4][:-1].split(' ')
-            if result == 0:
-                if revision_line[0] == 'Revision:':
-                    return revision_line[1]
-    return release
+    old_dir = os.getcwd()
+    os.chdir(vistrails_root_directory())
+    try:
+        release = "606"
+        if core.requirements.executable_file_exists('svn'):
+            if systemType not in ['Windows', 'Microsoft']:
+                process = popen2.Popen4("svn info")
+                result = -1
+                while result == -1:
+                    result = process.poll()
+                svn_output = process.fromchild
+            else:
+                #Popen4 does not seem to be present on Windows
+                svn_output, input = popen2.popen4("svn info")
+                result = 0
+            lines = svn_output.readlines()
+            if len(lines) > 5:
+                revision_line = lines[4][:-1].split(' ')
+                if result == 0:
+                    if revision_line[0] == 'Revision:':
+                        return revision_line[1]
+        return release
+    finally:
+        os.chdir(old_dir)
         
 def about_string():
    """about_string() -> string - Returns the about string for VisTrails."""
@@ -223,6 +228,34 @@ DAMAGES.""" % (vistrails_version(), vistrails_revision())
 ################################################################################
 
 import unittest
+import os
+import os.path
 
 if __name__ == '__main__':
     unittest.main()
+
+class TestSystem(unittest.TestCase):
+
+    def test_vistrails_revision(self):
+        _starting_dir = os.getcwd()
+        try:
+            r = vistrails_root_directory()
+            os.chdir(r)
+            v1 = vistrails_revision()
+            try:
+                os.chdir(r + '../')
+                self.assertEquals(v1, vistrails_revision())
+            except AssertionError:
+                raise
+            except:
+                pass
+            try:
+                os.chdir(r + '../../')
+                self.assertEquals(v1, vistrails_revision())
+            except AssertionError:
+                raise
+            except:
+                pass
+        finally:
+            os.chdir(_starting_dir)
+            
