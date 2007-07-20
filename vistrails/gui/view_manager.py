@@ -259,8 +259,7 @@ class QViewManager(QtGui.QTabWidget):
         self.addVistrailView(vistrailView)
         self.setCurrentWidget(vistrailView)
         vistrailView.controller.inspectAndImportModules()        
-        # Make sure to select the latest time step
-        vistrailView.controller.selectLatestVersion()
+        vistrailView.setOpenView()
         vistrailView.versionTab.vistrailChanged()
         
         return vistrailView
@@ -517,6 +516,15 @@ class QViewManager(QtGui.QTabWidget):
             vistrailView.addToolBar(vistrailView.savedToolBarArea,
                                     vistrailView.toolBar)
             vistrailView.toolBar.show()
+
+    def setPIPMode(self, on):
+        """ setPIPMode(on: Bool) -> None
+        Set the picture-in-picture mode for all views
+        
+        """
+        for viewIndex in range(self.count()):
+            vistrailView = self.widget(viewIndex)
+            vistrailView.setupPIPView()
 
     def getCurrentToolBar(self):
         """ getCurrentToolBar() -> QToolBar

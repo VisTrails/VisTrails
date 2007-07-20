@@ -46,27 +46,24 @@ class QVistrailViewToolBar(QtGui.QToolBar):
         """
         QtGui.QToolBar.__init__(self, view)
         self.setWindowTitle('Vistrail Controller')        
+        self.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
 
-        # First, add all the tool buttons on the left
         self.addAction(self.executePipelineAction())
+        self.addAction(self.visualQueryAction())
         self.addSeparator()
         self.addAction(self.undoAction())
         self.addAction(self.redoAction())
         self.addSeparator()
-        self.addAction(self.visualQueryAction())
-        self.addAction(self.viewFullTreeAction())
-        self.addSeparator()
-        self.addAction(self.pipViewAction())
+        self.addAction(self.pipelineViewAction())
+        self.addAction(self.historyViewAction())
+        self.addAction(self.queryViewAction())
+        self.addAction(self.exploreViewAction())
         self.addSeparator()
         self.addAction(self.selectCursorAction())
         self.addAction(self.panCursorAction())
         self.addAction(self.zoomCursorAction())
-        self.addSeparator()
-
-        # Then take care of the tab bar on the right
-        self.tabBar = QVistrailViewTabBar()
-        self.paddedTabBar = QVistrailViewPaddedTabBar(self.tabBar, self)
-        self.addWidget(self.paddedTabBar)
+        
+        self.currentViewIndex = 0
 
     def executePipelineAction(self):
         """ executePipelineAction() -> QAction        
@@ -125,7 +122,7 @@ class QVistrailViewToolBar(QtGui.QToolBar):
         if not hasattr(self, '_visualQueryAction'):
             self._visualQueryAction = QtGui.QAction(
                 CurrentTheme.VISUAL_QUERY_ICON,
-                '&Query',
+                '&Refine',
                 self)
             self._visualQueryAction.setCheckable(True)
             self._visualQueryAction.setToolTip('Query vistrail by example')
@@ -248,57 +245,123 @@ class QVistrailViewToolBar(QtGui.QToolBar):
                          self.cursorToggled)
         return self._zoomCursorAction
 
-    def pipViewAction(self):
-        """ pipViewAction() -> QAction        
-        Returns the action for displaying a thumbnail of version tree
-        view on the pipeline view and vice versa
+    def viewActionGroup(self):
+        """ viewActionGroup() -> None        
+        A group for all view actions in order to have only one
+        selected at a time
         
         """
-        if not hasattr(self, '_pipViewAction'):
-            self._pipViewAction = QtGui.QAction('PIP', self)
-            self._pipViewAction.setCheckable(True)
-            self._pipViewAction.setToolTip('Picture-In-Picture')
-            self._pipViewAction.setStatusTip(
-                self._pipViewAction.toolTip())
-        return self._pipViewAction
+        if not hasattr(self, '_viewActionGroup'):
+            self._viewActionGroup = QtGui.QActionGroup(self)
+        return self._viewActionGroup
 
-    def resizeEvent(self, event):
-        """ resizeEvent(event: QResizeEvent) -> None        
-        Make sure to update the tabbar shape when this toolbar is
-        resized. Use Resize and Move Event to track down geometry
-        change for detecting toolbar location
+    def pipelineViewAction(self):
+        """ pipelineViewAction() -> QAction
+         Returns the action for using the pipeline view
         
         """
-        self.updateTabBarShape()
-        return QtGui.QToolBar.resizeEvent(self, event)
+        if not hasattr(self, '_pipelineViewAction'):
+            self._pipelineViewAction = QtGui.QAction(
+                CurrentTheme.PIPELINE_ICON,
+                'Pipeline',
+                self.viewActionGroup())
+            self._pipelineViewAction.setCheckable(True)
+            self._pipelineViewAction.setToolTip('Pipeline view')
+            self._pipelineViewAction.setStatusTip(
+                self._pipelineViewAction.toolTip())
+            self.connect(self._pipelineViewAction,
+                         QtCore.SIGNAL('triggered(bool)'),
+                         self.viewChanged)
+        return self._pipelineViewAction
 
-    def moveEvent(self, event):
-        """ moveEvent(event: QMoveEvent) -> None        
-        Make sure to update the tabbar shape when this toolbar is
-        moved. Use Resize and Move Event to track down geometry
-        change for detecting toolbar location
+    def historyViewAction(self):
+        """ historyViewAction() -> QAction
+         Returns the action for using the history view
         
         """
-        self.updateTabBarShape()
-        return QtGui.QToolBar.moveEvent(self, event)
+        if not hasattr(self, '_historyViewAction'):
+            self._historyViewAction = QtGui.QAction(
+                CurrentTheme.HISTORY_ICON,
+                'History',
+                self.viewActionGroup())
+            self._historyViewAction.setCheckable(True)
+            self._historyViewAction.setToolTip('History view')
+            self._historyViewAction.setStatusTip(
+                self._historyViewAction.toolTip())
+            self.connect(self._historyViewAction,
+                         QtCore.SIGNAL('triggered(bool)'),
+                         self.viewChanged)
+        return self._historyViewAction
 
-    def updateTabBarShape(self):
-        """ updateTabBarShape() -> None        
-        Update self.tabBar to have an appropriate shape depending on
-        the current location of this toolbar
+    def queryViewAction(self):
+        """ queryViewAction() -> QAction
+         Returns the action for using the query view
         
         """
-        if self.parent()!=None:
-            tabBarShapeMap = {
-                QtCore.Qt.NoToolBarArea: QtGui.QTabBar.RoundedNorth,
-                QtCore.Qt.LeftToolBarArea: QtGui.QTabBar.RoundedWest,
-                QtCore.Qt.RightToolBarArea: QtGui.QTabBar.RoundedEast,
-                QtCore.Qt.TopToolBarArea: QtGui.QTabBar.RoundedNorth,
-                QtCore.Qt.BottomToolBarArea: QtGui.QTabBar.RoundedSouth
-                }
-            area = self.parent().toolBarArea(self)
-            self.tabBar.setShape(tabBarShapeMap[area])
-            self.paddedTabBar.updateSizePolicy()
+        if not hasattr(self, '_queryViewAction'):
+            self._queryViewAction = QtGui.QAction(
+                CurrentTheme.QUERY_ICON,
+                'Query',
+                self.viewActionGroup())
+            self._queryViewAction.setCheckable(True)
+            self._queryViewAction.setToolTip('Query view')
+            self._queryViewAction.setStatusTip(
+                self._queryViewAction.toolTip())
+            self.connect(self._queryViewAction,
+                         QtCore.SIGNAL('triggered(bool)'),
+                         self.viewChanged)
+        return self._queryViewAction
+
+    def exploreViewAction(self):
+        """ exploreViewAction() -> QAction
+         Returns the action for using the explore view
+        
+        """
+        if not hasattr(self, '_exploreViewAction'):
+            self._exploreViewAction = QtGui.QAction(
+                CurrentTheme.EXPLORE_ICON,
+                'Explore',
+                self.viewActionGroup())
+            self._exploreViewAction.setCheckable(True)
+            self._exploreViewAction.setToolTip('Parameter exploration view')
+            self._exploreViewAction.setStatusTip(
+                self._exploreViewAction.toolTip())
+            self.connect(self._exploreViewAction,
+                         QtCore.SIGNAL('triggered(bool)'),
+                         self.viewChanged)
+        return self._exploreViewAction
+
+    def changeView(self, viewIndex):
+        """ changeView(viewIndex: int) -> None
+        Change the active view action
+        
+        """
+        self.currentViewIndex = viewIndex
+        if self.currentViewIndex == 0:
+            self.pipelineViewAction().setChecked(True)
+        elif self.currentViewIndex == 1:
+            self.historyViewAction().setChecked(True)
+        elif self.currentViewIndex == 2:
+            self.queryViewAction().setChecked(True)
+        else:
+            self.exploreViewAction().setChecked(True)
+        self.viewChanged()
+
+    def viewChanged(self, checked=True):
+        """ viewChanged(checked: bool) -> None
+        The view has changed, emit a signal
+
+        """
+        if self.pipelineViewAction().isChecked():
+            self.currentViewIndex = 0
+        elif self.historyViewAction().isChecked():
+            self.currentViewIndex = 1
+        elif self.queryViewAction().isChecked():
+            self.currentViewIndex = 2
+        else:
+            self.currentViewIndex = 3
+        self.emit(QtCore.SIGNAL('currentViewChanged(int)'), 
+                  self.currentViewIndex)
 
     def cursorToggled(self, checked=True):
         """ cursorToggled(checked: bool) -> None        
@@ -320,105 +383,3 @@ class QVistrailViewToolBar(QtGui.QToolBar):
         if action:
             self.assignCursorMenuAction(action)
         self.emit(QtCore.SIGNAL('cursorChanged(int)'), cursorMode)
-
-class QVistrailViewPaddedTabBar(QtGui.QWidget):
-    """
-    QVistrailViewPaddedTabBar is a special class containing
-    QVistrailViewTabBar in the center and has 4 padded widget on the
-    side to help put QVistrailViewTabBar to the right position
-    
-    """
-    def __init__(self, tabBar, parent=None):
-        """ QVistrailViewPaddedTabBar(parent: QWidget,
-                                      tabBar: QVistrailViewTabBar)
-                                      -> QVistrailViewPaddedTabBar
-        Construct a grid layout with 4 padded widget
-        
-        """
-        QtGui.QWidget.__init__(self, parent)
-        self.north = QtGui.QWidget()  
-        self.south = QtGui.QWidget()
-        self.west = QtGui.QWidget()
-        self.east = QtGui.QWidget()
-        self.central = tabBar
-        self.gridLayout = QtGui.QGridLayout(self)
-        self.gridLayout.addWidget(self.north, 0, 0, 1, 3)
-        self.gridLayout.addWidget(self.west, 1, 0, 1, 1)
-        self.gridLayout.addWidget(self.central, 1, 1, 1, 1)
-        self.gridLayout.addWidget(self.east, 1, 2, 1, 1)
-        self.gridLayout.addWidget(self.south, 2, 0, 1, 3)
-        self.gridLayout.setSpacing(0)
-        self.gridLayout.setMargin(0)
-        self.setLayout(self.gridLayout)
-        self.updateSizePolicy()
-
-    def updateSizePolicy(self):
-        """ updateSizePolicy() -> None        
-        Based on the tabbar shape, update the 4 padded widgets size
-        policy to fit the tabbar
-        
-        """
-        if self.central.shape() in [QtGui.QTabBar.RoundedSouth,
-                                    QtGui.QTabBar.TriangularSouth]:
-            self.north.setSizePolicy(QtGui.QSizePolicy.Ignored,
-                                     QtGui.QSizePolicy.Ignored)
-            self.south.setSizePolicy(QtGui.QSizePolicy.Ignored,
-                                     QtGui.QSizePolicy.Expanding)
-            self.east.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                     QtGui.QSizePolicy.Ignored)
-            self.west.setSizePolicy(QtGui.QSizePolicy.Ignored,
-                                     QtGui.QSizePolicy.Ignored)
-        elif self.central.shape() in [QtGui.QTabBar.RoundedNorth,
-                                    QtGui.QTabBar.TriangularNorth]:
-            self.north.setSizePolicy(QtGui.QSizePolicy.Ignored,
-                                     QtGui.QSizePolicy.Expanding)
-            self.south.setSizePolicy(QtGui.QSizePolicy.Ignored,
-                                     QtGui.QSizePolicy.Ignored)
-            self.east.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                     QtGui.QSizePolicy.Ignored)
-            self.west.setSizePolicy(QtGui.QSizePolicy.Ignored,
-                                     QtGui.QSizePolicy.Ignored)
-        elif self.central.shape() in [QtGui.QTabBar.RoundedWest,
-                                    QtGui.QTabBar.TriangularWest]:
-            self.north.setSizePolicy(QtGui.QSizePolicy.Ignored,
-                                     QtGui.QSizePolicy.Expanding)
-            self.south.setSizePolicy(QtGui.QSizePolicy.Ignored,
-                                     QtGui.QSizePolicy.Ignored)
-            self.east.setSizePolicy(QtGui.QSizePolicy.Ignored,
-                                     QtGui.QSizePolicy.Ignored)
-            self.west.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                     QtGui.QSizePolicy.Ignored)
-        elif self.central.shape() in [QtGui.QTabBar.RoundedEast,
-                                    QtGui.QTabBar.TriangularEast]:
-            self.north.setSizePolicy(QtGui.QSizePolicy.Ignored,
-                                     QtGui.QSizePolicy.Expanding)
-            self.south.setSizePolicy(QtGui.QSizePolicy.Ignored,
-                                     QtGui.QSizePolicy.Ignored)
-            self.east.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                     QtGui.QSizePolicy.Ignored)
-            self.west.setSizePolicy(QtGui.QSizePolicy.Ignored,
-                                     QtGui.QSizePolicy.Ignored)
-        else:
-            print 'Unknown QTabBar shape!'
-
-class QVistrailViewTabBar(QtGui.QTabBar):
-    """
-    QVistrailTabBar is special tabbar staying, by default, at the
-    bottom right corner of the vistrail view
-    
-    """
-    def __init__(self, parent=None):
-        """ QVistrailViewTabBar(parent: QWidget) -> QVistrailViewTabBar
-        By default create a tabbar facing up with two tabs
-        
-        """
-        QtGui.QTabBar.__init__(self, parent)
-        self.setShape(QtGui.QTabBar.RoundedSouth)
-        self.addTab('Pipeline')
-        self.addTab('Version Tree')
-        self.addTab('Query')
-        self.addTab('Parameter Exploration')
-        self.invisible = False
-        self.setSizePolicy(QtGui.QSizePolicy.Maximum,
-                           QtGui.QSizePolicy.Maximum)
-        self.setCurrentIndex(1)

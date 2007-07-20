@@ -98,14 +98,9 @@ class QVistrailView(QDockContainer):
         self.locator = VistrailLocator()
         
         # Make sure we can change view when requested
-        self.connect(self.toolBar.tabBar,
-                     QtCore.SIGNAL('currentChanged(int)'),
-                     self.tabChanged)
-
-        # Capture PIP state changed
-        self.connect(self.toolBar.pipViewAction(),
-                     QtCore.SIGNAL('triggered(bool)'),
-                     self.pipChanged)
+        self.connect(self.toolBar,
+                     QtCore.SIGNAL('currentViewChanged(int)'),
+                     self.viewChanged)
 
         # Execute pipeline action
         self.connect(self.toolBar.executePipelineAction(),
@@ -145,9 +140,6 @@ class QVistrailView(QDockContainer):
         self.viewAction = None
         self.closeEventHandler = None
 
-        # PIP enabled by default.
-        self.toolBar.pipViewAction().trigger()
-
         # Make sure to connect all graphics view to cursor mode of the
         # toolbar
         pipelineView = self.pipelineTab.pipelineView
@@ -158,23 +150,10 @@ class QVistrailView(QDockContainer):
                      versionView.setDefaultCursorState)
         self.connect(self.toolBar, QtCore.SIGNAL('cursorChanged(int)'),
                      self.queryTab.pipelineView.setDefaultCursorState)
-        if self.toolBar.pipViewAction().isChecked():
-            pipelinePIPView = pipelineView.pipFrame.graphicsView
-            self.connect(self.toolBar, QtCore.SIGNAL('cursorChanged(int)'),
-                         pipelinePIPView.setDefaultCursorState)
-            versionPIPView = versionView.pipFrame.graphicsView
-            self.connect(self.toolBar, QtCore.SIGNAL('cursorChanged(int)'),
-                         versionPIPView.setDefaultCursorState)
 
         # the redo stack stores the undone action ids 
         # (undo is automatic with us, through the version tree)
         self.redo_stack = []
-
-
-    def changeView(self, viewIndex):
-        """changeView(viewIndex) -> None. Changes the view between
-        pipeline, version and query."""
-        self.toolBar.tabBar.setCurrentIndex(viewIndex)
 
     def updateViewMenu(self, viewIndex = None):
         """updateViewMenu(viewIndex: int) -> None
@@ -183,7 +162,7 @@ class QVistrailView(QDockContainer):
         
         """
         if viewIndex == None:
-            viewIndex = self.toolBar.tabBar.currentIndex()
+            viewIndex = self.toolBar.currentViewIndex
         builderMenu = self.parent().parent().parent().viewMenu
         if self.activeIndex == 0: #pipelineTab
             self.pipelineTab.removeViewActionsFromMenu(builderMenu)
@@ -209,12 +188,46 @@ class QVistrailView(QDockContainer):
         self.activeIndex = viewIndex
         
     def setInitialView(self):
-        """setInitialView(): sets up the correct initial view for a
-        new vistrail, that is, select empty version and focus on pipeline view."""
-        self.controller.changeSelectedVersion(0)
-        self.changeView(0)
+        """setInitialView() -> None
+        Sets up the correct initial view for a new vistrail, that is, 
+        select empty version and focus on pipeline view.
         
-    def tabChanged(self, index):
+        """
+        self.controller.changeSelectedVersion(0)
+        self.toolBar.changeView(0)
+        self.setupPIPView()
+
+    def setOpenView(self):
+        """setOpenView() -> None
+        Sets up the correct view for an opened
+        vistrail, that is, select latest version and focus on version view.
+        
+        """
+        self.controller.selectLatestVersion()
+        self.toolBar.changeView(1)
+        self.setupPIPView()
+       
+    def setupPIPView(self):
+        """ setupPIPView() -> None
+        Initialize the PIP state for a new view
+
+        """
+        if self.parent().parent().parent().pipViewAction.isChecked():
+            pipelineView = self.pipelineTab.pipelineView
+            pipelineView.setPIPEnabled(True)
+            versionView = self.versionTab.versionView
+            versionView.setPIPEnabled(True)
+            pipelinePIPView = pipelineView.pipFrame.graphicsView
+            self.connect(self.toolBar, QtCore.SIGNAL('cursorChanged(int)'),
+                         pipelinePIPView.setDefaultCursorState)
+            versionPIPView = versionView.pipFrame.graphicsView
+            self.connect(self.toolBar, QtCore.SIGNAL('cursorChanged(int)'),
+                         versionPIPView.setDefaultCursorState)
+        else:
+            self.pipelineTab.pipelineView.setPIPEnabled(False)
+            self.versionTab.versionView.setPIPEnabled(False)
+            
+    def viewChanged(self, index):
         """ tabChanged(index: int) -> None        
         Slot for switching different views when the tab's current
         widget is changed
@@ -223,14 +236,6 @@ class QVistrailView(QDockContainer):
         if self.stackedWidget.count()>index:
             self.updateViewMenu(index)
             self.stackedWidget.setCurrentIndex(index)
-
-    def pipChanged(self, checked=True):
-        """ pipChanged(checked: bool) -> None        
-        Slot for switching PIP mode on/off
-        
-        """
-        self.pipelineTab.pipelineView.setPIPEnabled(checked)
-        self.versionTab.versionView.setPIPEnabled(checked)
 
     def sizeHint(self):
         """ sizeHint(self) -> QSize

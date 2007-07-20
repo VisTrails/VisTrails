@@ -70,7 +70,7 @@ class QModuleAnnotation(QtGui.QDialog):
         self.connect(self.closeButton, QtCore.SIGNAL('clicked(bool)'), self.close)
 
         
-class QModuleAnnotationTable(QtGui.QTableWidget, QModuleAnnotation):
+class QModuleAnnotationTable(QtGui.QTableWidget):
     """
     QModuleAnnotationTable is a table widget that can be dock inside a
     window. It has two columns for key and value pairs to view/edit at

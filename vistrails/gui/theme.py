@@ -284,12 +284,12 @@ class DefaultTheme(object):
         # The undo icons for the vistrail view toolbar
         self.UNDO_ICON = QtGui.QIcon(
             core.system.vistrails_root_directory() +
-            '/gui/resources/images/up.png')
+            '/gui/resources/images/undo.png')
 
         # The redo icons for the vistrail view toolbar
         self.REDO_ICON = QtGui.QIcon(
             core.system.vistrails_root_directory() +
-            '/gui/resources/images/down.png')
+            '/gui/resources/images/redo.png')
 
         # Icon to select the tabbed view
         self.TABBED_VIEW_ICON = QtGui.QIcon(
@@ -407,6 +407,20 @@ class DefaultTheme(object):
             core.system.vistrails_root_directory() +
             '/gui/resources/images/down.png')
 
+        # Toolbar icons for views
+        self.PIPELINE_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/pipeline.png')
+        self.HISTORY_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/history.png')
+        self.QUERY_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/full_tree.png')
+        self.EXPLORE_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/explore.png')
+
         # Toolbar icon for visual query on a vistrail
         self.VISUAL_QUERY_ICON = QtGui.QIcon(
             core.system.vistrails_root_directory() +
@@ -449,7 +463,7 @@ class DefaultTheme(object):
         self.RIGHT_ARROW_PIXMAP = QtGui.QPixmap(
             core.system.vistrails_root_directory() +
             '/gui/resources/images/right.png')        
-
+        
         # Cursor for zoom in/out graphics views
         self.SELECT_CURSOR = QtGui.QCursor(QtCore.Qt.ArrowCursor)
         self.OPEN_HAND_CURSOR = QtGui.QCursor(QtGui.QPixmap(

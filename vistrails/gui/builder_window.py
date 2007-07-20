@@ -232,6 +232,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.sdiModeAction.setCheckable(True)
         self.sdiModeAction.setChecked(False)
         
+        self.pipViewAction = QtGui.QAction('Picture-in-Picture', self)
+        self.pipViewAction.setCheckable(True)
+        self.pipViewAction.setChecked(True)
+
         self.helpAction = QtGui.QAction(self.tr('About VisTrails...'), self)
 
         a = QtGui.QAction(self.tr('Execute Current Workflow\tCtrl+Enter'),
@@ -283,6 +287,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.viewMenu.addAction(
             self.modulePalette.toolWindow().toggleViewAction())
         self.viewMenu.addAction(self.bookmarksAction)
+        self.viewMenu.addAction(self.pipViewAction)
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.sdiModeAction)
         self.viewMenu.addSeparator()
@@ -377,6 +382,10 @@ class QBuilderWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('triggered(bool)'),
                      self.setSDIMode)
         
+        self.connect(self.pipViewAction,
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.setPIPMode)
+
         self.connect(self.vistrailActionGroup,
                      QtCore.SIGNAL('triggered(QAction *)'),
                      self.vistrailSelectFromMenu)
@@ -556,6 +565,13 @@ class QBuilderWindow(QtGui.QMainWindow):
                 self.removeToolBar(self.vistrailViewToolBar)
                 self.vistrailViewToolBar = None
             self.viewManager.switchToTabMode()
+
+    def setPIPMode(self, checked=True):
+        """ setPIPMode(checked: bool)
+        Turn on/off the picture-in-picture mode
+        
+        """
+        self.viewManager.setPIPMode(checked)
                 
     def vistrailViewAdded(self, view):
         """ vistrailViewAdded(view: QVistrailView) -> None
