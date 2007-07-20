@@ -263,10 +263,10 @@ class QVistrailViewToolBar(QtGui.QToolBar):
         if not hasattr(self, '_pipelineViewAction'):
             self._pipelineViewAction = QtGui.QAction(
                 CurrentTheme.PIPELINE_ICON,
-                'Pipeline',
+                'Edit',
                 self.viewActionGroup())
             self._pipelineViewAction.setCheckable(True)
-            self._pipelineViewAction.setToolTip('Pipeline view')
+            self._pipelineViewAction.setToolTip('Edit the pipeline')
             self._pipelineViewAction.setStatusTip(
                 self._pipelineViewAction.toolTip())
             self.connect(self._pipelineViewAction,
@@ -282,10 +282,10 @@ class QVistrailViewToolBar(QtGui.QToolBar):
         if not hasattr(self, '_historyViewAction'):
             self._historyViewAction = QtGui.QAction(
                 CurrentTheme.HISTORY_ICON,
-                'History',
+                'View',
                 self.viewActionGroup())
             self._historyViewAction.setCheckable(True)
-            self._historyViewAction.setToolTip('History view')
+            self._historyViewAction.setToolTip('View the history')
             self._historyViewAction.setStatusTip(
                 self._historyViewAction.toolTip())
             self.connect(self._historyViewAction,
@@ -304,7 +304,7 @@ class QVistrailViewToolBar(QtGui.QToolBar):
                 'Query',
                 self.viewActionGroup())
             self._queryViewAction.setCheckable(True)
-            self._queryViewAction.setToolTip('Query view')
+            self._queryViewAction.setToolTip('Query the history')
             self._queryViewAction.setStatusTip(
                 self._queryViewAction.toolTip())
             self.connect(self._queryViewAction,
@@ -323,7 +323,7 @@ class QVistrailViewToolBar(QtGui.QToolBar):
                 'Explore',
                 self.viewActionGroup())
             self._exploreViewAction.setCheckable(True)
-            self._exploreViewAction.setToolTip('Parameter exploration view')
+            self._exploreViewAction.setToolTip('Explore parameters')
             self._exploreViewAction.setStatusTip(
                 self._exploreViewAction.toolTip())
             self.connect(self._exploreViewAction,
