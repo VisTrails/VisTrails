@@ -29,12 +29,13 @@ from gui.bookmark_window import QBookmarksWindow
 from gui.graphics_view import QInteractiveGraphicsView
 from gui.module_palette import QModulePalette
 from gui.open_db_window import QOpenDBWindow
+from gui.preferences import QPreferencesDialog
 from gui.shell import QShellDialog
 from gui.theme import CurrentTheme
 from gui.view_manager import QViewManager
-from gui.preferences import QPreferencesDialog
 import copy
 import core.interpreter.cached
+import os
 import sys
 
 ################################################################################
@@ -116,6 +117,7 @@ class QBuilderWindow(QtGui.QMainWindow):
                         break
                     widget = widget.parent()
         QtGui.QMainWindow.keyPressEvent(self, event)
+        # super(QBuilderWindow, self).keyPressEvent(event)
             
     def keyReleaseEvent(self, event):
         """ keyReleaseEvent(event: QKeyEvent) -> None
@@ -523,14 +525,28 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         fileName = QtGui.QFileDialog.getSaveFileName(
             self,
-            "Save Vistrail As..",
+            "Save vistrail As..",
             system.vistrails_directory(),
-            "XML files (*.xml)")
+            "XML files (*.xml)",
+            None,
+            QtGui.QFileDialog.DontConfirmOverwrite)
             
         if not fileName:
             return
         else:
-            self.viewManager.saveVistrailFile(None, str(fileName))
+            f = str(fileName)
+            if not f.endswith('.xml'):
+                f += '.xml'
+            if os.path.isfile(f):
+                msg = QtGui.QMessageBox(QtGui.QMessageBox.Question,
+                                        "VisTrails",
+                                        "File exists. Overwrite?",
+                                        (QtGui.QMessageBox.Yes |
+                                         QtGui.QMessageBox.No),
+                                        self)
+                if msg.exec_() == QtGui.QMessageBox.No:
+                    return
+            self.viewManager.saveVistrailFile(None, f)
 
     def saveVistrailDB(self):
         config, name = QOpenDBWindow.getSaveVistrail()
