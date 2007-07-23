@@ -780,7 +780,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         for p in module.destinationPorts():
             if not p.optional:
                 inputPorts.append(p)
-            elif p.name in module.portVisible:
+            elif (PortEndPoint.Destination, p.name) in module.portVisible:
                 visibleOptionalPorts.append(p)
             else:
                 self.optionalInputPorts.append(p)
@@ -792,7 +792,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         for p in module.sourcePorts():
             if not p.optional:
                 outputPorts.append(p)
-            elif p.name in module.portVisible:
+            elif (PortEndPoint.Source, p.name) in module.portVisible:
                 visibleOptionalPorts.append(p)
             else:
                 self.optionalOutputPorts.append(p)

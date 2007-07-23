@@ -111,5 +111,12 @@ class TestEnum(unittest.TestCase):
         e1 = enum('e1', ['v1', 'v2', 'v3'])
         self.assertNotEquals(e1.v1, 5)
 
+    def test4(self):
+        e2 = enum('e1', ['v1', 'v2', 'v3'])
+        x = e2.v2
+        import copy
+        y = copy.copy(x)
+        self.assertEquals(x, y)
+
 if __name__ == '__main__':
     unittest.main()

@@ -149,6 +149,10 @@ class ModuleDescriptor(object):
     ##########################################################################
 
     def appendToPortList(self, port, optionals, name, spec, optional):
+        # appendToPortList is the implementation of both addInputPort
+        # and addOutputPorts, which are different only in which
+        # fields get the data
+        
         def canonicalize(specItem):
             if type(specItem) == __builtin__.type:
                 return (specItem, '<no description>')
@@ -341,7 +345,7 @@ subclasses from modules.vistrails_module.Module)"""
         name = self.moduleName[module]
         return self.getDescriptorByName(name)
 
-    def addModule(self, module, name=None, **kwargs):
+    def addModule(self, module, **kwargs):
         """addModule(module: class, name=None, **kwargs) -> Tree
 
         kwargs:
@@ -396,8 +400,6 @@ named parameters.
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed to addModule: %s' % kwargs)
         
-        if not name:
-            name = module.__name__
         if self.moduleTree.has_key(name):
             raise ModuleAlreadyExists(name)
         # try to eliminate mixins

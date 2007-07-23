@@ -25,6 +25,7 @@ from core.modules.module_registry import registry, ModuleRegistry
 # from core.vistrail.action import ChangeParameterAction
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
+from core.vistrail.port import PortEndPoint
 import urllib
 
 class StandardModuleConfigurationWidget(QtGui.QDialog):
@@ -68,13 +69,17 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
         self.connect(self.okButton, QtCore.SIGNAL('clicked(bool)'), self.okTriggered)
         self.connect(self.cancelButton, QtCore.SIGNAL('clicked(bool)'), self.close)
 
-    def checkBoxFromPort(self, port, input=False):
+    def checkBoxFromPort(self, port, input_=False):
         checkBox = QtGui.QCheckBox(port.name)
-        if not port.optional or port.name in self.module.portVisible:
+        if input_:
+            pep = PortEndPoint.Destination
+        else:
+            pep = PortEndPoint.Source
+        if not port.optional or (pep, port.name) in self.module.portVisible:
             checkBox.setCheckState(QtCore.Qt.Checked)
         else:
             checkBox.setCheckState(QtCore.Qt.Unchecked)
-        if not port.optional or (input and port.getSignatures()==['()']):
+        if not port.optional or (input_ and port.getSignatures()==['()']):
             checkBox.setEnabled(False)
         return checkBox
 
@@ -111,19 +116,21 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
         return QtCore.QSize(384, 512)
 
     def okTriggered(self, checked = False):
-        for i in range(len(self.inputPorts)):
-            port = self.inputPorts[i]
-            if port.optional and self.inputDict[port.name].checkState()==QtCore.Qt.Checked:
-                self.module.portVisible.add(port.name)
+        for port in self.inputPorts:
+            entry = (PortEndPoint.Destination, port.name)
+            if (port.optional and
+                self.inputDict[port.name].checkState()==QtCore.Qt.Checked):
+                self.module.portVisible.add(entry)
             else:
-                self.module.portVisible.discard(port.name)
+                self.module.portVisible.discard(entry)
             
-        for i in range(len(self.outputPorts)):
-            port = self.outputPorts[i]
-            if port.optional and self.outputDict[port.name].checkState()==QtCore.Qt.Checked:
-                self.module.portVisible.add(port.name)
+        for port in self.outputPorts:
+            entry = (PortEndPoint.Source, port.name)
+            if (port.optional and
+                self.outputDict[port.name].checkState()==QtCore.Qt.Checked):
+                self.module.portVisible.add(entry)
             else:
-                self.module.portVisible.discard(port.name)
+                self.module.portVisible.discard(entry)
         self.close()
         
 
@@ -296,6 +303,7 @@ class PythonEditor(QtGui.QTextEdit):
         if event.key()==QtCore.Qt.Key_Tab:
             self.insertPlainText('    ')
         else:
+            # super(PythonEditor, self).keyPressEvent(event)
             QtGui.QTextEdit.keyPressEvent(self, event)
                  
 class PythonSourceConfigurationWidget(StandardModuleConfigurationWidget):

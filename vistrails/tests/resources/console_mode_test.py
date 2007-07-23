@@ -59,6 +59,11 @@ class TestCustomNamed(Module):
 
     pass
 
+
+class TestOptionalPorts(Module):
+
+    pass
+
 ##############################################################################
 
 def initialize():
@@ -72,3 +77,8 @@ def initialize():
 
     reg.addModule(TestCustomNamed, name='different name')
     reg.addInputPort(TestCustomNamed, 'input', Float)
+
+    reg.addModule(TestOptionalPorts)
+    reg.addInputPort(TestOptionalPorts, 'foo', Float, optional=True)
+    reg.addOutputPort(TestOptionalPorts, 'foo', Float, optional=True)
+
