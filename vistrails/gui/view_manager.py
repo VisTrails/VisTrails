@@ -361,17 +361,17 @@ class QViewManager(QtGui.QTabWidget):
                                                   ok)
                 
             if name != '' and name != None:
-                locator = VistrailLocator(VistrailLocator.ORIGIN.DB, name)
-                if config != None:
-                    locator.host = config['host']
-                    locator.port = config['port']
-                    locator.db = config['db']
-                    if config.has_key('id'):
-                        locator.conn_id = config['id']
-                    
-                vistrailView.controller.writeVistrailDB(locator)        
-                vistrailView.locator = locator
-                
+                if vistrailView.locator is None or \
+                        vistrailView.locator.origin != VistrailLocator.ORIGIN.DB:
+                    locator = VistrailLocator(VistrailLocator.ORIGIN.DB, name)
+                    if config != None:
+                        locator.host = config['host']
+                        locator.port = config['port']
+                        locator.db = config['db']
+                        if config.has_key('id'):
+                            locator.conn_id = config['id']
+                    vistrailView.locator = locator
+                vistrailView.controller.writeVistrailDB(vistrailView.locator)
                 return True
             else:
                 return False
