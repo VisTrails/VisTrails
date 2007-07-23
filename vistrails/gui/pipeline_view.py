@@ -309,14 +309,14 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         """ configure() -> None
         Open the modal configuration window
         """
-        if self.moduleId>0:
+        if self.moduleId>=0:
             self.scene().open_configure_window(self.moduleId)
 
     def annotate(self):
         """ anotate() -> None
         Open the annotations window
         """
-        if self.moduleId>0:
+        if self.moduleId>=0:
             self.scene().open_annotations_window(self.moduleId)
 
 
