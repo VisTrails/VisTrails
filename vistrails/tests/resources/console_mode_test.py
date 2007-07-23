@@ -55,6 +55,10 @@ class TestChangeVistrail(NotCacheable, Module):
         if v1 != 12:
             self.change_parameter('foo', v1 + 1)
 
+class TestCustomNamed(Module):
+
+    pass
+
 ##############################################################################
 
 def initialize():
@@ -65,3 +69,6 @@ def initialize():
     reg.addModule(TestDynamicModuleError)
     reg.addModule(TestChangeVistrail)
     reg.addInputPort(TestChangeVistrail, 'foo', Integer)
+
+    reg.addModule(TestCustomNamed, name='different name')
+    reg.addInputPort(TestCustomNamed, 'input', Float)

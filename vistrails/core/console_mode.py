@@ -29,15 +29,7 @@ from core.vistrail.vistrail import Vistrail
 
 ################################################################################
 
-def run_and_get_results(locator, workflow, parameters=''):
-    """run_and_get_results(locator: VistrailLocator, workflow: int or
-    str) Run the workflow 'workflow' for the given locator, and
-    returns an interpreterresult object. workflow can be a tag name or
-    a version.
-    
-    """
-    elements = parameters.split(",")
-    aliases = {}
+def open_vistrail(locator):
     if locator.origin == VistrailLocator.ORIGIN.FILE:
         v = db.services.io.openVistrailFromXML(locator.name)
         Vistrail.convert(v)
@@ -50,6 +42,18 @@ def run_and_get_results(locator, workflow, parameters=''):
         config['passwd'] = locator.db
         v = db.services.io.open_from_db(config, locator.vt_id)
         Vistrail.convert(v)
+    return v
+    
+def run_and_get_results(locator, workflow, parameters=''):
+    """run_and_get_results(locator: VistrailLocator, workflow: int or
+    str) Run the workflow 'workflow' for the given locator, and
+    returns an interpreterresult object. workflow can be a tag name or
+    a version.
+    
+    """
+    elements = parameters.split(",")
+    aliases = {}
+    v = open_vistrail(locator)
     
     if type(workflow) == type("str"):
         version = v.tagMap[workflow]
@@ -175,6 +179,23 @@ class TestConsoleMode(unittest.TestCase):
         result = run(locator, "v2")
         self.assertEquals(result, True)
 
+    def test_ticket_73(self):
+        # Tests serializing a custom-named module to disk
+        locator = VistrailLocator(VistrailLocator.ORIGIN.FILE,
+                                  core.system.vistrails_root_directory() + 
+                                  '/tests/resources/test_ticket_73.xml')
+        v = open_vistrail(locator)
+
+        import tempfile
+        import os
+        (fd, filename) = tempfile.mkstemp()
+        os.close(fd)
+        save_locator = VistrailLocator(VistrailLocator.ORIGIN.FILE,
+                                       filename)
+        try:
+            v.serialize(save_locator.name)
+        finally:
+            os.remove(filename)
 
 if __name__ == '__main__':
     unittest.main()
