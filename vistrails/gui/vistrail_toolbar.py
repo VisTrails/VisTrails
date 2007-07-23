@@ -360,7 +360,7 @@ class QVistrailViewToolBar(QtGui.QToolBar):
             self.currentViewIndex = 2
         else:
             self.currentViewIndex = 3
-        self.emit(QtCore.SIGNAL('currentViewChanged(int)'), 
+        self.emit(QtCore.SIGNAL('viewModeChanged(int)'), 
                   self.currentViewIndex)
 
     def cursorToggled(self, checked=True):

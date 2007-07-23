@@ -234,6 +234,7 @@ class QViewManager(QtGui.QTabWidget):
         self.addVistrailView(vistrailView)
         self.setCurrentWidget(vistrailView)
         vistrailView.setInitialView()
+        self.versionSelectionChange(0)
         vistrailView.versionTab.vistrailChanged()
 
     def close_first_vistrail_if_necessary(self):
@@ -260,6 +261,7 @@ class QViewManager(QtGui.QTabWidget):
         self.setCurrentWidget(vistrailView)
         vistrailView.controller.inspectAndImportModules()        
         vistrailView.setOpenView()
+        self.versionSelectionChange(1)
         vistrailView.versionTab.vistrailChanged()
         
         return vistrailView
@@ -422,6 +424,7 @@ class QViewManager(QtGui.QTabWidget):
             self.removeVistrailView(vistrailView)
             if self.count()==0:
                 self.emit(QtCore.SIGNAL('currentVistrailChanged'), None)
+                self.emit(QtCore.SIGNAL('versionSelectionChange'), -1)
         if vistrailView == self._first_view:
             self._first_view = None
         return True
@@ -450,7 +453,8 @@ class QViewManager(QtGui.QTabWidget):
         self.activeIndex = index
         self.emit(QtCore.SIGNAL('currentVistrailChanged'),
                   self.currentWidget())
-
+        self.emit(QtCore.SIGNAL('versionSelectionChange'), 
+                  self.currentWidget().controller.currentVersion)
     def updateViewMenu(self, index, internal_index):
         """updateViewMenu(index: int, internal_index:int) -> None
            Tell previous tab to remove menu entries and current tab to
@@ -592,15 +596,6 @@ class QViewManager(QtGui.QTabWidget):
         self.addTab(view, view.windowTitle())
         self.setCurrentWidget(view)        
 
-    def executeCurrentPipeline(self):
-        """ executeCurrentPipeline() -> None
-        Execute the active pipeline if exists
-        
-        """
-        view = self.currentView()
-        if view:
-            view.toolBar.executePipelineAction().trigger()
-
     def ensureVistrail(self, locator):
          """ ensureVistrailDB(locator: VistrailLocator) -> QVistrailView        
         This will first find among the opened vistrails to see if
@@ -657,3 +652,34 @@ class QViewManager(QtGui.QTabWidget):
     
     def set_first_view(self, view):
         self._first_view = view
+
+    def viewModeChanged(self, mode):
+        """ viewModeChanged(mode: Int) -> None
+        
+        """
+        for viewIndex in range(self.count()):            
+            vistrailView = self.widget(viewIndex)
+            vistrailView.viewModeChanged(mode)
+    
+    def changeCursor(self, mode):
+        """ changeCursor(mode: Int) -> None
+        
+        """
+        for viewIndex in range(self.count()):            
+            vistrailView = self.widget(viewIndex)
+            vistrailView.updateCursorState(mode)            
+        
+    def queryVistrail(self, checked):
+        """ queryVistrail(checked: Bool) -> None
+        
+        """
+        for viewIndex in range(self.count()):            
+            vistrailView = self.widget(viewIndex)
+            vistrailView.queryVistrail(checked)
+
+    def executeCurrentPipeline(self):
+        """ executeCurrentPipeline() -> None
+        
+        """
+        self.currentView().setFocus(QtCore.Qt.MouseFocusReason)
+        self.currentView().controller.executeCurrentWorkflow()

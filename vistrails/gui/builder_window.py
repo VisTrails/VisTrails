@@ -33,6 +33,8 @@ from gui.preferences import QPreferencesDialog
 from gui.shell import QShellDialog
 from gui.theme import CurrentTheme
 from gui.view_manager import QViewManager
+from gui.vistrail_toolbar import QVistrailViewToolBar
+from gui.preferences import QPreferencesDialog
 import copy
 import core.interpreter.cached
 import os
@@ -153,13 +155,13 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.newVistrailAction.setStatusTip('Create a new Vistrail')
         
         self.openVistrailAction = QtGui.QAction(CurrentTheme.OPEN_VISTRAIL_ICON,
-                                                '&Open from File', self)
+                                                '&Open', self)
         self.openVistrailAction.setShortcut('Ctrl+O')
         self.openVistrailAction.setStatusTip('Open an existing VisTrail from '
                                              'the filesystem')
 
         self.openDBAction = QtGui.QAction(CurrentTheme.OPEN_VISTRAIL_DB_ICON,
-                                          '&Open from Database', self)
+                                          '&Open', self)
         self.openDBAction.setShortcut('Ctrl+Shift+O')
         self.openDBAction.setStatusTip('Open an existing VisTrail from '
                                              'database')
@@ -313,20 +315,16 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         self.toolBar = QtGui.QToolBar(self)
         self.toolBar.setWindowTitle('Vistrail File')
+        self.toolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
         self.addToolBar(self.toolBar)
         self.toolBar.addAction(self.newVistrailAction)
-        self.openVistrailButton = QtGui.QToolButton()
-        self.openVistrailButton.setIcon(CurrentTheme.OPEN_VISTRAIL_ICON)
-        self.openVistrailButton.setMenu(self.openMenu)
-        self.openVistrailButton.setPopupMode(QtGui.QToolButton.MenuButtonPopup)
-	self.openVistrailButton.setDefaultAction(self.openVistrailAction)
-        self.toolBar.addWidget(self.openVistrailButton)
-        #self.toolBar.addAction(self.openVistrailDefaultAction)
-        #self.openVistrailDefaultAction.setMenu(self.openMenu)
+        self.toolBar.addAction(self.openVistrailAction)
         self.toolBar.addAction(self.saveVistrailAction)
         self.toolBar.addSeparator()
-        self.toolBar.addAction(self.shellAction)
         self.toolBar.addAction(self.bookmarksAction)
+
+        self.viewToolBar = QVistrailViewToolBar(self)
+        self.addToolBar(self.viewToolBar)
 
     def connectSignals(self):
         """ connectSignals() -> None
@@ -339,6 +337,9 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.viewManager,
                      QtCore.SIGNAL('versionSelectionChange'),
                      self.versionSelectionChange)
+        self.connect(self.viewManager,
+                     QtCore.SIGNAL('queryPipelineChange'),
+                     self.queryPipelineChange)
         self.connect(self.viewManager,
                      QtCore.SIGNAL('currentVistrailChanged'),
                      self.currentVistrailChanged)
@@ -362,7 +363,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.copyAction, self.viewManager.copySelection),
             (self.pasteAction, self.viewManager.pasteToCurrentPipeline),
             (self.pasteAction, self.viewManager.selectAllModules),
-            (self.newVistrailAction, self.viewManager.newVistrail),
+            (self.newVistrailAction, self.newVistrail),
             (self.openVistrailAction, self.openVistrail),
             (self.openDBAction, self.openVistrailDB),
             (self.saveVistrailAction, self.saveVistrail),
@@ -409,6 +410,37 @@ class QBuilderWindow(QtGui.QMainWindow):
                          QtCore.SIGNAL('activated()'),
                          self.viewManager.executeCurrentPipeline)
 
+                
+        # Make sure we can change view when requested
+        self.connect(self.viewToolBar,
+                     QtCore.SIGNAL('viewModeChanged(int)'),
+                     self.viewManager.viewModeChanged)
+        
+        # Change cursor action
+        self.connect(self.viewToolBar,
+                     QtCore.SIGNAL('cursorChanged(int)'),
+                     self.viewManager.changeCursor)
+
+        # Execute pipeline action
+        self.connect(self.viewToolBar.executePipelineAction(),
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.viewManager.executeCurrentPipeline)
+
+        # Undo action
+        self.connect(self.viewToolBar.undoAction(),
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.viewManager.undo)
+
+        # Redo action
+        self.connect(self.viewToolBar.redoAction(),
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.viewManager.redo)
+
+        # Query pipeline action
+        self.connect(self.viewToolBar.visualQueryAction(),
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.viewManager.queryVistrail)
+
     def moduleSelectionChange(self, selection):
         """ moduleSelectionChange(selection: list[id]) -> None
         Update the status of tool bar buttons if there is module selected
@@ -421,11 +453,29 @@ class QBuilderWindow(QtGui.QMainWindow):
         Update the status of tool bar buttons if there is a version selected
         
         """
+        self.viewToolBar.executePipelineAction().setEnabled(versionId>-1)
         self.executeCurrentWorkflowAction.setEnabled(versionId>-1)
         self.undoAction.setEnabled(versionId>0)
-        self.redoAction.setEnabled(self.viewManager.currentWidget().can_redo())
+        self.viewToolBar.undoAction().setEnabled(versionId>0)
         self.selectAllAction.setEnabled(self.viewManager.canSelectAll())
-    
+        currentView = self.viewManager.currentWidget()
+        if currentView:
+            self.redoAction.setEnabled(currentView.can_redo())
+            self.viewToolBar.redoAction().setEnabled(currentView.can_redo())
+        else:
+            self.redoAction.setEnabled(False)
+            self.viewToolBar.redoAction().setEnabled(False)
+
+    def queryPipelineChange(self, notEmpty):
+        """ queryPipelineChange(notEmpty: bool) -> None
+        Update the status of tool bar buttons if there are
+        modules on the query canvas
+        
+        """
+        if not notEmpty and self.viewToolBar.visualQueryAction().isChecked():
+            self.viewToolBar.visualQueryAction().trigger()
+        self.viewToolBar.visualQueryAction().setEnabled(notEmpty)
+   
     def clipboardChanged(self, mode=QtGui.QClipboard.Clipboard):
         """ clipboardChanged(mode: QClipboard) -> None        
         Update the status of tool bar buttons when the clipboard
@@ -450,6 +500,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.saveVistrailAsAction.setEnabled(False)
             self.saveDBAction.setEnabled(False)
             self.executeCurrentWorkflowAction.setEnabled(False)
+            self.viewToolBar.executePipelineAction().setEnabled(False)
             #self.vistrailActionGroup.setEnabled(False)
             self.vistrailMenu.menuAction().setEnabled(False)
 
@@ -478,6 +529,14 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.saveVistrailAsAction.setEnabled(True)
         self.saveDBAction.setEnabled(True)
 
+    def newVistrail(self):
+        """ newVistrail() -> None
+        Start a new vistrail
+        
+        """
+        self.viewManager.newVistrail()
+        self.viewToolBar.changeView(0)
+
     def openVistrail(self):
         """ openVistrail() -> None
         Open a new vistrail
@@ -495,6 +554,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.saveDBAction.setEnabled(True)
             #self.vistrailActionGroup.setEnabled(True)
             self.vistrailMenu.menuAction().setEnabled(True)
+            self.viewToolBar.changeView(1)
 
     def openVistrailDB(self):
         """ openVistrailDB() -> None
@@ -509,6 +569,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.saveDBAction.setEnabled(True)
             #self.vistrailActionGroup.setEnabled(True)
             self.vistrailMenu.menuAction().setEnabled(True)
+            self.viewToolBar.changeView(1)
 
     def saveVistrail(self):
         """ saveVistrail() -> None
@@ -587,8 +648,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         Turn on/off the picture-in-picture mode
         
         """
-        self.viewManager.setPIPMode(checked)
-                
+        self.viewManager.setPIPMode(checked)                
+
     def vistrailViewAdded(self, view):
         """ vistrailViewAdded(view: QVistrailView) -> None
         Add this vistrail to the Vistrail menu

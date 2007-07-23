@@ -32,14 +32,13 @@ from gui.pipeline_tab import QPipelineTab
 from gui.query_tab import QQueryTab
 from gui.version_tab import QVersionTab
 from gui.vistrail_controller import VistrailController
-from gui.vistrail_toolbar import QVistrailViewToolBar
 
 
 ################################################################################
 
 class QVistrailView(QDockContainer):
     """
-    QVistrailView is a widget containing four tabs: Pipeline View,
+    QVistrailView is a widget containing four stacked widgets: Pipeline View,
     Version Tree View, Query View and Parameter Exploration view
     for manipulating vistrails.
     """
@@ -69,7 +68,7 @@ class QVistrailView(QDockContainer):
             self.pipelineTab.pipelineView.scene())
         
         # Setup a central stacked widget for pipeline view and version
-        # tree view in tabbed mode
+        # tree view
         self.stackedWidget = QtGui.QStackedWidget()
         self.setCentralWidget(self.stackedWidget)
         self.stackedWidget.addWidget(self.pipelineTab)
@@ -81,11 +80,6 @@ class QVistrailView(QDockContainer):
         #Keeping track of previous active tab to update menus accordingly
         self.activeIndex = 1
         
-        # Add the customized toolbar at the top
-        self.toolBar = QVistrailViewToolBar(self)
-        self.addToolBar(QtCore.Qt.TopToolBarArea,
-                        self.toolBar)
-
         # Initialize the vistrail controller
         self.controller = VistrailController()
         self.controller.vistrailView = self
@@ -97,63 +91,24 @@ class QVistrailView(QDockContainer):
         # So we can save in the right place
         self.locator = VistrailLocator()
         
-        # Make sure we can change view when requested
-        self.connect(self.toolBar,
-                     QtCore.SIGNAL('currentViewChanged(int)'),
-                     self.viewChanged)
-
-        # Execute pipeline action
-        self.connect(self.toolBar.executePipelineAction(),
-                     QtCore.SIGNAL('triggered(bool)'),
-                     self.executeCurrentWorkflow)
-
-        # Undo action
-        self.connect(self.toolBar.undoAction(),
-                     QtCore.SIGNAL('triggered(bool)'),
-                     self.undo)
-
-        # Redo action
-        self.connect(self.toolBar.redoAction(),
-                     QtCore.SIGNAL('triggered(bool)'),
-                     self.redo)
-
-        # Query pipeline action
-        self.connect(self.toolBar.visualQueryAction(),
-                     QtCore.SIGNAL('triggered(bool)'),
-                     self.queryVistrail)
-
-        # View full version tree
-        self.connect(self.toolBar.viewFullTreeAction(),
-                     QtCore.SIGNAL('triggered(bool)'),
-                     self.controller.setFullTree)
-
-        #Toolbar buttons state
-        self.connect(self.versionTab,
-                     QtCore.SIGNAL('versionSelectionChange'),
-                     self.versionSelectionChange)
-        self.connect(self.queryTab,
-                     QtCore.SIGNAL('queryPipelineChange'),
-                     self.queryPipelineChange)
-
-        # Space-storage for the builder window
-        self.savedToolBarArea = None
-        self.viewAction = None
         self.closeEventHandler = None
-
-        # Make sure to connect all graphics view to cursor mode of the
-        # toolbar
-        pipelineView = self.pipelineTab.pipelineView
-        versionView = self.versionTab.versionView
-        self.connect(self.toolBar, QtCore.SIGNAL('cursorChanged(int)'),
-                     pipelineView.setDefaultCursorState)
-        self.connect(self.toolBar, QtCore.SIGNAL('cursorChanged(int)'),
-                     versionView.setDefaultCursorState)
-        self.connect(self.toolBar, QtCore.SIGNAL('cursorChanged(int)'),
-                     self.queryTab.pipelineView.setDefaultCursorState)
 
         # the redo stack stores the undone action ids 
         # (undo is automatic with us, through the version tree)
         self.redo_stack = []
+
+    def updateCursorState(self, mode):
+        """ updateCursorState(mode: Int) -> None 
+        Change cursor state in all different modes.
+
+        """
+        self.pipelineTab.pipelineView.setDefaultCursorState(mode)
+        self.versionTab.versionView.setDefaultCursorState(mode)
+        self.queryTab.pipelineView.setDefaultCursorState(mode)
+        if self.parent().parent().parent().pipViewAction.isChecked():
+            self.pipelineTab.pipelineView.pipFrame.graphicsView.setDefaultCursorState(mode)
+            self.versionTab.versionView.pipFrame.graphicsView.setDefaultCursorState(mode)
+
 
     def updateViewMenu(self, viewIndex = None):
         """updateViewMenu(viewIndex: int) -> None
@@ -161,8 +116,6 @@ class QVistrailView(QDockContainer):
         being shown.
         
         """
-        if viewIndex == None:
-            viewIndex = self.toolBar.currentViewIndex
         builderMenu = self.parent().parent().parent().viewMenu
         if self.activeIndex == 0: #pipelineTab
             self.pipelineTab.removeViewActionsFromMenu(builderMenu)
@@ -194,7 +147,6 @@ class QVistrailView(QDockContainer):
         
         """
         self.controller.changeSelectedVersion(0)
-        self.toolBar.changeView(0)
         self.setupPIPView()
 
     def setOpenView(self):
@@ -204,7 +156,6 @@ class QVistrailView(QDockContainer):
         
         """
         self.controller.selectLatestVersion()
-        self.toolBar.changeView(1)
         self.setupPIPView()
        
     def setupPIPView(self):
@@ -217,18 +168,12 @@ class QVistrailView(QDockContainer):
             pipelineView.setPIPEnabled(True)
             versionView = self.versionTab.versionView
             versionView.setPIPEnabled(True)
-            pipelinePIPView = pipelineView.pipFrame.graphicsView
-            self.connect(self.toolBar, QtCore.SIGNAL('cursorChanged(int)'),
-                         pipelinePIPView.setDefaultCursorState)
-            versionPIPView = versionView.pipFrame.graphicsView
-            self.connect(self.toolBar, QtCore.SIGNAL('cursorChanged(int)'),
-                         versionPIPView.setDefaultCursorState)
         else:
             self.pipelineTab.pipelineView.setPIPEnabled(False)
             self.versionTab.versionView.setPIPEnabled(False)
             
-    def viewChanged(self, index):
-        """ tabChanged(index: int) -> None        
+    def viewModeChanged(self, index):
+        """ viewModeChanged(index: int) -> None        
         Slot for switching different views when the tab's current
         widget is changed
         
@@ -269,26 +214,6 @@ class QVistrailView(QDockContainer):
         self.setWindowTitle(title)
         self.redo_stack = []
 
-    def versionSelectionChange(self, versionId):
-        """ versionSelectionChange(versionId: int) -> None
-        Update the status of tool bar buttons if there is a version selected
-        
-        """
-        self.toolBar.executePipelineAction().setEnabled(versionId>-1)
-        self.toolBar.undoAction().setEnabled(versionId>0)
-        self.toolBar.redoAction().setEnabled(self.can_redo())
-
-    def queryPipelineChange(self, notEmpty):
-        """ versionSelectionChange(notEmpty: bool) -> None
-        Update the status of tool bar buttons if there are
-        modules on the query canvas
-        
-        """
-#        if not notEmpty and self.toolBar.visualQueryAction().isChecked():
-#            self.toolBar.visualQueryAction().trigger()
-        self.toolBar.visualQueryAction().setChecked(False)
-        self.toolBar.visualQueryAction().setEnabled(notEmpty)
-
     def emitDockBackSignal(self):
         """ emitDockBackSignal() -> None
         Emit a signal for the View Manager to take this widget back
@@ -324,14 +249,6 @@ class QVistrailView(QDockContainer):
                 self.controller.queryByExample(queryPipeline)
         else:
             self.controller.setSearch(None)
-
-    def executeCurrentWorkflow(self):
-        """ executeCurrentWorkflow() -> None
-        Make sure to get focus for QModuleMethods to update
-        
-        """
-        self.setFocus(QtCore.Qt.MouseFocusReason)
-        self.controller.executeCurrentWorkflow()
 
     def createPopupMenu(self):
         """ createPopupMenu() -> QMenu
