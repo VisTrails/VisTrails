@@ -121,8 +121,6 @@ class vtkBaseModule(Module):
                     self.setResult(function, type(retValues)(result))
                 else:
                     self.setResult(function, retValues)
-            elif function!='self':
-                print 'Unknown output port %s from' % function, self.vtkClass
 
     @staticmethod
     def wrapperModule(classname, instance):

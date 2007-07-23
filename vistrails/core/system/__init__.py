@@ -27,7 +27,7 @@ import popen2
 from core.utils import unimplemented, VistrailsInternalError
 import core.requirements
 
-################################################################################
+##############################################################################
 
 systemType = platform.system()
 
@@ -58,6 +58,19 @@ else:
     print "Critical error"
     print "VisTrails could not detect your operating system."
     sys.exit(1)
+
+def touch(file_name):
+    """touch(file_name) -> None Equivalent to 'touch' in a shell. If
+    file exists, updates modified time to current time. If not,
+    creates a new 0-length file.
+    
+    """
+    if os.path.isfile(file_name):
+        os.utime(file_name, None)
+    else:
+        file(file_name, 'w')
+
+##############################################################################
 
 # Makes sure root directory is sensible.
 if __name__ == '__main__':

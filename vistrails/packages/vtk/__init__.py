@@ -46,6 +46,15 @@ import os.path
 
 ################################################################################
 
+# filter some deprecation warnings coming from the fact that vtk calls
+# range() with float parameters
+
+import warnings
+warnings.filterwarnings("ignore",
+                        message="integer argument expected, got float")
+
+################################################################################
+
 parser = VTKMethodParser()
 
 
@@ -366,9 +375,12 @@ def addPorts(module):
         addInputPort(module, 'AddInputConnection',
                      typeMap('vtkAlgorithmOutput'))
     # Somehow vtkProbeFilter.GetOutput cannot be found in any port list
-    if module.vtkClass==vtk.vtkProbeFilter:
+    elif module.vtkClass==vtk.vtkProbeFilter:
         addOutputPort(module, 'GetOutput',
                       typeMap('vtkPolyData'), True)
+    # vtkWriters have a custom File port
+    elif module.vtkClass==vtk.vtkWriter:
+        addOutputPort(module, 'file', typeMap('File'))
 
 def setAllPorts(treeNode):
     """ setAllPorts(treeNode: TreeNode) -> None
@@ -394,6 +406,7 @@ def class_dict(base_module, node):
             class_dict_[name] = callable_(None)
 
     def guarded_SetFileName_wrap_compute(old_compute):
+        # This checks for the presence of file in VTK readers
         def compute(self):
             if self.hasInputFromPort('SetFileName'):
                 name = self.getInputFromPort('SetFileName')
@@ -413,9 +426,34 @@ def class_dict(base_module, node):
             self.vtkInstance.SetFileName(file_obj.name)
         return call_SetFile
 
+    def guarded_Writer_wrap_compute(old_compute):
+        # The behavior for vtkWriter subclasses is to call Write()
+        # If the user sets a name, we will create a file with that name
+        # If not, we will create a temporary file from the file pool
+        def compute(self):
+            old_compute(self)
+            fn = self.vtkInstance.GetFileName()
+            if not fn:
+                o = self.interpreter.filePool.create_file(suffix='.vtk')
+                self.vtkInstance.SetFileName(o.name)
+            else:
+                o = File()
+                o.name = fn
+            self.vtkInstance.Write()
+            self.setResult('file', o)
+        return compute
+
     if hasattr(node.klass, 'SetFileName'):
-        update_dict('compute', guarded_SetFileName_wrap_compute)
+        # Everyone that has a SetFileName should have a SetFile port too
         update_dict('_special_input_function_SetFile', compute_SetFile)
+        # ... BUT we only want to check existence of filenames on
+        # readers. VTK is nice enough to be consistent with names, but
+        # this is brittle..
+        if node.klass.__name__.endswith('Reader'):
+            update_dict('compute', guarded_SetFileName_wrap_compute)
+
+    if issubclass(node.klass, vtk.vtkWriter):
+        update_dict('compute', guarded_Writer_wrap_compute)
 
     return class_dict_
 
@@ -546,3 +584,42 @@ def package_requirements():
         print 'PyQt4 is not available. There will be no interaction',
         print 'between VTK and the spreadsheet.'
     import vtk
+
+################################################################################
+
+from core.console_mode import run
+import os
+import core.system
+import unittest
+from core.utils import VistrailLocator
+
+class TestVTKPackage(unittest.TestCase):
+
+    def test_writer(self):
+
+        result_filename = (core.system.temporary_directory() +
+                           os.path.sep +
+                           'test_vtk_12345.vtk')
+        template_filename = (core.system.vistrails_root_directory() +
+                             '/tests/resources/vtkfiles/vtk_quadric_writer_test.vtk')
+
+        def compare():
+            for (l1, l2) in zip(file(result_filename, 'r'),
+                                file(template_filename, 'r')):
+                if l1 != l2:
+                    self.fail("Resulting file doesn't match template")
+            
+        locator = VistrailLocator(VistrailLocator.ORIGIN.FILE,
+                                  core.system.vistrails_root_directory() +
+                                  '/tests/resources/vtk.xml')
+
+        result = run(locator, "writer_test")
+        self.assertEquals(result, True)
+        compare()
+        os.remove(result_filename)
+
+        result = run(locator, "writer_test_filesink")
+        self.assertEquals(result, True)
+        compare()
+        os.remove(result_filename)
+        

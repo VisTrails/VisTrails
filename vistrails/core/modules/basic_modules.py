@@ -124,6 +124,9 @@ class File(Module):
     def compute(self):
         self.checkInputPort("name")
         n = self.getInputFromPort("name")
+        if (self.hasInputFromPort("create_file") and
+            self.getInputFromPort("create_file")):
+            core.system.touch(n)
         self.name = n
         if not os.path.isfile(n):
             raise ModuleError(self, "File '%s' not existent" % n)
@@ -132,6 +135,7 @@ class File(Module):
 _reg.addModule(File)
 _reg.addInputPort(File, "name", String)
 _reg.addOutputPort(File, "self", File)
+_reg.addInputPort(File, "create_file", Boolean)
 _reg.addOutputPort(File, "local_filename", String, True)
 
 ##############################################################################

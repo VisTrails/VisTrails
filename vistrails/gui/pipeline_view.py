@@ -135,6 +135,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
             self.setPen(CurrentTheme.PORT_SELECTED_PEN);
             event.accept()
         QtGui.QGraphicsRectItem.mousePressEvent(self, event)
+        # super(QGraphicsPortItem, self).mousePressEvent(event)
         
     def mouseReleaseEvent(self, event):
         """ mouseReleaseEvent(event: QMouseEvent) -> None
@@ -160,8 +161,9 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
             self.scene().removeItem(self.connection)
             self.connection = None
         self.dragging = False
-        self.setPen(CurrentTheme.PORT_PEN);
+        self.setPen(CurrentTheme.PORT_PEN)
         QtGui.QGraphicsRectItem.mouseReleaseEvent(self, event)
+        # super(QGraphicsPortItem, self).mouseReleaseEvent(event)
         
     def mouseMoveEvent(self, event):
         """ mouseMoveEvent(event: QMouseEvent) -> None
@@ -192,6 +194,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
             self.connection.setLine(startPos.x(), startPos.y(),
                                     endPos.x(), endPos.y())
         QtGui.QGraphicsRectItem.mouseMoveEvent(self, event)
+        # super(QGraphicsPortItem, self).mouseMoveEvent(event)
 
     def findModuleUnder(self, pos):
         """ findModuleUnder(pos: QPoint) -> QGraphicsItem
@@ -326,8 +329,8 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
 # set this to True to have old sine-wave connections
 __old_connection = False
 if __old_connection:
-    class QGraphicsConnectionItem(QtGui.QGraphicsPolygonItem,
-                                  QGraphicsItemInterface):
+    class QGraphicsConnectionItem(QGraphicsItemInterface,
+                                  QtGui.QGraphicsPolygonItem):
         """
         QGraphicsConnectionItem is a connection shape connecting two port items
 
@@ -451,8 +454,8 @@ if __old_connection:
             self.useSelectionRules = True
             return QtGui.QGraphicsPolygonItem.itemChange(self, change, value)
 else:
-    class QGraphicsConnectionItem(QtGui.QGraphicsPathItem,
-                                  QGraphicsItemInterface):
+    class QGraphicsConnectionItem(QGraphicsItemInterface,
+                                  QtGui.QGraphicsPathItem):
         """
         QGraphicsConnectionItem is a connection shape connecting two port items
 
@@ -603,7 +606,7 @@ else:
 ##############################################################################
 # QGraphicsModuleItem
 
-class QGraphicsModuleItem(QtGui.QGraphicsItem, QGraphicsItemInterface):
+class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
     """
     QGraphicsModuleItem knows how to draw a Vistrail Module into the
     pipeline view. It is usually a rectangular shape with a bold text
@@ -1139,7 +1142,6 @@ mutual connections."""
             dlg = QtGui.QMessageBox.warning(None,
                                             "Invalid Abstraction",
                                             str(e))
-        
 
 #    def contextMenuEvent(self, event):
 #        selectedItems = self.selectedItems()
@@ -1280,6 +1282,7 @@ mutual connections."""
 
         else:
             QInteractiveGraphicsScene.keyPressEvent(self, event)
+            # super(QPipelineScene, self).keyPressEvent(event)
 
     def copySelection(self):
         """ copySelection() -> None
