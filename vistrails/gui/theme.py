@@ -75,6 +75,9 @@ class DefaultTheme(object):
     # The size of the frame containing the PIP graphics view
     PIP_DEFAULT_SIZE = (128, 128)
 
+    # The default minimum size of the graphics views
+    BOUNDING_RECT_MINIMUM = 512
+
     # Default Paramter Inspector Window dimension
     VISUAL_DIFF_PARAMETER_WINDOW_SIZE = (348,256)
 

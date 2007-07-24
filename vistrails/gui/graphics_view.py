@@ -107,6 +107,18 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         for item in self.items():
             rect = item.sceneBoundingRect()
             self.sceneBoundingRect = self.sceneBoundingRect.united(rect)
+
+        # Keep a minimum size
+        minWDiff = 0
+        minHDiff = 0
+        min = CurrentTheme.BOUNDING_RECT_MINIMUM
+        if self.sceneBoundingRect.width() < min:
+            minWDiff = min-self.sceneBoundingRect.width()
+        if self.sceneBoundingRect.height() < min:
+            minHDiff = min-self.sceneBoundingRect.height()
+        self.sceneBoundingRect.adjust(-minWDiff/2, minHDiff/2, 
+                                       minWDiff/2, -minHDiff/2)
+
         diff = abs(self.sceneBoundingRect.width()-
                    self.sceneBoundingRect.height())
         if self.sceneBoundingRect.width()<self.sceneBoundingRect.height():
