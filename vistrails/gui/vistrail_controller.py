@@ -525,7 +525,7 @@ class VistrailController(QtCore.QObject):
         Change the currrent version tree search statement
         
         """
-        if search != search or self.searchStr != text:
+        if self.search != search or self.searchStr != text:
             self.search = search
             self.searchStr = text
             if self.search:
@@ -711,9 +711,9 @@ class VistrailController(QtCore.QObject):
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
-        pInspector = PipelineInspector()
-        if self.currentPipeline:
-            pInspector.inspect_input_output_ports(self.currentPipeline)
+#         pInspector = PipelineInspector()
+#         if self.currentPipeline:
+#             pInspector.inspect_input_output_ports(self.currentPipeline)
             
         try:
             if self.vistrail.hasTag(self.currentVersion):
@@ -726,15 +726,15 @@ class VistrailController(QtCore.QObject):
                          "Please enter a different one." % tag)
             return
 
-        if pInspector.is_sub_module() and tag!='':
-            ans = show_question("Add Sub-Module",
-                                "'%s' can be used as a module in VisTrails. "
-                                "Do you want to add it to VisTrails Modules?"
-                                % tag,
-                                [YES_BUTTON, NO_BUTTON], YES_BUTTON)
-            if ans==YES_BUTTON:
-                self.addSubModule(tag, self.name, self.vistrail, self.fileName,
-                                  self.currentVersion, pInspector)
+#         if pInspector.is_sub_module() and tag!='':
+#             ans = show_question("Add Sub-Module",
+#                                 "'%s' can be used as a module in VisTrails. "
+#                                 "Do you want to add it to VisTrails Modules?"
+#                                 % tag,
+#                                 [YES_BUTTON, NO_BUTTON], YES_BUTTON)
+#             if ans==YES_BUTTON:
+#                 self.addSubModule(tag, self.name, self.vistrail, self.fileName,
+#                                   self.currentVersion, pInspector)
         self.setChanged(True)
 
         self.resetVersionView = False
@@ -998,47 +998,50 @@ class VistrailController(QtCore.QObject):
         Wrap sub_module.addSubModule to show GUI dialogs
         
         """
-        try:
-            return addSubModule(moduleName, packageName, vistrail, fileName,
-                                version, inspector)
-        except ModuleAlreadyExists:
-            show_warning('Module Exists',
-                         "Failed to registered '%s' as a module "
-                         "because there is already another module with "
-                         "the same name. Please change the version name "
-                         "and manually add it later." % moduleName)
-        except DupplicateSubModule:
-            show_warning('Module Exists',
-                         "Failed to registered '%s' as a module "
-                         "because it is already registered." % moduleName)
+        raise VistrailsInternalError("Currently broken")
+#         try:
+#             return addSubModule(moduleName, packageName, vistrail, fileName,
+#                                 version, inspector)
+#         except ModuleAlreadyExists:
+#             show_warning('Module Exists',
+#                          "Failed to registered '%s' as a module "
+#                          "because there is already another module with "
+#                          "the same name. Please change the version name "
+#                          "and manually add it later." % moduleName)
+#         except DupplicateSubModule:
+#             show_warning('Module Exists',
+#                          "Failed to registered '%s' as a module "
+#                          "because it is already registered." % moduleName)
 
     def inspectAndImportModules(self):
         """ inspectAndImportModules() -> None        
         Go through all named pipelines and ask user to import them
         
         """
-        importModule = False
-        inspector = PipelineInspector()
-        for version in sorted(self.vistrail.inverseTagMap.keys()):
-            tag = self.vistrail.inverseTagMap[version]
-            if tag!='':
-                pipeline = self.vistrail.getPipeline(version)
-                inspector.inspect(pipeline)
-                if inspector.is_sub_module():
-                    if importModule==False:
-                        res = show_question('Import Modules',
-                                            "'%s' contains importable modules. "
-                                            "Do you want to import all of them?"
-                                            % self.name,
-                                            [YES_BUTTON, NO_BUTTON], YES_BUTTON)
-                        if res==YES_BUTTON:
-                            importModule = True
-                        else:
-                            return
-                    if importModule:
-                        self.addSubModule(tag, self.name, self.vistrail,
-                                          self.fileName, version,
-                                          inspector)
+        # Currently broken
+        pass
+#         importModule = False
+#         inspector = PipelineInspector()
+#         for version in sorted(self.vistrail.inverseTagMap.keys()):
+#             tag = self.vistrail.inverseTagMap[version]
+#             if tag!='':
+#                 pipeline = self.vistrail.getPipeline(version)
+#                 inspector.inspect(pipeline)
+#                 if inspector.is_sub_module():
+#                     if importModule==False:
+#                         res = show_question('Import Modules',
+#                                             "'%s' contains importable modules. "
+#                                             "Do you want to import all of them?"
+#                                             % self.name,
+#                                             [YES_BUTTON, NO_BUTTON], YES_BUTTON)
+#                         if res==YES_BUTTON:
+#                             importModule = True
+#                         else:
+#                             return
+#                     if importModule:
+#                         self.addSubModule(tag, self.name, self.vistrail,
+#                                           self.fileName, version,
+#                                           inspector)
 
     def create_abstraction(self, subgraph):
         self.vistrail.create_abstraction(self.currentVersion,
