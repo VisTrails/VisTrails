@@ -29,7 +29,10 @@ import db.services.action
 from xml.dom.minidom import parse, getDOMImplementation
 
 def openVistrail(filename):
-    return db.services.io.openVistrailFromXML(filename)    
+    vistrail = db.services.io.openVistrailFromXML(filename)
+    from core.vistrail.vistrail import Vistrail
+    Vistrail.convert(vistrail)
+    return vistrail
 
 def getWorkflow(vt, version):
     workflow = db.services.vistrail.materializeWorkflow(vt, version)

@@ -280,69 +280,6 @@ class DummyView(object):
     def set_module_error(*args, **kwargs): pass
     def set_module_not_executed(*args, **kwargs): pass
 
-##############################################################################
-# VistrailLocator
-class VistrailLocator(object):
-    ORIGIN = enum('Origin',
-                       ['FILE','DB'],
-                       "Enumeration of vistrails origins")
-    
-    def __init__(self, origin=ORIGIN.FILE, name=''):
-        self.origin = origin
-        self.name = name
-        #when origin is DB we need the location information
-        self.conn_id = -1
-        self.host = ''
-        self.port = -1
-        self.db = ''
-        self.vt_id = -1
-
-    def _get_origin(self):
-        return self._origin
-    def _set_origin(self, origin):
-        self._origin = origin
-    origin = property(_get_origin,_set_origin)
-
-    def _get_name(self):
-        if self.origin == VistrailLocator.ORIGIN.FILE:
-            return self._name
-        else:
-            return ".".join([self.host,str(self.port),self.db,
-                             str(self.vt_id), self._name])
-    def _set_name(self, name):
-        self._name = name
-    name = property(_get_name,_set_name)
-
-    def _get_conn_id(self):
-        return self._conn_id
-    def _set_conn_id(self, conn_id):
-        self._conn_id = conn_id
-    conn_id = property(_get_conn_id,_set_conn_id)
-    
-    def _get_host(self):
-        return self._host
-    def _set_host(self, host):
-        self._host = str(host)
-    host = property(_get_host,_set_host)
-
-    def _get_port(self):
-        return self._port
-    def _set_port(self, port):
-        self._port = int(port)
-    port = property(_get_port,_set_port)
-
-    def _get_db(self):
-        return self._db
-    def _set_db(self, db):
-        self._db = str(db)
-    db = property(_get_db,_set_db)
-
-    def _get_vt_id(self):
-        return self._vt_id
-    def _set_vt_id(self, vt_id):
-        self._vt_id = vt_id
-    vt_id = property(_get_vt_id,_set_vt_id)
-    
 ##############################################################################    
 # FIXME: Add tests
 def no_interrupt(callable_, *args, **kwargs):

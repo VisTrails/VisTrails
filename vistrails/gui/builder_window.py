@@ -35,6 +35,7 @@ from gui.theme import CurrentTheme
 from gui.view_manager import QViewManager
 from gui.vistrail_toolbar import QVistrailViewToolBar
 from gui.preferences import QPreferencesDialog
+from db.services.io import XMLFileLocator, DBLocator
 import copy
 import core.interpreter.cached
 import os
@@ -154,30 +155,30 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.newVistrailAction.setShortcut('Ctrl+N')
         self.newVistrailAction.setStatusTip('Create a new Vistrail')
         
-        self.openVistrailAction = QtGui.QAction(CurrentTheme.OPEN_VISTRAIL_ICON,
-                                                '&Open', self)
-        self.openVistrailAction.setShortcut('Ctrl+O')
-        self.openVistrailAction.setStatusTip('Open an existing VisTrail from '
-                                             'the filesystem')
+        self.openFileAction = QtGui.QAction(CurrentTheme.OPEN_VISTRAIL_ICON,
+                                            '&Open', self)
+        self.openFileAction.setShortcut('Ctrl+O')
+        self.openFileAction.setStatusTip('Open an existing VisTrail from '
+                                         'the filesystem')
 
         self.openDBAction = QtGui.QAction(CurrentTheme.OPEN_VISTRAIL_DB_ICON,
                                           '&Open', self)
         self.openDBAction.setShortcut('Ctrl+Shift+O')
         self.openDBAction.setStatusTip('Open an existing VisTrail from '
                                              'database')
-        self.openVistrailDefaultAction = self.openVistrailAction
+        self.openVistrailDefaultAction = self.openFileAction
         
-        self.saveVistrailAction = QtGui.QAction(CurrentTheme.SAVE_VISTRAIL_ICON,
+        self.saveFileAction = QtGui.QAction(CurrentTheme.SAVE_VISTRAIL_ICON,
                                                 '&Save', self)
-        self.saveVistrailAction.setShortcut('Ctrl+S')
-        self.saveVistrailAction.setStatusTip('Save the current VisTrail')
-        self.saveVistrailAction.setEnabled(False)
+        self.saveFileAction.setShortcut('Ctrl+S')
+        self.saveFileAction.setStatusTip('Save the current VisTrail')
+        self.saveFileAction.setEnabled(False)
         
-        self.saveVistrailAsAction = QtGui.QAction('Save as file...', self)
-        self.saveVistrailAsAction.setShortcut('Ctrl+Shift+S')
-        self.saveVistrailAsAction.setStatusTip('Save the current VisTrail at '
+        self.saveFileAsAction = QtGui.QAction('Save as file...', self)
+        self.saveFileAsAction.setShortcut('Ctrl+Shift+S')
+        self.saveFileAsAction.setStatusTip('Save the current VisTrail at '
                                              'a different disk location')
-        self.saveVistrailAsAction.setEnabled(False)
+        self.saveFileAsAction.setEnabled(False)
 
         self.saveDBAction = QtGui.QAction('Save to database...', self)
         self.saveDBAction.setStatusTip('Save the current VisTrail on '
@@ -265,12 +266,12 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.fileMenu = self.menuBar().addMenu('&File')
         self.fileMenu.addAction(self.newVistrailAction)
         self.openMenu = self.fileMenu.addMenu('Open...')
-        self.openMenu.addAction(self.openVistrailAction)
+        self.openMenu.addAction(self.openFileAction)
         self.openMenu.addAction(self.openDBAction)
         #self.fileMenu.addSeparator()
-        self.fileMenu.addAction(self.saveVistrailAction)
+        self.fileMenu.addAction(self.saveFileAction)
         self.saveAsMenu = self.fileMenu.addMenu('Save As...')
-        self.saveAsMenu.addAction(self.saveVistrailAsAction)
+        self.saveAsMenu.addAction(self.saveFileAsAction)
         self.saveAsMenu.addAction(self.saveDBAction)
         self.fileMenu.addAction(self.closeVistrailAction)
         self.fileMenu.addSeparator()
@@ -318,8 +319,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.toolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
         self.addToolBar(self.toolBar)
         self.toolBar.addAction(self.newVistrailAction)
-        self.toolBar.addAction(self.openVistrailAction)
-        self.toolBar.addAction(self.saveVistrailAction)
+        self.toolBar.addAction(self.openFileAction)
+        self.toolBar.addAction(self.saveFileAction)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.bookmarksAction)
 
@@ -364,11 +365,11 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.pasteAction, self.viewManager.pasteToCurrentPipeline),
             (self.pasteAction, self.viewManager.selectAllModules),
             (self.newVistrailAction, self.newVistrail),
-            (self.openVistrailAction, self.openVistrail),
-            (self.openDBAction, self.openVistrailDB),
-            (self.saveVistrailAction, self.saveVistrail),
-            (self.saveVistrailAsAction, self.saveVistrailAs),
-            (self.saveDBAction, self.saveVistrailDB),
+            (self.openFileAction, self.open_vistrail_from_file),
+            (self.openDBAction, self.open_vistrail_from_db),
+            (self.saveFileAction, self.save_vistrail),
+            (self.saveFileAsAction, self.save_vistrail_file_as),
+            (self.saveDBAction, self.save_vistrail_db_as),
             (self.closeVistrailAction, self.viewManager.closeVistrail),
             (self.helpAction, self.showAboutMessage),
             (self.editPreferencesAction, self.showPreferences),
@@ -495,9 +496,9 @@ class QBuilderWindow(QtGui.QMainWindow):
                                 vistrailView.windowTitle())
         else:
             self.setWindowTitle('VisTrails Builder')
-            self.saveVistrailAction.setEnabled(False)
+            self.saveFileAction.setEnabled(False)
             self.closeVistrailAction.setEnabled(False)
-            self.saveVistrailAsAction.setEnabled(False)
+            self.saveFileAsAction.setEnabled(False)
             self.saveDBAction.setEnabled(False)
             self.executeCurrentWorkflowAction.setEnabled(False)
             self.viewToolBar.executePipelineAction().setEnabled(False)
@@ -525,8 +526,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         An action was performed on the current vistrail
         
         """
-        self.saveVistrailAction.setEnabled(True)
-        self.saveVistrailAsAction.setEnabled(True)
+        self.saveFileAction.setEnabled(True)
+        self.saveFileAsAction.setEnabled(True)
         self.saveDBAction.setEnabled(True)
 
     def newVistrail(self):
@@ -537,84 +538,59 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.viewManager.newVistrail()
         self.viewToolBar.changeView(0)
 
-    def openVistrail(self):
-        """ openVistrail() -> None
-        Open a new vistrail
+    def open_vistrail(self, locator_class):
+        """ open_vistrail(locator_class) -> None
+        Prompt user for information to get to a vistrail in different ways,
+        depending on the locator class given.
+        """
+        locator = locator_class.load_from_gui(self)
+        if locator:
+            self.viewManager.open_vistrail(locator)
+            self.closeVistrailAction.setEnabled(True)
+            self.saveFileAsAction.setEnabled(True)
+            self.saveDBAction.setEnabled(True)
+            # self.vistrailActionGroup.setEnabled(True)
+            self.vistrailMenu.menuAction().setEnabled(True)
+            self.viewToolBar.changeView(1)
+
+    def open_vistrail_from_file(self):
+        """ open_vistrail_from_file() -> None
+        Opens a vistrail from the file system
         
         """
-        fileName = QtGui.QFileDialog.getOpenFileName(
-            self,
-            "Open Vistrail...",
-            system.vistrails_directory(),
-            "Vistrail files (*.xml)\nOther files (*)")
-        if not fileName.isEmpty():
-            self.viewManager.openVistrail(str(fileName))
-            self.closeVistrailAction.setEnabled(True)
-            self.saveVistrailAsAction.setEnabled(True)
-            self.saveDBAction.setEnabled(True)
-            #self.vistrailActionGroup.setEnabled(True)
-            self.vistrailMenu.menuAction().setEnabled(True)
-            self.viewToolBar.changeView(1)
+        self.open_vistrail(XMLFileLocator)
 
-    def openVistrailDB(self):
-        """ openVistrailDB() -> None
-        Open a vistrail from the database
+    def open_vistrail_from_db(self):
+        """ open_vistrail_from_db() -> None
+        Opens a vistrail from the database
 
         """
-        config, vistrailId = QOpenDBWindow.getOpenVistrail()
-        if config != {} and vistrailId != -1:
-            self.viewManager.openVistrailFromDB(config, vistrailId)
-            self.closeVistrailAction.setEnabled(True)
-            self.saveVistrailAsAction.setEnabled(True)
-            self.saveDBAction.setEnabled(True)
-            #self.vistrailActionGroup.setEnabled(True)
-            self.vistrailMenu.menuAction().setEnabled(True)
-            self.viewToolBar.changeView(1)
+        self.open_vistrail(DBLocator)
 
-    def saveVistrail(self):
-        """ saveVistrail() -> None
+    def save_vistrail(self):
+        """ save_vistrail() -> None
         Save the current vistrail to file
         
         """
-        self.viewManager.saveVistrail()
-        
+        current_view = self.viewManager.currentWidget()
+        locator = current_view.controller.locator
+        if locator is None:
+            class_ = XMLFileLocator
+        else:
+            class_ = type(locator)
+        self.viewManager.save_vistrail(class_)
 
-    def saveVistrailAs(self):
-        """ saveVistrailAs() -> None
+    def save_vistrail_file_as(self):
+        """ save_vistrail_file_as() -> None
         Save the current vistrail to a different file
         
         """
-        fileName = QtGui.QFileDialog.getSaveFileName(
-            self,
-            "Save vistrail As..",
-            system.vistrails_directory(),
-            "XML files (*.xml)",
-            None,
-            QtGui.QFileDialog.DontConfirmOverwrite)
-            
-        if not fileName:
-            return
-        else:
-            f = str(fileName)
-            if not f.endswith('.xml'):
-                f += '.xml'
-            if os.path.isfile(f):
-                msg = QtGui.QMessageBox(QtGui.QMessageBox.Question,
-                                        "VisTrails",
-                                        "File exists. Overwrite?",
-                                        (QtGui.QMessageBox.Yes |
-                                         QtGui.QMessageBox.No),
-                                        self)
-                if msg.exec_() == QtGui.QMessageBox.No:
-                    return
-            self.viewManager.saveVistrailFile(None, f)
+        self.viewManager.save_vistrail(XMLFileLocator,
+                                       force_choose_locator=True)
 
-    def saveVistrailDB(self):
-        config, name = QOpenDBWindow.getSaveVistrail()
-        if config != {} and name != "":
-            self.viewManager.saveVistrailDB(None, name, config)
-        else:
-            return
+    def save_vistrail_db_as(self):
+        self.viewManager.save_vistrail(DBLocator,
+                                       force_choose_locator=True)
     
     def quitVistrails(self):
         """ quitVistrails() -> bool

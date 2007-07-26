@@ -811,6 +811,7 @@ class VistrailController(QtCore.QObject):
         Paste a list of modules and connections into the current pipeline
 
         """
+        # FIXME: this should go to dbservices
         pipeline = db.services.io.getWorkflowFromXML(str)
         Pipeline.convert(pipeline)
 
@@ -940,40 +941,13 @@ class VistrailController(QtCore.QObject):
         Returns True if current pipeline has an alias named name """
         return self.currentPipeline.hasAlias(name)
 
-    def writeVistrailDB(self, locator):
-        """writeVistrailDB(locator: VistrailLocator) -> None
-        Write vistrail to database and emit changed signal
-        
-        """
-        if locator:
-            name = locator.name
-            conn_id = locator.conn_id
-        if self.vistrail and (self.changed or name != self.fileName):
-            try:
-                self.vistrail.db_name = name
-                db.services.io.save_to_db(conn_id, self.vistrail)
-                self.fileName = name
-                self.name = name
-                self.changed = False
-                self.emit(QtCore.SIGNAL('stateChanged'))
-            except Exception, e:
-                QtGui.QMessageBox.critical(None,
-                                           'Vistrails',
-                                           str(e))
-
-    def writeVistrail(self, locator):
-        """ writeVistrail(locator: VistrailLocator) -> None
-        Write vistrail to file and emit changed signal
-        
-        """
+    def write_vistrail(self, locator):
         if self.vistrail and (self.changed or
-                              locator.name!=self.fileName):
-            self.vistrail.serialize(locator.name)
-            self.changed = False
+                              self.locator != locator):
             self.locator = locator
+            self.locator.save(self.vistrail)
+            self.setChanged(False)
             self.setFileName(locator.name)
-            self.name = os.path.split(locator.name)[1]
-            self.emit(QtCore.SIGNAL('stateChanged'))
 
     def queryByExample(self, pipeline):
         """ queryByExample(pipeline: Pipeline) -> None

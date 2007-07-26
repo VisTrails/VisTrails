@@ -32,9 +32,9 @@ import os.path
 from core.ensemble_pipelines import EnsemblePipelines
 from core.interpreter.default import get_default_interpreter
 from core.param_explore import InterpolateDiscreteParam, ParameterExploration
-from core.utils import VistrailsInternalError, DummyView, VistrailLocator
+from core.utils import VistrailsInternalError, DummyView
 from core.utils.uxml import named_elements, XMLWrapper
-from core.xml_parser import XMLParser
+from db.services.io import XMLFileLocator
 
 ################################################################################
 
@@ -51,7 +51,7 @@ class Bookmark(object):
         self.pipeline = pipeline
         self.name = name
         self.type = type
-        if locator and os.path.exists(self.locator.name):
+        if locator and locator.is_valid():
             self.error = 0
         else:
             self.error = 1 #error = 1: file not found
@@ -69,13 +69,15 @@ class Bookmark(object):
         if self.type == 'item':
             bmark.setAttribute('pipeline', str(self.pipeline))
             node = dom.createElement('filename')
+            assert isinstance(self.locator, XMLFileLocator)
             filename = dom.createTextNode(str(self.locator.name))
             node.appendChild(filename)
             bmark.appendChild(node)           
         element.appendChild(bmark)
 
     def __str__(self):
-        """ __str__() -> str - Writes itself as a string """ 
+        """ __str__() -> str - Writes itself as a string """
+        assert isinstance(self.locator, XMLFileLocator)
         return """<<id= '%s' name='%s' type='%s' parent='%s' 
         filename='%s' pipeline='%s' error='%s'>>""" %  (
             self.id,
@@ -102,10 +104,9 @@ class Bookmark(object):
         if bookmark.type == "item":
             for n in element.childNodes:
                 if n.localName == "filename":
-                    locator = VistrailLocator() 
-                    locator.name = str(n.firstChild.nodeValue).strip(" \n\t")
+                    locator = XMLFileLocator(str(n.firstChild.nodeValue).strip(" \n\t"))
                     bookmark.locator = locator
-                    if os.path.exists(bookmark.locator.name):
+                    if locator.is_valid():
                         bookmark.error = 0
                     else:
                         bookmark.error = 1
@@ -128,7 +129,7 @@ class Bookmark(object):
         if self.parent != other.parent:
             return False
         if self.type == 'item':
-            if self.locator.name != other.locator.name:
+            if self.locator != other.locator:
                 return False
             if self.pipeline != other.pipeline:
                 return False
@@ -352,34 +353,29 @@ class BookmarkController(object):
         the ensemble 
 
         """
-        parser = XMLParser()
         bookmark = self.collection.bookmark_map[id]
-        parser.openVistrail(bookmark.locator.name)
-        v = parser.getVistrail()
+        v = bookmark.locator.load()
         if v.hasVersion(bookmark.pipeline):
             self.pipelines[id] = v.getPipeline(bookmark.pipeline)
             self.ensemble.add_pipeline(id, self.pipelines[id])
             self.ensemble.assemble_aliases()
         else:
             bookmark.error = 2
-        parser.closeVistrail()
 
     def load_all_pipelines(self):
         """load_all_pipelines() -> None
         Load all bookmarks' pipelines and sets an ensemble
 
         """
-        parser = XMLParser()
         self.pipelines = {}
         vistrails = {}
         for id, bookmark in self.collection.bookmark_map.iteritems():
-            if os.path.exists(bookmark.locator.name):
+            if bookmark.locator.is_valid():
+                assert isinstance(bookmark.locator, XMLFileLocator)
                 if vistrails.has_key(bookmark.locator.name):
                     v = vistrails[bookmark.locator.name]
                 else:
-                    parser.openVistrail(bookmark.locator.name)
-                    v = parser.getVistrail()
-                    parser.closeVistrail()
+                    v = bookmark.locator.load()
                     vistrails[bookmark.locator.name] = v
                     
                 if v.hasVersion(bookmark.pipeline):
@@ -556,8 +552,7 @@ class TestBookmarkCollection(unittest.TestCase):
         bookmark.parent = ''
         bookmark.name = 'contour 4'
         bookmark.type = 'item'
-        bookmark.locator = VistrailLocator()
-        bookmark.locator.name = 'brain_vistrail.xml'
+        bookmark.locator = XMLFileLocator('brain_vistrail.xml')
         bookmark.pipeline = 126
         
         collection.add_bookmark(bookmark)

@@ -25,7 +25,6 @@ view and a version tree for each opened Vistrail """
 import os.path
 from PyQt4 import QtCore, QtGui
 from core.debug import critical
-from core.utils import VistrailLocator
 from gui.common_widgets import QDockContainer, QToolWindowInterface
 from gui.pe_tab import QParameterExplorationTab
 from gui.pipeline_tab import QPipelineTab
@@ -89,7 +88,7 @@ class QVistrailView(QDockContainer):
 
         # We also keep track where this vistrail comes from
         # So we can save in the right place
-        self.locator = VistrailLocator()
+        self.locator = None
         
         self.closeEventHandler = None
 
@@ -190,7 +189,7 @@ class QVistrailView(QDockContainer):
         return QtCore.QSize(1024, 768)
 
     def setVistrail(self, vistrail, locator=None):
-        """ setVistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
+        """ setVistrail(vistrail: Vistrail, locator: BaseLocator) -> None
         Assign a vistrail to this view, and start interacting with it
         
         """
@@ -237,6 +236,7 @@ class QVistrailView(QDockContainer):
             #seems to solve the problem
             self.peTab.annotatedPipelineView.setScene(QtGui.QGraphicsScene())
             return QDockContainer.closeEvent(self, event)
+            # super(QVistrailView, self).closeEvent(event)
 
     def queryVistrail(self, checked=True):
         """ queryVistrail(checked: bool) -> None

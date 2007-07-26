@@ -31,8 +31,9 @@ from core import debug
 from core import system
 from core import keychain
 from core.modules.module_registry import registry
-from core.utils import InstanceObject, VistrailLocator
+from core.utils import InstanceObject
 from gui import qt
+from db.services.io import XMLFileLocator
 import core.configuration
 import core.interpreter.cached
 import core.requirements
@@ -137,8 +138,8 @@ after self.init()"""
             self.splashScreen.finish(self.builderWindow)
         if self.input:
             for filename in self.input:
-                self.builderWindow.viewManager.openVistrail(
-                    os.path.abspath(filename))
+                locator = XMLFileLocator(os.path.abspath(filename))
+                self.builderWindow.viewManager.open_vistrail(locator)
         self.builderWindow.activateWindow()
 
     def noninteractiveMode(self):
@@ -156,7 +157,7 @@ run in batch mode.')
             import core.console_mode
             if self.nonInteractiveOpts.parameters == None:
                 self.nonInteractiveOpts.parameters = ''
-            locator = VistrailLocator(name=self.input[0])
+            locator = XMLFileLocator(self.input[0])
             r = core.console_mode.run(locator,
                                       self.nonInteractiveOpts.workflow,
                                       self.nonInteractiveOpts.parameters)

@@ -591,7 +591,7 @@ from core.console_mode import run
 import os
 import core.system
 import unittest
-from core.utils import VistrailLocator
+from db.services.io import XMLFileLocator
 
 class TestVTKPackage(unittest.TestCase):
 
@@ -609,9 +609,8 @@ class TestVTKPackage(unittest.TestCase):
                 if l1 != l2:
                     self.fail("Resulting file doesn't match template")
             
-        locator = VistrailLocator(VistrailLocator.ORIGIN.FILE,
-                                  core.system.vistrails_root_directory() +
-                                  '/tests/resources/vtk.xml')
+        locator = XMLFileLocator(core.system.vistrails_root_directory() +
+                                 '/tests/resources/vtk.xml')
 
         result = run(locator, "writer_test")
         self.assertEquals(result, True)

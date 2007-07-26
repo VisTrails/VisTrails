@@ -68,6 +68,7 @@ class Vistrail(DBVistrail):
         self.currentGraph=None
         self.prunedVersions = set()
         self.savedQueries = []
+        self.locator = None
         
     def _get_actionMap(self):
         return self.db_actions
@@ -623,6 +624,7 @@ class Vistrail(DBVistrail):
         return result
     
     def add_action(self, action, parent):
+        # FIXME: this should go to dbservice
         Action.convert(action)
         if action.id < 0:
             action.id = self.idScope.getNewId(action.vtType)

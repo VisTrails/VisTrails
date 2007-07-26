@@ -30,7 +30,6 @@ from gui.theme import CurrentTheme
 from gui.view_tabbar import QInteractiveTabBar
 from gui.vistrail_view import QVistrailView
 from core import system
-from core.utils import VistrailLocator
 from core.vistrail.vistrail import Vistrail
 import db.services.io
 
@@ -230,7 +229,7 @@ class QViewManager(QtGui.QTabWidget):
         
         """
         vistrailView = QVistrailView()
-        vistrailView.setVistrail(Vistrail(), VistrailLocator())
+        vistrailView.setVistrail(Vistrail(), None)
         self.addVistrailView(vistrailView)
         self.setCurrentWidget(vistrailView)
         vistrailView.setInitialView()
@@ -265,131 +264,44 @@ class QViewManager(QtGui.QTabWidget):
         vistrailView.versionTab.vistrailChanged()
         
         return vistrailView
-    
-    def openVistrail(self, fileName):
-        """ openVistrail(fileName) -> QVistrailView
-        Open a new vistrail and return a QVistrailView        
-        
-        """
+
+    def open_vistrail(self, locator):
         self.close_first_vistrail_if_necessary()
-        locator = VistrailLocator(VistrailLocator.ORIGIN.FILE, fileName)
         view = self.ensureVistrail(locator)
         if view:
             return view
+
         try:
-            vistrail = db.services.io.openVistrailFromXML(fileName)
-            Vistrail.convert(vistrail)
-            return self.setVistrailView(vistrail,locator)
-        
+            vistrail = locator.load()
+            return self.setVistrailView(vistrail, locator)
         except Exception, e:
             QtGui.QMessageBox.critical(None,
                                        'Vistrails',
                                        str(e))
 
-    def openVistrailFromDB(self, config, vt_id):
-        """openVistrailFromDB(config: dict, vt_id: int) -> QVistrailView
-        Open a new vistrail and return a QVistrailView
-        
+    def save_vistrail(self, locator_class,
+                      vistrailView=None,
+                      force_choose_locator=False):
         """
-        self.close_first_vistrail_if_necessary()
-        locator = VistrailLocator(VistrailLocator.ORIGIN.DB)
-        locator.host = config['host']
-        locator.port = config['port']
-        locator.db = config['db']
-        locator.vt_id = vt_id
-        if config.has_key('id'):
-            locator.conn_id = config['id']
-        view = self.ensureVistrail(locator)
-        if view:
-            return view
-        
-        try:
-            vistrail = db.services.io.open_from_db(config, vt_id)
-            Vistrail.convert(vistrail)
-            locator.name = vistrail.db_name
-            return self.setVistrailView(vistrail,locator)
-        
-        except Exception, e:
-            QtGui.QMessageBox.critical(None,
-                                       'Vistrails',
-                                       str(e))
-            
-    def saveVistrailFile(self, vistrailView=None, fileName=''):
-        """ saveVistrail(vistrailView: QVistrailView) -> Bool
-        Save the current active vistrail to a file
-        It returns True if file was written successfully.
-        
+
+        force_choose_locator=True triggers 'save as' behavior
         """
         if not vistrailView:
             vistrailView = self.currentWidget()
         if vistrailView:
-            if fileName=='':
-                fileName = vistrailView.controller.fileName
-            if fileName=='':
-                fileName = QtGui.QFileDialog.getSaveFileName(
-                    self,
-                    "Save Vistrail...",
-                    system.vistrails_directory(),
-                    "Vistrail files (*.xml)\nOther files (*)")
-            if fileName!='' and fileName!=None:
-                locator = VistrailLocator(VistrailLocator.ORIGIN.FILE,
-                                           str(fileName))
-                vistrailView.controller.writeVistrail(locator)
-                vistrailView.locator = locator
-                return True
+            gui_get = locator_class.save_from_gui
+            # get a locator to write to
+            if force_choose_locator:
+                locator = gui_get(self, vistrailView.controller.locator)
             else:
+                locator = (vistrailView.controller.locator or
+                           gui_get(self, vistrailView.controller.locator))
+
+            # if couldn't get one, ignore the request
+            if not locator:
                 return False
-            
-    def saveVistrailDB(self, vistrailView=None, name='', config=None):
-        """saveVistrailDB(vistrailView: QVistrailView) -> Boolean
-        Save vistrailView or the current active vistrail to the database
-        It returns True if the operation was successful
-        
-        """
-        if not vistrailView:
-            vistrailView = self.currentWidget()
-        if vistrailView:
-            if name == '':
-                name = vistrailView.controller.fileName
-            if name == '':
-                ok = False
-                name = QtGui.QInputDialog.getText(self,
-                                                  "Save Vistrail...",
-                                                  "Vistrail name:",
-                                                  QtGui.QLineEdit.Normal,
-                                                  "",
-                                                  ok)
-                
-            if name != '' and name != None:
-                if vistrailView.locator is None or \
-                        vistrailView.locator.origin != VistrailLocator.ORIGIN.DB:
-                    locator = VistrailLocator(VistrailLocator.ORIGIN.DB, name)
-                    if config != None:
-                        locator.host = config['host']
-                        locator.port = config['port']
-                        locator.db = config['db']
-                        if config.has_key('id'):
-                            locator.conn_id = config['id']
-                    vistrailView.locator = locator
-                vistrailView.controller.writeVistrailDB(vistrailView.locator)
-                return True
-            else:
-                return False
-            
-    def saveVistrail(self, vistrailView=None, fileName=''):
-        """ saveVistrail(vistrailView: QVistrailView) -> Bool
-        Save the current active vistrail to a file
-        It returns True if file was written successfully.
-        
-        """
-        if not vistrailView:
-            vistrailView = self.currentWidget()
-        if vistrailView:
-            if vistrailView.locator.origin == VistrailLocator.ORIGIN.FILE:
-                return self.saveVistrailFile(vistrailView,fileName)
-            elif vistrailView.locator.origin == VistrailLocator.ORIGIN.DB:
-                return self.saveVistrailDB(vistrailView)
-            
+            vistrailView.controller.write_vistrail(locator)
+            return True
                 
     def closeVistrail(self, vistrailView=None, quiet=False):
         """ closeVistrail(vistrailView: QVistrailView, quiet: bool) -> bool
@@ -597,57 +509,20 @@ class QViewManager(QtGui.QTabWidget):
         self.setCurrentWidget(view)        
 
     def ensureVistrail(self, locator):
-         """ ensureVistrailDB(locator: VistrailLocator) -> QVistrailView        
-        This will first find among the opened vistrails to see if
-        vistrails from locator has been opened. If not, it will return None.
-        
-        """
-         if locator.origin == VistrailLocator.ORIGIN.DB:
-             return self.ensureVistrailDB(locator)
-         elif locator.origin == VistrailLocator.ORIGIN.FILE:
-             return self.ensureVistrailFile(locator.name)
-        
-    def ensureVistrailFile(self, filename):
-        """ ensureVistrailFile(filename: str) -> QVistrailView        
-        This will first find among the opened vistrails to see if
-        'filename' has been opened. If not, it will return None.
-        
-        """
-        for view in self.splittedViews.keys():
-            if view.controller.fileName==filename:
-                self.setCurrentWidget(view)
-                return view
-        for i in range(self.count()):
-            view = self.widget(i)
-            if view.controller.fileName==filename:
-                self.setCurrentWidget(view)
-                return view
-        return None
-
-    def ensureVistrailDB(self, locator):
-        """ ensureVistrailDB(locator: VistrailLocator) -> QVistrailView        
+        """ ensureVistrail(locator: VistrailLocator) -> QVistrailView        
         This will first find among the opened vistrails to see if
         vistrails from locator has been opened. If not, it will return None.
         
         """
         for view in self.splittedViews.keys():
-            vt = view.controller.vistrail
-            if (vt.db_id == locator.vt_id and
-                vt.db_dbHost == locator.host and
-                vt.db_dbPort == locator.port and
-                vt.db_dbName == locator.db):
+            if view.controller.vistrail.locator == locator:
                 self.setCurrentWidget(view)
                 return view
-        for i in range(self.count()):
+        for i in xrange(self.count()):
             view = self.widget(i)
-            vt = view.controller.vistrail
-            if (vt.db_id == locator.vt_id and
-                vt.db_dbHost == locator.host and
-                vt.db_dbPort == locator.port and
-                vt.db_dbName == locator.db):
+            if view.controller.vistrail.locator == locator:
                 self.setCurrentWidget(view)
                 return view
-            
         return None
     
     def set_first_view(self, view):

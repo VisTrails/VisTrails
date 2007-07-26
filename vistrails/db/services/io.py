@@ -174,7 +174,6 @@ def open_from_db(config, vt_id):
             myconnections[id] = db
 
     vt = openVistrailFromDB(db, vt_id)
-    setDBParameters(vt, config)
     return vt
 
 def openVistrailFromDB(dbConnection, id):
@@ -191,11 +190,6 @@ def openVistrailFromDB(dbConnection, id):
         db_action.db_operations.sort(lambda x,y: cmp(x.db_id, y.db_id))
     db.services.vistrail.updateIdScope(vt)
     return vt
-
-def setDBParameters(vistrail, config):
-    vistrail.db_dbHost = config['host']
-    vistrail.db_dbPort = config['port']
-    vistrail.db_dbName = config['db']
 
 def saveVistrailToXML(vistrail, filename):
     dom = getDOMImplementation().createDocument(None, None, None)
@@ -347,10 +341,148 @@ def getCurrentTime(dbConnection=None):
 
 
 ##############################################################################
+# Locators
+
+class BaseLocator(object):
+
+    def load(self):
+        pass # returns a vistrail
+
+    def save(self, vistrail):
+        pass # saves a vistrail in the given place
+
+    def is_valid(self):
+        pass # Returns true if locator refers to a valid vistrail
+
+    @staticmethod
+    def load_from_gui(parent_widget):
+        pass # Opens a dialog that the user will be able to use to
+             # show the right values, and returns a locator suitable
+             # for loading a file
+
+    @staticmethod
+    def save_from_gui(parent_widget, locator):
+        pass # Opens a dialog that the user will be able to use to
+             # show the right values, and returns a locator suitable
+             # for saving a file
+
+    def __eq__(self, other):
+        pass # Implement equality
+
+    def __eq__(self, other):
+        pass # Implement nonequality
+
+
+class XMLFileLocator(BaseLocator):
+
+    def __init__(self, filename):
+        self._name = filename
+
+    def load(self):
+        import core.vistrail.dbservice as db
+        vistrail = db.openVistrail(self._name)
+        vistrail.locator = self
+        return vistrail
+
+    def save(self, vistrail):
+        vistrail.serialize(self._name)
+
+    def is_valid(self):
+        return os.path.isfile(self._name)
+
+    def _get_name(self):
+        return self._name
+    name = property(_get_name)
+
+    ##########################################################################
+
+    @staticmethod
+    def load_from_gui(parent_widget):
+        import gui.extras.db.services.io as io
+        return io.get_load_xml_file_locator_from_gui(parent_widget)
+
+    @staticmethod
+    def save_from_gui(parent_widget, locator=None):
+        import gui.extras.db.services.io as io
+        return io.get_save_xml_file_locator_from_gui(parent_widget, locator)
+
+    def __eq__(self, other):
+        if type(other) != XMLFileLocator:
+            return False
+        return self._name == other._name
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
+class DBLocator(BaseLocator):
+
+    def __init__(self, host, port, database, vistrail_id, connection_id=None):
+        self._host = host
+        self._port = port
+        self._db = database
+        self._vt_id = vistrail_id
+        self._conn_id = connection_id
+
+    def _get_host(self):
+        return self._host
+    host = property(_get_host)
+
+    def _get_port(self):
+        return self._port
+    port = property(_get_port)
+
+    def _get_vistrail_id(self):
+        return self._vt_id
+    vistrail_id = property(_get_vistrail_id)
+
+    def _get_connection_id(self):
+        return self._conn_id
+    connection_id = property(_get_connection_id)
+
+    def load(self):
+        d = {'host': self._host,
+             'port': self._port,
+             'db': self._db}
+        if self._conn_id:
+            d['id'] = self._conn_id
+        vistrail = open_from_db(config, self._vt_id)
+        vistrail.locator = self
+        return vistrail
+
+    def save(self, vistrail):
+        # FIXME: Why is this here?
+        vistrail.db_name = self._name
+        save_to_db(self.connection_id, vistrail)
+
+    ##########################################################################
+        
+    @staticmethod
+    def load_from_gui(parent_widget):
+        import gui.extras.db.services.io as io
+        io.get_load_db_locator_from_gui(parent_widget)
+
+    @staticmethod
+    def save_from_gui(parent_widget, locator=None):
+        import gui.extras.db.services.io as io
+        return io.get_save_db_locator_from_gui(parent_widget, locator)
+
+    def __eq__(self, other):
+        if type(other) != DBLocator:
+            return False
+        return (self._host == other._host and
+                self._port == other._port and
+                self._db == other._db and
+                self._vt_id == other._vt_id)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
+##############################################################################
 # Testing
 
 import unittest
-import random
 
 class TestDBIO(unittest.TestCase):
     def test1(self):

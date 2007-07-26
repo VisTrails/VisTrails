@@ -22,27 +22,13 @@
 """ Module used when running  vistrails uninteractively """
 from core import xml_parser
 import core.interpreter.default
-from core.utils import (VistrailsInternalError, expression, \
-                        VistrailLocator, DummyView)
+from core.utils import (VistrailsInternalError, expression,
+                        DummyView)
 import db
+from db.services.io import XMLFileLocator
 from core.vistrail.vistrail import Vistrail
 
 ################################################################################
-
-def open_vistrail(locator):
-    if locator.origin == VistrailLocator.ORIGIN.FILE:
-        v = db.services.io.openVistrailFromXML(locator.name)
-        Vistrail.convert(v)
-    elif locator.origin == VistrailLocator.ORIGIN.DB:
-        config = {}
-        config['host'] = locator.host
-        config['port'] = locator.port
-        config['db'] = locator.db
-        config['user'] = locator.user
-        config['passwd'] = locator.db
-        v = db.services.io.open_from_db(config, locator.vt_id)
-        Vistrail.convert(v)
-    return v
     
 def run_and_get_results(locator, workflow, parameters=''):
     """run_and_get_results(locator: VistrailLocator, workflow: int or
@@ -53,7 +39,7 @@ def run_and_get_results(locator, workflow, parameters=''):
     """
     elements = parameters.split(",")
     aliases = {}
-    v = open_vistrail(locator)
+    v = locator.load()
     
     if type(workflow) == type("str"):
         version = v.tagMap[workflow]
@@ -122,9 +108,8 @@ class TestConsoleMode(unittest.TestCase):
         manager.initialize_packages(d)
 
     def test1(self):
-        locator = VistrailLocator(VistrailLocator.ORIGIN.FILE,
-                                  core.system.vistrails_root_directory() +
-                                  '/tests/resources/dummy.xml')
+        locator = XMLFileLocator(core.system.vistrails_root_directory() +
+                                 '/tests/resources/dummy.xml')
         result = run(locator, "int chain")
         self.assertEquals(result, True)
 
@@ -149,30 +134,26 @@ class TestConsoleMode(unittest.TestCase):
         interpreter.execute(None, p, 'foo', 1, v, None)
 
     def test_python_source(self):
-        locator = VistrailLocator(VistrailLocator.ORIGIN.FILE,
-                                  core.system.vistrails_root_directory() +
-                                  '/tests/resources/pythonsource.xml')
+        locator = XMLFileLocator(core.system.vistrails_root_directory() +
+                                 '/tests/resources/pythonsource.xml')
         result = run(locator,"testPortsAndFail")
         self.assertEquals(result, True)
 
     def test_python_source_2(self):
-        locator = VistrailLocator(VistrailLocator.ORIGIN.FILE,
-                                  core.system.vistrails_root_directory() +
-                                  '/tests/resources/pythonsource.xml')
+        locator = XMLFileLocator(core.system.vistrails_root_directory() +
+                                 '/tests/resources/pythonsource.xml')
         result = run_and_get_results(locator, "test_simple_success")
         self.assertEquals(len(result.executed), 1)
 
     def test_dynamic_module_error(self):
-        locator = VistrailLocator(VistrailLocator.ORIGIN.FILE,
-                                  core.system.vistrails_root_directory() + 
-                                  '/tests/resources/dynamic_module_error.xml')
+        locator = XMLFileLocator(core.system.vistrails_root_directory() + 
+                                 '/tests/resources/dynamic_module_error.xml')
         result = run(locator, "test")
         self.assertEquals(result, False)
 
     def test_change_parameter(self):
-        locator = VistrailLocator(VistrailLocator.ORIGIN.FILE,
-                                  core.system.vistrails_root_directory() + 
-                                  '/tests/resources/test_change_vistrail.xml')
+        locator = XMLFileLocator(core.system.vistrails_root_directory() + 
+                                 '/tests/resources/test_change_vistrail.xml')
         result = run(locator, "v1")
         self.assertEquals(result, True)
 
@@ -181,19 +162,17 @@ class TestConsoleMode(unittest.TestCase):
 
     def test_ticket_73(self):
         # Tests serializing a custom-named module to disk
-        locator = VistrailLocator(VistrailLocator.ORIGIN.FILE,
-                                  core.system.vistrails_root_directory() + 
-                                  '/tests/resources/test_ticket_73.xml')
-        v = open_vistrail(locator)
+        locator = XMLFileLocator(core.system.vistrails_root_directory() + 
+                                 '/tests/resources/test_ticket_73.xml')
+        v = locator.load()
 
         import tempfile
         import os
         (fd, filename) = tempfile.mkstemp()
         os.close(fd)
-        save_locator = VistrailLocator(VistrailLocator.ORIGIN.FILE,
-                                       filename)
+        locator = XMLFileLocator(filename)
         try:
-            v.serialize(save_locator.name)
+            locator.save(v)
         finally:
             os.remove(filename)
 
