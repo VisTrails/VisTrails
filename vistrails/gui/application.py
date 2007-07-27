@@ -139,7 +139,7 @@ after self.init()"""
         if self.input:
             for filename in self.input:
                 locator = XMLFileLocator(os.path.abspath(filename))
-                self.builderWindow.viewManager.open_vistrail(locator)
+                self.builderWindow.open_vistrail_without_prompt(locator)
         self.builderWindow.activateWindow()
 
     def noninteractiveMode(self):
