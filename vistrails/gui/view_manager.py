@@ -31,7 +31,7 @@ from gui.view_tabbar import QInteractiveTabBar
 from gui.vistrail_view import QVistrailView
 from core import system
 from core.vistrail.vistrail import Vistrail
-import db.services.io
+from db.services.io import XMLFileLocator
 
 ################################################################################
 
@@ -330,7 +330,12 @@ class QViewManager(QtGui.QTabWidget):
             else:
                 res = 1
             if res == 0:
-                return self.saveVistrail(vistrailView)
+                locator = vistrailView.controller.locator
+                if locator is None:
+                    class_ = XMLFileLocator
+                else:
+                    class_ = type(locator)
+                return self.save_vistrail(class_)
             elif res == 2:
                 return False
             self.removeVistrailView(vistrailView)
