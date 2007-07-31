@@ -21,8 +21,10 @@
 ############################################################################
 
 from PyQt4 import QtGui, QtCore
-from gui.configuration import QConfigurationWidget
 from core.packagemanager import get_package_manager
+from core.utils.uxml import (named_elements,
+                             elements_filter, enter_named_element)
+from gui.configuration import QConfigurationWidget
 import os.path
 
 ##############################################################################
@@ -396,7 +398,11 @@ class QPreferencesDialog(QtGui.QDialog):
         self.connect(self._button_box,
                      QtCore.SIGNAL('clicked(QAbstractButton *)'),
                      self.close_dialog)
-                     
+
+        self.connect(self._configuration_tab._tree.treeWidget,
+                     QtCore.SIGNAL('configuration_changed'),
+                     self.configuration_changed)
+
         l.addWidget(self._button_box)
         l.addWidget(self._status_bar)
 
@@ -414,3 +420,16 @@ class QPreferencesDialog(QtGui.QDialog):
 
     def sizeHint(self):
         return QtCore.QSize(800, 600)
+
+    def configuration_changed(self, item, new_value):
+        from PyQt4 import QtCore
+        from gui.application import VistrailsApplication
+        startup = QtCore.QCoreApplication.instance().vistrailsStartup
+        dom = startup.startup_dom()
+        doc = dom.documentElement
+        configuration_element = enter_named_element(doc, 'configuration')
+        doc.removeChild(configuration_element)
+        VistrailsApplication.configuration.write_to_dom(dom, doc)
+        startup.write_startup_dom(dom)
+        dom.unlink()
+                                       

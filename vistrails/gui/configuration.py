@@ -28,12 +28,23 @@ from core.configuration import ConfigurationObject
 
 ##############################################################################
 
+def bool_conv(st):
+    if st == 'True':
+        return True
+    elif st == 'False':
+        return False
+    else:
+        raise TypeError('Bogus value for bool_conv ' + str(st))
+
 class QConfigurationTreeWidgetItem(QtGui.QTreeWidgetItem):
 
     def __init__(self, parent, obj, parent_obj, name):
         lst = QtCore.QStringList(name)
         t = type(obj)
-        self._obj_type = t
+        if t == bool:
+            self._obj_type = bool_conv
+        else:
+            self._obj_type = t
         self._parent_obj = parent_obj
         self._name = name
         if t == ConfigurationObject:

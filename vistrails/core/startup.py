@@ -93,7 +93,8 @@ class VistrailsStartup(object):
         Loads the appropriate configuration from .vistrails/startup.xml.
         """
         dom = self.startup_dom()
-        self.configuration.set_from_dom_node(dom.getElementsByTagName("configuration")[0])
+        conf = enter_named_element(dom.documentElement, 'configuration')
+        self.configuration.set_from_dom_node(conf)
 
     def load_packages(self):
         """load_packages() -> None

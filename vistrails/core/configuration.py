@@ -94,7 +94,7 @@ class ConfigurationObject(InstanceObject):
             else:
                 assert isinstance(value, ConfigurationObject)
                 conf_element.appendChild(key_element)
-                value.write_to_dom(self, dom, key_element)
+                value.write_to_dom(dom, key_element)
 
     def set_from_dom_node(self, node):
         assert str(node.nodeName) == 'configuration'

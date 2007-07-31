@@ -91,6 +91,13 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
             self.processEvents()
             
         self.vistrailsStartup.init(self.configuration)
+        # ugly workaround for configuration initialization order issue
+        # If we go through the configuration too late,
+        # The window does not get maximized. If we do it too early,
+        # there are no created windows during spreadsheet initialization.
+        if interactive:
+            if self.configuration.check('maximizeWindows'):
+                self.builderWindow.showMaximized()
         self.runInitialization()
         self._python_environment = self.vistrailsStartup.get_python_environment()
         self._initialized = True
@@ -199,10 +206,7 @@ run in batch mode.')
         from gui.builder_window import QBuilderWindow
 
         self.builderWindow = QBuilderWindow()
-        if self.configuration.check('maximizeWindows'):
-            self.builderWindow.showMaximized()
-        else:
-            self.builderWindow.show()
+        self.builderWindow.show()
         self.visDiffParent = QtGui.QWidget(None, QtCore.Qt.ToolTip)
         self.visDiffParent.resize(0,0)
         
