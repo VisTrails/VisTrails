@@ -71,7 +71,16 @@ class Pipeline(DBWorkflow):
         cp.graph = copy.copy(self.graph)
         cp.aliases = Bidict([(k,copy.copy(v))
                            for (k,v)
-                           in self.aliases.iteritems()]) 
+                           in self.aliases.iteritems()])
+        cp._connection_signatures = Bidict([(k,copy.copy(v))
+                                            for (k,v)
+                                            in self._connection_signatures.iteritems()])
+        cp._subpipeline_signatures = Bidict([(k,copy.copy(v))
+                                             for (k,v)
+                                             in self._subpipeline_signatures.iteritems()])
+        cp._module_signatures = Bidict([(k,copy.copy(v))
+                                        for (k,v)
+                                        in self._module_signatures.iteritems()])
         return cp
 
     @staticmethod
