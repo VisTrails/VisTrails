@@ -128,7 +128,7 @@ class ModuleFunction(DBFunction):
     real_id = property(_get_real_id, _set_real_id)
 
     def _get_params(self):
-        self.db_parameters.sort(lambda x, y: cmp(x.pos, y.pos))
+        self.db_parameters.sort(lambda x, y: cmp(x.db_pos, y.db_pos))
         return self.db_parameters
     def _set_params(self, params):
         self.db_parameters = params
