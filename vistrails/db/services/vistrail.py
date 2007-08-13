@@ -427,7 +427,7 @@ def getVersionDifferences(vistrail, versions):
 
 def heuristicModuleMatch(m1, m2):
     """takes two modules and returns 1 if exact match,
-    0 if function names match, -1 if no match
+    0 if module names match, -1 if no match
     
     """
     if m1.db_name == m2.db_name:
@@ -442,8 +442,6 @@ def heuristicModuleMatch(m1, m2):
                 if isMatch == 1:
                     match = f2
                     break
-                elif isMatch == 0:
-                    match = f2
             if match is not None:
                 m1_functions.remove(f1)
                 m2_functions.remove(f2)
@@ -463,20 +461,18 @@ def heuristicFunctionMatch(f1, f2):
     if f1.db_name == f2.db_name:
         f1_parameters = copy.copy(f1.db_get_parameters())
         f2_parameters = copy.copy(f2.db_get_parameters())
-        if len(f1_parameters) == len(f2_parameters):
+        if len(f1_parameters) != len(f2_parameters):
             return 0
         for p1 in f1_parameters[:]:
             match = None
             for p2 in f2_parameters:
-                isMatch = heuristicParmaterMatch(p1, p2)
+                isMatch = heuristicParameterMatch(p1, p2)
                 if isMatch == 1:
                     match = p2
                     break
-                elif isMatch == 0:
-                    match = p2
             if match is not None:
                 f1_parameters.remove(p1)
-                f2_parmaeters.remove(match)
+                f2_parameters.remove(match)
             else:
                 return 0
         if len(f1_parameters) == len(f2_parameters) == 0:
@@ -485,16 +481,23 @@ def heuristicFunctionMatch(f1, f2):
             return 0
     return -1
 
-def heurisitcParameterMatch(p1, p2):
+def heuristicParameterMatch(p1, p2):
     """takes two parameters and returns 1 if exact match,
-    0 if partial match (currently undefined), -1 if no match
+    0 if partial match (types match), -1 if no match
 
     """
-    if p1.db_type == p2.db_type and p1.db_val == p2.db_val:
-        return 1
+    if p1.db_type == p2.db_type and p1.db_pos == p2.db_pos:
+        if p1.db_val == p2.db_val:
+            return 1
+        else:
+            return 0
     return -1
 
 def heuristicConnectionMatch(c1, c2):
+    """takes two connections and returns 1 if exact match,
+    0 if partial match (currently undefined), -1 if no match
+
+    """
     c1_ports = copy.copy(c1.db_get_ports())
     c2_ports = copy.copy(c2.db_get_ports())
     for p1 in c1_ports[:]:
@@ -516,6 +519,10 @@ def heuristicConnectionMatch(c1, c2):
     return -1
 
 def heuristicPortMatch(p1, p2):
+    """takes two ports and returns 1 if exact match,
+    0 if partial match, -1 if no match
+    
+    """
     if p1.db_moduleId == p2.db_moduleId:
         return 1
     elif p1.db_type == p2.db_type and \
@@ -777,3 +784,90 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
     return (v1Workflow, v2Workflow, 
             sharedModulePairs, v1Only, v2Only, paramChanges,
             sharedConnectionPairs, c1Only, c2Only)
+
+################################################################################
+
+import unittest
+import core.system
+
+class TestDBVistrailService(unittest.TestCase):
+    def test_parameter_heuristic(self):
+        from core.vistrail.module_param import ModuleParam
+        
+        param1 = ModuleParam(id=0, pos=0, type='String', val='abc')
+        param2 = ModuleParam(id=1, pos=0, type='String', val='abc')
+        param3 = ModuleParam(id=2, pos=1, type='Float', val='1.0')
+        param4 = ModuleParam(id=3, pos=0, type='String', val='def')
+        param5 = ModuleParam(id=4, pos=1, type='String', val='abc')
+
+        # test basic equality
+        assert heuristicParameterMatch(param1, param2) == 1
+        # test basic inequality
+        assert heuristicParameterMatch(param1, param3) == -1
+        # test partial match
+        assert heuristicParameterMatch(param1, param4) == 0
+        # test position inequality
+        assert heuristicParameterMatch(param1, param5) == -1
+
+    def test_function_heuristic(self):
+        from core.vistrail.module_param import ModuleParam
+        from core.vistrail.module_function import ModuleFunction
+        
+        param1 = ModuleParam(id=0, pos=0, type='String', val='abc')
+        param2 = ModuleParam(id=1, pos=1, type='Float', val='1.0')
+        param3 = ModuleParam(id=2, pos=0, type='String', val='abc')
+        param4 = ModuleParam(id=3, pos=1, type='Float', val='1.0')
+        param5 = ModuleParam(id=4, pos=0, type='String', val='abc')
+        param6 = ModuleParam(id=5, pos=1, type='Float', val='2.0')
+
+        function1 = ModuleFunction(name='f1', parameters=[param1, param2])
+        function2 = ModuleFunction(name='f1', parameters=[param3, param4])
+        function3 = ModuleFunction(name='f1', parameters=[param5, param6])
+        function4 = ModuleFunction(name='f2', parameters=[param1, param2])
+        function5 = ModuleFunction(name='f1', parameters=[param1])
+
+        # test basic equality
+        assert heuristicFunctionMatch(function1, function2) == 1
+        # test partial match
+        assert heuristicFunctionMatch(function1, function3) == 0
+        # test basic inequality
+        assert heuristicFunctionMatch(function1, function4) == -1
+        # test length inequality
+        assert heuristicFunctionMatch(function1, function5) == 0
+
+    def test_module_heuristic(self):
+        from core.vistrail.module_param import ModuleParam
+        from core.vistrail.module_function import ModuleFunction
+        from core.vistrail.module import Module
+
+        param1 = ModuleParam(id=0, pos=0, type='String', val='abc')
+        param2 = ModuleParam(id=1, pos=1, type='Float', val='1.0')
+        param3 = ModuleParam(id=2, pos=0, type='String', val='abc')
+        param4 = ModuleParam(id=3, pos=1, type='Float', val='1.0')
+        param5 = ModuleParam(id=4, pos=0, type='Integer', val='2')
+        param6 = ModuleParam(id=5, pos=0, type='Integer', val='2')
+
+        function1 = ModuleFunction(name='f1', parameters=[param1, param2])
+        function2 = ModuleFunction(name='f1', parameters=[param3, param4])
+        function3 = ModuleFunction(name='f2', parameters=[param5])
+        function4 = ModuleFunction(name='f2', parameters=[param6])
+        function5 = ModuleFunction(name='f1', parameters=[param2, param4])
+        function6 = ModuleFunction(name='f2', parameters=[param5])
+
+        module1 = Module(name='m1', functions=[function1, function3])
+        module2 = Module(name='m1', functions=[function2, function4])
+        module3 = Module(name='m2', functions=[function1, function2])
+        module4 = Module(name='m1', functions=[function5])
+        module5 = Module(name='m1', functions=[function5, function6])
+
+        # test basic equality
+        assert heuristicModuleMatch(module1, module2) == 1
+        # test basic inequality
+        assert heuristicModuleMatch(module1, module3) == -1
+        # test length inequality
+        assert heuristicModuleMatch(module1, module4) == 0
+        # test parameter change inequality
+        assert heuristicModuleMatch(module1, module5) == 0
+
+if __name__ == '__main__':
+    unittest.main()
