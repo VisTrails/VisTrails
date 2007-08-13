@@ -120,6 +120,7 @@ class Module(DBModule):
 
     # type check this (list, hash)
     def _get_functions(self):
+        self.db_functions.sort(lambda x, y: cmp(x.pos, y.pos))
         return self.db_functions
     def _set_functions(self, functions):
 	# want to convert functions to hash...?
