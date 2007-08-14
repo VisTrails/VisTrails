@@ -48,6 +48,7 @@ from gui.graphics_view import (QInteractiveGraphicsScene,
                                QGraphicsItemInterface)
 from gui.module_annotation import QModuleAnnotation
 from gui.module_palette import QModuleTreeWidget
+from gui.module_documentation import QModuleDocumentation
 from gui.theme import CurrentTheme
 from xml.dom.minidom import getDOMImplementation, parseString
 import math
@@ -290,6 +291,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         menu = QtGui.QMenu()
         menu.addAction(self.configureAct)
         menu.addAction(self.annotateAct)
+        menu.addAction(self.viewDocumentationAct)
         menu.exec_(event.screenPos())
 
     def createActions(self):
@@ -307,6 +309,11 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.annotateAct,
                                QtCore.SIGNAL("triggered()"),
                                self.annotate)
+        self.viewDocumentationAct = QtGui.QAction("View Documentation", self.scene())
+        self.viewDocumentationAct.setStatusTip("View module documentation")
+        QtCore.QObject.connect(self.viewDocumentationAct,
+                               QtCore.SIGNAL("triggered()"),
+                               self.viewDocumentation)
 
     def configure(self):
         """ configure() -> None
@@ -322,7 +329,15 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         if self.moduleId>=0:
             self.scene().open_annotations_window(self.moduleId)
 
-
+    def viewDocumentation(self):
+        """ viewDocumentation() -> None
+        Show the documentation for the module
+        """
+        assert self.moduleId >= 0
+        self.scene().open_documentation_window(self.moduleId)
+        
+        
+                                               
 ##############################################################################
 # QGraphicsConnectionItem
 
@@ -1388,6 +1403,17 @@ mutual connections."""
             widget.exec_()
             self.controller.previousModuleIds = [id]
             self.controller.resendVersionWasChanged()
+
+    def open_documentation_window(self, id):
+        """ open_documentation_window(int) -> None
+        Opens the modal module documentation window for module with given id
+        """
+        if self.controller:
+            module = self.controller.currentPipeline.modules[id]
+            descriptor = registry.getDescriptorByName(module.name)
+            widget = QModuleDocumentation(descriptor, None)
+            widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+            widget.exec_()
 
     def open_annotations_window(self, id):
         """ open_annotations_window(int) -> None

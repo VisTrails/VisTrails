@@ -42,7 +42,7 @@ use temporary files. """
         """cleanup() -> None
 
 Cleans up the file pool, by removing all temporary files
-and the directory they existed in. Module developers should never not
+and the directory they existed in. Module developers should never
 call this directly."""
         if not os.path.isdir(self.directory):
             # cleanup has already happened

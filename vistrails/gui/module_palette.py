@@ -31,6 +31,7 @@ from PyQt4 import QtCore, QtGui
 from gui.common_widgets import (QSearchTreeWindow,
                                 QSearchTreeWidget,
                                 QToolWindowInterface)
+from gui.module_documentation import QModuleDocumentation
 from core.modules.module_registry import registry
 from core.system import systemType
 import weakref
@@ -155,6 +156,12 @@ class QModuleTreeWidget(QSearchTreeWidget):
         """
         if item and item.parent()==None:
             self.setItemExpanded(item, not self.isItemExpanded(item))
+
+    def contextMenuEvent(self, event):
+        item = self.itemAt(event.pos())
+        if item:
+            item.contextMenuEvent(event, self)
+
         
     def updateFromModuleRegistry(self):
         """ updateFromModuleRegistry(packageName: str) -> None
@@ -332,3 +339,20 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
             
     def is_top_level(self):
         return self.descriptor is None
+
+    def contextMenuEvent(self, event, widget):
+        if self.is_top_level():
+            return
+        act = QtGui.QAction("View Documentation", widget)
+        act.setStatusTip("View module documentation")
+        QtCore.QObject.connect(act,
+                               QtCore.SIGNAL("triggered()"),
+                               self.view_documentation)
+        menu = QtGui.QMenu(widget)
+        menu.addAction(act)
+        menu.exec_(event.globalPos())
+
+    def view_documentation(self):
+        widget = QModuleDocumentation(self.descriptor, None)
+        widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        widget.exec_()

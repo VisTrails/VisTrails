@@ -355,9 +355,12 @@ class ModuleConnector(object):
     def __call__(self):
         return self.obj.get_output(self.port)
 
-def newModule(baseModule, name, dict={}):
+def newModule(baseModule, name, dict={}, docstring=None):
     assert issubclass(baseModule, Module)
-    return type(name, (baseModule, ), dict)
+    d = copy.copy(dict)
+    if docstring:
+        d['__doc__'] = docstring
+    return type(name, (baseModule, ), d)
 
 # This is the gist of how type() works. The example is run from a python
 # toplevel
