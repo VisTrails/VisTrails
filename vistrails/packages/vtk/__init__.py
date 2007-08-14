@@ -44,6 +44,10 @@ from vtk_parser import VTKMethodParser
 import re
 import os.path
 
+version = '0.9.0'
+identifier = 'edu.utah.sci.vistrails.vtk'
+name = 'VTK'
+
 ################################################################################
 
 # filter some deprecation warnings coming from the fact that vtk calls
@@ -490,7 +494,9 @@ def createModule(baseModule, node):
             return True
         return False
     module = newModule(baseModule, node.name,
-                       class_dict(baseModule, node))
+                       class_dict(baseModule, node),
+                       docstring=getattr(vtk, node.name).__doc__
+                       )
     # This is sitting on the class
     module.vtkClass = node.klass
     addModule(module, abstract=is_abstract())
@@ -584,6 +590,7 @@ def package_requirements():
         print 'PyQt4 is not available. There will be no interaction',
         print 'between VTK and the spreadsheet.'
     import vtk
+
 
 ################################################################################
 
