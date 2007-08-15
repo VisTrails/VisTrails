@@ -35,6 +35,7 @@ from gui.theme import CurrentTheme
 from gui.view_manager import QViewManager
 from gui.vistrail_toolbar import QVistrailViewToolBar
 from gui.preferences import QPreferencesDialog
+from gui.vis_diff import QVisualDiff
 from db.services.io import XMLFileLocator, DBLocator
 import copy
 import core.interpreter.cached
@@ -77,11 +78,12 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connectSignals()
 
         self.shell = None
-        self.vistrailViewToolBar = None
-        self.setSDIMode(self.sdiModeAction.isChecked())
         self.newVistrailAction.trigger()
 
         self.viewManager.set_first_view(self.viewManager.currentView())
+
+        self.firstVersion = -1
+        self.secondVersion = -1
         
     def sizeHint(self):
         """ sizeHint() -> QRect
@@ -233,13 +235,25 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.bookmarksAction.setCheckable(True)
         self.bookmarksAction.setShortcut('Ctrl+D')
 
-        self.sdiModeAction = QtGui.QAction('SDI Mode', self)
-        self.sdiModeAction.setCheckable(True)
-        self.sdiModeAction.setChecked(False)
-        
         self.pipViewAction = QtGui.QAction('Picture-in-Picture', self)
         self.pipViewAction.setCheckable(True)
         self.pipViewAction.setChecked(True)
+
+        self.methodsViewAction = QtGui.QAction('Methods Panel', self)
+        self.methodsViewAction.setCheckable(True)
+        self.methodsViewAction.setChecked(True)
+
+        self.setMethodsViewAction = QtGui.QAction('Set Methods Panel', self)
+        self.setMethodsViewAction.setCheckable(True)
+        self.setMethodsViewAction.setChecked(True)
+
+        self.queryViewAction = QtGui.QAction('Query Panel', self)
+        self.queryViewAction.setCheckable(True)
+        self.queryViewAction.setChecked(True)
+
+        self.propertiesViewAction = QtGui.QAction('Properties Panel', self)
+        self.propertiesViewAction.setCheckable(True)
+        self.propertiesViewAction.setChecked(True)
 
         self.helpAction = QtGui.QAction(self.tr('About VisTrails...'), self)
 
@@ -247,6 +261,9 @@ class QBuilderWindow(QtGui.QMainWindow):
                           self)
         self.executeCurrentWorkflowAction = a
         self.executeCurrentWorkflowAction.setEnabled(False)
+
+        self.executeDiffAction = QtGui.QAction('Execute Visual Difference', self)
+        self.executeDiffAction.setEnabled(False)
         self.flushCacheAction = QtGui.QAction(self.tr('Erase Cache Contents'),
                                               self)
 
@@ -288,19 +305,22 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editMenu.addAction(self.editPreferencesAction)
         
         self.viewMenu = self.menuBar().addMenu('&View')
+        self.viewMenu.addAction(self.bookmarksAction)
         self.viewMenu.addAction(self.shellAction)
+        self.viewMenu.addSeparator()
+        self.viewMenu.addAction(self.pipViewAction)
         self.viewMenu.addAction(
             self.modulePalette.toolWindow().toggleViewAction())
-        self.viewMenu.addAction(self.bookmarksAction)
-        self.viewMenu.addAction(self.pipViewAction)
-        self.viewMenu.addSeparator()
-        self.viewMenu.addAction(self.sdiModeAction)
-        self.viewMenu.addSeparator()
+        self.viewMenu.addAction(self.methodsViewAction)
+        self.viewMenu.addAction(self.setMethodsViewAction)
+        self.viewMenu.addAction(self.queryViewAction)
+        self.viewMenu.addAction(self.propertiesViewAction)
 
         self.runMenu = self.menuBar().addMenu('&Run')
         self.runMenu.addAction(self.executeCurrentWorkflowAction)
+        self.runMenu.addAction(self.executeDiffAction)
+        self.runMenu.addSeparator()
         self.runMenu.addAction(self.flushCacheAction)
-        
 
         self.vistrailMenu = self.menuBar().addMenu('Vis&trail')
         self.vistrailMenu.menuAction().setEnabled(False)
@@ -339,6 +359,9 @@ class QBuilderWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('versionSelectionChange'),
                      self.versionSelectionChange)
         self.connect(self.viewManager,
+                     QtCore.SIGNAL('twoVersionsSelected(int,int)'),
+                     self.twoVersionsSelected)
+        self.connect(self.viewManager,
                      QtCore.SIGNAL('queryPipelineChange'),
                      self.queryPipelineChange)
         self.connect(self.viewManager,
@@ -375,6 +398,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.editPreferencesAction, self.showPreferences),
             (self.executeCurrentWorkflowAction,
              self.viewManager.executeCurrentPipeline),
+            (self.executeDiffAction, self.showDiff),
             (self.flushCacheAction, self.flush_cache),
             (self.quitVistrailsAction, self.quitVistrails),
             ]
@@ -382,13 +406,25 @@ class QBuilderWindow(QtGui.QMainWindow):
         for (emitter, receiver) in trigger_actions:
             self.connect(emitter, QtCore.SIGNAL('triggered()'), receiver)
 
-        self.connect(self.sdiModeAction,
-                     QtCore.SIGNAL('triggered(bool)'),
-                     self.setSDIMode)
-        
         self.connect(self.pipViewAction,
                      QtCore.SIGNAL('triggered(bool)'),
-                     self.setPIPMode)
+                     self.viewManager.setPIPMode)
+
+        self.connect(self.methodsViewAction,
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.viewManager.setMethodsMode)
+
+        self.connect(self.setMethodsViewAction,
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.viewManager.setSetMethodsMode)
+
+        self.connect(self.queryViewAction,
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.viewManager.setQueryMode)
+
+        self.connect(self.propertiesViewAction,
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.viewManager.setPropertiesMode)
 
         self.connect(self.vistrailActionGroup,
                      QtCore.SIGNAL('triggered(QAction *)'),
@@ -456,6 +492,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         self.viewToolBar.executePipelineAction().setEnabled(versionId>-1)
         self.executeCurrentWorkflowAction.setEnabled(versionId>-1)
+        self.executeDiffAction.setEnabled(False)
         self.undoAction.setEnabled(versionId>0)
         self.viewToolBar.undoAction().setEnabled(versionId>0)
         self.selectAllAction.setEnabled(self.viewManager.canSelectAll())
@@ -466,6 +503,15 @@ class QBuilderWindow(QtGui.QMainWindow):
         else:
             self.redoAction.setEnabled(False)
             self.viewToolBar.redoAction().setEnabled(False)
+
+    def twoVersionsSelected(self, id1, id2):
+        """ twoVersionsSelected(id1: Int, id2: Int) -> None
+        Update the state of the visual difference action
+
+        """
+        self.executeDiffAction.setEnabled(True)
+        self.firstVersion = id1
+        self.secondVersion = id2
 
     def queryPipelineChange(self, notEmpty):
         """ queryPipelineChange(notEmpty: bool) -> None
@@ -501,21 +547,11 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.saveFileAsAction.setEnabled(False)
             self.saveDBAction.setEnabled(False)
             self.executeCurrentWorkflowAction.setEnabled(False)
+            self.executeDiffAction.setEnabled(False)
             self.viewToolBar.executePipelineAction().setEnabled(False)
             #self.vistrailActionGroup.setEnabled(False)
             self.vistrailMenu.menuAction().setEnabled(False)
 
-        if self.viewManager.sdiMode:
-            if self.vistrailViewToolBar:
-                area = self.toolBarArea(self.vistrailViewToolBar)
-                self.removeToolBar(self.vistrailViewToolBar)
-            else:
-                area = self.toolBarArea(self.toolBar)
-            self.vistrailViewToolBar = self.viewManager.getCurrentToolBar()
-            if self.vistrailViewToolBar:
-                self.addToolBar(area, self.vistrailViewToolBar)
-                self.vistrailViewToolBar.show()
-                
         if vistrailView and vistrailView.viewAction:
             vistrailView.viewAction.setText(vistrailView.windowTitle())
             if not vistrailView.viewAction.isChecked():
@@ -606,31 +642,6 @@ class QBuilderWindow(QtGui.QMainWindow):
             QtCore.QCoreApplication.quit()
         return False
 
-    def setSDIMode(self, checked=True):
-        """ setSDIMode(checked: bool)
-        Switch/Unswitch to Single Document Interface
-        
-        """
-        if checked:
-            self.viewManager.switchToSDIMode()
-            self.vistrailViewToolBar = self.viewManager.getCurrentToolBar()
-            if self.vistrailViewToolBar:
-                self.addToolBar(self.toolBarArea(self.toolBar),
-                                self.vistrailViewToolBar)
-                self.vistrailViewToolBar.show()
-        else:
-            if self.vistrailViewToolBar:
-                self.removeToolBar(self.vistrailViewToolBar)
-                self.vistrailViewToolBar = None
-            self.viewManager.switchToTabMode()
-
-    def setPIPMode(self, checked=True):
-        """ setPIPMode(checked: bool)
-        Turn on/off the picture-in-picture mode
-        
-        """
-        self.viewManager.setPIPMode(checked)                
-
     def vistrailViewAdded(self, view):
         """ vistrailViewAdded(view: QVistrailView) -> None
         Add this vistrail to the Vistrail menu
@@ -652,8 +663,6 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.vistrailActionGroup.removeAction(view.viewAction)
         self.vistrailMenu.removeAction(view.viewAction)
         view.viewAction.view = None
-        self.removeToolBar(self.vistrailViewToolBar)
-        self.vistrailViewToolBar = None
 
     def vistrailSelectFromMenu(self, menuAction):
         """ vistrailSelectFromMenu(menuAction: QAction) -> None
@@ -725,5 +734,20 @@ class QBuilderWindow(QtGui.QMainWindow):
         dialog = QPreferencesDialog(self)
         dialog.exec_()
 
+    def showDiff(self):
+        """showDiff() -> None
+        Show the visual difference interface
+        
+        """
+        if self.firstVersion > 0 and self.secondVersion > 0:
+            view = self.viewManager.currentWidget()
+            visDiff = QVisualDiff(view.controller.vistrail,
+                                  self.firstVersion,
+                                  self.secondVersion,
+                                  view.controller,
+                                  self)
+            visDiff.show()
+
     def flush_cache(self):
         core.interpreter.cached.CachedInterpreter.flush()
+

@@ -65,6 +65,9 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
                      QtCore.SIGNAL('versionSelected(int,bool)'),
                      self.versionSelected)
         self.connect(self.versionView.scene(),
+                     QtCore.SIGNAL('twoVersionsSelected(int,int)'),
+                     self.twoVersionsSelected)
+        self.connect(self.versionView.scene(),
                      QtCore.SIGNAL('addToBookmarks'),
                      self.add_bookmark)
     def addViewActionsToMenu(self, menu):
@@ -106,6 +109,12 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
             self.versionProp.updateVersion(versionId)
             self.emit(QtCore.SIGNAL('versionSelectionChange'),versionId)
             
+    def twoVersionsSelected(self, id1, id2):
+        """ twoVersionsSelected(id1: Int, id2: Int) -> None
+        Two versions are selected in the version tree, emit a signal
+        
+        """
+        self.emit(QtCore.SIGNAL('twoVersionsSelected(int,int)'), id1, id2)
 
     def setController(self, controller):
         """ setController(controller: VistrailController) -> None

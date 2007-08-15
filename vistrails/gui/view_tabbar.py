@@ -43,8 +43,8 @@ class QInteractiveTabBar(QtGui.QTabBar):
         
         """
         QtGui.QTabBar.__init__(self, parent)
-        self.setStatusTip('Move the tabs in, out and around'
-                          'by dragging')
+        self.setStatusTip('Move the tabs in, out, and around'
+                          ' by dragging')
         self.setDrawBase(False)
         self.editingIndex = -1
         self.editor = None        

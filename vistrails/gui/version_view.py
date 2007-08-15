@@ -305,8 +305,14 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             else:
                 selectByClick = False
             self.scene().emit(QtCore.SIGNAL('versionSelected(int,bool)'),
-                              selectedId, selectByClick)                              
-        return QtGui.QGraphicsItem.itemChange(self, change, value)    
+                              selectedId, selectByClick)
+            if (len(selectedItems) == 1 and value.toBool()): 
+                self.scene().emit(QtCore.SIGNAL('twoVersionsSelected(int,int)'),
+                                  selectedItems[0].id, self.id)
+            if (len(selectedItems) == 3 and not value.toBool()):
+                self.scene().emit(QtCore.SIGNAL('twoVersionsSelected(int,int)'),
+                                  selectedItems[0].id, selectedItems[1].id)
+            return QtGui.QGraphicsItem.itemChange(self, change, value)    
 
     def mousePressEvent(self, event):
         """ mousePressEvent(event: QMouseEvent) -> None

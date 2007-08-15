@@ -27,7 +27,6 @@ QViewManager
 
 from PyQt4 import QtCore, QtGui
 from gui.theme import CurrentTheme
-from gui.view_tabbar import QInteractiveTabBar
 from gui.vistrail_view import QVistrailView
 from core import system
 from core.vistrail.vistrail import Vistrail
@@ -37,7 +36,7 @@ from db.services.io import XMLFileLocator
 
 class QViewManager(QtGui.QTabWidget):
     """
-    QViewManger is a tabbed widget to containing multiple Vistrail
+    QViewManager is a tabbed widget to containing multiple Vistrail
     views. It takes care of emiting useful signals to the builder
     window
     
@@ -48,12 +47,10 @@ class QViewManager(QtGui.QTabWidget):
         
         """
         QtGui.QTabWidget.__init__(self, parent)
-        self.setTabBar(QInteractiveTabBar(self))
         self.closeButton = QtGui.QToolButton(self)
         self.closeButton.setIcon(CurrentTheme.VIEW_MANAGER_CLOSE_ICON)
         self.closeButton.setAutoRaise(True)
         self.setCornerWidget(self.closeButton)
-        self.sdiMode = False
         self.splittedViews = {}
         self.activeIndex = -1
         
@@ -62,14 +59,6 @@ class QViewManager(QtGui.QTabWidget):
         self.connect(self.closeButton, QtCore.SIGNAL('clicked()'),
                      self.closeVistrail)
         
-        self.connect(self.tabBar(),
-                     QtCore.SIGNAL('tabMoveRequest(int,int)'),
-                     self.moveTab)
-
-        self.connect(self.tabBar(),
-                     QtCore.SIGNAL('tabSplitRequest(int,QPoint)'),
-                     self.splitTab)
-
         self._views = {}
 
     def addVistrailView(self, view):
@@ -80,9 +69,6 @@ class QViewManager(QtGui.QTabWidget):
         self._views[view] = view.controller
         if self.indexOf(view)!=-1:
             return
-        if self.sdiMode:
-            view.savedToolBarArea = view.toolBarArea(view.toolBar)
-            view.removeToolBar(view.toolBar)
         self.addTab(view, view.windowTitle())
         view.installEventFilter(self)
         self.connect(view.pipelineTab,
@@ -91,6 +77,9 @@ class QViewManager(QtGui.QTabWidget):
         self.connect(view.versionTab,
                      QtCore.SIGNAL('versionSelectionChange'),
                      self.versionSelectionChange)
+        self.connect(view.versionTab,
+                     QtCore.SIGNAL('twoVersionsSelected(int,int)'),
+                     self.twoVersionsSelected)
         self.connect(view.versionTab,
                      QtCore.SIGNAL('vistrailChanged()'),
                      self.vistrailChanged)
@@ -122,8 +111,6 @@ class QViewManager(QtGui.QTabWidget):
             index = self.indexOf(view) 
             if index !=-1:
                 self.removeTab(self.currentIndex())
-                if self.currentIndex()  >= 0:
-                    self.updateViewMenu(self.currentIndex(), -1)
                 self.activeIndex = self.currentIndex()
             elif self.splittedViews.has_key(view):
                 del self.splittedViews[view]
@@ -144,6 +131,13 @@ class QViewManager(QtGui.QTabWidget):
         
         """
         self.emit(QtCore.SIGNAL('versionSelectionChange'), versionId)
+
+    def twoVersionsSelected(self, id1, id2):
+        """ twoVersionsSelected(id1: Int, id2: Int) -> None
+        Just echo the signal from the view
+
+        """
+        self.emit(QtCore.SIGNAL('twoVersionsSelected(int,int)'), id1, id2)
 
     def vistrailChanged(self):
         """ vistrailChanged() -> None
@@ -366,28 +360,11 @@ class QViewManager(QtGui.QTabWidget):
         builder
         
         """
-        self.updateViewMenu(index, -1)
         self.activeIndex = index
         self.emit(QtCore.SIGNAL('currentVistrailChanged'),
                   self.currentWidget())
         self.emit(QtCore.SIGNAL('versionSelectionChange'), 
                   self.currentWidget().controller.currentVersion)
-    def updateViewMenu(self, index, internal_index):
-        """updateViewMenu(index: int, internal_index:int) -> None
-           Tell previous tab to remove menu entries and current tab to
-           add menu entries
-           internal_index indicates which tab will be the current tab of
-           the vistrail view.
-           
-        """
-        if (self.activeIndex != -1 and self.count() > 1
-            and self.activeIndex < self.count()) :
-            previousTab = self.widget(self.activeIndex)
-            previousTab.updateViewMenu(internal_index)
-            previousTab.activeIndex = -1
-        if index != -1 and self.count() > 0:
-            currentTab = self.widget(index)
-            currentTab.updateViewMenu()
         
     def eventFilter(self, object, event):
         """ eventFilter(object: QVistrailView, event: QEvent) -> None
@@ -412,32 +389,6 @@ class QViewManager(QtGui.QTabWidget):
         else:
             return None
 
-    def switchToSDIMode(self):
-        """ switchToSDIMode() -> None        
-        Detach the toolbars of all view widgets
-        
-        """
-        self.sdiMode = True
-        self.tabBar().hide()
-        for viewIndex in range(self.count()):            
-            vistrailView = self.widget(viewIndex)
-            vistrailView.savedToolBarArea = vistrailView.toolBarArea(
-                vistrailView.toolBar)
-            vistrailView.removeToolBar(vistrailView.toolBar)
-
-    def switchToTabMode(self):
-        """ switchToTabMode() -> None        
-        Attach back all the toolbars of all view widgets
-        
-        """
-        self.sdiMode = False
-        self.tabBar().show()
-        for viewIndex in range(self.count()):
-            vistrailView = self.widget(viewIndex)
-            vistrailView.addToolBar(vistrailView.savedToolBarArea,
-                                    vistrailView.toolBar)
-            vistrailView.toolBar.show()
-
     def setPIPMode(self, on):
         """ setPIPMode(on: Bool) -> None
         Set the picture-in-picture mode for all views
@@ -445,73 +396,44 @@ class QViewManager(QtGui.QTabWidget):
         """
         for viewIndex in range(self.count()):
             vistrailView = self.widget(viewIndex)
-            vistrailView.setupPIPView()
+            vistrailView.setPIPMode(on)
 
-    def getCurrentToolBar(self):
-        """ getCurrentToolBar() -> QToolBar
-        Return the toolbar of the current toolbar
+    def setMethodsMode(self, on):
+        """ setMethodsMode(on: Bool) -> None
+        Turn the methods panel on/off for all views
         
         """
-        vistrailView = self.currentWidget()
-        if vistrailView:
-            return vistrailView.toolBar
-        return None
+        for viewIndex in range(self.count()):
+            vistrailView = self.widget(viewIndex)
+            vistrailView.setMethodsMode(on)
 
-    def moveTab(self, oldIndex, newIndex):
-        """ moveTab(oldIndex: int, newIndex: int) -> None
-        Move a tab from index oldIndex to newIndex
+
+    def setSetMethodsMode(self, on):
+        """ setSetMethodsMode(on: Bool) -> None
+        Turn the set methods panel on/off for all views
         
         """
-        self.setUpdatesEnabled(False)
-        widget = self.widget(oldIndex)
-        label = self.tabText(oldIndex)
-        self.removeTab(oldIndex)
-        self.insertTab(newIndex, widget, label)
-        self.setCurrentIndex(newIndex)
-        self.setUpdatesEnabled(True)        
-        
-    def splitTab(self, index, pos):
-        """ moveTab(index: int, pos: QPoint) -> None
-        Move a tab out of the tabwidget to become a tool window
+        for viewIndex in range(self.count()):
+            vistrailView = self.widget(viewIndex)
+            vistrailView.setSetMethodsMode(on)
+
+    def setQueryMode(self, on):
+        """ setQueryMode(on: Bool) -> None
+        Turn the query panel on/off for all views
         
         """
-        widget = self.widget(index)
-        label = self.tabText(index)
-        self.removeTab(index)
-        dockBackAction = QtGui.QAction(CurrentTheme.DOCK_BACK_ICON,
-                                       'Merge to VisTrails Builder',
-                                       self)
-        dockBackAction.setToolTip('Bring this window back to the '
-                                  'VisTrails Builder')
-        self.connect(dockBackAction, QtCore.SIGNAL('triggered()'),
-                     widget.emitDockBackSignal)
-        
-        self.splittedViews[widget] = dockBackAction
+        for viewIndex in range(self.count()):
+            vistrailView = self.widget(viewIndex)
+            vistrailView.setQueryMode(on)
 
-        widget.closeEventHandler = self.closeVistrail
-        widget.toolBar.addAction(dockBackAction)
-        widget.setParent(None)
-        widget.move(pos)
-        widget.show()
-
-        self.connect(widget, QtCore.SIGNAL('dockBack'),
-                     self.mergeTab)
-
-    def mergeTab(self, view):
-        """ mergeTab(view: QVistrailView) -> None
-        Merge the view from a top-level into a tab
+    def setPropertiesMode(self, on):
+        """ setPropertiesMode(on: Bool) -> None
+        Turn the properties panel on/off for all views
         
         """
-        self.disconnect(view, QtCore.SIGNAL('dockBack'),
-                        self.mergeTab)
-        dockBackAction = self.splittedViews[view]
-        self.disconnect(dockBackAction, QtCore.SIGNAL('triggered()'),
-                        view.emitDockBackSignal)
-        view.toolBar.removeAction(dockBackAction)
-        del self.splittedViews[view]
-        view.closeEventHandler = None
-        self.addTab(view, view.windowTitle())
-        self.setCurrentWidget(view)        
+        for viewIndex in range(self.count()):
+            vistrailView = self.widget(viewIndex)
+            vistrailView.setPropertiesMode(on)
 
     def ensureVistrail(self, locator):
         """ ensureVistrail(locator: VistrailLocator) -> QVistrailView        

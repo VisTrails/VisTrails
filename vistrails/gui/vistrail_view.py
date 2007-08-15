@@ -76,9 +76,6 @@ class QVistrailView(QDockContainer):
         self.stackedWidget.addWidget(self.peTab)
         self.stackedWidget.setCurrentIndex(1)
 
-        #Keeping track of previous active tab to update menus accordingly
-        self.activeIndex = 1
-        
         # Initialize the vistrail controller
         self.controller = VistrailController()
         self.controller.vistrailView = self
@@ -109,36 +106,6 @@ class QVistrailView(QDockContainer):
             self.versionTab.versionView.pipFrame.graphicsView.setDefaultCursorState(mode)
 
 
-    def updateViewMenu(self, viewIndex = None):
-        """updateViewMenu(viewIndex: int) -> None
-        Update the Builder View Menu to be consistent with the current tab
-        being shown.
-        
-        """
-        builderMenu = self.parent().parent().parent().viewMenu
-        if self.activeIndex == 0: #pipelineTab
-            self.pipelineTab.removeViewActionsFromMenu(builderMenu)
-        elif self.activeIndex == 1: #versionTab
-            self.versionTab.removeViewActionsFromMenu(builderMenu)
-        elif self.activeIndex == 2: #queryTab
-            self.queryTab.removeViewActionsFromMenu(builderMenu)
-        elif self.activeIndex == 3: #peTab
-            self.peTab.removeViewActionsFromMenu(builderMenu)
-        currentTab = None
-        if viewIndex == 0:
-            currentTab = self.pipelineTab
-        elif viewIndex == 1:
-            currentTab = self.versionTab
-        elif viewIndex == 2:
-            currentTab = self.queryTab
-        elif viewIndex == 3:
-            currentTab = self.peTab
-            
-        if currentTab:
-            currentTab.addViewActionsToMenu(builderMenu)
-
-        self.activeIndex = viewIndex
-        
     def setInitialView(self):
         """setInitialView() -> None
         Sets up the correct initial view for a new vistrail, that is, 
@@ -146,7 +113,7 @@ class QVistrailView(QDockContainer):
         
         """
         self.controller.changeSelectedVersion(0)
-        self.setupPIPView()
+        self.setPIPMode(True)
 
     def setOpenView(self):
         """setOpenView() -> None
@@ -155,22 +122,56 @@ class QVistrailView(QDockContainer):
         
         """
         self.controller.selectLatestVersion()
-        self.setupPIPView()
+        self.setPIPMode(True)
        
-    def setupPIPView(self):
-        """ setupPIPView() -> None
-        Initialize the PIP state for a new view
+    def setPIPMode(self, on):
+        """ setPIPMode(on: bool) -> None
+        Set the PIP state for the view
 
         """
-        if self.parent().parent().parent().pipViewAction.isChecked():
-            pipelineView = self.pipelineTab.pipelineView
-            pipelineView.setPIPEnabled(True)
-            versionView = self.versionTab.versionView
-            versionView.setPIPEnabled(True)
+        self.pipelineTab.pipelineView.setPIPEnabled(on)
+        self.versionTab.versionView.setPIPEnabled(on)
+
+    def setMethodsMode(self, on):
+        """ setMethodsMode(on: bool) -> None
+        Set the methods panel state for the view
+
+        """
+        if on:
+            self.pipelineTab.methodPalette.toolWindow().show()
         else:
-            self.pipelineTab.pipelineView.setPIPEnabled(False)
-            self.versionTab.versionView.setPIPEnabled(False)
-            
+            self.pipelineTab.methodPalette.toolWindow().hide()
+
+    def setSetMethodsMode(self, on):
+        """ setSetMethodsMode(on: bool) -> None
+        Set the set methods panel state for the view
+
+        """
+        if on:
+            self.pipelineTab.moduleMethods.toolWindow().show()
+        else:
+            self.pipelineTab.moduleMethods.toolWindow().hide()
+
+    def setQueryMode(self, on):
+        """ setMethodsMode(on: bool) -> None
+        Set the query panel state for the view
+
+        """
+        if on:
+            self.versionTab.versionSearch.toolWindow().show()
+        else:
+            self.versionTab.versionSearch.toolWindow().hide()
+
+    def setPropertiesMode(self, on):
+        """ setPropertiesMode(on: bool) -> None
+        Set the properties panel state for the view
+
+        """
+        if on:
+            self.versionTab.versionProp.toolWindow().show()
+        else:
+            self.versionTab.versionProp.toolWindow().hide()
+
     def viewModeChanged(self, index):
         """ viewModeChanged(index: int) -> None        
         Slot for switching different views when the tab's current
@@ -178,7 +179,6 @@ class QVistrailView(QDockContainer):
         
         """
         if self.stackedWidget.count()>index:
-            self.updateViewMenu(index)
             self.stackedWidget.setCurrentIndex(index)
 
     def sizeHint(self):
