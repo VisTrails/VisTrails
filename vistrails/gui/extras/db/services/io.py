@@ -26,6 +26,7 @@ from PyQt4 import QtGui
 import core.system
 import os
 
+
 ##############################################################################
 # DB dialogs
 
