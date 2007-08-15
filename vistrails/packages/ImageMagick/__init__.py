@@ -38,6 +38,10 @@ import os
 
 import popen2
 
+identifier = 'edu.utah.sci.vistrails.imagemagick'
+name = 'ImageMagick'
+version = '0.9.0'
+
 ################################################################################
 
 class ImageMagick(Module):
@@ -110,7 +114,7 @@ arguments to the program."""
         
 
 class Negate(Convert):
-    """Negate performs the two's complement negation of the image."""
+    """Negate returns the two's complement negation of the image."""
 
     def compute(self):
         o = self.create_output_file()
@@ -146,15 +150,17 @@ and standard deviation."""
         self.setResult("output", o)
 
 
-no_param_options = [("Negate", "-negate"),
-                    ("EqualizeHistogram", "-equalize"),
-                    ("Enhance", "-enhance"),
-                    ("VerticalFlip", "-flip"),
-                    ("HorizontalFlip", "-flop"),
-                    ("FloydSteinbergDither", "-dither"),
-                    ("IncreaseContrast", "-contrast"),
-                    ("Despeckle", "-despeckle"),
-                    ("Normalize", "-normalize")]
+no_param_options = [("Negate", "-negate",
+                     """Negate performs the two's complement negation of the image."""
+                     ),
+                    ("EqualizeHistogram", "-equalize", None),
+                    ("Enhance", "-enhance", None),
+                    ("VerticalFlip", "-flip", None),
+                    ("HorizontalFlip", "-flop", None),
+                    ("FloydSteinbergDither", "-dither", None),
+                    ("IncreaseContrast", "-contrast", None),
+                    ("Despeckle", "-despeckle", None),
+                    ("Normalize", "-normalize", None)]
 
 
 def no_param_options_method_dict(optionName):
@@ -244,8 +250,9 @@ def initialize():
     reg.addInputPort(Convert, "height", (basic.String, 'height of the geometry for operation'))
     reg.addOutputPort(Convert, "output", (basic.File, 'the output file'))
 
-    for (name, opt) in no_param_options:
-        m = newModule(Convert, name, no_param_options_method_dict(opt))
+    for (name, opt, doc_string) in no_param_options:
+        m = newModule(Convert, name, no_param_options_method_dict(opt),
+                      docstring=doc_string)
         reg.addModule(m)
 
     for (name, opt, paramName, paramComment) in float_param_options:
