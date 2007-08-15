@@ -328,7 +328,7 @@ class QueryVistrailController(VistrailController):
                                                id_scope=self.vistrail.idScope))
         action = db.services.action.create_action_from_ops(ops)
         Action.convert(action)
-        self.vistrail.add_action(action, self.currentVersion)
+
         self.perform_action(action)
 
 #         self.quiet = True

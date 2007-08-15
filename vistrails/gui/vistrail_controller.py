@@ -51,7 +51,6 @@ import copy
 import db.services.action
 import db.services.io
 import os.path
-import traceback
 
 ################################################################################
 
@@ -325,7 +324,7 @@ class VistrailController(QtCore.QObject):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
         module = self.currentPipeline.getModuleById(module_id)
-        annotation = module.annotationMap[key]
+        annotation = module.get_annotation_with_key(key)
         action = db.services.action.create_action([('delete', annotation,
                                                     module.vtType, module.id)])
         self.vistrail.add_action(action, self.currentVersion)
@@ -350,8 +349,8 @@ class VistrailController(QtCore.QObject):
                                 key=pair[0], 
                                 value=pair[1],
                                 )
-        if module.annotationMap.has_key(pair[0]):
-            old_annotation = module.annotationMap[pair[0]]
+        if module.has_annotation_with_key(pair[0]):
+            old_annotation = module.get_annotation_by_key(pair[0])
             action = \
                 db.services.action.create_action([('change', old_annotation,
                                                    annotation,
@@ -398,12 +397,9 @@ class VistrailController(QtCore.QObject):
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
-        # FIXME need to be able to find port id
-        # know that port[0] is portType
-        # and port[1] is portName
         spec_id = -1
         module = self.currentPipeline.getModuleById(module_id)
-        port_spec = module.port_specs[spec_id]
+        port_spec = module.get_portSpec_by_name(port_tuple[1])
         action = db.services.action.create_action([('delete', port_spec,
                                                     module.vtType, module.id)])
         self.vistrail.add_action(action, self.currentVersion)
@@ -581,7 +577,7 @@ class VistrailController(QtCore.QObject):
             for (e1,e2) in efrom:
                 x.append(e1)
             if (current !=0 and
-                not self.search.match(am[current]) and
+                not self.search.match(self.vistrail, am[current]) and
                 terse.vertices.__contains__(current)):
                 to_me = eto[0][0]
                 if terse.vertices.__contains__(to_me):
@@ -646,7 +642,7 @@ class VistrailController(QtCore.QObject):
                 prev = 0
                 break
             if (self.refine and self.search and
-                (not self.search.match(am[parent]))):
+                (not self.search.match(self.vistrail, am[parent]))):
                 v = prev
             else:
                 prev = parent
@@ -799,6 +795,8 @@ class VistrailController(QtCore.QObject):
                                      connections: [Connection]) -> str
         Serializes a list of modules and connections
         """
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+
         pipeline = Pipeline()
         for module in modules:
             pipeline.modules[module.id] = module
@@ -811,6 +809,8 @@ class VistrailController(QtCore.QObject):
         Paste a list of modules and connections into the current pipeline
 
         """
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+
         # FIXME: this should go to dbservices
         pipeline = db.services.io.getWorkflowFromXML(str)
         Pipeline.convert(pipeline)
@@ -992,6 +992,7 @@ class VistrailController(QtCore.QObject):
         Go through all named pipelines and ask user to import them
         
         """
+
         # Currently broken
         pass
 #         importModule = False

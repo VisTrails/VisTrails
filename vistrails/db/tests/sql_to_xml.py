@@ -21,6 +21,7 @@ def convert_sql_to_xml(filename, id):
     except MySQLdb.Error, e:
         print e
 
-convert_sql_to_xml('/vistrails/vtk_http_from_db.xml', 1)
-# convert_sql_to_xml('/vistrails/head_from_db.xml', 1)
-# convert_sql_to_xml('/vistrails/lung_from_db.xml', 2)
+if __name__ == '__main__':
+    convert_sql_to_xml('/vistrails/vtk_http_from_db.xml', 1)
+    # convert_sql_to_xml('/vistrails/head_from_db.xml', 1)
+    # convert_sql_to_xml('/vistrails/lung_from_db.xml', 2)

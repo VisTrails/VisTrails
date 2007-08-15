@@ -492,8 +492,15 @@ class QDBConnectionList(QtGui.QListWidget):
         config = self.getConnectionInfo(conn_id)
         if conn.dbtype == 'MySQL':
             #removing extra keyword arguments for MySQldb
+            config_name = config['name']
             del config['name']
-        return io.get_db_vistrail_list(config)
+            config_id = config['id']
+            del config['id']
+        vt_list = io.get_db_vistrail_list(config)
+        if conn.dbtype == 'MySQL':
+            config['name'] = config_name
+            config['id'] = config_id
+        return vt_list
     
 ################################################################################
     

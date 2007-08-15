@@ -102,9 +102,9 @@ class DotLayout(object):
         Using vistrail and graph to prepare a dotty graph input
         
         """
-        for v,t in vistrail.inverseTagMap.items():
+        for v,t in vistrail.tagMap.items():
             if v in graph.vertices.keys():
-                f.write('  %s [label="%s"];\n' % (v, t))
+                f.write('  %s [label="%s"];\n' % (v, t.name))
 
         f.write('  0;\n')
         self.maxId = 0

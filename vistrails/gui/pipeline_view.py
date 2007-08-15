@@ -777,7 +777,12 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.id = module.id
         self.module = module
         self.label = module.name
-        self.description = module.annotations.get('__desc__', '').strip()
+        # self.description = module.annotations.get('__desc__', '').strip()
+        if module.has_annotation_with_key('__desc__'):
+            self.description = \
+                module.get_annotation_with_key('__desc__').value.strip()
+        else:
+            self.description = ''
         self.setToolTip(self.description)
         self.computeBoundingRect()
         self.resetMatrix()
@@ -1324,7 +1329,7 @@ mutual connections."""
                             modules.has_key(conn.sourceId) and
                             modules.has_key(conn.destinationId)):
 #                           conn.serialize(dom, root)
-                            connections[conn] = conn
+                            connections[conn.id] = conn
             text = self.controller.copyModulesAndConnections(modules.values(), 
                                                           connections.values())
             cb.setText(text)
@@ -1523,7 +1528,7 @@ if __name__=="__main__":
     parser = XMLParser()
     parser.openVistrail('d:/hvo/vgc/src/vistrails/trunk/examples/vtk.xml')
     vistrail = parser.getVistrail()
-    version = vistrail.tagMap['Single Renderer']
+    version = vistrail.get_tag_by_name('Single Renderer').id
     pipeline = vistrail.getPipeline(version)
 
     # Now visually test QPipelineView

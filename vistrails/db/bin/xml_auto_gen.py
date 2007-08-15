@@ -288,6 +288,7 @@ class XMLAutoGen(AutoGen):
 	return self.getOutput()
 
     def generatePythonDAOClass(self, object):
+        print 'generating xml: %s' % object.getRegularName()
 	self.printLine('class %sXMLDAOBase(XMLDAO):\n\n' % \
 		       object.getClassName())
 	self.indentLine('def __init__(self, daoList):\n')
@@ -342,12 +343,17 @@ class XMLAutoGen(AutoGen):
                     self.printLine('%s = None\n' % choice.getRegularName())
             self.printLine('\n')
 	    self.printLine('# read children\n')
-	    self.printLine('for child in node.childNodes:\n')
+	    self.printLine('for child in list(node.childNodes):\n')
 
 	    cond = 'if'
 	    for property in elements:
-                self.indentLine('%s child.nodeName == \'%s\':\n' % \
-                                    (cond, property.getName()))
+                if property.isReference():
+                    refObj = self.getReferencedObject(property.getReference())
+                    propertyName = refObj.getName()
+                else:
+                    propertyName = property.getName()
+                self.indentLine("%s child.nodeName == '%s':\n" % \
+                                    (cond, propertyName))
 		self.generateChildParsingCode(property, property, cond)
                 self.unindent(2)
 		cond = 'elif'
@@ -356,9 +362,9 @@ class XMLAutoGen(AutoGen):
 		for property in self.getXMLPropertiesForChoice(choice):
 #                     discProperty = self.getDiscriminatorProperty(object, \
 #                         choice.getDiscriminator())
-                    refObject = self.getReferencedObject(property.getName())
+                    refObj = self.getReferencedObject(property.getSingleName())
                     self.indentLine("%s child.nodeName == '%s':\n" % \
-                                        (cond, refObject.getName()))
+                                        (cond, refObj.getName()))
 #                     self.indentLine("%s %s == '%s' " % \
 #                                         (cond, 
 #                                          discProperty.getRegularName(),
@@ -372,7 +378,9 @@ class XMLAutoGen(AutoGen):
                     self.unindent(2)
                     cond = 'elif'
 
-            self.indentLine('elif child.nodeType != child.TEXT_NODE:\n')
+            self.indentLine("elif child.nodeType == child.TEXT_NODE and child.nodeValue.strip() == '':\n")
+            self.indentLine('node.removeChild(child)\n')
+            self.unindentLine('elif child.nodeType != child.TEXT_NODE:\n')
 	    self.indentLine('print \'*** ERROR *** nodeName = %s\' % ' +
 			    'child.nodeName\n')
 	    self.unindent(2)
@@ -388,10 +396,16 @@ class XMLAutoGen(AutoGen):
 	self.printLine('\n')
 
 	# define toXML function
-	self.printLine('def toXML(self, %s, doc):\n' % object.getRegularName())
-	self.indentLine('node = doc.createElement(\'%s\')\n' % \
-			object.getName())
+	self.printLine('def toXML(self, %s, doc, node):\n' % \
+                           object.getRegularName())
 
+#         self.indentLine('if not %s.has_changes():\n' % object.getRegularName())
+#         self.indentLine('return\n')
+        self.indentLine('if node is None:\n')
+ 	self.indentLine('node = doc.createElement(\'%s\')\n' % \
+ 			object.getName())
+        
+        self.unindent()
 	if len(attrs) > 0:
 	    self.printLine('\n')
 	    self.printLine('# set attributes\n')
@@ -402,8 +416,19 @@ class XMLAutoGen(AutoGen):
 				property.getFieldName(),
 				property.getPythonType()))
 
-	if len(elements) + len(choices) > 0:
-	    self.printLine('\n')
+        self.printLine('\n')
+
+        if len(elements) + len(choices) > 0:
+            self.printLine('# load DOM node map\n')
+            self.printLine('nodeMap = {}\n')
+            self.printLine('for childNode in node.childNodes:\n')
+            self.indentLine("if childNode.nodeType == childNode.ELEMENT_NODE and self.hasAttribute(childNode, 'id'):\n")
+            self.indentLine("nodeId = self.convertFromStr(" +
+                            "self.getAttribute(childNode, 'id'), 'long')\n")
+            self.printLine('nodeMap[(childNode.nodeName, nodeId)] = childNode\n')
+            self.unindent()
+            self.unindentLine('\n')
+
 	    self.printLine('# set elements\n')
 	    for property in elements:
 		if property.isReference():
@@ -423,12 +448,23 @@ class XMLAutoGen(AutoGen):
                     else:
                         self.printLine('if %s is not None:\n' % \
                                            property.getSingleName())
-
-                    # FIXME should get reference single name
-		    self.indentLine('node.appendChild(' +
-				   'self.getDao(\'%s\').toXML(%s, doc))\n' % \
-				   (property.getReference(), 
-				    property.getSingleName()))
+                    self.indentLine("if nodeMap.has_key(('%s', %s.db_id)):\n" %\
+                                        (property.getName(), 
+                                         property.getSingleName()))
+                    self.indentLine("childNode = nodeMap[('%s', %s.db_id)]\n" %\
+                                        (property.getName(),
+                                         property.getSingleName()))
+                    self.printLine("del nodeMap[('%s', %s.db_id)]\n" % \
+                                       (property.getName(),
+                                        property.getSingleName()))
+                    self.unindentLine('else:\n')
+                    self.indentLine("childNode = doc.createElement('%s')\n" % \
+                                        property.getSingleName())
+                    self.printLine('node.appendChild(childNode)\n')
+                    self.unindentLine("self.getDao('%s')" % \
+                                          property.getReference() +
+                                      ".toXML(%s, doc, childNode)\n" % \
+                                          property.getSingleName())
                     self.unindent()
 		else:
                     self.printLine('if %s.%s is not None:\n' % \
@@ -442,20 +478,26 @@ class XMLAutoGen(AutoGen):
                     else:
                         self.indentLine('child = %s.%s\n' % \
                                             (object.getRegularName(),
-                                             property.getFieldName()))
-		    self.printLine('%sNode = doc.createElement(\'%s\')\n' %
-				   (property.getRegularName(),
-				    property.getName()))
-		    self.printLine('%sText = ' % property.getRegularName() +
-				   'doc.createTextNode(' +
+                                             property.getFieldName()))        
+                    self.printLine("if nodeMap.has_key(('%s',child.db_id)):\n"\
+                                       % property.getName())
+                    self.indentLine("childNode = nodeMap[('%s',child.db_id)]\n"\
+                                        % property.getName())
+                    self.printLine("del nodeMap[('%s', child.db_id)]\n" % \
+                                       property.getName())
+                    self.printLine('textNode = childNode.firstChild\n')
+                    self.printLine('textNode.replaceWholeText(' + 
                                    "self.convertToStr(child, '%s'))\n" % \
-                                    property.getPythonType())
-		    self.printLine('%sNode.appendChild(%sText)\n' % \
-				   (property.getRegularName(), 
-				    property.getRegularName()))
-		    self.printLine('node.appendChild(%sNode)\n' % \
-				   property.getRegularName())
-                    self.unindent()
+                                       property.getPythonType())
+                    self.unindentLine('else:\n')
+                    self.indentLine("childNode = doc.createElement('%s')\n" % \
+                                        property.getName())
+                    self.printLine('node.appendChild(childNode)\n')
+                    self.printLine('textNode = doc.createTextNode(' +
+                                      "self.convertToStr(child, '%s'))\n" % \
+                                          property.getPythonType())
+                    self.printLine('childNode.appendChild(textNode)\n')
+                    self.unindent(2)
                     if property.isPlural():
                         self.unindent()
 	    for choice in choices:
@@ -484,25 +526,43 @@ class XMLAutoGen(AutoGen):
                     self.printLine("%s %s.vtType == '%s':\n" % \
                                        (cond,
                                         choice.getSingleName(),
-                                        property.getName()))
-                    self.indentLine('node.appendChild(self.' +
-                                    'getDao(\'%s\').toXML(%s, doc))\n' % \
-                                    (property.getReference(), 
-                                     choice.getSingleName()))
+                                        property.getSingleName()))
+
+                    self.indentLine("if nodeMap.has_key(('%s', %s.db_id)):\n"%\
+                                        (property.getName(), 
+                                         choice.getSingleName()))
+                    self.indentLine("childNode = nodeMap[('%s', %s.db_id)]\n" %\
+                                        (property.getName(),
+                                         choice.getSingleName()))
+                    self.printLine("del nodeMap[('%s', %s.db_id)]\n" % \
+                                       (property.getName(),
+                                        choice.getSingleName()))
+                    self.unindentLine('else:\n')
+                    self.indentLine("childNode = doc.createElement('%s')\n" % \
+                                        property.getSingleName())
+                    self.printLine('node.appendChild(childNode)\n')
+                    self.unindentLine("self.getDao('%s')" % \
+                                          property.getReference() + 
+                                      ".toXML(%s, doc, childNode)\n" % \
+                                          choice.getSingleName())
                     cond = 'elif'
                     self.unindent()
 		if choice.isPlural():
 		    self.unindent()
 
-	self.printLine('\n')
-	self.printLine('return node\n\n')
+	    self.printLine('\n')
+            self.printLine('# delete nodes not around anymore\n')
+            self.printLine('for childNode in nodeMap.itervalues():\n')
+            self.indentLine('childNode.parentNode.removeChild(childNode)\n')
+            self.unindent()
+        self.printLine('return node\n\n')
+
 	self.unindent(2)
 	
     def generateChildParsingCode(self, property, field, cond):
 	if property.isReference():
-	    self.indentLine('%s = self.getDao(\'%s\')' % \
-			    (field.getSingleName(), 
-			     property.getReference()) +
+	    self.indentLine("%s = self.getDao('%s')" % \
+			    (field.getSingleName(), property.getReference()) +
 			    '.fromXML(child)\n')
 
 	    if field.isPlural():

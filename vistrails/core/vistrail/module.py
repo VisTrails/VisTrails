@@ -66,8 +66,6 @@ class Module(DBModule):
 #        self.cache = 1
 #        self.annotations = {}
 #        self.center = Point(-1.0, -1.0)
-        self.annotationMap = {}
-        self.annotationValueMap = {}
         self.portVisible = Set()
         self.registry = None
 
@@ -81,8 +79,6 @@ class Module(DBModule):
 #         cp.cache = self.cache
 #         cp.name = self.name
 #         cp.annotations = copy.copy(self.annotations)
-        cp.annotationMap = copy.copy(self.annotationMap)
-        cp.annotationValueMap = copy.copy(self.annotationValueMap)
         cp.registry = copy.copy(self.registry)
         cp.portVisible = copy.copy(self.portVisible)
         return cp
@@ -96,11 +92,8 @@ class Module(DBModule):
             Location.convert(_module.db_location)
 	for _function in _module.db_functions:
 	    ModuleFunction.convert(_function)
-        _module.annotationMap = {}
-        _module.annotationValueMap = {}
-        for annotation in _module.db_get_annotations():
-            _module.annotationMap[annotation.db_key] = annotation
-            _module.annotationValueMap[annotation.db_key] = annotation.db_value
+        for _annotation in _module.db_get_annotations():
+            Annotation.convert(_annotation)
         _module.portVisible = Set()
 	_module.registry = None
 
@@ -129,24 +122,18 @@ class Module(DBModule):
 
     # type check this (list, hash)
     def _get_annotations(self):
-        if self.is_dirty:
-            self.annotationMap = {}
-            self.annotationValueMap = {}
-            for annotation in self.db_get_annotations():
-                self.annotationMap[annotation.db_key] = annotation
-                self.annotationValueMap[annotation.db_key] = annotation.db_value
-        return self.annotationValueMap
+        return self.db_annotations
     def _set_annotations(self, annotations):
-        # this should not be called! -- use the actions to update annotations!
-        for (key, value) in annotations:
-            new_annotation = DBAnnotation(id=-1,
-                                          key=key,
-                                          value=value)
-            self.db_add_annotation(new_annotation)
-            self.annotationMap[key] = new_annotation
-            self.annotationValueMap[key] = value
+        self.db_annotations = annotations
     annotations = property(_get_annotations, _set_annotations)
-
+    def add_annotation(self, annotation):
+        self.db_add_annotation(annotation)
+    def delete_annotation(self, annotation):
+        self.db_delete_annotation(annotation)
+    def has_annotation_with_key(self, key):
+        return self.db_has_annotation_with_key(key)
+    def get_annotation_by_key(self, key):
+        return self.db_get_annotation_by_key(key)        
 
     def _get_location(self):
         return self.db_location
@@ -177,38 +164,37 @@ class Module(DBModule):
         self.db_name = name
     name = property(_get_name, _set_name)
 
+    def _get_package(self):
+        return self.db_package
+    def _set_package(self, package):
+        self.db_package = package
+    package = property(_get_package, _set_package)
+
+    def _get_version(self):
+        return self.db_version
+    def _set_version(self, version):
+        self.db_version = version
+    version = property(_get_version, _set_version)
+
+    def _get_port_specs(self):
+        return self.db_portSpecs
+    def _set_port_specs(self, port_specs):
+        self.db_portSpecs = port_specs
+    port_specs = property(_get_port_specs, _set_port_specs)
+    def has_portSpec_with_name(self, name):
+        return self.db_has_portSpec_with_name(name)
+    def get_portSpec_by_name(self, name):
+        return self.db_get_portSpec_by_name(name)
+
     def addFunction(self, function):
 	self.db_add_function(function)
 
-    def deleteFunction(self, functionId):
-        """deleteFunction(functionId:int) -> None 
-        Deletes function invocation of given index
+    def deleteFunction(self, function):
+        """deleteFunction(function: ModuleFunction) -> None 
+        Deletes function
           
         """
-        try:
-            del self.db_functions[functionId]
-        except:
-            raise VistrailsInternalError('Invalid functionId in deleteFunction')
-
-    def addAnnotation(self, key, value):
-        new_annotation = Annotation(id=-1, key=key, value=value)
-	self.db_add_annotation(new_annotation)
-        self.annotationMap[key] = new_annotation
-        self.annotationValueMap[key] = value
-
-    def deleteAnnotation(self, key):
-        """deleteAnnotation(key:str) -> None 
-        Deletes annotation of given key
-          
-        """
-        try:
-            to_delete = self.annotationMap[key]
-            self.db_delete_annotation(to_delete)
-            del self.annotationMap[key]
-            del self.annotationValueMap[key]
-        except:
-            raise VistrailsInternalError('Invalid key in deleteAnnotation')
-
+        self.db_delete_function(function)
 
     def summon(self):
         getDescriptorByName = registry.getDescriptorByName
@@ -272,170 +258,6 @@ class Module(DBModule):
         for p in ports:
             p.id = self.id
         return ports
-
-    def serialize(self, dom, element):
-        """serialize(dom, element) -> None - Writes itself as XML """
-        child = dom.createElement('object')
-        child.setAttribute('cache', str(self.cache))
-        child.setAttribute('id',    str(self.id))
-        child.setAttribute('name',  self.name)
-        child.setAttribute('x',     str(self.center.x))
-        child.setAttribute('y',     str(self.center.y))
-        element.appendChild(child)
-
-    def dumpToXML(self, dom, element):
-        """dumpToXML(dom,element) -> None 
-        Writes the whole Module object as XML, including functions, parameters,
-        and annotations. Used when copying a module.
-
-        """
-        child = dom.createElement('module')
-        child.setAttribute('cache', str(self.cache))
-        child.setAttribute('id',    str(self.id))
-        child.setAttribute('name',  self.name)
-        child.setAttribute('x',     str(self.center.x))
-        child.setAttribute('y',     str(self.center.y))
-        for fi in range(len(self.functions)):
-            f = self.functions[fi]
-            if f.getNumParams() == 0 or f.params[0].id == -1:
-                xmlfunc = dom.createElement('function')
-                xmlfunc.setAttribute('functionId', str(fi))
-                xmlfunc.setAttribute('function', f.name)
-                xmlfunc.setAttribute('parameterId',"-1")
-                xmlfunc.setAttribute('parameter', "")
-                xmlfunc.setAttribute('value', "")
-                xmlfunc.setAttribute('type',"")
-                xmlfunc.setAttribute('alias',"")
-                xmlfunc.setAttribute('queryMethod',"0")
-                child.appendChild(xmlfunc)
-            else:
-                for i in range(f.getNumParams()):
-                    p = f.params[i]
-                    xmlfunc = dom.createElement('function')
-                    xmlfunc.setAttribute('functionId', str(fi))
-                    xmlfunc.setAttribute('function', f.name)
-                    xmlfunc.setAttribute('parameterId',str(i))
-                    xmlfunc.setAttribute('parameter', p.name)
-                    xmlfunc.setAttribute('value', p.strValue)
-                    xmlfunc.setAttribute('type',p.type)
-                    xmlfunc.setAttribute('alias',p.alias)
-                    xmlfunc.setAttribute('queryMethod',str(p.queryMethod))
-                    child.appendChild(xmlfunc)
-	if len(self.annotations.values()) > 0:
-	    annot = dom.createElement('annotation')
-	    #         for (k,v) in self.annotations.items():
-	    #             set = dom.createElement('set')
-	    #             set.setAttribute('key',str(k))
-	    #             set.setAttribute('value',str(v))
-	    #             annot.appendChild(set)
-	    for annotation in self.annotations.values():
-		set = dom.createElement('set')
-		set.setAttribute('key', annotation.key)
-		set.setAttribute('value', annotation.value)
-		annot.appendChild(set)
-	    child.appendChild(annot)
-        # Also dump the local registry
-        # Nothing fancy here. Only the port name and its type
-        if self.registry:            
-            desc = self.registry.getDescriptorByName(self.name)
-            for (pName, pSpec) in desc.inputPorts.iteritems():
-                s = []
-                for p in pSpec[0]:
-                    d = registry.getDescriptor(p[0])
-                    s.append(d.name)
-                xmlInput = dom.createElement('inputport')
-                xmlInput.setAttribute('name', str(pName))
-                xmlInput.setAttribute('type', "(" +",".join(s)+")")
-                child.appendChild(xmlInput)
-            for (pName, pSpec) in desc.outputPorts.iteritems():
-                s = []
-                for p in pSpec[0]:
-                    d = registry.getDescriptor(p[0])
-                    s.append(d.name)
-                xmlOutput = dom.createElement('outputport')
-                xmlOutput.setAttribute('name', str(pName))
-                xmlOutput.setAttribute('type', "(" +",".join(s)+")")
-                child.appendChild(xmlOutput)
-                
-        element.appendChild(child)
-
-    @staticmethod
-    def loadFromXML(element):
-        """loadFromXML(element) -> Module 
-        Builds a Module object from XML generated by dumpToXML function.
-
-        """
-        m = Module()
-        (m.name, cache, id, x, y) = [str(element.getAttribute(x))
-                                     for x in ['name', 'cache', 'id',
-                                               'x', 'y']]
-        m.cache = int(cache)
-        m.id = int(id)
-        m.center.x = float(x)
-        m.center.y = float(y)
-        moduleThing = registry.getDescriptorByName(m.name).module
-        for n in element.childNodes:
-            if n.localName == "function":
-                p = []
-                p.append(-1)
-                p.append(int(n.getAttribute('functionId')))
-                p.append(str(n.getAttribute('function')))
-                p.append(int(n.getAttribute('parameterId')))
-                p.append(str(n.getAttribute('parameter')))
-                p.append(str(n.getAttribute('value')))
-                p.append(str(n.getAttribute('type')))
-                p.append(str(n.getAttribute('alias')))
-                p.append(int(n.getAttribute('queryMethod')))
-
-                if p[1] >= len(m.functions):
-                    f = ModuleFunction()
-                    f.name = p[2]
-                    m.addFunction(f)
-                    if len(m.functions)-1 != p[1]:
-                        msg = "Pipeline function id is inconsistent"
-                        raise VistrailsInternalError(msg)
-                f = m.functions[p[1]]
-                if f.name != p[2]:
-                    msg = "Pipeline function name is inconsistent"
-                    raise VistrailsInternalError()
-                if p[3] == -1:
-                    continue
-                if p[3] >= len(f.params):
-                    param = ModuleParam()
-                    param.name = p[4]
-                    f.params.append(param)
-                    if len(f.params)-1 != p[3]:
-                        msg = "Pipeline parameter id is inconsistent"
-                        raise VistrailsInternalError(msg)
-                param = f.params[p[3]]
-                param.name = p[4]
-                param.strValue = p[5]
-                param.type = p[6]
-                if param.type.find('char')>-1 or param.type=='str':
-                    param.type = 'string'
-                param.alias = p[7]
-                param.queryMethod = p[8]
-            elif n.localName in ["inputport", "outputport"]:
-                if not m.registry:
-                    m.registry = core.modules.module_registry.ModuleRegistry()
-                    m.registry.addModule(moduleThing)
-                (name, types) = (str(n.getAttribute('name')), str(n.getAttribute('type')))
-                types = types[1:-1].split(',')
-                spec = [registry.getDescriptorByName(t).module for t in types]
-                if len(spec)==1:
-                    spec = spec[0]
-                if n.localName=="inputport":
-                    m.registry.addInputPort(moduleThing, name, spec)
-                else:
-                    m.registry.addOutputPort(moduleThing, name, spec)
-    
-        m.annotations = {}
-        for a in named_elements(element, 'annotation'):
-            akey = str(a.getAttribute('key'))
-            avalue = str(a.getAttribute('value'))
-#            m.annotations[akey] = avalue
-	    m.addAnnotation(akey, avalue)
-        return m
 
     ##########################################################################
     # Debugging
@@ -550,7 +372,7 @@ class TestModule(unittest.TestCase):
             self.fail(msg)
 
     def testLoadAndDumpModule(self):
-        """ Check that fromXML and toXML are working properly """
+        """ Check that serialize and unserialize are working properly """
         from core.vistrail import dbservice
 
         m = Module()
@@ -568,19 +390,10 @@ class TestModule(unittest.TestCase):
         param.alias = ""
         f.params.append(param)
 
-        dom = dbservice.toXML(m)
-        mnew = dbservice.fromXML('module', dom)
+        dom = dbservice.serialize(m)
+        mnew = dbservice.unserialize(Module.vtType, dom)
         Module.convert(mnew)
         
-#         impl = xml.dom.minidom.getDOMImplementation()
-#         dom = impl.createDocument(None, 'test',None)
-#         root = dom.documentElement
-#         m.dumpToXML(dom,root)
-#         xmlstr = str(dom.toxml())
-#         dom = xml.dom.minidom.parseString(xmlstr)
-#         root = dom.documentElement
-#         for xmlmodule in named_elements(root, 'module'):
-#             mnew = Module.loadFromXML(xmlmodule)
         m.show_comparison(mnew)
         assert m == mnew        
 

@@ -42,7 +42,7 @@ def run_and_get_results(locator, workflow, parameters=''):
     v = locator.load()
     
     if type(workflow) == type("str"):
-        version = v.tagMap[workflow]
+        version = v.get_tag_by_name(workflow).id
     elif type(workflow) == type(1):
         version = workflow
     else:

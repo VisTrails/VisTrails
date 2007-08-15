@@ -45,13 +45,13 @@ def saveVistrail(vt, filename):
 def saveWorkflow(workflow, filename):
     db.services.io.saveWorkflowToXML(workflow, filename)
 
-def fromXML(vtType, dom):
+def unserialize(vtType, dom):
     """returns VisTrails entity given DOM for XML rep"""
 
     result = db.services.io.readXMLObjects(vtType, dom.documentElement)
     return result[0]
 
-def toXML(object):
+def serialize(object):
     """returns DOM for XML rep of any VisTrails entity"""
 
     dom = getDOMImplementation().createDocument(None, None, None)

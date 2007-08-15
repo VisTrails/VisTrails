@@ -162,7 +162,7 @@ class Query(object):
                 else:
                     self.versionDict[v][m].append(e)
 
-    def match(self, action):
+    def match(self, vistrail, action):
         return action.timestep in self.versionDict
 
     def matchModule(self, version_id, module):
@@ -347,8 +347,9 @@ class Query3(Query):
             for m in ms:
                 s = s.union(set(inv_graph.bfs(m).keys() + [m]))
             for m in s:
-                if (p.modules[m].annotations.has_key('stage') and
-                    p.modules[m].annotations['stage'] in ['3','4','5']):
+                if (p.modules[m].has_annotation_with_key('stage') and
+                    p.modules[m].get_annotation_by_key('stage').value in \
+                        ['3','4','5']):
                     result.append((int(version), m))
         self.queryResult = result
         self.tupleLength = 2
@@ -499,9 +500,9 @@ class Query8(Query):
                     found = False
                     u_ids = self.upstream(inv_graph, module_id)
                     for i in u_ids:
-                        annot = p.modules[i].annotations
-                        if (annot.has_key('center')
-                            and annot['center'] == 'UChicago'):
+                        if (p.modules[i].has_annotation_with_key('center')
+                            and p.modules[i].get_annotation_by_key('center') \
+                                == 'UChicago'):
                             found = True
                             break
                     if found:
@@ -525,8 +526,9 @@ class Query9(Query):
             inv_graph = p.graph.inverse()
             for module_id, module in p.modules.iteritems():
                 annot = module.annotations
-                if (annot.has_key('studyModality')
-                    and annot['studyModality'] in ['visual', 'audio', 'speech']):
+                if (module.has_annotation_with_key('studyModality')
+                    and module.get_annotation_by_key('studyModality') in \
+                        ['visual', 'audio', 'speech']):
                     s = s.union(set(self.upstream(inv_graph, module_id) + [module_id]))
             for m in s:
                 result.append((version, m))

@@ -520,7 +520,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             ghosted = False
             if controller.search and nodeId!=0:
                 action = controller.vistrail.actionMap[nodeId]
-                ghosted = not controller.search.match(action)
+                ghosted = not controller.search.match(controller.vistrail, 
+                                                      action)
             item.setGhosted(nodeId==0 or ghosted)
             if thisNodes.has_key(nodeId):
                 item.setSaturation(True,
@@ -548,8 +549,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         # Put the layout to the graphics view
         for node in layout.nodes.itervalues():
             label = ''
-            if controller.vistrail.inverseTagMap.has_key(node.id):
-                label = controller.vistrail.inverseTagMap[node.id]
+            if controller.vistrail.tagMap.has_key(node.id):
+                label = controller.vistrail.tagMap[node.id].name
             self.addVersion(node, label)
             if node.id==controller.currentVersion:
                 self.versions[node.id].setSelected(True)

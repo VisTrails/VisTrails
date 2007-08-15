@@ -300,7 +300,7 @@ class TestModuleParam(unittest.TestCase):
         assert p != q
 
     def test_load_and_dump_param(self):
-        """ Check that fromXML and toXML are working properly """
+        """ Check that serialize and unserialize are working properly """
         from core.vistrail import dbservice
         
         p = ModuleParam()
@@ -309,8 +309,8 @@ class TestModuleParam(unittest.TestCase):
         p.strValue = "1.5"
         assert p.value() == 1.5
         
-        dom = dbservice.toXML(p)
-        pnew = dbservice.fromXML('parameter', dom)
+        dom = dbservice.serialize(p)
+        pnew = dbservice.unserialize(ModuleParam.vtType, dom)
         ModuleParam.convert(pnew)
 
         assert p == pnew

@@ -107,11 +107,11 @@ class QModuleAnnotationTable(QtGui.QTableWidget):
         self.clear()
         self.setRowCount(0)
         if self.module:
-            self.setRowCount(len(self.module.annotations)+1)
+            self.setRowCount(len(self.module.annotations.values())+1)
             curRow = 0
-            for (key, value) in self.module.annotations.items():
-                self.setItem(curRow, 0, QtGui.QTableWidgetItem(key))
-                item = QtGui.QTableWidgetItem(value)
+            for annotation in self.module.annotations.values():
+                self.setItem(curRow, 0, QtGui.QTableWidgetItem(annotation.key))
+                item = QtGui.QTableWidgetItem(annotation.value)
                 self.setItem(curRow, 1, item)
                 curRow += 1
             self.setEnabled(True)
@@ -219,7 +219,7 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
                 return
             if text!='' and text!=key:
                 if (self.table.module and
-                    self.table.module.annotations.has_key(text)):
+                    self.table.module.has_annotation_with_key(text)):
                     QtGui.QMessageBox.information(None,
                                                   "VisTrails",
                                                   text + ' already exists in '

@@ -89,7 +89,6 @@ class Pipeline(DBWorkflow):
             return
         # do clear plus get the modules and connections
 	_workflow.__class__ = Pipeline
-        _workflow.addedPorts = {}
         _workflow.graph = Graph()
         _workflow.aliases = Bidict()
         _workflow._subpipeline_signatures = Bidict()
@@ -98,7 +97,7 @@ class Pipeline(DBWorkflow):
 	for _module in _workflow.db_modules.itervalues():
 	    Module.convert(_module)
             _workflow.graph.add_vertex(_module.id)
-            for _portSpec in _module.db_portSpecs:
+            for _portSpec in _module.db_portSpecs.itervalues():
                 _workflow.addModulePort(_portSpec, _module.db_id)
 	for _connection in _workflow.db_connections.itervalues():
             Connection.convert(_connection)
@@ -157,7 +156,6 @@ class Pipeline(DBWorkflow):
         self.graph = Graph()
         self.modules = {}
         self.connections = {}
-        self.addedPorts = {}
         self.aliases = Bidict()
         self._subpipeline_signatures = Bidict()
         self._module_signatures = Bidict()
@@ -235,18 +233,21 @@ class Pipeline(DBWorkflow):
                  ('add','portSpec'): self.performAddPortSpec,
                  ('add','parameter'): self.performAddParameter,
                  ('add','port'): self.performAddPort,
+                 ('add','abstraction_ref'): self.performAddAbstractionRef,
                  ('change','annotation'): self.performChangeAnnotation,
                  ('change','module'): self.performChangeModule,
                  ('change','connection'): self.performChangeConnection,
                  ('change','portSpec'): self.performChangePortSpec,
                  ('change','parameter'): self.performChangeParameter,
                  ('change','port'): self.performChangePort,
+                 ('change','abstraction_ref'): self.performChangeAbstractionRef,
                  ('delete','annotation'): self.performDeleteAnnotation,
                  ('delete','module'): self.performDeleteModule,
                  ('delete','connection'): self.performDeleteConnection,
                  ('delete','portSpec'): self.performDeletePortSpec,
                  ('delete','parameter'): self.performDeleteParameter,
                  ('delete','port'): self.performDeletePort,
+                 ('delete','abstraction_ref'): self.performDeleteAbstractionRef,
                  }
         if opMap.has_key((op.vtType, op.what)):
             opMap[(op.vtType, op.what)](op)
@@ -267,6 +268,12 @@ class Pipeline(DBWorkflow):
         self.addModule(op.data)
     def performDeleteModule(self, op):
         self.deleteModule(op.objectId)
+    def performAddAbstractionRef(self, op):
+        pass
+    def performChangeAbstractionRef(self, op):
+        pass
+    def performDeleteAbstractionRef(self, op):
+        pass
     def performAddConnection(self, op):
         self.addConnection(op.data)
     def performChangeConnection(self, op):
@@ -283,16 +290,9 @@ class Pipeline(DBWorkflow):
         self.addModulePort(op.data, op.parentObjId)
     def performAddAnnotation(self, op):
         self.db_add_object(op.data, op.parentObjType, op.parentObjId)
-        module = self.getModuleById(op.parentObjId)
-        module.annotationMap[op.data.key] = op.data
-        module.annotationValueMap[op.data.key] = op.data.value
     def performDeleteAnnotation(self, op):
-        module = self.getModuleById(op.parentObjId)
-        annotation = module.db_annotations[op.objectId]
         self.db_delete_object(op.objectId, op.what,
                               op.parentObjType, op.parentObjId)
-        del module.annotationMap[annotation.key]
-        del module.annotationValueMap[annotation.key]
     def performChangeAnnotation(self, op):
         op.objectId = op.oldObjId
         self.performDeleteAnnotation(op)
@@ -326,8 +326,8 @@ class Pipeline(DBWorkflow):
         self.performAddParameter(op)
 
     def performAddPort(self, op):
+        self.db_add_object(op.data, op.parentObjType, op.parentObjId)
         connection = self.connections[op.parentObjId]
-        connection.add_port(op.data)
 #         if op.data.db_type == 'source':
 #             connection.source = copy.copy(op.data)
 #         elif op.data.db_type == 'destination':
@@ -353,7 +353,8 @@ class Pipeline(DBWorkflow):
         self.performAddPort(op)
 
     def addModulePort(self, portSpec, moduleId):
-        PortSpec.convert(portSpec)
+        self.db_add_object(portSpec, Module.vtType, moduleId)
+
         m = self.getModuleById(moduleId)
         moduleThing = registry.getDescriptorByName(m.name).module
         if m.registry is None:
@@ -372,25 +373,19 @@ class Pipeline(DBWorkflow):
                                      [registry.getDescriptorByName(spec).module
                                       for spec in portSpecs])
         
-        self.addedPorts[portSpec.id] = \
-            (moduleId, portSpec.name, portSpec.type)
-
     def deleteModulePort(self, id, moduleId):
-        # translation from old DeleteModulePort.perform
-        if not self.addedPorts.has_key(id):
-            raise VistrailsInternalError("id missing in addedPorts")
-
-        (parentId, portSpecName, portSpecType) = self.addedPorts[id]
-        if parentId != moduleId:
-            raise VistrailsInternalError("stored moduleId doesn't match parent")
-
         m = self.getModuleById(moduleId)
+        if not m.port_specs.has_key(id):
+            raise VistrailsInternalError("id missing in port_specs")
+        portSpec = m.port_specs[id]
+
         moduleThing = registry.getDescriptorByName(m.name).module
-        if portSpecType == 'input':
-            m.registry.deleteInputPort(moduleThing, portSpecName)
+        if portSpec.type == 'input':
+            m.registry.deleteInputPort(moduleThing, portSpec.name)
         else:
-            m.registry.deleteOutputPort(moduleThing, portSpecName)
-        
+            m.registry.deleteOutputPort(moduleThing, portSpec.name)
+        self.db_delete_object(id, PortSpec.vtType, Module.vtType, moduleId)
+
     def deleteModule(self, id):
         """deleteModule(id:int) -> None 
         Delete a module from pipeline given an id.
@@ -520,6 +515,7 @@ class Pipeline(DBWorkflow):
         Delete connection identified by id from pipeline.
            
         """
+
         if not self.hasConnectionWithId(id):
             raise VistrailsInternalError("id %s missing in connections" % id)
         conn = self.connections[id]

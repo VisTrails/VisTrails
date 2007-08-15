@@ -31,21 +31,14 @@ import db.services.vistrail
 from db.versions import getVersionDAO, currentVersion, translateVistrail, \
     getVersionSchemaDir
 
-myconnections = {}
-
 def openDBConnection(config):
     import MySQLdb
-    global myconnections
-    
+
     if config is None:
         msg = "You need to provide valid config dictionary"
         raise Exception(msg)
     try:
-        if config.has_key('id'):
-            id = config['id']
-            del config['id']
         dbConnection = MySQLdb.connect(**config)
-        myconnections[id] = dbConnection
         return dbConnection
     except MySQLdb.Error, e:
         # should have a DB exception type
@@ -59,10 +52,10 @@ def test_db_connection(config):
     
     """
     import MySQLdb
+
     try:
         dbConnection = MySQLdb.connect(**config)
         closeDBConnection(dbConnection)
-    
     except MySQLdb.Error, e:
         # should have a DB exception type
         msg = "MySQL returned the following error %d: %s" % (e.args[0],
@@ -70,10 +63,10 @@ def test_db_connection(config):
         raise Exception(msg)
 
 def get_db_vistrail_list(config):
-    result = []
     
     import MySQLdb
-    
+
+    result = []    
     db = openDBConnection(config)
 
     #FIXME Create a DBGetVistrailListSQLDAOBase for this
@@ -98,7 +91,7 @@ def get_db_vistrail_list(config):
     except MySQLdb.Error, e:
         print "ERROR: Couldn't get list of vistrails from db (%d : %s)" % (
                 e.args[0], e.args[1])
-            
+
     return result
 
 def openXMLFile(filename):
@@ -109,9 +102,12 @@ def openXMLFile(filename):
             (e.lineno, e.offset, e.code)
         raise Exception(msg)
 
-def writeXMLFile(filename, dom):
+def writeXMLFile(filename, dom, prettyprint=True):
     output = file(filename, 'w')
-    dom.writexml(output, '','  ','\n')
+    if prettyprint:
+        dom.writexml(output, '','  ','\n')
+    else:
+        dom.writexml(output)
     output.close()
 
 def setupDBTables(dbConnection, version=None):
@@ -151,30 +147,12 @@ def openVistrailFromXML(filename):
     version = getVersionForXML(dom.documentElement)
     if version != currentVersion:
         vistrail = importVistrailFromXML(filename, version)
+        vistrail.db_version = currentVersion
     else:
         vistrail = readXMLObjects(DBVistrail.vtType, dom.documentElement)[0]
     db.services.vistrail.updateIdScope(vistrail)
+    dom.unlink()
     return vistrail
-
-def open_from_db(config, vt_id):
-    """open_from_db(config: dict, vt_id:int) -> DBVistrail
-    Opens a vistrail using config to open a connection and the vistrail id
-
-    """
-    global myconnections
-    id = -1
-    if config.has_key('id'):
-        id = config['id']
-        del config['id']
-    if myconnections.has_key(id):
-        db = myconnections[id]
-    else:
-        db = openDBConnection(config)
-        if id != -1:
-            myconnections[id] = db
-
-    vt = openVistrailFromDB(db, vt_id)
-    return vt
 
 def openVistrailFromDB(dbConnection, id):
     """openVistrailFromDB(dbConnection, id) -> Vistrail """
@@ -192,27 +170,21 @@ def openVistrailFromDB(dbConnection, id):
     return vt
 
 def saveVistrailToXML(vistrail, filename):
+
+    # FIXME dakoop (enhancement) -- if save dom, can save quicker
+    #     dom = vistrail.vt_origin
+    #     writeXMLObjects([vistrail], dom, dom.documentElement)
+    #     writeXMLFile(filename, dom)
+
     dom = getDOMImplementation().createDocument(None, None, None)
     root = writeXMLObjects([vistrail], dom)
+    dom.appendChild(root)
     root.setAttribute('version', currentVersion)
     root.setAttribute('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
     root.setAttribute('xsi:schemaLocation', 
-                      'http://www.vistrails.org/vistrail.xsd')
-    dom.appendChild(root)
+                  'http://www.vistrails.org/vistrail.xsd')
     writeXMLFile(filename, dom)
-
-def save_to_db(conn_id, vistrail, config=None):
-    """save_to_db(conn_id: int, vistrail: Vistrail) -> None
-    save the vistrail using the connection identified by conn_id
-
-    """
-    global myconnections
-    if myconnections.has_key(conn_id):
-        db = myconnections[conn_id]
-        saveVistrailToDB(vistrail,db)
-    else:
-        msg = "Need to open a connection before" 
-        raise Exception(msg)
+    dom.unlink()
     
 def saveVistrailToDB(vistrail, dbConnection):
     vistrail.db_version = currentVersion
@@ -235,19 +207,19 @@ def getWorkflowFromXML(str):
 def saveWorkflowToXML(workflow, filename):
     dom = getDOMImplementation().createDocument(None, None, None)
     root = writeXMLObjects([workflow], dom)
+    dom.appendChild(root)
     root.setAttribute('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
     root.setAttribute('xsi:schemaLocation', 
                       'http://www.vistrails.org/workflow.xsd')
-    dom.appendChild(root)
     writeXMLFile(filename, dom)
 
 def getWorkflowAsXML(workflow):
     dom = getDOMImplementation().createDocument(None, None, None)
     root = writeXMLObjects([workflow], dom)
+    dom.appendChild(root)
     root.setAttribute('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
     root.setAttribute('xsi:schemaLocation', 
                       'http://www.vistrails.org/workflow.xsd')
-    dom.appendChild(root)
     return dom.toxml()
     
 def openLogFromXML(filename):
@@ -262,11 +234,11 @@ def openLogFromSQL(dbConnection, id):
 
 def saveLogToXML(log, filename):
     dom = getDOMImplementation().createDocument(None, None, None)
-    root = writeXMLObjects([log], dom.documentElement)
+    root = writeXMLObjects([log], dom)
+    dom.appendChild(root)
     root.setAttribute('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
     root.setAttribute('xsi:schemaLocation', 
                       'http://www.vistrails.org/workflow.xsd')
-    dom.appendChild(root)
     writeXMLFile(filename, dom)
 
 def readXMLObjects(vtType, node):
@@ -275,20 +247,45 @@ def readXMLObjects(vtType, node):
     result.append(daoList['xml'][vtType].fromXML(node))
     return result
 
-def writeXMLObjects(objectList, dom):
+def writeXMLObjects(objectList, dom, node=None):
     daoList = getVersionDAO(currentVersion)
-    for object in objectList:
-        root = daoList['xml'][object.vtType].toXML(object, dom)
-    return root
+    # FIXME only works for list of length 1
+    object = objectList[0]
+    res_node = daoList['xml'][object.vtType].toXML(object, dom, node)
+    return res_node
 
 def readSQLObjects(dbConnection, vtType, id):
-    daoList = getVersionDAO(currentVersion)
-    return daoList['sql'][vtType].fromSQL(dbConnection, id)
+    dao_list = getVersionDAO(currentVersion)
+
+    all_objects = {}
+    res = []
+    global_props = {'id': id}
+    all_objects.update(dao_list['sql'][vtType].get_sql_columns(dbConnection, 
+                                                               global_props))
+    res = all_objects.values()
+    del global_props['id']
+
+    for dao in dao_list['sql'].itervalues():
+        if dao == dao_list['sql'][vtType]:
+            continue
+        all_objects.update(dao.get_sql_columns(dbConnection, global_props))
+    for obj in all_objects.values():
+        dao_list['sql'][obj.vtType].from_sql_fast(obj, all_objects)
+    return res
 
 def writeSQLObjects(dbConnection, objectList):
-    daoList = getVersionDAO(currentVersion)
+    dao_list = getVersionDAO(currentVersion)
+
     for object in objectList:
-        daoList['sql'][object.vtType].toSQL(dbConnection, object)
+        children = object.db_children()
+        children.reverse()
+        global_props = {}
+        for (child, _, _) in children:
+            dao_list['sql'][child.vtType].set_sql_columns(dbConnection, child, 
+                                                          global_props)
+            dao_list['sql'][child.vtType].to_sql_fast(child)
+            child.is_dirty = False
+            child.is_new = False
 
 def importXMLObjects(vtType, node, version):
     daoList = getVersionDAO(version)
@@ -379,13 +376,15 @@ class XMLFileLocator(BaseLocator):
         self._name = filename
 
     def load(self):
-        import core.vistrail.dbservice as db
-        vistrail = db.openVistrail(self._name)
+        from core.vistrail.vistrail import Vistrail
+        vistrail = openVistrailFromXML(self._name)
+        Vistrail.convert(vistrail)
         vistrail.locator = self
         return vistrail
 
     def save(self, vistrail):
-        vistrail.serialize(self._name)
+        saveVistrailToXML(vistrail, self._name)
+        vistrail.locator = self
 
     def is_valid(self):
         return os.path.isfile(self._name)
@@ -417,10 +416,16 @@ class XMLFileLocator(BaseLocator):
 
 class DBLocator(BaseLocator):
 
-    def __init__(self, host, port, database, vistrail_id, connection_id=None):
+    connections = {}
+
+    def __init__(self, host, port, database, user, passwd, name=None,
+                 vistrail_id=None, connection_id=None):
         self._host = host
         self._port = port
         self._db = database
+        self._user = user
+        self._passwd = passwd
+        self._vt_name = name
         self._vt_id = vistrail_id
         self._conn_id = connection_id
 
@@ -439,28 +444,53 @@ class DBLocator(BaseLocator):
     def _get_connection_id(self):
         return self._conn_id
     connection_id = property(_get_connection_id)
+    
+    def _get_name(self):
+        return self._host + ':' + str(self._port) + ':' + self._db + ':' + \
+            self._vt_name
+    name = property(_get_name)
+
+    def get_connection(self):
+        if self._conn_id is not None \
+                and DBLocator.connections.has_key(self._conn_id):
+            connection = DBLocator.connections[self._conn_id]
+        else:
+            config = {'host': self._host,
+                      'port': self._port,
+                      'db': self._db,
+                      'user': self._user,
+                      'passwd': self._passwd}
+            connection = openDBConnection(config)
+            if self._conn_id is None:
+                if len(DBLocator.connections.keys()) == 0:
+                    self._conn_id = 1
+                else:
+                    self._conn_id = max(DBLocator.connections.keys()) + 1
+            DBLocator.connections[self._conn_id] = connection
+        return connection
 
     def load(self):
-        d = {'host': self._host,
-             'port': self._port,
-             'db': self._db}
-        if self._conn_id:
-            d['id'] = self._conn_id
-        vistrail = open_from_db(config, self._vt_id)
+        from core.vistrail.vistrail import Vistrail
+        connection = self.get_connection()
+        vistrail = openVistrailFromDB(connection, self.vistrail_id)
+        Vistrail.convert(vistrail)
+        self._vt_name = vistrail.db_name
         vistrail.locator = self
         return vistrail
 
     def save(self, vistrail):
-        # FIXME: Why is this here?
-        vistrail.db_name = self._name
-        save_to_db(self.connection_id, vistrail)
+        connection = self.get_connection()
+        vistrail.db_name = self._vt_name
+        saveVistrailToDB(vistrail, connection)
+        self._vt_id = vistrail.db_id
+        vistrail.locator = self
 
     ##########################################################################
         
     @staticmethod
     def load_from_gui(parent_widget):
         import gui.extras.db.services.io as io
-        io.get_load_db_locator_from_gui(parent_widget)
+        return io.get_load_db_locator_from_gui(parent_widget)
 
     @staticmethod
     def save_from_gui(parent_widget, locator=None):
@@ -473,6 +503,8 @@ class DBLocator(BaseLocator):
         return (self._host == other._host and
                 self._port == other._port and
                 self._db == other._db and
+                self._user == other._user and
+                self._vt_name == other._vt_name and
                 self._vt_id == other._vt_id)
 
     def __ne__(self, other):

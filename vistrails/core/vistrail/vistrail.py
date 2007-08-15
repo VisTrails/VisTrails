@@ -41,10 +41,10 @@ from core.debug import DebugPrint
 from core.utils import enum, VistrailsInternalError, InstanceObject, \
      iter_with_index
 from core.vistrail.action import Action
+from core.vistrail.abstraction import Abstraction
 from core.vistrail.annotation import Annotation
 from core.vistrail.connection import Connection
 from core.vistrail.location import Location
-from core.vistrail.macro import Macro
 from core.vistrail.module import Module
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
@@ -61,8 +61,6 @@ class Vistrail(DBVistrail):
 	DBVistrail.__init__(self)
 
         self.changed = False
-        self.inverseTagMap = {}
-        self.macroIdMap = {}
         self.currentVersion = -1
         self.expand=[] #to expand selections in versiontree
         self.currentGraph=None
@@ -81,46 +79,33 @@ class Vistrail(DBVistrail):
     def _set_tagMap(self, tagMap):
         self.db_tags = tagMap
     tagMap = property(_get_tagMap, _set_tagMap)
-
-    def _get_macroMap(self):
-        return self.db_macros
-    def _set_macroMap(self, macroMap):
-        self.db_macros = macroMap
-    macroMap = property(_get_macroMap, _set_macroMap)
+    def get_tag_by_name(self, name):
+        return self.db_get_tag_by_name(name)
+    def has_tag_with_name(self, name):
+        return self.db_has_tag_with_name(name)
+    
+    def _get_abstractions(self):
+        return self.db_abstractions
+    def _set_abstractions(self, abstractions):
+        self.db_abstractions = abstractions
+    abstractions = property(_get_abstractions, _set_abstractions)
 
     @staticmethod
     def convert(_vistrail):
 	_vistrail.__class__ = Vistrail
         _vistrail.changed = False
-        _vistrail.inverseTagMap = {}
-        _vistrail.macroIdMap = {}
         _vistrail.currentVersion = -1
         _vistrail.expand=[] #to expand selections in versiontree
         _vistrail.currentGraph=None
         _vistrail.prunedVersions = set()
         _vistrail.savedQueries = []
 
-	for action in _vistrail.actionMap.values():
+	for action in _vistrail.actionMap.itervalues():
 	    Action.convert(action)
-
-            # update idScope
-            # FIXME phase out latestTime and use idScope instead
-# moved this to db.services.vistrail - DAK
-#             _vistrail.idScope.updateBeginId('action', action.timestep+1)
-#             for operation in action.operations:
-#                 _vistrail.idScope.updateBeginId('operation', operation.id+1)
-#                 if operation.vtType == 'add':
-#                     _vistrail.idScope.updateBeginId(operation.what, 
-#                                                     operation.objectId+1)
-#                 elif operation.vtType == 'change':
-#                     _vistrail.idScope.updateBeginId(operation.what,
-#                                                     operation.newObjId+1)
-	for tag in _vistrail.tagMap.values():
+	for tag in _vistrail.tagMap.itervalues():
             Tag.convert(tag)
-	    _vistrail.inverseTagMap[tag.time] = tag.name
-# 	for macro in _vistrail.macroMap.values():
-# 	    Macro.convert(macro)
-
+        for abstraction in _vistrail.abstractions.itervalues():
+            Abstraction.convert(abstraction)
 	_vistrail.changed = False
 
     def getVersionName(self, version):
@@ -129,8 +114,8 @@ class Vistrail(DBVistrail):
         if it doesn't. 
         
         """
-        if self.inverseTagMap.has_key(version):
-            return self.inverseTagMap[version]
+        if self.tagMap.has_key(version):
+            return self.tagMap[version].name
         else:
             return ""
 
@@ -146,7 +131,7 @@ class Vistrail(DBVistrail):
         Returns the version number given a tag.
 
         """
-        return self.tagMap[version].time
+        return self.get_tag_by_name(version).time
     
     def oldGetPipeline(self, version):
         return Pipeline(self.actionChain(version))
@@ -164,9 +149,9 @@ class Vistrail(DBVistrail):
         it will return None.
 
         """
-        if self.tagMap.has_key(version):
+        if self.has_tag_with_name(version):
 #             number = self.tagMap[version]
-	    number = self.tagMap[version].time
+	    number = self.get_tag_by_name(version).time
             return self.getPipelineVersionNumber(number)
         else:
             return None
@@ -659,24 +644,26 @@ class Vistrail(DBVistrail):
        
         """
         if type(tag) == type(0) or type(tag) == type(0L):
-            return self.inverseTagMap.has_key(tag)
-        elif type(tag) == type('str'):
             return self.tagMap.has_key(tag)
+        elif type(tag) == type('str'):
+            return self.has_tag_with_name(tag)
         
     def addTag(self, version_name, version_number):
         """addTag(version_name, version_number) -> None
         Adds new tag to vistrail
           
         """
-        if self.inverseTagMap.has_key(version_number):
+        if self.tagMap.has_key(version_number):
             DebugPrint.log("Version is already tagged")
             raise VersionAlreadyTagged()
-        if self.tagMap.has_key(version_name):
+        if self.has_tag_with_name(version_name):
             DebugPrint.log("Tag already exists")
             raise TagExists()
-#         self.tagMap\[version_name] = version_number
-	self.tagMap[version_name] = Tag(version_name, version_number)
-        self.inverseTagMap[version_number] = version_name
+#         self.tagMap[version_name] = version_number
+        tag = Tag(id=version_number,
+                  name=version_name,
+                  )
+        self.db_add_tag(tag)
         self.changed = True
         
     def changeTag(self, version_name, version_number):
@@ -686,21 +673,21 @@ class Vistrail(DBVistrail):
         untagged.
                   
         """
-        if not self.inverseTagMap.has_key(version_number):
+        if not self.tagMap.has_key(version_number):
             DebugPrint.log("Version is not tagged")
             raise VersionNotTagged()
-        if self.inverseTagMap[version_number] == version_name:
+        if self.tagMap[version_number].name == version_name:
             return None
-        if self.tagMap.has_key(version_name):
+        if self.has_tag_with_name(version_name):
             DebugPrint.log("Tag already exists")
             raise TagExists()
-        self.tagMap.pop(self.inverseTagMap[version_number])
         if version_name=='':
-            self.inverseTagMap.pop(version_number)
+            self.db_delete_tag(version_number)
         else:
-            self.inverseTagMap[version_number] = version_name
-#             self.tagMap[version_name] = version_number
-	    self.tagMap[version_name] = Tag(version_name, version_number)
+            tag = Tag(id=version_number,
+                      name=version_name,
+                      )
+            self.db_change_tag(tag)
         self.changed = True
 
     def changenotes(self, notes, version_number):
@@ -857,7 +844,7 @@ class Vistrail(DBVistrail):
 #             tagElement.setAttribute('name', str(name))
 #             tagElement.setAttribute('time', str(time))
 #             root.appendChild(tagElement)
-        for (name, tag) in self.tagMap.items():
+        for (id, tag) in self.tagMap.items():
             tagElement = dom.createElement('tag')
             tagElement.setAttribute('name', str(tag.name))
             tagElement.setAttribute('time', str(tag.time))
@@ -874,61 +861,10 @@ class Vistrail(DBVistrail):
             queryElement.setAttribute('text', str(qText))
             root.appendChild(queryElement)
 
-        for macro in self.macroMap.values():
-            macro.serialize(dom,root)
         outputFile = file(filename,'w')
         root.writexml(outputFile, "  ", "  ", '\n')
         outputFile.close()
         self.changed = False
-
-    def applyMacro(self,name,pipeline):
-        """applyMacro(name:str, pipeline:Pipeline) -> None
-        Applies a macro to a given pipeline
-         
-        """
-        self.macroMap[name].applyMacro(pipeline)
-
-    def addMacro(self, macro):
-        """addMacro(macro:Macro) -> None 
-        Adds a macro to macroMap.
-
-        """
-        if self.macroMap.has_key(macro.name):
-            raise MacroExists(macro.name)
-        macro.id = self.freshMacroId()
-        if macro.name == '':
-            macro.name = 'noname' + str(macro.id)
-        self.macroMap[macro.name] = macro
-        self.macroIdMap[macro.id] = macro
-        self.changed = True
-
-    def deleteMacro(self, id):
-        """deleteMacro(id) -> None 
-        Deletes a macro with a given id """
-        macro = self.macroIdMap[id]
-        del self.macroIdMap[id]
-        del self.macroMap[macro.name]
-        
-    def changeMacroName(self,oldname):
-        """ changeMacroName(oldname) -> None 
-        The macro has changed its name. This updates the key (name) of the
-        macro in the macroMap.
-          
-        """
-        macro = self.macroMap[oldname]
-        if self.macroMap.has_key(macro.name):
-            raise MacroExists(macro.name)
-        else:
-            self.macroMap.pop(oldname)
-            self.macroMap[macro.name] = macro
-
-    def freshMacroId(self):
-        """freshMacroId() -> int - Returns an unused macro id """
-        # This is dumb and slow
-        m = 0
-        while self.macroIdMap.has_key(m):
-            m += 1
-        return m
 
     def setExp(self, exp):
         """setExp(exp) -> None - Set current list of nodes to be expanded"""
@@ -1004,13 +940,6 @@ class TagExists(Exception):
 class VersionNotTagged(Exception):
     def __str__(self):
         return "Version is not tagged"
-    pass
-
-class MacroExists(Exception):
-    def __init__(self, name):
-        self.name = name
-    def __str__(self):
-        return "Macro '"+ self.name + "' already exists"
     pass
 
 ##############################################################################

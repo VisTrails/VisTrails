@@ -21,7 +21,11 @@
 ############################################################################
 
 def capitalizeOne(str):
-    return str[0].upper() + str[1:]
+    result = ''
+    strs = str.split('_')
+    for a_str in strs:
+        result += a_str[0].upper() + a_str[1:]
+    return result
 
 class Field:
     def __init__(self, params):
@@ -43,6 +47,11 @@ class Field:
 	except KeyError:
 	    pass
 	return "%ss" % Field.getName(self)
+
+    def getIterator(self):
+        if Field.getType(self) == 'hash':
+            return Field.getFieldName(self) + '.itervalues()'
+        return Field.getFieldName(self)
 
     def getSingleName(self):
         return Field.getName(self)
@@ -133,6 +142,11 @@ class Choice(Field):
 	return 'choice: %s\nparams:\n\t%s\nprops:\n\t%s' % \
             (self.getName(), self.params, self.properties)
 
+    def isReference(self):
+        if len(self.properties) > 0:
+            return self.properties[0].isReference()
+        return False
+
     def getReference(self):
 	if len(self.properties) > 0:
 	    return self.properties[0].getReference()
@@ -144,6 +158,9 @@ class Choice(Field):
 	except KeyError:
 	    pass
 	return None
+
+    def isChoice(self):
+        return True
 
 class Property(Field):
     def __init__(self, params, specs):
@@ -182,6 +199,9 @@ class Property(Field):
 	    pass
 	return False
 
+    def isChoice(self):
+        return False
+
 class Object:
     def __init__(self, params, properties, layouts, choices):
 	self.params = params
@@ -208,6 +228,15 @@ class Object:
 	    pass
 	return None
 
+    def getField(self, field_name):
+        for property in self.properties:
+            if Property.getName(property) == field_name:
+                return property
+        for choice in self.choices:
+            if Choice.getName(choice) == field_name:
+                return choice
+        return None
+            
     def getRegularName(self):
         return Object.getName(self)
 

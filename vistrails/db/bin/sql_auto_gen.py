@@ -96,6 +96,10 @@ class SQLProperty (Property):
         return False
 
 class SQLChoice(Choice):
+    def hasSpec(self):
+        if self.properties[0].hasSpec():
+            return True
+        return False
 
     def getColumn(self):
         for property in self.properties:
@@ -106,7 +110,21 @@ class SQLChoice(Choice):
 	except KeyError:
 	    pass
 	return self.getName()
-        
+      
+    def isGlobal(self):
+        try:
+            return self.properties[0].specs[SQL_TYPE]['global'] == 'true'
+        except KeyError:
+            pass
+        return False
+
+    def getGlobalName(self):
+        try:
+            return self.properties[0].specs[SQL_TYPE]['globalName']
+        except KeyError:
+            pass
+        return ''
+  
 class SQLAutoGen(AutoGen):
     def __init__(self, objects):
 	AutoGen.__init__(self, objects)
@@ -129,6 +147,53 @@ class SQLAutoGen(AutoGen):
                 properties.append(property)
         return properties
 
+    def getSQLFields(self, object):
+        return self.getSQLProperties(object) + self.getSQLChoices(object)
+
+    def getSQLProperties(self, object):
+        properties = []
+        for property in object.properties:
+            if property.hasSpec():
+                properties.append(property)
+        return properties
+
+    def getSQLChoices(self, object):
+        choices = []
+        for choice in object.choices:
+            if choice.hasSpec():
+                choices.append(choice)
+        return choices
+
+    def getSQLInverses(self, object):
+        fields = []
+        for field in self.getSQLFields(object):
+            if field.isInverse():
+                fields.append(field)
+        return fields
+
+    def getSQLInverseRefs(self, object):
+        fields = []
+        for field in self.getSQLFields(object):
+            if field.isInverse() and field.isReference():
+                fields.append(field)
+        return fields
+
+    def getSQLColumns(self, object):
+        columns = []
+        for field in self.getSQLFields(object):
+            columns.append(field.getColumn())
+        return columns
+
+    def getSQLReferences(self, object):
+        refs = []
+        for property in object.properties:
+            if property.isReference() and not property.isInverse():
+                refs.append(property)
+        for choice in object.choices:
+            if choice.isReference() and not choice.isInverse():
+                refs.append(choice)
+        return refs
+
     def getNormalSQLColumns(self, object):
         columns = []
         for property in object.properties:
@@ -148,7 +213,7 @@ class SQLAutoGen(AutoGen):
 	    columns.append(property.getColumn())
 	return columns
 
-    def getSQLReferences(self, object):
+    def getSQLReferenceProperties(self, object):
 	refs = []
 	for property in object.properties:
 	    if not property.isInverse() and property.isReference():
@@ -176,6 +241,18 @@ class SQLAutoGen(AutoGen):
 			    refProp.getReference() == object.getRegularName():
 			return (choice, True)
 	return (None, False)
+
+    def get_sql_referenced(self, ref_obj, obj):
+        if ref_obj is not None:
+            for ref_prop in ref_obj.properties:
+                if ref_prop.isReference() and \
+                        ref_prop.getReference() == obj.getRegularName():
+                    return (ref_prop, False)
+            for choice in ref_obj.choices:
+                for ref_prop in choice.properties:
+                    if ref_prop.isReference() and \
+                            ref_prop.getReference() == obj.getRegularName():
+                        return (choice, True)
 
     def generateSchema(self):
 	self.reset(SQL_SPACES)
@@ -245,6 +322,7 @@ class SQLAutoGen(AutoGen):
 	return self.getOutput()
 
     def generateDAOClass(self, object):
+        print 'generating sql: %s' % object.getRegularName()
 	self.printLine('class %sSQLDAOBase(SQLDAO):\n\n' % \
 		       object.getClassName())
 	self.indentLine('def __init__(self, daoList):\n')
@@ -252,7 +330,7 @@ class SQLAutoGen(AutoGen):
 	self.unindentLine('def getDao(self, dao):\n')
 	self.indentLine('return self.daoList[dao]\n\n')
 
-	refs = self.getSQLReferences(object)
+	refs = self.getSQLReferenceProperties(object)
 	varPairs = []
 	for field in self.getPythonFields(object):
             if field.__class__ == SQLChoice or field.isReference() or \
@@ -266,6 +344,185 @@ class SQLAutoGen(AutoGen):
 	for choice in object.choices:
 	    if not choice.isInverse() and choice.properties[0].isReference():
 		choiceRefs.append(choice)
+
+        # get_sql_columns
+        self.unindentLine('def get_sql_columns(self, db, global_props):\n')
+        self.indentLine("columns = ['%s']\n" % \
+                            "', '".join(self.getSQLColumns(object)))
+        self.printLine("table = '%s'\n" % object.getName())
+        self.printLine("whereMap = global_props\n")
+        self.printLine("orderBy = '%s'\n\n" % key.getName())
+        self.printLine('dbCommand = self.createSQLSelect(' +
+                       'table, columns, whereMap, orderBy)\n')
+
+        self.printLine('data = self.executeSQL(db, dbCommand, True)\n')
+        self.printLine('res = {}\n')
+        self.printLine('for row in data:\n')
+        self.indent()
+	count = 0
+	for field in self.getSQLFields(object):
+	    self.printLine("%s = self.convertFromDB(row[%d], '%s', '%s')\n" % \
+			   (field.getRegularName(), count,
+                            field.getPythonType(), field.getType()))
+            count += 1
+            if field.isGlobal():
+                self.printLine("global_props['%s'] = " % \
+                                   field.getGlobalName() +
+                               "self.convertToDB(%s, '%s', '%s')\n" % \
+                                   (field.getRegularName(),
+                                    field.getPythonType(),
+                                    field.getType()))
+
+        attrPairs = []
+        for field in self.getNormalSQLColumnsAndKey(object):
+            attrPairs.append('%s=%s' % (field.getRegularName(),
+                                        field.getRegularName()))
+
+        self.printLine('\n')
+        assignStr = '%s = %s(' % (object.getRegularName(),
+                                  object.getClassName())
+        sep = ',\n' + (' ' * (len(assignStr) + 12))
+	self.printLine('%s = %s(%s)\n' % (object.getRegularName(), 
+                                          object.getClassName(),
+                                          sep.join(attrPairs)))
+        for field in self.getSQLInverses(object):
+            self.printLine('%s.%s = %s\n' % (object.getRegularName(),
+                                             field.getFieldName(),
+                                             field.getRegularName()))
+        self.printLine('%s.is_dirty = False\n' % object.getRegularName())
+	self.printLine("res[('%s', %s)] = %s\n\n" % \
+                           (object.getRegularName(), key.getRegularName(),
+                            object.getRegularName()))
+	self.unindentLine('return res\n\n')
+
+        # from_sql_fast
+        self.unindentLine('def from_sql_fast(self, obj, all_objects):\n')
+        
+        # identify the fields needed to tie the child to the parent
+        self.indent()
+        inverse_refs = self.getSQLInverseRefs(object)
+        if len(inverse_refs) < 1:
+            self.printLine('pass\n')
+        for backRef in inverse_refs:
+            cond = "if"
+            if backRef.isChoice():
+                # need discriminator
+                disc = backRef.getDiscriminator()
+                for prop in backRef.properties:
+                    ref_obj = \
+                        self.getReferencedObject(prop.getReference())
+                    disc_prop = self.getDiscriminatorProperty(object,
+                                                              disc)
+                    (ref_prop, _) = self.get_sql_referenced(ref_obj,
+                                                            object)
+                    self.printLine("%s obj.%s == '%s':\n" % \
+                                       (cond, disc_prop.getFieldName(),
+                                        ref_obj.getRegularName()))
+
+                    self.indentLine("p = all_objects[('%s', obj.%s)]\n" % \
+                                        (ref_obj.getRegularName(),
+                                         backRef.getFieldName()))
+                    self.printLine('p.%s(obj)\n' % ref_prop.getAppender())
+                    self.unindent()
+                    cond = "elif"
+            else:
+                ref_obj = self.getReferencedObject(backRef.getReference())
+                (ref_field, _) = self.get_sql_referenced(ref_obj,
+                                                         object)
+                self.printLine("p = all_objects[('%s', obj.%s)]\n" % \
+                                   (ref_obj.getRegularName(),
+                                    backRef.getFieldName()))
+                self.printLine('p.%s(obj)\n' % ref_field.getAppender())
+        self.printLine('\n')
+
+        # set_sql_columns
+        self.unindentLine('def set_sql_columns(self, db, obj, global_props, do_copy=True):\n')
+        self.indentLine('if not do_copy and not obj.is_dirty:\n')
+        self.indentLine('return\n')
+        self.unindentLine("columns = ['%s']\n" % \
+                              "', '".join(self.getSQLColumns(object)))
+        self.printLine("table = '%s'\n" % object.getName())
+        self.printLine("whereMap = {}\n")
+	self.printLine('if obj.%s is not None:\n' % key.getFieldName())
+        self.indentLine("keyStr = self.convertToDB(obj.%s, '%s', '%s')\n" % \
+                            (key.getFieldName(), key.getPythonType(), 
+                             key.getType()))
+        self.printLine("whereMap['%s'] = keyStr\n" % key.getColumn())
+        self.unindent()
+#         for field in self.getSQLInverses(object):
+#             self.printLine('%s = %s.%s\n' % (field.getRegularName(),
+#                                              object.getRegularName(),
+#                                              field.getPythonName()))
+        self.printLine('columnMap = {}\n')
+        for field in self.getSQLFields(object):
+	    self.printLine("if hasattr(obj, '%s') and obj.%s is not None:\n" % \
+                               (field.getPythonName(), field.getPythonName()))
+            self.indentLine("columnMap['%s'] = \\\n" % field.getColumn())
+            self.indentLine("self.convertToDB(obj.%s, '%s', '%s')\n" % \
+                                (field.getFieldName(),
+                                 field.getPythonType(),
+                                 field.getType()))
+            self.unindent(2)
+        self.printLine('columnMap.update(global_props)\n\n')
+
+        self.printLine('if obj.is_new:\n')
+        self.indentLine('dbCommand = self.createSQLInsert(table, columnMap)\n')
+        self.unindentLine('else:\n')
+        self.indentLine('dbCommand = ' +
+                        'self.createSQLUpdate(table, columnMap, whereMap)\n')
+        self.unindentLine('lastId = self.executeSQL(db, dbCommand, False)\n')
+        if key.isAutoInc():
+            self.printLine('if obj.%s is None:\n' % key.getPythonName())
+            self.indentLine('obj.%s = lastId\n' % key.getPythonName())
+            self.printLine("keyStr = self.convertToDB(obj.%s, '%s', '%s')\n" % \
+                               (key.getPythonName(), key.getPythonType(),
+                                key.getType()))
+            self.unindent()
+        for property in self.getNormalSQLColumnsAndKey(object):
+            if property.isGlobal():
+                self.printLine("global_props['%s'] = " % \
+                                      property.getGlobalName() +
+                                  "self.convertToDB(obj.%s, '%s', '%s')\n" % \
+                                      (property.getPythonName(),
+                                       property.getPythonType(),
+                                       property.getType()))
+
+        self.printLine('\n')
+
+        # to_sql_fast
+        self.unindentLine('def to_sql_fast(self, obj, do_copy=True):\n')
+        self.indent()
+        references = self.getSQLReferences(object)
+        if len(references) < 1:
+            self.printLine('pass\n')
+        else:
+            self.printLine('if not do_copy and not obj.is_dirty:\n')
+            self.indentLine('return\n')
+            self.unindent()
+        for ref in references:
+            ref_obj = self.getReferencedObject(ref.getReference())
+            if ref.isPlural():
+                self.printLine('for child in obj.%s:\n' % ref.getIterator())
+                self.indent()
+            else:
+                self.printLine('if obj.%s is not None:\n' % ref.getFieldName())
+                self.indentLine('child = obj.%s\n' % ref.getFieldName())
+            (ref_field, is_choice) = self.get_sql_referenced(ref_obj, object)
+            if is_choice:
+                # need to set discriminator and foreign key
+                disc = ref_field.getDiscriminator()
+                disc_prop = self.getDiscriminatorProperty(ref_obj,
+                                                          disc)
+                self.printLine("child.%s = obj.vtType\n" % \
+                                   disc_prop.getFieldName())
+                self.printLine("child.%s = obj.db_id\n" % \
+                                   ref_field.getFieldName())
+            else:
+                # need to set foreign key
+                self.printLine("child.%s = obj.db_id\n" % \
+                                   ref_field.getFieldName())
+            self.unindent()
+        self.printLine('\n')
 
 	# fromSQL
 	self.unindentLine('def fromSQL(self, db, id=None, foreignKey=None, ' +

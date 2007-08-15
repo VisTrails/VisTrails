@@ -38,6 +38,9 @@ class SearchStmt(object):
         self.text = content
         self.content = re.compile('.*'+content+'.*', re.MULTILINE | re.IGNORECASE)
 
+    def match(self, vistrail, action):
+        return True
+
     def matchModule(self, v, m):
         return True
 
@@ -376,69 +379,70 @@ class TimeSearchStmt(SearchStmt):
         return time.mktime(this)
         
 class BeforeSearchStmt(TimeSearchStmt):
-    def match(self, action):
+    def match(self, vistrail, action):
         if not action.date:
             return False
         t = time.mktime(time.strptime(action.date, "%d %b %Y %H:%M:%S"))
         return t <= self.date
 
 class AfterSearchStmt(TimeSearchStmt):
-    def match(self, action):
+    def match(self, vistrail, action):
         if not action.date:
             return False
         t = time.mktime(time.strptime(action.date, "%d %b %Y %H:%M:%S"))
         return t >= self.date
 
 class UserSearchStmt(SearchStmt):
-    def match(self, action):
+    def match(self, vistrail, action):
         if not action.user:
             return False
         return self.content.match(action.user)
 
 class NotesSearchStmt(SearchStmt):
-    def match(self, action):
-        notes = xml.sax.saxutils.unescape(action.notes)
-        fragment = QtGui.QTextDocumentFragment.fromHtml(QString(notes))
-        plainNotes = str(fragment.toPlainText())
-        return self.content.search(plainNotes)
+    def match(self, vistrail, action):
+        if action.notes is not None:
+            notes = xml.sax.saxutils.unescape(action.notes)
+            fragment = QtGui.QTextDocumentFragment.fromHtml(QString(notes))
+            plainNotes = str(fragment.toPlainText())
+            return self.content.search(plainNotes)
+        return False
 
 class NameSearchStmt(SearchStmt):
-    def match(self, action):
-        vistrail = action.vistrail
-        if not vistrail.inverseTagMap.has_key(action.timestep):
+    def match(self, vistrail, action):
+        if not vistrail.tagMap.has_key(action.timestep):
             return False
-        m = self.content.match(vistrail.inverseTagMap[action.timestep])
+        m = self.content.match(vistrail.tagMap[action.timestep].name)
         t = self.text
         return bool(m)
 
 class AndSearchStmt(SearchStmt):
     def __init__(self, lst):
         self.matchList = lst
-    def match(self, action):
+    def match(self, vistrail, action):
         for s in self.matchList:
-            if not s.match(action):
+            if not s.match(vistrail, action):
                 return False
         return True
 
 class OrSearchStmt(SearchStmt):
     def __init__(self, lst):
         self.matchList = lst
-    def match(self, action):
+    def match(self, vistrail, action):
         for s in self.matchList:
-            if s.match(action):
+            if s.match(vistrail, action):
                 return True
         return False
 
 class NotSearchStmt(SearchStmt):
     def __init__(self, stmt):
         self.stmt = stmt
-    def match(self, action):
+    def match(self, vistrail, action):
         return not self.stmt.match(action)
 
 class TrueSearch(SearchStmt):
     def __init__(self):
         pass
-    def match(self, action):
+    def match(self, vistrail, action):
         return True
 
 ################################################################################

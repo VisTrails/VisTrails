@@ -272,6 +272,7 @@ class QViewManager(QtGui.QTabWidget):
             QtGui.QMessageBox.critical(None,
                                        'Vistrails',
                                        str(e))
+            raise
 
     def save_vistrail(self, locator_class,
                       vistrailView=None,

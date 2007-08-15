@@ -31,41 +31,30 @@ import os
 # DB dialogs
 
 def get_load_db_locator_from_gui(parent):
-    config, vistrailId = QOpenDBWindow.getOpenVistrail()
-    if config == {} or vistrailId == -1:
+    config, vistrail_id = QOpenDBWindow.getOpenVistrail()
+    if config == {} or vistrail_id == -1:
         return None
     return DBLocator(config['host'],
                      config['port'],
                      config['db'],
-                     vistrailId,
-                     config.get('conn_id', None))
+                     config['user'],
+                     config['passwd'],
+                     None,
+                     vistrail_id,
+                     config.get('id', None))
 
 def get_save_db_locator_from_gui(parent, locator=None):
-    if locator is None:
-        config, name = QOpenDBWindow, getSaveVistrail()
-        if config == {} or name == '':
-            return None
-        return DBLocator(config['host'],
-                         config['port'],
-                         config['db'],
-                         vistrailId,
-                         config.get('conn_id', None))
-
-    name = QtGui.QInputDialog.getText(parent,
-                                      "Save Vistrail...",
-                                      "Vistrail name:",
-                                      QtGui.QLineEdit.Normal,
-                                      "",
-                                      False)
-    if name.isEmpty():
+    config, name = QOpenDBWindow.getSaveVistrail()
+    if config == {} or name == '':
         return None
-    return DBLocator(locator.host,
-                     locator.port,
-                     locator.db,
-                     locator.vistrail_id,
-                     locator.connection_id)
-                     
-    
+    return DBLocator(config['host'],
+                     config['port'],
+                     config['db'],
+                     config['user'],
+                     config['passwd'],
+                     name,
+                     None,
+                     config.get('id', None))
 
 ##############################################################################
 # XML File dialogs

@@ -278,7 +278,7 @@ class TestModuleFunction(unittest.TestCase):
         assert f != g
 
     def test_load_and_dump_function(self):
-        """ Check that fromXML and toXML are working properly """
+        """ Check that serialize and unserialize are working properly """
         from core.vistrail import dbservice
 
         f = ModuleFunction()
@@ -289,8 +289,8 @@ class TestModuleFunction(unittest.TestCase):
         param.alias = ""
         f.addParameter(param)        
         
-        dom = dbservice.toXML(f)
-        fnew = dbservice.fromXML('function', dom)
+        dom = dbservice.serialize(f)
+        fnew = dbservice.unserialize(ModuleFunction.vtType, dom)
         ModuleFunction.convert(fnew)
 
         assert f == fnew

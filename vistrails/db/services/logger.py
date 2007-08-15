@@ -20,9 +20,7 @@
 ##
 ############################################################################
 
-# FIXME doesn't currently work
-
-from db.domain import Log, Session, WfExec, ExecRec, Machine
+from db.domain import DBLog, DBSession, DBWfExec, DBExecRec, DBMachine
 import getpass
 import socket
 from core import system
@@ -32,11 +30,6 @@ from datetime import datetime
 
 class Logger(object):
     """ Class that provides an interface for logging workflows. """
-
-    def __init__(self):
-	self.log = 
-	self.session = Session()
-	
 
     def __init__(self):
         """ gather all the runtime information (such as username, machine name,
@@ -55,6 +48,7 @@ class Logger(object):
         self.ip = self.getIpAddress()
         self.vistVer = system.vistrailsVersion()
         self.ram = system.guessTotalMemory()/(1024*1024)
+
         self.getSettingsFromApp()
         self.ssid = -1
         self.vistrailsMap = {} #maps vistrailsNames to vistrails_id in db
