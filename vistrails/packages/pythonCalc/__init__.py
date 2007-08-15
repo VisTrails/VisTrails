@@ -31,6 +31,10 @@ core/modules/vistrails_module.py.
 import core.modules.module_registry
 from core.modules.vistrails_module import Module, ModuleError
 
+version = '0.9.0'
+name = 'PythonCalc'
+identifier = 'edu.utah.sci.vistrails.pythoncalc'
+
 ###############################################################################
 # PythonCalc
 #
@@ -72,6 +76,19 @@ on its inputs."""
         # clear in further examples that use these more complicated data.
         self.setResult("value", self.op(v1, v2))
 
+        if self.hasInputFromPort("mat1"):
+            m1 = self.getInputFromPort("mat1")
+            m2 = self.getInputFromPort("mat2")
+            self.setResult("mat_value", self.mat_op(v1, v2))
+
+
+    def mat_op(self, v1, v2):
+        reg = core.modules_module_registry
+        Matrix = reg.registry.getDescriptorByName('Matrix').module
+        result = Matrix()
+        matr
+        op = self.getInputFromPort("op")
+
     def op(self, v1, v2):
         op = self.getInputFromPort("op")
         if op == '+':
@@ -97,13 +114,13 @@ def initialize(*args, **keywords):
 
     # We'll first create a local alias for the module_registry so that
     # we can refer to it in a shorter way.
-    reg = core.modules.module_registry
+    reg = core.modules.module_registry.registry
 
     # VisTrails allows each package to specify its name for friendly
     # managing packages. This is done by calling
     # setCurrentPackageName. If this function is not called, the
     # package directory will be used as its name.
-    reg.setCurrentPackageName('Python Calculator')
+#     reg.setCurrentPackageName('Python Calculator')
 
     # VisTrails cannot currently automatically detect your derived
     # classes, and the ports that they support as input and

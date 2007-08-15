@@ -31,6 +31,12 @@ from MatrixOperations import *
 from DSP import *
 import core.modules.basic_modules
 
+version = '0.9.0'
+name = 'SciPy'
+identifier = 'edu.utah.sci.vistrails.scipy'
+
+##############################################################################
+
 from scipy import sparse
 
 def initialize(*args, **keywords):
@@ -132,7 +138,7 @@ def initialize(*args, **keywords):
 def package_dependencies():
     import core.packagemanager
     manager = core.packagemanager.get_package_manager()
-    if manager.has_package('vtk'):
-        return ['vtk']
+    if manager.has_package('edu.utah.sci.vistrails.vtk'):
+        return ['edu.utah.sci.vistrails.vtk']
     else:
         return []

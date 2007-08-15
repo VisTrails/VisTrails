@@ -26,7 +26,7 @@ to checking dependencies to initializing them."""
 
 from core import debug
 from core.modules.module_registry import registry
-from core.utils import VistrailsInternalError
+from core.utils import VistrailsInternalError, InstanceObject
 from core.utils.uxml import (named_elements,
                              elements_filter, enter_named_element)
 from core.configuration import ConfigurationObject, get_vistrails_configuration
@@ -50,9 +50,8 @@ class Package(object):
                     (self.package.name,
                      self.exception))
 
-    def __init__(self, packageName, load_configuration=True):
-        self._name = packageName
-        self._registry_name = packageName
+    def __init__(self, codepath, load_configuration=True):
+        self._codepath = codepath
         self._load_configuration = load_configuration
         self._module = None
         self._initialized = False
@@ -77,10 +76,10 @@ class Package(object):
             return
         def import_from(prefix):
             try:
-                self._module = getattr(__import__(prefix+self.name,
+                self._module = getattr(__import__(prefix+self._codepath,
                                                   globals(),
                                                   locals(), []),
-                                       self.name)
+                                       self._codepath)
                 self._package_type = self.Base
             except ImportError:
                 return False
@@ -89,9 +88,9 @@ class Package(object):
         if (not import_from('packages.') and
             not import_from('userpackages.')):
             dbg = debug.DebugPrint
-            dbg.critical("Could not enable package %s" % self._name)
+            dbg.critical("Could not enable package %s" % self._codepath)
             raise ImportError("Package %s not present "
-                              "(or one of its imports failed)" % self._name)
+                              "(or one of its imports failed)" % self._codepath)
 
         # Sometimes we don't want to change startup.xml, for example
         # when peeking at a package that's on the available package list
@@ -107,16 +106,15 @@ class Package(object):
     def initialize(self):
         if self._initialized:
             return
-        print "Initializing", self._name
-        registry.setCurrentPackageName(self._name)
+        print "Initializing", self._codepath
+        registry.set_current_package_name(self._get_identifier())
         try:
             self._module.initialize()
         except Exception, e:
             raise self.InitializationFailed(self, e)
 
         # The package might have decided to rename itself, let's store that
-        self._registry_name = registry.currentPackageName
-        registry.setCurrentPackageName(None)
+        registry.set_current_package_name(None)
         self._initialized = True
 
     def check_requirements(self):
@@ -131,7 +129,7 @@ class Package(object):
         """Returns whether has no reverse dependencies (other
         packages that depend on it."""
         mgr = get_package_manager()
-        return mgr.dependency_graph().in_degree(self.name) == 0
+        return mgr.dependency_graph().in_degree(self.identifier) == 0
     
     def finalize(self):
         if not self._initialized:
@@ -156,14 +154,25 @@ class Package(object):
     def reverse_dependencies(self):
         mgr = get_package_manager()
         lst = [x[0] for x in
-               mgr.dependency_graph().inverse_adjacency_list[self.name]]
+               mgr.dependency_graph().inverse_adjacency_list[self.identifier]]
         return lst
 
     def initialized(self):
         return self._initialized
 
     def _get_name(self):
-        return self._name
+        try:
+            return self._module.name
+        except AttributeError, e:
+            try:
+                v = self._module.__file__
+            except AttributeError:
+                v = self._module
+            msg = ("Package %s is missing attribute 'name'" % v)
+            debug.DebugPrint.critical(msg)
+            raise e
+
+    # name is the human-readable package name
     name = property(_get_name)
 
     def _get_module(self):
@@ -190,11 +199,37 @@ class Package(object):
             return "No description available"
     description = property(_get_description)
 
-    def _get_registry_name(self):
-        return self._registry_name
-    registry_name = property(_get_registry_name)
+#     def _get_registry_name(self):
+#         return self._registry_name
+#     registry_name = property(_get_registry_name)
     
 
+    def _get_version(self):
+        return self._module.version
+    version = property(_get_version)
+
+    def _get_identifier(self):
+        try:
+            return self._module.identifier
+        except AttributeError, e:
+            try:
+                v = self._module.__file__
+            except AttributeError:
+                v = self._module
+            msg = ("Package %s is missing attribute 'identifier'" % v)
+            debug.DebugPrint.critical(msg)
+            raise e
+
+    # identifer is the unique identifier across packages
+    identifier = property(_get_identifier)
+
+    # codepath is the package codepath
+    def _get_codepath(self):
+        return self._codepath
+    codepath = property(_get_codepath)
+
+
+    
     ##########################################################################
     # Configuration
 
@@ -208,7 +243,7 @@ class Package(object):
         packages = enter_named_element(doc, 'disabledpackages')
         assert packages
         for package_node in named_elements(packages, 'package'):
-            if str(package_node.attributes['name'].value) == self.name:
+            if str(package_node.attributes['name'].value) == self.codepath:
                 return package_node
         return None
 
@@ -228,7 +263,7 @@ class Package(object):
         def find_it():
             packages = enter_named_element(doc, 'packages')
             for package_node in named_elements(packages, 'package'):
-                if str(package_node.attributes['name'].value) == self.name:
+                if str(package_node.attributes['name'].value) == self.codepath:
                     return package_node
 
         package_node = find_it()
@@ -268,13 +303,13 @@ class Package(object):
         doc = dom.documentElement
         packages = enter_named_element(doc, 'packages')
         for package_node in named_elements(packages, 'package'):
-            if str(package_node.attributes['name'].value) == self.name:
+            if str(package_node.attributes['name'].value) == self.codepath:
                 return (dom, package_node)
 
         # didn't find anything, create a new node
 
         package_node = dom.createElement("package")
-        package_node.setAttribute('name', self.name)
+        package_node.setAttribute('name', self.codepath)
         packages.appendChild(package_node)
         
         from PyQt4 import QtCore
@@ -393,6 +428,7 @@ class PackageManager(object):
         _package_manager = self
         self._configuration = configuration
         self._package_list = {}
+        self._identifier_map = {}
         self._dependency_graph = core.data_structures.graph.Graph()
 
     def finalize_packages(self):
@@ -401,54 +437,67 @@ exiting VisTrails."""
         for package in self._package_list.itervalues():
             package.finalize()
         self._package_list = {}
+        self._identifier_map = {}
 
     def add_package(self, packageName):
         """Adds a new package to the manager. This does not initialize it.
 To do so, call initialize_packages()"""
         self._package_list[packageName] = Package(packageName)
-        if self._dependency_graph.vertices.has_key('packageName'):
-            raise VistrailsInternalError('duplicate package name')
-        self._dependency_graph.add_vertex(packageName)
 
-    def remove_package(self, name):
+    def remove_package(self, codepath):
         """remove_package(name): Removes a package from the system."""
-        pkg = self._package_list[name]
-        self._dependency_graph.delete_vertex(name)
+        pkg = self._package_list[codepath]
+        self._dependency_graph.delete_vertex(pkg.identifier)
+        del self._identifier_map[pkg.identifier]
         pkg.finalize()
-        del self._package_list[name]
-        registry.deletePackage(pkg.registry_name)
+        del self._package_list[codepath]
+        registry.deletePackage(pkg)
 
-    def has_package(self, name):
-        """has_package(name: string) -> Boolean.
-Returns true if given package is installed."""
-        return self._package_list.has_key(name)
+    def has_package(self, identifier):
+        """has_package(identifer: string) -> Boolean.
+Returns true if given package identifier is present."""
+        return self._identifier_map.has_key(identifier)
 
-    def look_at_available_package(self, name):
-        """look_at_available_package(name: string) -> Package
+    def look_at_available_package(self, codepath):
+        """look_at_available_package(codepath: string) -> Package
 
         Returns a Package object for an uninstalled package. This does
         NOT install a package.
         """
-        return Package(name, False)
+        return Package(codepath, False)
 
-    def get_package(self, name):
-        """get_package(name: string) -> Package.
-Returns a package with given name if it is enabled, otherwise throws exception
+    def get_package_by_codepath(self, codepath):
+        """get_package_by_codepath(codepath: string) -> Package.
+        Returns a package with given codepath if it is enabled,
+        otherwise throws exception
         """
-        if not self.has_package(name):
-            raise self.MissingPackage(name)
+        if codepath not in self._package_list:
+            raise self.MissingPackage(codepath)
         else:
-            return self._package_list[name]
+            return self._package_list[codepath]
 
-    def get_package_configuration(self, name):
-        """get_package_configuration(name: string) ->
+    def get_package_by_identifier(self, identifier):
+        """get_package_by_identifier(identifier: string) -> Package.
+        Returns a package with given identifier if it is enabled,
+        otherwise throws exception
+        """
+        # FIXME: This should really be handled better
+        if identifier == 'edu.utah.sci.vistrails.basic':
+            return InstanceObject(name='Basic Modules')
+        if identifier not in self._identifier_map:
+            raise self.MissingPackage(identifier)
+        else:
+            return self._identifier_map[identifier]
+
+    def get_package_configuration(self, codepath):
+        """get_package_configuration(codepath: string) ->
         ConfigurationObject or None
         
         Returns the configuration object for the package, if existing,
         or None. Throws MissingPackage if package doesn't exist.
         """
 
-        pkg = self.get_package(name)
+        pkg = self.get_package_by_codepath(codepath)
 
         if not hasattr(pkg.module, 'configuration'):
             return None
@@ -456,20 +505,21 @@ Returns a package with given name if it is enabled, otherwise throws exception
             c = pkg.module.configuration
             if not isinstance(c, ConfigurationObject):
                 d = "'configuration' attribute should be a ConfigurationObject"
-                raise self.PackageInternalError(name, d)
+                raise self.PackageInternalError(codepath, d)
             return c
 
     def add_dependencies(self, package):
         """add_dependencies(package) -> None.  Register all
-dependencies a package contains by calling the appropriate callback.
+        dependencies a package contains by calling the appropriate
+        callback.
 
         Does not add multiple dependencies - if a dependency is already there,
         add_dependencies ignores it.
         """
         deps = package.dependencies()
-        missing_packages = [name
-                            for name in deps
-                            if name not in self._dependency_graph.vertices]
+        missing_packages = [identifier
+                            for identifier in deps
+                            if identifier not in self._dependency_graph.vertices]
         if len(missing_packages):
             raise ImportError("Package '%s' has unmet dependencies: %s" %
                               (package.name,
@@ -477,28 +527,33 @@ dependencies a package contains by calling the appropriate callback.
         
         for dep_name in deps:
             if (dep_name not in
-                self._dependency_graph.adjacency_list[package.name]):
-                self._dependency_graph.add_edge(package.name, dep_name)
+                self._dependency_graph.adjacency_list[package.identifier]):
+                self._dependency_graph.add_edge(package.identifier, dep_name)
 
-    def late_enable_package(self, package_name):
+    def late_enable_package(self, package_codepath):
         """late_enable_package enables a package 'late', that is,
         after VisTrails initialization. All dependencies need to be
         already enabled.
         """
-        import time
-        self.add_package(package_name)
-        pkg = self.get_package(package_name)
+        self.add_package(package_codepath)
+        pkg = self.get_package_by_codepath(package_codepath)
         pkg.load()
+        if self._dependency_graph.vertices.has_key(pkg.identifier):
+            raise VistrailsInternalError('duplicate package identifier: %s' %
+                                         pkg.identifier)
+        self._dependency_graph.add_vertex(pkg.identifier)
+        self._identifier_map[pkg.identifier] = pkg
+        self.add_dependencies(pkg)
         pkg.check_requirements()
         pkg.initialize()
 
-    def late_disable_package(self, package_name):
+    def late_disable_package(self, package_codepath):
         """late_disable_package disables a package 'late', that is,
         after VisTrails initialization. All reverse dependencies need to be
         already disabled.
         """
-        pkg = self.get_package(package_name)
-        self.remove_package(package_name)
+        pkg = self.get_package_by_codepath(package_codepath)
+        self.remove_package(package_codepath)
         pkg.remove_own_dom_element()
 
     def initialize_packages(self,package_dictionary={}):
@@ -514,7 +569,12 @@ creating a class that behaves similarly)."""
 
         # import the modules
         for package in self._package_list.itervalues():
-            package.load(package_dictionary.get(package.name, None))
+            package.load(package_dictionary.get(package.codepath, None))
+            if self._dependency_graph.vertices.has_key(package.identifier):
+                raise VistrailsInternalError('duplicate package identifier: %s' %
+                                             package.identifier)
+            self._dependency_graph.add_vertex(package.identifier)
+            self._identifier_map[package.identifier] = package
 
         # determine dependencies
         for package in self._package_list.itervalues():
@@ -529,7 +589,7 @@ creating a class that behaves similarly)."""
                                        e.back_edge[1])
         
         for name in sorted_packages:
-            pkg = self._package_list[name]
+            pkg = self._identifier_map[name]
             if not pkg.initialized():
                 pkg.check_requirements()
                 pkg.initialize()
@@ -539,8 +599,12 @@ creating a class that behaves similarly)."""
         return self._package_list.values()
 
     def available_package_names_list(self):
-        """available_package_names_list() -> returns list of all
-        available packages, by looking at the appropriate directories."""
+        """available_package_names_list() -> returns list with code-paths of all
+        available packages, by looking at the appropriate directories.
+
+        The distinction between package names, identifiers and
+        code-paths is described in doc/package_system.txt
+        """
         
         lst = []
 

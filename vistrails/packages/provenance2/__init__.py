@@ -43,6 +43,10 @@ import stat
 import subprocess
 import glob
 
+version = '0.9.0'
+name = 'Provenance Challenge'
+identifier = 'edu.utah.sci.vistrails.provenance2'
+
 ################################################################################
 
 global_airpath = ""

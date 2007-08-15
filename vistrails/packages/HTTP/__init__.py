@@ -45,6 +45,9 @@ package_directory = None
 
 # TODO: When network is down, HTTPFile should log the fact that it used the
 # local cache regardless.
+name = 'HTTP'
+identifier = 'edu.utah.sci.vistrails.http'
+version = '0.9.0'
 
 ###############################################################################
 

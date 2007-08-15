@@ -27,6 +27,10 @@ from core.modules.vistrails_module import Module, ModuleError
 import TetGen
 import CreateTestSurf
 
+identifier = 'edu.utah.sci.vistrails.tetget'
+version = '0.9.0'
+name = 'tetgen'
+
 
 # The port that wraps a tetgenio class.
 class tetgenio_wrapper(Module):

@@ -552,7 +552,6 @@ def initialize():
     Package-entry to initialize the package
     
     """
-    registry.setCurrentPackageName('VTK')
     # Check VTK version
     v = vtk.vtkVersion()
     version = [v.GetVTKMajorVersion(),
@@ -577,8 +576,8 @@ def initialize():
 def package_dependencies():
     import core.packagemanager
     manager = core.packagemanager.get_package_manager()
-    if manager.has_package('spreadsheet'):
-        return ['spreadsheet']
+    if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
+        return ['edu.utah.sci.vistrails.spreadsheet']
     else:
         return []
 

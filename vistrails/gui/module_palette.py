@@ -34,6 +34,7 @@ from gui.common_widgets import (QSearchTreeWindow,
 from gui.module_documentation import QModuleDocumentation
 from core.modules.module_registry import registry
 from core.system import systemType
+from core.packagemanager import get_package_manager
 import weakref
 
 ################################################################################
@@ -73,12 +74,13 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         parent.takeChild(parent.indexOfChild(item))
         del self.treeWidget._item_map[moduleName]
 
-    def deletedPackage(self, package_name):
-        """ deletedPackage(package_name):
+    def deletedPackage(self, package):
+        """ deletedPackage(package):
         A package has been deleted from VisTrails
         """
-        
-        items = self.treeWidget.findItems(package_name,
+        pm = get_package_manager()
+        pm.get_package_by_identifier
+        items = self.treeWidget.findItems(package.name,
                                           QtCore.Qt.MatchExactly |
                                           QtCore.Qt.MatchWrap)
         assert len(items) == 1
@@ -93,7 +95,9 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         
         """
         moduleName = descriptor.name
-        packageName = registry.get_module_package(moduleName)
+        identifier = registry.get_module_package(moduleName)
+        pm = get_package_manager()
+        packageName = pm.get_package_by_identifier(identifier).name
 
         # NB: only looks for toplevel matches
         packageItems = self.treeWidget.findItems(packageName,
@@ -191,10 +195,12 @@ class QModuleTreeWidget(QSearchTreeWidget):
                 createModuleItem(child)
             parentItems[packageName] = parentItem
 
+        pm = get_package_manager()
         for packageName in registry.packageModules.iterkeys():
+            name = pm.get_package_by_identifier(packageName).name
             item = QModuleTreeWidgetItem(None,
                                          self,
-                                         QtCore.QStringList(packageName))
+                                         QtCore.QStringList(name))
             item.setFlags(item.flags() & ~QtCore.Qt.ItemIsDragEnabled)
             parentItems[packageName] = item
         module = registry.classTree

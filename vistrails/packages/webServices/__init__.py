@@ -28,9 +28,15 @@ from core.requirements import MissingRequirement
 
 import xml
 try:
-    import fpconst
+    # python-soappy installs fpconst for us.
+    SOAPpy = py_import('SOAPpy', {'linux-ubuntu': 'python-soappy'})
 except:
-    raise MissingRequirement('fpconst')
+    raise MissingRequirement('SOAPpy')
+
+# try:
+#     import fpconst
+# except:
+#     raise MissingRequirement('fpconst')
 
 try:
     SOAPpy = py_import('SOAPpy', {'linux-ubuntu': 'python-soappy'})
@@ -43,6 +49,10 @@ import core.modules
 import core.modules.module_registry
 import core.modules.basic_modules
 from core.modules.vistrails_module import Module, ModuleError, newModule
+
+identifier = 'edu.utah.sci.vistrails.webservices'
+version = '0.9.0'
+name = 'Web Services'
 
 ###############################################################################
 

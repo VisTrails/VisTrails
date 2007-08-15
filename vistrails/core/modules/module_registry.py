@@ -279,7 +279,7 @@ class ModuleRegistry(QtCore.QObject):
         self.classTree = n
         self.moduleName = { core.modules.vistrails_module.Module: "Module" }
         self.moduleTree = { "Module": n }
-        self.currentPackageName = 'Basic Modules'
+        self.currentPackageName = 'edu.utah.sci.vistrails.basic'
         n.descriptor.set_module_package(self.currentPackageName)
         self.packageModules = {self.currentPackageName: ["Module"]}
 
@@ -496,11 +496,11 @@ elements is of either of the above formats."""
         tree_node.parent.children.remove(tree_node)
 
     def deletePackage(self, package):
-        """deletePackage(package_name): Removes an entire package from the registry."""
+        """deletePackage(package): Removes an entire package from the registry."""
 
         # graph is the class hierarchy graph for this subset
         graph = Graph()
-        modules = self.packageModules[package]
+        modules = self.packageModules[package.identifier]
         for module_name in modules:
             graph.add_vertex(module_name)
         for module_name in modules:
@@ -517,7 +517,7 @@ elements is of either of the above formats."""
         top_sort = graph.vertices_topological_sort()
         for module in top_sort:
             self.deleteModule(module)
-        del self.packageModules[package]
+        del self.packageModules[package.identifier]
 
         self.emit(self.deletedPackageSignal, package)
 
@@ -832,23 +832,27 @@ connection connecting these two ports."""
     def get_subclass_candidates(module):
         """get_subclass_candidates(module) -> [class]
 
-Tries to eliminate irrelevant mixins for the hierarchy. Returns all
-base classes that subclass from Module."""
+        Tries to eliminate irrelevant mixins for the hierarchy. Returns all
+        base classes that subclass from Module."""
         return [klass
                 for klass in module.__bases__
                 if issubclass(klass,
                               core.modules.vistrails_module.Module)]
 
-    def setCurrentPackageName(self, pName):
-        """ setCurrentPackageName(pName: str) -> None        
+    def set_current_package_name(self, pName):
+        """ set_current_package_name(pName: str) -> None        
         Set the current package name for all addModule operations to
         name. This means that all modules added after this call will
         be assigned to a package name: pName. Set pName to None to
-        indicate that VisTrails default package should be used instead
+        indicate that VisTrails default package should be used instead.
+
+        Do not call this directly. The package manager will call this
+        with the correct value prior to calling 'initialize' on the
+        package.
         
         """
         if pName==None:
-            pName = 'Basic Modules'
+            pName = 'edu.utah.sci.vistrails.basic'
         self.currentPackageName = pName
 
     def get_module_package(self, moduleName):
@@ -896,7 +900,9 @@ class Tree(object):
 
     def make_dictionary(self):
         """make_dictionary(): recreate ModuleRegistry dictionary
-for copying module registries around"""
+        for copying module registries around
+        """
+        
         # This is inefficient
         result = {self.descriptor.name: self}
         for child in self.children:
@@ -911,7 +917,7 @@ registry = ModuleRegistry()
 addModule     = registry.addModule
 addInputPort  = registry.addInputPort
 addOutputPort = registry.addOutputPort
-setCurrentPackageName = registry.setCurrentPackageName
+set_current_package_name = registry.set_current_package_name
 getDescriptorByName = registry.getDescriptorByName
 get_module_by_name = registry.get_module_by_name
 

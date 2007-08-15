@@ -22,6 +22,8 @@
 #  ITK package for VisTrails
 
 version = '0.1'
+identifier = 'edu.utah.sci.vistrails.itk'
+name = 'ITK'
 
 import core.bundles.utils
 import core.requirements

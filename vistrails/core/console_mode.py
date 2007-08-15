@@ -96,7 +96,7 @@ class TestConsoleMode(unittest.TestCase):
 
     def setUp(self, *args, **kwargs):
         manager = core.packagemanager.get_package_manager()
-        if manager.has_package('console_mode_test'):
+        if manager.has_package('edu.utah.sci.vistrails.console_mode_test'):
             return
         old_path = sys.path
         sys.path.append(core.system.vistrails_root_directory() +

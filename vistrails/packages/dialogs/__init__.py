@@ -30,6 +30,10 @@ import core.system
 import gui.application
 from PyQt4 import QtCore, QtGui
 
+version = '0.9.0'
+identifier = 'edu.utah.sci.vistrails.dialogs'
+name = 'Dialogs'
+
 ##############################################################################
 
 class Dialog(Module):
@@ -66,7 +70,6 @@ class TextDialog(Dialog):
 def initialize(*args, **keywords):
     reg = core.modules.module_registry
     basic = core.modules.basic_modules
-    reg.setCurrentPackageName('Dialogs')
     reg.addModule(Dialog)
     reg.addModule(TextDialog)
 

@@ -19,9 +19,9 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
-"""Matplotlib/pylab package for VisTrails.
+"""Matplotlib package for VisTrails.
 
-This package wrap Matplotlib/pylab to provide a plotting tool for
+This package wrap Matplotlib to provide a plotting tool for
 VisTrails. We are going to use the 'Qt4Agg' backend of the library.
 
 """
@@ -33,6 +33,10 @@ from plot import MplPlot, MplPlotConfigurationWidget
 from core.modules.module_configure import PythonSourceConfigurationWidget
 import time
 import urllib
+
+name = 'matplotlib'
+version = '0.9.0'
+identifier = 'edu.utah.sci.vistrails.matplotlib'
 
 from core.bundles import py_import
 try:
@@ -104,7 +108,6 @@ class MplFigure(NotCacheable, Module):
 def initialize(*args, **keywords):    
 
     reg = core.modules.module_registry
-    reg.setCurrentPackageName('Matplotlib/pylab')
     
     reg.addModule(MplPlot, configureWidgetType=MplPlotConfigurationWidget)
     reg.addInputPort(MplPlot, 'source', String, True)
@@ -126,8 +129,8 @@ def initialize(*args, **keywords):
 def package_dependencies():
     import core.packagemanager
     manager = core.packagemanager.get_package_manager()
-    if manager.has_package('spreadsheet'):
-        return ['spreadsheet']
+    if manager.has_package('edu.utah.sci.vistrails.spreadsheet'):
+        return ['edu.utah.sci.vistrails.spreadsheet']
     else:
         return []
     

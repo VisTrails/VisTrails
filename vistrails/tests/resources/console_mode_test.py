@@ -29,6 +29,10 @@ import core.modules.module_registry
 from core.modules.vistrails_module import Module, ModuleError, NotCacheable
 from core.modules.basic_modules import Float, Integer
 
+identifier = 'edu.utah.sci.vistrails.console_mode_test'
+version = '0.9.0'
+name = 'Console Mode Tests'
+
 class TestTupleExecution(Module):
 
     def compute(self):

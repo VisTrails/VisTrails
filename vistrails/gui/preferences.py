@@ -158,32 +158,40 @@ class QPackagesWidget(QtGui.QWidget):
         grid_layout = QtGui.QGridLayout(grid_frame)
         l1 = QtGui.QLabel("Package Name:", grid_frame)
         grid_layout.addWidget(l1, 0, 0)
-        l2 = QtGui.QLabel("Dependencies:", grid_frame)
+        l2 = QtGui.QLabel("Identifier:", grid_frame)
         grid_layout.addWidget(l2, 1, 0)
-        l2 = QtGui.QLabel("Reverse Dependencies:", grid_frame)
-        grid_layout.addWidget(l2, 2, 0)
-        l3 = QtGui.QLabel("Description:", grid_frame)
-        grid_layout.addWidget(l3, 3, 0)
+        l3 = QtGui.QLabel("Dependencies:", grid_frame)
+        grid_layout.addWidget(l3, 2, 0)
+        l4 = QtGui.QLabel("Reverse Dependencies:", grid_frame)
+        grid_layout.addWidget(l4, 3, 0)
+        l5 = QtGui.QLabel("Description:", grid_frame)
+        grid_layout.addWidget(l5, 4, 0)
 
         self._name_label = QtGui.QLabel("", grid_frame)
         grid_layout.addWidget(self._name_label, 0, 1)
 
+        self._identifier_label = QtGui.QLabel("", grid_frame)
+        grid_layout.addWidget(self._identifier_label, 1, 1)
+
         self._dependencies_label = QtGui.QLabel("", grid_frame)
-        grid_layout.addWidget(self._dependencies_label, 1, 1)
+        grid_layout.addWidget(self._dependencies_label, 2, 1)
 
         self._reverse_dependencies_label = QtGui.QLabel("", grid_frame)
-        grid_layout.addWidget(self._reverse_dependencies_label, 2, 1)
+        grid_layout.addWidget(self._reverse_dependencies_label, 3, 1)
 
         self._description_label = QtGui.QLabel("", grid_frame)
-        grid_layout.addWidget(self._description_label, 3, 1)
+        grid_layout.addWidget(self._description_label, 4, 1)
 
-        for lbl in [l1, l2, l3, self._name_label, self._dependencies_label,
+        for lbl in [l1, l2, l3, l4, l5,
+                    self._name_label,
+                    self._dependencies_label,
+                    self._identifier_label,
                     self._reverse_dependencies_label,
                     self._description_label]:
             lbl.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft)
             lbl.setWordWrap(True)
 
-        grid_layout.setRowStretch(3, 1)
+        grid_layout.setRowStretch(4, 1)
         grid_layout.setColumnStretch(1, 1)
 
         right_layout.addWidget(info_frame)
@@ -216,10 +224,10 @@ class QPackagesWidget(QtGui.QWidget):
     def populate_lists(self):
         pkg_manager = get_package_manager()
         enabled_pkgs = sorted(pkg_manager.enabled_package_list())
-        enabled_pkg_dict = dict([(pkg.name, pkg) for
+        enabled_pkg_dict = dict([(pkg.codepath, pkg) for
                                    pkg in enabled_pkgs])
         for pkg in enabled_pkgs:
-            self._enabled_packages_list.addItem(pkg.name)
+            self._enabled_packages_list.addItem(pkg.codepath)
         available_pkg_names = [pkg for pkg in 
                                sorted(pkg_manager.available_package_names_list())
                                if pkg not in enabled_pkg_dict]
@@ -233,7 +241,7 @@ class QPackagesWidget(QtGui.QWidget):
         inst = self._enabled_packages_list
         item = av.currentItem()
         pos = av.indexFromItem(item).row()
-        name = str(item.text())
+        codepath = str(item.text())
         pm = get_package_manager()
 
         dependency_graph = pm.dependency_graph()
@@ -257,11 +265,11 @@ class QPackagesWidget(QtGui.QWidget):
             palette = QtGui.QApplication.instance().builderWindow.modulePalette
             palette.setUpdatesEnabled(False)
             try:
-                pm.late_enable_package(name)
+                pm.late_enable_package(codepath)
             finally:
                 palette.setUpdatesEnabled(True)
                 palette.treeWidget.expandAll()
-            self._current_package = pm.get_package(name)
+            self._current_package = pm.get_package_by_codepath(codepath)
             av.takeItem(pos)
             av.clearSelection()
             inst.addItem(item)
@@ -273,13 +281,14 @@ class QPackagesWidget(QtGui.QWidget):
         inst = self._enabled_packages_list
         item = inst.currentItem()
         pos = inst.indexFromItem(item).row()
-        name = str(item.text())
+        codepath = str(item.text())
         pm = get_package_manager()
 
         dependency_graph = pm.dependency_graph()
+        identifier = pm.get_package_by_codepath(codepath).identifier
 
-        if dependency_graph.in_degree(name) > 0:
-            rev_deps = dependency_graph.inverse_adjacency_list[name]
+        if dependency_graph.in_degree(identifier) > 0:
+            rev_deps = dependency_graph.inverse_adjacency_list[identifier]
             msg = QtGui.QMessageBox(QtGui.QMessageBox.Critical,
                                     "Missing dependency",
                                     ("There are other packages that depend on this:\n %s" +
@@ -287,7 +296,7 @@ class QPackagesWidget(QtGui.QWidget):
                                     QtGui.QMessageBox.Ok, self)
             msg.exec_()
         else:
-            pm.late_disable_package(name)
+            pm.late_disable_package(codepath)
             inst.takeItem(pos)
             av.addItem(item)
             av.sortItems()
@@ -318,17 +327,23 @@ class QPackagesWidget(QtGui.QWidget):
         self._enable_button.setEnabled(True)
 
     def set_package_information(self):
+        """Looks at current package and sets all labels (name,
+        dependencies, etc.) appropriately.
+
+        """
         assert self._current_package
         p = self._current_package
-        self._name_label.setText(p.name)
         try:
             p.load()
         except:
             msg = 'ERROR: Could not load package.'
+            self._name_label.setText(msg)
+            self._identifier_label.setText(msg)
             self._dependencies_label.setText(msg)
             self._description_label.setText(msg)
             self._reverse_dependencies_label.setText(msg)
         else:
+            self._name_label.setText(p.name)
             deps = ', '.join(p.dependencies()) or 'No package dependencies.'
             try:
                 reverse_deps = (', '.join(p.reverse_dependencies()) or
@@ -336,6 +351,7 @@ class QPackagesWidget(QtGui.QWidget):
             except KeyError:
                 reverse_deps = ("Reverse dependencies only " +
                                 "available for enabled packages.")
+            self._identifier_label.setText(p.identifier)
             self._dependencies_label.setText(deps)
             self._description_label.setText(' '.join(p.description.split('\n')))
             self._reverse_dependencies_label.setText(reverse_deps)
@@ -351,14 +367,16 @@ class QPackagesWidget(QtGui.QWidget):
         self._enabled_packages_list.clearSelection()
 
     def clicked_on_enabled_list(self, item):
-        name = str(item.text())
-        self._current_package = get_package_manager().get_package(name)
+        codepath = str(item.text())
+        pm = get_package_manager()
+        self._current_package = pm.get_package_by_codepath(codepath)
         self.set_buttons_to_enabled_package()
         self.set_package_information()
 
     def clicked_on_available_list(self, item):
-        name = str(item.text())
-        self._current_package = get_package_manager().look_at_available_package(name)
+        codepath = str(item.text())
+        pm = get_package_manager()
+        self._current_package = pm.look_at_available_package(codepath)
         self.set_buttons_to_available_package()
         self.set_package_information()
 

@@ -33,6 +33,10 @@ import os
 import string
 import sys
 
+name = 'VisTrails Spreadsheet'
+identifier = 'edu.utah.sci.vistrails.spreadsheet'
+version = '0.9.0'
+
 ################################################################################
 
 basicWidgets = None
@@ -86,13 +90,13 @@ def initialize(*args, **keywords):
     Package-entry to initialize the package
     
     """
-    # Create application if there is no one available
-    module_registry.registry.setCurrentPackageName('Spreadsheet')
     print 'Loading Spreadsheet widgets...'
     global basicWidgets
     if basicWidgets==None:
         basicWidgets = addWidget('packages.spreadsheet.basic_widgets')
     importWidgetModules(basicWidgets)
+
+    # Create application if there is no one available
     global app
     app = QtCore.QCoreApplication.instance()
     if app==None:

@@ -39,6 +39,9 @@ import os
 
 configuration = ConfigurationObject(path=(None, str),
                                     debug=False)
+version = '0.1.0'
+identifier = 'edu.utah.sci.vgc.afront'
+name = 'Afront'
 
 ################################################################################
 
@@ -118,9 +121,9 @@ def initialize():
     print "------------------------"
     print "Testing afront presence..."
 
-    if (not core.requirements.executable_file_exists('afront') and
-        not core.bundles.install({'linux-ubuntu': 'afront'})):
-        raise core.requirements.MissingRequirement("Afront")
+#     if (not core.requirements.executable_file_exists('afront') and
+#         not core.bundles.install({'linux-ubuntu': 'afront'})):
+#         raise core.requirements.MissingRequirement("Afront")
 
     print "Ok, found afront"
     __version__ = 0.1
