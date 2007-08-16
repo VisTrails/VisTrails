@@ -84,6 +84,10 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         self.firstVersion = -1
         self.secondVersion = -1
+
+        self.viewPipelineEnabled = True
+        self.viewQueryEnabled = False
+        self.viewExploreEnabled = False
         
     def sizeHint(self):
         """ sizeHint() -> QRect
@@ -360,6 +364,9 @@ class QBuilderWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('queryPipelineChange'),
                      self.queryPipelineChange)
         self.connect(self.viewManager,
+                     QtCore.SIGNAL('exploreChange(bool)'),
+                     self.exploreChange)
+        self.connect(self.viewManager,
                      QtCore.SIGNAL('currentVistrailChanged'),
                      self.currentVistrailChanged)
         self.connect(self.viewManager,
@@ -442,17 +449,17 @@ class QBuilderWindow(QtGui.QMainWindow):
         # Make sure we can change view when requested
         self.connect(self.viewToolBar,
                      QtCore.SIGNAL('viewModeChanged(int)'),
-                     self.viewManager.viewModeChanged)
+                     self.viewModeChanged)
         
         # Change cursor action
         self.connect(self.viewToolBar,
                      QtCore.SIGNAL('cursorChanged(int)'),
                      self.viewManager.changeCursor)
 
-        # Execute pipeline action
-        self.connect(self.viewToolBar.executePipelineAction(),
+        # Execute action
+        self.connect(self.viewToolBar.executeAction(),
                      QtCore.SIGNAL('triggered(bool)'),
-                     self.viewManager.executeCurrentPipeline)
+                     self.execute)
 
         # Undo action
         self.connect(self.viewToolBar.undoAction(),
@@ -463,11 +470,6 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.viewToolBar.redoAction(),
                      QtCore.SIGNAL('triggered(bool)'),
                      self.viewManager.redo)
-
-        # Query pipeline action
-        self.connect(self.viewToolBar.visualQueryAction(),
-                     QtCore.SIGNAL('triggered(bool)'),
-                     self.viewManager.queryVistrail)
 
     def moduleSelectionChange(self, selection):
         """ moduleSelectionChange(selection: list[id]) -> None
@@ -481,7 +483,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         Update the status of tool bar buttons if there is a version selected
         
         """
-        self.viewToolBar.executePipelineAction().setEnabled(versionId>-1)
+        self.viewToolBar.executeAction().setEnabled(versionId>-1)
+        self.viewPipelineEnabled = versionId>-1
         self.executeCurrentWorkflowAction.setEnabled(versionId>-1)
         self.executeDiffAction.setEnabled(False)
         self.undoAction.setEnabled(versionId>0)
@@ -510,10 +513,33 @@ class QBuilderWindow(QtGui.QMainWindow):
         modules on the query canvas
         
         """
-        if not notEmpty and self.viewToolBar.visualQueryAction().isChecked():
-            self.viewToolBar.visualQueryAction().trigger()
-        self.viewToolBar.visualQueryAction().setEnabled(notEmpty)
+        if self.viewToolBar.currentViewIndex == 2:
+            self.viewToolBar.executeAction().setEnabled(notEmpty)
+        self.viewQueryEnabled = notEmpty
    
+    def exploreChange(self, notEmpty):
+        """ exploreChange(notEmpty: bool) -> None
+        Update the status of tool bar buttons if there are
+        parameters in the exploration canvas
+        
+        """
+        if self.viewToolBar.currentViewIndex == 3:
+            self.viewToolBar.executeAction().setEnabled(notEmpty)
+        self.viewExploreEnabled = notEmpty
+   
+    def viewModeChanged(self, index):
+        """ viewModeChanged(index: int) -> None
+        Update the state of the view buttons
+        
+        """
+        if index == 2:
+            self.viewToolBar.executeAction().setEnabled(self.viewQueryEnabled)
+        elif index == 3:
+            self.viewToolBar.executeAction().setEnabled(self.viewExploreEnabled)
+        else:
+            self.viewToolBar.executeAction().setEnabled(self.viewPipelineEnabled)
+        self.viewManager.viewModeChanged(index)
+
     def clipboardChanged(self, mode=QtGui.QClipboard.Clipboard):
         """ clipboardChanged(mode: QClipboard) -> None        
         Update the status of tool bar buttons when the clipboard
@@ -539,14 +565,15 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.saveDBAction.setEnabled(False)
             self.executeCurrentWorkflowAction.setEnabled(False)
             self.executeDiffAction.setEnabled(False)
-            self.viewToolBar.executePipelineAction().setEnabled(False)
-            #self.vistrailActionGroup.setEnabled(False)
+            self.viewToolBar.executeAction().setEnabled(False)
             self.vistrailMenu.menuAction().setEnabled(False)
+            self.viewPipelineEnabled = False
 
         if vistrailView and vistrailView.viewAction:
             vistrailView.viewAction.setText(vistrailView.windowTitle())
             if not vistrailView.viewAction.isChecked():
                 vistrailView.viewAction.setChecked(True)
+
     
     def vistrailChanged(self):
         """ vistrailChanged() -> None
@@ -738,6 +765,18 @@ class QBuilderWindow(QtGui.QMainWindow):
                                   view.controller,
                                   self)
             visDiff.show()
+
+    def execute(self):
+        """ execute() -> None
+        Execute something depending on the view
+        
+        """
+        if self.viewToolBar.currentViewIndex == 2:
+            self.viewManager.queryVistrail(True)
+        elif self.viewToolBar.currentViewIndex == 3:
+            self.viewManager.executeCurrentExploration()
+        else:
+            self.viewManager.executeCurrentPipeline()
 
     def flush_cache(self):
         core.interpreter.cached.CachedInterpreter.flush()

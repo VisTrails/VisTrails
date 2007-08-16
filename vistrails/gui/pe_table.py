@@ -127,9 +127,6 @@ class QParameterExplorationTable(QPromptWidget):
         self.setLayout(vLayout)
 
         self.label = QDimensionLabel()
-        self.connect(self.label.params.button, QtCore.SIGNAL('clicked()'),
-                     self.performParameterExploration)
-        self.label.params.button.setEnabled(False)
 
         for labelIcon in self.label.labelIcons:
             self.connect(labelIcon.countWidget,
@@ -164,7 +161,7 @@ class QParameterExplorationTable(QPromptWidget):
                                  'already in the list.')
                     return
         self.showPrompt(False)
-        self.label.params.button.setEnabled(True)
+        self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 0)
         newEditor = QParameterSetEditor(paramInfo, self)
 
         # Make sure to disable all duplicated parameter
@@ -202,7 +199,7 @@ class QParameterExplorationTable(QPromptWidget):
                         widget.setEnabled(True)
                         break
         self.showPrompt(self.layout().count()<=3)
-        self.label.params.button.setEnabled(self.layout().count()>3)
+        self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 0)
 
     def updateUserDefinedFunctions(self):
         """ updateUserDefinedFunctions() -> None
@@ -232,7 +229,7 @@ class QParameterExplorationTable(QPromptWidget):
                 self.layout().removeWidget(pEditor)
         self.label.resetCounts()
         self.showPrompt()
-        self.label.params.button.setEnabled(False)
+        self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 0)
 
     def setPipeline(self, pipeline):
         """ setPipeline(pipeline: Pipeline) -> None
@@ -455,13 +452,6 @@ class QDimensionLabelText(QtGui.QWidget):
 
         hLayout.addStretch()
         
-        self.button = QtGui.QToolButton()
-        self.button.setIcon(CurrentTheme.PERFORM_PARAMETER_EXPLORATION_ICON)
-        self.button.setIconSize(QtCore.QSize(32, 32))
-        hLayout.addWidget(self.button)
-        
-        hLayout.addSpacing(2)
-
         hLayout.addWidget(QtGui.QLabel('<b>Parameters</b>'))
 
         hLayout.addStretch()

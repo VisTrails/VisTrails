@@ -282,8 +282,11 @@ class DefaultTheme(object):
         # The execute icons in the first spot of vistrail view toolbar
         self.EXECUTE_PIPELINE_ICON = QtGui.QIcon(
             core.system.vistrails_root_directory() +
-            '/gui/resources/images/execute_pipeline.png')
-    
+            '/gui/resources/images/execute.png')
+        self.EXECUTE_EXPLORE_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/execute_explore.png')
+
         # The undo icons for the vistrail view toolbar
         self.UNDO_ICON = QtGui.QIcon(
             core.system.vistrails_root_directory() +

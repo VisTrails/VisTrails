@@ -114,6 +114,7 @@ class QVistrailView(QDockContainer):
         """
         self.controller.changeSelectedVersion(0)
         self.setPIPMode(True)
+        self.setQueryMode(False)
 
     def setOpenView(self):
         """setOpenView() -> None
@@ -123,6 +124,7 @@ class QVistrailView(QDockContainer):
         """
         self.controller.selectLatestVersion()
         self.setPIPMode(True)
+        self.setQueryMode(False)
        
     def setPIPMode(self, on):
         """ setPIPMode(on: bool) -> None
@@ -131,6 +133,15 @@ class QVistrailView(QDockContainer):
         """
         self.pipelineTab.pipelineView.setPIPEnabled(on)
         self.versionTab.versionView.setPIPEnabled(on)
+
+    def setQueryMode(self, on):
+        """ setQueryMode(on: bool) -> None
+        Set the Reset Query button mode for the view
+        
+        """
+        self.pipelineTab.pipelineView.setQueryEnabled(on)
+        self.versionTab.versionView.setQueryEnabled(on)
+        self.queryTab.pipelineView.setQueryEnabled(on)
 
     def setMethodsMode(self, on):
         """ setMethodsMode(on: bool) -> None
@@ -228,17 +239,19 @@ class QVistrailView(QDockContainer):
             return QDockContainer.closeEvent(self, event)
             # super(QVistrailView, self).closeEvent(event)
 
-    def queryVistrail(self, checked=True):
-        """ queryVistrail(checked: bool) -> None
+    def queryVistrail(self, on=True):
+        """ queryVistrail(on: bool) -> None
         Inspecting the query tab to get a pipeline for querying
         
         """
-        if checked:
+        if on:
             queryPipeline = self.queryTab.controller.currentPipeline
             if queryPipeline:
                 self.controller.queryByExample(queryPipeline)
+                self.setQueryMode(True)
         else:
             self.controller.setSearch(None)
+            self.setQueryMode(False)
 
     def createPopupMenu(self):
         """ createPopupMenu() -> QMenu

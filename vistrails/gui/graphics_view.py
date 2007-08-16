@@ -199,6 +199,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.lastPos = QtCore.QPoint(0,0)
         self.pipScene = None
         self.pipFrame = None
+        self.resetButton = None
         self.selectionBox = QGraphicsRubberBandItem(None)
         self.startSelectingPos = None
         self.setProperty('captureModifiers',
@@ -454,12 +455,38 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
             elif self.pipFrame!=None:
                 self.pipFrame.hide()
 
+    def setQueryEnabled(self, enabled=True):
+        """ setQueryEnabled(enabled: bool) -> None
+        Enable/Disable the query reset button
+
+        """
+        if enabled:
+            if not self.resetButton:
+                self.resetButton = QResetQueryButton(self)
+                self.connect(self.resetButton,
+                             QtCore.SIGNAL('resetQuery()'),
+                             self.resetQuery)
+            self.resetButton.show()
+            self.resetButton.updateGeometry()
+        else:
+            if self.resetButton:
+                self.resetButton.hide()
+
+    def resetQuery(self):
+        """ resetQuery() -> None
+        pass the signal along
+        
+        """
+        self.emit(QtCore.SIGNAL('resetQuery()'))
+
     def resizeEvent(self, event):
         """ resizeEvent(event: QResizeEvent) -> None
         Make sure the pip frame is inside the graphics view
         """
-        if self.pipFrame!=None:
+        if self.pipFrame:
             self.pipFrame.updateGeometry()
+        if self.resetButton:
+            self.resetButton.updateGeometry()
         return QtGui.QGraphicsView.resizeEvent(self, event)
         # super(QInteractiveGraphicsView, self).resizeEvent(event)
 
@@ -654,3 +681,35 @@ class QPIPGraphicsView(QtGui.QWidget):
         
         """
         self.layout().setMargin(CurrentTheme.PIP_OUT_FRAME_WIDTH)
+
+
+class QResetQueryButton(QtGui.QLabel):
+    """
+    
+    """
+    def __init__(self, parent=None):
+        QtGui.QLabel.__init__(self, parent)
+
+        self.setText('Reset Query')
+        self.setFrameStyle(QtGui.QFrame.StyledPanel)
+        self.setFrameShadow(QtGui.QFrame.Raised)
+        self.marginPad = 10
+
+    def mousePressEvent(self, e):
+        """ mousePressEvent(e: QMouseEvent) -> None
+        Capture mouse press event on the frame to move the widget
+        
+        """
+        if e.buttons() & QtCore.Qt.LeftButton:
+            self.setFrameShadow(QtGui.QFrame.Sunken)
+    
+    def mouseReleaseEvent(self, e):
+        self.setFrameShadow(QtGui.QFrame.Raised)
+        self.emit(QtCore.SIGNAL('resetQuery()'))
+
+    def updateGeometry(self):
+        parentGeometry = self.parent().geometry()
+        self.move(self.marginPad, 
+                  parentGeometry.height()-self.height()-self.marginPad)
+
+

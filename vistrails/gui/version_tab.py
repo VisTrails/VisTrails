@@ -66,7 +66,10 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         self.connect(self.versionView.scene(),
                      QtCore.SIGNAL('addToBookmarks'),
                      self.add_bookmark)
-        
+        self.connect(self.versionView,
+                     QtCore.SIGNAL('resetQuery()'),
+                     self.resetQuery)
+
     def updateWindowTitle(self, topLevel):
         """ updateWindowTitle(topLevel: bool) -> None
         Change the current widget title depends on the top level status
@@ -135,3 +138,10 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         """
         vistrailsFile = self.controller.fileName
         BookmarksManager.add_bookmark('',vistrailsFile,id,name)
+
+    def resetQuery(self):
+        """ resetQuery() -> None
+        pass along the signal
+
+        """
+        self.emit(QtCore.SIGNAL('resetQuery()'))

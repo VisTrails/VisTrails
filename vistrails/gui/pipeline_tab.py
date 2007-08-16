@@ -69,7 +69,10 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         self.connect(self.pipelineView.scene(),
                      QtCore.SIGNAL('moduleSelected'),
                      self.moduleSelected)
-        
+        self.connect(self.pipelineView,
+                     QtCore.SIGNAL('resetQuery()'),
+                     self.resetQuery)
+
         self.controller = None
 
     def addViewActionsToMenu(self, menu):
@@ -204,3 +207,10 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
             controller.quiet = True
             controller.moveModuleList(moves)
             controller.quiet = False
+
+    def resetQuery(self):
+        """ resetQuery() -> None
+        pass along the signal
+
+        """
+        self.emit(QtCore.SIGNAL('resetQuery()'))

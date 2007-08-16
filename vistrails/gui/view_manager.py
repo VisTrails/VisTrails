@@ -86,6 +86,19 @@ class QViewManager(QtGui.QTabWidget):
         self.connect(view.queryTab,
                      QtCore.SIGNAL('queryPipelineChange'),
                      self.queryPipelineChange)
+        self.connect(view.peTab,
+                     QtCore.SIGNAL('exploreChange(bool)'),
+                     self.exploreChange)
+        self.connect(view.pipelineTab,
+                     QtCore.SIGNAL('resetQuery()'),
+                     self.resetQuery)
+        self.connect(view.versionTab,
+                     QtCore.SIGNAL('resetQuery()'),
+                     self.resetQuery)
+        self.connect(view.queryTab,
+                     QtCore.SIGNAL('resetQuery()'),
+                     self.resetQuery)
+
         self.emit(QtCore.SIGNAL('vistrailViewAdded'), view)
         if self.count()==1:
             self.emit(QtCore.SIGNAL('currentChanged(int)'), 0)
@@ -152,6 +165,13 @@ class QViewManager(QtGui.QTabWidget):
         
         """
         self.emit(QtCore.SIGNAL('queryPipelineChange'), notEmpty)
+
+    def exploreChange(self, notEmpty):
+        """ exploreChange(notEmpty: bool) -> None
+        Just echo the signal from the view
+        
+        """
+        self.emit(QtCore.SIGNAL('exploreChange'), notEmpty)
 
     def copySelection(self):
         """ copySelection() -> None
@@ -463,13 +483,19 @@ class QViewManager(QtGui.QTabWidget):
             vistrailView = self.widget(viewIndex)
             vistrailView.updateCursorState(mode)            
         
-    def queryVistrail(self, checked):
-        """ queryVistrail(checked: Bool) -> None
+    def resetQuery(self):
+        """ resetQwuery() -> None
+        
+        """
+        self.queryVistrail(False)
+
+    def queryVistrail(self, on):
+        """ queryVistrail(on: bool) -> None
         
         """
         for viewIndex in range(self.count()):            
             vistrailView = self.widget(viewIndex)
-            vistrailView.queryVistrail(checked)
+            vistrailView.queryVistrail(on)
 
     def executeCurrentPipeline(self):
         """ executeCurrentPipeline() -> None

@@ -61,6 +61,9 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         self.connect(self.peWidget.table,
                      QtCore.SIGNAL('requestParameterExploration'),
                      self.performParameterExploration)
+        self.connect(self.peWidget,
+                     QtCore.SIGNAL('exploreChange(bool)'),
+                     self.exploreChange)
 
         self.paramView = QParameterView(self)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
@@ -181,3 +184,12 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                     reason='Parameter Exploration',
                     actions=performedActions[pi])
             progress.setValue(totalProgress)
+
+    def exploreChange(self, notEmpty):
+        """ exploreChange(notEmpty: bool) -> None
+        echo the signal
+        
+        """
+        self.emit(QtCore.SIGNAL('exploreChange(bool)'), notEmpty)
+
+        
