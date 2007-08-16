@@ -25,7 +25,6 @@ vistrail version tree"""
 from PyQt4 import QtCore, QtGui
 from gui.common_widgets import QDockContainer, QToolWindowInterface
 from gui.version_prop import QVersionProp
-from gui.version_search import QVersionSearch
 from gui.version_view import QVersionTreeView
 from gui.bookmark_window import BookmarksManager
 
@@ -50,9 +49,6 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         self.toolWindow().setFeatures(QtGui.QDockWidget.NoDockWidgetFeatures)
         self.toolWindow().hide()
 
-        self.versionSearch = QVersionSearch(self)
-        self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
-                           self.versionSearch.toolWindow())        
         self.versionProp = QVersionProp(self)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
                            self.versionProp.toolWindow())        
@@ -70,21 +66,6 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         self.connect(self.versionView.scene(),
                      QtCore.SIGNAL('addToBookmarks'),
                      self.add_bookmark)
-    def addViewActionsToMenu(self, menu):
-        """addViewActionsToMenu(menu: QMenu) -> None
-        Add toggle view actions to menu
-        
-        """
-        menu.addAction(self.versionSearch.toolWindow().toggleViewAction())
-        menu.addAction(self.versionProp.toolWindow().toggleViewAction())
-
-    def removeViewActionsFromMenu(self, menu):
-        """removeViewActionsFromMenu(menu: QMenu) -> None
-        Remove toggle view actions from menu
-        
-        """
-        menu.removeAction(self.versionSearch.toolWindow().toggleViewAction())
-        menu.removeAction(self.versionProp.toolWindow().toggleViewAction())
         
     def updateWindowTitle(self, topLevel):
         """ updateWindowTitle(topLevel: bool) -> None
@@ -135,7 +116,6 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
             if controller:
                 self.vistrailChanged()
                 self.versionProp.updateController(controller)
-                self.versionSearch.updateController(controller)
 
     def vistrailChanged(self):
         """ vistrailChanged() -> None        

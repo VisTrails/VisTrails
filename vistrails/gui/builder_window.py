@@ -247,10 +247,6 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.setMethodsViewAction.setCheckable(True)
         self.setMethodsViewAction.setChecked(True)
 
-        self.queryViewAction = QtGui.QAction('Query Panel', self)
-        self.queryViewAction.setCheckable(True)
-        self.queryViewAction.setChecked(True)
-
         self.propertiesViewAction = QtGui.QAction('Properties Panel', self)
         self.propertiesViewAction.setCheckable(True)
         self.propertiesViewAction.setChecked(True)
@@ -262,7 +258,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.executeCurrentWorkflowAction = a
         self.executeCurrentWorkflowAction.setEnabled(False)
 
-        self.executeDiffAction = QtGui.QAction('Execute Visual Difference', self)
+        self.executeDiffAction = QtGui.QAction('Execute Version Difference', self)
         self.executeDiffAction.setEnabled(False)
         self.flushCacheAction = QtGui.QAction(self.tr('Erase Cache Contents'),
                                               self)
@@ -313,7 +309,6 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.modulePalette.toolWindow().toggleViewAction())
         self.viewMenu.addAction(self.methodsViewAction)
         self.viewMenu.addAction(self.setMethodsViewAction)
-        self.viewMenu.addAction(self.queryViewAction)
         self.viewMenu.addAction(self.propertiesViewAction)
 
         self.runMenu = self.menuBar().addMenu('&Run')
@@ -417,10 +412,6 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.setMethodsViewAction,
                      QtCore.SIGNAL('triggered(bool)'),
                      self.viewManager.setSetMethodsMode)
-
-        self.connect(self.queryViewAction,
-                     QtCore.SIGNAL('triggered(bool)'),
-                     self.viewManager.setQueryMode)
 
         self.connect(self.propertiesViewAction,
                      QtCore.SIGNAL('triggered(bool)'),

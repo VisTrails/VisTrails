@@ -24,6 +24,7 @@ only simple widgets in term of coding and additional features. It
 should have no interaction with VisTrail core"""
 
 from PyQt4 import QtCore, QtGui
+from gui.theme import CurrentTheme
 import bisect
 
 ################################################################################
@@ -214,23 +215,28 @@ class QSearchTreeWindow(QtGui.QWidget):
         vLayout.setSpacing(0)
         self.setLayout(vLayout)
         
-        hLayout = QtGui.QHBoxLayout()
-        hLayout.setMargin(0)
-        hLayout.setSpacing(5)
-        vLayout.addLayout(hLayout)
-        
-        searchLabel = QtGui.QLabel(" Search", self)
-        hLayout.addWidget(searchLabel)
-        self.searchText = QtGui.QLineEdit()
-        searchLabel.setBuddy(self.searchText)
-        hLayout.addWidget(self.searchText)
+        self.searchBox = QSearchBox(False, self)
+        vLayout.addWidget(self.searchBox)
 
         self.treeWidget = self.createTreeWidget()
         vLayout.addWidget(self.treeWidget)
         
-        self.connect(self.searchText,
-                     QtCore.SIGNAL('textChanged(QString)'),
+        self.connect(self.searchBox,
+                     QtCore.SIGNAL('executeIncrementalSearch(QString)'),
                      self.treeWidget.searchItemName)
+        self.connect(self.searchBox,
+                     QtCore.SIGNAL('executeSearch(QString)'),
+                     self.treeWidget.searchItemName)
+        self.connect(self.searchBox,
+                     QtCore.SIGNAL('resetSearch()'),
+                     self.clearTreeWidget)
+                     
+    def clearTreeWidget(self):
+        """ clearTreeWidget():
+        Return the default search tree
+
+        """
+        self.treeWidget.searchItemName(QtCore.QString(''))
 
     def createTreeWidget(self):
         """ createTreeWidget() -> QSearchTreeWidget
@@ -382,3 +388,132 @@ class QStringEdit(QtGui.QFrame):
         if not fileName.isEmpty():
             self.setText(fileName)
         
+
+class QSearchBox(QtGui.QWidget):
+    """ 
+    QSearchBox contains a search combo box with a clear button and
+    a search icon.
+
+    """
+    def __init__(self, refine=True, parent=None):
+        """ QSearchBox(parent: QWidget) -> QSearchBox
+        Intialize all GUI components
+        
+        """
+        QtGui.QWidget.__init__(self, parent)
+        self.setWindowTitle('Search')
+        
+        hLayout = QtGui.QHBoxLayout(self)
+        hLayout.setMargin(0)
+        hLayout.setSpacing(2)
+        self.setLayout(hLayout)
+
+        if refine:
+            self.actionGroup = QtGui.QActionGroup(self)
+            self.searchAction = QtGui.QAction('Search', self)
+            self.searchAction.setCheckable(True)
+            self.actionGroup.addAction(self.searchAction)
+            self.refineAction = QtGui.QAction('Refine', self)
+            self.refineAction.setCheckable(True)
+            self.actionGroup.addAction(self.refineAction)
+            self.searchAction.setChecked(True)
+
+            self.searchMenu = QtGui.QMenu()
+            self.searchMenu.addAction(self.searchAction)
+            self.searchMenu.addAction(self.refineAction)
+
+            self.searchButton = QtGui.QToolButton(self)
+            self.searchButton.setIcon(CurrentTheme.QUERY_ARROW_ICON)
+            self.searchButton.setAutoRaise(True)
+            self.searchButton.setPopupMode(QtGui.QToolButton.InstantPopup)
+            self.searchButton.setMenu(self.searchMenu)
+            hLayout.addWidget(self.searchButton)
+            self.connect(self.searchAction, QtCore.SIGNAL('triggered()'),
+                         self.searchMode)
+            self.connect(self.refineAction, QtCore.SIGNAL('triggered()'),
+                         self.refineMode)
+        else:
+            self.searchLabel = QtGui.QLabel(self)
+            pix = CurrentTheme.QUERY_VIEW_ICON.pixmap(QtCore.QSize(16,16))
+            self.searchLabel.setPixmap(pix)
+            self.searchLabel.setAlignment(QtCore.Qt.AlignCenter)
+            self.searchLabel.setMargin(4)
+            hLayout.addWidget(self.searchLabel)
+        
+        self.searchEdit = QtGui.QComboBox()
+        self.searchEdit.setEditable(True)
+        self.searchEdit.setInsertPolicy(QtGui.QComboBox.InsertAtTop)
+        self.searchEdit.setSizePolicy(QtGui.QSizePolicy.Expanding,
+                                      QtGui.QSizePolicy.Fixed)
+        regexp = QtCore.QRegExp("\S.*")
+        validator = QtGui.QRegExpValidator(regexp, self)
+        self.searchEdit.setValidator(validator)
+        self.searchEdit.addItem('Clear Searches')
+        #TODO: Add separator!
+        self.searchEdit.clearEditText()
+        hLayout.addWidget(self.searchEdit)
+
+        self.resetButton = QtGui.QToolButton(self)
+        self.resetButton.setIcon(CurrentTheme.VIEW_MANAGER_CLOSE_ICON)
+        self.resetButton.setIconSize(QtCore.QSize(12,12))
+        self.resetButton.setAutoRaise(True)
+        self.resetButton.setEnabled(False)
+        hLayout.addWidget(self.resetButton)
+
+        self.connect(self.resetButton, QtCore.SIGNAL('clicked()'),
+                     self.resetSearch)
+        self.connect(self.searchEdit, QtCore.SIGNAL('editTextChanged(QString)'),
+                     self.executeIncrementalSearch)
+        self.connect(self.searchEdit, QtCore.SIGNAL('activated(int)'),
+                     self.executeSearch)
+
+    def resetSearch(self):
+        """
+        resetSearch() -> None
+        Emit a signal to clear the search.
+
+        """
+        self.searchEdit.clearEditText()
+        self.resetButton.setEnabled(False)
+        self.emit(QtCore.SIGNAL('resetSearch()')) 
+
+    def searchMode(self):
+        """
+        searchMode() -> None
+
+        """
+        self.emit(QtCore.SIGNAL('refineMode(bool)'), False) 
+    
+    def refineMode(self):
+        """
+        refineMode() -> None
+
+        """
+        print "refine"
+        self.emit(QtCore.SIGNAL('refineMode(bool)'), True) 
+
+    def executeIncrementalSearch(self, text):
+        """
+        executeIncrementalSearch(text: QString) -> None
+        The text is changing, so update the search.
+
+        """
+        self.resetButton.setEnabled(True)
+        self.emit(QtCore.SIGNAL('executeIncrementalSearch(QString)'), text)
+
+    def executeSearch(self, index):
+        """
+        executeSearch(index: int) -> None
+        The text is finished changing or a different item was selected.
+
+        """
+        count = self.searchEdit.count()
+        if index == count-1:
+            for i in range(count-1):
+                self.searchEdit.removeItem(0)
+            self.resetSearch()
+        else:
+            self.resetButton.setEnabled(True)
+            self.emit(QtCore.SIGNAL('executeSearch(QString)'), 
+                      self.searchEdit.currentText())
+

@@ -27,7 +27,10 @@ QVersionNotes
 """
 
 from PyQt4 import QtCore, QtGui
+from core.query.version import SearchCompiler, SearchParseError, TrueSearch
+from gui.theme import CurrentTheme
 from gui.common_widgets import QToolWindowInterface
+from gui.common_widgets import QSearchBox
 from core.utils import all
 
 ################################################################################
@@ -51,49 +54,74 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         vLayout.setSpacing(5)
         self.setLayout(vLayout)
 
+        self.searchBox = QSearchBox(self)
+        vLayout.addWidget(self.searchBox)
+        
         gLayout = QtGui.QGridLayout()
         gLayout.setMargin(0)
         gLayout.setSpacing(5)
+        gLayout.setColumnMinimumWidth(1,5)
+        gLayout.setRowMinimumHeight(0,24)
+        gLayout.setRowMinimumHeight(1,24)
+        gLayout.setRowMinimumHeight(2,24)
+        gLayout.setRowMinimumHeight(3,24)        
         vLayout.addLayout(gLayout)
         
-        tagLabel = QtGui.QLabel(' Version &Tag', self)
+        tagLabel = QtGui.QLabel('Tag:', self)
         gLayout.addWidget(tagLabel, 0, 0, 1, 1)
 
+        editLayout = QtGui.QHBoxLayout()
+        editLayout.setMargin(0)
+        editLayout.setSpacing(2)
         self.tagEdit = QtGui.QLineEdit()
         tagLabel.setBuddy(self.tagEdit)
-        gLayout.addWidget(self.tagEdit, 0, 1, 1, 1)
+        editLayout.addWidget(self.tagEdit)
         self.tagEdit.setEnabled(False)
 
-        self.tagApply = QtGui.QPushButton('Change')
-        gLayout.addWidget(self.tagApply, 0, 2, 1, 1)        
-                
-        userLabel = QtGui.QLabel(' User', self)
+        self.tagReset = QtGui.QToolButton(self)
+        self.tagReset.setIcon(CurrentTheme.VIEW_MANAGER_CLOSE_ICON)
+        self.tagReset.setIconSize(QtCore.QSize(12,12))
+        self.tagReset.setAutoRaise(True)
+        self.tagReset.setEnabled(False)
+        editLayout.addWidget(self.tagReset)
+
+        gLayout.addLayout(editLayout, 0, 2, 1, 1)
+
+        userLabel = QtGui.QLabel('User:', self)
         gLayout.addWidget(userLabel, 1, 0, 1, 1)
         
         self.userEdit = QtGui.QLabel('', self)
-        gLayout.addWidget(self.userEdit, 1, 1, 1, 2)
+        gLayout.addWidget(self.userEdit, 1, 2, 1, 1)
 
-        dateLabel = QtGui.QLabel(' Date', self)
+        dateLabel = QtGui.QLabel('Date:', self)
         gLayout.addWidget(dateLabel, 2, 0, 1, 1)
 
         self.dateEdit = QtGui.QLabel('', self)
-        gLayout.addWidget(self.dateEdit, 2, 1, 1, 2)
+        gLayout.addWidget(self.dateEdit, 2, 2, 1, 1)
 
-        notesTitle = QtGui.QGroupBox('Notes', self)
-        notesTitle.setFlat(True)
-        vLayout.addWidget(notesTitle)
+        self.notesLabel = QtGui.QLabel('Notes:')
+        gLayout.addWidget(self.notesLabel, 3, 0, 1, 1)
 
         self.versionNotes = QVersionNotes()
         vLayout.addWidget(self.versionNotes)
         self.versionNotes.setEnabled(False)
 
-        self.connect(self.tagEdit, QtCore.SIGNAL('returnPressed()'),
+        self.connect(self.tagEdit, QtCore.SIGNAL('editingFinished()'),
+                     self.tagFinished)
+        self.connect(self.tagEdit, QtCore.SIGNAL('textChanged(QString)'),
                      self.tagChanged)
-        self.connect(self.tagApply, QtCore.SIGNAL('clicked(bool)'),
-                     self.tagChanged)
-        
+        self.connect(self.tagReset, QtCore.SIGNAL('clicked()'),
+                     self.tagCleared)
+        self.connect(self.searchBox, QtCore.SIGNAL('resetSearch()'),
+                     self.resetSearch)
+        self.connect(self.searchBox, QtCore.SIGNAL('executeSearch(QString)'),
+                     self.executeSearch)
+        self.connect(self.searchBox, QtCore.SIGNAL('refineMode(bool)'),
+                     self.refineMode)
+
         self.controller = None
         self.versionNumber = -1
+        self.refineMode(False)
 
     def updateController(self, controller):
         """ updateController(controller: VistrailController) -> None
@@ -122,18 +150,69 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
                 return
             else:
                 self.tagEdit.setEnabled(False)
+                self.tagReset.setEnabled(False)
         self.tagEdit.setText('')
         self.userEdit.setText('')
         self.dateEdit.setText('')
         
 
-    def tagChanged(self):
-        """ tagChanged() -> None
+    def tagFinished(self):
+        """ tagFinished() -> None
         Update the new tag to vistrail
         
         """
         if self.controller:
             self.controller.updateCurrentTag(str(self.tagEdit.text()))
+
+    def tagChanged(self, text):
+        """ tagChanged(text: QString) -> None
+        Update the button state if there is text
+
+        """
+        self.tagReset.setEnabled(text != '')
+
+    def tagCleared(self):
+        """ tagCleared() -> None
+        Remove the tag
+        
+        """ 
+        self.tagEdit.setText('')
+        self.tagFinished()
+        
+    def resetSearch(self):
+        """
+        resetSearch() -> None
+
+        """
+        if self.controller:
+            self.controller.setSearch(None)
+    
+    def executeSearch(self, text):
+        """
+        executeSearch(text: QString) -> None
+
+        """
+        s = str(text)
+        if self.controller:
+            try:
+                search = SearchCompiler(s).searchStmt
+            except SearchParseError, e:
+                QtGui.QMessageBox.warning(self,
+                                          QtCore.QString("Search Parse Error"),
+                                          QtCore.QString(str(e)),
+                                          QtGui.QMessageBox.Ok,
+                                          QtGui.QMessageBox.NoButton,
+                                          QtGui.QMessageBox.NoButton)
+                search = None
+            self.controller.setSearch(search, s)
+
+    def refineMode(self, on):
+        """
+        refineMode(on: bool) -> None
+        
+        """
+        if self.controller:
+            self.controller.setRefine(on)
 
 class QVersionNotes(QtGui.QTextEdit):
     """

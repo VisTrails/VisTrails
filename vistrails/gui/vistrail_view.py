@@ -152,16 +152,6 @@ class QVistrailView(QDockContainer):
         else:
             self.pipelineTab.moduleMethods.toolWindow().hide()
 
-    def setQueryMode(self, on):
-        """ setMethodsMode(on: bool) -> None
-        Set the query panel state for the view
-
-        """
-        if on:
-            self.versionTab.versionSearch.toolWindow().show()
-        else:
-            self.versionTab.versionSearch.toolWindow().hide()
-
     def setPropertiesMode(self, on):
         """ setPropertiesMode(on: bool) -> None
         Set the properties panel state for the view

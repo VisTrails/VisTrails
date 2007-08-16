@@ -492,6 +492,9 @@ class DefaultTheme(object):
 
         # Saved Queries icons
         self.QUERY_VIEW_ICON = self.ZOOM_ICON
+        self.QUERY_ARROW_ICON = QtGui.QIcon(QtGui.QPixmap(
+                core.system.vistrails_root_directory() +
+                '/gui/resources/images/zoom_arrow_icon.png'))
         self.QUERY_EDIT_ICON = QtGui.QIcon(QtGui.QPixmap(
             core.system.vistrails_root_directory() +
             '/gui/resources/images/edit.png'))

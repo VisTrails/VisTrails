@@ -418,15 +418,6 @@ class QViewManager(QtGui.QTabWidget):
             vistrailView = self.widget(viewIndex)
             vistrailView.setSetMethodsMode(on)
 
-    def setQueryMode(self, on):
-        """ setQueryMode(on: Bool) -> None
-        Turn the query panel on/off for all views
-        
-        """
-        for viewIndex in range(self.count()):
-            vistrailView = self.widget(viewIndex)
-            vistrailView.setQueryMode(on)
-
     def setPropertiesMode(self, on):
         """ setPropertiesMode(on: Bool) -> None
         Turn the properties panel on/off for all views
