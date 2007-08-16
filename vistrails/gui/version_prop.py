@@ -28,6 +28,7 @@ QVersionNotes
 
 from PyQt4 import QtCore, QtGui
 from gui.common_widgets import QToolWindowInterface
+from core.utils import all
 
 ################################################################################
 
@@ -159,6 +160,8 @@ class QVersionNotes(QtGui.QTextEdit):
                 action = self.controller.vistrail.actionMap[versionNumber]
                 if action.notes:
                     self.setHtml(action.notes)
+                    # work around a strange bug where an empty new paragraph gets added every time
+                    self.trim_first_paragraph()
                 else:
                     self.setHtml('')
                 self.setEnabled(True)
@@ -173,4 +176,15 @@ class QVersionNotes(QtGui.QTextEdit):
         
         """
         if self.controller and self.document().isModified():
-            self.controller.updateNotes(str(self.toPlainText()))
+            self.controller.updateNotes(str(self.toHtml()))
+
+    def trim_first_paragraph(self):
+        doc = self.document()
+        count = doc.blockCount()
+        cursor = QtGui.QTextCursor(doc)
+        cursor.select(QtGui.QTextCursor.LineUnderCursor)
+        sel = cursor.selection().toPlainText()
+        if all(sel, lambda c: c == ' '):
+            cursor.removeSelectedText()
+            cursor = QtGui.QTextCursor(doc)
+            cursor.deleteChar()
