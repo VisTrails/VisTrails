@@ -186,6 +186,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         """
         if self.controller:
             self.controller.setSearch(None)
+            self.emit(QtCore.SIGNAL('textQueryChange(bool)'), False)
     
     def executeSearch(self, text):
         """
@@ -205,6 +206,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
                                           QtGui.QMessageBox.NoButton)
                 search = None
             self.controller.setSearch(search, s)
+            self.emit(QtCore.SIGNAL('textQueryChange(bool)'), s!='')
 
     def refineMode(self, on):
         """

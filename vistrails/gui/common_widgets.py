@@ -498,7 +498,7 @@ class QSearchBox(QtGui.QWidget):
         The text is changing, so update the search.
 
         """
-        self.resetButton.setEnabled(True)
+        self.resetButton.setEnabled(str(text)!='')
         self.emit(QtCore.SIGNAL('executeIncrementalSearch(QString)'), text)
 
     def executeSearch(self, index):

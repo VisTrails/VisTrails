@@ -54,6 +54,9 @@ class QVistrailView(QDockContainer):
         # Create the views
         self.pipelineTab = QPipelineTab()
         self.versionTab = QVersionTab()
+        self.connect(self.versionTab.versionProp,
+                     QtCore.SIGNAL('textQueryChange(bool)'),
+                     self.setQueryMode)
 
         self.pipelineTab.pipelineView.setPIPScene(
             self.versionTab.versionView.scene())
