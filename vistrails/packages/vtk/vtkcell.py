@@ -758,6 +758,20 @@ class QVTKWidget(QCellWidget):
             p = p.parent()
         return None
 
+    def getRenderersInCellList(self, sheet, cells):
+        """ isRendererIn(sheet: spreadsheet.StandardWidgetSheet,
+                         cells: [(int,int)]) -> bool
+        Get the list of renderers in side a list of (row, column)
+        cells.
+        
+        """
+        rens = []
+        for (row, col) in cells:
+            cell = sheet.getCell(row, col)
+            if hasattr(cell, 'getRendererList'):
+                rens += cell.getRendererList()
+        return rens
+
     def interactionEvent(self, istyle, name):
         """ interactionEvent(istyle: vtkInteractorStyle, name: str) -> None
         Make sure interactions sync across selected renderers
@@ -773,23 +787,24 @@ class QVTKWidget(QCellWidget):
             ren = self.interacting
             if not ren: ren = self.getActiveRenderer(iren)
             if ren:
-                cam = ren.GetActiveCamera()
-                cpos = cam.GetPosition()
-                cfol = cam.GetFocalPoint()
-                cup = cam.GetViewUp()
                 cells = sheet.getSelectedLocations()
-                for (row, col) in cells:
-                    cell = sheet.getCell(row, col)
-                    if hasattr(cell, 'getRendererList'):
-                        rens = cell.getRendererList()
-                        for r in rens:
-                            if r!=ren:
-                                dcam = r.GetActiveCamera()
-                                dcam.SetPosition(cpos)
-                                dcam.SetFocalPoint(cfol)
-                                dcam.SetViewUp(cup)
-                                r.ResetCameraClippingRange()
-                        cell.update()
+                if (ren in self.getRenderersInCellList(sheet, cells)):
+                    cam = ren.GetActiveCamera()
+                    cpos = cam.GetPosition()
+                    cfol = cam.GetFocalPoint()
+                    cup = cam.GetViewUp()
+                    for (row, col) in cells:
+                        cell = sheet.getCell(row, col)
+                        if hasattr(cell, 'getRendererList'):
+                            rens = cell.getRendererList()
+                            for r in rens:
+                                if r!=ren:
+                                    dcam = r.GetActiveCamera()
+                                    dcam.SetPosition(cpos)
+                                    dcam.SetFocalPoint(cfol)
+                                    dcam.SetViewUp(cup)
+                                    r.ResetCameraClippingRange()
+                            cell.update()
 
     def charEvent(self, istyle, name):
         """ charEvent(istyle: vtkInteractorStyle, name: str) -> None
@@ -801,14 +816,15 @@ class QVTKWidget(QCellWidget):
             iren = istyle.GetInteractor()
             keyCode = iren.GetKeyCode()
             if keyCode in ['w','W','s','S','r','R']:
-                cells = sheet.getSelectedLocations()
-                for (row, col) in cells:
-                    cell = sheet.getCell(row, col)
-                    if hasattr(cell, 'GetInteractor'):
-                        selectedIren = cell.GetInteractor()
-                        selectedIren.SetKeyCode(keyCode)
-                        selectedIren.GetInteractorStyle().OnChar()
-                        selectedIren.Render()
+                cells = sheet.getSelectedLocations()                
+                if (ren in self.getRenderersInCellList(sheet, cells)):
+                    for (row, col) in cells:
+                        cell = sheet.getCell(row, col)
+                        if hasattr(cell, 'GetInteractor'):
+                            selectedIren = cell.GetInteractor()
+                            selectedIren.SetKeyCode(keyCode)
+                            selectedIren.GetInteractorStyle().OnChar()
+                            selectedIren.Render()
             istyle.OnChar()
 
     def saveToPNG(self, filename):
