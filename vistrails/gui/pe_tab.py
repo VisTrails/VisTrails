@@ -59,9 +59,6 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         self.peWidget = QParameterExplorationWidget()
         self.setCentralWidget(self.peWidget)
         self.connect(self.peWidget.table,
-                     QtCore.SIGNAL('requestParameterExploration'),
-                     self.performParameterExploration)
-        self.connect(self.peWidget,
                      QtCore.SIGNAL('exploreChange(bool)'),
                      self.exploreChange)
 
@@ -131,7 +128,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         corresponding to each dimension
         
         """
-        actions = peWidget.table.collectParameterActions()
+        actions = self.peWidget.table.collectParameterActions()
         if self.controller.currentPipeline and actions:
             explorer = ActionBasedParameterExploration()
             (pipelines, performedActions) = explorer.explore(

@@ -133,6 +133,8 @@ class QCellWidget(QtGui.QWidget):
         Set the player to display a particular frame number
         
         """
+        if (len(self._historyImages)==0):
+            return
         if frame>=len(self._historyImages):
             frame = frame % len(self._historyImages)
         if frame>=len(self._historyImages):

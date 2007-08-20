@@ -488,4 +488,4 @@ class QViewManager(QtGui.QTabWidget):
         
         """
         self.currentView().setFocus(QtCore.Qt.MouseFocusReason)
-        self.currentView().executeCurrentExploration()
+        self.currentView().executeParameterExploration()

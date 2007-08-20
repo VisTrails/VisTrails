@@ -138,6 +138,7 @@ class QParameterExplorationTable(QPromptWidget):
             hBar = QtGui.QFrame()
             hBar.setFrameStyle(QtGui.QFrame.HLine | QtGui.QFrame.Sunken)
             vLayout.addWidget(hBar)
+        self._parameterCount = 0
 
     def addParameter(self, paramInfo):
         """ addParameter(paramInfo: (str, [tuple]) -> None
@@ -161,7 +162,6 @@ class QParameterExplorationTable(QPromptWidget):
                                  'already in the list.')
                     return
         self.showPrompt(False)
-        self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 0)
         newEditor = QParameterSetEditor(paramInfo, self)
 
         # Make sure to disable all duplicated parameter
@@ -179,6 +179,7 @@ class QParameterExplorationTable(QPromptWidget):
         self.layout().addWidget(newEditor)
         newEditor.show()
         self.setMinimumHeight(self.layout().minimumSize().height())
+        self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 3)
 
     def removeParameter(self, ps):
         """ removeParameterSet(ps: QParameterSetEditor) -> None
@@ -199,7 +200,7 @@ class QParameterExplorationTable(QPromptWidget):
                         widget.setEnabled(True)
                         break
         self.showPrompt(self.layout().count()<=3)
-        self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 0)
+        self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 3)
 
     def updateUserDefinedFunctions(self):
         """ updateUserDefinedFunctions() -> None
@@ -229,7 +230,7 @@ class QParameterExplorationTable(QPromptWidget):
                 self.layout().removeWidget(pEditor)
         self.label.resetCounts()
         self.showPrompt()
-        self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 0)
+        self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 3)
 
     def setPipeline(self, pipeline):
         """ setPipeline(pipeline: Pipeline) -> None
@@ -313,13 +314,6 @@ class QParameterExplorationTable(QPromptWidget):
 #                             actions.append(action)
                         parameterValues[dim].append(actions)
         return [zip(*p) for p in parameterValues]
-
-    def performParameterExploration(self):
-        """ performParameterExploration() -> None
-        Validate all interpolation values and perform the parameter exploration
-        
-        """
-        self.emit(QtCore.SIGNAL('requestParameterExploration'))
 
 class QDimensionLabel(QtGui.QWidget):
     """
