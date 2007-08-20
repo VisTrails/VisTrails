@@ -319,9 +319,7 @@ class QParameterExplorationTable(QPromptWidget):
         Validate all interpolation values and perform the parameter exploration
         
         """
-        actions = self.collectParameterActions()
-        if actions:
-            self.emit(QtCore.SIGNAL('requestParameterExploration'), actions)
+        self.emit(QtCore.SIGNAL('requestParameterExploration'))
 
 class QDimensionLabel(QtGui.QWidget):
     """

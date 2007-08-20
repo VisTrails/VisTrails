@@ -86,6 +86,19 @@ class QVistrailView(QDockContainer):
                      QtCore.SIGNAL('stateChanged'),
                      self.stateChanged)
 
+        self.connect(self.versionTab,
+                     QtCore.SIGNAL('twoVersionsSelected(int,int)'),
+                     self.twoVersionsSelected)
+        self.connect(self.queryTab,
+                     QtCore.SIGNAL('queryPipelineChange'),
+                     self.queryPipelineChange)
+        self.connect(self.versionTab,
+                     QtCore.SIGNAL('versionSelectionChange'),
+                     self.versionSelectionChange)
+        self.connect(self.peTab,
+                     QtCore.SIGNAL('exploreChange(bool)'),
+                     self.exploreChange)
+
         # We also keep track where this vistrail comes from
         # So we can save in the right place
         self.locator = None
@@ -95,6 +108,14 @@ class QVistrailView(QDockContainer):
         # the redo stack stores the undone action ids 
         # (undo is automatic with us, through the version tree)
         self.redo_stack = []
+
+        # Keep the state of the execution button and menu items for the view
+        self.execQueryEnabled = False
+        self.execDiffEnabled = False
+        self.execExploreEnabled = False
+        self.execPipelineEnabled = False
+        self.execDiffId1 = -1
+        self.execDiffId2 = -1
 
     def updateCursorState(self, mode):
         """ updateCursorState(mode: Int) -> None 
@@ -264,6 +285,52 @@ class QVistrailView(QDockContainer):
         
         """
         return self.stackedWidget.currentWidget().createPopupMenu()
+
+    def executeParameterExploration(self):
+        """ executeParameterExploration() -> None
+        Execute the current parameter exploration in the exploration tab
+        
+        """
+        self.peTab.performParameterExploration()
+
+    def twoVersionsSelected(self, id1, id2):
+        """ twoVersionsSelected(id1: Int, id2: Int) -> None
+        Just echo the signal from the view
+        
+        """
+        self.execDiffEnabled = True
+        self.execDiffId1 = id1
+        self.execDiffId2 = id2
+        self.emit(QtCore.SIGNAL('execStateChange()'))
+
+    def queryPipelineChange(self, notEmpty):
+        """ queryPipelineChange(notEmpty: bool) -> None
+        Update the status of tool bar buttons if there are
+        modules on the query canvas
+        
+        """
+        self.execQueryEnabled = notEmpty
+        self.emit(QtCore.SIGNAL('execStateChange()'))
+                  
+    def exploreChange(self, notEmpty):
+        """ exploreChange(notEmpty: bool) -> None
+        Update the status of tool bar buttons if there are
+        parameters in the exploration canvas
+        
+        """
+        self.execExploreEnabled = notEmpty
+        self.emit(QtCore.SIGNAL('execStateChange()'))
+
+    def versionSelectionChange(self, versionId):
+        """ versionSelectionChange(versionId: int) -> None
+        Update the status of tool bar buttons if there is a version selected
+        
+        """
+        self.execPipelineEnabled = versionId>-1
+        self.execDiffEnabled = False
+        self.execExploreChange = False
+        self.emit(QtCore.SIGNAL('execStateChange()'))
+
 
     ##########################################################################
     # Undo/redo

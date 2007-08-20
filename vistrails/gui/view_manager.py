@@ -77,18 +77,12 @@ class QViewManager(QtGui.QTabWidget):
         self.connect(view.versionTab,
                      QtCore.SIGNAL('versionSelectionChange'),
                      self.versionSelectionChange)
-        self.connect(view.versionTab,
-                     QtCore.SIGNAL('twoVersionsSelected(int,int)'),
-                     self.twoVersionsSelected)
+        self.connect(view,
+                     QtCore.SIGNAL('execStateChange()'),
+                     self.execStateChange)
         self.connect(view.versionTab,
                      QtCore.SIGNAL('vistrailChanged()'),
                      self.vistrailChanged)
-        self.connect(view.queryTab,
-                     QtCore.SIGNAL('queryPipelineChange'),
-                     self.queryPipelineChange)
-        self.connect(view.peTab,
-                     QtCore.SIGNAL('exploreChange(bool)'),
-                     self.exploreChange)
         self.connect(view.pipelineTab,
                      QtCore.SIGNAL('resetQuery()'),
                      self.resetQuery)
@@ -145,12 +139,12 @@ class QViewManager(QtGui.QTabWidget):
         """
         self.emit(QtCore.SIGNAL('versionSelectionChange'), versionId)
 
-    def twoVersionsSelected(self, id1, id2):
-        """ twoVersionsSelected(id1: Int, id2: Int) -> None
+    def execStateChange(self):
+        """ execStateChange() -> None
         Just echo the signal from the view
 
         """
-        self.emit(QtCore.SIGNAL('twoVersionsSelected(int,int)'), id1, id2)
+        self.emit(QtCore.SIGNAL('execStateChange()'))
 
     def vistrailChanged(self):
         """ vistrailChanged() -> None
@@ -158,20 +152,6 @@ class QViewManager(QtGui.QTabWidget):
         
         """
         self.emit(QtCore.SIGNAL('vistrailChanged()'))
-
-    def queryPipelineChange(self, notEmpty):
-        """ versionSelectionChange(notEmpty: bool) -> None
-        Just echo the signal from the view
-        
-        """
-        self.emit(QtCore.SIGNAL('queryPipelineChange'), notEmpty)
-
-    def exploreChange(self, notEmpty):
-        """ exploreChange(notEmpty: bool) -> None
-        Just echo the signal from the view
-        
-        """
-        self.emit(QtCore.SIGNAL('exploreChange'), notEmpty)
 
     def copySelection(self):
         """ copySelection() -> None
@@ -489,13 +469,12 @@ class QViewManager(QtGui.QTabWidget):
         """
         self.queryVistrail(False)
 
-    def queryVistrail(self, on):
+    def queryVistrail(self, on=True):
         """ queryVistrail(on: bool) -> None
         
         """
-        for viewIndex in range(self.count()):            
-            vistrailView = self.widget(viewIndex)
-            vistrailView.queryVistrail(on)
+        self.currentView().setFocus(QtCore.Qt.MouseFocusReason)
+        self.currentView().queryVistrail(on)
 
     def executeCurrentPipeline(self):
         """ executeCurrentPipeline() -> None
@@ -503,3 +482,10 @@ class QViewManager(QtGui.QTabWidget):
         """
         self.currentView().setFocus(QtCore.Qt.MouseFocusReason)
         self.currentView().controller.executeCurrentWorkflow()
+
+    def executeCurrentExploration(self):
+        """ executeCurrentExploration() -> None
+        
+        """
+        self.currentView().setFocus(QtCore.Qt.MouseFocusReason)
+        self.currentView().executeCurrentExploration()

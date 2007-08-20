@@ -125,13 +125,14 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
             # Update the parameter exploration table
             self.peWidget.updatePipeline(pipeline)
 
-    def performParameterExploration(self, actions):
-        """ performParameterExploration(actions: list) -> None        
-        Perform the exploration given a list of action lists
+    def performParameterExploration(self):
+        """ performParameterExploration() -> None        
+        Perform the exploration by collecting a list of actions
         corresponding to each dimension
         
         """
-        if self.controller.currentPipeline:
+        actions = peWidget.table.collectParameterActions()
+        if self.controller.currentPipeline and actions:
             explorer = ActionBasedParameterExploration()
             (pipelines, performedActions) = explorer.explore(
                 self.controller.currentPipeline, actions)

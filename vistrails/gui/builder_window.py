@@ -71,6 +71,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         
         self.bookmarksWindow = QBookmarksWindow(parent=self)
         
+        self.viewIndex = 0
+        
         self.createActions()
         self.createMenu()
         self.createToolBar()
@@ -81,13 +83,6 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.newVistrailAction.trigger()
 
         self.viewManager.set_first_view(self.viewManager.currentView())
-
-        self.firstVersion = -1
-        self.secondVersion = -1
-
-        self.viewPipelineEnabled = True
-        self.viewQueryEnabled = False
-        self.viewExploreEnabled = False
         
     def sizeHint(self):
         """ sizeHint() -> QRect
@@ -267,6 +262,13 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.flushCacheAction = QtGui.QAction(self.tr('Erase Cache Contents'),
                                               self)
 
+        self.executeQueryAction = QtGui.QAction('Execute Visual Query', self)
+        self.executeQueryAction.setEnabled(False)
+
+        self.executeExplorationAction = QtGui.QAction(
+            'Execute Parameter Exploration', self)
+        self.executeExplorationAction.setEnabled(False)
+
         self.executeShortcuts = [
             QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.ControlModifier +
                                                QtCore.Qt.Key_Return), self),
@@ -318,6 +320,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.runMenu = self.menuBar().addMenu('&Run')
         self.runMenu.addAction(self.executeCurrentWorkflowAction)
         self.runMenu.addAction(self.executeDiffAction)
+        self.runMenu.addAction(self.executeQueryAction)
+        self.runMenu.addAction(self.executeExplorationAction)
         self.runMenu.addSeparator()
         self.runMenu.addAction(self.flushCacheAction)
 
@@ -358,14 +362,8 @@ class QBuilderWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('versionSelectionChange'),
                      self.versionSelectionChange)
         self.connect(self.viewManager,
-                     QtCore.SIGNAL('twoVersionsSelected(int,int)'),
-                     self.twoVersionsSelected)
-        self.connect(self.viewManager,
-                     QtCore.SIGNAL('queryPipelineChange'),
-                     self.queryPipelineChange)
-        self.connect(self.viewManager,
-                     QtCore.SIGNAL('exploreChange(bool)'),
-                     self.exploreChange)
+                     QtCore.SIGNAL('execStateChange()'),
+                     self.execStateChange)
         self.connect(self.viewManager,
                      QtCore.SIGNAL('currentVistrailChanged'),
                      self.currentVistrailChanged)
@@ -401,6 +399,9 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.executeCurrentWorkflowAction,
              self.viewManager.executeCurrentPipeline),
             (self.executeDiffAction, self.showDiff),
+            (self.executeQueryAction, self.viewManager.queryVistrail),
+            (self.executeExplorationAction,
+             self.viewManager.executeCurrentExploration),
             (self.flushCacheAction, self.flush_cache),
             (self.quitVistrailsAction, self.quitVistrails),
             ]
@@ -483,10 +484,6 @@ class QBuilderWindow(QtGui.QMainWindow):
         Update the status of tool bar buttons if there is a version selected
         
         """
-        self.viewToolBar.executeAction().setEnabled(versionId>-1)
-        self.viewPipelineEnabled = versionId>-1
-        self.executeCurrentWorkflowAction.setEnabled(versionId>-1)
-        self.executeDiffAction.setEnabled(False)
         self.undoAction.setEnabled(versionId>0)
         self.viewToolBar.undoAction().setEnabled(versionId>0)
         self.selectAllAction.setEnabled(self.viewManager.canSelectAll())
@@ -498,46 +495,44 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.redoAction.setEnabled(False)
             self.viewToolBar.redoAction().setEnabled(False)
 
-    def twoVersionsSelected(self, id1, id2):
-        """ twoVersionsSelected(id1: Int, id2: Int) -> None
-        Update the state of the visual difference action
-
-        """
-        self.executeDiffAction.setEnabled(True)
-        self.firstVersion = id1
-        self.secondVersion = id2
-
-    def queryPipelineChange(self, notEmpty):
-        """ queryPipelineChange(notEmpty: bool) -> None
-        Update the status of tool bar buttons if there are
-        modules on the query canvas
+    def execStateChange(self):
+        """ execStateChange() -> None
+        Something changed on the canvas that effects the execution state,
+        update interface accordingly.
         
         """
-        if self.viewToolBar.currentViewIndex == 2:
-            self.viewToolBar.executeAction().setEnabled(notEmpty)
-        self.viewQueryEnabled = notEmpty
-   
-    def exploreChange(self, notEmpty):
-        """ exploreChange(notEmpty: bool) -> None
-        Update the status of tool bar buttons if there are
-        parameters in the exploration canvas
-        
-        """
-        if self.viewToolBar.currentViewIndex == 3:
-            self.viewToolBar.executeAction().setEnabled(notEmpty)
-        self.viewExploreEnabled = notEmpty
-   
+        currentView = self.viewManager.currentWidget()        
+        if currentView:
+            # Update toolbar
+            if self.viewIndex == 2:
+                self.viewToolBar.executeAction().setEnabled(
+                    currentView.execQueryEnabled)
+            elif self.viewIndex == 3:
+                self.viewToolBar.executeAction().setEnabled(
+                    currentView.execExploreEnabled)
+            else:
+                self.viewToolBar.executeAction().setEnabled(
+                    currentView.execPipelineEnabled)
+            # Update menu
+            self.executeCurrentWorkflowAction.setEnabled(
+                currentView.execPipelineEnabled)
+            self.executeDiffAction.setEnabled(currentView.execDiffEnabled)
+            self.executeQueryAction.setEnabled(currentView.execQueryEnabled)
+            self.executeExplorationAction.setEnabled(currentView.execExploreEnabled)
+        else:
+            self.viewToolBar.executeAction().setEnabled(False)
+            self.executeCurrentWorkflowAction.setEnabled(False)
+            self.executeDiffAction.setEnabled(False)
+            self.executeQueryAction.setEnabled(False)
+            self.executeExplorationAction.setEnabled(False)
+
     def viewModeChanged(self, index):
         """ viewModeChanged(index: int) -> None
         Update the state of the view buttons
         
         """
-        if index == 2:
-            self.viewToolBar.executeAction().setEnabled(self.viewQueryEnabled)
-        elif index == 3:
-            self.viewToolBar.executeAction().setEnabled(self.viewExploreEnabled)
-        else:
-            self.viewToolBar.executeAction().setEnabled(self.viewPipelineEnabled)
+        self.viewIndex = index
+        self.execStateChange()
         self.viewManager.viewModeChanged(index)
 
     def clipboardChanged(self, mode=QtGui.QClipboard.Clipboard):
@@ -554,6 +549,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         Redisplay the new title of vistrail
         
         """
+        self.execStateChange()
         if vistrailView:
             self.setWindowTitle('VisTrails Builder - ' +
                                 vistrailView.windowTitle())
@@ -563,11 +559,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.closeVistrailAction.setEnabled(False)
             self.saveFileAsAction.setEnabled(False)
             self.saveDBAction.setEnabled(False)
-            self.executeCurrentWorkflowAction.setEnabled(False)
-            self.executeDiffAction.setEnabled(False)
-            self.viewToolBar.executeAction().setEnabled(False)
             self.vistrailMenu.menuAction().setEnabled(False)
-            self.viewPipelineEnabled = False
 
         if vistrailView and vistrailView.viewAction:
             vistrailView.viewAction.setText(vistrailView.windowTitle())
@@ -757,12 +749,13 @@ class QBuilderWindow(QtGui.QMainWindow):
         Show the visual difference interface
         
         """
-        if self.firstVersion > 0 and self.secondVersion > 0:
-            view = self.viewManager.currentWidget()
-            visDiff = QVisualDiff(view.controller.vistrail,
-                                  self.firstVersion,
-                                  self.secondVersion,
-                                  view.controller,
+        currentView = self.viewManager.currentWidget()
+        if (currentView and currentView.execDiffId1 > 0 and 
+            currentView.execDiffId2 > 0):
+            visDiff = QVisualDiff(currentView.controller.vistrail,
+                                  currentView.execDiffId1,
+                                  currentView.execDiffId2,
+                                  currentView.controller,
                                   self)
             visDiff.show()
 
