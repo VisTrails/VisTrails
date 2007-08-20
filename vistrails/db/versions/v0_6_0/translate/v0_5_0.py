@@ -46,12 +46,15 @@ def translateVistrail(_vistrail):
                 op.__class__ = DBDelete
         child.is_new = True
 
+    new_tags_dict = {}
     for child in vistrail.db_tags.itervalues():
         id = child.db_time
         child.__class__ = DBTag
         child.db_id = id
         vistrail.db_tags_name_index[child.db_name] = child
+        new_tags_dict[child.db_id] = child
         child.is_new = True
+    vistrail.db_tags = new_tags_dict
 
     vistrail.db_abstractions = {}
     vistrail.db_version = '0.6.0'
