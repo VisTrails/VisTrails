@@ -154,6 +154,7 @@ class QCellWidget(QtGui.QWidget):
         self._currentFrame = -1
         self.playNextFrame()
         self._player.show()
+        self.hide()
         self._playing = True
         
     def stopPlayer(self):
@@ -165,6 +166,7 @@ class QCellWidget(QtGui.QWidget):
             return
         self._playerTimer.stop()
         self._player.hide()
+        self.show()
         self._playing = False
 
     def showNextFrame(self):
@@ -202,7 +204,7 @@ class QCellToolBar(QtGui.QToolBar):
     
     """
     def __init__(self, sheet):
-        """ CellToolBar(sheet: SpreadsheetSheet) -> CellToolBar        
+        """ CellToolBar(sheet: SpreadsheetSheet) -> CellToolBar
         Initialize the cell toolbar by calling the user-defined
         toolbar construction function
         

@@ -312,12 +312,12 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         else:
             self.helpers.hide()
 
-    def leaveEvent(self, e):
-        """ leaveEvent(e: QMouseEvent) -> None
-        Hide the helpers when mouse leave the widget
+#     def leaveEvent(self, e):
+#         """ leaveEvent(e: QMouseEvent) -> None
+#         Hide the helpers when mouse leave the widget
         
-        """
-        self.showHelpers(False, -1, -1)
+#         """
+#         self.showHelpers(False, -1, -1)
 
     def getCell(self, row, col):
         """ getCell(row: int, col: int) -> QWidget
