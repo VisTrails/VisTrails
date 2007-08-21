@@ -283,36 +283,57 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         if change==QtGui.QGraphicsItem.ItemSelectedChange:
             selectedItems = self.scene().selectedItems()
             selectedId = -1
-            if not self.scene().multiSelecting:
-                if value.toBool():
-                    for item in selectedItems:
-                        if type(item)==QGraphicsLinkItem:
-                            item.setSelected(False)
-                            item.update()
-                    if len(selectedItems)==0:
-                        selectedId = self.id
-                elif len(selectedItems)==2:
-                    if selectedItems[0]==self:
-                        selectedId = selectedItems[1].id
-                    else:
-                        selectedId = selectedItems[0].id
-                selectByClick = self.scene().mouseGrabberItem() == self
-                if not selectByClick:
-                    for item in self.scene().items():
-                        if type(item)==QGraphicsRubberBandItem:
-                            selectByClick = True
-                            break
-            else:
-                selectByClick = False
+            selectByClick = not self.scene().multiSelecting
+            if value.toBool():
+                for item in selectedItems:
+                    if type(item)==QGraphicsLinkItem:
+                        item.setSelected(False)
+                        item.update()
+                selectedItems = self.scene().selectedItems()
+                if len(selectedItems)==0:
+                    selectedId = self.id
+            elif len(selectedItems)==2:
+                if selectedItems[0]==self:
+                    selectedId = selectedItems[1].id
+                else:
+                    selectedId = selectedItems[0].id
+            selectByClick = self.scene().mouseGrabberItem() == self
+            if not selectByClick:
+                for item in self.scene().items():
+                    if type(item)==QGraphicsRubberBandItem:
+                        selectByClick = True
+                        break
             self.scene().emit(QtCore.SIGNAL('versionSelected(int,bool)'),
                               selectedId, selectByClick)
-            if (len(selectedItems) == 1 and value.toBool()): 
+            # Update the selected items list to include only versions and 
+            # check if two versions selected
+            selectedVersions = [item for item in 
+                                self.scene().selectedItems() 
+                                if type(item) == QGraphicsVersionItem]
+            # If adding a version, the ids are self and other selected version
+            if (len(selectedVersions) == 1 and value.toBool()): 
                 self.scene().emit(QtCore.SIGNAL('twoVersionsSelected(int,int)'),
-                                  selectedItems[0].id, self.id)
-            if (len(selectedItems) == 3 and not value.toBool()):
-                self.scene().emit(QtCore.SIGNAL('twoVersionsSelected(int,int)'),
-                                  selectedItems[0].id, selectedItems[1].id)
-            return QtGui.QGraphicsItem.itemChange(self, change, value)    
+                                  selectedVersions[0].id, self.id)
+            # If deleting a version, the ids are the two selected versions that
+            # are not self
+            if (len(selectedVersions) == 3 and not value.toBool()):
+                if selectedVersions[0] == self:
+                    self.scene().emit(QtCore.SIGNAL(
+                            'twoVersionsSelected(int,int)'),
+                                      selectedVersions[1].id, 
+                                      selectedVersions[2].id)
+                elif selectedVersions[1] == self:
+                    self.scene().emit(QtCore.SIGNAL(
+                            'twoVersionsSelected(int,int)'),
+                                      selectedVersions[0].id, 
+                                      selectedVersions[2].id)
+                else:
+                    self.scene().emit(QtCore.SIGNAL(
+                            'twoVersionsSelected(int,int)'),
+                                      selectedVersions[0].id, 
+                                      selectedVersions[1].id)
+
+        return QtGui.QGraphicsItem.itemChange(self, change, value)    
 
     def mousePressEvent(self, event):
         """ mousePressEvent(event: QMouseEvent) -> None
