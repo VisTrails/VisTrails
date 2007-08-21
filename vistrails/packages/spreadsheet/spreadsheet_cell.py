@@ -105,7 +105,7 @@ class QCellWidget(QtGui.QWidget):
         """ deleteLater() -> None        
         Make sure to clear history and delete the widget
         
-        """        
+        """
         self.clearHistory()
         QtGui.QWidget.deleteLater(self)
 
@@ -192,7 +192,7 @@ class QCellWidget(QtGui.QWidget):
         
         """
         return QtGui.QPixmap.grabWidget(self)
-        
+
 ################################################################################
 
 class QCellToolBar(QtGui.QToolBar):
@@ -561,6 +561,15 @@ class QCellPresenter(QtGui.QLabel):
         if cellWidget:
             cellWidget.setParent(None)
         return cellWidget
+
+    def deleteLater(self):
+        """ deleteLater() -> None        
+        Make sure to delete the cell widget if it exists
+        
+        """
+        if (self.cellWidget):
+            self.cellWidget.deleteLater()
+        QtGui.QWidget.deleteLater(self)
 
 ################################################################################
 
