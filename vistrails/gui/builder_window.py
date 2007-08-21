@@ -399,7 +399,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.executeCurrentWorkflowAction,
              self.viewManager.executeCurrentPipeline),
             (self.executeDiffAction, self.showDiff),
-            (self.executeQueryAction, self.viewManager.queryVistrail),
+            (self.executeQueryAction, self.queryVistrail),
             (self.executeExplorationAction,
              self.viewManager.executeCurrentExploration),
             (self.flushCacheAction, self.flush_cache),
@@ -765,11 +765,20 @@ class QBuilderWindow(QtGui.QMainWindow):
         
         """
         if self.viewToolBar.currentViewIndex == 2:
-            self.viewManager.queryVistrail(True)
+            self.queryVistrail()
         elif self.viewToolBar.currentViewIndex == 3:
             self.viewManager.executeCurrentExploration()
         else:
             self.viewManager.executeCurrentPipeline()
+
+    def queryVistrail(self):
+        """ queryVistrail() -> None
+        Execute a query and switch to history view if in query or explore mode
+        
+        """
+        if self.viewIndex > 1:
+            self.viewToolBar.changeView(1)
+        self.viewManager.queryVistrail()
 
     def flush_cache(self):
         core.interpreter.cached.CachedInterpreter.flush()
