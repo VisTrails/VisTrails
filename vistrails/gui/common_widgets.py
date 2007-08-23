@@ -454,7 +454,8 @@ class QSearchBox(QtGui.QWidget):
         hLayout.addWidget(self.searchEdit)
 
         self.resetButton = QtGui.QToolButton(self)
-        self.resetButton.setIcon(CurrentTheme.VIEW_MANAGER_CLOSE_ICON)
+        self.resetButton.setIcon(QtGui.QIcon(
+                self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)))
         self.resetButton.setIconSize(QtCore.QSize(12,12))
         self.resetButton.setAutoRaise(True)
         self.resetButton.setEnabled(False)

@@ -271,6 +271,10 @@ class QMethodInputForm(QtGui.QGroupBox):
             self.labels.append(label)
             self.layout().addWidget(label, pIndex, 0)
             self.layout().addWidget(lineEdit, pIndex, 1)
+            # Ugly hack to add browse button to SetFileName strings
+            if(function.name=='SetFileName'):
+                browseButton = QMethodFileChooser(self, lineEdit)
+                self.layout().addWidget(browseButton, pIndex, 2)
 
     def keyPressEvent(self, e):
         """ keyPressEvent(e: QKeyEvent) -> None
@@ -478,3 +482,42 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
                 self.setText(str(eval(str(base), None, None)))
             except:
                 self.setText(base)
+
+class QMethodFileChooser(QtGui.QToolButton):
+    """ 
+    QMethodFileChooser is a toolbar button that opens a browser for
+    files.  The lineEdit is updated with the filename that is
+    selected.  
+
+    """
+    def __init__(self, parent=None, lineEdit=None):
+        """
+        QMethodFileChooser(parent: QWidget, lineEdit: QPythonValueEdit) -> None
+
+        """
+        QtGui.QToolButton.__init__(self, parent)
+        self.setIcon(QtGui.QIcon(
+                self.style().standardPixmap(QtGui.QStyle.SP_DirOpenIcon)))
+        self.setIconSize(QtCore.QSize(12,12))
+        self.setToolTip('Open a file chooser')
+        self.setAutoRaise(True)
+        self.lineEdit = lineEdit
+        self.connect(self,
+                     QtCore.SIGNAL('clicked()'),
+                     self.openChooser)
+             
+
+    def openChooser(self):
+        """
+        openChooser() -> None
+        
+        """
+        fileName = QtGui.QFileDialog.getOpenFileName(self,
+                                                     'Use Filename '
+                                                     'as Value...',
+                                                     self.text(),
+                                                     'All files '
+                                                     '(*.*)')
+        if self.lineEdit and not fileName.isEmpty():
+            self.lineEdit.setText(fileName)
+            self.lineEdit.updateParent()

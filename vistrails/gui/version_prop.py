@@ -79,7 +79,8 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         self.tagEdit.setEnabled(False)
 
         self.tagReset = QtGui.QToolButton(self)
-        self.tagReset.setIcon(CurrentTheme.VIEW_MANAGER_CLOSE_ICON)
+        self.tagReset.setIcon(QtGui.QIcon(
+                self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)))
         self.tagReset.setIconSize(QtCore.QSize(12,12))
         self.tagReset.setAutoRaise(True)
         self.tagReset.setEnabled(False)
