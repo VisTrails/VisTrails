@@ -1275,6 +1275,9 @@ mutual connections."""
                     self.updateSceneBoundingRect()
                     self.update()
                     self.noUpdate = False
+                    # Notify that no module is selected
+                    self.emit(QtCore.SIGNAL('moduleSelected'),
+                              -1, selectedItems)
                 else:
                     self.controller.resetPipelineView = False
                     idList = [conn.id for conn in selectedItems]

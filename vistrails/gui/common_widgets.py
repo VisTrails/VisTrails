@@ -490,7 +490,6 @@ class QSearchBox(QtGui.QWidget):
         refineMode() -> None
 
         """
-        print "refine"
         self.emit(QtCore.SIGNAL('refineMode(bool)'), True) 
 
     def executeIncrementalSearch(self, text):
