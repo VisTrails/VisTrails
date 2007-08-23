@@ -25,6 +25,7 @@ from core.packagemanager import get_package_manager
 from core.utils.uxml import (named_elements,
                              elements_filter, enter_named_element)
 from gui.configuration import QConfigurationWidget
+from gui.configuration import QGeneralConfiguration
 import os.path
 
 ##############################################################################
@@ -404,15 +405,22 @@ class QPreferencesDialog(QtGui.QDialog):
         self._tab_widget.setSizePolicy(QtGui.QSizePolicy.Expanding,
                                        QtGui.QSizePolicy.Expanding)
 
+        self._general_tab = self.create_general_tab()
+        self._tab_widget.addTab(self._general_tab, 'General Configuration')
+
         self._packages_tab = self.create_packages_tab()
         self._tab_widget.addTab(self._packages_tab, 'Module Packages')
         
         self._configuration_tab = self.create_configuration_tab()
-        self._tab_widget.addTab(self._configuration_tab, 'General Configuration')
+        self._tab_widget.addTab(self._configuration_tab, 'Expert Configuration')
 
         self._button_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close,
                                                   QtCore.Qt.Horizontal,
                                                   f)
+        self.connect(self._tab_widget,
+                     QtCore.SIGNAL('currentChanged(int)'),
+                     self.tab_changed)
+
         self.connect(self._button_box,
                      QtCore.SIGNAL('clicked(QAbstractButton *)'),
                      self.close_dialog)
@@ -421,11 +429,23 @@ class QPreferencesDialog(QtGui.QDialog):
                      QtCore.SIGNAL('configuration_changed'),
                      self.configuration_changed)
 
+        self.connect(self._general_tab,
+                     QtCore.SIGNAL('configuration_changed'),
+                     self.configuration_changed)
+
         l.addWidget(self._button_box)
         l.addWidget(self._status_bar)
 
     def close_dialog(self):
         self.done(0)
+
+    def create_general_tab(self):
+        """ create_general_tab() -> None
+        
+        """
+        from gui.application import VistrailsApplication
+        return QGeneralConfiguration(self,
+                                     VistrailsApplication.configuration)
 
     def create_configuration_tab(self):
         from gui.application import VistrailsApplication
@@ -439,7 +459,27 @@ class QPreferencesDialog(QtGui.QDialog):
     def sizeHint(self):
         return QtCore.QSize(800, 600)
 
+    def tab_changed(self, index):
+        """ tab_changed(index: int) -> None
+        Keep general and advanced configurations in sync
+        
+        """
+        from gui.application import VistrailsApplication
+        self._configuration_tab.configuration_changed(
+            VistrailsApplication.configuration)
+        self._general_tab.update_state(
+            VistrailsApplication.configuration)
+
+    
     def configuration_changed(self, item, new_value):
+        """ configuration_changed(item: QTreeWidgetItem *, 
+        new_value: QString) -> None
+        Write the current session configuration to startup.xml.
+        Note:  This is already happening on close to capture configuration
+        items that are not set in preferences.  Do we still need to do it 
+        with every preference change?
+        
+        """
         from PyQt4 import QtCore
         from gui.application import VistrailsApplication
         startup = QtCore.QCoreApplication.instance().vistrailsStartup

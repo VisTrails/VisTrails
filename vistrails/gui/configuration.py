@@ -25,6 +25,7 @@
 from PyQt4 import QtGui, QtCore
 from gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget
 from core.configuration import ConfigurationObject
+import core.system
 
 ##############################################################################
 
@@ -202,3 +203,132 @@ class QConfigurationWidget(QtGui.QWidget):
 
     def configuration_changed(self, new_configuration):
         self._tree.treeWidget.create_tree(new_configuration)
+
+class QGeneralConfiguration(QtGui.QWidget):
+    """
+    QGeneralConfiguration is a widget for showing a few general preferences
+    that can be set with widgets.
+
+    """
+    def __init__(self, parent, configuration_object):
+        """
+        QGeneralConfiguration(parent: QWidget, 
+        configuration_object: ConfigurationObject) -> None
+
+        """
+        QtGui.QWidget.__init__(self, parent)
+        layout = QtGui.QVBoxLayout()
+        layout.setMargin(10)
+        layout.setSpacing(10)
+        self.setLayout(layout)
+        self._configuration = None
+
+        self._db_connect_cb = QtGui.QCheckBox(self)
+        self._db_connect_cb.setText('Read/Write to database by default')
+        layout.addWidget(self._db_connect_cb)
+        
+        self._use_cache_cb = QtGui.QCheckBox(self)
+        self._use_cache_cb.setText('Cache execution results')
+        layout.addWidget(self._use_cache_cb)
+
+        self._splash_cb = QtGui.QCheckBox(self)
+        self._splash_cb.setText('Show splash dialog on startup')
+        layout.addWidget(self._splash_cb)
+
+        self._maximize_cb = QtGui.QCheckBox(self)
+        self._maximize_cb.setText('Maximize windows on startup')
+        layout.addWidget(self._maximize_cb)
+
+        self._multi_head_cb = QtGui.QCheckBox(self)
+        self._multi_head_cb.setText('Use multiple displays on startup')
+        layout.addWidget(self._multi_head_cb)
+
+        layout.addStretch()
+
+        self.update_state(configuration_object)
+
+        self.connect(self._db_connect_cb,
+                     QtCore.SIGNAL('stateChanged(int)'),
+                     self.db_connect_changed)
+        self.connect(self._use_cache_cb,
+                     QtCore.SIGNAL('stateChanged(int)'),
+                     self.use_cache_changed)
+        self.connect(self._splash_cb,
+                     QtCore.SIGNAL('stateChanged(int)'),
+                     self.splash_changed)
+        self.connect(self._maximize_cb,
+                     QtCore.SIGNAL('stateChanged(int)'),
+                     self.maximize_changed)
+        self.connect(self._multi_head_cb,
+                     QtCore.SIGNAL('stateChanged(int)'),
+                     self.multi_head_changed)
+
+    def update_state(self, configuration):
+        """ update_state(configuration: VistrailConfiguration) -> None
+        
+        Update the dialog state based on a new configuration
+        """
+        
+        self._configuration = configuration
+
+        if self._configuration.has('dbDefault'):
+            self._db_connect_cb.setChecked(
+                getattr(self._configuration, 'dbDefault'))
+        if self._configuration.has('useCache'):
+            self._use_cache_cb.setChecked(
+                getattr(self._configuration, 'useCache'))
+        if self._configuration.has('showSplash'):
+            self._splash_cb.setChecked(
+                getattr(self._configuration, 'showSplash'))
+        if self._configuration.has('maximizeWindows'):
+            self._maximize_cb.setChecked(
+                getattr(self._configuration, 'maximizeWindows'))
+        if self._configuration.has('multiHeads'):
+            self._multi_head_cb.setChecked(
+                getattr(self._configuration, 'multiHeads'))
+        else:
+            self._data_dir_le.setText(core.system.vistrails_file_directory())                
+    def db_connect_changed(self, on):
+        """ db_connect_changed(on: int) -> None
+
+        """
+        item = 'dbDefault'
+        setattr(self._configuration, item, bool(on))
+        self.emit(QtCore.SIGNAL('configuration_changed'),
+                  None, bool(on))
+
+    def use_cache_changed(self, on):
+        """ use_cache_changed(on: int) -> None
+
+        """
+        item = 'useCache'
+        setattr(self._configuration, item, bool(on))
+        self.emit(QtCore.SIGNAL('configuration_changed'),
+                  None, bool(on))
+
+    def splash_changed(self, on):
+        """ splash_changed(on: int) -> None
+
+        """
+        item = 'showSplash'
+        setattr(self._configuration, item, bool(on))
+        self.emit(QtCore.SIGNAL('configuration_changed'),
+                  None, bool(on))
+
+    def maximize_changed(self, on):
+        """ maximize_changed(on: int) -> None
+
+        """
+        item = 'maximizeWindows'
+        setattr(self._configuration, item, bool(on))
+        self.emit(QtCore.SIGNAL('configuration_changed'),
+                  None, bool(on))
+
+    def multi_head_changed(self, on):
+        """ multi_head_changed(on: int) -> None
+
+        """
+        item = 'multiHeads'
+        setattr(self._configuration, item, bool(on))
+        self.emit(QtCore.SIGNAL('configuration_changed'),
+                  None, bool(on))

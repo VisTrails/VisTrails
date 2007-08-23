@@ -124,8 +124,10 @@ def default():
 
     base_dir = {
         'dataDirectory': (None, str),
+        'dbDefault': False,
         'debugSignals': False,
         'dotVistrails': system.default_dot_vistrails(),
+        'fileDirectory': (None, str),
         'fileRepository': default_file_repository(),
         'interactiveMode': True,
         'logger': default_logger(),

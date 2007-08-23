@@ -32,6 +32,8 @@ from core import system
 from core import keychain
 from core.modules.module_registry import registry
 from core.utils import InstanceObject
+from core.utils.uxml import (named_elements,
+                             elements_filter, enter_named_element)
 from gui import qt
 from db.services.io import XMLFileLocator
 import core.configuration
@@ -75,22 +77,26 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         """
         gui.theme.initializeCurrentTheme()
         self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
-        
         self.configuration = core.configuration.default()
         self.keyChain = keychain.KeyChain()
         self.setupOptions()
+
+        # Setup configuration to default or saved preferences
+        self.vistrailsStartup = core.startup.VistrailsStartup(self.configuration)
+
+        # Command line options override configuration
         self.readOptions()
         if optionsDict:
             for (k, v) in optionsDict.iteritems():
                 setattr(self.configuration, k, v)
-        self.vistrailsStartup = core.startup.VistrailsStartup()
+
         interactive = self.configuration.check('interactiveMode')
         if interactive:
             self.setIcon()
             self.createWindows()
             self.processEvents()
             
-        self.vistrailsStartup.init(self.configuration)
+        self.vistrailsStartup.init()
         # ugly workaround for configuration initialization order issue
         # If we go through the configuration too late,
         # The window does not get maximized. If we do it too early,
@@ -98,6 +104,8 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         if interactive:
             if self.configuration.check('maximizeWindows'):
                 self.builderWindow.showMaximized()
+            if self.configuration.check('dbDefault'):
+                self.builderWindow.setDBDefault(True)
         self.runInitialization()
         self._python_environment = self.vistrailsStartup.get_python_environment()
         self._initialized = True
@@ -252,7 +260,7 @@ run in batch mode.')
             default = False,
             help="run in non-interactive mode")
         add("-l", "--nologger", action="store_true",
-            default = False,
+            default = True,
             help="disable the logging")
         add("-d", "--debugsignals", action="store_true",
             default = False,
@@ -279,20 +287,20 @@ run in batch mode.')
             self.configuration.pythonPrompt = True
         if get('nosplash'):
             self.configuration.showSplash = False
-        self.configuration.debugSignals = get('debugsignals')
+        self.configuration.debugSignals = bool(get('debugsignals'))
         self.configuration.dotVistrails = get('dotVistrails')
         if not self.configuration.check('dotVistrails'):
             self.configuration.dotVistrails = system.default_dot_vistrails()
-        self.configuration.multiHeads = get('multiheads')
-        self.configuration.maximizeWindows = get('maximized')
-        self.configuration.showMovies = get('movies')
-        self.configuration.useCache = get('cache')
+        self.configuration.multiHeads = bool(get('multiheads'))
+        self.configuration.maximizeWindows = bool(get('maximized'))
+        self.configuration.showMovies = bool(get('movies'))
+        self.configuration.useCache = bool(get('cache'))
         self.configuration.verbosenessLevel = get('verbose')
         if get('noninteractive'):
             self.configuration.interactiveMode = False
             self.nonInteractiveOpts = InstanceObject(workflow=get('workflow'),
                                                      parameters=get('parameters'))
-        self.configuration.nologger = get('nologger')
+        self.configuration.nologger = bool(get('nologger'))
         self.input = command_line.CommandLineParser().positional_arguments()
         if get('workflow') and not get('noninteractive'):
             print "Workflow option only allowed in noninteractive mode."
@@ -342,6 +350,22 @@ run in batch mode.')
             o.setAttribute(QtCore.Qt.WA_MacMetalStyle)
         return QtGui.QApplication.eventFilter(self,o,event)
 
+    def save_configuration(self):
+        """ save_configuration() -> None
+        Save the current vistrail configuration to the startup.xml file.
+        This is required to capture changes to the configuration that we 
+        make the session, ie., browsed directories or window sizes.
+
+        """
+        dom = self.vistrailsStartup.startup_dom()
+        doc = dom.documentElement
+        configuration_element = enter_named_element(doc, 'configuration')
+        doc.removeChild(configuration_element)
+        self.configuration.write_to_dom(dom, doc)
+        self.vistrailsStartup.write_startup_dom(dom)
+        dom.unlink()
+
+
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
 # app.
@@ -364,5 +388,6 @@ VistrailsApplication = None
 def stop_application():
     """Stop and finalize the application singleton."""
     global VistrailsApplication
+    VistrailsApplication.save_configuration()
     VistrailsApplication.destroy()
     VistrailsApplication.deleteLater()

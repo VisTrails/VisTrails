@@ -50,10 +50,9 @@ class VistrailsStartup(object):
     
     """
 
-    def init(self, config=None):
-        """ init(config: ConfigurationObject) -> None        
-        Initialize VisTrails with optionsDict. optionsDict can be
-        another VisTrails Configuration object, e.g. ConfigurationObject
+    def __init__(self, config=None):
+        """ VistrailsStartup(config: ConfigurationObject) -> None
+        Setup the configuration
         
         """
         assert (config is None or
@@ -67,6 +66,13 @@ class VistrailsStartup(object):
         self.startupHooks = []
         self._python_environment = self.runDotVistrails()
         self.load_configuration()
+        
+    def init(self):
+        """ init() -> None        
+        Initialize VisTrails with optionsDict. optionsDict can be
+        another VisTrails Configuration object, e.g. ConfigurationObject
+        
+        """
         self.load_packages()
         self.setupDefaultFolders()
         self.setupBaseModules()
@@ -306,10 +312,13 @@ by startup.py. This should only be called after init()."""
         
         """
         if self.configuration.has('rootDirectory'):
-            system.set_vistrails_directory(self.configuration.rootDirectory)
+            system.set_vistrails_root_directory(self.configuration.rootDirectory)
         if self.configuration.has('dataDirectory'):
             system.set_vistrails_data_directory( \
                 self.configuration.dataDirectory)
+        if self.configuration.has('fileDirectory'):
+            system.set_vistrails_file_directory( \
+                self.configuration.fileDirectory)
         if (self.configuration.has('verbosenessLevel') and
             self.configuration.verbosenessLevel != -1):
             dbg = debug.DebugPrint

@@ -81,6 +81,7 @@ _thisDir = os.path.split(_thisDir)[0]
 __rootDir = os.path.realpath(_thisDir + '/../../') + '/'
 
 __dataDir = os.path.realpath(__rootDir + 'data/') + '/'
+__fileDir = os.path.realpath(__rootDir + '../examples/') + '/'
 
 def set_vistrails_data_directory(d):
     """ set_vistrails_data_directory(d:str) -> None 
@@ -95,8 +96,21 @@ def set_vistrails_data_directory(d):
         new_d = os.path.expandvars(d)
     __dataDir = os.path.realpath(d) + '/'
 
-def set_vistrails_directory(d):
-    """ set_vistrails_directory(d:str) -> None 
+def set_vistrails_file_directory(d):
+    """ set_vistrails_file_directory(d: str) -> None
+    Sets vistrails file directory taking into accoun environment variables
+    
+    """
+    global __fileDir
+    new_d = os.path.expanduser(d)
+    new_d = os.path.expandvars(new_d)
+    while new_d != d:
+        d = new_d
+        new_d = os.path.expandvars(d)
+    __fileDir = os.path.realpath(d) + '/'
+
+def set_vistrails_root_directory(d):
+    """ set_vistrails_root_directory(d:str) -> None 
     Sets vistrails root directory taking into account environment variables
 
     """
@@ -116,12 +130,12 @@ def vistrails_root_directory():
     """
     return __rootDir
 
-def vistrails_directory():
+def vistrails_file_directory():
     """ vistrails_directory() -> str 
     Returns vistrails examples directory
 
     """
-    return vistrails_root_directory() + '../examples/'
+    return __fileDir
 
 def packages_directory():
     """ packages_directory() -> str 
