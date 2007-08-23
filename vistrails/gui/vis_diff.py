@@ -124,9 +124,10 @@ class QParamInspector(QtGui.QWidget):
         self.tabWidget.setTabShape(QtGui.QTabWidget.Triangular)
         self.functionsTab = QParamTable(v1Name, v2Name)
         self.tabWidget.addTab(self.functionsTab, 'Functions')        
-        self.annotationsTab = QParamTable(v1Name, v2Name)
-        self.annotationsTab.horizontalHeader().setStretchLastSection(True)
-        self.tabWidget.addTab(self.annotationsTab, 'Annotations')        
+# FIXME add annotation support back in
+#         self.annotationsTab = QParamTable(v1Name, v2Name)
+#         self.annotationsTab.horizontalHeader().setStretchLastSection(True)
+#         self.tabWidget.addTab(self.annotationsTab, 'Annotations')        
         self.boxLayout.addWidget(self.tabWidget)
         self.boxLayout.addWidget(QtGui.QSizeGrip(self))
         self.setLayout(self.boxLayout)
@@ -373,7 +374,7 @@ class QVisualDiff(QtGui.QMainWindow):
             
         # Clear the old inspector
         functions = self.inspector.functionsTab.model()
-        annotations = self.inspector.annotationsTab.model()
+#         annotations = self.inspector.annotationsTab.model()
         functions.clearList()
         annotations.clearList()
 
@@ -407,14 +408,14 @@ class QVisualDiff(QtGui.QMainWindow):
             currentRow += 1
 
         self.inspector.functionsTab.resizeRowsToContents()
-        self.inspector.annotationsTab.resizeRowsToContents()
+#         self.inspector.annotationsTab.resizeRowsToContents()
 
     def moduleUnselected(self):
         """ moduleUnselected() -> None
         When a user selects nothing, make sure to display nothing as well
         
         """
-        self.inspector.annotationsTab.model().clearList()
+#         self.inspector.annotationsTab.model().clearList()
         self.inspector.functionsTab.model().clearList()
         self.inspector.setWindowTitle('Parameter Changes - None')
 
