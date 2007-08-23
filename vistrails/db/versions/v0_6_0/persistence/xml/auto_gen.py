@@ -102,7 +102,8 @@ class DBModuleXMLDAOBase(XMLDAO):
                 portSpec = self.getDao('portSpec').fromXML(child)
                 portSpecs[portSpec.db_id] = portSpec
             elif child.nodeType == child.TEXT_NODE and child.nodeValue.strip() == '':
-                node.removeChild(child)
+                # node.removeChild(child)
+                pass
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
@@ -278,7 +279,8 @@ class DBLogXMLDAOBase(XMLDAO):
                 machine = self.getDao('machine').fromXML(child)
                 machines[machine.db_id] = machine
             elif child.nodeType == child.TEXT_NODE and child.nodeValue.strip() == '':
-                node.removeChild(child)
+                # node.removeChild(child)
+                pass
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
@@ -417,7 +419,8 @@ class DBAddXMLDAOBase(XMLDAO):
             elif child.nodeName == 'other':
                 data = self.getDao('other').fromXML(child)
             elif child.nodeType == child.TEXT_NODE and child.nodeValue.strip() == '':
-                node.removeChild(child)
+                # node.removeChild(child)
+                pass
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
@@ -559,7 +562,8 @@ class DBOtherXMLDAOBase(XMLDAO):
             if child.nodeName == 'value':
                 value = self.convertFromStr(child.firstChild.nodeValue,'str')
             elif child.nodeType == child.TEXT_NODE and child.nodeValue.strip() == '':
-                node.removeChild(child)
+                # node.removeChild(child)
+                pass
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
@@ -670,7 +674,8 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
                 module_exec = self.getDao('module_exec').fromXML(child)
                 module_execs[module_exec.db_id] = module_exec
             elif child.nodeType == child.TEXT_NODE and child.nodeValue.strip() == '':
-                node.removeChild(child)
+                # node.removeChild(child)
+                pass
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
@@ -753,7 +758,8 @@ class DBFunctionXMLDAOBase(XMLDAO):
                 parameter = self.getDao('parameter').fromXML(child)
                 parameters.append(parameter)
             elif child.nodeType == child.TEXT_NODE and child.nodeValue.strip() == '':
-                node.removeChild(child)
+                # node.removeChild(child)
+                pass
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
@@ -825,7 +831,8 @@ class DBAbstractionXMLDAOBase(XMLDAO):
                 tag = self.getDao('tag').fromXML(child)
                 tags[tag.db_id] = tag
             elif child.nodeType == child.TEXT_NODE and child.nodeValue.strip() == '':
-                node.removeChild(child)
+                # node.removeChild(child)
+                pass
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
@@ -918,7 +925,8 @@ class DBWorkflowXMLDAOBase(XMLDAO):
                 abstractionRef = self.getDao('abstractionRef').fromXML(child)
                 abstractionRefs[abstractionRef.db_id] = abstractionRef
             elif child.nodeType == child.TEXT_NODE and child.nodeValue.strip() == '':
-                node.removeChild(child)
+                # node.removeChild(child)
+                pass
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
@@ -1112,7 +1120,8 @@ class DBChangeXMLDAOBase(XMLDAO):
             elif child.nodeName == 'other':
                 data = self.getDao('other').fromXML(child)
             elif child.nodeType == child.TEXT_NODE and child.nodeValue.strip() == '':
-                node.removeChild(child)
+                # node.removeChild(child)
+                pass
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
@@ -1300,7 +1309,8 @@ class DBConnectionXMLDAOBase(XMLDAO):
                 port = self.getDao('port').fromXML(child)
                 ports.append(port)
             elif child.nodeType == child.TEXT_NODE and child.nodeValue.strip() == '':
-                node.removeChild(child)
+                # node.removeChild(child)
+                pass
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
@@ -1377,7 +1387,8 @@ class DBActionXMLDAOBase(XMLDAO):
                 operation = self.getDao('change').fromXML(child)
                 operations.append(operation)
             elif child.nodeType == child.TEXT_NODE and child.nodeValue.strip() == '':
-                node.removeChild(child)
+                # node.removeChild(child)
+                pass
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
@@ -1526,7 +1537,8 @@ class DBVistrailXMLDAOBase(XMLDAO):
                 abstraction = self.getDao('abstraction').fromXML(child)
                 abstractions[abstraction.db_id] = abstraction
             elif child.nodeType == child.TEXT_NODE and child.nodeValue.strip() == '':
-                node.removeChild(child)
+                # node.removeChild(child)
+                pass
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
@@ -1623,7 +1635,8 @@ class DBModuleExecXMLDAOBase(XMLDAO):
                 annotation = self.getDao('annotation').fromXML(child)
                 annotations.append(annotation)
             elif child.nodeType == child.TEXT_NODE and child.nodeValue.strip() == '':
-                node.removeChild(child)
+                # node.removeChild(child)
+                pass
             elif child.nodeType != child.TEXT_NODE:
                 print '*** ERROR *** nodeName = %s' % child.nodeName
         
