@@ -316,10 +316,10 @@ This example demonstrates the traditional manner in which workflows are specifie
       <connect destinationId="8" destinationModule="vtkVolume" destinationPort="SetMapper(vtkAbstractVolumeMapper)" id="1" sourceId="0" sourceModule="vtkVolumeTextureMapper3D" sourcePort="self(vtkVolumeTextureMapper3D)"/>
     </action>
     <action date="31 May 2007 10:53:22" parent="80" time="81" user="stevec" what="addConnection">
-      <connect destinationId="5" destinationModule="vtkVolumeProperty" destinationPort="SetColor(vtkPiecewiseFunction)" id="2" sourceId="2" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
+      <connect destinationId="5" destinationModule="vtkVolumeProperty" destinationPort="SetColor_2(vtkPiecewiseFunction)" id="2" sourceId="2" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
     </action>
     <action date="31 May 2007 10:53:22" parent="81" time="82" user="stevec" what="addConnection">
-      <connect destinationId="5" destinationModule="vtkVolumeProperty" destinationPort="SetScalarOpacity(vtkPiecewiseFunction)" id="3" sourceId="3" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
+      <connect destinationId="5" destinationModule="vtkVolumeProperty" destinationPort="SetScalarOpacity_2(vtkPiecewiseFunction)" id="3" sourceId="3" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
     </action>
     <action date="31 May 2007 10:53:22" parent="82" time="83" user="stevec" what="addConnection">
       <connect destinationId="4" destinationModule="VTKCell" destinationPort="AddRenderer(vtkRenderer)" id="4" sourceId="7" sourceModule="vtkRenderer" sourcePort="self(vtkRenderer)"/>
@@ -1382,10 +1382,10 @@ This example demonstrates the traditional manner in which workflows are specifie
       <connect destinationId="0" destinationModule="vtkRenderer" destinationPort="AddVolume(vtkProp)" id="2" sourceId="2" sourceModule="vtkVolume" sourcePort="self(vtkVolume)"/>
     </action>
     <action date="01 Aug 2007 15:35:00" parent="367" time="368" user="stevec" what="addConnection">
-      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor(vtkPiecewiseFunction)" id="3" sourceId="5" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
+      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor_2(vtkPiecewiseFunction)" id="3" sourceId="5" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
     </action>
     <action date="01 Aug 2007 15:35:00" parent="368" time="369" user="stevec" what="addConnection">
-      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetScalarOpacity(vtkPiecewiseFunction)" id="4" sourceId="3" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
+      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetScalarOpacity_2(vtkPiecewiseFunction)" id="4" sourceId="3" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
     </action>
     <action date="01 Aug 2007 15:35:00" parent="369" time="370" user="stevec" what="addConnection">
       <connect destinationId="2" destinationModule="vtkVolume" destinationPort="SetProperty(vtkVolumeProperty)" id="5" sourceId="1" sourceModule="vtkVolumeProperty" sourcePort="self(vtkVolumeProperty)"/>

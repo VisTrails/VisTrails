@@ -179,10 +179,10 @@
       <move dx="-4.00006818771" dy="10.0001707077" id="2"/>
     </action>
     <action date="05 Jul 2006 11:19:34" parent="36" time="37" user="emanuele" what="addConnection">
-      <connect destinationId="3" destinationModule="vtkVolumeProperty" destinationPort="SetColor(vtkPiecewiseFunction)" id="0" sourceId="2" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
+      <connect destinationId="3" destinationModule="vtkVolumeProperty" destinationPort="SetColor_2(vtkPiecewiseFunction)" id="0" sourceId="2" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
     </action>
     <action date="05 Jul 2006 11:20:07" parent="37" time="38" user="emanuele" what="addConnection">
-      <connect destinationId="3" destinationModule="vtkVolumeProperty" destinationPort="SetScalarOpacity(vtkPiecewiseFunction)" id="1" sourceId="1" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
+      <connect destinationId="3" destinationModule="vtkVolumeProperty" destinationPort="SetScalarOpacity_2(vtkPiecewiseFunction)" id="1" sourceId="1" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
     </action>
     <action date="05 Jul 2006 11:21:01" parent="38" time="39" user="emanuele" what="moveModule">
       <move dx="62.0010604858" dy="-136.002319336" id="2"/>

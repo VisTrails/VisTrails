@@ -471,10 +471,10 @@
       <connect destinationId="2" destinationModule="vtkVolume" destinationPort="SetProperty(vtkVolumeProperty)" id="5" sourceId="3" sourceModule="vtkVolumeProperty" sourcePort="self(vtkVolumeProperty)"/>
     </action>
     <action date="18 Jan 2007 21:53:56" parent="122" time="123" user="emanuele" what="addConnection">
-      <connect destinationId="3" destinationModule="vtkVolumeProperty" destinationPort="SetColor(vtkPiecewiseFunction)" id="6" sourceId="7" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
+      <connect destinationId="3" destinationModule="vtkVolumeProperty" destinationPort="SetColor_2(vtkPiecewiseFunction)" id="6" sourceId="7" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
     </action>
     <action date="18 Jan 2007 21:53:56" parent="123" time="124" user="emanuele" what="addConnection">
-      <connect destinationId="3" destinationModule="vtkVolumeProperty" destinationPort="SetScalarOpacity(vtkPiecewiseFunction)" id="7" sourceId="5" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
+      <connect destinationId="3" destinationModule="vtkVolumeProperty" destinationPort="SetScalarOpacity_2(vtkPiecewiseFunction)" id="7" sourceId="5" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
     </action>
     <action date="18 Jan 2007 21:53:56" parent="124" time="125" user="emanuele" what="addConnection">
       <connect destinationId="4" destinationModule="vtkVolumeRayCastMapper" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="8" sourceId="8" sourceModule="vtkStructuredPointsReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>

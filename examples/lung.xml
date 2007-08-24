@@ -76,22 +76,22 @@
       <move dx="-193.228" dy="-124.581" id="6"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="24" time="25" user="juliana" what="addConnection">
-      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor(vtkPiecewiseFunction)" id="3" sourceId="2" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
+      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor_2(vtkPiecewiseFunction)" id="3" sourceId="2" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="25" time="26" user="juliana" what="deleteConnection">
       <connection connectionId="3"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="26" time="27" user="juliana" what="addConnection">
-      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor(vtkPiecewiseFunction)" id="3" sourceId="2" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
+      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor_2(vtkPiecewiseFunction)" id="3" sourceId="2" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="27" time="28" user="juliana" what="deleteConnection">
       <connection connectionId="3"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="28" time="29" user="juliana" what="addConnection">
-      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor(vtkPiecewiseFunction)" id="3" sourceId="2" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
+      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor_2(vtkPiecewiseFunction)" id="3" sourceId="2" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="29" time="30" user="juliana" what="addConnection">
-      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor(vtkPiecewiseFunction)" id="4" sourceId="6" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
+      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor_2(vtkPiecewiseFunction)" id="4" sourceId="6" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="30" time="31" user="juliana" what="moveModule">
       <move dx="27.9672" dy="-15.2548" id="2"/>
@@ -101,7 +101,7 @@
       <connection connectionId="3"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="32" time="33" user="juliana" what="addConnection">
-      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetGradientOpacity(vtkPiecewiseFunction)" id="3" sourceId="2" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
+      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetGradientOpacity_2(vtkPiecewiseFunction)" id="3" sourceId="2" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="33" time="34" user="juliana" what="moveModule">
       <move dx="894.95" dy="221.195" id="2"/>
@@ -366,13 +366,13 @@
       <connection connectionId="3"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="103" time="104" user="juliana" what="addConnection">
-      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetScalarOpacity(vtkPiecewiseFunction)" id="3" sourceId="2" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
+      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetScalarOpacity_2(vtkPiecewiseFunction)" id="3" sourceId="2" sourceModule="vtkPiecewiseFunction" sourcePort="self(vtkPiecewiseFunction)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="104" time="105" user="juliana" what="deleteConnection">
       <connection connectionId="4"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="105" time="106" user="juliana" what="addConnection">
-      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor(vtkPiecewiseFunction)" id="4" sourceId="6" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
+      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor_2(vtkPiecewiseFunction)" id="4" sourceId="6" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="106" time="107" user="juliana" what="deleteConnection">
       <connection connectionId="4"/>
@@ -383,25 +383,25 @@
       <move dx="0.0" dy="0.0" id="6"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="108" time="109" user="juliana" what="addConnection">
-      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor(vtkPiecewiseFunction)" id="4" sourceId="6" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
+      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor_2(vtkPiecewiseFunction)" id="4" sourceId="6" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="109" time="110" user="juliana" what="deleteConnection">
       <connection connectionId="4"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="110" time="111" user="juliana" what="addConnection">
-      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor(vtkPiecewiseFunction)" id="4" sourceId="6" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
+      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor_2(vtkPiecewiseFunction)" id="4" sourceId="6" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="111" time="112" user="juliana" what="deleteConnection">
       <connection connectionId="4"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="112" time="113" user="juliana" what="addConnection">
-      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor(vtkPiecewiseFunction)" id="4" sourceId="6" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
+      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor_2(vtkPiecewiseFunction)" id="4" sourceId="6" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="113" time="114" user="juliana" what="deleteConnection">
       <connection connectionId="4"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="114" time="115" user="juliana" what="addConnection">
-      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor(vtkPiecewiseFunction)" id="4" sourceId="6" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
+      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor_2(vtkPiecewiseFunction)" id="4" sourceId="6" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="115" time="116" user="juliana" what="deleteConnection">
       <connection connectionId="4"/>
@@ -411,7 +411,7 @@
       <move dx="3.79251933098" dy="100.50176239" id="6"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="117" time="118" user="juliana" what="addConnection">
-      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor(vtkPiecewiseFunction)" id="4" sourceId="6" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
+      <connect destinationId="1" destinationModule="vtkVolumeProperty" destinationPort="SetColor_2(vtkPiecewiseFunction)" id="4" sourceId="6" sourceModule="vtkColorTransferFunction" sourcePort="self(vtkColorTransferFunction)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="118" time="119" user="juliana" what="moveModule">
       <move dx="0.0" dy="3.6160428524" id="3"/>
