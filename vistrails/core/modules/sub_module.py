@@ -32,54 +32,52 @@ import os.path
 
 _reg = module_registry.registry
 
-class DupplicateSubModule(Exception):
-    """DupplicateSubModule is raised when trying to add the same
-    sub-module to the module registry."""
-
-    def __init__(self, moduleName):
-        self.moduleName = moduleName
-
-    def __str__(self):
-        return ("'%s' is already registered with VisTrails." % self.moduleName)
+# Broken right now
+# class DupplicateSubModule(Exception):
+#     """DupplicateSubModule is raised when trying to add the same
+#     sub-module to the module registry."""
+#     def __init__(self, moduleName):
+#         self.moduleName = moduleName
+#     def __str__(self):
+#         return ("'%s' is already registered with VisTrails." % self.moduleName)
 
 ##############################################################################
 
-def addSubModule(moduleName, packageName, vistrail,
-                 fileName, version, inspector):
-    """ addSubModule(moduleName: str,
-        packageName: str,
-        vistrail: Vistrail,
-        fileName: str,
-        version: int,
-        inspector: PipelineInspector) -> SubModule
-    Add a module containing a sub-pipeline given a package name
-    and vistrail information
-    
-    """
-    if _reg.hasModule(moduleName):
-        currentDesc = _reg.getDescriptorByName(moduleName)
-        if issubclass(currentDesc.module, SubModule):
-            # Need a way to check VistrailLocator. Just check package for now
-            if (packageName==_reg.get_module_package(moduleName) and
-                currentDesc.module.VersionNumber==version):
-                raise DupplicateSubModule(moduleName)
-        raise ModuleAlreadyExists(moduleName)
-    NewSubModuleInfo = {'Vistrail': vistrail,
-                        'VistrailLocator': fileName,
-                        'VersionNumber': version}
-    NewSubModule = type('%s_%d_%s' % (packageName, version, moduleName),
-                        (SubModule, ),
-                        NewSubModuleInfo)
-    module_registry.registry.setCurrentPackageName(packageName)
-    module_registry.registry.addModule(NewSubModule, moduleName)
-    for (name, spec) in inspector.input_ports.itervalues():
-        module_registry.registry.addInputPort(NewSubModule,
-                                              name, spec)
-    for (name, spec) in inspector.output_ports.itervalues():
-        module_registry.registry.addOutputPort(NewSubModule,
-                                               name, spec)
-    module_registry.registry.setCurrentPackageName(None)
-    return NewSubModule
+# def addSubModule(moduleName, packageName, vistrail,
+#                  fileName, version, inspector):
+#     """ addSubModule(moduleName: str,
+#         packageName: str,
+#         vistrail: Vistrail,
+#         fileName: str,
+#         version: int,
+#         inspector: PipelineInspector) -> SubModule
+#     Add a module containing a sub-pipeline given a package name
+#     and vistrail information
+#     """
+#     if _reg.hasModule(moduleName):
+#         currentDesc = _reg.getDescriptorByName(moduleName)
+#         if issubclass(currentDesc.module, SubModule):
+#             # Need a way to check VistrailLocator. Just check package for now
+#             if (packageName==_reg.get_module_package(moduleName) and
+#                 currentDesc.module.VersionNumber==version):
+#                 raise DupplicateSubModule(moduleName)
+#         raise ModuleAlreadyExists(moduleName)
+#     NewSubModuleInfo = {'Vistrail': vistrail,
+#                         'VistrailLocator': fileName,
+#                         'VersionNumber': version}
+#     NewSubModule = type('%s_%d_%s' % (packageName, version, moduleName),
+#                         (SubModule, ),
+#                         NewSubModuleInfo)
+#     module_registry.registry.setCurrentPackageName(packageName)
+#     module_registry.registry.add_module(NewSubModule, moduleName)
+#     for (name, spec) in inspector.input_ports.itervalues():
+#         module_registry.registry.add_input_port(NewSubModule,
+#                                               name, spec)
+#     for (name, spec) in inspector.output_ports.itervalues():
+#         module_registry.registry.add_output_port(NewSubModule,
+#                                                name, spec)
+#     module_registry.registry.setCurrentPackageName(None)
+#     return NewSubModule
 
 ##############################################################################
 
@@ -92,10 +90,10 @@ class InputPort(Module):
         else:
             self.setResult('InternalPipe', InvalidOutput)
             
-_reg.addModule(InputPort)
-_reg.addInputPort(InputPort, "name", String, True)
-_reg.addInputPort(InputPort, "ExternalPipe", Module, True)
-_reg.addOutputPort(InputPort, "InternalPipe", Variant)
+_reg.add_module(InputPort)
+_reg.add_input_port(InputPort, "name", String, True)
+_reg.add_input_port(InputPort, "ExternalPipe", Module, True)
+_reg.add_output_port(InputPort, "InternalPipe", Variant)
 
 ##############################################################################
     
@@ -105,10 +103,10 @@ class OutputPort(Module):
         inPipe = self.getInputFromPort('InternalPipe')
         self.setResult('ExternalPipe', inPipe)
     
-_reg.addModule(OutputPort)
-_reg.addInputPort(OutputPort, "name", String, True)
-_reg.addInputPort(OutputPort, "InternalPipe", Module)
-_reg.addOutputPort(OutputPort, "ExternalPipe", Variant, True)
+_reg.add_module(OutputPort)
+_reg.add_input_port(OutputPort, "name", String, True)
+_reg.add_input_port(OutputPort, "InternalPipe", Module)
+_reg.add_output_port(OutputPort, "ExternalPipe", Variant, True)
 
 ###############################################################################
 
@@ -182,5 +180,5 @@ class SubModule(NotCacheable, Module):
                 self.setResult(oport,
                                outputPortModule.get_output('ExternalPipe'))
         
-_reg.addModule(SubModule)
+_reg.add_module(SubModule)
 

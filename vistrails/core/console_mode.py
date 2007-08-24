@@ -20,7 +20,6 @@
 ##
 ############################################################################
 """ Module used when running  vistrails uninteractively """
-from core import xml_parser
 import core.interpreter.default
 from core.utils import (VistrailsInternalError, expression,
                         DummyView)
@@ -128,6 +127,7 @@ class TestConsoleMode(unittest.TestCase):
                               )]
         p.addModule(Module(id=0,
                            name='TestTupleExecution',
+                           package='edu.utah.sci.vistrails.console_mode_test',
                            functions=[ModuleFunction(name='input',
                                                      parameters=params)],
                            ))

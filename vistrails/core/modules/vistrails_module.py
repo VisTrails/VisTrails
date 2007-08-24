@@ -355,7 +355,7 @@ class ModuleConnector(object):
     def __call__(self):
         return self.obj.get_output(self.port)
 
-def newModule(baseModule, name, dict={}, docstring=None):
+def new_module(baseModule, name, dict={}, docstring=None):
     assert issubclass(baseModule, Module)
     d = copy.copy(dict)
     if docstring:

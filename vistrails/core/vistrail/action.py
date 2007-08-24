@@ -172,12 +172,9 @@ class TestAction(unittest.TestCase):
     def test1(self):
         """Exercises aliasing on modules"""
         import core.vistrail
-        import core.xml_parser
-        parser = core.xml_parser.XMLParser()
-        parser.openVistrail(core.system.vistrails_root_directory() +
-                            '/tests/resources/dummy.xml')
-        v = parser.getVistrail()
-        parser.closeVistrail()
+        from db.services.io import XMLFileLocator
+        v = XMLFileLocator(core.system.vistrails_root_directory() +
+                           '/tests/resources/dummy.xml').load()
         p1 = v.getPipeline('final')
         p2 = v.getPipeline('final')
         self.assertEquals(len(p1.modules), len(p2.modules))
@@ -188,13 +185,10 @@ class TestAction(unittest.TestCase):
     def test2(self):
         """Exercises aliasing on points"""
         import core.vistrail
-        import core.xml_parser
+        from db.services.io import XMLFileLocator
         import core.system
-        parser = core.xml_parser.XMLParser()
-        parser.openVistrail(core.system.vistrails_root_directory() +
-                            '/tests/resources/dummy.xml')
-        v = parser.getVistrail()
-        parser.closeVistrail()
+        v = XMLFileLocator(core.system.vistrails_root_directory() +
+                            '/tests/resources/dummy.xml').load()
         p1 = v.getPipeline('final')
         v.getPipeline('final')
         p2 = v.getPipeline('final')

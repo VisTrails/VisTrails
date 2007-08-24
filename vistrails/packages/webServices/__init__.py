@@ -48,7 +48,7 @@ from SOAPpy import WSDL
 import core.modules
 import core.modules.module_registry
 import core.modules.basic_modules
-from core.modules.vistrails_module import Module, ModuleError, newModule
+from core.modules.vistrails_module import Module, ModuleError, new_module
 
 identifier = 'edu.utah.sci.vistrails.webservices'
 version = '0.9.0'
@@ -118,15 +118,15 @@ def initialize(*args, **keywords):
         
     reg = core.modules.module_registry
     basic = core.modules.basic_modules
-    reg.addModule(WebService)
+    reg.add_module(WebService)
 
     for w in wsdlList:
         #create the base Module
         server = WSDL.Proxy(w)
         #name = str(server.wsdl.name) #better use the url
-        m = newModule(WebService,w, webServiceNameMethodDict())
+        m = new_module(WebService,w, webServiceNameMethodDict())
         m.server = server
-        reg.addModule(m)
+        reg.add_module(m)
         #get all the service's methods and for each method create a module
         keys = server.methods.keys()
         keys.sort()
@@ -134,21 +134,21 @@ def initialize(*args, **keywords):
             callInfo = server.methods[kw]
             inparams = callInfo.inparams
             outparams = callInfo.outparams
-            mt = newModule(m,str(kw), 
+            mt = new_module(m,str(kw), 
                            webServiceParamsMethodDict(str(kw),
                                                       inparams,
                                                       outparams))
-            reg.addModule(mt)
+            reg.add_module(mt)
             for p in inparams:
                 try:
                     basicType = wsdlTypesDict[str(p.type[1])]
                 except KeyError:
                     basicType = basic.String
-                reg.addInputPort(mt,str(p.name),(basicType, ''))
+                reg.add_input_port(mt,str(p.name),(basicType, ''))
             
             for p in outparams:
                 try:
                     basicType = wsdlTypesDict[str(p.type[1])]
                 except KeyError:
                     basicType = basic.String
-                reg.addOutputPort(mt,str(p.name),(basicType, ''))
+                reg.add_output_port(mt,str(p.name),(basicType, ''))

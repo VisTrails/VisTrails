@@ -60,37 +60,6 @@ class ModuleFunction(DBFunction):
         if self.pos is None:
             self.pos = -1
         self.returnType = "void"
-    
-    @staticmethod
-    def fromSpec(port, spec):
-        """ fromSpec(port, spec) -> ModuleFunction 
-        static method that creates a ModuleFunction object given a port and a
-        spec.
-        
-        """
-        def fromSourcePort():
-            f = ModuleFunction()
-            f.name = port.name
-            f.returnType = spec[0].__name__
-            return f
-        
-        def fromDestinationPort():
-            f = ModuleFunction()
-            f.name = port.name
-            f.returnType = 'void'
-            for specitem in spec:
-                p = ModuleParam()
-                p.type = specitem[0].__name__
-                p.name = specitem[1]
-                f.addParameter(p)
-            return f
-        
-        if port.endPoint == PortEndPoint.Source:
-            return fromSourcePort()
-        elif port.endPoint == PortEndPoint.Destination:
-            return fromDestinationPort()
-        else:
-            raise VistrailsInternalError("Wasn't expecting an invalid endpoint")
 
     def __copy__(self):
         """ __copy__() -> ModuleFunction - Returns a clone of itself """
@@ -159,8 +128,11 @@ class ModuleFunction(DBFunction):
 		p.serialize(doc,child)
 	element.appendChild(child)
 
+
     def getSignature(self):
-        """ getSignature() -> str - Returns the function signature """
+        """ getSignature() -> str - Returns the function signature..
+
+        This is a deprecated call! """
         result = self.returnType + "("
         for p in self.params:
             result = result + p.type + ", "
@@ -170,17 +142,6 @@ class ModuleFunction(DBFunction):
             result = result + " "
         result = result + ")"
         return result
-
-    def stringAsUserSetter(self):
-        """ stringAsUserSetter() -> str. 
-        Returns a string representation without return type 
-        
-        """
-        s = "<<name='%s' params=" % self.name
-        for p in self.params:
-            s += ' ' + str(p)
-        s += " >>"
-        return s
 
     ##########################################################################
     # Debugging

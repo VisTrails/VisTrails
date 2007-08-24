@@ -1,0 +1,14 @@
+--------------------------------------------------------------------------------
+Signatures in calls to add_input_port and add_output_port
+
+A signature given by the user in a call like this
+add_input_port(module, name, signature) should be one of the
+following:
+
+type only: add_input_port(_, _, Float)
+type plus description: add_input_port(_, _, (Float, 'radius'))
+
+multiple parameters, where each parameter can be either of the above:
+add_input_port(_, _, [Float, (Integer, 'count')])
+
+--------------------------------------------------------------------------------

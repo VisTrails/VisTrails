@@ -135,8 +135,8 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                 self.controller.currentPipeline, actions)
             
             dim = [max(1, len(a)) for a in actions]
-            if (registry.hasModule('CellLocation') and
-                registry.hasModule('SheetReference')):
+            if (registry.has_module('edu.utah.sci.vistrails.spreadsheet', 'CellLocation') and
+                registry.has_module('edu.utah.sci.vistrails.spreadsheet', 'SheetReference')):
                 modifiedPipelines = self.virtualCell.positionPipelines(
                     'PE#%d %s' % (QParameterExplorationTab.explorationId,
                                   self.controller.name),

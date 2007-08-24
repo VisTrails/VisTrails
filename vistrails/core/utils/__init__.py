@@ -124,12 +124,15 @@ class ModuleAlreadyExists(Exception):
     """ModuleAlreadyExists is raised when trying to add a class that
     is already in the module registry."""
 
-    def __init__(self, moduleName):
-        self.moduleName = moduleName
+    def __init__(self, identifier, moduleName):
+        self._identifier = identifier
+        self._name = moduleName
 
     def __str__(self):
-        return ("'%s' cannot be registered in VisTrails because of another "
-                "module with the same name already exists." % self.moduleName)
+        return ("'%s, %s' cannot be registered in VisTrails because of another "
+                "module with the same identifier and name already exists." %
+                (self._identifier,
+                 self._name))
 
 ################################################################################
 

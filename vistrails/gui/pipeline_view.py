@@ -156,7 +156,10 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
                 conn.sourceId = snapModuleId
                 conn.destinationId = self.parentItem().id
             conn.id = self.controller.currentPipeline.fresh_connection_id()
-            self.controller.addConnection(conn)
+            self.controller.add_connection(conn)
+            # the add_connection call will trigger a chain of signals
+            # that results ultimately in 'self' being deleted, so
+            # we can't do anything else and must return right away.
             return
         if self.connection:
             self.scene().removeItem(self.connection)
@@ -787,7 +790,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.computeBoundingRect()
         self.resetMatrix()
         self.translate(module.center.x, -module.center.y)
-        c = registry.get_module_color(module.name)
+        c = registry.get_module_color(module.package, module.name)
         if c:
             ic = [int(cl*255) for cl in c]
             b = QtGui.QBrush(QtGui.QColor(ic[0], ic[1], ic[2]))
@@ -854,7 +857,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.createConfigureItem(x, y)
         
         # Update module shape, if necessary
-        fringe = registry.get_module_fringe(module.name)
+        fringe = registry.get_module_fringe(module.package, module.name)
         if fringe:
             left_fringe, right_fringe = fringe
             if left_fringe[0] != (0.0, 0.0):
@@ -918,8 +921,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         Return the scene position of a port matched 'port' in portDict
         
         """
-        for (p, item) in portDict.items():
-            if registry.isPortSubType(port, p):
+        for (p, item) in portDict.iteritems():
+            if registry.is_port_sub_type(port, p):
                 return item.sceneBoundingRect().center()
         return None
 
@@ -931,7 +934,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         pos = self.getPortPosition(port, self.inputPorts)
         if pos==None:
             for p in self.optionalInputPorts:
-                if registry.isPortSubType(port, p):
+                if registry.is_port_sub_type(port, p):
                     portShape = self.createPortItem(p,*self.nextInputPortPos)
                     self.inputPorts[port] = portShape
                     self.nextInputPortPos[0] += (CurrentTheme.PORT_WIDTH +
@@ -948,7 +951,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         pos = self.getPortPosition(port, self.outputPorts)
         if pos==None:
             for p in self.optionalOutputPorts:
-                if registry.isPortSubType(port, p):
+                if registry.is_port_sub_type(port, p):
                     portShape = self.createPortItem(p,*self.nextOutputPortPos)
                     self.outputPorts[port] = portShape
                     self.nextOutputPortPos[0] += (CurrentTheme.PORT_WIDTH +
@@ -1048,7 +1051,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         result = None
         minDis = None
         for (dstPort, dstItem) in self.inputPorts.items():
-            if (registry.portsCanConnect(srcPort, dstPort) and
+            if (registry.ports_can_connect(srcPort, dstPort) and
                 dstItem.isVisible()):                
                 vector = (pos - dstItem.sceneBoundingRect().center())
                 dis = vector.x()*vector.x() + vector.y()*vector.y()
@@ -1066,7 +1069,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         result = None
         minDis = None
         for (srcPort, srcItem) in self.outputPorts.items():
-            if (registry.portsCanConnect(srcPort, dstPort) and
+            if (registry.ports_can_connect(srcPort, dstPort) and
                 srcItem.isVisible()):
                 vector = (pos - srcItem.sceneBoundingRect().center())
                 dis = vector.x()*vector.x() + vector.y()*vector.y()
@@ -1188,11 +1191,12 @@ mutual connections."""
         # Clean the previous scene
         self.clear()
 
-        if pipeline:            
+        if pipeline:
             # Create module shapes
             for mId, module in pipeline.modules.iteritems():
                 self.addModule(module)
                     
+            pipeline.ensure_connection_specs()
             # Create connection shapes
             for connection in pipeline.connections.itervalues():
                 self.addConnection(connection)
@@ -1240,9 +1244,11 @@ mutual connections."""
                 for item in data.items:
                     self.controller.resetPipelineView = False
                     self.noUpdate = True
-                    module = self.controller.addModule(item.descriptor.name,
-                                                       event.scenePos().x(),
-                                                       -event.scenePos().y())
+                    module = self.controller.add_module(
+                        item.descriptor.identifier,
+                        item.descriptor.name,
+                        event.scenePos().x(),
+                        -event.scenePos().y())
                     self.addModule(module).update()
                     self.noUpdate = False
 
@@ -1402,7 +1408,8 @@ mutual connections."""
         """
         if self.controller:
             module = self.controller.currentPipeline.modules[id]
-            widgetType = registry.get_configuration_widget(module.name)
+            getter = registry.get_configuration_widget
+            widgetType = getter(module.package, module.name)
             if not widgetType:
                 widgetType = DefaultModuleConfigurationWidget
             global widget
@@ -1418,7 +1425,7 @@ mutual connections."""
         """
         if self.controller:
             module = self.controller.currentPipeline.modules[id]
-            descriptor = registry.getDescriptorByName(module.name)
+            descriptor = registry.get_descriptor_by_name(module.package, module.name)
             widget = QModuleDocumentation(descriptor, None)
             widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
             widget.exec_()
@@ -1517,25 +1524,25 @@ class QPipelineView(QInteractiveGraphicsView):
 
 ################################################################################
 
-if __name__=="__main__":
+# if __name__=="__main__":
     
-    # Initialize the Vistrails Application and Theme
-    import sys
-    from gui import qt, theme
-    from gui import vis_application
-    vis_application.start_application()
-    app = vis_application.VistrailsApplication
+#     # Initialize the Vistrails Application and Theme
+#     import sys
+#     from gui import qt, theme
+#     from gui import vis_application
+#     vis_application.start_application()
+#     app = vis_application.VistrailsApplication
 
-    # Get the pipeline
-    from core.xml_parser import XMLParser    
-    parser = XMLParser()
-    parser.openVistrail('d:/hvo/vgc/src/vistrails/trunk/examples/vtk.xml')
-    vistrail = parser.getVistrail()
-    version = vistrail.get_tag_by_name('Single Renderer').id
-    pipeline = vistrail.getPipeline(version)
+#     # Get the pipeline
+#     from core.xml_parser import XMLParser    
+#     parser = XMLParser()
+#     parser.openVistrail('d:/hvo/vgc/src/vistrails/trunk/examples/vtk.xml')
+#     vistrail = parser.getVistrail()
+#     version = vistrail.get_tag_by_name('Single Renderer').id
+#     pipeline = vistrail.getPipeline(version)
 
-    # Now visually test QPipelineView
-    pv = QPipelineView(None)
-    pv.scene().setupScene(pipeline)
-    pv.show()
-    sys.exit(app.exec_())
+#     # Now visually test QPipelineView
+#     pv = QPipelineView(None)
+#     pv.scene().setupScene(pipeline)
+#     pv.show()
+#     sys.exit(app.exec_())

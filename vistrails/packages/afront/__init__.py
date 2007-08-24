@@ -129,15 +129,15 @@ def initialize():
     __version__ = 0.1
     
     reg = core.modules.module_registry
-    reg.addModule(Afront)
-    reg.addInputPort(Afront, "rho", (core.modules.basic_modules.Float, 'rho'))
-    reg.addInputPort(Afront, "eta", (core.modules.basic_modules.Float, 'eta'))
-    reg.addInputPort(Afront, "file", (core.modules.basic_modules.File, 'the file to process'))
-    reg.addOutputPort(Afront, "output", (core.modules.basic_modules.File, 'the result'))
+    reg.add_module(Afront)
+    reg.add_input_port(Afront, "rho", (core.modules.basic_modules.Float, 'rho'))
+    reg.add_input_port(Afront, "eta", (core.modules.basic_modules.Float, 'eta'))
+    reg.add_input_port(Afront, "file", (core.modules.basic_modules.File, 'the file to process'))
+    reg.add_output_port(Afront, "output", (core.modules.basic_modules.File, 'the result'))
 
-    reg.addModule(MeshQualityHistogram)
-    reg.addInputPort(MeshQualityHistogram, "file", core.modules.basic_modules.File)
-    reg.addOutputPort(MeshQualityHistogram, "output", core.modules.basic_modules.File)
+    reg.add_module(MeshQualityHistogram)
+    reg.add_input_port(MeshQualityHistogram, "file", core.modules.basic_modules.File)
+    reg.add_output_port(MeshQualityHistogram, "output", core.modules.basic_modules.File)
     
-    reg.addModule(AfrontIso)
-    reg.addInputPort(AfrontIso, "iso", (core.modules.basic_modules.Float, 'iso'))
+    reg.add_module(AfrontIso)
+    reg.add_input_port(AfrontIso, "iso", (core.modules.basic_modules.Float, 'iso'))

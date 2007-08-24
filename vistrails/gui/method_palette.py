@@ -72,9 +72,12 @@ class QMethodTreeWidget(QSearchTreeWidget):
         self.clear()
 
         if module:
-            moduleHierarchy = registry.getModuleHierarchy(module.name)
+            descriptor = registry.get_descriptor_by_name(module.package,
+                                                         module.name)
+            moduleHierarchy = registry.get_module_hierarchy(descriptor)
             for baseModule in moduleHierarchy:
-                baseName = registry.getDescriptor(baseModule).name
+                baseName = registry.get_descriptor(baseModule).name
+                base_package = registry.get_descriptor(baseModule).identifier
                 # Create the base widget item
                 baseItem = QMethodTreeWidgetItem(None,
                                                  None,
@@ -83,20 +86,20 @@ class QMethodTreeWidget(QSearchTreeWidget):
                                                  (QtCore.QStringList()
                                                   <<  baseName
                                                   << ''))
-                methods = registry.methodPorts(baseModule)
+                methods = registry.method_ports(baseModule)
                 # Also check the local registry
-                if module.registry and module.registry.hasModule(baseName):
-                    methods += module.registry.methodPorts(baseModule)
+                if module.registry and module.registry.has_module(base_package,
+                                                                  baseName):
+                    methods += module.registry.method_ports(baseModule)
                 for method in methods:
-                    for spec in method.spec:
-                        sig = method.getSig(spec)
-                        QMethodTreeWidgetItem(module,
-                                              method,
-                                              spec,
-                                              baseItem,
-                                              (QtCore.QStringList()
-                                               << method.name
-                                               << sig))
+                    sig = method.spec.create_sigstring(short=True)
+                    QMethodTreeWidgetItem(module,
+                                          method,
+                                          method.spec,
+                                          baseItem,
+                                          (QtCore.QStringList()
+                                           << method.name
+                                           << sig))
             self.expandAll()
             self.resizeColumnToContents(0)
                                           

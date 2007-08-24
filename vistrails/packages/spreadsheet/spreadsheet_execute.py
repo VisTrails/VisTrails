@@ -55,10 +55,11 @@ def assignPipelineCellLocations(inPipeline, sheetName, row, col, cellIds=[]):
     pipeline = copy.copy(inPipeline)
     if cellIds==[]:
         cellIds = pipeline.modules.keys()
-    SpreadsheetCell = registry.getDescriptorByName('SpreadsheetCell').module
+    SpreadsheetCell = registry.get_descriptor_by_name('edu.utah.sci.vistrails.spreadsheet',
+                                                      'SpreadsheetCell').module
     for mId in cellIds:
         md = pipeline.modules[mId]
-        moduleClass = registry.getDescriptorByName(md.name).module
+        moduleClass = registry.get_descriptor_by_name(md.package, md.name).module
         if not issubclass(moduleClass, SpreadsheetCell):
             continue
         # Walk through all connection and remove all
@@ -74,6 +75,7 @@ def assignPipelineCellLocations(inPipeline, sheetName, row, col, cellIds=[]):
         sheetReference = module.Module()
         sheetReference.id = pipeline.fresh_module_id()
         sheetReference.name = "SheetReference"
+        sheetReference.package = "edu.utah.sci.vistrails.spreadsheet"
         addModule = AddModuleAction()
         addModule.module = sheetReference
         addModule.perform(pipeline)
@@ -92,6 +94,7 @@ def assignPipelineCellLocations(inPipeline, sheetName, row, col, cellIds=[]):
         cellLocation = module.Module()
         cellLocation.id = pipeline.fresh_module_id()
         cellLocation.name = "CellLocation"
+        cellLocation.package = "edu.utah.sci.vistrails.spreadsheet"
         addModule = AddModuleAction()
         addModule.module = cellLocation
         addModule.perform(pipeline)
@@ -111,13 +114,13 @@ def assignPipelineCellLocations(inPipeline, sheetName, row, col, cellIds=[]):
         conn.source.moduleId = sheetReference.id
         conn.source.moduleName = sheetReference.name
         conn.source.name = "self"
-        conn.source.spec = registry.getOutputPortSpec(
+        conn.source.spec = registry.get_output_port_spec(
             sheetReference, "self")
         conn.connectionId = conn.id
         conn.destination.moduleId = cellLocation.id
         conn.destination.moduleName = cellLocation.name
         conn.destination.name = "SheetReference"
-        conn.destination.spec = registry.getInputPortSpec(
+        conn.destination.spec = registry.get_input_port_spec(
             cellLocation, "SheetReference")
         addConnection = AddConnectionAction()
         addConnection.connection = conn
@@ -129,13 +132,13 @@ def assignPipelineCellLocations(inPipeline, sheetName, row, col, cellIds=[]):
         conn.source.moduleId = cellLocation.id
         conn.source.moduleName = cellLocation.name
         conn.source.name = "self"
-        conn.source.spec = registry.getOutputPortSpec(
+        conn.source.spec = registry.get_output_port_spec(
             cellLocation, "self")
         conn.connectionId = conn.id
         conn.destination.moduleId = mId
         conn.destination.moduleName = pipeline.modules[mId].name
         conn.destination.name = "Location"
-        conn.destination.spec = registry.getInputPortSpec(
+        conn.destination.spec = registry.get_input_port_spec(
             cellLocation, "Location")
         addConnection = AddConnectionAction()
         addConnection.connection = conn

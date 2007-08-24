@@ -84,7 +84,7 @@ on its inputs."""
 
     def mat_op(self, v1, v2):
         reg = core.modules_module_registry
-        Matrix = reg.registry.getDescriptorByName('Matrix').module
+        Matrix = reg.registry.get_descriptor_by_name(identifier, 'Matrix').module
         result = Matrix()
         matr
         op = self.getInputFromPort("op")
@@ -127,19 +127,19 @@ def initialize(*args, **keywords):
     # output. Because of this, you as a module developer need to let
     # VisTrails know that you created a new module. This is done by calling
     # function addModule:
-    reg.addModule(PythonCalc)
+    reg.add_module(PythonCalc)
 
     # In a similar way, you need to report the ports the module wants
     # to make available. This is done by calling addInputPort and
     # addOutputPort appropriately. These calls only show how to set up
     # one-parameter ports. We'll see in later tutorials how to set up
     # multiple-parameter plots.
-    reg.addInputPort(PythonCalc, "value1",
+    reg.add_input_port(PythonCalc, "value1",
                      (core.modules.basic_modules.Float, 'the first argument'))
-    reg.addInputPort(PythonCalc, "value2",
+    reg.add_input_port(PythonCalc, "value2",
                      (core.modules.basic_modules.Float, 'the second argument'))
-    reg.addInputPort(PythonCalc, "op",
+    reg.add_input_port(PythonCalc, "op",
                      (core.modules.basic_modules.String, 'the operation'))
-    reg.addOutputPort(PythonCalc, "value",
+    reg.add_output_port(PythonCalc, "value",
                       (core.modules.basic_modules.Float, 'the result'))
 

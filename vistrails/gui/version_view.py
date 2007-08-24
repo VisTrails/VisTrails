@@ -625,24 +625,24 @@ class QVersionTreeView(QInteractiveGraphicsView):
 ################################################################################
 
 
-if __name__=="__main__":
+# if __name__=="__main__":
     
-    # Initialize the Vistrails Application and Theme
-    import sys
-    from gui import qt, theme
-    import vis_application
-    vis_application.start_application()
-    app = vis_application.VistrailsApplication
-    theme.initializeCurrentTheme()
+#     # Initialize the Vistrails Application and Theme
+#     import sys
+#     from gui import qt, theme
+#     import vis_application
+#     vis_application.start_application()
+#     app = vis_application.VistrailsApplication
+#     theme.initializeCurrentTheme()
 
-    # Get the vistrail
-    from core.xml_parser import XMLParser
-    parser = XMLParser()
-    parser.openVistrail('d:/hvo/vgc/src/vistrails/trunk/examples/lung.xml')
-    vistrail = parser.getVistrail()
+#     # Get the vistrail
+#     from core.xml_parser import XMLParser
+#     parser = XMLParser()
+#     parser.openVistrail('d:/hvo/vgc/src/vistrails/trunk/examples/lung.xml')
+#     vistrail = parser.getVistrail()
     
-    # Now visually test QVersionTreeView
-    vt = QVersionTreeView(None)
-    vt.scene().setupScene(vistrail)
-    vt.show()
-    sys.exit(vis_application.VistrailsApplication.exec_())
+#     # Now visually test QVersionTreeView
+#     vt = QVersionTreeView(None)
+#     vt.scene().setupScene(vistrail)
+#     vt.show()
+#     sys.exit(vis_application.VistrailsApplication.exec_())

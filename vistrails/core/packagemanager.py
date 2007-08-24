@@ -46,8 +46,9 @@ class Package(object):
             self.package = package
             self.exception = exception
         def __str__(self):
-            return ("Package '%s' failed to initialize, raising '%s'" %
+            return ("Package '%s' failed to initialize, raising '%s: %s'" %
                     (self.package.name,
+                     self.exception.__class__.__name__,
                      self.exception))
 
     def __init__(self, codepath, load_configuration=True):
@@ -64,7 +65,7 @@ class Package(object):
 
         """
         
-       
+        errors = []
         def module_import(name):
             return 
             
@@ -81,7 +82,8 @@ class Package(object):
                                                   locals(), []),
                                        self._codepath)
                 self._package_type = self.Base
-            except ImportError:
+            except ImportError, e:
+                errors.append(e)
                 return False
             return True
 
@@ -89,6 +91,9 @@ class Package(object):
             not import_from('userpackages.')):
             dbg = debug.DebugPrint
             dbg.critical("Could not enable package %s" % self._codepath)
+            for e in errors:
+                dbg.critical("Exceptions raised:")
+                dbg.critical(str(e))
             raise ImportError("Package %s not present "
                               "(or one of its imports failed)" % self._codepath)
 
@@ -451,7 +456,7 @@ To do so, call initialize_packages()"""
         del self._identifier_map[pkg.identifier]
         pkg.finalize()
         del self._package_list[codepath]
-        registry.deletePackage(pkg)
+        registry.delete_package(pkg)
 
     def has_package(self, identifier):
         """has_package(identifer: string) -> Boolean.
@@ -535,12 +540,12 @@ Returns true if given package identifier is present."""
         after VisTrails initialization. All dependencies need to be
         already enabled.
         """
+        if package_codepath in self._package_list:
+            raise VistrailsInternalError('duplicate package identifier: %s' %
+                                         package_codepath)
         self.add_package(package_codepath)
         pkg = self.get_package_by_codepath(package_codepath)
         pkg.load()
-        if self._dependency_graph.vertices.has_key(pkg.identifier):
-            raise VistrailsInternalError('duplicate package identifier: %s' %
-                                         pkg.identifier)
         self._dependency_graph.add_vertex(pkg.identifier)
         self._identifier_map[pkg.identifier] = pkg
         self.add_dependencies(pkg)

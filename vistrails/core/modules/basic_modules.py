@@ -26,7 +26,7 @@ from core.modules import module_configure
 from core.modules import module_registry
 from core.modules import port_configure
 from core.modules import vistrails_module
-from core.modules.vistrails_module import Module, newModule, \
+from core.modules.vistrails_module import Module, new_module, \
      NotCacheable, ModuleError
 from core.modules.tuple_configuration import TupleConfigurationWidget
 import core.packagemanager
@@ -77,7 +77,7 @@ class Constant(Module):
     def valueAsString(self):
         return str(self.value)
 
-_reg.addModule(Constant)
+_reg.add_module(Constant)
 
 
 def new_constant(name, conversion):
@@ -94,10 +94,10 @@ def new_constant(name, conversion):
         Constant.__init__(self)
         self.convert = conversion
     
-    m = newModule(Constant, name, {'__init__': __init__})
-    module_registry.registry.addModule(m)
-    module_registry.registry.addInputPort(m, "value", m)
-    module_registry.registry.addOutputPort(m, "value", m)
+    m = new_module(Constant, name, {'__init__': __init__})
+    module_registry.registry.add_module(m)
+    module_registry.registry.add_input_port(m, "value", m)
+    module_registry.registry.add_output_port(m, "value", m)
     return m
 
 def bool_conv(x):
@@ -113,7 +113,7 @@ Boolean = new_constant('Boolean' , bool_conv)
 Float   = new_constant('Float'   , float)
 Integer = new_constant('Integer' , int)
 String  = new_constant('String'  , str)
-_reg.addOutputPort(Constant, "value_as_string", String)
+_reg.add_output_port(Constant, "value_as_string", String)
 
 ##############################################################################
 
@@ -132,11 +132,11 @@ class File(Module):
             raise ModuleError(self, "File '%s' not existent" % n)
         self.setResult("local_filename", self.name)
 
-_reg.addModule(File)
-_reg.addInputPort(File, "name", String)
-_reg.addOutputPort(File, "self", File)
-_reg.addInputPort(File, "create_file", Boolean)
-_reg.addOutputPort(File, "local_filename", String, True)
+_reg.add_module(File)
+_reg.add_input_port(File, "name", String)
+_reg.add_output_port(File, "self", File)
+_reg.add_input_port(File, "create_file", Boolean)
+_reg.add_output_port(File, "local_filename", String, True)
 
 ##############################################################################
 
@@ -164,10 +164,10 @@ class FileSink(NotCacheable, Module):
                 msg = "Could not create file '%s': %s" % (v2, e)
                 raise ModuleError(self, msg)
 
-_reg.addModule(FileSink)
-_reg.addInputPort(FileSink,  "file", File)
-_reg.addInputPort(FileSink,  "outputName", String)
-_reg.addInputPort(FileSink,  "overrideFile", Boolean)
+_reg.add_module(FileSink)
+_reg.add_input_port(FileSink,  "file", File)
+_reg.add_input_port(FileSink,  "outputName", String)
+_reg.add_input_port(FileSink,  "overrideFile", Boolean)
 
 ##############################################################################
 
@@ -181,8 +181,8 @@ _reg.addInputPort(FileSink,  "overrideFile", Boolean)
 #                                       str(v))
 
 #Removing Output Window because it does not work with current threading
-#reg.addModule(OutputWindow)
-#reg.addInputPort(OutputWindow, "value",
+#reg.add_module(OutputWindow)
+#reg.add_input_port(OutputWindow, "value",
 #                               Module)
 
 ##############################################################################
@@ -196,8 +196,8 @@ class StandardOutput(NotCacheable, Module):
         v = self.getInputFromPort("value")
         print v
 
-_reg.addModule(StandardOutput)
-_reg.addInputPort(StandardOutput, "value", Module)
+_reg.add_module(StandardOutput)
+_reg.add_input_port(StandardOutput, "value", Module)
 
 ##############################################################################
 
@@ -218,16 +218,16 @@ class Tuple(Module):
                         for p in self.srcPortsOrder])
         self.setResult("value", values)
         
-_reg.addModule(Tuple, configureWidgetType=TupleConfigurationWidget)
-_reg.addOutputPort(Tuple, 'self', Tuple)
+_reg.add_module(Tuple, configureWidgetType=TupleConfigurationWidget)
+_reg.add_output_port(Tuple, 'self', Tuple)
 
 class TestTuple(Module):
     def compute(self):
         pair = self.getInputFromPort('tuple')
         print pair
         
-_reg.addModule(TestTuple)
-_reg.addInputPort(TestTuple, 'tuple', [Integer, String])
+_reg.add_module(TestTuple)
+_reg.add_input_port(TestTuple, 'tuple', [Integer, String])
 
 
 ##############################################################################
@@ -252,12 +252,12 @@ class ConcatenateString(Module):
                 inp = self.getInputFromPort(port)
                 result += inp
         self.setResult("value", result)
-_reg.addModule(ConcatenateString)
+_reg.add_module(ConcatenateString)
 for i in range(ConcatenateString.fieldCount):
     j = i+1
     port = "str%s" % j
-    _reg.addInputPort(ConcatenateString, port, String)
-_reg.addOutputPort(ConcatenateString, "value", String)
+    _reg.add_input_port(ConcatenateString, port, String)
+_reg.add_output_port(ConcatenateString, "value", String)
 
 ##############################################################################
 
@@ -282,11 +282,11 @@ class List(Module):
 
         self.setResult("value", head + tail)
 
-_reg.addModule(List)
+_reg.add_module(List)
 
-_reg.addInputPort(List, "head", Module)
-_reg.addInputPort(List, "tail", List)
-_reg.addOutputPort(List, "value", List)
+_reg.add_input_port(List, "head", Module)
+_reg.add_input_port(List, "tail", List)
+_reg.add_output_port(List, "value", List)
 
 ##############################################################################
 
@@ -297,7 +297,7 @@ class Null(Module):
     def compute(self):
         self.setResult("value", None)
 
-_reg.addModule(Null)
+_reg.add_module(Null)
 
 ##############################################################################
 
@@ -330,9 +330,9 @@ class PythonSource(NotCacheable, Module):
             if locals_[k] != None:
                 self.setResult(k, locals_[k])
 
-_reg.addModule(PythonSource,
-               configureWidgetType=module_configure.PythonSourceConfigurationWidget)
-_reg.addInputPort(PythonSource, 'source', String, True)
+_reg.add_module(PythonSource,
+                configureWidgetType=module_configure.PythonSourceConfigurationWidget)
+_reg.add_input_port(PythonSource, 'source', String, True)
 
 ##############################################################################
 
@@ -341,11 +341,11 @@ class TestPortConfig(Module):
     def compute(self):
         pass
     
-_reg.addModule(TestPortConfig)
-_reg.addInputPort(TestPortConfig,
+_reg.add_module(TestPortConfig)
+_reg.add_input_port(TestPortConfig,
                  'ColorPort', [Float,Float,Float],
                  False, port_configure.ColorConfigurationWidget)
-_reg.addInputPort(TestPortConfig, 'IntegerPort', Integer)
+_reg.add_input_port(TestPortConfig, 'IntegerPort', Integer)
 
 ##############################################################################
 
@@ -399,10 +399,10 @@ class Unzip(Module):
         dc.extract()
         self.setResult("file", output)
 
-_reg.addModule(Unzip)
-_reg.addInputPort(Unzip, 'archive_file', File)
-_reg.addInputPort(Unzip, 'filename_in_archive', String)
-_reg.addOutputPort(Unzip, 'file', File)
+_reg.add_module(Unzip)
+_reg.add_input_port(Unzip, 'archive_file', File)
+_reg.add_input_port(Unzip, 'filename_in_archive', String)
+_reg.add_output_port(Unzip, 'file', File)
 
 ##############################################################################
     
@@ -414,4 +414,4 @@ class Variant(Module):
     """
     pass
     
-_reg.addModule(Variant)
+_reg.add_module(Variant)

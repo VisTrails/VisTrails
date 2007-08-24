@@ -54,6 +54,7 @@ class ColorWheel(QtGui.QWidget):
 
     def paintEvent(self, event):
         QtGui.QWidget.paintEvent(self, event)
+        # super(ColorWheel, self).paintEvent(event)
         painter = QtGui.QPainter(self)
         painter.drawPixmap(-1, -1,
                            self.width()+1, self.height()+1,

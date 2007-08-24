@@ -21,24 +21,27 @@
 ############################################################################
 ##TODO Tests
 """ This module defines the class Pipeline """
-from db.domain import DBWorkflow
-from core.vistrail.port import Port
-from core.data_structures.graph import Graph
-from core.data_structures.bijectivedict import Bidict
-from core.utils import VistrailsInternalError
-from core.utils import expression
-from core.cache.hasher import Hasher
-from core.modules.module_registry import registry, ModuleRegistry
-import core.vistrail.action
 
-import copy
-from types import ListType
-import sha
-from xml.dom.minidom import getDOMImplementation, parseString
+from core.cache.hasher import Hasher
+from core.data_structures.bijectivedict import Bidict
+from core.data_structures.graph import Graph
+from core.debug import DebugPrint
+from core.modules.module_registry import registry, ModuleRegistry
+from core.utils import VistrailsInternalError
+from core.utils import expression, append_to_dict_of_lists
 from core.utils.uxml import named_elements
 from core.vistrail.connection import Connection
 from core.vistrail.module import Module
+from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.port_spec import PortSpec
+from db.domain import DBWorkflow
+from types import ListType
+import core.vistrail.action
+import core.modules.module_registry
+
+from xml.dom.minidom import getDOMImplementation, parseString
+import copy
+import sha
 
 ##############################################################################
 
@@ -98,7 +101,8 @@ class Pipeline(DBWorkflow):
 	    Module.convert(_module)
             _workflow.graph.add_vertex(_module.id)
             for _portSpec in _module.db_portSpecs.itervalues():
-                _workflow.addModulePort(_portSpec, _module.db_id)
+#                 (port, endpoint) = registry.create_port_from_old_spec(_portSpec)
+                _workflow.add_module_port(_portSpec, _module.db_id)
 	for _connection in _workflow.db_connections.itervalues():
             Connection.convert(_connection)
             _workflow.graph.add_edge( \
@@ -120,7 +124,7 @@ class Pipeline(DBWorkflow):
         try:
             return [f.name
                     for f
-                    in self.modules[module_id].functions].index(parameter_name)
+                    in self.getModuleById(module_id).functions].index(parameter_name)
         except ValueError:
             return -1
 
@@ -282,12 +286,12 @@ class Pipeline(DBWorkflow):
     def performDeleteConnection(self, op):
         self.deleteConnection(op.objectId)
     def performAddPortSpec(self, op):
-        self.addModulePort(op.data, op.parentObjId)
+        self.add_module_port(op.data, op.parentObjId)
     def performDeletePortSpec(self, op):
-        self.deleteModulePort(op.objectId, op.parentObjId)
+        self.delete_module_port(op.objectId, op.parentObjId)
     def performChangePortSpec(self, op):
-        self.deleteModulePort(op.oldObjId, op.parentObjId)
-        self.addModulePort(op.data, op.parentObjId)
+        self.delete_module_port(op.oldObjId, op.parentObjId)
+        self.add_module_port(op.data, op.parentObjId)
     def performAddAnnotation(self, op):
         self.db_add_object(op.data, op.parentObjType, op.parentObjId)
     def performDeleteAnnotation(self, op):
@@ -352,38 +356,47 @@ class Pipeline(DBWorkflow):
         op.objectId = op.newObjId
         self.performAddPort(op)
 
-    def addModulePort(self, portSpec, moduleId):
+    def add_module_port(self, portSpec, moduleId):
         self.db_add_object(portSpec, Module.vtType, moduleId)
 
         m = self.getModuleById(moduleId)
-        moduleThing = registry.getDescriptorByName(m.name).module
+        module = registry.get_descriptor_by_name(m.package, m.name).module
         if m.registry is None:
             m.registry = ModuleRegistry()
-            m.registry.addModule(moduleThing)
-        
-        portSpecs = portSpec.spec[1:-1].split(',')
+            m.registry.add_module(module, package=m.package)
+
         if portSpec.type == 'input':
-            m.registry.addInputPort(moduleThing,
-                                    portSpec.name,
-                                    [registry.getDescriptorByName(spec).module
-                                     for spec in portSpecs])
+            endpoint = PortEndPoint.Destination
         else:
-            m.registry.addOutputPort(moduleThing,
-                                     portSpec.name,
-                                     [registry.getDescriptorByName(spec).module
-                                      for spec in portSpecs])
+            endpoint = PortEndPoint.Source
+        portSpecs = portSpec.spec[1:-1].split(',')
+        signature = [registry.get_descriptor_from_name_only(spec).module
+                     for spec in portSpecs]
+        port = Port()
+        port.name = portSpec.name
+        port.spec = core.modules.module_registry.PortSpec(signature)
+        m.registry.add_port(module, endpoint, port)
         
-    def deleteModulePort(self, id, moduleId):
+    def delete_module_port(self, id, moduleId):
         m = self.getModuleById(moduleId)
         if not m.port_specs.has_key(id):
             raise VistrailsInternalError("id missing in port_specs")
         portSpec = m.port_specs[id]
+        portSpecs = portSpec.spec[1:-1].split(',')
+        signature = [registry.get_descriptor_from_name_only(spec).module
+                     for spec in portSpecs]
+        port = Port(signature)
+        port.name = portSpec.name
+        port.spec = core.modules.module_registry.PortSpec(signature)
 
-        moduleThing = registry.getDescriptorByName(m.name).module
+        module = registry.get_descriptor_by_name(m.package, m.name).module
+        assert isinstance(m.registry, ModuleRegistry)
+
         if portSpec.type == 'input':
-            m.registry.deleteInputPort(moduleThing, portSpec.name)
+            m.registry.delete_input_port(module, port.name)
         else:
-            m.registry.deleteOutputPort(moduleThing, portSpec.name)
+            m.registry.delete_output_port(module, port.name)
+
         self.db_delete_object(id, PortSpec.vtType, Module.vtType, moduleId)
 
     def deleteModule(self, id):
@@ -540,19 +553,26 @@ class Pipeline(DBWorkflow):
         if c.source is not None and c.destination is not None:
             assert(c.sourceId != c.destinationId)        
             self.graph.add_edge(c.sourceId, c.destinationId, c.id)
+            self.ensure_connection_specs([c.id])
         
     def getModuleById(self, id):
         """getModuleById(id: int) -> Module
         Accessor. id is the Module id.
         
         """
-        return self.modules[id]
+        result = self.modules[id]
+        if result.package is None:
+            DebugPrint.critical('module %d is missing package' % id)
+            descriptor = registry.get_descriptor_from_name_only(result.name)
+            result.package = descriptor.identifier
+        return result
     
     def getConnectionById(self, id):
         """getConnectionById(id: int) -> Connection
         Accessor. id is the Connection id.
         
         """
+        self.ensure_connection_specs([id])
         return self.connections[id]
     
     def moduleCount(self):
@@ -759,6 +779,83 @@ class Pipeline(DBWorkflow):
         return result
 
     ##########################################################################
+    # Registry-related
+
+    def ensure_old_modules_have_package_names(self):
+        """ensure_old_modules_have_package_names()
+
+        Makes sure each module has a package associated with it.
+
+        """
+        for i in self.modules.iterkeys():
+            self.getModuleById(i)
+
+    def ensure_connection_specs(self, connection_ids=None):
+        """ensure_connection_specs(connection_ids=None) -> None.
+
+        Computes the specs for the connections in connection_ids. If
+        connection_ids is None, computes it for every connection in the pipeline.
+        """
+        def source_spec(port):
+            module = self.getModuleById(port.moduleId)
+            reg = module.registry or registry
+            descriptor = reg.get_descriptor_by_name(module.package,
+                                                    module.name)
+            port_list = []
+            for (_, lst) in reg.all_source_ports(descriptor):
+                port_list.extend([p for p in lst
+                                  if p.name == port.name])
+            assert len(port_list) > 0
+            
+            # if port_list has more than one element, then it's an
+            # overloaded port. Source (output) port overloads must all
+            # be contravariant. This means that the spec of the
+            # new port must be a subtype of the spec of the
+            # original port. This induces a total ordering on the types,
+            # which we use to sort the possible ports, and get the
+            # most strict one.
+            
+            port_list.sort(lambda p1, p2:
+                           (p1 != p2 and
+                            issubclass(p1.spec.signature[0][0],
+                                       p2.spec.signature[0][0])))
+            return copy.copy(port_list[0].spec)
+
+        def destination_spec(port):
+            module = self.getModuleById(port.moduleId)
+            reg = module.registry or registry
+            descriptor = reg.get_descriptor_by_name(module.package,
+                                                    module.name)
+            port_list = []
+            for (_, lst) in reg.all_destination_ports(descriptor):
+                port_list.extend([p for p in lst
+                                  if p.name == port.name])
+            assert len(port_list) > 0
+
+            # if port_list has more than one element, then it's an
+            # overloaded port. Destination (input) port overloads must
+            # all be covariant. This means that the spec of the new
+            # port must be a supertype of the spec of the original
+            # port. This induces a total ordering on the types, which
+            # we use to sort the possible ports, and get the most
+            # general one.
+
+            port_list.sort(lambda p1, p2:
+                           (p1 != p2 and
+                            issubclass(p1.spec.signature[0][0],
+                                       p2.spec.signature[0][0])))
+            return copy.copy(port_list[-1].spec)
+
+        if connection_ids is None:
+            connection_ids = self.connections.iterkeys()
+        for conn_id in connection_ids:
+            conn = self.connections[conn_id]
+            if not conn.source.spec:
+                conn.source.spec = source_spec(conn.source)
+            if not conn.destination.spec:
+                conn.destination.spec = destination_spec(conn.destination)
+
+    ##########################################################################
     # Debugging
 
     def show_comparison(self, other):
@@ -857,6 +954,7 @@ class TestPipeline(unittest.TestCase):
             m = Module()
             m.id = p.fresh_module_id()
             m.name = 'PythonCalc'
+            m.package = 'edu.utah.sci.vistrails.pythoncalc'
             m.functions.append(f1())
             return m
         
@@ -873,6 +971,7 @@ class TestPipeline(unittest.TestCase):
             m = Module()
             m.id = p.get_tmp_id(Module.vtType)
             m.name = 'PythonCalc'
+            m.package = 'edu.utah.sci.vistrails.pythoncalc'
             m.functions.append(f1())
             return m
         m1 = module1(p)
@@ -888,7 +987,7 @@ class TestPipeline(unittest.TestCase):
         c1.source.name = 'value'
         c1.source.moduleName = 'PythonCalc'
         c1.destination.name = 'value1'
-        c1.destination.name = 'PythonCalc'
+        c1.destination.moduleName = 'PythonCalc'
         c1.id = p.get_tmp_id(Connection.vtType)
         p.addConnection(c1)
 
@@ -898,7 +997,7 @@ class TestPipeline(unittest.TestCase):
         c2.source.name = 'value'
         c2.source.moduleName = 'PythonCalc'
         c2.destination.name = 'value2'
-        c2.destination.name = 'PythonCalc'
+        c2.destination.moduleName = 'PythonCalc'
         c2.id = p.get_tmp_id(Connection.vtType)
 
         p.addConnection(c2)
@@ -954,7 +1053,8 @@ class TestPipeline(unittest.TestCase):
                                                                val='2.0',
                                                                )],
                                        )]
-        p1.addModule(Module(name='CacheBug', 
+        p1.addModule(Module(name='CacheBug',
+                            package='edu.utah.sci.vistrails.console_mode_test',
                             id=3,
                             functions=p1_functions))
 
@@ -970,6 +1070,7 @@ class TestPipeline(unittest.TestCase):
                                                                )],
                                        )]
         p2.addModule(Module(name='CacheBug', 
+                            package='edu.utah.sci.vistrails.console_mode_test',
                             id=3,
                             functions=p2_functions))
 
@@ -990,6 +1091,7 @@ class TestPipeline(unittest.TestCase):
                                                                )],
                                        )]
         p1.addModule(Module(name='CacheBug', 
+                            package='edu.utah.sci.vistrails.console_mode_test',
                             id=3,
                             functions=p1_functions))
 
@@ -1015,6 +1117,7 @@ class TestPipeline(unittest.TestCase):
                                                                )],
                                        )]
         p1.addModule(Module(name='CacheBug', 
+                            package='edu.utah.sci.vistrails.console_mode_test',
                             id=3,
                             functions=p1_functions))
         str(p1)

@@ -40,6 +40,6 @@ def registerWidget(reg, basicModules, basicWidgets):
     Register all widgets in this package to VisTrails module_registry
     
     """
-    reg.addModule(RichTextCell)
-    reg.addInputPort(RichTextCell, "Location", basicWidgets.CellLocation)
-    reg.addInputPort(RichTextCell, "File", basicModules.File)
+    reg.add_module(RichTextCell)
+    reg.add_input_port(RichTextCell, "Location", basicWidgets.CellLocation)
+    reg.add_input_port(RichTextCell, "File", basicModules.File)

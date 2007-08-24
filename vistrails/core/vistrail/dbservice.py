@@ -37,6 +37,7 @@ def openVistrail(filename):
 def getWorkflow(vt, version):
     workflow = db.services.vistrail.materializeWorkflow(vt, version)
     Pipeline.convert(workflow)
+    workflow.ensure_old_modules_have_package_names()
     return workflow
 
 def saveVistrail(vt, filename):

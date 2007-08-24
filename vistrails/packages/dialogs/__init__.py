@@ -70,11 +70,11 @@ class TextDialog(Dialog):
 def initialize(*args, **keywords):
     reg = core.modules.module_registry
     basic = core.modules.basic_modules
-    reg.addModule(Dialog)
-    reg.addModule(TextDialog)
+    reg.add_module(Dialog)
+    reg.add_module(TextDialog)
 
-    reg.addInputPort(TextDialog, "title", basic.String)
-    reg.addInputPort(TextDialog, "label", basic.String)
-    reg.addInputPort(TextDialog, "default", basic.String)
-    reg.addOutputPort(TextDialog, "result", basic.String)
+    reg.add_input_port(TextDialog, "title", basic.String)
+    reg.add_input_port(TextDialog, "label", basic.String)
+    reg.add_input_port(TextDialog, "default", basic.String)
+    reg.add_output_port(TextDialog, "result", basic.String)
     

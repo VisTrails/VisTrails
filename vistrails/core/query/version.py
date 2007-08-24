@@ -588,13 +588,10 @@ class TestSearch(unittest.TestCase):
                           TimeSearchStmt('04/13/2006 21:00:00').date)
     def test15(self):
         import core.vistrail
-        import core.xml_parser
         import core.system
-        parser = core.xml_parser.XMLParser()
-        parser.openVistrail(core.system.vistrails_root_directory() +
-                            '/tests/resources/dummy.xml')
-        v = parser.getVistrail()
-        parser.closeVistrail()
+        from db.services.io import XMLFileLocator
+        v = XMLFileLocator(core.system.vistrails_root_directory() +
+                           '/tests/resources/dummy.xml').load()
         # FIXME: Add notes to this.
 #         self.assertTrue(NotesSearchStmt('mapper').match(v.actionMap[36]))
 #         self.assertFalse(NotesSearchStmt('-qt-block-indent').match(v.actionMap[36]))

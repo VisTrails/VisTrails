@@ -113,7 +113,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             i = module_map.inverse[obj.id]
             view.set_module_active(i)
             reg = modules.module_registry.registry
-            name = reg.getDescriptor(obj.__class__).name
+            name = reg.get_descriptor(obj.__class__).name
             self._logger.start_module_execution(locator, 
                                                 currentVersion, i, name)
         # views and loggers work on local ids
@@ -133,13 +133,15 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
         def create_null():
             """Creates a Null value"""
-            reg = modules.module_registry.registry
-            return reg.getDescriptorByName('Null').module()
+            getter = modules.module_registry.registry.get_descriptor_by_name
+            descriptor = getter('edu.utah.sci.vistrails.basic', 'Null')
+            return descriptor.module()
         
         def create_constant(param):
             """Creates a Constant from a parameter spec"""
-            reg = modules.module_registry.registry
-            constant = reg.getDescriptorByName(param.type).module()
+            getter = modules.module_registry.registry.get_descriptor_by_name
+            constant = getter('edu.utah.sci.vistrails.basic',
+                              param.type).module()
             constant.setValue(p.evaluatedStrValue)
             return constant
                 
@@ -386,12 +388,10 @@ import core.packagemanager
 class TestCachedInterpreter(unittest.TestCase):
 
     def test_cache(self):
-        import core.xml_parser
+        from db.services.io import XMLFileLocator
         """Test if basic caching is working."""
-        parser = core.xml_parser.XMLParser()
-        parser.openVistrail(core.system.vistrails_root_directory() +
-                            '/tests/resources/dummy.xml')
-        v = parser.getVistrail()
+        v = XMLFileLocator(core.system.vistrails_root_directory() +
+                            '/tests/resources/dummy.xml').load()
         p1 = v.getPipeline('int chain')
         n = v.get_version_number('int chain')
         view = DummyView()

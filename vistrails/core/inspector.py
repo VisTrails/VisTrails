@@ -139,11 +139,12 @@ class PipelineInspector(object):
         self.spreadsheet_cells = []
         if not pipeline: return
         # Sometimes we run without the spreadsheet!
-        if registry.hasModule('SpreadsheetCell'):
+        if registry.has_module('edu.utah.sci.vistrails.spreadsheet', 'SpreadsheetCell'):
             # First pass to check cells types
-            cellType = registry.getDescriptorByName('SpreadsheetCell').module
+            cellType = registry.get_descriptor_by_name('edu.utah.sci.vistrails.spreadsheet',
+                                                       'SpreadsheetCell').module
             for mId, module in pipeline.modules.iteritems():
-                desc = registry.getDescriptorByName(module.name)
+                desc = registry.get_descriptor_by_name(module.package, module.name)
                 if issubclass(desc.module, cellType):
                     self.spreadsheet_cells.append(mId)
 
@@ -173,14 +174,14 @@ class PipelineInspector(object):
                 count[module.name] = 1
 
 
-if __name__ == '__main__':
-    from core.startup import VistrailsStartup
-    from core.xml_parser import XMLParser
-    xmlFile = 'C:/cygwin/home/stew/src/vistrails/trunk/examples/vtk.xml'    
-    vs = VistrailsStartup()
-    vs.init()
-    parser = XMLParser()
-    parser.openVistrail(xmlFile)
-    vistrail = parser.getVistrail()
-    pipeline = vistrail.getPipeline('Single Renderer')
-    print vistrail.latestTime
+# if __name__ == '__main__':
+#     from core.startup import VistrailsStartup
+#     from core.xml_parser import XMLParser
+#     xmlFile = 'C:/cygwin/home/stew/src/vistrails/trunk/examples/vtk.xml'    
+#     vs = VistrailsStartup()
+#     vs.init()
+#     parser = XMLParser()
+#     parser.openVistrail(xmlFile)
+#     vistrail = parser.getVistrail()
+#     pipeline = vistrail.getPipeline('Single Renderer')
+#     print vistrail.latestTime

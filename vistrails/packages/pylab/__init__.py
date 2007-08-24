@@ -109,22 +109,23 @@ def initialize(*args, **keywords):
 
     reg = core.modules.module_registry
     
-    reg.addModule(MplPlot, configureWidgetType=MplPlotConfigurationWidget)
-    reg.addInputPort(MplPlot, 'source', String, True)
-    reg.addOutputPort(MplPlot, 'source', String)
+    reg.add_module(MplPlot, configureWidgetType=MplPlotConfigurationWidget)
+    reg.add_input_port(MplPlot, 'source', String, True)
+    reg.add_output_port(MplPlot, 'source', String)
     
-    reg.addModule(MplFigure)
-    reg.addInputPort(MplFigure, 'Script', String)
-    reg.addOutputPort(MplFigure, 'FigureManager', MplFigureManager)
-    reg.addOutputPort(MplFigure, 'File', File)
+    reg.add_module(MplFigure)
+    reg.add_input_port(MplFigure, 'Script', String)
+    reg.add_output_port(MplFigure, 'FigureManager', MplFigureManager)
+    reg.add_output_port(MplFigure, 'File', File)
     
-    reg.registry.addModule(MplFigureManager)
+    reg.registry.add_module(MplFigureManager)
     
     # Register a figure cell type if the spreadsheet is up
-    if reg.registry.hasModule('SpreadsheetCell'):
+    if reg.registry.has_module('edu.utah.sci.vistrails.spreadsheet',
+                               'SpreadsheetCell'):
         from figure_cell import MplFigureCell
-        reg.registry.addModule(MplFigureCell)
-        reg.registry.addInputPort(MplFigureCell, 'FigureManager', MplFigureManager)
+        reg.registry.add_module(MplFigureCell)
+        reg.registry.add_input_port(MplFigureCell, 'FigureManager', MplFigureManager)
 
 def package_dependencies():
     import core.packagemanager

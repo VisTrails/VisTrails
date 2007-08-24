@@ -26,7 +26,6 @@
 import os.path
 from PyQt4 import QtCore, QtGui
 from core.interpreter.default import get_default_interpreter
-from core.xml_parser import XMLParser
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_tab import (StandardWidgetTabBar,
                              StandardWidgetSheetTab, StandardTabDockWidget)
@@ -34,6 +33,7 @@ from spreadsheet_registry import spreadsheetRegistry
 from core.utils import DummyView
 import copy
 import gc
+from db.services.io import XMLFileLocator
 
 ################################################################################
 
@@ -637,19 +637,16 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         progress.show()
         for pipelineIdx in range(pipelineCount):
             (vistrailFileName, version) = eval(lines[lidx])
-            parser = XMLParser()
-            parser.openVistrail(vistrailFileName)
-            vistrail = parser.getVistrail()
+            locator = XMLFileLocator(vistrailFileName)
+            vistrail = locator.load()
             pipeline = vistrail.getPipeline(version)
             execution = get_default_interpreter()
             progress.setValue(pipelineIdx)
             QtCore.QCoreApplication.processEvents()
             if progress.wasCanceled():
-                parser.closeVistrail()
                 break
             execution.execute(None, pipeline, vistrailFileName,
                               version, DummyView(), None)
-            parser.closeVistrail()
             lidx += 1
         progress.setValue(pipelineCount)
         QtCore.QCoreApplication.processEvents()

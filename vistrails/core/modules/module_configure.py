@@ -34,7 +34,9 @@ class StandardModuleConfigurationWidget(QtGui.QDialog):
         QtGui.QDialog.__init__(self, parent)
         self.setModal(True)
         self.module = module
-        self.moduleThing = registry.getDescriptorByName(self.module.name).module
+        self.module_descriptor = registry.get_descriptor_by_name(
+            self.module.package,
+            self.module.name)
         self.controller = controller
 
 
@@ -176,9 +178,8 @@ class PortTable(QtGui.QTableWidget):
                         QtCore.SIGNAL('dataChanged(QModelIndex,QModelIndex)'),
                         self.handleDataChanged)
         for p in ports[0][1]:
-            assert(len(p.spec)==1 and len(p.spec[0])==1)
             model = self.model()
-            portType = registry.getDescriptorByThing(p.spec[0][0][0]).name
+            portType = registry.get_descriptor(p.spec.signature[0][0]).name
             model.setData(model.index(self.rowCount()-1, 1),
                           QtCore.QVariant(portType),
                           QtCore.Qt.DisplayRole)
@@ -198,8 +199,8 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
         if index.column()==1: #Port type
             combo = QtGui.QComboBox(parent)
             combo.setEditable(False)
-            for m in sorted(registry.moduleName.itervalues()):
-                combo.addItem(m)
+            for m in sorted(registry._module_key_map.itervalues()):
+                combo.addItem(m[1])
             return combo
         else:
             return QtGui.QItemDelegate.createEditor(self, parent, option, index)
@@ -326,9 +327,9 @@ class PythonSourceConfigurationWidget(StandardModuleConfigurationWidget):
         labels = QtCore.QStringList() << "Output Port Name" << "Type"
         self.outputPortTable.setHorizontalHeaderLabels(labels)
         if self.module.registry:
-            iPorts = self.module.registry.destinationPorts(self.moduleThing)
+            iPorts = self.module.registry.all_destination_ports(self.module_descriptor)
             self.inputPortTable.initializePorts(iPorts)
-            oPorts = self.module.registry.sourcePorts(self.moduleThing)
+            oPorts = self.module.registry.all_source_ports(self.module_descriptor)
             self.outputPortTable.initializePorts(oPorts)
         self.layout().addWidget(self.inputPortTable)
         self.layout().addWidget(self.outputPortTable)
@@ -407,15 +408,15 @@ class PythonSourceConfigurationWidget(StandardModuleConfigurationWidget):
     def specsFromPorts(self, portType, ports):
         return [(portType,
                  p.name,
-                 '('+registry.getDescriptorByThing(p.spec[0][0][0]).name+')')
+                 '('+registry.get_descriptor(p.spec.signature[0][0]).name+')')
                 for p in ports[0][1]]
 
     def registryChanges(self, oldRegistry, newPorts):
         if oldRegistry:
             oldIn = self.specsFromPorts('input',
-                                        oldRegistry.destinationPorts(self.moduleThing))
+                                        oldRegistry.all_destination_ports(self.module_descriptor))
             oldOut = self.specsFromPorts('output',
-                                         oldRegistry.sourcePorts(self.moduleThing))
+                                         oldRegistry.all_source_ports(self.module_descriptor))
         else:
             oldIn = []
             oldOut = []

@@ -68,8 +68,8 @@ class Connection(DBConnection):
 
         """
         conn = Connection()
-        conn.source = source
-        conn.destination = dest
+        conn.source = copy.copy(source)
+        conn.destination = copy.copy(dest)
         return conn
         
     @staticmethod
@@ -148,91 +148,6 @@ class Connection(DBConnection):
 # 	_connection.destination = newDestination
         _connection.makeConnection = moduleConnection(_connection)
 
-    def genSignatures(self):
-	sourceSigs = self.source.getSignatures()
-	if type(sourceSigs) == list and len(sourceSigs) == 1:
-	    self.source.sig = str(self.source.name) + sourceSigs[0]
-
-	destSigs = self.destination.getSignatures()
-	if type(destSigs) == list:
-	    destSig = self.findSignature(sourceSigs[0], destSigs)
-	    if destSig is not None:
-		self.destination.sig = \
-		    str(self.destination.name) + destSig
-
-    def findSignature(self, sig, signatures):
-        """findSignature(sig:str, signatures:[]) -> str 
-
-        It looks for a match of sig in signatures, including
-        overloaded functions. Returns None if it can't find any.
-
-        """
-        if sig[1:-1]=='Variant':
-            return signatures[0]
-        splittedSig = sig[1:-1].split(',')
-        if splittedSig == ['']: splittedSig = []
-        for s in signatures:
-            splittedS = s[1:-1].split(',')
-            if splittedS == ['']: splittedS = []
-            if len(splittedS)==len(splittedSig):
-                for i in range(len(splittedS)):
-                    d1 = registry.getDescriptorByName(splittedS[i].strip())
-                    d2 = registry.getDescriptorByName(splittedSig[i].strip())
-                    if not d1 or not d2 or not issubclass(d1.module, d2.module):
-                        break
-                return s
-        return None
-
-    def serialize(self, dom, el):
-        """ serialize(dom, el) -> None: writes itself as XML """
-
-        child = dom.createElement('connect')
-        child.setAttribute('id', str(self.id))
-        sourceSigs = self.source.getSignatures()
-        assert type(sourceSigs) == list
-        assert len(sourceSigs) == 1
-        destSigs = self.destination.getSignatures()
-        assert type(destSigs) == list
-        destSig = self.findSignature(sourceSigs[0], destSigs)
-        assert destSig != None
-        child.setAttribute('sourceId', str(self.source.moduleId))
-        child.setAttribute('sourceModule', str(self.source.moduleName))
-	child.setAttribute('sourcePort', 
-			   str(self.source.name) + sourceSigs[0])
-        child.setAttribute('destinationId', str(self.destination.moduleId))
-        child.setAttribute('destinationModule', 
-			   str(self.destination.moduleName))
-        child.setAttribute('destinationPort', 
-			   str(self.destination.name) + destSig)
-        el.appendChild(child)
-
-    @staticmethod
-    def loadFromXML(connection):
-        """ loadFromXML(connection) -> Connection
-        Static method that parses an xml element and creates a Connection.
-        Keyword arguments:
-          - connection : xml.dom.minidom.Element
-   
-        """
-        cId = int(connection.getAttribute('id'))
-        c = Connection()
-        sourceModule = connection.getAttribute('sourceModule')
-        destinationModule = connection.getAttribute('destinationModule')
-        sourcePort = connection.getAttribute('sourcePort')
-        destinationPort = connection.getAttribute('destinationPort')
-        portFromRepresentation = registry.portFromRepresentation
-        c.source = portFromRepresentation(sourceModule, sourcePort, 
-                                          PortEndPoint.Source,
-                                          None, True)
-        c.destination = portFromRepresentation(destinationModule, 
-                                               destinationPort, 
-                                               PortEndPoint.Destination,
-                                               None, True)
-	c.genSignatures()
-        c.id = cId
-        c.sourceId = int(connection.getAttribute('sourceId'))
-        c.destinationId = int(connection.getAttribute('destinationId'))
-        return c
 
     ##########################################################################
     # Debugging
@@ -374,7 +289,6 @@ class Connection(DBConnection):
         c.source 
 
         """
-#	return self.db_ports['source']
         try:
             return self.db_get_port_by_type('source')
         except KeyError:

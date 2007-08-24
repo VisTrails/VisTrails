@@ -32,7 +32,7 @@ netpbm - http://netpbm.sourceforge.net/
 
 """
 
-from core.modules.vistrails_module import Module, ModuleError, newModule
+from core.modules.vistrails_module import Module, ModuleError, new_module
 import core.modules
 import core.modules.basic_modules
 import core.modules.module_registry
@@ -318,49 +318,49 @@ def initialize(airpath=None, fslpath=None, netpbmpath=None, *args, **kwargs):
         
     reg = core.modules.module_registry
     basic = core.modules.basic_modules
-    reg.addModule(ProvenanceChallenge)
+    reg.add_module(ProvenanceChallenge)
     
-    reg.addModule(AlignWarp)
-    reg.addInputPort(AlignWarp, "image", (FileSet, 'the image file to be deformed'))
-#    reg.addInputPort(AlignWarp, "image_header", (basic.File, 'the header of the image to be deformed'))
-    reg.addInputPort(AlignWarp, "reference", (FileSet, 'the reference image'))
-#    reg.addInputPort(AlignWarp, "reference_header", (basic.File, 'the header of the reference image'))
-    reg.addInputPort(AlignWarp, "model", (basic.Integer, 'the deformation model'))
-    reg.addOutputPort(AlignWarp, "output", (basic.File, 'the output deformation'))
+    reg.add_module(AlignWarp)
+    reg.add_input_port(AlignWarp, "image", (FileSet, 'the image file to be deformed'))
+#    reg.add_input_port(AlignWarp, "image_header", (basic.File, 'the header of the image to be deformed'))
+    reg.add_input_port(AlignWarp, "reference", (FileSet, 'the reference image'))
+#    reg.add_input_port(AlignWarp, "reference_header", (basic.File, 'the header of the reference image'))
+    reg.add_input_port(AlignWarp, "model", (basic.Integer, 'the deformation model'))
+    reg.add_output_port(AlignWarp, "output", (basic.File, 'the output deformation'))
 
-    reg.addModule(Reslice)
-    reg.addInputPort(Reslice, "warp", (basic.File, 'the warping to be resliced'))
-    reg.addOutputPort(Reslice, "output", (FileSet, 'the new slice'))
+    reg.add_module(Reslice)
+    reg.add_input_port(Reslice, "warp", (basic.File, 'the warping to be resliced'))
+    reg.add_output_port(Reslice, "output", (FileSet, 'the new slice'))
     
-    reg.addModule(SoftMean)
-    reg.addInputPort(SoftMean, "imageList", (basic.List, 'image files'))
-    reg.addOutputPort(SoftMean, "output", (FileSet, 'average image'))
+    reg.add_module(SoftMean)
+    reg.add_input_port(SoftMean, "imageList", (basic.List, 'image files'))
+    reg.add_output_port(SoftMean, "output", (FileSet, 'average image'))
 
-    reg.addModule(Slicer)
-    reg.addInputPort(Slicer, "input", (FileSet, 'the input file to be sliced'))
-    reg.addInputPort(Slicer, "slice_x", (basic.Float, 'sagittal slice with given value'))
-    reg.addInputPort(Slicer, "slice_y", (basic.Float, 'coronal slice with given value'))
-    reg.addInputPort(Slicer, "slice_z", (basic.Float, 'axial slice with given value'))
-    reg.addOutputPort(Slicer, "output", (basic.File, 'slice output'))
+    reg.add_module(Slicer)
+    reg.add_input_port(Slicer, "input", (FileSet, 'the input file to be sliced'))
+    reg.add_input_port(Slicer, "slice_x", (basic.Float, 'sagittal slice with given value'))
+    reg.add_input_port(Slicer, "slice_y", (basic.Float, 'coronal slice with given value'))
+    reg.add_input_port(Slicer, "slice_z", (basic.Float, 'axial slice with given value'))
+    reg.add_output_port(Slicer, "output", (basic.File, 'slice output'))
 
-    reg.addModule(PGMToPPM)
-    reg.addInputPort(PGMToPPM, "input", (basic.File, "input"))
-    reg.addOutputPort(PGMToPPM, "output", (basic.File, "output"))
+    reg.add_module(PGMToPPM)
+    reg.add_input_port(PGMToPPM, "input", (basic.File, "input"))
+    reg.add_output_port(PGMToPPM, "output", (basic.File, "output"))
 
-    reg.addModule(PNMToJpeg)
-    reg.addInputPort(PNMToJpeg, "input", (basic.File, "input"))
-    reg.addOutputPort(PNMToJpeg, "output", (basic.File, "output"))
+    reg.add_module(PNMToJpeg)
+    reg.add_input_port(PNMToJpeg, "input", (basic.File, "input"))
+    reg.add_output_port(PNMToJpeg, "output", (basic.File, "output"))
 
-    reg.addModule(AIRHeaderFile)
+    reg.add_module(AIRHeaderFile)
 
-    reg.addModule(FileSet)
-    reg.addInputPort(FileSet, "file_hdr", basic.File)
-    reg.addInputPort(FileSet, "file_img", basic.File)
-    reg.addInputPort(FileSet, "baseName", basic.String)
-    reg.addOutputPort(FileSet, "self", FileSet)
-    reg.addOutputPort(FileSet, "local_basename", basic.String)
+    reg.add_module(FileSet)
+    reg.add_input_port(FileSet, "file_hdr", basic.File)
+    reg.add_input_port(FileSet, "file_img", basic.File)
+    reg.add_input_port(FileSet, "baseName", basic.String)
+    reg.add_output_port(FileSet, "self", FileSet)
+    reg.add_output_port(FileSet, "local_basename", basic.String)
 
-    reg.addModule(FileSetSink)
-    reg.addInputPort(FileSetSink,  "fileSet", FileSet)
-    reg.addInputPort(FileSetSink,  "outputBaseName", basic.String)
-    reg.addInputPort(FileSetSink,  "overrideFile", basic.Boolean)
+    reg.add_module(FileSetSink)
+    reg.add_input_port(FileSetSink,  "fileSet", FileSet)
+    reg.add_input_port(FileSetSink,  "outputBaseName", basic.String)
+    reg.add_input_port(FileSetSink,  "overrideFile", basic.Boolean)

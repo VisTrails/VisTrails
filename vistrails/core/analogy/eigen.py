@@ -264,18 +264,9 @@ class EigenBase(object):
         up the class hierarchy."""
 
         def remove_descriptions(d):
-            def update_elements(lst):
-                result = []
-                for item in lst:
-                    if type(item) == tuple:
-                        result.append(item[0].__name__)
-                    elif type(item) == list:
-                        r = update_elements(item)
-                        if len(r):
-                            result.append(r)
-                    else:
-                        result.append(item.__name__)
-                return result
+            def update_elements(spec):
+                return [v.__name__ for v
+                        in spec.types()]
             for k in d.keys():
                 v = update_elements(d[k])
                 if len(v):

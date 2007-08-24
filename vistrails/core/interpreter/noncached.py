@@ -112,13 +112,17 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                 reg = modules.module_registry.registry
                 for f in module.functions:
                     if len(f.params)==0:
-                        nullObject = reg.getDescriptorByName('Null').module()
+                        nullObject = reg.get_descriptor_by_name(
+                            'edu.utah.sci.vistrails.basic',
+                            'Null').module()
                         objects[id].set_input_port(f.name, 
-                                                 ModuleConnector(nullObject,
-                                                                 'value'))
+                                                   ModuleConnector(nullObject,
+                                                                   'value'))
                     if len(f.params)==1:
                         p = f.params[0]
-                        constant = reg.getDescriptorByName(p.type).module()
+                        constant = reg.get_descriptor_by_name(
+                            'edu.utah.sci.vistrails.basic',
+                            p.type).module()
                         constant.setValue(p.evaluatedStrValue)
                         objects[id].set_input_port(f.name, 
                                                  ModuleConnector(constant, 
@@ -127,14 +131,16 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                         tupleModule = core.interpreter.base.InternalTuple()
                         tupleModule.length = len(f.params)
                         for (i,p) in iter_with_index(f.params):
-                            constant = reg.getDescriptorByName(p.type).module()
+                            constant = reg.get_descriptor_by_name(
+                                'edu.utah.sci.vistrails.basic',
+                                p.type).module()
                             constant.setValue(p.evaluatedStrValue)
                             tupleModule.set_input_port(i, 
-                                                     ModuleConnector(constant, 
-                                                                     'value'))
+                                                       ModuleConnector(constant, 
+                                                                       'value'))
                         objects[id].set_input_port(f.name, 
-                                                 ModuleConnector(tupleModule,
-                                                                 'value'))
+                                                   ModuleConnector(tupleModule,
+                                                                   'value'))
             
             # create connections
             for id, conn in pipeline.connections.items():

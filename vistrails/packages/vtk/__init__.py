@@ -32,12 +32,13 @@ from core.bundles import py_import
 
 vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk'})
 
-from core.utils import all
+from core.utils import all, VistrailsInternalError, iter_with_index
 from core.debug import log
-from core.modules.basic_modules import Integer, Float, String, File
-from core.modules.module_registry import (registry, addModule,
-                                          addInputPort, addOutputPort)
-from core.modules.vistrails_module import newModule, ModuleError
+from core.modules.basic_modules import Integer, Float, String, File, Variant
+from core.modules.module_registry import (registry, add_module,
+                                          has_input_port,
+                                          add_input_port, add_output_port)
+from core.modules.vistrails_module import new_module, ModuleError
 from base_module import vtkBaseModule
 from class_tree import ClassTree
 from vtk_parser import VTKMethodParser
@@ -82,11 +83,11 @@ def typeMap(name):
     if name in typeMapDict:
         return typeMapDict[name]
     else:
-        node = registry.moduleTree.get(name, None)
-        if node:
-            return node.descriptor.module
-        else:
+        if not registry.has_descriptor_with_name(identifier, name):
             return None
+        else:
+            return registry.get_descriptor_by_name(identifier,
+                                                   name).module
 
 def get_method_signature(method):
     """ get_method_signature(method: vtkmethod) -> [ret, arg]
@@ -136,6 +137,76 @@ def get_method_signature(method):
             sig.append(([ret], arg))
     return sig    
 
+def prune_signatures(module, name, signatures):
+    """prune_signatures tries to remove redundant signatures to reduce
+    overloading. It _mutates_ the given parameter.
+
+    It does this by performing several operations:
+
+    1) It compares a 'flattened' version of the types
+    against the other 'flattened' signatures. If any of them match, we
+    keep only the 'flatter' ones.
+
+    A 'flattened' signature is one where parameters are not inside a
+    tuple.
+
+    2) We explicitly forbid a few signatures based on modules and names
+
+    """
+    # yeah, this is Omega(n^2) on the number of overloads. Who cares?
+    
+    def flatten(type_):
+        if type_ is None:
+            return []
+        def convert(entry):
+            if type(entry) == tuple:
+                return list(entry)
+            else:
+                assert(type(entry) == str)
+                return [entry]
+        result = []
+        for entry in type_:
+            result.extend(convert(entry))
+        return result
+
+    flattened_entries = [flatten(sig[1]) for
+                         sig in signatures]
+    def hit_count(entry):
+        result = 0
+        for entry in flattened_entries:
+            if entry in flattened_entries:
+                result += 1
+        return result
+    hits = [hit_count(entry) for entry in flattened_entries]
+
+    def forbidden(flattened, hit_count, original):
+        if (issubclass(module.vtkClass, vtk.vtk3DWidget) and
+            name == 'PlaceWidget' and
+            flattened == []):
+            return True
+        # We forbid this because addPorts hardcodes this
+        if module.vtkClass == vtk.vtkAlgorithm:
+            return True
+        return False
+
+    # This is messy: a signature is only allowed if there's no
+    # explicit disallowing of it. Then, if it's not overloaded,
+    # it is also allowed. If it is overloaded and not the flattened
+    # version, it is pruned.
+    
+    signatures[:] = [original for (flattened, hit_count, original)
+                     in zip(flattened_entries,
+                            hits,
+                            signatures)
+                     if ((not forbidden(flattened, hit_count, original)) and
+                         (hit_count == 1 or # "There's no overloading" or
+                          (original[1] is None) or
+                          (hit_count > 1 and # "There's overloading but
+                                             # this is the fully expanded
+                                             # type
+                           len(original[1]) == len(flattened))))]
+
+
 disallowed_classes = set(
     [
     'vtkCriticalSection',
@@ -182,15 +253,15 @@ def addAlgorithmPorts(module):
             # ports and to avoid abstract classes
             try:
                 instance = module.vtkClass()
-                for i in range(0,instance.GetNumberOfInputPorts()):
-                    des = registry.getDescriptorByName('vtkAlgorithmOutput')
-                    addInputPort(module, 'SetInputConnection%d'%i, des.module)
-                for i in range(0,instance.GetNumberOfOutputPorts()):
-                    des = registry.getDescriptorByName('vtkAlgorithmOutput')
-                    addOutputPort(module, 'GetOutputPort%d'%i, des.module)
-                del instance
-            except:
+            except TypeError:
                 pass
+            else:
+                des = registry.get_descriptor_by_name('edu.utah.sci.vistrails.vtk',
+                                                      'vtkAlgorithmOutput')
+                for i in xrange(0,instance.GetNumberOfInputPorts()):
+                    add_input_port(module, 'SetInputConnection%d'%i, des.module)
+                for i in xrange(0,instance.GetNumberOfOutputPorts()):
+                    add_output_port(module, 'GetOutputPort%d'%i, des.module)
 
 disallowed_set_get_ports = set(['ReferenceCount',
                                 'InputConnection',
@@ -226,24 +297,26 @@ def addSetGetPorts(module, get_set_dict):
                 continue
             class_ = typeMap(getter[0][0])
             if is_class_allowed(class_):
-                addOutputPort(module, 'Get'+name, class_, True)
+                add_output_port(module, 'Get'+name, class_, True)
+        if len(setterSig) > 1:
+            prune_signatures(module, 'Set%s'%name, setterSig)
         for setter, order in zip(setterSig, range(1, len(setterSig)+1)):
-            try:
-                if len(setter[1]) == 1 and is_class_allowed(typeMap(setter[1][0])):
-                    addInputPort(module, 'Set'+name,
-                                 typeMap(setter[1][0]),
-                                 setter[1][0] in typeMapDict)
-                else:
-                    classes = [typeMap(i) for i in setter[1]]
-                    if all(classes, is_class_allowed):
-                        addInputPort(module, 'Set'+name, classes, True)
-                # Wrap SetFileNames for VisTrails file access
-                if name == 'FileName':
-                    addInputPort(module, 'SetFile', (File, 'input file'),
-                                 False)
-            except IndexError, e:
-                print "module", module, "name", name, setter
-                raise
+            if len(setterSig) == 1:
+                n = 'Set' + name
+            else:
+                n = 'Set' + name + '_' + str(order)
+            if len(setter[1]) == 1 and is_class_allowed(typeMap(setter[1][0])):
+                add_input_port(module, n,
+                               typeMap(setter[1][0]),
+                               setter[1][0] in typeMapDict)
+            else:
+                classes = [typeMap(i) for i in setter[1]]
+                if all(classes, is_class_allowed):
+                    add_input_port(module, n, classes, True)
+            # Wrap SetFileNames for VisTrails file access
+            if name == 'FileName':
+                add_input_port(module, 'SetFile', (File, 'input file'),
+                               False)
 
 disallowed_toggle_ports = set(['GlobalWarningDisplay',
                                'Debug',
@@ -260,8 +333,8 @@ def addTogglePorts(module, toggle_dict):
     for name in toggle_dict.iterkeys():
         if name in disallowed_toggle_ports:
             continue
-        addInputPort(module, name+'On', [], True)
-        addInputPort(module, name+'Off', [], True)
+        add_input_port(module, name+'On', [], True)
+        add_input_port(module, name+'Off', [], True)
 
 disallowed_state_ports = set(['SetInputArrayToProcess'])
 def addStatePorts(module, state_dict):
@@ -278,34 +351,38 @@ def addStatePorts(module, state_dict):
             field = 'Set'+name+'To'+mode[0]
             if field in disallowed_state_ports:
                 continue
-            addInputPort(module, field, [], True)
+            if not has_input_port(module, field):
+                add_input_port(module, field, [], True)
 
 disallowed_other_ports = set(
-    ['DeepCopy',
-     'IsA',
-     'NewInstance',
-     'ShallowCopy',
-     'SafeDownCast',
+    [
      'BreakOnError',
+     'DeepCopy',
      'FastDelete',
-     'PrintRevisions',
-     'Modified',
-     'RemoveObserver',
-     'RemoveObservers',
-     'INPUT_IS_OPTIONAL',
-     'INPUT_IS_REPEATABLE',
-     'INPUT_REQUIRED_FIELDS',
+     'HasObserver',
      'HasExecutive',
-     'INPUT_REQUIRED_DATA_TYPE',
      'INPUT_ARRAYS_TO_PROCESS',
      'INPUT_CONNECTION',
+     'INPUT_IS_OPTIONAL',
+     'INPUT_IS_REPEATABLE',
      'INPUT_PORT',
+     'INPUT_REQUIRED_DATA_TYPE',
+     'INPUT_REQUIRED_FIELDS',
+     'InvokeEvent',
+     'IsA',
+     'Modified',
+     'NewInstance',
+     'PrintRevisions',
      'RemoveAllInputs',
+     'RemoveObserver',
+     'RemoveObservers',
+     'SafeDownCast',
+     'SetInputArrayToProcess',
+     'ShallowCopy',
      'Update',
-     'UpdateProgress',
      'UpdateInformation',
+     'UpdateProgress',
      'UpdateWholeExtent',
-     'SetInputArrayToProcess'
      ])
 
 def addOtherPorts(module, other_list):
@@ -324,7 +401,9 @@ def addOtherPorts(module, other_list):
                 continue
             method = getattr(module.vtkClass, name)
             signatures = get_method_signature(method)
-            for sig in signatures:
+            if len(signatures) > 1:
+                prune_signatures(module, name, signatures)
+            for (ix, sig) in iter_with_index(signatures):
                 ([result], params) = sig
                 types = []
                 if params:
@@ -339,18 +418,23 @@ def addOtherPorts(module, other_list):
                 if types:
                     if not all(types, is_class_allowed):
                         continue
-                    if len(types)<=1:
-                        addInputPort(module, name, types[0],
-                                     types[0] in typeMapDictValues)
+                    if len(signatures) == 1:
+                        n = name
                     else:
-                        addInputPort(module, name, types, True)
+                        n = name + '_' + str(ix+1)
+                    if len(types)<=1:
+                        add_input_port(module, n, types[0],
+                                       types[0] in typeMapDictValues)
+                    else:
+                        add_input_port(module, n, types, True)
         else:
             if name in disallowed_other_ports:
                 continue
-#             print "other: %s %s" % (module.vtkClass.__name__, name)
             method = getattr(module.vtkClass, name)
             signatures = get_method_signature(method)
-            for sig in signatures:
+            if len(signatures) > 1:
+                prune_signatures(module, name, signatures)
+            for (ix, sig) in iter_with_index(signatures):
                 ([result], params) = sig
                 types = []
                 if params:
@@ -360,14 +444,18 @@ def addOtherPorts(module, other_list):
                 if not all(types, is_class_allowed):
                     continue
                 if types==[] or (result==None):
-                    addInputPort(module, name, types, True)
+                    if len(signatures) == 1:
+                        n = name
+                    else:
+                        n = name + '_' + str(ix+1)
+                    add_input_port(module, n, types, True)
     
 def addPorts(module):
     """ addPorts(module: VTK module inherited from Module) -> None
     Search all metamethods of module and add appropriate ports
 
     """
-    addOutputPort(module, 'self', module)
+    add_output_port(module, 'self', module)
     parser.parse(module.vtkClass)
     addAlgorithmPorts(module)
     addSetGetPorts(module, parser.get_get_set_methods())
@@ -376,15 +464,15 @@ def addPorts(module):
     addOtherPorts(module, parser.get_other_methods())
     # CVS version of VTK doesn't support AddInputConnect(vtkAlgorithmOutput)
     if module.vtkClass==vtk.vtkAlgorithm:
-        addInputPort(module, 'AddInputConnection',
-                     typeMap('vtkAlgorithmOutput'))
+        add_input_port(module, 'AddInputConnection',
+                       typeMap('vtkAlgorithmOutput'))
     # Somehow vtkProbeFilter.GetOutput cannot be found in any port list
     elif module.vtkClass==vtk.vtkProbeFilter:
-        addOutputPort(module, 'GetOutput',
+        add_output_port(module, 'GetOutput',
                       typeMap('vtkPolyData'), True)
     # vtkWriters have a custom File port
     elif module.vtkClass==vtk.vtkWriter:
-        addOutputPort(module, 'file', typeMap('File'))
+        add_output_port(module, 'file', typeMap('File'))
 
 def setAllPorts(treeNode):
     """ setAllPorts(treeNode: TreeNode) -> None
@@ -493,13 +581,13 @@ def createModule(baseModule, node):
         except TypeError: # VTK raises type error on abstract classes
             return True
         return False
-    module = newModule(baseModule, node.name,
+    module = new_module(baseModule, node.name,
                        class_dict(baseModule, node),
                        docstring=getattr(vtk, node.name).__doc__
                        )
     # This is sitting on the class
     module.vtkClass = node.klass
-    addModule(module, abstract=is_abstract())
+    add_module(module, abstract=is_abstract())
     for child in node.children:
         if child.name in disallowed_classes:
             continue
@@ -513,9 +601,9 @@ def createAllModules(g):
     assert len(g.tree[0]) == 1
     base = g.tree[0][0]
     assert base.name == 'vtkObjectBase'
-    vtkObjectBase = newModule(vtkBaseModule, 'vtkObjectBase')
+    vtkObjectBase = new_module(vtkBaseModule, 'vtkObjectBase')
     vtkObjectBase.vtkClass = vtk.vtkObjectBase
-    addModule(vtkObjectBase)
+    add_module(vtkObjectBase)
     for child in base.children:
         if child.name in disallowed_classes:
             continue
@@ -562,12 +650,14 @@ def initialize():
         > >= 5.0.0")
     inheritanceGraph = ClassTree(vtk)
     inheritanceGraph.create()
-    addModule(vtkBaseModule)
+    add_module(vtkBaseModule)
     createAllModules(inheritanceGraph)
-    setAllPorts(registry.moduleTree['vtkObjectBase'])
+    setAllPorts(registry.get_tree_node_from_name(identifier,
+                                                 'vtkObjectBase'))
 
     # Register the VTKCell type if the spreadsheet is up
-    if registry.hasModule('SpreadsheetCell'):
+    if registry.has_module('edu.utah.sci.vistrails.spreadsheet',
+                           'SpreadsheetCell'):
         import vtkhandler
         import vtkcell
         vtkhandler.registerSelf()

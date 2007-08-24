@@ -810,62 +810,6 @@ class Vistrail(DBVistrail):
     def serialize(self, filename):
         dbservice.saveVistrail(self, filename)
 
-    def old_serialize(self, filename):
-        """serialize(filename:str) -> None 
-        Writes vistrail to disk under given filename.
-          
-        """
-        #couldn't remove this because of circular reference in xml_parser
-        import core.xml_parser 
-        version = core.xml_parser.XMLParser().currentVersion
-        impl = xml.dom.minidom.getDOMImplementation()
-        dom = impl.createDocument(None, 'visTrail', None)
-        root = dom.documentElement
-        root.setAttribute('version', str(version))
-        for action in self.actionMap.values():
-            actionElement = dom.createElement('action')
-            actionElement.setAttribute('time', str(action.timestep))
-            actionElement.setAttribute('parent', str(action.parent))
-            if action.date != None:
-                actionElement.setAttribute('date', str(action.date))
-            if action.user != None:
-                actionElement.setAttribute('user', str(action.user))
-            if action.notes != None:
-                action.notes = action.notes.strip('\n\t ')
-                if action.notes != '':
-                    notesElement = dom.createElement('notes')
-                    text = dom.createTextNode(str(action.notes))
-                    notesElement.appendChild(text)
-                    actionElement.appendChild(notesElement)
-            root.appendChild(actionElement)
-            action.serialize(dom, actionElement)
-#         for (name, time) in self.tagMap.items():
-#             tagElement = dom.createElement('tag')
-#             tagElement.setAttribute('name', str(name))
-#             tagElement.setAttribute('time', str(time))
-#             root.appendChild(tagElement)
-        for (id, tag) in self.tagMap.items():
-            tagElement = dom.createElement('tag')
-            tagElement.setAttribute('name', str(tag.name))
-            tagElement.setAttribute('time', str(tag.time))
-            root.appendChild(tagElement)
-
-        for v in self.prunedVersions:
-            pruneElement = dom.createElement('prune')
-            pruneElement.setAttribute('time', str(v))
-            root.appendChild(pruneElement)
-        for (qType, qName, qText) in self.savedQueries:
-            queryElement = dom.createElement('query')
-            queryElement.setAttribute('type', str(qType))
-            queryElement.setAttribute('name', str(qName))
-            queryElement.setAttribute('text', str(qText))
-            root.appendChild(queryElement)
-
-        outputFile = file(filename,'w')
-        root.writexml(outputFile, "  ", "  ", '\n')
-        outputFile.close()
-        self.changed = False
-
     def setExp(self, exp):
         """setExp(exp) -> None - Set current list of nodes to be expanded"""
         self.expand=exp
@@ -951,13 +895,10 @@ import random
 class TestVistrail(unittest.TestCase):
     def test1(self):
         import core.vistrail
-        import core.xml_parser
+        from db.services.io import XMLFileLocator
         import core.system
-        parser = core.xml_parser.XMLParser()
-        parser.openVistrail(core.system.vistrails_root_directory() +
-                            '/tests/resources/dummy.xml')
-        v = parser.getVistrail()
-        parser.closeVistrail()
+        v = XMLFileLocator(core.system.vistrails_root_directory() +
+                           '/tests/resources/dummy.xml').load()
         #testing nodes in different branches
         v1 = 36
         v2 = 41
@@ -978,12 +919,10 @@ class TestVistrail(unittest.TestCase):
     # FIXME this dies because diff isn't fixed (moving to db.services.vistrail)
     def test2(self):
         import core.vistrail
-        import core.xml_parser
-        parser = core.xml_parser.XMLParser()
-        parser.openVistrail(core.system.vistrails_root_directory() +
-                            '/tests/resources/dummy.xml')
-        v = parser.getVistrail()
-        parser.closeVistrail()
+        from db.services.io import XMLFileLocator
+        import core.system
+        v = XMLFileLocator(core.system.vistrails_root_directory() +
+                            '/tests/resources/dummy.xml').load()
         #testing diff
         v1 = 17
         v2 = 27
@@ -997,12 +936,10 @@ class TestVistrail(unittest.TestCase):
         p = v.getPipeline(0)
 
     def test_empty_action_chain_2(self):
-        import core.xml_parser
-        parser = core.xml_parser.XMLParser()
-        parser.openVistrail(core.system.vistrails_root_directory() +
-                            '/tests/resources/dummy.xml')
-        v = parser.getVistrail()
-        parser.closeVistrail()
+        from db.services.io import XMLFileLocator
+        import core.system
+        v = XMLFileLocator(core.system.vistrails_root_directory() +
+                           '/tests/resources/dummy.xml').load()
         assert v.actionChain(17, 17) == []
 
     def test_inverse(self):
@@ -1038,14 +975,13 @@ class TestVistrail(unittest.TestCase):
                 print p2.connections
                 return False
             return True
-        import core.xml_parser
+        from db.services.io import XMLFileLocator
+        import core.system
         import sys
 
         def do_test(filename):
-            parser = core.xml_parser.XMLParser()
-            parser.openVistrail(core.system.vistrails_root_directory() +
-                                filename)
-            v = parser.getVistrail()
+            v = XMLFileLocator(core.system.vistrails_root_directory() +
+                               filename).load()
             version_ids = v.actionMap.keys()
             old_v = random.choice(version_ids)
             p = v.getPipeline(old_v)

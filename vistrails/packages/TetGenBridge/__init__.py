@@ -70,20 +70,20 @@ def initialize(*args, **keywords):
     reg = core.modules.module_registry
 
     #calls the lib with function of the same name.
-    reg.addModule(tetrahedralize)
+    reg.add_module(tetrahedralize)
 
     # command line switches that tell tetrahedralize what to do.
-    reg.addInputPort(tetrahedralize, "switches",
+    reg.add_input_port(tetrahedralize, "switches",
                      (core.modules.basic_modules.String, 'tetgen options'))
     # input mesh information.
-    reg.addInputPort(tetrahedralize, "tgio in",
+    reg.add_input_port(tetrahedralize, "tgio in",
                      (tetgenio_wrapper, 'input data'))
     # output mesh information.
-    reg.addOutputPort(tetrahedralize, "tgio out",
+    reg.add_output_port(tetrahedralize, "tgio out",
                       (tetgenio_wrapper, 'output data'))
 
     #holds the tetgenio class, and acts as a port.
-    reg.addModule(tetgenio_wrapper)
+    reg.add_module(tetgenio_wrapper)
 
     # get support and testing modules registered.
     CreateTestSurf.initialize(reg)

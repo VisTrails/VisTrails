@@ -29,7 +29,8 @@ operations exposed by the ImageMagick package.
 import core.modules
 import core.modules.module_registry
 import core.modules.basic_modules
-from core.modules.vistrails_module import Module, ModuleError, newModule, IncompleteImplementation
+from core.modules.vistrails_module import Module, ModuleError, new_module, \
+     IncompleteImplementation
 import core.requirements
 import core.system
 from core.system import list2cmdline
@@ -239,28 +240,28 @@ def initialize():
 
     reg = core.modules.module_registry
     basic = core.modules.basic_modules
-    reg.addModule(ImageMagick, abstract=True)
-    reg.addInputPort(ImageMagick, "input", (basic.File, 'the input file'))
-    reg.addInputPort(ImageMagick, "inputFormat", (basic.String, 'coerce interpretation of file to this format'))
-    reg.addInputPort(ImageMagick, "outputFormat", (basic.String, 'Force output to be of this format'))
+    reg.add_module(ImageMagick, abstract=True)
+    reg.add_input_port(ImageMagick, "input", (basic.File, 'the input file'))
+    reg.add_input_port(ImageMagick, "inputFormat", (basic.String, 'coerce interpretation of file to this format'))
+    reg.add_input_port(ImageMagick, "outputFormat", (basic.String, 'Force output to be of this format'))
 
-    reg.addModule(Convert)
-    reg.addInputPort(Convert, "geometry", (basic.String, 'ImageMagick geometry'))
-    reg.addInputPort(Convert, "width", (basic.String, 'width of the geometry for operation'))
-    reg.addInputPort(Convert, "height", (basic.String, 'height of the geometry for operation'))
-    reg.addOutputPort(Convert, "output", (basic.File, 'the output file'))
+    reg.add_module(Convert)
+    reg.add_input_port(Convert, "geometry", (basic.String, 'ImageMagick geometry'))
+    reg.add_input_port(Convert, "width", (basic.String, 'width of the geometry for operation'))
+    reg.add_input_port(Convert, "height", (basic.String, 'height of the geometry for operation'))
+    reg.add_output_port(Convert, "output", (basic.File, 'the output file'))
 
     for (name, opt, doc_string) in no_param_options:
-        m = newModule(Convert, name, no_param_options_method_dict(opt),
+        m = new_module(Convert, name, no_param_options_method_dict(opt),
                       docstring=doc_string)
-        reg.addModule(m)
+        reg.add_module(m)
 
     for (name, opt, paramName, paramComment) in float_param_options:
-        m = newModule(Convert, name, float_param_options_method_dict(opt, paramName))
-        reg.addModule(m)
-        reg.addInputPort(m, paramName, (basic.Float, paramComment))
+        m = new_module(Convert, name, float_param_options_method_dict(opt, paramName))
+        reg.add_module(m)
+        reg.add_input_port(m, paramName, (basic.Float, paramComment))
 
-    reg.addModule(GaussianBlur)
-    reg.addInputPort(GaussianBlur, "radiusSigma", [(basic.Float, 'radius'), (basic.Float, 'sigma')])
+    reg.add_module(GaussianBlur)
+    reg.add_input_port(GaussianBlur, "radiusSigma", [(basic.Float, 'radius'), (basic.Float, 'sigma')])
 
-    reg.addModule(Scale)
+    reg.add_module(Scale)

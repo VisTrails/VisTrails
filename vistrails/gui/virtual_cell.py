@@ -174,6 +174,7 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
                         # delConn.addId(cId)
                 # delConn.perform(pipeline)
                 action = db.services.action.create_action(action_list)
+                # FIXME: this should go to dbservice
                 Action.convert(action)
                 pipeline.performAction(action)
                 
@@ -223,11 +224,13 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
                 module_id = -pipeline.tmp_id.getNewId(module.Module.vtType)
                 sheetReference = module.Module(id=module_id,
                                                name="SheetReference",
+                                               package="edu.utah.sci.vistrails.spreadsheet",
                                                functions=[sheetNameFunction,
                                                           minRowFunction,
                                                           minColFunction])
                 action = db.services.action.create_action([('add', 
                                                            sheetReference)])
+                # FIXME: this should go to dbservice
                 Action.convert(action)
                 pipeline.performAction(action)
 
@@ -282,10 +285,12 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
                 module_id = -pipeline.tmp_id.getNewId(module.Module.vtType)
                 cellLocation = module.Module(id=module_id,
                                              name="CellLocation",
+                                             package="edu.utah.sci.vistrails.spreadsheet",
                                              functions=[rowFunction,
                                                         colFunction])
                 action = db.services.action.create_action([('add', 
                                                            cellLocation)])
+                # FIXME: this should go to dbservice
                 Action.convert(action)
                 pipeline.performAction(action)
                 
@@ -311,20 +316,22 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
                               moduleId=sheetReference.id,
                               moduleName=sheetReference.name)
                 source.name = "self"
-                source.spec = registry.getOutputPortSpec(sheetReference, "self")
+                source.spec = copy.copy(registry.get_output_port_spec(sheetReference,
+                                                                      "self"))
                 port_id = -pipeline.tmp_id.getNewId(Port.vtType)
                 destination = Port(id=port_id,
                                    type='destination',
                                    moduleId=cellLocation.id,
                                    moduleName=cellLocation.name)
                 destination.name = "SheetReference"
-                destination.spec = registry.getInputPortSpec(cellLocation,
-                                                             "SheetReference")
+                destination.spec = copy.copy(registry.get_input_port_spec(cellLocation,
+                                                                          "SheetReference"))
                 c_id = -pipeline.tmp_id.getNewId(connection.Connection.vtType)
                 conn = connection.Connection(id=c_id,
                                              ports=[source, destination])
                 action = db.services.action.create_action([('add', 
                                                            conn)])
+                # FIXME: this should go to dbservice
                 Action.convert(action)
                 pipeline.performAction(action)
                               
@@ -352,7 +359,7 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
                               moduleId=cellLocation.id,
                               moduleName=cellLocation.name)
                 source.name = "self"
-                source.spec = registry.getOutputPortSpec(cellLocation, "self")
+                source.spec = registry.get_output_port_spec(cellLocation, "self")
                 port_id = -pipeline.tmp_id.getNewId(Port.vtType)
                 cell_module = pipeline.getModuleById(mId)
                 destination = Port(id=port_id,
@@ -360,13 +367,14 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
                                    moduleId=mId,
                                    moduleName=pipeline.modules[mId].name)
                 destination.name = "Location"
-                destination.spec = registry.getInputPortSpec(cell_module,
-                                                             "Location")
+                destination.spec = registry.get_input_port_spec(cell_module,
+                                                                "Location")
                 c_id = -pipeline.tmp_id.getNewId(connection.Connection.vtType)
                 conn = connection.Connection(id=c_id,
                                              ports=[source, destination])
                 action = db.services.action.create_action([('add', 
                                                            conn)])
+                # FIXME: this should go to dbservice
                 Action.convert(action)
                 pipeline.performAction(action)
 

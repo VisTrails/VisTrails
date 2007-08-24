@@ -91,8 +91,7 @@ class QMethodDropBox(QtGui.QScrollArea):
                 event.accept()
                 for item in data.items:
                     if item.port:
-                        function = ModuleFunction.fromSpec(item.port,
-                                                           item.spec)
+                        function = item.spec.create_module_function(item.port)
                         # FIXME need to get the position,
                         # but not sure if this is correct
                         function.id = item.module.getNumFunctions()
@@ -298,6 +297,7 @@ class QMethodInputForm(QtGui.QGroupBox):
             methodBox.emit(QtCore.SIGNAL("paramsAreaChanged"))
         else:
             QtGui.QGroupBox.keyPressEvent(self, e)
+            # super(QMethodInputForm, self).keyPressEvent(e)
 
 class QHoverAliasLabel(QtGui.QLabel):
     """
@@ -342,6 +342,7 @@ class QHoverAliasLabel(QtGui.QLabel):
             self.palette().setColor(QtGui.QPalette.WindowText,
                                     CurrentTheme.HOVER_DEFAULT_COLOR)
         return QtGui.QLabel.event(self, event)
+        # return super(QHoverAliasLabel, self).event(event)
 
     def mousePressEvent(self, event):
         """ mousePressEvent(event: QMouseEvent) -> None        
@@ -437,6 +438,7 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
                 event.accept()
                 self.updateText()
         QtGui.QLineEdit.keyPressEvent(self,event)
+        # super(QPythonValueLineEdit, self).keyPressEvent(event)
 
     def focusInEvent(self, event):
         """ focusInEvent(event: QEvent) -> None
@@ -447,6 +449,7 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
         if self.parent():
             self.parent().focusInEvent(event)
         QtGui.QLineEdit.focusInEvent(self, event)
+        # super(QPythonValueLineEdit, self).focusInEvent(event)
 
     def focusOutEvent(self, event):
         """ focusOutEvent(event: QEvent) -> None
@@ -457,6 +460,7 @@ class QPythonValueLineEdit(QtGui.QLineEdit):
         if self.parent():
             self.parent().focusOutEvent(event)
         QtGui.QLineEdit.focusOutEvent(self, event)
+        # super(QPythonValueLineEdit, self).focusOutEvent(event)
 
     def updateParent(self):
         """ updateParent() -> None

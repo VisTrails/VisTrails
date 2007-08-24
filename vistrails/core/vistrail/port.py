@@ -52,19 +52,23 @@ class Port(DBPort):
 	DBPort.__init__(self, *args, **kwargs)
         if self.id is None:
             self.id = -1
-        if self.db_sig is not None:
-            (self._name, self._spec) = self.make_name_spec_tuple()
-        else:
-            self._name = ""
-            self._spec = []
+#         self._sig = self.db_sig
+#         if self.db_sig is not None:
+#             self._name = self.
+#             (self._name, self._spec) = self.make_name_spec_tuple()
+#         else:
+#             self._name = ""
+#             self._spec = []
         if self.moduleId is None:
             self.moduleId = 0
         if self.connectionId is None:
             self.connectionId = 0
         if self.moduleName is None:
             self.moduleName = ""
+        
         self.optional = False
         self.sort_key = -1
+        self._spec = None
 
     def __copy__(self):
         cp = DBPort.__copy__(self)
@@ -74,23 +78,29 @@ class Port(DBPort):
 #         cp.connectionId = self.connectionId
 #         cp.moduleName = self.moduleName
 #         cp.sig = self.sig
-        cp._name = self._name
-        cp._spec = copy.copy(self._spec)
+#         cp._name = self._name
+
         cp.optional = self.optional
         cp.sort_key = self.sort_key
+        cp._spec = copy.copy(self._spec)
 
         return cp
     
     @staticmethod
     def convert(_port):
 	_port.__class__ = Port
-        if _port.db_sig is not None:
-            (_port._name, _port._spec) = _port.make_name_spec_tuple()
-        else:
-            _port._name = ""
-            _port._spec = []
+#         if _port.db_sig is not None:
+#             (_port._name, _port._spec) = _port.make_name_spec_tuple()
+#         else:
+#             _port._name = ""
+#             _port._spec = []
+
         _port.optional = False
         _port.sort_key = -1
+        _port._spec = None
+        # the following makes sense because _set_name actually fixes the name
+        # for us for now.
+        _port._set_name(_port._get_name())
 
     ##########################################################################
 
@@ -135,32 +145,28 @@ class Port(DBPort):
     moduleName = property(_get_moduleName, _set_moduleName)
 
     def _get_name(self):
-        # FIXME sync with sig
-        return self._name
+        return self.db_sig
     def _set_name(self, name):
-        self._name = name
+        if '(' in name:
+            name = name[:name.find('(')]
+        self.db_sig = name
         
         # update self.db_sig
-        self.db_sig = self.make_sig()
+#         self.db_sig = self.make_sig()
     name = property(_get_name, _set_name)
 
     def _get_spec(self):
 	return self._spec
     def _set_spec(self, spec):
 	self._spec = spec
-
-        # update self.db_sig
-        self.db_sig = self.make_sig()
     spec = property(_get_spec, _set_spec)
 
     def _get_sig(self):
         return self.db_sig
     def _set_sig(self, sig):
         self.db_sig = sig
-
-        # update self._name and self._spec
-        (self._name, self._spec) = self.make_name_spec_tuple()
     sig = property(_get_sig, _set_sig)
+
 		     
 #     def _get_type(self):
 #  	return self._type
@@ -168,63 +174,18 @@ class Port(DBPort):
 #  	self._type = type
 #     type = property(_get_type, _set_type)
 
-    def make_name_spec_tuple(self):
-        x = self.db_sig.find('(')
-        assert x != -1
-        portName = self.db_sig[:x]
-        portSpec = self.db_sig[x:]
-
-        values = [v.strip() for v in portSpec[1:-1].split(",")]
-        spec = [[(v, '<no description>') for v in values]]
-        return (portName, spec)
-
-    def make_sig(self):
-        def get_type_str(s):
-            if type(s[0]) == type(''):
-                return s[0]
-            else:
-                return s[0].__name__
-            
-        if self._spec is not None and len(self._spec) > 0:
-            return self._name + "(" + \
-                ",".join(get_type_str(s) for s in self._spec[0]) + ")"
-        return self._name + "()"
-
-    def getSig(self, spec):
-        """ getSig(spec: tuple) -> str
-        Return a string of signature based a port spec
-        
-        """
-        if type(spec) == list:
-            return "(" + ",".join([self.getSig(s) for s in spec]) + ")"
-        assert type(spec == __builtin__.tuple)
-        spec = spec[0]
-        if issubclass(spec, core.modules.vistrails_module.Module):
-            return spec.__name__
-        raise VistrailsInternalError("getSig Can't handle type %s" 
-                                         % type(spec))
-    
-    def getSignatures(self):
-        """getSignatures() -> list
-        Returns a list of all accepted signatures of this port, by generating
-        a string representation of each port spec.
-        
-        """
-        return [self.getSig(spec) for spec in self.spec]
 
     def toolTip(self):
         """ toolTip() -> str
         Generates an appropriate tooltip for the port. 
         
         """
-        def endPointType():
-            d = {PortEndPoint.Invalid: "Invalid",
-                 PortEndPoint.Source: "Output",
-                 PortEndPoint.Destination: "Input"}
-            return d[self.endPoint]
-        return "%s port %s\n%s" % (endPointType(), 
-                                   self.name, 
-                                   "; ".join(self.getSignatures()))
+        d = {PortEndPoint.Invalid: "Invalid",
+             PortEndPoint.Source: "Output",
+             PortEndPoint.Destination: "Input"}
+        return "%s port %s\n%s" % (d[self.endPoint], 
+                                   self.name,
+                                   self.spec.create_sigstring(short=True))
 
     ##########################################################################
     # Debugging
@@ -303,47 +264,21 @@ class TestPort(unittest.TestCase):
     def testPort(self):
         x = Port()
         a = str(x)
-        
-    def testPortSpec(self):
-        descriptor = self.registry.getDescriptorByName('String')
-        ports = self.registry.sourcePortsFromDescriptor(descriptor)
-        assert all(ports, lambda x: x.moduleName == 'String')
-        portRepr = 'value(String)'
-        p = self.registry.portFromRepresentation('String', portRepr, 
-                                                     PortEndPoint.Source)
-        assert p.name == 'value'
-        assert p.moduleName == 'String'
-
-    def testPortSpec2(self):
-        """Test passing incompatible specs"""
-        descriptor = self.registry.getDescriptorByName('String')
-        ports = self.registry.sourcePortsFromDescriptor(descriptor)
-        assert all(ports, lambda x: x.moduleName == 'String')
-        portRepr = 'value(Float)'
-        try:
-            p = self.registry.portFromRepresentation('String', portRepr, 
-                                                     PortEndPoint.Source)
-            msg = "Expected to fail - passed an incompatible spec " \
-                "representation"
-            self.fail(msg)
-        except VistrailsInternalError:
-            pass
-        
 
     def test_registry_port_subtype(self):
         """Test registry isPortSubType"""
-        descriptor = self.registry.getDescriptorByName('String')
-        ports = self.registry.sourcePortsFromDescriptor(descriptor)
-        assert self.registry.isPortSubType(ports[0], ports[0])
+        descriptor = self.registry.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
+                                                          'String')
+        ports = self.registry.source_ports_from_descriptor(descriptor)
+        assert self.registry.is_port_sub_type(ports[0], ports[0])
 
     def test_registry_ports_can_connect(self):
         """Test registry isPortSubType"""
-        descriptor = self.registry.getDescriptorByName('String')
-        oport = self.registry.sourcePortsFromDescriptor(descriptor)[0]
-        iport = self.registry.destinationPortsFromDescriptor(descriptor)[0]
-        assert self.registry.portsCanConnect(oport, iport)
-
-    # TODO: Exercise obvious bug on line 80.
+        descriptor = self.registry.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
+                                                          'String')
+        oport = self.registry.source_ports_from_descriptor(descriptor)[0]
+        iport = self.registry.destination_ports_from_descriptor(descriptor)[0]
+        assert self.registry.ports_can_connect(oport, iport)
 
 
 if __name__ == '__main__':

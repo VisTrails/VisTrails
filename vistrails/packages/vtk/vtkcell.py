@@ -33,6 +33,7 @@ from packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
 from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 import vtkcell_rc
 import gc
+from gui.qt import qt_super
 
 ################################################################################
 
@@ -297,7 +298,10 @@ class QVTKWidget(QCellWidget):
             if e.isAccepted():
                 return e.isAccepted()
 
-        return QtGui.QWidget.event(self,e)
+        return qt_super(QVTKWidget, self).event(e)
+        
+        # return QtGui.QWidget.event(self,e)
+        # Was this right? Wasn't this supposed to be QCellWidget.event()?
 
     def resizeWindow(self, width, height):
         """ resizeWindow(width: int, height: int) -> None
@@ -327,7 +331,7 @@ class QVTKWidget(QCellWidget):
         Re-adjust the vtkRenderWindow size then QVTKWidget resized
         
         """
-        QCellWidget.resizeEvent(self, e)
+        qt_super(QVTKWidget, self).resizeEvent(e)
 
         if not self.mRenWin:
             return
@@ -340,7 +344,7 @@ class QVTKWidget(QCellWidget):
         Echo the move event into vtkRenderWindow
         
         """
-        QtGui.QWidget.moveEvent(self,e)
+        qt_super(QVTKWidget, self).moveEvent(e)
         if not self.mRenWin:
             return
 
@@ -809,7 +813,7 @@ class QVTKWidget(QCellWidget):
     def charEvent(self, istyle, name):
         """ charEvent(istyle: vtkInteractorStyle, name: str) -> None
         Make sure key presses also sync across selected renderers
-        
+
         """
         sheet = self.findSheetTabWidget()
         if sheet:
@@ -817,14 +821,13 @@ class QVTKWidget(QCellWidget):
             keyCode = iren.GetKeyCode()
             if keyCode in ['w','W','s','S','r','R']:
                 cells = sheet.getSelectedLocations()                
-                if (ren in self.getRenderersInCellList(sheet, cells)):
-                    for (row, col) in cells:
-                        cell = sheet.getCell(row, col)
-                        if hasattr(cell, 'GetInteractor'):
-                            selectedIren = cell.GetInteractor()
-                            selectedIren.SetKeyCode(keyCode)
-                            selectedIren.GetInteractorStyle().OnChar()
-                            selectedIren.Render()
+                for (row, col) in cells:
+                    cell = sheet.getCell(row, col)
+                    if hasattr(cell, 'GetInteractor'):
+                        selectedIren = cell.GetInteractor()
+                        selectedIren.SetKeyCode(keyCode)
+                        selectedIren.GetInteractorStyle().OnChar()
+                        selectedIren.Render()
             istyle.OnChar()
 
     def saveToPNG(self, filename):
@@ -931,11 +934,13 @@ def registerSelf():
     """ registerSelf() -> None
     Registry module with the registry
     """
-    registry.addModule(VTKCell)
-    registry.addInputPort(VTKCell, "Location", CellLocation)
-    registry.addInputPort(VTKCell, "AddRenderer",
-                 registry.getDescriptorByName('vtkRenderer').module)
-    vIH = registry.getDescriptorByName('vtkInteractionHandler').module
-    registry.addInputPort(VTKCell, "InteractionHandler", vIH)
-    vIS = registry.getDescriptorByName('vtkInteractorStyle').module
-    registry.addInputPort(VTKCell, "InteractorStyle", vIS)
+    identifier = 'edu.utah.sci.vistrails.vtk'
+    registry.add_module(VTKCell)
+    registry.add_input_port(VTKCell, "Location", CellLocation)
+    [vR, vIH, vIS] = [registry.get_descriptor_by_name(identifier, name).module
+                      for name in ['vtkRenderer',
+                                   'vtkInteractionHandler',
+                                   'vtkInteractorStyle']]
+    registry.add_input_port(VTKCell, "AddRenderer", vR)
+    registry.add_input_port(VTKCell, "InteractionHandler", vIH)
+    registry.add_input_port(VTKCell, "InteractorStyle", vIS)

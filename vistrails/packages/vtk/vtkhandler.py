@@ -296,10 +296,12 @@ def registerSelf():
     """ registerSelf() -> None
     Registry module with the registry
     """
-    vIO = registry.getDescriptorByName('vtkInteractorObserver').module
-    registry.addModule(vtkInteractionHandler, configureWidgetType=HandlerConfigurationWidget)
-    registry.addInputPort(vtkInteractionHandler, 'Observer', vIO)
-    registry.addInputPort(vtkInteractionHandler, 'Handler', String, True)
-    registry.addInputPort(vtkInteractionHandler, 'SharedData', Module)
-    registry.addOutputPort(vtkInteractionHandler, 'self',
-                           vtkInteractionHandler)
+    vIO = registry.get_descriptor_by_name(
+        'edu.utah.sci.vistrails.vtk',
+        'vtkInteractorObserver').module
+    registry.add_module(vtkInteractionHandler, configureWidgetType=HandlerConfigurationWidget)
+    registry.add_input_port(vtkInteractionHandler, 'Observer', vIO)
+    registry.add_input_port(vtkInteractionHandler, 'Handler', String, True)
+    registry.add_input_port(vtkInteractionHandler, 'SharedData', Module)
+    registry.add_output_port(vtkInteractionHandler, 'self',
+                             vtkInteractionHandler)

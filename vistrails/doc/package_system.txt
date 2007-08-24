@@ -1,3 +1,11 @@
+on port specs, a name is now of the form
+
+package_identifier:module_name
+
+this means that ":" is no longer allowed on module names.
+
+--------------------------------------------------------------------------------
+
 A package has three "names" associated with it:
 
 - A human-readable name, which is given by the package creator, and is

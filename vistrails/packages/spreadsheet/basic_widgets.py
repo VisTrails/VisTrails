@@ -47,29 +47,29 @@ def registerWidget(reg, basicModules, basicWidgets):
     Register widgets with VisTrails registry
     
     """
-    reg.addModule(SheetReference)
-    reg.addInputPort(SheetReference, "MinRowCount", basicModules.Integer, True)
-    reg.addInputPort(SheetReference, "MinColumnCount",
-                     basicModules.Integer, True)
-    reg.addInputPort(SheetReference, "SheetName", basicModules.String, True)
-    reg.addOutputPort(SheetReference, "self", SheetReference)
+    reg.add_module(SheetReference)
+    reg.add_input_port(SheetReference, "MinRowCount", basicModules.Integer, True)
+    reg.add_input_port(SheetReference, "MinColumnCount",
+                       basicModules.Integer, True)
+    reg.add_input_port(SheetReference, "SheetName", basicModules.String, True)
+    reg.add_output_port(SheetReference, "self", SheetReference)
      
-    reg.addModule(CellLocation)
-    reg.addInputPort(CellLocation, "ColumnRowAddress",
-                     basicModules.String, True)
-    reg.addInputPort(CellLocation, "Row", basicModules.Integer, True)
-    reg.addInputPort(CellLocation, "Column", basicModules.Integer, True)
-    reg.addInputPort(CellLocation, "SheetReference", SheetReference)
-    reg.addOutputPort(CellLocation, "self", CellLocation)
+    reg.add_module(CellLocation)
+    reg.add_input_port(CellLocation, "ColumnRowAddress",
+                       basicModules.String, True)
+    reg.add_input_port(CellLocation, "Row", basicModules.Integer, True)
+    reg.add_input_port(CellLocation, "Column", basicModules.Integer, True)
+    reg.add_input_port(CellLocation, "SheetReference", SheetReference)
+    reg.add_output_port(CellLocation, "self", CellLocation)
 
-    reg.addModule(SpreadsheetCell)
-    reg.addInputPort(SpreadsheetCell, "Location", CellLocation)
+    reg.add_module(SpreadsheetCell)
+    reg.add_input_port(SpreadsheetCell, "Location", CellLocation)
 
-    reg.addModule(SingleCellSheetReference)
-    reg.addInputPort(SingleCellSheetReference, "SheetName",
-                     basicModules.String, True)
-    reg.addOutputPort(SingleCellSheetReference, "self",
-                      SingleCellSheetReference)
+    reg.add_module(SingleCellSheetReference)
+    reg.add_input_port(SingleCellSheetReference, "SheetName",
+                       basicModules.String, True)
+    reg.add_output_port(SingleCellSheetReference, "self",
+                        SingleCellSheetReference)
      
 class SheetReference(Module):
     """

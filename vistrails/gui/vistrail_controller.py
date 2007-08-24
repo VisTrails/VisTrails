@@ -44,7 +44,8 @@ from core.vistrail.vistrail import TagExists
 from core.interpreter.default import get_default_interpreter
 from core.inspector import PipelineInspector
 from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
-from core.modules.sub_module import addSubModule, DupplicateSubModule
+# Broken right now
+# from core.modules.sub_module import addSubModule, DupplicateSubModule
 import core.analogy
 import db.services.io
 import copy
@@ -122,8 +123,8 @@ class VistrailController(QtCore.QObject):
                 self.invalidate_version_tree()
         return action.db_id
 
-    def addModule(self, name, x, y):
-        """ addModule(name: str, x: int, y: int) -> version id
+    def add_module(self, identifier, name, x, y):
+        """ addModule(identifier, name: str, x: int, y: int) -> version id
         Add a new module into the current pipeline
         
         """
@@ -137,7 +138,8 @@ class VistrailController(QtCore.QObject):
                                 )
             module_id = self.vistrail.idScope.getNewId(Module.vtType)
             module = Module(id=module_id,
-                            name=name, 
+                            name=name,
+                            package=identifier,
                             location=location,
                             )
             action = db.services.action.create_action([('add', module)])
@@ -213,13 +215,12 @@ class VistrailController(QtCore.QObject):
         self.vistrail.add_action(action, self.currentVersion)        
         return self.perform_action(action)
             
-    def addConnection(self, connection):
-        """ addConnection(connection: Connection) -> version id
+    def add_connection(self, connection):
+        """ add_connection(connection: Connection) -> version id
         Add a new connection 'connection' into Vistrail
         
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
-
         conn_id = self.vistrail.idScope.getNewId(Connection.vtType)
         connection.id = conn_id
         for port in connection.ports:
@@ -503,6 +504,7 @@ class VistrailController(QtCore.QObject):
         self.currentVersion = newVersion
         if newVersion>=0:
             self.currentPipeline = self.vistrail.getPipeline(newVersion)
+            self.currentPipeline.ensure_connection_specs()
         else:
             self.currentPipeline = None
         self.emit(QtCore.SIGNAL('versionWasChanged'), newVersion)

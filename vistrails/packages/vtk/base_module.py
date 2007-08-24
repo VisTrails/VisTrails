@@ -55,9 +55,18 @@ class vtkBaseModule(Module):
         Calls the input function on the vtkInstance, or a special
         input function if one exists in the class."""
         if hasattr(self, '_special_input_function_' + function):
-            getattr(self, '_special_input_function_' + function)(*params)
+            attr = getattr(self, '_special_input_function_' + function)
         else:
-            getattr(self.vtkInstance, function)(*params)
+            try:
+                attr = getattr(self.vtkInstance, function)
+            except AttributeError:
+                # Compensates for overload by exploiting the fact that
+                # no VTK method has underscores.
+                f = function.find('_')
+                if f != -1:
+                    function = function[:f]
+                attr = getattr(self.vtkInstance, function)
+        attr(*params)
 
     def compute(self):
         """ compute() -> None
@@ -79,7 +88,9 @@ class vtkBaseModule(Module):
                                  paramList)
                 function = 'SetInputConnection'
             if function=='AddInputConnection':
-                desc = registry.getDescriptorByName('vtkAlgorithmOutput')
+                desc = registry.get_descriptor_by_name(
+                    'edu.utah.sci.vistrails.vtk',
+                    'vtkAlgorithmOutput')
                 for i in range(len(paramList)):
                     if type(paramList[i])==desc.module:
                         paramList[i] = (0, paramList[i])
@@ -93,7 +104,6 @@ class vtkBaseModule(Module):
                         param[i] = param[i].vtkInstance
                 try:
                     self.call_input_function(function, param)
-#                     getattr(self.vtkInstance, function)(*param)
                 except:
                     print "Cannot execute", function, param
 
@@ -128,6 +138,8 @@ class vtkBaseModule(Module):
         Create a wrapper module in VisTrails with a vtk instance
         
         """
-        result = registry.getDescriptorByName(classname).module()
+        result = registry.get_descriptor_by_name(
+            'edu.utah.sci.vistrails.vtk',
+            classname).module()
         result.vtkInstance = instance
         return result

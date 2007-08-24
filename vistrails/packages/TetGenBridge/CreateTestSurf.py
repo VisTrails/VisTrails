@@ -96,7 +96,7 @@ class CreateTestSurf(Module):
         self.setResult("tgio out", out)
 
 def initialize(reg):
-    reg.addModule(CreateTestSurf)
-    reg.addOutputPort(CreateTestSurf, "tgio out",
+    reg.add_module(CreateTestSurf)
+    reg.add_output_port(CreateTestSurf, "tgio out",
                       (packages.TetGenBridge.tetgenio_wrapper,
                        'output test surface'))

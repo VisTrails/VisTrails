@@ -59,6 +59,7 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
 
         """
         moduleName = descriptor.name
+        identifier = descriptor.identifier
 
         items = [x
                  for x in
@@ -72,7 +73,7 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
 
         parent = item.parent()
         parent.takeChild(parent.indexOfChild(item))
-        del self.treeWidget._item_map[moduleName]
+        del self.treeWidget._item_map[(identifier, moduleName)]
 
     def deletedPackage(self, package):
         """ deletedPackage(package):
@@ -95,7 +96,7 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         
         """
         moduleName = descriptor.name
-        identifier = registry.get_module_package(moduleName)
+        identifier = descriptor.identifier
         pm = get_package_manager()
         packageName = pm.get_package_by_identifier(identifier).name
 
@@ -114,23 +115,27 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
             parentItem = packageItems[0]
 
         # Determines where to attach the new item
-        direct_parent = registry.getModuleHierarchy(moduleName)[1]
-        parent_descriptor = registry.getDescriptor(direct_parent)
+        direct_parent = registry.get_module_hierarchy(descriptor)[1]
+        parent_descriptor = registry.get_descriptor(direct_parent)
 
         # if module package is different, attach to toplevel of this package.
 
-        if parent_descriptor.module_package() == packageName:
+        if parent_descriptor.module_package() == identifier:
             # if module package is the same, then find the parent in this package
 
             # filtering is necessary for cases where module name is
             # the same as top-level
-            parentItem = self.treeWidget._item_map[parent_descriptor.name]()
-        
-        desc = registry.getDescriptorByName(moduleName)
-        item = QModuleTreeWidgetItem(desc,
+            
+            # _item_map stores weakrefs, and we dereference them by __call__ing it.
+            parentItem = self.treeWidget._item_map[
+                (parent_descriptor.identifier,
+                 parent_descriptor.name)]()
+
+        item = QModuleTreeWidgetItem(descriptor,
                                      parentItem,
                                      QtCore.QStringList(moduleName))
-        self.treeWidget._item_map[desc.name] = weakref.ref(item)
+        self.treeWidget._item_map[(descriptor.identifier,
+                                   descriptor.name)] = weakref.ref(item)
 
 class QModuleTreeWidget(QSearchTreeWidget):
     """
@@ -189,21 +194,22 @@ class QModuleTreeWidget(QSearchTreeWidget):
             moduleItem = QModuleTreeWidgetItem(module.descriptor,
                                                parentItem,
                                                labels)
-            self._item_map[module.descriptor.name] = weakref.ref(moduleItem)
+            self._item_map[(module.descriptor.identifier,
+                            module.descriptor.name)] = weakref.ref(moduleItem)
             parentItems[packageName] = moduleItem
             for child in module.children:
                 createModuleItem(child)
             parentItems[packageName] = parentItem
 
         pm = get_package_manager()
-        for packageName in registry.packageModules.iterkeys():
+        for packageName in registry.package_modules.iterkeys():
             name = pm.get_package_by_identifier(packageName).name
             item = QModuleTreeWidgetItem(None,
                                          self,
                                          QtCore.QStringList(name))
             item.setFlags(item.flags() & ~QtCore.Qt.ItemIsDragEnabled)
             parentItems[packageName] = item
-        module = registry.classTree
+        module = registry.class_tree()
         createModuleItem(module)
         self.expandAll()
 

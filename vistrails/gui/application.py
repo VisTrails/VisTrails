@@ -143,11 +143,11 @@ after self.init()"""
         
         """
         self.builderWindow.modulePalette.treeWidget.updateFromModuleRegistry()
-        registry.connect(registry, registry.newModuleSignal, 
+        registry.connect(registry, registry.new_module_signal, 
                          self.builderWindow.modulePalette.newModule)
-        registry.connect(registry, registry.deletedModuleSignal, 
+        registry.connect(registry, registry.deleted_module_signal,
                          self.builderWindow.modulePalette.deletedModule)
-        registry.connect(registry, registry.deletedPackageSignal, 
+        registry.connect(registry, registry.deleted_package_signal, 
                          self.builderWindow.modulePalette.deletedPackage)
         if self.configuration.check('showSplash'):
             self.splashScreen.finish(self.builderWindow)

@@ -136,11 +136,11 @@ def initialize(*args, **keywords):
     reg = core.modules.module_registry
     basic = core.modules.basic_modules
 
-    reg.addModule(HTTP)
-    reg.addModule(HTTPFile)
-    reg.addInputPort(HTTPFile, "url", (basic.String, 'URL'))
-    reg.addOutputPort(HTTPFile, "file", (basic.File, 'local File object'))
-    reg.addOutputPort(HTTPFile, "local_filename", (basic.String, 'local filename'), optional=True)
+    reg.add_module(HTTP)
+    reg.add_module(HTTPFile)
+    reg.add_input_port(HTTPFile, "url", (basic.String, 'URL'))
+    reg.add_output_port(HTTPFile, "file", (basic.File, 'local File object'))
+    reg.add_output_port(HTTPFile, "local_filename", (basic.String, 'local filename'), optional=True)
 
     global package_directory
     package_directory = core.system.default_dot_vistrails() + "/HTTP"
@@ -192,7 +192,8 @@ class TestHTTPFile(unittest.TestCase):
         m_function = ModuleFunction(name='url',
                                     parameters=[m_param],
                                     )
-        p.addModule(Module(name='HTTPFile', 
+        p.addModule(Module(name='HTTPFile',
+                           package=identifier,
                            id=0,
                            functions=[m_function],
                            ))
@@ -213,6 +214,7 @@ class TestHTTPFile(unittest.TestCase):
                                     parameters=[m_param],
                                     )
         p.addModule(Module(name='HTTPFile', 
+                           package=identifier,
                            id=0,
                            functions=[m_function],
                            ))

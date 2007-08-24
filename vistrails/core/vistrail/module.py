@@ -52,7 +52,7 @@ class Module(DBModule):
     # Constructor and copy
 
     def __init__(self, *args, **kwargs):
-	DBModule.__init__(self, *args, **kwargs)
+        DBModule.__init__(self, *args, **kwargs)
         if self.cache is None:
             self.cache = 1
         if self.id is None:
@@ -61,6 +61,10 @@ class Module(DBModule):
             self.location = Location(x=-1.0, y=-1.0)
         if self.name is None:
             self.name = ''
+        if self.package is None:
+            self.package = ''
+        if self.version is None:
+            self.version = ''
 #        self.name = name
 #        self.id = id
 #        self.cache = 1
@@ -197,8 +201,8 @@ class Module(DBModule):
         self.db_delete_function(function)
 
     def summon(self):
-        getDescriptorByName = registry.getDescriptorByName
-        result = getDescriptorByName(self.name).module()
+        get = registry.get_descriptor_by_name
+        result = get(self.package, self.name).module()
         if self.cache != 1:
             result.is_cacheable = lambda *args: False
         if hasattr(result, 'srcPortsOrder'):
@@ -230,13 +234,16 @@ class Module(DBModule):
 
         """
         ports = []
-        thing = registry.getDescriptorByName(self.name).module
-        for (n, registry_ports) in registry.sourcePorts(thing):
-            ports.extend([copy.copy(x) for x in registry_ports])
+        descriptor = registry.get_descriptor_by_name(self.package,
+                                                     self.name)
+        def add_ports(reg):
+            for (n, registry_ports) in reg.all_source_ports(descriptor):
+                ports.extend([copy.copy(x) for x in registry_ports])
+
+        add_ports(registry)
         ports = self.uniqueSortedPorts(ports)
         if self.registry:
-            for (n, registry_ports) in self.registry.sourcePorts(thing):
-                ports.extend([copy.copy(x) for x in registry_ports])
+            add_ports(self.registry)
         for p in ports:
             p.id = self.id
         return ports
@@ -247,14 +254,16 @@ class Module(DBModule):
 
         """
         ports = []
-        thing = registry.getDescriptorByName(self.name).module
-        for (n, registry_ports) in registry.destinationPorts(thing):
-            ports.extend([copy.copy(x) for x in registry_ports])
+        descriptor = registry.get_descriptor_by_name(self.package,
+                                                     self.name)
+        def add_ports(reg):
+            for (n, registry_ports) in reg.all_destination_ports(descriptor):
+                ports.extend([copy.copy(x) for x in registry_ports])
 
+        add_ports(registry)
         ports = self.uniqueSortedPorts(ports)
         if self.registry:
-            for (n, registry_ports) in self.registry.destinationPorts(thing):
-                ports.extend([copy.copy(x) for x in registry_ports])
+            add_ports(self.registry)
         for p in ports:
             p.id = self.id
         return ports
@@ -364,9 +373,12 @@ class TestModule(unittest.TestCase):
         
         x = Module()
         x.name = "String"
+        x.package = 'edu.utah.sci.vistrails.basic'
         try:
             c = x.summon()
-            assert type(c) == registry.getDescriptorByName("String").module
+            m = registry.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
+                                                'String').module
+            assert type(c) == m
         except NoSummon:
             msg = "Expected to get a String object, got a NoSummon exception"
             self.fail(msg)

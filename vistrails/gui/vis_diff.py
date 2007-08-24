@@ -453,7 +453,9 @@ class QVisualDiff(QtGui.QMainWindow):
 
         # Interprete the diff result
         (p1, p2, v1Andv2, v1Only, v2Only, paramChanged) = self.diff
-
+        p1.ensure_connection_specs()
+        p2.ensure_connection_specs()
+        
         scene = self.pipelineView.scene()
         scene.clearItems()
 

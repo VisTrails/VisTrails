@@ -72,17 +72,17 @@ class TestOptionalPorts(Module):
 
 def initialize():
     reg = core.modules.module_registry
-    reg.addModule(TestTupleExecution)
-    reg.addInputPort(TestTupleExecution, 'input', [Float, Float])
-    reg.addOutputPort(TestTupleExecution, 'output', (Float, 'output'))
-    reg.addModule(TestDynamicModuleError)
-    reg.addModule(TestChangeVistrail)
-    reg.addInputPort(TestChangeVistrail, 'foo', Integer)
+    reg.add_module(TestTupleExecution)
+    reg.add_input_port(TestTupleExecution, 'input', [Float, Float])
+    reg.add_output_port(TestTupleExecution, 'output', (Float, 'output'))
+    reg.add_module(TestDynamicModuleError)
+    reg.add_module(TestChangeVistrail)
+    reg.add_input_port(TestChangeVistrail, 'foo', Integer)
 
-    reg.addModule(TestCustomNamed, name='different name')
-    reg.addInputPort(TestCustomNamed, 'input', Float)
+    reg.add_module(TestCustomNamed, name='different name')
+    reg.add_input_port(TestCustomNamed, 'input', Float)
 
-    reg.addModule(TestOptionalPorts)
-    reg.addInputPort(TestOptionalPorts, 'foo', Float, optional=True)
-    reg.addOutputPort(TestOptionalPorts, 'foo', Float, optional=True)
+    reg.add_module(TestOptionalPorts)
+    reg.add_input_port(TestOptionalPorts, 'foo', Float, optional=True)
+    reg.add_output_port(TestOptionalPorts, 'foo', Float, optional=True)
 
