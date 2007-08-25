@@ -44,6 +44,7 @@ from class_tree import ClassTree
 from vtk_parser import VTKMethodParser
 import re
 import os.path
+from itertools import izip
 
 version = '0.9.0'
 identifier = 'edu.utah.sci.vistrails.vtk'
@@ -101,7 +102,7 @@ def get_method_signature(method):
 
     # Remove all the C++ function signatures and V.<method_name> field
     offset = 2+len(method.__name__)
-    for i in range(len(tmp)):
+    for i in xrange(len(tmp)):
         s = tmp[i]
         if s=='': break
         if i%2==0:
@@ -195,9 +196,9 @@ def prune_signatures(module, name, signatures):
     # version, it is pruned.
     
     signatures[:] = [original for (flattened, hit_count, original)
-                     in zip(flattened_entries,
-                            hits,
-                            signatures)
+                     in izip(flattened_entries,
+                             hits,
+                             signatures)
                      if ((not forbidden(flattened, hit_count, original)) and
                          (hit_count == 1 or # "There's no overloading" or
                           (original[1] is None) or
@@ -286,7 +287,7 @@ def addSetGetPorts(module, get_set_dict):
         setterMethod = getattr(module.vtkClass, 'Set%s'%name)
         getterSig = get_method_signature(getterMethod)
         setterSig = get_method_signature(setterMethod)
-        for getter, order in zip(getterSig, range(1, len(getterSig)+1)):
+        for getter, order in izip(getterSig, xrange(1, len(getterSig)+1)):
             if getter[1]:
                 log("Can't handle getter %s (%s) of class %s: Needs input to "
                     "get output" % (order, name, module.vtkClass))
@@ -300,7 +301,7 @@ def addSetGetPorts(module, get_set_dict):
                 add_output_port(module, 'Get'+name, class_, True)
         if len(setterSig) > 1:
             prune_signatures(module, 'Set%s'%name, setterSig)
-        for setter, order in zip(setterSig, range(1, len(setterSig)+1)):
+        for setter, order in izip(setterSig, xrange(1, len(setterSig)+1)):
             if len(setterSig) == 1:
                 n = 'Set' + name
             else:
@@ -700,8 +701,8 @@ class TestVTKPackage(unittest.TestCase):
                              '/tests/resources/vtkfiles/vtk_quadric_writer_test.vtk')
 
         def compare():
-            for (l1, l2) in zip(file(result_filename, 'r'),
-                                file(template_filename, 'r')):
+            for (l1, l2) in izip(file(result_filename, 'r'),
+                                 file(template_filename, 'r')):
                 if l1 != l2:
                     self.fail("Resulting file doesn't match template")
             

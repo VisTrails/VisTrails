@@ -312,7 +312,7 @@ class ColorManipulator(object):
         
         """
         result = []
-        for i in range(len(color)):
+        for i in xrange(len(color)):
             if i<3:
                 result.append(color[i]*ratio)
             else:

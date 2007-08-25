@@ -179,7 +179,7 @@ def any(bool_list, pred = lambda x: x):
 def with_index(lst):
     """with_index(list) -> [(index, element)] - Returns a list with
     elements and their indices. Useful for iterating through the list."""
-    return zip(range(len(lst)), lst)
+    return zip(xrange(len(lst)), lst)
 
 def iter_with_index(iterable):
     """iter_with_index(iterable) -> iterable - Iterator version
@@ -216,7 +216,7 @@ def uniq(l):
     a.sort()
     l1 = a[:-1] 
     l2 = a[1:]
-    return [a[0]] + [next for (i, next) in zip(l1, l2) if i != next]
+    return [a[0]] + [next for (i, next) in itertools.izip(l1, l2) if i != next]
 
 class InstanceObject(object):
     """InstanceObject is a convenience class created to facilitate

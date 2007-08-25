@@ -128,7 +128,7 @@ class VisualQuery(query.Query):
         if target.getNumFunctions()>template.getNumFunctions():
             return False
         candidateFunctions = {}
-        for fid in range(template.getNumFunctions()):
+        for fid in xrange(template.getNumFunctions()):
             f = template.functions[fid]
             append_to_dict_of_lists(candidateFunctions, f.name, f)
 
@@ -141,7 +141,7 @@ class VisualQuery(query.Query):
                 if len(cf.params)!=len(f.params):
                     continue
                 pMatch = True
-                for pid in range(len(cf.params)):
+                for pid in xrange(len(cf.params)):
                     cp = cf.params[pid]
                     p = f.params[pid]                    
                     if not self.matchQueryParam(p, cp):

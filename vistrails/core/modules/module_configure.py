@@ -97,13 +97,13 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
         label.font().setPointSize(12)
         self.listContainer.layout().addWidget(label, 0, 1)
 
-        for i in range(len(self.inputPorts)):
+        for i in xrange(len(self.inputPorts)):
             port = self.inputPorts[i]
             checkBox = self.checkBoxFromPort(port, True)
             self.inputDict[port.name] = checkBox
             self.listContainer.layout().addWidget(checkBox, i+1, 0)
         
-        for i in range(len(self.outputPorts)):
+        for i in xrange(len(self.outputPorts)):
             port = self.outputPorts[i]
             checkBox = self.checkBoxFromPort(port)
             self.outputDict[port.name] = checkBox
@@ -339,7 +339,7 @@ class PythonSourceConfigurationWidget(StandardModuleConfigurationWidget):
 
     def findSourceFunction(self):
         fid = -1
-        for i in range(self.module.getNumFunctions()):
+        for i in xrange(self.module.getNumFunctions()):
             if self.module.functions[i].name=='source':
                 fid = i
                 break
@@ -391,13 +391,13 @@ class PythonSourceConfigurationWidget(StandardModuleConfigurationWidget):
 
     def newInputOutputPorts(self):
         ports = []
-        for i in range(self.inputPortTable.rowCount()):
+        for i in xrange(self.inputPortTable.rowCount()):
             model = self.inputPortTable.model()
             name = str(model.data(model.index(i, 0), QtCore.Qt.DisplayRole).toString())
             typeName = str(model.data(model.index(i, 1), QtCore.Qt.DisplayRole).toString())
             if name!='' and typeName!='':
                 ports.append(('input', name, '('+typeName+')'))
-        for i in range(self.outputPortTable.rowCount()):
+        for i in xrange(self.outputPortTable.rowCount()):
             model = self.outputPortTable.model()
             name = str(model.data(model.index(i, 0), QtCore.Qt.DisplayRole).toString())
             typeName = str(model.data(model.index(i, 1), QtCore.Qt.DisplayRole).toString())

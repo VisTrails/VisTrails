@@ -652,7 +652,7 @@ class QPipelineInfo(QtGui.QFrame):
 
         self.edits = []
         texts = ['Vistrail', 'Index', 'Created by']
-        for i in range(len(texts)):
+        for i in xrange(len(texts)):
             label = QInfoLabel(texts[i])
             layout.addWidget(label, i, 0, 1, 1)
             edit = QInfoLineEdit()

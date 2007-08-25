@@ -374,7 +374,7 @@ class QVTKWidget(QCellWidget):
         epos = iren.GetEventPosition()
         rens = iren.GetRenderWindow().GetRenderers()
         rens.InitTraversal()
-        for i in range(rens.GetNumberOfItems()):
+        for i in xrange(rens.GetNumberOfItems()):
             ren = rens.GetNextItem()
             ren.SetInteractive(ren.IsInViewport(epos[0], epos[1]))
 
@@ -729,7 +729,7 @@ class QVTKWidget(QCellWidget):
         renWin = self.GetRenderWindow()
         renderers = renWin.GetRenderers()
         renderers.InitTraversal()
-        for i in range(renderers.GetNumberOfItems()):
+        for i in xrange(renderers.GetNumberOfItems()):
             result.append(renderers.GetNextItem())
         return result
 
@@ -743,7 +743,7 @@ class QVTKWidget(QCellWidget):
             epos[1] = -epos[1]
         rens = iren.GetRenderWindow().GetRenderers()
         rens.InitTraversal()
-        for i in range(rens.GetNumberOfItems()):
+        for i in xrange(rens.GetNumberOfItems()):
             ren = rens.GetNextItem()
             if ren.IsInViewport(epos[0], epos[1]):
                 return ren
@@ -880,7 +880,7 @@ class QVTKWidget(QCellWidget):
         ba = QtCore.QByteArray()
         buf = QtCore.QBuffer(ba)
         buf.open(QtCore.QIODevice.WriteOnly)
-        for i in range(uchar.GetNumberOfTuples()):
+        for i in xrange(uchar.GetNumberOfTuples()):
             c = uchar.GetValue(i)
             buf.putChar(chr(c))
         buf.close()

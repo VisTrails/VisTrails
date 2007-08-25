@@ -85,7 +85,7 @@ def webServiceParamsMethodDict(name, inparams, outparams):
     for setting the result. """
     def compute(self):
         v = [] #it will store the list of param values
-        for i in range(len(inparams)):
+        for i in xrange(len(inparams)):
             pname = str(inparams[i].name)
             type = str(inparams[i].type)
             v.append(self.getInputFromPort(pname))

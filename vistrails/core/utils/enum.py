@@ -22,6 +22,7 @@
 """enum helps create enumeration classes.
 
 """
+from itertools import izip
 
 def enum(className, enumValues, doc = None):
     """enum(className: str, enumValues: [str], doc = None) -> class.
@@ -80,7 +81,7 @@ def enum(className, enumValues, doc = None):
                     '__className': className,
                     '__eq__': __eq__,
                     '__doc__': doc})
-    for (v, x) in zip(enumValues, range(len(enumValues))):
+    for (v, x) in izip(enumValues, xrange(len(enumValues))):
         setattr(the_enum, v, the_enum(x))
     return the_enum
 

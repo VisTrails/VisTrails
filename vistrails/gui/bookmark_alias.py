@@ -158,7 +158,7 @@ class QAliasTable(QtGui.QTableWidget):
         return data
         
     def getItemRow(self, alias):
-        for i in range(self.rowCount()):
+        for i in xrange(self.rowCount()):
             item = self.item(i,0)
             if item:
                 if item.alias == alias:

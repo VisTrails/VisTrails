@@ -70,7 +70,7 @@ def group(lst, n):
     [(0, 1, 2), (3, 4, 5), (6, 7, 8)]
     
     """
-    return zip(*[lst[i::n] for i in range(n)]) 
+    return zip(*[lst[i::n] for i in xrange(n)]) 
 
 def remove_whilespace_nodes(node, unlink=False):
     """Removes all of the whitespace-only text decendants of a DOM node.

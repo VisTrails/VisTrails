@@ -404,7 +404,7 @@ class QViewManager(QtGui.QTabWidget):
         Set the picture-in-picture mode for all views
         
         """
-        for viewIndex in range(self.count()):
+        for viewIndex in xrange(self.count()):
             vistrailView = self.widget(viewIndex)
             vistrailView.setPIPMode(on)
 
@@ -413,7 +413,7 @@ class QViewManager(QtGui.QTabWidget):
         Turn the methods panel on/off for all views
         
         """
-        for viewIndex in range(self.count()):
+        for viewIndex in xrange(self.count()):
             vistrailView = self.widget(viewIndex)
             vistrailView.setMethodsMode(on)
 
@@ -423,7 +423,7 @@ class QViewManager(QtGui.QTabWidget):
         Turn the set methods panel on/off for all views
         
         """
-        for viewIndex in range(self.count()):
+        for viewIndex in xrange(self.count()):
             vistrailView = self.widget(viewIndex)
             vistrailView.setSetMethodsMode(on)
 
@@ -432,7 +432,7 @@ class QViewManager(QtGui.QTabWidget):
         Turn the properties panel on/off for all views
         
         """
-        for viewIndex in range(self.count()):
+        for viewIndex in xrange(self.count()):
             vistrailView = self.widget(viewIndex)
             vistrailView.setPropertiesMode(on)
 
@@ -460,7 +460,7 @@ class QViewManager(QtGui.QTabWidget):
         """ viewModeChanged(mode: Int) -> None
         
         """
-        for viewIndex in range(self.count()):            
+        for viewIndex in xrange(self.count()):            
             vistrailView = self.widget(viewIndex)
             vistrailView.viewModeChanged(mode)
     
@@ -468,7 +468,7 @@ class QViewManager(QtGui.QTabWidget):
         """ changeCursor(mode: Int) -> None
         
         """
-        for viewIndex in range(self.count()):            
+        for viewIndex in xrange(self.count()):            
             vistrailView = self.widget(viewIndex)
             vistrailView.updateCursorState(mode)            
         

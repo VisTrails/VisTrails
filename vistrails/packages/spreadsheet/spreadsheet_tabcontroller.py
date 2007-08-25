@@ -248,7 +248,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Remove references of a sheet from the spreadsheet
         """
         for (code, locations) in self.monitoredPipelines.iteritems():
-            for lid in reversed(range(len(locations))):
+            for lid in reversed(xrange(len(locations))):
                 if sheet==locations[lid][0]:
                     del locations[lid]                        
 
@@ -304,7 +304,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         if not sheetReference:
             return None
         sheetReference.clearCandidate()
-        for idx in range(len(self.tabWidgets)):
+        for idx in xrange(len(self.tabWidgets)):
             tabWidget = self.tabWidgets[idx]
             tabLabel = tabWidget.windowTitle()
             sheetReference.checkCandidate(tabWidget, tabLabel, idx,
@@ -409,7 +409,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         """
         if fs:
             idx = self.currentIndex()
-            for i in range(self.count()):
+            for i in xrange(self.count()):
                 widget = self.widget(0)
                 self.removeTab(0)
                 self.tabTrueParent = widget.parent()
@@ -419,7 +419,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.operatingWidget = stackedWidget
         else:
             idx = stackedWidget.currentIndex()
-            for i in range(stackedWidget.count()):
+            for i in xrange(stackedWidget.count()):
                 widget = stackedWidget.widget(0)
                 stackedWidget.removeWidget(widget)
                 widget.setParent(self.tabTrueParent)
@@ -458,7 +458,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.showPrevTabAction().setEnabled(en)
         menu.addAction(self.showPrevTabAction())
         menu.addSeparator()
-        for idx in range(self.operatingWidget.count()):
+        for idx in xrange(self.operatingWidget.count()):
             t = self.operatingWidget.widget(idx)
             action = menu.addAction(t.windowTitle())
             action.setData(QtCore.QVariant(idx))
@@ -563,8 +563,8 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                 indexFile.write('%s\n'%str((str(t.windowTitle()),
                                             sheet,
                                             dim[0], dim[1])))
-                for r in range(dim[0]):
-                    for c in range(dim[1]):
+                for r in xrange(dim[0]):
+                    for c in xrange(dim[1]):
                         info = t.getCellPipelineInfo(r,c)
                         if info:
                             info = copy.copy(info)
@@ -614,7 +614,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         lines = contents.split('\n')
         tabCount = int(lines[lidx])
         lidx += 1
-        for tabIdx in range(tabCount):
+        for tabIdx in xrange(tabCount):
             tabInfo = eval(lines[lidx])
             lidx += 1
             sheet = spreadsheetRegistry.getSheet(tabInfo[1])(self)
@@ -635,7 +635,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                          QtCore.Qt.WindowStaysOnTopHint
                                          );
         progress.show()
-        for pipelineIdx in range(pipelineCount):
+        for pipelineIdx in xrange(pipelineCount):
             (vistrailFileName, version) = eval(lines[lidx])
             locator = XMLFileLocator(vistrailFileName)
             vistrail = locator.load()

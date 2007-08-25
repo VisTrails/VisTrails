@@ -134,7 +134,7 @@ class QParameterExplorationTable(QPromptWidget):
                          self.updateUserDefinedFunctions)
         vLayout.addWidget(self.label)
 
-        for i in range(2):
+        for i in xrange(2):
             hBar = QtGui.QFrame()
             hBar.setFrameStyle(QtGui.QFrame.HLine | QtGui.QFrame.Sunken)
             vLayout.addWidget(hBar)
@@ -148,7 +148,7 @@ class QParameterExplorationTable(QPromptWidget):
         """
         # Check to see paramInfo is not a subset of some other parameter set
         params = paramInfo[1]
-        for i in range(self.layout().count()):
+        for i in xrange(self.layout().count()):
             pEditor = self.layout().itemAt(i).widget()
             if pEditor and type(pEditor)==QParameterSetEditor:
                 subset = True
@@ -165,8 +165,8 @@ class QParameterExplorationTable(QPromptWidget):
         newEditor = QParameterSetEditor(paramInfo, self)
 
         # Make sure to disable all duplicated parameter
-        for p in range(len(params)):
-            for i in range(self.layout().count()):
+        for p in xrange(len(params)):
+            for i in xrange(self.layout().count()):
                 pEditor = self.layout().itemAt(i).widget()
                 if pEditor and type(pEditor)==QParameterSetEditor:
                     if params[p] in pEditor.info[1]:
@@ -188,10 +188,10 @@ class QParameterExplorationTable(QPromptWidget):
         """
         self.layout().removeWidget(ps)
         # Restore disabled parameter
-        for i in range(self.layout().count()):
+        for i in xrange(self.layout().count()):
             pEditor = self.layout().itemAt(i).widget()
             if pEditor and type(pEditor)==QParameterSetEditor:
-                for p in range(len(pEditor.info[1])):
+                for p in xrange(len(pEditor.info[1])):
                     param = pEditor.info[1][p]
                     widget = pEditor.paramWidgets[p]                    
                     if (param in ps.info[1] and (not widget.isEnabled())):
@@ -209,7 +209,7 @@ class QParameterExplorationTable(QPromptWidget):
         """
         # Go through all possible parameter widgets
         counts = self.label.getCounts()
-        for i in range(self.layout().count()):
+        for i in xrange(self.layout().count()):
             pEditor = self.layout().itemAt(i).widget()
             if pEditor and type(pEditor)==QParameterSetEditor:
                 for paramWidget in pEditor.paramWidgets:
@@ -252,7 +252,7 @@ class QParameterExplorationTable(QPromptWidget):
         parameterValues = [[], [], [], []]
         typeCast = {'Integer': int, 'Float': float, 'String': str}
         counts = self.label.getCounts()
-        for i in range(self.layout().count()):
+        for i in xrange(self.layout().count()):
             pEditor = self.layout().itemAt(i).widget()
             if pEditor and type(pEditor)==QParameterSetEditor:
                 for paramWidget in pEditor.paramWidgets:
@@ -306,6 +306,7 @@ class QParameterExplorationTable(QPromptWidget):
                                            function.vtType, function.real_id)
                             action = \
                                 db.services.action.create_action([action_spec])
+                            # FIXME: this should go to dbservices
                             Action.convert(action)
                             actions.append(action)
 #                             action = ChangeParameterAction()
@@ -385,6 +386,7 @@ class QDimensionSpinBox(QtGui.QSpinBox):
         
         """
         QtGui.QSpinBox.mouseReleaseEvent(self, event)
+        # super(QDimensionSpinBox, self).mouseReleaseEvent(event)
         self.emit(QtCore.SIGNAL("editingFinished()"))
 
 class QDimensionLabelIcon(QtGui.QWidget):
@@ -604,7 +606,7 @@ class QParameterWidget(QtGui.QWidget):
         return -1
         
         """
-        for i in range(5):
+        for i in xrange(5):
             if self.selector.radioButtons[i].isChecked():
                 return i
         return -1
@@ -622,7 +624,7 @@ class QParameterWidget(QtGui.QWidget):
         Select a dimension for this parameter
         
         """
-        if dim in range(5):
+        if dim in xrange(5):
             self.selector.radioButtons[dim].setChecked(True)
 
     def setDuplicate(self, duplicate):
@@ -658,7 +660,7 @@ class QDimensionSelector(QtGui.QWidget):
         self.setLayout(hLayout)
 
         self.radioButtons = []
-        for i in range(5):
+        for i in xrange(5):
             hLayout.addSpacing(2)
             button = QDimensionRadioButton()
             self.radioButtons.append(button)
@@ -822,7 +824,7 @@ class LinearInterpolator(object):
         if size<=1:
             return [begin]
         result = [cast(begin + (((end-begin)*i) / cast(size-1)))
-                  for i in range(size)]
+                  for i in xrange(size)]
         return result
 
 class QLinearInterpolationEditor(QtGui.QWidget):
@@ -984,7 +986,7 @@ class QListEditDialog(QtGui.QDialog):
         self.delegate = QListEditItemDelegate()
         self.table.setItemDelegate(self.delegate)
         self.table.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        for i in range(len(values)):
+        for i in xrange(len(values)):
             self.addRow(str(values[i]))
         self.connect(self.table.verticalHeader(),
                      QtCore.SIGNAL('sectionMoved(int,int,int)'),
@@ -1043,7 +1045,7 @@ class QListEditDialog(QtGui.QDialog):
         
         """
         result = []
-        for i in range(self.table.rowCount()):
+        for i in xrange(self.table.rowCount()):
             logicalIndex = self.table.verticalHeader().logicalIndex(i)
             value = self.table.item(logicalIndex, 0).text()            
             result.append(str(value))
@@ -1056,7 +1058,7 @@ class QListEditDialog(QtGui.QDialog):
         """
         vHeader = self.table.verticalHeader()
         labels = QtCore.QStringList()        
-        for i in range(self.table.rowCount()):
+        for i in xrange(self.table.rowCount()):
             labels << str(vHeader.visualIndex(i)+1)
         self.table.setVerticalHeaderLabels(labels)
 
@@ -1209,7 +1211,7 @@ class QUserFunctionEditor(QtGui.QFrame):
         firstError = True
         values = []
         pythonType = {'Integer': int, 'Float': float, 'String': str}
-        for i in range(self.size):
+        for i in xrange(self.size):
             v = self.defaultValue
             try:
                 exec(self.function + '\nv = value(%d)' % i)

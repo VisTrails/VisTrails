@@ -38,6 +38,7 @@ from core.vistrail.module_param import ModuleParam
 from core.utils import NoSummon, VistrailsInternalError
 from core.utils.uxml import named_elements
 import core.modules.module_registry
+from itertools import izip
 registry = core.modules.module_registry.registry
 
 ################################################################################
@@ -223,7 +224,7 @@ class Module(DBModule):
         ports.sort(lambda n1,n2: cmp(n1.sort_key,n2.sort_key))
         result = [ports[0]]
         names = [p.name for p in ports]
-        for i in range(1,len(names)):
+        for i in xrange(1,len(names)):
             if not ports[i].name in names[:i]:
                 result.append(ports[i])
         return result
@@ -291,7 +292,7 @@ class Module(DBModule):
             print "function length mismatch"
             print len(self.functions), len(other.functions)
         else:
-            for f, g in zip(self.functions, other.functions):
+            for f, g in izip(self.functions, other.functions):
                 if f != g:
                     print "function mismatch"
                     f.show_comparison(g)
@@ -328,7 +329,7 @@ class Module(DBModule):
             return False
         if len(self.functions) != len(other.functions):
             return False
-        for f, g in zip(self.functions, other.functions):
+        for f, g in izip(self.functions, other.functions):
             if f != g:
                 return False
         return True

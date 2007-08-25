@@ -232,7 +232,7 @@ class QMethodInputForm(QtGui.QGroupBox):
         methodBox = self.parent().parent().parent()
         if methodBox.controller:
             paramList = []
-            for i in range(len(self.lineEdits)):
+            for i in xrange(len(self.lineEdits)):
                 paramList.append((str(self.lineEdits[i].text()),
                                   self.function.params[i].type,
                                   str(self.labels[i].alias)))
@@ -262,7 +262,7 @@ class QMethodInputForm(QtGui.QGroupBox):
         self.function = function
         self.lineEdits = []
         self.labels = []
-        for pIndex in range(len(function.params)):
+        for pIndex in xrange(len(function.params)):
             p = function.params[pIndex]
             label = QHoverAliasLabel(p.alias, p.type)
             lineEdit = QPythonValueLineEdit(p.strValue, p.type, self)            
@@ -286,7 +286,7 @@ class QMethodInputForm(QtGui.QGroupBox):
             self.parent()._functions.remove(self)
             self.deleteLater()
             self.parent().showPromptByChildren()
-            for i in range(self.parent().layout().count()):
+            for i in xrange(self.parent().layout().count()):
                 self.parent().layout().itemAt(i).widget().fId = i
             methodBox.lockUpdate()
             if methodBox.controller:

@@ -204,7 +204,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                                           (frame.height()-rect.height())/2)
                 self.visApp.builderWindow.move(
                     frame.topLeft()+r.center()-frame.center())
-                for i in range(desktop.numScreens()):
+                for i in xrange(desktop.numScreens()):
                     if i!=builderScreen:
                         r = desktop.availableGeometry(i)
                         self.adjustSize()
@@ -351,8 +351,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         currentTab = self.tabController.currentWidget()
         if currentTab:
             (rCount, cCount) = currentTab.getDimension()
-            for r in range(rCount):
-                for c in range(cCount):
+            for r in xrange(rCount):
+                for c in xrange(cCount):
                     widget = currentTab.getCell(r, c)
                     if widget:
                         widget.repaint()

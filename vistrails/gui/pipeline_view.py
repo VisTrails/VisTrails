@@ -396,7 +396,7 @@ if __old_connection:
             rx = r.x()
             ry = r.y()
             points = []
-            for i in range(steps):
+            for i in xrange(steps):
                 t = float(i)/float(steps-1)
                 s = (0.5+math.sin(math.pi*(t-0.5))*0.5)
                 if horizontal:

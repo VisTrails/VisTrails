@@ -99,7 +99,7 @@ class QFunctionQueryForm(QMethodInputForm):
         self.function = function
         self.setTitle(function.name)
         gLayout = self.layout()
-        for pIdx in range(len(function.params)):
+        for pIdx in xrange(len(function.params)):
             p = function.params[pIdx]
             field = QParameterQuery(p.strValue, p.type, p.queryMethod)
             self.fields.append(field)
@@ -119,7 +119,7 @@ class QFunctionQueryForm(QMethodInputForm):
             pipeline = methodBox.controller.currentPipeline
             f = pipeline.modules[methodBox.module.id].functions[self.fId]
             p = f.params
-            for i in range(len(self.fields)):
+            for i in xrange(len(self.fields)):
                 p[i].strValue = str(self.fields[i].editor.text())
                 p[i].queryMethod = self.fields[i].selector.getCurrentMethod()
 

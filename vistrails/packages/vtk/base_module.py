@@ -91,7 +91,7 @@ class vtkBaseModule(Module):
                 desc = registry.get_descriptor_by_name(
                     'edu.utah.sci.vistrails.vtk',
                     'vtkAlgorithmOutput')
-                for i in range(len(paramList)):
+                for i in xrange(len(paramList)):
                     if type(paramList[i])==desc.module:
                         paramList[i] = (0, paramList[i])
             for p in paramList:
@@ -99,7 +99,7 @@ class vtkBaseModule(Module):
                     param = list(p)
                 elif p==None: param = []
                 else: param = [p]
-                for i in range(len(param)):
+                for i in xrange(len(param)):
                     if hasattr(param[i], 'vtkInstance'):
                         param[i] = param[i].vtkInstance
                 try:
@@ -123,7 +123,7 @@ class vtkBaseModule(Module):
                     self.setResult(function, output)                                   
                 elif (type(retValues) in [tuple, list]):
                     result = list(retValues)
-                    for i in range(len(result)):
+                    for i in xrange(len(result)):
                         if issubclass(result[i].__class__, vtk.vtkObject):
                             className = result[i].GetClassName()
                             result[i] = vtkBaseModule.wrapperModule(className,

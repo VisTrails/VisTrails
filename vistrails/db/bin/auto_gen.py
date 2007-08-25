@@ -48,8 +48,8 @@ class AutoGen:
 
     def printLine(self, string):
 	spaces = ''
-	for idx in range(self.level):
-	    for jdx in range(self.numSpaces):
+	for idx in xrange(self.level):
+	    for jdx in xrange(self.numSpaces):
 		spaces +=  ' '
 	self.output += spaces + string
 

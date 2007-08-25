@@ -163,7 +163,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
 
             QParameterExplorationTab.explorationId += 1
             interpreter = get_default_interpreter()
-            for pi in range(len(modifiedPipelines)):
+            for pi in xrange(len(modifiedPipelines)):
                 progress.setValue(mCount[pi])
                 QtCore.QCoreApplication.processEvents()
                 if progress.wasCanceled():

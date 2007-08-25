@@ -83,7 +83,7 @@ class BaseInterpreter(object):
         for mid in pipeline.modules:
             for f in pipeline.modules[mid].functions:
                 fsig = f.getSignature()
-                for pidx in range(len(f.params)):
+                for pidx in xrange(len(f.params)):
                     palias = f.params[pidx].alias
                     if palias and palias!='':
                         for f1 in reversed(pipeline.modules[mid].functions):
@@ -108,10 +108,10 @@ class BaseInterpreter(object):
         ordered = []
         while unordered:
             added = []
-            for i in range(len(unordered)):
+            for i in xrange(len(unordered)):
                 ok = True
                 u = unordered[i]
-                for j in range(len(unordered)):
+                for j in xrange(len(unordered)):
                     if i!=j:
                         for v in dp[unordered[j]]:
                             if u==v:

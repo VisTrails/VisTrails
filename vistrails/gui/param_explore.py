@@ -50,13 +50,13 @@ class QParameterExploration(QtGui.QWidget, QToolWindowInterface):
         """
         QtGui.QWidget.__init__(self, parent)
         self.setWindowTitle('Param Exploration')
-        self.dimLabels = ['Dim %d' % (i+1) for i in range(4)]
+        self.dimLabels = ['Dim %d' % (i+1) for i in xrange(4)]
         vLayout = QtGui.QVBoxLayout()
         vLayout.setSpacing(0)
         vLayout.setMargin(0)
         self.setLayout(vLayout)
         self.dimTab = QtGui.QTabWidget()
-        for t in range(4):
+        for t in xrange(4):
             tab = QDimensionWidget()
             tab.paramEx = self
             self.dimTab.addTab(tab, self.dimLabels[t]+' (1)')
@@ -78,7 +78,7 @@ class QParameterExploration(QtGui.QWidget, QToolWindowInterface):
         
         """
         enable = False
-        for dim in range(self.dimTab.count()):
+        for dim in xrange(self.dimTab.count()):
             tab = self.dimTab.widget(dim)
             if tab.methodList.vWidget.layout().count() > 0:
                 enable = True
@@ -89,7 +89,7 @@ class QParameterExploration(QtGui.QWidget, QToolWindowInterface):
         Clear all settings and leave the GUI empty
         
         """
-        for dim in range(self.dimTab.count()):
+        for dim in xrange(self.dimTab.count()):
             tab = self.dimTab.widget(dim)
             tab.methodList.vWidget.clear()
         
@@ -103,18 +103,18 @@ class QParameterExploration(QtGui.QWidget, QToolWindowInterface):
             return
         specs = []
         dimCount = 0
-        for dim in range(self.dimTab.count()):
+        for dim in xrange(self.dimTab.count()):
             tab = self.dimTab.widget(dim)
             stepCount = tab.sizeEdit.value()
             specsPerDim = []
-            for i in range(tab.methodList.vWidget.layout().count()):
+            for i in xrange(tab.methodList.vWidget.layout().count()):
                 c = tab.methodList.vWidget.layout().itemAt(i).widget()
                 ranges = []
                 for v in c.fields:
                     if v[0]=='String':
                         strCount = v[1].count()
                         strings = [str(v[1].item(i%strCount).text())
-                                   for i in range(stepCount)]
+                                   for i in xrange(stepCount)]
                         ranges.append(strings)
                     else:                        
                         convert = {'Integer': int,
@@ -182,7 +182,7 @@ class QDimensionWidget(QtGui.QWidget):
         self.paramEx.dimTab.setTabText(idx,
                                        self.paramEx.dimLabels[idx] +
                                        ' (' + str(count) + ')')
-        for i in range(self.methodList.vWidget.layout().count()):
+        for i in xrange(self.methodList.vWidget.layout().count()):
             child = self.methodList.vWidget.layout().itemAt(i).widget()
             for field in child.fields:
                 if field[0]=='String':
@@ -373,6 +373,7 @@ class QStringListWidget(QtGui.QListWidget):
             self.updateCount()
         else:
             QtGui.QListWidget.keyPressEvent(self,event)
+            # super(QStringListWidget, self).keyPressEvent(event)
 
     def sizeHint(self):
         #Return an invalid sizeHint

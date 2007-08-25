@@ -465,7 +465,7 @@ class BookmarkController(object):
         """
         aliases = {}
         a_list = []
-        for dim in range(len(specs)):
+        for dim in xrange(len(specs)):
             specs_per_dim = specs[dim]
             for interpolator in specs_per_dim:
                 #build alias dictionary
@@ -510,7 +510,7 @@ class BookmarkController(object):
                 f = m.functions[fId]
                 pCount = len(f.params)
                 new_range = []
-                for i in range(pCount):
+                for i in xrange(pCount):
                     if i not in common.keys():
                         p = f.params[i]
                         new_range.append((p.value(),p.value()))

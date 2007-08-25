@@ -51,13 +51,13 @@ class QAliasExplorationPanel(QtGui.QFrame, QToolWindowInterface):
         self.bookmarkPanel = None
         self.setFrameStyle(QtGui.QFrame.Panel|QtGui.QFrame.Sunken)
         self.manager = manager
-        self.dimLabels = ['Dim %d' % (i+1) for i in range(4)]
+        self.dimLabels = ['Dim %d' % (i+1) for i in xrange(4)]
         vLayout = QtGui.QVBoxLayout()
         vLayout.setSpacing(0)
         vLayout.setMargin(0)
         self.setLayout(vLayout)
         self.dimTab = QtGui.QTabWidget()
-        for t in range(4):
+        for t in xrange(4):
             tab = QAliasDimensionWidget(manager=self.manager)
             tab.paramEx = self
             self.dimTab.addTab(tab, self.dimLabels[t]+' (1)')
@@ -80,7 +80,7 @@ class QAliasExplorationPanel(QtGui.QFrame, QToolWindowInterface):
         
         """
         enable = False
-        for dim in range(self.dimTab.count()):
+        for dim in xrange(self.dimTab.count()):
             tab = self.dimTab.widget(dim)
             if tab.dropbox.parameters.rowCount() > 0:
                 enable = True
@@ -94,11 +94,11 @@ class QAliasExplorationPanel(QtGui.QFrame, QToolWindowInterface):
         """
         specs = []
         dimCount = 0
-        for dim in range(self.dimTab.count()):
+        for dim in xrange(self.dimTab.count()):
             tab = self.dimTab.widget(dim)
             stepCount = tab.sizeEdit.value()
             specsPerDim = []
-            for row in range(tab.dropbox.parameters.rowCount()):
+            for row in xrange(tab.dropbox.parameters.rowCount()):
                 type = tab.dropbox.parameters.verticalHeaderItem(row).type
                 alias = tab.dropbox.parameters.verticalHeaderItem(row).alias
                 ranges = []
@@ -106,7 +106,7 @@ class QAliasExplorationPanel(QtGui.QFrame, QToolWindowInterface):
                     wgt = tab.dropbox.parameters.cellWidget(row,0)
                     strCount = wgt.listWidget.count()
                     strings = [str( wgt.listWidget.item(i%strCount).text())
-                               for i in range(stepCount)]
+                               for i in xrange(stepCount)]
                     ranges.append(strings)
                 else:
                     convert = {'Integer': int,
@@ -126,14 +126,14 @@ class QAliasExplorationPanel(QtGui.QFrame, QToolWindowInterface):
         Clear all settings and leave the GUI empty
         
         """
-        for dim in range(self.dimTab.count()):
+        for dim in xrange(self.dimTab.count()):
             tab = self.dimTab.widget(dim)
             tab.dropbox.clear()
 
     def removeAlias(self,alias):
         """removeAlias(alias:str) -> None
         Propagates event down to each tab. """
-        for dim in range(self.dimTab.count()):
+        for dim in xrange(self.dimTab.count()):
             tab = self.dimTab.widget(dim)
             tab.dropbox.parameters.removeAlias(alias)
 
@@ -180,7 +180,7 @@ class QAliasDimensionWidget(QtGui.QWidget):
         self.paramEx.dimTab.setTabText(idx,
                                        self.paramEx.dimLabels[idx] +
                                        ' (' + str(count) + ')')
-        for i in range(self.dropbox.parameters.rowCount()):
+        for i in xrange(self.dropbox.parameters.rowCount()):
             item = self.dropbox.parameters.verticalHeaderItem(i)
             if item.type =='String':
                 child = self.dropbox.parameters.cellWidget(i,0)
@@ -342,7 +342,7 @@ class QAliasExplorationTable(QtGui.QTableWidget):
         Searches for the row that contains the alias name 
 
         """
-        for i in range(self.rowCount()):
+        for i in xrange(self.rowCount()):
             item = self.verticalHeaderItem(i)
             if item:
                 if item.alias == alias:

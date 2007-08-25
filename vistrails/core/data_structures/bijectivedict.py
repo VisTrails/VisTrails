@@ -70,9 +70,9 @@ class TestBidict(unittest.TestCase):
 
     def test1(self):
         x = Bidict()
-        for i in range(10):
+        for i in xrange(10):
             x[i] = 9-i
-        for i in range(10):
+        for i in xrange(10):
             self.assertEquals(x[i], 9-i)
             self.assertEquals(x.inverse[i], 9-i)
         del x[1]

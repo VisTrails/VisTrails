@@ -90,7 +90,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
             diff = self.length()-self.maximumViewportSize().height()
         if diff>0:
             self.setFitToViewport(False)
-            for i in reversed(range(self.count()-1-logicalIndex)):
+            for i in reversed(xrange(self.count()-1-logicalIndex)):
                 realIndex = i+logicalIndex+1
                 oldS = self.sectionSize(realIndex)
                 newS = max(oldS-diff, self.minimumSize)
@@ -213,7 +213,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         """
         vLabels = QtCore.QStringList()
         vIdx = self.verticalHeader().visualIndex
-        for i in range(newCount):
+        for i in xrange(newCount):
             vLabels << str(vIdx(i)+1)
         self.setVerticalHeaderLabels(vLabels)
         self.updateHeaderStatus()
@@ -232,7 +232,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         """
         hLabels = QtCore.QStringList()
         vIdx = self.horizontalHeader().visualIndex
-        for i in range(newCount):
+        for i in xrange(newCount):
             hLabels << chr(vIdx(i)+ord('A'))
         self.setHorizontalHeaderLabels(hLabels)
         self.updateHeaderStatus()

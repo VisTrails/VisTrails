@@ -99,7 +99,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
             if len(module.functions)>0:
                 mLabel = QtCore.QStringList(module.name)
                 moduleItem = None
-                for fId in range(len(module.functions)):
+                for fId in xrange(len(module.functions)):
                     function = module.functions[fId]
                     if len(function.params)==0: continue
                     if moduleItem==None:
@@ -115,7 +115,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
                     pList = [(function.params[pId].type,
                               function.params[pId].strValue,
                               mId, fId, pId)
-                             for pId in range(len(function.params))]
+                             for pId in xrange(len(function.params))]
                     mName = module.name
                     if moduleItem.parameter!=None:
                         mName += '(%d)' % moduleItem.parameter

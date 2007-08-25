@@ -64,6 +64,7 @@ class QToolWindow(QtGui.QDockWidget):
         if event.type()==QtCore.QEvent.WindowTitleChange:
             self.setWindowTitle(object.windowTitle())
         return QtGui.QDockWidget.eventFilter(self, object, event)
+        # return super(QToolWindow, self).eventFilter(object, event)
 
 class QToolWindowInterface(object):
     """
@@ -144,7 +145,7 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
             enabled = testFunction(item)
 
             visible = enabled
-            for childIndex in range(item.childCount()):
+            for childIndex in xrange(item.childCount()):
                 visible |= recursiveSetVisible(item.child(childIndex),
                                                testFunction)
 
@@ -171,7 +172,7 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
                                               QtCore.Qt.MatchWrap |
                                               QtCore.Qt.MatchRecursive))
             testFunction = matchedItems.__contains__
-        for itemIndex in range(self.topLevelItemCount()):
+        for itemIndex in xrange(self.topLevelItemCount()):
             recursiveSetVisible(self.topLevelItem(itemIndex),
                                 testFunction)
     
@@ -305,8 +306,9 @@ class QPromptWidget(QtGui.QLabel):
             painter.drawText(self.rect(),
                              QtCore.Qt.AlignCenter | QtCore.Qt.TextWordWrap,
                              self.promptText)
-            painter.end()            
+            painter.end()
         QtGui.QLabel.paintEvent(self, event)
+        # super(QPromptWidget, self).paintEvent(event)
 
 class QStringEdit(QtGui.QFrame):
     """
@@ -509,7 +511,7 @@ class QSearchBox(QtGui.QWidget):
         """
         count = self.searchEdit.count()
         if index == count-1:
-            for i in range(count-1):
+            for i in xrange(count-1):
                 self.searchEdit.removeItem(0)
             self.resetSearch()
         else:

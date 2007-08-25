@@ -245,7 +245,7 @@ class ConcatenateString(Module):
 
     def compute(self):
         result = ""
-        for i in range(self.fieldCount):
+        for i in xrange(self.fieldCount):
             v = i+1
             port = "str%s" % v
             if self.hasInputFromPort(port):
@@ -253,7 +253,7 @@ class ConcatenateString(Module):
                 result += inp
         self.setResult("value", result)
 _reg.add_module(ConcatenateString)
-for i in range(ConcatenateString.fieldCount):
+for i in xrange(ConcatenateString.fieldCount):
     j = i+1
     port = "str%s" % j
     _reg.add_input_port(ConcatenateString, port, String)

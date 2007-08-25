@@ -295,7 +295,7 @@ class Graph(object):
         data.finish = {}  # f in CLRS
         data.t = 0
 
-        (enter, leave, back, other) = range(4)
+        (enter, leave, back, other) = xrange(4)
 
         # inspired by http://www.ics.uci.edu/~eppstein/PADS/DFS.py
 
@@ -662,9 +662,9 @@ class TestGraph(unittest.TestCase):
      def test3(self):
          """Test sink and source degree consistency"""
          g = Graph()
-         for i in range(100):
+         for i in xrange(100):
              g.add_vertex(i);
-         for i in range(1000):
+         for i in xrange(1000):
              v1 = random.randint(0,99)
              v2 = random.randint(0,99)
              g.add_edge(v1, v2, i)

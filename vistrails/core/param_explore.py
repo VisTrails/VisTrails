@@ -51,7 +51,7 @@ class ParameterExploration(object):
         
         """
         pipelineList = [pipeline]
-        for i in range(len(self.specs)):
+        for i in xrange(len(self.specs)):
             pipelineList = self.interpolateList(pipelineList, self.specs[i])
         return pipelineList
 
@@ -66,7 +66,7 @@ class ParameterExploration(object):
         if len(interpList)<1: return pipelineList
         stepCount = interpList[0].stepCount
         result = []
-        for step in range(stepCount):
+        for step in xrange(stepCount):
             for pipeline in pipelineList:
                 newp = copy.copy(pipeline)
                 for interp in interpList:
@@ -124,7 +124,7 @@ class InterpolateDiscreteParam(object):
             interpolatedValues = []
             argumentType = type(r[0])
             if argumentType in [int, float]:
-                for i in range(stepCount):
+                for i in xrange(stepCount):
                     if stepCount>1: t = i/float(stepCount-1)
                     else: t = 0
                     interpolatedValues.append(argumentType(r[0]+t*(r[1]-r[0])))

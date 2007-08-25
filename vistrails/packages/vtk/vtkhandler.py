@@ -201,7 +201,7 @@ class HandlerConfigurationWidget(StandardModuleConfigurationWidget):
         
         """
         fid = -1
-        for i in range(self.module.getNumFunctions()):
+        for i in xrange(self.module.getNumFunctions()):
             if self.module.functions[i].name=='Handler':
                 fid = i
                 break

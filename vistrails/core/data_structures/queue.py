@@ -144,10 +144,10 @@ class TestQueue(unittest.TestCase):
     def test_expand_basic(self):
         """Test if the queue is expanding its capacity right with push()"""
         q = Queue()
-        for i in range(12):
+        for i in xrange(12):
             q.push(i)
         self.assertEquals(len(q), 12)
-        for i in range(12):
+        for i in xrange(12):
             self.assertEquals(q.pop(), i)
             
     def test_expand_contract(self):
@@ -156,7 +156,7 @@ class TestQueue(unittest.TestCase):
         popped = 0
         q = Queue()
         for t in xrange(100):
-            for i in range(100):
+            for i in xrange(100):
                 # Test expand with high probability
                 a = random.choice([0,0,0,0,0,1])
                 if (a == 0) or (len(q) == 0):
@@ -166,7 +166,7 @@ class TestQueue(unittest.TestCase):
                     v = q.pop()
                     self.assertEquals(v, popped)
                     popped += 1
-            for i in range(100):
+            for i in xrange(100):
                 # Test contract with high probability
                 a = random.choice([1,1,1,1,1,0])
                 if (a == 0) or (len(q) == 0):

@@ -64,7 +64,7 @@ class QInteractiveTabBar(QtGui.QTabBar):
         """
         if self.tabRect(self.currentIndex()).contains(p):
             return self.currentIndex()
-        for i in range(self.count()):
+        for i in xrange(self.count()):
             if self.isTabEnabled(i) and self.tabRect(i).contains(p):                
                 return i
         return -1;
@@ -75,6 +75,7 @@ class QInteractiveTabBar(QtGui.QTabBar):
         
         """
         QtGui.QTabBar.mousePressEvent(self, e)
+        # super(QInteractiveTabBar, self).mousePressEvent(e)
         if e.buttons()==QtCore.Qt.LeftButton and self.editor==None:
             self.startDragPos = QtCore.QPoint(e.x(), e.y())
 
@@ -105,6 +106,7 @@ class QInteractiveTabBar(QtGui.QTabBar):
         
         """
         QtGui.QTabBar.mouseMoveEvent(self, e)
+        # super(QInteractiveTabBar, self).mouseMoveEvent(e)
         if self.startDragPos:
             # We already move more than 4 pixels
             if (self.startDragPos-e.pos()).manhattanLength()>=4:
@@ -136,6 +138,7 @@ class QInteractiveTabBar(QtGui.QTabBar):
         
         """
         QtGui.QTabBar.mouseReleaseEvent(self, e)
+        # super(QInteractiveTabBar, self).mouseReleaseEvent(e)
         if self.dragging:
             if self.targetTab!=-1 and self.targetTab!=self.currentIndex():
                 self.emit(QtCore.SIGNAL('tabMoveRequest(int,int)'),
@@ -156,7 +159,7 @@ class QInteractiveTabBar(QtGui.QTabBar):
         
         """
         p = self.mapFromGlobal(pos)
-        for i in range(self.count()):
+        for i in xrange(self.count()):
             r = self.tabRect(i)
             if self.isTabEnabled(i) and r.contains(p):
                 if p.x()<(r.x()+r.width()/2):

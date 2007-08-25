@@ -159,14 +159,14 @@ class TestPoint(unittest.TestCase):
 
     def test_add_length(self):
         """Uses triangle inequality to exercise add and length"""
-        for i in range(100):
+        for i in xrange(100):
             x = Point(random.uniform(-1.0, 1.0), random.uniform(-1.0, 1.0))
             y = Point(random.uniform(-1.0, 1.0), random.uniform(-1.0, 1.0))
             assert (x+y).length() <= x.length() + y.length()
 
     def test_mul_length(self):
         """Uses vector space properties to exercise mul, rmul and length"""
-        for i in range(100):
+        for i in xrange(100):
             x = Point(random.uniform(-1.0, 1.0), random.uniform(-1.0, 1.0))
             s = random.uniform(0.0, 10.0)
             self.assert_double_equals(s * x.length(), (s * x).length())

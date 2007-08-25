@@ -118,7 +118,7 @@ class TestRect(unittest.TestCase):
 
     def test_create(self):
         """Exercises Rect.create()"""
-        for i in range(100):
+        for i in xrange(100):
             a = random.uniform(-1.0, 1.0)
             b = random.uniform(-1.0, 1.0)
             c = random.uniform(-1.0, 1.0)

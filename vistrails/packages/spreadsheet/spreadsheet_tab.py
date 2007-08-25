@@ -258,8 +258,8 @@ class StandardWidgetSheetTabInterface(object):
 
         """
         (rowCount, colCount) = self.getDimension()
-        for r in range(rowCount):
-            for c in range(colCount):
+        for r in xrange(rowCount):
+            for c in xrange(colCount):
                 w = self.getCell(r, c)
                 row = self.sheet.verticalHeader().logicalIndex(r)
                 col = self.sheet.horizontalHeader().logicalIndex(c)
@@ -332,8 +332,8 @@ class StandardWidgetSheetTabInterface(object):
         
         """
         (rowCount, columnCount) = self.getDimension()
-        for r in range(rowCount):
-            for c in range(columnCount):
+        for r in xrange(rowCount):
+            for c in xrange(columnCount):
                 self.setCellByType(r, c, None, None)
 
     def takeCell(self, row, col):
@@ -385,8 +385,8 @@ class StandardWidgetSheetTabInterface(object):
         """
         # Go over all the cells and set the editing widget up
         (rowCount, colCount) = self.getDimension()
-        for r in range(rowCount):
-            for c in range(colCount):
+        for r in xrange(rowCount):
+            for c in xrange(colCount):
                 self.setCellEditingMode(r, c, editing)
         QtCore.QCoreApplication.processEvents()
 
@@ -684,7 +684,7 @@ class StandardWidgetTabBar(QtGui.QTabBar):
         """
         if self.tabRect(self.currentIndex()).contains(p):
             return self.currentIndex()
-        for i in range(self.count()):
+        for i in xrange(self.count()):
             if self.isTabEnabled(i) and self.tabRect(i).contains(p):                
                 return i
         return -1;
@@ -776,7 +776,7 @@ class StandardWidgetTabBar(QtGui.QTabBar):
         
         """
         p = self.mapFromGlobal(pos)
-        for i in range(self.count()):
+        for i in xrange(self.count()):
             r = self.tabRect(i)
             if self.isTabEnabled(i) and r.contains(p):
                 if p.x()<(r.x()+r.width()/2):

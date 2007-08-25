@@ -154,7 +154,7 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         """
         (vRCount, vCCount, cells) = self.getConfiguration()
         modifiedPipelines = []
-        for pId in range(len(pipelines)):
+        for pId in xrange(len(pipelines)):
             pipeline = copy.copy(pipelines[pId])
             col = pId % colCount
             row = (pId / colCount) % rowCount
@@ -450,7 +450,7 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         self.clear()
         self.numCell = len(cells)
         row = []
-        for i in range(self.numCell):
+        for i in xrange(self.numCell):
             label = QVirtualCellLabel(*cells[i])
             row.append(label)
             self.layout().addWidget(label, 0, i, 1, 1, QtCore.Qt.AlignCenter)
@@ -458,9 +458,9 @@ class QVirtualCellConfiguration(QtGui.QWidget):
                          self.compressCells)
         self.cells.append(row)
 
-        for r in range(self.numCell-1):
+        for r in xrange(self.numCell-1):
             row = []
-            for c in range(self.numCell):
+            for c in xrange(self.numCell):
                 label = QVirtualCellLabel()
                 row.append(label)
                 self.layout().addWidget(label, r+1, c, 1, 1,
@@ -476,15 +476,15 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         """
         # Check row by row first
         visibleRows = []
-        for r in range(self.numCell):
+        for r in xrange(self.numCell):
             row = self.cells[r]
             hasRealCell = [True for label in row if label.type]!=[]
             if hasRealCell:                
                 visibleRows.append(r)
 
         # Move rows up
-        for i in range(len(visibleRows)):
-            for c in range(self.numCell):
+        for i in xrange(len(visibleRows)):
+            for c in xrange(self.numCell):
                 label = self.cells[visibleRows[i]][c]
                 if label.type==None:
                     label.type = ''
@@ -492,29 +492,29 @@ class QVirtualCellConfiguration(QtGui.QWidget):
 
         # Now check column by column        
         visibleCols = []
-        for c in range(self.numCell):
+        for c in xrange(self.numCell):
             hasRealCell = [True
-                           for r in range(self.numCell)
+                           for r in xrange(self.numCell)
                            if self.cells[r][c].type]!=[]
             if hasRealCell:
                 visibleCols.append(c)
                     
         # Move columns left
-        for i in range(len(visibleCols)):
-            for r in range(self.numCell):
+        for i in xrange(len(visibleCols)):
+            for r in xrange(self.numCell):
                 label = self.cells[r][visibleCols[i]]
                 if label.type==None:
                     label.type = ''
                 self.cells[r][i].setCellData(label.type, label.id)
 
         # Clear redundant rows
-        for i in range(self.numCell-len(visibleRows)):
+        for i in xrange(self.numCell-len(visibleRows)):
             for label in self.cells[i+len(visibleRows)]:
                 label.setCellData(None, -1)
                 
         # Clear redundant columns
-        for i in range(self.numCell-len(visibleCols)):
-            for r in range(self.numCell):
+        for i in xrange(self.numCell-len(visibleCols)):
+            for r in xrange(self.numCell):
                 self.cells[r][i+len(visibleCols)].setCellData(None, -1)
 
     def getConfiguration(self):
@@ -527,8 +527,8 @@ class QVirtualCellConfiguration(QtGui.QWidget):
         result = {}
         rCount = 0
         cCount = 0
-        for r in range(self.numCell):
-            for c in range(self.numCell):
+        for r in xrange(self.numCell):
+            for c in xrange(self.numCell):
                 cell = self.cells[r][c]
                 if cell.type:
                     result[(cell.type, cell.id)] = (r, c)
@@ -568,7 +568,7 @@ class QVirtualCellLabel(QtGui.QLabel):
         lines = []
         prev = 0
         lt = len(text)
-        for i in range(lt):
+        for i in xrange(lt):
             if (not (text[i] in string.lowercase)
                 and (i==lt-1 or
                      text[i+1] in string.lowercase)):

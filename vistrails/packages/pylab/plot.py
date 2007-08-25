@@ -103,7 +103,7 @@ class _MplPlotConfigurationWidget(StandardModuleConfigurationWidget):
         
         """
         fid = -1
-        for i in range(self.module.getNumFunctions()):
+        for i in xrange(self.module.getNumFunctions()):
             if self.module.functions[i].name=='source':
                 fid = i
                 break

@@ -307,7 +307,7 @@ class VistrailController(QtCore.QObject):
         # under us and change all the indices.
         params = function.parameters[:]
         
-        for i in range(len(params)):
+        for i in xrange(len(params)):
             param = params[i]
             param_id = self.vistrail.idScope.getNewId(ModuleParam.vtType)
             param.real_id = param_id
@@ -326,7 +326,7 @@ class VistrailController(QtCore.QObject):
 
         action_list = []
         must_change = False
-        for i in range(len(param_list)):
+        for i in xrange(len(param_list)):
             (p_val, p_type, p_alias) = param_list[i]
             function = module.functions[function_pos]
             old_param = function.params[i]
