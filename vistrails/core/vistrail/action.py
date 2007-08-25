@@ -26,6 +26,7 @@ from time import strptime
 from core.vistrail.annotation import Annotation
 from core.vistrail.operation import AddOp, ChangeOp, DeleteOp
 from db.domain import DBAction
+from itertools import izip
 
 class Action(DBAction):
 
@@ -196,7 +197,7 @@ class TestAction(unittest.TestCase):
         m2s = p2.modules.items()
         m1s.sort()
         m2s.sort()
-        for ((i1,m1),(i2,m2)) in zip(m1s, m2s):
+        for ((i1,m1),(i2,m2)) in izip(m1s, m2s):
             self.assertEquals(m1.center.x, m2.center.x)
             self.assertEquals(m1.center.y, m2.center.y)
 

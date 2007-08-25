@@ -28,6 +28,7 @@ from db.domain import DBFunction
 from core.utils import enum, VistrailsInternalError, all, eprint
 from core.vistrail.port import PortEndPoint
 from core.vistrail.module_param import ModuleParam
+from itertools import izip
 import copy
 import __builtin__
 
@@ -162,7 +163,7 @@ class ModuleFunction(DBFunction):
         if len(self.params) != len(other.params):
             print "params length mismatch"
             return
-        for p,q in zip(self.params, other.params):
+        for p,q in izip(self.params, other.params):
             if p != q:
                 print "params mismatch"
                 p.show_comparison(q)

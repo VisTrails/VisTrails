@@ -109,9 +109,15 @@ def bool_conv(x):
     raise ValueError('Boolean from String in VisTrails should be either \
 "true" or "false"')
 
+def int_conv(x):
+    if x.startswith('0x'):
+        return int(x, 16)
+    else:
+        return int(x)
+
 Boolean = new_constant('Boolean' , bool_conv)
 Float   = new_constant('Float'   , float)
-Integer = new_constant('Integer' , int)
+Integer = new_constant('Integer' , int_conv)
 String  = new_constant('String'  , str)
 _reg.add_output_port(Constant, "value_as_string", String)
 

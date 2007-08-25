@@ -138,15 +138,16 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
         matchedItems = []
         
         def recursiveSetVisible(item, testFunction):
-            """ recursiveSetVisible(matchedItems: QItemList) -> None
+            """ recursiveSetVisible
             Pass through all items of a item
             
             """
             enabled = testFunction(item)
 
             visible = enabled
+            child = item.child
             for childIndex in xrange(item.childCount()):
-                visible |= recursiveSetVisible(item.child(childIndex),
+                visible |= recursiveSetVisible(child(childIndex),
                                                testFunction)
 
             # if item is hidden or has changed visibility

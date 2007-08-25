@@ -902,7 +902,7 @@ class ModuleRegistry(QtCore.QObject):
         if len(superTypes) != len(subTypes):
             return False
         
-        for (superType, subType) in zip(superTypes, subTypes):
+        for (superType, subType) in izip(superTypes, subTypes):
             if (superType==variantType or subType==variantType):
                 continue
             superModule = self.get_descriptor(superType).module

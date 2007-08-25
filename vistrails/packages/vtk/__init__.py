@@ -155,7 +155,7 @@ def prune_signatures(module, name, signatures):
 
     """
     # yeah, this is Omega(n^2) on the number of overloads. Who cares?
-    
+
     def flatten(type_):
         if type_ is None:
             return []
@@ -349,11 +349,34 @@ def addStatePorts(module, state_dict):
     """
     for name in state_dict.iterkeys():
         for mode in state_dict[name]:
+            # Creates the port Set foo to bar
             field = 'Set'+name+'To'+mode[0]
             if field in disallowed_state_ports:
                 continue
             if not has_input_port(module, field):
                 add_input_port(module, field, [], True)
+
+        # Now create the port Set foo with parameter
+        if hasattr(module.vtkClass, 'Set%s'%name):
+            setterMethod = getattr(module.vtkClass, 'Set%s'%name)
+            setterSig = get_method_signature(setterMethod)
+            # if the signature looks like an enum, we'll skip it, it shouldn't
+            # be necessary
+            if len(setterSig) > 1:
+                prune_signatures(module, 'Set%s'%name, setterSig)
+            for ix, setter in iter_with_index(setterSig):
+                if len(setterSig) == 1:
+                    n = 'Set' + name
+                else:
+                    n = 'Set' + name + str(ix+1)
+                tm = typeMap(setter[1][0])
+                if len(setter[1]) == 1 and is_class_allowed(tm):
+                    add_input_port(module, n, tm,
+                                   setter[1][0] in typeMapDict)
+                else:
+                    classes = [typeMap(i) for i in setter[1]]
+                    if all(classes, is_class_allowed):
+                        add_input_port(module, n, classes, True)
 
 disallowed_other_ports = set(
     [
@@ -501,6 +524,14 @@ def class_dict(base_module, node):
     def guarded_SetFileName_wrap_compute(old_compute):
         # This checks for the presence of file in VTK readers
         def compute(self):
+
+            # Skips the check if it's a vtkImageReader, because
+            # it has other ways of specifying files, like SetFilePrefix for
+            # multiple files
+            if issubclass(self.vtkClass,
+                          vtk.vtkImageReader):
+                old_compute(self)
+                return
             if self.hasInputFromPort('SetFileName'):
                 name = self.getInputFromPort('SetFileName')
             elif self.hasInputFromPort('SetFile'):

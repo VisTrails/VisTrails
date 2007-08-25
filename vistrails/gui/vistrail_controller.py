@@ -499,6 +499,11 @@ class VistrailController(QtCore.QObject):
                                     params)
 
     def executeWorkflowList(self, vistrails):
+        if self.currentPipeline:
+            locator = self.get_locator()
+            if locator:
+                locator.clean_temporaries()
+                locator.save_temporary(self.vistrail)
         interpreter = get_default_interpreter()
         changed = False
         old_quiet = self.quiet

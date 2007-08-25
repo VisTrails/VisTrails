@@ -131,7 +131,7 @@ class QParameterExploration(QtGui.QWidget, QToolWindowInterface):
         pipelineList = p.explore(self.controller.currentPipeline)
         vistrails = ()
         for pipeline in pipelineList:
-            vistrails += ((self.controller.fileName,
+            vistrails += ((self.controller.locator,
                            self.controller.currentVersion,
                            pipeline,
                            self.controller.currentPipelineView,
