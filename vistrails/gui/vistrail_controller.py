@@ -52,6 +52,7 @@ import copy
 import db.services.action
 import db.services.io
 import os.path
+import core.system
 
 ################################################################################
 
@@ -63,7 +64,7 @@ class VistrailController(QtCore.QObject):
     
     """
 
-    def __init__(self, vis=None, name=''):
+    def __init__(self, vis=None, auto_save=True, name=''):
         """ VistrailController(vis: Vistrail, name: str) -> VistrailController
         Create a controller from vis
 
@@ -87,14 +88,34 @@ class VistrailController(QtCore.QObject):
         self.changed = False
         self.fullTree = False
         self.analogy = {}
+        self._auto_save = auto_save
         self.locator = None
+        self.timer = QtCore.QTimer(self)
+        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
+        self.timer.start(1000 * 60 * 2) # Save every two minutes
 
     def invalidate_version_tree(self):
         #FIXME: in the future, rename the signal
         self.emit(QtCore.SIGNAL('vistrailChanged()'))
 
+    def enable_autosave(self):
+        self._auto_save = True
+
+    def disable_autosave(self):
+        self._auto_save = False
+
+    def get_locator(self):
+        if self._auto_save:
+            return self.locator or core.system.untitled_locator()
+        else:
+            return None
+
     def cleanup(self):
-        pass
+        locator = self.get_locator()
+        if locator:
+            locator.clean_temporaries()
+        self.disconnect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
+        self.timer.stop()
 
     def setVistrail(self, vistrail, locator):
         """ setVistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
@@ -104,11 +125,15 @@ class VistrailController(QtCore.QObject):
         self.vistrail = vistrail
         self.currentVersion = -1
         self.currentPipeline = None
+        if self.locator != locator and self.locator is not None:
+            self.locator.clean_temporaries()
         self.locator = locator
         if locator != None:
             self.setFileName(locator.name)
         else:
             self.setFileName('')
+        if locator and locator.has_temporaries():
+            self.setChanged(True)
             
     def perform_action(self, action, quiet=None):        
         self.currentPipeline.performAction(action)
@@ -490,6 +515,10 @@ class VistrailController(QtCore.QObject):
         
         """
         if self.currentPipeline:
+            locator = self.get_locator()
+            if locator:
+                locator.clean_temporaries()
+                locator.save_temporary(self.vistrail)
             self.executeWorkflowList([(self.locator,
                                        self.currentVersion,
                                        self.currentPipeline,
@@ -942,6 +971,12 @@ class VistrailController(QtCore.QObject):
         """checkAlias(alias) -> Boolean 
         Returns True if current pipeline has an alias named name """
         return self.currentPipeline.hasAlias(name)
+
+    def write_temporary(self):
+        if self.vistrail and self.changed:
+            locator = self.get_locator()
+            if locator:
+                locator.save_temporary(self.vistrail)
 
     def write_vistrail(self, locator):
         if self.vistrail and (self.changed or

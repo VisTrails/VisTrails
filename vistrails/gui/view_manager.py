@@ -31,6 +31,7 @@ from gui.vistrail_view import QVistrailView
 from core import system
 from core.vistrail.vistrail import Vistrail
 from db.services.io import XMLFileLocator
+import copy
 
 ################################################################################
 
@@ -222,6 +223,12 @@ class QViewManager(QtGui.QTabWidget):
         Create a new vistrail with no name
         
         """
+        if system.untitled_locator().has_temporaries():
+            locator = copy.copy(system.untitled_locator())
+            vistrail = locator.load()
+            vistrailView = self.setVistrailView(vistrail, locator)
+            vistrailView.controller.setChanged(True)
+            return
         vistrailView = QVistrailView()
         vistrailView.setVistrail(Vistrail(), None)
         self.addVistrailView(vistrailView)
@@ -264,10 +271,12 @@ class QViewManager(QtGui.QTabWidget):
         view = self.ensureVistrail(locator)
         if view:
             return view
-
         try:
             vistrail = locator.load()
-            return self.setVistrailView(vistrail, locator)
+            result = self.setVistrailView(vistrail, locator)
+            if locator.has_temporaries():
+                result.controller.setChanged(True)
+            return result
         except Exception, e:
             QtGui.QMessageBox.critical(None,
                                        'Vistrails',

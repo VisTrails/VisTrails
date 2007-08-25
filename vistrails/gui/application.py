@@ -142,6 +142,7 @@ after self.init()"""
         Instantiate the GUI for interactive mode
         
         """
+        self.builderWindow.create_first_vistrail()
         self.builderWindow.modulePalette.treeWidget.updateFromModuleRegistry()
         registry.connect(registry, registry.new_module_signal, 
                          self.builderWindow.modulePalette.newModule)

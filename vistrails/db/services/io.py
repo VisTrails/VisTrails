@@ -351,6 +351,15 @@ class BaseLocator(object):
     def is_valid(self):
         pass # Returns true if locator refers to a valid vistrail
 
+    def save_temporary(self, vistrail):
+        pass # Saves a temporary file (useful for making crashes less horrible)
+
+    def clean_temporaries(self):
+        pass # Cleans up temporary files
+
+    def has_temporaries(self):
+        pass # True if temporaries are present
+
     @staticmethod
     def load_from_gui(parent_widget):
         pass # Opens a dialog that the user will be able to use to
@@ -377,7 +386,11 @@ class XMLFileLocator(BaseLocator):
 
     def load(self):
         from core.vistrail.vistrail import Vistrail
-        vistrail = openVistrailFromXML(self._name)
+        fname = self._find_latest_temporary()
+        if fname:
+            vistrail = openVistrailFromXML(fname)
+        else:
+            vistrail = openVistrailFromXML(self._name)
         Vistrail.convert(vistrail)
         vistrail.locator = self
         return vistrail
@@ -385,6 +398,13 @@ class XMLFileLocator(BaseLocator):
     def save(self, vistrail):
         saveVistrailToXML(vistrail, self._name)
         vistrail.locator = self
+        # Only remove the temporaries if save succeeded!
+        self.clean_temporaries()
+
+    def save_temporary(self, vistrail):
+        fname = self._find_latest_temporary()
+        new_temp_fname = self._next_temporary(fname)
+        saveVistrailToXML(vistrail, new_temp_fname)
 
     def is_valid(self):
         return os.path.isfile(self._name)
@@ -394,6 +414,62 @@ class XMLFileLocator(BaseLocator):
     name = property(_get_name)
 
     ##########################################################################
+
+    def _iter_temporaries(self, f):
+        """_iter_temporaries(f): calls f with each temporary file name, in
+        sequence.
+
+        """
+        latest = None
+        current = 0
+        while True:
+            fname = self._name + '_tmp_' + str(current)
+            if os.path.isfile(fname):
+                f(fname)
+                current += 1
+            else:
+                break
+
+    def clean_temporaries(self):
+        """_remove_temporaries() -> None
+
+        Erases all temporary files.
+
+        """
+        def remove_it(fname):
+            os.unlink(fname)
+        self._iter_temporaries(remove_it)
+
+    def has_temporaries(self):
+        return self._find_latest_temporary() is not None
+
+    def _find_latest_temporary(self):
+        """_find_latest_temporary(): String or None.
+
+        Returns the latest temporary file saved, if it exists. Returns
+        None otherwise.
+        
+        """
+        latest = [None]
+        def set_it(fname):
+            latest[0] = fname
+        self._iter_temporaries(set_it)
+        return latest[0]
+        
+    def _next_temporary(self, temporary):
+        """_find_latest_temporary(string or None): String
+
+        Returns the next suitable temporary file given the current
+        latest one.
+
+        """
+        if temporary == None:
+            return self._name + '_tmp_0'
+        else:
+            split = temporary.rfind('_')+1
+            base = temporary[:split]
+            number = int(temporary[split:])
+            return base + str(number+1)
 
     @staticmethod
     def load_from_gui(parent_widget):

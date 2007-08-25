@@ -62,7 +62,7 @@ class QQueryTab(QPipelineTab):
 
         self.moduleMethods.vWidget.formType = QFunctionQueryForm
         
-        controller = QueryVistrailController()
+        controller = QueryVistrailController(auto_save=False)
         controller.setVistrail(Vistrail(), None)
         self.setController(controller)
         controller.changeSelectedVersion(0)

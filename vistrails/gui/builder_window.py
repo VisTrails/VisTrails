@@ -82,8 +82,9 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connectSignals()
 
         self.shell = None
-        self.newVistrailAction.trigger()
 
+    def create_first_vistrail(self):
+        self.newVistrailAction.trigger()
         self.viewManager.set_first_view(self.viewManager.currentView())
         
     def sizeHint(self):
