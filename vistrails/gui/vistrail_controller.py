@@ -301,8 +301,14 @@ class VistrailController(QtCore.QObject):
         module = self.currentPipeline.getModuleById(module_id)
         function_id = self.vistrail.idScope.getNewId(ModuleFunction.vtType)
         function.real_id = function_id
-        for i in range(len(function.parameters)):
-            param = function.parameters[i]
+        
+        # We can only touch the parameters property once during this loop.
+        # Otherwise, ModuleFunction._get_params will sort the list from
+        # under us and change all the indices.
+        params = function.parameters[:]
+        
+        for i in range(len(params)):
+            param = params[i]
             param_id = self.vistrail.idScope.getNewId(ModuleParam.vtType)
             param.real_id = param_id
             param.pos = i

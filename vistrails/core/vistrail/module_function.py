@@ -101,6 +101,9 @@ class ModuleFunction(DBFunction):
         return self.db_parameters
     def _set_params(self, params):
         self.db_parameters = params
+    # If you're mutating the params property, watch out for the sort
+    # gotcha: every time you use the params on reading position,
+    # they get resorted
     params = property(_get_params, _set_params)
     parameters = property(_get_params, _set_params)
 

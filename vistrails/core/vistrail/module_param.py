@@ -217,10 +217,12 @@ class ModuleParam(DBParameter):
         if self.minValue != "":
             assert False
         else:
-            return ("(Param '%s' type='%s' strValue='%s' alias='%s')@%X" %
+            return ("(Param '%s' type='%s' strValue='%s' real_id='%s' pos='%s' alias='%s')@%X" %
                     (self.name,
                      self.type,
                      self.strValue,
+                     self.real_id,
+                     self.pos,
                      self.alias,
                      id(self)))
 
