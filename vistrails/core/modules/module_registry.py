@@ -76,8 +76,12 @@ class PortSpec(object):
             elif type(sig_item) == __builtin__.tuple:
                 assert len(sig_item) == 2
                 assert type(sig_item[0]) == __builtin__.type
-                assert type(sig_item[1]) == __builtin__.str                
+                assert type(sig_item[1]) == __builtin__.str
                 return sig_item
+            elif type(sig_item) == __builtin__.list:
+                return (registry.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
+                                                        'List').module,
+                        '<no description>')
 
         def _add_entry(sig_item):
             self._entries.append(canonicalize(sig_item))
