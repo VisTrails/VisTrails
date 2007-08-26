@@ -802,9 +802,17 @@ class Pipeline(DBWorkflow):
             descriptor = reg.get_descriptor_by_name(module.package,
                                                     module.name)
             port_list = []
-            for (_, lst) in reg.all_source_ports(descriptor):
-                port_list.extend([p for p in lst
-                                  if p.name == port.name])
+            def do_it(ports):
+                for (_, lst) in ports:
+                    port_list.extend([p for p in lst
+                                      if p.name == port.name])
+
+            do_it(reg.all_source_ports(descriptor))
+            if len(port_list) == 0:
+                # The port might still be in the original registry
+                d = registry.get_descriptor_by_name(module.package,
+                                                    module.name)
+                do_it(registry.all_source_ports(d))
             assert len(port_list) > 0
             
             # if port_list has more than one element, then it's an
@@ -827,9 +835,17 @@ class Pipeline(DBWorkflow):
             descriptor = reg.get_descriptor_by_name(module.package,
                                                     module.name)
             port_list = []
-            for (_, lst) in reg.all_destination_ports(descriptor):
-                port_list.extend([p for p in lst
-                                  if p.name == port.name])
+            def do_it(ports):
+                for (_, lst) in ports:
+                    port_list.extend([p for p in lst
+                                      if p.name == port.name])
+
+            do_it(reg.all_destination_ports(descriptor))
+            if len(port_list) == 0:
+                # The port might still be in the original registry
+                d = registry.get_descriptor_by_name(module.package,
+                                                    module.name)
+                do_it(registry.all_destination_ports(d))
             assert len(port_list) > 0
 
             # if port_list has more than one element, then it's an
