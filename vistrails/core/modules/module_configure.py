@@ -81,7 +81,7 @@ class DefaultModuleConfigurationWidget(StandardModuleConfigurationWidget):
             checkBox.setCheckState(QtCore.Qt.Checked)
         else:
             checkBox.setCheckState(QtCore.Qt.Unchecked)
-        if not port.optional or (input_ and port.getSignatures()==['()']):
+        if not port.optional or (input_ and port.spec.create_sigstring()==['()']):
             checkBox.setEnabled(False)
         return checkBox
 
