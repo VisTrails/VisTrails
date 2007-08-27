@@ -70,6 +70,11 @@ class XMLFileLocator(BaseLocator):
         io.save_vistrail_to_xml(vistrail, self._name)
         vistrail.locator = self
 
+    def save_temporary(self, vistrail):
+        fname = self._find_latest_temporary()
+        new_temp_fname = self._next_temporary(fname)
+        io.save_vistrail_to_xml(vistrail, new_temp_fname)
+
     def is_valid(self):
         return os.path.isfile(self._name)
 
