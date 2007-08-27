@@ -27,69 +27,84 @@ from db.versions.v0_6_0.domain import DBVistrail, DBAction, DBTag, DBModule, \
 
 def translateVistrail(_vistrail):
     # FIXME should this be a deepcopy?
-    vistrail = copy.deepcopy(_vistrail)
-    vistrail.__class__ = DBVistrail
-    vistrail.db_tags_name_index = {}
+    vistrail = DBVistrail()
 
-    for child in vistrail.db_actions.itervalues():
-        child.__class__ = DBAction
-        child.db_annotations = {}
-        child.db_annotations_key_index = {}
-        for op in child.db_operations:
+    for _action in _vistrail.db_actions.itervalues():
+        ops = []
+        for op in _action.db_operations:
             if op.vtType == 'add':
-                op.__class__ = DBAdd
-                convert_data(op.db_data)
+                data = convert_data(op.db_data)
+                ops.append(DBAdd(id=op.db_id,
+                                 what=op.db_what, 
+                                 objectId=op.db_objectId, 
+                                 parentObjId=op.db_parentObjId, 
+                                 parentObjType=op.db_parentObjType, 
+                                 data=data))
             elif op.vtType == 'change':
-                op.__class__ = DBChange
-                convert_data(op.db_data)
+                data = convert_data(op.db_data)
+                ops.append(DBChange(id=op.db_id,
+                                    what=op.db_what, 
+                                    oldObjId=op.db_oldObjId, 
+                                    newObjId=op.db_newObjId,
+                                    parentObjId=op.db_parentObjId, 
+                                    parentObjType=op.db_parentObjType, 
+                                    data=data))
             elif op.vtType == 'delete':
-                op.__class__ = DBDelete
-        child.is_new = True
+                ops.append(DBDelete(id=op.db_id,
+                                    what=op.db_what, 
+                                    objectId=op.db_objectId, 
+                                    parentObjId=op.db_parentObjId, 
+                                    parentObjType=op.db_parentObjType))
+        action = DBAction(id=_action.db_id,
+                          prevId=_action.db_prevId, 
+                          date=_action.db_date, 
+                          user=_action.db_user, 
+                          operations=ops)
+        vistrail.db_add_action(action)
 
-    new_tags_dict = {}
-    for child in vistrail.db_tags.itervalues():
-        id = child.db_time
-        child.__class__ = DBTag
-        child.db_id = id
-        vistrail.db_tags_name_index[child.db_name] = child
-        new_tags_dict[child.db_id] = child
-        child.is_new = True
-    vistrail.db_tags = new_tags_dict
+    for _tag in _vistrail.db_tags.itervalues():
+        tag = DBTag(id=_tag.db_time,
+                    name=_tag.db_name)
+        vistrail.db_add_tag(tag)
 
-    vistrail.db_abstractions = {}
     vistrail.db_version = '0.6.0'
     return vistrail
 
 def convert_data(child):
     if child.vtType == 'module':
-        child.__class__ = DBModule
-        child.db_package = None
-        child.db_version = None
-        child.db_annotations_key_index = {}       
-        port_specs_dict = {}
-        for port_spec in child.db_portSpecs:
-            port_specs_dict[port_spec.id] = port_spec
-        child.db_portSpecs = port_specs_dict
-        child.db_portSpecs_name_index = {}
+        return DBModule(id=child.db_id,
+                        cache=child.db_cache, 
+                        abstraction=0, 
+                        name=child.db_name)
     elif child.vtType == 'connection':
-        child.__class__ = DBConnection
-        child.db_ports_type_index = {}
+        return DBConnection(id=child.db_id)
     elif child.vtType == 'portSpec':
-        child.__class__ = DBPortSpec
+        return DBPortSpec(id=child.db_id,
+                          name=child.db_name, 
+                          type=child.db_type, 
+                          spec=child.db_spec)
     elif child.vtType == 'function':
-        child.__class__ = DBFunction
+        return DBFunction(id=child.db_id,
+                          pos=child.db_pos, 
+                          name=child.db_name)
     elif child.vtType == 'parameter':
-        child.__class__ = DBParameter
+        return DBParameter(id=child.db_id,
+                           pos=child.db_pos,
+                           name=child.db_name, 
+                           type=child.db_type, 
+                           val=child.db_val, 
+                           alias=child.db_alias)
     elif child.vtType == 'location':
-        child.__class__ = DBLocation
-    elif child.vtType == 'add':
-        child.__class__ = DBAdd
-    elif child.vtType == 'change':
-        child.__class__ = DBChange
-    elif child.vtType == 'delete':
-        child.__class__ = DBDelete
+        return DBLocation(id=child.db_id,
+                          x=child.db_x,
+                          y=child.db_y)
     elif child.vtType == 'annotation':
-        child.__class__ = DBAnnotation
+        return DBAnnotation(id=child.db_id,
+                            key=child.db_key,
+                            value=child.db_value)
     elif child.vtType == 'port':
-        child.__class__ = DBPort    
-    child.is_new = True
+        return DBPort(id=child.db_id,
+                      type=child.db_type, 
+                      moduleId=child.db_moduleId, 
+                      moduleName=child.db_moduleName, 
+                      sig=child.db_sig)

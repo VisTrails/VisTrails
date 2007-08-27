@@ -26,26 +26,30 @@ import os
 from xml.parsers.expat import ExpatError
 from xml.dom.minidom import parse, parseString, getDOMImplementation
 
+from db import VistrailsDBException
 from db.domain import DBVistrail, DBWorkflow, DBLog
 import db.services.vistrail
 from db.versions import getVersionDAO, currentVersion, translateVistrail, \
     getVersionSchemaDir
 
-def openDBConnection(config):
+def open_db_connection(config):
     import MySQLdb
 
     if config is None:
         msg = "You need to provide valid config dictionary"
         raise Exception(msg)
     try:
-        dbConnection = MySQLdb.connect(**config)
-        return dbConnection
+        db_connection = MySQLdb.connect(**config)
+        return db_connection
     except MySQLdb.Error, e:
         # should have a DB exception type
-        msg = "MySQL returned the following error %d: %s" % (e.args[0],
-                                                             e.args[1])
-        raise Exception(msg)
-    
+        msg = "cannot open connection (%d: %s)" % (e.args[0], e.args[1])
+        raise VistrailsDBException(msg)
+
+def close_db_connection(db_connection):
+    if db_connection is not None:
+        db_connection.close()
+
 def test_db_connection(config):
     """testDBConnection(config: dict) -> None
     Tests a connection raising an exception in case of error.
@@ -55,19 +59,17 @@ def test_db_connection(config):
 
     try:
         dbConnection = MySQLdb.connect(**config)
-        closeDBConnection(dbConnection)
+        close_db_connection(dbConnection)
     except MySQLdb.Error, e:
-        # should have a DB exception type
-        msg = "MySQL returned the following error %d: %s" % (e.args[0],
-                                                             e.args[1])
-        raise Exception(msg)
+        msg = "connection test failed (%d: %s)" % (e.args[0], e.args[1])
+        raise VistrailsDBException(msg)
 
 def get_db_vistrail_list(config):
     
     import MySQLdb
 
     result = []    
-    db = openDBConnection(config)
+    db = open_db_connection(config)
 
     #FIXME Create a DBGetVistrailListSQLDAOBase for this
     # and maybe there's another way to build this query
@@ -89,20 +91,20 @@ def get_db_vistrail_list(config):
         c.close()
         
     except MySQLdb.Error, e:
-        print "ERROR: Couldn't get list of vistrails from db (%d : %s)" % (
-                e.args[0], e.args[1])
-
+        msg = "Couldn't get list of vistrails from db (%d : %s)" % (e.args[0], 
+                                                                    e.args[1])
+        raise VistrailsDBException(msg)
     return result
 
-def openXMLFile(filename):
+def parse_xml_file(filename):
     try:
         return parse(filename)
     except ExpatError, e:
         msg = 'XML parse error at line %s, col %s: %s' % \
             (e.lineno, e.offset, e.code)
-        raise Exception(msg)
+        raise VistrailsDBException(msg)
 
-def writeXMLFile(filename, dom, prettyprint=True):
+def write_xml_file(filename, dom, prettyprint=True):
     output = file(filename, 'w')
     if prettyprint:
         dom.writexml(output, '','  ','\n')
@@ -110,40 +112,32 @@ def writeXMLFile(filename, dom, prettyprint=True):
         dom.writexml(output)
     output.close()
 
-def setupDBTables(dbConnection, version=None):
+def setup_db_tables(db_connection, version=None):
     import MySQLdb
 
     schemaDir = getVersionSchemaDir(version)
     try:
         # delete tables
-        print "dropping tables"
-        
-        c = dbConnection.cursor()
+        c = db_connection.cursor()
         f = open(os.path.join(schemaDir, 'vistrails_drop.sql'))
-        dbScript = f.read()
-        c.execute(dbScript)
+        db_script = f.read()
+        c.execute(db_script)
         c.close()
         f.close()
 
-        # create tables
-        print "creating tables"
-        
-        c = dbConnection.cursor()
+        # create tables        
+        c = db_connection.cursor()
         f = open(os.path.join(schemaDir, 'vistrails.sql'))
-        dbScript = f.read()
-        c.execute(dbScript)
+        db_script = f.read()
+        c.execute(db_script)
         f.close()
         c.close()
     except MySQLdb.Error, e:
-        raise Exception("unable to create tables: " + str(e))
+        raise VistrailsDBException("unable to create tables: " + str(e))
 
-def closeDBConnection(dbConnection):
-    if dbConnection is not None:
-        dbConnection.close()
-
-def openVistrailFromXML(filename):
-    """openVistrailFromXML(filename) -> Vistrail"""
-    dom = openXMLFile(filename)
+def open_vistrail_from_xml(filename):
+    """open_vistrail_from_xml(filename) -> Vistrail"""
+    dom = parse_xml_file(filename)
     version = getVersionForXML(dom.documentElement)
     if version != currentVersion:
         vistrail = importVistrailFromXML(filename, version)
@@ -154,11 +148,11 @@ def openVistrailFromXML(filename):
     dom.unlink()
     return vistrail
 
-def openVistrailFromDB(dbConnection, id):
-    """openVistrailFromDB(dbConnection, id) -> Vistrail """
+def open_vistrail_from_db(dbConnection, id):
+    """open_vistrail_from_db(dbConnection, id) -> Vistrail """
 
     if dbConnection is None:
-        msg = "Need to call openDBConnection() before reading"
+        msg = "Need to call open_db_connection() before reading"
         raise Exception(msg)
     vt = readSQLObjects(dbConnection, DBVistrail.vtType, id)[0]
     # not sure where this really should be done...
@@ -169,12 +163,12 @@ def openVistrailFromDB(dbConnection, id):
     db.services.vistrail.updateIdScope(vt)
     return vt
 
-def saveVistrailToXML(vistrail, filename):
+def save_vistrail_to_xml(vistrail, filename):
 
     # FIXME dakoop (enhancement) -- if save dom, can save quicker
     #     dom = vistrail.vt_origin
     #     writeXMLObjects([vistrail], dom, dom.documentElement)
-    #     writeXMLFile(filename, dom)
+    #     write_xml_file(filename, dom)
 
     dom = getDOMImplementation().createDocument(None, None, None)
     root = writeXMLObjects([vistrail], dom)
@@ -183,35 +177,45 @@ def saveVistrailToXML(vistrail, filename):
     root.setAttribute('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
     root.setAttribute('xsi:schemaLocation', 
                   'http://www.vistrails.org/vistrail.xsd')
-    writeXMLFile(filename, dom)
+    write_xml_file(filename, dom)
     dom.unlink()
     
-def saveVistrailToDB(vistrail, dbConnection):
+def save_vistrail_to_db(vistrail, dbConnection):
     vistrail.db_version = currentVersion
     writeSQLObjects(dbConnection, [vistrail])
 
-def openWorkflowFromXML(filename):
-    dom = openXMLFile(filename)
+def open_workflow_from_xml(filename):
+    dom = parse_xml_file(filename)
     return readXMLObjects(DBWorkflow.vtType, dom.documentElement)[0]
 
 def openWorkflowFromSQL(dbConnection, id):
     if dbConnection is None:
-        msg = "Need to call openDBConnection() before reading"
+        msg = "Need to call open_db_connection() before reading"
         raise Exception(msg)
     readSQLObjects(dbConnection, DBWorkflow.vtType, id)[0]
+
+def serialize(object):
+    dom = getDOMImplementation().createDocument(None, None, None)
+    root = writeXMLObjects([object], dom)
+    dom.appendChild(root)
+    return dom.toxml()
+
+def unserialize(str, obj_type):
+    dom = parseString(str)
+    return readXMLObjects(obj_type, dom.documentElement)[0]
 
 def getWorkflowFromXML(str):
     dom = parseString(str)
     return readXMLObjects(DBWorkflow.vtType, dom.documentElement)[0]
 
-def saveWorkflowToXML(workflow, filename):
+def save_workflow_to_xml(workflow, filename):
     dom = getDOMImplementation().createDocument(None, None, None)
     root = writeXMLObjects([workflow], dom)
     dom.appendChild(root)
     root.setAttribute('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
     root.setAttribute('xsi:schemaLocation', 
                       'http://www.vistrails.org/workflow.xsd')
-    writeXMLFile(filename, dom)
+    write_xml_file(filename, dom)
 
 def getWorkflowAsXML(workflow):
     dom = getDOMImplementation().createDocument(None, None, None)
@@ -223,12 +227,12 @@ def getWorkflowAsXML(workflow):
     return dom.toxml()
     
 def openLogFromXML(filename):
-    dom = openXMLFile(filename)
+    dom = parse_xml_file(filename)
     return readXMLObjects(DBLog.vtType, dom.documentElement)[0]
 
 def openLogFromSQL(dbConnection, id):
     if dbConnection is None:
-        msg = "Need to call openDBConnection() before reading"
+        msg = "Need to call open_db_connection() before reading"
         raise Exception(msg)
     return readSQLObjects(dbConnection, DBLog.vtType, id)[0]
 
@@ -239,7 +243,7 @@ def saveLogToXML(log, filename):
     root.setAttribute('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
     root.setAttribute('xsi:schemaLocation', 
                       'http://www.vistrails.org/workflow.xsd')
-    writeXMLFile(filename, dom)
+    write_xml_file(filename, dom)
 
 def readXMLObjects(vtType, node):
     daoList = getVersionDAO(currentVersion)
@@ -298,14 +302,14 @@ def importSQLObjects(dbConnection, vtType, id, version):
     return daoList['xml'][vtType].fromSQL(dbConnection, id)
 
 def importVistrailFromXML(filename, version):
-    dom = openXMLFile(filename)
+    dom = parse_xml_file(filename)
     vistrail = importXMLObjects(DBVistrail.vtType, 
                                 dom.documentElement, version)[0]
     return translateVistrail(vistrail, version)
 
 def importVistrailFromSQL(dbConnection, id, version):
     if dbConnection is None:
-        msg = "Need to call openDBConnection() before reading"
+        msg = "Need to call open_db_connection() before reading"
         raise Exception(msg)
     vistrail = importSQLObjects(dbConnection, Vistrail.vtType, id, version)[0]
     #        return self.translateVistrail(vistrail)
@@ -338,256 +342,6 @@ def getCurrentTime(dbConnection=None):
 
 
 ##############################################################################
-# Locators
-
-class BaseLocator(object):
-
-    def load(self):
-        pass # returns a vistrail
-
-    def save(self, vistrail):
-        pass # saves a vistrail in the given place
-
-    def is_valid(self):
-        pass # Returns true if locator refers to a valid vistrail
-
-    def save_temporary(self, vistrail):
-        pass # Saves a temporary file (useful for making crashes less horrible)
-
-    def clean_temporaries(self):
-        pass # Cleans up temporary files
-
-    def has_temporaries(self):
-        pass # True if temporaries are present
-
-    @staticmethod
-    def load_from_gui(parent_widget):
-        pass # Opens a dialog that the user will be able to use to
-             # show the right values, and returns a locator suitable
-             # for loading a file
-
-    @staticmethod
-    def save_from_gui(parent_widget, locator):
-        pass # Opens a dialog that the user will be able to use to
-             # show the right values, and returns a locator suitable
-             # for saving a file
-
-    def __eq__(self, other):
-        pass # Implement equality
-
-    def __eq__(self, other):
-        pass # Implement nonequality
-
-
-class XMLFileLocator(BaseLocator):
-
-    def __init__(self, filename):
-        self._name = filename
-
-    def load(self):
-        from core.vistrail.vistrail import Vistrail
-        fname = self._find_latest_temporary()
-        if fname:
-            vistrail = openVistrailFromXML(fname)
-        else:
-            vistrail = openVistrailFromXML(self._name)
-        Vistrail.convert(vistrail)
-        vistrail.locator = self
-        return vistrail
-
-    def save(self, vistrail):
-        saveVistrailToXML(vistrail, self._name)
-        vistrail.locator = self
-        # Only remove the temporaries if save succeeded!
-        self.clean_temporaries()
-
-    def save_temporary(self, vistrail):
-        fname = self._find_latest_temporary()
-        new_temp_fname = self._next_temporary(fname)
-        saveVistrailToXML(vistrail, new_temp_fname)
-
-    def is_valid(self):
-        return os.path.isfile(self._name)
-
-    def _get_name(self):
-        return self._name
-    name = property(_get_name)
-
-    ##########################################################################
-
-    def _iter_temporaries(self, f):
-        """_iter_temporaries(f): calls f with each temporary file name, in
-        sequence.
-
-        """
-        latest = None
-        current = 0
-        while True:
-            fname = self._name + '_tmp_' + str(current)
-            if os.path.isfile(fname):
-                f(fname)
-                current += 1
-            else:
-                break
-
-    def clean_temporaries(self):
-        """_remove_temporaries() -> None
-
-        Erases all temporary files.
-
-        """
-        def remove_it(fname):
-            os.unlink(fname)
-        self._iter_temporaries(remove_it)
-
-    def has_temporaries(self):
-        return self._find_latest_temporary() is not None
-
-    def _find_latest_temporary(self):
-        """_find_latest_temporary(): String or None.
-
-        Returns the latest temporary file saved, if it exists. Returns
-        None otherwise.
-        
-        """
-        latest = [None]
-        def set_it(fname):
-            latest[0] = fname
-        self._iter_temporaries(set_it)
-        return latest[0]
-        
-    def _next_temporary(self, temporary):
-        """_find_latest_temporary(string or None): String
-
-        Returns the next suitable temporary file given the current
-        latest one.
-
-        """
-        if temporary == None:
-            return self._name + '_tmp_0'
-        else:
-            split = temporary.rfind('_')+1
-            base = temporary[:split]
-            number = int(temporary[split:])
-            return base + str(number+1)
-
-    @staticmethod
-    def load_from_gui(parent_widget):
-        import gui.extras.db.services.io as io
-        return io.get_load_xml_file_locator_from_gui(parent_widget)
-
-    @staticmethod
-    def save_from_gui(parent_widget, locator=None):
-        import gui.extras.db.services.io as io
-        return io.get_save_xml_file_locator_from_gui(parent_widget, locator)
-
-    def __eq__(self, other):
-        if type(other) != XMLFileLocator:
-            return False
-        return self._name == other._name
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-
-class DBLocator(BaseLocator):
-
-    connections = {}
-
-    def __init__(self, host, port, database, user, passwd, name=None,
-                 vistrail_id=None, connection_id=None):
-        self._host = host
-        self._port = port
-        self._db = database
-        self._user = user
-        self._passwd = passwd
-        self._vt_name = name
-        self._vt_id = vistrail_id
-        self._conn_id = connection_id
-
-    def _get_host(self):
-        return self._host
-    host = property(_get_host)
-
-    def _get_port(self):
-        return self._port
-    port = property(_get_port)
-
-    def _get_vistrail_id(self):
-        return self._vt_id
-    vistrail_id = property(_get_vistrail_id)
-
-    def _get_connection_id(self):
-        return self._conn_id
-    connection_id = property(_get_connection_id)
-    
-    def _get_name(self):
-        return self._host + ':' + str(self._port) + ':' + self._db + ':' + \
-            self._vt_name
-    name = property(_get_name)
-
-    def get_connection(self):
-        if self._conn_id is not None \
-                and DBLocator.connections.has_key(self._conn_id):
-            connection = DBLocator.connections[self._conn_id]
-        else:
-            config = {'host': self._host,
-                      'port': self._port,
-                      'db': self._db,
-                      'user': self._user,
-                      'passwd': self._passwd}
-            connection = openDBConnection(config)
-            if self._conn_id is None:
-                if len(DBLocator.connections.keys()) == 0:
-                    self._conn_id = 1
-                else:
-                    self._conn_id = max(DBLocator.connections.keys()) + 1
-            DBLocator.connections[self._conn_id] = connection
-        return connection
-
-    def load(self):
-        from core.vistrail.vistrail import Vistrail
-        connection = self.get_connection()
-        vistrail = openVistrailFromDB(connection, self.vistrail_id)
-        Vistrail.convert(vistrail)
-        self._vt_name = vistrail.db_name
-        vistrail.locator = self
-        return vistrail
-
-    def save(self, vistrail):
-        connection = self.get_connection()
-        vistrail.db_name = self._vt_name
-        saveVistrailToDB(vistrail, connection)
-        self._vt_id = vistrail.db_id
-        vistrail.locator = self
-
-    ##########################################################################
-        
-    @staticmethod
-    def load_from_gui(parent_widget):
-        import gui.extras.db.services.io as io
-        return io.get_load_db_locator_from_gui(parent_widget)
-
-    @staticmethod
-    def save_from_gui(parent_widget, locator=None):
-        import gui.extras.db.services.io as io
-        return io.get_save_db_locator_from_gui(parent_widget, locator)
-
-    def __eq__(self, other):
-        if type(other) != DBLocator:
-            return False
-        return (self._host == other._host and
-                self._port == other._port and
-                self._db == other._db and
-                self._user == other._user and
-                self._vt_name == other._vt_name and
-                self._vt_id == other._vt_id)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-
-##############################################################################
 # Testing
 
 import unittest
@@ -597,7 +351,7 @@ class TestDBIO(unittest.TestCase):
         """test importing an xml file"""
         import core.system
         import os
-        vistrail = openVistrailFromXML( \
+        vistrail = open_vistrail_from_xml( \
             os.path.join(core.system.vistrails_root_directory(),
                          'tests/resources/dummy.xml'))
         assert vistrail is not None
@@ -606,7 +360,7 @@ class TestDBIO(unittest.TestCase):
         """test importing an xml file"""
         import core.system
         import os
-        vistrail = openVistrailFromXML( \
+        vistrail = open_vistrail_from_xml( \
             os.path.join(core.system.vistrails_root_directory(),
                          'tests/resources/dummy_new.xml'))
         assert vistrail is not None

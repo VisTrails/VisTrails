@@ -33,7 +33,10 @@ class Location(DBLocation):
             self.id = -1
         
     def __copy__(self):
-        cp = DBLocation.__copy__(self)
+        return Location.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBLocation.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Location
         return cp
 
@@ -76,17 +79,49 @@ class Location(DBLocation):
         rep = "<location id=%s x=%s y=%s/>"
         return  rep % (str(self.id), str(self.x), str(self.y))
 
-    # FIXME expand this
     def __eq__(self, other):
-        """ __eq__(other: Annotation) -> boolean
+        """ __eq__(other: Location) -> boolean
         Returns True if self and other have the same attributes. Used by == 
         operator. 
         
         """
         if type(other) != type(self):
             return False
-        return True
+        return (self.x == other.x and self.y == other.y)
 
     def __ne__(self, other):
         return not self.__eq__(other)
     
+################################################################################
+# Testing
+
+import unittest
+import copy
+from db.domain import IdScope
+
+class TestLocation(unittest.TestCase):
+
+    def create_location(self, id_scope=IdScope()):
+        location = Location(id=id_scope.getNewId(Location.vtType),
+                            x=12.34567,
+                            y=14.65431)
+        return location
+
+    def test_copy(self):
+        id_scope = IdScope()
+        
+        loc1 = self.create_location(id_scope)
+        loc2 = copy.copy(loc1)
+        self.assertEquals(loc1, loc2)
+        self.assertEquals(loc1.id, loc2.id)
+        loc3 = loc1.do_copy(True, id_scope, {})
+        self.assertEquals(loc1, loc3)
+        self.assertNotEquals(loc1.id, loc3.id)
+
+    def test_serialization(self):
+        import core.db.io
+        loc1 = self.create_location()
+        xml_str = core.db.io.serialize(loc1)
+        loc2 = core.db.io.unserialize(xml_str, Location)
+        self.assertEquals(loc1, loc2)
+        self.assertEquals(loc1.id, loc2.id)

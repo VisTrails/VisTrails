@@ -62,7 +62,10 @@ class AddOp(DBAdd):
         DBAdd.__init__(self, *args, **kwargs)
     
     def __copy__(self):
-        cp = DBAdd.__copy__(self)
+        return AddOp.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBAdd.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = AddOp
         return cp
 
@@ -123,7 +126,7 @@ class AddOp(DBAdd):
 
         """
         rep = "<add id=%s what=%s objectId=%s parentObjId=%s" + \
-            "parentObjType=%s>" + data.__str__() + "</add>"
+            " parentObjType=%s>" + str(self.data) + "</add>"
         return rep % (str(self.id), str(self.what), str(self.objectId),
                       str(self.parentObjId), str(self.parentObjType))
 
@@ -148,12 +151,15 @@ class ChangeOp(DBChange):
 
     def __init__(self, *args, **kwargs):
         DBChange.__init__(self, *args, **kwargs)
-    
+
     def __copy__(self):
-        cp = DBChange.__copy__(self)
+        return ChangeOp.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBChange.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = ChangeOp
         return cp
-
+    
     @staticmethod
     def convert(_change_op):
         if _change_op.__class__ == ChangeOp:
@@ -218,7 +224,7 @@ class ChangeOp(DBChange):
 
         """
         rep = "<change id=%s what=%s oldId=%s newId=%s parentObjId=%s" + \
-            "parentObjType=%s>" + data.__str__() + "</change>"
+            " parentObjType=%s>" + str(self.data) + "</change>"
         return rep % (str(self.id), str(self.what), str(self.oldObjId),
                       str(self.newObjId), str(self.parentObjId), 
                       str(self.parentObjType))
@@ -246,7 +252,10 @@ class DeleteOp(DBDelete):
         DBDelete.__init__(self, *args, **kwargs)
     
     def __copy__(self):
-        cp = DBDelete.__copy__(self)
+        return DeleteOp.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBDelete.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = DeleteOp
         return cp
 
@@ -298,7 +307,7 @@ class DeleteOp(DBDelete):
 
         """
         rep = "<delete id=%s what=%s objectId=%s parentObjId=%s" + \
-            "parentObjType=%s/>"
+            " parentObjType=%s/>"
         return rep % (str(self.id), str(self.what), str(self.objectId),
                       str(self.parentObjId), str(self.parentObjType))
 
@@ -315,3 +324,70 @@ class DeleteOp(DBDelete):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+################################################################################
+# Unit tests
+
+import unittest
+import copy
+from db.domain import IdScope
+
+class TestOperation(unittest.TestCase):
+    
+    def create_ops(self, id_scope=IdScope()):
+        from core.vistrail.module import Module
+        from core.vistrail.module_function import ModuleFunction
+        from core.vistrail.module_param import ModuleParam
+        
+        if id_scope is None:
+            id_scope = IdScope(remap={AddOp.vtType: 'operation',
+                                      ChangeOp.vtType: 'operation',
+                                      DeleteOp.vtType: 'operation'})
+
+        m = Module(id=id_scope.getNewId(Module.vtType),
+                   name='Float',
+                   package='edu.utah.sci.vistrails.basic')
+        add_op = AddOp(id=id_scope.getNewId(AddOp.vtType),
+                       what=Module.vtType,
+                       objectId=m.id,
+                       data=m)
+        function = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
+                                  name='value')
+        change_op = ChangeOp(id=id_scope.getNewId(ChangeOp.vtType),
+                             what=ModuleFunction.vtType,
+                             oldObjId=2,
+                             newObjId=function.real_id,
+                             parentObjId=m.id,
+                             parentObjType=Module.vtType,
+                             data=function)
+        param = ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
+                            type='Integer',
+                            val='1')
+        delete_op = DeleteOp(id=id_scope.getNewId(DeleteOp.vtType),
+                             what=ModuleParam.vtType,
+                             objectId=param.real_id,
+                             parentObjId=function.real_id,
+                             parentObjType=ModuleFunction.vtType)
+        return [add_op, change_op, delete_op]
+
+    def test_copy(self):       
+        id_scope = IdScope(remap={AddOp.vtType: 'operation',
+                                  ChangeOp.vtType: 'operation',
+                                  DeleteOp.vtType: 'operation'})
+        for op1 in self.create_ops(id_scope):
+            op2 = copy.copy(op1)
+            self.assertEquals(op1, op2)
+            self.assertEquals(op1.id, op2.id)
+            op3 = op1.do_copy(True, id_scope, {})
+            self.assertEquals(op1, op3)
+            self.assertNotEquals(op1.id, op3.id)
+            if hasattr(op1, 'data'):
+                self.assertNotEquals(op1.data.db_id, op3.data.db_id)
+
+    def test_serialization(self):
+        import core.db.io
+        for op1 in self.create_ops():
+            xml_str = core.db.io.serialize(op1)
+            op2 = core.db.io.unserialize(xml_str, op1.__class__)
+            self.assertEquals(op1, op2)
+            self.assertEquals(op1.id, op2.id)

@@ -294,42 +294,42 @@ class QueryVistrailController(VistrailController):
     
     """
     
-    def pasteModulesAndConnections(self, str):
-        """ pasteModulesAndConnections(modules: [Module],
-                                       connections: [Connection]) -> version id
-        Paste a list of modules and connections into the current
-        pipeline. Also paste the queryMethod attribute
+#     def pasteModulesAndConnections(self, str):
+#         """ pasteModulesAndConnections(modules: [Module],
+#                                        connections: [Connection]) -> version id
+#         Paste a list of modules and connections into the current
+#         pipeline. Also paste the queryMethod attribute
 
-        """
-        pipeline = db.services.io.getWorkflowFromXML(str)
-        Pipeline.convert(pipeline)
+#         """
+#         pipeline = db.services.io.getWorkflowFromXML(str)
+#         Pipeline.convert(pipeline)
 
-        ops = []
-        module_remap = {}
-        for module in pipeline.modules.itervalues():
-            module = copy.copy(module)
-            old_id = module.id
-            if module.location is not None:
-                loc_id = self.vistrail.idScope.getNewId(Location.vtType)
-                module.location = Location(id=loc_id,
-                                           x=module.location.x + 10.0,
-                                           y=module.location.y + 10.0,
-                                           )
-            mops = db.services.action.create_copy_op_chain(object=module,
-                                               id_scope=self.vistrail.idScope)
-            module_remap[old_id] = mops[0].db_objectId
-            ops.extend(mops)
-        for connection in pipeline.connections.itervalues():
-            connection = copy.copy(connection)
-            for port in connection.ports:
-                port.moduleId = module_remap[port.moduleId]
-            ops.extend( \
-                db.services.action.create_copy_op_chain(object=connection,
-                                               id_scope=self.vistrail.idScope))
-        action = db.services.action.create_action_from_ops(ops)
-        Action.convert(action)
+#         ops = []
+#         module_remap = {}
+#         for module in pipeline.modules.itervalues():
+#             module = copy.copy(module)
+#             old_id = module.id
+#             if module.location is not None:
+#                 loc_id = self.vistrail.idScope.getNewId(Location.vtType)
+#                 module.location = Location(id=loc_id,
+#                                            x=module.location.x + 10.0,
+#                                            y=module.location.y + 10.0,
+#                                            )
+#             mops = db.services.action.create_copy_op_chain(object=module,
+#                                                id_scope=self.vistrail.idScope)
+#             module_remap[old_id] = mops[0].db_objectId
+#             ops.extend(mops)
+#         for connection in pipeline.connections.itervalues():
+#             connection = copy.copy(connection)
+#             for port in connection.ports:
+#                 port.moduleId = module_remap[port.moduleId]
+#             ops.extend( \
+#                 db.services.action.create_copy_op_chain(object=connection,
+#                                                id_scope=self.vistrail.idScope))
+#         action = db.services.action.create_action_from_ops(ops)
+#         Action.convert(action)
 
-        self.perform_action(action)
+#         self.perform_action(action)
 
 #         self.quiet = True
 #         modulesMap ={}
@@ -395,14 +395,14 @@ class QueryVistrailController(VistrailController):
 #         self.currentVersion = currentAction
 #         self.invalidate_version_tree()
 
-    def setPipeline(self, pipeline):
-        """ setPipeline(pipeline) -> None
-        Replace the current pipeline with the given pipeline
+#     def setPipeline(self, pipeline):
+#         """ setPipeline(pipeline) -> None
+#         Replace the current pipeline with the given pipeline
         
-        """
-        # First remove all modules
-        self.deleteModuleList(copy.copy(self.currentPipeline.modules.keys()))
+#         """
+#         # First remove all modules
+#         self.deleteModuleList(copy.copy(self.currentPipeline.modules.keys()))
 
-        # Then paste this new modules and connections
-        self.pasteModulesAndConnections(pipeline.modules.values(),
-                                        pipeline.connections.values())
+#         # Then paste this new modules and connections
+#         self.pasteModulesAndConnections(pipeline.modules.values(),
+#                                         pipeline.connections.values())

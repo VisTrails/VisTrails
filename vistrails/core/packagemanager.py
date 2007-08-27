@@ -574,6 +574,8 @@ creating a class that behaves similarly)."""
 
         # import the modules
         for package in self._package_list.itervalues():
+            if package.initialized():
+                continue
             package.load(package_dictionary.get(package.codepath, None))
             if self._dependency_graph.vertices.has_key(package.identifier):
                 raise VistrailsInternalError('duplicate package identifier: %s' %

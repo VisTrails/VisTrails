@@ -39,15 +39,17 @@ class Action(DBAction):
             self.timestep = -1
         if self.parent is None:
             self.parent = -1
+        if self.user is None:
+            self.user = ''
         if kwargs.has_key('notes'):
             self.notes = kwargs['notes']
-        else:
-            self.notes = None
 
     def __copy__(self):
-        cp = DBAction.__copy__(self)
+        return Action.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBAction.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Action
-        cp.notes = self.notes
         return cp
     
     ##########################################################################
@@ -80,6 +82,12 @@ class Action(DBAction):
 	    self.db_date = newDate
     date = property(_get_date, _set_date)
 
+    def _get_session(self):
+        return self.db_session
+    def _set_session(self, session):
+        self.db_session = session
+    session = property(_get_session, _set_session)
+
     def _get_user(self):
         return self.db_user
     def _set_user(self, user):
@@ -95,6 +103,7 @@ class Action(DBAction):
     def _get_notes(self):
         if self.db_has_annotation_with_key('notes'):
             return self.db_get_annotation_by_key('notes').value
+        return None
     def _set_notes(self, notes):
         self.db_change_annotation(Annotation(id=0,
                                              key='notes',
@@ -118,7 +127,7 @@ class Action(DBAction):
         if _action.__class__ == Action:
             return
         _action.__class__ = Action
-        for _annotation in _action.annotations.itervalues():
+        for _annotation in _action.annotations:
             Annotation.convert(_annotation)
         for _operation in _action.operations:
             if _operation.vtType == 'add':
@@ -134,15 +143,24 @@ class Action(DBAction):
     ##########################################################################
     # Operators
 
-    # FIXME expand this
     def __eq__(self, other):
         """ __eq__(other: Module) -> boolean
         Returns True if self and other have the same attributes. Used by == 
         operator. 
         
         """
-        if type(other) != type(self):
+        if type(self) != type(other):
             return False
+        if len(self.annotations) != len(other.annotations):
+            return False
+        if len(self.operations) != len(other.operations):
+            return False
+        for f,g in zip(self.annotations, other.annotations):
+            if f != g:
+                return False
+        for f,g in zip(self.operations, other.operations):
+            if f != g:
+                return False
         return True
 
     def __ne__(self, other):
@@ -170,10 +188,63 @@ import unittest
 
 class TestAction(unittest.TestCase):
     
+    def create_action(self, id_scope=None):
+        from core.vistrail.action import Action
+        from core.vistrail.module import Module
+        from core.vistrail.module_function import ModuleFunction
+        from core.vistrail.module_param import ModuleParam
+        from core.vistrail.operation import AddOp
+        from db.domain import IdScope
+        from datetime import datetime
+        
+        if id_scope is None:
+            id_scope = IdScope()
+        param = ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
+                            type='Integer',
+                            val='1')
+        function = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
+                                  name='value',
+                                  parameters=[param])
+        m = Module(id=id_scope.getNewId(Module.vtType),
+                   name='Float',
+                   package='edu.utah.sci.vistrails.basic',
+                   functions=[function])
+
+        add_op = AddOp(id=id_scope.getNewId('operation'),
+                       what='module',
+                       objectId=m.id,
+                       data=m)
+        action = Action(id=id_scope.getNewId(Action.vtType),
+                        prevId=0,
+                        date=datetime(2007,11,18),
+                        operations=[add_op])
+        return action
+
+    def test_copy(self):
+        import copy
+        from db.domain import IdScope
+        
+        id_scope = IdScope()
+        a1 = self.create_action(id_scope)
+        a2 = copy.copy(a1)
+        self.assertEquals(a1, a2)
+        self.assertEquals(a1.id, a2.id)
+        a3 = a1.do_copy(True, id_scope, {})
+        self.assertEquals(a1, a3)
+        self.assertNotEquals(a1.id, a3.id)
+
+    def test_serialization(self):
+        import core.db.io
+        a1 = self.create_action()
+        xml_str = core.db.io.serialize(a1)
+        a2 = core.db.io.unserialize(xml_str, Action)
+        self.assertEquals(a1, a2)
+        self.assertEquals(a1.id, a2.id)
+
     def test1(self):
         """Exercises aliasing on modules"""
         import core.vistrail
-        from db.services.io import XMLFileLocator
+        from core.db.locator import XMLFileLocator
         v = XMLFileLocator(core.system.vistrails_root_directory() +
                            '/tests/resources/dummy.xml').load()
         p1 = v.getPipeline('final')
@@ -186,7 +257,7 @@ class TestAction(unittest.TestCase):
     def test2(self):
         """Exercises aliasing on points"""
         import core.vistrail
-        from db.services.io import XMLFileLocator
+        from core.db.locator import XMLFileLocator
         import core.system
         v = XMLFileLocator(core.system.vistrails_root_directory() +
                             '/tests/resources/dummy.xml').load()
@@ -205,7 +276,7 @@ class TestAction(unittest.TestCase):
     def test3(self):
         """ Exercises aliases manipulation """
         pass
-#         from core.vistrail import dbservice
+
 
 #         vistrail = dbservice.openVistrail( \
 #             core.system.vistrails_root_directory() +

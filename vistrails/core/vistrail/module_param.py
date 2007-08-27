@@ -63,7 +63,10 @@ class ModuleParam(DBParameter):
         self.queryMethod = 0
 
     def __copy__(self):
-        cp = DBParameter.__copy__(self)
+        return ModuleParam.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBParameter.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = ModuleParam
         cp.minValue = self.minValue
         cp.maxValue = self.maxValue
@@ -262,8 +265,35 @@ class ModuleParam(DBParameter):
 # Testing
 
 import unittest
+import copy
+from db.domain import IdScope
 
 class TestModuleParam(unittest.TestCase):
+
+    def create_param(self, id_scope=IdScope()):
+        param = ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
+                            pos=2,
+                            type='Int',
+                            val='1')
+        return param
+
+    def test_copy(self):        
+        id_scope = IdScope()
+        p1 = self.create_param(id_scope)
+        p2 = copy.copy(p1)
+        self.assertEquals(p1, p2)
+        self.assertEquals(p1.id, p2.id)
+        p3 = p1.do_copy(True, id_scope, {})
+        self.assertEquals(p1, p3)
+        self.assertNotEquals(p1.real_id, p3.real_id)
+
+    def test_serialization(self):
+        import core.db.io
+        p1 = self.create_param()
+        xml_str = core.db.io.serialize(p1)
+        p2 = core.db.io.unserialize(xml_str, ModuleParam)
+        self.assertEquals(p1, p2)
+        self.assertEquals(p1.real_id, p2.real_id)
     
     def testValue(self):
         """ Test values returned by value() function """
@@ -300,23 +330,6 @@ class TestModuleParam(unittest.TestCase):
         assert p == q
         q.type = "Float"
         assert p != q
-
-    def test_load_and_dump_param(self):
-        """ Check that serialize and unserialize are working properly """
-        from core.vistrail import dbservice
-        
-        p = ModuleParam()
-        p.type = "Float"
-        assert p.value() == 0.0
-        p.strValue = "1.5"
-        assert p.value() == 1.5
-        
-        dom = dbservice.serialize(p)
-        pnew = dbservice.unserialize(ModuleParam.vtType, dom)
-        ModuleParam.convert(pnew)
-
-        assert p == pnew
-
 
     def test_str(self):
         p = ModuleParam(type='Float', val='1.5')

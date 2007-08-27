@@ -30,11 +30,11 @@ QConnectionDBSetupWindow
 
 """
 from PyQt4 import QtCore, QtGui
+import core.db.io
 from core.external_connection import ExtConnectionList, DBConnection
 from core.system import default_connections_file
 from gui.theme import CurrentTheme
 from gui.utils import show_warning, show_question, NO_BUTTON, YES_BUTTON
-import db.services.io as io
 import gui.application
 
 class QOpenDBWindow(QtGui.QDialog):
@@ -496,7 +496,7 @@ class QDBConnectionList(QtGui.QListWidget):
             del config['name']
             config_id = config['id']
             del config['id']
-        vt_list = io.get_db_vistrail_list(config)
+        vt_list = core.db.io.get_db_vistrail_list(config)
         if conn.dbtype == 'MySQL':
             config['name'] = config_name
             config['id'] = config_id
@@ -687,7 +687,7 @@ class QConnectionDBSetupWindow(QtGui.QDialog):
                   'passwd': str(self.passwdEdt.text()),
                   'db': str(self.databaseEdt.text())}
         try:
-            io.test_db_connection(config)
+            core.db.io.test_db_connection(config)
             show_warning('Vistrails',"Connection succeeded!")
             
         except Exception, e:

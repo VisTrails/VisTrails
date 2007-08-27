@@ -588,8 +588,8 @@ class TestSearch(unittest.TestCase):
                           TimeSearchStmt('04/13/2006 21:00:00').date)
     def test15(self):
         import core.vistrail
+        from core.db.locator import XMLFileLocator
         import core.system
-        from db.services.io import XMLFileLocator
         v = XMLFileLocator(core.system.vistrails_root_directory() +
                            '/tests/resources/dummy.xml').load()
         # FIXME: Add notes to this.

@@ -61,31 +61,30 @@ class Port(DBPort):
 #             self._spec = []
         if self.moduleId is None:
             self.moduleId = 0
-        if self.connectionId is None:
-            self.connectionId = 0
         if self.moduleName is None:
             self.moduleName = ""
+        if self.name is None:
+            self.name = ""
+        if self.specStr is None:
+            self.specStr = ""
         
         self.optional = False
         self.sort_key = -1
         self._spec = None
 
     def __copy__(self):
-        cp = DBPort.__copy__(self)
+        return Port.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBPort.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Port
-#         cp.endPoint = self.endPoint
-#         cp.moduleId = self.moduleId
-#         cp.connectionId = self.connectionId
-#         cp.moduleName = self.moduleName
-#         cp.sig = self.sig
 #         cp._name = self._name
 
         cp.optional = self.optional
         cp.sort_key = self.sort_key
         cp._spec = copy.copy(self._spec)
-
         return cp
-    
+
     @staticmethod
     def convert(_port):
 	_port.__class__ = Port
@@ -100,7 +99,7 @@ class Port(DBPort):
         _port._spec = None
         # the following makes sense because _set_name actually fixes the name
         # for us for now.
-        _port._set_name(_port._get_name())
+        # _port._set_name(_port._get_name())
 
     ##########################################################################
 
@@ -132,12 +131,6 @@ class Port(DBPort):
         self.db_moduleId = moduleId
     moduleId = property(_get_moduleId, _set_moduleId)
 
-    def _get_connectionId(self):
-        return self.db_id
-    def _set_connectionId(self, connectionId):
-        self.db_id = connectionId
-    connectionId = property(_get_connectionId, _set_connectionId)
-
     def _get_moduleName(self):
         return self.db_moduleName
     def _set_moduleName(self, moduleName):
@@ -145,27 +138,27 @@ class Port(DBPort):
     moduleName = property(_get_moduleName, _set_moduleName)
 
     def _get_name(self):
-        return self.db_sig
+        return self.db_name
     def _set_name(self, name):
-        if '(' in name:
-            name = name[:name.find('(')]
-        self.db_sig = name
-        
-        # update self.db_sig
-#         self.db_sig = self.make_sig()
+        self.db_name = name
     name = property(_get_name, _set_name)
+
+    def _get_specStr(self):
+        return self.db_spec
+    def _set_specStr(self, specStr):
+        self.db_spec = specStr
+    specStr = property(_get_specStr, _set_specStr)
 
     def _get_spec(self):
 	return self._spec
     def _set_spec(self, spec):
 	self._spec = spec
+        self.specStr = self._spec.create_sigstring()
     spec = property(_get_spec, _set_spec)
 
     def _get_sig(self):
-        return self.db_sig
-    def _set_sig(self, sig):
-        self.db_sig = sig
-    sig = property(_get_sig, _set_sig)
+        return self.name + self.specStr
+    sig = property(_get_sig)
 
 		     
 #     def _get_type(self):
@@ -195,8 +188,6 @@ class Port(DBPort):
             print "Type mismatch"
         elif self.endPoint != other.endPoint:
             print "endpoint mismatch"
-        elif self.connectionId != other.connectionId:
-            print "connectionId mismatch"
         elif self.moduleName != other.moduleName:
             print "moduleName mismatch"
         elif self.name != other.name:
@@ -221,21 +212,20 @@ class Port(DBPort):
         if type(self) != type(other):
             return False
         return (self.endPoint == other.endPoint and
-                self.moduleId == other.moduleId and
-                self.connectionId == other.connectionId and
+# FIXME module id can change...
+#                self.moduleId == other.moduleId and
                 self.moduleName == other.moduleName and
                 self.name == other.name and
-                self.spec == other.spec and
+                self.specStr == other.specStr and
                 self.optional == other.optional and
                 self.sort_key == other.sort_key)
     
     def __str__(self):
         """ __str__() -> str 
         Returns a string representation of a Port object.  """
-        return '<Port endPoint="%s" moduleId=%s connectionId=%s name=%s ' \
+        return '<Port endPoint="%s" moduleId=%s name=%s ' \
             'type=Module %s/>' % (self.endPoint,
                                   self.moduleId,
-                                  self.connectionId,
                                   self.name,
                                   self.spec)
 
@@ -245,13 +235,14 @@ class Port(DBPort):
         return (self.endPoint == other.endPoint and
                 self.moduleName == other.moduleName and
                 self.name == other.name and
-                self.spec == other.spec and
+                self.specStr == other.specStr and
                 self.optional == other.optional and
                 self.sort_key == other.sort_key)
 
 ###############################################################################
 
 import unittest
+from db.domain import IdScope
 
 if __name__ == '__main__':
     import core.modules.basic_modules
@@ -260,6 +251,34 @@ if __name__ == '__main__':
 class TestPort(unittest.TestCase):
     def setUp(self):
         self.registry = core.modules.module_registry.registry
+
+    def create_port(self, id_scope=IdScope()):
+        port = Port(id=id_scope.getNewId(Port.vtType),
+                    type='source',
+                    moduleId=12L, 
+                    moduleName='String', 
+                    name='self',
+                    spec='edu.utah.sci.vistrails.basic:String')
+        return port
+
+    def test_copy(self):
+        id_scope = IdScope()
+        
+        p1 = self.create_port(id_scope)
+        p2 = copy.copy(p1)
+        self.assertEquals(p1, p2)
+        self.assertEquals(p1.id, p2.id)
+        p3 = p1.do_copy(True, id_scope, {})
+        self.assertEquals(p1, p3)
+        self.assertNotEquals(p1.id, p3.id)
+
+    def test_serialization(self):
+        import core.db.io
+        p1 = self.create_port()
+        xml_str = core.db.io.serialize(p1)
+        p2 = core.db.io.unserialize(xml_str, Port)
+        self.assertEquals(p1, p2)
+        self.assertEquals(p1.id, p2.id)
 
     def testPort(self):
         x = Port()

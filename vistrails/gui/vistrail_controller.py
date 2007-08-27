@@ -21,6 +21,7 @@
 ############################################################################
 from PyQt4 import QtCore, QtGui
 from core.common import *
+import core.db.action
 from core.data_structures.point import Point
 from core.utils import VistrailsInternalError, ModuleAlreadyExists
 from core.modules import module_registry
@@ -31,6 +32,8 @@ from core.vistrail.action import Action
 #     AddModulePortAction, DeleteModulePortAction, MoveModuleAction
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
+from core.vistrail.abstraction import Abstraction
+from core.vistrail.abstraction_ref import AbstractionRef
 from core.vistrail.annotation import Annotation
 from core.vistrail.connection import Connection
 from core.vistrail.location import Location
@@ -38,7 +41,7 @@ from core.vistrail.module import Module
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
 from core.vistrail.pipeline import Pipeline
-from core.vistrail.port import Port
+from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import TagExists
 from core.interpreter.default import get_default_interpreter
@@ -47,10 +50,8 @@ from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 # Broken right now
 # from core.modules.sub_module import addSubModule, DupplicateSubModule
 import core.analogy
-import db.services.io
 import copy
 import db.services.action
-import db.services.io
 import os.path
 import core.system
 
@@ -841,10 +842,10 @@ class VistrailController(QtCore.QObject):
 
         pipeline = Pipeline()
         for module in modules:
-            pipeline.modules[module.id] = module
+            pipeline.addModule(module)
         for connection in connections:
-            pipeline.connections[connection.id] = connection
-        return db.services.io.getWorkflowAsXML(pipeline)
+            pipeline.addConnection(connection)
+        return core.db.io.serialize(pipeline)
         
     def pasteModulesAndConnections(self, str):
         """ pasteModulesAndConnections(str) -> version id
@@ -853,96 +854,93 @@ class VistrailController(QtCore.QObject):
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
-        # FIXME: this should go to dbservices
-        pipeline = db.services.io.getWorkflowFromXML(str)
-        Pipeline.convert(pipeline)
-
-        ops = []
-        module_remap = {}
-        for module in pipeline.modules.itervalues():
-            module = copy.copy(module)
-            old_id = module.id
-            if module.location is not None:
-                loc_id = self.vistrail.idScope.getNewId(Location.vtType)
-                module.location = Location(id=loc_id,
-                                           x=module.location.x + 10.0,
-                                           y=module.location.y + 10.0,
-                                           )
-            mops = db.services.action.create_copy_op_chain(object=module,
-                                               id_scope=self.vistrail.idScope)
-            module_remap[old_id] = mops[0].db_objectId
-            ops.extend(mops)
-        for connection in pipeline.connections.itervalues():
-            connection = copy.copy(connection)
-            for port in connection.ports:
-                port.moduleId = module_remap[port.moduleId]
-            ops.extend( \
-                db.services.action.create_copy_op_chain(object=connection,
-                                               id_scope=self.vistrail.idScope))
-        action = db.services.action.create_action_from_ops(ops)
-        Action.convert(action)
+        pipeline = core.db.io.unserialize(str, Pipeline)
+        action = core.db.action.create_paste_action(pipeline, 
+                                                    self.vistrail.idScope)
         self.vistrail.add_action(action, self.currentVersion)
         self.perform_action(action)
 
-#         modulesMap = {}
-#         modulesToSelect = []
-#         actions = []
-#         self.previousModuleIds = []
-#         for module in modules:
-#             name = module.name
-#             x = module.center.x + 10.0
-#             y = module.center.y + 10.0
-#             t = self.addModule(name,x,y)
-#             newId = self.vistrail.actionMap[self.currentVersion].module.id
-#             self.previousModuleIds.append(newId)
-#             modulesMap[module.id]=newId
-#             modulesToSelect.append(newId)
-#             for fi in range(len(module.functions)):
-#                 f = module.functions[fi]
-#                 action = ChangeParameterAction()
-#                 if f.getNumParams() == 0:
-#                     action.addParameter(newId, fi, -1, f.name, "",
-#                                         "","", "")
-#                 for i in range(f.getNumParams()):
-#                     p = f.params[i]
-#                     if self.currentPipeline.hasAlias(p.alias):
-#                         p.alias = ""
-#                     action.addParameter(newId, fi, i, f.name, p.name,
-#                                         p.strValue, p.type, p.alias)
-#                 actions.append(action)
-#             for (key,value) in module.annotations.items():
-#                 action = ChangeAnnotationAction()
-#                 action.addAnnotation(newId,key,value)
-#                 actions.append(action)
-#             if module.registry:
-#                 desc = module.registry.getDescriptorByName(module.name)
-#                 for (name, spec) in desc.inputPorts.iteritems():
-#                     names = [module_registry.registry.getDescriptor(p[0]).name
-#                              for p in spec[0]]                    
-#                     action = AddModulePortAction()
-#                     action.addModulePort(newId, 'input', name, '('+','.join(names)+')')
-#                     actions.append(action)
-#                 for (name, spec) in desc.outputPorts.iteritems():
-#                     names = [module_registry.registry.getDescriptor(p[0]).name
-#                              for p in spec[0]]
-#                     action = AddModulePortAction()
-#                     action.addModulePort(newId, 'output', name, '('+','.join(names)+')')
-#                     actions.append(action)
+    def create_abstraction(self, modules, connections):
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
-#         currentAction = self.performBulkActions(actions)
-        
-#         for c in connections:
-#             conn = copy.copy(c)
-#             conn.id = self.currentPipeline.fresh_connection_id()
-#             conn.sourceId = modulesMap[conn.sourceId]
-#             conn.destinationId = modulesMap[conn.destinationId]
-#             currentAction = self.addConnection(conn)            
-#         self.quiet = False
+        abstraction = Abstraction(id=-1, name='')
 
-#         self.currentVersion = currentAction
-#         self.invalidate_version_tree()
+        ops = []
+        module_remap = {}
+        avg_x = 0.0
+        avg_y = 0.0
+        for module in modules.itervalues():
+            module = copy.copy(module)
+            old_id = module.id
+#             if module.location is not None:
+#                 loc_id = self.vistrail.idScope.getNewId(Location.vtType)
+#                 module.location = Location(id=loc_id,
+#                                            x=module.location.x,
+#                                            y=module.location.y,
+#                                            )
+            avg_x += module.location.x
+            avg_y += module.location.y
+            mops = db.services.action.create_copy_op_chain(object=module,
+                                               id_scope=abstraction.idScope)
+            module_remap[old_id] = mops[0].db_objectId
+            ops.extend(mops)
+        for connection in connections.itervalues():
+            # if a connection has an "external" connection, we need to
+            # create an input port or output port module
+            connection = copy.copy(connection)
+            for port in connection.ports:
+                if module_remap.has_key(port.moduleId):
+                    # internal connection
+                    port.moduleId = module_remap[port.moduleId]
+                else:
+                    # external connection
+                    if port.endPoint == PortEndPoint.Source:
+                        port_type = InputPort.__class__.__name__
+                    elif port.endPoint == PortEndPoint.Destination:
+                        port_type = OutputPort.__class__.__name__
+                    
+                    loc_id = abstraction.idScope.getNewId(Location.vtType)
+                    # FIXME get better location
+                    location = Location(id=loc_id,
+                                        x=0.0,
+                                        y=0.0,
+                                        )
+                    new_id = abstraction.idScope.getNewId(Module.vtType)
+                    module = Module(id=new_id,
+                                    abstraction=-1,
+                                    name=port_type,
+                                    location=location,
+                                    )
+                    port.moduleId=new_id
+            ops.extend( \
+                db.services.action.create_copy_op_chain(object=connection,
+                                               id_scope=abstraction.idScope))
+        action = db.services.action.create_action_from_ops(ops)
+        abstraction.add_action(action)
+        self.vistrail.add_abstraction(abstraction)
 
-       
+        # now add module encoding abstraction reference to vistrail
+        loc_id = self.vistrail.idScope.getNewId(Location.vtType)
+        location = Location(id=loc_id,
+                            x=avg_x, 
+                            y=avg_y,
+                            )
+        module_id = self.vistrail.idScope.getNewId(Module.vtType)
+        module = Module(id=module_id,
+                        abstraction=abstraction.id,
+                        version='1',
+                        name=name, 
+                        location=location,
+                        )
+        action = db.services.action.create_action([('add', module)])
+        self.vistrail.add_action(action, self.currentVersion)
+        self.perform_action(action)
+
+        # FIXME we shouldn't have to return a module
+        # we don't do it for any other type
+        # doesn't match documentation either
+        return module
+
     def setVersion(self, newVersion):
         """ setVersion(newVersion: int) -> None
         Change the controller to newVersion

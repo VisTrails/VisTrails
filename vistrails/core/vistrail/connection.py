@@ -103,16 +103,14 @@ class Connection(DBConnection):
         """__copy__() -> Connection -  Returns a clone of self.
         
         """
-        cp = DBConnection.__copy__(self)
-        cp.__class__ = Connection
-#         cp.id = self.id
-#         cp.source = copy.copy(self.source)
-#         cp.destination = copy.copy(self.destination)
-        cp.makeConnection = moduleConnection(cp)
+        return Connection.do_copy(self)
 
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBConnection.do_copy(self, new_ids, id_scope, id_remap)
+        cp.__class__ = Connection
+        cp.makeConnection = moduleConnection(cp)
         for port in cp.ports:
             Port.convert(port)
-
         return cp
 
     ##########################################################################
@@ -168,33 +166,6 @@ class Connection(DBConnection):
         assert self == other
 
     ##########################################################################
-    # Operators
-
-    def __str__(self):
-        """__str__() -> str - Returns a string representation of a Connection
-        object. 
-
-        """
-        rep = "<Connection>%s %s</Connection>"
-        return  rep % (str(self.source), str(self.destination))
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __eq__(self, other):
-        if type(other) != type(self):
-            return False
-        return (self.__source == other.__source and
-                self.__dest == other.__dest)
-
-    def equals_no_id(self, other):
-        """Checks equality up to ids (connection and ports)."""
-        if type(self) != type(other):
-            return False
-        return (self.__source.equals_no_id(other.__source) and
-                self.__dest.equals_no_id(other.__dest))
-    
-    ##########################################################################
     # Properties
 
     def _get_id(self):
@@ -213,10 +184,6 @@ class Connection(DBConnection):
 
         """
         self.db_id = i
-        if self.source is not None:
-            self.source.connectionId = i
-        if self.destination is not None:
-            self.destination.connectionId = i
     id = property(_get_id, _set_id)
 
     def _get_ports(self):
@@ -339,13 +306,80 @@ class Connection(DBConnection):
         if dest is not None:
             self.db_add_port(dest)
     destination = property(_get_destination, _set_destination)
+    dest = property(_get_destination, _set_destination)
 
+    ##########################################################################
+    # Operators
+
+    def __str__(self):
+        """__str__() -> str - Returns a string representation of a Connection
+        object. 
+
+        """
+        rep = "<connection id='%s'>%s%s</connection>"
+        return  rep % (str(self.id), str(self.source), str(self.destination))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __eq__(self, other):
+        if type(other) != type(self):
+            return False
+        return (self.source == other.source and
+                self.dest == other.dest)
+
+    def equals_no_id(self, other):
+        """Checks equality up to ids (connection and ports)."""
+        if type(self) != type(other):
+            return False
+        return (self.source.equals_no_id(other.source) and
+                self.dest.equals_no_id(other.dest))
+    
 ################################################################################
 # Testing
 
 import unittest
+from db.domain import IdScope
 
 class TestConnection(unittest.TestCase):
+
+    def create_connection(self, id_scope=IdScope()):
+        from core.vistrail.port import Port
+
+        source = Port(id=id_scope.getNewId(Port.vtType),
+                      type='source', 
+                      moduleId=21L, 
+                      moduleName='String', 
+                      name='self',
+                      spec='edu.sci.utah.vistrails.basic:String')
+        destination = Port(id=id_scope.getNewId(Port.vtType),
+                           type='destination',
+                           moduleId=20L,
+                           moduleName='Float',
+                           name='self',
+                           spec='edu.sci.utah.vistrails.basic:Float')
+        connection = Connection(id=id_scope.getNewId(Connection.vtType),
+                                ports=[source, destination])
+        return connection
+
+    def test_copy(self):
+        id_scope = IdScope()
+        
+        c1 = self.create_connection(id_scope)
+        c2 = copy.copy(c1)
+        self.assertEquals(c1, c2)
+        self.assertEquals(c1.id, c2.id)
+        c3 = c1.do_copy(True, id_scope, {})
+        self.assertEquals(c1, c3)
+        self.assertNotEquals(c1.id, c3.id)
+
+    def test_serialization(self):
+        import core.db.io
+        c1 = self.create_connection()
+        xml_str = core.db.io.serialize(c1)
+        c2 = core.db.io.unserialize(xml_str, Connection)
+        self.assertEquals(c1, c2)
+        self.assertEquals(c1.id, c2.id)
 
     def testModuleConnection(self):
         a = Connection.fromID(0)

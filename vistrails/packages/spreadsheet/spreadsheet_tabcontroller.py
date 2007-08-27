@@ -25,6 +25,7 @@
 ################################################################################
 import os.path
 from PyQt4 import QtCore, QtGui
+from core.db.locator import XMLFileLocator
 from core.interpreter.default import get_default_interpreter
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_tab import (StandardWidgetTabBar,
@@ -33,7 +34,6 @@ from spreadsheet_registry import spreadsheetRegistry
 from core.utils import DummyView
 import copy
 import gc
-from db.services.io import XMLFileLocator
 
 ################################################################################
 

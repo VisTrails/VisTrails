@@ -18,8 +18,8 @@ def setup_tables():
               'db': 'vistrails'}
 
     try:
-        dbConnection = io.openDBConnection(config)
-        io.setupDBTables(dbConnection)
+        db_connection = io.open_db_connection(config)
+        io.setup_db_tables(db_connection)
     except Exception, e:
         print e
 

@@ -31,7 +31,10 @@ class Tag(DBTag):
         DBTag.__init__(self, *args, **kwargs)
         
     def __copy__(self):
-        cp = DBTag.__copy__(self)
+        return Tag.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBTag.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Tag
         return cp
 
@@ -66,7 +69,6 @@ class Tag(DBTag):
         rep = "<tag name=%s time=%s />"
         return  rep % (str(self.name), str(self.time))
 
-    # FIXME expand this
     def __eq__(self, other):
         """ __eq__(other: Annotation) -> boolean
         Returns True if self and other have the same attributes. Used by == 
@@ -75,7 +77,40 @@ class Tag(DBTag):
         """
         if type(other) != type(self):
             return False
-        return True
+        return self.name == other.name
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+################################################################################
+# Testing
+
+import unittest
+import copy
+from db.domain import IdScope
+
+class TestTag(unittest.TestCase):
+
+    def create_tag(self, id_scope=IdScope()):
+        tag = Tag(id=id_scope.getNewId(Tag.vtType),
+                  name='blah')
+        return tag
+
+    def test_copy(self):
+        id_scope = IdScope()
+        
+        t1 = self.create_tag(id_scope)
+        t2 = copy.copy(t1)
+        self.assertEquals(t1, t2)
+        self.assertEquals(t1.id, t2.id)
+        t3 = t1.do_copy(True, id_scope, {})
+        self.assertEquals(t1, t3)
+        self.assertNotEquals(t1.id, t3.id)
+
+    def test_serialization(self):
+        import core.db.io
+        t1 = self.create_tag()
+        xml_str = core.db.io.serialize(t1)
+        t2 = core.db.io.unserialize(xml_str, Tag)
+        self.assertEquals(t1, t2)
+        self.assertEquals(t1.id, t2.id)

@@ -38,6 +38,7 @@ from db.domain import DBVistrail
 from core.data_structures.graph import Graph
 from core.data_structures.bijectivedict import Bidict
 from core.debug import DebugPrint
+import core.db.io
 from core.utils import enum, VistrailsInternalError, InstanceObject, \
      iter_with_index
 from core.vistrail.action import Action
@@ -52,7 +53,6 @@ from core.vistrail.operation import AddOp, ChangeOp, DeleteOp
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.tag import Tag
-from core.vistrail import dbservice
 ################################################################################
 
 class Vistrail(DBVistrail):
@@ -68,17 +68,19 @@ class Vistrail(DBVistrail):
         self.savedQueries = []
         self.locator = None
         
-    def _get_actionMap(self):
+    def _get_actions(self):
         return self.db_actions
-    def _set_actionMap(self, actionMap):
-        self.db_actions = actionMap
-    actionMap = property(_get_actionMap, _set_actionMap)
+    actions = property(_get_actions)
+    def _get_actionMap(self):
+        return self.db_actions_id_index
+    actionMap = property(_get_actionMap)
 
-    def _get_tagMap(self):
+    def _get_tags(self):
         return self.db_tags
-    def _set_tagMap(self, tagMap):
-        self.db_tags = tagMap
-    tagMap = property(_get_tagMap, _set_tagMap)
+    tags = property(_get_tags)
+    def _get_tagMap(self):
+        return self.db_tags_id_index
+    tagMap = property(_get_tagMap)
     def get_tag_by_name(self, name):
         return self.db_get_tag_by_name(name)
     def has_tag_with_name(self, name):
@@ -86,9 +88,10 @@ class Vistrail(DBVistrail):
     
     def _get_abstractions(self):
         return self.db_abstractions
-    def _set_abstractions(self, abstractions):
-        self.db_abstractions = abstractions
-    abstractions = property(_get_abstractions, _set_abstractions)
+    abstractions = property(_get_abstractions)
+    def _get_abstractionMap(self):
+        return self.db_abstractions_id_index
+    abstractionMap = property(_get_abstractionMap)
 
     @staticmethod
     def convert(_vistrail):
@@ -100,11 +103,11 @@ class Vistrail(DBVistrail):
         _vistrail.prunedVersions = set()
         _vistrail.savedQueries = []
 
-	for action in _vistrail.actionMap.itervalues():
+	for action in _vistrail.actions:
 	    Action.convert(action)
-	for tag in _vistrail.tagMap.itervalues():
+	for tag in _vistrail.tags:
             Tag.convert(tag)
-        for abstraction in _vistrail.abstractions.itervalues():
+        for abstraction in _vistrail.abstractions:
             Abstraction.convert(abstraction)
 	_vistrail.changed = False
 
@@ -170,7 +173,7 @@ class Vistrail(DBVistrail):
 
         """
 #        return Pipeline(self.actionChain(version))
-        workflow = dbservice.getWorkflow(self, version)
+        workflow = core.db.io.get_workflow(self, version)
         return workflow
 
 
@@ -448,7 +451,7 @@ class Vistrail(DBVistrail):
                                       ...]
         
         """
-        return dbservice.getWorkflowDiff(self, v1, v2)
+        return core.db.io.get_workflow_diff(self, v1, v2)
 
         # Instantiate pipelines associated with v1 and v2
         p1 = self.getPipelineVersionNumber(v1)
@@ -609,7 +612,7 @@ class Vistrail(DBVistrail):
         return result
     
     def add_action(self, action, parent):
-        # FIXME: this should go to dbservice
+        # FIXME: this should go to core.db.io
         Action.convert(action)
         if action.id < 0:
             action.id = self.idScope.getNewId(action.vtType)
@@ -620,6 +623,27 @@ class Vistrail(DBVistrail):
             if op.id < 0:
                 op.id = self.idScope.getNewId('operation')
         self.addVersion(action)                
+
+    def add_abstraction(self, abstraction):
+        Abstraction.convert(abstraction)
+        if abstraction.id < 0:
+            abstraction.id = self.idScope.getNewId(abstraction.vtType)
+
+        action_remap = {}
+        for action in abstraction.actions.itervalues():
+            if action.id < 0:
+                new_id = abstraction.idScope.getNewId(action.vtType)
+                action_remap[action.id] = new_id
+                action.id = new_id
+            action.date = self.getDate()
+            action.user = self.getUser()
+            for op in action.operations:
+                if op.id < 0:
+                    op.id = self.idScope.getNewId('operation')
+        for action in abstraction.actions.itervalues():
+            if action.prevId < 0:
+                action.prevId = action_remap[action.prevId]
+        self.db_add_abstraction(abstraction)
 
     def hasVersion(self, version):
         """hasVersion(version:int) -> boolean
@@ -635,7 +659,7 @@ class Vistrail(DBVistrail):
         """
         if self.actionMap.has_key(action.timestep):
             raise VistrailsInternalError("existing timestep")
-        self.actionMap[action.timestep] = action
+        self.db_add_action(action)
         self.changed = True
 
     def hasTag(self, tag):
@@ -660,7 +684,7 @@ class Vistrail(DBVistrail):
             DebugPrint.log("Tag already exists")
             raise TagExists()
 #         self.tagMap[version_name] = version_number
-        tag = Tag(id=version_number,
+        tag = Tag(id=long(version_number),
                   name=version_name,
                   )
         self.db_add_tag(tag)
@@ -682,9 +706,9 @@ class Vistrail(DBVistrail):
             DebugPrint.log("Tag already exists")
             raise TagExists()
         if version_name=='':
-            self.db_delete_tag(version_number)
+            self.db_delete_tag(self.tagMap[version_number])
         else:
-            tag = Tag(id=version_number,
+            tag = Tag(id=long(version_number),
                       name=version_name,
                       )
             self.db_change_tag(tag)
@@ -890,12 +914,67 @@ class VersionNotTagged(Exception):
 # Testing
 
 import unittest
+import copy
 import random
 
 class TestVistrail(unittest.TestCase):
+
+    def create_vistrail(self):
+        vistrail = Vistrail()
+
+        m = Module(id=vistrail.idScope.getNewId(Module.vtType),
+                   name='Float',
+                   package='edu.utah.sci.vistrails.basic')
+        add_op = AddOp(id=vistrail.idScope.getNewId(AddOp.vtType),
+                       what=Module.vtType,
+                       objectId=m.id,
+                       data=m)
+        function_id = vistrail.idScope.getNewId(ModuleFunction.vtType)
+        function = ModuleFunction(id=function_id,
+                                  name='value')
+        change_op = ChangeOp(id=vistrail.idScope.getNewId(ChangeOp.vtType),
+                             what=ModuleFunction.vtType,
+                             oldObjId=2,
+                             newObjId=function.real_id,
+                             parentObjId=m.id,
+                             parentObjType=Module.vtType,
+                             data=function)
+        param = ModuleParam(id=vistrail.idScope.getNewId(ModuleParam.vtType),
+                            type='Integer',
+                            val='1')
+        delete_op = DeleteOp(id=vistrail.idScope.getNewId(DeleteOp.vtType),
+                             what=ModuleParam.vtType,
+                             objectId=param.real_id,
+                             parentObjId=function.real_id,
+                             parentObjType=ModuleFunction.vtType)
+
+        action1 = Action(id=vistrail.idScope.getNewId(Action.vtType),
+                         operations=[add_op])
+        action2 = Action(id=vistrail.idScope.getNewId(Action.vtType),
+                         operations=[change_op, delete_op])
+
+        vistrail.add_action(action1, 0)
+        vistrail.add_action(action2, action1.id)
+        vistrail.addTag('first action', action1.id)
+        vistrail.addTag('second action', action2.id)
+        return vistrail
+
+    def test_copy(self):
+        v1 = self.create_vistrail()
+        v2 = copy.copy(v1)
+        v3 = v1.do_copy(True, v1.idScope, {})
+        # FIXME add checks for equality
+
+    def test_serialization(self):
+        import core.db.io
+        v1 = self.create_vistrail()
+        xml_str = core.db.io.serialize(v1)
+        v2 = core.db.io.unserialize(xml_str, Vistrail)
+        # FIXME add checks for equality
+
     def test1(self):
         import core.vistrail
-        from db.services.io import XMLFileLocator
+        from core.db.locator import XMLFileLocator
         import core.system
         v = XMLFileLocator(core.system.vistrails_root_directory() +
                            '/tests/resources/dummy.xml').load()
@@ -919,7 +998,7 @@ class TestVistrail(unittest.TestCase):
     # FIXME this dies because diff isn't fixed (moving to db.services.vistrail)
     def test2(self):
         import core.vistrail
-        from db.services.io import XMLFileLocator
+        from core.db.locator import XMLFileLocator
         import core.system
         v = XMLFileLocator(core.system.vistrails_root_directory() +
                             '/tests/resources/dummy.xml').load()
@@ -936,7 +1015,7 @@ class TestVistrail(unittest.TestCase):
         p = v.getPipeline(0)
 
     def test_empty_action_chain_2(self):
-        from db.services.io import XMLFileLocator
+        from core.db.locator import XMLFileLocator
         import core.system
         v = XMLFileLocator(core.system.vistrails_root_directory() +
                            '/tests/resources/dummy.xml').load()
@@ -975,7 +1054,7 @@ class TestVistrail(unittest.TestCase):
                 print p2.connections
                 return False
             return True
-        from db.services.io import XMLFileLocator
+        from core.db.locator import XMLFileLocator
         import core.system
         import sys
 

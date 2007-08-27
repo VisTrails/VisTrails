@@ -719,7 +719,7 @@ from core.console_mode import run
 import os
 import core.system
 import unittest
-from db.services.io import XMLFileLocator
+from core.db.locator import XMLFileLocator
 
 class TestVTKPackage(unittest.TestCase):
 

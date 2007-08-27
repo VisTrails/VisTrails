@@ -25,6 +25,7 @@ QBuilderWindow
 """
 from PyQt4 import QtCore, QtGui
 from core import system
+from core.db.locator import XMLFileLocator, DBLocator
 from gui.application import VistrailsApplication
 from gui.bookmark_window import QBookmarksWindow
 from gui.graphics_view import QInteractiveGraphicsView
@@ -37,7 +38,6 @@ from gui.view_manager import QViewManager
 from gui.vistrail_toolbar import QVistrailViewToolBar
 from gui.preferences import QPreferencesDialog
 from gui.vis_diff import QVisualDiff
-from db.services.io import XMLFileLocator, DBLocator
 import copy
 import core.interpreter.cached
 import os

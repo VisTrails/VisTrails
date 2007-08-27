@@ -253,7 +253,7 @@ SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH \
 DAMAGES.""" % (vistrails_version(), vistrails_revision())
 
 def untitled_locator():
-    from db.services.io import XMLFileLocator
+    from core.db.locator import XMLFileLocator
     return XMLFileLocator(default_dot_vistrails() + '/untitled.xml')
 
 ################################################################################

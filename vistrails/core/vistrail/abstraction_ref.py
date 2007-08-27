@@ -33,7 +33,10 @@ class AbstractionRef(DBAbstractionRef):
             self.id = -1
         
     def __copy__(self):
-        cp = DBAbstractionRef.__copy__(self)
+        return AbstractionRef.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBAbstractionRef.__copy__(self, new_ids, id_scope, id_remap)
         cp.__class__ = AbstractionRef
         return cp
 

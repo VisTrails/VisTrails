@@ -23,8 +23,7 @@
 import core.interpreter.default
 from core.utils import (VistrailsInternalError, expression,
                         DummyView)
-import db
-from db.services.io import XMLFileLocator
+from core.db.locator import XMLFileLocator
 from core.vistrail.vistrail import Vistrail
 
 ################################################################################
@@ -97,6 +96,7 @@ class TestConsoleMode(unittest.TestCase):
         manager = core.packagemanager.get_package_manager()
         if manager.has_package('edu.utah.sci.vistrails.console_mode_test'):
             return
+
         old_path = sys.path
         sys.path.append(core.system.vistrails_root_directory() +
                         '/tests/resources')

@@ -21,12 +21,14 @@
 ############################################################################
 
 from db.domain import DBWorkflow, DBAdd, DBDelete, DBAction
+from db.services.action_chain import getActionChain, getCurrentOperationDict, \
+    getCurrentOperations
 import copy
 import datetime
 import getpass
 
 def updateIdScope(vistrail):
-    for action in vistrail.db_actions.itervalues():
+    for action in vistrail.db_actions:
         vistrail.idScope.updateBeginId('action', action.db_id+1)
         for operation in action.db_operations:
             vistrail.idScope.updateBeginId('operation', operation.db_id+1)
@@ -37,7 +39,7 @@ def updateIdScope(vistrail):
 
 def materializeWorkflow(vistrail, version):
     # construct path up through tree and perform each action
-    if vistrail.db_get_action(version) is not None:
+    if vistrail.db_has_action_with_id(version):
         workflow = DBWorkflow()
         #	    for action in getActionChain(vistrail, version):
         #		oldPerformAction(action, workflow)
@@ -48,71 +50,6 @@ def materializeWorkflow(vistrail, version):
         return workflow
     elif version == 0:
         return DBWorkflow()
-
-def getActionChain(vistrail, version, start=0):
-    result = []
-    currentId = version
-    while currentId > start: #and currentId > 0:
-        action = vistrail.db_get_action(currentId)
-        result.append(action)
-        currentId = action.db_prevId
-    result.reverse()
-    return result
-
-def getCurrentOperationDict(actions, currentOperations=None):
-    if currentOperations is None:
-        currentOperations = {}
-
-    # note that this operation assumes unique ids for each operation's data
-    # any add adds to the dict, delete removes from the dict, and
-    # change replaces the current value in the dict
-    for action in actions:
-#         print 'action: %d' % action.db_id
-        for operation in action.db_operations:
-            if operation.vtType == 'add':
-#                 print "add: %s %s" % (operation.db_what, 
-#                                       operation.db_objectId)
-#                 print "    to:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
-                currentOperations[(operation.db_what, 
-                                   operation.db_objectId)] = \
-                                   operation
-            elif operation.vtType == 'delete':
-#                 print "del: %s %s" % (operation.db_what, 
-#                                       operation.db_objectId)
-#                 print "    from:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
-                if currentOperations.has_key((operation.db_what,
-                                              operation.db_objectId)):
-                    del currentOperations[(operation.db_what, 
-                                           operation.db_objectId)]
-                else:
-                    msg = "Illegal delete operation"
-                    raise Exception(msg)
-            elif operation.vtType == 'change':
-#                 print "chg: %s %s %s" % (operation.db_what, 
-#                                          operation.db_oldObjId,
-#                                          operation.db_newObjId)
-#                 print "    at:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
-                if currentOperations.has_key((operation.db_what,
-                                              operation.db_oldObjId)):
-                    del currentOperations[(operation.db_what, 
-                                           operation.db_oldObjId)]
-                else:
-                    msg = "Illegal change operation"
-                    raise Exception(msg)
-
-                currentOperations[(operation.db_what, 
-                                   operation.db_newObjId)] = operation
-            else:
-                msg = "Unrecognized operation '%s'" % operation.vtType
-                raise Exception(msg)
-
-    return currentOperations
-
-def getCurrentOperations(actions):
-    # sort the values left in the hash and return the list
-    sortedOperations = getCurrentOperationDict(actions).values()
-    sortedOperations.sort(lambda x, y: cmp(x.db_id, y.db_id))
-    return sortedOperations
 
 def performAction(action, workflow):
     if action.actionType == 'add':

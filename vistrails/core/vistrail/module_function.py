@@ -64,10 +64,11 @@ class ModuleFunction(DBFunction):
 
     def __copy__(self):
         """ __copy__() -> ModuleFunction - Returns a clone of itself """
-        cp = DBFunction.__copy__(self)
+        return ModuleFunction.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBFunction.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = ModuleFunction
-#         cp.name = self.name
-#         cp.params = [copy.copy(p) for p in self.params]
         cp.returnType = self.returnType
         return cp
 
@@ -177,8 +178,10 @@ class ModuleFunction(DBFunction):
     
     def __str__(self):
         """ __str__() -> str - Returns a string representation of itself """
-        return ("(ModuleFunction '%s' params=%s)@%X" %
-                (self.name,
+        return ("<function id='%s' pos='%s' name='%s' params=%s)@%X" %
+                (self.real_id,
+                 self.pos,
+                 self.name,
                  [str(p) for p in self.params],
                  id(self)))
 
@@ -213,12 +216,43 @@ class ModuleFunction(DBFunction):
 # Testing
 
 import unittest
+import copy
 from core.vistrail.module_param import ModuleParam
+from db.domain import IdScope
 
 #TODO add more meaningful tests
 
 class TestModuleFunction(unittest.TestCase):
 
+    def create_function(self, id_scope=IdScope()):
+        param = ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
+                            pos=2,
+                            type='Int',
+                            val='1')
+        function = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
+                                  pos=0,
+                                  name='value',
+                                  parameters=[param])
+        return function
+
+    def test_copy(self):        
+        id_scope = IdScope()
+        f1 = self.create_function(id_scope)
+        f2 = copy.copy(f1)
+        self.assertEquals(f1, f2)
+        self.assertEquals(f1.id, f2.id)
+        f3 = f1.do_copy(True, id_scope, {})
+        self.assertEquals(f1, f3)
+        self.assertNotEquals(f1.real_id, f3.real_id)
+
+    def test_serialization(self):
+        import core.db.io
+        f1 = self.create_function()
+        xml_str = core.db.io.serialize(f1)
+        f2 = core.db.io.unserialize(xml_str, ModuleFunction)
+        self.assertEquals(f1, f2)
+        self.assertEquals(f1.real_id, f2.real_id)
+                            
     def testComparisonOperators(self):
         f = ModuleFunction()
         f.name = "value"
@@ -241,24 +275,6 @@ class TestModuleFunction(unittest.TestCase):
         param.alias = ""
         g.addParameter(param)
         assert f != g
-
-    def test_load_and_dump_function(self):
-        """ Check that serialize and unserialize are working properly """
-        from core.vistrail import dbservice
-
-        f = ModuleFunction()
-        f.name = "value"
-        param = ModuleParam()
-        param.strValue = "1.2"
-        param.type = "Float"
-        param.alias = ""
-        f.addParameter(param)        
-        
-        dom = dbservice.serialize(f)
-        fnew = dbservice.unserialize(ModuleFunction.vtType, dom)
-        ModuleFunction.convert(fnew)
-
-        assert f == fnew
 
     def test_str(self):
         f = ModuleFunction(name='value',

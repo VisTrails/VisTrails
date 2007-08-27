@@ -379,7 +379,7 @@ class XMLAutoGen(AutoGen):
                     cond = 'elif'
 
             self.indentLine("elif child.nodeType == child.TEXT_NODE and child.nodeValue.strip() == '':\n")
-            self.indentLine('node.removeChild(child)\n')
+            self.indentLine('pass\n') # ('node.removeChild(child)\n')
             self.unindentLine('elif child.nodeType != child.TEXT_NODE:\n')
 	    self.indentLine('print \'*** ERROR *** nodeName = %s\' % ' +
 			    'child.nodeName\n')

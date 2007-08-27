@@ -24,16 +24,16 @@ def convert_xml_to_sql(filename):
 #               'db': 'vistrails'}
 
     try:
-        vistrail = io.openVistrailFromXML(filename)
-        dbConnection = io.openDBConnection(config)
+        vistrail = io.open_vistrail_from_xml(filename)
+        dbConnection = io.open_db_connection(config)
 
         print dbConnection.get_server_info()
         print dbConnection.get_host_info()
         print dbConnection.stat()
         print str(dbConnection)
 
-        io.saveVistrailToDB(vistrail, dbConnection)
-        io.closeDBConnection(dbConnection)
+        io.save_vistrail_to_db(vistrail, dbConnection)
+        io.close_db_connection(dbConnection)
         print 'db_id: ', vistrail.db_id
 
     except Exception, e:

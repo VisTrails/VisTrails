@@ -34,7 +34,7 @@ from core.interpreter.default import get_default_interpreter
 from core.param_explore import InterpolateDiscreteParam, ParameterExploration
 from core.utils import VistrailsInternalError, DummyView
 from core.utils.uxml import named_elements, XMLWrapper
-from db.services.io import XMLFileLocator
+from core.db.locator import XMLFileLocator
 
 ################################################################################
 

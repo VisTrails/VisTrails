@@ -116,7 +116,6 @@ def assignPipelineCellLocations(inPipeline, sheetName, row, col, cellIds=[]):
         conn.source.name = "self"
         conn.source.spec = registry.get_output_port_spec(
             sheetReference, "self")
-        conn.connectionId = conn.id
         conn.destination.moduleId = cellLocation.id
         conn.destination.moduleName = cellLocation.name
         conn.destination.name = "SheetReference"
@@ -134,7 +133,6 @@ def assignPipelineCellLocations(inPipeline, sheetName, row, col, cellIds=[]):
         conn.source.name = "self"
         conn.source.spec = registry.get_output_port_spec(
             cellLocation, "self")
-        conn.connectionId = conn.id
         conn.destination.moduleId = mId
         conn.destination.moduleName = pipeline.modules[mId].name
         conn.destination.name = "Location"

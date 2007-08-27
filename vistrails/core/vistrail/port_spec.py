@@ -33,7 +33,10 @@ class PortSpec(DBPortSpec):
             self.id = -1
         
     def __copy__(self):
-        cp = DBPortSpec.__copy__(self)
+        return PortSpec.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBPortSpec.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = PortSpec
         return cp
 
@@ -89,7 +92,45 @@ class PortSpec(DBPortSpec):
         """
         if type(other) != type(self):
             return False
-        return True
+        return (self.name == other.name and
+                self.type == other.type and
+                self.spec == other.spec)
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+################################################################################
+# Testing
+
+import unittest
+import copy
+from db.domain import IdScope
+
+class TestPortSpec(unittest.TestCase):
+
+    def create_port_spec(self, id_scope=IdScope()):
+        # FIXME add a valid port spec
+        port_spec = PortSpec(id=id_scope.getNewId(PortSpec.vtType),
+                             name='SetValue',
+                             type='input',
+                             spec='valid spec goes here')
+        return port_spec
+
+    def test_copy(self):
+        id_scope = IdScope()
+        
+        s1 = self.create_port_spec(id_scope)
+        s2 = copy.copy(s1)
+        self.assertEquals(s1, s2)
+        self.assertEquals(s1.id, s2.id)
+        s3 = s1.do_copy(True, id_scope, {})
+        self.assertEquals(s1, s3)
+        self.assertNotEquals(s1.id, s3.id)
+
+    def test_serialization(self):
+        import core.db.io
+        s1 = self.create_port_spec()
+        xml_str = core.db.io.serialize(s1)
+        s2 = core.db.io.unserialize(xml_str, PortSpec)
+        self.assertEquals(s1, s2)
+        self.assertEquals(s1.id, s2.id)

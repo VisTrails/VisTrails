@@ -107,9 +107,9 @@ class QModuleAnnotationTable(QtGui.QTableWidget):
         self.clear()
         self.setRowCount(0)
         if self.module:
-            self.setRowCount(len(self.module.annotations.values())+1)
+            self.setRowCount(len(self.module.annotations)+1)
             curRow = 0
-            for annotation in self.module.annotations.values():
+            for annotation in self.module.annotations:
                 self.setItem(curRow, 0, QtGui.QTableWidgetItem(annotation.key))
                 item = QtGui.QTableWidgetItem(annotation.value)
                 self.setItem(curRow, 1, item)

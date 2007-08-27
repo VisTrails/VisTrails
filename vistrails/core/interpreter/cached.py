@@ -388,7 +388,7 @@ import core.packagemanager
 class TestCachedInterpreter(unittest.TestCase):
 
     def test_cache(self):
-        from db.services.io import XMLFileLocator
+        from core.db.locator import XMLFileLocator
         """Test if basic caching is working."""
         v = XMLFileLocator(core.system.vistrails_root_directory() +
                             '/tests/resources/dummy.xml').load()

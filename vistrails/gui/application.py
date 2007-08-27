@@ -30,12 +30,12 @@ from core import command_line
 from core import debug
 from core import system
 from core import keychain
+from core.db.locator import XMLFileLocator
 from core.modules.module_registry import registry
 from core.utils import InstanceObject
 from core.utils.uxml import (named_elements,
                              elements_filter, enter_named_element)
 from gui import qt
-from db.services.io import XMLFileLocator
 import core.configuration
 import core.interpreter.cached
 import core.requirements

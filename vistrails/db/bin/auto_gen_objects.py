@@ -132,7 +132,17 @@ class Field:
     def isPlural(self):
 	return self.getMapping() == 'one-to-many' or \
 	    self.getMapping() == 'many-to-many'
-        
+ 
+    def hasDiscriminator(self):
+        return self.params.has_key('discriminator')
+
+    def getDiscriminator(self):
+	try:
+	    return self.params['discriminator']
+	except KeyError:
+	    pass
+	return None
+       
 class Choice(Field):
     def __init__(self, params, properties):
         Field.__init__(self, params)
@@ -150,13 +160,6 @@ class Choice(Field):
     def getReference(self):
 	if len(self.properties) > 0:
 	    return self.properties[0].getReference()
-	return None
-
-    def getDiscriminator(self):
-	try:
-	    return self.params['discriminator']
-	except KeyError:
-	    pass
 	return None
 
     def isChoice(self):

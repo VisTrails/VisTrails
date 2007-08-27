@@ -36,7 +36,6 @@ from core.vistrail.location import Location
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
 from core.utils import NoSummon, VistrailsInternalError
-from core.utils.uxml import named_elements
 import core.modules.module_registry
 from itertools import izip
 registry = core.modules.module_registry.registry
@@ -56,6 +55,8 @@ class Module(DBModule):
         DBModule.__init__(self, *args, **kwargs)
         if self.cache is None:
             self.cache = 1
+        if self.abstraction is None:
+            self.abstraction = -1
         if self.id is None:
             self.id = -1
         if self.location is None:
@@ -76,14 +77,11 @@ class Module(DBModule):
 
     def __copy__(self):
         """__copy__() -> Module - Returns a clone of itself"""
-        cp = DBModule.__copy__(self)
+        return Module.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBModule.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Module
-#         cp.center = Point(self.center.x, self.center.y)
-#         cp.functions = [copy.copy(f) for f in self.functions]
-#         cp.id = self.id
-#         cp.cache = self.cache
-#         cp.name = self.name
-#         cp.annotations = copy.copy(self.annotations)
         cp.registry = copy.copy(self.registry)
         cp.portVisible = copy.copy(self.portVisible)
         return cp
@@ -115,6 +113,12 @@ class Module(DBModule):
     def _set_cache(self, cache):
         self.db_cache = cache
     cache = property(_get_cache, _set_cache)
+
+    def _get_abstraction(self):
+        return self.db_abstraction
+    def _set_abstraction(self, abstraction):
+        self.db_abstraction = abstraction
+    abstraction = property(_get_abstraction, _set_abstraction)
 
     # type check this (list, hash)
     def _get_functions(self):
@@ -182,10 +186,8 @@ class Module(DBModule):
     version = property(_get_version, _set_version)
 
     def _get_port_specs(self):
-        return self.db_portSpecs
-    def _set_port_specs(self, port_specs):
-        self.db_portSpecs = port_specs
-    port_specs = property(_get_port_specs, _set_port_specs)
+        return self.db_portSpecs_id_index
+    port_specs = property(_get_port_specs)
     def has_portSpec_with_name(self, name):
         return self.db_has_portSpec_with_name(name)
     def get_portSpec_by_name(self, name):
@@ -319,9 +321,9 @@ class Module(DBModule):
         """
         if type(other) != type(self):
             return False
-        if self.id != other.id:
-            return False
         if self.name != other.name:
+            return False
+        if self.abstraction != other.abstraction:
             return False
         if self.cache != other.cache:
             return False
@@ -345,11 +347,49 @@ class Module(DBModule):
 # Testing
 
 import unittest
-import xml.dom.minidom
-from core.utils.uxml import named_elements
 
 class TestModule(unittest.TestCase):
 
+    def create_module(self, id_scope=None):
+        from db.domain import IdScope
+        if id_scope is None:
+            id_scope = IdScope()
+        
+        params = [ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
+                                  type='Int',
+                                  val='1')]
+        functions = [ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
+                                    name='value',
+                                    parameters=params)]
+        module = Module(id=id_scope.getNewId(Module.vtType),
+                        name='Float',
+                        package='edu.utah.sci.vistrails.basic',
+                        functions=functions)
+        return module
+
+    def test_copy(self):
+        """Check that copy works correctly"""
+        from db.domain import IdScope
+        
+        id_scope = IdScope()
+        m1 = self.create_module(id_scope)
+        m2 = copy.copy(m1)
+        self.assertEquals(m1, m2)
+        self.assertEquals(m1.id, m2.id)
+        m3 = m1.do_copy(True, id_scope, {})
+        self.assertEquals(m1, m3)
+        self.assertNotEquals(m1.id, m3.id)
+
+    def test_serialization(self):
+        """ Check that serialize and unserialize are working properly """
+        import core.db.io
+
+        m1 = self.create_module()
+        xml_str = core.db.io.serialize(m1)
+        m2 = core.db.io.unserialize(xml_str, Module)
+        self.assertEquals(m1, m2)
+        self.assertEquals(m1.id, m2.id)
+        
     def testEq(self):
         """Check correctness of equality operator."""
         x = Module()
@@ -383,32 +423,6 @@ class TestModule(unittest.TestCase):
         except NoSummon:
             msg = "Expected to get a String object, got a NoSummon exception"
             self.fail(msg)
-
-    def testLoadAndDumpModule(self):
-        """ Check that serialize and unserialize are working properly """
-        from core.vistrail import dbservice
-
-        m = Module()
-        m.name = "Float"
-        m.cache = 0
-        m.id = 0
-        m.center = Point(-59.7779886737, 142.491920766)
-        f = ModuleFunction()
-        f.name = "value"
-        m.addFunction(f)
-        param = ModuleParam()
-        param.name = "&lt;no description&gt;"
-        param.strValue = "1.2"
-        param.type = "Float"
-        param.alias = ""
-        f.params.append(param)
-
-        dom = dbservice.serialize(m)
-        mnew = dbservice.unserialize(Module.vtType, dom)
-        Module.convert(mnew)
-        
-        m.show_comparison(mnew)
-        assert m == mnew        
 
     def test_constructor(self):
         m1_param = ModuleParam(val="1.2",

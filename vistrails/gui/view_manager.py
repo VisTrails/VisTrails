@@ -29,8 +29,8 @@ from PyQt4 import QtCore, QtGui
 from gui.theme import CurrentTheme
 from gui.vistrail_view import QVistrailView
 from core import system
+from core.db.locator import XMLFileLocator
 from core.vistrail.vistrail import Vistrail
-from db.services.io import XMLFileLocator
 import copy
 
 ################################################################################

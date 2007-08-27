@@ -13,11 +13,11 @@ def convert_sql_to_xml(filename, id):
               'passwd': 'vistrailspwd',
               'db': 'vistrails'}
     try:
-        dbConnection = io.openDBConnection(config)        
-        vistrail = io.openVistrailFromDB(dbConnection, id)
+        dbConnection = io.open_db_connection(config)        
+        vistrail = io.open_vistrail_from_db(dbConnection, id)
         io.setDBParameters(vistrail, config)
-        io.saveVistrailToXML(vistrail, filename)
-        io.closeDBConnection(dbConnection)
+        io.save_vistrail_to_xml(vistrail, filename)
+        io.close_db_connection(dbConnection)
     except MySQLdb.Error, e:
         print e
 

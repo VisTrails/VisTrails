@@ -19,4 +19,14 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
-pass
+
+class VistrailsDBException(Exception):
+    """VistrailsDBException is raised when there is any exception in the 
+    db code for VisTrails
+    
+    """
+    def __init__(self, msg):
+        self.msg = msg
+    def __str__(self):
+        return "VistrailsDBException: " + str(self.msg)
+

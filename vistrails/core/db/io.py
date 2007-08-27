@@ -22,45 +22,45 @@
 
 from core.vistrail.action import Action
 from core.vistrail.operation import AddOp, ChangeOp, DeleteOp
-from core.vistrail.pipeline import Pipeline
 import db.services.io
 import db.services.vistrail
 import db.services.action
 from xml.dom.minidom import parse, getDOMImplementation
 
-def openVistrail(filename):
-    vistrail = db.services.io.openVistrailFromXML(filename)
-    from core.vistrail.vistrail import Vistrail
-    Vistrail.convert(vistrail)
-    return vistrail
+def get_db_vistrail_list(config):
+    return db.services.io.get_db_vistrail_list(config)
 
-def getWorkflow(vt, version):
+def get_workflow(vt, version):
+    from core.vistrail.pipeline import Pipeline
     workflow = db.services.vistrail.materializeWorkflow(vt, version)
     Pipeline.convert(workflow)
-    workflow.ensure_old_modules_have_package_names()
     return workflow
 
-def saveVistrail(vt, filename):
-    db.services.io.saveVistrailToXML(vt, filename)
+def open_workflow(filename):
+    from core.vistrail.pipeline import Pipeline
+    workflow = db.services.io.open_workflow_from_xml(filename)
+    Pipeline.convert(workflow)
+    return workflow
 
-def saveWorkflow(workflow, filename):
-    db.services.io.saveWorkflowToXML(workflow, filename)
+def save_workflow(workflow, filename):
+    db.services.io.save_workflow_to_xml(workflow, filename)
 
-def unserialize(vtType, dom):
-    """returns VisTrails entity given DOM for XML rep"""
+def unserialize(str, klass):
+    """returns VisTrails entity given an XML serialization
 
-    result = db.services.io.readXMLObjects(vtType, dom.documentElement)
-    return result[0]
+    """
+    obj = db.services.io.unserialize(str, klass.vtType)
+    klass.convert(obj)
+    return obj
 
 def serialize(object):
-    """returns DOM for XML rep of any VisTrails entity"""
+    """returns XML serialization for any VisTrails entity
 
-    dom = getDOMImplementation().createDocument(None, None, None)
-    root = db.services.io.writeXMLObjects([object], dom)
-    dom.appendChild(root)
-    return dom
+    """
+    return db.services.io.serialize(object)
 
-def getWorkflowDiff(vt, v1, v2):
+def get_workflow_diff(vt, v1, v2):
+    from core.vistrail.pipeline import Pipeline
     (v1, v2, pairs, v1Only, v2Only, paramChanges, _, _, _) = \
         db.services.vistrail.getWorkflowDiff(vt, v1, v2, True)
     Pipeline.convert(v1)
@@ -71,7 +71,8 @@ def getWorkflowDiff(vt, v1, v2):
     #     print 'paramChanges:', paramChanges
     return (v1, v2, pairs, v1Only, v2Only, paramChanges)
 
-def getWorkflowDiffWithConnections(vt, v1, v2):
+def get_workflow_diff_with_connections(vt, v1, v2):
+    from core.vistrail.pipeline import Pipeline
     (v1, v2, mPairs, v1Only, v2Only, paramChanges, cPairs, c1Only, c2Only) = \
         db.services.vistrail.getWorkflowDiff(vt, v1, v2, False)
     Pipeline.convert(v1)

@@ -25,7 +25,7 @@ from core.data_structures.bijectivedict import Bidict
 import scipy
 from itertools import imap, chain
 import core.modules.module_registry
-from core.vistrail import dbservice
+import core.db.io
 from core.vistrail.port import PortEndPoint
 from core.vistrail.module import Module
 import copy
@@ -58,8 +58,8 @@ def perform_analogy_on_vistrail(vistrail,
         print 'version_b:', version_b
         print 'version_c:', version_c
 
-    pipeline_a = dbservice.getWorkflow(vistrail, version_a)
-    pipeline_c = dbservice.getWorkflow(vistrail, version_c)
+    pipeline_a = core.db.io.get_workflow(vistrail, version_a)
+    pipeline_c = core.db.io.get_workflow(vistrail, version_c)
     
     e = EigenPipelineSimilarity2(pipeline_a, pipeline_c, alpha=alpha)
     e._debug = _debug
@@ -117,7 +117,7 @@ def perform_analogy_on_vistrail(vistrail,
     # STEP 2: find actions to be remapped (b-a)
 
     # this creates a new action with new operations
-    baAction = dbservice.getPathAsAction(vistrail, version_a, version_b)
+    baAction = core.db.io.getPathAsAction(vistrail, version_a, version_b)
 
     for operation in baAction.operations:
         print "ba_op0:", operation.id,  operation.vtType, operation.what, 
@@ -137,14 +137,14 @@ def perform_analogy_on_vistrail(vistrail,
             if op.what == 'module':
                 if module_remap.has_key(op.old_obj_id):
                     module = pipeline_c.modules[module_remap[op.old_obj_id]]
-                    ops.extend(dbservice.create_delete_op_chain(module))
+                    ops.extend(core.db.io.create_delete_op_chain(module))
                 else:
                     ops.append(op)
             elif op.what == 'connection':
                 if connection_remap.has_key(op.old_obj_id):
                     conn = pipeline_c.connections[connection_remap[ \
                             op.old_obj_id]]
-                    ops.extend(dbservice.create_delete_op_chain(conn))
+                    ops.extend(core.db.io.create_delete_op_chain(conn))
                 else:
                     ops.append(op)
             else:
@@ -190,7 +190,7 @@ def perform_analogy_on_vistrail(vistrail,
         print operation.parentObjId
 
     baAction.prevId = version_c
-    dbservice.fixActions(vistrail, version_c, [baAction])
+    core.db.io.fixActions(vistrail, version_c, [baAction])
     print "got here"
     for operation in baAction.operations:
         print "ba_op2:", operation.id, operation.vtType, operation.what, 
