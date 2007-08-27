@@ -74,7 +74,6 @@ def convert_data(child):
     if child.vtType == 'module':
         return DBModule(id=child.db_id,
                         cache=child.db_cache, 
-                        abstraction=0, 
                         name=child.db_name)
     elif child.vtType == 'connection':
         return DBConnection(id=child.db_id)
