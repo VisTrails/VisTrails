@@ -29,6 +29,11 @@
     <sql type="varchar(255)"/>
   </property>
 
+  <property name="prune" type="int">
+    <xml nodeType="xs:attribute" type="xs:int"/>
+    <sql type="int"/>
+  </property>
+
   <property ref="true" object="annotation" type="list" mapping="one-to-many"
 	    index="key">
     <xml nodeType="xs:element"/>

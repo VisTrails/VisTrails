@@ -52,6 +52,7 @@
       <xs:attribute name="date" type="xs:dateTime"/>
       <xs:attribute name="session" type="xs:string"/>
       <xs:attribute name="user" type="xs:string"/>
+      <xs:attribute name="prune" type="xs:int"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="tag">

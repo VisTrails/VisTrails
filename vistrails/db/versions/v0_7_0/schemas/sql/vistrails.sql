@@ -199,6 +199,7 @@ CREATE TABLE action(
     date datetime,
     session varchar(1023),
     user varchar(255),
+    prune int,
     parent_type char(16),
     vt_id int,
     parent_id int

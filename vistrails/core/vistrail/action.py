@@ -41,6 +41,8 @@ class Action(DBAction):
             self.parent = -1
         if self.user is None:
             self.user = ''
+        if self.prune is None:
+            self.prune = 0
         if kwargs.has_key('notes'):
             self.notes = kwargs['notes']
 
@@ -93,6 +95,12 @@ class Action(DBAction):
     def _set_user(self, user):
         self.db_user = user
     user = property(_get_user, _set_user)
+
+    def _get_prune(self):
+        return self.db_prune
+    def _set_prune(self, prune):
+        self.db_prune = prune
+    prune = property(_get_prune, _set_prune)
     
     def _get_annotations(self):
         return self.db_annotations

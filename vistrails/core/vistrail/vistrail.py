@@ -64,7 +64,7 @@ class Vistrail(DBVistrail):
         self.currentVersion = -1
         self.expand=[] #to expand selections in versiontree
         self.currentGraph=None
-        self.prunedVersions = set()
+        # self.prunedVersions = set()
         self.savedQueries = []
         self.locator = None
         
@@ -100,7 +100,7 @@ class Vistrail(DBVistrail):
         _vistrail.currentVersion = -1
         _vistrail.expand=[] #to expand selections in versiontree
         _vistrail.currentGraph=None
-        _vistrail.prunedVersions = set()
+        # _vistrail.prunedVersions = set()
         _vistrail.savedQueries = []
 
 	for action in _vistrail.actions:
@@ -677,6 +677,8 @@ class Vistrail(DBVistrail):
         Adds new tag to vistrail
           
         """
+        if version_name == '':
+            return None
         if self.tagMap.has_key(version_number):
             DebugPrint.log("Version is already tagged")
             raise VersionAlreadyTagged()
@@ -733,7 +735,8 @@ class Vistrail(DBVistrail):
         result.add_vertex(0)
         for action in self.actionMap.values():
             if (result.vertices.has_key(action.parent) and
-                action.timestep not in self.prunedVersions):
+                action.prune != 1):
+                # action.timestep not in self.prunedVersions):
                 result.add_edge(action.parent,
                                action.timestep,
                                0)
@@ -844,7 +847,8 @@ class Vistrail(DBVistrail):
         
         """
         if version!=0: # not root
-            self.prunedVersions.add(version)
+            self.actionMap[version].prune = 1
+            # self.prunedVersions.add(version)
 
     def setSavedQueries(self, savedQueries):
         """ setSavedQueries(savedQueries: list of (str, str, str)) -> None

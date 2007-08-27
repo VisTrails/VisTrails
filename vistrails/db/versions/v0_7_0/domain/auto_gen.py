@@ -3170,12 +3170,13 @@ class DBAction(object):
 
     vtType = 'action'
 
-    def __init__(self, id=None, prevId=None, date=None, session=None, user=None, annotations=None, operations=None):
+    def __init__(self, id=None, prevId=None, date=None, session=None, user=None, prune=None, annotations=None, operations=None):
         self.__db_id = id
         self.__db_prevId = prevId
         self.__db_date = date
         self.__db_session = session
         self.__db_user = user
+        self.__db_prune = prune
         self.db_annotations_id_index = {}
         self.db_annotations_key_index = {}
         if annotations is None:
@@ -3202,6 +3203,7 @@ class DBAction(object):
         cp.db_date = self.db_date
         cp.db_session = self.db_session
         cp.db_user = self.db_user
+        cp.db_prune = self.db_prune
         if self.db_annotations is None:
             cp.db_annotations = None
         else:
@@ -3226,6 +3228,7 @@ class DBAction(object):
         cp.db_date = self.db_date
         cp.db_session = self.db_session
         cp.db_user = self.db_user
+        cp.db_prune = self.db_prune
         if self.db_annotations is None:
             cp.db_annotations = []
         else:
@@ -3345,6 +3348,19 @@ class DBAction(object):
         self.__db_user = user
     def db_delete_user(self, user):
         self.__db_user = None
+    
+    def __get_db_prune(self):
+        return self.__db_prune
+    def __set_db_prune(self, prune):
+        self.__db_prune = prune
+        self.is_dirty = True
+    db_prune = property(__get_db_prune, __set_db_prune)
+    def db_add_prune(self, prune):
+        self.__db_prune = prune
+    def db_change_prune(self, prune):
+        self.__db_prune = prune
+    def db_delete_prune(self, prune):
+        self.__db_prune = None
     
     def __get_db_annotations(self):
         return self.__db_annotations

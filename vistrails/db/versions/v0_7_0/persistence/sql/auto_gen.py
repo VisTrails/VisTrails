@@ -3303,7 +3303,7 @@ class DBActionSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props):
-        columns = ['id', 'prev_id', 'date', 'session', 'user', 'parent_type', 'vt_id', 'parent_id']
+        columns = ['id', 'prev_id', 'date', 'session', 'user', 'prune', 'parent_type', 'vt_id', 'parent_id']
         table = 'action'
         whereMap = global_props
         orderBy = 'id'
@@ -3317,14 +3317,16 @@ class DBActionSQLDAOBase(SQLDAO):
             date = self.convertFromDB(row[2], 'datetime', 'datetime')
             session = self.convertFromDB(row[3], 'str', 'varchar(1023)')
             user = self.convertFromDB(row[4], 'str', 'varchar(255)')
-            parentType = self.convertFromDB(row[5], 'str', 'char(16)')
-            vistrailId = self.convertFromDB(row[6], 'long', 'int')
-            parent = self.convertFromDB(row[7], 'long', 'long')
+            prune = self.convertFromDB(row[5], 'int', 'int')
+            parentType = self.convertFromDB(row[6], 'str', 'char(16)')
+            vistrailId = self.convertFromDB(row[7], 'long', 'int')
+            parent = self.convertFromDB(row[8], 'long', 'long')
             
             action = DBAction(prevId=prevId,
                               date=date,
                               session=session,
                               user=user,
+                              prune=prune,
                               id=id)
             action.db_parentType = parentType
             action.db_vistrailId = vistrailId
@@ -3345,7 +3347,7 @@ class DBActionSQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'prev_id', 'date', 'session', 'user', 'parent_type', 'vt_id', 'parent_id']
+        columns = ['id', 'prev_id', 'date', 'session', 'user', 'prune', 'parent_type', 'vt_id', 'parent_id']
         table = 'action'
         whereMap = {}
         if obj.db_id is not None:
@@ -3367,6 +3369,9 @@ class DBActionSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_user') and obj.db_user is not None:
             columnMap['user'] = \
                 self.convertToDB(obj.db_user, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_prune') and obj.db_prune is not None:
+            columnMap['prune'] = \
+                self.convertToDB(obj.db_prune, 'int', 'int')
         if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
             columnMap['parent_type'] = \
                 self.convertToDB(obj.db_parentType, 'str', 'char(16)')
@@ -3394,7 +3399,7 @@ class DBActionSQLDAOBase(SQLDAO):
             child.db_action = obj.db_id
         
     def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['prev_id', 'date', 'session', 'user', 'id']
+        columns = ['prev_id', 'date', 'session', 'user', 'prune', 'id']
         table = 'action'
         whereMap = {}
         orderBy = 'id'
@@ -3416,7 +3421,8 @@ class DBActionSQLDAOBase(SQLDAO):
             date = self.convertFromDB(row[1], 'datetime', 'datetime')
             session = self.convertFromDB(row[2], 'str', 'varchar(1023)')
             user = self.convertFromDB(row[3], 'str', 'varchar(255)')
-            id = self.convertFromDB(row[4], 'long', 'int')
+            prune = self.convertFromDB(row[4], 'int', 'int')
+            id = self.convertFromDB(row[5], 'long', 'int')
             keyStr = self.convertToDB(id,'long','int')
 
             discStr = self.convertToDB('action','str','char(16)')
@@ -3443,6 +3449,7 @@ class DBActionSQLDAOBase(SQLDAO):
                               date=date,
                               session=session,
                               user=user,
+                              prune=prune,
                               annotations=annotations,
                               operations=operations)
             action.is_dirty = False
@@ -3473,6 +3480,9 @@ class DBActionSQLDAOBase(SQLDAO):
             if obj.db_user is not None:
                 columnMap['user'] = \
                     self.convertToDB(obj.db_user, 'str', 'varchar(255)')
+            if obj.db_prune is not None:
+                columnMap['prune'] = \
+                    self.convertToDB(obj.db_prune, 'int', 'int')
             if foreignKey is not None:
                 columnMap.update(foreignKey)
 

@@ -1397,6 +1397,7 @@ class DBActionXMLDAOBase(XMLDAO):
         date = self.convertFromStr(self.getAttribute(node, 'date'), 'datetime')
         session = self.convertFromStr(self.getAttribute(node, 'session'), 'str')
         user = self.convertFromStr(self.getAttribute(node, 'user'), 'str')
+        prune = self.convertFromStr(self.getAttribute(node, 'prune'), 'int')
         
         
         # read children
@@ -1423,6 +1424,7 @@ class DBActionXMLDAOBase(XMLDAO):
                        date=date,
                        session=session,
                        user=user,
+                       prune=prune,
                        annotations=annotations,
                        operations=operations)
         obj.is_dirty = False
@@ -1438,6 +1440,7 @@ class DBActionXMLDAOBase(XMLDAO):
         node.setAttribute('date',self.convertToStr(action.db_date, 'datetime'))
         node.setAttribute('session',self.convertToStr(action.db_session, 'str'))
         node.setAttribute('user',self.convertToStr(action.db_user, 'str'))
+        node.setAttribute('prune',self.convertToStr(action.db_prune, 'int'))
         
         # load DOM node map
         nodeMap = {}
