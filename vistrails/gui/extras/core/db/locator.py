@@ -20,6 +20,7 @@
 ##
 ############################################################################
 
+from gui.application import VistrailsApplication
 from gui.open_db_window import QOpenDBWindow
 from core.db.locator import DBLocator, XMLFileLocator
 from PyQt4 import QtGui
@@ -67,6 +68,9 @@ def get_load_xml_file_locator_from_gui(parent):
         "Vistrail files (*.xml)\nOther files (*)")
     if fileName.isEmpty():
         return None
+    dirName = os.path.dirname(str(fileName))
+    setattr(VistrailsApplication.configuration, 'fileDirectory', dirName)
+    core.system.set_vistrails_file_directory(dirName)
     return XMLFileLocator(str(fileName))
 
 def get_save_xml_file_locator_from_gui(parent, locator=None):
@@ -94,5 +98,8 @@ def get_save_xml_file_locator_from_gui(parent, locator=None):
                                 parent)
         if msg.exec_() == QtGui.QMessageBox.No:
             return None
+    dirName = os.path.dirname(str(f))
+    setattr(VistrailsApplication.configuration, 'fileDirectory', dirName)
+    core.system.set_vistrails_file_directory(dirName)
     return XMLFileLocator(f)
 
