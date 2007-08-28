@@ -292,8 +292,8 @@ class QParameterExplorationTable(QPromptWidget):
                         function = self.pipeline.db_get_object(parentType,
                                                                parentId)  
                         fName = function.name
-                        #old_param = function.params[pId]
-                        old_param = self.pipeline.db_get_object(pType,pId)
+                        old_param = function.params[pId]
+                        # old_param = self.pipeline.db_get_object(pType,pId)
                         pName = old_param.name
                         pAlias = old_param.alias
                         actions = []
