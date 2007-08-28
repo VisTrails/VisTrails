@@ -28,6 +28,7 @@ if __name__ == '__main__':
     app = gui.qt.createBogusQtApp()
 
 import copy
+from itertools import izip
 from sets import Set
 from db.domain import DBModule
 from core.data_structures.point import Point
@@ -35,10 +36,11 @@ from core.vistrail.annotation import Annotation
 from core.vistrail.location import Location
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
+from core.vistrail.port import Port, PortEndPoint
+from core.vistrail.port_spec import PortSpec
 from core.utils import NoSummon, VistrailsInternalError
 import core.modules.module_registry
-from itertools import izip
-registry = core.modules.module_registry.registry
+from core.modules.module_registry import registry, ModuleRegistry
 
 ################################################################################
 
@@ -82,15 +84,20 @@ class Module(DBModule):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBModule.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Module
-        cp.registry = copy.copy(self.registry)
+        # cp.registry = copy.copy(self.registry)
+        cp.registry = None
+        for port_spec in cp.db_portSpecs:
+            cp.add_port_to_registry(port_spec)
         cp.portVisible = copy.copy(self.portVisible)
         return cp
 
     @staticmethod
     def convert(_module):
-        if _module.__class__ == Module:
-            return
 	_module.__class__ = Module
+	_module.registry = None
+        for _port_spec in _module.db_portSpecs:
+            PortSpec.convert(_port_spec)
+            _module.add_port_to_registry(_port_spec)
         if _module.db_location:
             Location.convert(_module.db_location)
 	for _function in _module.db_functions:
@@ -98,7 +105,6 @@ class Module(DBModule):
         for _annotation in _module.db_get_annotations():
             Annotation.convert(_annotation)
         _module.portVisible = Set()
-	_module.registry = None
 
     ##########################################################################
         
@@ -112,6 +118,7 @@ class Module(DBModule):
         return self.db_cache
     def _set_cache(self, cache):
         self.db_cache = cache
+
     cache = property(_get_cache, _set_cache)
 
     def _get_abstraction(self):
@@ -270,6 +277,46 @@ class Module(DBModule):
         for p in ports:
             p.id = self.id
         return ports
+
+    def add_port_to_registry(self, port_spec):
+        module = \
+            registry.get_descriptor_by_name(self.package, self.name).module
+        if self.registry is None:
+            self.registry = ModuleRegistry()
+            self.registry.add_module(module, package=self.package)
+
+        if port_spec.type == 'input':
+            endpoint = PortEndPoint.Destination
+        else:
+            endpoint = PortEndPoint.Source
+        portSpecs = port_spec.spec[1:-1].split(',')
+        signature = [registry.get_descriptor_from_name_only(spec).module
+                     for spec in portSpecs]
+        port = Port()
+        port.name = port_spec.name
+        port.spec = core.modules.module_registry.PortSpec(signature)
+        self.registry.add_port(module, endpoint, port)
+
+    def delete_port_from_registry(self, id):
+        if not self.port_specs.has_key(id):
+            raise VistrailsInternalError("id missing in port_specs")
+        portSpec = self.port_specs[id]
+        portSpecs = portSpec.spec[1:-1].split(',')
+        signature = [registry.get_descriptor_from_name_only(spec).module
+                     for spec in portSpecs]
+        port = Port(signature)
+        port.name = portSpec.name
+        port.spec = core.modules.module_registry.PortSpec(signature)
+
+        module = \
+            registry.get_descriptor_by_name(self.package, self.name).module
+        assert isinstance(self.registry, ModuleRegistry)
+
+        if portSpec.type == 'input':
+            self.registry.delete_input_port(module, port.name)
+        else:
+            self.registry.delete_output_port(module, port.name)
+
 
     ##########################################################################
     # Debugging

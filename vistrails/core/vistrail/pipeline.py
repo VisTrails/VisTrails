@@ -98,10 +98,6 @@ class Pipeline(DBWorkflow):
 	for _module in _workflow.db_modules:
 	    Module.convert(_module)
             _workflow.graph.add_vertex(_module.id)
-            # FIXME this should be moved to Module.convert stuff...
-            for _portSpec in _module.db_portSpecs:
-                #  (port, endpoint) = registry.create_port_from_old_spec(_portSpec)
-                _workflow.add_port_to_registry(_portSpec, _module.db_id)
 	for _connection in _workflow.db_connections:
             Connection.convert(_connection)
             _workflow.graph.add_edge( \
@@ -357,22 +353,7 @@ class Pipeline(DBWorkflow):
 
     def add_port_to_registry(self, portSpec, moduleId):
         m = self.get_module_by_id(moduleId)
-        module = registry.get_descriptor_by_name(m.package, m.name).module
-        if m.registry is None:
-            m.registry = ModuleRegistry()
-            m.registry.add_module(module, package=m.package)
-
-        if portSpec.type == 'input':
-            endpoint = PortEndPoint.Destination
-        else:
-            endpoint = PortEndPoint.Source
-        portSpecs = portSpec.spec[1:-1].split(',')
-        signature = [registry.get_descriptor_from_name_only(spec).module
-                     for spec in portSpecs]
-        port = Port()
-        port.name = portSpec.name
-        port.spec = core.modules.module_registry.PortSpec(signature)
-        m.registry.add_port(module, endpoint, port)
+        m.add_port_to_registry(portSpec)
 
     def add_module_port(self, portSpec, moduleId):
         self.db_add_object(portSpec, Module.vtType, moduleId)
@@ -380,23 +361,7 @@ class Pipeline(DBWorkflow):
 
     def delete_port_from_registry(self, id, moduleId):
         m = self.get_module_by_id(moduleId)
-        if not m.port_specs.has_key(id):
-            raise VistrailsInternalError("id missing in port_specs")
-        portSpec = m.port_specs[id]
-        portSpecs = portSpec.spec[1:-1].split(',')
-        signature = [registry.get_descriptor_from_name_only(spec).module
-                     for spec in portSpecs]
-        port = Port(signature)
-        port.name = portSpec.name
-        port.spec = core.modules.module_registry.PortSpec(signature)
-
-        module = registry.get_descriptor_by_name(m.package, m.name).module
-        assert isinstance(m.registry, ModuleRegistry)
-
-        if portSpec.type == 'input':
-            m.registry.delete_input_port(module, port.name)
-        else:
-            m.registry.delete_output_port(module, port.name)
+        m.delete_port_from_registry(id)
 
     def delete_module_port(self, id, moduleId):
         self.delete_port_from_registry(id, moduleId)
