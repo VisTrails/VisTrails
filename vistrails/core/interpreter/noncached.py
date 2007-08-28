@@ -117,7 +117,7 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                             'Null').module()
                         objects[id].set_input_port(f.name, 
                                                    ModuleConnector(nullObject,
-                                                                   'value'))
+                                                                   'value'), is_method=True)
                     if len(f.params)==1:
                         p = f.params[0]
                         constant = reg.get_descriptor_by_name(
@@ -126,7 +126,7 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                         constant.setValue(p.evaluatedStrValue)
                         objects[id].set_input_port(f.name, 
                                                  ModuleConnector(constant, 
-                                                                 'value'))
+                                                                 'value'), is_method=True)
                     if len(f.params)>1:
                         tupleModule = core.interpreter.base.InternalTuple()
                         tupleModule.length = len(f.params)
@@ -140,7 +140,7 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                                                                        'value'))
                         objects[id].set_input_port(f.name, 
                                                    ModuleConnector(tupleModule,
-                                                                   'value'))
+                                                                   'value'), is_method=True)
             
             # create connections
             for id, conn in pipeline.connections.items():
