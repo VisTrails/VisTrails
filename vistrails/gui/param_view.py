@@ -118,7 +118,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
                     label = QtCore.QStringList('%s(%s)' % (function.name, v))
                     pList = [(function.params[pId].type,
                               function.params[pId].strValue,
-                              pId,
+                              function.params[pId].real_id,
                               ModuleParam.vtType,
                               function.vtType,
                               function.real_id)
