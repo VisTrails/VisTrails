@@ -287,23 +287,27 @@ class QParameterExplorationTable(QPromptWidget):
                                              'parameter. Parameter Exploration '
                                              'aborted.' % pEditor.info[0])
                                 return None
-                        (mId, fId, pId) = tuple(paramInfo[2:5])
-                        function = self.pipeline.modules[mId].functions[fId]
+                        (pId, pType, parentType, parentId) = tuple(paramInfo[2:6])
+                        #function = self.pipeline.modules[mId].functions[fId]
+                        function = self.pipeline.db_get_object(parentType,
+                                                               parentId)  
                         fName = function.name
-                        old_param = function.params[pId]
-                        pName = function.params[pId].name
-                        pAlias = function.params[pId].alias
+                        #old_param = function.params[pId]
+                        old_param = self.pipeline.db_get_object(pType,pId)
+                        pName = old_param.name
+                        pAlias = old_param.alias
                         actions = []
                         for v in values:
                             new_param = ModuleParam(id=-1,
-                                                    pos=pId,
+                                                    pos=old_param.pos,
                                                     name=pName,
                                                     alias=pAlias,
                                                     val=str(v),
                                                     type=paramInfo[0]
                                                     )
+                            #FIXME: check if this work
                             action_spec = ('change', old_param, new_param,
-                                           function.vtType, function.real_id)
+                                           parentType, function.real_id)
                             action = \
                                 db.services.action.create_action([action_spec])
                             # FIXME: this should go to dbservices

@@ -101,13 +101,22 @@ class Pipeline(DBWorkflow):
             # FIXME this should be moved to Module.convert stuff...
             for _portSpec in _module.db_portSpecs:
                 #  (port, endpoint) = registry.create_port_from_old_spec(_portSpec)
-                _workflow.addPortToRegistry(_portSpec, _module.db_id)
+                _workflow.add_port_to_registry(_portSpec, _module.db_id)
 	for _connection in _workflow.db_connections:
             Connection.convert(_connection)
             _workflow.graph.add_edge( \
                 _connection.source.moduleId,
                 _connection.destination.moduleId,
                 _connection.db_id)
+        #there should be another way to do this
+        for _obj in _workflow.objects.itervalues():
+            if _obj.vtType == 'function':
+                for _par in _obj.parameters:
+                    _workflow.change_alias(_par.alias,
+                                           _par.vtType,
+                                           _par.real_id,
+                                           _obj.vtType,
+                                           _obj.real_id)
 
     ##########################################################################
 
@@ -123,7 +132,7 @@ class Pipeline(DBWorkflow):
         try:
             return [f.name
                     for f
-                    in self.getModuleById(module_id).functions].index(parameter_name)
+                    in self.get_module_by_id(module_id).functions].index(parameter_name)
         except ValueError:
             return -1
 
@@ -183,8 +192,8 @@ class Pipeline(DBWorkflow):
     def fresh_connection_id(self):
         return self.get_tmp_id(Connection.vtType)
 
-    def checkConnection(self, c):
-        """checkConnection(c: Connection) -> boolean 
+    def check_connection(self, c):
+        """check_connection(c: Connection) -> boolean 
         Checks semantics of connection
           
         """
@@ -192,16 +201,16 @@ class Pipeline(DBWorkflow):
             return False
         if c.destination.endPoint != Port.DestinationEndPoint:
             return False
-        if not self.hasModuleWithId(c.sourceId):
+        if not self.has_module_with_id(c.sourceId):
             return False
-        if not self.hasModuleWithId(c.destinationId):
+        if not self.has_module_with_id(c.destinationId):
             return False
         if c.source.type != c.destination.type:
             return False
         return True
     
-    def connectsAtPort(self, p):
-        """ connectsAtPort(p: Port) -> list of Connection 
+    def connects_at_port(self, p):
+        """ connects_at_port(p: Port) -> list of Connection 
         Returns a list of Connections that connect at port p
         
         """
@@ -222,38 +231,38 @@ class Pipeline(DBWorkflow):
             raise VistrailsInternalError("port with bogus information")
         return result
     
-    def performActionChain(self, actionChain):
+    def perform_action_chain(self, actionChain):
         for action in actionChain:
-            self.performAction(action)
+            self.perform_action(action)
 
-    def performAction(self, action):
+    def perform_action(self, action):
         for operation in action.operations:
-            self.performOperation(operation)
+            self.perform_operation(operation)
 
-    def performOperationChain(self, opChain):
+    def perform_operation_chain(self, opChain):
         for op in opChain:
-            self.performOperation(op)
+            self.perform_operation(op)
 
-    def performOperation(self, op):
+    def perform_operation(self, op):
         # print "doing %s %s" % (op.vtType, op.what)
-        opMap = {('add','annotation'): self.performAddAnnotation,
-                 ('add','module'): self.performAddModule,
-                 ('add','connection'): self.performAddConnection,
-                 ('add','portSpec'): self.performAddPortSpec,
-                 ('add','parameter'): self.performAddParameter,
-                 ('add','port'): self.performAddPort,
-                 ('change','annotation'): self.performChangeAnnotation,
-                 ('change','module'): self.performChangeModule,
-                 ('change','connection'): self.performChangeConnection,
-                 ('change','portSpec'): self.performChangePortSpec,
-                 ('change','parameter'): self.performChangeParameter,
-                 ('change','port'): self.performChangePort,
-                 ('delete','annotation'): self.performDeleteAnnotation,
-                 ('delete','module'): self.performDeleteModule,
-                 ('delete','connection'): self.performDeleteConnection,
-                 ('delete','portSpec'): self.performDeletePortSpec,
-                 ('delete','parameter'): self.performDeleteParameter,
-                 ('delete','port'): self.performDeletePort,
+        opMap = {('add','annotation'): self.perform_add_annotation,
+                 ('add','module'): self.perform_add_module,
+                 ('add','connection'): self.perform_add_connection,
+                 ('add','portSpec'): self.perform_add_port_spec,
+                 ('add','parameter'): self.perform_add_parameter,
+                 ('add','port'): self.perform_add_port,
+                 ('change','annotation'): self.perform_change_annotation,
+                 ('change','module'): self.perform_change_module,
+                 ('change','connection'): self.perform_change_connection,
+                 ('change','portSpec'): self.perform_change_port_spec,
+                 ('change','parameter'): self.perform_change_parameter,
+                 ('change','port'): self.perform_change_port,
+                 ('delete','annotation'): self.perform_delete_annotation,
+                 ('delete','module'): self.perform_delete_module,
+                 ('delete','connection'): self.perform_delete_connection,
+                 ('delete','portSpec'): self.perform_delete_port_spec,
+                 ('delete','parameter'): self.perform_delete_parameter,
+                 ('delete','port'): self.perform_delete_port,
                  }
         if opMap.has_key((op.vtType, op.what)):
             opMap[(op.vtType, op.what)](op)
@@ -267,58 +276,59 @@ class Pipeline(DBWorkflow):
         elif op.vtType == 'delete':
             self.db_delete_object(op.objectId, op.what,
                                   op.parentObjType, op.parentObjId)
-    def performAddModule(self, op):
-        self.addModule(op.data)
-    def performChangeModule(self, op):
-        self.deleteModule(op.oldObjId)
-        self.addModule(op.data)
-    def performDeleteModule(self, op):
-        self.deleteModule(op.objectId)
-    def performAddConnection(self, op):
-        self.addConnection(op.data)
-    def performChangeConnection(self, op):
-        self.deleteConnection(op.objObjId)
-        self.addConnection(op.data)
-    def performDeleteConnection(self, op):
-        self.deleteConnection(op.objectId)
-    def performAddPortSpec(self, op):
+    def perform_add_module(self, op):
+        self.add_module(op.data)
+    def perform_change_module(self, op):
+        self.delete_module(op.oldObjId)
+        self.add_module(op.data)
+    def perform_delete_module(self, op):
+        self.delete_module(op.objectId)
+    def perform_add_connection(self, op):
+        self.add_connection(op.data)
+    def perform_change_connection(self, op):
+        self.delete_connection(op.objObjId)
+        self.add_connection(op.data)
+    def perform_delete_connection(self, op):
+        self.delete_connection(op.objectId)
+    def perform_add_port_spec(self, op):
         self.add_module_port(op.data, op.parentObjId)
-    def performDeletePortSpec(self, op):
+    def perform_delete_port_spec(self, op):
         self.delete_module_port(op.objectId, op.parentObjId)
-    def performChangePortSpec(self, op):
+    def perform_change_port_spec(self, op):
         self.delete_module_port(op.oldObjId, op.parentObjId)
         self.add_module_port(op.data, op.parentObjId)
-    def performAddAnnotation(self, op):
+    def perform_add_annotation(self, op):
         self.db_add_object(op.data, op.parentObjType, op.parentObjId)
-    def performDeleteAnnotation(self, op):
+    def perform_delete_annotation(self, op):
         self.db_delete_object(op.objectId, op.what,
                               op.parentObjType, op.parentObjId)
-    def performChangeAnnotation(self, op):
+    def perform_change_annotation(self, op):
         op.objectId = op.oldObjId
-        self.performDeleteAnnotation(op)
+        self.perform_delete_annotation(op)
         op.objectId = op.newObjId
-        self.performAddAnnotation(op)
-    def performAddParameter(self, op):
+        self.perform_add_annotation(op)
+    def perform_add_parameter(self, op):
         self.db_add_object(op.data, op.parentObjType, 
                            op.parentObjId)
         param = op.data
-
-        if not self.hasAlias(param.alias):
-            self.changeAlias(param.alias, param.real_id)
-    
-    def performDeleteParameter(self, op):
+        if not self.has_alias(param.alias):
+            self.change_alias(param.alias, 
+                              param.vtType, 
+                              param.real_id,
+                              op.parentObjType,
+                              op.parentObjId)
+    def perform_delete_parameter(self, op):
         self.db_delete_object(op.objectId, op.what,
                               op.parentObjType, op.parentObjId)
-
-        self.removeAlias(op.objectId)
-
-    def performChangeParameter(self, op):
+        self.remove_alias(op.what, op.objectId, op.parentObjType,
+                          op.parentObjId)
+    def perform_change_parameter(self, op):
         op.objectId = op.oldObjId
-        self.performDeleteParameter(op)
+        self.perform_delete_parameter(op)
         op.objectId = op.newObjId
-        self.performAddParameter(op)
+        self.perform_add_parameter(op)
 
-    def performAddPort(self, op):
+    def perform_add_port(self, op):
         self.db_add_object(op.data, op.parentObjType, op.parentObjId)
         connection = self.connections[op.parentObjId]
 #         if op.data.db_type == 'source':
@@ -330,7 +340,7 @@ class Pipeline(DBWorkflow):
             self.graph.add_edge(connection.sourceId, 
                                 connection.destinationId, 
                                 connection.id)
-    def performDeletePort(self, op):
+    def perform_delete_port(self, op):
         connection = self.connections[op.parentObjId]
         if len(connection.ports) >= 2:
             self.graph.delete_edge(connection.sourceId, 
@@ -339,14 +349,14 @@ class Pipeline(DBWorkflow):
         self.db_delete_object(op.objectId, op.what,
                               op.parentObjType, op.parentObjId)
         
-    def performChangePort(self, op):
+    def perform_change_port(self, op):
         op.objectId = op.oldObjId
-        self.performDeletePort(op)
+        self.perform_delete_port(op)
         op.objectId = op.newObjId
-        self.performAddPort(op)
+        self.perform_add_port(op)
 
-    def addPortToRegistry(self, portSpec, moduleId):
-        m = self.getModuleById(moduleId)
+    def add_port_to_registry(self, portSpec, moduleId):
+        m = self.get_module_by_id(moduleId)
         module = registry.get_descriptor_by_name(m.package, m.name).module
         if m.registry is None:
             m.registry = ModuleRegistry()
@@ -366,10 +376,10 @@ class Pipeline(DBWorkflow):
 
     def add_module_port(self, portSpec, moduleId):
         self.db_add_object(portSpec, Module.vtType, moduleId)
-        self.addPortToRegistry(portSpec, moduleId)
+        self.add_port_to_registry(portSpec, moduleId)
 
-    def deletePortFromRegistry(self, id, moduleId):
-        m = self.getModuleById(moduleId)
+    def delete_port_from_registry(self, id, moduleId):
+        m = self.get_module_by_id(moduleId)
         if not m.port_specs.has_key(id):
             raise VistrailsInternalError("id missing in port_specs")
         portSpec = m.port_specs[id]
@@ -389,24 +399,24 @@ class Pipeline(DBWorkflow):
             m.registry.delete_output_port(module, port.name)
 
     def delete_module_port(self, id, moduleId):
-        self.deletePortFromRegistry(id, moduleId)
+        self.delete_port_from_registry(id, moduleId)
         self.db_delete_object(id, PortSpec.vtType, Module.vtType, moduleId)
 
-    def deleteModule(self, id):
-        """deleteModule(id:int) -> None 
+    def delete_module(self, id):
+        """delete_module(id:int) -> None 
         Delete a module from pipeline given an id.
 
         """
-        if not self.hasModuleWithId(id):
+        if not self.has_module_with_id(id):
             raise VistrailsInternalError("id missing in modules")
 
         # we're hiding the necessary operations by doing this!
         adj = copy.copy(self.graph.adjacency_list[id])
         inv_adj = copy.copy(self.graph.inverse_adjacency_list[id])
         for (_, conn_id) in adj:
-            self.deleteConnection(conn_id)
+            self.delete_connection(conn_id)
         for (_, conn_id) in inv_adj:
-            self.deleteConnection(conn_id)
+            self.delete_connection(conn_id)
 
         # self.modules.pop(id)
         self.db_delete_object(id, 'module')
@@ -416,80 +426,88 @@ class Pipeline(DBWorkflow):
         if id in self._subpipeline_signatures:
             del self._subpipeline_signatures[id]
 
-    def addModule(self, m):
-        """addModule(m: Module) -> None 
+    def add_module(self, m):
+        """add_module(m: Module) -> None 
         Add new module to pipeline
           
         """
-        if self.hasModuleWithId(m.id):
+        if self.has_module_with_id(m.id):
             raise VistrailsInternalError("duplicate module id")
 #         self.modules[m.id] = copy.copy(m)
         self.db_add_object(m)
         self.graph.add_vertex(m.id)
     
-    def addAlias(self, name, pId):
-        """addAlias(name: str, pId: int) -> None 
+    def add_alias(self, name, type, oId, parentType, parentId):
+        """add_alias(name: str, oId: int, parentType:str, parentId: int) -> None 
         Add alias to pipeline
           
         """
-        if self.hasAlias(name):
+        if self.has_alias(name):
             raise VistrailsInternalError("duplicate alias")
-        self.aliases[name] = pId
+        self.aliases[name] = (type, oId, parentType, parentId)
 
-    def removeAliasByName(self, name):
-        """removeAliasByName(name: str) -> None
+    def remove_alias_by_name(self, name):
+        """remove_alias_by_name(name: str) -> None
         Remove alias with given name """
-        if self.hasAlias(name):
+        if self.has_alias(name):
             del self.aliases[name]
 
-    def removeAlias(self, pId):
-        """removeAlias(pId: int)-> None
-        Remove alias identified by pId """
-        if self.aliases.inverse.has_key(pId):
-            oldname = self.aliases.inverse[pId]
+    def remove_alias(self, type, oId, parentType, parentId):
+        """remove_alias(name: str, type:?, oId: int)-> None
+        Remove alias identified by oId """
+        if self.aliases.inverse.has_key((type,oId, parentType, parentId)):
+            oldname = self.aliases.inverse[(type,oId, parentType, parentId)]
             del self.aliases[oldname]
 
-    def changeAlias(self,name, pId):
-        """changeAlias(name: str, pId: int)-> None
-        Change alias if name is non empty. Else remove alias 
+    def change_alias(self, name, type, oId, parentType, parentId):
+        """change_alias(name: str, type:str oId:int, parentType:str,
+                        parentId:int)-> None
+        Change alias if name is non empty. Else remove alias
         
         """
         if name == "":
-            self.removeAlias(pId)
+            self.remove_alias(type, oId, parentType, parentId)
         else:
-            if not self.hasAlias(name):
-                self.removeAlias(pId)
-                self.addAlias(name, pId)
-
-    def getAliasStrValue(self, name):
-        """ getAliasValue(name: str) -> str
+            if not self.has_alias(name):
+                self.remove_alias(type, oId, parentType, parentId)
+                self.add_alias(name, type, oId, parentType, parentId)
+                
+    def get_alias_str_value(self, name):
+        """ get_alias_str_value(name: str) -> str
         returns the strValue of the parameter with alias name
 
         """
         result = ""
         if self.aliases.has_key(name):
-            parameter = self.db_get_object((ModuleParam.vtType,
-                                            self.aliases[name]))
-            result = parameter.strValue
+            what, oId, parentType, parentId = self.aliases[name]
+            if what == 'parameter':
+                parameter = self.db_get_object(what, oId)
+                result = parameter.strValue
+            else:
+                raise VistrailsInternalError("only parameters are supported")
         return result
 
-    def setAliasStrValue(self, name, value):
-        """ setAliasStrValue(name: str, value: str) -> None
+    def set_alias_str_value(self, name, value):
+        """ set_alias_str_value(name: str, value: str) -> None
         sets the strValue of the parameter with alias name 
         
         """
         if self.aliases.has_key(name):
-            parameter = self.db_get_object((ModuleParam.vtType,
-                                            self.aliases[name]))
-            parameter.strValue = str(value)
+            what, oId, parentType, parentId = self.aliases[name]
+            if what == 'parameter':
+                #FIXME: check if a change parameter action needs to be generated
+                parameter = self.db_get_object(what, oId)
+                parameter.strValue = str(value)
+            else:
+                raise VistrailsInternalError("only parameters are supported")
 
-    def deleteConnection(self, id):
-        """ deleteConnection(id:int) -> None 
+    def delete_connection(self, id):
+        """ delete_connection(id:int) -> None 
         Delete connection identified by id from pipeline.
            
         """
 
-        if not self.hasConnectionWithId(id):
+        if not self.has_connection_with_id(id):
             raise VistrailsInternalError("id %s missing in connections" % id)
         conn = self.connections[id]
         # self.connections.pop(id)
@@ -501,12 +519,12 @@ class Pipeline(DBWorkflow):
         if id in self._connection_signatures:
             del self._connection_signatures[id]
         
-    def addConnection(self, c):
-        """addConnection(c: Connection) -> None 
+    def add_connection(self, c):
+        """add_connection(c: Connection) -> None 
         Add new connection to pipeline.
           
         """
-        if self.hasConnectionWithId(c.id):
+        if self.has_connection_with_id(c.id):
             raise VistrailsInternalError("duplicate connection id " + str(c.id))
 #         self.connections[c.id] = copy.copy(c)
         self.db_add_object(c)
@@ -515,8 +533,8 @@ class Pipeline(DBWorkflow):
             self.graph.add_edge(c.sourceId, c.destinationId, c.id)
             self.ensure_connection_specs([c.id])
         
-    def getModuleById(self, id):
-        """getModuleById(id: int) -> Module
+    def get_module_by_id(self, id):
+        """get_module_by_id(id: int) -> Module
         Accessor. id is the Module id.
         
         """
@@ -527,55 +545,55 @@ class Pipeline(DBWorkflow):
             result.package = descriptor.identifier
         return result
     
-    def getConnectionById(self, id):
-        """getConnectionById(id: int) -> Connection
+    def get_connection_by_id(self, id):
+        """get_connection_by_id(id: int) -> Connection
         Accessor. id is the Connection id.
         
         """
         self.ensure_connection_specs([id])
         return self.connections[id]
     
-    def moduleCount(self):
-        """ moduleCount() -> int 
+    def module_count(self):
+        """ module_count() -> int 
         Returns the number of modules in the pipeline.
         
         """
         return len(self.modules)
     
-    def connectionCount(self):
-        """connectionCount() -> int 
+    def connection_count(self):
+        """connection_count() -> int 
         Returns the number of connections in the pipeline.
         
         """
         return len(self.connections)
     
-    def hasModuleWithId(self, id):
-        """hasModuleWithId(id: int) -> boolean 
+    def has_module_with_id(self, id):
+        """has_module_with_id(id: int) -> boolean 
         Checks whether given module exists.
 
         """
         return self.modules.has_key(id)
     
-    def hasConnectionWithId(self, id):
-        """hasConnectionWithId(id: int) -> boolean 
+    def has_connection_with_id(self, id):
+        """has_connection_with_id(id: int) -> boolean 
         Checks whether given connection exists.
 
         """
         return self.connections.has_key(id)
 
-    def hasAlias(self, name):
-        """hasAlias(name: str) -> boolean 
+    def has_alias(self, name):
+        """has_alias(name: str) -> boolean 
         Checks whether given alias exists.
 
         """
         return self.aliases.has_key(name)
 
-    def outDegree(self, id):
-        """outDegree(id: int) -> int - Returns the out-degree of a module. """
+    def out_degree(self, id):
+        """out_degree(id: int) -> int - Returns the out-degree of a module. """
         return self.graph.out_degree(id)
 
-    def dumpToXML(self, dom, root, timeAttr=None):
-        """dumpToXML(dom, root, timeAttr=None) -> None - outputs self to xml"""
+    def dump_to_XML(self, dom, root, timeAttr=None):
+        """dump_to_XML(dom, root, timeAttr=None) -> None - outputs self to xml"""
         node = dom.createElement('pipeline')
         if timeAttr is not None:
             node.setAttribute('time',str(timeAttr))
@@ -585,39 +603,39 @@ class Pipeline(DBWorkflow):
             connection.serialize(dom, node)
         root.appendChild(node)
 
-    def dumpToString(self):
-        """ dumpToString() -> str
+    def dump_to_string(self):
+        """ dump_to_string() -> str
         Serialize this pipeline to an XML string
         
         """
         dom = getDOMImplementation().createDocument(None, 'network', None)
         root = dom.documentElement
-        self.dumpToXML(dom, root)
+        self.dump_to_XML(dom, root)
         return str(dom.toxml())
 
     @staticmethod
-    def loadFromXML(root):
-        """ loadFromXML(root) -> Pipeline
+    def load_from_XML(root):
+        """ load_from_XML(root) -> Pipeline
         Return the pipeline from the XML elements
         
         """
         p = Pipeline()
         for rootXML in named_elements(root, 'pipeline'):
             for moduleXML in named_elements(rootXML, 'module'):
-                p.addModule(Module.loadFromXML(moduleXML))
+                p.add_module(Module.loadFromXML(moduleXML))
             for connectXML in named_elements(rootXML, 'connect'):
-                p.addConnection(Connection.loadFromXML(connectXML))
+                p.add_connection(Connection.loadFromXML(connectXML))
         return p
 
     @staticmethod
-    def loadFromString(s):
-        """ loadFromString(s: str) -> Pipeline
+    def load_from_string(s):
+        """ load_from_string(s: str) -> Pipeline
         Load a pipeline from an XML string
         '
         """
         dom = parseString(s)
         root = dom.documentElement
-        return Pipeline.loadFromXML(root)
+        return Pipeline.load_from_XML(root)
 
     ##########################################################################
     # Caching-related
@@ -715,9 +733,9 @@ class Pipeline(DBWorkflow):
             raise Exception("Expected list of ints or graph")
         result = Pipeline()
         for module_id in subgraph.iter_vertices():
-            result.addModule(copy.copy(self.modules[module_id]))
+            result.add_module(copy.copy(self.modules[module_id]))
         for (conn_from, conn_to, conn_id) in subgraph.iter_all_edges():
-            result.addConnection(copy.copy(self.connections[conn_id]))
+            result.add_connection(copy.copy(self.connections[conn_id]))
 		# I haven't finished this yet. -cscheid
         raise Exception("Incomplete implementation!")
         return result
@@ -750,7 +768,7 @@ class Pipeline(DBWorkflow):
 
         """
         for i in self.modules.iterkeys():
-            self.getModuleById(i)
+            self.get_module_by_id(i)
 
     def ensure_connection_specs(self, connection_ids=None):
         """ensure_connection_specs(connection_ids=None) -> None.
@@ -759,7 +777,7 @@ class Pipeline(DBWorkflow):
         connection_ids is None, computes it for every connection in the pipeline.
         """
         def source_spec(port):
-            module = self.getModuleById(port.moduleId)
+            module = self.get_module_by_id(port.moduleId)
             reg = module.registry or registry
             descriptor = reg.get_descriptor_by_name(module.package,
                                                     module.name)
@@ -792,7 +810,7 @@ class Pipeline(DBWorkflow):
             return copy.copy(port_list[0].spec)
 
         def destination_spec(port):
-            module = self.getModuleById(port.moduleId)
+            module = self.get_module_by_id(port.moduleId)
             reg = module.registry or registry
             descriptor = reg.get_descriptor_by_name(module.package,
                                                     module.name)
@@ -962,11 +980,11 @@ class TestPipeline(unittest.TestCase):
             m.functions.append(f1())
             return m
         m1 = module1(p)
-        p.addModule(m1)
+        p.add_module(m1)
         m2 = module1(p)
-        p.addModule(m2)
+        p.add_module(m2)
         m3 = module2(p)
-        p.addModule(m3)
+        p.add_module(m3)
 
         c1 = Connection()
         c1.sourceId = m1.id
@@ -978,7 +996,7 @@ class TestPipeline(unittest.TestCase):
         c1.destination.name = 'value1'
         c1.destination.moduleName = 'PythonCalc'
         c1.id = id_scope.getNewId(Connection.vtType)
-        p.addConnection(c1)
+        p.add_connection(c1)
 
         c2 = Connection()
         c2.sourceId = m2.id
@@ -991,7 +1009,7 @@ class TestPipeline(unittest.TestCase):
         c2.destination.moduleName = 'PythonCalc'
         c2.id = id_scope.getNewId(Connection.vtType)
 
-        p.addConnection(c2)
+        p.add_connection(c2)
         p.compute_signatures()
         return p
 
@@ -1008,8 +1026,8 @@ class TestPipeline(unittest.TestCase):
         m_sig_size_before = len(p._module_signatures)
         c_sig_size_before = len(p._connection_signatures)
         p_sig_size_before = len(p._subpipeline_signatures)
-        p.deleteConnection(0)
-        p.deleteModule(0)
+        p.delete_connection(0)
+        p.delete_module(0)
         m_sig_size_after = len(p._module_signatures)
         c_sig_size_after = len(p._connection_signatures)
         p_sig_size_after = len(p._subpipeline_signatures)
@@ -1019,9 +1037,9 @@ class TestPipeline(unittest.TestCase):
 
     def test_delete_connections(self):
         p = self.create_default_pipeline()
-        p.deleteConnection(0)
-        p.deleteConnection(1)
-        p.deleteModule(2)
+        p.delete_connection(0)
+        p.delete_connection(1)
+        p.delete_module(2)
         self.assertEquals(len(p.connections), 0)
 
     def test_basic(self):
@@ -1048,6 +1066,55 @@ class TestPipeline(unittest.TestCase):
         self.assertEquals(p1, p2)
         self.assertEquals(p1.id, p2.id)        
 
+    def test_aliases(self):
+        """ Exercises aliases manipulation """
+        import db.services.action
+        import core.vistrail.action
+        from core.db.locator import XMLFileLocator
+        import core.system
+        v = XMLFileLocator( \
+            core.system.vistrails_root_directory() +
+            '/tests/resources/test_alias.xml').load()
+
+        p1 = v.getPipeline('alias')
+        p2 = v.getPipeline('alias')
+        
+        # testing removing an alias
+        old_param = p1.modules[0].functions[0].params[0]
+        func = p1.modules[0].functions[0]
+        #old_id = p1.modules[0].functions[0].params[0].db_id
+        #old_f_id = p1.modules[0].functions[0].db_id
+        new_param = ModuleParam(id=-1,
+                                pos=old_param.pos,
+                                name=old_param.name,
+                                alias="",
+                                val=str(v),
+                                type=old_param.type)
+        action_spec = ('change', old_param, new_param,
+                       func.vtType, func.real_id)
+        action = db.services.action.create_action([action_spec])
+        core.vistrail.action.Action.convert(action)
+        p1.perform_action(action)
+        self.assertEquals(p1.has_alias('v1'),False)
+        v1 = p2.aliases['v1']
+        old_param2 = p2.modules[0].functions[0].params[0]
+        new_param2 = ModuleParam(id=old_param.real_id,
+                                pos=old_param.pos,
+                                name=old_param.name,
+                                alias="v1",
+                                val=str(v),
+                                type=old_param.type)
+        func2 = p2.modules[0].functions[0]
+        action2 = db.services.action.create_action([('change',
+                                                     old_param2,
+                                                     new_param2,
+                                                     func2.vtType,
+                                                     func2.real_id)
+                                                    ])
+        core.vistrail.action.Action.convert(action2)
+        p2.perform_action(action2)
+        self.assertEquals(v1, p2.aliases['v1'])
+        
     def test_module_signature(self):
         """Tests signatures for modules with similar (but not equal)
         parameter specs."""
@@ -1063,7 +1130,7 @@ class TestPipeline(unittest.TestCase):
                                                                val='2.0',
                                                                )],
                                        )]
-        p1.addModule(Module(name='CacheBug',
+        p1.add_module(Module(name='CacheBug',
                             package='edu.utah.sci.vistrails.console_mode_test',
                             id=3,
                             functions=p1_functions))
@@ -1079,7 +1146,7 @@ class TestPipeline(unittest.TestCase):
                                                                val='1.0',
                                                                )],
                                        )]
-        p2.addModule(Module(name='CacheBug', 
+        p2.add_module(Module(name='CacheBug', 
                             package='edu.utah.sci.vistrails.console_mode_test',
                             id=3,
                             functions=p2_functions))
@@ -1100,7 +1167,7 @@ class TestPipeline(unittest.TestCase):
                                                                val='2.0',
                                                                )],
                                        )]
-        p1.addModule(Module(name='CacheBug', 
+        p1.add_module(Module(name='CacheBug', 
                             package='edu.utah.sci.vistrails.console_mode_test',
                             id=3,
                             functions=p1_functions))
@@ -1122,7 +1189,7 @@ class TestPipeline(unittest.TestCase):
                                                                val='2.0',
                                                                )],
                                        )]
-        p1.addModule(Module(name='CacheBug', 
+        p1.add_module(Module(name='CacheBug', 
                             package='edu.utah.sci.vistrails.console_mode_test',
                             id=3,
                             functions=p1_functions))

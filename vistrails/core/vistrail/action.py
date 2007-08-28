@@ -279,39 +279,6 @@ class TestAction(unittest.TestCase):
         for ((i1,m1),(i2,m2)) in izip(m1s, m2s):
             self.assertEquals(m1.center.x, m2.center.x)
             self.assertEquals(m1.center.y, m2.center.y)
-
-# FIXME aliases need to be fixed (see core.vistrail.pipeline)
-    def test3(self):
-        """ Exercises aliases manipulation """
-        pass
-
-
-#         vistrail = dbservice.openVistrail( \
-#             core.system.vistrails_root_directory() +
-#             '/tests/resources/test_alias.xml')
-
-#         p1 = v.getPipeline('alias')
-#         p2 = v.getPipeline('alias')
-        
-#         # testing removing an alias
-#         old_id = p1.modules[0].functions[0].params[0].db_id
-#         old_f_id = p1.modules[0].functions[0].db_id
-#         params = [(old_id, "2.0", "Float", "")]
-#         action = v.chg_params_action(parent=-1,
-#                                      params=params,
-#                                      function_id=old_f_id)
-#         p1.performAction(action)
-#         self.assertEquals(p1.hasAlias('v1'),False)
-#         v1 = p2.aliases['v1']
-        
-#         old_id2 = p2.modules[2].functions[0].params[0].db_id
-#         old_f_id2 = p2.modules[2].functions[0].db_id
-#         params2 = [(old_id2, "2.0", "Float", "v1")]
-#         action2 = v.chg_params_action(parent=-1,
-#                                       params=params2,
-#                                       function_id=old_f_id2)
-#         p2.performAction(action2)
-#         self.assertEquals(v1, p2.aliases['v1'])
             
 if __name__ == '__main__':
     unittest.main() 

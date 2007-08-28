@@ -464,7 +464,7 @@ def heuristicPortMatch(p1, p2):
         return 1
     elif p1.db_type == p2.db_type and \
             p1.db_moduleName == p2.db_moduleName and \
-            p1.db_sig == p2.db_sig:
+            p1.sig == p2.sig:
         return 0
     return -1
 

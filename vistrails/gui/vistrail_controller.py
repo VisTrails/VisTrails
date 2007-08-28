@@ -137,7 +137,7 @@ class VistrailController(QtCore.QObject):
             self.setChanged(True)
             
     def perform_action(self, action, quiet=None):        
-        self.currentPipeline.performAction(action)
+        self.currentPipeline.perform_action(action)
         self.currentVersion = action.db_id
         self.setChanged(True)
         
@@ -224,7 +224,7 @@ class VistrailController(QtCore.QObject):
         """
         action_list = []
         for (id, x, y) in move_list:
-            module = self.currentPipeline.getModuleById(id)
+            module = self.currentPipeline.get_module_by_id(id)
             loc_id = self.vistrail.idScope.getNewId(Location.vtType)
             location = Location(id=loc_id,
                                 x=x, 
@@ -285,7 +285,7 @@ class VistrailController(QtCore.QObject):
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
-        module = self.currentPipeline.getModuleById(module_id)
+        module = self.currentPipeline.get_module_by_id(module_id)
         function = module.functions[function_pos]
         action = db.services.action.create_action([('delete', function,
                                                     module.vtType, module.id)])
@@ -299,7 +299,7 @@ class VistrailController(QtCore.QObject):
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
-        module = self.currentPipeline.getModuleById(module_id)
+        module = self.currentPipeline.get_module_by_id(module_id)
         function_id = self.vistrail.idScope.getNewId(ModuleFunction.vtType)
         function.real_id = function_id
         
@@ -356,7 +356,7 @@ class VistrailController(QtCore.QObject):
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
-        module = self.currentPipeline.getModuleById(module_id)
+        module = self.currentPipeline.get_module_by_id(module_id)
         annotation = module.get_annotation_with_key(key)
         action = db.services.action.create_action([('delete', annotation,
                                                     module.vtType, module.id)])
@@ -376,7 +376,7 @@ class VistrailController(QtCore.QObject):
         if pair[0].strip()=='':
             return
 
-        module = self.currentPipeline.getModuleById(module_id)
+        module = self.currentPipeline.get_module_by_id(module_id)
         a_id = self.vistrail.idScope.getNewId(Annotation.vtType)
         annotation = Annotation(id=a_id,
                                 key=pair[0], 
@@ -407,7 +407,7 @@ class VistrailController(QtCore.QObject):
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
         
-        module = self.currentPipeline.getModuleById(module_id)
+        module = self.currentPipeline.get_module_by_id(module_id)
         p_id = self.vistrail.idScope.getNewId(PortSpec.vtType)
         port_spec = PortSpec(id=p_id,
                              type=port_tuple[0],
@@ -431,7 +431,7 @@ class VistrailController(QtCore.QObject):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
         spec_id = -1
-        module = self.currentPipeline.getModuleById(module_id)
+        module = self.currentPipeline.get_module_by_id(module_id)
         port_spec = module.get_portSpec_by_name(port_tuple[1])
         action = db.services.action.create_action([('delete', port_spec,
                                                     module.vtType, module.id)])
@@ -823,7 +823,7 @@ class VistrailController(QtCore.QObject):
         newTimestep = -1
         for action in actions:
             self.vistrail.add_action(action, self.currentVersion)
-            self.currentPipeline.performAction(action)
+            self.currentPipeline.perform_action(action)
             newTimestep = action.db_id
             self.currentVersion = action.db_id
 
@@ -842,9 +842,9 @@ class VistrailController(QtCore.QObject):
 
         pipeline = Pipeline()
         for module in modules:
-            pipeline.addModule(module)
+            pipeline.add_module(module)
         for connection in connections:
-            pipeline.addConnection(connection)
+            pipeline.add_connection(connection)
         return core.db.io.serialize(pipeline)
         
     def pasteModulesAndConnections(self, str):
@@ -979,7 +979,7 @@ class VistrailController(QtCore.QObject):
     def checkAlias(self, name):
         """checkAlias(alias) -> Boolean 
         Returns True if current pipeline has an alias named name """
-        return self.currentPipeline.hasAlias(name)
+        return self.currentPipeline.has_alias(name)
 
     def write_temporary(self):
         if self.vistrail and self.changed:
@@ -1005,7 +1005,7 @@ class VistrailController(QtCore.QObject):
         else:
             search = VisualQuery(pipeline)
 
-        self.setSearch(search, '') # pipeline.dumpToString())
+        self.setSearch(search, '') # pipeline.dump_to_string())
 
     def addSubModule(self, moduleName, packageName, vistrail,
                      fileName, version, inspector):

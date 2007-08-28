@@ -54,7 +54,7 @@ class EnsemblePipelines(object):
         self.change_parameter(name, value)
         for id in self.active_pipelines:
             pipeline = self.pipelines[id]
-            pipeline.setAliasStrValue(name, value)
+            pipeline.set_alias_str_value(name, value)
             
     def assemble_aliases(self):
         """assemble_aliases() -> None
@@ -72,7 +72,7 @@ class EnsemblePipelines(object):
             pipeline = self.pipelines[pi]
             for name, info in pipeline.aliases.iteritems():
                 if not union.has_key(name):
-                    value = str(pipeline.getAliasStrValue(name))
+                    value = str(pipeline.get_alias_str_value(name))
                     e = expression.parse_expression(value)
                     union[name] = (info[0], e)
                     sources[name] = [(pi, info[1], info[2], info[3])]

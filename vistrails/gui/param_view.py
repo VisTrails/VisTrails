@@ -25,6 +25,7 @@ QParameterView
 """
 from PyQt4 import QtCore, QtGui
 from core.inspector import PipelineInspector
+from core.vistrail.module_param import ModuleParam
 from gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget, \
      QToolWindowInterface
 from gui.virtual_cell import QVirtualCellWindow
@@ -80,12 +81,15 @@ class QParameterTreeWidget(QSearchTreeWidget):
             aliasRoot.setFlags(QtCore.Qt.ItemIsEnabled,
                                )
             for (alias, info) in pipeline.aliases.iteritems():
-                (aType, mId, fId, pId) = info
-                v = pipeline.modules[mId].functions[fId].params[pId].strValue
+                ptype, pId, parentType, parentId = info
+                parameter = pipeline.db_get_object(ptype, pId)
+                v = parameter.strValue
+                aType = parameter.type
                 label = QtCore.QStringList('%s = %s' % (alias, v))
                 aliasItem = QParameterTreeWidgetItem((alias,
                                                       [(aType, v,
-                                                        mId, fId, pId)]),
+                                                        pId, ptype, parentType,
+                                                        parentId)]),
                                                      aliasRoot, label)
             aliasRoot.setExpanded(True)
             
@@ -114,7 +118,10 @@ class QParameterTreeWidget(QSearchTreeWidget):
                     label = QtCore.QStringList('%s(%s)' % (function.name, v))
                     pList = [(function.params[pId].type,
                               function.params[pId].strValue,
-                              mId, fId, pId)
+                              pId,
+                              ModuleParam.vtType,
+                              function.vtType,
+                              function.real_id)
                              for pId in xrange(len(function.params))]
                     mName = module.name
                     if moduleItem.parameter!=None:
@@ -217,13 +224,14 @@ class QParameterTreeWidgetItem(QtGui.QTreeWidgetItem):
                                      
         Create a new tree widget item with a specific parent and
         labels. info describing a set of paramters as follow:
-        (name, [(type, value, alias, mId, fId, pId), ...]):
-           name  = Name of the parameter set (alias or function)
+        (name, [(type, value, alias, pId, atype, parentType, parentId), ...]):
+           name  = Name of the parameter set (alias or function) 
            type  = type of the parameter
            value = default value
-           mId   = module id
-           fId   = function id
            pId   = parameter id
+           atype = type of the alias (module or parameter)
+           parentType = type of the parent of the parameter
+           parentId = function id
 
         If this item is a top-level item, info can either be None or
         an integer specifying the annotated id of this module

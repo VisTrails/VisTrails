@@ -71,7 +71,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         g = self._persistent_pipeline.graph
         dependencies = g.vertices_topological_sort(non_cacheable_modules)
         for v in dependencies:
-            self._persistent_pipeline.deleteModule(v)
+            self._persistent_pipeline.delete_module(v)
             del self._objects[v]
 
     def unlocked_execute(self, controller,
@@ -84,14 +84,12 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         executed over and over again. This allows nested execution."""
         if view == None:
             raise VistrailsInternalError("This shouldn't have happened")
-
+        self.resolve_aliases(pipeline,aliases)
         (module_map,
          conn_map,
          module_added_set,
          conn_added_set) = self.add_to_persistent_pipeline(pipeline)
 
-
-        self.resolve_aliases(self._persistent_pipeline,aliases)
 
         parameter_changes = []
         def change_parameter(obj, name, value):
@@ -328,7 +326,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 persistent_module = copy.copy(pipeline.modules[new_module_id])
                 persistent_id = self._persistent_pipeline.fresh_module_id()
                 persistent_module.id = persistent_id
-                self._persistent_pipeline.addModule(persistent_module)
+                self._persistent_pipeline.add_module(persistent_module)
                 module_id_map[new_module_id] = persistent_id
                 modules_added.add(new_module_id)
             else:
@@ -346,7 +344,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                     connection.sourceId]
                 persistent_connection.destinationId = module_id_map[
                     connection.destinationId]
-                self._persistent_pipeline.addConnection(persistent_connection)
+                self._persistent_pipeline.add_connection(persistent_connection)
                 connection_id_map[connection.id] = persistent_id
                 connections_added.add(connection.id)
             else:

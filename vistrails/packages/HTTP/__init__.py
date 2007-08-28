@@ -192,7 +192,7 @@ class TestHTTPFile(unittest.TestCase):
         m_function = ModuleFunction(name='url',
                                     parameters=[m_param],
                                     )
-        p.addModule(Module(name='HTTPFile',
+        p.add_module(Module(name='HTTPFile',
                            package=identifier,
                            id=0,
                            functions=[m_function],
@@ -213,7 +213,7 @@ class TestHTTPFile(unittest.TestCase):
         m_function = ModuleFunction(name='url',
                                     parameters=[m_param],
                                     )
-        p.addModule(Module(name='HTTPFile', 
+        p.add_module(Module(name='HTTPFile', 
                            package=identifier,
                            id=0,
                            functions=[m_function],

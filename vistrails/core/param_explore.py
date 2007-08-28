@@ -207,7 +207,7 @@ class ActionBasedParameterExploration(object):
                 currentPipeline = copy.copy(pipeline)
                 currentPeformedActions = copy.copy(performedActions)
                 for action in actionSet:
-                    currentPipeline.performAction(action)
+                    currentPipeline.perform_action(action)
                     currentPeformedActions.append(action)
                 exploreDimension(currentPipeline, currentPeformedActions, dim-1)
                 

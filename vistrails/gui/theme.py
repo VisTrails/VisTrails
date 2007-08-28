@@ -100,7 +100,7 @@ class DefaultTheme(object):
         self.PIPELINE_VIEW_BACKGROUND_BRUSH = QtGui.QBrush(
             QtGui.QImage(core.system.vistrails_root_directory() +
                          '/gui/resources/images/pipeline_bg.png'))
-
+            #QtGui.QColor("white"))
         # Background brush of the version tree
         self.VERSION_TREE_BACKGROUND_BRUSH = QtGui.QBrush(
             QtGui.QImage(core.system.vistrails_root_directory() +

@@ -125,7 +125,7 @@ class TestConsoleMode(unittest.TestCase):
                   ModuleParam(type='Float',
                               val='2.0',
                               )]
-        p.addModule(Module(id=0,
+        p.add_module(Module(id=0,
                            name='TestTupleExecution',
                            package='edu.utah.sci.vistrails.console_mode_test',
                            functions=[ModuleFunction(name='input',

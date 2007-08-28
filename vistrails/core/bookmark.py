@@ -68,7 +68,7 @@ class Bookmark(object):
         bmark.setAttribute('type', str(self.type))
         if self.type == 'item':
             bmark.setAttribute('pipeline', str(self.pipeline))
-            node = dom.createElement('filename')
+            node = dom.createElement('')
             assert isinstance(self.locator, XMLFileLocator)
             filename = dom.createTextNode(str(self.locator.name))
             node.appendChild(filename)
@@ -98,7 +98,7 @@ class Bookmark(object):
         """
         bookmark = Bookmark()
         bookmark.id = int(element.getAttribute('id'))
-        bookmark.parent = element.getAttribute('parent')
+        bookmark.parent = str(element.getAttribute('parent'))
         bookmark.name = element.getAttribute('name')
         bookmark.type = element.getAttribute('type')
         if bookmark.type == "item":
@@ -506,7 +506,7 @@ class BookmarkController(object):
                             common[d[1][2]] = a
                             repeated.append(a)
                 pip = self.ensemble.pipelines[id]
-                m = pip.getModuleById(mId)
+                m = pip.get_module_by_id(mId)
                 f = m.functions[fId]
                 pCount = len(f.params)
                 new_range = []
