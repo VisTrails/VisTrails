@@ -21,6 +21,7 @@
 ############################################################################
 
 import copy
+from core.data_structures.bijectivedict import Bidict
 
 class NeedsInputPort(Exception):
     def __init__(self, obj, port):
@@ -155,6 +156,13 @@ Designing New Modules
         self.setResult("self", self) # every object can return itself
         self.logging = _dummy_logging
 
+        # isMethod stores whether a certain input port is a method.
+        # If so, isMethod maps the port to the order in which it is
+        # stored. This is so that modules that need to know about the
+        # method order can work correctly
+        self.is_method = Bidict()
+        self._latest_method_order = 0
+        
         # Pipeline info that a module should know about This is useful
         # for a spreadsheet cell to know where it is from. It will be
         # also used for talking back and forth between the spreadsheet
@@ -178,6 +186,8 @@ deletion."""
         self.outputPorts = {}
         self.outputRequestTable = {}
         self.logging = _dummy_logging
+        self.is_method = Bidict()
+        self._latest_method_order = 0
 
     def is_cacheable(self):
         """is_cacheable() -> bool. A Module should return whether it
@@ -288,11 +298,14 @@ Makes sure input port 'name' is filled."""
         else:
             return defaultValue
 
-    def set_input_port(self, inputPort, conn):
+    def set_input_port(self, inputPort, conn, is_method=False):
         if self.inputPorts.has_key(inputPort):
             self.inputPorts[inputPort].append(conn)
         else:
             self.inputPorts[inputPort] = [conn]
+        if is_method:
+            self.is_method[conn] = (self._latest_method_order, inputPort)
+            self._latest_method_order += 1
 
     def getInputListFromPort(self, inputPort):
         if not self.inputPorts.has_key(inputPort):

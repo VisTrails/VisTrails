@@ -25,6 +25,7 @@
 import vtk
 from core.modules.module_registry import registry
 from core.modules.vistrails_module import Module
+from itertools import izip
 
 ################################################################################
 
@@ -67,6 +68,7 @@ class vtkBaseModule(Module):
                     function = function[:f]
                 attr = getattr(self.vtkInstance, function)
         attr(*params)
+        # print "Called ",attr,function,params
 
     def compute(self):
         """ compute() -> None
@@ -75,13 +77,39 @@ class vtkBaseModule(Module):
         
         """
 
+        def call_it(function, p):
+            if type(p) == tuple:
+                param = list(p)
+            elif p == None: param = []
+            else: param = [p]
+            for i in xrange(len(param)):
+                if hasattr(param[i], 'vtkInstance'):
+                    param[i] = param[i].vtkInstance
+            try:
+                self.call_input_function(function, param)
+            except e:
+                print e
+
         # Always re-create vtkInstance module, no caching here
         if self.vtkInstance:
             del self.vtkInstance
         self.vtkInstance = self.vtkClass()
 
+        # We need to call method ports before anything else, and in
+        # the right order.
+
+        # FIXME: This does not belong here, it belongs in the main class
+        # No time for that now
+        methods = self.is_method.values()
+        methods.sort()
+        for value in methods:
+            (_, port) = value
+            conn = self.is_method.inverse[value]
+            p = conn()
+            call_it(port, p)
+
         # Make sure all input ports are called correctly
-        for function in self.inputPorts.keys():
+        for (function, connector_list) in self.inputPorts.iteritems():
             paramList = self.forceGetInputListFromPort(function)
             if function[:18]=='SetInputConnection':
                 paramList = zip([int(function[18:])]*len(paramList),
@@ -94,18 +122,16 @@ class vtkBaseModule(Module):
                 for i in xrange(len(paramList)):
                     if type(paramList[i])==desc.module:
                         paramList[i] = (0, paramList[i])
-            for p in paramList:
-                if type(p)==tuple:
-                    param = list(p)
-                elif p==None: param = []
-                else: param = [p]
-                for i in xrange(len(param)):
-                    if hasattr(param[i], 'vtkInstance'):
-                        param[i] = param[i].vtkInstance
-                try:
-                    self.call_input_function(function, param)
-                except:
-                    print "Cannot execute", function, param
+            for p,connector in izip(paramList, connector_list):
+                # Don't call method
+                if connector in self.is_method:
+                    continue
+                call_it(function, p)
+
+        # Call update if appropriate
+        if hasattr(self.vtkInstance, 'Update'):
+            # print "Called update on",self.vtkInstance
+            self.vtkInstance.Update()
 
         # Then update the output ports also with appropriate function calls
         for function in self.outputPorts.keys():

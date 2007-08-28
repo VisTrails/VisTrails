@@ -203,7 +203,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                         connector = ModuleConnector(constant, 'value')
                         tupleModule.set_input_port(i, connector)
                     connector = ModuleConnector(tupleModule, 'value')
-                obj.set_input_port(f.name, connector)
+                obj.set_input_port(f.name, connector, is_method=True)
 
         # Create the new connections
         for i in conn_added_set:

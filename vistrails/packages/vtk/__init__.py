@@ -32,7 +32,7 @@ from core.bundles import py_import
 
 vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk'})
 
-from core.utils import all, VistrailsInternalError, iter_with_index
+from core.utils import all, any, VistrailsInternalError, iter_with_index
 from core.debug import log
 from core.modules.basic_modules import Integer, Float, String, File, Variant
 from core.modules.module_registry import (registry, add_module,
@@ -138,7 +138,7 @@ def get_method_signature(method):
             sig.append(([ret], arg))
     return sig    
 
-def prune_signatures(module, name, signatures):
+def prune_signatures(module, name, signatures, output=False):
     """prune_signatures tries to remove redundant signatures to reduce
     overloading. It _mutates_ the given parameter.
 
@@ -193,20 +193,27 @@ def prune_signatures(module, name, signatures):
     # This is messy: a signature is only allowed if there's no
     # explicit disallowing of it. Then, if it's not overloaded,
     # it is also allowed. If it is overloaded and not the flattened
-    # version, it is pruned.
+    # version, it is pruned. If these are output ports, there can be
+    # no parameters.
+
+    def passes(flattened, hit_count, original):
+        if forbidden(flattened, hit_count, original):
+            return False
+        if hit_count == 1:
+            return True
+        if original[1] is None:
+            return True
+        if output and len(original[1]) > 0:
+            return False
+        if hit_count > 1 and len(original[1]) == len(flattened):
+            return True
+        return False
     
     signatures[:] = [original for (flattened, hit_count, original)
                      in izip(flattened_entries,
                              hits,
                              signatures)
-                     if ((not forbidden(flattened, hit_count, original)) and
-                         (hit_count == 1 or # "There's no overloading" or
-                          (original[1] is None) or
-                          (hit_count > 1 and # "There's overloading but
-                                             # this is the fully expanded
-                                             # type
-                           len(original[1]) == len(flattened))))]
-
+                     if passes(flattened, hit_count, original)]
 
 disallowed_classes = set(
     [
@@ -473,6 +480,34 @@ def addOtherPorts(module, other_list):
                     else:
                         n = name + '_' + str(ix+1)
                     add_input_port(module, n, types, True)
+
+disallowed_get_ports = set([
+    'GetClassName',
+    'GetErrorCode',
+    'GetNumberOfInputPorts',
+    'GetNumberOfOutputPorts',
+    'GetOutputPortInformation',
+    'GetTotalNumberOfInputConnections',
+    ])
+
+def addGetPorts(module, get_list):
+    for name in get_list:
+        if name in disallowed_get_ports:
+            continue
+        method = getattr(module.vtkClass, name)
+        signatures = get_method_signature(method)
+        if len(signatures) > 1:
+            prune_signatures(module, name, signatures, output=True)
+        for ix, getter in iter_with_index(signatures):
+            if getter[1] or len(getter[0]) > 1:
+                continue
+            class_ = typeMap(getter[0][0])
+            if is_class_allowed(class_):
+                if len(signatures) > 1:
+                    n = name + "_" + str(ix+1)
+                else:
+                    n = name
+                add_output_port(module, n, class_, True)
     
 def addPorts(module):
     """ addPorts(module: VTK module inherited from Module) -> None
@@ -482,6 +517,7 @@ def addPorts(module):
     add_output_port(module, 'self', module)
     parser.parse(module.vtkClass)
     addAlgorithmPorts(module)
+    addGetPorts(module, parser.get_get_methods())
     addSetGetPorts(module, parser.get_get_set_methods())
     addTogglePorts(module, parser.get_toggle_methods())
     addStatePorts(module, parser.get_state_methods())
@@ -490,10 +526,6 @@ def addPorts(module):
     if module.vtkClass==vtk.vtkAlgorithm:
         add_input_port(module, 'AddInputConnection',
                        typeMap('vtkAlgorithmOutput'))
-    # Somehow vtkProbeFilter.GetOutput cannot be found in any port list
-    elif module.vtkClass==vtk.vtkProbeFilter:
-        add_output_port(module, 'GetOutput',
-                      typeMap('vtkPolyData'), True)
     # vtkWriters have a custom File port
     elif module.vtkClass==vtk.vtkWriter:
         add_output_port(module, 'file', typeMap('File'))
@@ -525,11 +557,12 @@ def class_dict(base_module, node):
         # This checks for the presence of file in VTK readers
         def compute(self):
 
-            # Skips the check if it's a vtkImageReader, because
+            # Skips the check if it's a vtkImageReader or vtkPLOT3DReader, because
             # it has other ways of specifying files, like SetFilePrefix for
             # multiple files
-            if issubclass(self.vtkClass,
-                          vtk.vtkImageReader):
+            if any([vtk.vtkImageReader,
+                    vtk.vtkPLOT3DReader],
+                   lambda x: issubclass(self.vtkClass, x)):
                 old_compute(self)
                 return
             if self.hasInputFromPort('SetFileName'):
