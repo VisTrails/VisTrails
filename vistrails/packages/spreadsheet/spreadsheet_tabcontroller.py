@@ -34,6 +34,7 @@ from spreadsheet_registry import spreadsheetRegistry
 from core.utils import DummyView
 import copy
 import gc
+from gui.theme import CurrentTheme
 
 ################################################################################
 
@@ -74,6 +75,12 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.spreadsheetFileName = None
         self.loadingMode = False
         self.editingMode = False
+        self.closeButton = QtGui.QToolButton(self)
+        self.closeButton.setIcon(CurrentTheme.VIEW_MANAGER_CLOSE_ICON)
+        self.closeButton.setAutoRaise(True)
+        self.setCornerWidget(self.closeButton)
+        self.connect(self.closeButton, QtCore.SIGNAL('clicked()'),
+                     self.deleteSheetAction().trigger)
 
     def isLoadingMode(self):
         """ isLoadingMode() -> boolean

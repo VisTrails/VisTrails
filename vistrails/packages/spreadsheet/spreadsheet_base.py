@@ -234,13 +234,12 @@ class StandardSingleCellSheetTab(QtGui.QWidget,
         else:
             oldCell.updateContents(inputPorts)
 
-    def showHelpers(self, ctrl, globalPos):
-        """ showHelpers(ctrl: boolean, globalPos: QPoint) -> None
-        Show the helpers (toolbar, resizer) when the Control key
-        status is ctrl and the mouse is at globalPos
+    def showHelpers(self, show, globalPos):
+        """ showHelpers(show: boolean, globalPos: QPoint) -> None
+        Show the helpers (toolbar, resizer) when show==True
         
         """
-        if ctrl:
+        if show:
             self.helpers.snapTo(0,0)
             self.helpers.adjustPosition()
             self.helpers.show()

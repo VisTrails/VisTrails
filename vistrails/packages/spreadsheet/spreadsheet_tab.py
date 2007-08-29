@@ -78,34 +78,12 @@ class StandardWidgetToolBar(QtGui.QToolBar):
         """
         QtGui.QToolBar.__init__(self, parent)
         self.sheetTab = parent
-        self.addAction(self.fitToWindowAction())
+        self.addAction(self.sheetTab.tabWidget.newSheetAction())
         self.addWidget(self.rowCountSpinBox())
         self.addWidget(self.colCountSpinBox())
+        self.addSeparator()
         self.layout().setSpacing(2)
-        
-    def fitToWindowAction(self):
-        """ fitToWindowAction() -> QAction
-        Return the fit to window action
-        
-        """
-        if not hasattr(self, 'fitAction'):
-            icon = QtGui.QIcon(':/images/fittowindow.png')
-            self.fitAction = QtGui.QAction(icon, 'Fit to window', self)
-            self.fitAction.setStatusTip('Stretch spreadsheet cells '
-                                        'to fit the window size')
-            self.fitAction.setCheckable(True)
-            self.fitAction.setChecked(self.sheetTab.sheet.fitToWindow)
-            self.connect(self.fitAction,
-                         QtCore.SIGNAL('toggled(bool)'),
-                         self.fitActionToggled)
-        return self.fitAction
-
-    def fitActionToggled(self, checked):
-        """ fitActionToggled(checked: boolean) -> None
-        Handle fitToWindow Action toggled
-        
-        """
-        self.sheetTab.sheet.setFitToWindow(checked)
+        self.currentToolBarAction = None
     
     def rowCountSpinBox(self):
         """ rowCountSpinBox() -> SizeSpinBox
@@ -137,19 +115,22 @@ class StandardWidgetToolBar(QtGui.QToolBar):
                          self.sheetTab.colSpinBoxChanged)
         return self.colSpinBox
 
-class FilterDeferredDeleteObject(QtCore.QObject):
-    
-    def eventFilter(self, obj, event):
-        """ eventFilter(obj: QObject, event: QEvent) -> bool
-        Prevent the cell widget to be deleted by DeferredDelete Event
+    def setCellToolBar(self, cellToolBar):
+        """ setCellToolBar(cellToolBar: QToolBar) -> None
+        Set the current cell toolbar on this toolbar. Use None to
+        remove the cell toolbar
         
         """
-        if event.type()==QtCore.QEvent.DeferredDelete:
-            return True
-        else:
-            return QtGui.QWidget.eventFilter(self, obj, event)
-    
-        
+        if (not self.currentToolBarAction or
+            self.widgetForAction(self.currentToolBarAction)!=cellToolBar):
+            if self.currentToolBarAction:
+                self.removeAction(self.currentToolBarAction)
+            if cellToolBar:
+                self.currentToolBarAction = self.addWidget(cellToolBar)
+                self.currentToolBarAction.setVisible(True)
+            else:
+                self.currentToolBarAction = None
+
 class StandardWidgetSheetTabInterface(object):
     """
     StandardWidgetSheetTabInterface is the interface for tab
@@ -161,6 +142,7 @@ class StandardWidgetSheetTabInterface(object):
     def isSheetTabWidget(self):
         """ isSheetTabWidget() -> boolean
         Return True if this is a sheet tab widget
+        
         """
         return True
 
@@ -226,7 +208,7 @@ class StandardWidgetSheetTabInterface(object):
         """ getCellToolBar(row: int, col: int) -> QWidget
         Return the toolbar widget at cell location (row, col)
         
-        """        
+        """
         cell = self.getCell(row, col)
         if cell and hasattr(cell, 'toolBarType'):
             container = self.getCellWidget(row, col)
@@ -291,10 +273,10 @@ class StandardWidgetSheetTabInterface(object):
         else:
             oldCell.updateContents(inputPorts)
 
-    def showHelpers(self, ctrl, globalPos):
-        """ showHelpers(ctrl: boolean, globalPos: QPoint) -> None
-        Show the helpers (toolbar, resizer) when the Control key
-        status is ctrl and the mouse is at globalPos
+    def showHelpers(self, show, globalPos):
+        """ showHelpers(show: boolean, globalPos: QPoint) -> None    
+        Show/hide the helpers (toolbar, resizer when the mouse is at
+        globalPos
         
         """
         pass
@@ -376,7 +358,6 @@ class StandardWidgetSheetTabInterface(object):
                 cellWidget = presenter.releaseCellWidget()
                 self.setCellByWidget(r, c, cellWidget)
                 presenter.hide()
-        
     
     def setEditingMode(self, editing=True):
         """ setEditingMode(editing: bool) -> None
@@ -551,16 +532,19 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         """
         return self.sheet.getCellGlobalRect(row, col)
 
-    def showHelpers(self, ctrl, globalPos):
-        """ showHelpers(ctrl: boolean, globalPos: QPoint) -> None
-        Show the helpers (toolbar, resizer) when the Control key
-        status is ctrl and the mouse is at globalPos
+    def showHelpers(self, show, globalPos):
+        """ showHelpers(show: boolean, globalPos: QPoint) -> None        
+        Show/hide the helpers (toolbar, resizer) depending on the
+        status of show and the global position of the cursor
         
         """
-        localPos = self.sheet.viewport().mapFromGlobal(QtGui.QCursor.pos())
+        localPos = self.sheet.viewport().mapFromGlobal(QtGui.QCursor.pos())        
         row = self.sheet.rowAt(localPos.y())
         col = self.sheet.columnAt(localPos.x())
-        self.sheet.showHelpers(ctrl, row, col)
+        rect = self.sheet.getCellRect(row, col)
+        show =  show and (rect.x()+rect.width()-localPos.x()<100 and
+                          rect.y()+rect.height()-localPos.y()<100)
+        self.sheet.showHelpers(show, row, col)
         
     def getSelectedLocations(self):
         """ getSelectedLocations() -> tuple

@@ -210,10 +210,12 @@ class QCellToolBar(QtGui.QToolBar):
         
         """
         QtGui.QToolBar.__init__(self,sheet)
-        self.setAutoFillBackground(True)
+        self.setOrientation(QtCore.Qt.Horizontal)
         self.sheet = sheet
         self.row = -1
         self.col = -1
+        self.layout().setMargin(0)
+        self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         self.createToolBar()
 
     def addAnimationButtons(self):
@@ -242,15 +244,6 @@ class QCellToolBar(QtGui.QToolBar):
         self.col = col
         self.updateToolBar()
 
-    def adjustPosition(self, rect):
-        """ adjustPosition(rect: QRect) -> None
-        Adjust the position of the toolbar to be top-left
-        
-        """
-        self.adjustSize()
-        p = self.parent().mapFromGlobal(rect.topLeft())
-        self.move(p.x(), p.y())
-
     def updateToolBar(self):
         """ updateToolBar() -> None        
         This will get called when the toolbar widgets need to have
@@ -275,7 +268,7 @@ class QCellToolBar(QtGui.QToolBar):
             self.connect(action, QtCore.SIGNAL('triggered()'),
                          widget.triggeredSlot)
         if hasattr(widget, 'toggledSlot'):
-            self.connect(action, QtCore.SIGNAL('toggled(bool)'),
+            self.connzect(action, QtCore.SIGNAL('toggled(bool)'),
                          widget.toggledSlot)
 
     def appendAction(self, action):
@@ -370,7 +363,7 @@ class QCellToolBarPlayHistory(QtGui.QAction):
         
         """
         cellWidget = self.toolBar.getSnappedWidget()
-        if self.status==0:            
+        if self.status==0:
             cellWidget.startPlayer()
         else:
             cellWidget.stopPlayer()
@@ -389,7 +382,7 @@ class QCellToolBarPlayHistory(QtGui.QAction):
                 self.setIcon(self.icons[self.status])
                 self.setToolTip(self.toolTips[self.status])
                 self.setStatusTip(self.statusTips[self.status])
-            self.setEnabled(len(cellWidget._historyImages)>0)                
+            self.setEnabled(len(cellWidget._historyImages)>0)
 
 ################################################################################
             

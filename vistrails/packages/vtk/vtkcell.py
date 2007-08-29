@@ -92,7 +92,6 @@ AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None, None, None, None, None, None, None,
                        None, None, None, None, None, None, None, None)
 
-
 class QVTKWidget(QCellWidget):
     """
     QVTKWidget is the actual rendering widget that can display
@@ -118,6 +117,7 @@ class QVTKWidget(QCellWidget):
         self.toolBarType = QVTKWidgetToolBar
         self.iHandlers = []
         self.setAnimationEnabled(True)
+        self.renderer_maps = {}
         
     def removeObserversFromInteractorStyle(self):
         """ removeObserversFromInteractorStyle() -> None        
@@ -153,6 +153,7 @@ class QVTKWidget(QCellWidget):
         resources
         
         """
+        self.renderer_maps = {}
         for ren in self.getRendererList():
             self.mRenWin.RemoveRenderer(ren)
             
@@ -182,8 +183,10 @@ class QVTKWidget(QCellWidget):
         del oldRenderers
 
         (renderers, self.iHandlers, iStyle) = inputPorts
+        self.renderer_maps = {}
         for renderer in renderers:
             renWin.AddRenderer(renderer.vtkInstance)
+            self.renderer_maps[renderer.vtkInstance] = renderer.moduleInfo['moduleId']
             if hasattr(renderer.vtkInstance, 'IsActiveCameraCreated'):
                 if not renderer.vtkInstance.IsActiveCameraCreated():
                     renderer.vtkInstance.ResetCamera()
@@ -818,16 +821,20 @@ class QVTKWidget(QCellWidget):
         sheet = self.findSheetTabWidget()
         if sheet:
             iren = istyle.GetInteractor()
-            keyCode = iren.GetKeyCode()
-            if keyCode in ['w','W','s','S','r','R']:
-                cells = sheet.getSelectedLocations()                
-                for (row, col) in cells:
-                    cell = sheet.getCell(row, col)
-                    if hasattr(cell, 'GetInteractor'):
-                        selectedIren = cell.GetInteractor()
-                        selectedIren.SetKeyCode(keyCode)
-                        selectedIren.GetInteractorStyle().OnChar()
-                        selectedIren.Render()
+            ren = self.interacting
+            if not ren: ren = self.getActiveRenderer(iren)
+            if ren:
+                keyCode = iren.GetKeyCode()
+                if keyCode in ['w','W','s','S','r','R']:
+                    cells = sheet.getSelectedLocations()                
+                    if (ren in self.getRenderersInCellList(sheet, cells)):
+                        for (row, col) in cells:
+                            cell = sheet.getCell(row, col)
+                            if hasattr(cell, 'GetInteractor'):
+                                selectedIren = cell.GetInteractor()
+                                selectedIren.SetKeyCode(keyCode)
+                                selectedIren.GetInteractorStyle().OnChar()
+                                selectedIren.Render()
             istyle.OnChar()
 
     def saveToPNG(self, filename):
@@ -912,7 +919,66 @@ class QVTKWidgetCapture(QtGui.QAction):
         
         """
         cellWidget = self.toolBar.getSnappedWidget()
-        cellWidget.captureWindow()        
+        cellWidget.captureWindow()
+
+class QVTKWidgetSaveCamera(QtGui.QAction):
+    """
+    QVTKWidgetSaveCamera is the action to capture the current camera
+    of the vtk renderers and save it back to the pipeline
+    
+    """
+    def __init__(self, parent=None):
+        """ QVTKWidgetSaveCamera(parent: QWidget) -> QVTKWidgetSaveCamera
+        Setup the image, status tip, etc. of the action
+        
+        """
+        QtGui.QAction.__init__(self,
+                               "Save &Camera",
+                               parent)
+        self.setStatusTip("Save current camera views to the pipeline")
+
+    def triggeredSlot(self, checked=False):
+        """ toggledSlot(checked: boolean) -> None
+        Execute the action when the button is clicked
+        
+        """
+        visApp = QtCore.QCoreApplication.instance()
+        if hasattr(visApp, 'builderWindow'):
+            builderWindow = visApp.builderWindow
+            if builderWindow:
+                info = self.toolBar.sheet.getCellPipelineInfo(
+                    self.toolBar.row, self.toolBar.col)
+                if info:
+                    info = info[0]
+                    viewManager = builderWindow.viewManager
+                    view = viewManager.ensureVistrail(info['locator'])
+                    if view:
+                        controller = view.controller
+                        pipeline = controller.vistrail.getPipeline(info['version'])
+                        
+                        cellWidget = self.toolBar.getSnappedWidget()
+                        renderers = cellWidget.getRendererList()
+                        for ren in renderers:
+                            cam = ren.GetActiveCamera()
+                            cpos = cam.GetPosition()
+                            cfol = cam.GetFocalPoint()
+                            cup = cam.GetViewUp()
+                            rendererId = cellWidget.renderer_maps[ren]
+                            # Looking for SetCamera()
+                            camera = None
+                            for c in pipeline.connections.values():
+                                if c.destination.id==rendererId:
+                                    if c.destination.name=='SetCamera':
+                                        camera = pipeline[c.destination.id]
+                                        break
+#                            if !camera:
+                                # Create camera
+#                                camera = module.Module(id=
+                            
+                        controller.selectLatestVersion()
+                        self.resetVersionView = False
+                        controller.invalidate_version_tree()
+                        self.resetVersionView = True
 
                 
 class QVTKWidgetToolBar(QCellToolBar):
@@ -926,9 +992,9 @@ class QVTKWidgetToolBar(QCellToolBar):
         This will get call initiallly to add customizable widgets
         
         """
-        self.setOrientation(QtCore.Qt.Vertical)
         self.appendAction(QVTKWidgetCapture(self))
         self.addAnimationButtons()
+        self.appendAction(QVTKWidgetSaveCamera(self))
 
 def registerSelf():
     """ registerSelf() -> None

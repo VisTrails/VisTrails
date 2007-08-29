@@ -164,8 +164,6 @@ class CellResizer(QtGui.QLabel):
         Handle Qt mouse release event to clean up all state
         
         """
-        ctrl = e.modifiers()&QtCore.Qt.ControlModifier
-        self.sheet.showHelpers(ctrl, self.row, self.col)
         if (e.button()==QtCore.Qt.LeftButton or
             e.button()==QtCore.Qt.RightButton):
             self.dragging = False
@@ -213,27 +211,24 @@ class CellResizer(QtGui.QLabel):
 
 class CellHelpers(object):
     """
-    CellHelpers is a container include CellResizer and QCellToolbar
-    that will shows up whenever the Ctrl key is hold down and the
-    mouse hovers the cell.
+    CellHelpers is a container include CellResizer that will shows up
+    whenever the Ctrl key is hold down and the mouse hovers the cell.
 
     """
-    def __init__(self, sheet, resizerInstance=None, toolBarInstance=None):
+    def __init__(self, sheet, resizerInstance=None):
         """ CellHelpers(sheet: SpreadsheetSheet,
-                        resizerInstance: CellResizer,
-                        toolBarinstance: QCellToolBar) -> CellHelpers
-        Initialize with no tool bar and a cell resizer
+                        resizerInstance: CellResizer) -> CellHelpers
+        Initialize with  a cell resizer
         
         """
         self.sheet = sheet
         self.resizer = resizerInstance
-        self.toolBar = toolBarInstance
         self.row = -1
         self.col = -1
         
     def snapTo(self, row, col):
         """ snapTo(row: int, col: int) -> None
-        Assign the resizer and toolbar to the correct cell
+        Assign the resizer to the correct cell
         
         """
         if row>=0 and ((row!=self.row) or (col!=self.col)):
@@ -242,25 +237,16 @@ class CellHelpers(object):
             self.col = col
             if self.resizer:
                 self.resizer.snapTo(row,col)
-            toolBar = self.sheet.getCellToolBar(row, col)
-            if toolBar!=self.toolBar:
-                if self.toolBar:
-                    self.toolBar.hide()
-                self.toolBar = toolBar
-            if self.toolBar:
-                self.toolBar.snapTo(row,col)
             self.adjustPosition()
 
     def adjustPosition(self):
         """ adjustPosition() -> None
-        Adjust both the toolbar and the resizer
+        Adjust the resizer
         
         """
         rect = self.sheet.getCellGlobalRect(self.row, self.col)
         if self.resizer:
             self.resizer.adjustPosition(rect)
-        if self.toolBar:
-            self.toolBar.adjustPosition(rect)
 
     def show(self):
         """ show() -> None
@@ -284,8 +270,6 @@ class CellHelpers(object):
             self.resizer.setVisible(b)
         if not b and self.resizer:
             self.resizer.setDragging(False)
-        if self.toolBar:
-            self.toolBar.setVisible(b)
 
     def isInteracting(self):
         """ isInteracting() -> boolean
@@ -296,4 +280,3 @@ class CellHelpers(object):
             return self.resizer.dragging
         else:
             return False
-

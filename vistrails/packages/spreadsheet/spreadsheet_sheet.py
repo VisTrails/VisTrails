@@ -112,7 +112,7 @@ class StandardWidgetHeaderView(QtGui.QHeaderView):
             size.setWidth(30)
         else:
             size.setHeight(30)
-        return size
+        return size        
 
 class StandardWidgetItemDelegate(QtGui.QItemDelegate):
     """
@@ -127,7 +127,7 @@ class StandardWidgetItemDelegate(QtGui.QItemDelegate):
         
         """
         self.table = table
-        self.padding = 2
+        self.padding = 4
         QtGui.QItemDelegate.__init__(self, None)
 
     def setPadding(self, padding):
@@ -149,6 +149,23 @@ class StandardWidgetItemDelegate(QtGui.QItemDelegate):
         rect.adjust(self.padding,self.padding,-self.padding,-self.padding)
         editor.setGeometry(rect)
         editor.setFixedSize(rect.width(), rect.height())
+
+    def paint(self, painter, option, index):
+        """ paint(painter: QPainter, option: QStyleOptionViewItem,
+                  index: QModelIndex) -> None                  
+        Paint the current cell with a ring outside
+        
+        """
+        QtGui.QItemDelegate.paint(self, painter, option, index)
+        if ((index.row(), index.column())==self.table.activeCell):
+            painter.save()
+            painter.setPen(QtGui.QPen(QtGui.QBrush(
+                QtGui.QColor(0.8549*255, 0.6971*255, 0.2255*255)), self.padding))
+            r = self.table.visualRect(index)
+            r.adjust(self.padding/2,self.padding/2,-self.padding/2,-self.padding/2)
+            painter.drawRoundRect(r, self.padding, self.padding)
+            painter.restore()
+            
             
 class StandardWidgetSheet(QtGui.QTableWidget):
     """
@@ -166,6 +183,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         
         """
         QtGui.QTableWidget.__init__(self, 0, 0, parent)
+        self.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
         self.fitToWindow = False
         self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.setHorizontalHeader(StandardWidgetHeaderView(QtCore.Qt.Horizontal,
@@ -177,6 +195,9 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         self.connect(self.horizontalHeader(),
                      QtCore.SIGNAL('sectionMoved(int,int,int)'),
                      self.columnMoved)
+        self.connect(self.horizontalHeader(),
+                     QtCore.SIGNAL('sectionPressed(int)'),
+                     self.forceColumnMutliSelect) 
         self.setVerticalHeader(StandardWidgetHeaderView(QtCore.Qt.Vertical,
                                                         self))
         self.verticalHeader().setSelectionModel(self.selectionModel())
@@ -186,14 +207,51 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         self.connect(self.verticalHeader(),
                      QtCore.SIGNAL('sectionMoved(int,int,int)'),
                      self.rowMoved)
+        self.connect(self.verticalHeader(),
+                     QtCore.SIGNAL('sectionPressed(int)'),
+                     self.forceRowMutliSelect) 
         self.delegate = StandardWidgetItemDelegate(self)
         self.setItemDelegate(self.delegate)
         self.helpers = CellHelpers(parent, CellResizer(self))
-        self.toolBars = {}
-        self.blankCellToolBar = None
         self.setRowCount(rows)
         self.setColumnCount(cols)
         self.setFitToWindow(True)
+        self.connect(self,
+                     QtCore.SIGNAL('cellActivated(int, int, bool)'),
+                     self.selectCell)
+        self.activeCell = (-1,-1)
+
+    def forceColumnMutliSelect(self, logicalIndex):
+        """ forceColumnMutliSelect(logicalIndex: int) -> None        
+        Make sure we always toggle the headerview in the right way        
+        NOTE: the MultiSelection type of SelectionMode does not work
+        correctly for overlapping columns and rows selection
+        
+        """
+        if (self.selectionModel().isColumnSelected(logicalIndex, QtCore.QModelIndex())):
+            self.selectionModel().select(self.model().index(0, logicalIndex),
+                                         QtGui.QItemSelectionModel.Deselect |
+                                         QtGui.QItemSelectionModel.Columns)
+        else:
+            self.selectionModel().select(self.model().index(0, logicalIndex),
+                                         QtGui.QItemSelectionModel.Select |
+                                         QtGui.QItemSelectionModel.Columns)
+
+    def forceRowMutliSelect(self, logicalIndex):
+        """ forceRowMutliSelect(logicalIndex: int) -> None        
+        Make sure we always toggle the headerview in the right way        
+        NOTE: the MultiSelection type of SelectionMode does not work
+        correctly for overlapping columns and rows selection
+        
+        """
+        if (self.selectionModel().isRowSelected(logicalIndex, QtCore.QModelIndex())):
+            self.selectionModel().select(self.model().index(logicalIndex, 0),
+                                         QtGui.QItemSelectionModel.Deselect |
+                                         QtGui.QItemSelectionModel.Rows)
+        else:
+            self.selectionModel().select(self.model().index(logicalIndex, 0),
+                                         QtGui.QItemSelectionModel.Select |
+                                         QtGui.QItemSelectionModel.Rows)
 
     def updateHeaderStatus(self):
         """ updateHeaderStatus() -> None
@@ -286,7 +344,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
             self.verticalHeader().setFitToViewport(True)
             
     def resizeEvent(self, e):
-        """ resizeEvent(e: QResizeEvent) -> None        
+        """ resizeEvent(e: QResizeEvent) -> None
         ResizeEvent will make sure all columns/rows stretched right
         when the table get resized
         
@@ -294,15 +352,15 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         QtGui.QTableWidget.resizeEvent(self, e)
         self.stretchCells()
 
-    def showHelpers(self, ctrl, row, col):
-        """ showHelpers(ctrl: boolean, row: int, col: int) -> None        
+    def showHelpers(self, show, row, col):
+        """ showHelpers(show: boolean, row: int, col: int) -> None        
         Show/hide the helpers (resizer, toolbar) on the current cell
-        depending on the status of the Control key and cell location
+        depending on the value of show
         
         """
         if self.helpers.isInteracting():
             return
-        if ctrl:
+        if show:
             if row>=0 and col>=0:
                 self.helpers.snapTo(row, col)
                 self.helpers.adjustPosition()
@@ -311,13 +369,6 @@ class StandardWidgetSheet(QtGui.QTableWidget):
                 self.helpers.hide()
         else:
             self.helpers.hide()
-
-#     def leaveEvent(self, e):
-#         """ leaveEvent(e: QMouseEvent) -> None
-#         Hide the helpers when mouse leave the widget
-        
-#         """
-#         self.showHelpers(False, -1, -1)
 
     def getCell(self, row, col):
         """ getCell(row: int, col: int) -> QWidget
@@ -369,3 +420,35 @@ class StandardWidgetSheet(QtGui.QTableWidget):
         self.setCellWidget(row, col, cellWidget)
         if cellWidget:
             self.delegate.updateEditorGeometry(cellWidget, None, index)
+
+    def selectCell(self, row, col, toggling):
+        """ selectCell(row: int, col: int, toggling: bool) -> None
+        Select a cell based on its current selection
+        
+        """
+        if toggling:
+            self.selectionModel().setCurrentIndex(self.model().index(row, col),
+                                                  QtGui.QItemSelectionModel.Toggle)
+            if (self.selectionModel().isSelected(self.model().index(row, col))):
+                self.setActiveCell(row, col)
+            else:
+                self.setActiveCell(-1, -1)
+        else:
+            if len(self.selectionModel().selectedIndexes())<=1:
+                self.selectionModel().setCurrentIndex(
+                    self.model().index(row, col),
+                    QtGui.QItemSelectionModel.ClearAndSelect)
+            self.setActiveCell(row, col)
+        self.viewport().repaint()
+
+    def setActiveCell(self, row, col):
+        """ setActiveCell(row: int, col: int) -> None
+        Set the location of an active cell also bring up the
+        corresponding toolbar
+
+        """
+        self.activeCell = (row, col)
+        toolBar = self.parent().getCellToolBar(row, col)
+        if (toolBar):
+            toolBar.snapTo(row, col)
+        self.parent().toolBar.setCellToolBar(toolBar)

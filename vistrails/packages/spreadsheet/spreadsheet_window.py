@@ -29,6 +29,7 @@ from spreadsheet_base import StandardSheetReference
 from spreadsheet_event import BatchDisplayCellEventType, DisplayCellEventType, \
      RepaintCurrentSheetEventType
 from spreadsheet_tabcontroller import StandardWidgetTabController
+from spreadsheet_sheet import StandardWidgetSheet
 from core.modules import module_utils
 from core.utils import trace_method
 
@@ -90,12 +91,37 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.viewMenu.addAction(self.interactiveModeAction())
         self.viewMenu.addAction(self.editingModeAction())
         self.viewMenu.addSeparator()
+        self.viewMenu.addAction(self.fitToWindowAction())
         self.viewMenu.addAction(self.fullScreenAction())
 
         self.connect(self.modeActionGroup,
                      QtCore.SIGNAL('triggered(QAction*)'),
                      self.modeChanged)
 
+    def fitToWindowAction(self):
+        """ fitToWindowAction() -> QAction
+        Return the fit to window action
+        
+        """
+        if not hasattr(self, 'fitAction'):
+            self.fitAction = QtGui.QAction('Fit to window', self)
+            self.fitAction.setStatusTip('Stretch spreadsheet cells '
+                                        'to fit the window size')
+            self.fitAction.setCheckable(True)
+            checked = self.tabController.currentWidget().sheet.fitToWindow
+            self.fitAction.setChecked(checked)
+            self.connect(self.fitAction,
+                         QtCore.SIGNAL('toggled(bool)'),
+                         self.fitActionToggled)
+        return self.fitAction
+
+    def fitActionToggled(self, checked):
+        """ fitActionToggled(checked: boolean) -> None
+        Handle fitToWindow Action toggled
+        
+        """
+        self.tabController.currentWidget().sheet.setFitToWindow(checked)
+        
     def fullScreenAction(self):
         """ fullScreenAction() -> QAction
         Return the fullscreen action
@@ -118,7 +144,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                                                                    self)]
             for sc in self.fullScreenAlternativeShortcuts:
                 self.connect(sc, QtCore.SIGNAL('activated()'),
-                             self.fullScreenActivated)
+                             self.fullScreenActionVar.trigger)
         return self.fullScreenActionVar
 
     def fullScreenActivated(self, full=None):
@@ -248,17 +274,12 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         An application-wide eventfilter to capture mouse/keyboard events
         
         """
-        # Handle Show/Hide cell resizer/toolbars on KeyPress,
-        # KeyRelease, MouseMove but avoid Shortcut event
         eType = e.type()
-        if eType in [5, 6, 7, 117]:
+        # Handle Show/Hide cell resizer on MouseMove
+        if eType==5:
             sheetWidget = self.tabController.tabWidgetUnderMouse()
             if sheetWidget:
-                if eType!=117:
-                    ctrl = (e.modifiers()==QtCore.Qt.ControlModifier)
-                else:
-                    ctrl = False
-                sheetWidget.showHelpers(ctrl, QtGui.QCursor.pos())
+                sheetWidget.showHelpers(True, QtGui.QCursor.pos())
 
         # Slideshow mode
         if (eType==QtCore.QEvent.MouseButtonPress and
@@ -267,6 +288,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             self.tabController.showPopupMenu()
             return True
                 
+        # Handle slideshow shortcuts
         if (eType==QtCore.QEvent.KeyPress and
             self.isFullScreen()):
             if (e.key() in [QtCore.Qt.Key_Space,
@@ -277,6 +299,17 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 self.tabController.showPrevTab()
                 return True
                             
+        # Perform single-click event on the spread sheet
+        if (eType==QtCore.QEvent.MouseButtonPress):
+            p = q.parent()
+            while (p and type(p)!=StandardWidgetSheet):
+                p = p.parent()
+            if (p):
+                pos = p.viewport().mapFromGlobal(e.globalPos())
+                p.emit(QtCore.SIGNAL('cellActivated(int, int, bool)'),
+                       p.rowAt(pos.y()), p.columnAt(pos.x()),
+                       e.modifiers()==QtCore.Qt.ControlModifier)
+
         return QtGui.QMainWindow.eventFilter(self,q,e)
 
     def event(self, e):
