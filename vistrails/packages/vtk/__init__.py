@@ -214,7 +214,12 @@ def prune_signatures(module, name, signatures, output=False):
                              hits,
                              signatures)
                      if passes(flattened, hit_count, original)]
-
+    
+    #then we remove the duplicates, if necessary
+    unique_signatures = []
+    [unique_signatures.append(s) for s in signatures if not unique_signatures.count(s)]
+    signatures[:] = unique_signatures
+    
 disallowed_classes = set(
     [
     'vtkCriticalSection',
@@ -294,6 +299,8 @@ def addSetGetPorts(module, get_set_dict):
         setterMethod = getattr(module.vtkClass, 'Set%s'%name)
         getterSig = get_method_signature(getterMethod)
         setterSig = get_method_signature(setterMethod)
+        if len(getterSig) > 1:
+            prune_signatures(module, 'Get%s'%name, getterSig, output=True)
         for getter, order in izip(getterSig, xrange(1, len(getterSig)+1)):
             if getter[1]:
                 log("Can't handle getter %s (%s) of class %s: Needs input to "
