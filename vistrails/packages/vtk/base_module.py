@@ -70,6 +70,23 @@ class vtkBaseModule(Module):
         attr(*params)
         # print "Called ",attr,function,params
 
+    @classmethod
+    def _provide_doc(cls, port_name):
+        f = port_name.find('_')
+        if f != -1:
+            name = port_name[:f]
+        else:
+            name = port_name
+        return getattr(cls.vtkClass, name).__doc__
+
+    @classmethod
+    def provide_input_port_documentation(cls, port_name):
+        return cls._provide_doc(port_name)
+
+    @classmethod
+    def provide_output_port_documentation(cls, port_name):
+        return cls._provide_doc(port_name)
+
     def compute(self):
         """ compute() -> None
         Actually perform real VTK task by directing all input/output ports

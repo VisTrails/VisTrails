@@ -346,6 +346,14 @@ Makes sure input port 'name' is filled."""
             if conList==[]:
                 del self.inputPorts[inputPort]
 
+    @classmethod
+    def provide_input_port_documentation(cls, port_name):
+        return None
+
+    @classmethod
+    def provide_output_port_documentation(cls, port_name):
+        return None
+
 ################################################################################
 
 class NotCacheable(object):

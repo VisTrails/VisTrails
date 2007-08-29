@@ -22,39 +22,45 @@
 """ This file contains a dialog and widgets related to the module documentation
 dialog, which displays the available documentation for a given VisTrails module.
 
-QModuleDocumentation
+QMethodDocumentation
 """
 
 from PyQt4 import QtCore, QtGui
 from core.modules.module_registry import registry
+from core.vistrail.port import PortEndPoint
+from core.utils import VistrailsInternalError
 
-################################################################################
-
-class QModuleDocumentation(QtGui.QDialog):
+class QPortDocumentation(QtGui.QDialog):
     """
-    QModuleDocumentation is a dialog for showing module documentation. duh.
+    QPortDocumentation is a dialog for showing port documentation. duh.
 
     """
-    def __init__(self, descriptor, parent=None):
-        """ 
-        QModuleAnnotation(descriptor: ModuleDescriptor, parent)
-        -> None
-
-        """
+    def __init__(self, descriptor, endpoint, port_name, parent=None):
         QtGui.QDialog.__init__(self, parent)
         self.descriptor = descriptor
         self.setModal(True)
-        self.setWindowTitle('Documentation for "%s"' % descriptor.name)
+        if endpoint == PortEndPoint.Source:
+            port_type = 'output'
+            call_ = descriptor.module.provide_output_port_documentation
+        elif endpoint == PortEndPoint.Destination:
+            port_type = 'input'
+            call_ = descriptor.module.provide_input_port_documentation
+        else:
+            raise VistrailsInternalError("Invalid port type")
+        self.setWindowTitle('Documentation for %s port %s in "%s"' %
+                            (port_type, port_name, descriptor.name))
         self.setLayout(QtGui.QVBoxLayout())
         self.layout().addStrut(600)
+        self.layout().addWidget(QtGui.QLabel("Port name: %s" % port_name))
         self.layout().addWidget(QtGui.QLabel("Module name: %s" % descriptor.name))
         package = descriptor.module_package()
         self.layout().addWidget(QtGui.QLabel("Module package: %s" % package))
         self.closeButton = QtGui.QPushButton('Ok', self)
         self.textEdit = QtGui.QTextEdit(self)
         self.layout().addWidget(self.textEdit, 1)
-        if descriptor.module.__doc__:
-            self.textEdit.insertPlainText(descriptor.module.__doc__)
+        doc = call_(port_name)
+        if doc:
+            self.textEdit.insertPlainText(doc)
         else:
             self.textEdit.insertPlainText("Documentation not available.")
         self.textEdit.setReadOnly(True)

@@ -32,7 +32,8 @@ from gui.common_widgets import (QSearchTreeWindow,
                                 QSearchTreeWidget,
                                 QToolWindowInterface)
 from core.modules.module_registry import registry
-
+from core.vistrail.port import PortEndPoint
+from gui.port_documentation import QPortDocumentation
 ################################################################################
 
 class QMethodPalette(QSearchTreeWindow, QToolWindowInterface):
@@ -103,9 +104,15 @@ class QMethodTreeWidget(QSearchTreeWidget):
             self.expandAll()
             self.resizeColumnToContents(0)
                                           
+    def contextMenuEvent(self, event):
+        # Just dispatches the menu event to the widget item
+        item = self.itemAt(event.pos())
+        if item:
+            item.contextMenuEvent(event, self)
+
 class QMethodTreeWidgetItem(QtGui.QTreeWidgetItem):
     """
-    QMethodTreeWidgetItem represents module on QModuleTreeWidget
+    QMethodTreeWidgetItem represents method on QMethodTreeWidget
     
     """
     def __init__(self, module, port, spec, parent, labelList):
@@ -123,3 +130,24 @@ class QMethodTreeWidgetItem(QtGui.QTreeWidgetItem):
         self.port = port
         self.spec = spec
         QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
+
+    def contextMenuEvent(self, event, widget):
+        if self.module is None:
+            return
+        act = QtGui.QAction("View Documentation", widget)
+        act.setStatusTip("View method documentation")
+        QtCore.QObject.connect(act,
+                               QtCore.SIGNAL("triggered()"),
+                               self.view_documentation)
+        menu = QtGui.QMenu(widget)
+        menu.addAction(act)
+        menu.exec_(event.globalPos())
+        
+    def view_documentation(self):
+        descriptor = registry.get_descriptor_by_name(self.module.package,
+                                                     self.module.name)
+        widget = QPortDocumentation(descriptor,
+                                    PortEndPoint.Destination,
+                                    self.port.name)
+        widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        widget.exec_()
