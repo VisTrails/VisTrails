@@ -57,8 +57,6 @@ class Module(DBModule):
         DBModule.__init__(self, *args, **kwargs)
         if self.cache is None:
             self.cache = 1
-        if self.abstraction is None:
-            self.abstraction = -1
         if self.id is None:
             self.id = -1
         if self.location is None:
@@ -69,11 +67,6 @@ class Module(DBModule):
             self.package = ''
         if self.version is None:
             self.version = ''
-#        self.name = name
-#        self.id = id
-#        self.cache = 1
-#        self.annotations = {}
-#        self.center = Point(-1.0, -1.0)
         self.portVisible = Set()
         self.registry = None
 
@@ -104,6 +97,7 @@ class Module(DBModule):
 	    ModuleFunction.convert(_function)
         for _annotation in _module.db_get_annotations():
             Annotation.convert(_annotation)
+
         _module.portVisible = Set()
 
     ##########################################################################
@@ -120,12 +114,6 @@ class Module(DBModule):
         self.db_cache = cache
 
     cache = property(_get_cache, _set_cache)
-
-    def _get_abstraction(self):
-        return self.db_abstraction
-    def _set_abstraction(self, abstraction):
-        self.db_abstraction = abstraction
-    abstraction = property(_get_abstraction, _set_abstraction)
 
     # type check this (list, hash)
     def _get_functions(self):
@@ -156,23 +144,7 @@ class Module(DBModule):
     def _set_location(self, location):
         self.db_location = location
     location = property(_get_location, _set_location)
-
-    # grrr this doesn't capture deep access like center.x = 1.2344
-    def _get_center(self):
-        if self.db_location is not None:
-            return Point(self.db_location.db_x, 
-                         self.db_location.db_y)
-        return Point(-1.0, -1.0)
-    def _set_center(self, center):
-        # this should not be called! -- use the actions to update location!
-        if self.db_location is None:
-            self.db_location = Location(id=-1,
-                                        x=center.x, 
-                                        y=center.y)
-        else:
-            self.db_location.db_x = center.x
-            self.db_location.db_y = center.y
-    center = property(_get_center, _set_center)
+    center = property(_get_location, _set_location)
 
     def _get_name(self):
         return self.db_name
@@ -199,16 +171,6 @@ class Module(DBModule):
         return self.db_has_portSpec_with_name(name)
     def get_portSpec_by_name(self, name):
         return self.db_get_portSpec_by_name(name)
-
-    def addFunction(self, function):
-	self.db_add_function(function)
-
-    def deleteFunction(self, function):
-        """deleteFunction(function: ModuleFunction) -> None 
-        Deletes function
-          
-        """
-        self.db_delete_function(function)
 
     def summon(self):
         get = registry.get_descriptor_by_name
@@ -334,9 +296,10 @@ class Module(DBModule):
         elif self.cache != other.cache:
             print "cache mismatch"
             print self.cache, other.cache
-        elif self.center != other.center:
-            print "center mismatch"
-            self.center.show_comparison(other.center)
+        elif self.location != other.location:
+            print "location mismatch"
+            # FIXME Location has no show_comparison
+            # self.location.show_comparison(other.location)
         elif len(self.functions) != len(other.functions):
             print "function length mismatch"
             print len(self.functions), len(other.functions)
@@ -370,15 +333,18 @@ class Module(DBModule):
             return False
         if self.name != other.name:
             return False
-        if self.abstraction != other.abstraction:
-            return False
         if self.cache != other.cache:
             return False
-        if self.center != other.center:
+        if self.location != other.location:
             return False
         if len(self.functions) != len(other.functions):
             return False
+        if len(self.annotations) != len(other.annotations):
+            return False
         for f, g in izip(self.functions, other.functions):
+            if f != g:
+                return False
+        for f, g in izip(self.annotations, other.annotations):
             if f != g:
                 return False
         return True
@@ -451,9 +417,9 @@ class TestModule(unittest.TestCase):
         self.assertEquals(x.cache, 1)
         x.cache = 1
         self.assertEquals(x.cache, 1)
-        self.assertEquals(x.center.x, -1.0)
-        x.center = Point(1, x.center.y)
-        self.assertEquals(x.center.x, 1)
+        self.assertEquals(x.location.x, -1.0)
+        x.location = Point(1, x.location.y)
+        self.assertEquals(x.location.x, 1)
         self.assertEquals(x.name, "")
 
     def testSummonModule(self):

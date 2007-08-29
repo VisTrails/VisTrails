@@ -132,12 +132,12 @@ class AutoGen:
 
     def getPythonFields(self, object):
 	fields = []
-	for property in object.properties:
-	    if not property.isInverse():
-		fields.append(property)
 	for choice in object.choices:
 	    if not choice.isInverse():
 		fields.append(choice)
+	for property in object.properties:
+	    if not property.isInverse():
+		fields.append(property)
 	return fields
 
     def getPythonPluralFields(self, object):
@@ -181,7 +181,7 @@ class AutoGen:
 	self.reset()
 	self.printLine('"""generated automatically by auto_dao.py"""\n\n')
         self.printLine('import copy\n\n')
-	for obj in self.objects.values():
+	for obj in self.objects.itervalues():
 	    self.generatePythonClass(obj)
 	return self.getOutput()
 
@@ -248,39 +248,7 @@ class AutoGen:
 
         # create copy constructor
         self.printLine('def __copy__(self):\n')
-        self.indentLine('cp = %s()\n' % object.getClassName())
-        # really ought to be references...
-        for field in self.getPythonFields(object):
-            if field.isPlural():
-                self.printLine('if self.%s is None:\n' % field.getFieldName())
-                self.indentLine('cp.%s = None\n' % field.getFieldName())
-                self.unindentLine('else:\n')
-                if field.getPythonType() == 'hash':
-                    self.indentLine('cp.%s = dict([(k,copy.copy(v)) for (k,v) in self.%s.iteritems()])\n' % (field.getFieldName(), field.getFieldName()))
-                else:
-                    self.indentLine('cp.%s = [copy.copy(v) for v in self.%s]\n' % (field.getFieldName(), field.getFieldName()))
-
-                # recreate indices
-                if len(self.getAllIndices(field)) > 0:
-                    if field.getPythonType() == 'hash':
-                        self.printLine('for v in cp.%s.itervalues():\n' % \
-                                           field.getPrivateName())
-                    else:
-                        self.printLine('for v in cp.%s:\n' % \
-                                           field.getPrivateName())
-                    self.indent()
-                    for index in self.getAllIndices(field):
-                        self.printLine('cp.db_%s_%s_index[v.db_%s] = v\n' % \
-                                           (field.getRegularName(), index, 
-                                            index))
-                    self.unindent()
-                self.unindent()
-            else:
-                self.printLine('cp.%s = self.%s\n' % (field.getFieldName(),
-                                                       field.getFieldName()))
-        self.printLine('cp.is_dirty = self.is_dirty\n')
-        self.printLine('cp.is_new = self.is_new\n')
-        self.printLine('return cp\n\n')
+        self.indentLine('return %s.do_copy(self)\n\n' % object.getClassName())
 
         # create copy w/ new ids
         self.unindentLine('def do_copy(self, new_ids=False, ' +
@@ -312,8 +280,11 @@ class AutoGen:
         self.printLine('# set new ids\n')
         self.printLine('if new_ids:\n')
         self.indentLine('new_id = id_scope.getNewId(self.vtType)\n')
-        self.printLine('id_remap[(self.vtType, self.db_id)] = new_id\n')
-        self.printLine('cp.db_id = new_id\n')
+        self.printLine('if id_scope.remap.has_key(self.vtType):\n')
+        self.indentLine('id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id\n')
+        self.unindentLine('else:\n')
+        self.indentLine('id_remap[(self.vtType, self.db_id)] = new_id\n')
+        self.unindentLine('cp.db_id = new_id\n')
 
         foreignKeys = self.getForeignKeys(object)
         if len(foreignKeys) > 0:

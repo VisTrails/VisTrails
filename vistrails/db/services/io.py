@@ -21,10 +21,10 @@
 ############################################################################
 
 from datetime import datetime
+import cElementTree as ElementTree
+# from elementtree import ElementTree
 import sys
 import os
-from xml.parsers.expat import ExpatError
-from xml.dom.minidom import parse, parseString, getDOMImplementation
 
 from db import VistrailsDBException
 from db.domain import DBVistrail, DBWorkflow, DBLog
@@ -96,22 +96,6 @@ def get_db_vistrail_list(config):
         raise VistrailsDBException(msg)
     return result
 
-def parse_xml_file(filename):
-    try:
-        return parse(filename)
-    except ExpatError, e:
-        msg = 'XML parse error at line %s, col %s: %s' % \
-            (e.lineno, e.offset, e.code)
-        raise VistrailsDBException(msg)
-
-def write_xml_file(filename, dom, prettyprint=True):
-    output = file(filename, 'w')
-    if prettyprint:
-        dom.writexml(output, '','  ','\n')
-    else:
-        dom.writexml(output)
-    output.close()
-
 def setup_db_tables(db_connection, version=None):
     import MySQLdb
 
@@ -137,15 +121,12 @@ def setup_db_tables(db_connection, version=None):
 
 def open_vistrail_from_xml(filename):
     """open_vistrail_from_xml(filename) -> Vistrail"""
-    dom = parse_xml_file(filename)
-    version = getVersionForXML(dom.documentElement)
-    if version != currentVersion:
-        vistrail = importVistrailFromXML(filename, version)
-        vistrail.db_version = currentVersion
-    else:
-        vistrail = readXMLObjects(DBVistrail.vtType, dom.documentElement)[0]
+    tree = ElementTree.parse(filename)
+    version = get_version_for_xml(tree.getroot())
+    daoList = getVersionDAO(version)
+    vistrail = daoList.open_from_xml(filename, DBVistrail.vtType)
+    vistrail = translateVistrail(vistrail, version)
     db.services.vistrail.updateIdScope(vistrail)
-    dom.unlink()
     return vistrail
 
 def open_vistrail_from_db(dbConnection, id):
@@ -164,21 +145,8 @@ def open_vistrail_from_db(dbConnection, id):
     return vt
 
 def save_vistrail_to_xml(vistrail, filename):
-
-    # FIXME dakoop (enhancement) -- if save dom, can save quicker
-    #     dom = vistrail.vt_origin
-    #     writeXMLObjects([vistrail], dom, dom.documentElement)
-    #     write_xml_file(filename, dom)
-
-    dom = getDOMImplementation().createDocument(None, None, None)
-    root = writeXMLObjects([vistrail], dom)
-    dom.appendChild(root)
-    root.setAttribute('version', currentVersion)
-    root.setAttribute('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
-    root.setAttribute('xsi:schemaLocation', 
-                  'http://www.vistrails.org/vistrail.xsd')
-    write_xml_file(filename, dom)
-    dom.unlink()
+    daoList = getVersionDAO(currentVersion)
+    daoList.save_to_xml(vistrail, filename)
     
 def save_vistrail_to_db(vistrail, dbConnection):
     vistrail.db_version = currentVersion
@@ -195,14 +163,12 @@ def openWorkflowFromSQL(dbConnection, id):
     readSQLObjects(dbConnection, DBWorkflow.vtType, id)[0]
 
 def serialize(object):
-    dom = getDOMImplementation().createDocument(None, None, None)
-    root = writeXMLObjects([object], dom)
-    dom.appendChild(root)
-    return dom.toxml()
+    daoList = getVersionDAO(currentVersion)
+    return daoList.serialize(object)
 
 def unserialize(str, obj_type):
-    dom = parseString(str)
-    return readXMLObjects(obj_type, dom.documentElement)[0]
+    daoList = getVersionDAO(currentVersion)
+    return daoList.unserialize(str, obj_type)
 
 def getWorkflowFromXML(str):
     dom = parseString(str)
@@ -315,15 +281,12 @@ def importVistrailFromSQL(dbConnection, id, version):
     #        return self.translateVistrail(vistrail)
     return vistrail
 
-def getVersionForXML(node):
-    try:
-        version = node.attributes.get('version')
-        if version is not None:
-            return version.value
-    except KeyError:
-        pass
+def get_version_for_xml(root):
+    version = root.get('version', None)
+    if version is not None:
+        return version
     msg = "Cannot find version information"
-    raise Exception(msg)
+    raise VistrailsDBException(msg)
 
 def getCurrentTime(dbConnection=None):
     timestamp = datetime.now()

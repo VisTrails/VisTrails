@@ -27,7 +27,7 @@ import shutil
 import getopt
 from parser import AutoGenParser
 from auto_gen import AutoGen
-from xml_auto_gen import XMLAutoGen
+from et_auto_gen import XMLAutoGen
 from sql_auto_gen import SQLAutoGen
 
 BASE_DIR = os.path.dirname(os.getcwd())

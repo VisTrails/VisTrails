@@ -25,7 +25,7 @@ from db.domain import DBAnnotation, DBAbstractionRef, DBConnection, \
     DBLocation, DBModule, DBFunction, DBParameter, DBPort, DBPortSpec, DBTag
 
 from core.vistrail.annotation import Annotation
-from core.vistrail.abstraction_ref import AbstractionRef
+from core.vistrail.abstraction_module import AbstractionModule
 from core.vistrail.connection import Connection
 from core.vistrail.location import Location
 from core.vistrail.module import Module
@@ -38,7 +38,7 @@ from core.vistrail.tag import Tag
 def convert_data(_data):
     map = {
         DBAnnotation.vtType: Annotation,
-        DBAbstractionRef.vtType: AbstractionRef,
+        DBAbstractionRef.vtType: AbstractionModule,
         DBConnection.vtType: Connection,
         DBLocation.vtType: Location,
         DBModule.vtType: Module,

@@ -30,6 +30,7 @@ from core.modules.module_registry import registry, ModuleRegistry
 from core.utils import VistrailsInternalError
 from core.utils import expression, append_to_dict_of_lists
 from core.utils.uxml import named_elements
+from core.vistrail.abstraction_module import AbstractionModule
 from core.vistrail.connection import Connection
 from core.vistrail.module import Module
 from core.vistrail.port import Port, PortEndPoint
@@ -60,8 +61,17 @@ class Pipeline(DBWorkflow):
             self.id = 0
         if self.name is None:
             self.name = 'untitled'
-
-
+        for module in self.module_list:
+            if module.vtType == Module.vtType:
+                Module.convert(module)
+            elif module.vtType == AbstractionModule.vtType:
+                AbstractionModule.convert(module)
+            self.graph.add_vertex(module.id)
+        for connection in self.connection_list:
+            self.graph.add_edge(connection.source.moduleId,
+                                connection.destination.moduleId,
+                                connection.id)
+            
     def __copy__(self):
         """ __copy__() -> Pipeline - Returns a clone of itself """ 
         return Pipeline.do_copy(self)
@@ -96,7 +106,10 @@ class Pipeline(DBWorkflow):
         _workflow._module_signatures = Bidict()
         _workflow._connection_signatures = Bidict()
 	for _module in _workflow.db_modules:
-	    Module.convert(_module)
+            if _module.vtType == Module.vtType:
+                Module.convert(_module)
+            elif _module.vtType == AbstractionModule.vtType:
+                AbstractionModule.convert(_module)
             _workflow.graph.add_vertex(_module.id)
 	for _connection in _workflow.db_connections:
             Connection.convert(_connection)
@@ -877,7 +890,9 @@ class Pipeline(DBWorkflow):
 ################################################################################
 
 import unittest
+from core.vistrail.abstraction_module import AbstractionModule
 from core.vistrail.connection import Connection
+from core.vistrail.location import Location
 from core.vistrail.module import Module
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
@@ -982,6 +997,57 @@ class TestPipeline(unittest.TestCase):
         p.compute_signatures()
         return p
 
+    def create_pipeline2(self, id_scope=None):
+        if id_scope is None:
+            id_scope = IdScope(remap={AbstractionModule.vtType: Module.vtType})
+
+        param1 = ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
+                             type='Int',
+                             val='1')
+        param2 = ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
+                             type='Float',
+                             val='1.3456')
+        func1 = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
+                               name='value',
+                               parameters=[param1])
+        func2 = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
+                               name='floatVal',
+                               parameters=[param2])
+        loc1 = Location(id=id_scope.getNewId(Location.vtType),
+                        x=12.342,
+                        y=-19.432)
+        loc2 = Location(id=id_scope.getNewId(Location.vtType),
+                        x=21.34,
+                        y=456.234)
+        m1 = Module(id=id_scope.getNewId(Module.vtType),
+                    package='edu.utah.sci.vistrails.basic',
+                    name='String',
+                    location=loc1,
+                    functions=[func1])
+        m2 = AbstractionModule(id=id_scope.getNewId(AbstractionModule.vtType),
+                               abstraction_id=1,
+                               version=13,
+                               location=loc2,
+                               functions=[func2])
+        source = Port(id=id_scope.getNewId(Port.vtType),
+                      type='source', 
+                      moduleId=m1.id, 
+                      moduleName='String', 
+                      name='self',
+                      spec='edu.sci.utah.vistrails.basic:String')
+        destination = Port(id=id_scope.getNewId(Port.vtType),
+                           type='destination',
+                           moduleId=m2.id,
+                           moduleName='AbstractionModule',
+                           name='self',
+                           spec='')
+        c1 = Connection(id=id_scope.getNewId(Connection.vtType),
+                        ports=[source, destination])
+        pipeline = Pipeline(id=id_scope.getNewId(Pipeline.vtType),
+                            modules=[m1, m2],
+                            connections=[c1])
+        return pipeline
+
     def setUp(self):
         self.pipeline = self.create_default_pipeline()
         self.sink_id = 2
@@ -1027,9 +1093,31 @@ class TestPipeline(unittest.TestCase):
         self.assertEquals(p1, p3)
         self.assertNotEquals(p1.id, p3.id)
 
+    def test_copy2(self):
+        import core.db.io
+
+        # nedd to id modules and abstraction_modules with same counter
+        id_scope = IdScope(remap={AbstractionModule.vtType: Module.vtType})
+        
+        p1 = self.create_pipeline2(id_scope)
+        p2 = copy.copy(p1)
+        self.assertEquals(p1, p2)
+        self.assertEquals(p1.id, p2.id)
+        p3 = p1.do_copy(True, id_scope, {})
+        self.assertEquals(p1, p3)
+        self.assertNotEquals(p1.id, p3.id)
+
     def test_serialization(self):
         import core.db.io
         p1 = self.create_default_pipeline()
+        xml_str = core.db.io.serialize(p1)
+        p2 = core.db.io.unserialize(xml_str, Pipeline)
+        self.assertEquals(p1, p2)
+        self.assertEquals(p1.id, p2.id)        
+
+    def test_serialization2(self):
+        import core.db.io
+        p1 = self.create_pipeline2()
         xml_str = core.db.io.serialize(p1)
         p2 = core.db.io.unserialize(xml_str, Pipeline)
         self.assertEquals(p1, p2)

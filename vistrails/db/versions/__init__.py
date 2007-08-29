@@ -23,7 +23,7 @@
 import os
 from core.system import vistrails_root_directory
 
-currentVersion = '0.7.0'
+currentVersion = '0.8.0'
 
 def getVersionDAO(version=None):
     if version is None:
@@ -43,6 +43,9 @@ def getVersionDAO(version=None):
     elif version == '0.7.0':
         import db.versions.v0_7_0.persistence
         return db.versions.v0_7_0.persistence.DAOList()
+    elif version == '0.8.0':
+        import db.versions.v0_8_0.persistence
+        return db.versions.v0_8_0.persistence.DAOList()
 
 def translateVistrail(vistrail, version=None):
     if version is None:
@@ -68,6 +71,11 @@ def translateVistrail(vistrail, version=None):
         vistrail = \
             db.versions.v0_7_0.translate.v0_6_0.translateVistrail(vistrail)
         version = '0.7.0'
+    if version == '0.7.0':
+        import db.versions.v0_8_0.translate.v0_7_0
+        vistrail = \
+            db.versions.v0_8_0.translate.v0_7_0.translateVistrail(vistrail)
+        version = '0.8.0'
     if version != currentVersion:
         msg = "An error occurred when translating,"
         msg += "only able to translate to version '%s'" % version

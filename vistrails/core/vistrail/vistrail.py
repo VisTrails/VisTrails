@@ -324,7 +324,7 @@ class Vistrail(DBVistrail):
         # Now move everyone
         move_action = MoveModuleAction()
         for (p1_m_id, p2_m_id) in m_shared.iteritems():
-            delta = p2.modules[p2_m_id].center - p1.modules[p1_m_id].center
+            delta = p2.modules[p2_m_id].location - p1.modules[p1_m_id].location
             move_action.addMove(p1_m_id, delta.x, delta.y)
         move_action.perform(p1_c)
         result.append(move_action)
@@ -887,7 +887,7 @@ class Vistrail(DBVistrail):
             fresh_id = sub_pipeline.fresh_module_id()
             m = Module()
             m.id = fresh_id
-            m.center = copy.copy(pipeline.modules[frm].center)
+            m.location = copy.copy(pipeline.modules[frm].location)
             m.name = "InputPort"
             actions.append(m)
 

@@ -37,7 +37,7 @@ def smart_sum(v):
 
 def pipeline_centroid(pipeline):
     """Returns the centroid of a given pipeline."""
-    return (smart_sum(x.center for
+    return (smart_sum(x.location for
                       x in pipeline.modules.itervalues()) *
             (1.0 / len(pipeline.modules)))
 
@@ -47,8 +47,8 @@ def pipeline_bbox(pipeline):
     mx_x = -1000000000.0
     mx_y = -1000000000.0
     for m in pipeline.modules.itervalues():
-        mn_x = min(mn_x, m.center.x)
-        mn_y = min(mn_y, m.center.y)
-        mx_x = max(mx_x, m.center.x)
-        mx_y = max(mx_y, m.center.y)
+        mn_x = min(mn_x, m.location.x)
+        mn_y = min(mn_y, m.location.y)
+        mx_x = max(mx_x, m.location.x)
+        mx_y = max(mx_y, m.location.y)
     return (Point(mn_x, mn_y), Point(mx_x, mx_y))

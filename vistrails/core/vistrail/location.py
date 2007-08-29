@@ -20,9 +20,10 @@
 ##
 ############################################################################
 
+from core.data_structures.point import Point
 from db.domain import DBLocation
 
-class Location(DBLocation):
+class Location(DBLocation, Point):
 
     ##########################################################################
     # Constructors and copy
@@ -79,6 +80,8 @@ class Location(DBLocation):
         rep = "<location id=%s x=%s y=%s/>"
         return  rep % (str(self.id), str(self.x), str(self.y))
 
+
+    eq_delta = 0.0001
     def __eq__(self, other):
         """ __eq__(other: Location) -> boolean
         Returns True if self and other have the same attributes. Used by == 
@@ -87,10 +90,48 @@ class Location(DBLocation):
         """
         if type(other) != type(self):
             return False
-        return (self.x == other.x and self.y == other.y)
+        return (self - other).length() < self.eq_delta
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __neg__(self):
+        """ __neg__() -> Location
+        Compute a point p such that: self + p == Location(0,0), 
+        and return a Location
+        
+        """
+        return Location(x=-self.x,y=-self.y)
+
+    def __add__(self, other):
+        """ __add__(other: Location) -> Location
+        Returns a point p such that: self + other == p, and return a Location
+        
+        """
+        return Location(x=(self.x + other.x), y=(self.y + other.y))
+
+    def __sub__(self, other):
+        """ __sub__(other: Location) -> Location
+        Returns a point p such that: self - other == p, and return a Location
+
+        """
+        return Location(x=(self.x - other.x), y=(self.y - other.y))
+
+    def __mul__(self, other):
+        """ __mul__(other: float) -> Location
+        Interprets self as a vector to perform a scalar multiplication and
+        return a Location
+
+        """
+        return Location(x=(self.x * other), y=(self.y * other))
+
+    def __rmul__(self, other):
+        """ __rmul__(other: float) -> Location
+        Interprets self as a vector to perform a scalar multiplication and
+        return a Location
+
+        """
+        return Location(x=(self.x * other), y=(self.y * other))
     
 ################################################################################
 # Testing

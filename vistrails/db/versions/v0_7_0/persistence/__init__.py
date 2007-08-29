@@ -22,9 +22,21 @@
 
 from xml.auto_gen import XMLDAOListBase
 from sql.auto_gen import SQLDAOListBase
+import xml.io
 
 class DAOList(dict):
     def __init__(self):
         self['xml'] = XMLDAOListBase()
         self['sql'] = SQLDAOListBase()
 
+    def open_from_xml(self, filename, vtType):
+        return xml.io.open_from_xml(filename, vtType, self['xml'])
+
+    def save_to_xml(self, obj, filename):
+        xml.io.save_to_xml(obj, filename, self['xml'])
+
+    def serialize(self, obj):
+        return xml.io.serialize(obj, self['xml'])
+
+    def unserialize(self, str, type):
+        return xml.io.unserialize(str, type, self['xml'])
