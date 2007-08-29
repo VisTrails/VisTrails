@@ -31,7 +31,7 @@ from gui.pipeline_tab import QPipelineTab
 from gui.query_tab import QQueryTab
 from gui.version_tab import QVersionTab
 from gui.vistrail_controller import VistrailController
-
+from core.utils import any
 
 ################################################################################
 
@@ -335,14 +335,91 @@ class QVistrailView(QDockContainer):
     ##########################################################################
     # Undo/redo
 
+    def set_selection(self, old_action, new_action, optype):
+        # Sets up the right selection based on the the old and new
+        # actions coming from undo/redo.
+        pScene = self.pipelineTab.pipelineView.scene()
+        # select things, if appropriate
+        def old_deletion_test():
+            return (old_action and
+                    any(old_action.operations,
+                        lambda x: x.vtType == 'delete'))
+        def old_deletion():
+            # Previous action was a deletion, select what was just
+            # deleted and undone
+            for op in old_action.operations:
+                if op.what == 'module' and op.vtType == 'delete':
+                    module = pScene.modules[op.objectId]
+                    module.setSelected(True)
+        def old_move_test():
+            return (old_action and
+                    any(old_action.operations,
+                        lambda x: x.what == 'location' and x.vtType == 'change'))
+        def old_move():
+            for op in old_action.operations:
+                if op.what == 'location' and op.vtType == 'change':
+                    module = pScene.modules[op.parentObjId]
+                    module.setSelected(True)
+        def new_addition_test():
+            return (new_action and
+                    any(new_action.operations,
+                        lambda x: x.vtType == 'add'))
+        def new_addition():
+            # This action was an addition, select the thing that was
+            # added in this version
+            for op in new_action.operations:
+                if op.what == 'module' and op.vtType == 'add':
+                    module = pScene.modules[op.objectId]
+                    module.setSelected(True)
+        def new_move_test():
+             return (new_action and
+                     any(new_action.operations,
+                         lambda x: x.what == 'location' and x.vtType == 'change'))
+        def new_move():
+            # some action was a move, select the things that were moved
+            for op in new_action.operations:
+                if op.what == 'location' and op.vtType == 'change':
+                    module = pScene.modules[op.parentObjId]
+                    module.setSelected(True)
+
+        old_deletion_pair = (old_deletion_test, old_deletion)
+        old_move_pair = (old_move_test, old_move)
+        new_addition_pair = (new_addition_test, new_addition)
+        new_move_pair = (new_move_test, new_move)
+
+        dispatch = {'undo': [old_deletion_pair,
+                             old_move_pair,
+                             new_addition_pair,
+                             new_move_pair],
+                    'redo': [new_move_pair,
+                             new_addition_pair,
+                             old_move_pair,
+                             old_deletion_pair]}
+        assert optype in dispatch
+        for (test, handler) in dispatch[optype]:
+            if test():
+                handler()
+                return
+        # If we get here, we couldn't recognize the action
+        # FIXME: Add tests and handlers for change parameter
+        
+
     def undo(self):
         """Performs one undo step, moving up the version tree."""
+        self.pipelineTab.flushMoveActions()
+        action_map = self.controller.vistrail.actionMap
+        old_action = action_map.get(self.controller.currentVersion, None)
         self.redo_stack.append(self.controller.currentVersion) 
         self.controller.showPreviousVersion()
-        return self.controller.currentVersion
+        new_action = action_map.get(self.controller.currentVersion, None)
 
+        self.set_selection(old_action, new_action, 'undo')
+        return self.controller.currentVersion
+        
     def redo(self):
         """Performs one redo step if possible, moving down the version tree."""
+        action_map = self.controller.vistrail.actionMap
+        old_action = action_map.get(self.controller.currentVersion, None)
         if not self.can_redo():
             critical("Redo on an empty redo stack. Ignoring.")
             return
@@ -352,6 +429,8 @@ class QVistrailView(QDockContainer):
         self.controller.resetVersionView = False
         self.controller.invalidate_version_tree()
         self.controller.resetVersionView = True
+        new_action = action_map[self.controller.currentVersion]
+        self.set_selection(old_action, new_action, 'redo')
         return next_version
 
     def can_redo(self):

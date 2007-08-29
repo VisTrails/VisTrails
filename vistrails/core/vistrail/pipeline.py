@@ -1087,42 +1087,40 @@ class TestPipeline(unittest.TestCase):
     def test_module_signature(self):
         """Tests signatures for modules with similar (but not equal)
         parameter specs."""
-        print "\nPlease ignore the \"Cannot find CacheBug\" errors"
         p1 = Pipeline()
-        p1_functions = [ModuleFunction(name='i1',
+        p1_functions = [ModuleFunction(name='value1',
                                        parameters=[ModuleParam(type='Float',
                                                                val='1.0',
                                                                )],
                                        ),
-                        ModuleFunction(name='i2',
+                        ModuleFunction(name='value2',
                                        parameters=[ModuleParam(type='Float',
                                                                val='2.0',
                                                                )],
                                        )]
-        p1.add_module(Module(name='CacheBug',
-                            package='edu.utah.sci.vistrails.console_mode_test',
-                            id=3,
-                            functions=p1_functions))
+        p1.add_module(Module(name='PythonCalc',
+                             package='edu.utah.sci.vistrails.pythoncalc',
+                             id=3,
+                             functions=p1_functions))
 
         p2 = Pipeline()
-        p2_functions = [ModuleFunction(name='i1',
+        p2_functions = [ModuleFunction(name='value1',
                                        parameters=[ModuleParam(type='Float',
                                                                val='2.0',
                                                                )],
                                        ),
-                        ModuleFunction(name='i2',
+                        ModuleFunction(name='value2',
                                        parameters=[ModuleParam(type='Float',
                                                                val='1.0',
                                                                )],
                                        )]
-        p2.add_module(Module(name='CacheBug', 
-                            package='edu.utah.sci.vistrails.console_mode_test',
-                            id=3,
-                            functions=p2_functions))
+        p2.add_module(Module(name='PythonCalc', 
+                             package='edu.utah.sci.vistrails.pythoncalc',
+                             id=3,
+                             functions=p2_functions))
 
         self.assertNotEquals(p1.module_signature(3),
                              p2.module_signature(3))
-        print "\nPlease ignore the \"Cannot find CacheBug\" errors"
 
     def test_find_method(self):
         p1 = Pipeline()

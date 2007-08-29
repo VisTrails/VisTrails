@@ -345,7 +345,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
 # QGraphicsConnectionItem
 
 # set this to True to have old sine-wave connections
-__old_connection = False
+__old_connection = True
 if __old_connection:
     class QGraphicsConnectionItem(QGraphicsItemInterface,
                                   QtGui.QGraphicsPolygonItem):
@@ -1231,6 +1231,11 @@ mutual connections."""
             if hasattr(data, 'items'):
                 event.accept()
 
+    def unselect_all(self):
+        selected = self.selectedItems()[:]
+        for item in selected:
+            item.setSelected(False)
+
     def dropEvent(self, event):
         """ dropEvent(event: QDragMoveEvent) -> None
         Accept drop event to add a new module
@@ -1241,16 +1246,21 @@ mutual connections."""
             data = event.mimeData()
             if hasattr(data, 'items'):
                 event.accept()
-                for item in data.items:
-                    self.controller.resetPipelineView = False
-                    self.noUpdate = True
-                    module = self.controller.add_module(
-                        item.descriptor.identifier,
-                        item.descriptor.name,
-                        event.scenePos().x(),
-                        -event.scenePos().y())
-                    self.addModule(module).update()
-                    self.noUpdate = False
+                assert len(data.items) == 1
+                item = data.items[0]
+                self.controller.resetPipelineView = False
+                self.noUpdate = True
+                module = self.controller.add_module(
+                    item.descriptor.identifier,
+                    item.descriptor.name,
+                    event.scenePos().x(),
+                    -event.scenePos().y())
+                graphics_item = self.addModule(module)
+                graphics_item.update()
+                self.unselect_all()
+                # Change selection
+                graphics_item.setSelected(True)
+                self.noUpdate = False
 
     def keyPressEvent(self, event):
         """ keyPressEvent(event: QKeyEvent) -> None
@@ -1352,7 +1362,10 @@ mutual connections."""
             cb = QtGui.QApplication.clipboard()        
             text = str(cb.text())
             if text=='': return
-            self.controller.pasteModulesAndConnections(text)
+            self.unselect_all()
+            ids = self.controller.pasteModulesAndConnections(text)
+            for moduleId in ids:
+                self.modules[moduleId].setSelected(True)
 
 #             dom = parseString(str(cb.text()))
 #             root = dom.documentElement

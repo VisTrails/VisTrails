@@ -871,8 +871,10 @@ class VistrailController(QtCore.QObject):
         return core.db.io.serialize(pipeline)
         
     def pasteModulesAndConnections(self, str):
-        """ pasteModulesAndConnections(str) -> version id
-        Paste a list of modules and connections into the current pipeline
+        """ pasteModulesAndConnections(str) -> [id list]
+        Paste a list of modules and connections into the current pipeline.
+
+        Returns the list of module ids of added modules
 
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
@@ -880,8 +882,13 @@ class VistrailController(QtCore.QObject):
         pipeline = core.db.io.unserialize(str, Pipeline)
         action = core.db.action.create_paste_action(pipeline, 
                                                     self.vistrail.idScope)
+        modules = []
+        for op in action.operations:
+            if op.what == 'module':
+                modules.append(op.objectId)
         self.vistrail.add_action(action, self.currentVersion)
         self.perform_action(action)
+        return modules
 
     def create_abstraction(self, modules, connections):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
