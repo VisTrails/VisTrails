@@ -758,7 +758,9 @@ class Pipeline(DBWorkflow):
                 d = registry.get_descriptor_by_name(module.package,
                                                     module.name)
                 do_it(registry.all_source_ports(d))
-            assert len(port_list) > 0
+            if len(port_list) == 0:
+                print "Failed", module.package, module.name, port.name
+                assert False
             
             # if port_list has more than one element, then it's an
             # overloaded port. Source (output) port overloads must all
@@ -791,7 +793,9 @@ class Pipeline(DBWorkflow):
                 d = registry.get_descriptor_by_name(module.package,
                                                     module.name)
                 do_it(registry.all_destination_ports(d))
-            assert len(port_list) > 0
+            if len(port_list) == 0:
+                print "Failed", module.package, module.name, port.name
+                assert False
 
             # if port_list has more than one element, then it's an
             # overloaded port. Destination (input) port overloads must

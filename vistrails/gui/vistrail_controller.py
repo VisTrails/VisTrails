@@ -25,6 +25,7 @@ import core.db.action
 from core.data_structures.point import Point
 from core.utils import VistrailsInternalError, ModuleAlreadyExists
 from core.modules import module_registry
+from core.modules.module_registry import ModuleRegistry
 from core.vistrail.action import Action
 # from core.vistrail.action import AddModuleAction, DeleteModuleAction, \
 #     ChangeParameterAction, AddConnectionAction, DeleteConnectionAction, \
@@ -556,8 +557,18 @@ class VistrailController(QtCore.QObject):
         """
         self.currentVersion = newVersion
         if newVersion>=0:
-            self.currentPipeline = self.vistrail.getPipeline(newVersion)
-            self.currentPipeline.ensure_connection_specs()
+            try:
+                self.currentPipeline = self.vistrail.getPipeline(newVersion)
+                self.currentPipeline.ensure_connection_specs()
+            except ModuleRegistry.MissingModulePackage, e:
+                from gui.application import VistrailsApplication
+                QtGui.QMessageBox.critical(VistrailsApplication.builderWindow,
+                                           'Missing package',
+                                           (('Cannot find module "%s" in \n' % e._name) +
+                                             ('package "%s". Make sure package is \n' % e._identifier) +
+                                             'enabled in the Preferences dialog.'))
+                self.currentPipeline = None
+                self.currentVersion = 0
         else:
             self.currentPipeline = None
         self.emit(QtCore.SIGNAL('versionWasChanged'), newVersion)
