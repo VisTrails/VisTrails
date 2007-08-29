@@ -62,13 +62,19 @@ class XMLFileLocator(BaseLocator):
         self._name = filename
 
     def load(self):
-        vistrail = io.open_vistrail_from_xml(self._name)
+        fname = self._find_latest_temporary()
+        if fname:
+            vistrail = io.open_vistrail_from_xml(fname)
+        else:
+            vistrail = io.open_vistrail_from_xml(self._name)
         vistrail.locator = self
         return vistrail
 
     def save(self, vistrail):
         io.save_vistrail_to_xml(vistrail, self._name)
         vistrail.locator = self
+        # Only remove the temporaries if save succeeded!
+        self.clean_temporaries()
 
     def save_temporary(self, vistrail):
         fname = self._find_latest_temporary()

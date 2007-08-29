@@ -165,7 +165,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.openFileAction.setStatusTip('Open an existing vistrail from '
                                          'a file')
 
-        self.importFileAction = QtGui.QAction(CurrentTheme.OPEN_VISTRAIL_DB_ICON,                                          'Import', self)
+        self.importFileAction = QtGui.QAction(CurrentTheme.OPEN_VISTRAIL_DB_ICON,
+                                              'Import', self)
         self.importFileAction.setStatusTip('Import an existing vistrail from '
                                            'a database')
 

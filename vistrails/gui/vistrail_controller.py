@@ -1002,10 +1002,13 @@ class VistrailController(QtCore.QObject):
     def write_vistrail(self, locator):
         if self.vistrail and (self.changed or
                               self.locator != locator):
+            old_locator = self.get_locator()
             self.locator = locator
             self.locator.save(self.vistrail)
             self.setChanged(False)
             self.setFileName(locator.name)
+            if old_locator:
+                old_locator.clean_temporaries()
 
     def queryByExample(self, pipeline):
         """ queryByExample(pipeline: Pipeline) -> None
