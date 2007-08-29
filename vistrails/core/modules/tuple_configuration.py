@@ -78,7 +78,7 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
         After StandardModuleConfigurationWidget constructor, all of
         these will be available:
         self.module : the Module object int the pipeline        
-        self.moduleThing: the Module type registered in the registry,
+        self.module_descriptor: the descriptor for the type registered in the registry,
                           i.e. Tuple
         self.controller: the current vistrail controller
                                        
@@ -104,7 +104,7 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
         # input port, we just use the local registry to see what ports
         # it has at the time of configuration.
         if self.module.registry:
-            iPorts = self.module.registry.destinationPorts(self.moduleThing)
+            iPorts = self.module.registry.destination_ports_from_descriptor(self.module_descriptor)
             self.portTable.initializePorts(iPorts)
         else:
             self.portTable.fixGeometry()
@@ -179,10 +179,10 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
         
         """
         if self.module.registry:
-            dstPorts = self.module.registry.destinationPorts(self.moduleThing, False)
+            dstPorts = self.module.registry.destination_ports_from_descriptor(self.module_descriptor, False)
             oldIn = [('input', p.name,
-                      '('+registry.getDescriptorByThing(p.spec[0][0][0]).name+
-                      ')') for p in dstPorts[0][1]]
+                      '('+registry.get_descriptor(p.spec.signatures[0][0]).name+
+                      ')') for p in dstPorts]
         else:
             oldIn = []
         return self.lcs(oldIn, newPorts)
@@ -224,8 +224,10 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
                 if (c.sourceId==self.module.id and c.source.name=='value'):
                     self.controller.deleteConnection(cid)
 
-        # Remove the current output port and add a new one                    
-        self.controller.deleteModulePort(self.module.id, ('output', 'value'))
+        tpl = ('output', 'value')
+        if self.controller.hasModulePort(self.module.id, tpl):
+            # Remove the current output port and add a new one                    
+            self.controller.deleteModulePort(self.module.id, tpl)
         spec = '('+','.join(spec)+')'
         self.controller.addModulePort(self.module.id,
                                       ('output', 'value', spec))
@@ -234,7 +236,7 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
         """ lcs(l1: list, l2: list) -> (keep, delete, add list)        
         Given 2 lists, we want to find our which part of l1 is the
         same as l2 and which should be deleted or added. This is very
-        small in our case, we just use memoirization.
+        small in our case, we just use memoization.
         
         """
         res = {}

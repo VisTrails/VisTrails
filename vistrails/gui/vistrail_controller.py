@@ -396,6 +396,22 @@ class VistrailController(QtCore.QObject):
         
         return self.perform_action(action)
 
+    def hasModulePort(self, module_id, port_tuple):
+        """ hasModulePort(module_id: int, port_tuple: (str, str)): bool
+        Parameters
+        ----------
+        
+        - module_id : 'int'        
+        - port_tuple : (portType, portName)
+
+        Returns true if there exists a module port in this module with given params
+
+        """
+        (type, name) = port_tuple
+        module = self.currentPipeline.get_module_by_id(module_id)
+        return len([x for x in module.db_portSpecs
+                    if x.name == name and x.type == type]) > 0
+
     def addModulePort(self, module_id, port_tuple):
         """ addModulePort(module_id: int, port_tuple: (str, str, list)
         Parameters
@@ -527,10 +543,6 @@ class VistrailController(QtCore.QObject):
         
         """
         if self.currentPipeline:
-            locator = self.get_locator()
-            if locator:
-                locator.clean_temporaries()
-                locator.save_temporary(self.vistrail)
             self.executeWorkflowList([(self.locator,
                                        self.currentVersion,
                                        self.currentPipeline,
