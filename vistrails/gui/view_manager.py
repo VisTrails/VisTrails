@@ -31,6 +31,7 @@ from gui.vistrail_view import QVistrailView
 from core import system
 from core.db.locator import XMLFileLocator
 from core.vistrail.vistrail import Vistrail
+from core.modules.module_registry import ModuleRegistry
 import copy
 
 ################################################################################
@@ -277,6 +278,12 @@ class QViewManager(QtGui.QTabWidget):
             if locator.has_temporaries():
                 result.controller.setChanged(True)
             return result
+        except ModuleRegistry.MissingModulePackage, e:
+            QtGui.QMessageBox.critical(self,
+                                       'Missing package',
+                                       (('Cannot find module "%s" in \n' % e._name) +
+                                        ('package "%s". Make sure package is \n' % e._identifier) +
+                                        'enabled in the Preferences dialog.'))
         except Exception, e:
             QtGui.QMessageBox.critical(None,
                                        'Vistrails',

@@ -423,6 +423,14 @@ class ModuleRegistry(QtCore.QObject):
     # new_output_port_signal is emitted with identifier and name of module, new port and spec
     new_output_port_signal = QtCore.SIGNAL("new_output_port_signal")
 
+    class MissingModulePackage(Exception):
+        def __init__(self, identifier, name):
+            Exception.__init__(self)
+            self._identifier = identifier
+            self._name = name
+        def str(self):
+            return "Missing package: %s, %s" % (identifier, name)
+
     ##########################################################################
     # Constructor and copy
 
@@ -480,7 +488,8 @@ class ModuleRegistry(QtCore.QObject):
                    self._key_tree_map.iterkeys()
                    if x[1] == name]
         if len(matches) == 0:
-            raise Exception("'%s' didn't match registry..." % name)
+            raise self.MissingModulePackage("<unknown package>",
+                                            name)
         if len(matches) > 1:
             raise Exception("ambiguous resolution...")
         result = self.get_descriptor_by_name(matches[0][0],
@@ -550,13 +559,13 @@ class ModuleRegistry(QtCore.QObject):
         if identifier not in self.package_modules:
             msg = ("Cannot find package %s: it is missing" % identifier)
             core.debug.critical(msg)
-            return None
+            raise self.MissingModulePackage(identifier, name)
         key = (identifier, name)
         if not self._key_tree_map.has_key(key):
             msg = ("Package %s does not contain module %s" %
                    (identifier, name))
             core.debug.critical(msg)
-            return None
+            raise self.MissingModulePackage(identifier, name)
         return self._key_tree_map[key].descriptor
 
     def get_descriptor(self, module):
