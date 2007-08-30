@@ -97,3 +97,22 @@ class MplFigureCellWidget(QCellWidget):
 
             # Save back the manager
             self.figManager = newFigManager
+
+    def deleteLater(self):
+        """ deleteLater() -> None        
+        Overriding PyQt deleteLater to free up resources
+        
+        """
+        # Destroy the old one if possible
+        if self.figManager:
+             
+            try:                    
+                pylab.close(self.figManager.canvas.figure)
+            # There is a bug in Matplotlib backend_qt4. It is a
+            # wrong command for Qt4. Just ignore it and continue
+            # to destroy the widget
+            except:
+                pass
+            
+            self.figManager.window.deleteLater()
+        QCellWidget.deleteLater(self)
