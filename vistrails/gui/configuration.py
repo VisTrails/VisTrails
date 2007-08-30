@@ -223,6 +223,10 @@ class QGeneralConfiguration(QtGui.QWidget):
         self.setLayout(layout)
         self._configuration = None
 
+        self._autosave_cb = QtGui.QCheckBox(self)
+        self._autosave_cb.setText('Automatically save vistrails')
+        layout.addWidget(self._autosave_cb)
+
         self._db_connect_cb = QtGui.QCheckBox(self)
         self._db_connect_cb.setText('Read/Write to database by default')
         layout.addWidget(self._db_connect_cb)
@@ -247,6 +251,9 @@ class QGeneralConfiguration(QtGui.QWidget):
 
         self.update_state(configuration_object)
 
+        self.connect(self._autosave_cb,
+                     QtCore.SIGNAL('stateChanged(int)'),
+                     self.autosave_changed)
         self.connect(self._db_connect_cb,
                      QtCore.SIGNAL('stateChanged(int)'),
                      self.db_connect_changed)
@@ -271,6 +278,9 @@ class QGeneralConfiguration(QtGui.QWidget):
         
         self._configuration = configuration
 
+        if self._configuration.has('autosave'):
+            self._autosave_cb.setChecked(
+                getattr(self._configuration, 'autosave'))
         if self._configuration.has('dbDefault'):
             self._db_connect_cb.setChecked(
                 getattr(self._configuration, 'dbDefault'))
@@ -288,6 +298,15 @@ class QGeneralConfiguration(QtGui.QWidget):
                 getattr(self._configuration, 'multiHeads'))
         else:
             self._data_dir_le.setText(core.system.vistrails_file_directory())                
+    def autosave_changed(self, on):
+        """ autosave_changed(on: int) -> None
+        
+        """
+        item = 'autosave'
+        setattr(self._configuration, item, bool(on))
+        self.emit(QtCore.SIGNAL('configuration_changed'),
+                  None, bool(on))
+
     def db_connect_changed(self, on):
         """ db_connect_changed(on: int) -> None
 

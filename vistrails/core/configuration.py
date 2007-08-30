@@ -123,6 +123,7 @@ def default():
     """
 
     base_dir = {
+        'autosave': True,
         'dataDirectory': (None, str),
         'dbDefault': False,
         'debugSignals': False,

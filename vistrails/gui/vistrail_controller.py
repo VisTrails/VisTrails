@@ -107,7 +107,9 @@ class VistrailController(QtCore.QObject):
         self._auto_save = False
 
     def get_locator(self):
-        if self._auto_save:
+        from gui.application import VistrailsApplication
+        if (self._auto_save and 
+            VistrailsApplication.configuration.check('autosave')):
             return self.locator or core.system.untitled_locator()
         else:
             return None
