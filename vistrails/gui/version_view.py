@@ -33,6 +33,7 @@ QVersionTreeView
 
 from PyQt4 import QtCore, QtGui
 from core.dotty import DotLayout
+from core.system import systemType
 from gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface,
@@ -356,8 +357,12 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         if (self.dragging and
             (event.screenPos()-self.dragPos).manhattanLength()>2):
             self.dragging = False
-            self.dragTimer.start(1)
-        QtGui.QGraphicsEllipseItem.mousePressEvent(self, event)
+            #the timer has undesirable effects on Windows
+            if systemType not in ['Windows', 'Microsoft']:
+                self.dragTimer.start(1)
+            else:
+                self.startDrag()
+        QtGui.QGraphicsEllipseItem.mouseMoveEvent(self, event)
         # super(QGraphicsVersionItem, self).mouseMoveEvent(event)
 
     def startDrag(self):
@@ -424,7 +429,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
 
         """
         menu = QtGui.QMenu()
-        menu.addAction(self.addToBookmarksAct)
+        #menu.addAction(self.addToBookmarksAct)
         controller = self.scene().controller
         if len(controller.analogy) > 0:
             analogies = QtGui.QMenu("Perform analogy...")
@@ -444,32 +449,32 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         """
         self.addToBookmarksAct = QtGui.QAction("Add To Bookmarks", self.scene())
         self.addToBookmarksAct.setStatusTip("Add this pipeline to bookmarks")
-        QtCore.QObject.connect(self.addToBookmarksAct, 
-                               QtCore.SIGNAL("triggered()"),
-                               self.add_bookmark)
+#         QtCore.QObject.connect(self.addToBookmarksAct, 
+#                                QtCore.SIGNAL("triggered()"),
+#                                self.add_bookmark)
 
-    def add_bookmark(self):
-        """add_bookmark() -> None
-        Emit signal containing version info: tag and number 
+#     def add_bookmark(self):
+#         """add_bookmark() -> None
+#         Emit signal containing version info: tag and number 
         
-        """
-        modified = False
-        if self.scene().controller.changed:
-            modified = True
-            res = gui.utils.show_question("VisTrails",
-                                    "You need to save your file before\
- adding a bookmark.\nDo you want to save your changes?",
-                                    [gui.utils.SAVE_BUTTON, 
-                                     gui.utils.CANCEL_BUTTON],
-                                    gui.utils.SAVE_BUTTON)
-            if res == gui.utils.SAVE_BUTTON:
-                fileName = self.scene().controller.fileName
-                self.scene().controller.writeVistrail(str(fileName))
-                modified = False
+#         """
+#         modified = False
+#         if self.scene().controller.changed:
+#             modified = True
+#             res = gui.utils.show_question("VisTrails",
+#                                     "You need to save your file before\
+#  adding a bookmark.\nDo you want to save your changes?",
+#                                     [gui.utils.SAVE_BUTTON, 
+#                                      gui.utils.CANCEL_BUTTON],
+#                                     gui.utils.SAVE_BUTTON)
+#             if res == gui.utils.SAVE_BUTTON:
+#                 fileName = self.scene().controller.fileName
+#                 self.scene().controller.writeVistrail(str(fileName))
+#                 modified = False
 
-        if not modified:
-            self.scene().emit( QtCore.SIGNAL('addToBookmarks'), 
-                               self.id, self.label) 
+#         if not modified:
+#             self.scene().emit( QtCore.SIGNAL('addToBookmarks'), 
+#                                self.id, self.label) 
 
 class QVersionTreeScene(QInteractiveGraphicsScene):
     """
