@@ -34,6 +34,14 @@ from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 import vtkcell_rc
 import gc
 from gui.qt import qt_super
+from core.vistrail.action import Action
+from core.vistrail.port import Port
+from core.vistrail import module
+from core.vistrail import connection
+from core.vistrail.module_function import ModuleFunction
+from core.vistrail.module_param import ModuleParam
+import db.services.action
+import copy
 
 ################################################################################
 
@@ -954,7 +962,9 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                     view = viewManager.ensureVistrail(info['locator'])
                     if view:
                         controller = view.controller
-                        pipeline = controller.vistrail.getPipeline(info['version'])
+                        controller.changeSelectedVersion(info['version'])
+                        
+                        pipeline = controller.currentPipeline
                         
                         cellWidget = self.toolBar.getSnappedWidget()
                         renderers = cellWidget.getRendererList()
@@ -969,12 +979,88 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                             for c in pipeline.connections.values():
                                 if c.destination.id==rendererId:
                                     if c.destination.name=='SetCamera':
-                                        camera = pipeline[c.destination.id]
+                                        camera = pipeline.modules[c.destination.id]
                                         break
-#                            if !camera:
+                            if not camera:
                                 # Create camera
-#                                camera = module.Module(id=
-                            
+                                param_id = [controller.vistrail.idScope.getNewId(ModuleParam.vtType),
+                                            controller.vistrail.idScope.getNewId(ModuleParam.vtType),
+                                            controller.vistrail.idScope.getNewId(ModuleParam.vtType)]
+                                posParams = [ModuleParam(id=param_id[i], pos=i,
+                                                         name="", val=str(cpos[i]),
+                                                         type="Float", alias="")
+                                             for i in range(3)]
+                                function_id = controller.vistrail.idScope.getNewId(ModuleFunction.vtType)
+                                setPos = ModuleFunction(id=function_id,
+                                                        pos=0,
+                                                        name="SetPosition",
+                                                        parameters=posParams,
+                                                        )
+
+                                param_id = [controller.vistrail.idScope.getNewId(ModuleParam.vtType),
+                                            controller.vistrail.idScope.getNewId(ModuleParam.vtType),
+                                            controller.vistrail.idScope.getNewId(ModuleParam.vtType)]
+                                posParams = [ModuleParam(id=param_id[i], pos=i,
+                                                         name="", val=str(cfol[i]),
+                                                         type="Float", alias="")
+                                             for i in range(3)]
+                                function_id = controller.vistrail.idScope.getNewId(ModuleFunction.vtType)
+                                setFocal = ModuleFunction(id=function_id,
+                                                          pos=1,
+                                                          name="SetFocalPoint",
+                                                          parameters=posParams,
+                                                          )
+
+                                param_id = [controller.vistrail.idScope.getNewId(ModuleParam.vtType),
+                                            controller.vistrail.idScope.getNewId(ModuleParam.vtType),
+                                            controller.vistrail.idScope.getNewId(ModuleParam.vtType)]
+                                posParams = [ModuleParam(id=param_id[i], pos=i,
+                                                         name="", val=str(cup[i]),
+                                                         type="Float", alias="")
+                                             for i in range(3)]
+                                function_id = controller.vistrail.idScope.getNewId(ModuleFunction.vtType)
+                                setUp = ModuleFunction(id=function_id,
+                                                       pos=2,
+                                                       name="SetViewUp",
+                                                       parameters=posParams,
+                                                       )
+                                                        
+                                module_id = controller.vistrail.idScope.getNewId(module.Module.vtType)
+                                camera = module.Module(id=module_id,
+                                                       name="vtkCamera",
+                                                       package="edu.utah.sci.vistrails.vtk",
+                                                       functions=[setPos, setFocal, setUp])
+                                action = db.services.action.create_action([('add', 
+                                                                            camera)])
+                                Action.convert(action)
+                                controller.vistrail.add_action(action, controller.currentVersion)
+                                controller.perform_action(action)
+
+                                port_id = controller.vistrail.idScope.getNewId(Port.vtType)
+                                source = Port(id=port_id,
+                                              type='source',
+                                              moduleId=camera.id,
+                                              moduleName=camera.name)
+                                source.name = "self"
+                                source.spec = copy.copy(registry.get_output_port_spec(camera,
+                                                                                      "self"))
+                                port_id = controller.vistrail.idScope.getNewId(Port.vtType)
+                                destination = Port(id=port_id,
+                                                   type='destination',
+                                                   moduleId=rendererId,
+                                                   moduleName='vtkRenderer')
+                                destination.name = "SetActiveCamera"
+                                destination.spec = copy.copy(registry.get_input_port_spec(pipeline.modules[rendererId],
+                                                                                          "SetActiveCamera"))
+                                c_id = controller.vistrail.idScope.getNewId(connection.Connection.vtType)
+                                conn = connection.Connection(id=c_id,
+                                                             ports=[source, destination])
+                                action = db.services.action.create_action([('add', 
+                                                                           conn)])
+                                Action.convert(action)
+                                controller.vistrail.add_action(action, controller.currentVersion)
+                                controller.perform_action(action)
+                                
                         controller.selectLatestVersion()
                         self.resetVersionView = False
                         controller.invalidate_version_tree()
