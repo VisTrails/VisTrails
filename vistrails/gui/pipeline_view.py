@@ -778,6 +778,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         """
         # Update module info and visual
         self.id = module.id
+        self.setZValue(float(self.id))
         self.module = module
         self.label = module.name
         # self.description = module.annotations.get('__desc__', '').strip()
