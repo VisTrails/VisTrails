@@ -30,6 +30,7 @@ import sys
 import os
 import popen2
 import os.path
+import tempfile
 
 from db import VistrailsDBException
 from db.domain import DBVistrail, DBWorkflow, DBLog
@@ -135,15 +136,15 @@ def open_vistrail_from_xml(filename):
     return vistrail
 
 def open_vistrail_from_zip_xml(filename):
-    """open_vistrail_from_zip_xml(filename) -> Vistrail"""
-    # will assume that the file inside has the same name without .vt
-    zipfname = os.path.basename(filename)
-    name_in_archive = zipfname
-    if len(zipfname) > 3:
-        dot = zipfname.rfind('.')
-        name_in_archive = zipfname[:dot]
-    xmlfname = os.path.join(core.system.temporary_directory(),name_in_archive)
+    """open_vistrail_from_zip_xml(filename) -> Vistrail
+    Open a vistrail from a zip compressed format.
+    It expects that the file inside archive has name vistrail
+
+    """
+    name_in_archive = 'vistrail'
+    (file_, xmlfname) = tempfile.mkstemp(suffix='.xml')
     core.requirements.require_executable('unzip')
+    os.close(file_)
     if systemType not in ['Windows', 'Microsoft']:
         cmdline = 'unzip -p %s %s > %s' % (filename,
                                            name_in_archive,
@@ -189,30 +190,37 @@ def save_vistrail_to_xml(vistrail, filename):
     daoList.save_to_xml(vistrail, filename)
 
 def save_vistrail_to_zip_xml(vistrail, filename):
-    zipfname = os.path.basename(filename)
-    name_in_archive = zipfname
-    if len(zipfname) > 3:
-        dot = zipfname.rfind('.')
-        name_in_archive = zipfname[:dot]
-    xmlfname = os.path.join(core.system.temporary_directory(),name_in_archive)
+    """save_vistrail_to_zip_xml(vistrail: Vistrail, filename:str)-> None
+    Generate a zip compressed version of vistrail.
+    It raise an Exception if there was an error
+    
+    """
+    
+    (file_, xmlfname) = tempfile.mkstemp(suffix='.xml')
+    os.close(file_)
+    name_in_archive = os.path.join(os.path.dirname(xmlfname),'vistrail')
     save_vistrail_to_xml(vistrail,xmlfname)
     core.requirements.require_executable('zip')
+    os.rename(xmlfname,name_in_archive)
     if systemType not in ['Windows', 'Microsoft']:
-        cmdline = 'zip -r -j %s %s' % (filename, xmlfname)
+        cmdline = 'zip -r -j -q %s %s' % (filename, name_in_archive)
         process = popen2.Popen4(cmdline)
         result = -1
         while result == -1:
             result = process.poll()
         output = process.fromchild.readlines()
     else:
-        cmdline = 'zip -r -j -q "%s" "%s"' % (filename, xmlfname)
+        cmdline = 'zip -r -j "%s" "%s"' % (filename, name_in_archive)
         result = -1
         out, inp = popen2.popen4(cmdline)
         output = out.readlines()
     #print result, output
-    os.unlink(xmlfname)
+    os.unlink(name_in_archive)
     if result != 0 and len(output) != 0:
-        raise Exception(" ".join(output))    
+        for line in output:
+            if line.find('deflated') == -1:
+                raise Exception(" ".join(output))
+            
     
 def save_vistrail_to_db(vistrail, dbConnection):
     vistrail.db_version = currentVersion
