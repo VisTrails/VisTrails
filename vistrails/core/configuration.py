@@ -136,7 +136,7 @@ def default():
         'maximizeWindows': False,
         'minMemory': (None, int),
         'multiHeads': False,
-        'nologger': False,
+        'nologger': True,
         'packageDirectory': (None, str),
         'pythonPrompt': False,
         'rootDirectory': (None, str),

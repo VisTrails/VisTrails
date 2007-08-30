@@ -490,4 +490,3 @@ class QPreferencesDialog(QtGui.QDialog):
         VistrailsApplication.configuration.write_to_dom(dom, doc)
         startup.write_startup_dom(dom)
         dom.unlink()
-                                       

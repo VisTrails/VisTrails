@@ -225,46 +225,46 @@ run in batch mode.')
         
         """
         add = command_line.CommandLineParser.add_option
-        add("-S", "--startup", action="store", type="str", default="",
+        add("-S", "--startup", action="store", type="str", default=None,
             dest="dotVistrails",
             help="Set startup file (default is ~/.vistrails/startup.py)")
         add("-?", action="help",
             help="show this help message and exit")
         add("-p", "--prompt", action="store_true",
-            default=False, dest="prompt",
+            default=None, dest="prompt",
             help="start a python prompt inside VisTrails")
         add("-v", "--version", action="callback",
             callback=lambda option, opt, value, parser: self.printVersion(),
             help="print version information and quit")
-        add("-V", "--verbose", action="store", type="int", default=-1,
+        add("-V", "--verbose", action="store", type="int", default=None,
             dest="verbose", help="set verboseness level (0--2, "
             "default=0, higher means more verbose)")
         add("-n", "--nosplash", action="store_true",
-            default = False,
+            default = None,
             help="don't display splash on startup")
-        add("-c", "--cache", action="store", type="int", default=1,
+        add("-c", "--cache", action="store", type="int", default=None,
             dest="cache", help="enable/disable caching")
-        add("-m", "--movies", action="store", type="int", default=1,
+        add("-m", "--movies", action="store", type="int", default=None,
             dest="movies", help="""set automatic movie creation on spreadsheet "
             "(0 or 1, default=1. Set this to zero to work around vtk bug with "
             "offscreen renderer and opengl texture3d mappers)""")
         add("-s", "--multiheads", action="store_true",
-            default = False,
+            default = None,
             help="display the builder and spreadsheet on different screens "
             "(if available)")
         add("-x", "--maximized", action="store_true",
-            default = False,
+            default = None,
             help="Maximize VisTrails windows at startup")
         add("-w", "--workflow", action="store", dest="workflow",
             help="set the workflow to be run (non-interactive mode only)")
         add("-b", "--noninteractive", action="store_true",
-            default = False,
+            default = None,
             help="run in non-interactive mode")
         add("-l", "--nologger", action="store_true",
-            default = True,
+            default = None,
             help="disable the logging")
         add("-d", "--debugsignals", action="store_true",
-            default = False,
+            default = None,
             help="debug Qt Signals")
         add("-a", "--parameters", action="store", dest="parameters",
             help="workflow parameter settings (non-interactive mode only)")
@@ -284,26 +284,36 @@ run in batch mode.')
         
         """
         get = command_line.CommandLineParser().get_option
-        if get('prompt'):
-            self.configuration.pythonPrompt = True
-        if get('nosplash'):
-            self.configuration.showSplash = False
-        self.configuration.debugSignals = bool(get('debugsignals'))
-        self.configuration.dotVistrails = get('dotVistrails')
+        if get('prompt')!=None:
+            self.configuration.pythonPrompt = bool(get('prompt'))
+        if get('nosplash')!=None:
+            self.configuration.showSplash = bool(get('nosplash'))
+        if get('debugsignals')!=None:
+            self.configuration.debugSignals = bool(get('debugsignals'))
+        if get('dotVistrails')!=None:
+            self.configuration.dotVistrails = get('dotVistrails')
         if not self.configuration.check('dotVistrails'):
             self.configuration.dotVistrails = system.default_dot_vistrails()
-        self.configuration.multiHeads = bool(get('multiheads'))
-        self.configuration.maximizeWindows = bool(get('maximized'))
-        self.configuration.showMovies = bool(get('movies'))
-        self.configuration.useCache = bool(get('cache'))
-        self.configuration.verbosenessLevel = get('verbose')
-        if get('noninteractive'):
-            self.configuration.interactiveMode = False
+        if get('multiheads')!=None:
+            self.configuration.multiHeads = bool(get('multiheads'))
+        if get('maximized')!=None:
+            self.configuration.maximizeWindows = bool(get('maximized'))
+        if get('movies')!=None:
+            self.configuration.showMovies = bool(get('movies'))
+        if get('cache')!=None:
+            self.configuration.useCache = bool(get('cache'))
+        if get('verbose')!=None:
+            self.configuration.verbosenessLevel = get('verbose')
+        if get('noninteractive')!=None:
+            self.configuration.interactiveMode = not bool(get('noninteractive'))
+        
+        if not self.configuration.interactiveMode:
             self.nonInteractiveOpts = InstanceObject(workflow=get('workflow'),
                                                      parameters=get('parameters'))
-        self.configuration.nologger = bool(get('nologger'))
+        if get('nologger')!=None:
+            self.configuration.nologger = bool(get('nologger'))
         self.input = command_line.CommandLineParser().positional_arguments()
-        if get('workflow') and not get('noninteractive'):
+        if get('workflow') and self.configuration.interactiveMode:
             print "Workflow option only allowed in noninteractive mode."
             sys.exit(1)
 

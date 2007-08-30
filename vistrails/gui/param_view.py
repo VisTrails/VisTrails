@@ -45,7 +45,7 @@ class QParameterView(QSearchTreeWindow, QToolWindowInterface):
         Return the search tree widget for this window
         
         """
-        self.setWindowTitle('Parameters')
+        self.setWindowTitle('Set Methods')
         return QParameterTreeWidget(self)
 
 class QParameterTreeWidget(QSearchTreeWidget):
