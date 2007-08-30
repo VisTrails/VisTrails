@@ -27,7 +27,7 @@ from PyQt4 import QtCore, QtGui
 from core import system
 from core.db.locator import DBLocator, FileLocator
 from gui.application import VistrailsApplication
-from gui.bookmark_window import QBookmarksWindow
+#from gui.bookmark_window import QBookmarksWindow
 from gui.graphics_view import QInteractiveGraphicsView
 from gui.module_palette import QModulePalette
 from gui.open_db_window import QOpenDBWindow
@@ -70,7 +70,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,
                            self.modulePalette.toolWindow())
         
-        self.bookmarksWindow = QBookmarksWindow(parent=self)
+        #self.bookmarksWindow = QBookmarksWindow(parent=self)
         
         self.viewIndex = 0
         self.dbDefault = False
@@ -231,10 +231,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.shellAction.setCheckable(True)
         self.shellAction.setShortcut('Ctrl+H')
 
-        self.bookmarksAction = QtGui.QAction(CurrentTheme.BOOKMARKS_ICON,
-                                             'Bookmarks', self)
-        self.bookmarksAction.setCheckable(True)
-        self.bookmarksAction.setShortcut('Ctrl+D')
+        # self.bookmarksAction = QtGui.QAction(CurrentTheme.BOOKMARKS_ICON,
+#                                              'Bookmarks', self)
+#         self.bookmarksAction.setCheckable(True)
+#         self.bookmarksAction.setShortcut('Ctrl+D')
 
         self.pipViewAction = QtGui.QAction('Picture-in-Picture', self)
         self.pipViewAction.setCheckable(True)
@@ -307,7 +307,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editMenu.addAction(self.editPreferencesAction)
         
         self.viewMenu = self.menuBar().addMenu('&View')
-        self.viewMenu.addAction(self.bookmarksAction)
+        #self.viewMenu.addAction(self.bookmarksAction)
         self.viewMenu.addAction(self.shellAction)
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.pipViewAction)
@@ -345,7 +345,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.toolBar.addAction(self.openFileAction)
         self.toolBar.addAction(self.saveFileAction)
         self.toolBar.addSeparator()
-        self.toolBar.addAction(self.bookmarksAction)
+        #self.toolBar.addAction(self.bookmarksAction)
 
         self.viewToolBar = QVistrailViewToolBar(self)
         self.addToolBar(self.viewToolBar)
@@ -433,13 +433,13 @@ class QBuilderWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('triggered(bool)'),
                      self.showShell)
         
-        self.connect(self.bookmarksAction,
-                     QtCore.SIGNAL('triggered(bool)'),
-                     self.showBookmarks)
+        # self.connect(self.bookmarksAction,
+#                      QtCore.SIGNAL('triggered(bool)'),
+#                      self.showBookmarks)
 
-        self.connect(self.bookmarksWindow,
-                     QtCore.SIGNAL("bookmarksHidden()"),
-                     self.bookmarksAction.toggle)
+#         self.connect(self.bookmarksWindow,
+#                      QtCore.SIGNAL("bookmarksHidden()"),
+#                      self.bookmarksAction.toggle)
         
         for shortcut in self.executeShortcuts:
             self.connect(shortcut,
@@ -780,17 +780,17 @@ class QBuilderWindow(QtGui.QMainWindow):
         sys.stdin = self.stdin
         sys.stderr = self.stderr
 
-    def showBookmarks(self, checked=True):
-        """ showBookmarks() -> None
-        Display Bookmarks Interactor Window
+#     def showBookmarks(self, checked=True):
+#         """ showBookmarks() -> None
+#         Display Bookmarks Interactor Window
         
-        """
-        if checked:
-            if self.bookmarksWindow:
-                self.bookmarksWindow.show()
-        else:
-            if self.bookmarksWindow:
-                self.bookmarksWindow.hide()
+#         """
+#         if checked:
+#             if self.bookmarksWindow:
+#                 self.bookmarksWindow.show()
+#         else:
+#             if self.bookmarksWindow:
+#                 self.bookmarksWindow.hide()
         
     def showAboutMessage(self):
         """showAboutMessage() -> None

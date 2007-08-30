@@ -143,11 +143,11 @@ def open_vistrail_from_zip_xml(filename):
         dot = zipfname.rfind('.')
         name_in_archive = zipfname[:dot]
     xmlfname = os.path.join(core.system.temporary_directory(),name_in_archive)
-    cmdline = "unzip -p %s %s > %s" % (filename,
-                                       name_in_archive,
-                                       xmlfname)
     core.requirements.require_executable('unzip')
     if systemType not in ['Windows', 'Microsoft']:
+        cmdline = 'unzip -p %s %s > %s' % (filename,
+                                           name_in_archive,
+                                           xmlfname)
         process = popen2.Popen4(cmdline)
         result = -1
         while result == -1:
@@ -155,6 +155,9 @@ def open_vistrail_from_zip_xml(filename):
         output = process.fromchild.readlines()
         
     else:
+        cmdline = 'unzip -p "%s" "%s" > "%s"' % (filename,
+                                                 name_in_archive,
+                                                 xmlfname)
         result = -1
         out, inp = popen2.popen4(cmdline)
         output = out.readlines()
@@ -193,23 +196,23 @@ def save_vistrail_to_zip_xml(vistrail, filename):
         name_in_archive = zipfname[:dot]
     xmlfname = os.path.join(core.system.temporary_directory(),name_in_archive)
     save_vistrail_to_xml(vistrail,xmlfname)
-    
-    cmdline = "zip -r -j %s %s" % (filename, xmlfname)
     core.requirements.require_executable('zip')
     if systemType not in ['Windows', 'Microsoft']:
+        cmdline = 'zip -r -j %s %s' % (filename, xmlfname)
         process = popen2.Popen4(cmdline)
         result = -1
         while result == -1:
             result = process.poll()
         output = process.fromchild.readlines()
     else:
+        cmdline = 'zip -r -j -q "%s" "%s"' % (filename, xmlfname)
         result = -1
         out, inp = popen2.popen4(cmdline)
         output = out.readlines()
     #print result, output
     os.unlink(xmlfname)
-    if result != 0 and len(output) != 0:   
-        raise Exception(" ".join(output))
+    if result != 0 and len(output) != 0:
+        raise Exception(" ".join(output))    
     
 def save_vistrail_to_db(vistrail, dbConnection):
     vistrail.db_version = currentVersion

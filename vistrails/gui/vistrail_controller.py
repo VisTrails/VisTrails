@@ -34,7 +34,6 @@ from core.vistrail.action import Action
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
 from core.vistrail.abstraction import Abstraction
-from core.vistrail.abstraction_ref import AbstractionRef
 from core.vistrail.annotation import Annotation
 from core.vistrail.connection import Connection
 from core.vistrail.location import Location

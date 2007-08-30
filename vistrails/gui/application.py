@@ -335,10 +335,10 @@ run in batch mode.')
 
             # This is so that we don't import too many things before we
             # have to. Otherwise, requirements are checked too late.
-            import gui.bookmark_window
-            gui.bookmark_window.initBookmarks(system.default_bookmarks_file())    
+            #import gui.bookmark_window
+            #gui.bookmark_window.initBookmarks(system.default_bookmarks_file())    
             
-        initBookmarks()
+        #initBookmarks()
         if self.configuration.check('pythonPrompt'):
             debug.startVisTrailsREPL(locals())
         self.showSplash = self.configuration.showSplash
