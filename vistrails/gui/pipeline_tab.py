@@ -120,25 +120,25 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
             pipeline = self.pipelineView.scene().controller.currentPipeline
         else:
             pipeline = None
-        if pipeline:            
-            if pipeline.modules.has_key(moduleId):
-                module = pipeline.modules[moduleId]
-                self.methodPalette.setEnabled(True)
-                self.moduleMethods.setEnabled(True)
-            else:
-                module = None
-                self.methodPalette.setEnabled(False)
-                self.moduleMethods.setEnabled(False)
-            self.methodPalette.setUpdatesEnabled(False)
-            self.moduleMethods.setUpdatesEnabled(False)
-            try:
-                self.methodPalette.treeWidget.updateModule(module)
-                self.moduleMethods.updateModule(module)
-                self.emit(QtCore.SIGNAL('moduleSelectionChange'),
-                          [m.id for m in selection])
-            finally:
-                self.methodPalette.setUpdatesEnabled(True)
-                self.moduleMethods.setUpdatesEnabled(True)
+        if pipeline and pipeline.modules.has_key(moduleId):
+            module = pipeline.modules[moduleId]
+            self.methodPalette.setEnabled(True)
+            self.moduleMethods.setEnabled(True)
+        else:
+            module = None
+            self.methodPalette.setEnabled(False)
+            self.moduleMethods.setEnabled(False)
+        self.methodPalette.setUpdatesEnabled(False)
+        self.moduleMethods.setUpdatesEnabled(False)
+        try:
+            self.methodPalette.treeWidget.updateModule(module)
+            self.moduleMethods.updateModule(module)
+            self.emit(QtCore.SIGNAL('moduleSelectionChange'),
+                      [m.id for m in selection])
+        finally:
+            self.methodPalette.setUpdatesEnabled(True)
+            self.moduleMethods.setUpdatesEnabled(True)
+             
 
     def setController(self, controller):
         """ setController(controller: VistrailController) -> None

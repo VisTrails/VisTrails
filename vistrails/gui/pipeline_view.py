@@ -1212,7 +1212,7 @@ mutual connections."""
         Set to accept drops from the module palette
         
         """
-        if (self.controller and self.controller.currentVersion!=-1 and
+        if (self.controller and
             type(event.source())==QModuleTreeWidget):
             data = event.mimeData()
             if hasattr(data, 'items'):
@@ -1225,8 +1225,9 @@ mutual connections."""
         Set to accept drag move event from the module palette
         
         """
-        if (self.controller and self.controller.currentVersion!=-1 and
+        if (self.controller and
             type(event.source())==QModuleTreeWidget):
+
             data = event.mimeData()
             if hasattr(data, 'items'):
                 event.accept()
@@ -1241,12 +1242,14 @@ mutual connections."""
         Accept drop event to add a new module
         
         """
-        if (self.controller and self.controller.currentVersion!=-1 and
+        if (self.controller and
             type(event.source())==QModuleTreeWidget):
             data = event.mimeData()
             if hasattr(data, 'items'):
                 event.accept()
                 assert len(data.items) == 1
+                if self.controller.currentVersion==-1:
+                    self.controller.changeSelectedVersion(0)
                 item = data.items[0]
                 self.controller.resetPipelineView = False
                 self.noUpdate = True
