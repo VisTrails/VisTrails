@@ -256,6 +256,15 @@ def untitled_locator():
     from core.db.locator import XMLFileLocator
     return XMLFileLocator(default_dot_vistrails() + '/untitled.xml')
 
+def get_elementtree_library():
+    try:
+        import cElementTree as ElementTree
+    except ImportError:
+        # try python 2.5-style
+        import xml.etree.cElementTree as ElementTree
+    return ElementTree
+    
+
 ################################################################################
 
 import unittest

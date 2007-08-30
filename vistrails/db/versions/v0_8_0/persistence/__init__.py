@@ -22,9 +22,8 @@
 
 from xml.auto_gen import XMLDAOListBase
 from sql.auto_gen import SQLDAOListBase
-
-import cElementTree as ElementTree
-# from elementtree import ElementTree
+from core.system import get_elementtree_library
+ElementTree = get_elementtree_library()
 
 from db import VistrailsDBException
 from db.versions.v0_8_0 import version as my_version

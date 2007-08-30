@@ -22,7 +22,9 @@
 
 """generated automatically by auto_dao.py"""
 
-import cElementTree as ElementTree
+from core.system import get_elementtree_library
+ElementTree = get_elementtree_library()
+
 from xml_dao import XMLDAO
 from db.versions.v0_8_0.domain import *
 

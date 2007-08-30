@@ -21,8 +21,9 @@
 ############################################################################
 
 from datetime import datetime
-import cElementTree as ElementTree
-# from elementtree import ElementTree
+from core.system import get_elementtree_library
+ElementTree = get_elementtree_library()
+
 import sys
 import os
 
