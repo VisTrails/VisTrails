@@ -413,7 +413,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
             # Relax the size constraint of the widget
             cellWidget.setMinimumSize(QtCore.QSize(0, 0))
             cellWidget.setMaximumSize(QtCore.QSize(16777215, 16777215))
-            cellWidget.setParent(self.viewport())
+            cellWidget.setParent(self)
         row = self.verticalHeader().logicalIndex(row)
         col = self.horizontalHeader().logicalIndex(col)
         index = self.model().index(row, col)

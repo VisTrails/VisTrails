@@ -107,5 +107,7 @@ def initialize(*args, **keywords):
 
 def finalize():
     spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
-    spreadsheetWindow.destroy()
+    ### DO NOT ADD BACK spreadsheetWindow.destroy()
+    ### That will crash VisTrails on Mac. 
+    ### It is not supposed to be called directly
     spreadsheetWindow.deleteLater()
