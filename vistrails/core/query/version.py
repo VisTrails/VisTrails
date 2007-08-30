@@ -502,33 +502,55 @@ class SearchCompiler(object):
             tokStream = tokStream[1:]
         return (AndSearchStmt(lst), [])
     def parseBefore(self, tokStream):
-        if len(tokStream) == 0:
-            raise SearchParseError('Expected token, got end of search')
-        lst = []
-        while len(tokStream):
-            tok = tokStream[0]
-            # ugly, special case times
-            if (':' in tok and
-                not TimeSearchStmt.dateRE[2].match(tok) and
-                not TimeSearchStmt.dateRE[3].match(tok)):
-                return (BeforeSearchStmt(" ".join(lst)), tokStream)
-            lst.append(tok)
-            tokStream = tokStream[1:]
-        return (BeforeSearchStmt(" ".join(lst)), [])
+        old_tokstream = tokStream
+        try:
+            if len(tokStream) == 0:
+                raise SearchParseError('Expected token, got end of search')
+            lst = []
+            while len(tokStream):
+                tok = tokStream[0]
+                # ugly, special case times
+                if (':' in tok and
+                    not TimeSearchStmt.dateRE[2].match(tok) and
+                    not TimeSearchStmt.dateRE[3].match(tok)):
+                    return (BeforeSearchStmt(" ".join(lst)), tokStream)
+                lst.append(tok)
+                tokStream = tokStream[1:]
+            return (BeforeSearchStmt(" ".join(lst)), [])
+        except SearchParseError, e:
+            if 'Expected a date' in e.message:
+                try:
+                    return self.parseAny(old_tokstream)
+                except SearchParseError, e2:
+                    print "Another exception...", e2.message
+                    raise e
+            else:
+                raise
+            
     def parseAfter(self, tokStream):
-        if len(tokStream) == 0:
-            raise SearchParseError('Expected token, got end of search')
-        lst = []
-        while len(tokStream):
-            tok = tokStream[0]
-            # ugly, special case times
-            if (':' in tok and
-                not TimeSearchStmt.dateRE[2].match(tok) and
-                not TimeSearchStmt.dateRE[3].match(tok)):
-                return (AfterSearchStmt(" ".join(lst)), tokStream)
-            lst.append(tok)
-            tokStream = tokStream[1:]
-        return (AfterSearchStmt(" ".join(lst)), [])
+        try:
+            if len(tokStream) == 0:
+                raise SearchParseError('Expected token, got end of search')
+            lst = []
+            while len(tokStream):
+                tok = tokStream[0]
+                # ugly, special case times
+                if (':' in tok and
+                    not TimeSearchStmt.dateRE[2].match(tok) and
+                    not TimeSearchStmt.dateRE[3].match(tok)):
+                    return (AfterSearchStmt(" ".join(lst)), tokStream)
+                lst.append(tok)
+                tokStream = tokStream[1:]
+            return (AfterSearchStmt(" ".join(lst)), [])
+        except SearchParseError, e:
+            if 'Expected a date' in e.message:
+                try:
+                    return self.parseAny(['after'] + tokStream)
+                except SearchParseError, e2:
+                    print "Another exception...", e2.message
+                    raise e
+            else:
+                raise
 
     dispatch = {'user': parseUser,
                 'notes': parseNotes,
@@ -595,12 +617,12 @@ class TestSearch(unittest.TestCase):
         # FIXME: Add notes to this.
 #         self.assertTrue(NotesSearchStmt('mapper').match(v.actionMap[36]))
 #         self.assertFalse(NotesSearchStmt('-qt-block-indent').match(v.actionMap[36]))
-    def test16(self):
-        self.assertRaises(SearchParseError, lambda *args: SearchCompiler('before:'))
-    def test17(self):
-        self.assertRaises(SearchParseError, lambda *args: SearchCompiler('before:lalala'))
-    def test17(self):
-        self.assertRaises(SearchParseError, lambda *args: SearchCompiler('after:yesterday before:lalala'))
+
+    # test16 and 17 now pass.
+    #     def test16(self):
+    #         self.assertRaises(SearchParseError, lambda *args: SearchCompiler('before:'))
+    #     def test17(self):
+    #         self.assertRaises(SearchParseError, lambda *args: SearchCompiler('after:yesterday before:lalala'))
     def test18(self):
         self.assertEquals(TimeSearchStmt('   13 apr 2006  ').date,
                           TimeSearchStmt(' 13 apr 2006   ').date)
@@ -623,7 +645,10 @@ class TestSearch(unittest.TestCase):
         m = inv[t[1]]
         self.assertEquals(SearchCompiler('after:%s %s %s' % (t[0], m, t[2])).searchStmt.matchList[0].date,
                           SearchCompiler('after:today').searchStmt.matchList[0].date)
-        
+    def test24(self):
+        # Test compiling these searches
+        SearchCompiler('before')
+        SearchCompiler('after')
 
 if __name__ == '__main__':
     unittest.main()
