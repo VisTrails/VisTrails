@@ -963,12 +963,24 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
     def addConnectionItem(self, connectionItem, start):
         """ addConnectionItem(connectionItem: QGraphicsConnectionItem,
                               start: bool) -> None                              
-        Add connectionItem into dependancy list to adjust it when this
+        Add connectionItem into dependency list to adjust it when this
         module is moved. If start=True the depending point is the
         start point, else it is the end point
         
         """
         self.dependingConnectionItems.append((connectionItem, start))
+
+    def removeConnectionItem(self, connectionItem):
+        """ removeConnectionItem(connectionItem: QGraphicsConnectionItem)-> None
+        Remove connectionItem from its dependency list
+
+        """
+        found = None
+        for c in self.dependingConnectionItems:
+            if c[0] == connectionItem:
+                found = c
+        if found:
+            self.dependingConnectionItems.remove(found)
 
     def itemChange(self, change, value):
         """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
@@ -1282,10 +1294,22 @@ mutual connections."""
                 if len(modules)>0:
                     self.noUpdate = True
                     idList = [m.id for m in modules]
-                    self.controller.deleteModuleList(idList)
                     connections = []
                     for m in modules:
                         connections += [c[0] for c in m.dependingConnectionItems]
+                    #update the dependency list on the other side of connections
+                    for conn in connections:
+                        if conn.connection.source:
+                            mid = conn.connection.source.moduleId 
+                            m = self.modules[mid]
+                            if m not in modules:
+                                m.removeConnectionItem(conn)
+                        if conn.connection.destination:
+                            mid = conn.connection.destination.moduleId
+                            m = self.modules[mid]
+                            if m not in modules:
+                                m.removeConnectionItem(conn)
+                    self.controller.deleteModuleList(idList)
                     self.removeItems(connections)
                     for (mId, item) in self.modules.items():
                         if item in selectedItems:
