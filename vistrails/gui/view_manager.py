@@ -29,7 +29,7 @@ from PyQt4 import QtCore, QtGui
 from gui.theme import CurrentTheme
 from gui.vistrail_view import QVistrailView
 from core import system
-from core.db.locator import XMLFileLocator
+from core.db.locator import FileLocator
 from core.vistrail.vistrail import Vistrail
 from core.modules.module_registry import ModuleRegistry
 import copy
@@ -344,7 +344,7 @@ class QViewManager(QtGui.QTabWidget):
             if res == 0:
                 locator = vistrailView.controller.locator
                 if locator is None:
-                    class_ = XMLFileLocator
+                    class_ = FileLocator()
                 else:
                     class_ = type(locator)
                 return self.save_vistrail(class_)

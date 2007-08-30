@@ -30,7 +30,7 @@ from core import command_line
 from core import debug
 from core import system
 from core import keychain
-from core.db.locator import XMLFileLocator
+from core.db.locator import FileLocator
 from core.modules.module_registry import registry
 from core.utils import InstanceObject
 from core.utils.uxml import (named_elements,
@@ -154,7 +154,7 @@ after self.init()"""
             self.splashScreen.finish(self.builderWindow)
         if self.input:
             for filename in self.input:
-                locator = XMLFileLocator(os.path.abspath(filename))
+                locator = FileLocator(os.path.abspath(filename))
                 self.builderWindow.open_vistrail_without_prompt(locator)
         self.builderWindow.activateWindow()
 
@@ -173,7 +173,7 @@ run in batch mode.')
             import core.console_mode
             if self.nonInteractiveOpts.parameters == None:
                 self.nonInteractiveOpts.parameters = ''
-            locator = XMLFileLocator(self.input[0])
+            locator = FileLocator(self.input[0])
             r = core.console_mode.run(locator,
                                       self.nonInteractiveOpts.workflow,
                                       self.nonInteractiveOpts.parameters)

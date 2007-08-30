@@ -540,40 +540,40 @@ class BookmarkController(object):
 
 ###############################################################################
 
-import unittest
-import core.system
-import os
-class TestBookmarkCollection(unittest.TestCase):
-    def test1(self):
-        """ Exercising writing and reading a file """
-        collection = BookmarkCollection()
-        bookmark = Bookmark()
-        bookmark.id = 1
-        bookmark.parent = ''
-        bookmark.name = 'contour 4'
-        bookmark.type = 'item'
-        bookmark.locator = XMLFileLocator('brain_vistrail.xml')
-        bookmark.pipeline = 126
+# import unittest
+# import core.system
+# import os
+# class TestBookmarkCollection(unittest.TestCase):
+#     def test1(self):
+#         """ Exercising writing and reading a file """
+#         collection = BookmarkCollection()
+#         bookmark = Bookmark()
+#         bookmark.id = 1
+#         bookmark.parent = ''
+#         bookmark.name = 'contour 4'
+#         bookmark.type = 'item'
+#         bookmark.locator = XMLFileLocator('brain_vistrail.xml')
+#         bookmark.pipeline = 126
         
-        collection.add_bookmark(bookmark)
+#         collection.add_bookmark(bookmark)
 
-        #writing
-        collection.serialize('bookmarks.xml')
+#         #writing
+#         collection.serialize('bookmarks.xml')
 
-        #reading it again
-        collection.clear()
-        collection.parse('bookmarks.xml')
-        newbookmark = collection.bookmarks.as_list()[1]
-        assert bookmark == newbookmark
+#         #reading it again
+#         collection.clear()
+#         collection.parse('bookmarks.xml')
+#         newbookmark = collection.bookmarks.as_list()[1]
+#         assert bookmark == newbookmark
     
-        #remove created file
-        os. unlink('bookmarks.xml')
+#         #remove created file
+#         os. unlink('bookmarks.xml')
 
-    def test_empty_bookmark(self):
-        """ Exercises doing things on an empty bookmark. """
-        collection = BookmarkCollection()
-        collection.parse(core.system.vistrails_root_directory() +
-                         'tests/resources/empty_bookmarks.xml')
+#     def test_empty_bookmark(self):
+#         """ Exercises doing things on an empty bookmark. """
+#         collection = BookmarkCollection()
+#         collection.parse(core.system.vistrails_root_directory() +
+#                          'tests/resources/empty_bookmarks.xml')
 
-if __name__ == '__main__':
-    unittest.main()
+# if __name__ == '__main__':
+#     unittest.main()

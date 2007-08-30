@@ -25,7 +25,7 @@
 ################################################################################
 import os.path
 from PyQt4 import QtCore, QtGui
-from core.db.locator import XMLFileLocator
+from core.db.locator import FileLocator
 from core.interpreter.default import get_default_interpreter
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_tab import (StandardWidgetTabBar,
@@ -644,7 +644,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         progress.show()
         for pipelineIdx in xrange(pipelineCount):
             (vistrailFileName, version) = eval(lines[lidx])
-            locator = XMLFileLocator(vistrailFileName)
+            locator = FileLocator(vistrailFileName)
             vistrail = locator.load()
             pipeline = vistrail.getPipeline(version)
             execution = get_default_interpreter()

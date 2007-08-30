@@ -22,7 +22,7 @@
 
 from gui.application import VistrailsApplication
 from gui.open_db_window import QOpenDBWindow
-from core.db.locator import DBLocator, XMLFileLocator
+from core.db.locator import DBLocator, FileLocator
 from PyQt4 import QtGui
 import core.system
 import os
@@ -58,37 +58,37 @@ def get_save_db_locator_from_gui(parent, locator=None):
                      config.get('id', None))
 
 ##############################################################################
-# XML File dialogs
+# File dialogs
 
-def get_load_xml_file_locator_from_gui(parent):
+def get_load_file_locator_from_gui(parent):
     fileName = QtGui.QFileDialog.getOpenFileName(
         parent,
         "Open Vistrail...",
         core.system.vistrails_file_directory(),
-        "Vistrail files (*.xml)\nOther files (*)")
+        "Vistrail files (*.xml *.vt)\nOther files (*)")
     if fileName.isEmpty():
         return None
-    dirName = os.path.dirname(str(fileName))
+    filename = str(fileName)
+    dirName = os.path.dirname(filename)
     setattr(VistrailsApplication.configuration, 'fileDirectory', dirName)
     core.system.set_vistrails_file_directory(dirName)
-    return XMLFileLocator(str(fileName))
+    return FileLocator(filename)
 
-def get_save_xml_file_locator_from_gui(parent, locator=None):
+def get_save_file_locator_from_gui(parent, locator=None):
     # Ignore current locator for now
     # In the future, use locator to guide GUI for better starting directory
-    print parent
     fileName = QtGui.QFileDialog.getSaveFileName(
         parent,
         "Save Vistrail...",
         core.system.vistrails_file_directory(),
-        "VisTrails files (*.xml)",
+        "VisTrails files (*.xml *.vt)",
         None,
         QtGui.QFileDialog.DontConfirmOverwrite)
     if fileName.isEmpty():
         return None
     f = str(fileName)
-    if not f.endswith('.xml'):
-        f += '.xml'
+    if not f.endswith('.xml') and not f.endswith('.vt'):
+        f += VistrailsApplication.configuration.defaultFileType
     if os.path.isfile(f):
         msg = QtGui.QMessageBox(QtGui.QMessageBox.Question,
                                 "VisTrails",
@@ -101,5 +101,5 @@ def get_save_xml_file_locator_from_gui(parent, locator=None):
     dirName = os.path.dirname(str(f))
     setattr(VistrailsApplication.configuration, 'fileDirectory', dirName)
     core.system.set_vistrails_file_directory(dirName)
-    return XMLFileLocator(f)
+    return FileLocator(f)
 

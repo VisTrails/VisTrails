@@ -2282,7 +2282,7 @@
       <set alias="" function="SetMaximizeMethodToScalarValue" functionId="0" moduleId="10" parameter="" parameterId="-1" type="" value=""/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="517" time="518" user="eranders" what="addModule">
-      <object cache="0" id="11" name="vtkOpenGLVolumeTextureMapper3D" x="497.007543448" y="304.755371359"/>
+      <object cache="0" id="11" name="vtkOpenGLVolumeTextureMapper2D" x="497.007543448" y="304.755371359"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="518" time="519" user="eranders" what="moveModule">
       <move dx="-1102.4197998" dy="-41.4443511963" id="11"/>
@@ -2308,7 +2308,7 @@
       <move dx="62.1665306091" dy="140.910797119" id="11"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="525" time="526" user="eranders" what="addConnection">
-      <connect destinationId="5" destinationModule="vtkVolume" destinationPort="SetMapper(vtkAbstractVolumeMapper)" id="0" sourceId="11" sourceModule="vtkOpenGLVolumeTextureMapper3D" sourcePort="self(vtkOpenGLVolumeTextureMapper3D)"/>
+      <connect destinationId="5" destinationModule="vtkVolume" destinationPort="SetMapper(vtkAbstractVolumeMapper)" id="0" sourceId="11" sourceModule="vtkOpenGLVolumeTextureMapper2D" sourcePort="self(vtkOpenGLVolumeTextureMapper2D)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="526" time="527" user="eranders" what="moveModule">
       <move dx="0.0" dy="0.0" id="0"/>
@@ -2318,7 +2318,7 @@
       <module moduleId="0"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="529" time="530" user="eranders" what="addConnection">
-      <connect destinationId="11" destinationModule="vtkOpenGLVolumeTextureMapper3D" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="1" sourceId="3" sourceModule="vtkStructuredPointsReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+      <connect destinationId="11" destinationModule="vtkOpenGLVolumeTextureMapper2D" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="1" sourceId="3" sourceModule="vtkStructuredPointsReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="530" time="531" user="eranders" what="moveModule">
       <move dx="22.7943935394" dy="113.971969604" id="11"/>
@@ -2723,7 +2723,7 @@
       <module moduleId="0"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="629" time="630" user="eranders" what="addModule">
-      <object cache="0" id="0" name="vtkOpenGLVolumeTextureMapper3D" x="-348.457258692" y="621.804661798"/>
+      <object cache="0" id="0" name="vtkOpenGLVolumeTextureMapper2D" x="-348.457258692" y="621.804661798"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="630" time="631" user="eranders" what="moveModule">
       <move dx="0.0" dy="0.0" id="4"/>
@@ -2739,10 +2739,10 @@
       <move dx="-250.738342285" dy="-250.738327026" id="0"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="634" time="635" user="eranders" what="addConnection">
-      <connect destinationId="5" destinationModule="vtkVolume" destinationPort="SetMapper(vtkAbstractVolumeMapper)" id="0" sourceId="0" sourceModule="vtkOpenGLVolumeTextureMapper3D" sourcePort="self(vtkOpenGLVolumeTextureMapper3D)"/>
+      <connect destinationId="5" destinationModule="vtkVolume" destinationPort="SetMapper(vtkAbstractVolumeMapper)" id="0" sourceId="0" sourceModule="vtkOpenGLVolumeTextureMapper2D" sourcePort="self(vtkOpenGLVolumeTextureMapper2D)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="635" time="636" user="eranders" what="addConnection">
-      <connect destinationId="0" destinationModule="vtkOpenGLVolumeTextureMapper3D" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="1" sourceId="3" sourceModule="vtkStructuredPointsReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+      <connect destinationId="0" destinationModule="vtkOpenGLVolumeTextureMapper2D" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="1" sourceId="3" sourceModule="vtkStructuredPointsReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="636" time="637" user="eranders" what="moveModule">
       <move dx="105.683097839" dy="113.971969604" id="0"/>
@@ -3303,7 +3303,7 @@
       <move dx="0.0" dy="0.0" id="6"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="760" time="761" user="eranders" what="addModule">
-      <object cache="0" id="10" name="vtkOpenGLVolumeTextureMapper3D" x="-546.820512019" y="95.5768071129"/>
+      <object cache="0" id="10" name="vtkOpenGLVolumeTextureMapper2D" x="-546.820512019" y="95.5768071129"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="761" time="762" user="eranders" what="moveModule">
       <move dx="42.8683547974" dy="102.884048462" id="10"/>
@@ -3322,10 +3322,10 @@
       <move dx="4.48741960526" dy="139.110015869" id="10"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="765" time="766" user="eranders" what="addConnection">
-      <connect destinationId="10" destinationModule="vtkOpenGLVolumeTextureMapper3D" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="0" sourceId="3" sourceModule="vtkStructuredPointsReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
+      <connect destinationId="10" destinationModule="vtkOpenGLVolumeTextureMapper2D" destinationPort="SetInputConnection0(vtkAlgorithmOutput)" id="0" sourceId="3" sourceModule="vtkStructuredPointsReader" sourcePort="GetOutputPort0(vtkAlgorithmOutput)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="766" time="767" user="eranders" what="addConnection">
-      <connect destinationId="5" destinationModule="vtkVolume" destinationPort="SetMapper(vtkAbstractVolumeMapper)" id="1" sourceId="10" sourceModule="vtkOpenGLVolumeTextureMapper3D" sourcePort="self(vtkOpenGLVolumeTextureMapper3D)"/>
+      <connect destinationId="5" destinationModule="vtkVolume" destinationPort="SetMapper(vtkAbstractVolumeMapper)" id="1" sourceId="10" sourceModule="vtkOpenGLVolumeTextureMapper2D" sourcePort="self(vtkOpenGLVolumeTextureMapper2D)"/>
     </action>
     <action date="28 Mar 2006 09:39:40" parent="767" time="768" user="eranders" what="moveModule">
       <move dx="0.0" dy="0.0" id="0"/>

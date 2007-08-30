@@ -83,6 +83,8 @@ __rootDir = os.path.realpath(_thisDir + '/../../') + '/'
 __dataDir = os.path.realpath(__rootDir + 'data/') + '/'
 __fileDir = os.path.realpath(__rootDir + '../examples/') + '/'
 
+__defaultFileType = '.vt'
+
 def set_vistrails_data_directory(d):
     """ set_vistrails_data_directory(d:str) -> None 
     Sets vistrails data directory taking into account environment variables
@@ -123,6 +125,17 @@ def set_vistrails_root_directory(d):
         new_d = os.path.expandvars(d)
     __rootDir = os.path.realpath(d) + '/'
 
+def set_vistrails_default_file_type(t):
+    """ set_vistrails_default_file_type(t:str) -> None
+    Which file type to use when the user doesn't provide a file extension
+
+    """
+    global __defaultFileType
+    if t in ['.vt', '.xml']:
+        __defaultFileType = t
+    else:
+        __defaultFileType = '.vt'
+        
 def vistrails_root_directory():
     """ vistrails_root_directory() -> str
     Returns vistrails root directory
@@ -136,6 +149,13 @@ def vistrails_file_directory():
 
     """
     return __fileDir
+
+def vistrails_default_file_type():
+    """ vistrails_default_file_type() -> str
+    Returns vistrails file type
+
+    """
+    return __defaultFileType
 
 def packages_directory():
     """ packages_directory() -> str 
@@ -253,8 +273,10 @@ SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH \
 DAMAGES.""" % (vistrails_version(), vistrails_revision())
 
 def untitled_locator():
-    from core.db.locator import XMLFileLocator
-    return XMLFileLocator(default_dot_vistrails() + '/untitled.xml')
+    from core.db.locator import FileLocator
+    basename = 'untitled' + vistrails_default_file_type()
+    fullname = os.path.join(default_dot_vistrails(), basename)
+    return FileLocator(fullname)
 
 def get_elementtree_library():
     try:

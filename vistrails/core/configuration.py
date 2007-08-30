@@ -129,6 +129,7 @@ def default():
         'debugSignals': False,
         'dotVistrails': system.default_dot_vistrails(),
         'fileDirectory': (None, str),
+        'defaultFileType':system.vistrails_default_file_type(),
         'fileRepository': default_file_repository(),
         'interactiveMode': True,
         'logger': default_logger(),

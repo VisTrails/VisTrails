@@ -21,11 +21,15 @@
 ############################################################################
 
 from datetime import datetime
-from core.system import get_elementtree_library
+from core.system import get_elementtree_library, temporary_directory,\
+     systemType
+import core.requirements
 ElementTree = get_elementtree_library()
 
 import sys
 import os
+import popen2
+import os.path
 
 from db import VistrailsDBException
 from db.domain import DBVistrail, DBWorkflow, DBLog
@@ -130,6 +134,38 @@ def open_vistrail_from_xml(filename):
     db.services.vistrail.updateIdScope(vistrail)
     return vistrail
 
+def open_vistrail_from_zip_xml(filename):
+    """open_vistrail_from_zip_xml(filename) -> Vistrail"""
+    # will assume that the file inside has the same name without .vt
+    zipfname = os.path.basename(filename)
+    name_in_archive = zipfname
+    if len(zipfname) > 3:
+        dot = zipfname.rfind('.')
+        name_in_archive = zipfname[:dot]
+    xmlfname = os.path.join(core.system.temporary_directory(),name_in_archive)
+    cmdline = "unzip -p %s %s > %s" % (filename,
+                                       name_in_archive,
+                                       xmlfname)
+    core.requirements.require_executable('unzip')
+    if systemType not in ['Windows', 'Microsoft']:
+        process = popen2.Popen4(cmdline)
+        result = -1
+        while result == -1:
+            result = process.poll()
+        output = process.fromchild.readlines()
+        
+    else:
+        result = -1
+        out, inp = popen2.popen4(cmdline)
+        output = out.readlines()
+    #print result, output    
+    if result == 0 or len(output) == 0:
+        vistrail = open_vistrail_from_xml(xmlfname)
+        os.unlink(xmlfname)
+        return vistrail
+    else:
+        raise Exception(" ".join(output))
+            
 def open_vistrail_from_db(dbConnection, id):
     """open_vistrail_from_db(dbConnection, id) -> Vistrail """
 
@@ -148,6 +184,32 @@ def open_vistrail_from_db(dbConnection, id):
 def save_vistrail_to_xml(vistrail, filename):
     daoList = getVersionDAO(currentVersion)
     daoList.save_to_xml(vistrail, filename)
+
+def save_vistrail_to_zip_xml(vistrail, filename):
+    zipfname = os.path.basename(filename)
+    name_in_archive = zipfname
+    if len(zipfname) > 3:
+        dot = zipfname.rfind('.')
+        name_in_archive = zipfname[:dot]
+    xmlfname = os.path.join(core.system.temporary_directory(),name_in_archive)
+    save_vistrail_to_xml(vistrail,xmlfname)
+    
+    cmdline = "zip -r -j %s %s" % (filename, xmlfname)
+    core.requirements.require_executable('zip')
+    if systemType not in ['Windows', 'Microsoft']:
+        process = popen2.Popen4(cmdline)
+        result = -1
+        while result == -1:
+            result = process.poll()
+        output = process.fromchild.readlines()
+    else:
+        result = -1
+        out, inp = popen2.popen4(cmdline)
+        output = out.readlines()
+    #print result, output
+    os.unlink(xmlfname)
+    if result != 0 and len(output) != 0:   
+        raise Exception(" ".join(output))
     
 def save_vistrail_to_db(vistrail, dbConnection):
     vistrail.db_version = currentVersion
@@ -309,12 +371,13 @@ def getCurrentTime(dbConnection=None):
 # Testing
 
 import unittest
+import core.system
+import os
 
 class TestDBIO(unittest.TestCase):
     def test1(self):
         """test importing an xml file"""
-        import core.system
-        import os
+
         vistrail = open_vistrail_from_xml( \
             os.path.join(core.system.vistrails_root_directory(),
                          'tests/resources/dummy.xml'))
@@ -322,10 +385,36 @@ class TestDBIO(unittest.TestCase):
         
     def test2(self):
         """test importing an xml file"""
-        import core.system
-        import os
+
         vistrail = open_vistrail_from_xml( \
             os.path.join(core.system.vistrails_root_directory(),
                          'tests/resources/dummy_new.xml'))
         assert vistrail is not None
+
+    def test3(self):
+        """test importing a vt file"""
+
+        vistrail = open_vistrail_from_zip_xml( \
+            os.path.join(core.system.vistrails_root_directory(),
+                         'tests/resources/dummy_new.vt'))
+        assert vistrail is not None
+
+    def test4(self):
+        """ test saving a vt file """
+
+        filename = os.path.join(core.system.vistrails_root_directory(),
+                                'tests/resources/dummy_new_temp.vt')
+    
+        vistrail = open_vistrail_from_zip_xml( \
+            os.path.join(core.system.vistrails_root_directory(),
+                         'tests/resources/dummy_new.vt'))
+        try:
+            save_vistrail_to_zip_xml(vistrail, filename)
+            if os.path.isfile(filename):
+                os.unlink(filename)
+        except Exception, e:
+            self.fail(str(e))
+            
+            
+        
 

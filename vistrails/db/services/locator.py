@@ -157,6 +157,38 @@ class XMLFileLocator(BaseLocator):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+class ZIPFileLocator(XMLFileLocator):
+    """Files are compressed in zip format. The temporaries are
+    still in xml"""
+    def __init__(self, filename):
+        XMLFileLocator.__init__(self, filename)
+
+    def load(self):
+        fname = self._find_latest_temporary()
+        if fname:
+            vistrail = io.open_vistrail_from_xml(fname)
+        else:
+            vistrail = io.open_vistrail_from_zip_xml(self._name)
+        vistrail.locator = self
+        return vistrail
+
+    def save(self, vistrail):
+        io.save_vistrail_to_zip_xml(vistrail, self._name)
+        vistrail.locator = self
+        # Only remove the temporaries if save succeeded!
+        self.clean_temporaries()
+
+    ###########################################################################
+    # Operators
+
+    def __eq__(self, other):
+        if type(other) != ZIPFileLocator:
+            return False
+        return self._name == other._name
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 class DBLocator(BaseLocator):
     
     connections = {}

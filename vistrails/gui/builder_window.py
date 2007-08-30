@@ -25,7 +25,7 @@ QBuilderWindow
 """
 from PyQt4 import QtCore, QtGui
 from core import system
-from core.db.locator import XMLFileLocator, DBLocator
+from core.db.locator import DBLocator, FileLocator
 from gui.application import VistrailsApplication
 from gui.bookmark_window import QBookmarksWindow
 from gui.graphics_view import QInteractiveGraphicsView
@@ -647,7 +647,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         if self.dbDefault:
             self.open_vistrail(DBLocator)
         else:
-            self.open_vistrail(XMLFileLocator)
+            self.open_vistrail(FileLocator())
 
     def import_vistrail_default(self):
         """ import_vistrail_default() -> None
@@ -655,7 +655,7 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         """
         if self.dbDefault:
-            self.open_vistrail(XMLFileLocator)
+            self.open_vistrail(FileLocator)
         else:
             self.open_vistrail(DBLocator)
 
@@ -667,7 +667,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         current_view = self.viewManager.currentWidget()
         locator = current_view.controller.locator
         if locator is None:
-            class_ = XMLFileLocator
+            class_ = FileLocator()
         else:
             class_ = type(locator)
         self.viewManager.save_vistrail(class_)
@@ -680,7 +680,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         if self.dbDefault:
             self.viewManager.save_vistrail(DBLocator)
         else:
-            self.viewManager.save_vistrail(XMLFileLocator)
+            self.viewManager.save_vistrail(FileLocator())
 
     def save_vistrail_default_as(self):
         """ save_vistrail_file_as() -> None
@@ -691,7 +691,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.viewManager.save_vistrail(DBLocator,
                                            force_choose_locator=True)
         else:
-            self.viewManager.save_vistrail(XMLFileLocator,
+            self.viewManager.save_vistrail(FileLocator(),
                                            force_choose_locator=True)
 
     def export_vistrail_default(self):
@@ -700,7 +700,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         
         """
         if self.dbDefault:
-            self.viewManager.save_vistrail(XMLFileLocator,
+            self.viewManager.save_vistrail(FileLocator(),
                                            force_choose_locator=True)
         else:
             self.viewManager.save_vistrail(DBLocator,
