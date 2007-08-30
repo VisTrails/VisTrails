@@ -376,7 +376,7 @@ class QVisualDiff(QtGui.QMainWindow):
         functions = self.inspector.functionsTab.model()
 #         annotations = self.inspector.annotationsTab.model()
         functions.clearList()
-        annotations.clearList()
+#         annotations.clearList()
 
         # Find the parameter changed module
         matching = None
