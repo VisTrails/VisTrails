@@ -34,6 +34,7 @@ from core.vistrail.action import Action
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
 from core.vistrail.abstraction import Abstraction
+from core.vistrail.abstraction_module import AbstractionModule
 from core.vistrail.annotation import Annotation
 from core.vistrail.connection import Connection
 from core.vistrail.location import Location
@@ -451,8 +452,12 @@ class VistrailController(QtCore.QObject):
         spec_id = -1
         module = self.currentPipeline.get_module_by_id(module_id)
         port_spec = module.get_portSpec_by_name(port_tuple[1])
-        action = db.services.action.create_action([('delete', port_spec,
-                                                    module.vtType, module.id)])
+        action_list = [('delete', port_spec, module.vtType, module.id)]
+        for function in module.functions:
+            if function.name == port_spec.name:
+                action_list.append(('delete', function, 
+                                    module.vtType, module.id))
+        action = db.services.action.create_action(action_list)
         self.vistrail.add_action(action, self.currentVersion)
         return self.perform_action(action)
 
