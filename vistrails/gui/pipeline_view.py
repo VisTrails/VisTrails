@@ -1154,6 +1154,9 @@ class QPipelineScene(QInteractiveGraphicsScene):
         connectionItem = QGraphicsConnectionItem(None)
         connectionItem.setupConnection(dstPoint, srcPoint)
         connectionItem.id = connection.id
+        # Bump it slightly higher than the highest module
+        connectionItem.setZValue(max(srcModule.id,
+                                     dstModule.id) + 0.1)
         connectionItem.connection = connection
         connectionItem.connectingModules = (srcModule, dstModule)
         srcModule.addConnectionItem(connectionItem, False)
