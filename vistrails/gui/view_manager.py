@@ -307,7 +307,8 @@ class QViewManager(QtGui.QTabWidget):
             else:
                 locator = (vistrailView.controller.locator or
                            gui_get(self, vistrailView.controller.locator))
-
+            if locator == system.untitled_locator():
+                locator = gui_get(self, vistrailView.controller.locator)
             # if couldn't get one, ignore the request
             if not locator:
                 return False
