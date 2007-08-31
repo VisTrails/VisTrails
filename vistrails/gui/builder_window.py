@@ -83,6 +83,10 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         self.shell = None
 
+        # If this is true, we're currently executing a pipeline, so
+        # We can't allow other executions.
+        self._executing = False
+
     def create_first_vistrail(self):
         self.newVistrailAction.trigger()
         self.viewManager.set_first_view(self.viewManager.currentView())
@@ -397,11 +401,11 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.helpAction, self.showAboutMessage),
             (self.editPreferencesAction, self.showPreferences),
             (self.executeCurrentWorkflowAction,
-             self.viewManager.executeCurrentPipeline),
+             self.execute_current_pipeline),
             (self.executeDiffAction, self.showDiff),
             (self.executeQueryAction, self.queryVistrail),
             (self.executeExplorationAction,
-             self.viewManager.executeCurrentExploration),
+             self.execute_current_exploration),
             (self.flushCacheAction, self.flush_cache),
             (self.quitVistrailsAction, self.quitVistrails),
             ]
@@ -444,7 +448,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         for shortcut in self.executeShortcuts:
             self.connect(shortcut,
                          QtCore.SIGNAL('activated()'),
-                         self.viewManager.executeCurrentPipeline)
+                         self.execute_current_pipeline)
 
                 
         # Make sure we can change view when requested
@@ -837,9 +841,9 @@ class QBuilderWindow(QtGui.QMainWindow):
         if self.viewToolBar.currentViewIndex == 2:
             self.queryVistrail()
         elif self.viewToolBar.currentViewIndex == 3:
-            self.viewManager.executeCurrentExploration()
+            self.execute_current_exploration()
         else:
-            self.viewManager.executeCurrentPipeline()
+            self.execute_current_pipeline()
 
     def queryVistrail(self):
         """ queryVistrail() -> None
@@ -852,4 +856,35 @@ class QBuilderWindow(QtGui.QMainWindow):
 
     def flush_cache(self):
         core.interpreter.cached.CachedInterpreter.flush()
+
+    def execute_current_exploration(self):
+        """execute_current_exploration() -> None
+        Executes the current parameter exploration, if possible.
+
+        """
+        if self._executing:
+            return
+        self._executing = True
+        try:
+            self.viewToolBar.executeAction().setEnabled(False)
+            self.viewManager.executeCurrentExploration()
+        finally:
+            self._executing = False
+            self.viewToolBar.executeAction().setEnabled(True)
+
+    def execute_current_pipeline(self):
+        """execute_current_pipeline() -> None
+        Executes the current pipeline, if possible.
+
+        """
+        if self._executing:
+            return
+        self._executing = True
+        try:
+            self.viewToolBar.executeAction().setEnabled(False)
+            self.viewManager.executeCurrentPipeline()
+        finally:
+            self._executing = False
+            self.viewToolBar.executeAction().setEnabled(True)
+
 
