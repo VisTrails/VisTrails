@@ -148,6 +148,8 @@ def default():
         'useCache': True,
         'userPackageDirectory': (None, str),
         'verbosenessLevel': (None, int),
+        'spreadsheetRow': (None, int),
+        'spreadsheetColumn': (None, int),
         }
     return ConfigurationObject(**base_dir)
 
