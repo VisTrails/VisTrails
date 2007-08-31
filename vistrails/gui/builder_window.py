@@ -348,7 +348,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.toolBar.addAction(self.newVistrailAction)
         self.toolBar.addAction(self.openFileAction)
         self.toolBar.addAction(self.saveFileAction)
-        self.toolBar.addSeparator()
+        #self.toolBar.addSeparator()
         #self.toolBar.addAction(self.bookmarksAction)
 
         self.viewToolBar = QVistrailViewToolBar(self)
