@@ -33,6 +33,7 @@ any unit tests, as a crude measure of code coverage.
 import os
 import sys
 import unittest
+import os.path
 
 # Makes sure we can import modules as if we were running VisTrails
 # from the root directory
@@ -42,9 +43,9 @@ else:
     _this_dir = sys.modules[__name__].__file__
 _this_dir = os.path.split(_this_dir)[0]
 if not _this_dir:
-    root_directory = './../'
+    root_directory = os.path.join('.','..')
 else:
-    root_directory = _this_dir + '/../'
+    root_directory = os.path.join(_this_dir,  '..')
 sys.path.append(root_directory)
 
 ###############################################################################
@@ -105,9 +106,9 @@ for (p, subdirs, files) in os.walk(root_directory):
         if not filename.endswith('.py'):
             continue
 #        module = p[5:] + '/' + filename[:-3]
-        module = p[len(root_directory):] + '/' + filename[:-3]
+        module = p[len(root_directory)+1:] + os.sep + filename[:-3]
         if (module.startswith('tests') or
-            module.startswith('/') or
+            module.startswith(os.sep) or
             module.startswith('\\') or
             ('#' in module)):
             continue

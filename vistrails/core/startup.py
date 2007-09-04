@@ -86,11 +86,12 @@ class VistrailsStartup(object):
     # startup.xml related
 
     def startup_dom(self):
-        return xml.dom.minidom.parse(self.configuration.dotVistrails +
-                                     '/startup.xml')
+        filename = os.path.join(self.configuration.dotVistrails,'startup.xml')
+        return xml.dom.minidom.parse(filename)
 
     def write_startup_dom(self, dom):
-        f = file(self.configuration.dotVistrails + '/startup.xml', 'w')
+        filename = os.path.join(self.configuration.dotVistrails,'startup.xml')
+        f = file(filename, 'w')
         f.write(dom.toxml())
     
     def load_configuration(self):
@@ -145,8 +146,8 @@ by startup.py. This should only be called after init()."""
 
         def create_user_packages_dir():
             debug.critical('Will try to create userpackages directory')
-            userpackagesname = (self.configuration.dotVistrails +
-                                '/userpackages')
+            userpackagesname = os.path.join(self.configuration.dotVistrails,
+                                            'userpackages')
             if not os.path.isdir(userpackagesname):
                 try:
                     os.mkdir(userpackagesname)
@@ -159,8 +160,7 @@ by startup.py. This should only be called after init()."""
                     debug.critical(msg)
                     sys.exit(1)
             try:
-                name = (self.configuration.dotVistrails +
-                        '/userpackages/__init__.py')
+                name = os.path.join(userpackagesname, '__init__.py')
                 f = file(name, 'w')
                 f.write('pass\n')
                 f.close()
@@ -175,9 +175,12 @@ by startup.py. This should only be called after init()."""
         def install_default_startup():
             debug.critical('Will try to create default startup script')
             try:
-                shutil.copyfile((core.system.vistrails_root_directory() +
-                                 'core/resources/default_vistrails_startup'),
-                                self.configuration.dotVistrails + '/startup.py')
+                root_dir = core.system.vistrails_root_directory()
+                default_file = os.path.join(root_dir,'core','resources',
+                                            'default_vistrails_startup')
+                user_file = os.path.join(self.configuration.dotVistrails,
+                                         'startup.py')
+                shutil.copyfile(default_file,user_file)
                 debug.log('Succeeded!')
             except:
                 debug.critical("""Failed to copy default file to .vistrails.
@@ -187,10 +190,11 @@ by startup.py. This should only be called after init()."""
                 sys.exit(1)
 
         def install_default_startupxml_if_needed():
-            fname = (self.configuration.dotVistrails +
-                     '/startup.xml')
-            origin = (core.system.vistrails_root_directory() +
-                      'core/resources/default_vistrails_startup_xml')
+            fname = os.path.join(self.configuration.dotVistrails,
+                                 'startup.xml')
+            root_dir = core.system.vistrails_root_directory() 
+            origin = os.path.join(root_dir, 'core','resources',
+                                  'default_vistrails_startup_xml')
             def skip():
                 if os.path.isfile(fname):
                     try:
@@ -247,8 +251,9 @@ by startup.py. This should only be called after init()."""
                     sys.exit(1)
                 create_default_directory()
                 try:
-                    shutil.copyfile(name, self.configuration.dotVistrails
-                                    + '/startup.py')
+                    destiny = os.path.join(self.configuration.dotVistrails,
+                                           'startup.py')
+                    shutil.copyfile(name, destiny)
                 except:
                     debug.critical("""Failed to copy old initialization file to
                     newly-created initialization directory. This must have been
@@ -263,11 +268,15 @@ by startup.py. This should only be called after init()."""
                     debug.warning("Failed to erase temporary file.")
 
             if os.path.isdir(self.configuration.dotVistrails):
-                if not os.path.isdir(self.configuration.dotVistrails +
-                                     '/userpackages'):
+                userpackages = os.path.join(self.configuration.dotVistrails,
+                                            'userpackages')
+                startup = os.path.join(self.configuration.dotVistrails,
+                                       'startup.py')
+                if not os.path.isdir(userpackages):
                     create_user_packages_dir()
                 try:
-                    dotVistrails = file(self.configuration.dotVistrails + '/startup.py')
+                    
+                    dotVistrails = file(startup)
                     g = {}
                     localsDir = {'configuration': self.configuration,
                                  'addStartupHook': addStartupHook,
@@ -286,9 +295,7 @@ by startup.py. This should only be called after init()."""
                         exists, is writable, and ~/.vistrails/startup.py does
                         not exist.""")
                         sys.exit(1)
-                    debug.critical('%s not found' %
-                                   (self.configuration.dotVistrails +
-                                    '/startup.py'))
+                    debug.critical('%s not found' % startup)
                     debug.critical('Will try to install default' +
                                               'startup file')
                     install_default_startup()
@@ -337,7 +344,8 @@ by startup.py. This should only be called after init()."""
             dbg.set_message_level(levels[verbose])
             dbg.log("Set verboseness level to %s" % verbose)
         if not self.configuration.has('userPackageDirectory'):
-            s = core.system.default_dot_vistrails() + '/userpackages'
+            s = os.path.join(core.system.default_dot_vistrails(),
+                             'userpackages')
             self.configuration.userPackageDirectory = s
 
     def setupBaseModules(self):

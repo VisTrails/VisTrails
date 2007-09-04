@@ -20,10 +20,13 @@
 ##
 ############################################################################
 
+import os.path
+from core.configuration import get_vistrails_configuration
 from core.vistrail.vistrail import Vistrail
 from core.system import vistrails_default_file_type
 from db.services.locator import XMLFileLocator as _XMLFileLocator, \
     DBLocator as _DBLocator, ZIPFileLocator as _ZIPFileLocator
+import core.configuration
 
 class CoreLocator(object):
 
@@ -41,9 +44,10 @@ class CoreLocator(object):
 
 class XMLFileLocator(_XMLFileLocator, CoreLocator):
 
-    def __init__(self, filename):
+    def __init__(self, filename, public_domain=False):
         _XMLFileLocator.__init__(self, filename)
-
+        self.public_domain = public_domain
+        
     def load(self):
         vistrail = _XMLFileLocator.load(self)
         Vistrail.convert(vistrail)
@@ -51,7 +55,7 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
         return vistrail
 
     def save(self, vistrail):
-        _XMLFileLocator.save(self, vistrail)
+        _XMLFileLocator.save(self, vistrail, self.public_domain)
         vistrail.locator = self
 
     ##########################################################################
@@ -117,9 +121,10 @@ class DBLocator(_DBLocator, CoreLocator):
 
 class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 
-    def __init__(self, filename):
+    def __init__(self, filename, public_domain = False):
         _ZIPFileLocator.__init__(self, filename)
-
+        self.public_domain = public_domain
+        
     def load(self):
         vistrail = _ZIPFileLocator.load(self)
         Vistrail.convert(vistrail)
@@ -127,7 +132,7 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
         return vistrail
 
     def save(self, vistrail):
-        _ZIPFileLocator.save(self, vistrail)
+        _ZIPFileLocator.save(self, vistrail, self.public_domain)
         vistrail.locator = self
 
     ##########################################################################
@@ -152,12 +157,20 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 
 class FileLocator(CoreLocator):
     def __new__(self, *args):
+        public_domain = False
+        if core.configuration._class_version:
+            config = get_vistrails_configuration()
+            public_domain = config.publicDomain.accepted
+            if type(public_domain) == tuple:
+                public_domain = bool(public_domain[0])
+                if len(args) > 1:
+                    public_domain = args[1]
         if len(args) > 0:
             filename = args[0]
             if filename.endswith('.vt'):
-                return ZIPFileLocator(filename)
+                return ZIPFileLocator(filename, public_domain)
             else:
-                return XMLFileLocator(filename)
+                return XMLFileLocator(filename, public_domain)
         else:
             #return class based on default file type
             if vistrails_default_file_type() == '.vt':
@@ -175,3 +188,13 @@ class FileLocator(CoreLocator):
         import gui.extras.core.db.locator as db_gui
         return db_gui.get_save_file_locator_from_gui(parent_widget, 
                                                          locator)
+
+def untitled_locator():
+    basename = 'untitled' + vistrails_default_file_type()
+    config = get_vistrails_configuration()
+    if config:
+        dot_vistrails = config.dotVistrails
+    else:
+        dot_vistrails = core.system.default_dot_vistrails()
+    fullname = os.path.join(dot_vistrails, basename)
+    return FileLocator(fullname)

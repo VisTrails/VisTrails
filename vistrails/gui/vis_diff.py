@@ -259,10 +259,8 @@ class QVisualDiff(QtGui.QMainWindow):
         self.controller = controller
 
         # Create the top-level Visual Diff window
-        visDiffParent = QtCore.QCoreApplication.instance().visDiffParent
         windowDecors = f | QtCore.Qt.Dialog |QtCore.Qt.WindowMaximizeButtonHint
-        QtGui.QMainWindow.__init__(self, visDiffParent,
-                                   )
+        QtGui.QMainWindow.__init__(self, parent)
         self.setWindowTitle('Visual Diff - from %s to %s' % (v1Name, v2Name))
         self.setMouseTracking(True)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -425,8 +423,16 @@ class QVisualDiff(QtGui.QMainWindow):
         
         """
         if self.inspector.firstTime:
-            self.inspector.move(self.pos().x()+self.frameSize().width(),
-                                self.pos().y())
+            max_geom = QtGui.QApplication.desktop().screenGeometry(self)
+            if (self.frameSize().width() <
+                max_geom.width() - self.inspector.width()):
+                self.inspector.move(self.pos().x()+self.frameSize().width(),
+                                    self.pos().y())
+            else:
+                self.inspector.move(self.pos().x()+self.frameSize().width()-
+                                   self.inspector.frameSize().width(),
+                                   self.pos().y() +
+                                    self.legendWindow.frameSize().height())
             self.inspector.firstTime = False
         self.inspector.setVisible(self.showInspectorAction.isChecked())
             

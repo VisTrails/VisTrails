@@ -1343,7 +1343,8 @@ class DBVistrailXMLDAOBase(XMLDAO):
         actions = []
         tags = []
         abstractions = []
-        
+
+        public_domain = node.text
         # read children
         for child in node.getchildren():
             if child.tag == 'action':
@@ -1368,7 +1369,8 @@ class DBVistrailXMLDAOBase(XMLDAO):
                          dbName=dbName,
                          actions=actions,
                          tags=tags,
-                         abstractions=abstractions)
+                         abstractions=abstractions,
+                         public_domain=public_domain)
         obj.is_dirty = False
         return obj
     

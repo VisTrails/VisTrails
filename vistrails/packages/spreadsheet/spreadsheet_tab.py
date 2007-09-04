@@ -36,7 +36,6 @@ from spreadsheet_cell import QCellPresenter, QCellContainer
 from spreadsheet_execute import assignPipelineCellLocations, \
      executePipelineWithProgress
 import spreadsheet_rc
-from core.configuration import get_vistrails_configuration
 
 ################################################################################
 
@@ -452,7 +451,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
     displaying the spreadsheet.
     
     """
-    def __init__(self, tabWidget, row=None, col=None):
+    def __init__(self, tabWidget,row=None , col=None):
         """ StandardWidgetSheet(tabWidget: QTabWidget,
                                 row: int,
                                 col: int) -> StandardWidgetSheet
@@ -460,16 +459,14 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
                                 
         """
         QtGui.QWidget.__init__(self, None)
+        import core.packagemanager
+        import __init__
+        pm = core.packagemanager.get_package_manager()
+        config = pm.get_package_configuration('spreadsheet')
+        row = config.rowCount
+        col = config.columnCount
         self.type = 'StandardWidgetSheetTab'
         self.tabWidget = tabWidget
-        if not row:
-            row = get_vistrails_configuration().spreadsheetRow
-            if type(row)!=int:
-                row = 2
-        if not col:
-            col = get_vistrails_configuration().spreadsheetColumn
-            if type(col)!=int:
-                col = 3
         self.sheet = StandardWidgetSheet(row, col, self)
         self.sheet.setFitToWindow(True)
         self.toolBar = StandardWidgetToolBar(self)

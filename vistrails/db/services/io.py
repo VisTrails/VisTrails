@@ -185,11 +185,11 @@ def open_vistrail_from_db(dbConnection, id):
     db.services.vistrail.updateIdScope(vt)
     return vt
 
-def save_vistrail_to_xml(vistrail, filename):
+def save_vistrail_to_xml(vistrail, filename, public_domain=False):
     daoList = getVersionDAO(currentVersion)
-    daoList.save_to_xml(vistrail, filename)
+    daoList.save_to_xml(vistrail, filename, public_domain)
 
-def save_vistrail_to_zip_xml(vistrail, filename):
+def save_vistrail_to_zip_xml(vistrail, filename, public_domain=False):
     """save_vistrail_to_zip_xml(vistrail: Vistrail, filename:str)-> None
     Generate a zip compressed version of vistrail.
     It raise an Exception if there was an error
@@ -199,7 +199,7 @@ def save_vistrail_to_zip_xml(vistrail, filename):
     (file_, xmlfname) = tempfile.mkstemp(suffix='.xml')
     os.close(file_)
     name_in_archive = os.path.join(os.path.dirname(xmlfname),'vistrail')
-    save_vistrail_to_xml(vistrail,xmlfname)
+    save_vistrail_to_xml(vistrail,xmlfname, public_domain)
     core.requirements.require_executable('zip')
     os.rename(xmlfname,name_in_archive)
     if systemType not in ['Windows', 'Microsoft']:
@@ -425,7 +425,5 @@ class TestDBIO(unittest.TestCase):
                 os.unlink(filename)
         except Exception, e:
             self.fail(str(e))
-            
-            
         
 

@@ -21,41 +21,40 @@
 ;############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 0.4 (rev559)
+AppVerName=VisTrails 1.0b (rev896)
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$e3dfe0
 DefaultDirName={code:CustomAppDir}\VisTrails
 SetupIconFile=resources\icons\vistrails_install2.ico
 DefaultGroupName=VisTrails
-InfoAfterFile=C:\Documents and Settings\emanuele\Desktop\vistrails_svn\trunk\dist\windows\Input\releaseNotes.txt
+InfoAfterFile=Input\releaseNotes.txt
 DisableDirPage=false
 PrivilegesRequired=none
 RestartIfNeededByRun=false
+ChangesAssociations=true
 [Files]
 Source: C:\Program Files\ATT\Graphviz\bin\*.dll; DestDir: {app}\vistrails
 Source: C:\Program Files\ATT\Graphviz\bin\dot.exe; DestDir: {app}\vistrails
-Source: C:\Python24\w9xpopen.exe; DestDir: {app}\vistrails\Python24
-Source: C:\Python24\LICENSE.txt; DestDir: {app}\vistrails\Python24
-Source: C:\Python24\py.ico; DestDir: {app}\vistrails\Python24
-Source: C:\Python24\pyc.ico; DestDir: {app}\vistrails\Python24
-Source: C:\Python24\pylupdate4.exe; DestDir: {app}\vistrails\Python24
-Source: C:\Python24\pyrcc4.exe; DestDir: {app}\vistrails\Python24
-Source: C:\Python24\python.exe; DestDir: {app}\vistrails\Python24
-Source: C:\Python24\pythonw.exe; DestDir: {app}\vistrails\Python24
-Source: C:\Python24\pyuic4.bat; DestDir: {app}\vistrails\Python24
-Source: C:\Python24\README.txt; DestDir: {app}\vistrails\Python24
-Source: C:\Python24\sip.exe; DestDir: {app}\vistrails\Python24
-Source: C:\Python24\DLLs\*; DestDir: {app}\vistrails\Python24\DLLs
-Source: C:\Python24\include\*; DestDir: {app}\vistrails\Python24\include
-Source: C:\Python24\Lib\*; DestDir: {app}\vistrails\Python24\Lib; Flags: recursesubdirs
-Source: C:\Python24\libs\*; DestDir: {app}\vistrails\Python24\libs
-Source: C:\Python24\Scripts\*; DestDir: {app}\vistrails\Python24\Scripts
-Source: C:\Python24\sip\*; DestDir: {app}\vistrails\Python24\sip; Flags: recursesubdirs
-Source: C:\Python24\tcl\*; DestDir: {app}\vistrails\Python24\tcl; Flags: recursesubdirs
-Source: C:\Python24\Tools\*; DestDir: {app}\vistrails\Python24\Tools; Flags: recursesubdirs
-Source: C:\code\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
-Source: ..\..\examples\*.xml; DestDir: {app}\examples; Components: examples
+Source: C:\Python25\w9xpopen.exe; DestDir: {app}\vistrails\Python25
+Source: C:\Python25\LICENSE.txt; DestDir: {app}\vistrails\Python25
+Source: C:\Python25\pylupdate4.exe; DestDir: {app}\vistrails\Python25
+Source: C:\Python25\pyrcc4.exe; DestDir: {app}\vistrails\Python25
+Source: C:\Python25\python.exe; DestDir: {app}\vistrails\Python25
+Source: C:\Python25\pythonw.exe; DestDir: {app}\vistrails\Python25
+Source: C:\Python25\pyuic4.bat; DestDir: {app}\vistrails\Python25
+Source: C:\Python25\README.txt; DestDir: {app}\vistrails\Python25
+Source: C:\Python25\sip.exe; DestDir: {app}\vistrails\Python25
+Source: C:\Python25\DLLs\*; DestDir: {app}\vistrails\Python25\DLLs
+Source: C:\Python25\include\*; DestDir: {app}\vistrails\Python25\include
+Source: C:\Python25\Lib\*; DestDir: {app}\vistrails\Python25\Lib; Flags: recursesubdirs
+Source: C:\Python25\libs\*; DestDir: {app}\vistrails\Python25\libs
+Source: C:\Python25\Scripts\*; DestDir: {app}\vistrails\Python25\Scripts
+Source: C:\Python25\sip\*; DestDir: {app}\vistrails\Python25\sip; Flags: recursesubdirs
+Source: C:\Python25\tcl\*; DestDir: {app}\vistrails\Python25\tcl; Flags: recursesubdirs
+Source: C:\Python25\Tools\*; DestDir: {app}\vistrails\Python25\Tools; Flags: recursesubdirs
+Source: C:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
+Source: ..\..\examples\*.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\data\torus.vtk; DestDir: {app}\examples\data; Components: examples
 Source: ..\..\examples\data\carotid.vtk; DestDir: {app}\examples\data; Components: examples
 Source: ..\..\examples\data\gktbhFA.vtk; DestDir: {app}\examples\data; Components: examples
@@ -66,17 +65,18 @@ Source: ..\..\examples\data\vslice_circ1.bp; DestDir: {app}\examples\data; Compo
 Source: ..\..\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 Source: Input\startup.py; DestDir: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails; Flags: onlyifdoesntexist uninsneveruninstall
 Source: Input\unzip.exe; DestDir: {app}\vistrails
+Source: Input\zip.exe; DestDir: {app}\vistrails
 Source: Input\*.dll; DestDir: {app}\vistrails
-Source: C:\Qt\4.2.2\bin\*.dll; DestDir: {app}\vistrails
-Source: C:\WINDOWS\system32\python24.dll; DestDir: {app}\vistrails
-Source: C:\code\VTKbuild\bin\release\*.dll; DestDir: {app}\vistrails
-Source: Input\bookmarks.xml; DestDir: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails; Flags: uninsneveruninstall onlyifdoesntexist; Components: examples
+Source: C:\Qt\4.2.3\bin\*.dll; DestDir: {app}\vistrails
+Source: C:\WINDOWS\system32\python25.dll; DestDir: {app}\vistrails
+Source: C:\src\VTKbuild\bin\release\*.dll; DestDir: {app}\vistrails
+Source: C:\src\VTKbuild\bin\release\*.pyd; DestDir: {app}\vistrails
 [Dirs]
 Name: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails
 Name: {app}\vistrails
 Name: {app}\examples; Components: ; Tasks: 
 Name: {app}\examples\data
-Name: {app}\vistrails\Python24
+Name: {app}\vistrails\Python25
 Name: {app}\vistrails\vtk
 Name: {app}\vistrails\vistrails\vtk
 Name: {app}\vistrails\vistrails\Python24\DLLs
@@ -92,14 +92,15 @@ Name: main; Description: Main Files; Types: full compact custom; Flags: fixed
 Name: examples; Description: Example Files; Types: full
 
 [Icons]
-Name: {group}\VisTrails; Filename: {app}\vistrails\Python24\python.exe; WorkingDir: {app}\vistrails; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Components: ; Parameters: vistrails.py -l
-Name: {commondesktop}\VisTrails; Filename: {app}\vistrails\Python24\python.exe; WorkingDir: {app}\vistrails; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Parameters: vistrails.py -l
+Name: {group}\VisTrails; Filename: {app}\vistrails\Python25\python.exe; WorkingDir: {app}\vistrails; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Components: ; Parameters: vistrails.py -l
+Name: {commondesktop}\VisTrails; Filename: {app}\vistrails\Python25\python.exe; WorkingDir: {app}\vistrails; IconFilename: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; IconIndex: 0; Parameters: vistrails.py -l
 Name: {group}\Uninstall VisTrails; Filename: {uninstallexe}
 [Tasks]
 Name: desktopicon; Description: Create a &desktop icon; GroupDescription: Additional icons:; Components: main
 Name: desktopicon\common; Description: For all users; GroupDescription: Additional icons:; Components: main; Flags: exclusive
 Name: desktopicon\user; Description: For the current user only; GroupDescription: Additional icons:; Components: main; Flags: exclusive unchecked
 Name: quicklaunchicon; Description: Create a &Quick Launch icon; GroupDescription: Additional icons:; Components: main; Flags: unchecked
+Name: associatefiles; Description: Associate *.vt files with VisTrails; GroupDescription: File Association:; Components: main
 
 [Code]
 var
@@ -118,9 +119,24 @@ begin
     FinishedInstall := True;
 end;
 
+procedure CurPageChanged(CurPageID: Integer);
+var
+  oldPythonDir: String;
+begin
+  case CurPageID of
+    wpReady:
+    begin
+      oldPythonDir := ExpandConstant('{app}') + '\vistrails\Python24';
+	  if DirExists(oldPythonDir) then
+	    DelTree(oldPythonDir, True, True, True);
+	end;
+  end;
+end;
+
 procedure DeinitializeSetup();
 var
   qvtk: String;
+
   ResultCode: Integer;
 begin
   if FinishedInstall then begin
@@ -130,5 +146,10 @@ begin
     end;
 end;
 [_ISTool]
-LogFile=C:\Documents and Settings\emanuele\Desktop\vistrails_svn\trunk\dist\windows\Output\build.log
+LogFile=Output\build.log
 LogFileAppend=false
+[Registry]
+Root: HKCR; Subkey: .vt; ValueType: string; ValueData: VisTrailsFile; Flags: uninsdeletevalue; Tasks: associatefiles
+Root: HKCR; Subkey: VisTrailsFile; ValueType: string; ValueData: VisTrails File; Flags: uninsdeletekey; Tasks: associatefiles
+Root: HKCR; Subkey: VisTrailsFile\DefaultIcon; ValueType: string; ValueData: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; Tasks: associatefiles
+Root: HKCR; Subkey: VisTrailsFile\shell\open\command; ValueType: string; ValueData: """{app}\vistrails\Python25\python.exe"" ""{app}\vistrails\vistrails.py"" ""%1"""; Tasks: associatefiles

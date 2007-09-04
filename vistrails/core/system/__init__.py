@@ -78,10 +78,14 @@ if __name__ == '__main__':
 else:
     _thisDir = sys.modules[__name__].__file__
 _thisDir = os.path.split(_thisDir)[0]
-__rootDir = os.path.realpath(_thisDir + '/../../') + '/'
+__rootDir = os.path.realpath(os.path.join(_thisDir,
+                                          '..',
+                                          '..'))
 
-__dataDir = os.path.realpath(__rootDir + 'data/') + '/'
-__fileDir = os.path.realpath(__rootDir + '../examples/') + '/'
+__dataDir = os.path.realpath(os.path.join(__rootDir,
+                                          'data'))
+__fileDir = os.path.realpath(os.path.join(__rootDir,
+                                          '..','examples'))
 
 __defaultFileType = '.vt'
 
@@ -96,7 +100,7 @@ def set_vistrails_data_directory(d):
     while new_d != d:
         d = new_d
         new_d = os.path.expandvars(d)
-    __dataDir = os.path.realpath(d) + '/'
+    __dataDir = os.path.realpath(d)
 
 def set_vistrails_file_directory(d):
     """ set_vistrails_file_directory(d: str) -> None
@@ -109,7 +113,7 @@ def set_vistrails_file_directory(d):
     while new_d != d:
         d = new_d
         new_d = os.path.expandvars(d)
-    __fileDir = os.path.realpath(d) + '/'
+    __fileDir = os.path.realpath(d)
 
 def set_vistrails_root_directory(d):
     """ set_vistrails_root_directory(d:str) -> None 
@@ -123,7 +127,7 @@ def set_vistrails_root_directory(d):
     while new_d != d:
         d = new_d
         new_d = os.path.expandvars(d)
-    __rootDir = os.path.realpath(d) + '/'
+    __rootDir = os.path.realpath(d)
 
 def set_vistrails_default_file_type(t):
     """ set_vistrails_default_file_type(t:str) -> None
@@ -162,7 +166,7 @@ def packages_directory():
     Returns vistrails packages directory
 
     """
-    return vistrails_root_directory() + 'packages/'
+    return os.path.join(vistrails_root_directory(),'packages')
 
 def blank_vistrail_file():
     unimplemented()
@@ -172,35 +176,36 @@ def resource_directory():
     Returns vistrails gui resource directory
 
     """
-    return vistrails_root_directory() + 'gui/resources/'
+    return os.path.join(vistrails_root_directory(),
+                        'gui', 'resources')
 
 def default_options_file():
     """ default_options_file() -> str 
     Returns vistrails default options file
 
     """
-    return home_directory() + "/.vistrailsrc"
+    return os.path.join(home_directory(), ".vistrailsrc")
 
 def default_dot_vistrails():
     """ default_dot_vistrails() -> str 
     Returns VisTrails per-user directory.
 
     """
-    return home_directory() + "/.vistrails"
+    return os.path.join(home_directory(), '.vistrails')
 
 def default_bookmarks_file():
     """ default_bookmarks_file() -> str
     Returns default Vistrails per-user bookmarks file
 
     """
-    return default_dot_vistrails() + "/bookmarks.xml"
+    return os.path.join(default_dot_vistrails(),'bookmarks.xml')
 
 def default_connections_file():
     """ default_connections_file() -> str
     Returns default Vistrails per-user connections file
 
     """
-    return default_dot_vistrails() + "/connections.xml"
+    return os.path.join(default_dot_vistrails(), 'connections.xml')
 
 def python_version():
    """python_version() -> (major, minor, micro, release, serial)
@@ -213,7 +218,8 @@ def vistrails_version():
    # 0.2 was the SIGMOD demo version
    # 0.3 was the plugin/vtk version
    # 0.4 is cleaned up version with new GUI
-   return '0.4'
+   # 1.0b is version for SciVis class
+   return '1.0b'
 
 def vistrails_revision():
     """vistrails_revision() -> str 
@@ -224,7 +230,7 @@ def vistrails_revision():
     old_dir = os.getcwd()
     os.chdir(vistrails_root_directory())
     try:
-        release = "606"
+        release = "896"
         if core.requirements.executable_file_exists('svn'):
             if systemType not in ['Windows', 'Microsoft']:
                 process = popen2.Popen4("svn info")
@@ -272,11 +278,37 @@ FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF \
 SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH \
 DAMAGES.""" % (vistrails_version(), vistrails_revision())
 
-def untitled_locator():
-    from core.db.locator import FileLocator
-    basename = 'untitled' + vistrails_default_file_type()
-    fullname = os.path.join(default_dot_vistrails(), basename)
-    return FileLocator(fullname)
+def public_domain_string():
+    return """This vistrail is in the public domain.
+
+Dedicator: %s
+
+The person or persons who have associated work with this document (the
+"Dedicator" or "Certifier") hereby either (a) certifies that, to the best of
+his knowledge, the work of authorship identified is in the public domain of
+the country from which the work is published, or (b) hereby dedicates whatever
+copyright the dedicators holds in the work of authorship identified below (the
+"Work") to the public domain. A certifier, moreover, dedicates any copyright
+interest he may have in the associated work, and for these purposes, is
+described as a "dedicator" below.
+
+A certifier has taken reasonable steps to verify the copyright status of this
+work. Certifier recognizes that his good faith efforts may not shield him from
+liability if in fact the work certified is not in the public domain.
+
+Dedicator makes this dedication for the benefit of the public at large and to
+the detriment of the Dedicator's heirs and successors. Dedicator intends this
+dedication to be an overt act of relinquishment in perpetuity of all present
+and future rights under copyright law, whether vested or contingent, in the
+Work. Dedicator understands that such relinquishment of all rights includes
+the relinquishment of all rights to enforce (by lawsuit or otherwise) those
+copyrights in the Work.
+
+Dedicator recognizes that, once placed in the public domain, the Work may be
+freely reproduced, distributed, transmitted, used, modified, built upon, or
+otherwise exploited by anyone for any purpose, commercial or non-commercial,
+and in any way, including by methods that have not yet been invented or conceived.
+"""
 
 def get_elementtree_library():
     try:
@@ -305,14 +337,14 @@ class TestSystem(unittest.TestCase):
             os.chdir(r)
             v1 = vistrails_revision()
             try:
-                os.chdir(r + '../')
+                os.chdir(os.path.join(r, '..'))
                 self.assertEquals(v1, vistrails_revision())
             except AssertionError:
                 raise
             except:
                 pass
             try:
-                os.chdir(r + '../../')
+                os.chdir(os.path.join(r, '..', '..'))
                 self.assertEquals(v1, vistrails_revision())
             except AssertionError:
                 raise

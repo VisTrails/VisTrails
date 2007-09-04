@@ -27,7 +27,7 @@ import subprocess
 import core.system
 
 try:
-    from ctypes import windll, Structure, c_ulong
+    from ctypes import windll, Structure, c_ulong, byref, sizeof
     importSuccess = True
     
     class WIN32MEMORYSTATUS(Structure):

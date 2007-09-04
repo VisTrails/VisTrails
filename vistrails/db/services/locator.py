@@ -21,8 +21,10 @@
 ############################################################################
 
 import os.path
-
+import core.configuration
+import core.system
 from db.services import io
+import urllib
 
 class BaseLocator(object):
 
@@ -60,6 +62,11 @@ class BaseLocator(object):
 class XMLFileLocator(BaseLocator):
     def __init__(self, filename):
         self._name = filename
+        config = core.configuration.get_vistrails_configuration()
+        if config:
+            self._dot_vistrails = config.dotVistrails
+        else:
+            self._dot_vistrails = core.system.default_dot_vistrails()
 
     def load(self):
         fname = self._find_latest_temporary()
@@ -70,8 +77,8 @@ class XMLFileLocator(BaseLocator):
         vistrail.locator = self
         return vistrail
 
-    def save(self, vistrail):
-        io.save_vistrail_to_xml(vistrail, self._name)
+    def save(self, vistrail, public_domain):
+        io.save_vistrail_to_xml(vistrail, self._name, public_domain)
         vistrail.locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()
@@ -88,6 +95,14 @@ class XMLFileLocator(BaseLocator):
         return self._name
     name = property(_get_name)
 
+    def encode_name(self, filename):
+        """encode_name(filename) -> str
+        Encodes a file path using urllib.quoteplus
+
+        """
+        name = urllib.quote_plus(filename) + '_tmp_'
+        return os.path.join(self._dot_vistrails, name)
+    
     ##########################################################################
 
     def _iter_temporaries(self, f):
@@ -98,7 +113,7 @@ class XMLFileLocator(BaseLocator):
         latest = None
         current = 0
         while True:
-            fname = self._name + '_tmp_' + str(current)
+            fname = self.encode_name(self._name) + str(current)
             if os.path.isfile(fname):
                 f(fname)
                 current += 1
@@ -139,7 +154,7 @@ class XMLFileLocator(BaseLocator):
 
         """
         if temporary == None:
-            return self._name + '_tmp_0'
+            return self.encode_name(self._name) + '0'
         else:
             split = temporary.rfind('_')+1
             base = temporary[:split]
@@ -172,8 +187,8 @@ class ZIPFileLocator(XMLFileLocator):
         vistrail.locator = self
         return vistrail
 
-    def save(self, vistrail):
-        io.save_vistrail_to_zip_xml(vistrail, self._name)
+    def save(self, vistrail, public_domain):
+        io.save_vistrail_to_zip_xml(vistrail, self._name, public_domain)
         vistrail.locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()

@@ -23,10 +23,10 @@
 from gui.application import VistrailsApplication
 from gui.open_db_window import QOpenDBWindow
 from core.db.locator import DBLocator, FileLocator
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 import core.system
 import os
-
+import core.configuration
 
 ##############################################################################
 # DB dialogs
@@ -101,5 +101,67 @@ def get_save_file_locator_from_gui(parent, locator=None):
     dirName = os.path.dirname(str(f))
     setattr(VistrailsApplication.configuration, 'fileDirectory', dirName)
     core.system.set_vistrails_file_directory(dirName)
-    return FileLocator(f)
+    accepted = VistrailsApplication.configuration.publicDomain.accepted
+    if (core.configuration._class_version == True and
+        VistrailsApplication.configuration.publicDomain.ask):
+        (accepted, not_ask) =  ask_public_domain_permission(parent)
+        setattr(VistrailsApplication.configuration.publicDomain,
+                'accepted', accepted)
+        setattr(VistrailsApplication.configuration.publicDomain,
+                'ask', not not_ask)
+    return FileLocator(f, accepted)
 
+def ask_public_domain_permission(parent):
+    """ask_public_domain_permission(parent: QWidget) -> (bool, bool)
+      The first element in the result tuple is whether the user accepted,
+      the second is whether the user doesn't want to be asked again.
+    """
+    dialog = QtGui.QDialog(parent)
+    dialog.setWindowTitle("VisTrails")
+    label_txt = """We strongly encourage you to donate your VisTrails
+files to public domain. Your files will contain a disclaimer very similar
+to the one below: """
+    label1 = QtGui.QLabel(label_txt, dialog) 
+    text_edt = QtGui.QTextEdit(dialog)
+    text_edt.setPlainText(core.system.public_domain_string() % "<NAMEOFUSER>")
+    dont_askme_again = QtGui.QCheckBox(dialog)
+    dont_askme_again.setText("Don't ask me again")
+    b1 = QtGui.QPushButton("Yes", dialog)
+    dialog.connect(b1, QtCore.SIGNAL("clicked()"),
+                   dialog, QtCore.SLOT("accept()"))
+    b2 = QtGui.QPushButton("No", dialog)
+    dialog.connect(b2, QtCore.SIGNAL("clicked()"),
+                   dialog, QtCore.SLOT("reject()"))
+    layout = QtGui.QVBoxLayout()
+    layout.setMargin(5)
+    layout.setSpacing(5)
+    layout.addWidget(label1)
+    layout.addWidget(text_edt)
+    layout.addWidget(dont_askme_again,0,QtCore.Qt.AlignRight)
+    blayout = QtGui.QHBoxLayout()
+    blayout.setMargin(5)
+    blayout.setSpacing(5)
+    blayout.addWidget(b1)
+    blayout.addWidget(b2)
+    layout.addLayout(blayout)
+    dialog.setLayout(layout)
+    if dialog.exec_() == QtGui.QDialog.Accepted:
+        result = (True, dont_askme_again.isChecked())
+        fullname = VistrailsApplication.configuration.publicDomain.fullname
+        if  type(fullname) == tuple or fullname == "None":
+            (res, ok) = QtGui.QInputDialog.getText(parent,
+                                                   "VisTrails",
+                                                   "Full Name: ",
+                                                   QtGui.QLineEdit.Normal,
+                                                   "")
+            if not ok:
+                return ask_public_domain_permission(parent)
+            name = str(res)
+            setattr(VistrailsApplication.configuration.publicDomain,
+                'fullname', name)
+    else:
+        result = (False, dont_askme_again.isChecked())
+    
+    return result
+   
+       

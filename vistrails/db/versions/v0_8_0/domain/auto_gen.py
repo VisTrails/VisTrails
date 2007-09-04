@@ -3459,7 +3459,7 @@ class DBVistrail(object):
 
     vtType = 'vistrail'
 
-    def __init__(self, id=None, version=None, name=None, dbHost=None, dbPort=None, dbName=None, actions=None, tags=None, abstractions=None):
+    def __init__(self, id=None, version=None, name=None, dbHost=None, dbPort=None, dbName=None, actions=None, tags=None, abstractions=None, public_domain=None):
         self.__db_id = id
         self.__db_version = version
         self.__db_name = name
@@ -3489,6 +3489,7 @@ class DBVistrail(object):
             self.__db_abstractions = abstractions
             for v in self.__db_abstractions:
                 self.db_abstractions_id_index[v.db_id] = v
+        self.public_domain = public_domain
         self.is_dirty = True
         self.is_new = True
     

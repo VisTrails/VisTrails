@@ -1,4 +1,42 @@
-Release Name: 559
+Release Name: 601
+
+Changes:
+ - Packages:
+     * Added some VTK classes missing ports
+     * Catching VTK error message
+
+ - Builder:
+     * Improvements in the VisTrails Shell
+     * Query by Example now accepts module parameters in the queries
+     
+ - Spreadsheet:
+     * Added new base class for spreadsheet cell
+     * Added a layout mode 
+ 
+ - Examples:
+     * Added Circular Transect workflow to corie.xml
+
+Fixes:
+ - Parameter Exploration:
+     * Parameter exploration execution can be canceled
+
+ - Builder:
+     * Fixed Copy and Paste Tuple modules
+     * Fixed resizing problems on linux
+ 
+ - Spreadsheet:
+     * More resizing problems were fixed 
+
+ - Installer:
+     * Added missing dlls
+
+ - Better handling of path names with spaces
+ - Other minor fixes and coding reorganization
+
+--------------------------------------------------------------------
+Changes from previous releases
+
+From release 559
 
 Changes:
  - Packages:
@@ -49,9 +87,6 @@ Fixes:
 
  - Other minor fixes and coding reorganization
 
-
---------------------------------------------------------------------
-Changes from previous releases
 
 From release 502:
 

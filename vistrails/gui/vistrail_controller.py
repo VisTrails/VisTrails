@@ -22,6 +22,7 @@
 from PyQt4 import QtCore, QtGui
 from core.common import *
 import core.db.action
+import core.db.locator
 from core.data_structures.point import Point
 from core.utils import VistrailsInternalError, ModuleAlreadyExists
 from core.modules import module_registry
@@ -34,7 +35,6 @@ from core.vistrail.action import Action
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
 from core.vistrail.abstraction import Abstraction
-from core.vistrail.abstraction_module import AbstractionModule
 from core.vistrail.annotation import Annotation
 from core.vistrail.connection import Connection
 from core.vistrail.location import Location
@@ -54,7 +54,6 @@ import core.analogy
 import copy
 import db.services.action
 import os.path
-import core.system
 
 ################################################################################
 
@@ -110,7 +109,7 @@ class VistrailController(QtCore.QObject):
         from gui.application import VistrailsApplication
         if (self._auto_save and 
             VistrailsApplication.configuration.check('autosave')):
-            return self.locator or core.system.untitled_locator()
+            return self.locator or core.db.locator.untitled_locator()
         else:
             return None
 

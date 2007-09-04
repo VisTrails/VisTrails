@@ -29,7 +29,7 @@ from PyQt4 import QtCore, QtGui
 from gui.theme import CurrentTheme
 from gui.vistrail_view import QVistrailView
 from core import system
-from core.db.locator import FileLocator
+from core.db.locator import FileLocator, untitled_locator
 from core.vistrail.vistrail import Vistrail
 from core.modules.module_registry import ModuleRegistry
 import copy
@@ -224,8 +224,8 @@ class QViewManager(QtGui.QTabWidget):
         Create a new vistrail with no name
         
         """
-        if system.untitled_locator().has_temporaries():
-            locator = copy.copy(system.untitled_locator())
+        if untitled_locator().has_temporaries():
+            locator = copy.copy(untitled_locator())
             vistrail = locator.load()
             vistrailView = self.setVistrailView(vistrail, locator)
             vistrailView.controller.setChanged(True)
@@ -307,7 +307,7 @@ class QViewManager(QtGui.QTabWidget):
             else:
                 locator = (vistrailView.controller.locator or
                            gui_get(self, vistrailView.controller.locator))
-            if locator == system.untitled_locator():
+            if locator == untitled_locator():
                 locator = gui_get(self, vistrailView.controller.locator)
             # if couldn't get one, ignore the request
             if not locator:

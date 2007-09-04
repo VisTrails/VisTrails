@@ -36,6 +36,8 @@ import shutil
 import sys
 import tempfile
 
+_class_version = False
+
 ##############################################################################
 
 class ConfigurationObject(InstanceObject):
@@ -105,7 +107,8 @@ class ConfigurationObject(InstanceObject):
                                     ['bool', 'str', 'int', 'float', 'configuration'])][0]
             value_type = value.nodeName
             if value_type == 'configuration':
-                getattr(self, key_name).set_from_dom_node(value)
+                if hasattr(self,key_name):
+                    getattr(self, key_name).set_from_dom_node(value)
             elif value_type in ['bool', 'str', 'int', 'float']:
                 setattr(self, key_name, eval_xml_value(value))
         
@@ -130,10 +133,10 @@ def default():
         'dotVistrails': system.default_dot_vistrails(),
         'fileDirectory': (None, str),
         'defaultFileType':system.vistrails_default_file_type(),
-        'fileRepository': default_file_repository(),
+ #       'fileRepository': default_file_repository(),
         'interactiveMode': True,
         'logger': default_logger(),
-        'db': default_db(),
+ #       'db': default_db(),
         'maxMemory': (None, int),
         'maximizeWindows': False,
         'minMemory': (None, int),
@@ -148,29 +151,28 @@ def default():
         'useCache': True,
         'userPackageDirectory': (None, str),
         'verbosenessLevel': (None, int),
-        'spreadsheetRow': (None, int),
-        'spreadsheetColumn': (None, int),
+        'publicDomain' : default_public_domain(),
         }
     return ConfigurationObject(**base_dir)
 
-def default_file_repository():
-    """default_file_repository() -> ConfigurationObject
-    Returns the default configuration for the VisTrails file repository
+# def default_file_repository():
+#     """default_file_repository() -> ConfigurationObject
+#     Returns the default configuration for the VisTrails file repository
     
-    """
-    file_repository_dir = {
-        'dbHost': '',
-        'dbName': '',
-        'dbPasswd': '',
-        'dbPort': 0,
-        'dbUser': '',
-        'localDir': '',
-        'sshDir': '',
-        'sshHost': '',
-        'sshPort': 0,
-        'sshUser': '',
-        }
-    return ConfigurationObject(**file_repository_dir)
+#     """
+#     file_repository_dir = {
+#         'dbHost': '',
+#         'dbName': '',
+#         'dbPasswd': '',
+#         'dbPort': 0,
+#         'dbUser': '',
+#         'localDir': '',
+#         'sshDir': '',
+#         'sshHost': '',
+#         'sshPort': 0,
+#         'sshUser': '',
+#         }
+#     return ConfigurationObject(**file_repository_dir)
 
 def default_logger():
     """default_logger() -> ConfigurationObject
@@ -186,19 +188,19 @@ def default_logger():
         }
     return ConfigurationObject(**logger_dir)
 
-def default_db():
-    """default_db() -> ConfigurationObject
-    Returns the default configuration for VisTrails db
+# def default_db():
+#     """default_db() -> ConfigurationObject
+#     Returns the default configuration for VisTrails db
     
-    """
-    db = {
-        'host': '',
-        'database': '',
-        'passwd': '',
-        'port': 0,
-        'user': '',
-        }
-    return ConfigurationObject(**db)
+#     """
+#     db = {
+#         'host': '',
+#         'database': '',
+#         'passwd': '',
+#         'port': 0,
+#         'user': '',
+#         }
+#     return ConfigurationObject(**db)
 
 def default_shell():
     """default_shell() -> ConfigurationObject
@@ -224,5 +226,25 @@ def default_shell():
         raise VistrailsInternalError('system type not recognized')
     return ConfigurationObject(**shell_dir)
 
+def default_public_domain():
+    """default_public_domain() -> ConfigurationObject
+    Returns a configuration object for public domain information
+    Members: ask - if True show the disclaimer and ask for confirmation,
+                   otherwise use the value stored in accepted
+             accepted - if True the user has accepted to donate the files
+             fullname - User's complete name to include in the public domain
+                        text
+    """
+    return ConfigurationObject(ask=True, accepted=(None, bool),
+                               fullname = (None, str))
 def get_vistrails_configuration():
-    return QtCore.QCoreApplication.instance().configuration
+    """get_vistrails_configuration() -> ConfigurationObject or None
+    Returns the configuration of the application. It returns None if
+    configuration was not found (when running as a bogus application
+    for example.
+    """
+    if hasattr(QtCore.QCoreApplication.instance(),
+               'configuration'):
+        return QtCore.QCoreApplication.instance().configuration
+    else:
+        return None
