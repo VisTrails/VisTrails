@@ -209,7 +209,7 @@ context."""
                 connector.obj.update()
         for iport, connectorList in copy.copy(self.inputPorts.items()):
             for connector in connectorList:
-                if connector.obj.get_output(connector.port)==InvalidOutput:
+                if connector.obj.get_output(connector.port) is InvalidOutput:
                     self.removeInputConnector(iport, connector)
                     
     def update(self):
