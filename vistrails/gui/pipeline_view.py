@@ -178,7 +178,10 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
             if not self.connection:
                 self.connection = QtGui.QGraphicsLineItem(None, self.scene())
                 self.connection.setPen(CurrentTheme.CONNECTION_SELECTED_PEN)
-                self.connection.setZValue(2)
+                modules = self.controller.currentPipeline.modules
+                max_module_id = max([x for
+                                     x in modules.iterkeys()])
+                self.connection.setZValue(max_module_id + 1)
                 self.connection.snapPort = None
             startPos = self.sceneBoundingRect().center()
             endPos = event.scenePos()
@@ -784,7 +787,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         # self.description = module.annotations.get('__desc__', '').strip()
         if module.has_annotation_with_key('__desc__'):
             self.description = \
-                module.get_annotation_with_key('__desc__').value.strip()
+                module.get_annotation_by_key('__desc__').value.strip()
         else:
             self.description = ''
         self.setToolTip(self.description)
