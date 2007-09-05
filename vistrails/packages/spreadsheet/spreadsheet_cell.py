@@ -216,6 +216,8 @@ class QCellToolBar(QtGui.QToolBar):
         self.col = -1
         self.layout().setMargin(0)
         self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+        pixmap = self.style().standardPixmap(QtGui.QStyle.SP_DialogCloseButton)
+        self.appendAction(QCellToolBarRemoveCell(QtGui.QIcon(pixmap), self))
         self.createToolBar()
 
     def addAnimationButtons(self):
@@ -301,6 +303,38 @@ class QCellToolBar(QtGui.QToolBar):
             return self.sheet.getCell(self.row, self.col)
         else:
             return None
+
+class QCellToolBarRemoveCell(QtGui.QAction):
+    """
+    QCellToolBarRemoveCell is the action to clear the current cell
+    
+    """
+    def __init__(self, icon, parent=None):
+        """ QCellToolBarRemoveCell(icon: QIcon, parent: QWidget)
+                                   -> QCellToolBarRemoveCell
+        Setup the image, status tip, etc. of the action
+        
+        """
+        QtGui.QAction.__init__(self,
+                               icon,
+                               "&Clear the current cell",
+                               parent)
+        self.setStatusTip("Clear the current cell")
+
+    def triggeredSlot(self, checked=False):
+        """ toggledSlot(checked: boolean) -> None
+        Execute the action when the button is clicked
+        
+        """
+        cellWidget = self.toolBar.getSnappedWidget()
+        r = QtGui.QMessageBox.question(cellWidget, 'Clear cell',
+                                       'Are you sure to clear the cell?',
+                                       QtGui.QMessageBox.Yes |
+                                       QtGui.QMessageBox.No,
+                                       QtGui.QMessageBox.No)
+        if (r==QtGui.QMessageBox.Yes):
+            self.toolBar.sheet.setCellWidget(self.toolBar.row, self.toolBar.col,
+                                             None)
 
 class QCellToolBarCaptureToHistory(QtGui.QAction):
     """
@@ -564,7 +598,7 @@ class QCellPresenter(QtGui.QLabel):
         """
         if (self.cellWidget):
             self.cellWidget.deleteLater()
-        QtGui.QWidget.deleteLater(self)
+        QtGui.QLabel.deleteLater(self)
 
 ################################################################################
 

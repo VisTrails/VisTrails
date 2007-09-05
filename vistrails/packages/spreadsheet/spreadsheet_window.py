@@ -30,6 +30,7 @@ from spreadsheet_event import BatchDisplayCellEventType, DisplayCellEventType, \
      RepaintCurrentSheetEventType
 from spreadsheet_tabcontroller import StandardWidgetTabController
 from spreadsheet_sheet import StandardWidgetSheet
+from spreadsheet_cell import QCellContainer
 from core.modules import module_utils
 from core.utils import trace_method
 
@@ -300,11 +301,14 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 return True
                             
         # Perform single-click event on the spread sheet
-        if (eType==QtCore.QEvent.MouseButtonPress):
+        if (not self.tabController.editingMode and
+            eType==QtCore.QEvent.MouseButtonPress):
+            if type(q)==QCellContainer:
+                return q.containedWidget!=None
             p = q.parent()
             while (p and type(p)!=StandardWidgetSheet):
                 p = p.parent()
-            if (p):
+            if p:
                 pos = p.viewport().mapFromGlobal(e.globalPos())
                 p.emit(QtCore.SIGNAL('cellActivated(int, int, bool)'),
                        p.rowAt(pos.y()), p.columnAt(pos.x()),

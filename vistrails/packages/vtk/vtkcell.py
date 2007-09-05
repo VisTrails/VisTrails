@@ -40,6 +40,7 @@ from core.vistrail import module
 from core.vistrail import connection
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
+from core.vistrail.location import Location
 import db.services.action
 import copy
 
@@ -943,7 +944,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
         QtGui.QAction.__init__(self,
                                "Save &Camera",
                                parent)
-        self.setStatusTip("Save current camera views to the pipeline")
+        self.setStatusTip("Save current camera views to the pipeline")                                                        
 
     def triggeredSlot(self, checked=False):
         """ toggledSlot(checked: boolean) -> None
@@ -977,12 +978,20 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                             # Looking for SetCamera()
                             camera = None
                             for c in pipeline.connections.values():
-                                if c.destination.id==rendererId:
-                                    if c.destination.name=='SetCamera':
-                                        camera = pipeline.modules[c.destination.id]
+                                if c.destination.moduleId==rendererId:
+                                    if c.destination.name=='SetActiveCamera':
+                                        camera = pipeline.modules[c.source.moduleId]
                                         break
-                            if not camera:
-                                # Create camera
+                                    
+                            def createCameraFunctions(function_ids):
+                                """ createCameraFunctions([3 x int]) -> [3 x ModuleFunction]
+                                Return the SetPosition, SetFocalPoint and SetViewUp camera position
+
+                                """
+                                for i in range(len(function_ids)):
+                                    if (function_ids[i]==-1):
+                                        function_ids[i] = controller.vistrail.idScope.getNewId(ModuleFunction.vtType)
+                                        
                                 param_id = [controller.vistrail.idScope.getNewId(ModuleParam.vtType),
                                             controller.vistrail.idScope.getNewId(ModuleParam.vtType),
                                             controller.vistrail.idScope.getNewId(ModuleParam.vtType)]
@@ -990,8 +999,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                                                          name="", val=str(cpos[i]),
                                                          type="Float", alias="")
                                              for i in range(3)]
-                                function_id = controller.vistrail.idScope.getNewId(ModuleFunction.vtType)
-                                setPos = ModuleFunction(id=function_id,
+                                setPos = ModuleFunction(id=function_ids[0],
                                                         pos=0,
                                                         name="SetPosition",
                                                         parameters=posParams,
@@ -1005,7 +1013,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                                                          type="Float", alias="")
                                              for i in range(3)]
                                 function_id = controller.vistrail.idScope.getNewId(ModuleFunction.vtType)
-                                setFocal = ModuleFunction(id=function_id,
+                                setFocal = ModuleFunction(id=function_ids[1],
                                                           pos=1,
                                                           name="SetFocalPoint",
                                                           parameters=posParams,
@@ -1019,17 +1027,23 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                                                          type="Float", alias="")
                                              for i in range(3)]
                                 function_id = controller.vistrail.idScope.getNewId(ModuleFunction.vtType)
-                                setUp = ModuleFunction(id=function_id,
+                                setUp = ModuleFunction(id=function_ids[2],
                                                        pos=2,
                                                        name="SetViewUp",
                                                        parameters=posParams,
                                                        )
-                                                        
+                                return [setPos, setFocal, setUp]
+                            
+                            if not camera:
+                                # Create camera
+                                loc_id = controller.vistrail.idScope.getNewId(Location.vtType)
+                                location = Location(id=loc_id, x=-1.0, y=-1.0)
                                 module_id = controller.vistrail.idScope.getNewId(module.Module.vtType)
-                                camera = module.Module(id=module_id,
+                                camera = module.Module(id=module_id,                                                       
                                                        name="vtkCamera",
                                                        package="edu.utah.sci.vistrails.vtk",
-                                                       functions=[setPos, setFocal, setUp])
+                                                       location=location,
+                                                       functions=createCameraFunctions([-1]*3))                                
                                 action = db.services.action.create_action([('add', 
                                                                             camera)])
                                 Action.convert(action)
@@ -1051,13 +1065,51 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                                                    moduleName='vtkRenderer')
                                 destination.name = "SetActiveCamera"
                                 destination.spec = copy.copy(registry.get_input_port_spec(pipeline.modules[rendererId],
-                                                                                          "SetActiveCamera"))
+                                                                                           "SetActiveCamera"))
                                 c_id = controller.vistrail.idScope.getNewId(connection.Connection.vtType)
                                 conn = connection.Connection(id=c_id,
                                                              ports=[source, destination])
                                 action = db.services.action.create_action([('add', 
                                                                            conn)])
                                 Action.convert(action)
+                                controller.vistrail.add_action(action, controller.currentVersion)
+                                controller.perform_action(action)
+                            else:
+                                # Replace the current camera
+                                function_ids = [-1]*3
+                                for f in camera.functions:
+                                    if (f.name=='SetPosition'):
+                                        function_ids[0] = f.id
+                                    if (f.name=='SetFocalPoint'):
+                                        function_ids[1] = f.id
+                                    if (f.name=='SetViewUp'):
+                                        function_ids[2] = f.id
+                                functions = createCameraFunctions(function_ids)
+                                action_list = []
+                                for f in camera.functions:
+                                    if (f.name=='SetPosition'):
+                                        for i in range(3):
+                                            action_list.append(('change', f.params[i],
+                                                                functions[0].params[i],
+                                                                f.vtType, f.real_id))
+                                        functions[0] = None
+                                    if (f.name=='SetFocalPoint'):
+                                        for i in range(3):
+                                            action_list.append(('change', f.params[i],
+                                                                functions[1].params[i],
+                                                                f.vtType, f.real_id))
+                                        functions[1] = None
+                                    if (f.name=='SetViewUp'):
+                                        for i in range(3):
+                                            action_list.append(('change', f.params[i],
+                                                                functions[2].params[i],
+                                                                f.vtType, f.real_id))
+                                        functions[2] = None
+                                for f in functions:
+                                    if f:
+                                        action_list.append(('add', f,
+                                                            module.Module.vtType, camera.id))
+                                action = db.services.action.create_action(action_list)
                                 controller.vistrail.add_action(action, controller.currentVersion)
                                 controller.perform_action(action)
                                 

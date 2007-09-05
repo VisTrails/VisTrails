@@ -32,7 +32,7 @@
 from PyQt4 import QtCore, QtGui
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_sheet import StandardWidgetSheet
-from spreadsheet_cell import QCellPresenter, QCellContainer
+from spreadsheet_cell import QCellPresenter, QCellContainer, QCellToolBar
 from spreadsheet_execute import assignPipelineCellLocations, \
      executePipelineWithProgress
 import spreadsheet_rc
@@ -210,11 +210,15 @@ class StandardWidgetSheetTabInterface(object):
         
         """
         cell = self.getCell(row, col)
-        if cell and hasattr(cell, 'toolBarType'):
+        if cell:
+            if hasattr(cell, 'toolBarType'):
+                toolBarType = cell.toolBarType
+            else:
+                toolBarType = QCellToolBar
             container = self.getCellWidget(row, col)
             if type(container)==QCellContainer:
                 if container.toolBar==None:
-                    container.toolBar = cell.toolBarType(self)
+                    container.toolBar = toolBarType(self)
                 return container.toolBar
         return None
 
@@ -364,6 +368,9 @@ class StandardWidgetSheetTabInterface(object):
         Turn on/off the editing mode of the tab
         
         """
+        # Turn off active cell selection
+        self.sheet.clearSelection()
+        self.sheet.setActiveCell(-1, -1)
         # Go over all the cells and set the editing widget up
         (rowCount, colCount) = self.getDimension()
         for r in xrange(rowCount):
@@ -403,6 +410,7 @@ class StandardWidgetSheetTabInterface(object):
                                         currentVersion=info['version'],
                                         actions=info['actions'],
                                         reason=info['reason'],
+                                        vistrailLocator=info['locator'],
                                         sinks=[mId])
 
     def executePipelineToCell(self, pInfo, row, col, reason=''):
@@ -418,6 +426,7 @@ class StandardWidgetSheetTabInterface(object):
                                     vistrailName=pInfo[0],
                                     currentVersion=pInfo[1],
                                     actions=pInfo[2],
+                                    vistrailLocator=info['locator'],
                                     reason=reason)
 
     def setPipelineToLocateAt(self, row, col, inPipeline, cellIds=[]):
@@ -462,8 +471,10 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         import core.packagemanager
         pm = core.packagemanager.get_package_manager()
         config = pm.get_package_configuration('spreadsheet')
-        row = config.rowCount
-        col = config.columnCount
+        if not row:
+            row = config.rowCount
+        if not col:
+            col = config.columnCount
         self.type = 'StandardWidgetSheetTab'
         self.tabWidget = tabWidget
         self.sheet = StandardWidgetSheet(row, col, self)

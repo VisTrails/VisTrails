@@ -51,6 +51,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Initialize signals/slots and widgets for the tab bar
         
         """
+        
         QtGui.QTabWidget.__init__(self, parent)
         self.operatingWidget = self
         self.setTabBar(StandardWidgetTabBar(self))
@@ -81,7 +82,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         self.setCornerWidget(self.closeButton)
         self.connect(self.closeButton, QtCore.SIGNAL('clicked()'),
                      self.deleteSheetAction().trigger)
-
+        
     def isLoadingMode(self):
         """ isLoadingMode() -> boolean
         Checking if the controller is in loading mode
