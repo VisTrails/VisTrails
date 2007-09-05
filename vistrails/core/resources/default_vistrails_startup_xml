@@ -10,6 +10,7 @@
     <package name="spreadsheet"/>
     <package name="dialogs"/>
     <package name="HTTP"/>
+    <package name="pylab"/>
   </packages>
   <disabledpackages/>
 </startup>

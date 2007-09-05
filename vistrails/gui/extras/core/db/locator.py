@@ -77,11 +77,16 @@ def get_load_file_locator_from_gui(parent):
 def get_save_file_locator_from_gui(parent, locator=None):
     # Ignore current locator for now
     # In the future, use locator to guide GUI for better starting directory
+    filetypes = "*%s "%VistrailsApplication.configuration.defaultFileType
+    supported_files = [".vt", ".xml"]
+    for e in supported_files:
+        if filetypes.find(str(e)+" ") == -1:
+            filetypes += "*%s " % e
     fileName = QtGui.QFileDialog.getSaveFileName(
         parent,
         "Save Vistrail...",
         core.system.vistrails_file_directory(),
-        "VisTrails files (*.xml *.vt)",
+        "VisTrails files (%s)"%filetypes.strip(),
         None,
         QtGui.QFileDialog.DontConfirmOverwrite)
     if fileName.isEmpty():
@@ -109,6 +114,7 @@ def get_save_file_locator_from_gui(parent, locator=None):
                 'accepted', accepted)
         setattr(VistrailsApplication.configuration.publicDomain,
                 'ask', not not_ask)
+    print f
     return FileLocator(f, accepted)
 
 def ask_public_domain_permission(parent):

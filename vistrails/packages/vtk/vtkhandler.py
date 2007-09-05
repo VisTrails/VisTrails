@@ -26,6 +26,7 @@ from core.modules.vistrails_module import Module, NotCacheable
 from core.modules.module_registry import registry
 from core.modules.module_configure import StandardModuleConfigurationWidget, \
      PythonEditor
+from core.vistrail.module_function import ModuleFunction, ModuleParam
 import urllib
 
 ################################################################################

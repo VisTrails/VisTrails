@@ -81,6 +81,9 @@ configuration.nologger = True
 # them as regular files in VisTrails pipelines.
 # addPackage('HTTP')
 
+# The pylab (matplotlib) package for plotting and histograms
+# addPackage('pylab')
+
 
 ################################################################################
 # Hooks
