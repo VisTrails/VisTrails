@@ -518,11 +518,11 @@ class SearchCompiler(object):
                 tokStream = tokStream[1:]
             return (BeforeSearchStmt(" ".join(lst)), [])
         except SearchParseError, e:
-            if 'Expected a date' in e.message:
+            if 'Expected a date' in e.args[0]:
                 try:
                     return self.parseAny(old_tokstream)
                 except SearchParseError, e2:
-                    print "Another exception...", e2.message
+                    print "Another exception...", e2.args[0]
                     raise e
             else:
                 raise
@@ -543,11 +543,11 @@ class SearchCompiler(object):
                 tokStream = tokStream[1:]
             return (AfterSearchStmt(" ".join(lst)), [])
         except SearchParseError, e:
-            if 'Expected a date' in e.message:
+            if 'Expected a date' in e.args[0]:
                 try:
                     return self.parseAny(['after'] + tokStream)
                 except SearchParseError, e2:
-                    print "Another exception...", e2.message
+                    print "Another exception...", e2.args[0]
                     raise e
             else:
                 raise
