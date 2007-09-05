@@ -58,6 +58,19 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
     def __del__(self):
         self.clear()
 
+    def clean_modules(self, modules_to_clean):
+        """clean_modules(modules_to_clean: list of persistent module ids)
+
+        Removes modules from the persistent pipeline, and the modules that
+        depend on them."""
+        if modules_to_clean == []:
+            return
+        g = self._persistent_pipeline.graph
+        dependencies = g.vertices_topological_sort(modules_to_clean)
+        for v in dependencies:
+            self._persistent_pipeline.delete_module(v)
+            del self._objects[v]
+
     def clean_non_cacheable_modules(self):
         """clean_non_cacheable_modules() -> None
 
@@ -66,13 +79,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         non_cacheable_modules = [i for
                                  (i, mod) in self._objects.iteritems()
                                  if not mod.is_cacheable()]
-        if non_cacheable_modules == []:
-            return
-        g = self._persistent_pipeline.graph
-        dependencies = g.vertices_topological_sort(non_cacheable_modules)
-        for v in dependencies:
-            self._persistent_pipeline.delete_module(v)
-            del self._objects[v]
+        self.clean_modules(non_cacheable_modules)
+        
 
     def unlocked_execute(self, controller,
                          pipeline, locator, currentVersion,
@@ -85,7 +93,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         if view == None:
             raise VistrailsInternalError("This shouldn't have happened")
         self.resolve_aliases(pipeline,aliases)
-        (module_map,
+        (tmp_to_persistent_module_map,
          conn_map,
          module_added_set,
          conn_added_set) = self.add_to_persistent_pipeline(pipeline)
@@ -93,7 +101,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
         parameter_changes = []
         def change_parameter(obj, name, value):
-            parameter_changes.append((module_map.inverse[obj.id],
+            parameter_changes.append((tmp_to_persistent_module_map.inverse[obj.id],
                                       name, value))
 
         # the executed dict works on persistent ids
@@ -104,11 +112,11 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                     callable_(obj.id)
         # views work on local ids
         def begin_compute(obj):
-            i = module_map.inverse[obj.id]
+            i = tmp_to_persistent_module_map.inverse[obj.id]
             view.set_module_computing(i)
         # views and loggers work on local ids
         def begin_update(obj):
-            i = module_map.inverse[obj.id]
+            i = tmp_to_persistent_module_map.inverse[obj.id]
             view.set_module_active(i)
             reg = modules.module_registry.registry
             name = reg.get_descriptor(obj.__class__).name
@@ -116,7 +124,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                                                 currentVersion, i, name)
         # views and loggers work on local ids
         def end_update(obj, error=''):
-            i = module_map.inverse[obj.id]
+            i = tmp_to_persistent_module_map.inverse[obj.id]
             if not error:
                 view.set_module_success(i)
             else:
@@ -125,7 +133,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                                                  currentVersion, i)
         # views and loggers work on local ids
         def annotate(obj, d):
-            i = module_map.inverse[obj.id]
+            i = tmp_to_persistent_module_map.inverse[obj.id]
             self._logger.insert_annotation_DB(locator, 
                                             currentVersion, i, d)
 
@@ -146,11 +154,11 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         ## Checking 'sinks' from kwagrs to resolve only requested sinks
         if kwargs.has_key('sinks'):
             requestedSinks = kwargs['sinks']
-            persistent_sinks = [module_map[sink]
+            persistent_sinks = [tmp_to_persistent_module_map[sink]
                                 for sink in pipeline.graph.sinks()
                                 if sink in requestedSinks]
         else:
-            persistent_sinks = [module_map[sink]
+            persistent_sinks = [tmp_to_persistent_module_map[sink]
                                 for sink in pipeline.graph.sinks()]
             
         logging_obj = InstanceObject(signalSuccess=add_to_executed,
@@ -166,7 +174,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
     
         # Create the new objects
         for i in module_added_set:
-            persistent_id = module_map[i]
+            persistent_id = tmp_to_persistent_module_map[i]
             module = self._persistent_pipeline.modules[persistent_id]
             self._objects[persistent_id] = module.summon()
             obj = self._objects[persistent_id]
@@ -232,19 +240,24 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         # as opposed to the persistent ids.
         # They are thus ideal to external consumption.
         objs = {}
-        # dict([(i, self._objects[module_map[i]])
-        #              for i in module_map.keys()])
+        # dict([(i, self._objects[tmp_to_persistent_module_map[i]])
+        #              for i in tmp_to_persistent_module_map.keys()])
         errs = {}
         execs = {}
-        for (i, v) in module_map.iteritems():
-            objs[i] = self._objects[v]
-            if errors.has_key(v):
-                errs[i] = errors[v]
-            if executed.has_key(v):
-                execs[i] = executed[v]
-            else:
-                execs[i] = False
 
+        to_delete = []
+        for (tmp_id, pst_id) in tmp_to_persistent_module_map.iteritems():
+            objs[tmp_id] = self._objects[pst_id]
+            if errors.has_key(pst_id):
+                errs[tmp_id] = errors[pst_id]
+                to_delete.append(pst_id)
+            if executed.has_key(pst_id):
+                execs[tmp_id] = executed[pst_id]
+            else:
+                execs[tmp_id] = False
+
+        # Clean up modules that failed to execute
+        self.clean_modules(to_delete)
         #         print "objs:", objs
         #         print "errs:", errs
         #         print "execs:", execs
