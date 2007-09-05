@@ -34,7 +34,8 @@ class StandardModuleConfigurationWidget(QtGui.QDialog):
         QtGui.QDialog.__init__(self, parent)
         self.setModal(True)
         self.module = module
-        self.module_descriptor = registry.get_descriptor_by_name(
+        reg = module.registry or registry
+        self.module_descriptor = reg.get_descriptor_by_name(
             self.module.package,
             self.module.name)
         self.controller = controller
@@ -177,7 +178,7 @@ class PortTable(QtGui.QTableWidget):
         self.disconnect(self.model(),
                         QtCore.SIGNAL('dataChanged(QModelIndex,QModelIndex)'),
                         self.handleDataChanged)
-        for p in ports[0][1]:
+        for p in ports:
             model = self.model()
             portType = registry.get_descriptor(p.spec.signature[0][0]).name
             model.setData(model.index(self.rowCount()-1, 1),
@@ -327,9 +328,9 @@ class PythonSourceConfigurationWidget(StandardModuleConfigurationWidget):
         labels = QtCore.QStringList() << "Output Port Name" << "Type"
         self.outputPortTable.setHorizontalHeaderLabels(labels)
         if self.module.registry:
-            iPorts = self.module.registry.all_destination_ports(self.module_descriptor)
+            iPorts = self.module.registry.destination_ports_from_descriptor(self.module_descriptor)
             self.inputPortTable.initializePorts(iPorts)
-            oPorts = self.module.registry.all_source_ports(self.module_descriptor)
+            oPorts = self.module.registry.source_ports_from_descriptor(self.module_descriptor)
             self.outputPortTable.initializePorts(oPorts)
         self.layout().addWidget(self.inputPortTable)
         self.layout().addWidget(self.outputPortTable)
