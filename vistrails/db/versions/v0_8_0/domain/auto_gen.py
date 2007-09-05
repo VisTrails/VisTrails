@@ -160,7 +160,7 @@ class DBModule(object):
             self.__db_portSpecs = portSpecs
             for v in self.__db_portSpecs:
                 self.db_portSpecs_id_index[v.db_id] = v
-                self.db_portSpecs_name_index[v.db_name] = v
+                self.db_portSpecs_name_index[(v.db_name, v.db_type)] = v
         self.is_dirty = True
         self.is_new = True
     
@@ -208,7 +208,7 @@ class DBModule(object):
             cp.db_annotations_key_index[v.db_key] = v
         for v in cp.__db_portSpecs:
             cp.db_portSpecs_id_index[v.db_id] = v
-            cp.db_portSpecs_name_index[v.db_name] = v
+            cp.db_portSpecs_name_index[(v.db_name, v.db_type)] = v
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
@@ -434,7 +434,8 @@ class DBModule(object):
         self.is_dirty = True
         self.__db_portSpecs.append(portSpec)
         self.db_portSpecs_id_index[portSpec.db_id] = portSpec
-        self.db_portSpecs_name_index[portSpec.db_name] = portSpec
+        self.db_portSpecs_name_index[(portSpec.db_name, portSpec.db_type)] = \
+            portSpec
     def db_change_portSpec(self, portSpec):
         self.is_dirty = True
         found = False
@@ -446,7 +447,8 @@ class DBModule(object):
         if not found:
             self.__db_portSpecs.append(portSpec)
         self.db_portSpecs_id_index[portSpec.db_id] = portSpec
-        self.db_portSpecs_name_index[portSpec.db_name] = portSpec
+        self.db_portSpecs_name_index[(portSpec.db_name, portSpec.db_type)] = \
+            portSpec
     def db_delete_portSpec(self, portSpec):
         self.is_dirty = True
         for i in xrange(len(self.__db_portSpecs)):
@@ -454,7 +456,7 @@ class DBModule(object):
                 del self.__db_portSpecs[i]
                 break
         del self.db_portSpecs_id_index[portSpec.db_id]
-        del self.db_portSpecs_name_index[portSpec.db_name]
+        del self.db_portSpecs_name_index[(portSpec.db_name, portSpec.db_type)]
     def db_get_portSpec(self, key):
         for i in xrange(len(self.__db_portSpecs)):
             if self.__db_portSpecs[i].db_id == key:

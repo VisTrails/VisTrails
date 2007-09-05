@@ -28,10 +28,6 @@ from core.utils import VistrailsInternalError, ModuleAlreadyExists
 from core.modules import module_registry
 from core.modules.module_registry import ModuleRegistry
 from core.vistrail.action import Action
-# from core.vistrail.action import AddModuleAction, DeleteModuleAction, \
-#     ChangeParameterAction, AddConnectionAction, DeleteConnectionAction, \
-#     DeleteFunctionAction, ChangeAnnotationAction, DeleteAnnotationAction,\
-#     AddModulePortAction, DeleteModulePortAction, MoveModuleAction
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
 from core.vistrail.abstraction import Abstraction
@@ -450,7 +446,7 @@ class VistrailController(QtCore.QObject):
 
         spec_id = -1
         module = self.currentPipeline.get_module_by_id(module_id)
-        port_spec = module.get_portSpec_by_name(port_tuple[1])
+        port_spec = module.get_portSpec_by_name((port_tuple[1], port_tuple[0]))
         action_list = [('delete', port_spec, module.vtType, module.id)]
         for function in module.functions:
             if function.name == port_spec.name:
