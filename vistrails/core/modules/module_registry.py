@@ -428,8 +428,16 @@ class ModuleRegistry(QtCore.QObject):
             Exception.__init__(self)
             self._identifier = identifier
             self._name = name
-        def str(self):
-            return "Missing package: %s, %s" % (identifier, name)
+        def __str__(self):
+            return "Missing package: %s, %s" % (self._identifier, self._name)
+
+    class MissingBaseClass(Exception):
+        def __init__(self, base):
+            Exception.__init__(self)
+            self._base = base
+
+        def __str__(self):
+            return "Base class has not been registered : %s" % (self._base.__name__)
 
     ##########################################################################
     # Constructor and copy
@@ -651,8 +659,9 @@ class ModuleRegistry(QtCore.QObject):
         if len(candidates) != 1:
             raise InvalidModuleClass(module)
         baseClass = candidates[0]
-        assert (self._module_key_map.has_key(baseClass),
-                ("Missing base class %s" % baseClass.__name__))
+        if not self._module_key_map.has_key(baseClass) :
+            raise self.MissingBaseClass(baseClass) 
+        
         base_key = self._module_key_map[baseClass]
         base_node = self._key_tree_map[base_key]
         module_node = base_node.add_module(module, identifier, name)
