@@ -57,6 +57,13 @@
     <package name="ProteinDataBank"/>
     <package name="dialogs"/>
     <package name="SciPy"/>
+    <package name="webServices">
+      <configuration>
+         <key name="wsdlList">
+           <str value=""/>
+         </key>
+      </configuration>
+    </package>
   </packages>
 </startup>
 -->

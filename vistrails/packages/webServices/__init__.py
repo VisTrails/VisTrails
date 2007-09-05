@@ -20,9 +20,11 @@
 ##
 ############################################################################
 """ This package defines a set of methods to deal with web services.
-It requires pyXML, fpconst and SOAPpy modules to be installed
+It requires pyXML, fpconst and SOAPpy modules to be installed. Click on
+configure to add wsdl urls to the package (use a ; to separate the urls).
 
-""" 
+"""
+from core.configuration import ConfigurationObject
 from core.bundles import py_import
 from core.requirements import MissingRequirement
 
@@ -50,6 +52,7 @@ import core.modules.module_registry
 import core.modules.basic_modules
 from core.modules.vistrails_module import Module, ModuleError, new_module
 
+configuration = ConfigurationObject(wsdlList=(None, str))
 identifier = 'edu.utah.sci.vistrails.webservices'
 version = '0.9.0'
 name = 'Web Services'
@@ -114,7 +117,12 @@ wsdlTypesDict = { 'string' : core.modules.basic_modules.String,
 ################################################################################
 
 def initialize(*args, **keywords):
-    wsdlList = keywords['wsdlList']
+    import core.packagemanager
+    pm = core.packagemanager.get_package_manager()
+    config = pm.get_package_configuration('webServices')
+    wsdlList = []
+    if config.check('wsdlList'):
+        wsdlList = config.wsdlList.split(";")
         
     reg = core.modules.module_registry
     basic = core.modules.basic_modules

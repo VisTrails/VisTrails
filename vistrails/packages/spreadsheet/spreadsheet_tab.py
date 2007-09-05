@@ -460,7 +460,6 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         """
         QtGui.QWidget.__init__(self, None)
         import core.packagemanager
-        import __init__
         pm = core.packagemanager.get_package_manager()
         config = pm.get_package_configuration('spreadsheet')
         row = config.rowCount
