@@ -270,8 +270,9 @@ class QMethodInputForm(QtGui.QGroupBox):
             self.labels.append(label)
             self.layout().addWidget(label, pIndex, 0)
             self.layout().addWidget(lineEdit, pIndex, 1)
-            # Ugly hack to add browse button to SetFileName strings
-            if(function.name=='SetFileName'):
+            # Ugly hack to add browse button to methods that look like
+            # they have to do with files
+            if('file' in function.name.lower()):
                 browseButton = QMethodFileChooser(self, lineEdit)
                 self.layout().addWidget(browseButton, pIndex, 2)
 
