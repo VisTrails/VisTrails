@@ -74,20 +74,22 @@ typeMapDict = {'int': Integer,
                'const char *': String}
 typeMapDictValues = [Integer, Float, String]
 
-def typeMap(name):
+def typeMap(name, package=None):
     """ typeMap(name: str) -> Module
     Convert from C/C++ types into VisTrails Module type
     
     """
+    if package is None:
+        package = identifier
     if type(name) == tuple:
-        return [typeMap(x) for x in name]
+        return [typeMap(x, package) for x in name]
     if name in typeMapDict:
         return typeMapDict[name]
     else:
-        if not registry.has_descriptor_with_name(identifier, name):
+        if not registry.has_descriptor_with_name(package, name):
             return None
         else:
-            return registry.get_descriptor_by_name(identifier,
+            return registry.get_descriptor_by_name(package,
                                                    name).module
 
 def get_method_signature(method):
@@ -535,7 +537,8 @@ def addPorts(module):
                        typeMap('vtkAlgorithmOutput'))
     # vtkWriters have a custom File port
     elif module.vtkClass==vtk.vtkWriter:
-        add_output_port(module, 'file', typeMap('File'))
+        add_output_port(module, 'file', typeMap('File',
+                                                'edu.utah.sci.vistrails.basic'))
 
 def setAllPorts(treeNode):
     """ setAllPorts(treeNode: TreeNode) -> None
