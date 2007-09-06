@@ -42,6 +42,7 @@ from core.modules.vistrails_module import new_module, ModuleError
 from base_module import vtkBaseModule
 from class_tree import ClassTree
 from vtk_parser import VTKMethodParser
+import offscreen
 import re
 import os.path
 from itertools import izip
@@ -539,6 +540,9 @@ def addPorts(module):
     elif module.vtkClass==vtk.vtkWriter:
         add_output_port(module, 'file', typeMap('File',
                                                 'edu.utah.sci.vistrails.basic'))
+    elif module.vtkClass==vtk.vtkImageWriter:
+        add_output_port(module, 'file', typeMap('File',
+                                                'edu.utah.sci.vistrails.basic'))
 
 def setAllPorts(treeNode):
     """ setAllPorts(treeNode: TreeNode) -> None
@@ -737,6 +741,9 @@ def initialize():
         import vtkcell
         vtkhandler.registerSelf()
         vtkcell.registerSelf()
+
+    # register offscreen rendering module
+    offscreen.register_self()
 
 def package_dependencies():
     import core.packagemanager
