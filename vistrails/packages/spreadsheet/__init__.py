@@ -32,10 +32,9 @@ from spreadsheet_window import SpreadsheetWindow
 import os
 import string
 import sys
-from core.configuration import ConfigurationObject
 
-configuration = ConfigurationObject(rowCount=2,
-                                    columnCount=3)
+# This must be here because of VisTrails protocol
+from spreadsheet_config import configuration
 
 name = 'VisTrails Spreadsheet'
 identifier = 'edu.utah.sci.vistrails.spreadsheet'

@@ -37,6 +37,8 @@ from spreadsheet_execute import assignPipelineCellLocations, \
      executePipelineWithProgress
 import spreadsheet_rc
 
+from spreadsheet_config import configuration
+
 ################################################################################
 
 class SizeSpinBox(QtGui.QSpinBox):
@@ -468,13 +470,14 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
                                 
         """
         QtGui.QWidget.__init__(self, None)
-        import core.packagemanager
-        pm = core.packagemanager.get_package_manager()
-        config = pm.get_package_configuration('spreadsheet')
+#         import core.packagemanager
+#         pm = core.packagemanager.get_package_manager()
+        
+#         config = pm.get_package_configuration('spreadsheet')
         if not row:
-            row = config.rowCount
+            row = configuration.rowCount
         if not col:
-            col = config.columnCount
+            col = configuration.columnCount
         self.type = 'StandardWidgetSheetTab'
         self.tabWidget = tabWidget
         self.sheet = StandardWidgetSheet(row, col, self)
