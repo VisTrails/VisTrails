@@ -50,7 +50,9 @@ def unserialize(str, klass):
 
     """
     obj = db.services.io.unserialize(str, klass.vtType)
-    klass.convert(obj)
+    if obj:
+        #maybe we should also put a try except here
+        klass.convert(obj)
     return obj
 
 def serialize(object):

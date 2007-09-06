@@ -1396,8 +1396,9 @@ mutual connections."""
             cb = QtGui.QApplication.clipboard()        
             text = str(cb.text())
             if text=='': return
-            self.unselect_all()
             ids = self.controller.pasteModulesAndConnections(text)
+            if len(ids) > 0:
+                self.unselect_all()
             for moduleId in ids:
                 self.modules[moduleId].setSelected(True)
 

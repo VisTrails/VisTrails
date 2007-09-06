@@ -881,14 +881,15 @@ class VistrailController(QtCore.QObject):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
         pipeline = core.db.io.unserialize(str, Pipeline)
-        action = core.db.action.create_paste_action(pipeline, 
-                                                    self.vistrail.idScope)
         modules = []
-        for op in action.operations:
-            if op.what == 'module':
-                modules.append(op.objectId)
-        self.vistrail.add_action(action, self.currentVersion)
-        self.perform_action(action)
+        if pipeline:
+            action = core.db.action.create_paste_action(pipeline, 
+                                                        self.vistrail.idScope)
+            for op in action.operations:
+                if op.what == 'module':
+                    modules.append(op.objectId)
+            self.vistrail.add_action(action, self.currentVersion)
+            self.perform_action(action)
         return modules
 
     def create_abstraction(self, modules, connections):
