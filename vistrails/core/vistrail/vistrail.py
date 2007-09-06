@@ -707,13 +707,12 @@ class Vistrail(DBVistrail):
         if self.has_tag_with_name(version_name):
             DebugPrint.log("Tag already exists")
             raise TagExists()
-        if version_name=='':
-            self.db_delete_tag(self.tagMap[version_number])
-        else:
+        self.db_delete_tag(self.tagMap[version_number])
+        if version_name != '':
             tag = Tag(id=long(version_number),
                       name=version_name,
                       )
-            self.db_change_tag(tag)
+            self.db_add_tag(tag)
         self.changed = True
 
     def changenotes(self, notes, version_number):
