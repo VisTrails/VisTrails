@@ -192,7 +192,7 @@ class VistrailController(QtCore.QObject):
         Delete a module from the current pipeline
         
         """
-        return self.deleteModuleList([moduleId])
+        return self.deleteModuleList([module_id])
 
     def deleteModuleList(self, module_ids):
         """ deleteModule(module_ids: [int]) -> [version id]

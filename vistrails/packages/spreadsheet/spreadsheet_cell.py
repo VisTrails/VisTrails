@@ -270,7 +270,7 @@ class QCellToolBar(QtGui.QToolBar):
             self.connect(action, QtCore.SIGNAL('triggered()'),
                          widget.triggeredSlot)
         if hasattr(widget, 'toggledSlot'):
-            self.connzect(action, QtCore.SIGNAL('toggled(bool)'),
+            self.connect(action, QtCore.SIGNAL('toggled(bool)'),
                          widget.toggledSlot)
 
     def appendAction(self, action):

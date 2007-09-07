@@ -1282,6 +1282,10 @@ mutual connections."""
                 self.unselect_all()
                 # Change selection
                 graphics_item.setSelected(True)
+                
+                # We are assuming the first view is the real pipeline view                
+                self.views()[0].setFocus()
+                
                 self.noUpdate = False
 
     def keyPressEvent(self, event):
