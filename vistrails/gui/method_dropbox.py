@@ -272,7 +272,7 @@ class QMethodInputForm(QtGui.QGroupBox):
             self.layout().addWidget(lineEdit, pIndex, 1)
             # Ugly hack to add browse button to methods that look like
             # they have to do with files
-            if('file' in function.name.lower()):
+            if('file' in function.name.lower() and p.type == 'String'):
                 browseButton = QMethodFileChooser(self, lineEdit)
                 self.layout().addWidget(browseButton, pIndex, 2)
 
