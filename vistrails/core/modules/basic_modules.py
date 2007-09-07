@@ -33,6 +33,7 @@ import core.packagemanager
 import core.system
 import os
 import zipfile
+import urllib
 
 _reg = module_registry.registry
 
@@ -313,28 +314,40 @@ class PythonSource(NotCacheable, Module):
     
     It is especially useful for one-off pieces of 'glue' in a
     pipeline."""
-    
-    def compute(self):
+
+    def run_code(self, code_str,
+                 use_input=False,
+                 use_output=False):
+        """run_code runs a piece of code as a VisTrails module.
+        use_input and use_output control whether to use the inputport
+        and output port dictionary as local variables inside the
+        execution."""
+        
         def fail(msg):
             raise ModuleError(self, msg)
-        import urllib
-        s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
-        inputDict = dict([(k, self.getInputFromPort(k))
-                          for k in self.inputPorts])
-        outputDict = dict([(k, None)
-                           for k in self.outputPorts])
         locals_ = locals()
-        locals_.update(inputDict)
-        locals_.update(outputDict)
+        if use_input:
+            inputDict = dict([(k, self.getInputFromPort(k))
+                              for k in self.inputPorts])
+            locals_.update(inputDict)
+        if use_output:
+            outputDict = dict([(k, None)
+                               for k in self.outputPorts])
+            locals_.update(outputDict)
         _m = core.packagemanager.get_package_manager()
         locals_.update({'fail': fail,
                         'package_manager': _m,
                         'self': self})
         del locals_['source']
-        exec s in globals(), locals_
-        for k in outputDict.iterkeys():
-            if locals_[k] != None:
-                self.setResult(k, locals_[k])
+        exec code_str in locals_, locals_
+        if use_output:
+            for k in outputDict.iterkeys():
+                if locals_[k] != None:
+                    self.setResult(k, locals_[k])
+
+    def compute(self):
+        s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        self.run_code(s, use_input=True, use_output=True)
 
 _reg.add_module(PythonSource,
                 configureWidgetType=module_configure.PythonSourceConfigurationWidget)

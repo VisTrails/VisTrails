@@ -24,14 +24,15 @@ widget
 
 """
 from PyQt4 import QtCore, QtGui
-from core.modules.vistrails_module import Module, NotCacheable
+from core.modules.basic_modules import PythonSource
+from core.modules.vistrails_module import Module, NotCacheable, ModuleError
 from core.modules.module_configure import StandardModuleConfigurationWidget, \
      PythonSourceConfigurationWidget, PythonEditor
 import urllib
 
 ############################################################################
 
-class MplPlot(NotCacheable, Module):
+class MplPlot(PythonSource):
     """
     MplPlot is a module similar to PythonSource. The user can enter
     Matplotlib code into this module. This will then get connected to
@@ -49,12 +50,12 @@ class MplPlot(NotCacheable, Module):
         
         """
         if self.hasInputFromPort('source'):
-            if self.outputPorts.has_key('source'):                
-                self.setResult('source', self.getInputFromPort('source'))
+            if self.outputPorts.has_key('source'):
                 source = self.getInputFromPort('source')
-                exec('from pylab import *\n' +
+                s = ('from pylab import *\n' +
                      'from numpy import *\n' +
                      urllib.unquote(source))
+                self.run_code(s, use_input=True, use_output=True)
 
 class MplPlotConfigurationWidget(PythonSourceConfigurationWidget):
     def __init__(self, module, controller, parent=None):
