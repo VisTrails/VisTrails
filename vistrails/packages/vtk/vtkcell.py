@@ -199,6 +199,8 @@ class QVTKWidget(QCellWidget):
             if hasattr(renderer.vtkInstance, 'IsActiveCameraCreated'):
                 if not renderer.vtkInstance.IsActiveCameraCreated():
                     renderer.vtkInstance.ResetCamera()
+                else:
+                    renderer.vtkInstance.ResetCameraClippingRange()
             
         iren = renWin.GetInteractor()
 
