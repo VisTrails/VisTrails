@@ -462,6 +462,23 @@ class ModuleRegistry(QtCore.QObject):
         result._current_package_name = self._current_package_name
         result.package_modules = copy.copy(self.package_modules)
         return result
+
+    ##########################################################################
+    # Per-module registry functions
+
+    def add_hierarchy(self, global_registry, module):
+        # a per-module registry needs to have all the module hierarchy
+        # registered there so that add_module doesn't fail with
+        # missing base class. We do _NOT_ add the ports, so watch out!
+        
+        reg = global_registry
+        d = reg.get_descriptor_by_name(module.package, module.name)
+        # we exclude the first module in the hierarchy because it's Module
+        # and we exclude 
+        hierarchy = reg.get_module_hierarchy(d)
+        for m in reversed(hierarchy[:-1]):
+            (package, name) = reg._module_key_map[m]
+            self.add_module(m, name=name, package=package)
         
     ##########################################################################
     # Convenience
@@ -590,9 +607,10 @@ class ModuleRegistry(QtCore.QObject):
         return self.get_descriptor_by_name(identifier, name)
 
     def add_module(self, module, **kwargs):
-        """add_module(module: class, name=None, **kwargs) -> Tree
+        """add_module(module: class, **kwargs) -> Tree
 
         kwargs:
+          name=None,
           configureWidgetType=None,
           cacheCallable=None,
           moduleColor=None,

@@ -245,7 +245,7 @@ class Module(DBModule):
             registry.get_descriptor_by_name(self.package, self.name).module
         if self.registry is None:
             self.registry = ModuleRegistry()
-            self.registry.add_module(module, package=self.package)
+            self.registry.add_hierarchy(registry, self)
 
         if port_spec.type == 'input':
             endpoint = PortEndPoint.Destination
