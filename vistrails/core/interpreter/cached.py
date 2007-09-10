@@ -265,7 +265,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         for i, obj in objs.iteritems():
             if errs.has_key(i):
                 view.set_module_error(i, errs[i].msg)
-            elif execs.has_key(i):
+            elif execs.has_key(i) and execs[i]:
                 view.set_module_success(i)
             else:
                 view.set_module_not_executed(i)
