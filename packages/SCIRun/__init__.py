@@ -1215,7 +1215,7 @@ class SCIRun_ShowField(Module) :
     nodes_display_type = 'Points'
     if self.hasInputFromPort('nodes_display_type') :
       nodes_display_type = self.getInputFromPort('nodes_display_type')
-    edges_on = 1
+    edges_on = True
     if self.hasInputFromPort('edges_on') :
       edges_on = self.getInputFromPort('edges_on')
     edges_transparency = 0
@@ -6272,9 +6272,6 @@ class SCIRun_Time(Constant):
 
 def initialize(*args, **keywords):
 
-  import viewercell
-  viewercell.registerSelf()
-
   env = []
   for k in os.environ.keys() :
     estr = "%s=%s" % (k, os.environ[k])
@@ -7123,15 +7120,15 @@ def initialize(*args, **keywords):
 
   reg.add_module(SCIRun_ShowField)
   reg.add_input_port(SCIRun_ShowField, 'nodes_on',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Boolean, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'nodes_transparency',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Boolean, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'nodes_color_type',
                    (core.modules.basic_modules.Float, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'nodes_display_type',
                    (core.modules.basic_modules.String, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'edges_on',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Boolean, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'edges_transparency',
                    (core.modules.basic_modules.Float, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'edges_color_type',
@@ -7139,17 +7136,17 @@ def initialize(*args, **keywords):
   reg.add_input_port(SCIRun_ShowField, 'edges_display_type',
                    (core.modules.basic_modules.String, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'faces_on',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Boolean, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'faces_transparency',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Boolean, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'faces_color_type',
                    (core.modules.basic_modules.Float, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'faces_normals',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Boolean, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'faces_usetexture',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Boolean, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'text_on',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Boolean, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'text_color_type',
                    (core.modules.basic_modules.Float, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'text_color_r',
@@ -7159,25 +7156,25 @@ def initialize(*args, **keywords):
   reg.add_input_port(SCIRun_ShowField, 'text_color_b',
                    (core.modules.basic_modules.Float, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'text_backface_cull',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Boolean, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'text_always_visible',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Boolean, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'text_fontsize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Integer, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'text_precision',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Integer, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'text_render_locations',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Integer, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'text_show_data',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Boolean, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'text_show_nodes',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Boolean, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'text_show_edges',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Boolean, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'text_show_faces',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Boolean, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'text_show_cells',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Boolean, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'def_color_r',
                    (core.modules.basic_modules.Float, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'def_color_g',
@@ -7199,19 +7196,19 @@ def initialize(*args, **keywords):
   reg.add_input_port(SCIRun_ShowField, 'interactive_mode',
                    (core.modules.basic_modules.String, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'show_progress',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Boolean, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'field_name',
                    (core.modules.basic_modules.String, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'field_name_override',
                    (core.modules.basic_modules.Float, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'nodes_resolution',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Integer, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'edges_resolution',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Integer, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'approx_div',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Integer, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'use_default_size',
-                   (core.modules.basic_modules.Float, 'tip'), True)
+                   (core.modules.basic_modules.Boolean, 'tip'), True)
   reg.add_input_port(SCIRun_ShowField, 'Mesh',
                    (SCIRun_Field, "SCIRun_Field"))
   reg.add_input_port(SCIRun_ShowField, 'ColorMap',
@@ -10748,6 +10745,11 @@ def initialize(*args, **keywords):
                     (SCIRun_Field, 'Output Field'))
   reg.add_output_port(SCIRun_SubsampleStructuredFieldByIndices, 'Output Matrix', 
                     (SCIRun_Matrix, 'Output Matrix'))
+
+  import viewercell
+  viewercell.registerSelf()
+
+
 
 def package_dependencies():
   return ['edu.utah.sci.vistrails.spreadsheet']
