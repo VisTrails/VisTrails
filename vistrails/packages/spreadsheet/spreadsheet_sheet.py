@@ -197,7 +197,7 @@ class StandardWidgetSheet(QtGui.QTableWidget):
                      self.columnMoved)
         self.connect(self.horizontalHeader(),
                      QtCore.SIGNAL('sectionPressed(int)'),
-                     self.forceColumnMutliSelect) 
+                     self.forceColumnMultiSelect) 
         self.setVerticalHeader(StandardWidgetHeaderView(QtCore.Qt.Vertical,
                                                         self))
         self.verticalHeader().setSelectionModel(self.selectionModel())
@@ -209,7 +209,15 @@ class StandardWidgetSheet(QtGui.QTableWidget):
                      self.rowMoved)
         self.connect(self.verticalHeader(),
                      QtCore.SIGNAL('sectionPressed(int)'),
-                     self.forceRowMutliSelect) 
+                     self.forceRowMultiSelect)
+
+        # A hack to force the select all button in single click mode
+        cornerButton = self.findChild(QtGui.QAbstractButton)
+        if cornerButton:
+            self.connect(cornerButton,
+                         QtCore.SIGNAL('clicked()'),
+                         self.forceSheetSelect)
+        
         self.delegate = StandardWidgetItemDelegate(self)
         self.setItemDelegate(self.delegate)
         self.helpers = CellHelpers(parent, CellResizer(self))
@@ -221,8 +229,8 @@ class StandardWidgetSheet(QtGui.QTableWidget):
                      self.selectCell)
         self.activeCell = (-1,-1)
 
-    def forceColumnMutliSelect(self, logicalIndex):
-        """ forceColumnMutliSelect(logicalIndex: int) -> None        
+    def forceColumnMultiSelect(self, logicalIndex):
+        """ forceColumnMultiSelect(logicalIndex: int) -> None        
         Make sure we always toggle the headerview in the right way        
         NOTE: the MultiSelection type of SelectionMode does not work
         correctly for overlapping columns and rows selection
@@ -237,8 +245,8 @@ class StandardWidgetSheet(QtGui.QTableWidget):
                                          QtGui.QItemSelectionModel.Select |
                                          QtGui.QItemSelectionModel.Columns)
 
-    def forceRowMutliSelect(self, logicalIndex):
-        """ forceRowMutliSelect(logicalIndex: int) -> None        
+    def forceRowMultiSelect(self, logicalIndex):
+        """ forceRowMultiSelect(logicalIndex: int) -> None        
         Make sure we always toggle the headerview in the right way        
         NOTE: the MultiSelection type of SelectionMode does not work
         correctly for overlapping columns and rows selection
@@ -252,6 +260,21 @@ class StandardWidgetSheet(QtGui.QTableWidget):
             self.selectionModel().select(self.model().index(logicalIndex, 0),
                                          QtGui.QItemSelectionModel.Select |
                                          QtGui.QItemSelectionModel.Rows)
+
+    def forceSheetSelect(self):
+        """ forceSheetSelect() -> None        
+        Make sure we can toggle the whole sheet selection
+        
+        """
+        totalCells = self.rowCount()*self.columnCount()
+        if (len(self.selectionModel().selectedIndexes())<totalCells):
+            self.selectionModel().select(
+                QtGui.QItemSelection(self.model().index(0,0),
+                                     self.model().index(self.rowCount()-1,
+                                                        self.columnCount()-1)),                
+                QtGui.QItemSelectionModel.Select)
+        else:
+            self.selectionModel().clearSelection()
 
     def updateHeaderStatus(self):
         """ updateHeaderStatus() -> None

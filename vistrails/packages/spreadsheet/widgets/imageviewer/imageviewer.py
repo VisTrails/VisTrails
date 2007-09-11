@@ -190,6 +190,8 @@ class ImageViewerZoomSlider(QtGui.QSlider):
         self.setStatusTip("Zoom in the image")
         self.connect(self, QtCore.SIGNAL("valueChanged(int)"), self.updateZoom)
         self.connect(self, QtCore.SIGNAL("needUpdateStatus"), self.updateStatus)
+        self.setSizePolicy(QtGui.QSizePolicy.Preferred,
+                           QtGui.QSizePolicy.Expanding)
         
     def updateZoom(self, value):
         """ updateZoom(value: int) -> None
@@ -199,8 +201,8 @@ class ImageViewerZoomSlider(QtGui.QSlider):
         if self.toolBar:
             cellWidget = self.toolBar.getSnappedWidget()
             if not cellWidget.label.hasScaledContents():
-                newWidth = cellWidget.label.originalPix.width()*value/100
-                pixmap = cellWidget.label.originalPix.scaledToWidth(newWidth)
+                newWidth = cellWidget.originalPix.width()*value/100
+                pixmap = cellWidget.originalPix.scaledToWidth(newWidth)
                 cellWidget.label.setPixmap(pixmap)
 
     def updateStatus(self, info):
@@ -212,7 +214,7 @@ class ImageViewerZoomSlider(QtGui.QSlider):
         if cellWidget:
             if not cellWidget.label.hasScaledContents():
                 self.setEnabled(True)
-                originalWidth = cellWidget.label.originalPix.width()
+                originalWidth = cellWidget.originalPix.width()
                 self.setValue(cellWidget.label.pixmap().width()*100/originalWidth)
             else:
                 self.setEnabled(False)
@@ -263,7 +265,7 @@ class ImageViewerRotateAction(QtGui.QAction):
         cellWidget = self.toolBar.getSnappedWidget()
         if not cellWidget.label.pixmap() or cellWidget.label.pixmap().isNull():
             return
-        cellWidget.label.originalPix = cellWidget.label.originalPix.transformed(
+        cellWidget.originalPix = cellWidget.originalPix.transformed(
             self.rotationMatrix)
         cellWidget.label.setPixmap(cellWidget.label.pixmap().transformed(
             self.rotationMatrix))
@@ -294,7 +296,7 @@ class ImageViewerFlipAction(QtGui.QAction):
         label = cellWidget.label
         if not label.pixmap() or label.pixmap().isNull():
             return
-        label.originalPix = labeloriginalPix.transformed(
+        cellWidget.originalPix = labeloriginalPix.transformed(
             self.flipMatrix)
         label.setPixmap(label.pixmap().transformed(self.flipMatrix))
 
