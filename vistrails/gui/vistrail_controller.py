@@ -837,6 +837,26 @@ class VistrailController(QtCore.QObject):
                 self.invalidate_version_tree()
         return newTimestep
 
+    def perform_param_changes(self, actions):
+        new_timestep = -1
+        for action in actions:
+            for operation in action.operations:
+                if operation.vtType == 'add' or operation.vtType == 'change':
+                    if operation.new_obj_id < 0:
+                        data = operation.data
+                        new_id = self.vistrail.idScope.getNewId(data.vtType)
+                        data.real_id = new_id
+                        operation.new_obj_id = new_id
+            self.vistrail.add_action(action, self.currentVersion)
+            self.currentPipeline.perform_action(action)
+            self.currentVersion = action.db_id
+            new_timestep = self.currentVersion
+        
+        if new_timestep != -1:
+            self.setChanged(True)
+            self.invalidate_version_tree()
+        return new_timestep
+
     def performBulkActions(self, actions):
         """performBulkAction(actions: [Action]) -> timestep        
         Add version to vistrail, updates the current pipeline, and the

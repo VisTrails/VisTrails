@@ -31,9 +31,8 @@ from gui.param_view import QParameterTreeWidget
 from gui.theme import CurrentTheme
 from gui.utils import show_warning
 from core.modules.module_configure import PythonEditor
-from core.vistrail.action import Action
 from core.vistrail.module_param import ModuleParam
-import db.services.action
+import core.db.action
 
 ################################################################################
 class QParameterExplorationWidget(QtGui.QScrollArea):
@@ -305,18 +304,10 @@ class QParameterExplorationTable(QPromptWidget):
                                                     val=str(v),
                                                     type=paramInfo[0]
                                                     )
-                            #FIXME: check if this work
                             action_spec = ('change', old_param, new_param,
                                            parentType, function.real_id)
-                            action = \
-                                db.services.action.create_action([action_spec])
-                            # FIXME: this should go to dbservices
-                            Action.convert(action)
+                            action = core.db.action.create_action([action_spec])
                             actions.append(action)
-#                             action = ChangeParameterAction()
-#                             action.addParameter(mId, fId, pId, fName, pName,
-#                                                 str(v), paramInfo[0], pAlias)
-#                             actions.append(action)
                         parameterValues[dim].append(actions)
         return [zip(*p) for p in parameterValues]
 

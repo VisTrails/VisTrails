@@ -915,7 +915,8 @@ class QCellManipulator(QtGui.QFrame):
                 if view:
                     controller = view.controller
                     controller.changeSelectedVersion(info['version'])
-                    controller.performBulkActions(info['actions'])
+                    controller.perform_param_changes(info['actions'])
+                    # controller.performBulkActions(info['actions'])
 
 ################################################################################
 
