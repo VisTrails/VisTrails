@@ -54,6 +54,7 @@ class ViewerCell(SpreadsheetCell):
         """
         sg = self.forceGetInputListFromPort('Scene Graph')
         self.display(QViewerWidget, (sg))
+        
 
 
 class QViewerWidget(QtOpenGL.QGLWidget) :
@@ -69,7 +70,7 @@ class QViewerWidget(QtOpenGL.QGLWidget) :
         
         """
         QtOpenGL.QGLWidget.__init__(self, parent)
-        
+
         self.setAttribute(QtCore.Qt.WA_OpaquePaintEvent)
         self.setAttribute(QtCore.Qt.WA_PaintOnScreen)
         self.setMouseTracking(True)
@@ -88,6 +89,10 @@ class QViewerWidget(QtOpenGL.QGLWidget) :
         unique_id = uuid.uuid4()
         self._id = "sr_viewer_%s" % str(unique_id)
         #print self._id
+        self.full_speed = False
+        self.timer = QtCore.QTimer()
+        self.connect(self.timer,
+                     QtCore.SIGNAL("timeout()"), self.updateGL)
         
     def make_current(self) :
         if self.isValid() :
@@ -156,18 +161,27 @@ class QViewerWidget(QtOpenGL.QGLWidget) :
         return mask, n
 
     def initializeGL(self):
-        self.doneCurrent()
-        sr_py.run_viewer_thread(self.sci_context, self._id)
-        time.sleep(1)
+        # create the viewer
+        self.vid = sr_py.create_viewer(self.sci_context, self._id)
+        #start the timer
+        #self.timer.start(33)
+        
+##     def paintGL(self):
+##         #self.doneCurrent()
+##         pass
+
+    def glDraw(self):
+        sr_py.update_viewer(self.vid);
+        
+        if self.timer.isActive() and not self.full_speed :
+            self.full_speed = True
+            self.timer.start(55)
+
+        if not self.timer.isActive() :
+            self.timer.start(1000)
+            
+
     
-    def paintGL(self):
-        #self.doneCurrent()
-        pass
-
-    def resizeGL(self, width, height):
-        #self.doneCurrent()
-        pass
-
     def mousePressEvent(self, event):
         """ mousePressEvent(e: QMouseEvent) -> None
         Echo mouse event to SCIRun event system.
@@ -251,12 +265,11 @@ class QViewerWidget(QtOpenGL.QGLWidget) :
         Connects the input scene graph to this viewer
         
         """
-        p = inputPorts[0]
 
+        p = inputPorts[0]
         for i in p:
             if i != 0 :
                 sr_py.send_scene(i, self._id);
-
 
 def registerSelf():
     """ registerSelf() -> None
