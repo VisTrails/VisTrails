@@ -40,13 +40,13 @@ class QParameterExplorationWidget(QtGui.QScrollArea):
     QParameterExplorationWidget is a place holder for
     QParameterExplorationTable
 
-    is a grid layout widget having 4
-    comlumns corresponding to 4 dimensions of exploration. It accept
-    method/alias drops and can be fully configured onto any
-    dimension. For each parameter, 3 different approach can be chosen
-    to assign the value of that parameter during the exploration:
-    linear interpolation (for int, float), list (for int, float and
-    string) and user-define function (for int, float, and string)
+    is a grid layout widget having 4 comlumns corresponding to 4
+    dimensions of exploration. It accept method/alias drops and can be
+    fully configured onto any dimension. For each parameter, 3
+    different approach can be chosen to assign the value of that
+    parameter during the exploration: linear interpolation (for int,
+    float), list (for int, float, string and boolean) and user-define
+    function (for int, float, string and boolean)
     
     """
     def __init__(self, parent=None):
@@ -101,8 +101,9 @@ class QParameterExplorationTable(QPromptWidget):
     method/alias drops and can be fully configured onto any
     dimension. For each parameter, 3 different approach can be chosen
     to assign the value of that parameter during the exploration:
-    linear interpolation (for int, float), list (for int, float and
-    string) and user-define function (for int, float, and string)
+    linear interpolation (for int, float), list (for int, float,
+    string and boolean) and user-define function (for int, float,
+    string and boolean)
     
     """
     def __init__(self, parent=None):
@@ -249,7 +250,9 @@ class QParameterExplorationTable(QPromptWidget):
         if not self.pipeline:
             return None
         parameterValues = [[], [], [], []]
-        typeCast = {'Integer': int, 'Float': float, 'String': str}
+        typeCast = {'Integer': int, 'Float': float, 'String': str,
+                    'Boolean': bool,
+                    }
         counts = self.label.getCounts()
         for i in xrange(self.layout().count()):
             pEditor = self.layout().itemAt(i).widget()
@@ -703,8 +706,8 @@ class QParameterEditor(QtGui.QWidget):
     """
     QParameterEditor specifies the method used for interpolating
     parameter values. It suppports Linear Interpolation, List and
-    User-define function. There are only 3 types that can be editable
-    with this editor: Integer, Float and String
+    User-define function. There are only 4 types that can be editable
+    with this editor: Integer, Float, String and Boolean
     
     """
     def __init__(self, pType, pValue, size, parent=None):
@@ -786,7 +789,7 @@ class QParameterEditorSelector(QtGui.QToolButton):
             action.setData(QtCore.QVariant(aId))
             aId += 1
 
-        if pType=='String':
+        if pType=='String' or pType=='Boolean':
             self.linearAction.setEnabled(False)
             
         menu = QtGui.QMenu(self)
@@ -798,7 +801,7 @@ class QParameterEditorSelector(QtGui.QToolButton):
         Select the first choice of selector based on self.type
         
         """
-        if self.type=='String':
+        if self.type=='String' or self.type=='Boolean':
             self.listAction.trigger()
         else:
             self.linearAction.trigger()
@@ -1189,7 +1192,8 @@ class QUserFunctionEditor(QtGui.QFrame):
             quote = '"'
         else:
             quote = ''
-        pythonType = {'Integer': 'int', 'Float': 'float', 'String': 'str'}
+        pythonType = {'Integer': 'int', 'Float': 'float', 'String': 'str',
+                      'Boolean': 'bool'}
         return 'def value(i):\n    """ value(i: int) -> %s\n'\
                '    Return the interpolated value at step i\n'\
                '    i is from 0 to <step count>-1\n\n'\
@@ -1205,12 +1209,13 @@ class QUserFunctionEditor(QtGui.QFrame):
         """
         firstError = True
         values = []
-        pythonType = {'Integer': int, 'Float': float, 'String': str}
+        pythonType = {'Integer': int, 'Float': float, 'String': str,
+                      'Boolean': bool}
         for i in xrange(self.size):
             v = self.defaultValue
             try:
                 exec(self.function + '\nv = value(%d)' % i)
-                if self.type != 'String':
+                if self.type != 'String' and self.type != 'Boolean':
                     v = pythonType[self.type](v)
             except:
                 v = 'ERROR'
