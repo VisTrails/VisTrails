@@ -846,9 +846,12 @@ class Vistrail(DBVistrail):
         
         """
         if version!=0: # not root
+            def delete_tag(version):
+                if self.tagMap.has_key(version):
+                    self.db_delete_tag(self.tagMap[version])
+            current_graph = self.getVersionGraph()
+            current_graph.dfs(vertex_set=[version], enter_vertex=delete_tag)
             self.actionMap[version].prune = 1
-            if self.tagMap.has_key(version):
-                self.db_delete_tag(self.tagMap[version])
 
             # self.prunedVersions.add(version)
 
