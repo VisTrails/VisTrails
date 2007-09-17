@@ -847,6 +847,9 @@ class Vistrail(DBVistrail):
         """
         if version!=0: # not root
             self.actionMap[version].prune = 1
+            if self.tagMap.has_key(version):
+                self.db_delete_tag(self.tagMap[version])
+
             # self.prunedVersions.add(version)
 
     def setSavedQueries(self, savedQueries):
