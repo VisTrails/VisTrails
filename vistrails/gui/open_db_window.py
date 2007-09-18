@@ -97,8 +97,10 @@ class QOpenDBWindow(QtGui.QDialog):
                                QtCore.Qt.AlignLeft)
         buttonsLayout = QtGui.QHBoxLayout()
         self.cancelButton = QtGui.QPushButton('Cancel')
+        self.cancelButton.setAutoDefault(False)
         self.openButton = QtGui.QPushButton('Open')
         self.openButton.setEnabled(False)
+        self.openButton.setAutoDefault(True)
         
         buttonsLayout.addStretch(1)
         buttonsLayout.addWidget(self.cancelButton)
