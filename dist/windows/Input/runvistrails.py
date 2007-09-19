@@ -18,4 +18,6 @@ if len(args) > 3:
     os.chdir(path)
     cmdline = '"%s" "%s" "%s"' % (python, pyfile, filenames)
     cmdline = "\"%s" % cmdline
+    path += os.getenv('PATH')
+    os.putenv('PATH', path)
     os.system(cmdline)

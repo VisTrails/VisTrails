@@ -1,207 +1,26 @@
-Release Name: 601
+Release Name: v1.0 rev954
 
 Changes:
- - Packages:
-     * Added some VTK classes missing ports
-     * Catching VTK error message
+ - Added module VTKRenderOffscreen to vtk package
 
- - Builder:
-     * Improvements in the VisTrails Shell
-     * Query by Example now accepts module parameters in the queries
-     
- - Spreadsheet:
-     * Added new base class for spreadsheet cell
-     * Added a layout mode 
- 
- - Examples:
-     * Added Circular Transect workflow to corie.xml
+Bug fixes:
+ - Version tags couldn't be reused
+ - Some vtk writers couldn't be dragged to the pipeline canvas
+ - Vistrails crashed when trying to copy and paste something other than
+   a serialized pipeline
+ - Modules lose focus when dragging to the pipeline canvas
+ - Modules downstream of a error module were green (as if they were executed)
+ - Select All button on the spreadsheet was not working
+ - Creating a version from the spreadsheet didn't work
+ - Tags weren't deleted when pruning the tree 
+ - Booleans weren't supported in parameter exploration
+ - Fixed double-clicking on a vt file when opening vistrails on Windows
 
-Fixes:
- - Parameter Exploration:
-     * Parameter exploration execution can be canceled
-
- - Builder:
-     * Fixed Copy and Paste Tuple modules
-     * Fixed resizing problems on linux
- 
- - Spreadsheet:
-     * More resizing problems were fixed 
-
- - Installer:
-     * Added missing dlls
-
- - Better handling of path names with spaces
- - Other minor fixes and coding reorganization
-
---------------------------------------------------------------------
-Changes from previous releases
-
-From release 559
+From Release rev921:
 
 Changes:
- - Packages:
-     * Added MeshQualityHistogram and AfrontIso modules to afront
-     * Added region selection and full DICOM slice-based exploration to itk
+ - Interface was improved and it is now more consistent
+ - General configuration and package management accessible through menu Edit->Preferences
+ - Using a more efficient file format (*.vt)
+ - Auto saving feature 
 
- - Spreadsheet:
-     * Users can move rows and columns around
-
- - Module customization: support for specifying a custom leftFringe and 
-   rightFringe
-
- - Examples:
-     * Added afront.xml which makes use of afront, matplotlib, vtk, histograms, 
-       etc.
-     * Added four cell example to vtk.xml
-
-Fixes:
- - Parameter Exploration:
-     * Caring for unitialized parameters
-     * Linear interpolation
-     * Performing type casting on user defined functions
-     * Disabling parameters button when the panel is empty
-     * Caching was not functioning properly
-
- - Builder:
-     * Enabling a scrollbar when there are many methods on the properties panel
-     * Fixed phantom methods on the properties panel on Linux
-     * Notes panel sometimes showed "None" when there were no notes
-     * Removing an unconnected module, or removing its connections before
-       removing it was generating empty DeleteConnection actions
-     * If the query canvas was emptied before unchecking the query button the 
-       version tree status could not be restored.
-     * Vistrails installation folder was not searched when checking for 
-       requirements. This caused the application to crash with "dot not found"
-
- - Spreadsheet:
-     * More resizing problems were fixed 
-
- - Bookmarks:
-     * Bookmark sample file caused vistrails to crash on a new installation 
-     * Propagating parameter changes when clicking on the Execute Workflow 
-       button direct from the Parameters Panel 
-     * Large workflows affected performance on GUI updates
- 
- - Installer:
-     * Added pylab to the default startup.py on the binary installation
-
- - Other minor fixes and coding reorganization
-
-
-From release 502:
-
-Changes:
- - Module's color and shape can be customized
-   See http://vistrails.sci.utah.edu/index.php/UsersGuideVisTrailsPackages
-   for instructions on how to use it
- - New parameter exploration interface (we will temporarily keep
-   the old one)
- - Refactoring the importing modules mechanism to use 'bundles', 
-   which are system-level packages that should correspond to RPMs,
-   APT.debs, etc. Now VisTrails is able to use the system-level 
-   package management to install required modules (working only on
-   Ubuntu, right now)
- - Fixed saving spreadsheet state
- - Fixed issues when trying to add a bookmark from an unsaved
-   vistrail
- - Fixed menus and buttons behaviors
- - Fixed bug on trying to use ImageMagick package on Windows
- - Improvements on the abstraction mechanism
-
-
-From release 444:
-
-Changes:
- - Added pylab package that wraps Matplotlib
- - Added vistrails examples illustrating the use of pylab, 
-   abstraction (subpipelines), offscreen rendering, and CORIE
- - Added tetra mesh contour pipeline to vtk_http.xml example
- - Packages now check for dependencies when loaded
- - Moved QVTKWidget, VTKCell from spreadsheet package to vtk package
- - Fixed bugs in HTTP package
- - Added vtkInteractionHandler module to vtk package which can be 
-   used to control a vtk widget (see Implicit Plane Clipper workflow
-   inside vtk.xml example)
- - Allowing the spreadsheet to run in non-interactive mode if the  
-   user wants to
- - Bug fixes in Copying and Paste a PythonSource module
- - Bug fixes when using logging (workflow execution was not being 
-   captured)
- - Separating the startup process from QApplication initialization.
-   Vistrails can now be imported as a python package in a python 
-   script without creating a QApplication (see sample in 
-   core.inspector.py)   
- - Aliased parameters can now be set when running vistrails in non-
-   interactive mode with the "-a" option. See wiki FAQ for an example.
- - Checking if appropriate QT version (>=4.2.0) is installed, raising
-   missing requirement exception otherwise.
- - Fixed bug that allowed duplicate alias in a same pipeline
- - Fixed bug on deleting bookmarks
- - Fixed bug that prevented the tooltip to be shown on a port when 
-   dragging a connection
- - Other minor fixes and cosmetic changes
-
-From release 389:
-
-Changes:
- - Fixed more memory leaks
- - VisTrail can be run without the spreadsheet
- - Added back support for animations in VTK cells
- - Fixed multi-screen positioning with the spreadsheet
- - Fixed synchronization in the spreadsheet under Linux
- - Optimization to improve vtk package initialization
- - Removed ImageMagick package from the default startup.py file
- - Windows installer does not require administrator privileges anymore
- - Windows uninstaller now removes *.pyc files
- - Fixed bug in the lung.xml example
-
-From release 370:
-
-Changes:
-- Added caching
-- A default vistrails startup file is created if one is not found
-- Classes method names changed to follow naming conventions
-- Added output port local_filename to File module
-- Added Unzip to basic modules
-- Added vtk_http.xml example file to demonstrate how to use HTTPFile
-  and Unzip modules for visualizing data that lives on the web
-- Added new Run menu to builder Window. The user now can manually flush the cache.
-- Separating packages' modules by package in the Modules Panel
-- Added Parameter Exploration to Bookmarks Window
-- Packages can now exist under ~/.vistrails/userpackages as well
-  This can be configured by the user by setting the following line in startup.py:
-  configuration.userPackagesDirectory = new_directory.
-
-Bug Fixes:
-- Fixed memory leaks
-- Webservice package is now raising a ModuleError Exception in case 
-  of failure when invoking a web service
-- Shift + Enter to open File Open Dialog Box on a SetFileName method 
-- Fixed resizing problem on the spreadsheet
-- Fixed webservicee example to reflect FilePool method name change
-- Fixed head.xml to use only the head data set.
-
-From release 288:
-
-- Fixed crash when writing a vistrail.
-- Fixed bug when setting ports in PythonSource
-    Pressing enter had the same effect as clicking on the OK button
-- Fixed VisTrails Diff between two version whose common parent is the empty version
-- Fixed bug that closed panels on the builder didn't come back
-- Vistrail Toolbar is not allowed to be hidden anymore. Right click on the tool 
-  bar will bring up a pop-up menu for toggling tool windows
-- Fixed bug that alias changes were not being saved
-- Removed warning SetParentInfo method not implemented on Mac
-- VTK Package: Raising a exception if VTK version < 5.0.0
-- License on splash screen updated to reflect GPL release
-- Added buttons and changed cursors for navigation (zoom, pan, selection)
-- Fixed bug that last vistrail closed didn't update the window title  
-- Fixed bug Copy and Paste on Linux
-- Added bookmarks feature
-- Added three more vistrail examples
-- Fixed bug on toggling VisTrails Shell
-- Fixed bug of missing sys.stdout when opening a VisTrails Shell
-- Generating a default startup.py when it is not present
-- Fixed bug on the spreadsheet for handling VTKCell on linux
-- Avoiding race condition on Mac when calling subprocess.POpen()
-- Fixed bug of automatically opening a connection to the database when running vistrails without '-l'. 

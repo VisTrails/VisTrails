@@ -22,7 +22,7 @@
 
 from xml.auto_gen import XMLDAOListBase
 from sql.auto_gen import SQLDAOListBase
-from core.system import get_elementtree_library, public_domain_string
+from core.system import get_elementtree_library
 from core.configuration import get_vistrails_configuration
 from core import debug
 ElementTree = get_elementtree_library()
@@ -55,22 +55,14 @@ class DAOList(dict):
         vistrail = self.read_xml_object(vtType, tree.getroot())
         return vistrail
 
-    def save_to_xml(self, obj, filename, public_domain):
-        """save_to_xml(obj, filename: str, public_domain: bool) -> None
-        If public_domain is True it will include the user name
-        on the public domain declaration and add as a text node to
-        the root node
+    def save_to_xml(self, obj, filename):
+        """save_to_xml(obj, filename: str) -> None
+    
         """
         root = self.write_xml_object(obj)
         root.set('version', my_version)
         root.set('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
         root.set('xsi:schemaLocation', 'http://www.vistrails.org/vistrail.xsd')
-        if public_domain:
-            config = get_vistrails_configuration()
-            name = ""
-            if config:
-                name = config.publicDomain.fullname
-                root.text = public_domain_string() % name
         tree = ElementTree.ElementTree(root)
         self.write_xml_file(filename, tree)
 

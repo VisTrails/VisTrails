@@ -44,9 +44,8 @@ class CoreLocator(object):
 
 class XMLFileLocator(_XMLFileLocator, CoreLocator):
 
-    def __init__(self, filename, public_domain=False):
+    def __init__(self, filename):
         _XMLFileLocator.__init__(self, filename)
-        self.public_domain = public_domain
         
     def load(self):
         vistrail = _XMLFileLocator.load(self)
@@ -55,7 +54,7 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
         return vistrail
 
     def save(self, vistrail):
-        _XMLFileLocator.save(self, vistrail, self.public_domain)
+        _XMLFileLocator.save(self, vistrail)
         vistrail.locator = self
 
     ##########################################################################
@@ -121,9 +120,8 @@ class DBLocator(_DBLocator, CoreLocator):
 
 class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 
-    def __init__(self, filename, public_domain = False):
+    def __init__(self, filename):
         _ZIPFileLocator.__init__(self, filename)
-        self.public_domain = public_domain
         
     def load(self):
         vistrail = _ZIPFileLocator.load(self)
@@ -132,7 +130,7 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
         return vistrail
 
     def save(self, vistrail):
-        _ZIPFileLocator.save(self, vistrail, self.public_domain)
+        _ZIPFileLocator.save(self, vistrail)
         vistrail.locator = self
 
     ##########################################################################
@@ -157,20 +155,12 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 
 class FileLocator(CoreLocator):
     def __new__(self, *args):
-        public_domain = False
-        if core.configuration._class_version:
-            config = get_vistrails_configuration()
-            public_domain = config.publicDomain.accepted
-            if type(public_domain) == tuple:
-                public_domain = bool(public_domain[0])
-                if len(args) > 1:
-                    public_domain = args[1]
         if len(args) > 0:
             filename = args[0]
             if filename.endswith('.vt'):
-                return ZIPFileLocator(filename, public_domain)
+                return ZIPFileLocator(filename)
             else:
-                return XMLFileLocator(filename, public_domain)
+                return XMLFileLocator(filename)
         else:
             #return class based on default file type
             if vistrails_default_file_type() == '.vt':

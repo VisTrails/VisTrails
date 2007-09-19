@@ -246,7 +246,6 @@ class QGeneralConfiguration(QtGui.QWidget):
         self._multi_head_cb = QtGui.QCheckBox(self)
         self._multi_head_cb.setText('Use multiple displays on startup')
         layout.addWidget(self._multi_head_cb)
-
         layout.addStretch()
 
         self.update_state(configuration_object)
@@ -296,8 +295,7 @@ class QGeneralConfiguration(QtGui.QWidget):
         if self._configuration.has('multiHeads'):
             self._multi_head_cb.setChecked(
                 getattr(self._configuration, 'multiHeads'))
-        else:
-            self._data_dir_le.setText(core.system.vistrails_file_directory())                
+            
     def autosave_changed(self, on):
         """ autosave_changed(on: int) -> None
         

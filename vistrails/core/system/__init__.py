@@ -218,8 +218,8 @@ def vistrails_version():
    # 0.2 was the SIGMOD demo version
    # 0.3 was the plugin/vtk version
    # 0.4 is cleaned up version with new GUI
-   # 1.0b is version for SciVis class
-   return '1.0b'
+   # 1.0 is version with new schema
+   return '1.0'
 
 def vistrails_revision():
     """vistrails_revision() -> str 
@@ -230,7 +230,7 @@ def vistrails_revision():
     old_dir = os.getcwd()
     os.chdir(vistrails_root_directory())
     try:
-        release = "896"
+        release = "954"
         if core.requirements.executable_file_exists('svn'):
             if systemType not in ['Windows', 'Microsoft']:
                 process = popen2.Popen4("svn info")
@@ -277,38 +277,6 @@ RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A \
 FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF \
 SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH \
 DAMAGES.""" % (vistrails_version(), vistrails_revision())
-
-def public_domain_string():
-    return """This vistrail is in the public domain.
-
-Dedicator: %s
-
-The person or persons who have associated work with this document (the
-"Dedicator" or "Certifier") hereby either (a) certifies that, to the best of
-his knowledge, the work of authorship identified is in the public domain of
-the country from which the work is published, or (b) hereby dedicates whatever
-copyright the dedicators holds in the work of authorship identified below (the
-"Work") to the public domain. A certifier, moreover, dedicates any copyright
-interest he may have in the associated work, and for these purposes, is
-described as a "dedicator" below.
-
-A certifier has taken reasonable steps to verify the copyright status of this
-work. Certifier recognizes that his good faith efforts may not shield him from
-liability if in fact the work certified is not in the public domain.
-
-Dedicator makes this dedication for the benefit of the public at large and to
-the detriment of the Dedicator's heirs and successors. Dedicator intends this
-dedication to be an overt act of relinquishment in perpetuity of all present
-and future rights under copyright law, whether vested or contingent, in the
-Work. Dedicator understands that such relinquishment of all rights includes
-the relinquishment of all rights to enforce (by lawsuit or otherwise) those
-copyrights in the Work.
-
-Dedicator recognizes that, once placed in the public domain, the Work may be
-freely reproduced, distributed, transmitted, used, modified, built upon, or
-otherwise exploited by anyone for any purpose, commercial or non-commercial,
-and in any way, including by methods that have not yet been invented or conceived.
-"""
 
 def get_elementtree_library():
     try:

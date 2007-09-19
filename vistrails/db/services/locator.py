@@ -77,8 +77,8 @@ class XMLFileLocator(BaseLocator):
         vistrail.locator = self
         return vistrail
 
-    def save(self, vistrail, public_domain):
-        io.save_vistrail_to_xml(vistrail, self._name, public_domain)
+    def save(self, vistrail):
+        io.save_vistrail_to_xml(vistrail, self._name)
         vistrail.locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()
@@ -187,8 +187,8 @@ class ZIPFileLocator(XMLFileLocator):
         vistrail.locator = self
         return vistrail
 
-    def save(self, vistrail, public_domain):
-        io.save_vistrail_to_zip_xml(vistrail, self._name, public_domain)
+    def save(self, vistrail):
+        io.save_vistrail_to_zip_xml(vistrail, self._name)
         vistrail.locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()

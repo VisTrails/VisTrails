@@ -21,7 +21,7 @@
 ;############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 1.0b (rev950)
+AppVerName=VisTrails 1.0 (rev954)
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$e3dfe0
@@ -163,5 +163,3 @@ begin
 		DelTree(qvtk, True, True, True);
     end;
 end;
-
-
