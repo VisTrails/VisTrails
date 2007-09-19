@@ -21,7 +21,7 @@
 ;############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 1.0b (rev896)
+AppVerName=VisTrails 1.0b (rev950)
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$e3dfe0
@@ -54,7 +54,18 @@ Source: C:\Python25\sip\*; DestDir: {app}\vistrails\Python25\sip; Flags: recurse
 Source: C:\Python25\tcl\*; DestDir: {app}\vistrails\Python25\tcl; Flags: recursesubdirs
 Source: C:\Python25\Tools\*; DestDir: {app}\vistrails\Python25\Tools; Flags: recursesubdirs
 Source: C:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
-Source: ..\..\examples\*.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\brain_vistrail.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\chembiogrid_webservice.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\head.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\lung.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\offscreen.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\plot.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\spx.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\terminator.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\vtk.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\vtk_book_3rd_p189.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\vtk_book_3rd_p193.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\vtk_http.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\data\torus.vtk; DestDir: {app}\examples\data; Components: examples
 Source: ..\..\examples\data\carotid.vtk; DestDir: {app}\examples\data; Components: examples
 Source: ..\..\examples\data\gktbhFA.vtk; DestDir: {app}\examples\data; Components: examples
@@ -63,12 +74,13 @@ Source: ..\..\examples\data\head.120.vtk; DestDir: {app}\examples\data; Componen
 Source: ..\..\examples\data\spx.vtk; DestDir: {app}\examples\data; Components: examples
 Source: ..\..\examples\data\vslice_circ1.bp; DestDir: {app}\examples\data; Components: examples
 Source: ..\..\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
-Source: Input\startup.py; DestDir: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails; Flags: onlyifdoesntexist uninsneveruninstall
 Source: Input\unzip.exe; DestDir: {app}\vistrails
 Source: Input\zip.exe; DestDir: {app}\vistrails
+Source: Input\runvistrails.py; DestDir: {app}
 Source: Input\*.dll; DestDir: {app}\vistrails
 Source: C:\Qt\4.2.3\bin\*.dll; DestDir: {app}\vistrails
 Source: C:\WINDOWS\system32\python25.dll; DestDir: {app}\vistrails
+Source: C:\WINDOWS\system32\python25.dll; DestDir: {app}\vistrails\Python25
 Source: C:\src\VTKbuild\bin\release\*.dll; DestDir: {app}\vistrails
 Source: C:\src\VTKbuild\bin\release\*.pyd; DestDir: {app}\vistrails
 [Dirs]
@@ -80,13 +92,13 @@ Name: {app}\vistrails\Python25
 Name: {app}\vistrails\vtk
 Name: {app}\vistrails\vistrails\vtk
 Name: {app}\vistrails\vistrails\Python24\DLLs
-Name: {app}\vistrails\Python24\include
-Name: {app}\vistrails\Python24\Lib
-Name: {app}\vistrails\Python24\libs
-Name: {app}\vistrails\Python24\Scripts
-Name: {app}\vistrails\Python24\sip
-Name: {app}\vistrails\Python24\tcl
-Name: {app}\vistrails\Python24\Tools
+Name: {app}\vistrails\Python25\include
+Name: {app}\vistrails\Python25\Lib
+Name: {app}\vistrails\Python25\libs
+Name: {app}\vistrails\Python25\Scripts
+Name: {app}\vistrails\Python25\sip
+Name: {app}\vistrails\Python25\tcl
+Name: {app}\vistrails\Python25\Tools
 [Components]
 Name: main; Description: Main Files; Types: full compact custom; Flags: fixed
 Name: examples; Description: Example Files; Types: full
@@ -101,7 +113,14 @@ Name: desktopicon\common; Description: For all users; GroupDescription: Addition
 Name: desktopicon\user; Description: For the current user only; GroupDescription: Additional icons:; Components: main; Flags: exclusive unchecked
 Name: quicklaunchicon; Description: Create a &Quick Launch icon; GroupDescription: Additional icons:; Components: main; Flags: unchecked
 Name: associatefiles; Description: Associate *.vt files with VisTrails; GroupDescription: File Association:; Components: main
-
+[_ISTool]
+LogFile=Output\build.log
+LogFileAppend=false
+[Registry]
+Root: HKCR; Subkey: .vt; ValueType: string; ValueData: VisTrailsFile; Flags: uninsdeletevalue; Tasks: associatefiles
+Root: HKCR; Subkey: VisTrailsFile; ValueType: string; ValueData: VisTrails File; Flags: uninsdeletekey; Tasks: associatefiles
+Root: HKCR; Subkey: VisTrailsFile\DefaultIcon; ValueType: string; ValueData: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; Tasks: associatefiles; Flags: uninsdeletekey
+Root: HKCR; Subkey: VisTrailsFile\shell\open\command; ValueType: string; ValueData: """{app}\vistrails\Python25\python.exe"" ""{app}\runvistrails.py"" ""{app}\vistrails\Python25\python.exe"" ""{app}\vistrails\vistrails.py"" ""{app}\vistrails"" ""%1"""; Tasks: associatefiles; Flags: uninsdeletekey
 [Code]
 var
 	FinishedInstall: Boolean;
@@ -126,6 +145,7 @@ begin
   case CurPageID of
     wpReady:
     begin
+	  DeleteFile(ExpandConstant('{app}') + '\vistrails\python24.dll');
       oldPythonDir := ExpandConstant('{app}') + '\vistrails\Python24';
 	  if DirExists(oldPythonDir) then
 	    DelTree(oldPythonDir, True, True, True);
@@ -136,8 +156,6 @@ end;
 procedure DeinitializeSetup();
 var
   qvtk: String;
-
-  ResultCode: Integer;
 begin
   if FinishedInstall then begin
       qvtk := ExpandConstant('{app}') + '\vistrails\packages\spreadsheet\widgets\QVTKWidget';
@@ -145,11 +163,5 @@ begin
 		DelTree(qvtk, True, True, True);
     end;
 end;
-[_ISTool]
-LogFile=Output\build.log
-LogFileAppend=false
-[Registry]
-Root: HKCR; Subkey: .vt; ValueType: string; ValueData: VisTrailsFile; Flags: uninsdeletevalue; Tasks: associatefiles
-Root: HKCR; Subkey: VisTrailsFile; ValueType: string; ValueData: VisTrails File; Flags: uninsdeletekey; Tasks: associatefiles
-Root: HKCR; Subkey: VisTrailsFile\DefaultIcon; ValueType: string; ValueData: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; Tasks: associatefiles
-Root: HKCR; Subkey: VisTrailsFile\shell\open\command; ValueType: string; ValueData: """{app}\vistrails\Python25\python.exe"" ""{app}\vistrails\vistrails.py"" ""%1"""; Tasks: associatefiles
+
+
