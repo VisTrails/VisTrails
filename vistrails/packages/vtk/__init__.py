@@ -42,10 +42,12 @@ from core.modules.vistrails_module import new_module, ModuleError
 from base_module import vtkBaseModule
 from class_tree import ClassTree
 from vtk_parser import VTKMethodParser
-import offscreen
 import re
 import os.path
 from itertools import izip
+
+import offscreen
+import fix_classes
 
 version = '0.9.0'
 identifier = 'edu.utah.sci.vistrails.vtk'
@@ -61,6 +63,17 @@ warnings.filterwarnings("ignore",
                         message="integer argument expected, got float")
 
 ################################################################################
+
+def get_description_class(klass):
+    """Because sometimes we need to patch VTK classes, the klass that
+    has the methods is different than the klass we want to
+    instantiate. get_description_class makes sure that for patched
+    classes we get the correct one."""
+
+    try:
+        return fix_classes.description[klass]
+    except KeyError:
+        return klass
 
 parser = VTKMethodParser()
 
@@ -184,12 +197,12 @@ def prune_signatures(module, name, signatures, output=False):
     hits = [hit_count(entry) for entry in flattened_entries]
 
     def forbidden(flattened, hit_count, original):
-        if (issubclass(module.vtkClass, vtk.vtk3DWidget) and
+        if (issubclass(get_description_class(module.vtkClass), vtk.vtk3DWidget) and
             name == 'PlaceWidget' and
             flattened == []):
             return True
         # We forbid this because addPorts hardcodes this
-        if module.vtkClass == vtk.vtkAlgorithm:
+        if get_description_class(module.vtkClass) == vtk.vtkAlgorithm:
             return True
         return False
 
@@ -235,6 +248,7 @@ disallowed_classes = set(
     'vtkHeap',
     'vtkInformationKey',
     'vtkInstantiator',
+    'vtkLogLookupTable', # VTK: use vtkLookupTable.SetScaleToLog10() instead
     'vtkMath',
     'vtkModelMetadata',
     'vtkMultiProcessController',
@@ -242,6 +256,7 @@ disallowed_classes = set(
     'vtkOutputWindow',
     'vtkPriorityQueue',
     'vtkReferenceCount',
+    'vtkRenderWindowCollection',
     'vtkRenderWindowInteractor',
     'vtkTesting',
     'vtkWindow',
@@ -263,8 +278,8 @@ def addAlgorithmPorts(module):
     SetInputConnection{id}([port]) and GetOutputPort{id}.
 
     """
-    if issubclass(module.vtkClass, vtk.vtkAlgorithm):
-        if module.vtkClass!=vtk.vtkStructuredPointsGeometryFilter:
+    if issubclass(get_description_class(module.vtkClass), vtk.vtkAlgorithm):
+        if get_description_class(module.vtkClass)!=vtk.vtkStructuredPointsGeometryFilter:
             # We try to instantiate the class here to get the number of
             # ports and to avoid abstract classes
             try:
@@ -296,10 +311,12 @@ def addSetGetPorts(module, get_set_dict):
     get_set_dict --- the Set/Get method signatures returned by vtk_parser
 
     """
+
+    klass = get_description_class(module.vtkClass)
     for name in get_set_dict.iterkeys():
         if name in disallowed_set_get_ports: continue
-        getterMethod = getattr(module.vtkClass, 'Get%s'%name)
-        setterMethod = getattr(module.vtkClass, 'Set%s'%name)
+        getterMethod = getattr(klass, 'Get%s'%name)
+        setterMethod = getattr(klass, 'Set%s'%name)
         getterSig = get_method_signature(getterMethod)
         setterSig = get_method_signature(setterMethod)
         if len(getterSig) > 1:
@@ -307,11 +324,11 @@ def addSetGetPorts(module, get_set_dict):
         for getter, order in izip(getterSig, xrange(1, len(getterSig)+1)):
             if getter[1]:
                 log("Can't handle getter %s (%s) of class %s: Needs input to "
-                    "get output" % (order, name, module.vtkClass))
+                    "get output" % (order, name, klass))
                 continue
             if len(getter[0]) != 1:
                 log("Can't handle getter %s (%s) of class %s: More than a "
-                    "single output" % (order, name, str(module.vtkClass)))
+                    "single output" % (order, name, str(klass)))
                 continue
             class_ = typeMap(getter[0][0])
             if is_class_allowed(class_):
@@ -364,6 +381,7 @@ def addStatePorts(module, state_dict):
     state_dict --- the State method signatures returned by vtk_parser
 
     """
+    klass = get_description_class(module.vtkClass)
     for name in state_dict.iterkeys():
         for mode in state_dict[name]:
             # Creates the port Set foo to bar
@@ -374,8 +392,8 @@ def addStatePorts(module, state_dict):
                 add_input_port(module, field, [], True)
 
         # Now create the port Set foo with parameter
-        if hasattr(module.vtkClass, 'Set%s'%name):
-            setterMethod = getattr(module.vtkClass, 'Set%s'%name)
+        if hasattr(klass, 'Set%s'%name):
+            setterMethod = getattr(klass, 'Set%s'%name)
             setterSig = get_method_signature(setterMethod)
             # if the signature looks like an enum, we'll skip it, it shouldn't
             # be necessary
@@ -436,11 +454,12 @@ def addOtherPorts(module, other_list):
                    Algorithm/SetGet/Toggle/State type
 
     """
+    klass = get_description_class(module.vtkClass)
     for name in other_list:
         if name[:3] in ['Add','Set'] or name[:6]=='Insert':
             if name in disallowed_other_ports:
                 continue
-            method = getattr(module.vtkClass, name)
+            method = getattr(klass, name)
             signatures = get_method_signature(method)
             if len(signatures) > 1:
                 prune_signatures(module, name, signatures)
@@ -471,7 +490,7 @@ def addOtherPorts(module, other_list):
         else:
             if name in disallowed_other_ports:
                 continue
-            method = getattr(module.vtkClass, name)
+            method = getattr(klass, name)
             signatures = get_method_signature(method)
             if len(signatures) > 1:
                 prune_signatures(module, name, signatures)
@@ -501,10 +520,11 @@ disallowed_get_ports = set([
     ])
 
 def addGetPorts(module, get_list):
+    klass = get_description_class(module.vtkClass)
     for name in get_list:
         if name in disallowed_get_ports:
             continue
-        method = getattr(module.vtkClass, name)
+        method = getattr(klass, name)
         signatures = get_method_signature(method)
         if len(signatures) > 1:
             prune_signatures(module, name, signatures, output=True)
@@ -524,8 +544,9 @@ def addPorts(module):
     Search all metamethods of module and add appropriate ports
 
     """
+    klass = get_description_class(module.vtkClass)
     add_output_port(module, 'self', module)
-    parser.parse(module.vtkClass)
+    parser.parse(klass)
     addAlgorithmPorts(module)
     addGetPorts(module, parser.get_get_methods())
     addSetGetPorts(module, parser.get_get_set_methods())
@@ -533,14 +554,14 @@ def addPorts(module):
     addStatePorts(module, parser.get_state_methods())
     addOtherPorts(module, parser.get_other_methods())
     # CVS version of VTK doesn't support AddInputConnect(vtkAlgorithmOutput)
-    if module.vtkClass==vtk.vtkAlgorithm:
+    if klass==vtk.vtkAlgorithm:
         add_input_port(module, 'AddInputConnection',
                        typeMap('vtkAlgorithmOutput'))
     # vtkWriters have a custom File port
-    elif module.vtkClass==vtk.vtkWriter:
+    elif klass==vtk.vtkWriter:
         add_output_port(module, 'file', typeMap('File',
                                                 'edu.utah.sci.vistrails.basic'))
-    elif module.vtkClass==vtk.vtkImageWriter:
+    elif klass==vtk.vtkImageWriter:
         add_output_port(module, 'file', typeMap('File',
                                                 'edu.utah.sci.vistrails.basic'))
 
@@ -613,7 +634,7 @@ def class_dict(base_module, node):
             self.vtkInstance.Write()
             self.setResult('file', o)
         return compute
-
+            
     if hasattr(node.klass, 'SetFileName'):
         # Everyone that has a SetFileName should have a SetFile port too
         update_dict('_special_input_function_SetFile', compute_SetFile)
@@ -665,7 +686,10 @@ def createModule(baseModule, node):
                        docstring=getattr(vtk, node.name).__doc__
                        )
     # This is sitting on the class
-    module.vtkClass = node.klass
+    if hasattr(fix_classes, node.klass.__name__ + '_fixed'):
+        module.vtkClass = getattr(fix_classes, node.klass.__name__ + '_fixed')
+    else:
+        module.vtkClass = node.klass
     add_module(module, abstract=is_abstract())
     for child in node.children:
         if child.name in disallowed_classes:

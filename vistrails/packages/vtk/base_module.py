@@ -24,7 +24,7 @@
 ################################################################################
 import vtk
 from core.modules.module_registry import registry
-from core.modules.vistrails_module import Module
+from core.modules.vistrails_module import Module, ModuleError
 from itertools import izip
 
 ################################################################################
@@ -104,8 +104,8 @@ class vtkBaseModule(Module):
                     param[i] = param[i].vtkInstance
             try:
                 self.call_input_function(function, param)
-            except e:
-                print e
+            except Exception, e:
+                raise ModuleError(self, 'VTK Exception: ' + str(type(e)) + ': ' + str(e))
 
         # Always re-create vtkInstance module, no caching here
         if self.vtkInstance:
