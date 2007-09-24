@@ -910,8 +910,9 @@ class ModuleRegistry(QtCore.QObject):
 
     @staticmethod
     def _vis_port_from_spec(name, spec, descriptor, port_type):
-        assert port_type == PortEndPoint.Destination or \
-               port_type == PortEndPoint.Source
+        # skip this assert because code is in hotpath
+        #         assert port_type == PortEndPoint.Destination or \
+        #                port_type == PortEndPoint.Source
         if descriptor.has_port(name, port_type):
             return descriptor.get_port(name, port_type)
         if port_type == PortEndPoint.Destination:

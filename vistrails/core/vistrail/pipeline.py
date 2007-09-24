@@ -241,7 +241,7 @@ class Pipeline(DBWorkflow):
         return result
     
     def perform_action_chain(self, actionChain):
-        for action in actionChain:
+        for action in actionChain: 
             self.perform_action(action)
 
     def perform_action(self, action):
@@ -763,7 +763,8 @@ class Pipeline(DBWorkflow):
             def do_it(ports):
                 for (_, lst) in ports:
                     port_list.extend([p for p in lst
-                                      if p.name == port.name])
+                                      if (p.__dict__['_DBPort__db_name'] ==
+                                          port.__dict__['_DBPort__db_name'])])
 
             do_it(reg.all_source_ports(descriptor))
             if len(port_list) == 0:
@@ -797,8 +798,11 @@ class Pipeline(DBWorkflow):
             port_list = []
             def do_it(ports):
                 for (_, lst) in ports:
+                    # Following line is weird because we're on
+                    # a hot-path
                     port_list.extend([p for p in lst
-                                      if p.name == port.name])
+                                      if (p.__dict__['_DBPort__db_name'] ==
+                                          port.__dict__['_DBPort__db_name'])])
 
             do_it(reg.all_destination_ports(descriptor))
             if len(port_list) == 0:
