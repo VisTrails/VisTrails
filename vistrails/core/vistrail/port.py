@@ -49,26 +49,23 @@ class Port(DBPort):
     # Constructor and copy
     
     def __init__(self, *args, **kwargs):
+        if 'optional' in kwargs:
+            self.optional = kwargs['optional']
+            del kwargs['optional']
+        else:
+            self.optional = False
 	DBPort.__init__(self, *args, **kwargs)
-        if self.id is None:
-            self.id = -1
-#         self._sig = self.db_sig
-#         if self.db_sig is not None:
-#             self._name = self.
-#             (self._name, self._spec) = self.make_name_spec_tuple()
-#         else:
-#             self._name = ""
-#             self._spec = []
-        if self.moduleId is None:
-            self.moduleId = 0
-        if self.moduleName is None:
-            self.moduleName = ""
-        if self.name is None:
-            self.name = ""
-        if self.specStr is None:
-            self.specStr = ""
+        if self.db_id is None:
+            self.db_id = -1
+        if self.db_moduleId is None:
+            self.db_moduleId = 0
+        if self.db_moduleName is None:
+            self.db_moduleName = ""
+        if self.db_name is None:
+            self.db_name = ""
+        if self.db_spec is None:
+            self.db_spec = ""
         
-        self.optional = False
         self.sort_key = -1
         self._spec = None
 
@@ -144,16 +141,17 @@ class Port(DBPort):
     name = property(_get_name, _set_name)
 
     def _get_specStr(self):
+        if self.db_spec is None:
+            self.db_spec = self._spec.create_sigstring()
         return self.db_spec
     def _set_specStr(self, specStr):
         self.db_spec = specStr
     specStr = property(_get_specStr, _set_specStr)
 
     def _get_spec(self):
-	return self._spec
+        return self._spec
     def _set_spec(self, spec):
-	self._spec = spec
-        self.specStr = self._spec.create_sigstring()
+        self._spec = spec
     spec = property(_get_spec, _set_spec)
 
     def _get_sig(self):

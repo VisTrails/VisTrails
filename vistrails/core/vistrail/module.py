@@ -185,39 +185,16 @@ class Module(DBModule):
         """getNumFunctions() -> int - Returns the number of functions """
         return len(self.functions)
 
-    def uniqueSortedPorts(self, ports):
-        """uniqueSortedPorts(ports) -> list of ports 
-        Returns a list of ports sorted by name discarding repeated names.
-
-        """
-        if len(ports)==0:
-            return ports
-        ports.sort(lambda n1,n2: cmp(n1.sort_key,n2.sort_key))
-        result = [ports[0]]
-        names = [p.name for p in ports]
-        for i in xrange(1,len(names)):
-            if not ports[i].name in names[:i]:
-                result.append(ports[i])
-        return result
 
     def sourcePorts(self):
         """sourcePorts() -> list of Port 
         Returns list of source (output) ports module supports.
 
         """
-        ports = []
-        descriptor = registry.get_descriptor_by_name(self.package,
-                                                     self.name)
-        def add_ports(reg):
-            for (n, registry_ports) in reg.all_source_ports(descriptor):
-                ports.extend([copy.copy(x) for x in registry_ports])
 
-        add_ports(registry)
-        ports = self.uniqueSortedPorts(ports)
+        ports = registry.module_source_ports(True, self.package, self.name)
         if self.registry:
-            add_ports(self.registry)
-        for p in ports:
-            p.id = self.id
+            ports.extend(self.registry.module_source_ports(False, self.package, self.name))
         return ports
 
     def destinationPorts(self):
@@ -225,19 +202,9 @@ class Module(DBModule):
         Returns list of destination (input) ports module supports
 
         """
-        ports = []
-        descriptor = registry.get_descriptor_by_name(self.package,
-                                                     self.name)
-        def add_ports(reg):
-            for (n, registry_ports) in reg.all_destination_ports(descriptor):
-                ports.extend([copy.copy(x) for x in registry_ports])
-
-        add_ports(registry)
-        ports = self.uniqueSortedPorts(ports)
+        ports = registry.module_destination_ports(True, self.package, self.name)
         if self.registry:
-            add_ports(self.registry)
-        for p in ports:
-            p.id = self.id
+            ports.extend(self.registry.module_destination_ports(False, self.package, self.name))
         return ports
 
     def add_port_to_registry(self, port_spec):

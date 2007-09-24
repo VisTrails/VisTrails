@@ -233,6 +233,9 @@ class ModuleDescriptor(object):
         self._module_package = None
         self._hasher_callable = None
         self._widget_item = None
+        self._input_port_cache = {}
+        self._output_port_cache = {}
+
 
     def assign(self, other):
         """assign(ModuleDescriptor) -> None. Assigns values from other
@@ -270,7 +273,7 @@ class ModuleDescriptor(object):
     def port_count(self):
         """Return the total number of available for the module."""
         return self._port_count
-    
+
     # Signal handling
     def new_input_port(self):
         """Updates needed variables when new input port is added
@@ -292,6 +295,33 @@ class ModuleDescriptor(object):
             d = child.descriptor
             d.new_output_port()
 
+    ##########################################################################
+    # Spec cache interface
+
+    def has_port(self, name, port_type):
+        if port_type == PortEndPoint.Destination:
+            return name in self._input_port_cache
+        elif port_type == PortEndPoint.Source:
+            return name in self._output_port_cache
+        else:
+            raise VistrailsInternalError('port_type is wrong')
+
+    def get_port(self, name, port_type):
+        if port_type == PortEndPoint.Destination:
+            return self._input_port_cache[name]
+        elif port_type == PortEndPoint.Source:
+            return self._output_port_cache[name]
+        else:
+            raise VistrailsInternalError('port_type is wrong')
+
+    def set_port(self, name, port_type, spec):
+        if port_type == PortEndPoint.Destination:
+            self._input_port_cache[name] = spec
+        elif port_type == PortEndPoint.Source:
+            self._output_port_cache[name] = spec
+        else:
+            raise VistrailsInternalError('port_type is wrong')
+        
     ##########################################################################
 
     def _append_to_port_list(self, port, optionals, name, signature, optional):
@@ -347,6 +377,8 @@ class ModuleDescriptor(object):
         else:
             msg = 'delete_input_port called on nonexistent port "%s"' % name
             core.debug.critical(msg)
+        if self._input_port_cache.has_key(name):
+            del self._input_port_cache[name]
 
     def delete_output_port(self, name):
         if self.output_ports.has_key(name):
@@ -355,6 +387,8 @@ class ModuleDescriptor(object):
         else:
             msg = 'delete_output_port called on nonexistent port "%s"' % name
             core.debug.critical(msg)
+        if self._output_port_cache.has_key(name):
+            del self._output_port_cache[name]
 
     def set_module_abstract(self, v):
         self._is_abstract = v
@@ -453,6 +487,9 @@ class ModuleRegistry(QtCore.QObject):
         self._key_tree_map = { key: base_node }
         self.package_modules = {self._current_package_name: ["Module"]}
         self._legacy_name_only_map = {}
+        self._monotonic = False
+        self._module_source_ports_cache = {}
+        self._module_destination_ports_cache = {}
 
     def __copy__(self):
         result = ModuleRegistry()
@@ -479,7 +516,61 @@ class ModuleRegistry(QtCore.QObject):
         for m in reversed(hierarchy[:-1]):
             (package, name) = reg._module_key_map[m]
             self.add_module(m, name=name, package=package)
-        
+
+    ##########################################################################
+    # Performance
+
+    def enable_monotonic(self):
+        self._monotonic = True
+
+    @staticmethod
+    def _unique_sorted_ports(ports):
+        if len(ports)==0:
+            return ports
+        ports.sort(lambda n1,n2: cmp(n1.sort_key,n2.sort_key))
+        result = [ports[0]]
+        names = [p.name for p in ports]
+        for i in xrange(1,len(names)):
+            if not ports[i].name in names[:i]:
+                result.append(ports[i])
+        return result
+
+    def module_source_ports(self, sorted, identifier, module_name):
+        if (self._monotonic and
+            (sorted, identifier, module_name) in self._module_source_ports_cache):
+             # make sure list is fresh
+            return self._module_source_ports_cache[(sorted, identifier, module_name)][:]
+        ports = []
+        descriptor = self.get_descriptor_by_name(identifier, module_name)
+
+        for (n, registry_ports) in self.all_source_ports(descriptor, sorted=False):
+            ports.extend([copy.copy(x) for x in registry_ports])
+        if sorted:
+            ports = self._unique_sorted_ports(ports)
+        if self._monotonic:
+            self._module_source_ports_cache[(sorted, identifier, module_name)] = ports
+            return self._module_source_ports_cache[(sorted, identifier, module_name)][:]
+        else:
+            return ports[:]
+
+    def module_destination_ports(self, sorted, identifier, module_name):
+        if (self._monotonic and
+            (sorted, identifier, module_name) in self._module_destination_ports_cache):
+             # make sure list is fresh
+            return self._module_destination_ports_cache[(sorted, identifier, module_name)][:]
+        ports = []
+        descriptor = self.get_descriptor_by_name(identifier, module_name)
+
+        for (n, registry_ports) in self.all_destination_ports(descriptor, sorted=False):
+            ports.extend([copy.copy(x) for x in registry_ports])
+        if sorted:
+            ports = self._unique_sorted_ports(ports)
+        if self._monotonic:
+            self._module_destination_ports_cache[(sorted, identifier, module_name)] = ports
+            return self._module_destination_ports_cache[(sorted, identifier, module_name)][:]
+        else:
+            return ports[:]
+
     ##########################################################################
     # Convenience
 
@@ -821,16 +912,21 @@ class ModuleRegistry(QtCore.QObject):
     def _vis_port_from_spec(name, spec, descriptor, port_type):
         assert port_type == PortEndPoint.Destination or \
                port_type == PortEndPoint.Source
-        result = Port()
-        result.name = name
-        result.spec = spec
+        if descriptor.has_port(name, port_type):
+            return descriptor.get_port(name, port_type)
         if port_type == PortEndPoint.Destination:
-            result.optional = descriptor.input_ports_optional[result.name]
+            pt = 'destination'
+            opt = descriptor.input_ports_optional[name]
         else:
-            result.optional = descriptor.output_ports_optional[result.name]
-        result.moduleName = descriptor.name
-        result.endPoint = port_type
+            pt = 'source'
+            opt = descriptor.output_ports_optional[name]
+        result = Port(name=name,
+                      type=pt,
+                      optional=opt,
+                      moduleName=descriptor.name)
+        result.spec = spec
         result.sort_key = descriptor.port_order[result.name]
+        descriptor.set_port(name, port_type, result)
         return result        
 
     def source_ports_from_descriptor(self, descriptor, sorted=True):
@@ -1091,6 +1187,9 @@ class Tree(object):
 ###############################################################################
 
 registry = ModuleRegistry()
+
+# This allows caching of many things without screwing up per-module registries
+registry.enable_monotonic()
 
 add_module               = registry.add_module
 add_input_port           = registry.add_input_port
