@@ -34,6 +34,7 @@ import copy
 import core.data_structures.graph
 import os
 import sys
+import traceback
 
 ##############################################################################
 
@@ -42,14 +43,16 @@ class Package(object):
     Base, User, Other = 0, 1, 2
 
     class InitializationFailed(Exception):
-        def __init__(self, package, exception):
+        def __init__(self, package, exception, traceback):
             self.package = package
             self.exception = exception
+            self.traceback = traceback
         def __str__(self):
-            return ("Package '%s' failed to initialize, raising '%s: %s'" %
+            return ("Package '%s' failed to initialize, raising '%s: %s'. Traceback:\n%s" %
                     (self.package.name,
                      self.exception.__class__.__name__,
-                     self.exception))
+                     self.exception,
+                     self.traceback))
 
     def __init__(self, codepath, load_configuration=True):
         self._codepath = codepath
@@ -116,7 +119,7 @@ class Package(object):
         try:
             self._module.initialize()
         except Exception, e:
-            raise self.InitializationFailed(self, e)
+            raise self.InitializationFailed(self, e, traceback.format_exc())
 
         # The package might have decided to rename itself, let's store that
         registry.set_current_package_name(None)
