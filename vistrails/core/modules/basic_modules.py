@@ -313,7 +313,14 @@ class PythonSource(NotCacheable, Module):
     Python code.
     
     It is especially useful for one-off pieces of 'glue' in a
-    pipeline."""
+    pipeline.
+
+    If you want a PythonSource execution to fail, call
+    fail(error_message).
+
+    If you want a PythonSource execution to be cached, call
+    cache_this().
+    """
 
     def run_code(self, code_str,
                  use_input=False,
@@ -325,6 +332,8 @@ class PythonSource(NotCacheable, Module):
         
         def fail(msg):
             raise ModuleError(self, msg)
+        def cache_this():
+            self.is_cacheable = lambda *args, **kwargs: True
         locals_ = locals()
         if use_input:
             inputDict = dict([(k, self.getInputFromPort(k))
@@ -337,6 +346,7 @@ class PythonSource(NotCacheable, Module):
         _m = core.packagemanager.get_package_manager()
         locals_.update({'fail': fail,
                         'package_manager': _m,
+                        'cache_this': cache_this,
                         'self': self})
         del locals_['source']
         exec code_str in locals_, locals_
