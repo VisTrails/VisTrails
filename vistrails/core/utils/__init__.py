@@ -32,11 +32,6 @@ from core.utils.lockmethod import lock_method
 import errno
 import itertools
 
-try:
-    import cProfile as prof
-except ImportError:
-    import profile as prof
-
 ################################################################################
 
 def invert(d):
@@ -170,6 +165,11 @@ def profile(func):
     programmatically later to get to the profiler stats. It will be
     available as the attribute 'profiler_object' on the decorated
     result."""
+
+    try:
+        import cProfile as prof
+    except ImportError:
+        import profile as prof
 
     pobject = prof.Profile()
     def method(*args, **kwargs):
