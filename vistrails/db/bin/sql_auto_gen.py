@@ -283,7 +283,7 @@ class SQLAutoGen(AutoGen):
                 self.printLine('%s %s' % \
                                (property.getColumn(), property.getType()))
                 comma = ',\n'
-	self.unindentLine('\n);\n\n')
+	self.unindentLine('\n) engine=InnoDB;\n\n')
 
     def generateDeleteSchema(self):
 	self.reset(SQL_SPACES)
@@ -346,14 +346,15 @@ class SQLAutoGen(AutoGen):
 		choiceRefs.append(choice)
 
         # get_sql_columns
-        self.unindentLine('def get_sql_columns(self, db, global_props):\n')
+        self.unindentLine('def get_sql_columns(self, db, global_props,' + \
+                              'lock=False):\n')
         self.indentLine("columns = ['%s']\n" % \
                             "', '".join(self.getSQLColumns(object)))
         self.printLine("table = '%s'\n" % object.getName())
         self.printLine("whereMap = global_props\n")
         self.printLine("orderBy = '%s'\n\n" % key.getName())
         self.printLine('dbCommand = self.createSQLSelect(' +
-                       'table, columns, whereMap, orderBy)\n')
+                       'table, columns, whereMap, orderBy, lock)\n')
 
         self.printLine('data = self.executeSQL(db, dbCommand, True)\n')
         self.printLine('res = {}\n')
@@ -443,6 +444,7 @@ class SQLAutoGen(AutoGen):
                               "', '".join(self.getSQLColumns(object)))
         self.printLine("table = '%s'\n" % object.getName())
         self.printLine("whereMap = {}\n")
+        self.printLine("whereMap.update(global_props)\n")
 	self.printLine('if obj.%s is not None:\n' % key.getFieldName())
         self.indentLine("keyStr = self.convertToDB(obj.%s, '%s', '%s')\n" % \
                             (key.getFieldName(), key.getPythonType(), 
@@ -465,7 +467,7 @@ class SQLAutoGen(AutoGen):
             self.unindent(2)
         self.printLine('columnMap.update(global_props)\n\n')
 
-        self.printLine('if obj.is_new:\n')
+        self.printLine('if obj.is_new or do_copy:\n')
         self.indentLine('dbCommand = self.createSQLInsert(table, columnMap)\n')
         self.unindentLine('else:\n')
         self.indentLine('dbCommand = ' +
@@ -524,366 +526,18 @@ class SQLAutoGen(AutoGen):
             self.unindent()
         self.printLine('\n')
 
-	# fromSQL
-	self.unindentLine('def fromSQL(self, db, id=None, foreignKey=None, ' +
-                          'globalProps=None):\n')
-
-        self.indentLine("columns = ['%s']\n" % \
-                        "', '".join(self.getSQLColumnsAndKey(object)))
-        self.printLine("table = '%s'\n" % object.getName())
-        self.printLine("whereMap = {}\n")
-        self.printLine("orderBy = '%s'\n\n" % key.getName())
-
-	self.printLine('if id is not None:\n')
-        self.indentLine("keyStr = self.convertToDB(id, '%s', '%s')\n" % \
-                            (key.getPythonType(), key.getType()))
-# 	if key.isText():
-# 	    keyStr = """'"' + str(id) + '"'"""
-# 	else:
-# 	    keyStr = 'str(id)'
-        self.printLine("whereMap['%s'] = keyStr\n" % key.getColumn())
-        self.unindentLine('elif foreignKey is not None:\n')
-	self.indentLine('whereMap.update(foreignKey)\n')
-        self.unindentLine('elif globalProps is None:\n')
-        self.indentLine("print '***ERROR: need to specify id or " + 
-			"foreign key info'\n")
-        self.unindentLine('if globalProps is not None:\n')
-        self.indentLine('whereMap.update(globalProps)\n')
-
-
-        self.unindentLine('dbCommand = self.createSQLSelect(' +
-                          'table, columns, whereMap, orderBy)\n')
-        self.printLine('data = self.executeSQL(db, dbCommand, True)\n')
-
-	self.printLine('list = []\n')
-	self.printLine('for row in data:\n')
-	self.indent()
-	count = 0
-	for property in self.getNormalSQLColumnsAndKey(object):
-	    self.printLine("%s = self.convertFromDB(row[%d], '%s', '%s')\n" % \
-			   (property.getRegularName(), count,
-                            property.getPythonType(), property.getType()))
-            count += 1
-            if property.isGlobal():
-                self.printLine('if globalProps is None:\n')
-                self.indentLine('globalProps = {}\n')
-                self.unindentLine("globalProps['%s'] = " % \
-                                      property.getGlobalName() +
-                                  "self.convertToDB(%s, '%s', '%s')\n" % \
-                                      (property.getRegularName(),
-                                       property.getPythonType(),
-                                       property.getType()))
-        
-        self.printLine("keyStr = self.convertToDB(%s,'%s','%s')\n\n" % \
-                           (key.getRegularName(), key.getPythonType(),
-                            key.getType()))
-	for property in refs:
-            refObj = self.getReferencedObject(property.getReference())
-	    (refField, isChoice) = self.getSQLReferencedField(refObj, object)
-#             self.printLine("keyStr = self.convertToDB(%s, '%s', '%s')\n" % \
-#                                (key.getRegularName(), key.getPythonType(),
-#                                 key.getType()))
-            if not isChoice:
-# 		if key.isText():
-# 		    keyStr = """'"' + str(%s) + '"'""" % key.getPythonName()
-# 		else:
-# 		    keyStr = 'str(%s)' % key.getPythonName()
-# 		foreignKey = "{'%s': %s}" % (refField.getColumn(), 
-# 					     keyStr)
-                if refField.hasSpec():
-                    self.printLine("foreignKey = {'%s': keyStr}\n" % \
-                                       refField.getColumn())
-                else:
-                    self.printLine("foreignKey = None\n")
-	    else:
-		discProp = \
-		    self.getDiscriminatorProperty(refObj,
-						  refField.getDiscriminator())
-# 		if key.isText():
-# 		    keyStr = """'"' + str(%s) + '"'""" % key.getPythonName()
-# 		else:
-# 		    keyStr = 'str(%s)' % key.getPythonName()
-                self.printLine("discStr = self.convertToDB('%s','%s','%s')\n" %\
-                                   (object.getRegularName(), 
-                                    discProp.getPythonType(), 
-                                    discProp.getType()))
-                self.printLine("foreignKey = {'%s' : keyStr, " % \
-                                   refField.getColumn() +
-                               "'%s': discStr}\n" % discProp.getColumn())
-#                     (refField.getColumn(), keyStr,
-#                      discProp.getColumn(), object.getPythonName())
-
-	    self.printLine('res = self.getDao(\'%s\')' % \
-			   property.getReference() +
-			   ".fromSQL(db, None, foreignKey, globalProps)\n")
-
-	    if not property.isPlural():
-                self.printLine('if len(res) > 0:\n')
-		self.indentLine('%s = res[0]\n' % property.getRegularName())
-                self.unindentLine('else:\n')
-                self.indentLine('%s = None\n' % property.getRegularName())
-                self.unindent()
-	    else:
-		if property.getPythonType() == 'hash':
-		    childObj = self.getReferencedObject(property.getReference())
-		    self.printLine('%s = {}\n' % property.getRegularName())
-		    self.printLine('for obj in res:\n')
-		    self.indentLine('%s[obj.%s] = obj\n' % \
-				    (property.getRegularName(),
-				     childObj.getKey().getFieldName()))
-		    self.unindent()
-		else:
-		    self.printLine('%s = res\n' % property.getRegularName())
-            self.printLine('\n')
-		    
-	for choice in choiceRefs:
-	    if choice.isPlural():
-		if choice.getPythonType() == 'hash':
-		    self.printLine('%s = {}\n' % choice.getRegularName())
-		else:
-		    self.printLine('%s = []\n' % choice.getRegularName())
-            else:
-               self.printLine('%s = None\n' % choice.getRegularName())
-
-	    discProp = \
-		self.getDiscriminatorProperty(object,
-					      choice.getDiscriminator())
-	    cond = 'if'
-	    for property in choice.properties:
-		refObj = self.getReferencedObject(property.getReference())
-		(refField, isChoice) = \
-		    self.getSQLReferencedField(refObj, object)
-                if not choice.isPlural() and discProp is not None:
-                    self.printLine('%s %s == \'%s\':\n' % \
-                                       (cond, discProp.getRegularName(), 
-                                        property.getRegularName()))
-                    self.indent()
-                else:
-                    self.printLine('\n')
-# 		if key.isText():
-# 		    keyStr = """'"' + str(%s) + '"'""" % key.getPythonName()
-# 		else:
-# 		    keyStr = 'str(%s)' % key.getPythonName()
-
-                if isChoice:
-                    choiceDisc = \
-                        self.getDiscriminatorProperty(refObj,
-                                                      refField.getDiscriminator())
-                    self.printLine("discStr = " + 
-                                   "self.convertToDB('%s','%s','%s')\n" % \
-                                       (object.getRegularName(), 
-                                        choiceDisc.getPythonType(), 
-                                        choiceDisc.getType()))
-                    self.printLine("foreignKey = {'%s' : keyStr, " % \
-                                       refField.getColumn() +
-                                   "'%s': discStr}\n" % choiceDisc.getColumn())
-                else:
-                    self.printLine("foreignKey = {'%s': keyStr}\n" % \
-                                       refField.getColumn())
-		self.printLine('res = self.getDao(\'%s\')' % \
-				property.getRegularName() +
-				'.fromSQL(db, None, foreignKey, globalProps)\n')
-
-		if not choice.isPlural():
-		    self.printLine('%s = res[0]\n' % choice.getRegularName())
-                    self.unindent()
-		else:
-		    if choice.getPythonType() == 'hash':
-			self.printLine('for obj in res:\n')
-			self.indentLine('%s[obj.%s] = obj\n' % \
-					(choice.getRegularName(),
-					 refObj.getKey().getFieldName()))
-			self.unindent()
-		    else:
-			self.printLine('%s.extend(res)\n' % \
-				       choice.getRegularName())
-
-		cond = 'elif'
-            self.printLine('\n')
-
-        assignStr = '%s = %s(' % (object.getRegularName(),
-                                  object.getClassName())
-        sep = ',\n' + (' ' * (len(assignStr) + 12))
-	self.printLine('%s = %s(%s)\n' % (object.getRegularName(), 
-                                          object.getClassName(),
-                                          sep.join(varPairs)))
-        self.printLine('%s.is_dirty = False\n' % object.getRegularName())
-	self.printLine('list.append(%s)\n\n' % object.getRegularName())
-	self.unindentLine('return list\n\n')
-
-	# toSQL
-	self.unindentLine('def toSQL(self, db, obj, foreignKey=None, ' +
-                          'globalProps=None):\n')
+        # delete_sql_column
+        self.unindentLine('def delete_sql_column(self, db, obj, ' + \
+                              'global_props):\n')
+        self.indentLine("table = '%s'\n" % object.getName())
+        self.printLine('whereMap = {}\n')
+        self.printLine('whereMap.update(global_props)\n')
+	self.printLine('if obj.%s is not None:\n' % key.getFieldName())
         self.indentLine("keyStr = self.convertToDB(obj.%s, '%s', '%s')\n" % \
-                           (key.getPythonName(), key.getPythonType(),
-                            key.getType()))
-        self.printLine("if obj.is_dirty:\n")
-        self.indentLine("columns = ['%s']\n" % key.getColumn())
-        self.printLine("table = '%s'\n" % object.getName())
-        self.printLine("whereMap = {}\n")
-        self.printLine("columnMap = {}\n\n")
-
-# 	if key.isText():
-# 	    keyStr = """'"' + str(obj.%s) + '"'""" % key.getFieldName()
-# 	else:
-# 	    keyStr = 'str(obj.%s)' % key.getFieldName()
+                            (key.getFieldName(), key.getPythonType(), 
+                             key.getType()))
         self.printLine("whereMap['%s'] = keyStr\n" % key.getColumn())
-        self.printLine('if globalProps is not None:\n')
-        self.indentLine('whereMap.update(globalProps)\n')
-        self.unindent()
-
-        for property in self.getNormalSQLColumns(object):
-	    self.printLine('if obj.%s is not None:\n' % \
-                               property.getPythonName())
-            self.indentLine("columnMap['%s'] = \\\n" % property.getColumn())
-            self.indentLine("self.convertToDB(obj.%s, '%s', '%s')\n" % \
-                                (property.getFieldName(),
-                                 property.getPythonType(),
-                                 property.getType()))
-            self.unindent(2)
-        self.printLine('if foreignKey is not None:\n')
-	self.indentLine('columnMap.update(foreignKey)\n\n')
-
-        self.unindentLine('dbCommand = ' +
-                       'self.createSQLSelect(table, columns, whereMap)\n')
-        self.printLine('data = self.executeSQL(db, dbCommand, True)\n')
+        self.unindentLine('dbCommand = self.createSQLDelete(table, whereMap)\n')
+        self.printLine('self.executeSQL(db, dbCommand, False)\n\n')
         
-        self.printLine('if len(data) <= 0:\n')
-        if key.isAutoInc():
-            self.indentLine('if obj.%s is not None:\n' % key.getPythonName())
-        self.indentLine("columnMap['%s'] = keyStr\n" % key.getColumn())
-        if key.isAutoInc():
-            self.unindent()
-        self.printLine('if globalProps is not None:\n')
-        self.indentLine('columnMap.update(globalProps)\n')
-
-        self.unindentLine('dbCommand = self.createSQLInsert(table, columnMap)\n')
-        self.unindentLine('else:\n')
-        self.indentLine('dbCommand = ' +
-                        'self.createSQLUpdate(table, columnMap, whereMap)\n')
-        self.unindentLine('lastId = self.executeSQL(db, dbCommand, False)\n')
-        if key.isAutoInc():
-            self.printLine('if obj.%s is None:\n' % key.getPythonName())
-            self.indentLine('obj.%s = lastId\n' % key.getPythonName())
-            self.printLine("keyStr = self.convertToDB(obj.%s, '%s', '%s')\n" % \
-                               (key.getPythonName(), key.getPythonType(),
-                                key.getType()))
-            self.unindent()
-        for property in self.getNormalSQLColumnsAndKey(object):
-            if property.isGlobal():
-                self.printLine('if globalProps is None:\n')
-                self.indentLine('globalProps = {}\n')
-                self.unindentLine("globalProps['%s'] = " % \
-                                      property.getGlobalName() +
-                                  "self.convertToDB(obj.%s, '%s', '%s')\n" % \
-                                      (property.getPythonName(),
-                                       property.getPythonType(),
-                                       property.getType()))
-        self.unindentLine('\n\n')
-        
-        count = 0
-        for property in refs:
-            refObj = self.getReferencedObject(property.getReference())
-	    (refField, isChoice) = self.getSQLReferencedField(refObj, object)
-
-            if not isChoice:
-# 		if key.isText():
-# 		    keyStr = """'"' + str(obj.%s) + '"'""" % key.getFieldName()
-# 		else:
-# 		    keyStr = 'str(obj.%s)' % key.getFieldName()
-                if refField.hasSpec():
-                    self.printLine("foreignKey = {'%s': keyStr}\n" % \
-                                       refField.getColumn())
-                else:
-                    self.printLine("foreignKey = None\n")
-	    else:
-		discProp = \
-		    self.getDiscriminatorProperty(refObj,
-						  refField.getDiscriminator())
-# 		if key.isText():
-# 		    keyStr = """'"' + str(obj.%s) + '"'""" % key.getFieldName()
-# 		else:
-# 		    keyStr = 'str(obj.%s)' % key.getFieldName()
-                self.printLine("discStr = self.convertToDB('%s','%s','%s')\n" %\
-                                   (object.getRegularName(), 
-                                    discProp.getPythonType(), 
-                                    discProp.getType()))
-                self.printLine("foreignKey = {'%s' : keyStr, " % \
-                                   refField.getColumn() +
-                               "'%s': discStr}\n" % discProp.getColumn())	
-	    if property.isPlural():
-		if property.getPythonType() == 'hash':
-		    self.printLine('for child in obj.%s.itervalues():\n' % \
-				   property.getFieldName())
-		else:
-		    self.printLine('for child in obj.%s:\n' % \
-				   property.getFieldName())
-	    else:
-		self.printLine('child = obj.%s\n' % \
-			       property.getFieldName())
-                self.printLine('if child is not None:\n')
-            self.indentLine('self.getDao(\'%s\')' % property.getReference() +
-			   '.toSQL(db, child, foreignKey, globalProps)\n')
-            self.unindentLine('\n')
-
-	for choice in choiceRefs:
-	    discProp = \
-		self.getDiscriminatorProperty(object,
-					      choice.getDiscriminator())
-            if choice.isPlural():
-                if choice.getPythonType() == 'hash':
-                    self.printLine('for child in obj.%s.itervalues():\n'% \
-				       choice.getFieldName())
-                else:
-                    self.printLine('for child in obj.%s:\n' % \
-				       choice.getFieldName())
-                self.indent()
-            else:
-                self.printLine('child = obj.%s\n' % \
-                                   choice.getFieldName())
-
-	    cond = 'if'
-	    for property in choice.properties:
- 		refObj = self.getReferencedObject(property.getReference())
- 		(refField, isChoice) = \
- 		    self.getSQLReferencedField(refObj, object)
-#                 if not choice.isPlural() and discProp is not None:
-#                     self.printLine('%s obj.%s == \'%s\':\n' % \
-#                                        (cond, discProp.getFieldName(), 
-#                                         property.getPythonName()))
-#                     self.indent()
-# 		if key.isText():
-# 		    keyStr = """'"' + str(obj.%s) + '"'""" % key.getFieldName()
-# 		else:
-# 		    keyStr = 'str(obj.%s)' % key.getFieldName()
-                self.printLine("%s child.vtType == '%s':\n" % \
-                                   (cond, property.getRegularName()))
-                if isChoice:
-                    choiceDisc = \
-                        self.getDiscriminatorProperty(refObj,
-                                                      refField.getDiscriminator())
-                    self.indentLine("discStr = " +
-                                    "self.convertToDB('%s','%s','%s')\n" % \
-                                       (object.getRegularName(), 
-                                        choiceDisc.getPythonType(), 
-                                        choiceDisc.getType()))
-                    self.printLine("foreignKey = {'%s' : keyStr, " % \
-                                       refField.getColumn() +
-                                   "'%s': discStr}\n" % choiceDisc.getColumn())	
-                else:
-                    self.indentLine("foreignKey = {'%s' : keyStr}\n" % \
-                                        refField.getColumn())
-# 		foreignKey = "{'%s': %s}" % (refField.getColumn(),
-# 					     keyStr)
-
-		self.printLine('self.getDao(\'%s\')' % \
-				property.getRegularName() +
-				'.toSQL(db, child, foreignKey, globalProps)\n')
-                self.unindent()
-		cond = 'elif'
-            if choice.isPlural():
-                self.unindent()
-            self.printLine('\n')
-
         self.unindent(2)
-        self.printLine('\n')

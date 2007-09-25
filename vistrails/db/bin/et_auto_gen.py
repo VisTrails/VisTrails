@@ -58,12 +58,7 @@ class XMLProperty(Property):
 	Property.__init__(self)
 
     def hasSpec(self):
-	try:
-	    xmlSpec = self.specs[XML_TYPE]
-	    return True
-	except KeyError:
-	    pass
-	return False
+        return self.specs.has_key(XML_TYPE)
 
     def getName(self):
 	try:
@@ -110,6 +105,9 @@ class XMLProperty(Property):
 class XMLChoice(Choice):
     def __init__(self):
 	Choice.__init__(self)
+
+    def hasSpec(self):
+        return self.properties[0].hasSpec()
 
 class XMLAutoGen(AutoGen):
     def __init__(self, objects):
@@ -281,7 +279,8 @@ class XMLAutoGen(AutoGen):
 	self.reset(PYTHON_SPACES)
 	self.printLine('"""generated automatically by auto_dao.py"""\n\n')
         # self.printLine('from elementtree import ElementTree\n')
-        self.printLine('import cElementTree as ElementTree\n')
+        self.printLine('from core.system import get_elementtree_library\n')
+        self.printLine('ElementTree = get_elementtree_library()\n\n')
 	self.printLine('from xml_dao import XMLDAO\n')
 	self.printLine('from db.versions.%s.domain import *\n\n' % version)
 	for obj in self.objects.values():
@@ -300,10 +299,11 @@ class XMLAutoGen(AutoGen):
 	attrs = self.getXMLAttributes(object)
 	elements = self.getXMLElements(object)
 	choices = self.getXMLChoices(object)
-	vars = self.getPythonVarNames(object)
         varPairs = []
-        for var in vars:
-            varPairs.append('%s=%s' % (var, var))
+        for field in self.getPythonFields(object):
+            if field.hasSpec():
+                varPairs.append('%s=%s' % (field.getRegularName(), 
+                                           field.getRegularName()))
 
 	# define fromXML function
 	self.unindentLine('def fromXML(self, node):\n')

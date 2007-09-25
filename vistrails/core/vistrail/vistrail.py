@@ -722,8 +722,16 @@ class Vistrail(DBVistrail):
         """
     
         if self.actionMap.has_key(version_number):
-            self.actionMap[version_number].notes = notes
-        self.changed = True
+            action = self.actionMap[version_number]
+            annotation = Annotation(id=self.idScope.getNewId(Annotation.vtType),
+                                   key='notes',
+                                   value=notes)
+            if action.has_annotation_with_key('notes'):
+                old_annotation = action.get_annotation_by_key('notes')
+                action.delete_annotation(old_annotation)
+            if notes.strip() != '':
+                action.add_annotation(annotation)
+            self.changed = True
         
     def getVersionGraph(self):
         """getVersionGraph() -> Graph 

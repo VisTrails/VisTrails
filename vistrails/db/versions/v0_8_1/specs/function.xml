@@ -1,7 +1,7 @@
-<object name="module">
+<object name="function">
   <layout>
-    <xml name="module" nodeType="xs:element"/>
-    <sql table="module"/>
+    <xml name="function" nodeType="xs:element"/>
+    <sql table="function"/>
   </layout>
 
   <property name="id" type="long" primaryKey="true">
@@ -9,7 +9,7 @@
     <sql type="int"/>
   </property>
 
-  <property name="cache" type="int">
+  <property name="pos" type="long">
     <xml nodeType="xs:attribute" type="xs:int"/>
     <sql type="int"/>
   </property>
@@ -19,31 +19,7 @@
     <sql type="varchar(255)"/>
   </property>
 
-  <property name="package" type="str">
-    <xml nodeType="xs:attribute" type="xs:string"/>
-    <sql type="varchar(511)"/>
-  </property>
-  
-  <property name="version" type="str">
-    <xml nodeType="xs:attribute" type="xs:string"/>
-    <sql type="varchar(255)"/>
-  </property>
-
-  <property ref="true" object="location" type="object" mapping="one-to-one">
-    <xml nodeType="xs:element"/>
-  </property>
-
-  <property ref="true" object="function" type="list" mapping="one-to-many">
-    <xml nodeType="xs:element"/>
-  </property>
-
-  <property ref="true" object="annotation" type="list" mapping="one-to-many"
-	    index="key">
-    <xml nodeType="xs:element"/>
-  </property>
-
-  <property ref="true" object="portSpec" type="list" mapping="one-to-many"
-	    index="name:type">
+  <property ref="true" object="parameter" type="list" mapping="one-to-many">
     <xml nodeType="xs:element"/>
   </property>
 
@@ -53,7 +29,10 @@
 
   <choice name="parent" type="long" discriminator="parentType" inverse="true" 
 	  mapping="many-to-one">
-    <property ref="true" object="workflow">
+    <property ref="true" object="module">
+      <sql column="parent_id" type="int"/>
+    </property>
+    <property ref="true" object="abstractionRef">
       <sql column="parent_id" type="int"/>
     </property>
     <property ref="true" object="add">

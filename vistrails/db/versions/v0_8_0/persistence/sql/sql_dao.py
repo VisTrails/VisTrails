@@ -66,7 +66,8 @@ class SQLDAO:
 
         return "''"
 
-    def createSQLSelect(self, table, columns, whereMap, orderBy=None):
+    def createSQLSelect(self, table, columns, whereMap, orderBy=None, 
+                        forUpdate=False):
         columnStr = ', '.join(columns)
         whereStr = ''
         whereClause = ''
@@ -78,6 +79,9 @@ class SQLDAO:
                     (columnStr, table, whereStr)
         if orderBy is not None:
             dbCommand += " ORDER BY " + orderBy
+        if forUpdate:
+            dbCommand += " FOR UPDATE"
+        dbCommand += ";"
         return dbCommand
 
     def createSQLInsert(self, table, columnMap):
@@ -90,7 +94,7 @@ class SQLDAO:
 	    values.append(value)
         columnStr = ', '.join(columns)
         valueStr = ', '.join(values)
-        dbCommand = """INSERT INTO %s(%s) VALUES (%s)""" % \
+        dbCommand = """INSERT INTO %s(%s) VALUES (%s);""" % \
                     (table, columnStr, valueStr)
         return dbCommand
 
@@ -108,12 +112,23 @@ class SQLDAO:
             whereStr += '%s %s = %s' % \
                         (whereClause, column, value)
             whereClause = ' AND'
-        dbCommand = """UPDATE %s SET %s WHERE %s""" % \
+        dbCommand = """UPDATE %s SET %s WHERE %s;""" % \
                     (table, setStr, whereStr)
         return dbCommand
 
+    def createSQLDelete(self, table, whereMap):
+        whereStr = ''
+        whereClause = ''
+        for column, value in whereMap.iteritems():
+            whereStr += '%s%s = %s' % \
+                (whereClause, column, value)
+            whereClause = ' AND '
+        dbCommand = """DELETE FROM %s WHERE %s;""" % \
+            (table, whereStr)
+        return dbCommand
+
     def executeSQL(self, db, dbCommand, isFetch):
-        print 'db: %s' % dbCommand
+        # print 'db: %s' % dbCommand
         data = None
         cursor = db.cursor()
         cursor.execute(dbCommand)
@@ -123,3 +138,12 @@ class SQLDAO:
             data = cursor.lastrowid
         cursor.close()
         return data
+
+    def start_transaction(self, db):
+        db.begin()
+
+    def commit_transaction(self, db):
+        db.commit()
+
+    def rollback_transaction(self, db):
+        db.rollback()

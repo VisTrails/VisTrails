@@ -66,6 +66,9 @@ class DBPortSpec(object):
         children = []
         children.append((self, parent[0], parent[1]))
         return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        return children
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -135,7 +138,9 @@ class DBModule(object):
         self.__db_name = name
         self.__db_package = package
         self.__db_version = version
+        self.db_deleted_location = []
         self.__db_location = location
+        self.db_deleted_functions = []
         self.db_functions_id_index = {}
         if functions is None:
             self.__db_functions = []
@@ -143,6 +148,7 @@ class DBModule(object):
             self.__db_functions = functions
             for v in self.__db_functions:
                 self.db_functions_id_index[v.db_id] = v
+        self.db_deleted_annotations = []
         self.db_annotations_id_index = {}
         self.db_annotations_key_index = {}
         if annotations is None:
@@ -152,6 +158,7 @@ class DBModule(object):
             for v in self.__db_annotations:
                 self.db_annotations_id_index[v.db_id] = v
                 self.db_annotations_key_index[v.db_key] = v
+        self.db_deleted_portSpecs = []
         self.db_portSpecs_id_index = {}
         self.db_portSpecs_name_index = {}
         if portSpecs is None:
@@ -160,7 +167,7 @@ class DBModule(object):
             self.__db_portSpecs = portSpecs
             for v in self.__db_portSpecs:
                 self.db_portSpecs_id_index[v.db_id] = v
-                self.db_portSpecs_name_index[(v.db_name, v.db_type)] = v
+                self.db_portSpecs_name_index[(v.db_name,v.db_type)] = v
         self.is_dirty = True
         self.is_new = True
     
@@ -208,7 +215,7 @@ class DBModule(object):
             cp.db_annotations_key_index[v.db_key] = v
         for v in cp.__db_portSpecs:
             cp.db_portSpecs_id_index[v.db_id] = v
-            cp.db_portSpecs_name_index[(v.db_name, v.db_type)] = v
+            cp.db_portSpecs_name_index[(v.db_name,v.db_type)] = v
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
@@ -241,6 +248,18 @@ class DBModule(object):
         for child in to_del:
             self.db_delete_portSpec(child)
         children.append((self, parent[0], parent[1]))
+        return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_location)
+        children.extend(self.db_deleted_functions)
+        children.extend(self.db_deleted_annotations)
+        children.extend(self.db_deleted_portSpecs)
+        if remove:
+            self.db_deleted_location = []
+            self.db_deleted_functions = []
+            self.db_deleted_annotations = []
+            self.db_deleted_portSpecs = []
         return children
     def has_changes(self):
         if self.is_dirty:
@@ -333,6 +352,8 @@ class DBModule(object):
     def db_change_location(self, location):
         self.__db_location = location
     def db_delete_location(self, location):
+        if not self.is_new:
+            self.db_deleted_location.append(self.__db_location)
         self.__db_location = None
     
     def __get_db_functions(self):
@@ -362,6 +383,8 @@ class DBModule(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_functions)):
             if self.__db_functions[i].db_id == function.db_id:
+                if not self.__db_functions[i].is_new:
+                    self.db_deleted_functions.append(self.__db_functions[i])
                 del self.__db_functions[i]
                 break
         del self.db_functions_id_index[function.db_id]
@@ -404,6 +427,8 @@ class DBModule(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == annotation.db_id:
+                if not self.__db_annotations[i].is_new:
+                    self.db_deleted_annotations.append(self.__db_annotations[i])
                 del self.__db_annotations[i]
                 break
         del self.db_annotations_id_index[annotation.db_id]
@@ -434,8 +459,7 @@ class DBModule(object):
         self.is_dirty = True
         self.__db_portSpecs.append(portSpec)
         self.db_portSpecs_id_index[portSpec.db_id] = portSpec
-        self.db_portSpecs_name_index[(portSpec.db_name, portSpec.db_type)] = \
-            portSpec
+        self.db_portSpecs_name_index[(portSpec.db_name,portSpec.db_type)] = portSpec
     def db_change_portSpec(self, portSpec):
         self.is_dirty = True
         found = False
@@ -447,16 +471,17 @@ class DBModule(object):
         if not found:
             self.__db_portSpecs.append(portSpec)
         self.db_portSpecs_id_index[portSpec.db_id] = portSpec
-        self.db_portSpecs_name_index[(portSpec.db_name, portSpec.db_type)] = \
-            portSpec
+        self.db_portSpecs_name_index[(portSpec.db_name,portSpec.db_type)] = portSpec
     def db_delete_portSpec(self, portSpec):
         self.is_dirty = True
         for i in xrange(len(self.__db_portSpecs)):
             if self.__db_portSpecs[i].db_id == portSpec.db_id:
+                if not self.__db_portSpecs[i].is_new:
+                    self.db_deleted_portSpecs.append(self.__db_portSpecs[i])
                 del self.__db_portSpecs[i]
                 break
         del self.db_portSpecs_id_index[portSpec.db_id]
-        del self.db_portSpecs_name_index[(portSpec.db_name, portSpec.db_type)]
+        del self.db_portSpecs_name_index[(portSpec.db_name,portSpec.db_type)]
     def db_get_portSpec(self, key):
         for i in xrange(len(self.__db_portSpecs)):
             if self.__db_portSpecs[i].db_id == key:
@@ -513,6 +538,9 @@ class DBTag(object):
     def db_children(self, parent=(None,None), orphan=False):
         children = []
         children.append((self, parent[0], parent[1]))
+        return children
+    def db_deleted_children(self, remove=False):
+        children = []
         return children
     def has_changes(self):
         if self.is_dirty:
@@ -594,6 +622,9 @@ class DBPort(object):
     def db_children(self, parent=(None,None), orphan=False):
         children = []
         children.append((self, parent[0], parent[1]))
+        return children
+    def db_deleted_children(self, remove=False):
+        children = []
         return children
     def has_changes(self):
         if self.is_dirty:
@@ -686,6 +717,7 @@ class DBLog(object):
 
     def __init__(self, id=None, workflow_execs=None, machines=None):
         self.__db_id = id
+        self.db_deleted_workflow_execs = []
         self.db_workflow_execs_id_index = {}
         if workflow_execs is None:
             self.__db_workflow_execs = []
@@ -693,6 +725,7 @@ class DBLog(object):
             self.__db_workflow_execs = workflow_execs
             for v in self.__db_workflow_execs:
                 self.db_workflow_execs_id_index[v.db_id] = v
+        self.db_deleted_machines = []
         self.db_machines_id_index = {}
         if machines is None:
             self.__db_machines = []
@@ -756,6 +789,14 @@ class DBLog(object):
             self.db_delete_machine(child)
         children.append((self, parent[0], parent[1]))
         return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_workflow_execs)
+        children.extend(self.db_deleted_machines)
+        if remove:
+            self.db_deleted_workflow_execs = []
+            self.db_deleted_machines = []
+        return children
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -806,6 +847,8 @@ class DBLog(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_workflow_execs)):
             if self.__db_workflow_execs[i].db_id == workflow_exec.db_id:
+                if not self.__db_workflow_execs[i].is_new:
+                    self.db_deleted_workflow_execs.append(self.__db_workflow_execs[i])
                 del self.__db_workflow_execs[i]
                 break
         del self.db_workflow_execs_id_index[workflow_exec.db_id]
@@ -846,6 +889,8 @@ class DBLog(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_machines)):
             if self.__db_machines[i].db_id == machine.db_id:
+                if not self.__db_machines[i].is_new:
+                    self.db_deleted_machines.append(self.__db_machines[i])
                 del self.__db_machines[i]
                 break
         del self.db_machines_id_index[machine.db_id]
@@ -873,6 +918,7 @@ class DBMachine(object):
         self.__db_architecture = architecture
         self.__db_processor = processor
         self.__db_ram = ram
+        self.db_deleted_module_execs = []
         self.db_module_execs_id_index = {}
         if module_execs is None:
             self.__db_module_execs = []
@@ -927,6 +973,12 @@ class DBMachine(object):
         for child in to_del:
             self.db_delete_module_exec(child)
         children.append((self, parent[0], parent[1]))
+        return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_module_execs)
+        if remove:
+            self.db_deleted_module_execs = []
         return children
     def has_changes(self):
         if self.is_dirty:
@@ -1040,6 +1092,8 @@ class DBMachine(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_module_execs)):
             if self.__db_module_execs[i].db_id == module_exec.db_id:
+                if not self.__db_module_execs[i].is_new:
+                    self.db_deleted_module_execs.append(self.__db_module_execs[i])
                 del self.__db_module_execs[i]
                 break
         del self.db_module_execs_id_index[module_exec.db_id]
@@ -1061,6 +1115,7 @@ class DBAdd(object):
     vtType = 'add'
 
     def __init__(self, data=None, id=None, what=None, objectId=None, parentObjId=None, parentObjType=None):
+        self.db_deleted_data = []
         self.__db_data = data
         self.__db_id = id
         self.__db_what = what
@@ -1111,6 +1166,12 @@ class DBAdd(object):
                 self.db_data = None
         children.append((self, parent[0], parent[1]))
         return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_data)
+        if remove:
+            self.db_deleted_data = []
+        return children
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -1128,6 +1189,8 @@ class DBAdd(object):
     def db_change_data(self, data):
         self.__db_data = data
     def db_delete_data(self, data):
+        if not self.is_new:
+            self.db_deleted_data.append(self.__db_data)
         self.__db_data = None
     
     def __get_db_id(self):
@@ -1238,6 +1301,9 @@ class DBOther(object):
         children = []
         children.append((self, parent[0], parent[1]))
         return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        return children
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -1324,6 +1390,9 @@ class DBLocation(object):
         children = []
         children.append((self, parent[0], parent[1]))
         return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        return children
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -1385,6 +1454,7 @@ class DBWorkflowExec(object):
         self.__db_parent_type = parent_type
         self.__db_parent_version = parent_version
         self.__db_name = name
+        self.db_deleted_module_execs = []
         self.db_module_execs_id_index = {}
         if module_execs is None:
             self.__db_module_execs = []
@@ -1443,6 +1513,12 @@ class DBWorkflowExec(object):
         for child in to_del:
             self.db_delete_module_exec(child)
         children.append((self, parent[0], parent[1]))
+        return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_module_execs)
+        if remove:
+            self.db_deleted_module_execs = []
         return children
     def has_changes(self):
         if self.is_dirty:
@@ -1608,6 +1684,8 @@ class DBWorkflowExec(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_module_execs)):
             if self.__db_module_execs[i].db_id == module_exec.db_id:
+                if not self.__db_module_execs[i].is_new:
+                    self.db_deleted_module_execs.append(self.__db_module_execs[i])
                 del self.__db_module_execs[i]
                 break
         del self.db_module_execs_id_index[module_exec.db_id]
@@ -1632,6 +1710,7 @@ class DBFunction(object):
         self.__db_id = id
         self.__db_pos = pos
         self.__db_name = name
+        self.db_deleted_parameters = []
         self.db_parameters_id_index = {}
         if parameters is None:
             self.__db_parameters = []
@@ -1683,6 +1762,12 @@ class DBFunction(object):
         for child in to_del:
             self.db_delete_parameter(child)
         children.append((self, parent[0], parent[1]))
+        return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_parameters)
+        if remove:
+            self.db_deleted_parameters = []
         return children
     def has_changes(self):
         if self.is_dirty:
@@ -1757,6 +1842,8 @@ class DBFunction(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_parameters)):
             if self.__db_parameters[i].db_id == parameter.db_id:
+                if not self.__db_parameters[i].is_new:
+                    self.db_deleted_parameters.append(self.__db_parameters[i])
                 del self.__db_parameters[i]
                 break
         del self.db_parameters_id_index[parameter.db_id]
@@ -1780,6 +1867,7 @@ class DBAbstraction(object):
     def __init__(self, id=None, name=None, actions=None, tags=None):
         self.__db_id = id
         self.__db_name = name
+        self.db_deleted_actions = []
         self.db_actions_id_index = {}
         if actions is None:
             self.__db_actions = []
@@ -1787,6 +1875,7 @@ class DBAbstraction(object):
             self.__db_actions = actions
             for v in self.__db_actions:
                 self.db_actions_id_index[v.db_id] = v
+        self.db_deleted_tags = []
         self.db_tags_id_index = {}
         self.db_tags_name_index = {}
         if tags is None:
@@ -1852,6 +1941,14 @@ class DBAbstraction(object):
             self.db_delete_tag(child)
         children.append((self, parent[0], parent[1]))
         return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_actions)
+        children.extend(self.db_deleted_tags)
+        if remove:
+            self.db_deleted_actions = []
+            self.db_deleted_tags = []
+        return children
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -1915,6 +2012,8 @@ class DBAbstraction(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_actions)):
             if self.__db_actions[i].db_id == action.db_id:
+                if not self.__db_actions[i].is_new:
+                    self.db_deleted_actions.append(self.__db_actions[i])
                 del self.__db_actions[i]
                 break
         del self.db_actions_id_index[action.db_id]
@@ -1957,6 +2056,8 @@ class DBAbstraction(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_tags)):
             if self.__db_tags[i].db_id == tag.db_id:
+                if not self.__db_tags[i].is_new:
+                    self.db_deleted_tags.append(self.__db_tags[i])
                 del self.__db_tags[i]
                 break
         del self.db_tags_id_index[tag.db_id]
@@ -1983,6 +2084,7 @@ class DBWorkflow(object):
     vtType = 'workflow'
 
     def __init__(self, modules=None, id=None, name=None, connections=None, annotations=None, others=None):
+        self.db_deleted_modules = []
         self.db_modules_id_index = {}
         if modules is None:
             self.__db_modules = []
@@ -1992,6 +2094,7 @@ class DBWorkflow(object):
                 self.db_modules_id_index[v.db_id] = v
         self.__db_id = id
         self.__db_name = name
+        self.db_deleted_connections = []
         self.db_connections_id_index = {}
         if connections is None:
             self.__db_connections = []
@@ -1999,6 +2102,7 @@ class DBWorkflow(object):
             self.__db_connections = connections
             for v in self.__db_connections:
                 self.db_connections_id_index[v.db_id] = v
+        self.db_deleted_annotations = []
         self.db_annotations_id_index = {}
         if annotations is None:
             self.__db_annotations = []
@@ -2006,6 +2110,7 @@ class DBWorkflow(object):
             self.__db_annotations = annotations
             for v in self.__db_annotations:
                 self.db_annotations_id_index[v.db_id] = v
+        self.db_deleted_others = []
         self.db_others_id_index = {}
         if others is None:
             self.__db_others = []
@@ -2096,6 +2201,18 @@ class DBWorkflow(object):
             self.db_delete_module(child)
         children.append((self, parent[0], parent[1]))
         return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_connections)
+        children.extend(self.db_deleted_annotations)
+        children.extend(self.db_deleted_others)
+        children.extend(self.db_deleted_modules)
+        if remove:
+            self.db_deleted_connections = []
+            self.db_deleted_annotations = []
+            self.db_deleted_others = []
+            self.db_deleted_modules = []
+        return children
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -2139,6 +2256,8 @@ class DBWorkflow(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_modules)):
             if self.__db_modules[i].db_id == module.db_id:
+                if not self.__db_modules[i].is_new:
+                    self.db_deleted_modules.append(self.__db_modules[i])
                 del self.__db_modules[i]
                 break
         del self.db_modules_id_index[module.db_id]
@@ -2205,6 +2324,8 @@ class DBWorkflow(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_connections)):
             if self.__db_connections[i].db_id == connection.db_id:
+                if not self.__db_connections[i].is_new:
+                    self.db_deleted_connections.append(self.__db_connections[i])
                 del self.__db_connections[i]
                 break
         del self.db_connections_id_index[connection.db_id]
@@ -2245,6 +2366,8 @@ class DBWorkflow(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == annotation.db_id:
+                if not self.__db_annotations[i].is_new:
+                    self.db_deleted_annotations.append(self.__db_annotations[i])
                 del self.__db_annotations[i]
                 break
         del self.db_annotations_id_index[annotation.db_id]
@@ -2285,6 +2408,8 @@ class DBWorkflow(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_others)):
             if self.__db_others[i].db_id == other.db_id:
+                if not self.__db_others[i].is_new:
+                    self.db_deleted_others.append(self.__db_others[i])
                 del self.__db_others[i]
                 break
         del self.db_others_id_index[other.db_id]
@@ -2311,7 +2436,9 @@ class DBAbstractionRef(object):
         self.__db_cache = cache
         self.__db_abstraction_id = abstraction_id
         self.__db_version = version
+        self.db_deleted_location = []
         self.__db_location = location
+        self.db_deleted_functions = []
         self.db_functions_id_index = {}
         if functions is None:
             self.__db_functions = []
@@ -2319,6 +2446,7 @@ class DBAbstractionRef(object):
             self.__db_functions = functions
             for v in self.__db_functions:
                 self.db_functions_id_index[v.db_id] = v
+        self.db_deleted_annotations = []
         self.db_annotations_id_index = {}
         if annotations is None:
             self.__db_annotations = []
@@ -2391,6 +2519,16 @@ class DBAbstractionRef(object):
         for child in to_del:
             self.db_delete_annotation(child)
         children.append((self, parent[0], parent[1]))
+        return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_location)
+        children.extend(self.db_deleted_functions)
+        children.extend(self.db_deleted_annotations)
+        if remove:
+            self.db_deleted_location = []
+            self.db_deleted_functions = []
+            self.db_deleted_annotations = []
         return children
     def has_changes(self):
         if self.is_dirty:
@@ -2480,6 +2618,8 @@ class DBAbstractionRef(object):
     def db_change_location(self, location):
         self.__db_location = location
     def db_delete_location(self, location):
+        if not self.is_new:
+            self.db_deleted_location.append(self.__db_location)
         self.__db_location = None
     
     def __get_db_functions(self):
@@ -2509,6 +2649,8 @@ class DBAbstractionRef(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_functions)):
             if self.__db_functions[i].db_id == function.db_id:
+                if not self.__db_functions[i].is_new:
+                    self.db_deleted_functions.append(self.__db_functions[i])
                 del self.__db_functions[i]
                 break
         del self.db_functions_id_index[function.db_id]
@@ -2549,6 +2691,8 @@ class DBAbstractionRef(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == annotation.db_id:
+                if not self.__db_annotations[i].is_new:
+                    self.db_deleted_annotations.append(self.__db_annotations[i])
                 del self.__db_annotations[i]
                 break
         del self.db_annotations_id_index[annotation.db_id]
@@ -2605,6 +2749,9 @@ class DBAnnotation(object):
         children = []
         children.append((self, parent[0], parent[1]))
         return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        return children
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -2656,6 +2803,7 @@ class DBChange(object):
     vtType = 'change'
 
     def __init__(self, data=None, id=None, what=None, oldObjId=None, newObjId=None, parentObjId=None, parentObjType=None):
+        self.db_deleted_data = []
         self.__db_data = data
         self.__db_id = id
         self.__db_what = what
@@ -2710,6 +2858,12 @@ class DBChange(object):
                 self.db_data = None
         children.append((self, parent[0], parent[1]))
         return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_data)
+        if remove:
+            self.db_deleted_data = []
+        return children
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -2727,6 +2881,8 @@ class DBChange(object):
     def db_change_data(self, data):
         self.__db_data = data
     def db_delete_data(self, data):
+        if not self.is_new:
+            self.db_deleted_data.append(self.__db_data)
         self.__db_data = None
     
     def __get_db_id(self):
@@ -2856,6 +3012,9 @@ class DBParameter(object):
         children = []
         children.append((self, parent[0], parent[1]))
         return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        return children
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -2947,6 +3106,7 @@ class DBConnection(object):
 
     def __init__(self, id=None, ports=None):
         self.__db_id = id
+        self.db_deleted_ports = []
         self.db_ports_id_index = {}
         self.db_ports_type_index = {}
         if ports is None:
@@ -3000,6 +3160,12 @@ class DBConnection(object):
             self.db_delete_port(child)
         children.append((self, parent[0], parent[1]))
         return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_ports)
+        if remove:
+            self.db_deleted_ports = []
+        return children
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -3049,6 +3215,8 @@ class DBConnection(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_ports)):
             if self.__db_ports[i].db_id == port.db_id:
+                if not self.__db_ports[i].is_new:
+                    self.db_deleted_ports.append(self.__db_ports[i])
                 del self.__db_ports[i]
                 break
         del self.db_ports_id_index[port.db_id]
@@ -3075,6 +3243,7 @@ class DBAction(object):
     vtType = 'action'
 
     def __init__(self, operations=None, id=None, prevId=None, date=None, session=None, user=None, prune=None, annotations=None):
+        self.db_deleted_operations = []
         self.db_operations_id_index = {}
         if operations is None:
             self.__db_operations = []
@@ -3088,6 +3257,7 @@ class DBAction(object):
         self.__db_session = session
         self.__db_user = user
         self.__db_prune = prune
+        self.db_deleted_annotations = []
         self.db_annotations_id_index = {}
         self.db_annotations_key_index = {}
         if annotations is None:
@@ -3159,6 +3329,14 @@ class DBAction(object):
             self.db_delete_operation(child)
         children.append((self, parent[0], parent[1]))
         return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_annotations)
+        children.extend(self.db_deleted_operations)
+        if remove:
+            self.db_deleted_annotations = []
+            self.db_deleted_operations = []
+        return children
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -3196,6 +3374,8 @@ class DBAction(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_operations)):
             if self.__db_operations[i].db_id == operation.db_id:
+                if not self.__db_operations[i].is_new:
+                    self.db_deleted_operations.append(self.__db_operations[i])
                 del self.__db_operations[i]
                 break
         del self.db_operations_id_index[operation.db_id]
@@ -3316,6 +3496,8 @@ class DBAction(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == annotation.db_id:
+                if not self.__db_annotations[i].is_new:
+                    self.db_deleted_annotations.append(self.__db_annotations[i])
                 del self.__db_annotations[i]
                 break
         del self.db_annotations_id_index[annotation.db_id]
@@ -3384,6 +3566,9 @@ class DBDelete(object):
     def db_children(self, parent=(None,None), orphan=False):
         children = []
         children.append((self, parent[0], parent[1]))
+        return children
+    def db_deleted_children(self, remove=False):
+        children = []
         return children
     def has_changes(self):
         if self.is_dirty:
@@ -3461,13 +3646,15 @@ class DBVistrail(object):
 
     vtType = 'vistrail'
 
-    def __init__(self, id=None, version=None, name=None, dbHost=None, dbPort=None, dbName=None, actions=None, tags=None, abstractions=None):
+    def __init__(self, id=None, version=None, name=None, last_modified=None, dbHost=None, dbPort=None, dbName=None, actions=None, tags=None, abstractions=None):
         self.__db_id = id
         self.__db_version = version
         self.__db_name = name
+        self.__db_last_modified = last_modified
         self.__db_dbHost = dbHost
         self.__db_dbPort = dbPort
         self.__db_dbName = dbName
+        self.db_deleted_actions = []
         self.db_actions_id_index = {}
         if actions is None:
             self.__db_actions = []
@@ -3475,6 +3662,7 @@ class DBVistrail(object):
             self.__db_actions = actions
             for v in self.__db_actions:
                 self.db_actions_id_index[v.db_id] = v
+        self.db_deleted_tags = []
         self.db_tags_id_index = {}
         self.db_tags_name_index = {}
         if tags is None:
@@ -3484,6 +3672,7 @@ class DBVistrail(object):
             for v in self.__db_tags:
                 self.db_tags_id_index[v.db_id] = v
                 self.db_tags_name_index[v.db_name] = v
+        self.db_deleted_abstractions = []
         self.db_abstractions_id_index = {}
         if abstractions is None:
             self.__db_abstractions = []
@@ -3502,6 +3691,7 @@ class DBVistrail(object):
         cp.db_id = self.db_id
         cp.db_version = self.db_version
         cp.db_name = self.db_name
+        cp.db_last_modified = self.db_last_modified
         cp.db_dbHost = self.db_dbHost
         cp.db_dbPort = self.db_dbPort
         cp.db_dbName = self.db_dbName
@@ -3564,6 +3754,16 @@ class DBVistrail(object):
             self.db_delete_abstraction(child)
         children.append((self, parent[0], parent[1]))
         return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_actions)
+        children.extend(self.db_deleted_tags)
+        children.extend(self.db_deleted_abstractions)
+        if remove:
+            self.db_deleted_actions = []
+            self.db_deleted_tags = []
+            self.db_deleted_abstractions = []
+        return children
     def has_changes(self):
         if self.is_dirty:
             return True
@@ -3615,6 +3815,19 @@ class DBVistrail(object):
         self.__db_name = name
     def db_delete_name(self, name):
         self.__db_name = None
+    
+    def __get_db_last_modified(self):
+        return self.__db_last_modified
+    def __set_db_last_modified(self, last_modified):
+        self.__db_last_modified = last_modified
+        self.is_dirty = True
+    db_last_modified = property(__get_db_last_modified, __set_db_last_modified)
+    def db_add_last_modified(self, last_modified):
+        self.__db_last_modified = last_modified
+    def db_change_last_modified(self, last_modified):
+        self.__db_last_modified = last_modified
+    def db_delete_last_modified(self, last_modified):
+        self.__db_last_modified = None
     
     def __get_db_dbHost(self):
         return self.__db_dbHost
@@ -3682,6 +3895,8 @@ class DBVistrail(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_actions)):
             if self.__db_actions[i].db_id == action.db_id:
+                if not self.__db_actions[i].is_new:
+                    self.db_deleted_actions.append(self.__db_actions[i])
                 del self.__db_actions[i]
                 break
         del self.db_actions_id_index[action.db_id]
@@ -3724,6 +3939,8 @@ class DBVistrail(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_tags)):
             if self.__db_tags[i].db_id == tag.db_id:
+                if not self.__db_tags[i].is_new:
+                    self.db_deleted_tags.append(self.__db_tags[i])
                 del self.__db_tags[i]
                 break
         del self.db_tags_id_index[tag.db_id]
@@ -3769,6 +3986,8 @@ class DBVistrail(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_abstractions)):
             if self.__db_abstractions[i].db_id == abstraction.db_id:
+                if not self.__db_abstractions[i].is_new:
+                    self.db_deleted_abstractions.append(self.__db_abstractions[i])
                 del self.__db_abstractions[i]
                 break
         del self.db_abstractions_id_index[abstraction.db_id]
@@ -3795,6 +4014,7 @@ class DBModuleExec(object):
         self.__db_ts_end = ts_end
         self.__db_module_id = module_id
         self.__db_module_name = module_name
+        self.db_deleted_annotations = []
         self.db_annotations_id_index = {}
         if annotations is None:
             self.__db_annotations = []
@@ -3850,6 +4070,12 @@ class DBModuleExec(object):
         for child in to_del:
             self.db_delete_annotation(child)
         children.append((self, parent[0], parent[1]))
+        return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_annotations)
+        if remove:
+            self.db_deleted_annotations = []
         return children
     def has_changes(self):
         if self.is_dirty:
@@ -3950,6 +4176,8 @@ class DBModuleExec(object):
         self.is_dirty = True
         for i in xrange(len(self.__db_annotations)):
             if self.__db_annotations[i].db_id == annotation.db_id:
+                if not self.__db_annotations[i].is_new:
+                    self.db_deleted_annotations.append(self.__db_annotations[i])
                 del self.__db_annotations[i]
                 break
         del self.db_annotations_id_index[annotation.db_id]

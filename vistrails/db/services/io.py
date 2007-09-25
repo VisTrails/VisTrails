@@ -102,6 +102,25 @@ def get_db_vistrail_list(config):
         raise VistrailsDBException(msg)
     return result
 
+def get_db_vistrail_modification_time(db_connection, vt_id):
+    import MySQLdb
+
+    command = """
+    SELECT v.last_modified
+    FROM vistrail v
+    WHERE v.id = %s
+    """ % vt_id
+    try:
+        c = db_connection.cursor()
+        c.execute(command)
+        time = c.fetchall()[0][0]
+        c.close()
+    except MySQLdb.Error, e:
+        msg = "Couldn't get list of vistrails from db (%d : %s)" % (e.args[0], 
+                                                                    e.args[1])
+        raise VistrailsDBException(msg)
+    return time
+
 def setup_db_tables(db_connection, version=None):
     import MySQLdb
 
@@ -170,13 +189,13 @@ def open_vistrail_from_zip_xml(filename):
     else:
         raise Exception(" ".join(output))
             
-def open_vistrail_from_db(dbConnection, id):
+def open_vistrail_from_db(dbConnection, id, lock=False):
     """open_vistrail_from_db(dbConnection, id) -> Vistrail """
 
     if dbConnection is None:
         msg = "Need to call open_db_connection() before reading"
         raise Exception(msg)
-    vt = readSQLObjects(dbConnection, DBVistrail.vtType, id)[0]
+    vt = readSQLObjects(dbConnection, DBVistrail.vtType, id, lock)[0]
     # not sure where this really should be done...
     # problem is that db reads the add ops, then change ops, then delete ops
     # need them ordered by their id
@@ -188,6 +207,7 @@ def open_vistrail_from_db(dbConnection, id):
 def save_vistrail_to_xml(vistrail, filename):
     daoList = getVersionDAO(currentVersion)
     daoList.save_to_xml(vistrail, filename)
+    return vistrail
 
 def save_vistrail_to_zip_xml(vistrail, filename):
     """save_vistrail_to_zip_xml(vistrail: Vistrail, filename:str)-> None
@@ -220,11 +240,27 @@ def save_vistrail_to_zip_xml(vistrail, filename):
         for line in output:
             if line.find('deflated') == -1:
                 raise Exception(" ".join(output))
+    return vistrail
             
-    
-def save_vistrail_to_db(vistrail, dbConnection):
+def save_vistrail_to_db(vistrail, dbConnection, do_copy=False):
+    dbConnection.begin()
     vistrail.db_version = currentVersion
-    writeSQLObjects(dbConnection, [vistrail])
+    if not do_copy and vistrail.db_last_modified is not None:
+        new_time = get_db_vistrail_modification_time(dbConnection, 
+                                                     vistrail.db_id)
+        if new_time > vistrail.db_last_modified:
+            # need synchronization
+            old_vistrail = open_vistrail_from_db(dbConnection, vistrail.db_id,
+                                                 True)
+            # the "old" one is modified and changes integrated
+            db.services.vistrail.synchronize(old_vistrail, vistrail)
+            vistrail = old_vistrail
+    vistrail.db_last_modified = get_current_time(dbConnection)
+    if do_copy and vistrail.db_id is not None:
+        vistrail.db_id = None
+    writeSQLObjects(dbConnection, [vistrail], do_copy)
+    dbConnection.commit()
+    return vistrail
 
 def open_workflow_from_xml(filename):
     dom = parse_xml_file(filename)
@@ -298,36 +334,54 @@ def writeXMLObjects(objectList, dom, node=None):
     res_node = daoList['xml'][object.vtType].toXML(object, dom, node)
     return res_node
 
-def readSQLObjects(dbConnection, vtType, id):
+def readSQLObjects(dbConnection, vtType, id, lock=False):
     dao_list = getVersionDAO(currentVersion)
 
     all_objects = {}
     res = []
     global_props = {'id': id}
     all_objects.update(dao_list['sql'][vtType].get_sql_columns(dbConnection, 
-                                                               global_props))
+                                                               global_props,
+                                                               lock))
     res = all_objects.values()
     del global_props['id']
 
     for dao in dao_list['sql'].itervalues():
         if dao == dao_list['sql'][vtType]:
             continue
-        all_objects.update(dao.get_sql_columns(dbConnection, global_props))
+        all_objects.update(dao.get_sql_columns(dbConnection, global_props, 
+                                               lock))
     for obj in all_objects.values():
         dao_list['sql'][obj.vtType].from_sql_fast(obj, all_objects)
+        obj.is_dirty = False
+        obj.is_new = False
     return res
 
-def writeSQLObjects(dbConnection, objectList):
+def writeSQLObjects(dbConnection, objectList, do_copy=False):
     dao_list = getVersionDAO(currentVersion)
 
     for object in objectList:
         children = object.db_children()
         children.reverse()
         global_props = {}
+
+        # assumes not deleting entire thing
+        (child, _, _) = children[0]
+        dao_list['sql'][child.vtType].set_sql_columns(dbConnection, child, 
+                                                      global_props, do_copy)
+        dao_list['sql'][child.vtType].to_sql_fast(child, do_copy)
+        if not do_copy:
+            for (child, _, _) in children:
+                for obj in child.db_deleted_children(True):
+                    dao_list['sql'][obj.vtType].delete_sql_column(dbConnection,
+                                                                  obj,
+                                                                  global_props)
+
+        children.pop(0)
         for (child, _, _) in children:
             dao_list['sql'][child.vtType].set_sql_columns(dbConnection, child, 
-                                                          global_props)
-            dao_list['sql'][child.vtType].to_sql_fast(child)
+                                                          global_props, do_copy)
+            dao_list['sql'][child.vtType].to_sql_fast(child, do_copy)
             child.is_dirty = False
             child.is_new = False
 
@@ -362,7 +416,7 @@ def get_version_for_xml(root):
     msg = "Cannot find version information"
     raise VistrailsDBException(msg)
 
-def getCurrentTime(dbConnection=None):
+def get_current_time(dbConnection=None):
     timestamp = datetime.now()
     if dbConnection is not None:
         try:

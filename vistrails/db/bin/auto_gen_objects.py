@@ -117,7 +117,12 @@ class Field:
     def getIndices(self):
         try:
             str = self.params['index']
-            return str.split()
+            indices = str.split()
+            for i, index in enumerate(indices):
+                compound_idx = index.split(':')
+                if len(compound_idx) > 1:
+                    indices[i] = compound_idx
+            return indices
         except KeyError:
             pass
         return []

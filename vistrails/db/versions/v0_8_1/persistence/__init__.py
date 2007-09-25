@@ -20,4 +20,4 @@
 ##
 ############################################################################
 
-from db.versions.v0_8_1.domain import *
+from db.versions.v0_8_0.persistence import DAOList

@@ -43,8 +43,8 @@ class Action(DBAction):
             self.user = ''
         if self.prune is None:
             self.prune = 0
-        if kwargs.has_key('notes'):
-            self.notes = kwargs['notes']
+#         if kwargs.has_key('notes'):
+#             self.notes = kwargs['notes']
 
     def __copy__(self):
         return Action.do_copy(self)
@@ -107,17 +107,20 @@ class Action(DBAction):
     def _set_annotations(self, annotations):
         self.db_annotations = annotations
     annotations = property(_get_annotations, _set_annotations)
-    
+    def has_annotation_with_key(self, key):
+        return self.db_has_annotation_with_key(key)
+    def get_annotation_by_key(self, key):
+        return self.db_get_annotation_by_key(key)
+    def add_annotation(self, annotation):
+        self.db_add_annotation(annotation)
+    def delete_annotation(self, annotation):
+        self.db_delete_annotation(annotation)
+
     def _get_notes(self):
         if self.db_has_annotation_with_key('notes'):
             return self.db_get_annotation_by_key('notes').value
         return None
-    def _set_notes(self, notes):
-        self.db_change_annotation(Annotation(id=0,
-                                             key='notes',
-                                             value=notes,
-                                             ))
-    notes = property(_get_notes, _set_notes)
+    notes = property(_get_notes)
 
     def _get_operations(self):
         return self.db_operations

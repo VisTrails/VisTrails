@@ -34,6 +34,9 @@ class BaseLocator(object):
     def save(self, vistrail):
         pass # saves a vistrail in the given place
 
+    def save_as(self, vistrail):
+        return self.save(vistrail) # calls save by default
+
     def is_valid(self):
         pass # Returns true if locator refers to a valid vistrail
 
@@ -77,11 +80,12 @@ class XMLFileLocator(BaseLocator):
         vistrail.locator = self
         return vistrail
 
-    def save(self, vistrail):
-        io.save_vistrail_to_xml(vistrail, self._name)
+    def save(self, vistrail, do_copy=True):
+        vistrail = io.save_vistrail_to_xml(vistrail, self._name)
         vistrail.locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()
+        return vistrail
 
     def save_temporary(self, vistrail):
         fname = self._find_latest_temporary()
@@ -187,11 +191,12 @@ class ZIPFileLocator(XMLFileLocator):
         vistrail.locator = self
         return vistrail
 
-    def save(self, vistrail):
-        io.save_vistrail_to_zip_xml(vistrail, self._name)
+    def save(self, vistrail, do_copy=True):
+        vistrail = io.save_vistrail_to_zip_xml(vistrail, self._name)
         vistrail.locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()
+        return vistrail
 
     ###########################################################################
     # Operators
@@ -266,18 +271,19 @@ class DBLocator(BaseLocator):
         vistrail.locator = self
         return vistrail
 
-    def save(self, vistrail):
+    def save(self, vistrail, do_copy=False):
         connection = self.get_connection()
         vistrail.db_name = self._vt_name
-        io.save_vistrail_to_db(vistrail, connection)
+        vistrail = io.save_vistrail_to_db(vistrail, connection, do_copy)
         self._vt_id = vistrail.db_id
         vistrail.locator = self
+        return vistrail
 
     ###########################################################################
     # Operators
 
     def __eq__(self, other):
-        if type(other) != DBLocator:
+        if type(other) != type(self):
             return False
         return (self._host == other._host and
                 self._port == other._port and

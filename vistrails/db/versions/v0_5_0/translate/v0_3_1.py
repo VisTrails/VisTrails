@@ -52,6 +52,7 @@ def translateVistrail(_vistrail):
     convertIds(vistrail)
 #     for action in vistrail.getActions():
 #         print '%s %s' % (action.id, action.operations)
+    vistrail.db_version = '0.5.0'
     return vistrail
 
 def translateAddModuleAction(_action):

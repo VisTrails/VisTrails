@@ -1,49 +1,43 @@
-<object name="module">
+<object name="abstractionRef">
   <layout>
-    <xml name="module" nodeType="xs:element"/>
-    <sql table="module"/>
+    <xml name="abstractionRef" nodeType="xs:element"/>
+    <sql table="abstraction_ref"/>
   </layout>
 
   <property name="id" type="long" primaryKey="true">
     <xml nodeType="xs:attribute" type="xs:int"/>
     <sql type="int"/>
   </property>
+  
+  <property name="name" type="str" primaryKey="true">
+    <xml nodeType="xs:attribute" type="xs:string"/>
+    <sql type="varchar(1023)"/>
+  </property>
 
   <property name="cache" type="int">
-    <xml nodeType="xs:attribute" type="xs:int"/>
+    <xml name="cache" nodeType="xs:attribute" type="xs:int"/>
     <sql type="int"/>
   </property>
 
-  <property name="name" type="str">
-    <xml nodeType="xs:attribute" type="xs:string"/>
-    <sql type="varchar(255)"/>
+  <property name="abstraction_id" type="long">
+    <xml name="abstractionId" nodeType="xs:attribute" type="xs:int"/>
+    <sql type="int"/>
   </property>
 
-  <property name="package" type="str">
-    <xml nodeType="xs:attribute" type="xs:string"/>
-    <sql type="varchar(511)"/>
-  </property>
-  
-  <property name="version" type="str">
-    <xml nodeType="xs:attribute" type="xs:string"/>
-    <sql type="varchar(255)"/>
+  <property name="version" type="long">
+    <xml nodeType="xs:attribute" type="xs:int"/>
+    <sql type="int"/>
   </property>
 
   <property ref="true" object="location" type="object" mapping="one-to-one">
     <xml nodeType="xs:element"/>
   </property>
 
-  <property ref="true" object="function" type="list" mapping="one-to-many">
+  <property ref="true" object="function" type="list"  mapping="one-to-many">
     <xml nodeType="xs:element"/>
   </property>
 
-  <property ref="true" object="annotation" type="list" mapping="one-to-many"
-	    index="key">
-    <xml nodeType="xs:element"/>
-  </property>
-
-  <property ref="true" object="portSpec" type="list" mapping="one-to-many"
-	    index="name:type">
+  <property ref="true" object="annotation" type="list" mapping="one-to-many">
     <xml nodeType="xs:element"/>
   </property>
 
@@ -68,5 +62,4 @@
 	    foreignKey="true" object="vistrail">
     <sql column="vt_id" type="int"/>
   </property>
-
 </object>

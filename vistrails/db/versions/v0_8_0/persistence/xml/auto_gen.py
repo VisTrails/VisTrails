@@ -330,8 +330,7 @@ class DBMachineXMLDAOBase(XMLDAO):
                         os=os,
                         architecture=architecture,
                         processor=processor,
-                        ram=ram,
-                        module_execs=module_execs)
+                        ram=ram)
         obj.is_dirty = False
         return obj
     
@@ -1343,7 +1342,7 @@ class DBVistrailXMLDAOBase(XMLDAO):
         actions = []
         tags = []
         abstractions = []
-
+        
         # read children
         for child in node.getchildren():
             if child.tag == 'action':

@@ -88,7 +88,11 @@ class AutoGen:
     def getReferences(self, object):
         return self.getReferenceProperties(object) + \
             self.getReferenceChoices(object)
-        
+
+    def getNonInverseReferences(self, object):
+        return [ref for ref in self.getReferences(object) \
+                    if not ref.isInverse()]
+
     def getReferenceProperties(self, object):
 	refProperties = []
 	for property in object.properties:
@@ -194,10 +198,35 @@ class AutoGen:
                 if key is not None:
                     indices.append(key.getRegularName())
             for index in field.getIndices():
-                index_field = ref_obj.getField(index)
-                if index_field is not None:
-                    indices.append(index_field.getRegularName())
+                if type(index) == type([]):
+                    index_field = []
+                    for piece in index:
+                        ref_field = ref_obj.getField(piece)
+                        if ref_field is not None:
+                            index_field.append(ref_field.getRegularName())
+                    if len(index_field) > 1:
+                        indices.append(index_field)
+                    elif len(index_field) > 0:
+                        indices.append(index_field[0])
+                else:
+                    index_field = ref_obj.getField(index)
+                    if index_field is not None:
+                        indices.append(index_field.getRegularName())
         return indices
+
+    def getIndexName(self, index):
+        if type(index) == type([]):
+            # return '_'.join(index)
+            return index[0]
+        else:
+            return index
+
+    def getIndexKey(self, field_str, index):
+        if type(index) == type([]):
+            return '(' + field_str + '.db_' + \
+                (',' + field_str + '.db_').join(index) + ')'
+        else:
+            return field_str + '.db_' + index
 
     def generatePythonClass(self, object):
 	self.printLine('class %s(object):\n\n' % object.getClassName())
@@ -214,9 +243,14 @@ class AutoGen:
 	self.indent()
 
 	for field in self.getPythonFields(object):
+            if field.isReference() and not field.isInverse():
+                self.printLine('self.db_deleted_%s = []\n' % \
+                                   field.getRegularName())
 	    if field.isPlural():
                 for index in self.getAllIndices(field):
-                    self.printLine('self.db_%s_%s_index = {}\n' % (field.getRegularName(), index))
+                    self.printLine('self.db_%s_%s_index = {}\n' % \
+                                       (field.getRegularName(), 
+                                        self.getIndexName(index)))
 		self.printLine('if %s is None:\n' % field.getRegularName())
 		if field.getPythonType() == 'hash':
     		    self.indentLine('self.%s = {}\n' % field.getPrivateName())
@@ -234,9 +268,10 @@ class AutoGen:
                                            field.getPrivateName())
                     self.indent()
                     for index in self.getAllIndices(field):
-                        self.printLine('self.db_%s_%s_index[v.db_%s] = v\n' % \
-                                           (field.getRegularName(), index, 
-                                            index))
+                        self.printLine('self.db_%s_%s_index[%s] = v\n' % \
+                                           (field.getRegularName(), 
+                                            self.getIndexName(index), 
+                                            self.getIndexKey('v', index)))
                     self.unindent()
                 self.unindent()
 	    else:
@@ -320,9 +355,10 @@ class AutoGen:
                                        field.getPrivateName())
                 self.indent()
                 for index in self.getAllIndices(field):
-                    self.printLine('cp.db_%s_%s_index[v.db_%s] = v\n' % \
-                                       (field.getRegularName(), index, 
-                                        index))
+                    self.printLine('cp.db_%s_%s_index[%s] = v\n' % \
+                                       (field.getRegularName(), 
+                                        self.getIndexName(index), 
+                                        self.getIndexKey('v',index)))
                 self.unindent()
 
         self.printLine('cp.is_dirty = self.is_dirty\n')
@@ -368,15 +404,29 @@ class AutoGen:
         self.printLine('children.append((self, parent[0], parent[1]))\n')
         self.printLine('return children\n')
 
+        # create get deleted method
+        self.unindentLine('def db_deleted_children(self, remove=False):\n')
+        refs = self.getNonInverseReferences(object)
+        self.indentLine('children = []\n')
+        if len(refs) > 0:
+            for ref in refs:
+                self.printLine('children.extend(self.db_deleted_%s)\n' % \
+                                   ref.getRegularName())
+            self.printLine('if remove:\n')
+            self.indent()
+            for ref in refs:
+                self.printLine('self.db_deleted_%s = []\n' % \
+                                   ref.getRegularName())
+            self.unindent()
+        self.printLine('return children\n')
+
         # create dirty method
         self.unindentLine('def has_changes(self):\n')
         self.indentLine('if self.is_dirty:\n')
         self.indentLine('return True\n')
 
-        refs = self.getReferences(object)
+        refs = self.getNonInverseReferences(object)
         for ref in refs:
-            if ref.isInverse():
-                continue
             if not ref.isPlural():
                 self.unindentLine('if self.%s is not None' % ref.getFieldName()
                                   + ' and self.%s.has_changes():\n' % \
@@ -422,6 +472,12 @@ class AutoGen:
 						  field.getName()))
 		self.unindentLine('def %s(self, %s):\n' % \
 			       (field.getRemover(), field.getName()))
+                if field.isReference() and not field.isInverse():
+                    self.indentLine('if not self.is_new:\n')
+                    self.indentLine('self.db_deleted_%s.append(self.%s)\n' % \
+                                        (field.getRegularName(),
+                                         field.getPrivateName()))
+                    self.unindent(2)
 		self.indentLine('self.%s = None\n' % field.getPrivateName())
 		self.unindent()
 	    else:
@@ -449,10 +505,12 @@ class AutoGen:
 		    self.printLine('self.%s.append(%s)\n' % \
                                      (field.getPrivateName(), field.getName()))
                 for index in self.getAllIndices(field):
-                    self.printLine('self.db_%s_%s_index[%s.db_%s] = %s\n' % \
+                    self.printLine('self.db_%s_%s_index[%s] = %s\n' % \
                                        (field.getRegularName(),
-                                        index, field.getName(),
-                                        index, field.getName()))
+                                        self.getIndexName(index), 
+                                        self.getIndexKey(field.getName(), 
+                                                         index),
+                                        field.getName()))
 		self.unindent()
 
 		self.printLine('def %s(self, %s):\n' % \
@@ -487,10 +545,12 @@ class AutoGen:
 				     field.getName()))
 		    self.unindent()
                 for index in self.getAllIndices(field):
-                    self.printLine('self.db_%s_%s_index[%s.db_%s] = %s\n' % \
+                    self.printLine('self.db_%s_%s_index[%s] = %s\n' % \
                                        (field.getRegularName(),
-                                        index, field.getName(),
-                                        index, field.getName()))
+                                        self.getIndexName(index), 
+                                        self.getIndexKey(field.getName(),
+                                                         index),
+                                        field.getName()))
 		self.unindent()
 
 		self.printLine('def %s(self, %s):\n' % \
@@ -498,10 +558,20 @@ class AutoGen:
                 self.indentLine('self.is_dirty = True\n')
 		if field.getPythonType() == 'hash':
 		    childObj = self.getReferencedObject(field.getReference())
-		    self.printLine('del self.%s[%s.%s]\n' % \
-				    (field.getPrivateName(),
-				     field.getName(),
-				     childObj.getKey().getPythonName()))
+                    self.printLine('if not self.%s[%s.%s].is_new:\n' % \
+                                       (field.getPrivateName(),
+                                        field.getName(),
+                                        childObj.getKey().getPythonName()))
+                    self.indentLine('self.db_deleted_%s.append(' % \
+                                        field.getRegularName() +
+                                    'self.%s[%s.%s])\n' % \
+                                        (field.getPrivateName(),
+                                         field.getName(),
+                                         childObj.getKey().getPythonName()))
+		    self.unindentLine('del self.%s[%s.%s]\n' % \
+                                          (field.getPrivateName(),
+                                           field.getName(),
+                                           childObj.getKey().getPythonName()))
 		else:
 		    childObj = self.getReferencedObject(field.getReference())
                     
@@ -512,13 +582,21 @@ class AutoGen:
 				     childObj.getKey().getPythonName(),
 				     field.getName(),
 				     childObj.getKey().getPythonName()))
-		    self.indentLine('del self.%s[i]\n' % field.getPrivateName())
+                    self.indentLine('if not self.%s[i].is_new:\n' % \
+                                        field.getPrivateName())
+                    self.indentLine('self.db_deleted_%s.append(' % \
+                                        field.getRegularName() +
+                                    'self.%s[i])\n' % field.getPrivateName())
+		    self.unindentLine('del self.%s[i]\n' % \
+                                          field.getPrivateName())
 		    self.printLine('break\n')
 		    self.unindent(2)
                 for index in self.getAllIndices(field):
-                    self.printLine('del self.db_%s_%s_index[%s.db_%s]\n' % \
+                    self.printLine('del self.db_%s_%s_index[%s]\n' % \
                                        (field.getRegularName(),
-                                        index, field.getName(), index))
+                                        self.getIndexName(index), 
+                                        self.getIndexKey(field.getName(),
+                                                         index)))
 		self.unindent()
 
 		self.printLine('def %s(self, key):\n' % field.getLookup())
@@ -541,14 +619,18 @@ class AutoGen:
 		self.unindent()
                 for index in self.getAllIndices(field):
                     self.printLine('def db_get_%s_by_%s(self, key):\n' % \
-                                       (field.getSingleName(), index))
+                                       (field.getSingleName(), 
+                                        self.getIndexName(index)))
                     self.indentLine('return self.db_%s_%s_index[key]\n' % \
-                                        (field.getRegularName(), index))
+                                        (field.getRegularName(), 
+                                         self.getIndexName(index)))
                     self.unindentLine('def db_has_%s_with_%s(self, key):\n' % \
-                                          (field.getSingleName(), index))
+                                          (field.getSingleName(), 
+                                           self.getIndexName(index)))
                     self.indentLine('return ' + 
                                     'self.db_%s_%s_index.has_key(key)\n' % \
-                                        (field.getRegularName(), index))
+                                        (field.getRegularName(), 
+                                         self.getIndexName(index)))
                     self.unindent()
                                     
 	    self.printLine('\n')

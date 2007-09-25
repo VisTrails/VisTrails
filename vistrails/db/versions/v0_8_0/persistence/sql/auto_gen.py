@@ -33,13 +33,13 @@ class DBPortSpecSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'name', 'type', 'spec', 'parent_type', 'vt_id', 'parent_id']
         table = 'port_spec'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -80,6 +80,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
         columns = ['id', 'name', 'type', 'spec', 'parent_type', 'vt_id', 'parent_id']
         table = 'port_spec'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -107,7 +108,7 @@ class DBPortSpecSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_parent, 'long', 'long')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -116,75 +117,15 @@ class DBPortSpecSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         pass
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['name', 'type', 'spec', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'port_spec'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            name = self.convertFromDB(row[0], 'str', 'varchar(22)')
-            type = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            spec = self.convertFromDB(row[2], 'str', 'varchar(255)')
-            id = self.convertFromDB(row[3], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            portSpec = DBPortSpec(id=id,
-                                  name=name,
-                                  type=type,
-                                  spec=spec)
-            portSpec.is_dirty = False
-            list.append(portSpec)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'port_spec'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_name is not None:
-                columnMap['name'] = \
-                    self.convertToDB(obj.db_name, 'str', 'varchar(22)')
-            if obj.db_type is not None:
-                columnMap['type'] = \
-                    self.convertToDB(obj.db_type, 'str', 'varchar(255)')
-            if obj.db_spec is not None:
-                columnMap['spec'] = \
-                    self.convertToDB(obj.db_spec, 'str', 'varchar(255)')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBModuleSQLDAOBase(SQLDAO):
 
@@ -194,13 +135,13 @@ class DBModuleSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'cache', 'name', 'package', 'version', 'parent_type', 'vt_id', 'parent_id']
         table = 'module'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -243,6 +184,7 @@ class DBModuleSQLDAOBase(SQLDAO):
         columns = ['id', 'cache', 'name', 'package', 'version', 'parent_type', 'vt_id', 'parent_id']
         table = 'module'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -273,7 +215,7 @@ class DBModuleSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_parent, 'long', 'long')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -296,128 +238,15 @@ class DBModuleSQLDAOBase(SQLDAO):
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['cache', 'name', 'package', 'version', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'module'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            cache = self.convertFromDB(row[0], 'int', 'int')
-            name = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            package = self.convertFromDB(row[2], 'str', 'varchar(511)')
-            version = self.convertFromDB(row[3], 'str', 'varchar(255)')
-            id = self.convertFromDB(row[4], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            discStr = self.convertToDB('module','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('location').fromSQL(db, None, foreignKey, globalProps)
-            if len(res) > 0:
-                location = res[0]
-            else:
-                location = None
-            
-            discStr = self.convertToDB('module','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('function').fromSQL(db, None, foreignKey, globalProps)
-            functions = res
-            
-            discStr = self.convertToDB('module','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('annotation').fromSQL(db, None, foreignKey, globalProps)
-            annotations = res
-            
-            discStr = self.convertToDB('module','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('portSpec').fromSQL(db, None, foreignKey, globalProps)
-            portSpecs = res
-            
-            module = DBModule(id=id,
-                              cache=cache,
-                              name=name,
-                              package=package,
-                              version=version,
-                              location=location,
-                              functions=functions,
-                              annotations=annotations,
-                              portSpecs=portSpecs)
-            module.is_dirty = False
-            list.append(module)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'module'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_cache is not None:
-                columnMap['cache'] = \
-                    self.convertToDB(obj.db_cache, 'int', 'int')
-            if obj.db_name is not None:
-                columnMap['name'] = \
-                    self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-            if obj.db_package is not None:
-                columnMap['package'] = \
-                    self.convertToDB(obj.db_package, 'str', 'varchar(511)')
-            if obj.db_version is not None:
-                columnMap['version'] = \
-                    self.convertToDB(obj.db_version, 'str', 'varchar(255)')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
-        discStr = self.convertToDB('module','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        child = obj.db_location
-        if child is not None:
-            self.getDao('location').toSQL(db, child, foreignKey, globalProps)
-        
-        discStr = self.convertToDB('module','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        for child in obj.db_functions:
-            self.getDao('function').toSQL(db, child, foreignKey, globalProps)
-        
-        discStr = self.convertToDB('module','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        for child in obj.db_annotations:
-            self.getDao('annotation').toSQL(db, child, foreignKey, globalProps)
-        
-        discStr = self.convertToDB('module','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        for child in obj.db_portSpecs:
-            self.getDao('portSpec').toSQL(db, child, foreignKey, globalProps)
-        
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBTagSQLDAOBase(SQLDAO):
 
@@ -427,13 +256,13 @@ class DBTagSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'name', 'parent_type', 'vt_id', 'parent_id']
         table = 'tag'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -467,6 +296,7 @@ class DBTagSQLDAOBase(SQLDAO):
         columns = ['id', 'name', 'parent_type', 'vt_id', 'parent_id']
         table = 'tag'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -488,7 +318,7 @@ class DBTagSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_parent, 'long', 'long')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -497,65 +327,15 @@ class DBTagSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         pass
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['name', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'tag'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            name = self.convertFromDB(row[0], 'str', 'varchar(255)')
-            id = self.convertFromDB(row[1], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            tag = DBTag(id=id,
-                        name=name)
-            tag.is_dirty = False
-            list.append(tag)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'tag'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_name is not None:
-                columnMap['name'] = \
-                    self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBPortSQLDAOBase(SQLDAO):
 
@@ -565,13 +345,13 @@ class DBPortSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'type', 'moduleId', 'moduleName', 'name', 'spec', 'parent_type', 'vt_id', 'parent_id']
         table = 'port'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -616,6 +396,7 @@ class DBPortSQLDAOBase(SQLDAO):
         columns = ['id', 'type', 'moduleId', 'moduleName', 'name', 'spec', 'parent_type', 'vt_id', 'parent_id']
         table = 'port'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -649,7 +430,7 @@ class DBPortSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_parent, 'long', 'long')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -658,85 +439,15 @@ class DBPortSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         pass
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['type', 'moduleId', 'moduleName', 'name', 'spec', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'port'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            type = self.convertFromDB(row[0], 'str', 'varchar(255)')
-            moduleId = self.convertFromDB(row[1], 'long', 'int')
-            moduleName = self.convertFromDB(row[2], 'str', 'varchar(255)')
-            name = self.convertFromDB(row[3], 'str', 'varchar(255)')
-            spec = self.convertFromDB(row[4], 'str', 'varchar(4095)')
-            id = self.convertFromDB(row[5], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            port = DBPort(id=id,
-                          type=type,
-                          moduleId=moduleId,
-                          moduleName=moduleName,
-                          name=name,
-                          spec=spec)
-            port.is_dirty = False
-            list.append(port)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'port'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_type is not None:
-                columnMap['type'] = \
-                    self.convertToDB(obj.db_type, 'str', 'varchar(255)')
-            if obj.db_moduleId is not None:
-                columnMap['moduleId'] = \
-                    self.convertToDB(obj.db_moduleId, 'long', 'int')
-            if obj.db_moduleName is not None:
-                columnMap['moduleName'] = \
-                    self.convertToDB(obj.db_moduleName, 'str', 'varchar(255)')
-            if obj.db_name is not None:
-                columnMap['name'] = \
-                    self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-            if obj.db_spec is not None:
-                columnMap['spec'] = \
-                    self.convertToDB(obj.db_spec, 'str', 'varchar(4095)')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBLogSQLDAOBase(SQLDAO):
 
@@ -746,13 +457,13 @@ class DBLogSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'vt_id']
         table = 'log_tbl'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -775,6 +486,7 @@ class DBLogSQLDAOBase(SQLDAO):
         columns = ['id', 'vt_id']
         table = 'log_tbl'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -787,7 +499,7 @@ class DBLogSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_vistrailId, 'long', 'int')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -801,78 +513,15 @@ class DBLogSQLDAOBase(SQLDAO):
         for child in obj.db_machines:
             child.db_log = obj.db_id
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'log_tbl'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            id = self.convertFromDB(row[0], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            foreignKey = {'log_id': keyStr}
-            res = self.getDao('workflow_exec').fromSQL(db, None, foreignKey, globalProps)
-            workflow_execs = res
-            
-            foreignKey = {'log_id': keyStr}
-            res = self.getDao('machine').fromSQL(db, None, foreignKey, globalProps)
-            machines = res
-            
-            log = DBLog(id=id,
-                        workflow_execs=workflow_execs,
-                        machines=machines)
-            log.is_dirty = False
-            list.append(log)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'log_tbl'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
-        foreignKey = {'log_id': keyStr}
-        for child in obj.db_workflow_execs:
-            self.getDao('workflow_exec').toSQL(db, child, foreignKey, globalProps)
-        
-        foreignKey = {'log_id': keyStr}
-        for child in obj.db_machines:
-            self.getDao('machine').toSQL(db, child, foreignKey, globalProps)
-        
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBMachineSQLDAOBase(SQLDAO):
 
@@ -882,13 +531,13 @@ class DBMachineSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'name', 'os', 'architecture', 'processor', 'ram', 'vt_id', 'log_id', 'module_exec_id']
         table = 'machine'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -925,6 +574,7 @@ class DBMachineSQLDAOBase(SQLDAO):
         columns = ['id', 'name', 'os', 'architecture', 'processor', 'ram', 'vt_id', 'log_id', 'module_exec_id']
         table = 'machine'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -958,7 +608,7 @@ class DBMachineSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_module_execs, 'long', 'int')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -970,94 +620,15 @@ class DBMachineSQLDAOBase(SQLDAO):
         for child in obj.db_module_execs:
             child.db_machine_id = obj.db_id
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['name', 'os', 'architecture', 'processor', 'ram', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'machine'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            name = self.convertFromDB(row[0], 'str', 'varchar(255)')
-            os = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            architecture = self.convertFromDB(row[2], 'str', 'varchar(255)')
-            processor = self.convertFromDB(row[3], 'str', 'varchar(255)')
-            ram = self.convertFromDB(row[4], 'int', 'int')
-            id = self.convertFromDB(row[5], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            foreignKey = {'machine_id': keyStr}
-            res = self.getDao('module_exec').fromSQL(db, None, foreignKey, globalProps)
-            module_execs = res
-            
-            machine = DBMachine(id=id,
-                                name=name,
-                                os=os,
-                                architecture=architecture,
-                                processor=processor,
-                                ram=ram,
-                                module_execs=module_execs)
-            machine.is_dirty = False
-            list.append(machine)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'machine'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_name is not None:
-                columnMap['name'] = \
-                    self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-            if obj.db_os is not None:
-                columnMap['os'] = \
-                    self.convertToDB(obj.db_os, 'str', 'varchar(255)')
-            if obj.db_architecture is not None:
-                columnMap['architecture'] = \
-                    self.convertToDB(obj.db_architecture, 'str', 'varchar(255)')
-            if obj.db_processor is not None:
-                columnMap['processor'] = \
-                    self.convertToDB(obj.db_processor, 'str', 'varchar(255)')
-            if obj.db_ram is not None:
-                columnMap['ram'] = \
-                    self.convertToDB(obj.db_ram, 'int', 'int')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
-        foreignKey = {'machine_id': keyStr}
-        for child in obj.db_module_execs:
-            self.getDao('module_exec').toSQL(db, child, foreignKey, globalProps)
-        
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBAddSQLDAOBase(SQLDAO):
 
@@ -1067,13 +638,13 @@ class DBAddSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'what', 'object_id', 'par_obj_id', 'par_obj_type', 'action_id', 'vt_id']
         table = 'add_tbl'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -1107,6 +678,7 @@ class DBAddSQLDAOBase(SQLDAO):
         columns = ['id', 'what', 'object_id', 'par_obj_id', 'par_obj_type', 'action_id', 'vt_id']
         table = 'add_tbl'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -1134,7 +706,7 @@ class DBAddSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_vistrailId, 'long', 'int')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -1148,175 +720,15 @@ class DBAddSQLDAOBase(SQLDAO):
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['what', 'object_id', 'par_obj_id', 'par_obj_type', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'add_tbl'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            what = self.convertFromDB(row[0], 'str', 'varchar(255)')
-            objectId = self.convertFromDB(row[1], 'long', 'int')
-            parentObjId = self.convertFromDB(row[2], 'long', 'int')
-            parentObjType = self.convertFromDB(row[3], 'str', 'char(16)')
-            id = self.convertFromDB(row[4], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            data = None
-            if what == 'module':
-                discStr = self.convertToDB('add','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('module').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'location':
-                discStr = self.convertToDB('add','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('location').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'annotation':
-                discStr = self.convertToDB('add','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('annotation').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'function':
-                discStr = self.convertToDB('add','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('function').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'connection':
-                discStr = self.convertToDB('add','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('connection').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'port':
-                discStr = self.convertToDB('add','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('port').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'parameter':
-                discStr = self.convertToDB('add','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('parameter').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'portSpec':
-                discStr = self.convertToDB('add','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('portSpec').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'abstractionRef':
-                discStr = self.convertToDB('add','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('abstractionRef').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'other':
-                discStr = self.convertToDB('add','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('other').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            
-            add = DBAdd(data=data,
-                        id=id,
-                        what=what,
-                        objectId=objectId,
-                        parentObjId=parentObjId,
-                        parentObjType=parentObjType)
-            add.is_dirty = False
-            list.append(add)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'add_tbl'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_what is not None:
-                columnMap['what'] = \
-                    self.convertToDB(obj.db_what, 'str', 'varchar(255)')
-            if obj.db_objectId is not None:
-                columnMap['object_id'] = \
-                    self.convertToDB(obj.db_objectId, 'long', 'int')
-            if obj.db_parentObjId is not None:
-                columnMap['par_obj_id'] = \
-                    self.convertToDB(obj.db_parentObjId, 'long', 'int')
-            if obj.db_parentObjType is not None:
-                columnMap['par_obj_type'] = \
-                    self.convertToDB(obj.db_parentObjType, 'str', 'char(16)')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
-        child = obj.db_data
-        if child.vtType == 'module':
-            discStr = self.convertToDB('add','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('module').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'location':
-            discStr = self.convertToDB('add','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('location').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'annotation':
-            discStr = self.convertToDB('add','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('annotation').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'function':
-            discStr = self.convertToDB('add','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('function').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'connection':
-            discStr = self.convertToDB('add','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('connection').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'port':
-            discStr = self.convertToDB('add','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('port').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'parameter':
-            discStr = self.convertToDB('add','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('parameter').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'portSpec':
-            discStr = self.convertToDB('add','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('portSpec').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'abstractionRef':
-            discStr = self.convertToDB('add','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('abstractionRef').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'other':
-            discStr = self.convertToDB('add','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('other').toSQL(db, child, foreignKey, globalProps)
-        
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBOtherSQLDAOBase(SQLDAO):
 
@@ -1326,13 +738,13 @@ class DBOtherSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'okey', 'value', 'parent_type', 'vt_id', 'parent_id']
         table = 'other'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -1371,6 +783,7 @@ class DBOtherSQLDAOBase(SQLDAO):
         columns = ['id', 'okey', 'value', 'parent_type', 'vt_id', 'parent_id']
         table = 'other'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -1395,7 +808,7 @@ class DBOtherSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_parent, 'long', 'long')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -1404,70 +817,15 @@ class DBOtherSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         pass
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['okey', 'value', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'other'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            key = self.convertFromDB(row[0], 'str', 'varchar(255)')
-            value = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            id = self.convertFromDB(row[2], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            other = DBOther(id=id,
-                            key=key,
-                            value=value)
-            other.is_dirty = False
-            list.append(other)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'other'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_key is not None:
-                columnMap['okey'] = \
-                    self.convertToDB(obj.db_key, 'str', 'varchar(255)')
-            if obj.db_value is not None:
-                columnMap['value'] = \
-                    self.convertToDB(obj.db_value, 'str', 'varchar(255)')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBLocationSQLDAOBase(SQLDAO):
 
@@ -1477,13 +835,13 @@ class DBLocationSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'x', 'y', 'parent_type', 'vt_id', 'parent_id']
         table = 'location'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -1525,6 +883,7 @@ class DBLocationSQLDAOBase(SQLDAO):
         columns = ['id', 'x', 'y', 'parent_type', 'vt_id', 'parent_id']
         table = 'location'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -1549,7 +908,7 @@ class DBLocationSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_parent, 'long', 'long')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -1558,70 +917,15 @@ class DBLocationSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         pass
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['x', 'y', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'location'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            x = self.convertFromDB(row[0], 'float', 'DECIMAL(18,12)')
-            y = self.convertFromDB(row[1], 'float', 'DECIMAL(18,12)')
-            id = self.convertFromDB(row[2], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            location = DBLocation(id=id,
-                                  x=x,
-                                  y=y)
-            location.is_dirty = False
-            list.append(location)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'location'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_x is not None:
-                columnMap['x'] = \
-                    self.convertToDB(obj.db_x, 'float', 'DECIMAL(18,12)')
-            if obj.db_y is not None:
-                columnMap['y'] = \
-                    self.convertToDB(obj.db_y, 'float', 'DECIMAL(18,12)')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBWorkflowExecSQLDAOBase(SQLDAO):
 
@@ -1631,13 +935,13 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'user', 'ip', 'vt_version', 'ts_start', 'ts_end', 'parent_id', 'parent_type', 'parent_version', 'name', 'log_id', 'vt_id']
         table = 'workflow_exec'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -1681,6 +985,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         columns = ['id', 'user', 'ip', 'vt_version', 'ts_start', 'ts_end', 'parent_id', 'parent_type', 'parent_version', 'name', 'log_id', 'vt_id']
         table = 'workflow_exec'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -1723,7 +1028,7 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_vistrailId, 'long', 'int')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -1735,114 +1040,15 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         for child in obj.db_module_execs:
             child.db_workflow_exec = obj.db_id
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['user', 'ip', 'vt_version', 'ts_start', 'ts_end', 'parent_id', 'parent_type', 'parent_version', 'name', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'workflow_exec'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            user = self.convertFromDB(row[0], 'str', 'varchar(255)')
-            ip = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            vt_version = self.convertFromDB(row[2], 'str', 'varchar(255)')
-            ts_start = self.convertFromDB(row[3], 'datetime', 'datetime')
-            ts_end = self.convertFromDB(row[4], 'datetime', 'datetime')
-            parent_id = self.convertFromDB(row[5], 'long', 'int')
-            parent_type = self.convertFromDB(row[6], 'str', 'varchar(255)')
-            parent_version = self.convertFromDB(row[7], 'long', 'int')
-            name = self.convertFromDB(row[8], 'str', 'varchar(255)')
-            id = self.convertFromDB(row[9], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            foreignKey = {'wf_exec_id': keyStr}
-            res = self.getDao('module_exec').fromSQL(db, None, foreignKey, globalProps)
-            module_execs = res
-            
-            workflow_exec = DBWorkflowExec(id=id,
-                                           user=user,
-                                           ip=ip,
-                                           vt_version=vt_version,
-                                           ts_start=ts_start,
-                                           ts_end=ts_end,
-                                           parent_id=parent_id,
-                                           parent_type=parent_type,
-                                           parent_version=parent_version,
-                                           name=name,
-                                           module_execs=module_execs)
-            workflow_exec.is_dirty = False
-            list.append(workflow_exec)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'workflow_exec'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_user is not None:
-                columnMap['user'] = \
-                    self.convertToDB(obj.db_user, 'str', 'varchar(255)')
-            if obj.db_ip is not None:
-                columnMap['ip'] = \
-                    self.convertToDB(obj.db_ip, 'str', 'varchar(255)')
-            if obj.db_vt_version is not None:
-                columnMap['vt_version'] = \
-                    self.convertToDB(obj.db_vt_version, 'str', 'varchar(255)')
-            if obj.db_ts_start is not None:
-                columnMap['ts_start'] = \
-                    self.convertToDB(obj.db_ts_start, 'datetime', 'datetime')
-            if obj.db_ts_end is not None:
-                columnMap['ts_end'] = \
-                    self.convertToDB(obj.db_ts_end, 'datetime', 'datetime')
-            if obj.db_parent_id is not None:
-                columnMap['parent_id'] = \
-                    self.convertToDB(obj.db_parent_id, 'long', 'int')
-            if obj.db_parent_type is not None:
-                columnMap['parent_type'] = \
-                    self.convertToDB(obj.db_parent_type, 'str', 'varchar(255)')
-            if obj.db_parent_version is not None:
-                columnMap['parent_version'] = \
-                    self.convertToDB(obj.db_parent_version, 'long', 'int')
-            if obj.db_name is not None:
-                columnMap['name'] = \
-                    self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
-        foreignKey = {'wf_exec_id': keyStr}
-        for child in obj.db_module_execs:
-            self.getDao('module_exec').toSQL(db, child, foreignKey, globalProps)
-        
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBFunctionSQLDAOBase(SQLDAO):
 
@@ -1852,13 +1058,13 @@ class DBFunctionSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'pos', 'name', 'parent_type', 'vt_id', 'parent_id']
         table = 'function'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -1900,6 +1106,7 @@ class DBFunctionSQLDAOBase(SQLDAO):
         columns = ['id', 'pos', 'name', 'parent_type', 'vt_id', 'parent_id']
         table = 'function'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -1924,7 +1131,7 @@ class DBFunctionSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_parent, 'long', 'long')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -1937,81 +1144,15 @@ class DBFunctionSQLDAOBase(SQLDAO):
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['pos', 'name', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'function'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            pos = self.convertFromDB(row[0], 'long', 'int')
-            name = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            id = self.convertFromDB(row[2], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            discStr = self.convertToDB('function','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('parameter').fromSQL(db, None, foreignKey, globalProps)
-            parameters = res
-            
-            function = DBFunction(id=id,
-                                  pos=pos,
-                                  name=name,
-                                  parameters=parameters)
-            function.is_dirty = False
-            list.append(function)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'function'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_pos is not None:
-                columnMap['pos'] = \
-                    self.convertToDB(obj.db_pos, 'long', 'int')
-            if obj.db_name is not None:
-                columnMap['name'] = \
-                    self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
-        discStr = self.convertToDB('function','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        for child in obj.db_parameters:
-            self.getDao('parameter').toSQL(db, child, foreignKey, globalProps)
-        
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBAbstractionSQLDAOBase(SQLDAO):
 
@@ -2021,13 +1162,13 @@ class DBAbstractionSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'name', 'vt_id']
         table = 'abstraction'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -2053,6 +1194,7 @@ class DBAbstractionSQLDAOBase(SQLDAO):
         columns = ['id', 'name', 'vt_id']
         table = 'abstraction'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -2068,7 +1210,7 @@ class DBAbstractionSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_vistrail, 'long', 'int')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -2084,87 +1226,15 @@ class DBAbstractionSQLDAOBase(SQLDAO):
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['name', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'abstraction'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            name = self.convertFromDB(row[0], 'str', 'varchar(255)')
-            id = self.convertFromDB(row[1], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            discStr = self.convertToDB('abstraction','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('action').fromSQL(db, None, foreignKey, globalProps)
-            actions = res
-            
-            discStr = self.convertToDB('abstraction','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('tag').fromSQL(db, None, foreignKey, globalProps)
-            tags = res
-            
-            abstraction = DBAbstraction(id=id,
-                                        name=name,
-                                        actions=actions,
-                                        tags=tags)
-            abstraction.is_dirty = False
-            list.append(abstraction)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'abstraction'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_name is not None:
-                columnMap['name'] = \
-                    self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
-        discStr = self.convertToDB('abstraction','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        for child in obj.db_actions:
-            self.getDao('action').toSQL(db, child, foreignKey, globalProps)
-        
-        discStr = self.convertToDB('abstraction','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        for child in obj.db_tags:
-            self.getDao('tag').toSQL(db, child, foreignKey, globalProps)
-        
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBWorkflowSQLDAOBase(SQLDAO):
 
@@ -2174,13 +1244,13 @@ class DBWorkflowSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'name', 'vt_id']
         table = 'workflow'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -2205,6 +1275,7 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         columns = ['id', 'name', 'vt_id']
         table = 'workflow'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -2220,7 +1291,7 @@ class DBWorkflowSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_vistrailId, 'long', 'int')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -2242,121 +1313,15 @@ class DBWorkflowSQLDAOBase(SQLDAO):
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['name', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'workflow'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            name = self.convertFromDB(row[0], 'str', 'varchar(255)')
-            id = self.convertFromDB(row[1], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            discStr = self.convertToDB('workflow','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('connection').fromSQL(db, None, foreignKey, globalProps)
-            connections = res
-            
-            discStr = self.convertToDB('workflow','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('annotation').fromSQL(db, None, foreignKey, globalProps)
-            annotations = res
-            
-            discStr = self.convertToDB('workflow','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('other').fromSQL(db, None, foreignKey, globalProps)
-            others = res
-            
-            modules = []
-            
-            discStr = self.convertToDB('workflow','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('module').fromSQL(db, None, foreignKey, globalProps)
-            modules.extend(res)
-            
-            discStr = self.convertToDB('workflow','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('abstractionRef').fromSQL(db, None, foreignKey, globalProps)
-            modules.extend(res)
-            
-            workflow = DBWorkflow(modules=modules,
-                                  id=id,
-                                  name=name,
-                                  connections=connections,
-                                  annotations=annotations,
-                                  others=others)
-            workflow.is_dirty = False
-            list.append(workflow)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'workflow'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_name is not None:
-                columnMap['name'] = \
-                    self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
-        discStr = self.convertToDB('workflow','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        for child in obj.db_connections:
-            self.getDao('connection').toSQL(db, child, foreignKey, globalProps)
-        
-        discStr = self.convertToDB('workflow','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        for child in obj.db_annotations:
-            self.getDao('annotation').toSQL(db, child, foreignKey, globalProps)
-        
-        discStr = self.convertToDB('workflow','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        for child in obj.db_others:
-            self.getDao('other').toSQL(db, child, foreignKey, globalProps)
-        
-        for child in obj.db_modules:
-            if child.vtType == 'module':
-                discStr = self.convertToDB('workflow','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                self.getDao('module').toSQL(db, child, foreignKey, globalProps)
-            elif child.vtType == 'abstractionRef':
-                discStr = self.convertToDB('workflow','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                self.getDao('abstractionRef').toSQL(db, child, foreignKey, globalProps)
-        
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBAbstractionRefSQLDAOBase(SQLDAO):
 
@@ -2366,13 +1331,13 @@ class DBAbstractionRefSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'name', 'cache', 'abstraction_id', 'version', 'parent_type', 'vt_id', 'parent_id']
         table = 'abstraction_ref'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -2414,6 +1379,7 @@ class DBAbstractionRefSQLDAOBase(SQLDAO):
         columns = ['id', 'name', 'cache', 'abstraction_id', 'version', 'parent_type', 'vt_id', 'parent_id']
         table = 'abstraction_ref'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -2444,7 +1410,7 @@ class DBAbstractionRefSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_parent, 'long', 'long')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -2464,113 +1430,15 @@ class DBAbstractionRefSQLDAOBase(SQLDAO):
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['cache', 'abstraction_id', 'version', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'abstraction_ref'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            cache = self.convertFromDB(row[0], 'int', 'int')
-            abstraction_id = self.convertFromDB(row[1], 'long', 'int')
-            version = self.convertFromDB(row[2], 'long', 'int')
-            id = self.convertFromDB(row[3], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            discStr = self.convertToDB('abstractionRef','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('location').fromSQL(db, None, foreignKey, globalProps)
-            if len(res) > 0:
-                location = res[0]
-            else:
-                location = None
-            
-            discStr = self.convertToDB('abstractionRef','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('function').fromSQL(db, None, foreignKey, globalProps)
-            functions = res
-            
-            discStr = self.convertToDB('abstractionRef','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('annotation').fromSQL(db, None, foreignKey, globalProps)
-            annotations = res
-            
-            abstractionRef = DBAbstractionRef(id=id,
-                                              name=name,
-                                              cache=cache,
-                                              abstraction_id=abstraction_id,
-                                              version=version,
-                                              location=location,
-                                              functions=functions,
-                                              annotations=annotations)
-            abstractionRef.is_dirty = False
-            list.append(abstractionRef)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'abstraction_ref'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_cache is not None:
-                columnMap['cache'] = \
-                    self.convertToDB(obj.db_cache, 'int', 'int')
-            if obj.db_abstraction_id is not None:
-                columnMap['abstraction_id'] = \
-                    self.convertToDB(obj.db_abstraction_id, 'long', 'int')
-            if obj.db_version is not None:
-                columnMap['version'] = \
-                    self.convertToDB(obj.db_version, 'long', 'int')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
-        discStr = self.convertToDB('abstractionRef','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        child = obj.db_location
-        if child is not None:
-            self.getDao('location').toSQL(db, child, foreignKey, globalProps)
-        
-        discStr = self.convertToDB('abstractionRef','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        for child in obj.db_functions:
-            self.getDao('function').toSQL(db, child, foreignKey, globalProps)
-        
-        discStr = self.convertToDB('abstractionRef','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        for child in obj.db_annotations:
-            self.getDao('annotation').toSQL(db, child, foreignKey, globalProps)
-        
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBAnnotationSQLDAOBase(SQLDAO):
 
@@ -2580,13 +1448,13 @@ class DBAnnotationSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'akey', 'value', 'parent_type', 'vt_id', 'parent_id']
         table = 'annotation'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -2637,6 +1505,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
         columns = ['id', 'akey', 'value', 'parent_type', 'vt_id', 'parent_id']
         table = 'annotation'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -2661,7 +1530,7 @@ class DBAnnotationSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_parent, 'long', 'long')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -2670,70 +1539,15 @@ class DBAnnotationSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         pass
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['akey', 'value', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'annotation'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            key = self.convertFromDB(row[0], 'str', 'varchar(255)')
-            value = self.convertFromDB(row[1], 'str', 'varchar(8191)')
-            id = self.convertFromDB(row[2], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            annotation = DBAnnotation(id=id,
-                                      key=key,
-                                      value=value)
-            annotation.is_dirty = False
-            list.append(annotation)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'annotation'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_key is not None:
-                columnMap['akey'] = \
-                    self.convertToDB(obj.db_key, 'str', 'varchar(255)')
-            if obj.db_value is not None:
-                columnMap['value'] = \
-                    self.convertToDB(obj.db_value, 'str', 'varchar(8191)')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBChangeSQLDAOBase(SQLDAO):
 
@@ -2743,13 +1557,13 @@ class DBChangeSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'what', 'old_obj_id', 'new_obj_id', 'par_obj_id', 'par_obj_type', 'action_id', 'vt_id']
         table = 'change_tbl'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -2785,6 +1599,7 @@ class DBChangeSQLDAOBase(SQLDAO):
         columns = ['id', 'what', 'old_obj_id', 'new_obj_id', 'par_obj_id', 'par_obj_type', 'action_id', 'vt_id']
         table = 'change_tbl'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -2815,7 +1630,7 @@ class DBChangeSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_vistrailId, 'long', 'int')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -2829,180 +1644,15 @@ class DBChangeSQLDAOBase(SQLDAO):
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['what', 'old_obj_id', 'new_obj_id', 'par_obj_id', 'par_obj_type', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'change_tbl'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            what = self.convertFromDB(row[0], 'str', 'varchar(255)')
-            oldObjId = self.convertFromDB(row[1], 'long', 'int')
-            newObjId = self.convertFromDB(row[2], 'long', 'int')
-            parentObjId = self.convertFromDB(row[3], 'long', 'int')
-            parentObjType = self.convertFromDB(row[4], 'str', 'char(16)')
-            id = self.convertFromDB(row[5], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            data = None
-            if what == 'module':
-                discStr = self.convertToDB('change','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('module').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'location':
-                discStr = self.convertToDB('change','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('location').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'annotation':
-                discStr = self.convertToDB('change','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('annotation').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'function':
-                discStr = self.convertToDB('change','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('function').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'connection':
-                discStr = self.convertToDB('change','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('connection').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'port':
-                discStr = self.convertToDB('change','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('port').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'parameter':
-                discStr = self.convertToDB('change','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('parameter').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'portSpec':
-                discStr = self.convertToDB('change','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('portSpec').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'abstractionRef':
-                discStr = self.convertToDB('change','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('abstractionRef').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            elif what == 'other':
-                discStr = self.convertToDB('change','str','char(16)')
-                foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-                res = self.getDao('other').fromSQL(db, None, foreignKey, globalProps)
-                data = res[0]
-            
-            change = DBChange(data=data,
-                              id=id,
-                              what=what,
-                              oldObjId=oldObjId,
-                              newObjId=newObjId,
-                              parentObjId=parentObjId,
-                              parentObjType=parentObjType)
-            change.is_dirty = False
-            list.append(change)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'change_tbl'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_what is not None:
-                columnMap['what'] = \
-                    self.convertToDB(obj.db_what, 'str', 'varchar(255)')
-            if obj.db_oldObjId is not None:
-                columnMap['old_obj_id'] = \
-                    self.convertToDB(obj.db_oldObjId, 'long', 'int')
-            if obj.db_newObjId is not None:
-                columnMap['new_obj_id'] = \
-                    self.convertToDB(obj.db_newObjId, 'long', 'int')
-            if obj.db_parentObjId is not None:
-                columnMap['par_obj_id'] = \
-                    self.convertToDB(obj.db_parentObjId, 'long', 'int')
-            if obj.db_parentObjType is not None:
-                columnMap['par_obj_type'] = \
-                    self.convertToDB(obj.db_parentObjType, 'str', 'char(16)')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
-        child = obj.db_data
-        if child.vtType == 'module':
-            discStr = self.convertToDB('change','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('module').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'location':
-            discStr = self.convertToDB('change','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('location').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'annotation':
-            discStr = self.convertToDB('change','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('annotation').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'function':
-            discStr = self.convertToDB('change','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('function').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'connection':
-            discStr = self.convertToDB('change','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('connection').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'port':
-            discStr = self.convertToDB('change','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('port').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'parameter':
-            discStr = self.convertToDB('change','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('parameter').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'portSpec':
-            discStr = self.convertToDB('change','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('portSpec').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'abstractionRef':
-            discStr = self.convertToDB('change','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('abstractionRef').toSQL(db, child, foreignKey, globalProps)
-        elif child.vtType == 'other':
-            discStr = self.convertToDB('change','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            self.getDao('other').toSQL(db, child, foreignKey, globalProps)
-        
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBParameterSQLDAOBase(SQLDAO):
 
@@ -3012,13 +1662,13 @@ class DBParameterSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'pos', 'name', 'type', 'val', 'alias', 'parent_type', 'vt_id', 'parent_id']
         table = 'parameter'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -3063,6 +1713,7 @@ class DBParameterSQLDAOBase(SQLDAO):
         columns = ['id', 'pos', 'name', 'type', 'val', 'alias', 'parent_type', 'vt_id', 'parent_id']
         table = 'parameter'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -3096,7 +1747,7 @@ class DBParameterSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_parent, 'long', 'long')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -3105,85 +1756,15 @@ class DBParameterSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         pass
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['pos', 'name', 'type', 'val', 'alias', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'parameter'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            pos = self.convertFromDB(row[0], 'long', 'int')
-            name = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            type = self.convertFromDB(row[2], 'str', 'varchar(255)')
-            val = self.convertFromDB(row[3], 'str', 'varchar(8191)')
-            alias = self.convertFromDB(row[4], 'str', 'varchar(255)')
-            id = self.convertFromDB(row[5], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            parameter = DBParameter(id=id,
-                                    pos=pos,
-                                    name=name,
-                                    type=type,
-                                    val=val,
-                                    alias=alias)
-            parameter.is_dirty = False
-            list.append(parameter)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'parameter'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_pos is not None:
-                columnMap['pos'] = \
-                    self.convertToDB(obj.db_pos, 'long', 'int')
-            if obj.db_name is not None:
-                columnMap['name'] = \
-                    self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-            if obj.db_type is not None:
-                columnMap['type'] = \
-                    self.convertToDB(obj.db_type, 'str', 'varchar(255)')
-            if obj.db_val is not None:
-                columnMap['val'] = \
-                    self.convertToDB(obj.db_val, 'str', 'varchar(8191)')
-            if obj.db_alias is not None:
-                columnMap['alias'] = \
-                    self.convertToDB(obj.db_alias, 'str', 'varchar(255)')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBConnectionSQLDAOBase(SQLDAO):
 
@@ -3193,13 +1774,13 @@ class DBConnectionSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'parent_type', 'vt_id', 'parent_id']
         table = 'connection_tbl'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -3234,6 +1815,7 @@ class DBConnectionSQLDAOBase(SQLDAO):
         columns = ['id', 'parent_type', 'vt_id', 'parent_id']
         table = 'connection_tbl'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -3252,7 +1834,7 @@ class DBConnectionSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_parent, 'long', 'long')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -3265,71 +1847,15 @@ class DBConnectionSQLDAOBase(SQLDAO):
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'connection_tbl'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            id = self.convertFromDB(row[0], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            discStr = self.convertToDB('connection','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('port').fromSQL(db, None, foreignKey, globalProps)
-            ports = res
-            
-            connection = DBConnection(id=id,
-                                      ports=ports)
-            connection.is_dirty = False
-            list.append(connection)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'connection_tbl'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
-        discStr = self.convertToDB('connection','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        for child in obj.db_ports:
-            self.getDao('port').toSQL(db, child, foreignKey, globalProps)
-        
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBActionSQLDAOBase(SQLDAO):
 
@@ -3339,13 +1865,13 @@ class DBActionSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'prev_id', 'date', 'session', 'user', 'prune', 'parent_type', 'vt_id', 'parent_id']
         table = 'action'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -3387,6 +1913,7 @@ class DBActionSQLDAOBase(SQLDAO):
         columns = ['id', 'prev_id', 'date', 'session', 'user', 'prune', 'parent_type', 'vt_id', 'parent_id']
         table = 'action'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -3420,7 +1947,7 @@ class DBActionSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_parent, 'long', 'long')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -3435,122 +1962,15 @@ class DBActionSQLDAOBase(SQLDAO):
         for child in obj.db_operations:
             child.db_action = obj.db_id
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['prev_id', 'date', 'session', 'user', 'prune', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'action'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            prevId = self.convertFromDB(row[0], 'long', 'int')
-            date = self.convertFromDB(row[1], 'datetime', 'datetime')
-            session = self.convertFromDB(row[2], 'str', 'varchar(1023)')
-            user = self.convertFromDB(row[3], 'str', 'varchar(255)')
-            prune = self.convertFromDB(row[4], 'int', 'int')
-            id = self.convertFromDB(row[5], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            discStr = self.convertToDB('action','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('annotation').fromSQL(db, None, foreignKey, globalProps)
-            annotations = res
-            
-            operations = []
-            
-            foreignKey = {'action_id': keyStr}
-            res = self.getDao('add').fromSQL(db, None, foreignKey, globalProps)
-            operations.extend(res)
-            
-            foreignKey = {'action_id': keyStr}
-            res = self.getDao('delete').fromSQL(db, None, foreignKey, globalProps)
-            operations.extend(res)
-            
-            foreignKey = {'action_id': keyStr}
-            res = self.getDao('change').fromSQL(db, None, foreignKey, globalProps)
-            operations.extend(res)
-            
-            action = DBAction(operations=operations,
-                              id=id,
-                              prevId=prevId,
-                              date=date,
-                              session=session,
-                              user=user,
-                              prune=prune,
-                              annotations=annotations)
-            action.is_dirty = False
-            list.append(action)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'action'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_prevId is not None:
-                columnMap['prev_id'] = \
-                    self.convertToDB(obj.db_prevId, 'long', 'int')
-            if obj.db_date is not None:
-                columnMap['date'] = \
-                    self.convertToDB(obj.db_date, 'datetime', 'datetime')
-            if obj.db_session is not None:
-                columnMap['session'] = \
-                    self.convertToDB(obj.db_session, 'str', 'varchar(1023)')
-            if obj.db_user is not None:
-                columnMap['user'] = \
-                    self.convertToDB(obj.db_user, 'str', 'varchar(255)')
-            if obj.db_prune is not None:
-                columnMap['prune'] = \
-                    self.convertToDB(obj.db_prune, 'int', 'int')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
-        discStr = self.convertToDB('action','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        for child in obj.db_annotations:
-            self.getDao('annotation').toSQL(db, child, foreignKey, globalProps)
-        
-        for child in obj.db_operations:
-            if child.vtType == 'add':
-                foreignKey = {'action_id' : keyStr}
-                self.getDao('add').toSQL(db, child, foreignKey, globalProps)
-            elif child.vtType == 'delete':
-                foreignKey = {'action_id' : keyStr}
-                self.getDao('delete').toSQL(db, child, foreignKey, globalProps)
-            elif child.vtType == 'change':
-                foreignKey = {'action_id' : keyStr}
-                self.getDao('change').toSQL(db, child, foreignKey, globalProps)
-        
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBDeleteSQLDAOBase(SQLDAO):
 
@@ -3560,13 +1980,13 @@ class DBDeleteSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'what', 'object_id', 'par_obj_id', 'par_obj_type', 'action_id', 'vt_id']
         table = 'delete_tbl'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -3600,6 +2020,7 @@ class DBDeleteSQLDAOBase(SQLDAO):
         columns = ['id', 'what', 'object_id', 'par_obj_id', 'par_obj_type', 'action_id', 'vt_id']
         table = 'delete_tbl'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -3627,7 +2048,7 @@ class DBDeleteSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_vistrailId, 'long', 'int')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -3636,80 +2057,15 @@ class DBDeleteSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         pass
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['what', 'object_id', 'par_obj_id', 'par_obj_type', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'delete_tbl'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            what = self.convertFromDB(row[0], 'str', 'varchar(255)')
-            objectId = self.convertFromDB(row[1], 'long', 'int')
-            parentObjId = self.convertFromDB(row[2], 'long', 'int')
-            parentObjType = self.convertFromDB(row[3], 'str', 'char(16)')
-            id = self.convertFromDB(row[4], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            delete = DBDelete(id=id,
-                              what=what,
-                              objectId=objectId,
-                              parentObjId=parentObjId,
-                              parentObjType=parentObjType)
-            delete.is_dirty = False
-            list.append(delete)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'delete_tbl'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_what is not None:
-                columnMap['what'] = \
-                    self.convertToDB(obj.db_what, 'str', 'varchar(255)')
-            if obj.db_objectId is not None:
-                columnMap['object_id'] = \
-                    self.convertToDB(obj.db_objectId, 'long', 'int')
-            if obj.db_parentObjId is not None:
-                columnMap['par_obj_id'] = \
-                    self.convertToDB(obj.db_parentObjId, 'long', 'int')
-            if obj.db_parentObjType is not None:
-                columnMap['par_obj_type'] = \
-                    self.convertToDB(obj.db_parentObjType, 'str', 'char(16)')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBVistrailSQLDAOBase(SQLDAO):
 
@@ -3719,13 +2075,13 @@ class DBVistrailSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
-        columns = ['id', 'version', 'name']
+    def get_sql_columns(self, db, global_props,lock=False):
+        columns = ['id', 'version', 'name', 'last_modified']
         table = 'vistrail'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -3733,9 +2089,11 @@ class DBVistrailSQLDAOBase(SQLDAO):
             global_props['vt_id'] = self.convertToDB(id, 'long', 'int')
             version = self.convertFromDB(row[1], 'str', 'char(16)')
             name = self.convertFromDB(row[2], 'str', 'varchar(255)')
+            last_modified = self.convertFromDB(row[3], 'datetime', 'datetime')
             
             vistrail = DBVistrail(version=version,
                                   name=name,
+                                  last_modified=last_modified,
                                   id=id)
             vistrail.is_dirty = False
             res[('vistrail', id)] = vistrail
@@ -3748,9 +2106,10 @@ class DBVistrailSQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'version', 'name']
+        columns = ['id', 'version', 'name', 'last_modified']
         table = 'vistrail'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -3764,9 +2123,12 @@ class DBVistrailSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_name') and obj.db_name is not None:
             columnMap['name'] = \
                 self.convertToDB(obj.db_name, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_last_modified') and obj.db_last_modified is not None:
+            columnMap['last_modified'] = \
+                self.convertToDB(obj.db_last_modified, 'datetime', 'datetime')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -3788,111 +2150,15 @@ class DBVistrailSQLDAOBase(SQLDAO):
         for child in obj.db_abstractions:
             child.db_vistrail = obj.db_id
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['version', 'name', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'vistrail'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            version = self.convertFromDB(row[0], 'str', 'char(16)')
-            name = self.convertFromDB(row[1], 'str', 'varchar(255)')
-            id = self.convertFromDB(row[2], 'long', 'int')
-            if globalProps is None:
-                globalProps = {}
-            globalProps['vt_id'] = self.convertToDB(id, 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            discStr = self.convertToDB('vistrail','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('action').fromSQL(db, None, foreignKey, globalProps)
-            actions = res
-            
-            discStr = self.convertToDB('vistrail','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('tag').fromSQL(db, None, foreignKey, globalProps)
-            tags = res
-            
-            foreignKey = {'vt_id': keyStr}
-            res = self.getDao('abstraction').fromSQL(db, None, foreignKey, globalProps)
-            abstractions = res
-            
-            vistrail = DBVistrail(id=id,
-                                  version=version,
-                                  name=name,
-                                  actions=actions,
-                                  tags=tags,
-                                  abstractions=abstractions)
-            vistrail.is_dirty = False
-            list.append(vistrail)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'vistrail'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_version is not None:
-                columnMap['version'] = \
-                    self.convertToDB(obj.db_version, 'str', 'char(16)')
-            if obj.db_name is not None:
-                columnMap['name'] = \
-                    self.convertToDB(obj.db_name, 'str', 'varchar(255)')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                if obj.db_id is not None:
-                    columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-            if obj.db_id is None:
-                obj.db_id = lastId
-                keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-            if globalProps is None:
-                globalProps = {}
-            globalProps['vt_id'] = self.convertToDB(obj.db_id, 'long', 'int')
-        
-
-        discStr = self.convertToDB('vistrail','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        for child in obj.db_actions:
-            self.getDao('action').toSQL(db, child, foreignKey, globalProps)
-        
-        discStr = self.convertToDB('vistrail','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        for child in obj.db_tags:
-            self.getDao('tag').toSQL(db, child, foreignKey, globalProps)
-        
-        foreignKey = {'vt_id': keyStr}
-        for child in obj.db_abstractions:
-            self.getDao('abstraction').toSQL(db, child, foreignKey, globalProps)
-        
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 class DBModuleExecSQLDAOBase(SQLDAO):
 
@@ -3902,13 +2168,13 @@ class DBModuleExecSQLDAOBase(SQLDAO):
     def getDao(self, dao):
         return self.daoList[dao]
 
-    def get_sql_columns(self, db, global_props):
+    def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'ts_start', 'ts_end', 'module_id', 'module_name', 'machine_id', 'wf_exec_id', 'vt_id']
         table = 'module_exec'
         whereMap = global_props
         orderBy = 'id'
 
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
         data = self.executeSQL(db, dbCommand, True)
         res = {}
         for row in data:
@@ -3946,6 +2212,7 @@ class DBModuleExecSQLDAOBase(SQLDAO):
         columns = ['id', 'ts_start', 'ts_end', 'module_id', 'module_name', 'machine_id', 'wf_exec_id', 'vt_id']
         table = 'module_exec'
         whereMap = {}
+        whereMap.update(global_props)
         if obj.db_id is not None:
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
@@ -3976,7 +2243,7 @@ class DBModuleExecSQLDAOBase(SQLDAO):
                 self.convertToDB(obj.db_vistrailId, 'long', 'int')
         columnMap.update(global_props)
 
-        if obj.is_new:
+        if obj.is_new or do_copy:
             dbCommand = self.createSQLInsert(table, columnMap)
         else:
             dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
@@ -3989,91 +2256,15 @@ class DBModuleExecSQLDAOBase(SQLDAO):
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
         
-    def fromSQL(self, db, id=None, foreignKey=None, globalProps=None):
-        columns = ['ts_start', 'ts_end', 'module_id', 'module_name', 'id']
+    def delete_sql_column(self, db, obj, global_props):
         table = 'module_exec'
         whereMap = {}
-        orderBy = 'id'
-
-        if id is not None:
-            keyStr = self.convertToDB(id, 'long', 'int')
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
             whereMap['id'] = keyStr
-        elif foreignKey is not None:
-            whereMap.update(foreignKey)
-        elif globalProps is None:
-            print '***ERROR: need to specify id or foreign key info'
-        if globalProps is not None:
-            whereMap.update(globalProps)
-        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy)
-        data = self.executeSQL(db, dbCommand, True)
-        list = []
-        for row in data:
-            ts_start = self.convertFromDB(row[0], 'datetime', 'datetime')
-            ts_end = self.convertFromDB(row[1], 'datetime', 'datetime')
-            module_id = self.convertFromDB(row[2], 'long', 'int')
-            module_name = self.convertFromDB(row[3], 'str', 'varchar(255)')
-            id = self.convertFromDB(row[4], 'long', 'int')
-            keyStr = self.convertToDB(id,'long','int')
-
-            discStr = self.convertToDB('module_exec','str','char(16)')
-            foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-            res = self.getDao('annotation').fromSQL(db, None, foreignKey, globalProps)
-            annotations = res
-            
-            module_exec = DBModuleExec(id=id,
-                                       ts_start=ts_start,
-                                       ts_end=ts_end,
-                                       module_id=module_id,
-                                       module_name=module_name,
-                                       annotations=annotations)
-            module_exec.is_dirty = False
-            list.append(module_exec)
-
-        return list
-
-    def toSQL(self, db, obj, foreignKey=None, globalProps=None):
-        keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if obj.is_dirty:
-            columns = ['id']
-            table = 'module_exec'
-            whereMap = {}
-            columnMap = {}
-
-            whereMap['id'] = keyStr
-            if globalProps is not None:
-                whereMap.update(globalProps)
-            if obj.db_ts_start is not None:
-                columnMap['ts_start'] = \
-                    self.convertToDB(obj.db_ts_start, 'datetime', 'datetime')
-            if obj.db_ts_end is not None:
-                columnMap['ts_end'] = \
-                    self.convertToDB(obj.db_ts_end, 'datetime', 'datetime')
-            if obj.db_module_id is not None:
-                columnMap['module_id'] = \
-                    self.convertToDB(obj.db_module_id, 'long', 'int')
-            if obj.db_module_name is not None:
-                columnMap['module_name'] = \
-                    self.convertToDB(obj.db_module_name, 'str', 'varchar(255)')
-            if foreignKey is not None:
-                columnMap.update(foreignKey)
-
-            dbCommand = self.createSQLSelect(table, columns, whereMap)
-            data = self.executeSQL(db, dbCommand, True)
-            if len(data) <= 0:
-                columnMap['id'] = keyStr
-                if globalProps is not None:
-                    columnMap.update(globalProps)
-                dbCommand = self.createSQLInsert(table, columnMap)
-            else:
-                dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
-            lastId = self.executeSQL(db, dbCommand, False)
-        
-
-        discStr = self.convertToDB('module_exec','str','char(16)')
-        foreignKey = {'parent_id' : keyStr, 'parent_type': discStr}
-        for child in obj.db_annotations:
-            self.getDao('annotation').toSQL(db, child, foreignKey, globalProps)
-        
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
 
 """generated automatically by auto_dao.py"""
 

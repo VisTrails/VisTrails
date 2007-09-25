@@ -54,8 +54,16 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
         return vistrail
 
     def save(self, vistrail):
-        _XMLFileLocator.save(self, vistrail)
+        vistrail = _XMLFileLocator.save(self, vistrail, False)
+        Vistrail.convert(vistrail)
         vistrail.locator = self
+        return vistrail
+
+    def save_as(self, vistrail):
+        vistrail = _XMLFileLocator.save(self, vistrail, True)
+        Vistrail.convert(vistrail)
+        vistrail.locator = self
+        return vistrail
 
     ##########################################################################
 
@@ -91,13 +99,21 @@ class DBLocator(_DBLocator, CoreLocator):
         return vistrail
 
     def save(self, vistrail):
-        _DBLocator.save(self, vistrail)
+        vistrail = _DBLocator.save(self, vistrail, False)
+        Vistrail.convert(vistrail)
         vistrail.locator = self
+        return vistrail
+
+    def save_as(self, vistrail):
+        vistrail = _DBLocator.save(self, vistrail, True)
+        Vistrail.convert(vistrail)
+        vistrail.locator = self
+        return vistrail
 
     ##########################################################################
 
     def __eq__(self, other):
-        if type(other) != DBLocator:
+        if type(other) != type(self):
             return False
         return (self._host == other._host and
                 self._port == other._port and
@@ -130,8 +146,16 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
         return vistrail
 
     def save(self, vistrail):
-        _ZIPFileLocator.save(self, vistrail)
+        vistrail = _ZIPFileLocator.save(self, vistrail, False)
+        Vistrail.convert(vistrail)
         vistrail.locator = self
+        return vistrail
+
+    def save_as(self, vistrail):
+        vistrail = _ZIPFileLocator.save(self, vistrail, True)
+        Vistrail.convert(vistrail)
+        vistrail.locator = self
+        return vistrail
 
     ##########################################################################
 

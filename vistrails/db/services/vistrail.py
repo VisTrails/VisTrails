@@ -36,6 +36,8 @@ def updateIdScope(vistrail):
                 # update ids of data
                 vistrail.idScope.updateBeginId(operation.db_what, 
                                                getNewObjId(operation)+1)
+        for annotation in action.db_annotations:
+            vistrail.idScope.updateBeginId('annotation', annotation.db_id+1)
 
 def materializeWorkflow(vistrail, version):
     # construct path up through tree and perform each action
@@ -93,6 +95,60 @@ def performActions(actions, workflow):
     # a change after an add is effectively an add if the add is discarded
     performAdds(getCurrentOperations(actions), workflow)
 
+def synchronize(old_vistrail, new_vistrail):
+    id_remap = {}
+    for action in new_vistrail.db_actions:
+        if action.is_new:
+            new_action = action.do_copy(True, old_vistrail.idScope, id_remap)
+            old_vistrail.db_add_action(new_action)
+        else:
+            # it must exist in the old vistrail, too
+            old_action = old_vistrail.db_actions_id_index[action.db_id]
+            # use knowledge that we replace old notes...
+            for annotation in action.db_deleted_annotations:
+                if old_action.db_has_annotation_with_id(annotation.db_id):
+                    old_action.db_delete_annotation(annotation)
+                else:
+                    # FIXME conflict!
+                    # we know that the annotation that was there isn't anymore
+                    print 'possible notes conflict'
+                    if old_action.db_has_annotation_with_key('notes'):
+                        old_annotation = \
+                            old_action.db_get_annotation_by_key('notes')
+                        old_action.db_delete_annotation(old_annotation)
+                    else:
+                        # we don't have to do anything
+                        pass
+            for annotation in action.db_annotations:
+                if annotation.is_new:
+                    new_annotation = annotation.do_copy(True, 
+                                                        old_vistrail.idScope,
+                                                        id_remap)
+                    old_action.db_add_annotation(new_annotation)
+
+    for tag in new_vistrail.db_deleted_tags:
+        if old_vistrail.db_has_tag_with_id(tag.db_id):
+            old_vistrail.db_delete_tag(tag)
+        else:
+            # FIXME conflict!
+            # we know the tag that was there isn't anymore
+            print 'possible tag conflict'
+            # we don't have to do anything here, though
+            pass
+
+    for tag in new_vistrail.db_tags:
+        if tag.is_new:
+            new_tag = tag.do_copy(False)
+            # remap id
+            if id_remap.has_key((DBAction.vtType, new_tag.db_id)):
+                new_tag.db_id = id_remap[(DBAction.vtType, new_tag.db_id)]
+            if old_vistrail.db_tags_id_index.has_key(new_tag.db_id):
+                # FIXME conflict!
+                print 'possible tag conflict -- WILL NOT GET HERE!'
+                old_tag = old_vistrail.db_tags_id_index[new_tag.db_id]
+                old_vistrail.db_delete_tag(old_tag)
+            old_vistrail.db_add_tag(new_tag)
+
 ################################################################################
 # Analogy methods
 
@@ -105,7 +161,7 @@ def find_data(what, id, op_dict):
     return None
 
 def invertOperations(op_dict, adds, deletes):
-    inverse_ops = []                                
+    inverse_ops = []       
     deletes.reverse()
     for op in deletes:
         data = copy.copy(find_data(op.db_what, getOldObjId(op), op_dict))

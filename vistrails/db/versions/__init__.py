@@ -22,72 +22,65 @@
 
 import os
 from core.system import vistrails_root_directory
+from db import VistrailsDBException
 
-currentVersion = '0.8.0'
+currentVersion = '0.8.1'
 
 def getVersionDAO(version=None):
     if version is None:
         version = currentVersion
-    if version == '0.3.0':
-        import db.versions.v0_3_0.persistence
-        return db.versions.v0_3_0.persistence.DAOList()
-    elif version == '0.3.1':
-        import db.versions.v0_3_1.persistence
-        return db.versions.v0_3_1.persistence.DAOList()
-    elif version == '0.5.0':
-        import db.versions.v0_5_0.persistence
-        return db.versions.v0_5_0.persistence.DAOList()
-    elif version == '0.6.0':
-        import db.versions.v0_6_0.persistence
-        return db.versions.v0_6_0.persistence.DAOList()
-    elif version == '0.7.0':
-        import db.versions.v0_7_0.persistence
-        return db.versions.v0_7_0.persistence.DAOList()
-    elif version == '0.8.0':
-        import db.versions.v0_8_0.persistence
-        return db.versions.v0_8_0.persistence.DAOList()
+    persistence_dir = 'db.versions.' + get_version_name(version) + \
+        '.persistence'
+    try:
+        persistence = __import__(persistence_dir, {}, {}, [''])
+    except ImportError:
+        msg = "Cannot find DAO for version '%s'" % version
+        raise VistrailsDBException(msg)
+    return persistence.DAOList()
 
 def translateVistrail(vistrail, version=None):
     if version is None:
         version = vistrail.version
-    
-    if version == '0.3.0':
-        import db.versions.v0_3_1.translate.v0_3_0
-        vistrail = \
-            db.versions.v0_3_1.translate.v0_3_0.translateVistrail(vistrail)
-        version = '0.3.1'
-    if version == '0.3.1':
-        import db.versions.v0_6_0.translate.v0_3_1
-        vistrail = \
-            db.versions.v0_6_0.translate.v0_3_1.translateVistrail(vistrail)
-        version = '0.6.0'
-    if version == '0.5.0':
-        import db.versions.v0_6_0.translate.v0_5_0
-        vistrail = \
-            db.versions.v0_6_0.translate.v0_5_0.translateVistrail(vistrail)
-        version = '0.6.0'
-    if version == '0.6.0':
-        import db.versions.v0_7_0.translate.v0_6_0
-        vistrail = \
-            db.versions.v0_7_0.translate.v0_6_0.translateVistrail(vistrail)
-        version = '0.7.0'
-    if version == '0.7.0':
-        import db.versions.v0_8_0.translate.v0_7_0
-        vistrail = \
-            db.versions.v0_8_0.translate.v0_7_0.translateVistrail(vistrail)
-        version = '0.8.0'
+
+    version_map = {
+        '0.3.0': '0.3.1',
+        '0.3.1': '0.6.0',
+        '0.5.0': '0.6.0',
+        '0.6.0': '0.7.0',
+        '0.7.0': '0.8.0',
+        '0.8.0': '0.8.1',
+        }
+
+    def get_translate_module(start_version):
+        end_version = version_map[start_version]
+        translate_dir = 'db.versions.' + get_version_name(end_version) + \
+            '.translate.' + get_version_name(start_version)
+        return __import__(translate_dir, {}, {}, [''])
+
+    # don't get stuck in an infinite loop
+    count = 0
+    while version != currentVersion:
+        if count > len(version_map):
+            break
+        translate_module = get_translate_module(version)
+        vistrail = translate_module.translateVistrail(vistrail)
+        version = vistrail.db_version
+        count += 1
+
     if version != currentVersion:
         msg = "An error occurred when translating,"
         msg += "only able to translate to version '%s'" % version
-        raise Exception(msg)
+        raise VistrailsDBException(msg)
 
     return vistrail
+
+def get_version_name(version_no):
+    return 'v' + version_no.replace('.', '_')
 
 def getVersionSchemaDir(version=None):
     if version is None:
         version = currentVersion
-    
-    versionName = 'v' + version.replace('.', '_')
+    versionName = get_version_name(version)
     schemaDir = vistrails_root_directory()
     schemaDir = os.path.join(vistrails_root_directory(), 'db', 'versions', 
                              versionName, 'schemas', 'sql')
