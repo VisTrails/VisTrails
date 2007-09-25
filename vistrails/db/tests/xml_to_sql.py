@@ -5,23 +5,11 @@ os.environ['EXECUTABLEPATH'] = '/vistrails/VisTrails.app/Contents/MacOS'
 from db.services import io
 
 def convert_xml_to_sql(filename):
-#     config = {'host': 'localhost', 
-#               'port': 3306,
-#               'user': 'vistrails',
-#               'passwd': 'vistrailspwd',
-#               'db': 'vistrails'}
-
-    config = {'host': 'vistrails.sci.utah.edu', 
+    config = {'host': 'localhost', 
               'port': 3306,
-              'user': 'visadmin',
-              'passwd': 'uvgc07',
+              'user': 'vistrails',
+              'passwd': 'vistrailspwd',
               'db': 'vistrails'}
-
-#     config = {'host': 'vistrails.sci.utah.edu', 
-#               'port': 3306,
-#               'user': 'vistrails',
-#               'passwd': 'vtutesdb',
-#               'db': 'vistrails'}
 
     try:
         vistrail = io.open_vistrail_from_xml(filename)
