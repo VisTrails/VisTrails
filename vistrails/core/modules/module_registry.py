@@ -29,7 +29,7 @@ import core.modules
 import core.modules.vistrails_module
 from core.utils import VistrailsInternalError, memo_method, all, \
      InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
-     all
+     all, profile
 from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
@@ -235,7 +235,7 @@ class ModuleDescriptor(object):
         self._widget_item = None
         self._input_port_cache = {}
         self._output_port_cache = {}
-
+        self._port_caches = (self._input_port_cache, self._output_port_cache)
 
     def assign(self, other):
         """assign(ModuleDescriptor) -> None. Assigns values from other
@@ -298,29 +298,19 @@ class ModuleDescriptor(object):
     ##########################################################################
     # Spec cache interface
 
+    # port_types are ints, and not enums!
+    # 1 == Destination. enum.__eq__ is slow on the hotpath
+    # 0 == Source. enum.__eq__ is slow on the hotpath
+
+
     def has_port(self, name, port_type):
-        if port_type == PortEndPoint.Destination:
-            return name in self._input_port_cache
-        elif port_type == PortEndPoint.Source:
-            return name in self._output_port_cache
-        else:
-            raise VistrailsInternalError('port_type is wrong')
+        return name in self._port_caches[port_type]
 
     def get_port(self, name, port_type):
-        if port_type == PortEndPoint.Destination:
-            return self._input_port_cache[name]
-        elif port_type == PortEndPoint.Source:
-            return self._output_port_cache[name]
-        else:
-            raise VistrailsInternalError('port_type is wrong')
+        return self._port_caches[port_type][name]
 
     def set_port(self, name, port_type, spec):
-        if port_type == PortEndPoint.Destination:
-            self._input_port_cache[name] = spec
-        elif port_type == PortEndPoint.Source:
-            self._output_port_cache[name] = spec
-        else:
-            raise VistrailsInternalError('port_type is wrong')
+        self._port_caches[port_type][name] = spec
         
     ##########################################################################
 
@@ -910,15 +900,14 @@ class ModuleRegistry(QtCore.QObject):
 
     @staticmethod
     def _vis_port_from_spec(name, spec, descriptor, port_type):
-        # skip this assert because code is in hotpath
-        #         assert port_type == PortEndPoint.Destination or \
-        #                port_type == PortEndPoint.Source
-        if descriptor.has_port(name, port_type):
-            return descriptor.get_port(name, port_type)
-        if port_type == PortEndPoint.Destination:
+        try:
+            return descriptor._port_caches[port_type][name]
+        except KeyError:
+            pass
+        if port_type == 1: # 1 == Destination. enum.__eq__ is slow on the hotpath
             pt = 'destination'
             opt = descriptor.input_ports_optional[name]
-        else:
+        else: # 0 == Source. enum.__eq__ is slow on the hotpath
             pt = 'source'
             opt = descriptor.output_ports_optional[name]
         result = Port(name=name,
@@ -935,7 +924,7 @@ class ModuleRegistry(QtCore.QObject):
         if sorted:
             v.sort(lambda (n1, v1), (n2, v2): cmp(n1,n2))
         getter = self._vis_port_from_spec
-        return [getter(name, spec, descriptor, PortEndPoint.Source)
+        return [getter(name, spec, descriptor, 0)
                 for (name, spec) in v]
 
     def destination_ports_from_descriptor(self, descriptor, sorted=True):
@@ -943,7 +932,7 @@ class ModuleRegistry(QtCore.QObject):
         if sorted:
             v.sort(lambda (n1, v1), (n2, v2): cmp(n1,n2))
         getter = self._vis_port_from_spec
-        return [getter(name, spec, descriptor, PortEndPoint.Destination)
+        return [getter(name, spec, descriptor, 1)
                 for (name, spec) in v]
 
     def all_source_ports(self, descriptor, sorted=True):

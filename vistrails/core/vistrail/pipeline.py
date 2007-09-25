@@ -39,6 +39,7 @@ from db.domain import DBWorkflow
 from types import ListType
 import core.vistrail.action
 import core.modules.module_registry
+from core.utils import profile
 
 from xml.dom.minidom import getDOMImplementation, parseString
 import copy
@@ -757,21 +758,18 @@ class Pipeline(DBWorkflow):
         def source_spec(port):
             module = self.get_module_by_id(port.moduleId)
             reg = module.registry or registry
-            descriptor = reg.get_descriptor_by_name(module.package,
-                                                    module.name)
             port_list = []
             def do_it(ports):
-                for (_, lst) in ports:
-                    port_list.extend([p for p in lst
-                                      if (p.__dict__['_DBPort__db_name'] ==
-                                          port.__dict__['_DBPort__db_name'])])
+                # Following line is weird because we're in a hot-path
+                port_list.extend([p for p in ports
+                                  if (p.__dict__['_DBPort__db_name'] ==
+                                      port.__dict__['_DBPort__db_name'])])
 
-            do_it(reg.all_source_ports(descriptor))
+            do_it(reg.module_source_ports(False, module.package, module.name))
             if len(port_list) == 0:
                 # The port might still be in the original registry
-                d = registry.get_descriptor_by_name(module.package,
-                                                    module.name)
-                do_it(registry.all_source_ports(d))
+                do_it(registry.module_source_ports(False, module.package,
+                                                   module.name))
             if len(port_list) == 0:
                 print "Failed", module.package, module.name, port.name
                 assert False
@@ -793,23 +791,18 @@ class Pipeline(DBWorkflow):
         def destination_spec(port):
             module = self.get_module_by_id(port.moduleId)
             reg = module.registry or registry
-            descriptor = reg.get_descriptor_by_name(module.package,
-                                                    module.name)
             port_list = []
             def do_it(ports):
-                for (_, lst) in ports:
-                    # Following line is weird because we're on
-                    # a hot-path
-                    port_list.extend([p for p in lst
-                                      if (p.__dict__['_DBPort__db_name'] ==
-                                          port.__dict__['_DBPort__db_name'])])
+                # Following line is weird because we're in a hot-path
+                port_list.extend([p for p in ports
+                                  if (p.__dict__['_DBPort__db_name'] ==
+                                      port.__dict__['_DBPort__db_name'])])
 
-            do_it(reg.all_destination_ports(descriptor))
+            do_it(reg.module_destination_ports(False, module.package, module.name))
             if len(port_list) == 0:
                 # The port might still be in the original registry
-                d = registry.get_descriptor_by_name(module.package,
-                                                    module.name)
-                do_it(registry.all_destination_ports(d))
+                do_it(registry.module_destination_ports(False, module.package,
+                                                        module.name))
             if len(port_list) == 0:
                 print "Failed", module.package, module.name, port.name
                 assert False
