@@ -82,6 +82,6 @@ def getCurrentOperationDict(actions, currentOperations=None):
 def getCurrentOperations(actions):
     # sort the values left in the hash and return the list
     sortedOperations = getCurrentOperationDict(actions).values()
-    sortedOperations.sort(lambda x, y: cmp(x.db_id, y.db_id))
+    sortedOperations.sort(key=lambda x: x.db_id)
     return sortedOperations
 

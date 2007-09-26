@@ -288,7 +288,7 @@ def translateMoveModuleAction(_action):
 
 def convertIds(vistrail):
     actions = vistrail.db_get_actions()
-    actions.sort(lambda x,y: cmp(x.db_id, y.db_id))
+    actions.sort(key=lambda x: x.db_id)
     objectDict = {}
 #    refDict = {'objectDict': objectDict}
 

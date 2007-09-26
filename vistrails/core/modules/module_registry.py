@@ -517,7 +517,7 @@ class ModuleRegistry(QtCore.QObject):
     def _unique_sorted_ports(ports):
         if len(ports)==0:
             return ports
-        ports.sort(lambda n1,n2: cmp(n1.sort_key,n2.sort_key))
+        ports.sort(key=lambda n1: n1.sort_key)
         result = [ports[0]]
         names = [p.name for p in ports]
         for i in xrange(1,len(names)):
@@ -922,7 +922,7 @@ class ModuleRegistry(QtCore.QObject):
     def source_ports_from_descriptor(self, descriptor, sorted=True):
         v = descriptor.output_ports.items()
         if sorted:
-            v.sort(lambda (n1, v1), (n2, v2): cmp(n1,n2))
+            v.sort(key=lambda (n1, v1): n1)
         getter = self._vis_port_from_spec
         return [getter(name, spec, descriptor, 0)
                 for (name, spec) in v]
@@ -930,7 +930,7 @@ class ModuleRegistry(QtCore.QObject):
     def destination_ports_from_descriptor(self, descriptor, sorted=True):
         v = descriptor.input_ports.items()
         if sorted:
-            v.sort(lambda (n1, v1), (n2, v2): cmp(n1,n2))
+            v.sort(key=lambda (n1, v1): n1)
         getter = self._vis_port_from_spec
         return [getter(name, spec, descriptor, 1)
                 for (name, spec) in v]

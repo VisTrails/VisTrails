@@ -104,7 +104,7 @@ class AbstractionModule(DBAbstractionRef):
     name = property(_get_name, _set_name)
 
     def _get_functions(self):
-        self.db_functions.sort(lambda x, y: cmp(x.db_pos, y.db_pos))
+        self.db_functions.sort(key=lambda x: x.db_pos)
         return self.db_functions
     def _set_functions(self, functions):
 	# want to convert functions to hash...?

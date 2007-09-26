@@ -234,9 +234,9 @@ def simplifyOps(ops):
         opCount -= 1
 
     deletes = deleteDict.values()
-    deletes.sort(lambda x, y: -cmp(x.db_id, y.db_id))
+    deletes.sort(key=lambda x: -x.db_id) # faster than sort(lambda x, y: -cmp(x.db_id, y.db_id))
     adds = addDict.values()
-    adds.sort(lambda x, y: -cmp(x.db_id, y.db_id))
+    adds.sort(key=lambda x: -x.db_id) # faster than sort(lambda x, y: -cmp(x.db_id, y.db_id))
     return deletes + adds
 
 def getPathAsAction(vistrail, v1, v2):
@@ -252,16 +252,16 @@ def getPathAsAction(vistrail, v1, v2):
     
     # need to invert one of them (v1)
     v1Adds = v1AddDict.values()
-    v1Adds.sort(lambda x, y: cmp(x.db_id, y.db_id))
+    v1Adds.sort(key=lambda x: x.db_id) # faster than sort(lambda x, y: cmp(x.db_id, y.db_id))
     v1Deletes = v1DeleteDict.values()
-    v1Deletes.sort(lambda x, y: cmp(x.db_id, y.db_id))
+    v1Deletes.sort(key=lambda x: x.db_id) # faster than sort(lambda x, y: cmp(x.db_id, y.db_id))
     v1InverseOps = invertOperations(sharedOperationDict, v1Adds, v1Deletes)
     
     # need to normalize ops of the other (v2)
     v2Adds = v2AddDict.values()
-    v2Adds.sort(lambda x, y: cmp(x.db_id, y.db_id))
+    v2Adds.sort(key=lambda x: x.db_id) # faster than sort(lambda x, y: cmp(x.db_id, y.db_id))
     v2Deletes = v2DeleteDict.values()
-    v2Deletes.sort(lambda x, y: cmp(x.db_id, y.db_id))
+    v2Deletes.sort(key=lambda x: x.db_id) # faster than sort(lambda x, y: cmp(x.db_id, y.db_id))
     v2Ops = normalOperations(v2Adds, v2Deletes)
 
     allOps = v1InverseOps + v2Ops
@@ -404,17 +404,17 @@ def getVersionDifferences(vistrail, versions):
         (vAddDict, vDeleteDict) = getOperationDiff(vActions, 
                                                    sharedOperationDict)
         vOnlyAdds = vAddDict.values()
-        vOnlyAdds.sort(lambda x,y: cmp(x.db_id, y.db_id))
+        vOnlyAdds.sort(key=lambda x: x.db_id)
         vOnlyDeletes = vDeleteDict.values()
-        vOnlyDeletes.sort(lambda x,y: cmp(x.db_id, y.db_id))
+        vOnlyDeletes.sort(key=lambda x: x.db_id)
         vOpDict = copy.copy(sharedOperationDict)
         updateOperationDict(vOpDict, vOnlyDeletes, vOnlyAdds)
         vOps = vOpDict.values()
-        vOps.sort(lambda x,y: cmp(x.db_id, y.db_id))
+        vOps.sort(key=lambda x: x.db_id)
         vOnlySorted.append((vOnlyAdds, vOnlyDeletes, vOps))
 
     sharedOps = sharedOperationDict.values()
-    sharedOps.sort(lambda x, y: cmp(x.db_id, y.db_id))
+    sharedOps.sort(key=lambda x: x.db_id)
 
     return (sharedOps, vOnlySorted)
 

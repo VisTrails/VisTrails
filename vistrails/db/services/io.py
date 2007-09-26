@@ -200,7 +200,7 @@ def open_vistrail_from_db(dbConnection, id, lock=False):
     # problem is that db reads the add ops, then change ops, then delete ops
     # need them ordered by their id
     for db_action in vt.db_get_actions():
-        db_action.db_operations.sort(lambda x,y: cmp(x.db_id, y.db_id))
+        db_action.db_operations.sort(key=lambda x: x.db_id)
     db.services.vistrail.updateIdScope(vt)
     return vt
 
