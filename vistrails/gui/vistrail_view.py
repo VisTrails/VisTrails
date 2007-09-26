@@ -130,6 +130,14 @@ class QVistrailView(QDockContainer):
             self.versionTab.versionView.pipFrame.graphicsView.setDefaultCursorState(mode)
 
 
+    def flush_changes(self):
+        """Flush changes in the vistrail before closing or saving.
+        """
+        # Quick workaround for notes focus out bug (ticket #182)
+        # There's probably a much better way to fix this.
+        prop = self.versionTab.versionProp
+        prop.versionNotes.commit_changes()
+
     def setInitialView(self):
         """setInitialView() -> None
         Sets up the correct initial view for a new vistrail, that is, 
