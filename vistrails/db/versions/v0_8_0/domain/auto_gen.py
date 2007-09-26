@@ -594,12 +594,12 @@ class DBPort(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBPort()
-        cp.db_id = self.db_id
-        cp.db_type = self.db_type
-        cp.db_moduleId = self.db_moduleId
-        cp.db_moduleName = self.db_moduleName
-        cp.db_name = self.db_name
-        cp.db_spec = self.db_spec
+        cp.__db_id = self.__db_id
+        cp.__db_type = self.__db_type
+        cp.__db_moduleId = self.__db_moduleId
+        cp.__db_moduleName = self.__db_moduleName
+        cp.__db_name = self.__db_name
+        cp.__db_spec = self.__db_spec
         
         # set new ids
         if new_ids:

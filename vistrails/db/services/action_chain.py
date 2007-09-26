@@ -38,41 +38,33 @@ def getCurrentOperationDict(actions, currentOperations=None):
     # any add adds to the dict, delete removes from the dict, and
     # change replaces the current value in the dict
     for action in actions:
-#         print 'action: %d' % action.db_id
         for operation in action.db_operations:
-            if operation.vtType == 'add':
-#                 print "add: %s %s" % (operation.db_what, 
-#                                       operation.db_objectId)
-#                 print "    to:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
-                currentOperations[(operation.db_what, 
-                                   operation.db_objectId)] = \
+            operationvtType = operation.vtType
+            d = operation.__dict__
+            if operationvtType == 'add':
+                currentOperations[(d['_DBAdd__db_what'], 
+                                   d['_DBAdd__db_objectId'])] = \
                                    operation
-            elif operation.vtType == 'delete':
-#                 print "del: %s %s" % (operation.db_what, 
-#                                       operation.db_objectId)
-#                 print "    from:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
-                if currentOperations.has_key((operation.db_what,
-                                              operation.db_objectId)):
-                    del currentOperations[(operation.db_what, 
-                                           operation.db_objectId)]
-                else:
+            elif operationvtType == 'delete':
+                what = d['_DBDelete__db_what']
+                objectId = d['_DBDelete__db_objectId']
+                t = (what, objectId)
+                try:
+                    del currentOperations[t]
+                except KeyError:
                     msg = "Illegal delete operation"
                     raise Exception(msg)
-            elif operation.vtType == 'change':
-#                 print "chg: %s %s %s" % (operation.db_what, 
-#                                          operation.db_oldObjId,
-#                                          operation.db_newObjId)
-#                 print "    at:  %s %s" % (operation.db_parentObjType, operation.db_parentObjId)
-                if currentOperations.has_key((operation.db_what,
-                                              operation.db_oldObjId)):
-                    del currentOperations[(operation.db_what, 
-                                           operation.db_oldObjId)]
-                else:
+            elif operationvtType == 'change':
+                what = d['_DBChange__db_what']
+                objectId = d['_DBChange__db_oldObjId']
+                t = (what, objectId)
+                try:
+                    del currentOperations[t]
+                except KeyError:
                     msg = "Illegal change operation"
                     raise Exception(msg)
-
-                currentOperations[(operation.db_what, 
-                                   operation.db_newObjId)] = operation
+                currentOperations[(what,
+                                   d['_DBChange__db_newObjId'])] = operation
             else:
                 msg = "Unrecognized operation '%s'" % operation.vtType
                 raise Exception(msg)

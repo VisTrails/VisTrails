@@ -69,18 +69,18 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         Create the shape, initialize its pen and brush accordingly
         
         """
+        # local lookups are faster than global lookups..
+        t = CurrentTheme
         QtGui.QGraphicsRectItem.__init__(self, parent, scene)
         self.setZValue(1)
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
-        self.setPen(CurrentTheme.PORT_PEN)
-        self.setBrush(CurrentTheme.PORT_BRUSH)
+        self.setPen(t.PORT_PEN)
+        self.setBrush(t.PORT_BRUSH)
         if not optional:
             self.paint = self.paintRect
         else:
             self.paint = self.paintEllipse
-        self.setRect(QtCore.QRectF(0, 0,
-                                   CurrentTheme.PORT_WIDTH,
-                                   CurrentTheme.PORT_HEIGHT))
+        self.setRect(t.PORT_RECT)
         self.controller = None
         self.port = None
         self.dragging = False
@@ -807,7 +807,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         for p in module.destinationPorts():
             if not p.optional:
                 inputPorts.append(p)
-            elif (PortEndPoint.Destination, p.name) in module.portVisible:
+            elif (PortEndPoint.Destination, p.__dict__['_DBPort__db_name']) in module.portVisible:
                 visibleOptionalPorts.append(p)
             else:
                 self.optionalInputPorts.append(p)
@@ -819,45 +819,49 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         for p in module.sourcePorts():
             if not p.optional:
                 outputPorts.append(p)
-            elif (PortEndPoint.Source, p.name) in module.portVisible:
+            elif (PortEndPoint.Source, p.__dict__['_DBPort__db_name']) in module.portVisible:
                 visibleOptionalPorts.append(p)
             else:
                 self.optionalOutputPorts.append(p)
         outputPorts += visibleOptionalPorts
 
+        # Local dictionary lookups are faster than global ones..
+        t = CurrentTheme
+        (mpm0, mpm1, mpm2, mpm3) = t.MODULE_PORT_MARGIN
+
         # Adjust the width to fit all ports
         maxPortCount = max(len(inputPorts), len(outputPorts))
-        minWidth = (CurrentTheme.MODULE_PORT_MARGIN[0] +
-                    CurrentTheme.PORT_WIDTH*maxPortCount +
-                    CurrentTheme.MODULE_PORT_SPACE*(maxPortCount-1) +
-                    CurrentTheme.MODULE_PORT_MARGIN[2] +
-                    CurrentTheme.MODULE_PORT_PADDED_SPACE)
+        minWidth = (mpm0 +
+                    t.PORT_WIDTH*maxPortCount +
+                    t.MODULE_PORT_SPACE*(maxPortCount-1) +
+                    mpm2 +
+                    t.MODULE_PORT_PADDED_SPACE)
         self.adjustWidthToMin(minWidth)
 
         # Update input ports
-        y = self.paddedRect.y() + CurrentTheme.MODULE_PORT_MARGIN[1]
-        x = self.paddedRect.x() + CurrentTheme.MODULE_PORT_MARGIN[0]
+        y = self.paddedRect.y() + mpm1
+        x = self.paddedRect.x() + mpm0
         self.inputPorts = {}
         for port in inputPorts:
             self.inputPorts[port] = self.createPortItem(port, x, y)
-            x += CurrentTheme.PORT_WIDTH + CurrentTheme.MODULE_PORT_SPACE
+            x += t.PORT_WIDTH + t.MODULE_PORT_SPACE
         self.nextInputPortPos = [x,y]
 
         # Update output ports
-        y = (self.paddedRect.bottom() - CurrentTheme.PORT_HEIGHT
-             - CurrentTheme.MODULE_PORT_MARGIN[3])
-        x = (self.paddedRect.right() - CurrentTheme.PORT_WIDTH
-             - CurrentTheme.MODULE_PORT_MARGIN[2])
+        y = (self.paddedRect.bottom() - t.PORT_HEIGHT
+             - mpm3)
+        x = (self.paddedRect.right() - t.PORT_WIDTH
+             - mpm2)
         self.outputPorts = {}
         for port in outputPorts:            
             self.outputPorts[port] = self.createPortItem(port, x, y)
-            x -= CurrentTheme.PORT_WIDTH + CurrentTheme.MODULE_PORT_SPACE
+            x -= t.PORT_WIDTH + t.MODULE_PORT_SPACE
         self.nextOutputPortPos = [x, y]
 
         # Add a configure button
-        y = self.paddedRect.y() + CurrentTheme.MODULE_PORT_MARGIN[1]
-        x = (self.paddedRect.right() - CurrentTheme.CONFIGURE_WIDTH
-             - CurrentTheme.MODULE_PORT_MARGIN[2])
+        y = self.paddedRect.y() + mpm1
+        x = (self.paddedRect.right() - t.CONFIGURE_WIDTH
+             - mpm2)
         self.createConfigureItem(x, y)
         
         # Update module shape, if necessary
