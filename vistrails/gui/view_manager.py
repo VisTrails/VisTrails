@@ -299,6 +299,8 @@ class QViewManager(QtGui.QTabWidget):
         """
         if not vistrailView:
             vistrailView = self.currentWidget()
+        vistrailView.flush_changes()
+        
         if vistrailView:
             gui_get = locator_class.save_from_gui
             # get a locator to write to
@@ -322,6 +324,8 @@ class QViewManager(QtGui.QTabWidget):
         """
         if not vistrailView:
             vistrailView = self.currentWidget()
+        vistrailView.flush_changes()
+            
         if vistrailView:
             if not quiet and vistrailView.controller.changed:
                 text = vistrailView.controller.name

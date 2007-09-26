@@ -252,13 +252,16 @@ class QVersionNotes(QtGui.QTextEdit):
                 self.setEnabled(False)
         self.setPlainText('')
 
+    def commit_changes(self):
+        if self.controller and self.document().isModified():
+            self.controller.updateNotes(str(self.toHtml()))
+
     def focusOutEvent(self, event):
         """ focusOutEvent(event: QFocusEvent) -> None
         Update the version notes if the text has been modified
         
         """
-        if self.controller and self.document().isModified():
-            self.controller.updateNotes(str(self.toHtml()))
+        self.commit_changes()
 
     def trim_first_paragraph(self):
         doc = self.document()
