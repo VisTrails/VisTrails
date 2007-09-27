@@ -62,7 +62,7 @@ class QVistrailView(QDockContainer):
             self.versionTab.versionView.scene())
         self.versionTab.versionView.setPIPScene(            
             self.pipelineTab.pipelineView.scene())
-
+        self.versionTab.versionView.scene()._pipeline_scene = self.pipelineTab.pipelineView.scene()
         self.queryTab = QQueryTab()
 
         self.peTab = QParameterExplorationTab()

@@ -178,6 +178,8 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
             if len(prevIds)>0:
                 for prevId in prevIds:
                     item = self.pipelineView.scene().modules[prevId]
+                    if item.isSelected():
+                        self.moduleMethods.updateModule(item.module)
                     item.setSelected(True)
                     item.update()
                 self.controller.previousModuleIds = []
@@ -195,7 +197,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         """
         controller = self.pipelineView.scene().controller
         moves = []
-        for (mId, item) in self.pipelineView.scene().modules.items():
+        for (mId, item) in self.pipelineView.scene().modules.iteritems():
             module = controller.currentPipeline.modules[mId]
             (dx,dy) = (item.scenePos().x(), -item.scenePos().y())
             if (dx != module.center.x or dy != module.center.y):

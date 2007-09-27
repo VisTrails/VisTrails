@@ -52,6 +52,7 @@ from gui.module_documentation import QModuleDocumentation
 from gui.theme import CurrentTheme
 from xml.dom.minidom import getDOMImplementation, parseString
 import math
+import copy
 
 ################################################################################
 # QGraphicsPortItem
@@ -156,7 +157,14 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
                 conn.sourceId = snapModuleId
                 conn.destinationId = self.parentItem().id
             conn.id = self.controller.currentPipeline.fresh_connection_id()
+            self.scene().removeItem(self.connection)
+            self.connection.snapPort.setPen(CurrentTheme.PORT_PEN)
+            self.connection = None
+            self.dragging = False
+            self.setPen(CurrentTheme.PORT_PEN)
+            QtGui.QGraphicsRectItem.mouseReleaseEvent(self, event)
             self.controller.add_connection(conn)
+            self.scene().reset_module_colors()
             # the add_connection call will trigger a chain of signals
             # that results ultimately in 'self' being deleted, so
             # we can't do anything else and must return right away.
@@ -667,6 +675,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.module = None
         self.ghosted = False
         self._module_shape = None
+        self._moved = False
 
     def computeBoundingRect(self):
         """ computeBoundingRect() -> None
@@ -784,7 +793,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.setZValue(float(self.id))
         self.module = module
         self.label = module.name
-        # self.description = module.annotations.get('__desc__', '').strip()
         if module.has_annotation_with_key('__desc__'):
             self.description = \
                 module.get_annotation_by_key('__desc__').value.strip()
@@ -998,6 +1006,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         """
         # Move connections with modules
         if change==QtGui.QGraphicsItem.ItemPositionChange:
+            self._moved = True
             oldPos = self.pos()
             newPos = value.toPointF()
             dis = newPos - oldPos
@@ -1119,8 +1128,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self.setSceneRect(QtCore.QRectF(-5000, -5000, 10000, 10000))
         self.controller = None
         self.modules = {}
+        self.connections = {}
         self.noUpdate = False
         self.installEventFilter(self)
+        self._old_module_ids = set()
+        self._old_connection_ids = set()
 
 
 #        menu = QtGui.QMenu()
@@ -1169,6 +1181,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         srcModule.addConnectionItem(connectionItem, False)
         dstModule.addConnectionItem(connectionItem, True)
         self.addItem(connectionItem)
+        self.connections[connection.id] = connectionItem
         return connectionItem
 
     def selected_subgraph(self):
@@ -1202,8 +1215,11 @@ mutual connections."""
         
         """
         self.modules = {}
+        self.connections = {}
+        self._old_module_ids = set()
+        self._old_connection_ids = set()
         self.clearItems()
-
+        
     def setupScene(self, pipeline):
         """ setupScene(pipeline: Pipeline) -> None
         Construct the scene to view a pipeline
@@ -1212,18 +1228,64 @@ mutual connections."""
         if self.noUpdate: return
         needReset = len(self.items())==0        
         # Clean the previous scene
-        self.clear()
 
         if pipeline:
-            # Create module shapes
-            for mId, module in pipeline.modules.iteritems():
-                self.addModule(module)
-                    
-            pipeline.ensure_connection_specs()
-            # Create connection shapes
-            for connection in pipeline.connections.itervalues():
-                self.addConnection(connection)
+            new_modules = set(pipeline.modules)
+            modules_to_be_added = new_modules - self._old_module_ids
+            modules_to_be_deleted = self._old_module_ids - new_modules
 
+            common_modules = new_modules.intersection(self._old_module_ids)
+            # remove old module shapes
+            for m_id in modules_to_be_deleted:
+                self.removeItem(self.modules[m_id])
+                del self.modules[m_id]
+
+            # create new module shapes
+            for m_id in modules_to_be_added:
+                self.addModule(pipeline.modules[m_id])
+
+            moved = set()
+            # Update common modules
+            for m_id in common_modules:
+                m = self.modules[m_id]
+                if m._moved:
+                    m.setPos(QtCore.QPointF(0.0, 0.0))
+                    moved.add(m_id)
+                    m._moved = False
+
+            new_connections = set(pipeline.connections)
+            connections_to_be_added = new_connections - self._old_connection_ids
+            connections_to_be_deleted = self._old_connection_ids - new_connections
+            common_connections = new_connections.intersection(self._old_connection_ids)
+
+            # remove old connection shapes
+            for c_id in connections_to_be_deleted:
+                self.removeItem(self.connections[c_id])
+                del self.connections[c_id]
+
+            # create new connection shapes
+            for c_id in connections_to_be_added:
+                self.addConnection(pipeline.connections[c_id])
+
+            # Update common connections
+            for c_id in common_connections:
+                connection = pipeline.connections[c_id]
+                pip_c = self.connections[c_id]
+                pip_c.connectingModules = (self.modules[connection.source.moduleId],
+                                           self.modules[connection.destination.moduleId])
+                (srcModule, dstModule) = pip_c.connectingModules
+                if (srcModule.module.id in moved) or (dstModule.module.id in moved):
+                    print "MOVE!", srcModule.module.id in moved, dstModule.module.id in moved
+                    srcPoint = srcModule.getOutputPortPosition(connection.source)
+                    dstPoint = dstModule.getInputPortPosition(connection.destination)
+                    pip_c.setupConnection(dstPoint, srcPoint)
+
+            self._old_module_ids = new_modules
+            self._old_connection_ids = new_connections
+            self.unselect_all()
+            self.reset_module_colors()
+
+            
         # Update bounding rects and fit to all view
         self.updateSceneBoundingRect()        
 
@@ -1281,11 +1343,14 @@ mutual connections."""
                     item.descriptor.name,
                     event.scenePos().x(),
                     -event.scenePos().y())
+                self.reset_module_colors()
                 graphics_item = self.addModule(module)
                 graphics_item.update()
                 self.unselect_all()
                 # Change selection
                 graphics_item.setSelected(True)
+                self._old_connection_ids = set(self.controller.currentPipeline.connections)
+                self._old_module_ids = set(self.controller.currentPipeline.modules)
                 
                 # We are assuming the first view is the real pipeline view                
                 self.views()[0].setFocus()
@@ -1331,6 +1396,7 @@ mutual connections."""
                             del self.modules[mId]
                     self.removeItems(selectedItems)
                     self.updateSceneBoundingRect()
+                    self.reset_module_colors()
                     self.update()
                     self.noUpdate = False
                     # Notify that no module is selected
@@ -1340,6 +1406,7 @@ mutual connections."""
                     self.controller.resetPipelineView = False
                     idList = [conn.id for conn in selectedItems]
                     self.controller.deleteConnectionList(idList)
+                    self.reset_module_colors()
         elif (event.key()==QtCore.Qt.Key_C and
               event.modifiers()==QtCore.Qt.ControlModifier):
             self.copySelection()
@@ -1392,7 +1459,7 @@ mutual connections."""
 #                           conn.serialize(dom, root)
                             connections[conn.id] = conn
             text = self.controller.copyModulesAndConnections(modules.values(), 
-                                                          connections.values())
+                                                             connections.values())
             cb.setText(text)
             
     def pasteFromClipboard(self):
@@ -1405,6 +1472,7 @@ mutual connections."""
             text = str(cb.text())
             if text=='': return
             ids = self.controller.pasteModulesAndConnections(text)
+            self.reset_module_colors()
             if len(ids) > 0:
                 self.unselect_all()
             for moduleId in ids:
@@ -1541,6 +1609,11 @@ mutual connections."""
                                      QModuleStatusEvent(moduleId, 4, ''))
         QtCore.QCoreApplication.processEvents()
 
+
+    def reset_module_colors(self):
+        b = CurrentTheme.MODULE_BRUSH
+        for module in self.modules.itervalues():
+            module.moduleBrush = b
 
 class QModuleStatusEvent(QtCore.QEvent):
     """

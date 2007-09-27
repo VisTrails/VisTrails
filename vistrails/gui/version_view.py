@@ -281,7 +281,10 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         # Do not allow links to be selected with version
         
         """
-        if change==QtGui.QGraphicsItem.ItemSelectedChange:
+        if ((change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool()) or
+            (change==QtGui.QGraphicsItem.ItemSelectedChange and
+             ((not value.toBool()) and
+              len(self.scene().selectedItems()) == 1))):
             selectedItems = self.scene().selectedItems()
             selectedId = -1
             selectByClick = not self.scene().multiSelecting
@@ -384,7 +387,6 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         
         """
         self.dragging = False
-
         qt_super(QGraphicsVersionItem, self).mouseReleaseEvent(event)
 
     def dragEnterEvent(self, event):
@@ -610,6 +612,14 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                                           gui.utils.NO_BUTTON)
             if res == gui.utils.YES_BUTTON:
                 self.controller.pruneVersions(versions)
+
+    def mouseReleaseEvent(self, event):
+        """ mouseReleaseEvent(event: QMouseEvent) -> None
+        
+        """
+        if len(self.selectedItems()) != 1:
+            self._pipeline_scene.clear()
+        qt_super(QVersionTreeScene, self).mouseReleaseEvent(event)
 
 class QVersionTreeView(QInteractiveGraphicsView):
     """
