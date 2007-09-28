@@ -14,44 +14,31 @@ Please see the About Message for Licensing and Disclaimers.
 
 RELEASE NOTES
 -------------
-Release Name: 606
+Release Name: v1.0beta rev954
 
 Changes:
+ - Added module VTKRenderOffscreen to vtk package
 
- - Packages:
-     * Added missing ports in some VTK classes
-     * Catching VTK error messages
+Bug fixes:
+ - Version tags couldn't be reused
+ - Some vtk writers couldn't be dragged to the pipeline canvas
+ - Vistrails crashed when trying to copy and paste something other than
+   a serialized pipeline
+ - Modules lose focus when dragging to the pipeline canvas
+ - Modules downstream of a error module were green (as if they were executed)
+ - Select All button on the spreadsheet was not working
+ - Creating a version from the spreadsheet didn't work
+ - Tags weren't deleted when pruning the tree 
+ - Booleans weren't supported in parameter exploration
+ - Fixed double-clicking on a vt file when opening vistrails on Windows
 
- - Builder:
-     * Improvements in the VisTrails Shell
-     * Query by Example now accepts module parameters in the queries
+From Release rev921:
 
- - Spreadsheet:
-     * Added new base class for spreadsheet cell
-     * Added a Edit mode for copying and moving cells
-     * Supporting more kinds of interactive widgets
- 
- - Examples:
-     * Added Circular Transect workflow to corie.xml
-
-Fixes:
-
- - Parameter Exploration:
-     * Parameter exploration execution can be canceled
-
- - Builder:
-     * Fixed Copy and Paste Tuple modules
-     * Fixed resizing problems on linux
- 
- - Spreadsheet:
-     * More resizing problems were fixed 
-
- - Installer:
-     * Added missing dlls
-
- - Better handling of path names with spaces
-
- - Other minor fixes and coding reorganization
+Changes:
+ - Interface was improved and it is now more consistent
+ - General configuration and package management accessible through menu Edit->Preferences
+ - Using a more efficient file format (*.vt)
+ - Auto saving feature
 
 --------------------------------------------------------------------
 
