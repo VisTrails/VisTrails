@@ -248,7 +248,8 @@ def translateDeleteModulePortAction(_action):
     for _portSpec in _action.db_datas:
         operation = DBDelete(id=_action.db_time,
                              what='portSpec',
-                             objectId=_portSpec.db_portName,
+                             objectId=(_portSpec.db_portName,
+                                       _portSpec.db_portType),
                              parentObjId=_portSpec.db_moduleId,
                              parentObjType='module')
         operations.append(operation)
