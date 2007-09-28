@@ -57,6 +57,7 @@ class QAnnotatedPipelineView(QPipelineView, QToolWindowInterface):
         
         """
         QPipelineView.paintEvent(self, event)
+        # super(QAnnotatedPipelineView, self).paintEvent(event)
         if self.scene():
             painter = QtGui.QPainter(self.viewport())
             for mId, annotatedId in \
