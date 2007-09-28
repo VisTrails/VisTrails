@@ -172,9 +172,11 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         controller
         
         """
+        prevIds = self.controller.previousModuleIds
+        self.pipelineView.scene()._old_module_ids.difference_update(prevIds)
+
         self.updatePipeline(self.controller.currentPipeline)
         if newVersion>=0:            
-            prevIds = self.controller.previousModuleIds
             if len(prevIds)>0:
                 for prevId in prevIds:
                     item = self.pipelineView.scene().modules[prevId]
