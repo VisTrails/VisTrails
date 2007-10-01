@@ -307,8 +307,8 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
                     if type(item)==QGraphicsRubberBandItem:
                         selectByClick = True
                         break
-            self.scene().emit(QtCore.SIGNAL('versionSelected(int,bool)'),
-                              selectedId, selectByClick)
+#             self.scene().emit(QtCore.SIGNAL('versionSelected(int,bool)'),
+#                               selectedId, selectByClick)
             # Update the selected items list to include only versions and 
             # check if two versions selected
             selectedVersions = [item for item in 
@@ -347,7 +347,9 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         if event.button()==QtCore.Qt.LeftButton:
             self.dragging = True
             self.dragPos = QtCore.QPoint(event.screenPos())
-        QtGui.QGraphicsEllipseItem.mousePressEvent(self, event)
+            self.scene().emit(QtCore.SIGNAL('versionSelected(int, bool)'),
+                              self.id, True)
+        return QtGui.QGraphicsEllipseItem.mousePressEvent(self, event)
         # super(QGraphicsVersionItem, self).mousePressEvent(event)
         
     def mouseMoveEvent(self, event):

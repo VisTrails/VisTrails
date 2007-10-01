@@ -1357,6 +1357,62 @@ mutual connections."""
                 
                 self.noUpdate = False
 
+    def delete_selected_items(self):
+        selectedItems = self.selectedItems()
+        if len(selectedItems)>0:
+#             modules = [m for m in selectedItems if isinstance(m, QGraphicsModuleItem)]
+            modules = []
+            for m in selectedItems:
+                if type(m)==QGraphicsModuleItem:
+                    modules.append(m)
+            if len(modules)>0:
+                self.noUpdate = True
+                idList = [m.id for m in modules]
+                connections = []
+                for m in modules:
+                    connections += [c[0] for c in m.dependingConnectionItems]
+#                 print "CONNECTIONS:", connections
+                #update the dependency list on the other side of connections
+                for conn in connections:
+                    self._old_connection_ids.remove(conn.id)
+                    del self.connections[conn.id]
+                    if conn.connection.source:
+                        mid = conn.connection.source.moduleId 
+                        m = self.modules[mid]
+                        if m not in modules:
+                            m.removeConnectionItem(conn)
+                    if conn.connection.destination:
+                        mid = conn.connection.destination.moduleId
+                        m = self.modules[mid]
+                        if m not in modules:
+                            m.removeConnectionItem(conn)
+                self.controller.deleteModuleList(idList)
+                self.removeItems(connections)
+                for (mId, item) in self.modules.items():
+                    self._old_module_ids.remove(mId)
+                    if item in selectedItems:
+                        del self.modules[mId]
+                self.removeItems(selectedItems)
+                self.updateSceneBoundingRect()
+                self.reset_module_colors()
+                self.update()
+                self.noUpdate = False
+                # Notify that no module is selected
+                self.emit(QtCore.SIGNAL('moduleSelected'),
+                          -1, selectedItems)
+            else:
+                self.removeItems([it for it in selectedItems
+                                  if isinstance(it, QGraphicsConnectionItem)])
+                self.controller.resetPipelineView = False
+                idList = [conn.id for conn in selectedItems]
+                self._old_connection_ids.difference_update(set(idList))
+                for cId in idList:
+                    del self.connections[cId]
+                self.controller.deleteConnectionList(idList)
+                self.reset_module_colors()
+                self.controller.resetPipelineView = True
+        
+
     def keyPressEvent(self, event):
         """ keyPressEvent(event: QKeyEvent) -> None
         Capture 'Del', 'Backspace' for deleting modules.
@@ -1365,48 +1421,7 @@ mutual connections."""
         """        
         if (self.controller and
             event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
-            selectedItems = self.selectedItems()
-            if len(selectedItems)>0:
-                modules = []
-                for m in selectedItems:
-                    if type(m)==QGraphicsModuleItem:
-                        modules.append(m)
-                if len(modules)>0:
-                    self.noUpdate = True
-                    idList = [m.id for m in modules]
-                    connections = []
-                    for m in modules:
-                        connections += [c[0] for c in m.dependingConnectionItems]
-                    #update the dependency list on the other side of connections
-                    for conn in connections:
-                        if conn.connection.source:
-                            mid = conn.connection.source.moduleId 
-                            m = self.modules[mid]
-                            if m not in modules:
-                                m.removeConnectionItem(conn)
-                        if conn.connection.destination:
-                            mid = conn.connection.destination.moduleId
-                            m = self.modules[mid]
-                            if m not in modules:
-                                m.removeConnectionItem(conn)
-                    self.controller.deleteModuleList(idList)
-                    self.removeItems(connections)
-                    for (mId, item) in self.modules.items():
-                        if item in selectedItems:
-                            del self.modules[mId]
-                    self.removeItems(selectedItems)
-                    self.updateSceneBoundingRect()
-                    self.reset_module_colors()
-                    self.update()
-                    self.noUpdate = False
-                    # Notify that no module is selected
-                    self.emit(QtCore.SIGNAL('moduleSelected'),
-                              -1, selectedItems)
-                else:
-                    self.controller.resetPipelineView = False
-                    idList = [conn.id for conn in selectedItems]
-                    self.controller.deleteConnectionList(idList)
-                    self.reset_module_colors()
+            self.delete_selected_items()
         elif (event.key()==QtCore.Qt.Key_C and
               event.modifiers()==QtCore.Qt.ControlModifier):
             self.copySelection()
