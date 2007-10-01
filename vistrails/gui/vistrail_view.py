@@ -414,7 +414,6 @@ class QVistrailView(QDockContainer):
 
     def undo(self):
         """Performs one undo step, moving up the version tree."""
-        self.pipelineTab.flushMoveActions()
         action_map = self.controller.vistrail.actionMap
         old_action = action_map.get(self.controller.currentVersion, None)
         self.redo_stack.append(self.controller.currentVersion) 

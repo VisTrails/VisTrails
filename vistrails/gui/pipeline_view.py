@@ -157,18 +157,12 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
                 conn.sourceId = snapModuleId
                 conn.destinationId = self.parentItem().id
             conn.id = self.controller.currentPipeline.fresh_connection_id()
+            self.controller.add_connection(conn)
+            self.scene().addConnection(conn)
             self.scene().removeItem(self.connection)
             self.connection.snapPort.setPen(CurrentTheme.PORT_PEN)
             self.connection = None
-            self.dragging = False
-            self.setPen(CurrentTheme.PORT_PEN)
-            QtGui.QGraphicsRectItem.mouseReleaseEvent(self, event)
-            self.controller.add_connection(conn)
             self.scene().reset_module_colors()
-            # the add_connection call will trigger a chain of signals
-            # that results ultimately in 'self' being deleted, so
-            # we can't do anything else and must return right away.
-            return
         if self.connection:
             self.scene().removeItem(self.connection)
             self.connection = None
