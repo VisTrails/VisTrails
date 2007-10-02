@@ -138,6 +138,30 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
             event.accept()
         QtGui.QGraphicsRectItem.mousePressEvent(self, event)
         # super(QGraphicsPortItem, self).mousePressEvent(event)
+
+    def add_connection_event(self, event):
+        """Adds a new connection from a mouseReleaseEvent"""
+        snapModuleId = self.connection.snapPort.parentItem().id
+        if self.port.endPoint==PortEndPoint.Source:
+            conn = Connection.fromPorts(self.port,
+                                        self.connection.snapPort.port)
+            conn.sourceId = self.parentItem().id
+            conn.destinationId = snapModuleId
+        else:
+            conn = Connection.fromPorts(self.connection.snapPort.port,
+                                        self.port)
+            conn.sourceId = snapModuleId
+            conn.destinationId = self.parentItem().id
+        conn.id = self.controller.currentPipeline.fresh_connection_id()
+        self.controller.add_connection(conn)
+        self.scene().addConnection(conn)
+        self.scene().removeItem(self.connection)
+        self.connection.snapPort.setPen(CurrentTheme.PORT_PEN)
+        self.connection = None
+        self.scene().reset_module_colors()
+        # controller changed pipeline: update ids on scene
+        self.scene()._old_connection_ids = set(self.controller.currentPipeline.connections)
+        self.scene()._old_module_ids = set(self.controller.currentPipeline.modules)
         
     def mouseReleaseEvent(self, event):
         """ mouseReleaseEvent(event: QMouseEvent) -> None
@@ -145,24 +169,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         
         """
         if self.connection and self.connection.snapPort and self.controller:
-            snapModuleId = self.connection.snapPort.parentItem().id
-            if self.port.endPoint==PortEndPoint.Source:
-                conn = Connection.fromPorts(self.port,
-                                            self.connection.snapPort.port)
-                conn.sourceId = self.parentItem().id
-                conn.destinationId = snapModuleId
-            else:
-                conn = Connection.fromPorts(self.connection.snapPort.port,
-                                            self.port)
-                conn.sourceId = snapModuleId
-                conn.destinationId = self.parentItem().id
-            conn.id = self.controller.currentPipeline.fresh_connection_id()
-            self.controller.add_connection(conn)
-            self.scene().addConnection(conn)
-            self.scene().removeItem(self.connection)
-            self.connection.snapPort.setPen(CurrentTheme.PORT_PEN)
-            self.connection = None
-            self.scene().reset_module_colors()
+            self.add_connection_event(event)
         if self.connection:
             self.scene().removeItem(self.connection)
             self.connection = None
@@ -1128,7 +1135,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self._old_module_ids = set()
         self._old_connection_ids = set()
 
-
 #        menu = QtGui.QMenu()
 #        self._create_abstraction = QtGui.QAction("Create abstraction", self)
 #        menu.addAction(self._create_abstraction)
@@ -1212,7 +1218,18 @@ mutual connections."""
         self.connections = {}
         self._old_module_ids = set()
         self._old_connection_ids = set()
+        self.controller.previousModuleIds = []
         self.clearItems()
+
+    def remove_module(self, m_id):
+        """remove_module(m_id): None
+
+        Removes module from scene, updating appropriate data structures.
+
+        """
+        self.removeItem(self.modules[m_id])
+        del self.modules[m_id]
+        self._old_module_ids.remove(m_id)
         
     def setupScene(self, pipeline):
         """ setupScene(pipeline: Pipeline) -> None
@@ -1220,9 +1237,8 @@ mutual connections."""
         
         """
         if self.noUpdate: return
-        needReset = len(self.items())==0        
-        # Clean the previous scene
-
+        needReset = len(self.items())==0
+        
         if pipeline:
             new_modules = set(pipeline.modules)
             modules_to_be_added = new_modules - self._old_module_ids
@@ -1241,6 +1257,13 @@ mutual connections."""
             moved = set()
             # Update common modules
             for m_id in common_modules:
+                if (self.modules[m_id].module.center !=
+                    pipeline.modules[m_id].center):
+                    self.remove_module(m_id)
+                    self.addModule(pipeline.modules[m_id])
+                    moved.add(m_id)
+                    self.modules[m_id].moved = False
+                self.modules[m_id].module = pipeline.modules[m_id]
                 m = self.modules[m_id]
                 if m._moved:
                     m.setPos(QtCore.QPointF(0.0, 0.0))
@@ -1269,7 +1292,6 @@ mutual connections."""
                                            self.modules[connection.destination.moduleId])
                 (srcModule, dstModule) = pip_c.connectingModules
                 if (srcModule.module.id in moved) or (dstModule.module.id in moved):
-                    print "MOVE!", srcModule.module.id in moved, dstModule.module.id in moved
                     srcPoint = srcModule.getOutputPortPosition(connection.source)
                     dstPoint = dstModule.getInputPortPosition(connection.destination)
                     pip_c.setupConnection(dstPoint, srcPoint)
@@ -1316,6 +1338,33 @@ mutual connections."""
         for item in selected:
             item.setSelected(False)
 
+    def add_module_event(self, event, data):
+        """Adds a new module from a drop event"""
+        item = data.items[0]
+        self.controller.resetPipelineView = False
+        self.noUpdate = True
+        module = self.controller.add_module(
+            item.descriptor.identifier,
+            item.descriptor.name,
+            event.scenePos().x(),
+            -event.scenePos().y())
+        self.reset_module_colors()
+        graphics_item = self.addModule(module)
+        graphics_item.update()
+        self.unselect_all()
+        # Change selection
+        graphics_item.setSelected(True)
+
+        # controller changed pipeline: update ids
+        self._old_connection_ids = set(self.controller.currentPipeline.connections)
+        self._old_module_ids = set(self.controller.currentPipeline.modules)
+
+        # We are assuming the first view is the real pipeline view                
+        self.views()[0].setFocus()
+
+        self.noUpdate = False
+
+
     def dropEvent(self, event):
         """ dropEvent(event: QDragMoveEvent) -> None
         Accept drop event to add a new module
@@ -1329,27 +1378,7 @@ mutual connections."""
                 assert len(data.items) == 1
                 if self.controller.currentVersion==-1:
                     self.controller.changeSelectedVersion(0)
-                item = data.items[0]
-                self.controller.resetPipelineView = False
-                self.noUpdate = True
-                module = self.controller.add_module(
-                    item.descriptor.identifier,
-                    item.descriptor.name,
-                    event.scenePos().x(),
-                    -event.scenePos().y())
-                self.reset_module_colors()
-                graphics_item = self.addModule(module)
-                graphics_item.update()
-                self.unselect_all()
-                # Change selection
-                graphics_item.setSelected(True)
-                self._old_connection_ids = set(self.controller.currentPipeline.connections)
-                self._old_module_ids = set(self.controller.currentPipeline.modules)
-                
-                # We are assuming the first view is the real pipeline view                
-                self.views()[0].setFocus()
-                
-                self.noUpdate = False
+                self.add_module_event(event, data)
 
     def delete_selected_items(self):
         selectedItems = self.selectedItems()
@@ -1365,7 +1394,6 @@ mutual connections."""
                 connections = []
                 for m in modules:
                     connections += [c[0] for c in m.dependingConnectionItems]
-#                 print "CONNECTIONS:", connections
                 #update the dependency list on the other side of connections
                 for conn in connections:
                     self._old_connection_ids.remove(conn.id)
@@ -1383,10 +1411,8 @@ mutual connections."""
                 self.controller.deleteModuleList(idList)
                 self.removeItems(connections)
                 for (mId, item) in self.modules.items():
-                    self._old_module_ids.remove(mId)
                     if item in selectedItems:
-                        del self.modules[mId]
-                self.removeItems(selectedItems)
+                        self.remove_module(mId)
                 self.updateSceneBoundingRect()
                 self.reset_module_colors()
                 self.update()
@@ -1394,6 +1420,10 @@ mutual connections."""
                 # Notify that no module is selected
                 self.emit(QtCore.SIGNAL('moduleSelected'),
                           -1, selectedItems)
+                # Current pipeline changed, so we need to change the
+                # _old_*_ids. However, remove_module takes care of
+                # module ids, and the for loop above takes care of
+                # connection ids. So we don't need to call anything.
             else:
                 self.removeItems([it for it in selectedItems
                                   if isinstance(it, QGraphicsConnectionItem)])
@@ -1405,6 +1435,10 @@ mutual connections."""
                 self.controller.deleteConnectionList(idList)
                 self.reset_module_colors()
                 self.controller.resetPipelineView = True
+                # Current pipeline changed, so we need to change the
+                # _old_connection_ids. However, the difference_update
+                # above takes care of connection ids, so we don't need
+                # to call anything.
         
 
     def keyPressEvent(self, event):
@@ -1481,6 +1515,8 @@ mutual connections."""
             text = str(cb.text())
             if text=='': return
             ids = self.controller.pasteModulesAndConnections(text)
+            self.clear()
+            self.controller.resendVersionWasChanged()
             self.reset_module_colors()
             if len(ids) > 0:
                 self.unselect_all()
@@ -1549,7 +1585,7 @@ mutual connections."""
             widget = widgetType(module, self.controller, None)
             widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
             widget.exec_()
-            self.controller.previousModuleIds = [id]
+            self.remove_module(id)
             self.controller.resendVersionWasChanged()
 
     def open_documentation_window(self, id):
