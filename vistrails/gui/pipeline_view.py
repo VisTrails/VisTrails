@@ -1391,9 +1391,9 @@ mutual connections."""
             if len(modules)>0:
                 self.noUpdate = True
                 idList = [m.id for m in modules]
-                connections = []
+                connections = set()
                 for m in modules:
-                    connections += [c[0] for c in m.dependingConnectionItems]
+                    connections.update([c[0] for c in m.dependingConnectionItems])
                 #update the dependency list on the other side of connections
                 for conn in connections:
                     self._old_connection_ids.remove(conn.id)
