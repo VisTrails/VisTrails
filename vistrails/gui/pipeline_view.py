@@ -671,7 +671,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.description = ''
         self.inputPorts = {}
         self.outputPorts = {}
-        self.dependingConnectionItems = []
         self.controller = None
         self.module = None
         self.ghosted = False
@@ -977,27 +976,15 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             raise VistrailsInternalError("Error: did not find output port")
         return pos
 
-    def addConnectionItem(self, connectionItem, start):
-        """ addConnectionItem(connectionItem: QGraphicsConnectionItem,
-                              start: bool) -> None                              
-        Add connectionItem into dependency list to adjust it when this
-        module is moved. If start=True the depending point is the
-        start point, else it is the end point
-        
-        """
-        self.dependingConnectionItems.append((connectionItem, start))
-
-    def removeConnectionItem(self, connectionItem):
-        """ removeConnectionItem(connectionItem: QGraphicsConnectionItem)-> None
-        Remove connectionItem from its dependency list
-
-        """
-        found = None
-        for c in self.dependingConnectionItems:
-            if c[0] == connectionItem:
-                found = c
-        if found:
-            self.dependingConnectionItems.remove(found)
+    def dependingConnectionItems(self):
+        pip = self.controller.currentPipeline
+        sc = self.scene()
+        result = []
+        for (_, edge_id) in pip.graph.edges_from(self.module.id):
+            result.append((sc.connections[edge_id], False))
+        for (_, edge_id) in pip.graph.edges_to(self.module.id):
+            result.append((sc.connections[edge_id], True))
+        return result
 
     def itemChange(self, change, value):
         """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
@@ -1011,7 +998,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             oldPos = self.pos()
             newPos = value.toPointF()
             dis = newPos - oldPos
-            for (connectionItem, start) in self.dependingConnectionItems:
+            for (connectionItem, start) in self.dependingConnectionItems():
                 (srcModule, dstModule) = connectionItem.connectingModules
                 if srcModule.isSelected() and dstModule.isSelected():
                     if srcModule==self:
@@ -1039,7 +1026,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                         item.useSelectionRules = False
                         item.setSelected(False)
             # Handle connections from self
-            for (item, start) in self.dependingConnectionItems:
+            for (item, start) in self.dependingConnectionItems():
                 # Select any connections between self and other selected modules
                 (srcModule, dstModule) = item.connectingModules
                 if value.toBool():
@@ -1178,8 +1165,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
                                      dstModule.id) + 0.1)
         connectionItem.connection = connection
         connectionItem.connectingModules = (srcModule, dstModule)
-        srcModule.addConnectionItem(connectionItem, False)
-        dstModule.addConnectionItem(connectionItem, True)
         self.addItem(connectionItem)
         self.connections[connection.id] = connectionItem
         return connectionItem
@@ -1393,7 +1378,7 @@ mutual connections."""
                 idList = [m.id for m in modules]
                 connections = set()
                 for m in modules:
-                    connections.update([c[0] for c in m.dependingConnectionItems])
+                    connections.update([c[0] for c in m.dependingConnectionItems()])
                 #update the dependency list on the other side of connections
                 for conn in connections:
                     self._old_connection_ids.remove(conn.id)
@@ -1494,7 +1479,7 @@ mutual connections."""
                     modules[module.id] = module
             for item in selectedItems:
                 if type(item)==QGraphicsModuleItem:
-                    for (connItem, start) in item.dependingConnectionItems:
+                    for (connItem, start) in item.dependingConnectionItems():
                         conn = connItem.connection
                         if ((not connections.has_key(conn)) and
                             modules.has_key(conn.sourceId) and
@@ -1558,7 +1543,7 @@ mutual connections."""
                 elif e.status==3:
                     item.moduleBrush = CurrentTheme.ACTIVE_MODULE_BRUSH
                 elif e.status==4:
-                    item.moduleBrush = CurrentTheme.COMPUTING_MODULE_BRUSH                    
+                    item.moduleBrush = CurrentTheme.COMPUTING_MODULE_BRUSH
                 item.update()
             return True
         return False
@@ -1608,6 +1593,9 @@ mutual connections."""
             widget = QModuleAnnotation(module, self.controller, None)
             widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
             widget.exec_()
+
+    ##########################################################################
+    # Execution reporting API
 
     def set_module_success(self, moduleId):
         """ set_module_success(moduleId: int) -> None
