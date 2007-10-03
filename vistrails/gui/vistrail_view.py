@@ -145,6 +145,7 @@ class QVistrailView(QDockContainer):
         
         """
         self.controller.changeSelectedVersion(0)
+        self.versionTab.versionSelected(0, False)
         self.setPIPMode(True)
         self.setQueryMode(False)
 
@@ -155,6 +156,7 @@ class QVistrailView(QDockContainer):
         
         """
         self.controller.selectLatestVersion()
+        self.versionTab.versionSelected(self.controller.currentVersion, False)
         self.setPIPMode(True)
         self.setQueryMode(False)
        
