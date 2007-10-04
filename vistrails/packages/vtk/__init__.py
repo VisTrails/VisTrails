@@ -588,6 +588,15 @@ def class_dict(base_module, node):
         else:
             class_dict_[name] = callable_(None)
 
+    def guarded_SimpleScalarTree_wrap_compute(old_compute):
+        # This builds the scalar tree and makes it cacheable
+
+        def compute(self):
+            self.is_cacheable = lambda *args, **kwargs: True
+            old_compute(self)
+            self.vtkInstance.BuildTree()
+        return compute
+
     def guarded_SetFileName_wrap_compute(old_compute):
         # This checks for the presence of file in VTK readers
         def compute(self):
@@ -646,6 +655,9 @@ def class_dict(base_module, node):
 
     if issubclass(node.klass, vtk.vtkWriter):
         update_dict('compute', guarded_Writer_wrap_compute)
+
+    if issubclass(node.klass, vtk.vtkScalarTree):
+        update_dict('compute', guarded_SimpleScalarTree_wrap_compute)
 
     return class_dict_
 
