@@ -998,21 +998,32 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             oldPos = self.pos()
             newPos = value.toPointF()
             dis = newPos - oldPos
-            for (connectionItem, start) in self.dependingConnectionItems():
+            for connectionItem, s in self.dependingConnectionItems():
+                # If both modules are selected, both of them will
+                # trigger itemChange events.
+
+                # If we just add 'dis' to both connection endpoints, we'll
+                # end up moving each endpoint twice.
+
+                # But we also don't want to call setupConnection twice on these
+                # connections, so we ignore one of the endpoint dependencies and
+                # perform the change on the other one
+
                 (srcModule, dstModule) = connectionItem.connectingModules
-                if srcModule.isSelected() and dstModule.isSelected():
-                    if srcModule==self:
-                        connectionItem.moveBy(dis.x(), dis.y())
-                else:
-                    connectionItem.prepareGeometryChange()
-                    if start:
-                        connectionItem.setupConnection(
-                            connectionItem.startPos+dis,
-                            connectionItem.endPos)
-                    else:
-                        connectionItem.setupConnection(
-                            connectionItem.startPos,
-                            connectionItem.endPos+dis)
+                start_s = dstModule.isSelected()
+                end_s = srcModule.isSelected()
+
+                if start_s and end_s and s:
+                    continue
+
+                start = connectionItem.startPos
+                end = connectionItem.endPos
+                
+                if start_s: start += dis
+                if end_s: end += dis
+                
+                connectionItem.prepareGeometryChange()
+                connectionItem.setupConnection(start, end)
         # Do not allow lone connections to be selected with modules.
         # Also autoselect connections between selected modules.  Thus the
         # selection is always the subgraph
@@ -1251,7 +1262,8 @@ mutual connections."""
                 self.modules[m_id].module = pipeline.modules[m_id]
                 m = self.modules[m_id]
                 if m._moved:
-                    m.setPos(QtCore.QPointF(0.0, 0.0))
+                    self.remove_module(m_id)
+                    self.addModule(pipeline.modules[m_id])
                     moved.add(m_id)
                     m._moved = False
 
@@ -1386,13 +1398,9 @@ mutual connections."""
                     if conn.connection.source:
                         mid = conn.connection.source.moduleId 
                         m = self.modules[mid]
-                        if m not in modules:
-                            m.removeConnectionItem(conn)
                     if conn.connection.destination:
                         mid = conn.connection.destination.moduleId
                         m = self.modules[mid]
-                        if m not in modules:
-                            m.removeConnectionItem(conn)
                 self.controller.deleteModuleList(idList)
                 self.removeItems(connections)
                 for (mId, item) in self.modules.items():
@@ -1500,8 +1508,7 @@ mutual connections."""
             text = str(cb.text())
             if text=='': return
             ids = self.controller.pasteModulesAndConnections(text)
-            self.clear()
-            self.controller.resendVersionWasChanged()
+            self.setupScene(self.controller.currentPipeline)
             self.reset_module_colors()
             if len(ids) > 0:
                 self.unselect_all()

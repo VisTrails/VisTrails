@@ -134,7 +134,19 @@ class VistrailController(QtCore.QObject):
         if locator and locator.has_temporaries():
             self.setChanged(True)
             
-    def perform_action(self, action, quiet=None):        
+    def perform_action(self, action, quiet=None):
+        """ performAction(action: Action, quiet=None) -> timestep
+        Add version to vistrail, updates the current pipeline, and the
+        rest of the UI know a new pipeline is selected.
+
+        quiet and self.quiet controlds invalidation of version
+        tree. If quiet is set to any value, it overrides the field
+        value self.quiet.
+
+        If the value is True, then no invalidation happens (gui is not
+        updated.)
+        
+        """
         self.currentPipeline.perform_action(action)
         self.currentVersion = action.db_id
         self.setChanged(True)
@@ -236,7 +248,7 @@ class VistrailController(QtCore.QObject):
                 # probably should be an error
                 action_list.append(('add', location, module.vtType, module.id))
         action = db.services.action.create_action(action_list)
-        self.vistrail.add_action(action, self.currentVersion)        
+        self.vistrail.add_action(action, self.currentVersion)
         return self.perform_action(action)
             
     def add_connection(self, connection):
@@ -252,7 +264,9 @@ class VistrailController(QtCore.QObject):
             port.id = port_id
         action = db.services.action.create_action([('add', connection)])
         self.vistrail.add_action(action, self.currentVersion)
-        return self.perform_action(action)
+        result = self.perform_action(action)
+        self.currentPipeline.ensure_connection_specs([connection.id])
+        return result
     
     def deleteConnection(self, id):
         """ deleteConnection(id: int) -> version id
@@ -804,39 +818,6 @@ class VistrailController(QtCore.QObject):
         self.invalidate_version_tree()
         self.resetVersionView = True
         
-    def performAction(self, action, quiet=None):
-        """ performAction(action: Action, quiet=None) -> timestep
-        Add version to vistrail, updates the current pipeline, and the
-        rest of the UI know a new pipeline is selected.
-
-        quiet and self.quiet controlds invalidation of version
-        tree. If quiet is set to any value, it overrides the field
-        value self.quiet.
-
-        If the value is True, then no invalidation happens (gui is not
-        updated.)
-        
-        """
-        newTimestep = self.vistrail.getFreshTimestep()
-        action.timestep = newTimestep
-        action.parent = self.currentVersion
-        action.date = self.vistrail.getDate()
-        action.user = self.vistrail.getUser()
-        self.vistrail.addVersion(action)
-
-        action.perform(self.currentPipeline)
-        self.currentVersion = newTimestep
-        
-        self.setChanged(True)
-
-        if quiet is None:
-            if not self.quiet:
-                self.invalidate_version_tree()
-        else:
-            if not quiet:
-                self.invalidate_version_tree()
-        return newTimestep
-
     def perform_param_changes(self, actions):
         new_timestep = -1
         for action in actions:
@@ -902,14 +883,19 @@ class VistrailController(QtCore.QObject):
 
         pipeline = core.db.io.unserialize(str, Pipeline)
         modules = []
+        connections = []
         if pipeline:
             action = core.db.action.create_paste_action(pipeline, 
                                                         self.vistrail.idScope)
-            for op in action.operations:
-                if op.what == 'module':
-                    modules.append(op.objectId)
+            modules = [op.objectId
+                       for op in action.operations
+                       if op.what == 'module']
+            connections = [op.objectId
+                           for op in action.operations
+                           if op.what == 'connection']
             self.vistrail.add_action(action, self.currentVersion)
             self.perform_action(action)
+            self.currentPipeline.ensure_connection_specs(connections)
         return modules
 
     def create_abstraction(self, modules, connections):
