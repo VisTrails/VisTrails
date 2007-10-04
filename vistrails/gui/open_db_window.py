@@ -30,7 +30,7 @@ QConnectionDBSetupWindow
 
 """
 from PyQt4 import QtCore, QtGui
-import core.db.io
+import db.services.io
 from core.external_connection import ExtConnectionList, DBConnection
 from core.system import default_connections_file
 from gui.theme import CurrentTheme
@@ -498,7 +498,7 @@ class QDBConnectionList(QtGui.QListWidget):
             del config['name']
             config_id = config['id']
             del config['id']
-        vt_list = core.db.io.get_db_vistrail_list(config)
+        vt_list = db.services.io.get_db_vistrail_list(config)
         if conn.dbtype == 'MySQL':
             config['name'] = config_name
             config['id'] = config_id
@@ -578,7 +578,6 @@ class QVistrailListItem(QtGui.QListWidgetItem):
 class QConnectionDBSetupWindow(QtGui.QDialog):
     """
     QConnectionDBSetupWindow is a dialog for creating a DB connection.
-    Temporarily, the connection will be saved to the user's startup.py file.
     
     """
     def __init__(self, parent=None, id=-1, name ='', host="", port=3306,
@@ -689,7 +688,7 @@ class QConnectionDBSetupWindow(QtGui.QDialog):
                   'passwd': str(self.passwdEdt.text()),
                   'db': str(self.databaseEdt.text())}
         try:
-            core.db.io.test_db_connection(config)
+            db.services.io.test_db_connection(config)
             show_warning('Vistrails',"Connection succeeded!")
             
         except Exception, e:
