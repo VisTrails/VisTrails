@@ -75,7 +75,6 @@ class VistrailController(QtCore.QObject):
         self.currentPipeline = None
         self.currentPipelineView = None
         self.vistrailView = None
-        self.previousModuleIds = []
         self.resetPipelineView = False
         self.resetVersionView = True
         self.quiet = False
@@ -480,7 +479,7 @@ class VistrailController(QtCore.QObject):
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
         
-        self.vistrail.changenotes(str(notes),self.currentVersion)
+        self.vistrail.change_notes(str(notes),self.currentVersion)
         self.setChanged(True)
 
     def add_parameter_changes_from_execution(self, pipeline, version,

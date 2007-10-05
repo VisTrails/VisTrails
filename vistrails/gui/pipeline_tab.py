@@ -32,6 +32,7 @@ from gui.common_widgets import QDockContainer, QToolWindowInterface
 from gui.method_palette import QMethodPalette
 from gui.module_methods import QModuleMethods
 from gui.pipeline_view import QPipelineView
+from weakref import proxy
 
 ################################################################################
 
@@ -53,6 +54,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         self.toolWindow().hide()        
 
         self.pipelineView = QPipelineView()
+        self.pipelineView.scene().pipeline_tab = proxy(self)
         self.setCentralWidget(self.pipelineView)
         
         self.methodPalette = QMethodPalette(self)
@@ -172,23 +174,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         controller
         
         """
-        prevIds = self.controller.previousModuleIds
-        self.pipelineView.scene()._old_module_ids.difference_update(prevIds)
-
         self.updatePipeline(self.controller.currentPipeline)
-        if newVersion>=0:            
-            if len(prevIds)>0:
-                for prevId in prevIds:
-                    item = self.pipelineView.scene().modules[prevId]
-                    if item.isSelected():
-                        self.moduleMethods.updateModule(item.module)
-                    item.setSelected(True)
-                    item.update()
-                self.controller.previousModuleIds = []
-            else:
-                self.moduleSelected(-1)
-        else:
-            self.moduleSelected(-1)
         if self.controller.resetPipelineView:
             self.pipelineView.scene().fitToAllViews()
             

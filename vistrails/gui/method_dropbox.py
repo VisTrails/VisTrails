@@ -101,13 +101,12 @@ class QMethodDropBox(QtGui.QScrollArea):
                         self.scrollContentsBy(0, self.viewport().height())
                         self.lockUpdate()
                         if self.controller:
-                            self.controller.previousModuleIds = [self.module.id]
                             self.controller.addMethod(self.module.id, function)
                         self.unlockUpdate()
                 self.emit(QtCore.SIGNAL("paramsAreaChanged"))
 
     def updateModule(self, module):
-        """ updateModule(module: Module)) -> None        
+        """ updateModule(module: Module) -> None        
         Construct input forms with the list of functions of a module
         
         """
@@ -237,7 +236,6 @@ class QMethodInputForm(QtGui.QGroupBox):
                                   self.function.params[i].type,
                                   str(self.labels[i].alias)))
             methodBox.lockUpdate()
-            methodBox.controller.previousModuleIds = [methodBox.module.id]
             methodBox.controller.replace_method(methodBox.module,
                                                 self.fId,
                                                 paramList)
@@ -291,7 +289,6 @@ class QMethodInputForm(QtGui.QGroupBox):
                 self.parent().layout().itemAt(i).widget().fId = i
             methodBox.lockUpdate()
             if methodBox.controller:
-                methodBox.controller.previousModuleIds = [methodBox.module.id]
                 methodBox.controller.deleteMethod(self.fId,
                                                   methodBox.module.id)            
             methodBox.unlockUpdate()

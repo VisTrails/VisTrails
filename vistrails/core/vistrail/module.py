@@ -179,6 +179,7 @@ class Module(DBModule):
             result.is_cacheable = lambda *args: False
         if hasattr(result, 'srcPortsOrder'):
             result.srcPortsOrder = [p.name for p in self.destinationPorts()]
+        result.registry = self.registry or registry
         return result
 
     def getNumFunctions(self):

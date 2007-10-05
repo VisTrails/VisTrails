@@ -178,6 +178,19 @@ def profile(func):
     method.profiler_object = pobject
     return method
 
+def debug(func):
+    """debug is a method decorator that invokes the python integrated
+    debugger in a given method. Use it to step through tricky
+    code. Note that pdb is not integrated with emacs or anything like
+    that, so you'll need a shell to see what's going on.
+
+    """
+    import pdb
+
+    def method(*args, **kwargs):
+        return pdb.runcall(func, *args, **kwargs)
+    return method
+
 ################################################################################
 
 def all(bool_list, pred = lambda x: x):

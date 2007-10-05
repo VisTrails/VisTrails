@@ -212,7 +212,6 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
                 self.table.removeRow(row)
                 if self.table.controller and self.table.module:
                     self.table.lockUpdate()
-                    self.table.controller.previousModuleIds = [self.table.module.id]
                     self.table.controller.deleteAnnotation(key,
                                                            self.table.module.id)
                     self.table.unlockUpdate()
@@ -240,7 +239,6 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
             if text!=value:
                 if self.table.controller and self.table.module:
                     self.table.lockUpdate()
-                    self.table.controller.previousModuleIds = [self.table.module.id]
                     self.table.controller.addAnnotation((key, text),
                                                         self.table.module.id)
                     self.table.unlockUpdate()

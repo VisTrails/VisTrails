@@ -715,14 +715,15 @@ class Vistrail(DBVistrail):
             self.db_add_tag(tag)
         self.changed = True
 
-    def changenotes(self, notes, version_number):
-        """ changenotes(notes:str, version_number) -> None 
+    def change_notes(self, notes, version_number):
+        """ change_notes(notes:str, version_number) -> None 
         Changes the notes of a version
                   
         """
     
         if self.actionMap.has_key(version_number):
             action = self.actionMap[version_number]
+            old_value = action.get_annotation_by_key('notes').value
             annotation = Annotation(id=self.idScope.getNewId(Annotation.vtType),
                                    key='notes',
                                    value=notes)

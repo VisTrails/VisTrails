@@ -163,14 +163,13 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         self.removeItems(self.items())
 
     def removeItems(self, itemList):
-        """ removeItems(itemList: list [QGraphicsItem]) -> None
-        Remove and delete all items in itemList
+        """ removeItems(itemList: sequence of [QGraphicsItem]) -> None
+        Remove all items in itemList
         
         """
         for item in itemList:
             if item.scene():
                 self.removeItem(item)
-            del item
 
 class QInteractiveGraphicsView(QtGui.QGraphicsView):
     """

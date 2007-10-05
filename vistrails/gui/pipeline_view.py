@@ -980,10 +980,20 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         pip = self.controller.currentPipeline
         sc = self.scene()
         result = []
-        for (_, edge_id) in pip.graph.edges_from(self.module.id):
-            result.append((sc.connections[edge_id], False))
-        for (_, edge_id) in pip.graph.edges_to(self.module.id):
-            result.append((sc.connections[edge_id], True))
+        try:
+            for (_, edge_id) in pip.graph.edges_from(self.module.id):
+                result.append((sc.connections[edge_id], False))
+        except KeyError:
+            # On module about to be deleted, the
+            # qmodulegraphicsitemexists, but the pipeline is gone
+            pass
+        try:
+            for (_, edge_id) in pip.graph.edges_to(self.module.id):
+                result.append((sc.connections[edge_id], True))
+        except KeyError:
+            # On module about to be deleted, the
+            # qmodulegraphicsitemexists, but the pipeline is gone
+            pass
         return result
 
     def itemChange(self, change, value):
@@ -1216,9 +1226,9 @@ mutual connections."""
         self.connections = {}
         self._old_module_ids = set()
         self._old_connection_ids = set()
-        self.controller.previousModuleIds = []
+        self.unselect_all()
         self.clearItems()
-
+        
     def remove_module(self, m_id):
         """remove_module(m_id): None
 
@@ -1251,16 +1261,19 @@ mutual connections."""
             new_modules = set(pipeline.modules)
             modules_to_be_added = new_modules - self._old_module_ids
             modules_to_be_deleted = self._old_module_ids - new_modules
-
             common_modules = new_modules.intersection(self._old_module_ids)
+
             # remove old module shapes
             for m_id in modules_to_be_deleted:
                 self.removeItem(self.modules[m_id])
                 del self.modules[m_id]
 
+            selected_modules = []
             # create new module shapes
             for m_id in modules_to_be_added:
                 self.addModule(pipeline.modules[m_id])
+                if self.modules[m_id].isSelected:
+                    selected_modules.append(m_id)
 
             moved = set()
             # Update common modules
@@ -1275,6 +1288,8 @@ mutual connections."""
                     self.recreate_module(pipeline, m_id)
                     moved.add(m_id)
                     m._moved = False
+                if self.modules[m_id].isSelected:
+                    selected_modules.append(m_id)
 
             new_connections = set(pipeline.connections)
             connections_to_be_added = new_connections - self._old_connection_ids
@@ -1343,6 +1358,7 @@ mutual connections."""
         selected = self.selectedItems()[:]
         for item in selected:
             item.setSelected(False)
+        self.pipeline_tab.moduleSelected(-1)
 
     def add_module_event(self, event, data):
         """Adds a new module from a drop event"""
