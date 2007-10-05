@@ -1179,7 +1179,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         connectionItem.connectingModules = (srcModule, dstModule)
         self.addItem(connectionItem)
         self.connections[connection.id] = connectionItem
-        self._old_connection_ids.add(module.id)
+        self._old_connection_ids.add(connection.id)
         return connectionItem
 
     def selected_subgraph(self):
