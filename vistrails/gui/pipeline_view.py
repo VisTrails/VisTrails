@@ -1602,6 +1602,8 @@ mutual connections."""
             widget = widgetType(module, self.controller, None)
             widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
             widget.exec_()
+            self.reset_module_colors()
+            self.pipeline_tab.flushMoveActions()
             self.recreate_module(self.controller.currentPipeline, id)
 
     def open_documentation_window(self, id):
