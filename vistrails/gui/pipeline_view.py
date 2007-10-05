@@ -1157,6 +1157,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
             moduleItem.moduleBrush = moduleBrush
         self.addItem(moduleItem)
         self.modules[module.id] = moduleItem
+        self._old_module_ids.add(module.id)
         return moduleItem
 
     def addConnection(self, connection):
@@ -1178,6 +1179,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         connectionItem.connectingModules = (srcModule, dstModule)
         self.addItem(connectionItem)
         self.connections[connection.id] = connectionItem
+        self._old_connection_ids.add(module.id)
         return connectionItem
 
     def selected_subgraph(self):
@@ -1226,6 +1228,16 @@ mutual connections."""
         self.removeItem(self.modules[m_id])
         del self.modules[m_id]
         self._old_module_ids.remove(m_id)
+
+    def recreate_module(self, pipeline, m_id):
+        """recreate_module(pipeline, m_id): None
+
+        Recreates a module on the scene."""
+        selected = self.modules[m_id].isSelected()
+        self.remove_module(m_id)
+        self.addModule(pipeline.modules[m_id])
+        if selected:
+            self.modules[m_id].setSelected(True)
         
     def setupScene(self, pipeline):
         """ setupScene(pipeline: Pipeline) -> None
@@ -1255,15 +1267,12 @@ mutual connections."""
             for m_id in common_modules:
                 if (self.modules[m_id].module.center !=
                     pipeline.modules[m_id].center):
-                    self.remove_module(m_id)
-                    self.addModule(pipeline.modules[m_id])
+                    self.recreate_module(pipeline, m_id)
                     moved.add(m_id)
-                    self.modules[m_id].moved = False
                 self.modules[m_id].module = pipeline.modules[m_id]
                 m = self.modules[m_id]
                 if m._moved:
-                    self.remove_module(m_id)
-                    self.addModule(pipeline.modules[m_id])
+                    self.recreate_module(pipeline, m_id)
                     moved.add(m_id)
                     m._moved = False
 
@@ -1577,8 +1586,7 @@ mutual connections."""
             widget = widgetType(module, self.controller, None)
             widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
             widget.exec_()
-            self.remove_module(id)
-            self.controller.resendVersionWasChanged()
+            self.recreate_module(self.controller.currentPipeline, id)
 
     def open_documentation_window(self, id):
         """ open_documentation_window(int) -> None

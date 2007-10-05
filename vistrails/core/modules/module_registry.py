@@ -187,6 +187,9 @@ class PortSpec(object):
         return self._entries
     signature = property(_get_signature)
 
+    def __str__(self):
+        return self.create_sigstring()
+
     def __copy__(self):
         result = PortSpec([])
         result._entries = copy.copy(self._entries)
@@ -312,6 +315,13 @@ class ModuleDescriptor(object):
     def set_port(self, name, port_type, spec):
         self._port_caches[port_type][name] = spec
         
+    def reset_port(self, name, port_type):
+        try:
+            d = self._port_caches[port_type]
+            del d[name]
+        except KeyError:
+            pass
+
     ##########################################################################
 
     def _append_to_port_list(self, port, optionals, name, signature, optional):
@@ -364,6 +374,7 @@ class ModuleDescriptor(object):
         if self.input_ports.has_key(name):
             del self.input_ports[name]
             del self.input_ports_optional[name]
+            self.reset_port(name, 1)
         else:
             msg = 'delete_input_port called on nonexistent port "%s"' % name
             core.debug.critical(msg)
@@ -374,6 +385,7 @@ class ModuleDescriptor(object):
         if self.output_ports.has_key(name):
             del self.output_ports[name]
             del self.output_ports_optional[name]
+            self.reset_port(name, 0)
         else:
             msg = 'delete_output_port called on nonexistent port "%s"' % name
             core.debug.critical(msg)
@@ -480,6 +492,7 @@ class ModuleRegistry(QtCore.QObject):
         self._monotonic = False
         self._module_source_ports_cache = {}
         self._module_destination_ports_cache = {}
+        self.python_source_types = {}
 
     def __copy__(self):
         result = ModuleRegistry()
@@ -488,6 +501,9 @@ class ModuleRegistry(QtCore.QObject):
         result._key_tree_map = result._class_tree.make_dictionary()
         result._current_package_name = self._current_package_name
         result.package_modules = copy.copy(self.package_modules)
+
+        # python_source_types is aliased instead of copied. Shouldn't be an issue
+        result.python_source_types = self.python_source_types
         return result
 
     ##########################################################################
@@ -790,6 +806,14 @@ class ModuleRegistry(QtCore.QObject):
                                 identifier,
                                 name)
 
+        # Adds python_source_type registry entry, if possible
+        try:
+            append_to_dict_of_lists(self.python_source_types,
+                                    module.python_source_type,
+                                    module)
+        except AttributeError:
+            pass
+
         self.emit(self.new_module_signal, descriptor)
         return module_node
 
@@ -996,40 +1020,40 @@ class ModuleRegistry(QtCore.QObject):
             return False
         return self.are_specs_matched(sourceModulePort, destinationModulePort)
 
-    def is_port_sub_type(self, super, sub):
-        """ is_port_sub_type(super: Port, sub: Port) -> bool        
+    def is_port_sub_type(self, sub, super):
+        """ is_port_sub_type(sub: Port, super: Port) -> bool        
         Check if port super and sub are similar or not. These ports
         must have exact name as well as position
         
         """
-        if super.endPoint != sub.endPoint:
+        if sub.endPoint != super.endPoint:
             return False
-        if super.name != sub.name:
+        if sub.name != super.name:
             return False
-        return self.are_specs_matched(super, sub)
+        return self.are_specs_matched(sub, super)
 
-    def are_specs_matched(self, super, sub):
-        """ are_specs_matched(super: Port, sub: Port) -> bool        
-        Check if specs of super and sub port are matched or not
+    def are_specs_matched(self, sub, super):
+        """ are_specs_matched(sub: Port, super: Port) -> bool        
+        Check if specs of sub and super port are matched or not
         
         """
         variantType = core.modules.basic_modules.Variant
-        superTypes = super.spec.types()
-        if superTypes==[variantType]:
-            return True
         subTypes = sub.spec.types()
         if subTypes==[variantType]:
             return True
+        superTypes = super.spec.types()
+        if superTypes==[variantType]:
+            return True
 
-        if len(superTypes) != len(subTypes):
+        if len(subTypes) != len(superTypes):
             return False
         
-        for (superType, subType) in izip(superTypes, subTypes):
-            if (superType==variantType or subType==variantType):
+        for (subType, superType) in izip(subTypes, superTypes):
+            if (subType==variantType or superType==variantType):
                 continue
-            superModule = self.get_descriptor(superType).module
             subModule = self.get_descriptor(subType).module
-            if not issubclass(superModule, subModule):
+            superModule = self.get_descriptor(superType).module
+            if not issubclass(subModule, superModule):
                 return False
         return True
 
