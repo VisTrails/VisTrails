@@ -723,7 +723,6 @@ class Vistrail(DBVistrail):
     
         if self.actionMap.has_key(version_number):
             action = self.actionMap[version_number]
-            old_value = action.get_annotation_by_key('notes').value
             annotation = Annotation(id=self.idScope.getNewId(Annotation.vtType),
                                    key='notes',
                                    value=notes)
