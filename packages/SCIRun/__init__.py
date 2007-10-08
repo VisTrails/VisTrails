@@ -35,83 +35,49 @@ import time
 version = "0.9.0"
 identifier = "edu.utah.sci.vistrails.scirun"
 name = "SCIRun"
-class SCIRun_CreateDataArray(Module) :
+class scirun_WriteBundle(Module) :
   def compute(self) :
-    function = 'RESULT = abs(A);'
-    if self.hasInputFromPort('function') :
-      function = self.getInputFromPort('function')
-    format = 'Scalar'
-    if self.hasInputFromPort('format') :
-      format = self.getInputFromPort('format')
-    Size = 0
-    if self.hasInputFromPort('Size') :
-      Size = self.getInputFromPort('Size')
-    Function = 0
-    if self.hasInputFromPort('Function') :
-      Function = self.getInputFromPort('Function')
-    Array = 0
-    if self.hasInputFromPort('Array') :
-      Array = self.getInputFromPort('Array')
-    results = sr_py.CreateDataArray(Size,Function,Array,function,format)
-    self.setResult('DataArray', results)
-
-class SCIRun_WriteBundle(Module) :
-  def compute(self) :
-    filetype = 'Binary'
-    if self.hasInputFromPort('filetype') :
-      filetype = self.getInputFromPort('filetype')
-    confirm = 0
-    if self.hasInputFromPort('confirm') :
-      confirm = self.getInputFromPort('confirm')
-    confirm_once = 0
-    if self.hasInputFromPort('confirm_once') :
-      confirm_once = self.getInputFromPort('confirm_once')
+    p_filetype = 'Binary'
+    if self.hasInputFromPort('p_filetype') :
+      p_filetype = self.getInputFromPort('p_filetype')
+    p_confirm = '0'
+    if self.hasInputFromPort('p_confirm') :
+      p_confirm = self.getInputFromPort('p_confirm')
+    p_confirm_once = '0'
+    if self.hasInputFromPort('p_confirm_once') :
+      p_confirm_once = self.getInputFromPort('p_confirm_once')
     bundle = 0
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
     Filename = 0
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
-    results = sr_py.WriteBundle(bundle,Filename,filetype,confirm,confirm_once)
+    results = sr_py.WriteBundle(bundle,Filename,p_filetype,p_confirm,p_confirm_once)
 
-class SCIRun_JoinFields(Module) :
+class scirun_JoinFields(Module) :
   def compute(self) :
-    accumulating = 0
-    if self.hasInputFromPort('accumulating') :
-      accumulating = self.getInputFromPort('accumulating')
-    tolerance = 0.0001
-    if self.hasInputFromPort('tolerance') :
-      tolerance = self.getInputFromPort('tolerance')
-    force_nodemerge = 1
-    if self.hasInputFromPort('force_nodemerge') :
-      force_nodemerge = self.getInputFromPort('force_nodemerge')
-    force_pointcloud = 0
-    if self.hasInputFromPort('force_pointcloud') :
-      force_pointcloud = self.getInputFromPort('force_pointcloud')
-    matchval = 0
-    if self.hasInputFromPort('matchval') :
-      matchval = self.getInputFromPort('matchval')
-    meshonly = 0
-    if self.hasInputFromPort('meshonly') :
-      meshonly = self.getInputFromPort('meshonly')
+    p_tolerance = 0.0001
+    if self.hasInputFromPort('p_tolerance') :
+      p_tolerance = self.getInputFromPort('p_tolerance')
+    p_force_nodemerge = 1
+    if self.hasInputFromPort('p_force_nodemerge') :
+      p_force_nodemerge = self.getInputFromPort('p_force_nodemerge')
+    p_force_pointcloud = 0
+    if self.hasInputFromPort('p_force_pointcloud') :
+      p_force_pointcloud = self.getInputFromPort('p_force_pointcloud')
+    p_matchval = 0
+    if self.hasInputFromPort('p_matchval') :
+      p_matchval = self.getInputFromPort('p_matchval')
+    p_meshonly = 0
+    if self.hasInputFromPort('p_meshonly') :
+      p_meshonly = self.getInputFromPort('p_meshonly')
     Field = 0
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
-    results = sr_py.JoinFields(Field,accumulating,tolerance,force_nodemerge,force_pointcloud,matchval,meshonly)
+    results = sr_py.JoinFields(Field,p_tolerance,p_force_nodemerge,p_force_pointcloud,p_matchval,p_meshonly)
     self.setResult('Output Field', results)
 
-class SCIRun_MaskLatVolWithTriSurf(Module) :
-  def compute(self) :
-    LatVolField = 0
-    if self.hasInputFromPort('LatVolField') :
-      LatVolField = self.getInputFromPort('LatVolField')
-    TriSurfField = 0
-    if self.hasInputFromPort('TriSurfField') :
-      TriSurfField = self.getInputFromPort('TriSurfField')
-    results = sr_py.MaskLatVolWithTriSurf(LatVolField,TriSurfField)
-    self.setResult('LatVol Mask', results)
-
-class SCIRun_ApplyMappingMatrix(Module) :
+class scirun_ApplyMappingMatrix(Module) :
   def compute(self) :
     Source = 0
     if self.hasInputFromPort('Source') :
@@ -125,93 +91,90 @@ class SCIRun_ApplyMappingMatrix(Module) :
     results = sr_py.ApplyMappingMatrix(Source,Destination,Mapping)
     self.setResult('Output', results)
 
-class SCIRun_TransformPlanarMesh(Module) :
+class scirun_TransformPlanarMesh(Module) :
   def compute(self) :
-    axis = 2
-    if self.hasInputFromPort('axis') :
-      axis = self.getInputFromPort('axis')
-    invert = 0
-    if self.hasInputFromPort('invert') :
-      invert = self.getInputFromPort('invert')
-    trans_x = 0
-    if self.hasInputFromPort('trans_x') :
-      trans_x = self.getInputFromPort('trans_x')
-    trans_y = 0
-    if self.hasInputFromPort('trans_y') :
-      trans_y = self.getInputFromPort('trans_y')
+    p_axis = 2
+    if self.hasInputFromPort('p_axis') :
+      p_axis = self.getInputFromPort('p_axis')
+    p_invert = 0
+    if self.hasInputFromPort('p_invert') :
+      p_invert = self.getInputFromPort('p_invert')
+    p_trans_x = 0
+    if self.hasInputFromPort('p_trans_x') :
+      p_trans_x = self.getInputFromPort('p_trans_x')
+    p_trans_y = 0
+    if self.hasInputFromPort('p_trans_y') :
+      p_trans_y = self.getInputFromPort('p_trans_y')
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
     Index_Matrix = 0
     if self.hasInputFromPort('Index Matrix') :
       Index_Matrix = self.getInputFromPort('Index Matrix')
-    results = sr_py.TransformPlanarMesh(Input_Field,Index_Matrix,axis,invert,trans_x,trans_y)
+    results = sr_py.TransformPlanarMesh(Input_Field,Index_Matrix,p_axis,p_invert,p_trans_x,p_trans_y)
     self.setResult('Transformed Field', results)
 
-class SCIRun_ViewScene(Module) :
+class scirun_MaskLatVolWithTriSurf(Module) :
   def compute(self) :
-    Geometry = 0
-    if self.hasInputFromPort('Geometry') :
-      Geometry = self.getInputFromPort('Geometry')
-    results = sr_py.ViewScene(Geometry)
+    LatVolField = 0
+    if self.hasInputFromPort('LatVolField') :
+      LatVolField = self.getInputFromPort('LatVolField')
+    TriSurfField = 0
+    if self.hasInputFromPort('TriSurfField') :
+      TriSurfField = self.getInputFromPort('TriSurfField')
+    results = sr_py.MaskLatVolWithTriSurf(LatVolField,TriSurfField)
+    self.setResult('LatVol Mask', results)
 
-class SCIRun_RefineMeshByIsovalue(Module) :
+class scirun_RefineMeshByIsovalue(Module) :
   def compute(self) :
-    isoval = 0.0
-    if self.hasInputFromPort('isoval') :
-      isoval = self.getInputFromPort('isoval')
-    lte = 1
-    if self.hasInputFromPort('lte') :
-      lte = self.getInputFromPort('lte')
+    p_isoval = 0.0
+    if self.hasInputFromPort('p_isoval') :
+      p_isoval = self.getInputFromPort('p_isoval')
+    p_lte = 1
+    if self.hasInputFromPort('p_lte') :
+      p_lte = self.getInputFromPort('p_lte')
     Input = 0
     if self.hasInputFromPort('Input') :
       Input = self.getInputFromPort('Input')
     Optional_Isovalue = 0
     if self.hasInputFromPort('Optional Isovalue') :
       Optional_Isovalue = self.getInputFromPort('Optional Isovalue')
-    results = sr_py.RefineMeshByIsovalue(Input,Optional_Isovalue,isoval,lte)
+    results = sr_py.RefineMeshByIsovalue(Input,Optional_Isovalue,p_isoval,p_lte)
     self.setResult('Refined', sr_py.read_at_index(results,0))
     self.setResult('Mapping', sr_py.read_at_index(results,1))
 
-class SCIRun_AppendMatrix(Module) :
+class scirun_ViewScene(Module) :
   def compute(self) :
-    row_or_column = 'row'
-    if self.hasInputFromPort('row_or_column') :
-      row_or_column = self.getInputFromPort('row_or_column')
-    BaseMatrix = 0
-    if self.hasInputFromPort('BaseMatrix') :
-      BaseMatrix = self.getInputFromPort('BaseMatrix')
-    AppendMatrix = 0
-    if self.hasInputFromPort('AppendMatrix') :
-      AppendMatrix = self.getInputFromPort('AppendMatrix')
-    results = sr_py.AppendMatrix(BaseMatrix,AppendMatrix,row_or_column)
-    self.setResult('Matrix', results)
+    Geometry = 0
+    if self.hasInputFromPort('Geometry') :
+      Geometry = self.getInputFromPort('Geometry')
+    results = sr_py.ViewScene(Geometry)
 
-class SCIRun_ReportColumnMatrixMisfit(Module) :
+class scirun_ReportColumnMatrixMisfit(Module) :
   def compute(self) :
-    have_ui = 0
-    if self.hasInputFromPort('have_ui') :
-      have_ui = self.getInputFromPort('have_ui')
-    methodTCL = 'CCinv'
-    if self.hasInputFromPort('methodTCL') :
-      methodTCL = self.getInputFromPort('methodTCL')
-    pTCL = 2
-    if self.hasInputFromPort('pTCL') :
-      pTCL = self.getInputFromPort('pTCL')
+    p_have_ui = 0
+    if self.hasInputFromPort('p_have_ui') :
+      p_have_ui = self.getInputFromPort('p_have_ui')
+    p_methodTCL = 'CCinv'
+    if self.hasInputFromPort('p_methodTCL') :
+      p_methodTCL = self.getInputFromPort('p_methodTCL')
+    p_pTCL = '2'
+    if self.hasInputFromPort('p_pTCL') :
+      p_pTCL = self.getInputFromPort('p_pTCL')
     Vec1 = 0
     if self.hasInputFromPort('Vec1') :
       Vec1 = self.getInputFromPort('Vec1')
     Vec2 = 0
     if self.hasInputFromPort('Vec2') :
       Vec2 = self.getInputFromPort('Vec2')
-    results = sr_py.ReportColumnMatrixMisfit(Vec1,Vec2,have_ui,methodTCL,pTCL)
+    results = sr_py.ReportColumnMatrixMisfit(Vec1,Vec2,p_have_ui,p_methodTCL,p_pTCL)
     self.setResult('Error Out', results)
 
-class SCIRun_EvaluateLinAlgGeneral(Module) :
+class scirun_EvaluateLinAlgGeneral(Module) :
   def compute(self) :
-    function = 'o1 = i1 * 12;'
-    if self.hasInputFromPort('function') :
-      function = self.getInputFromPort('function')
+    p_function = 'o1 = i1 * 12;'
+    if self.hasInputFromPort('p_function') :
+      p_function = self.getInputFromPort('p_function')
     i1 = 0
     if self.hasInputFromPort('i1') :
       i1 = self.getInputFromPort('i1')
@@ -227,14 +190,128 @@ class SCIRun_EvaluateLinAlgGeneral(Module) :
     i5 = 0
     if self.hasInputFromPort('i5') :
       i5 = self.getInputFromPort('i5')
-    results = sr_py.EvaluateLinAlgGeneral(i1,i2,i3,i4,i5,function)
+    results = sr_py.EvaluateLinAlgGeneral(i1,i2,i3,i4,i5,p_function)
     self.setResult('o1', sr_py.read_at_index(results,0))
     self.setResult('o2', sr_py.read_at_index(results,1))
     self.setResult('o3', sr_py.read_at_index(results,2))
     self.setResult('o4', sr_py.read_at_index(results,3))
     self.setResult('o5', sr_py.read_at_index(results,4))
 
-class SCIRun_ReportMeshQualityMeasures(Module) :
+class scirun_AppendMatrix(Module) :
+  def compute(self) :
+    p_row_or_column = 'row'
+    if self.hasInputFromPort('p_row_or_column') :
+      p_row_or_column = self.getInputFromPort('p_row_or_column')
+    BaseMatrix = 0
+    if self.hasInputFromPort('BaseMatrix') :
+      BaseMatrix = self.getInputFromPort('BaseMatrix')
+    AppendMatrix = 0
+    if self.hasInputFromPort('AppendMatrix') :
+      AppendMatrix = self.getInputFromPort('AppendMatrix')
+    results = sr_py.AppendMatrix(BaseMatrix,AppendMatrix,p_row_or_column)
+    self.setResult('Matrix', results)
+
+class scirun_CreateDataArray(Module) :
+  def compute(self) :
+    p_function = 'RESULT = abs(A);'
+    if self.hasInputFromPort('p_function') :
+      p_function = self.getInputFromPort('p_function')
+    p_format = 'Scalar'
+    if self.hasInputFromPort('p_format') :
+      p_format = self.getInputFromPort('p_format')
+    Size = 0
+    if self.hasInputFromPort('Size') :
+      Size = self.getInputFromPort('Size')
+    Function = 0
+    if self.hasInputFromPort('Function') :
+      Function = self.getInputFromPort('Function')
+    Array = 0
+    if self.hasInputFromPort('Array') :
+      Array = self.getInputFromPort('Array')
+    results = sr_py.CreateDataArray(Size,Function,Array,p_function,p_format)
+    self.setResult('DataArray', results)
+
+class scirun_FairMesh(Module) :
+  def compute(self) :
+    p_iterations = 50
+    if self.hasInputFromPort('p_iterations') :
+      p_iterations = self.getInputFromPort('p_iterations')
+    p_method = 'fast'
+    if self.hasInputFromPort('p_method') :
+      p_method = self.getInputFromPort('p_method')
+    Input_Mesh = 0
+    if self.hasInputFromPort('Input Mesh') :
+      Input_Mesh = self.getInputFromPort('Input Mesh')
+    results = sr_py.FairMesh(Input_Mesh,p_iterations,p_method)
+    self.setResult('Faired Mesh', results)
+
+class scirun_EvaluateLinAlgBinary(Module) :
+  def compute(self) :
+    p_op = 'Mult'
+    if self.hasInputFromPort('p_op') :
+      p_op = self.getInputFromPort('p_op')
+    p_function = 'x+y'
+    if self.hasInputFromPort('p_function') :
+      p_function = self.getInputFromPort('p_function')
+    A = 0
+    if self.hasInputFromPort('A') :
+      A = self.getInputFromPort('A')
+    B = 0
+    if self.hasInputFromPort('B') :
+      B = self.getInputFromPort('B')
+    results = sr_py.EvaluateLinAlgBinary(A,B,p_op,p_function)
+    self.setResult('Output', results)
+
+class scirun_PrintMatrixIntoString(Module) :
+  def compute(self) :
+    p_formatstring = 'time: %5.4f ms'
+    if self.hasInputFromPort('p_formatstring') :
+      p_formatstring = self.getInputFromPort('p_formatstring')
+    Format = 0
+    if self.hasInputFromPort('Format') :
+      Format = self.getInputFromPort('Format')
+    Input = 0
+    if self.hasInputFromPort('Input') :
+      Input = self.getInputFromPort('Input')
+    results = sr_py.PrintMatrixIntoString(Format,Input,p_formatstring)
+    self.setResult('Output', results)
+
+class scirun_SetFieldProperty(Module) :
+  def compute(self) :
+    p_num_entries = '0'
+    if self.hasInputFromPort('p_num_entries') :
+      p_num_entries = self.getInputFromPort('p_num_entries')
+    p_property = ''
+    if self.hasInputFromPort('p_property') :
+      p_property = self.getInputFromPort('p_property')
+    p_type = 'unknown'
+    if self.hasInputFromPort('p_type') :
+      p_type = self.getInputFromPort('p_type')
+    p_value = ''
+    if self.hasInputFromPort('p_value') :
+      p_value = self.getInputFromPort('p_value')
+    p_readonly = '0'
+    if self.hasInputFromPort('p_readonly') :
+      p_readonly = self.getInputFromPort('p_readonly')
+    Field = 0
+    if self.hasInputFromPort('Field') :
+      Field = self.getInputFromPort('Field')
+    results = sr_py.SetFieldProperty(Field,p_num_entries,p_property,p_type,p_value,p_readonly)
+    self.setResult('Field', results)
+
+class scirun_ConvertFieldBasis(Module) :
+  def compute(self) :
+    p_output_basis = 'Linear'
+    if self.hasInputFromPort('p_output_basis') :
+      p_output_basis = self.getInputFromPort('p_output_basis')
+    Input = 0
+    if self.hasInputFromPort('Input') :
+      Input = self.getInputFromPort('Input')
+    results = sr_py.ConvertFieldBasis(Input,p_output_basis)
+    self.setResult('Output', sr_py.read_at_index(results,0))
+    self.setResult('Mapping', sr_py.read_at_index(results,1))
+
+class scirun_ReportMeshQualityMeasures(Module) :
   def compute(self) :
     Input = 0
     if self.hasInputFromPort('Input') :
@@ -242,182 +319,74 @@ class SCIRun_ReportMeshQualityMeasures(Module) :
     results = sr_py.ReportMeshQualityMeasures(Input)
     self.setResult('Checked', results)
 
-class SCIRun_ApplyFilterToFieldData(Module) :
+class scirun_SelectAndSetFieldData(Module) :
   def compute(self) :
-    method = 'erode/dilate'
-    if self.hasInputFromPort('method') :
-      method = self.getInputFromPort('method')
-    ed_method = 'erode'
-    if self.hasInputFromPort('ed_method') :
-      ed_method = self.getInputFromPort('ed_method')
-    ed_iterations = 3
-    if self.hasInputFromPort('ed_iterations') :
-      ed_iterations = self.getInputFromPort('ed_iterations')
-    Field = 0
-    if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
-    results = sr_py.ApplyFilterToFieldData(Field,method,ed_method,ed_iterations)
-    self.setResult('Field', results)
-
-class SCIRun_FairMesh(Module) :
-  def compute(self) :
-    iterations = 50
-    if self.hasInputFromPort('iterations') :
-      iterations = self.getInputFromPort('iterations')
-    method = 'fast'
-    if self.hasInputFromPort('method') :
-      method = self.getInputFromPort('method')
-    Input_Mesh = 0
-    if self.hasInputFromPort('Input Mesh') :
-      Input_Mesh = self.getInputFromPort('Input Mesh')
-    results = sr_py.FairMesh(Input_Mesh,iterations,method)
-    self.setResult('Faired Mesh', results)
-
-class SCIRun_EvaluateLinAlgBinary(Module) :
-  def compute(self) :
-    op = 'Mult'
-    if self.hasInputFromPort('op') :
-      op = self.getInputFromPort('op')
-    function = 'x+y'
-    if self.hasInputFromPort('function') :
-      function = self.getInputFromPort('function')
-    A = 0
-    if self.hasInputFromPort('A') :
-      A = self.getInputFromPort('A')
-    B = 0
-    if self.hasInputFromPort('B') :
-      B = self.getInputFromPort('B')
-    results = sr_py.EvaluateLinAlgBinary(A,B,op,function)
-    self.setResult('Output', results)
-
-class SCIRun_PrintMatrixIntoString(Module) :
-  def compute(self) :
-    formatstring = 'time: %5.4f ms'
-    if self.hasInputFromPort('formatstring') :
-      formatstring = self.getInputFromPort('formatstring')
-    Format = 0
-    if self.hasInputFromPort('Format') :
-      Format = self.getInputFromPort('Format')
-    Input = 0
-    if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
-    results = sr_py.PrintMatrixIntoString(Format,Input,formatstring)
-    self.setResult('Output', results)
-
-class SCIRun_SetFieldProperty(Module) :
-  def compute(self) :
-    num_entries = 0
-    if self.hasInputFromPort('num_entries') :
-      num_entries = self.getInputFromPort('num_entries')
-    property = ''
-    if self.hasInputFromPort('property') :
-      property = self.getInputFromPort('property')
-    type = 'unknown'
-    if self.hasInputFromPort('type') :
-      type = self.getInputFromPort('type')
-    value = ''
-    if self.hasInputFromPort('value') :
-      value = self.getInputFromPort('value')
-    readonly = 0
-    if self.hasInputFromPort('readonly') :
-      readonly = self.getInputFromPort('readonly')
-    Field = 0
-    if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
-    results = sr_py.SetFieldProperty(Field,num_entries,property,type,value,readonly)
-    self.setResult('Field', results)
-
-class SCIRun_ConvertFieldBasis(Module) :
-  def compute(self) :
-    output_basis = 'Linear'
-    if self.hasInputFromPort('output_basis') :
-      output_basis = self.getInputFromPort('output_basis')
-    Input = 0
-    if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
-    results = sr_py.ConvertFieldBasis(Input,output_basis)
-    self.setResult('Output', sr_py.read_at_index(results,0))
-    self.setResult('Mapping', sr_py.read_at_index(results,1))
-
-class SCIRun_CreateDataArrayFromIndices(Module) :
-  def compute(self) :
-    Indices = 0
-    if self.hasInputFromPort('Indices') :
-      Indices = self.getInputFromPort('Indices')
-    Template = 0
-    if self.hasInputFromPort('Template') :
-      Template = self.getInputFromPort('Template')
-    results = sr_py.CreateDataArrayFromIndices(Indices,Template)
-    self.setResult('DataArray', results)
-
-class SCIRun_SelectAndSetFieldData(Module) :
-  def compute(self) :
-    selection1 = 'DATA < A'
-    if self.hasInputFromPort('selection1') :
-      selection1 = self.getInputFromPort('selection1')
-    function1 = 'abs(DATA)'
-    if self.hasInputFromPort('function1') :
-      function1 = self.getInputFromPort('function1')
-    selection2 = 'DATA > A'
-    if self.hasInputFromPort('selection2') :
-      selection2 = self.getInputFromPort('selection2')
-    function2 = '-abs(DATA)'
-    if self.hasInputFromPort('function2') :
-      function2 = self.getInputFromPort('function2')
-    selection3 = ''
-    if self.hasInputFromPort('selection3') :
-      selection3 = self.getInputFromPort('selection3')
-    function3 = ''
-    if self.hasInputFromPort('function3') :
-      function3 = self.getInputFromPort('function3')
-    selection4 = ''
-    if self.hasInputFromPort('selection4') :
-      selection4 = self.getInputFromPort('selection4')
-    function4 = ''
-    if self.hasInputFromPort('function4') :
-      function4 = self.getInputFromPort('function4')
-    functiondef = 0
-    if self.hasInputFromPort('functiondef') :
-      functiondef = self.getInputFromPort('functiondef')
-    format = 'Scalar'
-    if self.hasInputFromPort('format') :
-      format = self.getInputFromPort('format')
+    p_selection1 = 'DATA < A'
+    if self.hasInputFromPort('p_selection1') :
+      p_selection1 = self.getInputFromPort('p_selection1')
+    p_function1 = 'abs(DATA)'
+    if self.hasInputFromPort('p_function1') :
+      p_function1 = self.getInputFromPort('p_function1')
+    p_selection2 = 'DATA > A'
+    if self.hasInputFromPort('p_selection2') :
+      p_selection2 = self.getInputFromPort('p_selection2')
+    p_function2 = '-abs(DATA)'
+    if self.hasInputFromPort('p_function2') :
+      p_function2 = self.getInputFromPort('p_function2')
+    p_selection3 = ''
+    if self.hasInputFromPort('p_selection3') :
+      p_selection3 = self.getInputFromPort('p_selection3')
+    p_function3 = ''
+    if self.hasInputFromPort('p_function3') :
+      p_function3 = self.getInputFromPort('p_function3')
+    p_selection4 = ''
+    if self.hasInputFromPort('p_selection4') :
+      p_selection4 = self.getInputFromPort('p_selection4')
+    p_function4 = ''
+    if self.hasInputFromPort('p_function4') :
+      p_function4 = self.getInputFromPort('p_function4')
+    p_functiondef = '0'
+    if self.hasInputFromPort('p_functiondef') :
+      p_functiondef = self.getInputFromPort('p_functiondef')
+    p_format = 'Scalar'
+    if self.hasInputFromPort('p_format') :
+      p_format = self.getInputFromPort('p_format')
     Field = 0
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
     Array = 0
     if self.hasInputFromPort('Array') :
       Array = self.getInputFromPort('Array')
-    results = sr_py.SelectAndSetFieldData(Field,Array,selection1,function1,selection2,function2,selection3,function3,selection4,function4,functiondef,format)
+    results = sr_py.SelectAndSetFieldData(Field,Array,p_selection1,p_function1,p_selection2,p_function2,p_selection3,p_function3,p_selection4,p_function4,p_functiondef,p_format)
     self.setResult('Field', results)
 
-class SCIRun_GetColorMapsFromBundle(Module) :
+class scirun_GetColorMapsFromBundle(Module) :
   def compute(self) :
-    colormap1_name = 'colormap1'
-    if self.hasInputFromPort('colormap1_name') :
-      colormap1_name = self.getInputFromPort('colormap1_name')
-    colormap2_name = 'colormap2'
-    if self.hasInputFromPort('colormap2_name') :
-      colormap2_name = self.getInputFromPort('colormap2_name')
-    colormap3_name = 'colormap3'
-    if self.hasInputFromPort('colormap3_name') :
-      colormap3_name = self.getInputFromPort('colormap3_name')
-    colormap4_name = 'colormap4'
-    if self.hasInputFromPort('colormap4_name') :
-      colormap4_name = self.getInputFromPort('colormap4_name')
-    colormap5_name = 'colormap5'
-    if self.hasInputFromPort('colormap5_name') :
-      colormap5_name = self.getInputFromPort('colormap5_name')
-    colormap6_name = 'colormap6'
-    if self.hasInputFromPort('colormap6_name') :
-      colormap6_name = self.getInputFromPort('colormap6_name')
-    colormap_selection = ''
-    if self.hasInputFromPort('colormap_selection') :
-      colormap_selection = self.getInputFromPort('colormap_selection')
+    p_colormap1_name = 'colormap1'
+    if self.hasInputFromPort('p_colormap1_name') :
+      p_colormap1_name = self.getInputFromPort('p_colormap1_name')
+    p_colormap2_name = 'colormap2'
+    if self.hasInputFromPort('p_colormap2_name') :
+      p_colormap2_name = self.getInputFromPort('p_colormap2_name')
+    p_colormap3_name = 'colormap3'
+    if self.hasInputFromPort('p_colormap3_name') :
+      p_colormap3_name = self.getInputFromPort('p_colormap3_name')
+    p_colormap4_name = 'colormap4'
+    if self.hasInputFromPort('p_colormap4_name') :
+      p_colormap4_name = self.getInputFromPort('p_colormap4_name')
+    p_colormap5_name = 'colormap5'
+    if self.hasInputFromPort('p_colormap5_name') :
+      p_colormap5_name = self.getInputFromPort('p_colormap5_name')
+    p_colormap6_name = 'colormap6'
+    if self.hasInputFromPort('p_colormap6_name') :
+      p_colormap6_name = self.getInputFromPort('p_colormap6_name')
+    p_colormap_selection = ''
+    if self.hasInputFromPort('p_colormap_selection') :
+      p_colormap_selection = self.getInputFromPort('p_colormap_selection')
     bundle = 0
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
-    results = sr_py.GetColorMapsFromBundle(bundle,colormap1_name,colormap2_name,colormap3_name,colormap4_name,colormap5_name,colormap6_name,colormap_selection)
+    results = sr_py.GetColorMapsFromBundle(bundle,p_colormap1_name,p_colormap2_name,p_colormap3_name,p_colormap4_name,p_colormap5_name,p_colormap6_name,p_colormap_selection)
     self.setResult('bundle', sr_py.read_at_index(results,0))
     self.setResult('colormap1', sr_py.read_at_index(results,1))
     self.setResult('colormap2', sr_py.read_at_index(results,2))
@@ -426,78 +395,78 @@ class SCIRun_GetColorMapsFromBundle(Module) :
     self.setResult('colormap5', sr_py.read_at_index(results,5))
     self.setResult('colormap6', sr_py.read_at_index(results,6))
 
-class SCIRun_CreateStructHex(Module) :
+class scirun_CreateStructHex(Module) :
   def compute(self) :
-    sizex = 16
-    if self.hasInputFromPort('sizex') :
-      sizex = self.getInputFromPort('sizex')
-    sizey = 16
-    if self.hasInputFromPort('sizey') :
-      sizey = self.getInputFromPort('sizey')
-    sizez = 16
-    if self.hasInputFromPort('sizez') :
-      sizez = self.getInputFromPort('sizez')
-    padpercent = 0.0
-    if self.hasInputFromPort('padpercent') :
-      padpercent = self.getInputFromPort('padpercent')
-    data_at = 'Nodes'
-    if self.hasInputFromPort('data_at') :
-      data_at = self.getInputFromPort('data_at')
+    p_sizex = 16
+    if self.hasInputFromPort('p_sizex') :
+      p_sizex = self.getInputFromPort('p_sizex')
+    p_sizey = 16
+    if self.hasInputFromPort('p_sizey') :
+      p_sizey = self.getInputFromPort('p_sizey')
+    p_sizez = 16
+    if self.hasInputFromPort('p_sizez') :
+      p_sizez = self.getInputFromPort('p_sizez')
+    p_padpercent = 0.0
+    if self.hasInputFromPort('p_padpercent') :
+      p_padpercent = self.getInputFromPort('p_padpercent')
+    p_data_at = 'Nodes'
+    if self.hasInputFromPort('p_data_at') :
+      p_data_at = self.getInputFromPort('p_data_at')
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
-    results = sr_py.CreateStructHex(Input_Field,sizex,sizey,sizez,padpercent,data_at)
+    results = sr_py.CreateStructHex(Input_Field,p_sizex,p_sizey,p_sizez,p_padpercent,p_data_at)
     self.setResult('Output Sample Field', results)
 
-class SCIRun_ShowColorMap(Module) :
+class scirun_ShowColorMap(Module) :
   def compute(self) :
-    length = 'half2'
-    if self.hasInputFromPort('length') :
-      length = self.getInputFromPort('length')
-    side = 'left'
-    if self.hasInputFromPort('side') :
-      side = self.getInputFromPort('side')
-    numlabels = 5
-    if self.hasInputFromPort('numlabels') :
-      numlabels = self.getInputFromPort('numlabels')
-    scale = 1.0
-    if self.hasInputFromPort('scale') :
-      scale = self.getInputFromPort('scale')
-    numsigdigits = 2
-    if self.hasInputFromPort('numsigdigits') :
-      numsigdigits = self.getInputFromPort('numsigdigits')
-    units = ''
-    if self.hasInputFromPort('units') :
-      units = self.getInputFromPort('units')
-    color_r = 1.0
-    if self.hasInputFromPort('color_r') :
-      color_r = self.getInputFromPort('color_r')
-    color_g = 1.0
-    if self.hasInputFromPort('color_g') :
-      color_g = self.getInputFromPort('color_g')
-    color_b = 1.0
-    if self.hasInputFromPort('color_b') :
-      color_b = self.getInputFromPort('color_b')
-    text_fontsize = 2
-    if self.hasInputFromPort('text_fontsize') :
-      text_fontsize = self.getInputFromPort('text_fontsize')
-    extra_padding = 0
-    if self.hasInputFromPort('extra_padding') :
-      extra_padding = self.getInputFromPort('extra_padding')
+    p_length = 'half2'
+    if self.hasInputFromPort('p_length') :
+      p_length = self.getInputFromPort('p_length')
+    p_side = 'left'
+    if self.hasInputFromPort('p_side') :
+      p_side = self.getInputFromPort('p_side')
+    p_numlabels = 5
+    if self.hasInputFromPort('p_numlabels') :
+      p_numlabels = self.getInputFromPort('p_numlabels')
+    p_scale = 1.0
+    if self.hasInputFromPort('p_scale') :
+      p_scale = self.getInputFromPort('p_scale')
+    p_numsigdigits = 2
+    if self.hasInputFromPort('p_numsigdigits') :
+      p_numsigdigits = self.getInputFromPort('p_numsigdigits')
+    p_units = ''
+    if self.hasInputFromPort('p_units') :
+      p_units = self.getInputFromPort('p_units')
+    p_color_r = 1.0
+    if self.hasInputFromPort('p_color_r') :
+      p_color_r = self.getInputFromPort('p_color_r')
+    p_color_g = 1.0
+    if self.hasInputFromPort('p_color_g') :
+      p_color_g = self.getInputFromPort('p_color_g')
+    p_color_b = 1.0
+    if self.hasInputFromPort('p_color_b') :
+      p_color_b = self.getInputFromPort('p_color_b')
+    p_text_fontsize = 2
+    if self.hasInputFromPort('p_text_fontsize') :
+      p_text_fontsize = self.getInputFromPort('p_text_fontsize')
+    p_extra_padding = 0
+    if self.hasInputFromPort('p_extra_padding') :
+      p_extra_padding = self.getInputFromPort('p_extra_padding')
     ColorMap = 0
     if self.hasInputFromPort('ColorMap') :
       ColorMap = self.getInputFromPort('ColorMap')
-    results = sr_py.ShowColorMap(ColorMap,length,side,numlabels,scale,numsigdigits,units,color_r,color_g,color_b,text_fontsize,extra_padding)
+    results = sr_py.ShowColorMap(ColorMap,p_length,p_side,p_numlabels,p_scale,p_numsigdigits,p_units,p_color_r,p_color_g,p_color_b,p_text_fontsize,p_extra_padding)
     self.setResult('Geometry', results)
 
-class SCIRun_CalculateFieldData3(Module) :
+class scirun_CalculateFieldData3(Module) :
   def compute(self) :
-    function = 'RESULT = abs(DATA1);'
-    if self.hasInputFromPort('function') :
-      function = self.getInputFromPort('function')
-    format = 'Scalar'
-    if self.hasInputFromPort('format') :
-      format = self.getInputFromPort('format')
+    p_function = 'RESULT = abs(DATA1);'
+    if self.hasInputFromPort('p_function') :
+      p_function = self.getInputFromPort('p_function')
+    p_format = 'Scalar'
+    if self.hasInputFromPort('p_format') :
+      p_format = self.getInputFromPort('p_format')
     Field1 = 0
     if self.hasInputFromPort('Field1') :
       Field1 = self.getInputFromPort('Field1')
@@ -513,50 +482,50 @@ class SCIRun_CalculateFieldData3(Module) :
     Array = 0
     if self.hasInputFromPort('Array') :
       Array = self.getInputFromPort('Array')
-    results = sr_py.CalculateFieldData3(Field1,Field2,Field3,Function,Array,function,format)
+    results = sr_py.CalculateFieldData3(Field1,Field2,Field3,Function,Array,p_function,p_format)
     self.setResult('Field', results)
 
-class SCIRun_InsertFieldsIntoBundle(Module) :
+class scirun_InsertFieldsIntoBundle(Module) :
   def compute(self) :
-    field1_name = 'field1'
-    if self.hasInputFromPort('field1_name') :
-      field1_name = self.getInputFromPort('field1_name')
-    field2_name = 'field2'
-    if self.hasInputFromPort('field2_name') :
-      field2_name = self.getInputFromPort('field2_name')
-    field3_name = 'field3'
-    if self.hasInputFromPort('field3_name') :
-      field3_name = self.getInputFromPort('field3_name')
-    field4_name = 'field4'
-    if self.hasInputFromPort('field4_name') :
-      field4_name = self.getInputFromPort('field4_name')
-    field5_name = 'field5'
-    if self.hasInputFromPort('field5_name') :
-      field5_name = self.getInputFromPort('field5_name')
-    field6_name = 'field6'
-    if self.hasInputFromPort('field6_name') :
-      field6_name = self.getInputFromPort('field6_name')
-    replace1 = 1
-    if self.hasInputFromPort('replace1') :
-      replace1 = self.getInputFromPort('replace1')
-    replace2 = 1
-    if self.hasInputFromPort('replace2') :
-      replace2 = self.getInputFromPort('replace2')
-    replace3 = 1
-    if self.hasInputFromPort('replace3') :
-      replace3 = self.getInputFromPort('replace3')
-    replace4 = 1
-    if self.hasInputFromPort('replace4') :
-      replace4 = self.getInputFromPort('replace4')
-    replace5 = 1
-    if self.hasInputFromPort('replace5') :
-      replace5 = self.getInputFromPort('replace5')
-    replace6 = 1
-    if self.hasInputFromPort('replace6') :
-      replace6 = self.getInputFromPort('replace6')
-    bundlename = ''
-    if self.hasInputFromPort('bundlename') :
-      bundlename = self.getInputFromPort('bundlename')
+    p_field1_name = 'field1'
+    if self.hasInputFromPort('p_field1_name') :
+      p_field1_name = self.getInputFromPort('p_field1_name')
+    p_field2_name = 'field2'
+    if self.hasInputFromPort('p_field2_name') :
+      p_field2_name = self.getInputFromPort('p_field2_name')
+    p_field3_name = 'field3'
+    if self.hasInputFromPort('p_field3_name') :
+      p_field3_name = self.getInputFromPort('p_field3_name')
+    p_field4_name = 'field4'
+    if self.hasInputFromPort('p_field4_name') :
+      p_field4_name = self.getInputFromPort('p_field4_name')
+    p_field5_name = 'field5'
+    if self.hasInputFromPort('p_field5_name') :
+      p_field5_name = self.getInputFromPort('p_field5_name')
+    p_field6_name = 'field6'
+    if self.hasInputFromPort('p_field6_name') :
+      p_field6_name = self.getInputFromPort('p_field6_name')
+    p_replace1 = 1
+    if self.hasInputFromPort('p_replace1') :
+      p_replace1 = self.getInputFromPort('p_replace1')
+    p_replace2 = 1
+    if self.hasInputFromPort('p_replace2') :
+      p_replace2 = self.getInputFromPort('p_replace2')
+    p_replace3 = 1
+    if self.hasInputFromPort('p_replace3') :
+      p_replace3 = self.getInputFromPort('p_replace3')
+    p_replace4 = 1
+    if self.hasInputFromPort('p_replace4') :
+      p_replace4 = self.getInputFromPort('p_replace4')
+    p_replace5 = 1
+    if self.hasInputFromPort('p_replace5') :
+      p_replace5 = self.getInputFromPort('p_replace5')
+    p_replace6 = 1
+    if self.hasInputFromPort('p_replace6') :
+      p_replace6 = self.getInputFromPort('p_replace6')
+    p_bundlename = ''
+    if self.hasInputFromPort('p_bundlename') :
+      p_bundlename = self.getInputFromPort('p_bundlename')
     bundle = 0
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
@@ -578,127 +547,47 @@ class SCIRun_InsertFieldsIntoBundle(Module) :
     field6 = 0
     if self.hasInputFromPort('field6') :
       field6 = self.getInputFromPort('field6')
-    results = sr_py.InsertFieldsIntoBundle(bundle,field1,field2,field3,field4,field5,field6,field1_name,field2_name,field3_name,field4_name,field5_name,field6_name,replace1,replace2,replace3,replace4,replace5,replace6,bundlename)
+    results = sr_py.InsertFieldsIntoBundle(bundle,field1,field2,field3,field4,field5,field6,p_field1_name,p_field2_name,p_field3_name,p_field4_name,p_field5_name,p_field6_name,p_replace1,p_replace2,p_replace3,p_replace4,p_replace5,p_replace6,p_bundlename)
     self.setResult('bundle', results)
 
-class SCIRun_CreateAndEditColorMap2D(Module) :
+class scirun_CreateAndEditColorMap2D(Module) :
   def compute(self) :
-    panx = 0.0
-    if self.hasInputFromPort('panx') :
-      panx = self.getInputFromPort('panx')
-    pany = 0.0
-    if self.hasInputFromPort('pany') :
-      pany = self.getInputFromPort('pany')
-    scale_factor = 1.0
-    if self.hasInputFromPort('scale_factor') :
-      scale_factor = self.getInputFromPort('scale_factor')
-    histo = 0.5
-    if self.hasInputFromPort('histo') :
-      histo = self.getInputFromPort('histo')
-    selected_widget = 1
-    if self.hasInputFromPort('selected_widget') :
-      selected_widget = self.getInputFromPort('selected_widget')
-    selected_object = -1
-    if self.hasInputFromPort('selected_object') :
-      selected_object = self.getInputFromPort('selected_object')
-    num_entries = 2
-    if self.hasInputFromPort('num_entries') :
-      num_entries = self.getInputFromPort('num_entries')
-    faux = 0
-    if self.hasInputFromPort('faux') :
-      faux = self.getInputFromPort('faux')
-    name_0 = 'Rectangle'
-    if self.hasInputFromPort('name_0') :
-      name_0 = self.getInputFromPort('name_0')
-    a0_color_r = 0.12009425537
-    if self.hasInputFromPort('a0_color_r') :
-      a0_color_r = self.getInputFromPort('a0_color_r')
-    a0_color_g = 0.122522867934
-    if self.hasInputFromPort('a0_color_g') :
-      a0_color_g = self.getInputFromPort('a0_color_g')
-    a0_color_b = 0.859472894936
-    if self.hasInputFromPort('a0_color_b') :
-      a0_color_b = self.getInputFromPort('a0_color_b')
-    a0_color_a = 0.800000011921
-    if self.hasInputFromPort('a0_color_a') :
-      a0_color_a = self.getInputFromPort('a0_color_a')
-    state_0 = 'r 0 0.478865 0.73946 0.340307 0.218051 0.584851'
-    if self.hasInputFromPort('state_0') :
-      state_0 = self.getInputFromPort('state_0')
-    shadeType_0 = 0
-    if self.hasInputFromPort('shadeType_0') :
-      shadeType_0 = self.getInputFromPort('shadeType_0')
-    on_0 = 1
-    if self.hasInputFromPort('on_0') :
-      on_0 = self.getInputFromPort('on_0')
-    name_1 = 'Rectangle'
-    if self.hasInputFromPort('name_1') :
-      name_1 = self.getInputFromPort('name_1')
-    a1_color_r = 0.381380394093
-    if self.hasInputFromPort('a1_color_r') :
-      a1_color_r = self.getInputFromPort('a1_color_r')
-    a1_color_g = 0.0419620992568
-    if self.hasInputFromPort('a1_color_g') :
-      a1_color_g = self.getInputFromPort('a1_color_g')
-    a1_color_b = 0.605304105914
-    if self.hasInputFromPort('a1_color_b') :
-      a1_color_b = self.getInputFromPort('a1_color_b')
-    a1_color_a = 0.800000011921
-    if self.hasInputFromPort('a1_color_a') :
-      a1_color_a = self.getInputFromPort('a1_color_a')
-    state_1 = 'r 0 0.510807 0.737528 0.452638 0.226319 0.461235'
-    if self.hasInputFromPort('state_1') :
-      state_1 = self.getInputFromPort('state_1')
-    shadeType_1 = 0
-    if self.hasInputFromPort('shadeType_1') :
-      shadeType_1 = self.getInputFromPort('shadeType_1')
-    on_1 = 1
-    if self.hasInputFromPort('on_1') :
-      on_1 = self.getInputFromPort('on_1')
-    marker = 'end'
-    if self.hasInputFromPort('marker') :
-      marker = self.getInputFromPort('marker')
+    p_histo = 0.5
+    if self.hasInputFromPort('p_histo') :
+      p_histo = self.getInputFromPort('p_histo')
+    p_selected_widget = -1
+    if self.hasInputFromPort('p_selected_widget') :
+      p_selected_widget = self.getInputFromPort('p_selected_widget')
+    p_selected_object = -1
+    if self.hasInputFromPort('p_selected_object') :
+      p_selected_object = self.getInputFromPort('p_selected_object')
+    p_num_entries = 0
+    if self.hasInputFromPort('p_num_entries') :
+      p_num_entries = self.getInputFromPort('p_num_entries')
+    p_marker = 'end'
+    if self.hasInputFromPort('p_marker') :
+      p_marker = self.getInputFromPort('p_marker')
     Input_Colormap = 0
     if self.hasInputFromPort('Input Colormap') :
       Input_Colormap = self.getInputFromPort('Input Colormap')
     Histogram = 0
     if self.hasInputFromPort('Histogram') :
       Histogram = self.getInputFromPort('Histogram')
-    Colormap = 0
-    if self.hasInputFromPort('Colormap') :
-      Colormap = self.getInputFromPort('Colormap')
-    results = sr_py.CreateAndEditColorMap2D(Input_Colormap,Histogram,Colormap,panx,pany,scale_factor,histo,selected_widget,selected_object,num_entries,faux,name_0,a0_color_r,a0_color_g,a0_color_b,a0_color_a,state_0,shadeType_0,on_0,name_1,a1_color_r,a1_color_g,a1_color_b,a1_color_a,state_1,shadeType_1,on_1,marker)
+    results = sr_py.CreateAndEditColorMap2D(Input_Colormap,Histogram,p_histo,p_selected_widget,p_selected_object,p_num_entries,p_marker)
     self.setResult('Output Colormap', results)
 
-class SCIRun_ReportScalarFieldStats(Module) :
+class scirun_CreateDataArrayFromIndices(Module) :
   def compute(self) :
-    min = '?'
-    if self.hasInputFromPort('min') :
-      min = self.getInputFromPort('min')
-    max = '?'
-    if self.hasInputFromPort('max') :
-      max = self.getInputFromPort('max')
-    mean = '?'
-    if self.hasInputFromPort('mean') :
-      mean = self.getInputFromPort('mean')
-    median = '?'
-    if self.hasInputFromPort('median') :
-      median = self.getInputFromPort('median')
-    sigma = '?'
-    if self.hasInputFromPort('sigma') :
-      sigma = self.getInputFromPort('sigma')
-    is_fixed = 0
-    if self.hasInputFromPort('is_fixed') :
-      is_fixed = self.getInputFromPort('is_fixed')
-    nbuckets = 256
-    if self.hasInputFromPort('nbuckets') :
-      nbuckets = self.getInputFromPort('nbuckets')
-    Input_Field = 0
-    if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
-    results = sr_py.ReportScalarFieldStats(Input_Field,min,max,mean,median,sigma,is_fixed,nbuckets)
+    Indices = 0
+    if self.hasInputFromPort('Indices') :
+      Indices = self.getInputFromPort('Indices')
+    Template = 0
+    if self.hasInputFromPort('Template') :
+      Template = self.getInputFromPort('Template')
+    results = sr_py.CreateDataArrayFromIndices(Indices,Template)
+    self.setResult('DataArray', results)
 
-class SCIRun_ReportDataArrayInfo(Module) :
+class scirun_ReportDataArrayInfo(Module) :
   def compute(self) :
     DataArray = 0
     if self.hasInputFromPort('DataArray') :
@@ -706,33 +595,41 @@ class SCIRun_ReportDataArrayInfo(Module) :
     results = sr_py.ReportDataArrayInfo(DataArray)
     self.setResult('NumElements', results)
 
-class SCIRun_GetFieldsFromBundle(Module) :
+class scirun_ConvertMaskVectorToMappingMatrix(Module) :
   def compute(self) :
-    field1_name = 'field1'
-    if self.hasInputFromPort('field1_name') :
-      field1_name = self.getInputFromPort('field1_name')
-    field2_name = 'field2'
-    if self.hasInputFromPort('field2_name') :
-      field2_name = self.getInputFromPort('field2_name')
-    field3_name = 'field3'
-    if self.hasInputFromPort('field3_name') :
-      field3_name = self.getInputFromPort('field3_name')
-    field4_name = 'field4'
-    if self.hasInputFromPort('field4_name') :
-      field4_name = self.getInputFromPort('field4_name')
-    field5_name = 'field5'
-    if self.hasInputFromPort('field5_name') :
-      field5_name = self.getInputFromPort('field5_name')
-    field6_name = 'field6'
-    if self.hasInputFromPort('field6_name') :
-      field6_name = self.getInputFromPort('field6_name')
-    field_selection = ''
-    if self.hasInputFromPort('field_selection') :
-      field_selection = self.getInputFromPort('field_selection')
+    MaskVector = 0
+    if self.hasInputFromPort('MaskVector') :
+      MaskVector = self.getInputFromPort('MaskVector')
+    results = sr_py.ConvertMaskVectorToMappingMatrix(MaskVector)
+    self.setResult('MappingMatrix', results)
+
+class scirun_GetFieldsFromBundle(Module) :
+  def compute(self) :
+    p_field1_name = 'field1'
+    if self.hasInputFromPort('p_field1_name') :
+      p_field1_name = self.getInputFromPort('p_field1_name')
+    p_field2_name = 'field2'
+    if self.hasInputFromPort('p_field2_name') :
+      p_field2_name = self.getInputFromPort('p_field2_name')
+    p_field3_name = 'field3'
+    if self.hasInputFromPort('p_field3_name') :
+      p_field3_name = self.getInputFromPort('p_field3_name')
+    p_field4_name = 'field4'
+    if self.hasInputFromPort('p_field4_name') :
+      p_field4_name = self.getInputFromPort('p_field4_name')
+    p_field5_name = 'field5'
+    if self.hasInputFromPort('p_field5_name') :
+      p_field5_name = self.getInputFromPort('p_field5_name')
+    p_field6_name = 'field6'
+    if self.hasInputFromPort('p_field6_name') :
+      p_field6_name = self.getInputFromPort('p_field6_name')
+    p_field_selection = ''
+    if self.hasInputFromPort('p_field_selection') :
+      p_field_selection = self.getInputFromPort('p_field_selection')
     bundle = 0
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
-    results = sr_py.GetFieldsFromBundle(bundle,field1_name,field2_name,field3_name,field4_name,field5_name,field6_name,field_selection)
+    results = sr_py.GetFieldsFromBundle(bundle,p_field1_name,p_field2_name,p_field3_name,p_field4_name,p_field5_name,p_field6_name,p_field_selection)
     self.setResult('bundle', sr_py.read_at_index(results,0))
     self.setResult('field1', sr_py.read_at_index(results,1))
     self.setResult('field2', sr_py.read_at_index(results,2))
@@ -741,630 +638,181 @@ class SCIRun_GetFieldsFromBundle(Module) :
     self.setResult('field5', sr_py.read_at_index(results,5))
     self.setResult('field6', sr_py.read_at_index(results,6))
 
-class SCIRun_ConvertMaskVectorToMappingMatrix(Module) :
+class scirun_ReportScalarFieldStats(Module) :
   def compute(self) :
-    MaskVector = 0
-    if self.hasInputFromPort('MaskVector') :
-      MaskVector = self.getInputFromPort('MaskVector')
-    results = sr_py.ConvertMaskVectorToMappingMatrix(MaskVector)
-    self.setResult('MappingMatrix', results)
+    p_min = 0.0
+    if self.hasInputFromPort('p_min') :
+      p_min = self.getInputFromPort('p_min')
+    p_max = 0.0
+    if self.hasInputFromPort('p_max') :
+      p_max = self.getInputFromPort('p_max')
+    p_mean = 0.0
+    if self.hasInputFromPort('p_mean') :
+      p_mean = self.getInputFromPort('p_mean')
+    p_median = 0.0
+    if self.hasInputFromPort('p_median') :
+      p_median = self.getInputFromPort('p_median')
+    p_sigma = 0.0
+    if self.hasInputFromPort('p_sigma') :
+      p_sigma = self.getInputFromPort('p_sigma')
+    p_is_fixed = 0
+    if self.hasInputFromPort('p_is_fixed') :
+      p_is_fixed = self.getInputFromPort('p_is_fixed')
+    p_nbuckets = 256
+    if self.hasInputFromPort('p_nbuckets') :
+      p_nbuckets = self.getInputFromPort('p_nbuckets')
+    Input_Field = 0
+    if self.hasInputFromPort('Input Field') :
+      Input_Field = self.getInputFromPort('Input Field')
+    results = sr_py.ReportScalarFieldStats(Input_Field,p_min,p_max,p_mean,p_median,p_sigma,p_is_fixed,p_nbuckets)
 
-class SCIRun_CreateViewerAxes(Module) :
+class scirun_ShowField(Module) :
   def compute(self) :
-    precision = 3
-    if self.hasInputFromPort('precision') :
-      precision = self.getInputFromPort('precision')
-    squash = 0.7
-    if self.hasInputFromPort('squash') :
-      squash = self.getInputFromPort('squash')
-    valuerez = 72
-    if self.hasInputFromPort('valuerez') :
-      valuerez = self.getInputFromPort('valuerez')
-    labelrez = 72
-    if self.hasInputFromPort('labelrez') :
-      labelrez = self.getInputFromPort('labelrez')
-    Plane_01_0_Axis_absolute = ''
-    if self.hasInputFromPort('Plane_01_0_Axis_absolute') :
-      Plane_01_0_Axis_absolute = self.getInputFromPort('Plane_01_0_Axis_absolute')
-    Plane_01_0_Axis_divisions = 10
-    if self.hasInputFromPort('Plane_01_0_Axis_divisions') :
-      Plane_01_0_Axis_divisions = self.getInputFromPort('Plane_01_0_Axis_divisions')
-    Plane_01_0_Axis_offset = 1
-    if self.hasInputFromPort('Plane_01_0_Axis_offset') :
-      Plane_01_0_Axis_offset = self.getInputFromPort('Plane_01_0_Axis_offset')
-    Plane_01_0_Axis_range_first = 0.0
-    if self.hasInputFromPort('Plane_01_0_Axis_range_first') :
-      Plane_01_0_Axis_range_first = self.getInputFromPort('Plane_01_0_Axis_range_first')
-    Plane_01_0_Axis_range_second = 1.0
-    if self.hasInputFromPort('Plane_01_0_Axis_range_second') :
-      Plane_01_0_Axis_range_second = self.getInputFromPort('Plane_01_0_Axis_range_second')
-    Plane_01_0_Axis_min_absolute = 0.0
-    if self.hasInputFromPort('Plane_01_0_Axis_min_absolute') :
-      Plane_01_0_Axis_min_absolute = self.getInputFromPort('Plane_01_0_Axis_min_absolute')
-    Plane_01_0_Axis_max_absolute = 1.0
-    if self.hasInputFromPort('Plane_01_0_Axis_max_absolute') :
-      Plane_01_0_Axis_max_absolute = self.getInputFromPort('Plane_01_0_Axis_max_absolute')
-    Plane_01_0_Axis_minplane = 2
-    if self.hasInputFromPort('Plane_01_0_Axis_minplane') :
-      Plane_01_0_Axis_minplane = self.getInputFromPort('Plane_01_0_Axis_minplane')
-    Plane_01_0_Axis_maxplane = 2
-    if self.hasInputFromPort('Plane_01_0_Axis_maxplane') :
-      Plane_01_0_Axis_maxplane = self.getInputFromPort('Plane_01_0_Axis_maxplane')
-    Plane_01_0_Axis_lines = 2
-    if self.hasInputFromPort('Plane_01_0_Axis_lines') :
-      Plane_01_0_Axis_lines = self.getInputFromPort('Plane_01_0_Axis_lines')
-    Plane_01_0_Axis_minticks = 2
-    if self.hasInputFromPort('Plane_01_0_Axis_minticks') :
-      Plane_01_0_Axis_minticks = self.getInputFromPort('Plane_01_0_Axis_minticks')
-    Plane_01_0_Axis_maxticks = 2
-    if self.hasInputFromPort('Plane_01_0_Axis_maxticks') :
-      Plane_01_0_Axis_maxticks = self.getInputFromPort('Plane_01_0_Axis_maxticks')
-    Plane_01_0_Axis_minlabel = 2
-    if self.hasInputFromPort('Plane_01_0_Axis_minlabel') :
-      Plane_01_0_Axis_minlabel = self.getInputFromPort('Plane_01_0_Axis_minlabel')
-    Plane_01_0_Axis_maxlabel = 2
-    if self.hasInputFromPort('Plane_01_0_Axis_maxlabel') :
-      Plane_01_0_Axis_maxlabel = self.getInputFromPort('Plane_01_0_Axis_maxlabel')
-    Plane_01_0_Axis_minvalue = 2
-    if self.hasInputFromPort('Plane_01_0_Axis_minvalue') :
-      Plane_01_0_Axis_minvalue = self.getInputFromPort('Plane_01_0_Axis_minvalue')
-    Plane_01_0_Axis_maxvalue = 2
-    if self.hasInputFromPort('Plane_01_0_Axis_maxvalue') :
-      Plane_01_0_Axis_maxvalue = self.getInputFromPort('Plane_01_0_Axis_maxvalue')
-    Plane_01_0_Axis_width = 1
-    if self.hasInputFromPort('Plane_01_0_Axis_width') :
-      Plane_01_0_Axis_width = self.getInputFromPort('Plane_01_0_Axis_width')
-    Plane_01_0_Axis_tickangle = 0
-    if self.hasInputFromPort('Plane_01_0_Axis_tickangle') :
-      Plane_01_0_Axis_tickangle = self.getInputFromPort('Plane_01_0_Axis_tickangle')
-    Plane_01_0_Axis_ticktilt = 0
-    if self.hasInputFromPort('Plane_01_0_Axis_ticktilt') :
-      Plane_01_0_Axis_ticktilt = self.getInputFromPort('Plane_01_0_Axis_ticktilt')
-    Plane_01_0_Axis_ticksize = 5
-    if self.hasInputFromPort('Plane_01_0_Axis_ticksize') :
-      Plane_01_0_Axis_ticksize = self.getInputFromPort('Plane_01_0_Axis_ticksize')
-    Plane_01_0_Axis_labelangle = 0
-    if self.hasInputFromPort('Plane_01_0_Axis_labelangle') :
-      Plane_01_0_Axis_labelangle = self.getInputFromPort('Plane_01_0_Axis_labelangle')
-    Plane_01_0_Axis_labelheight = 6
-    if self.hasInputFromPort('Plane_01_0_Axis_labelheight') :
-      Plane_01_0_Axis_labelheight = self.getInputFromPort('Plane_01_0_Axis_labelheight')
-    Plane_01_0_Axis_valuesize = 3
-    if self.hasInputFromPort('Plane_01_0_Axis_valuesize') :
-      Plane_01_0_Axis_valuesize = self.getInputFromPort('Plane_01_0_Axis_valuesize')
-    Plane_01_0_Axis_valuesquash = 1.0
-    if self.hasInputFromPort('Plane_01_0_Axis_valuesquash') :
-      Plane_01_0_Axis_valuesquash = self.getInputFromPort('Plane_01_0_Axis_valuesquash')
-    Plane_01_1_Axis_absolute = ''
-    if self.hasInputFromPort('Plane_01_1_Axis_absolute') :
-      Plane_01_1_Axis_absolute = self.getInputFromPort('Plane_01_1_Axis_absolute')
-    Plane_01_1_Axis_divisions = 10
-    if self.hasInputFromPort('Plane_01_1_Axis_divisions') :
-      Plane_01_1_Axis_divisions = self.getInputFromPort('Plane_01_1_Axis_divisions')
-    Plane_01_1_Axis_offset = 1
-    if self.hasInputFromPort('Plane_01_1_Axis_offset') :
-      Plane_01_1_Axis_offset = self.getInputFromPort('Plane_01_1_Axis_offset')
-    Plane_01_1_Axis_range_first = 0.0
-    if self.hasInputFromPort('Plane_01_1_Axis_range_first') :
-      Plane_01_1_Axis_range_first = self.getInputFromPort('Plane_01_1_Axis_range_first')
-    Plane_01_1_Axis_range_second = 1.0
-    if self.hasInputFromPort('Plane_01_1_Axis_range_second') :
-      Plane_01_1_Axis_range_second = self.getInputFromPort('Plane_01_1_Axis_range_second')
-    Plane_01_1_Axis_min_absolute = 0.0
-    if self.hasInputFromPort('Plane_01_1_Axis_min_absolute') :
-      Plane_01_1_Axis_min_absolute = self.getInputFromPort('Plane_01_1_Axis_min_absolute')
-    Plane_01_1_Axis_max_absolute = 1.0
-    if self.hasInputFromPort('Plane_01_1_Axis_max_absolute') :
-      Plane_01_1_Axis_max_absolute = self.getInputFromPort('Plane_01_1_Axis_max_absolute')
-    Plane_01_1_Axis_minplane = 2
-    if self.hasInputFromPort('Plane_01_1_Axis_minplane') :
-      Plane_01_1_Axis_minplane = self.getInputFromPort('Plane_01_1_Axis_minplane')
-    Plane_01_1_Axis_maxplane = 2
-    if self.hasInputFromPort('Plane_01_1_Axis_maxplane') :
-      Plane_01_1_Axis_maxplane = self.getInputFromPort('Plane_01_1_Axis_maxplane')
-    Plane_01_1_Axis_lines = 2
-    if self.hasInputFromPort('Plane_01_1_Axis_lines') :
-      Plane_01_1_Axis_lines = self.getInputFromPort('Plane_01_1_Axis_lines')
-    Plane_01_1_Axis_minticks = 2
-    if self.hasInputFromPort('Plane_01_1_Axis_minticks') :
-      Plane_01_1_Axis_minticks = self.getInputFromPort('Plane_01_1_Axis_minticks')
-    Plane_01_1_Axis_maxticks = 2
-    if self.hasInputFromPort('Plane_01_1_Axis_maxticks') :
-      Plane_01_1_Axis_maxticks = self.getInputFromPort('Plane_01_1_Axis_maxticks')
-    Plane_01_1_Axis_minlabel = 2
-    if self.hasInputFromPort('Plane_01_1_Axis_minlabel') :
-      Plane_01_1_Axis_minlabel = self.getInputFromPort('Plane_01_1_Axis_minlabel')
-    Plane_01_1_Axis_maxlabel = 2
-    if self.hasInputFromPort('Plane_01_1_Axis_maxlabel') :
-      Plane_01_1_Axis_maxlabel = self.getInputFromPort('Plane_01_1_Axis_maxlabel')
-    Plane_01_1_Axis_minvalue = 2
-    if self.hasInputFromPort('Plane_01_1_Axis_minvalue') :
-      Plane_01_1_Axis_minvalue = self.getInputFromPort('Plane_01_1_Axis_minvalue')
-    Plane_01_1_Axis_maxvalue = 2
-    if self.hasInputFromPort('Plane_01_1_Axis_maxvalue') :
-      Plane_01_1_Axis_maxvalue = self.getInputFromPort('Plane_01_1_Axis_maxvalue')
-    Plane_01_1_Axis_width = 1
-    if self.hasInputFromPort('Plane_01_1_Axis_width') :
-      Plane_01_1_Axis_width = self.getInputFromPort('Plane_01_1_Axis_width')
-    Plane_01_1_Axis_tickangle = 0
-    if self.hasInputFromPort('Plane_01_1_Axis_tickangle') :
-      Plane_01_1_Axis_tickangle = self.getInputFromPort('Plane_01_1_Axis_tickangle')
-    Plane_01_1_Axis_ticktilt = 0
-    if self.hasInputFromPort('Plane_01_1_Axis_ticktilt') :
-      Plane_01_1_Axis_ticktilt = self.getInputFromPort('Plane_01_1_Axis_ticktilt')
-    Plane_01_1_Axis_ticksize = 5
-    if self.hasInputFromPort('Plane_01_1_Axis_ticksize') :
-      Plane_01_1_Axis_ticksize = self.getInputFromPort('Plane_01_1_Axis_ticksize')
-    Plane_01_1_Axis_labelangle = 0
-    if self.hasInputFromPort('Plane_01_1_Axis_labelangle') :
-      Plane_01_1_Axis_labelangle = self.getInputFromPort('Plane_01_1_Axis_labelangle')
-    Plane_01_1_Axis_labelheight = 6
-    if self.hasInputFromPort('Plane_01_1_Axis_labelheight') :
-      Plane_01_1_Axis_labelheight = self.getInputFromPort('Plane_01_1_Axis_labelheight')
-    Plane_01_1_Axis_valuesize = 3
-    if self.hasInputFromPort('Plane_01_1_Axis_valuesize') :
-      Plane_01_1_Axis_valuesize = self.getInputFromPort('Plane_01_1_Axis_valuesize')
-    Plane_01_1_Axis_valuesquash = 1.0
-    if self.hasInputFromPort('Plane_01_1_Axis_valuesquash') :
-      Plane_01_1_Axis_valuesquash = self.getInputFromPort('Plane_01_1_Axis_valuesquash')
-    Plane_02_0_Axis_absolute = ''
-    if self.hasInputFromPort('Plane_02_0_Axis_absolute') :
-      Plane_02_0_Axis_absolute = self.getInputFromPort('Plane_02_0_Axis_absolute')
-    Plane_02_0_Axis_divisions = 10
-    if self.hasInputFromPort('Plane_02_0_Axis_divisions') :
-      Plane_02_0_Axis_divisions = self.getInputFromPort('Plane_02_0_Axis_divisions')
-    Plane_02_0_Axis_offset = 1
-    if self.hasInputFromPort('Plane_02_0_Axis_offset') :
-      Plane_02_0_Axis_offset = self.getInputFromPort('Plane_02_0_Axis_offset')
-    Plane_02_0_Axis_range_first = 0.0
-    if self.hasInputFromPort('Plane_02_0_Axis_range_first') :
-      Plane_02_0_Axis_range_first = self.getInputFromPort('Plane_02_0_Axis_range_first')
-    Plane_02_0_Axis_range_second = 1.0
-    if self.hasInputFromPort('Plane_02_0_Axis_range_second') :
-      Plane_02_0_Axis_range_second = self.getInputFromPort('Plane_02_0_Axis_range_second')
-    Plane_02_0_Axis_min_absolute = 0.0
-    if self.hasInputFromPort('Plane_02_0_Axis_min_absolute') :
-      Plane_02_0_Axis_min_absolute = self.getInputFromPort('Plane_02_0_Axis_min_absolute')
-    Plane_02_0_Axis_max_absolute = 1.0
-    if self.hasInputFromPort('Plane_02_0_Axis_max_absolute') :
-      Plane_02_0_Axis_max_absolute = self.getInputFromPort('Plane_02_0_Axis_max_absolute')
-    Plane_02_0_Axis_minplane = 2
-    if self.hasInputFromPort('Plane_02_0_Axis_minplane') :
-      Plane_02_0_Axis_minplane = self.getInputFromPort('Plane_02_0_Axis_minplane')
-    Plane_02_0_Axis_maxplane = 2
-    if self.hasInputFromPort('Plane_02_0_Axis_maxplane') :
-      Plane_02_0_Axis_maxplane = self.getInputFromPort('Plane_02_0_Axis_maxplane')
-    Plane_02_0_Axis_lines = 2
-    if self.hasInputFromPort('Plane_02_0_Axis_lines') :
-      Plane_02_0_Axis_lines = self.getInputFromPort('Plane_02_0_Axis_lines')
-    Plane_02_0_Axis_minticks = 2
-    if self.hasInputFromPort('Plane_02_0_Axis_minticks') :
-      Plane_02_0_Axis_minticks = self.getInputFromPort('Plane_02_0_Axis_minticks')
-    Plane_02_0_Axis_maxticks = 2
-    if self.hasInputFromPort('Plane_02_0_Axis_maxticks') :
-      Plane_02_0_Axis_maxticks = self.getInputFromPort('Plane_02_0_Axis_maxticks')
-    Plane_02_0_Axis_minlabel = 2
-    if self.hasInputFromPort('Plane_02_0_Axis_minlabel') :
-      Plane_02_0_Axis_minlabel = self.getInputFromPort('Plane_02_0_Axis_minlabel')
-    Plane_02_0_Axis_maxlabel = 2
-    if self.hasInputFromPort('Plane_02_0_Axis_maxlabel') :
-      Plane_02_0_Axis_maxlabel = self.getInputFromPort('Plane_02_0_Axis_maxlabel')
-    Plane_02_0_Axis_minvalue = 2
-    if self.hasInputFromPort('Plane_02_0_Axis_minvalue') :
-      Plane_02_0_Axis_minvalue = self.getInputFromPort('Plane_02_0_Axis_minvalue')
-    Plane_02_0_Axis_maxvalue = 2
-    if self.hasInputFromPort('Plane_02_0_Axis_maxvalue') :
-      Plane_02_0_Axis_maxvalue = self.getInputFromPort('Plane_02_0_Axis_maxvalue')
-    Plane_02_0_Axis_width = 1
-    if self.hasInputFromPort('Plane_02_0_Axis_width') :
-      Plane_02_0_Axis_width = self.getInputFromPort('Plane_02_0_Axis_width')
-    Plane_02_0_Axis_tickangle = 0
-    if self.hasInputFromPort('Plane_02_0_Axis_tickangle') :
-      Plane_02_0_Axis_tickangle = self.getInputFromPort('Plane_02_0_Axis_tickangle')
-    Plane_02_0_Axis_ticktilt = 0
-    if self.hasInputFromPort('Plane_02_0_Axis_ticktilt') :
-      Plane_02_0_Axis_ticktilt = self.getInputFromPort('Plane_02_0_Axis_ticktilt')
-    Plane_02_0_Axis_ticksize = 5
-    if self.hasInputFromPort('Plane_02_0_Axis_ticksize') :
-      Plane_02_0_Axis_ticksize = self.getInputFromPort('Plane_02_0_Axis_ticksize')
-    Plane_02_0_Axis_labelangle = 0
-    if self.hasInputFromPort('Plane_02_0_Axis_labelangle') :
-      Plane_02_0_Axis_labelangle = self.getInputFromPort('Plane_02_0_Axis_labelangle')
-    Plane_02_0_Axis_labelheight = 6
-    if self.hasInputFromPort('Plane_02_0_Axis_labelheight') :
-      Plane_02_0_Axis_labelheight = self.getInputFromPort('Plane_02_0_Axis_labelheight')
-    Plane_02_0_Axis_valuesize = 3
-    if self.hasInputFromPort('Plane_02_0_Axis_valuesize') :
-      Plane_02_0_Axis_valuesize = self.getInputFromPort('Plane_02_0_Axis_valuesize')
-    Plane_02_0_Axis_valuesquash = 1.0
-    if self.hasInputFromPort('Plane_02_0_Axis_valuesquash') :
-      Plane_02_0_Axis_valuesquash = self.getInputFromPort('Plane_02_0_Axis_valuesquash')
-    Plane_02_2_Axis_absolute = ''
-    if self.hasInputFromPort('Plane_02_2_Axis_absolute') :
-      Plane_02_2_Axis_absolute = self.getInputFromPort('Plane_02_2_Axis_absolute')
-    Plane_02_2_Axis_divisions = 10
-    if self.hasInputFromPort('Plane_02_2_Axis_divisions') :
-      Plane_02_2_Axis_divisions = self.getInputFromPort('Plane_02_2_Axis_divisions')
-    Plane_02_2_Axis_offset = 1
-    if self.hasInputFromPort('Plane_02_2_Axis_offset') :
-      Plane_02_2_Axis_offset = self.getInputFromPort('Plane_02_2_Axis_offset')
-    Plane_02_2_Axis_range_first = 0.0
-    if self.hasInputFromPort('Plane_02_2_Axis_range_first') :
-      Plane_02_2_Axis_range_first = self.getInputFromPort('Plane_02_2_Axis_range_first')
-    Plane_02_2_Axis_range_second = 1.0
-    if self.hasInputFromPort('Plane_02_2_Axis_range_second') :
-      Plane_02_2_Axis_range_second = self.getInputFromPort('Plane_02_2_Axis_range_second')
-    Plane_02_2_Axis_min_absolute = 0.0
-    if self.hasInputFromPort('Plane_02_2_Axis_min_absolute') :
-      Plane_02_2_Axis_min_absolute = self.getInputFromPort('Plane_02_2_Axis_min_absolute')
-    Plane_02_2_Axis_max_absolute = 1.0
-    if self.hasInputFromPort('Plane_02_2_Axis_max_absolute') :
-      Plane_02_2_Axis_max_absolute = self.getInputFromPort('Plane_02_2_Axis_max_absolute')
-    Plane_02_2_Axis_minplane = 2
-    if self.hasInputFromPort('Plane_02_2_Axis_minplane') :
-      Plane_02_2_Axis_minplane = self.getInputFromPort('Plane_02_2_Axis_minplane')
-    Plane_02_2_Axis_maxplane = 2
-    if self.hasInputFromPort('Plane_02_2_Axis_maxplane') :
-      Plane_02_2_Axis_maxplane = self.getInputFromPort('Plane_02_2_Axis_maxplane')
-    Plane_02_2_Axis_lines = 2
-    if self.hasInputFromPort('Plane_02_2_Axis_lines') :
-      Plane_02_2_Axis_lines = self.getInputFromPort('Plane_02_2_Axis_lines')
-    Plane_02_2_Axis_minticks = 2
-    if self.hasInputFromPort('Plane_02_2_Axis_minticks') :
-      Plane_02_2_Axis_minticks = self.getInputFromPort('Plane_02_2_Axis_minticks')
-    Plane_02_2_Axis_maxticks = 2
-    if self.hasInputFromPort('Plane_02_2_Axis_maxticks') :
-      Plane_02_2_Axis_maxticks = self.getInputFromPort('Plane_02_2_Axis_maxticks')
-    Plane_02_2_Axis_minlabel = 2
-    if self.hasInputFromPort('Plane_02_2_Axis_minlabel') :
-      Plane_02_2_Axis_minlabel = self.getInputFromPort('Plane_02_2_Axis_minlabel')
-    Plane_02_2_Axis_maxlabel = 2
-    if self.hasInputFromPort('Plane_02_2_Axis_maxlabel') :
-      Plane_02_2_Axis_maxlabel = self.getInputFromPort('Plane_02_2_Axis_maxlabel')
-    Plane_02_2_Axis_minvalue = 2
-    if self.hasInputFromPort('Plane_02_2_Axis_minvalue') :
-      Plane_02_2_Axis_minvalue = self.getInputFromPort('Plane_02_2_Axis_minvalue')
-    Plane_02_2_Axis_maxvalue = 2
-    if self.hasInputFromPort('Plane_02_2_Axis_maxvalue') :
-      Plane_02_2_Axis_maxvalue = self.getInputFromPort('Plane_02_2_Axis_maxvalue')
-    Plane_02_2_Axis_width = 1
-    if self.hasInputFromPort('Plane_02_2_Axis_width') :
-      Plane_02_2_Axis_width = self.getInputFromPort('Plane_02_2_Axis_width')
-    Plane_02_2_Axis_tickangle = 0
-    if self.hasInputFromPort('Plane_02_2_Axis_tickangle') :
-      Plane_02_2_Axis_tickangle = self.getInputFromPort('Plane_02_2_Axis_tickangle')
-    Plane_02_2_Axis_ticktilt = 0
-    if self.hasInputFromPort('Plane_02_2_Axis_ticktilt') :
-      Plane_02_2_Axis_ticktilt = self.getInputFromPort('Plane_02_2_Axis_ticktilt')
-    Plane_02_2_Axis_ticksize = 5
-    if self.hasInputFromPort('Plane_02_2_Axis_ticksize') :
-      Plane_02_2_Axis_ticksize = self.getInputFromPort('Plane_02_2_Axis_ticksize')
-    Plane_02_2_Axis_labelangle = 0
-    if self.hasInputFromPort('Plane_02_2_Axis_labelangle') :
-      Plane_02_2_Axis_labelangle = self.getInputFromPort('Plane_02_2_Axis_labelangle')
-    Plane_02_2_Axis_labelheight = 6
-    if self.hasInputFromPort('Plane_02_2_Axis_labelheight') :
-      Plane_02_2_Axis_labelheight = self.getInputFromPort('Plane_02_2_Axis_labelheight')
-    Plane_02_2_Axis_valuesize = 3
-    if self.hasInputFromPort('Plane_02_2_Axis_valuesize') :
-      Plane_02_2_Axis_valuesize = self.getInputFromPort('Plane_02_2_Axis_valuesize')
-    Plane_02_2_Axis_valuesquash = 1.0
-    if self.hasInputFromPort('Plane_02_2_Axis_valuesquash') :
-      Plane_02_2_Axis_valuesquash = self.getInputFromPort('Plane_02_2_Axis_valuesquash')
-    Plane_12_1_Axis_absolute = ''
-    if self.hasInputFromPort('Plane_12_1_Axis_absolute') :
-      Plane_12_1_Axis_absolute = self.getInputFromPort('Plane_12_1_Axis_absolute')
-    Plane_12_1_Axis_divisions = 10
-    if self.hasInputFromPort('Plane_12_1_Axis_divisions') :
-      Plane_12_1_Axis_divisions = self.getInputFromPort('Plane_12_1_Axis_divisions')
-    Plane_12_1_Axis_offset = 1
-    if self.hasInputFromPort('Plane_12_1_Axis_offset') :
-      Plane_12_1_Axis_offset = self.getInputFromPort('Plane_12_1_Axis_offset')
-    Plane_12_1_Axis_range_first = 0.0
-    if self.hasInputFromPort('Plane_12_1_Axis_range_first') :
-      Plane_12_1_Axis_range_first = self.getInputFromPort('Plane_12_1_Axis_range_first')
-    Plane_12_1_Axis_range_second = 1.0
-    if self.hasInputFromPort('Plane_12_1_Axis_range_second') :
-      Plane_12_1_Axis_range_second = self.getInputFromPort('Plane_12_1_Axis_range_second')
-    Plane_12_1_Axis_min_absolute = 0.0
-    if self.hasInputFromPort('Plane_12_1_Axis_min_absolute') :
-      Plane_12_1_Axis_min_absolute = self.getInputFromPort('Plane_12_1_Axis_min_absolute')
-    Plane_12_1_Axis_max_absolute = 1.0
-    if self.hasInputFromPort('Plane_12_1_Axis_max_absolute') :
-      Plane_12_1_Axis_max_absolute = self.getInputFromPort('Plane_12_1_Axis_max_absolute')
-    Plane_12_1_Axis_minplane = 2
-    if self.hasInputFromPort('Plane_12_1_Axis_minplane') :
-      Plane_12_1_Axis_minplane = self.getInputFromPort('Plane_12_1_Axis_minplane')
-    Plane_12_1_Axis_maxplane = 2
-    if self.hasInputFromPort('Plane_12_1_Axis_maxplane') :
-      Plane_12_1_Axis_maxplane = self.getInputFromPort('Plane_12_1_Axis_maxplane')
-    Plane_12_1_Axis_lines = 2
-    if self.hasInputFromPort('Plane_12_1_Axis_lines') :
-      Plane_12_1_Axis_lines = self.getInputFromPort('Plane_12_1_Axis_lines')
-    Plane_12_1_Axis_minticks = 2
-    if self.hasInputFromPort('Plane_12_1_Axis_minticks') :
-      Plane_12_1_Axis_minticks = self.getInputFromPort('Plane_12_1_Axis_minticks')
-    Plane_12_1_Axis_maxticks = 2
-    if self.hasInputFromPort('Plane_12_1_Axis_maxticks') :
-      Plane_12_1_Axis_maxticks = self.getInputFromPort('Plane_12_1_Axis_maxticks')
-    Plane_12_1_Axis_minlabel = 2
-    if self.hasInputFromPort('Plane_12_1_Axis_minlabel') :
-      Plane_12_1_Axis_minlabel = self.getInputFromPort('Plane_12_1_Axis_minlabel')
-    Plane_12_1_Axis_maxlabel = 2
-    if self.hasInputFromPort('Plane_12_1_Axis_maxlabel') :
-      Plane_12_1_Axis_maxlabel = self.getInputFromPort('Plane_12_1_Axis_maxlabel')
-    Plane_12_1_Axis_minvalue = 2
-    if self.hasInputFromPort('Plane_12_1_Axis_minvalue') :
-      Plane_12_1_Axis_minvalue = self.getInputFromPort('Plane_12_1_Axis_minvalue')
-    Plane_12_1_Axis_maxvalue = 2
-    if self.hasInputFromPort('Plane_12_1_Axis_maxvalue') :
-      Plane_12_1_Axis_maxvalue = self.getInputFromPort('Plane_12_1_Axis_maxvalue')
-    Plane_12_1_Axis_width = 1
-    if self.hasInputFromPort('Plane_12_1_Axis_width') :
-      Plane_12_1_Axis_width = self.getInputFromPort('Plane_12_1_Axis_width')
-    Plane_12_1_Axis_tickangle = 0
-    if self.hasInputFromPort('Plane_12_1_Axis_tickangle') :
-      Plane_12_1_Axis_tickangle = self.getInputFromPort('Plane_12_1_Axis_tickangle')
-    Plane_12_1_Axis_ticktilt = 0
-    if self.hasInputFromPort('Plane_12_1_Axis_ticktilt') :
-      Plane_12_1_Axis_ticktilt = self.getInputFromPort('Plane_12_1_Axis_ticktilt')
-    Plane_12_1_Axis_ticksize = 5
-    if self.hasInputFromPort('Plane_12_1_Axis_ticksize') :
-      Plane_12_1_Axis_ticksize = self.getInputFromPort('Plane_12_1_Axis_ticksize')
-    Plane_12_1_Axis_labelangle = 0
-    if self.hasInputFromPort('Plane_12_1_Axis_labelangle') :
-      Plane_12_1_Axis_labelangle = self.getInputFromPort('Plane_12_1_Axis_labelangle')
-    Plane_12_1_Axis_labelheight = 6
-    if self.hasInputFromPort('Plane_12_1_Axis_labelheight') :
-      Plane_12_1_Axis_labelheight = self.getInputFromPort('Plane_12_1_Axis_labelheight')
-    Plane_12_1_Axis_valuesize = 3
-    if self.hasInputFromPort('Plane_12_1_Axis_valuesize') :
-      Plane_12_1_Axis_valuesize = self.getInputFromPort('Plane_12_1_Axis_valuesize')
-    Plane_12_1_Axis_valuesquash = 1.0
-    if self.hasInputFromPort('Plane_12_1_Axis_valuesquash') :
-      Plane_12_1_Axis_valuesquash = self.getInputFromPort('Plane_12_1_Axis_valuesquash')
-    Plane_12_2_Axis_absolute = ''
-    if self.hasInputFromPort('Plane_12_2_Axis_absolute') :
-      Plane_12_2_Axis_absolute = self.getInputFromPort('Plane_12_2_Axis_absolute')
-    Plane_12_2_Axis_divisions = 10
-    if self.hasInputFromPort('Plane_12_2_Axis_divisions') :
-      Plane_12_2_Axis_divisions = self.getInputFromPort('Plane_12_2_Axis_divisions')
-    Plane_12_2_Axis_offset = 1
-    if self.hasInputFromPort('Plane_12_2_Axis_offset') :
-      Plane_12_2_Axis_offset = self.getInputFromPort('Plane_12_2_Axis_offset')
-    Plane_12_2_Axis_range_first = 0.0
-    if self.hasInputFromPort('Plane_12_2_Axis_range_first') :
-      Plane_12_2_Axis_range_first = self.getInputFromPort('Plane_12_2_Axis_range_first')
-    Plane_12_2_Axis_range_second = 1.0
-    if self.hasInputFromPort('Plane_12_2_Axis_range_second') :
-      Plane_12_2_Axis_range_second = self.getInputFromPort('Plane_12_2_Axis_range_second')
-    Plane_12_2_Axis_min_absolute = 0.0
-    if self.hasInputFromPort('Plane_12_2_Axis_min_absolute') :
-      Plane_12_2_Axis_min_absolute = self.getInputFromPort('Plane_12_2_Axis_min_absolute')
-    Plane_12_2_Axis_max_absolute = 1.0
-    if self.hasInputFromPort('Plane_12_2_Axis_max_absolute') :
-      Plane_12_2_Axis_max_absolute = self.getInputFromPort('Plane_12_2_Axis_max_absolute')
-    Plane_12_2_Axis_minplane = 2
-    if self.hasInputFromPort('Plane_12_2_Axis_minplane') :
-      Plane_12_2_Axis_minplane = self.getInputFromPort('Plane_12_2_Axis_minplane')
-    Plane_12_2_Axis_maxplane = 2
-    if self.hasInputFromPort('Plane_12_2_Axis_maxplane') :
-      Plane_12_2_Axis_maxplane = self.getInputFromPort('Plane_12_2_Axis_maxplane')
-    Plane_12_2_Axis_lines = 2
-    if self.hasInputFromPort('Plane_12_2_Axis_lines') :
-      Plane_12_2_Axis_lines = self.getInputFromPort('Plane_12_2_Axis_lines')
-    Plane_12_2_Axis_minticks = 2
-    if self.hasInputFromPort('Plane_12_2_Axis_minticks') :
-      Plane_12_2_Axis_minticks = self.getInputFromPort('Plane_12_2_Axis_minticks')
-    Plane_12_2_Axis_maxticks = 2
-    if self.hasInputFromPort('Plane_12_2_Axis_maxticks') :
-      Plane_12_2_Axis_maxticks = self.getInputFromPort('Plane_12_2_Axis_maxticks')
-    Plane_12_2_Axis_minlabel = 2
-    if self.hasInputFromPort('Plane_12_2_Axis_minlabel') :
-      Plane_12_2_Axis_minlabel = self.getInputFromPort('Plane_12_2_Axis_minlabel')
-    Plane_12_2_Axis_maxlabel = 2
-    if self.hasInputFromPort('Plane_12_2_Axis_maxlabel') :
-      Plane_12_2_Axis_maxlabel = self.getInputFromPort('Plane_12_2_Axis_maxlabel')
-    Plane_12_2_Axis_minvalue = 2
-    if self.hasInputFromPort('Plane_12_2_Axis_minvalue') :
-      Plane_12_2_Axis_minvalue = self.getInputFromPort('Plane_12_2_Axis_minvalue')
-    Plane_12_2_Axis_maxvalue = 2
-    if self.hasInputFromPort('Plane_12_2_Axis_maxvalue') :
-      Plane_12_2_Axis_maxvalue = self.getInputFromPort('Plane_12_2_Axis_maxvalue')
-    Plane_12_2_Axis_width = 1
-    if self.hasInputFromPort('Plane_12_2_Axis_width') :
-      Plane_12_2_Axis_width = self.getInputFromPort('Plane_12_2_Axis_width')
-    Plane_12_2_Axis_tickangle = 0
-    if self.hasInputFromPort('Plane_12_2_Axis_tickangle') :
-      Plane_12_2_Axis_tickangle = self.getInputFromPort('Plane_12_2_Axis_tickangle')
-    Plane_12_2_Axis_ticktilt = 0
-    if self.hasInputFromPort('Plane_12_2_Axis_ticktilt') :
-      Plane_12_2_Axis_ticktilt = self.getInputFromPort('Plane_12_2_Axis_ticktilt')
-    Plane_12_2_Axis_ticksize = 5
-    if self.hasInputFromPort('Plane_12_2_Axis_ticksize') :
-      Plane_12_2_Axis_ticksize = self.getInputFromPort('Plane_12_2_Axis_ticksize')
-    Plane_12_2_Axis_labelangle = 0
-    if self.hasInputFromPort('Plane_12_2_Axis_labelangle') :
-      Plane_12_2_Axis_labelangle = self.getInputFromPort('Plane_12_2_Axis_labelangle')
-    Plane_12_2_Axis_labelheight = 6
-    if self.hasInputFromPort('Plane_12_2_Axis_labelheight') :
-      Plane_12_2_Axis_labelheight = self.getInputFromPort('Plane_12_2_Axis_labelheight')
-    Plane_12_2_Axis_valuesize = 3
-    if self.hasInputFromPort('Plane_12_2_Axis_valuesize') :
-      Plane_12_2_Axis_valuesize = self.getInputFromPort('Plane_12_2_Axis_valuesize')
-    Plane_12_2_Axis_valuesquash = 1.0
-    if self.hasInputFromPort('Plane_12_2_Axis_valuesquash') :
-      Plane_12_2_Axis_valuesquash = self.getInputFromPort('Plane_12_2_Axis_valuesquash')
-    Field = 0
-    if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
-    results = sr_py.CreateViewerAxes(Field,precision,squash,valuerez,labelrez,Plane_01_0_Axis_absolute,Plane_01_0_Axis_divisions,Plane_01_0_Axis_offset,Plane_01_0_Axis_range_first,Plane_01_0_Axis_range_second,Plane_01_0_Axis_min_absolute,Plane_01_0_Axis_max_absolute,Plane_01_0_Axis_minplane,Plane_01_0_Axis_maxplane,Plane_01_0_Axis_lines,Plane_01_0_Axis_minticks,Plane_01_0_Axis_maxticks,Plane_01_0_Axis_minlabel,Plane_01_0_Axis_maxlabel,Plane_01_0_Axis_minvalue,Plane_01_0_Axis_maxvalue,Plane_01_0_Axis_width,Plane_01_0_Axis_tickangle,Plane_01_0_Axis_ticktilt,Plane_01_0_Axis_ticksize,Plane_01_0_Axis_labelangle,Plane_01_0_Axis_labelheight,Plane_01_0_Axis_valuesize,Plane_01_0_Axis_valuesquash,Plane_01_1_Axis_absolute,Plane_01_1_Axis_divisions,Plane_01_1_Axis_offset,Plane_01_1_Axis_range_first,Plane_01_1_Axis_range_second,Plane_01_1_Axis_min_absolute,Plane_01_1_Axis_max_absolute,Plane_01_1_Axis_minplane,Plane_01_1_Axis_maxplane,Plane_01_1_Axis_lines,Plane_01_1_Axis_minticks,Plane_01_1_Axis_maxticks,Plane_01_1_Axis_minlabel,Plane_01_1_Axis_maxlabel,Plane_01_1_Axis_minvalue,Plane_01_1_Axis_maxvalue,Plane_01_1_Axis_width,Plane_01_1_Axis_tickangle,Plane_01_1_Axis_ticktilt,Plane_01_1_Axis_ticksize,Plane_01_1_Axis_labelangle,Plane_01_1_Axis_labelheight,Plane_01_1_Axis_valuesize,Plane_01_1_Axis_valuesquash,Plane_02_0_Axis_absolute,Plane_02_0_Axis_divisions,Plane_02_0_Axis_offset,Plane_02_0_Axis_range_first,Plane_02_0_Axis_range_second,Plane_02_0_Axis_min_absolute,Plane_02_0_Axis_max_absolute,Plane_02_0_Axis_minplane,Plane_02_0_Axis_maxplane,Plane_02_0_Axis_lines,Plane_02_0_Axis_minticks,Plane_02_0_Axis_maxticks,Plane_02_0_Axis_minlabel,Plane_02_0_Axis_maxlabel,Plane_02_0_Axis_minvalue,Plane_02_0_Axis_maxvalue,Plane_02_0_Axis_width,Plane_02_0_Axis_tickangle,Plane_02_0_Axis_ticktilt,Plane_02_0_Axis_ticksize,Plane_02_0_Axis_labelangle,Plane_02_0_Axis_labelheight,Plane_02_0_Axis_valuesize,Plane_02_0_Axis_valuesquash,Plane_02_2_Axis_absolute,Plane_02_2_Axis_divisions,Plane_02_2_Axis_offset,Plane_02_2_Axis_range_first,Plane_02_2_Axis_range_second,Plane_02_2_Axis_min_absolute,Plane_02_2_Axis_max_absolute,Plane_02_2_Axis_minplane,Plane_02_2_Axis_maxplane,Plane_02_2_Axis_lines,Plane_02_2_Axis_minticks,Plane_02_2_Axis_maxticks,Plane_02_2_Axis_minlabel,Plane_02_2_Axis_maxlabel,Plane_02_2_Axis_minvalue,Plane_02_2_Axis_maxvalue,Plane_02_2_Axis_width,Plane_02_2_Axis_tickangle,Plane_02_2_Axis_ticktilt,Plane_02_2_Axis_ticksize,Plane_02_2_Axis_labelangle,Plane_02_2_Axis_labelheight,Plane_02_2_Axis_valuesize,Plane_02_2_Axis_valuesquash,Plane_12_1_Axis_absolute,Plane_12_1_Axis_divisions,Plane_12_1_Axis_offset,Plane_12_1_Axis_range_first,Plane_12_1_Axis_range_second,Plane_12_1_Axis_min_absolute,Plane_12_1_Axis_max_absolute,Plane_12_1_Axis_minplane,Plane_12_1_Axis_maxplane,Plane_12_1_Axis_lines,Plane_12_1_Axis_minticks,Plane_12_1_Axis_maxticks,Plane_12_1_Axis_minlabel,Plane_12_1_Axis_maxlabel,Plane_12_1_Axis_minvalue,Plane_12_1_Axis_maxvalue,Plane_12_1_Axis_width,Plane_12_1_Axis_tickangle,Plane_12_1_Axis_ticktilt,Plane_12_1_Axis_ticksize,Plane_12_1_Axis_labelangle,Plane_12_1_Axis_labelheight,Plane_12_1_Axis_valuesize,Plane_12_1_Axis_valuesquash,Plane_12_2_Axis_absolute,Plane_12_2_Axis_divisions,Plane_12_2_Axis_offset,Plane_12_2_Axis_range_first,Plane_12_2_Axis_range_second,Plane_12_2_Axis_min_absolute,Plane_12_2_Axis_max_absolute,Plane_12_2_Axis_minplane,Plane_12_2_Axis_maxplane,Plane_12_2_Axis_lines,Plane_12_2_Axis_minticks,Plane_12_2_Axis_maxticks,Plane_12_2_Axis_minlabel,Plane_12_2_Axis_maxlabel,Plane_12_2_Axis_minvalue,Plane_12_2_Axis_maxvalue,Plane_12_2_Axis_width,Plane_12_2_Axis_tickangle,Plane_12_2_Axis_ticktilt,Plane_12_2_Axis_ticksize,Plane_12_2_Axis_labelangle,Plane_12_2_Axis_labelheight,Plane_12_2_Axis_valuesize,Plane_12_2_Axis_valuesquash)
-    self.setResult('Axes', results)
-
-class SCIRun_ShowField(Module) :
-  def compute(self) :
-    nodes_on = 1
-    if self.hasInputFromPort('nodes_on') :
-      nodes_on = self.getInputFromPort('nodes_on')
-    nodes_transparency = 0
-    if self.hasInputFromPort('nodes_transparency') :
-      nodes_transparency = self.getInputFromPort('nodes_transparency')
-    nodes_color_type = 0
-    if self.hasInputFromPort('nodes_color_type') :
-      nodes_color_type = self.getInputFromPort('nodes_color_type')
-    nodes_display_type = 'Points'
-    if self.hasInputFromPort('nodes_display_type') :
-      nodes_display_type = self.getInputFromPort('nodes_display_type')
-    edges_on = True
-    if self.hasInputFromPort('edges_on') :
-      edges_on = self.getInputFromPort('edges_on')
-    edges_transparency = 0
-    if self.hasInputFromPort('edges_transparency') :
-      edges_transparency = self.getInputFromPort('edges_transparency')
-    edges_color_type = 0
-    if self.hasInputFromPort('edges_color_type') :
-      edges_color_type = self.getInputFromPort('edges_color_type')
-    edges_display_type = 'Lines'
-    if self.hasInputFromPort('edges_display_type') :
-      edges_display_type = self.getInputFromPort('edges_display_type')
-    faces_on = 1
-    if self.hasInputFromPort('faces_on') :
-      faces_on = self.getInputFromPort('faces_on')
-    faces_transparency = 0
-    if self.hasInputFromPort('faces_transparency') :
-      faces_transparency = self.getInputFromPort('faces_transparency')
-    faces_color_type = 0
-    if self.hasInputFromPort('faces_color_type') :
-      faces_color_type = self.getInputFromPort('faces_color_type')
-    faces_normals = 0
-    if self.hasInputFromPort('faces_normals') :
-      faces_normals = self.getInputFromPort('faces_normals')
-    faces_usetexture = 0
-    if self.hasInputFromPort('faces_usetexture') :
-      faces_usetexture = self.getInputFromPort('faces_usetexture')
-    text_on = 0
-    if self.hasInputFromPort('text_on') :
-      text_on = self.getInputFromPort('text_on')
-    text_color_type = 0
-    if self.hasInputFromPort('text_color_type') :
-      text_color_type = self.getInputFromPort('text_color_type')
-    text_color_r = 1.0
-    if self.hasInputFromPort('text_color_r') :
-      text_color_r = self.getInputFromPort('text_color_r')
-    text_color_g = 1.0
-    if self.hasInputFromPort('text_color_g') :
-      text_color_g = self.getInputFromPort('text_color_g')
-    text_color_b = 1.0
-    if self.hasInputFromPort('text_color_b') :
-      text_color_b = self.getInputFromPort('text_color_b')
-    text_backface_cull = 0
-    if self.hasInputFromPort('text_backface_cull') :
-      text_backface_cull = self.getInputFromPort('text_backface_cull')
-    text_always_visible = 0
-    if self.hasInputFromPort('text_always_visible') :
-      text_always_visible = self.getInputFromPort('text_always_visible')
-    text_fontsize = 1
-    if self.hasInputFromPort('text_fontsize') :
-      text_fontsize = self.getInputFromPort('text_fontsize')
-    text_precision = 3
-    if self.hasInputFromPort('text_precision') :
-      text_precision = self.getInputFromPort('text_precision')
-    text_render_locations = 0
-    if self.hasInputFromPort('text_render_locations') :
-      text_render_locations = self.getInputFromPort('text_render_locations')
-    text_show_data = 1
-    if self.hasInputFromPort('text_show_data') :
-      text_show_data = self.getInputFromPort('text_show_data')
-    text_show_nodes = 0
-    if self.hasInputFromPort('text_show_nodes') :
-      text_show_nodes = self.getInputFromPort('text_show_nodes')
-    text_show_edges = 0
-    if self.hasInputFromPort('text_show_edges') :
-      text_show_edges = self.getInputFromPort('text_show_edges')
-    text_show_faces = 0
-    if self.hasInputFromPort('text_show_faces') :
-      text_show_faces = self.getInputFromPort('text_show_faces')
-    text_show_cells = 0
-    if self.hasInputFromPort('text_show_cells') :
-      text_show_cells = self.getInputFromPort('text_show_cells')
-    def_color_r = 0.5
-    if self.hasInputFromPort('def_color_r') :
-      def_color_r = self.getInputFromPort('def_color_r')
-    def_color_g = 0.5
-    if self.hasInputFromPort('def_color_g') :
-      def_color_g = self.getInputFromPort('def_color_g')
-    def_color_b = 0.5
-    if self.hasInputFromPort('def_color_b') :
-      def_color_b = self.getInputFromPort('def_color_b')
-    def_color_a = 0.75
-    if self.hasInputFromPort('def_color_a') :
-      def_color_a = self.getInputFromPort('def_color_a')
-    nodes_scale = 0.03
-    if self.hasInputFromPort('nodes_scale') :
-      nodes_scale = self.getInputFromPort('nodes_scale')
-    nodes_scaleNV = -0.0
-    if self.hasInputFromPort('nodes_scaleNV') :
-      nodes_scaleNV = self.getInputFromPort('nodes_scaleNV')
-    edges_scale = 0.15
-    if self.hasInputFromPort('edges_scale') :
-      edges_scale = self.getInputFromPort('edges_scale')
-    edges_scaleNV = -0.0
-    if self.hasInputFromPort('edges_scaleNV') :
-      edges_scaleNV = self.getInputFromPort('edges_scaleNV')
-    active_tab = 'Nodes'
-    if self.hasInputFromPort('active_tab') :
-      active_tab = self.getInputFromPort('active_tab')
-    interactive_mode = 'Interactive'
-    if self.hasInputFromPort('interactive_mode') :
-      interactive_mode = self.getInputFromPort('interactive_mode')
-    show_progress = 0
-    if self.hasInputFromPort('show_progress') :
-      show_progress = self.getInputFromPort('show_progress')
-    field_name = ''
-    if self.hasInputFromPort('field_name') :
-      field_name = self.getInputFromPort('field_name')
-    field_name_override = 0
-    if self.hasInputFromPort('field_name_override') :
-      field_name_override = self.getInputFromPort('field_name_override')
-    nodes_resolution = 6
-    if self.hasInputFromPort('nodes_resolution') :
-      nodes_resolution = self.getInputFromPort('nodes_resolution')
-    edges_resolution = 6
-    if self.hasInputFromPort('edges_resolution') :
-      edges_resolution = self.getInputFromPort('edges_resolution')
-    approx_div = 1
-    if self.hasInputFromPort('approx_div') :
-      approx_div = self.getInputFromPort('approx_div')
-    use_default_size = 0
-    if self.hasInputFromPort('use_default_size') :
-      use_default_size = self.getInputFromPort('use_default_size')
+    p_nodes_on = 1
+    if self.hasInputFromPort('p_nodes_on') :
+      p_nodes_on = self.getInputFromPort('p_nodes_on')
+    p_nodes_transparency = 0
+    if self.hasInputFromPort('p_nodes_transparency') :
+      p_nodes_transparency = self.getInputFromPort('p_nodes_transparency')
+    p_nodes_color_type = 1
+    if self.hasInputFromPort('p_nodes_color_type') :
+      p_nodes_color_type = self.getInputFromPort('p_nodes_color_type')
+    p_nodes_display_type = 'Points'
+    if self.hasInputFromPort('p_nodes_display_type') :
+      p_nodes_display_type = self.getInputFromPort('p_nodes_display_type')
+    p_edges_on = 1
+    if self.hasInputFromPort('p_edges_on') :
+      p_edges_on = self.getInputFromPort('p_edges_on')
+    p_edges_transparency = 0
+    if self.hasInputFromPort('p_edges_transparency') :
+      p_edges_transparency = self.getInputFromPort('p_edges_transparency')
+    p_edges_color_type = 1
+    if self.hasInputFromPort('p_edges_color_type') :
+      p_edges_color_type = self.getInputFromPort('p_edges_color_type')
+    p_edges_display_type = 'Lines'
+    if self.hasInputFromPort('p_edges_display_type') :
+      p_edges_display_type = self.getInputFromPort('p_edges_display_type')
+    p_faces_on = 1
+    if self.hasInputFromPort('p_faces_on') :
+      p_faces_on = self.getInputFromPort('p_faces_on')
+    p_faces_transparency = 0
+    if self.hasInputFromPort('p_faces_transparency') :
+      p_faces_transparency = self.getInputFromPort('p_faces_transparency')
+    p_faces_color_type = 1
+    if self.hasInputFromPort('p_faces_color_type') :
+      p_faces_color_type = self.getInputFromPort('p_faces_color_type')
+    p_faces_normals = 0
+    if self.hasInputFromPort('p_faces_normals') :
+      p_faces_normals = self.getInputFromPort('p_faces_normals')
+    p_faces_usetexture = 0
+    if self.hasInputFromPort('p_faces_usetexture') :
+      p_faces_usetexture = self.getInputFromPort('p_faces_usetexture')
+    p_text_on = 0
+    if self.hasInputFromPort('p_text_on') :
+      p_text_on = self.getInputFromPort('p_text_on')
+    p_text_color_type = 0
+    if self.hasInputFromPort('p_text_color_type') :
+      p_text_color_type = self.getInputFromPort('p_text_color_type')
+    p_text_color_r = 1.0
+    if self.hasInputFromPort('p_text_color_r') :
+      p_text_color_r = self.getInputFromPort('p_text_color_r')
+    p_text_color_g = 1.0
+    if self.hasInputFromPort('p_text_color_g') :
+      p_text_color_g = self.getInputFromPort('p_text_color_g')
+    p_text_color_b = 1.0
+    if self.hasInputFromPort('p_text_color_b') :
+      p_text_color_b = self.getInputFromPort('p_text_color_b')
+    p_text_backface_cull = 0
+    if self.hasInputFromPort('p_text_backface_cull') :
+      p_text_backface_cull = self.getInputFromPort('p_text_backface_cull')
+    p_text_always_visible = 0
+    if self.hasInputFromPort('p_text_always_visible') :
+      p_text_always_visible = self.getInputFromPort('p_text_always_visible')
+    p_text_fontsize = 1
+    if self.hasInputFromPort('p_text_fontsize') :
+      p_text_fontsize = self.getInputFromPort('p_text_fontsize')
+    p_text_precision = 3
+    if self.hasInputFromPort('p_text_precision') :
+      p_text_precision = self.getInputFromPort('p_text_precision')
+    p_text_render_locations = 0
+    if self.hasInputFromPort('p_text_render_locations') :
+      p_text_render_locations = self.getInputFromPort('p_text_render_locations')
+    p_text_show_data = 1
+    if self.hasInputFromPort('p_text_show_data') :
+      p_text_show_data = self.getInputFromPort('p_text_show_data')
+    p_text_show_nodes = 0
+    if self.hasInputFromPort('p_text_show_nodes') :
+      p_text_show_nodes = self.getInputFromPort('p_text_show_nodes')
+    p_text_show_edges = 0
+    if self.hasInputFromPort('p_text_show_edges') :
+      p_text_show_edges = self.getInputFromPort('p_text_show_edges')
+    p_text_show_faces = 0
+    if self.hasInputFromPort('p_text_show_faces') :
+      p_text_show_faces = self.getInputFromPort('p_text_show_faces')
+    p_text_show_cells = 0
+    if self.hasInputFromPort('p_text_show_cells') :
+      p_text_show_cells = self.getInputFromPort('p_text_show_cells')
+    p_def_color_r = 0.5
+    if self.hasInputFromPort('p_def_color_r') :
+      p_def_color_r = self.getInputFromPort('p_def_color_r')
+    p_def_color_g = 0.5
+    if self.hasInputFromPort('p_def_color_g') :
+      p_def_color_g = self.getInputFromPort('p_def_color_g')
+    p_def_color_b = 0.5
+    if self.hasInputFromPort('p_def_color_b') :
+      p_def_color_b = self.getInputFromPort('p_def_color_b')
+    p_def_color_a = 1.0
+    if self.hasInputFromPort('p_def_color_a') :
+      p_def_color_a = self.getInputFromPort('p_def_color_a')
+    p_nodes_scale = 0.03
+    if self.hasInputFromPort('p_nodes_scale') :
+      p_nodes_scale = self.getInputFromPort('p_nodes_scale')
+    p_nodes_scaleNV = 0.03
+    if self.hasInputFromPort('p_nodes_scaleNV') :
+      p_nodes_scaleNV = self.getInputFromPort('p_nodes_scaleNV')
+    p_edges_scale = 0.15
+    if self.hasInputFromPort('p_edges_scale') :
+      p_edges_scale = self.getInputFromPort('p_edges_scale')
+    p_edges_scaleNV = 0.15
+    if self.hasInputFromPort('p_edges_scaleNV') :
+      p_edges_scaleNV = self.getInputFromPort('p_edges_scaleNV')
+    p_active_tab = 'Nodes'
+    if self.hasInputFromPort('p_active_tab') :
+      p_active_tab = self.getInputFromPort('p_active_tab')
+    p_interactive_mode = 'Interactive'
+    if self.hasInputFromPort('p_interactive_mode') :
+      p_interactive_mode = self.getInputFromPort('p_interactive_mode')
+    p_show_progress = 0
+    if self.hasInputFromPort('p_show_progress') :
+      p_show_progress = self.getInputFromPort('p_show_progress')
+    p_field_name = ''
+    if self.hasInputFromPort('p_field_name') :
+      p_field_name = self.getInputFromPort('p_field_name')
+    p_field_name_override = 0
+    if self.hasInputFromPort('p_field_name_override') :
+      p_field_name_override = self.getInputFromPort('p_field_name_override')
+    p_nodes_resolution = 6
+    if self.hasInputFromPort('p_nodes_resolution') :
+      p_nodes_resolution = self.getInputFromPort('p_nodes_resolution')
+    p_edges_resolution = 6
+    if self.hasInputFromPort('p_edges_resolution') :
+      p_edges_resolution = self.getInputFromPort('p_edges_resolution')
+    p_approx_div = 1
+    if self.hasInputFromPort('p_approx_div') :
+      p_approx_div = self.getInputFromPort('p_approx_div')
+    p_use_default_size = 0
+    if self.hasInputFromPort('p_use_default_size') :
+      p_use_default_size = self.getInputFromPort('p_use_default_size')
     Mesh = 0
     if self.hasInputFromPort('Mesh') :
       Mesh = self.getInputFromPort('Mesh')
     ColorMap = 0
     if self.hasInputFromPort('ColorMap') :
       ColorMap = self.getInputFromPort('ColorMap')
-    results = sr_py.ShowField(Mesh,ColorMap,nodes_on,nodes_transparency,nodes_color_type,nodes_display_type,edges_on,edges_transparency,edges_color_type,edges_display_type,faces_on,faces_transparency,faces_color_type,faces_normals,faces_usetexture,text_on,text_color_type,text_color_r,text_color_g,text_color_b,text_backface_cull,text_always_visible,text_fontsize,text_precision,text_render_locations,text_show_data,text_show_nodes,text_show_edges,text_show_faces,text_show_cells,def_color_r,def_color_g,def_color_b,def_color_a,nodes_scale,nodes_scaleNV,edges_scale,edges_scaleNV,active_tab,interactive_mode,show_progress,field_name,field_name_override,nodes_resolution,edges_resolution,approx_div,use_default_size)
+    results = sr_py.ShowField(Mesh,ColorMap,p_nodes_on,p_nodes_transparency,p_nodes_color_type,p_nodes_display_type,p_edges_on,p_edges_transparency,p_edges_color_type,p_edges_display_type,p_faces_on,p_faces_transparency,p_faces_color_type,p_faces_normals,p_faces_usetexture,p_text_on,p_text_color_type,p_text_color_r,p_text_color_g,p_text_color_b,p_text_backface_cull,p_text_always_visible,p_text_fontsize,p_text_precision,p_text_render_locations,p_text_show_data,p_text_show_nodes,p_text_show_edges,p_text_show_faces,p_text_show_cells,p_def_color_r,p_def_color_g,p_def_color_b,p_def_color_a,p_nodes_scale,p_nodes_scaleNV,p_edges_scale,p_edges_scaleNV,p_active_tab,p_interactive_mode,p_show_progress,p_field_name,p_field_name_override,p_nodes_resolution,p_edges_resolution,p_approx_div,p_use_default_size)
     self.setResult('Scene Graph', results)
 
-class SCIRun_SetFieldData(Module) :
-  def compute(self) :
-    keepscalartype = 0
-    if self.hasInputFromPort('keepscalartype') :
-      keepscalartype = self.getInputFromPort('keepscalartype')
-    Field = 0
-    if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
-    Matrix_Data = 0
-    if self.hasInputFromPort('Matrix Data') :
-      Matrix_Data = self.getInputFromPort('Matrix Data')
-    Nrrd_Data = 0
-    if self.hasInputFromPort('Nrrd Data') :
-      Nrrd_Data = self.getInputFromPort('Nrrd Data')
-    results = sr_py.SetFieldData(Field,Matrix_Data,Nrrd_Data,keepscalartype)
-    self.setResult('Field', results)
-
-class SCIRun_CreateVectorArray(Module) :
+class scirun_CreateVectorArray(Module) :
   def compute(self) :
     X = 0
     if self.hasInputFromPort('X') :
@@ -1378,384 +826,134 @@ class SCIRun_CreateVectorArray(Module) :
     results = sr_py.CreateVectorArray(X,Y,Z)
     self.setResult('Vector', results)
 
-class SCIRun_SynchronizeGeometry(Module) :
+class scirun_SynchronizeGeometry(Module) :
   def compute(self) :
-    enforce = 1
-    if self.hasInputFromPort('enforce') :
-      enforce = self.getInputFromPort('enforce')
+    p_enforce = 1
+    if self.hasInputFromPort('p_enforce') :
+      p_enforce = self.getInputFromPort('p_enforce')
     Input_Geometry = 0
     if self.hasInputFromPort('Input Geometry') :
       Input_Geometry = self.getInputFromPort('Input Geometry')
-    results = sr_py.SynchronizeGeometry(Input_Geometry,enforce)
+    results = sr_py.SynchronizeGeometry(Input_Geometry,p_enforce)
     self.setResult('Output Geometry', results)
 
-class SCIRun_ClipFieldWithSeed(Module) :
+class scirun_SolveLinearSystem(Module) :
   def compute(self) :
-    mode = 'allnodes'
-    if self.hasInputFromPort('mode') :
-      mode = self.getInputFromPort('mode')
-    function = 'return (fx < 0);'
-    if self.hasInputFromPort('function') :
-      function = self.getInputFromPort('function')
-    Function = 0
-    if self.hasInputFromPort('Function') :
-      Function = self.getInputFromPort('Function')
-    Input = 0
-    if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
-    Seeds = 0
-    if self.hasInputFromPort('Seeds') :
-      Seeds = self.getInputFromPort('Seeds')
-    results = sr_py.ClipFieldWithSeed(Function,Input,Seeds,mode,function)
-    self.setResult('Clipped', sr_py.read_at_index(results,0))
-    self.setResult('Mapping', sr_py.read_at_index(results,1))
-    self.setResult('MaskVector', sr_py.read_at_index(results,2))
-
-class SCIRun_SolveLinearSystem(Module) :
-  def compute(self) :
-    target_error = 0.001
-    if self.hasInputFromPort('target_error') :
-      target_error = self.getInputFromPort('target_error')
-    flops = 0.0
-    if self.hasInputFromPort('flops') :
-      flops = self.getInputFromPort('flops')
-    floprate = 0.0
-    if self.hasInputFromPort('floprate') :
-      floprate = self.getInputFromPort('floprate')
-    memrefs = 0.0
-    if self.hasInputFromPort('memrefs') :
-      memrefs = self.getInputFromPort('memrefs')
-    memrate = 0.0
-    if self.hasInputFromPort('memrate') :
-      memrate = self.getInputFromPort('memrate')
-    orig_error = 0.0
-    if self.hasInputFromPort('orig_error') :
-      orig_error = self.getInputFromPort('orig_error')
-    current_error = ''
-    if self.hasInputFromPort('current_error') :
-      current_error = self.getInputFromPort('current_error')
-    method = 'Conjugate Gradient & Precond. (SCI)'
-    if self.hasInputFromPort('method') :
-      method = self.getInputFromPort('method')
-    precond = 'jacobi'
-    if self.hasInputFromPort('precond') :
-      precond = self.getInputFromPort('precond')
-    iteration = 0
-    if self.hasInputFromPort('iteration') :
-      iteration = self.getInputFromPort('iteration')
-    maxiter = 200
-    if self.hasInputFromPort('maxiter') :
-      maxiter = self.getInputFromPort('maxiter')
-    use_previous_soln = 1
-    if self.hasInputFromPort('use_previous_soln') :
-      use_previous_soln = self.getInputFromPort('use_previous_soln')
-    emit_partial = 1
-    if self.hasInputFromPort('emit_partial') :
-      emit_partial = self.getInputFromPort('emit_partial')
-    emit_iter = 50
-    if self.hasInputFromPort('emit_iter') :
-      emit_iter = self.getInputFromPort('emit_iter')
-    status = ''
-    if self.hasInputFromPort('status') :
-      status = self.getInputFromPort('status')
-    np = 4
-    if self.hasInputFromPort('np') :
-      np = self.getInputFromPort('np')
+    p_target_error = 0.001
+    if self.hasInputFromPort('p_target_error') :
+      p_target_error = self.getInputFromPort('p_target_error')
+    p_flops = 0.0
+    if self.hasInputFromPort('p_flops') :
+      p_flops = self.getInputFromPort('p_flops')
+    p_floprate = 0.0
+    if self.hasInputFromPort('p_floprate') :
+      p_floprate = self.getInputFromPort('p_floprate')
+    p_memrefs = 0.0
+    if self.hasInputFromPort('p_memrefs') :
+      p_memrefs = self.getInputFromPort('p_memrefs')
+    p_memrate = 0.0
+    if self.hasInputFromPort('p_memrate') :
+      p_memrate = self.getInputFromPort('p_memrate')
+    p_orig_error = 0.0
+    if self.hasInputFromPort('p_orig_error') :
+      p_orig_error = self.getInputFromPort('p_orig_error')
+    p_current_error = ''
+    if self.hasInputFromPort('p_current_error') :
+      p_current_error = self.getInputFromPort('p_current_error')
+    p_method = 'Conjugate Gradient & Precond. (SCI)'
+    if self.hasInputFromPort('p_method') :
+      p_method = self.getInputFromPort('p_method')
+    p_precond = 'jacobi'
+    if self.hasInputFromPort('p_precond') :
+      p_precond = self.getInputFromPort('p_precond')
+    p_iteration = 0
+    if self.hasInputFromPort('p_iteration') :
+      p_iteration = self.getInputFromPort('p_iteration')
+    p_maxiter = 200
+    if self.hasInputFromPort('p_maxiter') :
+      p_maxiter = self.getInputFromPort('p_maxiter')
+    p_use_previous_soln = 1
+    if self.hasInputFromPort('p_use_previous_soln') :
+      p_use_previous_soln = self.getInputFromPort('p_use_previous_soln')
+    p_emit_partial = 1
+    if self.hasInputFromPort('p_emit_partial') :
+      p_emit_partial = self.getInputFromPort('p_emit_partial')
+    p_emit_iter = 50
+    if self.hasInputFromPort('p_emit_iter') :
+      p_emit_iter = self.getInputFromPort('p_emit_iter')
+    p_status = ''
+    if self.hasInputFromPort('p_status') :
+      p_status = self.getInputFromPort('p_status')
+    p_np = 4
+    if self.hasInputFromPort('p_np') :
+      p_np = self.getInputFromPort('p_np')
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
       Matrix = self.getInputFromPort('Matrix')
     RHS = 0
     if self.hasInputFromPort('RHS') :
       RHS = self.getInputFromPort('RHS')
-    results = sr_py.SolveLinearSystem(Matrix,RHS,target_error,flops,floprate,memrefs,memrate,orig_error,current_error,method,precond,iteration,maxiter,use_previous_soln,emit_partial,emit_iter,status,np)
+    results = sr_py.SolveLinearSystem(Matrix,RHS,p_target_error,p_flops,p_floprate,p_memrefs,p_memrate,p_orig_error,p_current_error,p_method,p_precond,p_iteration,p_maxiter,p_use_previous_soln,p_emit_partial,p_emit_iter,p_status,p_np)
     self.setResult('Solution', results)
 
-class SCIRun_ShowFieldV1(Module) :
+class scirun_SetFieldData(Module) :
   def compute(self) :
-    nodes_on = 1
-    if self.hasInputFromPort('nodes_on') :
-      nodes_on = self.getInputFromPort('nodes_on')
-    nodes_transparency = 0
-    if self.hasInputFromPort('nodes_transparency') :
-      nodes_transparency = self.getInputFromPort('nodes_transparency')
-    nodes_as_disks = 0
-    if self.hasInputFromPort('nodes_as_disks') :
-      nodes_as_disks = self.getInputFromPort('nodes_as_disks')
-    nodes_usedefcolor = 0
-    if self.hasInputFromPort('nodes_usedefcolor') :
-      nodes_usedefcolor = self.getInputFromPort('nodes_usedefcolor')
-    edges_on = 1
-    if self.hasInputFromPort('edges_on') :
-      edges_on = self.getInputFromPort('edges_on')
-    edges_transparency = 0
-    if self.hasInputFromPort('edges_transparency') :
-      edges_transparency = self.getInputFromPort('edges_transparency')
-    edges_usedefcolor = 0
-    if self.hasInputFromPort('edges_usedefcolor') :
-      edges_usedefcolor = self.getInputFromPort('edges_usedefcolor')
-    faces_on = 1
-    if self.hasInputFromPort('faces_on') :
-      faces_on = self.getInputFromPort('faces_on')
-    use_normals = 0
-    if self.hasInputFromPort('use_normals') :
-      use_normals = self.getInputFromPort('use_normals')
-    use_transparency = 0
-    if self.hasInputFromPort('use_transparency') :
-      use_transparency = self.getInputFromPort('use_transparency')
-    faces_usedefcolor = 0
-    if self.hasInputFromPort('faces_usedefcolor') :
-      faces_usedefcolor = self.getInputFromPort('faces_usedefcolor')
-    faces_usetexture = 0
-    if self.hasInputFromPort('faces_usetexture') :
-      faces_usetexture = self.getInputFromPort('faces_usetexture')
-    scalars_on = 0
-    if self.hasInputFromPort('scalars_on') :
-      scalars_on = self.getInputFromPort('scalars_on')
-    scalars_transparency = 0
-    if self.hasInputFromPort('scalars_transparency') :
-      scalars_transparency = self.getInputFromPort('scalars_transparency')
-    normalize_scalars = 0
-    if self.hasInputFromPort('normalize_scalars') :
-      normalize_scalars = self.getInputFromPort('normalize_scalars')
-    scalars_usedefcolor = 0
-    if self.hasInputFromPort('scalars_usedefcolor') :
-      scalars_usedefcolor = self.getInputFromPort('scalars_usedefcolor')
-    has_scalar_data = 0
-    if self.hasInputFromPort('has_scalar_data') :
-      has_scalar_data = self.getInputFromPort('has_scalar_data')
-    vectors_on = 0
-    if self.hasInputFromPort('vectors_on') :
-      vectors_on = self.getInputFromPort('vectors_on')
-    vectors_transparency = 0
-    if self.hasInputFromPort('vectors_transparency') :
-      vectors_transparency = self.getInputFromPort('vectors_transparency')
-    normalize_vectors = 0
-    if self.hasInputFromPort('normalize_vectors') :
-      normalize_vectors = self.getInputFromPort('normalize_vectors')
-    has_vector_data = 0
-    if self.hasInputFromPort('has_vector_data') :
-      has_vector_data = self.getInputFromPort('has_vector_data')
-    bidirectional = 0
-    if self.hasInputFromPort('bidirectional') :
-      bidirectional = self.getInputFromPort('bidirectional')
-    vectors_usedefcolor = 0
-    if self.hasInputFromPort('vectors_usedefcolor') :
-      vectors_usedefcolor = self.getInputFromPort('vectors_usedefcolor')
-    tensors_on = 0
-    if self.hasInputFromPort('tensors_on') :
-      tensors_on = self.getInputFromPort('tensors_on')
-    tensors_transparency = 0
-    if self.hasInputFromPort('tensors_transparency') :
-      tensors_transparency = self.getInputFromPort('tensors_transparency')
-    normalize_tensors = 0
-    if self.hasInputFromPort('normalize_tensors') :
-      normalize_tensors = self.getInputFromPort('normalize_tensors')
-    has_tensor_data = 0
-    if self.hasInputFromPort('has_tensor_data') :
-      has_tensor_data = self.getInputFromPort('has_tensor_data')
-    tensors_usedefcolor = 0
-    if self.hasInputFromPort('tensors_usedefcolor') :
-      tensors_usedefcolor = self.getInputFromPort('tensors_usedefcolor')
-    tensors_emphasis = 0.825
-    if self.hasInputFromPort('tensors_emphasis') :
-      tensors_emphasis = self.getInputFromPort('tensors_emphasis')
-    text_on = 0
-    if self.hasInputFromPort('text_on') :
-      text_on = self.getInputFromPort('text_on')
-    text_use_default_color = 1
-    if self.hasInputFromPort('text_use_default_color') :
-      text_use_default_color = self.getInputFromPort('text_use_default_color')
-    text_color_r = 1.0
-    if self.hasInputFromPort('text_color_r') :
-      text_color_r = self.getInputFromPort('text_color_r')
-    text_color_g = 1.0
-    if self.hasInputFromPort('text_color_g') :
-      text_color_g = self.getInputFromPort('text_color_g')
-    text_color_b = 1.0
-    if self.hasInputFromPort('text_color_b') :
-      text_color_b = self.getInputFromPort('text_color_b')
-    text_backface_cull = 0
-    if self.hasInputFromPort('text_backface_cull') :
-      text_backface_cull = self.getInputFromPort('text_backface_cull')
-    text_always_visible = 0
-    if self.hasInputFromPort('text_always_visible') :
-      text_always_visible = self.getInputFromPort('text_always_visible')
-    text_fontsize = 1
-    if self.hasInputFromPort('text_fontsize') :
-      text_fontsize = self.getInputFromPort('text_fontsize')
-    text_precision = 2
-    if self.hasInputFromPort('text_precision') :
-      text_precision = self.getInputFromPort('text_precision')
-    text_render_locations = 0
-    if self.hasInputFromPort('text_render_locations') :
-      text_render_locations = self.getInputFromPort('text_render_locations')
-    text_show_data = 1
-    if self.hasInputFromPort('text_show_data') :
-      text_show_data = self.getInputFromPort('text_show_data')
-    text_show_nodes = 0
-    if self.hasInputFromPort('text_show_nodes') :
-      text_show_nodes = self.getInputFromPort('text_show_nodes')
-    text_show_edges = 0
-    if self.hasInputFromPort('text_show_edges') :
-      text_show_edges = self.getInputFromPort('text_show_edges')
-    text_show_faces = 0
-    if self.hasInputFromPort('text_show_faces') :
-      text_show_faces = self.getInputFromPort('text_show_faces')
-    text_show_cells = 0
-    if self.hasInputFromPort('text_show_cells') :
-      text_show_cells = self.getInputFromPort('text_show_cells')
-    def_color_r = 0.5
-    if self.hasInputFromPort('def_color_r') :
-      def_color_r = self.getInputFromPort('def_color_r')
-    def_color_g = 0.5
-    if self.hasInputFromPort('def_color_g') :
-      def_color_g = self.getInputFromPort('def_color_g')
-    def_color_b = 0.5
-    if self.hasInputFromPort('def_color_b') :
-      def_color_b = self.getInputFromPort('def_color_b')
-    def_color_a = 0.5
-    if self.hasInputFromPort('def_color_a') :
-      def_color_a = self.getInputFromPort('def_color_a')
-    node_display_type = 'Points'
-    if self.hasInputFromPort('node_display_type') :
-      node_display_type = self.getInputFromPort('node_display_type')
-    edge_display_type = 'Lines'
-    if self.hasInputFromPort('edge_display_type') :
-      edge_display_type = self.getInputFromPort('edge_display_type')
-    data_display_type = 'Arrows'
-    if self.hasInputFromPort('data_display_type') :
-      data_display_type = self.getInputFromPort('data_display_type')
-    tensor_display_type = 'Boxes'
-    if self.hasInputFromPort('tensor_display_type') :
-      tensor_display_type = self.getInputFromPort('tensor_display_type')
-    scalar_display_type = 'Points'
-    if self.hasInputFromPort('scalar_display_type') :
-      scalar_display_type = self.getInputFromPort('scalar_display_type')
-    active_tab = 'Nodes'
-    if self.hasInputFromPort('active_tab') :
-      active_tab = self.getInputFromPort('active_tab')
-    node_scale = 0.03
-    if self.hasInputFromPort('node_scale') :
-      node_scale = self.getInputFromPort('node_scale')
-    node_scaleNV = -0.0
-    if self.hasInputFromPort('node_scaleNV') :
-      node_scaleNV = self.getInputFromPort('node_scaleNV')
-    edge_scale = 0.015
-    if self.hasInputFromPort('edge_scale') :
-      edge_scale = self.getInputFromPort('edge_scale')
-    edge_scaleNV = -0.0
-    if self.hasInputFromPort('edge_scaleNV') :
-      edge_scaleNV = self.getInputFromPort('edge_scaleNV')
-    vectors_scale = 0.3
-    if self.hasInputFromPort('vectors_scale') :
-      vectors_scale = self.getInputFromPort('vectors_scale')
-    vectors_scaleNV = -0.0
-    if self.hasInputFromPort('vectors_scaleNV') :
-      vectors_scaleNV = self.getInputFromPort('vectors_scaleNV')
-    tensors_scale = 0.3
-    if self.hasInputFromPort('tensors_scale') :
-      tensors_scale = self.getInputFromPort('tensors_scale')
-    tensors_scaleNV = -0.0
-    if self.hasInputFromPort('tensors_scaleNV') :
-      tensors_scaleNV = self.getInputFromPort('tensors_scaleNV')
-    scalars_scale = 0.3
-    if self.hasInputFromPort('scalars_scale') :
-      scalars_scale = self.getInputFromPort('scalars_scale')
-    scalars_scaleNV = -0.0
-    if self.hasInputFromPort('scalars_scaleNV') :
-      scalars_scaleNV = self.getInputFromPort('scalars_scaleNV')
-    interactive_mode = 'Interactive'
-    if self.hasInputFromPort('interactive_mode') :
-      interactive_mode = self.getInputFromPort('interactive_mode')
-    field_name = ''
-    if self.hasInputFromPort('field_name') :
-      field_name = self.getInputFromPort('field_name')
-    field_name_override = 0
-    if self.hasInputFromPort('field_name_override') :
-      field_name_override = self.getInputFromPort('field_name_override')
-    field_name_update = 1
-    if self.hasInputFromPort('field_name_update') :
-      field_name_update = self.getInputFromPort('field_name_update')
-    node_resolution = 6
-    if self.hasInputFromPort('node_resolution') :
-      node_resolution = self.getInputFromPort('node_resolution')
-    edge_resolution = 6
-    if self.hasInputFromPort('edge_resolution') :
-      edge_resolution = self.getInputFromPort('edge_resolution')
-    data_resolution = 6
-    if self.hasInputFromPort('data_resolution') :
-      data_resolution = self.getInputFromPort('data_resolution')
-    approx_div = 1
-    if self.hasInputFromPort('approx_div') :
-      approx_div = self.getInputFromPort('approx_div')
-    use_default_size = 1
-    if self.hasInputFromPort('use_default_size') :
-      use_default_size = self.getInputFromPort('use_default_size')
+    p_keepscalartype = 0
+    if self.hasInputFromPort('p_keepscalartype') :
+      p_keepscalartype = self.getInputFromPort('p_keepscalartype')
     Field = 0
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
-    ColorMap = 0
-    if self.hasInputFromPort('ColorMap') :
-      ColorMap = self.getInputFromPort('ColorMap')
-    Orientation_Field = 0
-    if self.hasInputFromPort('Orientation Field') :
-      Orientation_Field = self.getInputFromPort('Orientation Field')
-    results = sr_py.ShowFieldV1(Field,ColorMap,Orientation_Field,nodes_on,nodes_transparency,nodes_as_disks,nodes_usedefcolor,edges_on,edges_transparency,edges_usedefcolor,faces_on,use_normals,use_transparency,faces_usedefcolor,faces_usetexture,scalars_on,scalars_transparency,normalize_scalars,scalars_usedefcolor,has_scalar_data,vectors_on,vectors_transparency,normalize_vectors,has_vector_data,bidirectional,vectors_usedefcolor,tensors_on,tensors_transparency,normalize_tensors,has_tensor_data,tensors_usedefcolor,tensors_emphasis,text_on,text_use_default_color,text_color_r,text_color_g,text_color_b,text_backface_cull,text_always_visible,text_fontsize,text_precision,text_render_locations,text_show_data,text_show_nodes,text_show_edges,text_show_faces,text_show_cells,def_color_r,def_color_g,def_color_b,def_color_a,node_display_type,edge_display_type,data_display_type,tensor_display_type,scalar_display_type,active_tab,node_scale,node_scaleNV,edge_scale,edge_scaleNV,vectors_scale,vectors_scaleNV,tensors_scale,tensors_scaleNV,scalars_scale,scalars_scaleNV,interactive_mode,field_name,field_name_override,field_name_update,node_resolution,edge_resolution,data_resolution,approx_div,use_default_size)
-    self.setResult('Scene Graph', results)
+    Matrix_Data = 0
+    if self.hasInputFromPort('Matrix Data') :
+      Matrix_Data = self.getInputFromPort('Matrix Data')
+    Nrrd_Data = 0
+    if self.hasInputFromPort('Nrrd Data') :
+      Nrrd_Data = self.getInputFromPort('Nrrd Data')
+    results = sr_py.SetFieldData(Field,Matrix_Data,Nrrd_Data,p_keepscalartype)
+    self.setResult('Field', results)
 
-class SCIRun_ReadPath(Module) :
+class scirun_InsertColorMap2sIntoBundle(Module) :
   def compute(self) :
-    from_env = ''
-    if self.hasInputFromPort('from_env') :
-      from_env = self.getInputFromPort('from_env')
-    Filename = 0
-    if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
-    results = sr_py.ReadPath(Filename,from_env)
-    self.setResult('Output Data', sr_py.read_at_index(results,0))
-    self.setResult('Filename', sr_py.read_at_index(results,1))
-
-class SCIRun_InsertColorMap2sIntoBundle(Module) :
-  def compute(self) :
-    colormap21_name = 'colormap21'
-    if self.hasInputFromPort('colormap21_name') :
-      colormap21_name = self.getInputFromPort('colormap21_name')
-    colormap22_name = 'colormap22'
-    if self.hasInputFromPort('colormap22_name') :
-      colormap22_name = self.getInputFromPort('colormap22_name')
-    colormap23_name = 'colormap23'
-    if self.hasInputFromPort('colormap23_name') :
-      colormap23_name = self.getInputFromPort('colormap23_name')
-    colormap24_name = 'colormap24'
-    if self.hasInputFromPort('colormap24_name') :
-      colormap24_name = self.getInputFromPort('colormap24_name')
-    colormap25_name = 'colormap25'
-    if self.hasInputFromPort('colormap25_name') :
-      colormap25_name = self.getInputFromPort('colormap25_name')
-    colormap26_name = 'colormap26'
-    if self.hasInputFromPort('colormap26_name') :
-      colormap26_name = self.getInputFromPort('colormap26_name')
-    replace1 = 1
-    if self.hasInputFromPort('replace1') :
-      replace1 = self.getInputFromPort('replace1')
-    replace2 = 1
-    if self.hasInputFromPort('replace2') :
-      replace2 = self.getInputFromPort('replace2')
-    replace3 = 1
-    if self.hasInputFromPort('replace3') :
-      replace3 = self.getInputFromPort('replace3')
-    replace4 = 1
-    if self.hasInputFromPort('replace4') :
-      replace4 = self.getInputFromPort('replace4')
-    replace5 = 1
-    if self.hasInputFromPort('replace5') :
-      replace5 = self.getInputFromPort('replace5')
-    replace6 = 1
-    if self.hasInputFromPort('replace6') :
-      replace6 = self.getInputFromPort('replace6')
-    bundlename = ''
-    if self.hasInputFromPort('bundlename') :
-      bundlename = self.getInputFromPort('bundlename')
+    p_colormap21_name = 'colormap21'
+    if self.hasInputFromPort('p_colormap21_name') :
+      p_colormap21_name = self.getInputFromPort('p_colormap21_name')
+    p_colormap22_name = 'colormap22'
+    if self.hasInputFromPort('p_colormap22_name') :
+      p_colormap22_name = self.getInputFromPort('p_colormap22_name')
+    p_colormap23_name = 'colormap23'
+    if self.hasInputFromPort('p_colormap23_name') :
+      p_colormap23_name = self.getInputFromPort('p_colormap23_name')
+    p_colormap24_name = 'colormap24'
+    if self.hasInputFromPort('p_colormap24_name') :
+      p_colormap24_name = self.getInputFromPort('p_colormap24_name')
+    p_colormap25_name = 'colormap25'
+    if self.hasInputFromPort('p_colormap25_name') :
+      p_colormap25_name = self.getInputFromPort('p_colormap25_name')
+    p_colormap26_name = 'colormap26'
+    if self.hasInputFromPort('p_colormap26_name') :
+      p_colormap26_name = self.getInputFromPort('p_colormap26_name')
+    p_replace1 = 1
+    if self.hasInputFromPort('p_replace1') :
+      p_replace1 = self.getInputFromPort('p_replace1')
+    p_replace2 = 1
+    if self.hasInputFromPort('p_replace2') :
+      p_replace2 = self.getInputFromPort('p_replace2')
+    p_replace3 = 1
+    if self.hasInputFromPort('p_replace3') :
+      p_replace3 = self.getInputFromPort('p_replace3')
+    p_replace4 = 1
+    if self.hasInputFromPort('p_replace4') :
+      p_replace4 = self.getInputFromPort('p_replace4')
+    p_replace5 = 1
+    if self.hasInputFromPort('p_replace5') :
+      p_replace5 = self.getInputFromPort('p_replace5')
+    p_replace6 = 1
+    if self.hasInputFromPort('p_replace6') :
+      p_replace6 = self.getInputFromPort('p_replace6')
+    p_bundlename = ''
+    if self.hasInputFromPort('p_bundlename') :
+      p_bundlename = self.getInputFromPort('p_bundlename')
     bundle = 0
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
@@ -1777,88 +975,77 @@ class SCIRun_InsertColorMap2sIntoBundle(Module) :
     colormap26 = 0
     if self.hasInputFromPort('colormap26') :
       colormap26 = self.getInputFromPort('colormap26')
-    results = sr_py.InsertColorMap2sIntoBundle(bundle,colormap21,colormap22,colormap23,colormap24,colormap25,colormap26,colormap21_name,colormap22_name,colormap23_name,colormap24_name,colormap25_name,colormap26_name,replace1,replace2,replace3,replace4,replace5,replace6,bundlename)
+    results = sr_py.InsertColorMap2sIntoBundle(bundle,colormap21,colormap22,colormap23,colormap24,colormap25,colormap26,p_colormap21_name,p_colormap22_name,p_colormap23_name,p_colormap24_name,p_colormap25_name,p_colormap26_name,p_replace1,p_replace2,p_replace3,p_replace4,p_replace5,p_replace6,p_bundlename)
     self.setResult('bundle', results)
 
-class SCIRun_ConvertMatrixToString(Module) :
+class scirun_ExtractIsosurface(Module) :
   def compute(self) :
-    Matrix = 0
-    if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
-    results = sr_py.ConvertMatrixToString(Matrix)
-    self.setResult('String', results)
-
-class SCIRun_ExtractIsosurface(Module) :
-  def compute(self) :
-    isoval_min = 0.0
-    if self.hasInputFromPort('isoval_min') :
-      isoval_min = self.getInputFromPort('isoval_min')
-    isoval_max = 99.0
-    if self.hasInputFromPort('isoval_max') :
-      isoval_max = self.getInputFromPort('isoval_max')
-    isoval = 0.0
-    if self.hasInputFromPort('isoval') :
-      isoval = self.getInputFromPort('isoval')
-    isoval_typed = 0.0
-    if self.hasInputFromPort('isoval_typed') :
-      isoval_typed = self.getInputFromPort('isoval_typed')
-    isoval_quantity = 1
-    if self.hasInputFromPort('isoval_quantity') :
-      isoval_quantity = self.getInputFromPort('isoval_quantity')
-    quantity_range = 'field'
-    if self.hasInputFromPort('quantity_range') :
-      quantity_range = self.getInputFromPort('quantity_range')
-    quantity_clusive = 'exclusive'
-    if self.hasInputFromPort('quantity_clusive') :
-      quantity_clusive = self.getInputFromPort('quantity_clusive')
-    quantity_min = 0.0
-    if self.hasInputFromPort('quantity_min') :
-      quantity_min = self.getInputFromPort('quantity_min')
-    quantity_max = 100.0
-    if self.hasInputFromPort('quantity_max') :
-      quantity_max = self.getInputFromPort('quantity_max')
-    quantity_list = ''
-    if self.hasInputFromPort('quantity_list') :
-      quantity_list = self.getInputFromPort('quantity_list')
-    isoval_list = 'No values present.'
-    if self.hasInputFromPort('isoval_list') :
-      isoval_list = self.getInputFromPort('isoval_list')
-    matrix_list = 'No matrix present - execution needed.'
-    if self.hasInputFromPort('matrix_list') :
-      matrix_list = self.getInputFromPort('matrix_list')
-    extract_from_new_field = 1
-    if self.hasInputFromPort('extract_from_new_field') :
-      extract_from_new_field = self.getInputFromPort('extract_from_new_field')
-    algorithm = 0
-    if self.hasInputFromPort('algorithm') :
-      algorithm = self.getInputFromPort('algorithm')
-    build_trisurf = 1
-    if self.hasInputFromPort('build_trisurf') :
-      build_trisurf = self.getInputFromPort('build_trisurf')
-    build_geom = 1
-    if self.hasInputFromPort('build_geom') :
-      build_geom = self.getInputFromPort('build_geom')
-    np = 1
-    if self.hasInputFromPort('np') :
-      np = self.getInputFromPort('np')
-    active_isoval_selection_tab = 0
-    if self.hasInputFromPort('active_isoval_selection_tab') :
-      active_isoval_selection_tab = self.getInputFromPort('active_isoval_selection_tab')
-    active_tab = 0
-    if self.hasInputFromPort('active_tab') :
-      active_tab = self.getInputFromPort('active_tab')
-    update_type = 'On Release'
-    if self.hasInputFromPort('update_type') :
-      update_type = self.getInputFromPort('update_type')
-    color_r = 0.4
-    if self.hasInputFromPort('color_r') :
-      color_r = self.getInputFromPort('color_r')
-    color_g = 0.2
-    if self.hasInputFromPort('color_g') :
-      color_g = self.getInputFromPort('color_g')
-    color_b = 0.9
-    if self.hasInputFromPort('color_b') :
-      color_b = self.getInputFromPort('color_b')
+    p_isoval_min = 0.0
+    if self.hasInputFromPort('p_isoval_min') :
+      p_isoval_min = self.getInputFromPort('p_isoval_min')
+    p_isoval_max = 99.0
+    if self.hasInputFromPort('p_isoval_max') :
+      p_isoval_max = self.getInputFromPort('p_isoval_max')
+    p_isoval = 0.0
+    if self.hasInputFromPort('p_isoval') :
+      p_isoval = self.getInputFromPort('p_isoval')
+    p_isoval_typed = 0.0
+    if self.hasInputFromPort('p_isoval_typed') :
+      p_isoval_typed = self.getInputFromPort('p_isoval_typed')
+    p_isoval_quantity = 1
+    if self.hasInputFromPort('p_isoval_quantity') :
+      p_isoval_quantity = self.getInputFromPort('p_isoval_quantity')
+    p_quantity_range = 'field'
+    if self.hasInputFromPort('p_quantity_range') :
+      p_quantity_range = self.getInputFromPort('p_quantity_range')
+    p_quantity_clusive = 'exclusive'
+    if self.hasInputFromPort('p_quantity_clusive') :
+      p_quantity_clusive = self.getInputFromPort('p_quantity_clusive')
+    p_quantity_min = 0.0
+    if self.hasInputFromPort('p_quantity_min') :
+      p_quantity_min = self.getInputFromPort('p_quantity_min')
+    p_quantity_max = 100.0
+    if self.hasInputFromPort('p_quantity_max') :
+      p_quantity_max = self.getInputFromPort('p_quantity_max')
+    p_quantity_list = ''
+    if self.hasInputFromPort('p_quantity_list') :
+      p_quantity_list = self.getInputFromPort('p_quantity_list')
+    p_isoval_list = 'No values present.'
+    if self.hasInputFromPort('p_isoval_list') :
+      p_isoval_list = self.getInputFromPort('p_isoval_list')
+    p_matrix_list = 'No matrix present - execution needed.'
+    if self.hasInputFromPort('p_matrix_list') :
+      p_matrix_list = self.getInputFromPort('p_matrix_list')
+    p_algorithm = 0
+    if self.hasInputFromPort('p_algorithm') :
+      p_algorithm = self.getInputFromPort('p_algorithm')
+    p_build_trisurf = 1
+    if self.hasInputFromPort('p_build_trisurf') :
+      p_build_trisurf = self.getInputFromPort('p_build_trisurf')
+    p_build_geom = 1
+    if self.hasInputFromPort('p_build_geom') :
+      p_build_geom = self.getInputFromPort('p_build_geom')
+    p_np = 1
+    if self.hasInputFromPort('p_np') :
+      p_np = self.getInputFromPort('p_np')
+    p_active_isoval_selection_tab = '0'
+    if self.hasInputFromPort('p_active_isoval_selection_tab') :
+      p_active_isoval_selection_tab = self.getInputFromPort('p_active_isoval_selection_tab')
+    p_active_tab = '0'
+    if self.hasInputFromPort('p_active_tab') :
+      p_active_tab = self.getInputFromPort('p_active_tab')
+    p_update_type = 'On Release'
+    if self.hasInputFromPort('p_update_type') :
+      p_update_type = self.getInputFromPort('p_update_type')
+    p_color_r = 0.4
+    if self.hasInputFromPort('p_color_r') :
+      p_color_r = self.getInputFromPort('p_color_r')
+    p_color_g = 0.2
+    if self.hasInputFromPort('p_color_g') :
+      p_color_g = self.getInputFromPort('p_color_g')
+    p_color_b = 0.9
+    if self.hasInputFromPort('p_color_b') :
+      p_color_b = self.getInputFromPort('p_color_b')
     Field = 0
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
@@ -1868,12 +1055,56 @@ class SCIRun_ExtractIsosurface(Module) :
     Optional_Isovalues = 0
     if self.hasInputFromPort('Optional Isovalues') :
       Optional_Isovalues = self.getInputFromPort('Optional Isovalues')
-    results = sr_py.ExtractIsosurface(Field,Optional_Color_Map,Optional_Isovalues,isoval_min,isoval_max,isoval,isoval_typed,isoval_quantity,quantity_range,quantity_clusive,quantity_min,quantity_max,quantity_list,isoval_list,matrix_list,extract_from_new_field,algorithm,build_trisurf,build_geom,np,active_isoval_selection_tab,active_tab,update_type,color_r,color_g,color_b)
+    results = sr_py.ExtractIsosurface(Field,Optional_Color_Map,Optional_Isovalues,p_isoval_min,p_isoval_max,p_isoval,p_isoval_typed,p_isoval_quantity,p_quantity_range,p_quantity_clusive,p_quantity_min,p_quantity_max,p_quantity_list,p_isoval_list,p_matrix_list,p_algorithm,p_build_trisurf,p_build_geom,p_np,p_active_isoval_selection_tab,p_active_tab,p_update_type,p_color_r,p_color_g,p_color_b)
     self.setResult('Surface', sr_py.read_at_index(results,0))
     self.setResult('Geometry', sr_py.read_at_index(results,1))
     self.setResult('Mapping', sr_py.read_at_index(results,2))
 
-class SCIRun_ConvertMeshToUnstructuredMesh(Module) :
+class scirun_ConvertMatrixToString(Module) :
+  def compute(self) :
+    Matrix = 0
+    if self.hasInputFromPort('Matrix') :
+      Matrix = self.getInputFromPort('Matrix')
+    results = sr_py.ConvertMatrixToString(Matrix)
+    self.setResult('String', results)
+
+class scirun_ReportMatrixColumnMeasure(Module) :
+  def compute(self) :
+    p_method = 'Sum'
+    if self.hasInputFromPort('p_method') :
+      p_method = self.getInputFromPort('p_method')
+    Matrix = 0
+    if self.hasInputFromPort('Matrix') :
+      Matrix = self.getInputFromPort('Matrix')
+    results = sr_py.ReportMatrixColumnMeasure(Matrix,p_method)
+    self.setResult('Vector', results)
+
+class scirun_ReplicateDataArray(Module) :
+  def compute(self) :
+    p_size = 1
+    if self.hasInputFromPort('p_size') :
+      p_size = self.getInputFromPort('p_size')
+    DataArray = 0
+    if self.hasInputFromPort('DataArray') :
+      DataArray = self.getInputFromPort('DataArray')
+    Size = 0
+    if self.hasInputFromPort('Size') :
+      Size = self.getInputFromPort('Size')
+    results = sr_py.ReplicateDataArray(DataArray,Size,p_size)
+    self.setResult('DataArray', results)
+
+class scirun_SortMatrix(Module) :
+  def compute(self) :
+    p_row_or_col = 'row'
+    if self.hasInputFromPort('p_row_or_col') :
+      p_row_or_col = self.getInputFromPort('p_row_or_col')
+    Matrix = 0
+    if self.hasInputFromPort('Matrix') :
+      Matrix = self.getInputFromPort('Matrix')
+    results = sr_py.SortMatrix(Matrix,p_row_or_col)
+    self.setResult('Matrix', results)
+
+class scirun_ConvertMeshToUnstructuredMesh(Module) :
   def compute(self) :
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
@@ -1881,149 +1112,561 @@ class SCIRun_ConvertMeshToUnstructuredMesh(Module) :
     results = sr_py.ConvertMeshToUnstructuredMesh(Input_Field)
     self.setResult('Output Field', results)
 
-class SCIRun_ReportMatrixColumnMeasure(Module) :
+class scirun_CreateViewerAxes(Module) :
   def compute(self) :
-    method = 'Sum'
-    if self.hasInputFromPort('method') :
-      method = self.getInputFromPort('method')
-    Matrix = 0
-    if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
-    results = sr_py.ReportMatrixColumnMeasure(Matrix,method)
-    self.setResult('Vector', results)
+    p_precision = '3'
+    if self.hasInputFromPort('p_precision') :
+      p_precision = self.getInputFromPort('p_precision')
+    p_squash = '0.7'
+    if self.hasInputFromPort('p_squash') :
+      p_squash = self.getInputFromPort('p_squash')
+    p_valuerez = '72'
+    if self.hasInputFromPort('p_valuerez') :
+      p_valuerez = self.getInputFromPort('p_valuerez')
+    p_labelrez = '72'
+    if self.hasInputFromPort('p_labelrez') :
+      p_labelrez = self.getInputFromPort('p_labelrez')
+    p_Plane_01_0_Axis_absolute = ''
+    if self.hasInputFromPort('p_Plane_01_0_Axis_absolute') :
+      p_Plane_01_0_Axis_absolute = self.getInputFromPort('p_Plane_01_0_Axis_absolute')
+    p_Plane_01_0_Axis_divisions = '10'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_divisions') :
+      p_Plane_01_0_Axis_divisions = self.getInputFromPort('p_Plane_01_0_Axis_divisions')
+    p_Plane_01_0_Axis_offset = '1'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_offset') :
+      p_Plane_01_0_Axis_offset = self.getInputFromPort('p_Plane_01_0_Axis_offset')
+    p_Plane_01_0_Axis_range_first = '0.0'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_range_first') :
+      p_Plane_01_0_Axis_range_first = self.getInputFromPort('p_Plane_01_0_Axis_range_first')
+    p_Plane_01_0_Axis_range_second = '1.0'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_range_second') :
+      p_Plane_01_0_Axis_range_second = self.getInputFromPort('p_Plane_01_0_Axis_range_second')
+    p_Plane_01_0_Axis_min_absolute = '0.0'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_min_absolute') :
+      p_Plane_01_0_Axis_min_absolute = self.getInputFromPort('p_Plane_01_0_Axis_min_absolute')
+    p_Plane_01_0_Axis_max_absolute = '1.0'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_max_absolute') :
+      p_Plane_01_0_Axis_max_absolute = self.getInputFromPort('p_Plane_01_0_Axis_max_absolute')
+    p_Plane_01_0_Axis_minplane = '2'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_minplane') :
+      p_Plane_01_0_Axis_minplane = self.getInputFromPort('p_Plane_01_0_Axis_minplane')
+    p_Plane_01_0_Axis_maxplane = '2'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_maxplane') :
+      p_Plane_01_0_Axis_maxplane = self.getInputFromPort('p_Plane_01_0_Axis_maxplane')
+    p_Plane_01_0_Axis_lines = '2'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_lines') :
+      p_Plane_01_0_Axis_lines = self.getInputFromPort('p_Plane_01_0_Axis_lines')
+    p_Plane_01_0_Axis_minticks = '2'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_minticks') :
+      p_Plane_01_0_Axis_minticks = self.getInputFromPort('p_Plane_01_0_Axis_minticks')
+    p_Plane_01_0_Axis_maxticks = '2'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_maxticks') :
+      p_Plane_01_0_Axis_maxticks = self.getInputFromPort('p_Plane_01_0_Axis_maxticks')
+    p_Plane_01_0_Axis_minlabel = '2'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_minlabel') :
+      p_Plane_01_0_Axis_minlabel = self.getInputFromPort('p_Plane_01_0_Axis_minlabel')
+    p_Plane_01_0_Axis_maxlabel = '2'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_maxlabel') :
+      p_Plane_01_0_Axis_maxlabel = self.getInputFromPort('p_Plane_01_0_Axis_maxlabel')
+    p_Plane_01_0_Axis_minvalue = '2'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_minvalue') :
+      p_Plane_01_0_Axis_minvalue = self.getInputFromPort('p_Plane_01_0_Axis_minvalue')
+    p_Plane_01_0_Axis_maxvalue = '2'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_maxvalue') :
+      p_Plane_01_0_Axis_maxvalue = self.getInputFromPort('p_Plane_01_0_Axis_maxvalue')
+    p_Plane_01_0_Axis_width = '1'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_width') :
+      p_Plane_01_0_Axis_width = self.getInputFromPort('p_Plane_01_0_Axis_width')
+    p_Plane_01_0_Axis_tickangle = '0'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_tickangle') :
+      p_Plane_01_0_Axis_tickangle = self.getInputFromPort('p_Plane_01_0_Axis_tickangle')
+    p_Plane_01_0_Axis_ticktilt = '0'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_ticktilt') :
+      p_Plane_01_0_Axis_ticktilt = self.getInputFromPort('p_Plane_01_0_Axis_ticktilt')
+    p_Plane_01_0_Axis_ticksize = '5'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_ticksize') :
+      p_Plane_01_0_Axis_ticksize = self.getInputFromPort('p_Plane_01_0_Axis_ticksize')
+    p_Plane_01_0_Axis_labelangle = '0'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_labelangle') :
+      p_Plane_01_0_Axis_labelangle = self.getInputFromPort('p_Plane_01_0_Axis_labelangle')
+    p_Plane_01_0_Axis_labelheight = '6'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_labelheight') :
+      p_Plane_01_0_Axis_labelheight = self.getInputFromPort('p_Plane_01_0_Axis_labelheight')
+    p_Plane_01_0_Axis_valuesize = '3'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_valuesize') :
+      p_Plane_01_0_Axis_valuesize = self.getInputFromPort('p_Plane_01_0_Axis_valuesize')
+    p_Plane_01_0_Axis_valuesquash = '1.0'
+    if self.hasInputFromPort('p_Plane_01_0_Axis_valuesquash') :
+      p_Plane_01_0_Axis_valuesquash = self.getInputFromPort('p_Plane_01_0_Axis_valuesquash')
+    p_Plane_01_1_Axis_absolute = ''
+    if self.hasInputFromPort('p_Plane_01_1_Axis_absolute') :
+      p_Plane_01_1_Axis_absolute = self.getInputFromPort('p_Plane_01_1_Axis_absolute')
+    p_Plane_01_1_Axis_divisions = '10'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_divisions') :
+      p_Plane_01_1_Axis_divisions = self.getInputFromPort('p_Plane_01_1_Axis_divisions')
+    p_Plane_01_1_Axis_offset = '1'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_offset') :
+      p_Plane_01_1_Axis_offset = self.getInputFromPort('p_Plane_01_1_Axis_offset')
+    p_Plane_01_1_Axis_range_first = '0.0'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_range_first') :
+      p_Plane_01_1_Axis_range_first = self.getInputFromPort('p_Plane_01_1_Axis_range_first')
+    p_Plane_01_1_Axis_range_second = '1.0'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_range_second') :
+      p_Plane_01_1_Axis_range_second = self.getInputFromPort('p_Plane_01_1_Axis_range_second')
+    p_Plane_01_1_Axis_min_absolute = '0.0'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_min_absolute') :
+      p_Plane_01_1_Axis_min_absolute = self.getInputFromPort('p_Plane_01_1_Axis_min_absolute')
+    p_Plane_01_1_Axis_max_absolute = '1.0'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_max_absolute') :
+      p_Plane_01_1_Axis_max_absolute = self.getInputFromPort('p_Plane_01_1_Axis_max_absolute')
+    p_Plane_01_1_Axis_minplane = '2'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_minplane') :
+      p_Plane_01_1_Axis_minplane = self.getInputFromPort('p_Plane_01_1_Axis_minplane')
+    p_Plane_01_1_Axis_maxplane = '2'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_maxplane') :
+      p_Plane_01_1_Axis_maxplane = self.getInputFromPort('p_Plane_01_1_Axis_maxplane')
+    p_Plane_01_1_Axis_lines = '2'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_lines') :
+      p_Plane_01_1_Axis_lines = self.getInputFromPort('p_Plane_01_1_Axis_lines')
+    p_Plane_01_1_Axis_minticks = '2'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_minticks') :
+      p_Plane_01_1_Axis_minticks = self.getInputFromPort('p_Plane_01_1_Axis_minticks')
+    p_Plane_01_1_Axis_maxticks = '2'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_maxticks') :
+      p_Plane_01_1_Axis_maxticks = self.getInputFromPort('p_Plane_01_1_Axis_maxticks')
+    p_Plane_01_1_Axis_minlabel = '2'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_minlabel') :
+      p_Plane_01_1_Axis_minlabel = self.getInputFromPort('p_Plane_01_1_Axis_minlabel')
+    p_Plane_01_1_Axis_maxlabel = '2'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_maxlabel') :
+      p_Plane_01_1_Axis_maxlabel = self.getInputFromPort('p_Plane_01_1_Axis_maxlabel')
+    p_Plane_01_1_Axis_minvalue = '2'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_minvalue') :
+      p_Plane_01_1_Axis_minvalue = self.getInputFromPort('p_Plane_01_1_Axis_minvalue')
+    p_Plane_01_1_Axis_maxvalue = '2'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_maxvalue') :
+      p_Plane_01_1_Axis_maxvalue = self.getInputFromPort('p_Plane_01_1_Axis_maxvalue')
+    p_Plane_01_1_Axis_width = '1'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_width') :
+      p_Plane_01_1_Axis_width = self.getInputFromPort('p_Plane_01_1_Axis_width')
+    p_Plane_01_1_Axis_tickangle = '0'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_tickangle') :
+      p_Plane_01_1_Axis_tickangle = self.getInputFromPort('p_Plane_01_1_Axis_tickangle')
+    p_Plane_01_1_Axis_ticktilt = '0'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_ticktilt') :
+      p_Plane_01_1_Axis_ticktilt = self.getInputFromPort('p_Plane_01_1_Axis_ticktilt')
+    p_Plane_01_1_Axis_ticksize = '5'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_ticksize') :
+      p_Plane_01_1_Axis_ticksize = self.getInputFromPort('p_Plane_01_1_Axis_ticksize')
+    p_Plane_01_1_Axis_labelangle = '0'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_labelangle') :
+      p_Plane_01_1_Axis_labelangle = self.getInputFromPort('p_Plane_01_1_Axis_labelangle')
+    p_Plane_01_1_Axis_labelheight = '6'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_labelheight') :
+      p_Plane_01_1_Axis_labelheight = self.getInputFromPort('p_Plane_01_1_Axis_labelheight')
+    p_Plane_01_1_Axis_valuesize = '3'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_valuesize') :
+      p_Plane_01_1_Axis_valuesize = self.getInputFromPort('p_Plane_01_1_Axis_valuesize')
+    p_Plane_01_1_Axis_valuesquash = '1.0'
+    if self.hasInputFromPort('p_Plane_01_1_Axis_valuesquash') :
+      p_Plane_01_1_Axis_valuesquash = self.getInputFromPort('p_Plane_01_1_Axis_valuesquash')
+    p_Plane_02_0_Axis_absolute = ''
+    if self.hasInputFromPort('p_Plane_02_0_Axis_absolute') :
+      p_Plane_02_0_Axis_absolute = self.getInputFromPort('p_Plane_02_0_Axis_absolute')
+    p_Plane_02_0_Axis_divisions = '10'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_divisions') :
+      p_Plane_02_0_Axis_divisions = self.getInputFromPort('p_Plane_02_0_Axis_divisions')
+    p_Plane_02_0_Axis_offset = '1'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_offset') :
+      p_Plane_02_0_Axis_offset = self.getInputFromPort('p_Plane_02_0_Axis_offset')
+    p_Plane_02_0_Axis_range_first = '0.0'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_range_first') :
+      p_Plane_02_0_Axis_range_first = self.getInputFromPort('p_Plane_02_0_Axis_range_first')
+    p_Plane_02_0_Axis_range_second = '1.0'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_range_second') :
+      p_Plane_02_0_Axis_range_second = self.getInputFromPort('p_Plane_02_0_Axis_range_second')
+    p_Plane_02_0_Axis_min_absolute = '0.0'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_min_absolute') :
+      p_Plane_02_0_Axis_min_absolute = self.getInputFromPort('p_Plane_02_0_Axis_min_absolute')
+    p_Plane_02_0_Axis_max_absolute = '1.0'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_max_absolute') :
+      p_Plane_02_0_Axis_max_absolute = self.getInputFromPort('p_Plane_02_0_Axis_max_absolute')
+    p_Plane_02_0_Axis_minplane = '2'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_minplane') :
+      p_Plane_02_0_Axis_minplane = self.getInputFromPort('p_Plane_02_0_Axis_minplane')
+    p_Plane_02_0_Axis_maxplane = '2'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_maxplane') :
+      p_Plane_02_0_Axis_maxplane = self.getInputFromPort('p_Plane_02_0_Axis_maxplane')
+    p_Plane_02_0_Axis_lines = '2'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_lines') :
+      p_Plane_02_0_Axis_lines = self.getInputFromPort('p_Plane_02_0_Axis_lines')
+    p_Plane_02_0_Axis_minticks = '2'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_minticks') :
+      p_Plane_02_0_Axis_minticks = self.getInputFromPort('p_Plane_02_0_Axis_minticks')
+    p_Plane_02_0_Axis_maxticks = '2'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_maxticks') :
+      p_Plane_02_0_Axis_maxticks = self.getInputFromPort('p_Plane_02_0_Axis_maxticks')
+    p_Plane_02_0_Axis_minlabel = '2'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_minlabel') :
+      p_Plane_02_0_Axis_minlabel = self.getInputFromPort('p_Plane_02_0_Axis_minlabel')
+    p_Plane_02_0_Axis_maxlabel = '2'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_maxlabel') :
+      p_Plane_02_0_Axis_maxlabel = self.getInputFromPort('p_Plane_02_0_Axis_maxlabel')
+    p_Plane_02_0_Axis_minvalue = '2'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_minvalue') :
+      p_Plane_02_0_Axis_minvalue = self.getInputFromPort('p_Plane_02_0_Axis_minvalue')
+    p_Plane_02_0_Axis_maxvalue = '2'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_maxvalue') :
+      p_Plane_02_0_Axis_maxvalue = self.getInputFromPort('p_Plane_02_0_Axis_maxvalue')
+    p_Plane_02_0_Axis_width = '1'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_width') :
+      p_Plane_02_0_Axis_width = self.getInputFromPort('p_Plane_02_0_Axis_width')
+    p_Plane_02_0_Axis_tickangle = '0'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_tickangle') :
+      p_Plane_02_0_Axis_tickangle = self.getInputFromPort('p_Plane_02_0_Axis_tickangle')
+    p_Plane_02_0_Axis_ticktilt = '0'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_ticktilt') :
+      p_Plane_02_0_Axis_ticktilt = self.getInputFromPort('p_Plane_02_0_Axis_ticktilt')
+    p_Plane_02_0_Axis_ticksize = '5'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_ticksize') :
+      p_Plane_02_0_Axis_ticksize = self.getInputFromPort('p_Plane_02_0_Axis_ticksize')
+    p_Plane_02_0_Axis_labelangle = '0'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_labelangle') :
+      p_Plane_02_0_Axis_labelangle = self.getInputFromPort('p_Plane_02_0_Axis_labelangle')
+    p_Plane_02_0_Axis_labelheight = '6'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_labelheight') :
+      p_Plane_02_0_Axis_labelheight = self.getInputFromPort('p_Plane_02_0_Axis_labelheight')
+    p_Plane_02_0_Axis_valuesize = '3'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_valuesize') :
+      p_Plane_02_0_Axis_valuesize = self.getInputFromPort('p_Plane_02_0_Axis_valuesize')
+    p_Plane_02_0_Axis_valuesquash = '1.0'
+    if self.hasInputFromPort('p_Plane_02_0_Axis_valuesquash') :
+      p_Plane_02_0_Axis_valuesquash = self.getInputFromPort('p_Plane_02_0_Axis_valuesquash')
+    p_Plane_02_2_Axis_absolute = ''
+    if self.hasInputFromPort('p_Plane_02_2_Axis_absolute') :
+      p_Plane_02_2_Axis_absolute = self.getInputFromPort('p_Plane_02_2_Axis_absolute')
+    p_Plane_02_2_Axis_divisions = '10'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_divisions') :
+      p_Plane_02_2_Axis_divisions = self.getInputFromPort('p_Plane_02_2_Axis_divisions')
+    p_Plane_02_2_Axis_offset = '1'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_offset') :
+      p_Plane_02_2_Axis_offset = self.getInputFromPort('p_Plane_02_2_Axis_offset')
+    p_Plane_02_2_Axis_range_first = '0.0'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_range_first') :
+      p_Plane_02_2_Axis_range_first = self.getInputFromPort('p_Plane_02_2_Axis_range_first')
+    p_Plane_02_2_Axis_range_second = '1.0'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_range_second') :
+      p_Plane_02_2_Axis_range_second = self.getInputFromPort('p_Plane_02_2_Axis_range_second')
+    p_Plane_02_2_Axis_min_absolute = '0.0'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_min_absolute') :
+      p_Plane_02_2_Axis_min_absolute = self.getInputFromPort('p_Plane_02_2_Axis_min_absolute')
+    p_Plane_02_2_Axis_max_absolute = '1.0'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_max_absolute') :
+      p_Plane_02_2_Axis_max_absolute = self.getInputFromPort('p_Plane_02_2_Axis_max_absolute')
+    p_Plane_02_2_Axis_minplane = '2'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_minplane') :
+      p_Plane_02_2_Axis_minplane = self.getInputFromPort('p_Plane_02_2_Axis_minplane')
+    p_Plane_02_2_Axis_maxplane = '2'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_maxplane') :
+      p_Plane_02_2_Axis_maxplane = self.getInputFromPort('p_Plane_02_2_Axis_maxplane')
+    p_Plane_02_2_Axis_lines = '2'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_lines') :
+      p_Plane_02_2_Axis_lines = self.getInputFromPort('p_Plane_02_2_Axis_lines')
+    p_Plane_02_2_Axis_minticks = '2'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_minticks') :
+      p_Plane_02_2_Axis_minticks = self.getInputFromPort('p_Plane_02_2_Axis_minticks')
+    p_Plane_02_2_Axis_maxticks = '2'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_maxticks') :
+      p_Plane_02_2_Axis_maxticks = self.getInputFromPort('p_Plane_02_2_Axis_maxticks')
+    p_Plane_02_2_Axis_minlabel = '2'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_minlabel') :
+      p_Plane_02_2_Axis_minlabel = self.getInputFromPort('p_Plane_02_2_Axis_minlabel')
+    p_Plane_02_2_Axis_maxlabel = '2'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_maxlabel') :
+      p_Plane_02_2_Axis_maxlabel = self.getInputFromPort('p_Plane_02_2_Axis_maxlabel')
+    p_Plane_02_2_Axis_minvalue = '2'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_minvalue') :
+      p_Plane_02_2_Axis_minvalue = self.getInputFromPort('p_Plane_02_2_Axis_minvalue')
+    p_Plane_02_2_Axis_maxvalue = '2'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_maxvalue') :
+      p_Plane_02_2_Axis_maxvalue = self.getInputFromPort('p_Plane_02_2_Axis_maxvalue')
+    p_Plane_02_2_Axis_width = '1'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_width') :
+      p_Plane_02_2_Axis_width = self.getInputFromPort('p_Plane_02_2_Axis_width')
+    p_Plane_02_2_Axis_tickangle = '0'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_tickangle') :
+      p_Plane_02_2_Axis_tickangle = self.getInputFromPort('p_Plane_02_2_Axis_tickangle')
+    p_Plane_02_2_Axis_ticktilt = '0'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_ticktilt') :
+      p_Plane_02_2_Axis_ticktilt = self.getInputFromPort('p_Plane_02_2_Axis_ticktilt')
+    p_Plane_02_2_Axis_ticksize = '5'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_ticksize') :
+      p_Plane_02_2_Axis_ticksize = self.getInputFromPort('p_Plane_02_2_Axis_ticksize')
+    p_Plane_02_2_Axis_labelangle = '0'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_labelangle') :
+      p_Plane_02_2_Axis_labelangle = self.getInputFromPort('p_Plane_02_2_Axis_labelangle')
+    p_Plane_02_2_Axis_labelheight = '6'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_labelheight') :
+      p_Plane_02_2_Axis_labelheight = self.getInputFromPort('p_Plane_02_2_Axis_labelheight')
+    p_Plane_02_2_Axis_valuesize = '3'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_valuesize') :
+      p_Plane_02_2_Axis_valuesize = self.getInputFromPort('p_Plane_02_2_Axis_valuesize')
+    p_Plane_02_2_Axis_valuesquash = '1.0'
+    if self.hasInputFromPort('p_Plane_02_2_Axis_valuesquash') :
+      p_Plane_02_2_Axis_valuesquash = self.getInputFromPort('p_Plane_02_2_Axis_valuesquash')
+    p_Plane_12_1_Axis_absolute = ''
+    if self.hasInputFromPort('p_Plane_12_1_Axis_absolute') :
+      p_Plane_12_1_Axis_absolute = self.getInputFromPort('p_Plane_12_1_Axis_absolute')
+    p_Plane_12_1_Axis_divisions = '10'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_divisions') :
+      p_Plane_12_1_Axis_divisions = self.getInputFromPort('p_Plane_12_1_Axis_divisions')
+    p_Plane_12_1_Axis_offset = '1'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_offset') :
+      p_Plane_12_1_Axis_offset = self.getInputFromPort('p_Plane_12_1_Axis_offset')
+    p_Plane_12_1_Axis_range_first = '0.0'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_range_first') :
+      p_Plane_12_1_Axis_range_first = self.getInputFromPort('p_Plane_12_1_Axis_range_first')
+    p_Plane_12_1_Axis_range_second = '1.0'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_range_second') :
+      p_Plane_12_1_Axis_range_second = self.getInputFromPort('p_Plane_12_1_Axis_range_second')
+    p_Plane_12_1_Axis_min_absolute = '0.0'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_min_absolute') :
+      p_Plane_12_1_Axis_min_absolute = self.getInputFromPort('p_Plane_12_1_Axis_min_absolute')
+    p_Plane_12_1_Axis_max_absolute = '1.0'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_max_absolute') :
+      p_Plane_12_1_Axis_max_absolute = self.getInputFromPort('p_Plane_12_1_Axis_max_absolute')
+    p_Plane_12_1_Axis_minplane = '2'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_minplane') :
+      p_Plane_12_1_Axis_minplane = self.getInputFromPort('p_Plane_12_1_Axis_minplane')
+    p_Plane_12_1_Axis_maxplane = '2'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_maxplane') :
+      p_Plane_12_1_Axis_maxplane = self.getInputFromPort('p_Plane_12_1_Axis_maxplane')
+    p_Plane_12_1_Axis_lines = '2'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_lines') :
+      p_Plane_12_1_Axis_lines = self.getInputFromPort('p_Plane_12_1_Axis_lines')
+    p_Plane_12_1_Axis_minticks = '2'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_minticks') :
+      p_Plane_12_1_Axis_minticks = self.getInputFromPort('p_Plane_12_1_Axis_minticks')
+    p_Plane_12_1_Axis_maxticks = '2'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_maxticks') :
+      p_Plane_12_1_Axis_maxticks = self.getInputFromPort('p_Plane_12_1_Axis_maxticks')
+    p_Plane_12_1_Axis_minlabel = '2'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_minlabel') :
+      p_Plane_12_1_Axis_minlabel = self.getInputFromPort('p_Plane_12_1_Axis_minlabel')
+    p_Plane_12_1_Axis_maxlabel = '2'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_maxlabel') :
+      p_Plane_12_1_Axis_maxlabel = self.getInputFromPort('p_Plane_12_1_Axis_maxlabel')
+    p_Plane_12_1_Axis_minvalue = '2'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_minvalue') :
+      p_Plane_12_1_Axis_minvalue = self.getInputFromPort('p_Plane_12_1_Axis_minvalue')
+    p_Plane_12_1_Axis_maxvalue = '2'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_maxvalue') :
+      p_Plane_12_1_Axis_maxvalue = self.getInputFromPort('p_Plane_12_1_Axis_maxvalue')
+    p_Plane_12_1_Axis_width = '1'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_width') :
+      p_Plane_12_1_Axis_width = self.getInputFromPort('p_Plane_12_1_Axis_width')
+    p_Plane_12_1_Axis_tickangle = '0'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_tickangle') :
+      p_Plane_12_1_Axis_tickangle = self.getInputFromPort('p_Plane_12_1_Axis_tickangle')
+    p_Plane_12_1_Axis_ticktilt = '0'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_ticktilt') :
+      p_Plane_12_1_Axis_ticktilt = self.getInputFromPort('p_Plane_12_1_Axis_ticktilt')
+    p_Plane_12_1_Axis_ticksize = '5'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_ticksize') :
+      p_Plane_12_1_Axis_ticksize = self.getInputFromPort('p_Plane_12_1_Axis_ticksize')
+    p_Plane_12_1_Axis_labelangle = '0'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_labelangle') :
+      p_Plane_12_1_Axis_labelangle = self.getInputFromPort('p_Plane_12_1_Axis_labelangle')
+    p_Plane_12_1_Axis_labelheight = '6'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_labelheight') :
+      p_Plane_12_1_Axis_labelheight = self.getInputFromPort('p_Plane_12_1_Axis_labelheight')
+    p_Plane_12_1_Axis_valuesize = '3'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_valuesize') :
+      p_Plane_12_1_Axis_valuesize = self.getInputFromPort('p_Plane_12_1_Axis_valuesize')
+    p_Plane_12_1_Axis_valuesquash = '1.0'
+    if self.hasInputFromPort('p_Plane_12_1_Axis_valuesquash') :
+      p_Plane_12_1_Axis_valuesquash = self.getInputFromPort('p_Plane_12_1_Axis_valuesquash')
+    p_Plane_12_2_Axis_absolute = ''
+    if self.hasInputFromPort('p_Plane_12_2_Axis_absolute') :
+      p_Plane_12_2_Axis_absolute = self.getInputFromPort('p_Plane_12_2_Axis_absolute')
+    p_Plane_12_2_Axis_divisions = '10'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_divisions') :
+      p_Plane_12_2_Axis_divisions = self.getInputFromPort('p_Plane_12_2_Axis_divisions')
+    p_Plane_12_2_Axis_offset = '1'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_offset') :
+      p_Plane_12_2_Axis_offset = self.getInputFromPort('p_Plane_12_2_Axis_offset')
+    p_Plane_12_2_Axis_range_first = '0.0'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_range_first') :
+      p_Plane_12_2_Axis_range_first = self.getInputFromPort('p_Plane_12_2_Axis_range_first')
+    p_Plane_12_2_Axis_range_second = '1.0'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_range_second') :
+      p_Plane_12_2_Axis_range_second = self.getInputFromPort('p_Plane_12_2_Axis_range_second')
+    p_Plane_12_2_Axis_min_absolute = '0.0'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_min_absolute') :
+      p_Plane_12_2_Axis_min_absolute = self.getInputFromPort('p_Plane_12_2_Axis_min_absolute')
+    p_Plane_12_2_Axis_max_absolute = '1.0'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_max_absolute') :
+      p_Plane_12_2_Axis_max_absolute = self.getInputFromPort('p_Plane_12_2_Axis_max_absolute')
+    p_Plane_12_2_Axis_minplane = '2'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_minplane') :
+      p_Plane_12_2_Axis_minplane = self.getInputFromPort('p_Plane_12_2_Axis_minplane')
+    p_Plane_12_2_Axis_maxplane = '2'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_maxplane') :
+      p_Plane_12_2_Axis_maxplane = self.getInputFromPort('p_Plane_12_2_Axis_maxplane')
+    p_Plane_12_2_Axis_lines = '2'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_lines') :
+      p_Plane_12_2_Axis_lines = self.getInputFromPort('p_Plane_12_2_Axis_lines')
+    p_Plane_12_2_Axis_minticks = '2'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_minticks') :
+      p_Plane_12_2_Axis_minticks = self.getInputFromPort('p_Plane_12_2_Axis_minticks')
+    p_Plane_12_2_Axis_maxticks = '2'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_maxticks') :
+      p_Plane_12_2_Axis_maxticks = self.getInputFromPort('p_Plane_12_2_Axis_maxticks')
+    p_Plane_12_2_Axis_minlabel = '2'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_minlabel') :
+      p_Plane_12_2_Axis_minlabel = self.getInputFromPort('p_Plane_12_2_Axis_minlabel')
+    p_Plane_12_2_Axis_maxlabel = '2'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_maxlabel') :
+      p_Plane_12_2_Axis_maxlabel = self.getInputFromPort('p_Plane_12_2_Axis_maxlabel')
+    p_Plane_12_2_Axis_minvalue = '2'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_minvalue') :
+      p_Plane_12_2_Axis_minvalue = self.getInputFromPort('p_Plane_12_2_Axis_minvalue')
+    p_Plane_12_2_Axis_maxvalue = '2'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_maxvalue') :
+      p_Plane_12_2_Axis_maxvalue = self.getInputFromPort('p_Plane_12_2_Axis_maxvalue')
+    p_Plane_12_2_Axis_width = '1'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_width') :
+      p_Plane_12_2_Axis_width = self.getInputFromPort('p_Plane_12_2_Axis_width')
+    p_Plane_12_2_Axis_tickangle = '0'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_tickangle') :
+      p_Plane_12_2_Axis_tickangle = self.getInputFromPort('p_Plane_12_2_Axis_tickangle')
+    p_Plane_12_2_Axis_ticktilt = '0'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_ticktilt') :
+      p_Plane_12_2_Axis_ticktilt = self.getInputFromPort('p_Plane_12_2_Axis_ticktilt')
+    p_Plane_12_2_Axis_ticksize = '5'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_ticksize') :
+      p_Plane_12_2_Axis_ticksize = self.getInputFromPort('p_Plane_12_2_Axis_ticksize')
+    p_Plane_12_2_Axis_labelangle = '0'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_labelangle') :
+      p_Plane_12_2_Axis_labelangle = self.getInputFromPort('p_Plane_12_2_Axis_labelangle')
+    p_Plane_12_2_Axis_labelheight = '6'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_labelheight') :
+      p_Plane_12_2_Axis_labelheight = self.getInputFromPort('p_Plane_12_2_Axis_labelheight')
+    p_Plane_12_2_Axis_valuesize = '3'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_valuesize') :
+      p_Plane_12_2_Axis_valuesize = self.getInputFromPort('p_Plane_12_2_Axis_valuesize')
+    p_Plane_12_2_Axis_valuesquash = '1.0'
+    if self.hasInputFromPort('p_Plane_12_2_Axis_valuesquash') :
+      p_Plane_12_2_Axis_valuesquash = self.getInputFromPort('p_Plane_12_2_Axis_valuesquash')
+    Field = 0
+    if self.hasInputFromPort('Field') :
+      Field = self.getInputFromPort('Field')
+    results = sr_py.CreateViewerAxes(Field,p_precision,p_squash,p_valuerez,p_labelrez,p_Plane_01_0_Axis_absolute,p_Plane_01_0_Axis_divisions,p_Plane_01_0_Axis_offset,p_Plane_01_0_Axis_range_first,p_Plane_01_0_Axis_range_second,p_Plane_01_0_Axis_min_absolute,p_Plane_01_0_Axis_max_absolute,p_Plane_01_0_Axis_minplane,p_Plane_01_0_Axis_maxplane,p_Plane_01_0_Axis_lines,p_Plane_01_0_Axis_minticks,p_Plane_01_0_Axis_maxticks,p_Plane_01_0_Axis_minlabel,p_Plane_01_0_Axis_maxlabel,p_Plane_01_0_Axis_minvalue,p_Plane_01_0_Axis_maxvalue,p_Plane_01_0_Axis_width,p_Plane_01_0_Axis_tickangle,p_Plane_01_0_Axis_ticktilt,p_Plane_01_0_Axis_ticksize,p_Plane_01_0_Axis_labelangle,p_Plane_01_0_Axis_labelheight,p_Plane_01_0_Axis_valuesize,p_Plane_01_0_Axis_valuesquash,p_Plane_01_1_Axis_absolute,p_Plane_01_1_Axis_divisions,p_Plane_01_1_Axis_offset,p_Plane_01_1_Axis_range_first,p_Plane_01_1_Axis_range_second,p_Plane_01_1_Axis_min_absolute,p_Plane_01_1_Axis_max_absolute,p_Plane_01_1_Axis_minplane,p_Plane_01_1_Axis_maxplane,p_Plane_01_1_Axis_lines,p_Plane_01_1_Axis_minticks,p_Plane_01_1_Axis_maxticks,p_Plane_01_1_Axis_minlabel,p_Plane_01_1_Axis_maxlabel,p_Plane_01_1_Axis_minvalue,p_Plane_01_1_Axis_maxvalue,p_Plane_01_1_Axis_width,p_Plane_01_1_Axis_tickangle,p_Plane_01_1_Axis_ticktilt,p_Plane_01_1_Axis_ticksize,p_Plane_01_1_Axis_labelangle,p_Plane_01_1_Axis_labelheight,p_Plane_01_1_Axis_valuesize,p_Plane_01_1_Axis_valuesquash,p_Plane_02_0_Axis_absolute,p_Plane_02_0_Axis_divisions,p_Plane_02_0_Axis_offset,p_Plane_02_0_Axis_range_first,p_Plane_02_0_Axis_range_second,p_Plane_02_0_Axis_min_absolute,p_Plane_02_0_Axis_max_absolute,p_Plane_02_0_Axis_minplane,p_Plane_02_0_Axis_maxplane,p_Plane_02_0_Axis_lines,p_Plane_02_0_Axis_minticks,p_Plane_02_0_Axis_maxticks,p_Plane_02_0_Axis_minlabel,p_Plane_02_0_Axis_maxlabel,p_Plane_02_0_Axis_minvalue,p_Plane_02_0_Axis_maxvalue,p_Plane_02_0_Axis_width,p_Plane_02_0_Axis_tickangle,p_Plane_02_0_Axis_ticktilt,p_Plane_02_0_Axis_ticksize,p_Plane_02_0_Axis_labelangle,p_Plane_02_0_Axis_labelheight,p_Plane_02_0_Axis_valuesize,p_Plane_02_0_Axis_valuesquash,p_Plane_02_2_Axis_absolute,p_Plane_02_2_Axis_divisions,p_Plane_02_2_Axis_offset,p_Plane_02_2_Axis_range_first,p_Plane_02_2_Axis_range_second,p_Plane_02_2_Axis_min_absolute,p_Plane_02_2_Axis_max_absolute,p_Plane_02_2_Axis_minplane,p_Plane_02_2_Axis_maxplane,p_Plane_02_2_Axis_lines,p_Plane_02_2_Axis_minticks,p_Plane_02_2_Axis_maxticks,p_Plane_02_2_Axis_minlabel,p_Plane_02_2_Axis_maxlabel,p_Plane_02_2_Axis_minvalue,p_Plane_02_2_Axis_maxvalue,p_Plane_02_2_Axis_width,p_Plane_02_2_Axis_tickangle,p_Plane_02_2_Axis_ticktilt,p_Plane_02_2_Axis_ticksize,p_Plane_02_2_Axis_labelangle,p_Plane_02_2_Axis_labelheight,p_Plane_02_2_Axis_valuesize,p_Plane_02_2_Axis_valuesquash,p_Plane_12_1_Axis_absolute,p_Plane_12_1_Axis_divisions,p_Plane_12_1_Axis_offset,p_Plane_12_1_Axis_range_first,p_Plane_12_1_Axis_range_second,p_Plane_12_1_Axis_min_absolute,p_Plane_12_1_Axis_max_absolute,p_Plane_12_1_Axis_minplane,p_Plane_12_1_Axis_maxplane,p_Plane_12_1_Axis_lines,p_Plane_12_1_Axis_minticks,p_Plane_12_1_Axis_maxticks,p_Plane_12_1_Axis_minlabel,p_Plane_12_1_Axis_maxlabel,p_Plane_12_1_Axis_minvalue,p_Plane_12_1_Axis_maxvalue,p_Plane_12_1_Axis_width,p_Plane_12_1_Axis_tickangle,p_Plane_12_1_Axis_ticktilt,p_Plane_12_1_Axis_ticksize,p_Plane_12_1_Axis_labelangle,p_Plane_12_1_Axis_labelheight,p_Plane_12_1_Axis_valuesize,p_Plane_12_1_Axis_valuesquash,p_Plane_12_2_Axis_absolute,p_Plane_12_2_Axis_divisions,p_Plane_12_2_Axis_offset,p_Plane_12_2_Axis_range_first,p_Plane_12_2_Axis_range_second,p_Plane_12_2_Axis_min_absolute,p_Plane_12_2_Axis_max_absolute,p_Plane_12_2_Axis_minplane,p_Plane_12_2_Axis_maxplane,p_Plane_12_2_Axis_lines,p_Plane_12_2_Axis_minticks,p_Plane_12_2_Axis_maxticks,p_Plane_12_2_Axis_minlabel,p_Plane_12_2_Axis_maxlabel,p_Plane_12_2_Axis_minvalue,p_Plane_12_2_Axis_maxvalue,p_Plane_12_2_Axis_width,p_Plane_12_2_Axis_tickangle,p_Plane_12_2_Axis_ticktilt,p_Plane_12_2_Axis_ticksize,p_Plane_12_2_Axis_labelangle,p_Plane_12_2_Axis_labelheight,p_Plane_12_2_Axis_valuesize,p_Plane_12_2_Axis_valuesquash)
+    self.setResult('Axes', results)
 
-class SCIRun_ReplicateDataArray(Module) :
+class scirun_SelectFieldROIWithBoxWidget(Module) :
   def compute(self) :
-    size = 1
-    if self.hasInputFromPort('size') :
-      size = self.getInputFromPort('size')
-    DataArray = 0
-    if self.hasInputFromPort('DataArray') :
-      DataArray = self.getInputFromPort('DataArray')
-    Size = 0
-    if self.hasInputFromPort('Size') :
-      Size = self.getInputFromPort('Size')
-    results = sr_py.ReplicateDataArray(DataArray,Size,size)
-    self.setResult('DataArray', results)
-
-class SCIRun_SwapFieldDataWithMatrixEntries(Module) :
-  def compute(self) :
-    preserve_scalar_type = 0
-    if self.hasInputFromPort('preserve_scalar_type') :
-      preserve_scalar_type = self.getInputFromPort('preserve_scalar_type')
+    p_stampvalue = 100
+    if self.hasInputFromPort('p_stampvalue') :
+      p_stampvalue = self.getInputFromPort('p_stampvalue')
+    p_runmode = 0
+    if self.hasInputFromPort('p_runmode') :
+      p_runmode = self.getInputFromPort('p_runmode')
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
-    Input_Matrix = 0
-    if self.hasInputFromPort('Input Matrix') :
-      Input_Matrix = self.getInputFromPort('Input Matrix')
-    results = sr_py.SwapFieldDataWithMatrixEntries(Input_Field,Input_Matrix,preserve_scalar_type)
-    self.setResult('Output Field', sr_py.read_at_index(results,0))
-    self.setResult('Output Matrix', sr_py.read_at_index(results,1))
-
-class SCIRun_SelectFieldROIWithBoxWidget(Module) :
-  def compute(self) :
-    stampvalue = 100
-    if self.hasInputFromPort('stampvalue') :
-      stampvalue = self.getInputFromPort('stampvalue')
-    runmode = 0
-    if self.hasInputFromPort('runmode') :
-      runmode = self.getInputFromPort('runmode')
-    Input_Field = 0
-    if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
-    results = sr_py.SelectFieldROIWithBoxWidget(Input_Field,stampvalue,runmode)
+    results = sr_py.SelectFieldROIWithBoxWidget(Input_Field,p_stampvalue,p_runmode)
     self.setResult('Selection Widget', sr_py.read_at_index(results,0))
     self.setResult('Output Field', sr_py.read_at_index(results,1))
 
-class SCIRun_SetTetVolFieldDataValues(Module) :
+class scirun_SetTetVolFieldDataValues(Module) :
   def compute(self) :
-    newval = 1.0
-    if self.hasInputFromPort('newval') :
-      newval = self.getInputFromPort('newval')
+    p_newval = 1.0
+    if self.hasInputFromPort('p_newval') :
+      p_newval = self.getInputFromPort('p_newval')
     InField = 0
     if self.hasInputFromPort('InField') :
       InField = self.getInputFromPort('InField')
-    results = sr_py.SetTetVolFieldDataValues(InField,newval)
+    results = sr_py.SetTetVolFieldDataValues(InField,p_newval)
     self.setResult('OutField', results)
 
-class SCIRun_WritePath(Module) :
+class scirun_WritePath(Module) :
   def compute(self) :
-    filetype = 'Binary'
-    if self.hasInputFromPort('filetype') :
-      filetype = self.getInputFromPort('filetype')
-    confirm = 0
-    if self.hasInputFromPort('confirm') :
-      confirm = self.getInputFromPort('confirm')
-    confirm_once = 0
-    if self.hasInputFromPort('confirm_once') :
-      confirm_once = self.getInputFromPort('confirm_once')
+    p_filetype = 'Binary'
+    if self.hasInputFromPort('p_filetype') :
+      p_filetype = self.getInputFromPort('p_filetype')
+    p_confirm = '0'
+    if self.hasInputFromPort('p_confirm') :
+      p_confirm = self.getInputFromPort('p_confirm')
+    p_confirm_once = '0'
+    if self.hasInputFromPort('p_confirm_once') :
+      p_confirm_once = self.getInputFromPort('p_confirm_once')
     Input_Data = 0
     if self.hasInputFromPort('Input Data') :
       Input_Data = self.getInputFromPort('Input Data')
     Filename = 0
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
-    results = sr_py.WritePath(Input_Data,Filename,filetype,confirm,confirm_once)
+    results = sr_py.WritePath(Input_Data,Filename,p_filetype,p_confirm,p_confirm_once)
 
-class SCIRun_ClipLatVolByIndicesOrWidget(Module) :
+class scirun_ClipLatVolByIndicesOrWidget(Module) :
   def compute(self) :
-    use_text_bbox = 0
-    if self.hasInputFromPort('use_text_bbox') :
-      use_text_bbox = self.getInputFromPort('use_text_bbox')
-    text_min_x = 0.0
-    if self.hasInputFromPort('text_min_x') :
-      text_min_x = self.getInputFromPort('text_min_x')
-    text_min_y = 0.0
-    if self.hasInputFromPort('text_min_y') :
-      text_min_y = self.getInputFromPort('text_min_y')
-    text_min_z = 0.0
-    if self.hasInputFromPort('text_min_z') :
-      text_min_z = self.getInputFromPort('text_min_z')
-    text_max_x = 1.0
-    if self.hasInputFromPort('text_max_x') :
-      text_max_x = self.getInputFromPort('text_max_x')
-    text_max_y = 1.0
-    if self.hasInputFromPort('text_max_y') :
-      text_max_y = self.getInputFromPort('text_max_y')
-    text_max_z = 1.0
-    if self.hasInputFromPort('text_max_z') :
-      text_max_z = self.getInputFromPort('text_max_z')
+    p_use_text_bbox = 0
+    if self.hasInputFromPort('p_use_text_bbox') :
+      p_use_text_bbox = self.getInputFromPort('p_use_text_bbox')
+    p_text_min_x = 0.0
+    if self.hasInputFromPort('p_text_min_x') :
+      p_text_min_x = self.getInputFromPort('p_text_min_x')
+    p_text_min_y = 0.0
+    if self.hasInputFromPort('p_text_min_y') :
+      p_text_min_y = self.getInputFromPort('p_text_min_y')
+    p_text_min_z = 0.0
+    if self.hasInputFromPort('p_text_min_z') :
+      p_text_min_z = self.getInputFromPort('p_text_min_z')
+    p_text_max_x = 1.0
+    if self.hasInputFromPort('p_text_max_x') :
+      p_text_max_x = self.getInputFromPort('p_text_max_x')
+    p_text_max_y = 1.0
+    if self.hasInputFromPort('p_text_max_y') :
+      p_text_max_y = self.getInputFromPort('p_text_max_y')
+    p_text_max_z = 1.0
+    if self.hasInputFromPort('p_text_max_z') :
+      p_text_max_z = self.getInputFromPort('p_text_max_z')
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
-    results = sr_py.ClipLatVolByIndicesOrWidget(Input_Field,use_text_bbox,text_min_x,text_min_y,text_min_z,text_max_x,text_max_y,text_max_z)
+    results = sr_py.ClipLatVolByIndicesOrWidget(Input_Field,p_use_text_bbox,p_text_min_x,p_text_min_y,p_text_min_z,p_text_max_x,p_text_max_y,p_text_max_z)
     self.setResult('Selection Widget', sr_py.read_at_index(results,0))
     self.setResult('Output Field', sr_py.read_at_index(results,1))
     self.setResult('MaskVector', sr_py.read_at_index(results,2))
 
-class SCIRun_GetBundlesFromBundle(Module) :
+class scirun_GetBundlesFromBundle(Module) :
   def compute(self) :
-    bundle1_name = 'bundle1'
-    if self.hasInputFromPort('bundle1_name') :
-      bundle1_name = self.getInputFromPort('bundle1_name')
-    bundle2_name = 'bundle2'
-    if self.hasInputFromPort('bundle2_name') :
-      bundle2_name = self.getInputFromPort('bundle2_name')
-    bundle3_name = 'bundle3'
-    if self.hasInputFromPort('bundle3_name') :
-      bundle3_name = self.getInputFromPort('bundle3_name')
-    bundle4_name = 'bundle4'
-    if self.hasInputFromPort('bundle4_name') :
-      bundle4_name = self.getInputFromPort('bundle4_name')
-    bundle5_name = 'bundle5'
-    if self.hasInputFromPort('bundle5_name') :
-      bundle5_name = self.getInputFromPort('bundle5_name')
-    bundle6_name = 'bundle6'
-    if self.hasInputFromPort('bundle6_name') :
-      bundle6_name = self.getInputFromPort('bundle6_name')
-    bundle_selection = ''
-    if self.hasInputFromPort('bundle_selection') :
-      bundle_selection = self.getInputFromPort('bundle_selection')
+    p_bundle1_name = 'bundle1'
+    if self.hasInputFromPort('p_bundle1_name') :
+      p_bundle1_name = self.getInputFromPort('p_bundle1_name')
+    p_bundle2_name = 'bundle2'
+    if self.hasInputFromPort('p_bundle2_name') :
+      p_bundle2_name = self.getInputFromPort('p_bundle2_name')
+    p_bundle3_name = 'bundle3'
+    if self.hasInputFromPort('p_bundle3_name') :
+      p_bundle3_name = self.getInputFromPort('p_bundle3_name')
+    p_bundle4_name = 'bundle4'
+    if self.hasInputFromPort('p_bundle4_name') :
+      p_bundle4_name = self.getInputFromPort('p_bundle4_name')
+    p_bundle5_name = 'bundle5'
+    if self.hasInputFromPort('p_bundle5_name') :
+      p_bundle5_name = self.getInputFromPort('p_bundle5_name')
+    p_bundle6_name = 'bundle6'
+    if self.hasInputFromPort('p_bundle6_name') :
+      p_bundle6_name = self.getInputFromPort('p_bundle6_name')
+    p_bundle_selection = ''
+    if self.hasInputFromPort('p_bundle_selection') :
+      p_bundle_selection = self.getInputFromPort('p_bundle_selection')
     bundle = 0
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
-    results = sr_py.GetBundlesFromBundle(bundle,bundle1_name,bundle2_name,bundle3_name,bundle4_name,bundle5_name,bundle6_name,bundle_selection)
+    results = sr_py.GetBundlesFromBundle(bundle,p_bundle1_name,p_bundle2_name,p_bundle3_name,p_bundle4_name,p_bundle5_name,p_bundle6_name,p_bundle_selection)
     self.setResult('bundle', sr_py.read_at_index(results,0))
     self.setResult('bundle1', sr_py.read_at_index(results,1))
     self.setResult('bundle2', sr_py.read_at_index(results,2))
@@ -2032,81 +1675,81 @@ class SCIRun_GetBundlesFromBundle(Module) :
     self.setResult('bundle5', sr_py.read_at_index(results,5))
     self.setResult('bundle6', sr_py.read_at_index(results,6))
 
-class SCIRun_RescaleColorMap(Module) :
+class scirun_RescaleColorMap(Module) :
   def compute(self) :
-    main_frame = ''
-    if self.hasInputFromPort('main_frame') :
-      main_frame = self.getInputFromPort('main_frame')
-    isFixed = 0
-    if self.hasInputFromPort('isFixed') :
-      isFixed = self.getInputFromPort('isFixed')
-    min = 0.0
-    if self.hasInputFromPort('min') :
-      min = self.getInputFromPort('min')
-    max = 1.0
-    if self.hasInputFromPort('max') :
-      max = self.getInputFromPort('max')
-    makeSymmetric = 0
-    if self.hasInputFromPort('makeSymmetric') :
-      makeSymmetric = self.getInputFromPort('makeSymmetric')
+    p_main_frame = ''
+    if self.hasInputFromPort('p_main_frame') :
+      p_main_frame = self.getInputFromPort('p_main_frame')
+    p_isFixed = 0
+    if self.hasInputFromPort('p_isFixed') :
+      p_isFixed = self.getInputFromPort('p_isFixed')
+    p_min = 0.0
+    if self.hasInputFromPort('p_min') :
+      p_min = self.getInputFromPort('p_min')
+    p_max = 1.0
+    if self.hasInputFromPort('p_max') :
+      p_max = self.getInputFromPort('p_max')
+    p_makeSymmetric = 0
+    if self.hasInputFromPort('p_makeSymmetric') :
+      p_makeSymmetric = self.getInputFromPort('p_makeSymmetric')
     ColorMap = 0
     if self.hasInputFromPort('ColorMap') :
       ColorMap = self.getInputFromPort('ColorMap')
     Field = 0
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
-    results = sr_py.RescaleColorMap(ColorMap,Field,main_frame,isFixed,min,max,makeSymmetric)
+    results = sr_py.RescaleColorMap(ColorMap,Field,p_main_frame,p_isFixed,p_min,p_max,p_makeSymmetric)
     self.setResult('ColorMap', results)
 
-class SCIRun_ConvertNrrdsToTexture(Module) :
+class scirun_ConvertNrrdsToTexture(Module) :
   def compute(self) :
-    vmin = 0.0
-    if self.hasInputFromPort('vmin') :
-      vmin = self.getInputFromPort('vmin')
-    vmax = 1.0
-    if self.hasInputFromPort('vmax') :
-      vmax = self.getInputFromPort('vmax')
-    gmin = 0.0
-    if self.hasInputFromPort('gmin') :
-      gmin = self.getInputFromPort('gmin')
-    gmax = 1.0
-    if self.hasInputFromPort('gmax') :
-      gmax = self.getInputFromPort('gmax')
-    mmin = 0.0
-    if self.hasInputFromPort('mmin') :
-      mmin = self.getInputFromPort('mmin')
-    mmax = 1.0
-    if self.hasInputFromPort('mmax') :
-      mmax = self.getInputFromPort('mmax')
-    is_fixed = 0
-    if self.hasInputFromPort('is_fixed') :
-      is_fixed = self.getInputFromPort('is_fixed')
-    card_mem = 16
-    if self.hasInputFromPort('card_mem') :
-      card_mem = self.getInputFromPort('card_mem')
-    card_mem_auto = 1
-    if self.hasInputFromPort('card_mem_auto') :
-      card_mem_auto = self.getInputFromPort('card_mem_auto')
-    is_uchar = 1
-    if self.hasInputFromPort('is_uchar') :
-      is_uchar = self.getInputFromPort('is_uchar')
-    histogram = 1
-    if self.hasInputFromPort('histogram') :
-      histogram = self.getInputFromPort('histogram')
-    gamma = 0.5
-    if self.hasInputFromPort('gamma') :
-      gamma = self.getInputFromPort('gamma')
+    p_vmin = 0.0
+    if self.hasInputFromPort('p_vmin') :
+      p_vmin = self.getInputFromPort('p_vmin')
+    p_vmax = 1.0
+    if self.hasInputFromPort('p_vmax') :
+      p_vmax = self.getInputFromPort('p_vmax')
+    p_gmin = 0.0
+    if self.hasInputFromPort('p_gmin') :
+      p_gmin = self.getInputFromPort('p_gmin')
+    p_gmax = 1.0
+    if self.hasInputFromPort('p_gmax') :
+      p_gmax = self.getInputFromPort('p_gmax')
+    p_mmin = 0.0
+    if self.hasInputFromPort('p_mmin') :
+      p_mmin = self.getInputFromPort('p_mmin')
+    p_mmax = 1.0
+    if self.hasInputFromPort('p_mmax') :
+      p_mmax = self.getInputFromPort('p_mmax')
+    p_is_fixed = 0
+    if self.hasInputFromPort('p_is_fixed') :
+      p_is_fixed = self.getInputFromPort('p_is_fixed')
+    p_card_mem = 16
+    if self.hasInputFromPort('p_card_mem') :
+      p_card_mem = self.getInputFromPort('p_card_mem')
+    p_card_mem_auto = 1
+    if self.hasInputFromPort('p_card_mem_auto') :
+      p_card_mem_auto = self.getInputFromPort('p_card_mem_auto')
+    p_is_uchar = 1
+    if self.hasInputFromPort('p_is_uchar') :
+      p_is_uchar = self.getInputFromPort('p_is_uchar')
+    p_histogram = 1
+    if self.hasInputFromPort('p_histogram') :
+      p_histogram = self.getInputFromPort('p_histogram')
+    p_gamma = 0.5
+    if self.hasInputFromPort('p_gamma') :
+      p_gamma = self.getInputFromPort('p_gamma')
     Value_Nrrd = 0
     if self.hasInputFromPort('Value Nrrd') :
       Value_Nrrd = self.getInputFromPort('Value Nrrd')
     Gradient_Magnitude_Nrrd = 0
     if self.hasInputFromPort('Gradient Magnitude Nrrd') :
       Gradient_Magnitude_Nrrd = self.getInputFromPort('Gradient Magnitude Nrrd')
-    results = sr_py.ConvertNrrdsToTexture(Value_Nrrd,Gradient_Magnitude_Nrrd,vmin,vmax,gmin,gmax,mmin,mmax,is_fixed,card_mem,card_mem_auto,is_uchar,histogram,gamma)
+    results = sr_py.ConvertNrrdsToTexture(Value_Nrrd,Gradient_Magnitude_Nrrd,p_vmin,p_vmax,p_gmin,p_gmax,p_mmin,p_mmax,p_is_fixed,p_card_mem,p_card_mem_auto,p_is_uchar,p_histogram,p_gamma)
     self.setResult('Texture', sr_py.read_at_index(results,0))
     self.setResult('JointHistoGram', sr_py.read_at_index(results,1))
 
-class SCIRun_ConvertQuadSurfToTriSurf(Module) :
+class scirun_ConvertQuadSurfToTriSurf(Module) :
   def compute(self) :
     QuadSurf = 0
     if self.hasInputFromPort('QuadSurf') :
@@ -2114,29 +1757,29 @@ class SCIRun_ConvertQuadSurfToTriSurf(Module) :
     results = sr_py.ConvertQuadSurfToTriSurf(QuadSurf)
     self.setResult('TriSurf', results)
 
-class SCIRun_WriteColorMap2D(Module) :
+class scirun_WriteColorMap2D(Module) :
   def compute(self) :
-    filetype = 'Binary'
-    if self.hasInputFromPort('filetype') :
-      filetype = self.getInputFromPort('filetype')
-    confirm = 0
-    if self.hasInputFromPort('confirm') :
-      confirm = self.getInputFromPort('confirm')
-    confirm_once = 0
-    if self.hasInputFromPort('confirm_once') :
-      confirm_once = self.getInputFromPort('confirm_once')
-    exporttype = ''
-    if self.hasInputFromPort('exporttype') :
-      exporttype = self.getInputFromPort('exporttype')
+    p_filetype = 'Binary'
+    if self.hasInputFromPort('p_filetype') :
+      p_filetype = self.getInputFromPort('p_filetype')
+    p_confirm = '0'
+    if self.hasInputFromPort('p_confirm') :
+      p_confirm = self.getInputFromPort('p_confirm')
+    p_confirm_once = '0'
+    if self.hasInputFromPort('p_confirm_once') :
+      p_confirm_once = self.getInputFromPort('p_confirm_once')
+    p_exporttype = ''
+    if self.hasInputFromPort('p_exporttype') :
+      p_exporttype = self.getInputFromPort('p_exporttype')
     Input_Data = 0
     if self.hasInputFromPort('Input Data') :
       Input_Data = self.getInputFromPort('Input Data')
     Filename = 0
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
-    results = sr_py.WriteColorMap2D(Input_Data,Filename,filetype,confirm,confirm_once,exporttype)
+    results = sr_py.WriteColorMap2D(Input_Data,Filename,p_filetype,p_confirm,p_confirm_once,p_exporttype)
 
-class SCIRun_BuildMatrixOfSurfaceNormals(Module) :
+class scirun_BuildMatrixOfSurfaceNormals(Module) :
   def compute(self) :
     Surface_Field = 0
     if self.hasInputFromPort('Surface Field') :
@@ -2144,240 +1787,240 @@ class SCIRun_BuildMatrixOfSurfaceNormals(Module) :
     results = sr_py.BuildMatrixOfSurfaceNormals(Surface_Field)
     self.setResult('Nodal Surface Normals', results)
 
-class SCIRun_ReadHDF5File(Module) :
+class scirun_ReadHDF5File(Module) :
   def compute(self) :
-    have_HDF5 = 0
-    if self.hasInputFromPort('have_HDF5') :
-      have_HDF5 = self.getInputFromPort('have_HDF5')
-    power_app = 0
-    if self.hasInputFromPort('power_app') :
-      power_app = self.getInputFromPort('power_app')
-    datasets = ''
-    if self.hasInputFromPort('datasets') :
-      datasets = self.getInputFromPort('datasets')
-    dumpname = ''
-    if self.hasInputFromPort('dumpname') :
-      dumpname = self.getInputFromPort('dumpname')
-    ports = ''
-    if self.hasInputFromPort('ports') :
-      ports = self.getInputFromPort('ports')
-    ndims = 0
-    if self.hasInputFromPort('ndims') :
-      ndims = self.getInputFromPort('ndims')
-    mergeData = 1
-    if self.hasInputFromPort('mergeData') :
-      mergeData = self.getInputFromPort('mergeData')
-    assumeSVT = 1
-    if self.hasInputFromPort('assumeSVT') :
-      assumeSVT = self.getInputFromPort('assumeSVT')
-    animate = 0
-    if self.hasInputFromPort('animate') :
-      animate = self.getInputFromPort('animate')
-    animate_tab = ''
-    if self.hasInputFromPort('animate_tab') :
-      animate_tab = self.getInputFromPort('animate_tab')
-    basic_tab = ''
-    if self.hasInputFromPort('basic_tab') :
-      basic_tab = self.getInputFromPort('basic_tab')
-    extended_tab = ''
-    if self.hasInputFromPort('extended_tab') :
-      extended_tab = self.getInputFromPort('extended_tab')
-    playmode_tab = ''
-    if self.hasInputFromPort('playmode_tab') :
-      playmode_tab = self.getInputFromPort('playmode_tab')
-    selectable_min = 0
-    if self.hasInputFromPort('selectable_min') :
-      selectable_min = self.getInputFromPort('selectable_min')
-    selectable_max = 100
-    if self.hasInputFromPort('selectable_max') :
-      selectable_max = self.getInputFromPort('selectable_max')
-    selectable_inc = 1
-    if self.hasInputFromPort('selectable_inc') :
-      selectable_inc = self.getInputFromPort('selectable_inc')
-    range_min = 0
-    if self.hasInputFromPort('range_min') :
-      range_min = self.getInputFromPort('range_min')
-    range_max = 0
-    if self.hasInputFromPort('range_max') :
-      range_max = self.getInputFromPort('range_max')
-    playmode = 'once'
-    if self.hasInputFromPort('playmode') :
-      playmode = self.getInputFromPort('playmode')
-    current = 0
-    if self.hasInputFromPort('current') :
-      current = self.getInputFromPort('current')
-    execmode = 'init'
-    if self.hasInputFromPort('execmode') :
-      execmode = self.getInputFromPort('execmode')
-    delay = 0
-    if self.hasInputFromPort('delay') :
-      delay = self.getInputFromPort('delay')
-    inc_amount = 1
-    if self.hasInputFromPort('inc_amount') :
-      inc_amount = self.getInputFromPort('inc_amount')
-    update_type = 'On Release'
-    if self.hasInputFromPort('update_type') :
-      update_type = self.getInputFromPort('update_type')
-    have_group = 0
-    if self.hasInputFromPort('have_group') :
-      have_group = self.getInputFromPort('have_group')
-    have_attributes = 0
-    if self.hasInputFromPort('have_attributes') :
-      have_attributes = self.getInputFromPort('have_attributes')
-    have_datasets = 0
-    if self.hasInputFromPort('have_datasets') :
-      have_datasets = self.getInputFromPort('have_datasets')
-    continuous = 0
-    if self.hasInputFromPort('continuous') :
-      continuous = self.getInputFromPort('continuous')
-    selectionString = ''
-    if self.hasInputFromPort('selectionString') :
-      selectionString = self.getInputFromPort('selectionString')
-    regexp = 0
-    if self.hasInputFromPort('regexp') :
-      regexp = self.getInputFromPort('regexp')
-    allow_selection = 'true'
-    if self.hasInputFromPort('allow_selection') :
-      allow_selection = self.getInputFromPort('allow_selection')
-    read_error = 0
-    if self.hasInputFromPort('read_error') :
-      read_error = self.getInputFromPort('read_error')
-    max_dims = 6
-    if self.hasInputFromPort('max_dims') :
-      max_dims = self.getInputFromPort('max_dims')
-    a0_dim = 2
-    if self.hasInputFromPort('a0_dim') :
-      a0_dim = self.getInputFromPort('a0_dim')
-    a0_start = 0
-    if self.hasInputFromPort('a0_start') :
-      a0_start = self.getInputFromPort('a0_start')
-    a0_start2 = 0
-    if self.hasInputFromPort('a0_start2') :
-      a0_start2 = self.getInputFromPort('a0_start2')
-    a0_count = 1
-    if self.hasInputFromPort('a0_count') :
-      a0_count = self.getInputFromPort('a0_count')
-    a0_count2 = 1
-    if self.hasInputFromPort('a0_count2') :
-      a0_count2 = self.getInputFromPort('a0_count2')
-    a0_stride = 1
-    if self.hasInputFromPort('a0_stride') :
-      a0_stride = self.getInputFromPort('a0_stride')
-    a0_stride2 = 1
-    if self.hasInputFromPort('a0_stride2') :
-      a0_stride2 = self.getInputFromPort('a0_stride2')
-    a1_dim = 2
-    if self.hasInputFromPort('a1_dim') :
-      a1_dim = self.getInputFromPort('a1_dim')
-    a1_start = 0
-    if self.hasInputFromPort('a1_start') :
-      a1_start = self.getInputFromPort('a1_start')
-    a1_start2 = 0
-    if self.hasInputFromPort('a1_start2') :
-      a1_start2 = self.getInputFromPort('a1_start2')
-    a1_count = 1
-    if self.hasInputFromPort('a1_count') :
-      a1_count = self.getInputFromPort('a1_count')
-    a1_count2 = 1
-    if self.hasInputFromPort('a1_count2') :
-      a1_count2 = self.getInputFromPort('a1_count2')
-    a1_stride = 1
-    if self.hasInputFromPort('a1_stride') :
-      a1_stride = self.getInputFromPort('a1_stride')
-    a1_stride2 = 1
-    if self.hasInputFromPort('a1_stride2') :
-      a1_stride2 = self.getInputFromPort('a1_stride2')
-    a2_dim = 2
-    if self.hasInputFromPort('a2_dim') :
-      a2_dim = self.getInputFromPort('a2_dim')
-    a2_start = 0
-    if self.hasInputFromPort('a2_start') :
-      a2_start = self.getInputFromPort('a2_start')
-    a2_start2 = 0
-    if self.hasInputFromPort('a2_start2') :
-      a2_start2 = self.getInputFromPort('a2_start2')
-    a2_count = 1
-    if self.hasInputFromPort('a2_count') :
-      a2_count = self.getInputFromPort('a2_count')
-    a2_count2 = 1
-    if self.hasInputFromPort('a2_count2') :
-      a2_count2 = self.getInputFromPort('a2_count2')
-    a2_stride = 1
-    if self.hasInputFromPort('a2_stride') :
-      a2_stride = self.getInputFromPort('a2_stride')
-    a2_stride2 = 1
-    if self.hasInputFromPort('a2_stride2') :
-      a2_stride2 = self.getInputFromPort('a2_stride2')
-    a3_dim = 2
-    if self.hasInputFromPort('a3_dim') :
-      a3_dim = self.getInputFromPort('a3_dim')
-    a3_start = 0
-    if self.hasInputFromPort('a3_start') :
-      a3_start = self.getInputFromPort('a3_start')
-    a3_start2 = 0
-    if self.hasInputFromPort('a3_start2') :
-      a3_start2 = self.getInputFromPort('a3_start2')
-    a3_count = 1
-    if self.hasInputFromPort('a3_count') :
-      a3_count = self.getInputFromPort('a3_count')
-    a3_count2 = 1
-    if self.hasInputFromPort('a3_count2') :
-      a3_count2 = self.getInputFromPort('a3_count2')
-    a3_stride = 1
-    if self.hasInputFromPort('a3_stride') :
-      a3_stride = self.getInputFromPort('a3_stride')
-    a3_stride2 = 1
-    if self.hasInputFromPort('a3_stride2') :
-      a3_stride2 = self.getInputFromPort('a3_stride2')
-    a4_dim = 2
-    if self.hasInputFromPort('a4_dim') :
-      a4_dim = self.getInputFromPort('a4_dim')
-    a4_start = 0
-    if self.hasInputFromPort('a4_start') :
-      a4_start = self.getInputFromPort('a4_start')
-    a4_start2 = 0
-    if self.hasInputFromPort('a4_start2') :
-      a4_start2 = self.getInputFromPort('a4_start2')
-    a4_count = 1
-    if self.hasInputFromPort('a4_count') :
-      a4_count = self.getInputFromPort('a4_count')
-    a4_count2 = 1
-    if self.hasInputFromPort('a4_count2') :
-      a4_count2 = self.getInputFromPort('a4_count2')
-    a4_stride = 1
-    if self.hasInputFromPort('a4_stride') :
-      a4_stride = self.getInputFromPort('a4_stride')
-    a4_stride2 = 1
-    if self.hasInputFromPort('a4_stride2') :
-      a4_stride2 = self.getInputFromPort('a4_stride2')
-    a5_dim = 2
-    if self.hasInputFromPort('a5_dim') :
-      a5_dim = self.getInputFromPort('a5_dim')
-    a5_start = 0
-    if self.hasInputFromPort('a5_start') :
-      a5_start = self.getInputFromPort('a5_start')
-    a5_start2 = 0
-    if self.hasInputFromPort('a5_start2') :
-      a5_start2 = self.getInputFromPort('a5_start2')
-    a5_count = 1
-    if self.hasInputFromPort('a5_count') :
-      a5_count = self.getInputFromPort('a5_count')
-    a5_count2 = 1
-    if self.hasInputFromPort('a5_count2') :
-      a5_count2 = self.getInputFromPort('a5_count2')
-    a5_stride = 1
-    if self.hasInputFromPort('a5_stride') :
-      a5_stride = self.getInputFromPort('a5_stride')
-    a5_stride2 = 1
-    if self.hasInputFromPort('a5_stride2') :
-      a5_stride2 = self.getInputFromPort('a5_stride2')
+    p_have_HDF5 = 0
+    if self.hasInputFromPort('p_have_HDF5') :
+      p_have_HDF5 = self.getInputFromPort('p_have_HDF5')
+    p_power_app = 0
+    if self.hasInputFromPort('p_power_app') :
+      p_power_app = self.getInputFromPort('p_power_app')
+    p_datasets = ''
+    if self.hasInputFromPort('p_datasets') :
+      p_datasets = self.getInputFromPort('p_datasets')
+    p_dumpname = ''
+    if self.hasInputFromPort('p_dumpname') :
+      p_dumpname = self.getInputFromPort('p_dumpname')
+    p_ports = ''
+    if self.hasInputFromPort('p_ports') :
+      p_ports = self.getInputFromPort('p_ports')
+    p_ndims = 0
+    if self.hasInputFromPort('p_ndims') :
+      p_ndims = self.getInputFromPort('p_ndims')
+    p_mergeData = 1
+    if self.hasInputFromPort('p_mergeData') :
+      p_mergeData = self.getInputFromPort('p_mergeData')
+    p_assumeSVT = 1
+    if self.hasInputFromPort('p_assumeSVT') :
+      p_assumeSVT = self.getInputFromPort('p_assumeSVT')
+    p_animate = 0
+    if self.hasInputFromPort('p_animate') :
+      p_animate = self.getInputFromPort('p_animate')
+    p_animate_tab = ''
+    if self.hasInputFromPort('p_animate_tab') :
+      p_animate_tab = self.getInputFromPort('p_animate_tab')
+    p_basic_tab = ''
+    if self.hasInputFromPort('p_basic_tab') :
+      p_basic_tab = self.getInputFromPort('p_basic_tab')
+    p_extended_tab = ''
+    if self.hasInputFromPort('p_extended_tab') :
+      p_extended_tab = self.getInputFromPort('p_extended_tab')
+    p_playmode_tab = ''
+    if self.hasInputFromPort('p_playmode_tab') :
+      p_playmode_tab = self.getInputFromPort('p_playmode_tab')
+    p_selectable_min = 0
+    if self.hasInputFromPort('p_selectable_min') :
+      p_selectable_min = self.getInputFromPort('p_selectable_min')
+    p_selectable_max = 100
+    if self.hasInputFromPort('p_selectable_max') :
+      p_selectable_max = self.getInputFromPort('p_selectable_max')
+    p_selectable_inc = 1
+    if self.hasInputFromPort('p_selectable_inc') :
+      p_selectable_inc = self.getInputFromPort('p_selectable_inc')
+    p_range_min = 0
+    if self.hasInputFromPort('p_range_min') :
+      p_range_min = self.getInputFromPort('p_range_min')
+    p_range_max = 0
+    if self.hasInputFromPort('p_range_max') :
+      p_range_max = self.getInputFromPort('p_range_max')
+    p_playmode = 'once'
+    if self.hasInputFromPort('p_playmode') :
+      p_playmode = self.getInputFromPort('p_playmode')
+    p_current = 0
+    if self.hasInputFromPort('p_current') :
+      p_current = self.getInputFromPort('p_current')
+    p_execmode = 'init'
+    if self.hasInputFromPort('p_execmode') :
+      p_execmode = self.getInputFromPort('p_execmode')
+    p_delay = 0
+    if self.hasInputFromPort('p_delay') :
+      p_delay = self.getInputFromPort('p_delay')
+    p_inc_amount = 1
+    if self.hasInputFromPort('p_inc_amount') :
+      p_inc_amount = self.getInputFromPort('p_inc_amount')
+    p_update_type = 'On Release'
+    if self.hasInputFromPort('p_update_type') :
+      p_update_type = self.getInputFromPort('p_update_type')
+    p_have_group = 0
+    if self.hasInputFromPort('p_have_group') :
+      p_have_group = self.getInputFromPort('p_have_group')
+    p_have_attributes = 0
+    if self.hasInputFromPort('p_have_attributes') :
+      p_have_attributes = self.getInputFromPort('p_have_attributes')
+    p_have_datasets = 0
+    if self.hasInputFromPort('p_have_datasets') :
+      p_have_datasets = self.getInputFromPort('p_have_datasets')
+    p_continuous = 0
+    if self.hasInputFromPort('p_continuous') :
+      p_continuous = self.getInputFromPort('p_continuous')
+    p_selectionString = ''
+    if self.hasInputFromPort('p_selectionString') :
+      p_selectionString = self.getInputFromPort('p_selectionString')
+    p_regexp = 0
+    if self.hasInputFromPort('p_regexp') :
+      p_regexp = self.getInputFromPort('p_regexp')
+    p_allow_selection = 'true'
+    if self.hasInputFromPort('p_allow_selection') :
+      p_allow_selection = self.getInputFromPort('p_allow_selection')
+    p_read_error = 0
+    if self.hasInputFromPort('p_read_error') :
+      p_read_error = self.getInputFromPort('p_read_error')
+    p_max_dims = 6
+    if self.hasInputFromPort('p_max_dims') :
+      p_max_dims = self.getInputFromPort('p_max_dims')
+    p_0_dim = '2'
+    if self.hasInputFromPort('p_0_dim') :
+      p_0_dim = self.getInputFromPort('p_0_dim')
+    p_0_start = '0'
+    if self.hasInputFromPort('p_0_start') :
+      p_0_start = self.getInputFromPort('p_0_start')
+    p_0_start2 = '0'
+    if self.hasInputFromPort('p_0_start2') :
+      p_0_start2 = self.getInputFromPort('p_0_start2')
+    p_0_count = '1'
+    if self.hasInputFromPort('p_0_count') :
+      p_0_count = self.getInputFromPort('p_0_count')
+    p_0_count2 = '1'
+    if self.hasInputFromPort('p_0_count2') :
+      p_0_count2 = self.getInputFromPort('p_0_count2')
+    p_0_stride = '1'
+    if self.hasInputFromPort('p_0_stride') :
+      p_0_stride = self.getInputFromPort('p_0_stride')
+    p_0_stride2 = '1'
+    if self.hasInputFromPort('p_0_stride2') :
+      p_0_stride2 = self.getInputFromPort('p_0_stride2')
+    p_1_dim = '2'
+    if self.hasInputFromPort('p_1_dim') :
+      p_1_dim = self.getInputFromPort('p_1_dim')
+    p_1_start = '0'
+    if self.hasInputFromPort('p_1_start') :
+      p_1_start = self.getInputFromPort('p_1_start')
+    p_1_start2 = '0'
+    if self.hasInputFromPort('p_1_start2') :
+      p_1_start2 = self.getInputFromPort('p_1_start2')
+    p_1_count = '1'
+    if self.hasInputFromPort('p_1_count') :
+      p_1_count = self.getInputFromPort('p_1_count')
+    p_1_count2 = '1'
+    if self.hasInputFromPort('p_1_count2') :
+      p_1_count2 = self.getInputFromPort('p_1_count2')
+    p_1_stride = '1'
+    if self.hasInputFromPort('p_1_stride') :
+      p_1_stride = self.getInputFromPort('p_1_stride')
+    p_1_stride2 = '1'
+    if self.hasInputFromPort('p_1_stride2') :
+      p_1_stride2 = self.getInputFromPort('p_1_stride2')
+    p_2_dim = '2'
+    if self.hasInputFromPort('p_2_dim') :
+      p_2_dim = self.getInputFromPort('p_2_dim')
+    p_2_start = '0'
+    if self.hasInputFromPort('p_2_start') :
+      p_2_start = self.getInputFromPort('p_2_start')
+    p_2_start2 = '0'
+    if self.hasInputFromPort('p_2_start2') :
+      p_2_start2 = self.getInputFromPort('p_2_start2')
+    p_2_count = '1'
+    if self.hasInputFromPort('p_2_count') :
+      p_2_count = self.getInputFromPort('p_2_count')
+    p_2_count2 = '1'
+    if self.hasInputFromPort('p_2_count2') :
+      p_2_count2 = self.getInputFromPort('p_2_count2')
+    p_2_stride = '1'
+    if self.hasInputFromPort('p_2_stride') :
+      p_2_stride = self.getInputFromPort('p_2_stride')
+    p_2_stride2 = '1'
+    if self.hasInputFromPort('p_2_stride2') :
+      p_2_stride2 = self.getInputFromPort('p_2_stride2')
+    p_3_dim = '2'
+    if self.hasInputFromPort('p_3_dim') :
+      p_3_dim = self.getInputFromPort('p_3_dim')
+    p_3_start = '0'
+    if self.hasInputFromPort('p_3_start') :
+      p_3_start = self.getInputFromPort('p_3_start')
+    p_3_start2 = '0'
+    if self.hasInputFromPort('p_3_start2') :
+      p_3_start2 = self.getInputFromPort('p_3_start2')
+    p_3_count = '1'
+    if self.hasInputFromPort('p_3_count') :
+      p_3_count = self.getInputFromPort('p_3_count')
+    p_3_count2 = '1'
+    if self.hasInputFromPort('p_3_count2') :
+      p_3_count2 = self.getInputFromPort('p_3_count2')
+    p_3_stride = '1'
+    if self.hasInputFromPort('p_3_stride') :
+      p_3_stride = self.getInputFromPort('p_3_stride')
+    p_3_stride2 = '1'
+    if self.hasInputFromPort('p_3_stride2') :
+      p_3_stride2 = self.getInputFromPort('p_3_stride2')
+    p_4_dim = '2'
+    if self.hasInputFromPort('p_4_dim') :
+      p_4_dim = self.getInputFromPort('p_4_dim')
+    p_4_start = '0'
+    if self.hasInputFromPort('p_4_start') :
+      p_4_start = self.getInputFromPort('p_4_start')
+    p_4_start2 = '0'
+    if self.hasInputFromPort('p_4_start2') :
+      p_4_start2 = self.getInputFromPort('p_4_start2')
+    p_4_count = '1'
+    if self.hasInputFromPort('p_4_count') :
+      p_4_count = self.getInputFromPort('p_4_count')
+    p_4_count2 = '1'
+    if self.hasInputFromPort('p_4_count2') :
+      p_4_count2 = self.getInputFromPort('p_4_count2')
+    p_4_stride = '1'
+    if self.hasInputFromPort('p_4_stride') :
+      p_4_stride = self.getInputFromPort('p_4_stride')
+    p_4_stride2 = '1'
+    if self.hasInputFromPort('p_4_stride2') :
+      p_4_stride2 = self.getInputFromPort('p_4_stride2')
+    p_5_dim = '2'
+    if self.hasInputFromPort('p_5_dim') :
+      p_5_dim = self.getInputFromPort('p_5_dim')
+    p_5_start = '0'
+    if self.hasInputFromPort('p_5_start') :
+      p_5_start = self.getInputFromPort('p_5_start')
+    p_5_start2 = '0'
+    if self.hasInputFromPort('p_5_start2') :
+      p_5_start2 = self.getInputFromPort('p_5_start2')
+    p_5_count = '1'
+    if self.hasInputFromPort('p_5_count') :
+      p_5_count = self.getInputFromPort('p_5_count')
+    p_5_count2 = '1'
+    if self.hasInputFromPort('p_5_count2') :
+      p_5_count2 = self.getInputFromPort('p_5_count2')
+    p_5_stride = '1'
+    if self.hasInputFromPort('p_5_stride') :
+      p_5_stride = self.getInputFromPort('p_5_stride')
+    p_5_stride2 = '1'
+    if self.hasInputFromPort('p_5_stride2') :
+      p_5_stride2 = self.getInputFromPort('p_5_stride2')
     Full_filename = 0
     if self.hasInputFromPort('Full filename') :
       Full_filename = self.getInputFromPort('Full filename')
     Current_Index = 0
     if self.hasInputFromPort('Current Index') :
       Current_Index = self.getInputFromPort('Current Index')
-    results = sr_py.ReadHDF5File(Full_filename,Current_Index,have_HDF5,power_app,datasets,dumpname,ports,ndims,mergeData,assumeSVT,animate,animate_tab,basic_tab,extended_tab,playmode_tab,selectable_min,selectable_max,selectable_inc,range_min,range_max,playmode,current,execmode,delay,inc_amount,update_type,have_group,have_attributes,have_datasets,continuous,selectionString,regexp,allow_selection,read_error,max_dims,a0_dim,a0_start,a0_start2,a0_count,a0_count2,a0_stride,a0_stride2,a1_dim,a1_start,a1_start2,a1_count,a1_count2,a1_stride,a1_stride2,a2_dim,a2_start,a2_start2,a2_count,a2_count2,a2_stride,a2_stride2,a3_dim,a3_start,a3_start2,a3_count,a3_count2,a3_stride,a3_stride2,a4_dim,a4_start,a4_start2,a4_count,a4_count2,a4_stride,a4_stride2,a5_dim,a5_start,a5_start2,a5_count,a5_count2,a5_stride,a5_stride2)
+    results = sr_py.ReadHDF5File(Full_filename,Current_Index,p_have_HDF5,p_power_app,p_datasets,p_dumpname,p_ports,p_ndims,p_mergeData,p_assumeSVT,p_animate,p_animate_tab,p_basic_tab,p_extended_tab,p_playmode_tab,p_selectable_min,p_selectable_max,p_selectable_inc,p_range_min,p_range_max,p_playmode,p_current,p_execmode,p_delay,p_inc_amount,p_update_type,p_have_group,p_have_attributes,p_have_datasets,p_continuous,p_selectionString,p_regexp,p_allow_selection,p_read_error,p_max_dims,p_0_dim,p_0_start,p_0_start2,p_0_count,p_0_count2,p_0_stride,p_0_stride2,p_1_dim,p_1_start,p_1_start2,p_1_count,p_1_count2,p_1_stride,p_1_stride2,p_2_dim,p_2_start,p_2_start2,p_2_count,p_2_count2,p_2_stride,p_2_stride2,p_3_dim,p_3_start,p_3_start2,p_3_count,p_3_count2,p_3_stride,p_3_stride2,p_4_dim,p_4_start,p_4_start2,p_4_count,p_4_count2,p_4_stride,p_4_stride2,p_5_dim,p_5_start,p_5_start2,p_5_count,p_5_count2,p_5_stride,p_5_stride2)
     self.setResult('Output 0 Nrrd', sr_py.read_at_index(results,0))
     self.setResult('Output 1 Nrrd', sr_py.read_at_index(results,1))
     self.setResult('Output 2 Nrrd', sr_py.read_at_index(results,2))
@@ -2388,42 +2031,22 @@ class SCIRun_ReadHDF5File(Module) :
     self.setResult('Output 7 Nrrd', sr_py.read_at_index(results,7))
     self.setResult('Selected Index', sr_py.read_at_index(results,8))
 
-class SCIRun_GetPathsFromBundle(Module) :
+class scirun_SwapFieldDataWithMatrixEntries(Module) :
   def compute(self) :
-    path1_name = 'path1'
-    if self.hasInputFromPort('path1_name') :
-      path1_name = self.getInputFromPort('path1_name')
-    path2_name = 'path2'
-    if self.hasInputFromPort('path2_name') :
-      path2_name = self.getInputFromPort('path2_name')
-    path3_name = 'path3'
-    if self.hasInputFromPort('path3_name') :
-      path3_name = self.getInputFromPort('path3_name')
-    path4_name = 'path4'
-    if self.hasInputFromPort('path4_name') :
-      path4_name = self.getInputFromPort('path4_name')
-    path5_name = 'path5'
-    if self.hasInputFromPort('path5_name') :
-      path5_name = self.getInputFromPort('path5_name')
-    path6_name = 'path6'
-    if self.hasInputFromPort('path6_name') :
-      path6_name = self.getInputFromPort('path6_name')
-    path_selection = ''
-    if self.hasInputFromPort('path_selection') :
-      path_selection = self.getInputFromPort('path_selection')
-    bundle = 0
-    if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
-    results = sr_py.GetPathsFromBundle(bundle,path1_name,path2_name,path3_name,path4_name,path5_name,path6_name,path_selection)
-    self.setResult('bundle', sr_py.read_at_index(results,0))
-    self.setResult('path1', sr_py.read_at_index(results,1))
-    self.setResult('path2', sr_py.read_at_index(results,2))
-    self.setResult('path3', sr_py.read_at_index(results,3))
-    self.setResult('path4', sr_py.read_at_index(results,4))
-    self.setResult('path5', sr_py.read_at_index(results,5))
-    self.setResult('path6', sr_py.read_at_index(results,6))
+    p_preserve_scalar_type = 0
+    if self.hasInputFromPort('p_preserve_scalar_type') :
+      p_preserve_scalar_type = self.getInputFromPort('p_preserve_scalar_type')
+    Input_Field = 0
+    if self.hasInputFromPort('Input Field') :
+      Input_Field = self.getInputFromPort('Input Field')
+    Input_Matrix = 0
+    if self.hasInputFromPort('Input Matrix') :
+      Input_Matrix = self.getInputFromPort('Input Matrix')
+    results = sr_py.SwapFieldDataWithMatrixEntries(Input_Field,Input_Matrix,p_preserve_scalar_type)
+    self.setResult('Output Field', sr_py.read_at_index(results,0))
+    self.setResult('Output Matrix', sr_py.read_at_index(results,1))
 
-class SCIRun_GetFieldBoundary(Module) :
+class scirun_GetFieldBoundary(Module) :
   def compute(self) :
     Field = 0
     if self.hasInputFromPort('Field') :
@@ -2432,31 +2055,20 @@ class SCIRun_GetFieldBoundary(Module) :
     self.setResult('BoundaryField', sr_py.read_at_index(results,0))
     self.setResult('Mapping', sr_py.read_at_index(results,1))
 
-class SCIRun_TransformMeshWithFunction(Module) :
+class scirun_ConvertMatricesToMesh(Module) :
   def compute(self) :
-    function = 'result = Vector(x,y,z) * Vector(1.0, 2.0, 3.0);'
-    if self.hasInputFromPort('function') :
-      function = self.getInputFromPort('function')
-    Input_Field = 0
-    if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
-    results = sr_py.TransformMeshWithFunction(Input_Field,function)
-    self.setResult('Output Field', results)
-
-class SCIRun_ConvertMatricesToMesh(Module) :
-  def compute(self) :
-    fieldname = 'Created Field'
-    if self.hasInputFromPort('fieldname') :
-      fieldname = self.getInputFromPort('fieldname')
-    meshname = 'Created Mesh'
-    if self.hasInputFromPort('meshname') :
-      meshname = self.getInputFromPort('meshname')
-    fieldbasetype = 'TetVolField'
-    if self.hasInputFromPort('fieldbasetype') :
-      fieldbasetype = self.getInputFromPort('fieldbasetype')
-    datatype = 'double'
-    if self.hasInputFromPort('datatype') :
-      datatype = self.getInputFromPort('datatype')
+    p_fieldname = 'Created Field'
+    if self.hasInputFromPort('p_fieldname') :
+      p_fieldname = self.getInputFromPort('p_fieldname')
+    p_meshname = 'Created Mesh'
+    if self.hasInputFromPort('p_meshname') :
+      p_meshname = self.getInputFromPort('p_meshname')
+    p_fieldbasetype = 'TetVolField'
+    if self.hasInputFromPort('p_fieldbasetype') :
+      p_fieldbasetype = self.getInputFromPort('p_fieldbasetype')
+    p_datatype = 'double'
+    if self.hasInputFromPort('p_datatype') :
+      p_datatype = self.getInputFromPort('p_datatype')
     Mesh_Elements = 0
     if self.hasInputFromPort('Mesh Elements') :
       Mesh_Elements = self.getInputFromPort('Mesh Elements')
@@ -2466,10 +2078,25 @@ class SCIRun_ConvertMatricesToMesh(Module) :
     Mesh_Normals = 0
     if self.hasInputFromPort('Mesh Normals') :
       Mesh_Normals = self.getInputFromPort('Mesh Normals')
-    results = sr_py.ConvertMatricesToMesh(Mesh_Elements,Mesh_Positions,Mesh_Normals,fieldname,meshname,fieldbasetype,datatype)
+    results = sr_py.ConvertMatricesToMesh(Mesh_Elements,Mesh_Positions,Mesh_Normals,p_fieldname,p_meshname,p_fieldbasetype,p_datatype)
     self.setResult('Output Field', results)
 
-class SCIRun_ReportFieldInfo(Module) :
+class scirun_TransformMeshWithFunction(Module) :
+  def compute(self) :
+    p_function = 'result = (Point) (Vector(x,y,z) * Vector(1.0, 2.0, 3.0));'
+    if self.hasInputFromPort('p_function') :
+      p_function = self.getInputFromPort('p_function')
+    Input_Field = 0
+    if self.hasInputFromPort('Input Field') :
+      Input_Field = self.getInputFromPort('Input Field')
+    results = sr_py.TransformMeshWithFunction(Input_Field,p_function)
+    self.setResult('Output Field', results)
+
+class scirun_PrintHelloWorldToScreen(Module) :
+  def compute(self) :
+    results = sr_py.PrintHelloWorldToScreen()
+
+class scirun_ReportFieldInfo(Module) :
   def compute(self) :
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
@@ -2484,76 +2111,7 @@ class SCIRun_ReportFieldInfo(Module) :
     self.setResult('FieldCenter', sr_py.read_at_index(results,6))
     self.setResult('Dimensions', sr_py.read_at_index(results,7))
 
-class SCIRun_ConvertFieldsToTexture(Module) :
-  def compute(self) :
-    vmin = 0.0
-    if self.hasInputFromPort('vmin') :
-      vmin = self.getInputFromPort('vmin')
-    vmax = 1.0
-    if self.hasInputFromPort('vmax') :
-      vmax = self.getInputFromPort('vmax')
-    gmin = 0.0
-    if self.hasInputFromPort('gmin') :
-      gmin = self.getInputFromPort('gmin')
-    gmax = 1.0
-    if self.hasInputFromPort('gmax') :
-      gmax = self.getInputFromPort('gmax')
-    is_fixed = 0
-    if self.hasInputFromPort('is_fixed') :
-      is_fixed = self.getInputFromPort('is_fixed')
-    card_mem = 16
-    if self.hasInputFromPort('card_mem') :
-      card_mem = self.getInputFromPort('card_mem')
-    card_mem_auto = 1
-    if self.hasInputFromPort('card_mem_auto') :
-      card_mem_auto = self.getInputFromPort('card_mem_auto')
-    histogram = 1
-    if self.hasInputFromPort('histogram') :
-      histogram = self.getInputFromPort('histogram')
-    gamma = 0.5
-    if self.hasInputFromPort('gamma') :
-      gamma = self.getInputFromPort('gamma')
-    Value_Field = 0
-    if self.hasInputFromPort('Value Field') :
-      Value_Field = self.getInputFromPort('Value Field')
-    Gradient_Magnitude_Field = 0
-    if self.hasInputFromPort('Gradient Magnitude Field') :
-      Gradient_Magnitude_Field = self.getInputFromPort('Gradient Magnitude Field')
-    results = sr_py.ConvertFieldsToTexture(Value_Field,Gradient_Magnitude_Field,vmin,vmax,gmin,gmax,is_fixed,card_mem,card_mem_auto,histogram,gamma)
-    self.setResult('Texture', sr_py.read_at_index(results,0))
-    self.setResult('JointHistoGram', sr_py.read_at_index(results,1))
-
-class SCIRun_PrintHelloWorldToScreen(Module) :
-  def compute(self) :
-    results = sr_py.PrintHelloWorldToScreen()
-
-class SCIRun_MapFieldDataFromSourceToDestination(Module) :
-  def compute(self) :
-    interpolation_basis = 'linear'
-    if self.hasInputFromPort('interpolation_basis') :
-      interpolation_basis = self.getInputFromPort('interpolation_basis')
-    map_source_to_single_dest = 0
-    if self.hasInputFromPort('map_source_to_single_dest') :
-      map_source_to_single_dest = self.getInputFromPort('map_source_to_single_dest')
-    exhaustive_search = 0
-    if self.hasInputFromPort('exhaustive_search') :
-      exhaustive_search = self.getInputFromPort('exhaustive_search')
-    exhaustive_search_max_dist = -1.0
-    if self.hasInputFromPort('exhaustive_search_max_dist') :
-      exhaustive_search_max_dist = self.getInputFromPort('exhaustive_search_max_dist')
-    np = 1
-    if self.hasInputFromPort('np') :
-      np = self.getInputFromPort('np')
-    Source = 0
-    if self.hasInputFromPort('Source') :
-      Source = self.getInputFromPort('Source')
-    Destination = 0
-    if self.hasInputFromPort('Destination') :
-      Destination = self.getInputFromPort('Destination')
-    results = sr_py.MapFieldDataFromSourceToDestination(Source,Destination,interpolation_basis,map_source_to_single_dest,exhaustive_search,exhaustive_search_max_dist,np)
-    self.setResult('Remapped Destination', results)
-
-class SCIRun_ConvertLatVolDataFromElemToNode(Module) :
+class scirun_ConvertLatVolDataFromElemToNode(Module) :
   def compute(self) :
     Elem_Field = 0
     if self.hasInputFromPort('Elem Field') :
@@ -2561,82 +2119,117 @@ class SCIRun_ConvertLatVolDataFromElemToNode(Module) :
     results = sr_py.ConvertLatVolDataFromElemToNode(Elem_Field)
     self.setResult('Node Field', results)
 
-class SCIRun_CreateGeometricTransform(Module) :
+class scirun_GetPathsFromBundle(Module) :
   def compute(self) :
-    rotate_x = 0
-    if self.hasInputFromPort('rotate_x') :
-      rotate_x = self.getInputFromPort('rotate_x')
-    rotate_y = 0
-    if self.hasInputFromPort('rotate_y') :
-      rotate_y = self.getInputFromPort('rotate_y')
-    rotate_z = 1
-    if self.hasInputFromPort('rotate_z') :
-      rotate_z = self.getInputFromPort('rotate_z')
-    rotate_theta = 0
-    if self.hasInputFromPort('rotate_theta') :
-      rotate_theta = self.getInputFromPort('rotate_theta')
-    translate_x = 0
-    if self.hasInputFromPort('translate_x') :
-      translate_x = self.getInputFromPort('translate_x')
-    translate_y = 0
-    if self.hasInputFromPort('translate_y') :
-      translate_y = self.getInputFromPort('translate_y')
-    translate_z = 0
-    if self.hasInputFromPort('translate_z') :
-      translate_z = self.getInputFromPort('translate_z')
-    scale_uniform = 0
-    if self.hasInputFromPort('scale_uniform') :
-      scale_uniform = self.getInputFromPort('scale_uniform')
-    scale_x = 0
-    if self.hasInputFromPort('scale_x') :
-      scale_x = self.getInputFromPort('scale_x')
-    scale_y = 0
-    if self.hasInputFromPort('scale_y') :
-      scale_y = self.getInputFromPort('scale_y')
-    scale_z = 0
-    if self.hasInputFromPort('scale_z') :
-      scale_z = self.getInputFromPort('scale_z')
-    shear_plane_a = 0
-    if self.hasInputFromPort('shear_plane_a') :
-      shear_plane_a = self.getInputFromPort('shear_plane_a')
-    shear_plane_b = 0
-    if self.hasInputFromPort('shear_plane_b') :
-      shear_plane_b = self.getInputFromPort('shear_plane_b')
-    shear_plane_c = 1
-    if self.hasInputFromPort('shear_plane_c') :
-      shear_plane_c = self.getInputFromPort('shear_plane_c')
-    widget_resizable = 1
-    if self.hasInputFromPort('widget_resizable') :
-      widget_resizable = self.getInputFromPort('widget_resizable')
-    permute_x = 1
-    if self.hasInputFromPort('permute_x') :
-      permute_x = self.getInputFromPort('permute_x')
-    permute_y = 2
-    if self.hasInputFromPort('permute_y') :
-      permute_y = self.getInputFromPort('permute_y')
-    permute_z = 3
-    if self.hasInputFromPort('permute_z') :
-      permute_z = self.getInputFromPort('permute_z')
-    pre_transform = 1
-    if self.hasInputFromPort('pre_transform') :
-      pre_transform = self.getInputFromPort('pre_transform')
-    which_transform = 'translate'
-    if self.hasInputFromPort('which_transform') :
-      which_transform = self.getInputFromPort('which_transform')
-    widget_scale = 1
-    if self.hasInputFromPort('widget_scale') :
-      widget_scale = self.getInputFromPort('widget_scale')
-    ignoring_widget_changes = 1
-    if self.hasInputFromPort('ignoring_widget_changes') :
-      ignoring_widget_changes = self.getInputFromPort('ignoring_widget_changes')
+    p_path1_name = 'path1'
+    if self.hasInputFromPort('p_path1_name') :
+      p_path1_name = self.getInputFromPort('p_path1_name')
+    p_path2_name = 'path2'
+    if self.hasInputFromPort('p_path2_name') :
+      p_path2_name = self.getInputFromPort('p_path2_name')
+    p_path3_name = 'path3'
+    if self.hasInputFromPort('p_path3_name') :
+      p_path3_name = self.getInputFromPort('p_path3_name')
+    p_path4_name = 'path4'
+    if self.hasInputFromPort('p_path4_name') :
+      p_path4_name = self.getInputFromPort('p_path4_name')
+    p_path5_name = 'path5'
+    if self.hasInputFromPort('p_path5_name') :
+      p_path5_name = self.getInputFromPort('p_path5_name')
+    p_path6_name = 'path6'
+    if self.hasInputFromPort('p_path6_name') :
+      p_path6_name = self.getInputFromPort('p_path6_name')
+    p_path_selection = ''
+    if self.hasInputFromPort('p_path_selection') :
+      p_path_selection = self.getInputFromPort('p_path_selection')
+    bundle = 0
+    if self.hasInputFromPort('bundle') :
+      bundle = self.getInputFromPort('bundle')
+    results = sr_py.GetPathsFromBundle(bundle,p_path1_name,p_path2_name,p_path3_name,p_path4_name,p_path5_name,p_path6_name,p_path_selection)
+    self.setResult('bundle', sr_py.read_at_index(results,0))
+    self.setResult('path1', sr_py.read_at_index(results,1))
+    self.setResult('path2', sr_py.read_at_index(results,2))
+    self.setResult('path3', sr_py.read_at_index(results,3))
+    self.setResult('path4', sr_py.read_at_index(results,4))
+    self.setResult('path5', sr_py.read_at_index(results,5))
+    self.setResult('path6', sr_py.read_at_index(results,6))
+
+class scirun_CreateGeometricTransform(Module) :
+  def compute(self) :
+    p_rotate_x = 0
+    if self.hasInputFromPort('p_rotate_x') :
+      p_rotate_x = self.getInputFromPort('p_rotate_x')
+    p_rotate_y = 0
+    if self.hasInputFromPort('p_rotate_y') :
+      p_rotate_y = self.getInputFromPort('p_rotate_y')
+    p_rotate_z = 1
+    if self.hasInputFromPort('p_rotate_z') :
+      p_rotate_z = self.getInputFromPort('p_rotate_z')
+    p_rotate_theta = 0
+    if self.hasInputFromPort('p_rotate_theta') :
+      p_rotate_theta = self.getInputFromPort('p_rotate_theta')
+    p_translate_x = 0
+    if self.hasInputFromPort('p_translate_x') :
+      p_translate_x = self.getInputFromPort('p_translate_x')
+    p_translate_y = 0
+    if self.hasInputFromPort('p_translate_y') :
+      p_translate_y = self.getInputFromPort('p_translate_y')
+    p_translate_z = 0
+    if self.hasInputFromPort('p_translate_z') :
+      p_translate_z = self.getInputFromPort('p_translate_z')
+    p_scale_uniform = 0
+    if self.hasInputFromPort('p_scale_uniform') :
+      p_scale_uniform = self.getInputFromPort('p_scale_uniform')
+    p_scale_x = 0
+    if self.hasInputFromPort('p_scale_x') :
+      p_scale_x = self.getInputFromPort('p_scale_x')
+    p_scale_y = 0
+    if self.hasInputFromPort('p_scale_y') :
+      p_scale_y = self.getInputFromPort('p_scale_y')
+    p_scale_z = 0
+    if self.hasInputFromPort('p_scale_z') :
+      p_scale_z = self.getInputFromPort('p_scale_z')
+    p_shear_plane_a = 0
+    if self.hasInputFromPort('p_shear_plane_a') :
+      p_shear_plane_a = self.getInputFromPort('p_shear_plane_a')
+    p_shear_plane_b = 0
+    if self.hasInputFromPort('p_shear_plane_b') :
+      p_shear_plane_b = self.getInputFromPort('p_shear_plane_b')
+    p_shear_plane_c = 1
+    if self.hasInputFromPort('p_shear_plane_c') :
+      p_shear_plane_c = self.getInputFromPort('p_shear_plane_c')
+    p_widget_resizable = 1
+    if self.hasInputFromPort('p_widget_resizable') :
+      p_widget_resizable = self.getInputFromPort('p_widget_resizable')
+    p_permute_x = 1
+    if self.hasInputFromPort('p_permute_x') :
+      p_permute_x = self.getInputFromPort('p_permute_x')
+    p_permute_y = 2
+    if self.hasInputFromPort('p_permute_y') :
+      p_permute_y = self.getInputFromPort('p_permute_y')
+    p_permute_z = 3
+    if self.hasInputFromPort('p_permute_z') :
+      p_permute_z = self.getInputFromPort('p_permute_z')
+    p_pre_transform = 1
+    if self.hasInputFromPort('p_pre_transform') :
+      p_pre_transform = self.getInputFromPort('p_pre_transform')
+    p_which_transform = 'translate'
+    if self.hasInputFromPort('p_which_transform') :
+      p_which_transform = self.getInputFromPort('p_which_transform')
+    p_widget_scale = 1
+    if self.hasInputFromPort('p_widget_scale') :
+      p_widget_scale = self.getInputFromPort('p_widget_scale')
+    p_ignoring_widget_changes = 1
+    if self.hasInputFromPort('p_ignoring_widget_changes') :
+      p_ignoring_widget_changes = self.getInputFromPort('p_ignoring_widget_changes')
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
       Matrix = self.getInputFromPort('Matrix')
-    results = sr_py.CreateGeometricTransform(Matrix,rotate_x,rotate_y,rotate_z,rotate_theta,translate_x,translate_y,translate_z,scale_uniform,scale_x,scale_y,scale_z,shear_plane_a,shear_plane_b,shear_plane_c,widget_resizable,permute_x,permute_y,permute_z,pre_transform,which_transform,widget_scale,ignoring_widget_changes)
+    results = sr_py.CreateGeometricTransform(Matrix,p_rotate_x,p_rotate_y,p_rotate_z,p_rotate_theta,p_translate_x,p_translate_y,p_translate_z,p_scale_uniform,p_scale_x,p_scale_y,p_scale_z,p_shear_plane_a,p_shear_plane_b,p_shear_plane_c,p_widget_resizable,p_permute_x,p_permute_y,p_permute_z,p_pre_transform,p_which_transform,p_widget_scale,p_ignoring_widget_changes)
     self.setResult('Matrix', sr_py.read_at_index(results,0))
     self.setResult('Geometry', sr_py.read_at_index(results,1))
 
-class SCIRun_CalculateNodeNormals(Module) :
+class scirun_CalculateNodeNormals(Module) :
   def compute(self) :
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
@@ -2647,36 +2240,36 @@ class SCIRun_CalculateNodeNormals(Module) :
     results = sr_py.CalculateNodeNormals(Input_Field,Input_Point)
     self.setResult('Output Field', results)
 
-class SCIRun_ReportFieldGeometryMeasures(Module) :
+class scirun_ReportFieldGeometryMeasures(Module) :
   def compute(self) :
-    simplexString = 'Node'
-    if self.hasInputFromPort('simplexString') :
-      simplexString = self.getInputFromPort('simplexString')
-    xFlag = 1
-    if self.hasInputFromPort('xFlag') :
-      xFlag = self.getInputFromPort('xFlag')
-    yFlag = 1
-    if self.hasInputFromPort('yFlag') :
-      yFlag = self.getInputFromPort('yFlag')
-    zFlag = 1
-    if self.hasInputFromPort('zFlag') :
-      zFlag = self.getInputFromPort('zFlag')
-    idxFlag = 0
-    if self.hasInputFromPort('idxFlag') :
-      idxFlag = self.getInputFromPort('idxFlag')
-    sizeFlag = 0
-    if self.hasInputFromPort('sizeFlag') :
-      sizeFlag = self.getInputFromPort('sizeFlag')
-    normalsFlag = 0
-    if self.hasInputFromPort('normalsFlag') :
-      normalsFlag = self.getInputFromPort('normalsFlag')
+    p_simplexString = 'Node'
+    if self.hasInputFromPort('p_simplexString') :
+      p_simplexString = self.getInputFromPort('p_simplexString')
+    p_xFlag = 1
+    if self.hasInputFromPort('p_xFlag') :
+      p_xFlag = self.getInputFromPort('p_xFlag')
+    p_yFlag = 1
+    if self.hasInputFromPort('p_yFlag') :
+      p_yFlag = self.getInputFromPort('p_yFlag')
+    p_zFlag = 1
+    if self.hasInputFromPort('p_zFlag') :
+      p_zFlag = self.getInputFromPort('p_zFlag')
+    p_idxFlag = 0
+    if self.hasInputFromPort('p_idxFlag') :
+      p_idxFlag = self.getInputFromPort('p_idxFlag')
+    p_sizeFlag = 0
+    if self.hasInputFromPort('p_sizeFlag') :
+      p_sizeFlag = self.getInputFromPort('p_sizeFlag')
+    p_normalsFlag = 0
+    if self.hasInputFromPort('p_normalsFlag') :
+      p_normalsFlag = self.getInputFromPort('p_normalsFlag')
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
-    results = sr_py.ReportFieldGeometryMeasures(Input_Field,simplexString,xFlag,yFlag,zFlag,idxFlag,sizeFlag,normalsFlag)
+    results = sr_py.ReportFieldGeometryMeasures(Input_Field,p_simplexString,p_xFlag,p_yFlag,p_zFlag,p_idxFlag,p_sizeFlag,p_normalsFlag)
     self.setResult('Output Measures Matrix', results)
 
-class SCIRun_CalculateVectorMagnitudes(Module) :
+class scirun_CalculateVectorMagnitudes(Module) :
   def compute(self) :
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
@@ -2684,97 +2277,97 @@ class SCIRun_CalculateVectorMagnitudes(Module) :
     results = sr_py.CalculateVectorMagnitudes(Input_Field)
     self.setResult('Output CalculateVectorMagnitudes', results)
 
-class SCIRun_GetInputField(Module) :
+class scirun_GetInputField(Module) :
   def compute(self) :
     InField = 0
     if self.hasInputFromPort('InField') :
       InField = self.getInputFromPort('InField')
     results = sr_py.GetInputField(InField)
 
-class SCIRun_ChooseMatrix(Module) :
+class scirun_ChooseMatrix(Module) :
   def compute(self) :
-    use_first_valid = 1
-    if self.hasInputFromPort('use_first_valid') :
-      use_first_valid = self.getInputFromPort('use_first_valid')
-    port_valid_index = 0
-    if self.hasInputFromPort('port_valid_index') :
-      port_valid_index = self.getInputFromPort('port_valid_index')
-    port_selected_index = 0
-    if self.hasInputFromPort('port_selected_index') :
-      port_selected_index = self.getInputFromPort('port_selected_index')
+    p_use_first_valid = '1'
+    if self.hasInputFromPort('p_use_first_valid') :
+      p_use_first_valid = self.getInputFromPort('p_use_first_valid')
+    p_port_valid_index = '0'
+    if self.hasInputFromPort('p_port_valid_index') :
+      p_port_valid_index = self.getInputFromPort('p_port_valid_index')
+    p_port_selected_index = '0'
+    if self.hasInputFromPort('p_port_selected_index') :
+      p_port_selected_index = self.getInputFromPort('p_port_selected_index')
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
       Matrix = self.getInputFromPort('Matrix')
-    results = sr_py.ChooseMatrix(Matrix,use_first_valid,port_valid_index,port_selected_index)
+    results = sr_py.ChooseMatrix(Matrix,p_use_first_valid,p_port_valid_index,p_port_selected_index)
     self.setResult('Matrix', results)
 
-class SCIRun_ClipFieldToFieldOrWidget(Module) :
+class scirun_ClipFieldToFieldOrWidget(Module) :
   def compute(self) :
-    clip_location = 'cell'
-    if self.hasInputFromPort('clip_location') :
-      clip_location = self.getInputFromPort('clip_location')
-    clipmode = 'replace'
-    if self.hasInputFromPort('clipmode') :
-      clipmode = self.getInputFromPort('clipmode')
-    autoexecute = 0
-    if self.hasInputFromPort('autoexecute') :
-      autoexecute = self.getInputFromPort('autoexecute')
-    autoinvert = 0
-    if self.hasInputFromPort('autoinvert') :
-      autoinvert = self.getInputFromPort('autoinvert')
-    execmode = 0
-    if self.hasInputFromPort('execmode') :
-      execmode = self.getInputFromPort('execmode')
-    center_x = -1.0
-    if self.hasInputFromPort('center_x') :
-      center_x = self.getInputFromPort('center_x')
-    center_y = -1.0
-    if self.hasInputFromPort('center_y') :
-      center_y = self.getInputFromPort('center_y')
-    center_z = -1.0
-    if self.hasInputFromPort('center_z') :
-      center_z = self.getInputFromPort('center_z')
-    right_x = -1.0
-    if self.hasInputFromPort('right_x') :
-      right_x = self.getInputFromPort('right_x')
-    right_y = -1.0
-    if self.hasInputFromPort('right_y') :
-      right_y = self.getInputFromPort('right_y')
-    right_z = -1.0
-    if self.hasInputFromPort('right_z') :
-      right_z = self.getInputFromPort('right_z')
-    down_x = -1.0
-    if self.hasInputFromPort('down_x') :
-      down_x = self.getInputFromPort('down_x')
-    down_y = -1.0
-    if self.hasInputFromPort('down_y') :
-      down_y = self.getInputFromPort('down_y')
-    down_z = -1.0
-    if self.hasInputFromPort('down_z') :
-      down_z = self.getInputFromPort('down_z')
-    in_x = -1.0
-    if self.hasInputFromPort('in_x') :
-      in_x = self.getInputFromPort('in_x')
-    in_y = -1.0
-    if self.hasInputFromPort('in_y') :
-      in_y = self.getInputFromPort('in_y')
-    in_z = -1.0
-    if self.hasInputFromPort('in_z') :
-      in_z = self.getInputFromPort('in_z')
-    scale = -1.0
-    if self.hasInputFromPort('scale') :
-      scale = self.getInputFromPort('scale')
+    p_clip_location = 'cell'
+    if self.hasInputFromPort('p_clip_location') :
+      p_clip_location = self.getInputFromPort('p_clip_location')
+    p_clipmode = 'replace'
+    if self.hasInputFromPort('p_clipmode') :
+      p_clipmode = self.getInputFromPort('p_clipmode')
+    p_autoexecute = 0
+    if self.hasInputFromPort('p_autoexecute') :
+      p_autoexecute = self.getInputFromPort('p_autoexecute')
+    p_autoinvert = 0
+    if self.hasInputFromPort('p_autoinvert') :
+      p_autoinvert = self.getInputFromPort('p_autoinvert')
+    p_execmode = '0'
+    if self.hasInputFromPort('p_execmode') :
+      p_execmode = self.getInputFromPort('p_execmode')
+    p_center_x = -1.0
+    if self.hasInputFromPort('p_center_x') :
+      p_center_x = self.getInputFromPort('p_center_x')
+    p_center_y = -1.0
+    if self.hasInputFromPort('p_center_y') :
+      p_center_y = self.getInputFromPort('p_center_y')
+    p_center_z = -1.0
+    if self.hasInputFromPort('p_center_z') :
+      p_center_z = self.getInputFromPort('p_center_z')
+    p_right_x = -1.0
+    if self.hasInputFromPort('p_right_x') :
+      p_right_x = self.getInputFromPort('p_right_x')
+    p_right_y = -1.0
+    if self.hasInputFromPort('p_right_y') :
+      p_right_y = self.getInputFromPort('p_right_y')
+    p_right_z = -1.0
+    if self.hasInputFromPort('p_right_z') :
+      p_right_z = self.getInputFromPort('p_right_z')
+    p_down_x = -1.0
+    if self.hasInputFromPort('p_down_x') :
+      p_down_x = self.getInputFromPort('p_down_x')
+    p_down_y = -1.0
+    if self.hasInputFromPort('p_down_y') :
+      p_down_y = self.getInputFromPort('p_down_y')
+    p_down_z = -1.0
+    if self.hasInputFromPort('p_down_z') :
+      p_down_z = self.getInputFromPort('p_down_z')
+    p_in_x = -1.0
+    if self.hasInputFromPort('p_in_x') :
+      p_in_x = self.getInputFromPort('p_in_x')
+    p_in_y = -1.0
+    if self.hasInputFromPort('p_in_y') :
+      p_in_y = self.getInputFromPort('p_in_y')
+    p_in_z = -1.0
+    if self.hasInputFromPort('p_in_z') :
+      p_in_z = self.getInputFromPort('p_in_z')
+    p_scale = -1.0
+    if self.hasInputFromPort('p_scale') :
+      p_scale = self.getInputFromPort('p_scale')
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
     Clip_Field = 0
     if self.hasInputFromPort('Clip Field') :
       Clip_Field = self.getInputFromPort('Clip Field')
-    results = sr_py.ClipFieldToFieldOrWidget(Input_Field,Clip_Field,clip_location,clipmode,autoexecute,autoinvert,execmode,center_x,center_y,center_z,right_x,right_y,right_z,down_x,down_y,down_z,in_x,in_y,in_z,scale)
+    results = sr_py.ClipFieldToFieldOrWidget(Input_Field,Clip_Field,p_clip_location,p_clipmode,p_autoexecute,p_autoinvert,p_execmode,p_center_x,p_center_y,p_center_z,p_right_x,p_right_y,p_right_z,p_down_x,p_down_y,p_down_z,p_in_x,p_in_y,p_in_z,p_scale)
     self.setResult('Selection Widget', sr_py.read_at_index(results,0))
     self.setResult('Output Field', sr_py.read_at_index(results,1))
 
-class SCIRun_ConvertHexVolToTetVol(Module) :
+class scirun_ConvertHexVolToTetVol(Module) :
   def compute(self) :
     HexVol = 0
     if self.hasInputFromPort('HexVol') :
@@ -2782,56 +2375,56 @@ class SCIRun_ConvertHexVolToTetVol(Module) :
     results = sr_py.ConvertHexVolToTetVol(HexVol)
     self.setResult('TetVol', results)
 
-class SCIRun_SetFieldOrMeshStringProperty(Module) :
+class scirun_SetFieldOrMeshStringProperty(Module) :
   def compute(self) :
-    prop = 'units'
-    if self.hasInputFromPort('prop') :
-      prop = self.getInputFromPort('prop')
-    val = 'cm'
-    if self.hasInputFromPort('val') :
-      val = self.getInputFromPort('val')
-    meshprop = 1
-    if self.hasInputFromPort('meshprop') :
-      meshprop = self.getInputFromPort('meshprop')
+    p_prop = 'units'
+    if self.hasInputFromPort('p_prop') :
+      p_prop = self.getInputFromPort('p_prop')
+    p_val = 'cm'
+    if self.hasInputFromPort('p_val') :
+      p_val = self.getInputFromPort('p_val')
+    p_meshprop = 1
+    if self.hasInputFromPort('p_meshprop') :
+      p_meshprop = self.getInputFromPort('p_meshprop')
     Input = 0
     if self.hasInputFromPort('Input') :
       Input = self.getInputFromPort('Input')
-    results = sr_py.SetFieldOrMeshStringProperty(Input,prop,val,meshprop)
+    results = sr_py.SetFieldOrMeshStringProperty(Input,p_prop,p_val,p_meshprop)
     self.setResult('Output', results)
 
-class SCIRun_ConvertMeshCoordinateSystem(Module) :
+class scirun_ConvertMeshCoordinateSystem(Module) :
   def compute(self) :
-    oldsystem = 'Cartesian'
-    if self.hasInputFromPort('oldsystem') :
-      oldsystem = self.getInputFromPort('oldsystem')
-    newsystem = 'Spherical'
-    if self.hasInputFromPort('newsystem') :
-      newsystem = self.getInputFromPort('newsystem')
+    p_oldsystem = 'Cartesian'
+    if self.hasInputFromPort('p_oldsystem') :
+      p_oldsystem = self.getInputFromPort('p_oldsystem')
+    p_newsystem = 'Spherical'
+    if self.hasInputFromPort('p_newsystem') :
+      p_newsystem = self.getInputFromPort('p_newsystem')
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
-    results = sr_py.ConvertMeshCoordinateSystem(Input_Field,oldsystem,newsystem)
+    results = sr_py.ConvertMeshCoordinateSystem(Input_Field,p_oldsystem,p_newsystem)
     self.setResult('Output Field', results)
 
-class SCIRun_RefineMeshByIsovalue2(Module) :
+class scirun_RefineMeshByIsovalue2(Module) :
   def compute(self) :
-    isoval = 0.0
-    if self.hasInputFromPort('isoval') :
-      isoval = self.getInputFromPort('isoval')
-    lte = 1
-    if self.hasInputFromPort('lte') :
-      lte = self.getInputFromPort('lte')
+    p_isoval = 0.0
+    if self.hasInputFromPort('p_isoval') :
+      p_isoval = self.getInputFromPort('p_isoval')
+    p_lte = 1
+    if self.hasInputFromPort('p_lte') :
+      p_lte = self.getInputFromPort('p_lte')
     Input = 0
     if self.hasInputFromPort('Input') :
       Input = self.getInputFromPort('Input')
     Optional_Isovalue = 0
     if self.hasInputFromPort('Optional Isovalue') :
       Optional_Isovalue = self.getInputFromPort('Optional Isovalue')
-    results = sr_py.RefineMeshByIsovalue2(Input,Optional_Isovalue,isoval,lte)
+    results = sr_py.RefineMeshByIsovalue2(Input,Optional_Isovalue,p_isoval,p_lte)
     self.setResult('Refined', sr_py.read_at_index(results,0))
     self.setResult('Mapping', sr_py.read_at_index(results,1))
 
-class SCIRun_SetTetVolFieldDataValuesToZero(Module) :
+class scirun_SetTetVolFieldDataValuesToZero(Module) :
   def compute(self) :
     InField = 0
     if self.hasInputFromPort('InField') :
@@ -2839,110 +2432,110 @@ class SCIRun_SetTetVolFieldDataValuesToZero(Module) :
     results = sr_py.SetTetVolFieldDataValuesToZero(InField)
     self.setResult('OutField', results)
 
-class SCIRun_ViewSlices(Module) :
+class scirun_ViewSlices(Module) :
   def compute(self) :
-    clut_ww = 1.0
-    if self.hasInputFromPort('clut_ww') :
-      clut_ww = self.getInputFromPort('clut_ww')
-    clut_wl = 0.0
-    if self.hasInputFromPort('clut_wl') :
-      clut_wl = self.getInputFromPort('clut_wl')
-    probe = 0
-    if self.hasInputFromPort('probe') :
-      probe = self.getInputFromPort('probe')
-    show_colormap2 = 0
-    if self.hasInputFromPort('show_colormap2') :
-      show_colormap2 = self.getInputFromPort('show_colormap2')
-    painting = 0
-    if self.hasInputFromPort('painting') :
-      painting = self.getInputFromPort('painting')
-    crop = 0
-    if self.hasInputFromPort('crop') :
-      crop = self.getInputFromPort('crop')
-    crop_minAxis0 = 0
-    if self.hasInputFromPort('crop_minAxis0') :
-      crop_minAxis0 = self.getInputFromPort('crop_minAxis0')
-    crop_minAxis1 = 0
-    if self.hasInputFromPort('crop_minAxis1') :
-      crop_minAxis1 = self.getInputFromPort('crop_minAxis1')
-    crop_minAxis2 = 0
-    if self.hasInputFromPort('crop_minAxis2') :
-      crop_minAxis2 = self.getInputFromPort('crop_minAxis2')
-    crop_maxAxis0 = 0
-    if self.hasInputFromPort('crop_maxAxis0') :
-      crop_maxAxis0 = self.getInputFromPort('crop_maxAxis0')
-    crop_maxAxis1 = 0
-    if self.hasInputFromPort('crop_maxAxis1') :
-      crop_maxAxis1 = self.getInputFromPort('crop_maxAxis1')
-    crop_maxAxis2 = 0
-    if self.hasInputFromPort('crop_maxAxis2') :
-      crop_maxAxis2 = self.getInputFromPort('crop_maxAxis2')
-    crop_minPadAxis0 = 0
-    if self.hasInputFromPort('crop_minPadAxis0') :
-      crop_minPadAxis0 = self.getInputFromPort('crop_minPadAxis0')
-    crop_minPadAxis1 = 0
-    if self.hasInputFromPort('crop_minPadAxis1') :
-      crop_minPadAxis1 = self.getInputFromPort('crop_minPadAxis1')
-    crop_minPadAxis2 = 0
-    if self.hasInputFromPort('crop_minPadAxis2') :
-      crop_minPadAxis2 = self.getInputFromPort('crop_minPadAxis2')
-    crop_maxPadAxis0 = 0
-    if self.hasInputFromPort('crop_maxPadAxis0') :
-      crop_maxPadAxis0 = self.getInputFromPort('crop_maxPadAxis0')
-    crop_maxPadAxis1 = 0
-    if self.hasInputFromPort('crop_maxPadAxis1') :
-      crop_maxPadAxis1 = self.getInputFromPort('crop_maxPadAxis1')
-    crop_maxPadAxis2 = 0
-    if self.hasInputFromPort('crop_maxPadAxis2') :
-      crop_maxPadAxis2 = self.getInputFromPort('crop_maxPadAxis2')
-    texture_filter = 1
-    if self.hasInputFromPort('texture_filter') :
-      texture_filter = self.getInputFromPort('texture_filter')
-    anatomical_coordinates = 1
-    if self.hasInputFromPort('anatomical_coordinates') :
-      anatomical_coordinates = self.getInputFromPort('anatomical_coordinates')
-    show_text = 1
-    if self.hasInputFromPort('show_text') :
-      show_text = self.getInputFromPort('show_text')
-    color_font_r = 1.0
-    if self.hasInputFromPort('color_font_r') :
-      color_font_r = self.getInputFromPort('color_font_r')
-    color_font_g = 1.0
-    if self.hasInputFromPort('color_font_g') :
-      color_font_g = self.getInputFromPort('color_font_g')
-    color_font_b = 1.0
-    if self.hasInputFromPort('color_font_b') :
-      color_font_b = self.getInputFromPort('color_font_b')
-    color_font_a = 1.0
-    if self.hasInputFromPort('color_font_a') :
-      color_font_a = self.getInputFromPort('color_font_a')
-    min = -1.0
-    if self.hasInputFromPort('min') :
-      min = self.getInputFromPort('min')
-    max = -1.0
-    if self.hasInputFromPort('max') :
-      max = self.getInputFromPort('max')
-    dim0 = 0
-    if self.hasInputFromPort('dim0') :
-      dim0 = self.getInputFromPort('dim0')
-    dim1 = 0
-    if self.hasInputFromPort('dim1') :
-      dim1 = self.getInputFromPort('dim1')
-    dim2 = 0
-    if self.hasInputFromPort('dim2') :
-      dim2 = self.getInputFromPort('dim2')
-    geom_flushed = 0
-    if self.hasInputFromPort('geom_flushed') :
-      geom_flushed = self.getInputFromPort('geom_flushed')
-    background_threshold = 0.0
-    if self.hasInputFromPort('background_threshold') :
-      background_threshold = self.getInputFromPort('background_threshold')
-    gradient_threshold = 0.0
-    if self.hasInputFromPort('gradient_threshold') :
-      gradient_threshold = self.getInputFromPort('gradient_threshold')
-    font_size = 15.0
-    if self.hasInputFromPort('font_size') :
-      font_size = self.getInputFromPort('font_size')
+    p_clut_ww = '1.0'
+    if self.hasInputFromPort('p_clut_ww') :
+      p_clut_ww = self.getInputFromPort('p_clut_ww')
+    p_clut_wl = '0.0'
+    if self.hasInputFromPort('p_clut_wl') :
+      p_clut_wl = self.getInputFromPort('p_clut_wl')
+    p_probe = '0'
+    if self.hasInputFromPort('p_probe') :
+      p_probe = self.getInputFromPort('p_probe')
+    p_show_colormap2 = '0'
+    if self.hasInputFromPort('p_show_colormap2') :
+      p_show_colormap2 = self.getInputFromPort('p_show_colormap2')
+    p_painting = '0'
+    if self.hasInputFromPort('p_painting') :
+      p_painting = self.getInputFromPort('p_painting')
+    p_crop = '0'
+    if self.hasInputFromPort('p_crop') :
+      p_crop = self.getInputFromPort('p_crop')
+    p_crop_minAxis0 = '0'
+    if self.hasInputFromPort('p_crop_minAxis0') :
+      p_crop_minAxis0 = self.getInputFromPort('p_crop_minAxis0')
+    p_crop_minAxis1 = '0'
+    if self.hasInputFromPort('p_crop_minAxis1') :
+      p_crop_minAxis1 = self.getInputFromPort('p_crop_minAxis1')
+    p_crop_minAxis2 = '0'
+    if self.hasInputFromPort('p_crop_minAxis2') :
+      p_crop_minAxis2 = self.getInputFromPort('p_crop_minAxis2')
+    p_crop_maxAxis0 = '0'
+    if self.hasInputFromPort('p_crop_maxAxis0') :
+      p_crop_maxAxis0 = self.getInputFromPort('p_crop_maxAxis0')
+    p_crop_maxAxis1 = '0'
+    if self.hasInputFromPort('p_crop_maxAxis1') :
+      p_crop_maxAxis1 = self.getInputFromPort('p_crop_maxAxis1')
+    p_crop_maxAxis2 = '0'
+    if self.hasInputFromPort('p_crop_maxAxis2') :
+      p_crop_maxAxis2 = self.getInputFromPort('p_crop_maxAxis2')
+    p_crop_minPadAxis0 = '0'
+    if self.hasInputFromPort('p_crop_minPadAxis0') :
+      p_crop_minPadAxis0 = self.getInputFromPort('p_crop_minPadAxis0')
+    p_crop_minPadAxis1 = '0'
+    if self.hasInputFromPort('p_crop_minPadAxis1') :
+      p_crop_minPadAxis1 = self.getInputFromPort('p_crop_minPadAxis1')
+    p_crop_minPadAxis2 = '0'
+    if self.hasInputFromPort('p_crop_minPadAxis2') :
+      p_crop_minPadAxis2 = self.getInputFromPort('p_crop_minPadAxis2')
+    p_crop_maxPadAxis0 = '0'
+    if self.hasInputFromPort('p_crop_maxPadAxis0') :
+      p_crop_maxPadAxis0 = self.getInputFromPort('p_crop_maxPadAxis0')
+    p_crop_maxPadAxis1 = '0'
+    if self.hasInputFromPort('p_crop_maxPadAxis1') :
+      p_crop_maxPadAxis1 = self.getInputFromPort('p_crop_maxPadAxis1')
+    p_crop_maxPadAxis2 = '0'
+    if self.hasInputFromPort('p_crop_maxPadAxis2') :
+      p_crop_maxPadAxis2 = self.getInputFromPort('p_crop_maxPadAxis2')
+    p_texture_filter = '1'
+    if self.hasInputFromPort('p_texture_filter') :
+      p_texture_filter = self.getInputFromPort('p_texture_filter')
+    p_anatomical_coordinates = '1'
+    if self.hasInputFromPort('p_anatomical_coordinates') :
+      p_anatomical_coordinates = self.getInputFromPort('p_anatomical_coordinates')
+    p_show_text = '1'
+    if self.hasInputFromPort('p_show_text') :
+      p_show_text = self.getInputFromPort('p_show_text')
+    p_color_font_r = '1.0'
+    if self.hasInputFromPort('p_color_font_r') :
+      p_color_font_r = self.getInputFromPort('p_color_font_r')
+    p_color_font_g = '1.0'
+    if self.hasInputFromPort('p_color_font_g') :
+      p_color_font_g = self.getInputFromPort('p_color_font_g')
+    p_color_font_b = '1.0'
+    if self.hasInputFromPort('p_color_font_b') :
+      p_color_font_b = self.getInputFromPort('p_color_font_b')
+    p_color_font_a = '1.0'
+    if self.hasInputFromPort('p_color_font_a') :
+      p_color_font_a = self.getInputFromPort('p_color_font_a')
+    p_min = '-1.0'
+    if self.hasInputFromPort('p_min') :
+      p_min = self.getInputFromPort('p_min')
+    p_max = '-1.0'
+    if self.hasInputFromPort('p_max') :
+      p_max = self.getInputFromPort('p_max')
+    p_dim0 = '0'
+    if self.hasInputFromPort('p_dim0') :
+      p_dim0 = self.getInputFromPort('p_dim0')
+    p_dim1 = '0'
+    if self.hasInputFromPort('p_dim1') :
+      p_dim1 = self.getInputFromPort('p_dim1')
+    p_dim2 = '0'
+    if self.hasInputFromPort('p_dim2') :
+      p_dim2 = self.getInputFromPort('p_dim2')
+    p_geom_flushed = '0'
+    if self.hasInputFromPort('p_geom_flushed') :
+      p_geom_flushed = self.getInputFromPort('p_geom_flushed')
+    p_background_threshold = '0.0'
+    if self.hasInputFromPort('p_background_threshold') :
+      p_background_threshold = self.getInputFromPort('p_background_threshold')
+    p_gradient_threshold = '0.0'
+    if self.hasInputFromPort('p_gradient_threshold') :
+      p_gradient_threshold = self.getInputFromPort('p_gradient_threshold')
+    p_font_size = '15.0'
+    if self.hasInputFromPort('p_font_size') :
+      p_font_size = self.getInputFromPort('p_font_size')
     Nrrd1 = 0
     if self.hasInputFromPort('Nrrd1') :
       Nrrd1 = self.getInputFromPort('Nrrd1')
@@ -2961,11 +2554,11 @@ class SCIRun_ViewSlices(Module) :
     NrrdGradient = 0
     if self.hasInputFromPort('NrrdGradient') :
       NrrdGradient = self.getInputFromPort('NrrdGradient')
-    results = sr_py.ViewSlices(Nrrd1,Nrrd2,Nrrd1ColorMap,Nrrd2ColorMap,InputColorMap2,NrrdGradient,clut_ww,clut_wl,probe,show_colormap2,painting,crop,crop_minAxis0,crop_minAxis1,crop_minAxis2,crop_maxAxis0,crop_maxAxis1,crop_maxAxis2,crop_minPadAxis0,crop_minPadAxis1,crop_minPadAxis2,crop_maxPadAxis0,crop_maxPadAxis1,crop_maxPadAxis2,texture_filter,anatomical_coordinates,show_text,color_font_r,color_font_g,color_font_b,color_font_a,min,max,dim0,dim1,dim2,geom_flushed,background_threshold,gradient_threshold,font_size)
+    results = sr_py.ViewSlices(Nrrd1,Nrrd2,Nrrd1ColorMap,Nrrd2ColorMap,InputColorMap2,NrrdGradient,p_clut_ww,p_clut_wl,p_probe,p_show_colormap2,p_painting,p_crop,p_crop_minAxis0,p_crop_minAxis1,p_crop_minAxis2,p_crop_maxAxis0,p_crop_maxAxis1,p_crop_maxAxis2,p_crop_minPadAxis0,p_crop_minPadAxis1,p_crop_minPadAxis2,p_crop_maxPadAxis0,p_crop_maxPadAxis1,p_crop_maxPadAxis2,p_texture_filter,p_anatomical_coordinates,p_show_text,p_color_font_r,p_color_font_g,p_color_font_b,p_color_font_a,p_min,p_max,p_dim0,p_dim1,p_dim2,p_geom_flushed,p_background_threshold,p_gradient_threshold,p_font_size)
     self.setResult('Geometry', sr_py.read_at_index(results,0))
     self.setResult('ColorMap2', sr_py.read_at_index(results,1))
 
-class SCIRun_SplitVectorArrayInXYZ(Module) :
+class scirun_SplitVectorArrayInXYZ(Module) :
   def compute(self) :
     VectorArray = 0
     if self.hasInputFromPort('VectorArray') :
@@ -2975,31 +2568,21 @@ class SCIRun_SplitVectorArrayInXYZ(Module) :
     self.setResult('Y', sr_py.read_at_index(results,1))
     self.setResult('Z', sr_py.read_at_index(results,2))
 
-class SCIRun_ConvertIndicesToFieldData(Module) :
+class scirun_ConvertIndicesToFieldData(Module) :
   def compute(self) :
-    outputtype = 'double'
-    if self.hasInputFromPort('outputtype') :
-      outputtype = self.getInputFromPort('outputtype')
+    p_outputtype = 'double'
+    if self.hasInputFromPort('p_outputtype') :
+      p_outputtype = self.getInputFromPort('p_outputtype')
     Field = 0
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
     Data = 0
     if self.hasInputFromPort('Data') :
       Data = self.getInputFromPort('Data')
-    results = sr_py.ConvertIndicesToFieldData(Field,Data,outputtype)
+    results = sr_py.ConvertIndicesToFieldData(Field,Data,p_outputtype)
     self.setResult('Field', results)
 
-class SCIRun_CreateAndEditCameraPath(Module) :
-  def compute(self) :
-    Path = 0
-    if self.hasInputFromPort('Path') :
-      Path = self.getInputFromPort('Path')
-    results = sr_py.CreateAndEditCameraPath(Path)
-    self.setResult('Path', sr_py.read_at_index(results,0))
-    self.setResult('Geometry', sr_py.read_at_index(results,1))
-    self.setResult('Camera View', sr_py.read_at_index(results,2))
-
-class SCIRun_CalculateDistanceToFieldBoundary(Module) :
+class scirun_CalculateDistanceToFieldBoundary(Module) :
   def compute(self) :
     Field = 0
     if self.hasInputFromPort('Field') :
@@ -3007,7 +2590,7 @@ class SCIRun_CalculateDistanceToFieldBoundary(Module) :
     results = sr_py.CalculateDistanceToFieldBoundary(Field)
     self.setResult('DistanceField', results)
 
-class SCIRun_ConvertMappingMatrixToMaskVector(Module) :
+class scirun_ConvertMappingMatrixToMaskVector(Module) :
   def compute(self) :
     MappingMatrix = 0
     if self.hasInputFromPort('MappingMatrix') :
@@ -3015,66 +2598,69 @@ class SCIRun_ConvertMappingMatrixToMaskVector(Module) :
     results = sr_py.ConvertMappingMatrixToMaskVector(MappingMatrix)
     self.setResult('MaskVector', results)
 
-class SCIRun_CreateFieldData(Module) :
+class scirun_MapFieldDataFromSourceToDestination(Module) :
   def compute(self) :
-    function = 'RESULT = 1;'
-    if self.hasInputFromPort('function') :
-      function = self.getInputFromPort('function')
-    format = 'Scalar'
-    if self.hasInputFromPort('format') :
-      format = self.getInputFromPort('format')
-    basis = 'Linear'
-    if self.hasInputFromPort('basis') :
-      basis = self.getInputFromPort('basis')
-    Field = 0
-    if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
-    Function = 0
-    if self.hasInputFromPort('Function') :
-      Function = self.getInputFromPort('Function')
-    DataArray = 0
-    if self.hasInputFromPort('DataArray') :
-      DataArray = self.getInputFromPort('DataArray')
-    results = sr_py.CreateFieldData(Field,Function,DataArray,function,format,basis)
-    self.setResult('Field', results)
+    p_interpolation_basis = 'linear'
+    if self.hasInputFromPort('p_interpolation_basis') :
+      p_interpolation_basis = self.getInputFromPort('p_interpolation_basis')
+    p_map_source_to_single_dest = 0
+    if self.hasInputFromPort('p_map_source_to_single_dest') :
+      p_map_source_to_single_dest = self.getInputFromPort('p_map_source_to_single_dest')
+    p_exhaustive_search = 0
+    if self.hasInputFromPort('p_exhaustive_search') :
+      p_exhaustive_search = self.getInputFromPort('p_exhaustive_search')
+    p_exhaustive_search_max_dist = -1.0
+    if self.hasInputFromPort('p_exhaustive_search_max_dist') :
+      p_exhaustive_search_max_dist = self.getInputFromPort('p_exhaustive_search_max_dist')
+    p_np = 1
+    if self.hasInputFromPort('p_np') :
+      p_np = self.getInputFromPort('p_np')
+    Source = 0
+    if self.hasInputFromPort('Source') :
+      Source = self.getInputFromPort('Source')
+    Destination = 0
+    if self.hasInputFromPort('Destination') :
+      Destination = self.getInputFromPort('Destination')
+    results = sr_py.MapFieldDataFromSourceToDestination(Source,Destination,p_interpolation_basis,p_map_source_to_single_dest,p_exhaustive_search,p_exhaustive_search_max_dist,p_np)
+    self.setResult('Remapped Destination', results)
 
-class SCIRun_CreateLatVol(Module) :
+class scirun_CreateLatVol(Module) :
   def compute(self) :
-    sizex = 16
-    if self.hasInputFromPort('sizex') :
-      sizex = self.getInputFromPort('sizex')
-    sizey = 16
-    if self.hasInputFromPort('sizey') :
-      sizey = self.getInputFromPort('sizey')
-    sizez = 16
-    if self.hasInputFromPort('sizez') :
-      sizez = self.getInputFromPort('sizez')
-    padpercent = 0.0
-    if self.hasInputFromPort('padpercent') :
-      padpercent = self.getInputFromPort('padpercent')
-    data_at = 'Nodes'
-    if self.hasInputFromPort('data_at') :
-      data_at = self.getInputFromPort('data_at')
-    element_size = 'Mesh'
-    if self.hasInputFromPort('element_size') :
-      element_size = self.getInputFromPort('element_size')
+    p_sizex = 16
+    if self.hasInputFromPort('p_sizex') :
+      p_sizex = self.getInputFromPort('p_sizex')
+    p_sizey = 16
+    if self.hasInputFromPort('p_sizey') :
+      p_sizey = self.getInputFromPort('p_sizey')
+    p_sizez = 16
+    if self.hasInputFromPort('p_sizez') :
+      p_sizez = self.getInputFromPort('p_sizez')
+    p_padpercent = 0.0
+    if self.hasInputFromPort('p_padpercent') :
+      p_padpercent = self.getInputFromPort('p_padpercent')
+    p_data_at = 'Nodes'
+    if self.hasInputFromPort('p_data_at') :
+      p_data_at = self.getInputFromPort('p_data_at')
+    p_element_size = 'Mesh'
+    if self.hasInputFromPort('p_element_size') :
+      p_element_size = self.getInputFromPort('p_element_size')
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
     LatVol_Size = 0
     if self.hasInputFromPort('LatVol Size') :
       LatVol_Size = self.getInputFromPort('LatVol Size')
-    results = sr_py.CreateLatVol(Input_Field,LatVol_Size,sizex,sizey,sizez,padpercent,data_at,element_size)
+    results = sr_py.CreateLatVol(Input_Field,LatVol_Size,p_sizex,p_sizey,p_sizez,p_padpercent,p_data_at,p_element_size)
     self.setResult('Output Sample Field', results)
 
-class SCIRun_ResizeMatrix(Module) :
+class scirun_ResizeMatrix(Module) :
   def compute(self) :
-    dim_m = 1
-    if self.hasInputFromPort('dim_m') :
-      dim_m = self.getInputFromPort('dim_m')
-    dim_n = 1
-    if self.hasInputFromPort('dim_n') :
-      dim_n = self.getInputFromPort('dim_n')
+    p_dim_m = 1
+    if self.hasInputFromPort('p_dim_m') :
+      p_dim_m = self.getInputFromPort('p_dim_m')
+    p_dim_n = 1
+    if self.hasInputFromPort('p_dim_n') :
+      p_dim_n = self.getInputFromPort('p_dim_n')
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
       Matrix = self.getInputFromPort('Matrix')
@@ -3084,47 +2670,39 @@ class SCIRun_ResizeMatrix(Module) :
     N = 0
     if self.hasInputFromPort('N') :
       N = self.getInputFromPort('N')
-    results = sr_py.ResizeMatrix(Matrix,M,N,dim_m,dim_n)
+    results = sr_py.ResizeMatrix(Matrix,M,N,p_dim_m,p_dim_n)
     self.setResult('Matrix', results)
 
-class SCIRun_GetInputFieldAndSendAsOutput(Module) :
+class scirun_ShowAndEditCameraWidget(Module) :
   def compute(self) :
-    InField = 0
-    if self.hasInputFromPort('InField') :
-      InField = self.getInputFromPort('InField')
-    results = sr_py.GetInputFieldAndSendAsOutput(InField)
-    self.setResult('OutField', results)
-
-class SCIRun_ShowAndEditCameraWidget(Module) :
-  def compute(self) :
-    frame = 1
-    if self.hasInputFromPort('frame') :
-      frame = self.getInputFromPort('frame')
-    num_frames = 100
-    if self.hasInputFromPort('num_frames') :
-      num_frames = self.getInputFromPort('num_frames')
-    time = 0
-    if self.hasInputFromPort('time') :
-      time = self.getInputFromPort('time')
-    playmode = 'once'
-    if self.hasInputFromPort('playmode') :
-      playmode = self.getInputFromPort('playmode')
-    execmode = 'init'
-    if self.hasInputFromPort('execmode') :
-      execmode = self.getInputFromPort('execmode')
-    track = 1
-    if self.hasInputFromPort('track') :
-      track = self.getInputFromPort('track')
-    B = 1.0
-    if self.hasInputFromPort('B') :
-      B = self.getInputFromPort('B')
-    C = 0.0
-    if self.hasInputFromPort('C') :
-      C = self.getInputFromPort('C')
-    results = sr_py.ShowAndEditCameraWidget(frame,num_frames,time,playmode,execmode,track,B,C)
+    p_frame = 1
+    if self.hasInputFromPort('p_frame') :
+      p_frame = self.getInputFromPort('p_frame')
+    p_num_frames = 100
+    if self.hasInputFromPort('p_num_frames') :
+      p_num_frames = self.getInputFromPort('p_num_frames')
+    p_time = 0
+    if self.hasInputFromPort('p_time') :
+      p_time = self.getInputFromPort('p_time')
+    p_playmode = 'once'
+    if self.hasInputFromPort('p_playmode') :
+      p_playmode = self.getInputFromPort('p_playmode')
+    p_execmode = 'init'
+    if self.hasInputFromPort('p_execmode') :
+      p_execmode = self.getInputFromPort('p_execmode')
+    p_track = 1
+    if self.hasInputFromPort('p_track') :
+      p_track = self.getInputFromPort('p_track')
+    p_B = 1.0
+    if self.hasInputFromPort('p_B') :
+      p_B = self.getInputFromPort('p_B')
+    p_C = 0.0
+    if self.hasInputFromPort('p_C') :
+      p_C = self.getInputFromPort('p_C')
+    results = sr_py.ShowAndEditCameraWidget(p_frame,p_num_frames,p_time,p_playmode,p_execmode,p_track,p_B,p_C)
     self.setResult('Geometry', results)
 
-class SCIRun_InterfaceWithCamal(Module) :
+class scirun_InterfaceWithCamal(Module) :
   def compute(self) :
     TriSurf = 0
     if self.hasInputFromPort('TriSurf') :
@@ -3132,52 +2710,38 @@ class SCIRun_InterfaceWithCamal(Module) :
     results = sr_py.InterfaceWithCamal(TriSurf)
     self.setResult('TetVol', results)
 
-class SCIRun_CreateParameterBundle(Module) :
+class scirun_SelectAndSetFieldData3(Module) :
   def compute(self) :
-    data = '0 "example field" string "example" ""} {0 "example scalar" scalar 1.0 ""} '
-    if self.hasInputFromPort('data') :
-      data = self.getInputFromPort('data')
-    new_field_count = 1
-    if self.hasInputFromPort('new_field_count') :
-      new_field_count = self.getInputFromPort('new_field_count')
-    update_all = '::SCIRun_Bundle_CreateParameterBundle_0 update_all_data'
-    if self.hasInputFromPort('update_all') :
-      update_all = self.getInputFromPort('update_all')
-    results = sr_py.CreateParameterBundle(data,new_field_count,update_all)
-    self.setResult('ParameterList', results)
-
-class SCIRun_SelectAndSetFieldData3(Module) :
-  def compute(self) :
-    selection1 = 'DATA < A'
-    if self.hasInputFromPort('selection1') :
-      selection1 = self.getInputFromPort('selection1')
-    function1 = 'abs(DATA)'
-    if self.hasInputFromPort('function1') :
-      function1 = self.getInputFromPort('function1')
-    selection2 = 'DATA > A'
-    if self.hasInputFromPort('selection2') :
-      selection2 = self.getInputFromPort('selection2')
-    function2 = '-abs(DATA)'
-    if self.hasInputFromPort('function2') :
-      function2 = self.getInputFromPort('function2')
-    selection3 = ''
-    if self.hasInputFromPort('selection3') :
-      selection3 = self.getInputFromPort('selection3')
-    function3 = ''
-    if self.hasInputFromPort('function3') :
-      function3 = self.getInputFromPort('function3')
-    selection4 = ''
-    if self.hasInputFromPort('selection4') :
-      selection4 = self.getInputFromPort('selection4')
-    function4 = ''
-    if self.hasInputFromPort('function4') :
-      function4 = self.getInputFromPort('function4')
-    functiondef = 0
-    if self.hasInputFromPort('functiondef') :
-      functiondef = self.getInputFromPort('functiondef')
-    format = 'Scalar'
-    if self.hasInputFromPort('format') :
-      format = self.getInputFromPort('format')
+    p_selection1 = 'DATA < A'
+    if self.hasInputFromPort('p_selection1') :
+      p_selection1 = self.getInputFromPort('p_selection1')
+    p_function1 = 'abs(DATA)'
+    if self.hasInputFromPort('p_function1') :
+      p_function1 = self.getInputFromPort('p_function1')
+    p_selection2 = 'DATA > A'
+    if self.hasInputFromPort('p_selection2') :
+      p_selection2 = self.getInputFromPort('p_selection2')
+    p_function2 = '-abs(DATA)'
+    if self.hasInputFromPort('p_function2') :
+      p_function2 = self.getInputFromPort('p_function2')
+    p_selection3 = ''
+    if self.hasInputFromPort('p_selection3') :
+      p_selection3 = self.getInputFromPort('p_selection3')
+    p_function3 = ''
+    if self.hasInputFromPort('p_function3') :
+      p_function3 = self.getInputFromPort('p_function3')
+    p_selection4 = ''
+    if self.hasInputFromPort('p_selection4') :
+      p_selection4 = self.getInputFromPort('p_selection4')
+    p_function4 = ''
+    if self.hasInputFromPort('p_function4') :
+      p_function4 = self.getInputFromPort('p_function4')
+    p_functiondef = '0'
+    if self.hasInputFromPort('p_functiondef') :
+      p_functiondef = self.getInputFromPort('p_functiondef')
+    p_format = 'Scalar'
+    if self.hasInputFromPort('p_format') :
+      p_format = self.getInputFromPort('p_format')
     Field1 = 0
     if self.hasInputFromPort('Field1') :
       Field1 = self.getInputFromPort('Field1')
@@ -3190,58 +2754,81 @@ class SCIRun_SelectAndSetFieldData3(Module) :
     Array = 0
     if self.hasInputFromPort('Array') :
       Array = self.getInputFromPort('Array')
-    results = sr_py.SelectAndSetFieldData3(Field1,Field2,Field3,Array,selection1,function1,selection2,function2,selection3,function3,selection4,function4,functiondef,format)
+    results = sr_py.SelectAndSetFieldData3(Field1,Field2,Field3,Array,p_selection1,p_function1,p_selection2,p_function2,p_selection3,p_function3,p_selection4,p_function4,p_functiondef,p_format)
     self.setResult('Field', results)
 
-class SCIRun_ConvertMeshToPointCloud(Module) :
+class scirun_ConvertMeshToPointCloud(Module) :
   def compute(self) :
-    datalocation = 0
-    if self.hasInputFromPort('datalocation') :
-      datalocation = self.getInputFromPort('datalocation')
+    p_datalocation = 0
+    if self.hasInputFromPort('p_datalocation') :
+      p_datalocation = self.getInputFromPort('p_datalocation')
     Field = 0
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
-    results = sr_py.ConvertMeshToPointCloud(Field,datalocation)
+    results = sr_py.ConvertMeshToPointCloud(Field,p_datalocation)
     self.setResult('Field', results)
 
-class SCIRun_InsertStringsIntoBundle(Module) :
+class scirun_CreateFieldData(Module) :
   def compute(self) :
-    string1_name = 'string1'
-    if self.hasInputFromPort('string1_name') :
-      string1_name = self.getInputFromPort('string1_name')
-    string2_name = 'string2'
-    if self.hasInputFromPort('string2_name') :
-      string2_name = self.getInputFromPort('string2_name')
-    string3_name = 'string3'
-    if self.hasInputFromPort('string3_name') :
-      string3_name = self.getInputFromPort('string3_name')
-    string4_name = 'string4'
-    if self.hasInputFromPort('string4_name') :
-      string4_name = self.getInputFromPort('string4_name')
-    string5_name = 'string5'
-    if self.hasInputFromPort('string5_name') :
-      string5_name = self.getInputFromPort('string5_name')
-    string6_name = 'string6'
-    if self.hasInputFromPort('string6_name') :
-      string6_name = self.getInputFromPort('string6_name')
-    replace1 = 1
-    if self.hasInputFromPort('replace1') :
-      replace1 = self.getInputFromPort('replace1')
-    replace2 = 1
-    if self.hasInputFromPort('replace2') :
-      replace2 = self.getInputFromPort('replace2')
-    replace3 = 1
-    if self.hasInputFromPort('replace3') :
-      replace3 = self.getInputFromPort('replace3')
-    replace4 = 1
-    if self.hasInputFromPort('replace4') :
-      replace4 = self.getInputFromPort('replace4')
-    replace5 = 1
-    if self.hasInputFromPort('replace5') :
-      replace5 = self.getInputFromPort('replace5')
-    replace6 = 1
-    if self.hasInputFromPort('replace6') :
-      replace6 = self.getInputFromPort('replace6')
+    p_function = 'RESULT = 1;'
+    if self.hasInputFromPort('p_function') :
+      p_function = self.getInputFromPort('p_function')
+    p_format = 'Scalar'
+    if self.hasInputFromPort('p_format') :
+      p_format = self.getInputFromPort('p_format')
+    p_basis = 'Linear'
+    if self.hasInputFromPort('p_basis') :
+      p_basis = self.getInputFromPort('p_basis')
+    Field = 0
+    if self.hasInputFromPort('Field') :
+      Field = self.getInputFromPort('Field')
+    Function = 0
+    if self.hasInputFromPort('Function') :
+      Function = self.getInputFromPort('Function')
+    DataArray = 0
+    if self.hasInputFromPort('DataArray') :
+      DataArray = self.getInputFromPort('DataArray')
+    results = sr_py.CreateFieldData(Field,Function,DataArray,p_function,p_format,p_basis)
+    self.setResult('Field', results)
+
+class scirun_InsertStringsIntoBundle(Module) :
+  def compute(self) :
+    p_string1_name = 'string1'
+    if self.hasInputFromPort('p_string1_name') :
+      p_string1_name = self.getInputFromPort('p_string1_name')
+    p_string2_name = 'string2'
+    if self.hasInputFromPort('p_string2_name') :
+      p_string2_name = self.getInputFromPort('p_string2_name')
+    p_string3_name = 'string3'
+    if self.hasInputFromPort('p_string3_name') :
+      p_string3_name = self.getInputFromPort('p_string3_name')
+    p_string4_name = 'string4'
+    if self.hasInputFromPort('p_string4_name') :
+      p_string4_name = self.getInputFromPort('p_string4_name')
+    p_string5_name = 'string5'
+    if self.hasInputFromPort('p_string5_name') :
+      p_string5_name = self.getInputFromPort('p_string5_name')
+    p_string6_name = 'string6'
+    if self.hasInputFromPort('p_string6_name') :
+      p_string6_name = self.getInputFromPort('p_string6_name')
+    p_replace1 = 1
+    if self.hasInputFromPort('p_replace1') :
+      p_replace1 = self.getInputFromPort('p_replace1')
+    p_replace2 = 1
+    if self.hasInputFromPort('p_replace2') :
+      p_replace2 = self.getInputFromPort('p_replace2')
+    p_replace3 = 1
+    if self.hasInputFromPort('p_replace3') :
+      p_replace3 = self.getInputFromPort('p_replace3')
+    p_replace4 = 1
+    if self.hasInputFromPort('p_replace4') :
+      p_replace4 = self.getInputFromPort('p_replace4')
+    p_replace5 = 1
+    if self.hasInputFromPort('p_replace5') :
+      p_replace5 = self.getInputFromPort('p_replace5')
+    p_replace6 = 1
+    if self.hasInputFromPort('p_replace6') :
+      p_replace6 = self.getInputFromPort('p_replace6')
     bundle = 0
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
@@ -3263,107 +2850,62 @@ class SCIRun_InsertStringsIntoBundle(Module) :
     string6 = 0
     if self.hasInputFromPort('string6') :
       string6 = self.getInputFromPort('string6')
-    results = sr_py.InsertStringsIntoBundle(bundle,string1,string2,string3,string4,string5,string6,string1_name,string2_name,string3_name,string4_name,string5_name,string6_name,replace1,replace2,replace3,replace4,replace5,replace6)
+    results = sr_py.InsertStringsIntoBundle(bundle,string1,string2,string3,string4,string5,string6,p_string1_name,p_string2_name,p_string3_name,p_string4_name,p_string5_name,p_string6_name,p_replace1,p_replace2,p_replace3,p_replace4,p_replace5,p_replace6)
     self.setResult('bundle', results)
 
-class SCIRun_GetMatricesFromBundle(Module) :
+class scirun_GetInputFieldAndSendAsOutput(Module) :
   def compute(self) :
-    matrix1_name = 'matrix1'
-    if self.hasInputFromPort('matrix1_name') :
-      matrix1_name = self.getInputFromPort('matrix1_name')
-    matrix2_name = 'matrix2'
-    if self.hasInputFromPort('matrix2_name') :
-      matrix2_name = self.getInputFromPort('matrix2_name')
-    matrix3_name = 'matrix3'
-    if self.hasInputFromPort('matrix3_name') :
-      matrix3_name = self.getInputFromPort('matrix3_name')
-    matrix4_name = 'matrix4'
-    if self.hasInputFromPort('matrix4_name') :
-      matrix4_name = self.getInputFromPort('matrix4_name')
-    matrix5_name = 'matrix5'
-    if self.hasInputFromPort('matrix5_name') :
-      matrix5_name = self.getInputFromPort('matrix5_name')
-    matrix6_name = 'matrix6'
-    if self.hasInputFromPort('matrix6_name') :
-      matrix6_name = self.getInputFromPort('matrix6_name')
-    transposenrrd1 = 0
-    if self.hasInputFromPort('transposenrrd1') :
-      transposenrrd1 = self.getInputFromPort('transposenrrd1')
-    transposenrrd2 = 0
-    if self.hasInputFromPort('transposenrrd2') :
-      transposenrrd2 = self.getInputFromPort('transposenrrd2')
-    transposenrrd3 = 0
-    if self.hasInputFromPort('transposenrrd3') :
-      transposenrrd3 = self.getInputFromPort('transposenrrd3')
-    transposenrrd4 = 0
-    if self.hasInputFromPort('transposenrrd4') :
-      transposenrrd4 = self.getInputFromPort('transposenrrd4')
-    transposenrrd5 = 0
-    if self.hasInputFromPort('transposenrrd5') :
-      transposenrrd5 = self.getInputFromPort('transposenrrd5')
-    transposenrrd6 = 0
-    if self.hasInputFromPort('transposenrrd6') :
-      transposenrrd6 = self.getInputFromPort('transposenrrd6')
-    matrix_selection = ''
-    if self.hasInputFromPort('matrix_selection') :
-      matrix_selection = self.getInputFromPort('matrix_selection')
-    bundle = 0
-    if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
-    results = sr_py.GetMatricesFromBundle(bundle,matrix1_name,matrix2_name,matrix3_name,matrix4_name,matrix5_name,matrix6_name,transposenrrd1,transposenrrd2,transposenrrd3,transposenrrd4,transposenrrd5,transposenrrd6,matrix_selection)
-    self.setResult('bundle', sr_py.read_at_index(results,0))
-    self.setResult('matrix1', sr_py.read_at_index(results,1))
-    self.setResult('matrix2', sr_py.read_at_index(results,2))
-    self.setResult('matrix3', sr_py.read_at_index(results,3))
-    self.setResult('matrix4', sr_py.read_at_index(results,4))
-    self.setResult('matrix5', sr_py.read_at_index(results,5))
-    self.setResult('matrix6', sr_py.read_at_index(results,6))
+    InField = 0
+    if self.hasInputFromPort('InField') :
+      InField = self.getInputFromPort('InField')
+    results = sr_py.GetInputFieldAndSendAsOutput(InField)
+    self.setResult('OutField', results)
 
-class SCIRun_GetNrrdsFromBundle(Module) :
+class scirun_GetNrrdsFromBundle(Module) :
   def compute(self) :
-    nrrd1_name = 'nrrd1'
-    if self.hasInputFromPort('nrrd1_name') :
-      nrrd1_name = self.getInputFromPort('nrrd1_name')
-    nrrd2_name = 'nrrd2'
-    if self.hasInputFromPort('nrrd2_name') :
-      nrrd2_name = self.getInputFromPort('nrrd2_name')
-    nrrd3_name = 'nrrd3'
-    if self.hasInputFromPort('nrrd3_name') :
-      nrrd3_name = self.getInputFromPort('nrrd3_name')
-    nrrd4_name = 'nrrd4'
-    if self.hasInputFromPort('nrrd4_name') :
-      nrrd4_name = self.getInputFromPort('nrrd4_name')
-    nrrd5_name = 'nrrd5'
-    if self.hasInputFromPort('nrrd5_name') :
-      nrrd5_name = self.getInputFromPort('nrrd5_name')
-    nrrd6_name = 'nrrd6'
-    if self.hasInputFromPort('nrrd6_name') :
-      nrrd6_name = self.getInputFromPort('nrrd6_name')
-    transposenrrd1 = 0
-    if self.hasInputFromPort('transposenrrd1') :
-      transposenrrd1 = self.getInputFromPort('transposenrrd1')
-    transposenrrd2 = 0
-    if self.hasInputFromPort('transposenrrd2') :
-      transposenrrd2 = self.getInputFromPort('transposenrrd2')
-    transposenrrd3 = 0
-    if self.hasInputFromPort('transposenrrd3') :
-      transposenrrd3 = self.getInputFromPort('transposenrrd3')
-    transposenrrd4 = 0
-    if self.hasInputFromPort('transposenrrd4') :
-      transposenrrd4 = self.getInputFromPort('transposenrrd4')
-    transposenrrd5 = 0
-    if self.hasInputFromPort('transposenrrd5') :
-      transposenrrd5 = self.getInputFromPort('transposenrrd5')
-    transposenrrd6 = 0
-    if self.hasInputFromPort('transposenrrd6') :
-      transposenrrd6 = self.getInputFromPort('transposenrrd6')
-    nrrd_selection = ''
-    if self.hasInputFromPort('nrrd_selection') :
-      nrrd_selection = self.getInputFromPort('nrrd_selection')
+    p_nrrd1_name = 'nrrd1'
+    if self.hasInputFromPort('p_nrrd1_name') :
+      p_nrrd1_name = self.getInputFromPort('p_nrrd1_name')
+    p_nrrd2_name = 'nrrd2'
+    if self.hasInputFromPort('p_nrrd2_name') :
+      p_nrrd2_name = self.getInputFromPort('p_nrrd2_name')
+    p_nrrd3_name = 'nrrd3'
+    if self.hasInputFromPort('p_nrrd3_name') :
+      p_nrrd3_name = self.getInputFromPort('p_nrrd3_name')
+    p_nrrd4_name = 'nrrd4'
+    if self.hasInputFromPort('p_nrrd4_name') :
+      p_nrrd4_name = self.getInputFromPort('p_nrrd4_name')
+    p_nrrd5_name = 'nrrd5'
+    if self.hasInputFromPort('p_nrrd5_name') :
+      p_nrrd5_name = self.getInputFromPort('p_nrrd5_name')
+    p_nrrd6_name = 'nrrd6'
+    if self.hasInputFromPort('p_nrrd6_name') :
+      p_nrrd6_name = self.getInputFromPort('p_nrrd6_name')
+    p_transposenrrd1 = 0
+    if self.hasInputFromPort('p_transposenrrd1') :
+      p_transposenrrd1 = self.getInputFromPort('p_transposenrrd1')
+    p_transposenrrd2 = 0
+    if self.hasInputFromPort('p_transposenrrd2') :
+      p_transposenrrd2 = self.getInputFromPort('p_transposenrrd2')
+    p_transposenrrd3 = 0
+    if self.hasInputFromPort('p_transposenrrd3') :
+      p_transposenrrd3 = self.getInputFromPort('p_transposenrrd3')
+    p_transposenrrd4 = 0
+    if self.hasInputFromPort('p_transposenrrd4') :
+      p_transposenrrd4 = self.getInputFromPort('p_transposenrrd4')
+    p_transposenrrd5 = 0
+    if self.hasInputFromPort('p_transposenrrd5') :
+      p_transposenrrd5 = self.getInputFromPort('p_transposenrrd5')
+    p_transposenrrd6 = 0
+    if self.hasInputFromPort('p_transposenrrd6') :
+      p_transposenrrd6 = self.getInputFromPort('p_transposenrrd6')
+    p_nrrd_selection = ''
+    if self.hasInputFromPort('p_nrrd_selection') :
+      p_nrrd_selection = self.getInputFromPort('p_nrrd_selection')
     bundle = 0
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
-    results = sr_py.GetNrrdsFromBundle(bundle,nrrd1_name,nrrd2_name,nrrd3_name,nrrd4_name,nrrd5_name,nrrd6_name,transposenrrd1,transposenrrd2,transposenrrd3,transposenrrd4,transposenrrd5,transposenrrd6,nrrd_selection)
+    results = sr_py.GetNrrdsFromBundle(bundle,p_nrrd1_name,p_nrrd2_name,p_nrrd3_name,p_nrrd4_name,p_nrrd5_name,p_nrrd6_name,p_transposenrrd1,p_transposenrrd2,p_transposenrrd3,p_transposenrrd4,p_transposenrrd5,p_transposenrrd6,p_nrrd_selection)
     self.setResult('bundle', sr_py.read_at_index(results,0))
     self.setResult('nrrd1', sr_py.read_at_index(results,1))
     self.setResult('nrrd2', sr_py.read_at_index(results,2))
@@ -3372,122 +2914,95 @@ class SCIRun_GetNrrdsFromBundle(Module) :
     self.setResult('nrrd5', sr_py.read_at_index(results,5))
     self.setResult('nrrd6', sr_py.read_at_index(results,6))
 
-class SCIRun_ManageFieldSeries(Module) :
+class scirun_ManageFieldSeries(Module) :
   def compute(self) :
-    num_ports = 2
-    if self.hasInputFromPort('num_ports') :
-      num_ports = self.getInputFromPort('num_ports')
+    p_num_ports = '2'
+    if self.hasInputFromPort('p_num_ports') :
+      p_num_ports = self.getInputFromPort('p_num_ports')
     Input = 0
     if self.hasInputFromPort('Input') :
       Input = self.getInputFromPort('Input')
-    results = sr_py.ManageFieldSeries(Input,num_ports)
+    results = sr_py.ManageFieldSeries(Input,p_num_ports)
     self.setResult('Output 0', sr_py.read_at_index(results,0))
     self.setResult('Output 1', sr_py.read_at_index(results,1))
     self.setResult('Output 2', sr_py.read_at_index(results,2))
     self.setResult('Output 3', sr_py.read_at_index(results,3))
 
-class SCIRun_ConvertMatrixToField(Module) :
+class scirun_ConvertMatrixToField(Module) :
   def compute(self) :
-    datalocation = 'Node'
-    if self.hasInputFromPort('datalocation') :
-      datalocation = self.getInputFromPort('datalocation')
+    p_datalocation = 'Node'
+    if self.hasInputFromPort('p_datalocation') :
+      p_datalocation = self.getInputFromPort('p_datalocation')
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
       Matrix = self.getInputFromPort('Matrix')
-    results = sr_py.ConvertMatrixToField(Matrix,datalocation)
+    results = sr_py.ConvertMatrixToField(Matrix,p_datalocation)
     self.setResult('Field', results)
 
-class SCIRun_ChooseColorMap(Module) :
+class scirun_CollectMatrices(Module) :
   def compute(self) :
-    use_first_valid = 1
-    if self.hasInputFromPort('use_first_valid') :
-      use_first_valid = self.getInputFromPort('use_first_valid')
-    port_valid_index = 0
-    if self.hasInputFromPort('port_valid_index') :
-      port_valid_index = self.getInputFromPort('port_valid_index')
-    port_selected_index = 0
-    if self.hasInputFromPort('port_selected_index') :
-      port_selected_index = self.getInputFromPort('port_selected_index')
-    ColorMap = 0
-    if self.hasInputFromPort('ColorMap') :
-      ColorMap = self.getInputFromPort('ColorMap')
-    results = sr_py.ChooseColorMap(ColorMap,use_first_valid,port_valid_index,port_selected_index)
-    self.setResult('ColorMap', results)
-
-class SCIRun_CollectMatrices(Module) :
-  def compute(self) :
-    append = 0
-    if self.hasInputFromPort('append') :
-      append = self.getInputFromPort('append')
-    row = 0
-    if self.hasInputFromPort('row') :
-      row = self.getInputFromPort('row')
-    front = 0
-    if self.hasInputFromPort('front') :
-      front = self.getInputFromPort('front')
+    p_append = 0
+    if self.hasInputFromPort('p_append') :
+      p_append = self.getInputFromPort('p_append')
+    p_row = 0
+    if self.hasInputFromPort('p_row') :
+      p_row = self.getInputFromPort('p_row')
+    p_front = 0
+    if self.hasInputFromPort('p_front') :
+      p_front = self.getInputFromPort('p_front')
     Optional_BaseMatrix = 0
     if self.hasInputFromPort('Optional BaseMatrix') :
       Optional_BaseMatrix = self.getInputFromPort('Optional BaseMatrix')
     SubMatrix = 0
     if self.hasInputFromPort('SubMatrix') :
       SubMatrix = self.getInputFromPort('SubMatrix')
-    results = sr_py.CollectMatrices(Optional_BaseMatrix,SubMatrix,append,row,front)
+    results = sr_py.CollectMatrices(Optional_BaseMatrix,SubMatrix,p_append,p_row,p_front)
     self.setResult('CompositeMatrix', results)
 
-class SCIRun_ReadField(Module) :
+class scirun_ChooseColorMap(Module) :
   def compute(self) :
-    from_env = ''
-    if self.hasInputFromPort('from_env') :
-      from_env = self.getInputFromPort('from_env')
+    p_use_first_valid = '1'
+    if self.hasInputFromPort('p_use_first_valid') :
+      p_use_first_valid = self.getInputFromPort('p_use_first_valid')
+    p_port_valid_index = '0'
+    if self.hasInputFromPort('p_port_valid_index') :
+      p_port_valid_index = self.getInputFromPort('p_port_valid_index')
+    p_port_selected_index = '0'
+    if self.hasInputFromPort('p_port_selected_index') :
+      p_port_selected_index = self.getInputFromPort('p_port_selected_index')
+    ColorMap = 0
+    if self.hasInputFromPort('ColorMap') :
+      ColorMap = self.getInputFromPort('ColorMap')
+    results = sr_py.ChooseColorMap(ColorMap,p_use_first_valid,p_port_valid_index,p_port_selected_index)
+    self.setResult('ColorMap', results)
+
+class scirun_ReadField(Module) :
+  def compute(self) :
+    p_from_env = ''
+    if self.hasInputFromPort('p_from_env') :
+      p_from_env = self.getInputFromPort('p_from_env')
     Filename = 0
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
-    results = sr_py.ReadField(Filename,from_env)
+    results = sr_py.ReadField(Filename,p_from_env)
     self.setResult('Output Data', sr_py.read_at_index(results,0))
     self.setResult('Filename', sr_py.read_at_index(results,1))
 
-class SCIRun_GetFileName(Module) :
+class scirun_GetFileName(Module) :
   def compute(self) :
-    filename_base = ''
-    if self.hasInputFromPort('filename_base') :
-      filename_base = self.getInputFromPort('filename_base')
-    delay = 0
-    if self.hasInputFromPort('delay') :
-      delay = self.getInputFromPort('delay')
-    pinned = 0
-    if self.hasInputFromPort('pinned') :
-      pinned = self.getInputFromPort('pinned')
-    results = sr_py.GetFileName(filename_base,delay,pinned)
+    p_filename_base = ''
+    if self.hasInputFromPort('p_filename_base') :
+      p_filename_base = self.getInputFromPort('p_filename_base')
+    p_delay = 0
+    if self.hasInputFromPort('p_delay') :
+      p_delay = self.getInputFromPort('p_delay')
+    p_pinned = 0
+    if self.hasInputFromPort('p_pinned') :
+      p_pinned = self.getInputFromPort('p_pinned')
+    results = sr_py.GetFileName(p_filename_base,p_delay,p_pinned)
     self.setResult('Full Filename', results)
 
-class SCIRun_ClipVolumeByIsovalue(Module) :
-  def compute(self) :
-    isoval_min = 0.0
-    if self.hasInputFromPort('isoval_min') :
-      isoval_min = self.getInputFromPort('isoval_min')
-    isoval_max = 99.0
-    if self.hasInputFromPort('isoval_max') :
-      isoval_max = self.getInputFromPort('isoval_max')
-    isoval = 0.0
-    if self.hasInputFromPort('isoval') :
-      isoval = self.getInputFromPort('isoval')
-    lte = 1
-    if self.hasInputFromPort('lte') :
-      lte = self.getInputFromPort('lte')
-    update_type = 'On Release'
-    if self.hasInputFromPort('update_type') :
-      update_type = self.getInputFromPort('update_type')
-    Input = 0
-    if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
-    Optional_Isovalue = 0
-    if self.hasInputFromPort('Optional Isovalue') :
-      Optional_Isovalue = self.getInputFromPort('Optional Isovalue')
-    results = sr_py.ClipVolumeByIsovalue(Input,Optional_Isovalue,isoval_min,isoval_max,isoval,lte,update_type)
-    self.setResult('Clipped', sr_py.read_at_index(results,0))
-    self.setResult('Mapping', sr_py.read_at_index(results,1))
-
-class SCIRun_DecomposeTensorArrayIntoEigenVectors(Module) :
+class scirun_DecomposeTensorArrayIntoEigenVectors(Module) :
   def compute(self) :
     TensorArray = 0
     if self.hasInputFromPort('TensorArray') :
@@ -3500,7 +3015,7 @@ class SCIRun_DecomposeTensorArrayIntoEigenVectors(Module) :
     self.setResult('EigenValue2', sr_py.read_at_index(results,4))
     self.setResult('EigenValue3', sr_py.read_at_index(results,5))
 
-class SCIRun_TransformMeshWithTransform(Module) :
+class scirun_TransformMeshWithTransform(Module) :
   def compute(self) :
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
@@ -3511,7 +3026,34 @@ class SCIRun_TransformMeshWithTransform(Module) :
     results = sr_py.TransformMeshWithTransform(Input_Field,Transform_Matrix)
     self.setResult('Transformed Field', results)
 
-class SCIRun_ReportSearchGridInfo(Module) :
+class scirun_ClipVolumeByIsovalue(Module) :
+  def compute(self) :
+    p_isoval_min = 0.0
+    if self.hasInputFromPort('p_isoval_min') :
+      p_isoval_min = self.getInputFromPort('p_isoval_min')
+    p_isoval_max = 99.0
+    if self.hasInputFromPort('p_isoval_max') :
+      p_isoval_max = self.getInputFromPort('p_isoval_max')
+    p_isoval = 0.0
+    if self.hasInputFromPort('p_isoval') :
+      p_isoval = self.getInputFromPort('p_isoval')
+    p_lte = 1
+    if self.hasInputFromPort('p_lte') :
+      p_lte = self.getInputFromPort('p_lte')
+    p_update_type = 'On Release'
+    if self.hasInputFromPort('p_update_type') :
+      p_update_type = self.getInputFromPort('p_update_type')
+    Input = 0
+    if self.hasInputFromPort('Input') :
+      Input = self.getInputFromPort('Input')
+    Optional_Isovalue = 0
+    if self.hasInputFromPort('Optional Isovalue') :
+      Optional_Isovalue = self.getInputFromPort('Optional Isovalue')
+    results = sr_py.ClipVolumeByIsovalue(Input,Optional_Isovalue,p_isoval_min,p_isoval_max,p_isoval,p_lte,p_update_type)
+    self.setResult('Clipped', sr_py.read_at_index(results,0))
+    self.setResult('Mapping', sr_py.read_at_index(results,1))
+
+class scirun_ReportSearchGridInfo(Module) :
   def compute(self) :
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
@@ -3519,56 +3061,24 @@ class SCIRun_ReportSearchGridInfo(Module) :
     results = sr_py.ReportSearchGridInfo(Input_Field)
     self.setResult('Output Sample Field', results)
 
-class SCIRun_ChooseField(Module) :
+class scirun_ChooseField(Module) :
   def compute(self) :
-    use_first_valid = 1
-    if self.hasInputFromPort('use_first_valid') :
-      use_first_valid = self.getInputFromPort('use_first_valid')
-    port_valid_index = 0
-    if self.hasInputFromPort('port_valid_index') :
-      port_valid_index = self.getInputFromPort('port_valid_index')
-    port_selected_index = 0
-    if self.hasInputFromPort('port_selected_index') :
-      port_selected_index = self.getInputFromPort('port_selected_index')
+    p_use_first_valid = '1'
+    if self.hasInputFromPort('p_use_first_valid') :
+      p_use_first_valid = self.getInputFromPort('p_use_first_valid')
+    p_port_valid_index = '0'
+    if self.hasInputFromPort('p_port_valid_index') :
+      p_port_valid_index = self.getInputFromPort('p_port_valid_index')
+    p_port_selected_index = '0'
+    if self.hasInputFromPort('p_port_selected_index') :
+      p_port_selected_index = self.getInputFromPort('p_port_selected_index')
     Field = 0
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
-    results = sr_py.ChooseField(Field,use_first_valid,port_valid_index,port_selected_index)
+    results = sr_py.ChooseField(Field,p_use_first_valid,p_port_valid_index,p_port_selected_index)
     self.setResult('Field', results)
 
-class SCIRun_CreateLightForViewer(Module) :
-  def compute(self) :
-    control_pos_saved = 0
-    if self.hasInputFromPort('control_pos_saved') :
-      control_pos_saved = self.getInputFromPort('control_pos_saved')
-    control_x = 0.0
-    if self.hasInputFromPort('control_x') :
-      control_x = self.getInputFromPort('control_x')
-    control_y = 0.0
-    if self.hasInputFromPort('control_y') :
-      control_y = self.getInputFromPort('control_y')
-    control_z = 0.0
-    if self.hasInputFromPort('control_z') :
-      control_z = self.getInputFromPort('control_z')
-    at_x = 0.0
-    if self.hasInputFromPort('at_x') :
-      at_x = self.getInputFromPort('at_x')
-    at_y = 0.0
-    if self.hasInputFromPort('at_y') :
-      at_y = self.getInputFromPort('at_y')
-    at_z = 1.0
-    if self.hasInputFromPort('at_z') :
-      at_z = self.getInputFromPort('at_z')
-    type = 0
-    if self.hasInputFromPort('type') :
-      type = self.getInputFromPort('type')
-    on = 1
-    if self.hasInputFromPort('on') :
-      on = self.getInputFromPort('on')
-    results = sr_py.CreateLightForViewer(control_pos_saved,control_x,control_y,control_z,at_x,at_y,at_z,type,on)
-    self.setResult('Geometry', results)
-
-class SCIRun_ConvertRegularMeshToStructuredMesh(Module) :
+class scirun_ConvertRegularMeshToStructuredMesh(Module) :
   def compute(self) :
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
@@ -3576,29 +3086,113 @@ class SCIRun_ConvertRegularMeshToStructuredMesh(Module) :
     results = sr_py.ConvertRegularMeshToStructuredMesh(Input_Field)
     self.setResult('Output Field', results)
 
-class SCIRun_WriteColorMap(Module) :
+class scirun_CreateLightForViewer(Module) :
   def compute(self) :
-    filetype = 'Binary'
-    if self.hasInputFromPort('filetype') :
-      filetype = self.getInputFromPort('filetype')
-    confirm = 0
-    if self.hasInputFromPort('confirm') :
-      confirm = self.getInputFromPort('confirm')
-    confirm_once = 0
-    if self.hasInputFromPort('confirm_once') :
-      confirm_once = self.getInputFromPort('confirm_once')
-    exporttype = ''
-    if self.hasInputFromPort('exporttype') :
-      exporttype = self.getInputFromPort('exporttype')
-    Input_Data = 0
-    if self.hasInputFromPort('Input Data') :
-      Input_Data = self.getInputFromPort('Input Data')
-    Filename = 0
-    if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
-    results = sr_py.WriteColorMap(Input_Data,Filename,filetype,confirm,confirm_once,exporttype)
+    p_control_pos_saved = 0
+    if self.hasInputFromPort('p_control_pos_saved') :
+      p_control_pos_saved = self.getInputFromPort('p_control_pos_saved')
+    p_control_x = 0.0
+    if self.hasInputFromPort('p_control_x') :
+      p_control_x = self.getInputFromPort('p_control_x')
+    p_control_y = 0.0
+    if self.hasInputFromPort('p_control_y') :
+      p_control_y = self.getInputFromPort('p_control_y')
+    p_control_z = 0.0
+    if self.hasInputFromPort('p_control_z') :
+      p_control_z = self.getInputFromPort('p_control_z')
+    p_at_x = 0.0
+    if self.hasInputFromPort('p_at_x') :
+      p_at_x = self.getInputFromPort('p_at_x')
+    p_at_y = 0.0
+    if self.hasInputFromPort('p_at_y') :
+      p_at_y = self.getInputFromPort('p_at_y')
+    p_at_z = 1.0
+    if self.hasInputFromPort('p_at_z') :
+      p_at_z = self.getInputFromPort('p_at_z')
+    p_type = 0
+    if self.hasInputFromPort('p_type') :
+      p_type = self.getInputFromPort('p_type')
+    p_on = 1
+    if self.hasInputFromPort('p_on') :
+      p_on = self.getInputFromPort('p_on')
+    results = sr_py.CreateLightForViewer(p_control_pos_saved,p_control_x,p_control_y,p_control_z,p_at_x,p_at_y,p_at_z,p_type,p_on)
+    self.setResult('Geometry', results)
 
-class SCIRun_MergeFields(Module) :
+class scirun_GetMatricesFromBundle(Module) :
+  def compute(self) :
+    p_matrix1_name = 'matrix1'
+    if self.hasInputFromPort('p_matrix1_name') :
+      p_matrix1_name = self.getInputFromPort('p_matrix1_name')
+    p_matrix2_name = 'matrix2'
+    if self.hasInputFromPort('p_matrix2_name') :
+      p_matrix2_name = self.getInputFromPort('p_matrix2_name')
+    p_matrix3_name = 'matrix3'
+    if self.hasInputFromPort('p_matrix3_name') :
+      p_matrix3_name = self.getInputFromPort('p_matrix3_name')
+    p_matrix4_name = 'matrix4'
+    if self.hasInputFromPort('p_matrix4_name') :
+      p_matrix4_name = self.getInputFromPort('p_matrix4_name')
+    p_matrix5_name = 'matrix5'
+    if self.hasInputFromPort('p_matrix5_name') :
+      p_matrix5_name = self.getInputFromPort('p_matrix5_name')
+    p_matrix6_name = 'matrix6'
+    if self.hasInputFromPort('p_matrix6_name') :
+      p_matrix6_name = self.getInputFromPort('p_matrix6_name')
+    p_transposenrrd1 = 0
+    if self.hasInputFromPort('p_transposenrrd1') :
+      p_transposenrrd1 = self.getInputFromPort('p_transposenrrd1')
+    p_transposenrrd2 = 0
+    if self.hasInputFromPort('p_transposenrrd2') :
+      p_transposenrrd2 = self.getInputFromPort('p_transposenrrd2')
+    p_transposenrrd3 = 0
+    if self.hasInputFromPort('p_transposenrrd3') :
+      p_transposenrrd3 = self.getInputFromPort('p_transposenrrd3')
+    p_transposenrrd4 = 0
+    if self.hasInputFromPort('p_transposenrrd4') :
+      p_transposenrrd4 = self.getInputFromPort('p_transposenrrd4')
+    p_transposenrrd5 = 0
+    if self.hasInputFromPort('p_transposenrrd5') :
+      p_transposenrrd5 = self.getInputFromPort('p_transposenrrd5')
+    p_transposenrrd6 = 0
+    if self.hasInputFromPort('p_transposenrrd6') :
+      p_transposenrrd6 = self.getInputFromPort('p_transposenrrd6')
+    p_matrix_selection = ''
+    if self.hasInputFromPort('p_matrix_selection') :
+      p_matrix_selection = self.getInputFromPort('p_matrix_selection')
+    bundle = 0
+    if self.hasInputFromPort('bundle') :
+      bundle = self.getInputFromPort('bundle')
+    results = sr_py.GetMatricesFromBundle(bundle,p_matrix1_name,p_matrix2_name,p_matrix3_name,p_matrix4_name,p_matrix5_name,p_matrix6_name,p_transposenrrd1,p_transposenrrd2,p_transposenrrd3,p_transposenrrd4,p_transposenrrd5,p_transposenrrd6,p_matrix_selection)
+    self.setResult('bundle', sr_py.read_at_index(results,0))
+    self.setResult('matrix1', sr_py.read_at_index(results,1))
+    self.setResult('matrix2', sr_py.read_at_index(results,2))
+    self.setResult('matrix3', sr_py.read_at_index(results,3))
+    self.setResult('matrix4', sr_py.read_at_index(results,4))
+    self.setResult('matrix5', sr_py.read_at_index(results,5))
+    self.setResult('matrix6', sr_py.read_at_index(results,6))
+
+class scirun_RefineMesh(Module) :
+  def compute(self) :
+    p_select = 'all'
+    if self.hasInputFromPort('p_select') :
+      p_select = self.getInputFromPort('p_select')
+    p_method = 'default'
+    if self.hasInputFromPort('p_method') :
+      p_method = self.getInputFromPort('p_method')
+    p_isoval = 0.0
+    if self.hasInputFromPort('p_isoval') :
+      p_isoval = self.getInputFromPort('p_isoval')
+    Mesh = 0
+    if self.hasInputFromPort('Mesh') :
+      Mesh = self.getInputFromPort('Mesh')
+    Isovalue = 0
+    if self.hasInputFromPort('Isovalue') :
+      Isovalue = self.getInputFromPort('Isovalue')
+    results = sr_py.RefineMesh(Mesh,Isovalue,p_select,p_method,p_isoval)
+    self.setResult('RefinedMesh', sr_py.read_at_index(results,0))
+    self.setResult('Mapping', sr_py.read_at_index(results,1))
+
+class scirun_MergeFields(Module) :
   def compute(self) :
     Container_Mesh = 0
     if self.hasInputFromPort('Container Mesh') :
@@ -3611,28 +3205,28 @@ class SCIRun_MergeFields(Module) :
     self.setResult('Extended Insert Field', sr_py.read_at_index(results,1))
     self.setResult('Combined To Extended Mapping', sr_py.read_at_index(results,2))
 
-class SCIRun_BuildPointCloudToLatVolMappingMatrix(Module) :
+class scirun_BuildPointCloudToLatVolMappingMatrix(Module) :
   def compute(self) :
-    epsilon = 0.0
-    if self.hasInputFromPort('epsilon') :
-      epsilon = self.getInputFromPort('epsilon')
+    p_epsilon = '0.0'
+    if self.hasInputFromPort('p_epsilon') :
+      p_epsilon = self.getInputFromPort('p_epsilon')
     PointCloudField = 0
     if self.hasInputFromPort('PointCloudField') :
       PointCloudField = self.getInputFromPort('PointCloudField')
     LatVolField = 0
     if self.hasInputFromPort('LatVolField') :
       LatVolField = self.getInputFromPort('LatVolField')
-    results = sr_py.BuildPointCloudToLatVolMappingMatrix(PointCloudField,LatVolField,epsilon)
+    results = sr_py.BuildPointCloudToLatVolMappingMatrix(PointCloudField,LatVolField,p_epsilon)
     self.setResult('MappingMatrix', results)
 
-class SCIRun_CalculateDataArray(Module) :
+class scirun_CalculateDataArray(Module) :
   def compute(self) :
-    function = 'RESULT = abs(DATA);'
-    if self.hasInputFromPort('function') :
-      function = self.getInputFromPort('function')
-    format = 'Scalar'
-    if self.hasInputFromPort('format') :
-      format = self.getInputFromPort('format')
+    p_function = 'RESULT = abs(DATA);'
+    if self.hasInputFromPort('p_function') :
+      p_function = self.getInputFromPort('p_function')
+    p_format = 'Scalar'
+    if self.hasInputFromPort('p_format') :
+      p_format = self.getInputFromPort('p_format')
     DataArray = 0
     if self.hasInputFromPort('DataArray') :
       DataArray = self.getInputFromPort('DataArray')
@@ -3642,140 +3236,105 @@ class SCIRun_CalculateDataArray(Module) :
     Array = 0
     if self.hasInputFromPort('Array') :
       Array = self.getInputFromPort('Array')
-    results = sr_py.CalculateDataArray(DataArray,Function,Array,function,format)
+    results = sr_py.CalculateDataArray(DataArray,Function,Array,p_function,p_format)
     self.setResult('DataArray', results)
 
-class SCIRun_GetColumnOrRowFromMatrix(Module) :
+class scirun_WriteColorMap(Module) :
   def compute(self) :
-    row_or_col = 'row'
-    if self.hasInputFromPort('row_or_col') :
-      row_or_col = self.getInputFromPort('row_or_col')
-    selectable_min = 0
-    if self.hasInputFromPort('selectable_min') :
-      selectable_min = self.getInputFromPort('selectable_min')
-    selectable_max = 100
-    if self.hasInputFromPort('selectable_max') :
-      selectable_max = self.getInputFromPort('selectable_max')
-    selectable_inc = 1
-    if self.hasInputFromPort('selectable_inc') :
-      selectable_inc = self.getInputFromPort('selectable_inc')
-    selectable_units = ''
-    if self.hasInputFromPort('selectable_units') :
-      selectable_units = self.getInputFromPort('selectable_units')
-    range_min = 0
-    if self.hasInputFromPort('range_min') :
-      range_min = self.getInputFromPort('range_min')
-    range_max = 100
-    if self.hasInputFromPort('range_max') :
-      range_max = self.getInputFromPort('range_max')
-    playmode = 'once'
-    if self.hasInputFromPort('playmode') :
-      playmode = self.getInputFromPort('playmode')
-    current = 0
-    if self.hasInputFromPort('current') :
-      current = self.getInputFromPort('current')
-    execmode = 'init'
-    if self.hasInputFromPort('execmode') :
-      execmode = self.getInputFromPort('execmode')
-    delay = 0
-    if self.hasInputFromPort('delay') :
-      delay = self.getInputFromPort('delay')
-    inc_amount = 1
-    if self.hasInputFromPort('inc_amount') :
-      inc_amount = self.getInputFromPort('inc_amount')
-    send_amount = 1
-    if self.hasInputFromPort('send_amount') :
-      send_amount = self.getInputFromPort('send_amount')
-    data_series_done = 0
-    if self.hasInputFromPort('data_series_done') :
-      data_series_done = self.getInputFromPort('data_series_done')
-    Matrix = 0
-    if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
-    Weight_Vector = 0
-    if self.hasInputFromPort('Weight Vector') :
-      Weight_Vector = self.getInputFromPort('Weight Vector')
-    Current_Index = 0
-    if self.hasInputFromPort('Current Index') :
-      Current_Index = self.getInputFromPort('Current Index')
-    results = sr_py.GetColumnOrRowFromMatrix(Matrix,Weight_Vector,Current_Index,row_or_col,selectable_min,selectable_max,selectable_inc,selectable_units,range_min,range_max,playmode,current,execmode,delay,inc_amount,send_amount,data_series_done)
-    self.setResult('Vector', sr_py.read_at_index(results,0))
-    self.setResult('Selected Index', sr_py.read_at_index(results,1))
+    p_filetype = 'Binary'
+    if self.hasInputFromPort('p_filetype') :
+      p_filetype = self.getInputFromPort('p_filetype')
+    p_confirm = '0'
+    if self.hasInputFromPort('p_confirm') :
+      p_confirm = self.getInputFromPort('p_confirm')
+    p_confirm_once = '0'
+    if self.hasInputFromPort('p_confirm_once') :
+      p_confirm_once = self.getInputFromPort('p_confirm_once')
+    p_exporttype = ''
+    if self.hasInputFromPort('p_exporttype') :
+      p_exporttype = self.getInputFromPort('p_exporttype')
+    Input_Data = 0
+    if self.hasInputFromPort('Input Data') :
+      Input_Data = self.getInputFromPort('Input Data')
+    Filename = 0
+    if self.hasInputFromPort('Filename') :
+      Filename = self.getInputFromPort('Filename')
+    results = sr_py.WriteColorMap(Input_Data,Filename,p_filetype,p_confirm,p_confirm_once,p_exporttype)
 
-class SCIRun_ShowTextureVolume(Module) :
+class scirun_ShowTextureVolume(Module) :
   def compute(self) :
-    sampling_rate_hi = 4.0
-    if self.hasInputFromPort('sampling_rate_hi') :
-      sampling_rate_hi = self.getInputFromPort('sampling_rate_hi')
-    sampling_rate_lo = 1.0
-    if self.hasInputFromPort('sampling_rate_lo') :
-      sampling_rate_lo = self.getInputFromPort('sampling_rate_lo')
-    gradient_min = 0.0
-    if self.hasInputFromPort('gradient_min') :
-      gradient_min = self.getInputFromPort('gradient_min')
-    gradient_max = 0.0
-    if self.hasInputFromPort('gradient_max') :
-      gradient_max = self.getInputFromPort('gradient_max')
-    adaptive = 1
-    if self.hasInputFromPort('adaptive') :
-      adaptive = self.getInputFromPort('adaptive')
-    cmap_size = 8
-    if self.hasInputFromPort('cmap_size') :
-      cmap_size = self.getInputFromPort('cmap_size')
-    sw_raster = 0
-    if self.hasInputFromPort('sw_raster') :
-      sw_raster = self.getInputFromPort('sw_raster')
-    render_style = 0
-    if self.hasInputFromPort('render_style') :
-      render_style = self.getInputFromPort('render_style')
-    alpha_scale = 0.0
-    if self.hasInputFromPort('alpha_scale') :
-      alpha_scale = self.getInputFromPort('alpha_scale')
-    interp_mode = 1
-    if self.hasInputFromPort('interp_mode') :
-      interp_mode = self.getInputFromPort('interp_mode')
-    shading = 0
-    if self.hasInputFromPort('shading') :
-      shading = self.getInputFromPort('shading')
-    ambient = 0.5
-    if self.hasInputFromPort('ambient') :
-      ambient = self.getInputFromPort('ambient')
-    diffuse = 0.5
-    if self.hasInputFromPort('diffuse') :
-      diffuse = self.getInputFromPort('diffuse')
-    specular = 0.0
-    if self.hasInputFromPort('specular') :
-      specular = self.getInputFromPort('specular')
-    shine = 30.0
-    if self.hasInputFromPort('shine') :
-      shine = self.getInputFromPort('shine')
-    light = 0
-    if self.hasInputFromPort('light') :
-      light = self.getInputFromPort('light')
-    blend_res = 8
-    if self.hasInputFromPort('blend_res') :
-      blend_res = self.getInputFromPort('blend_res')
-    multi_level = 1
-    if self.hasInputFromPort('multi_level') :
-      multi_level = self.getInputFromPort('multi_level')
-    use_stencil = 0
-    if self.hasInputFromPort('use_stencil') :
-      use_stencil = self.getInputFromPort('use_stencil')
-    invert_opacity = 0
-    if self.hasInputFromPort('invert_opacity') :
-      invert_opacity = self.getInputFromPort('invert_opacity')
-    num_clipping_planes = 2
-    if self.hasInputFromPort('num_clipping_planes') :
-      num_clipping_planes = self.getInputFromPort('num_clipping_planes')
-    show_clipping_widgets = 1
-    if self.hasInputFromPort('show_clipping_widgets') :
-      show_clipping_widgets = self.getInputFromPort('show_clipping_widgets')
-    level_on = ''
-    if self.hasInputFromPort('level_on') :
-      level_on = self.getInputFromPort('level_on')
-    level_vals = ''
-    if self.hasInputFromPort('level_vals') :
-      level_vals = self.getInputFromPort('level_vals')
+    p_sampling_rate_hi = 4.0
+    if self.hasInputFromPort('p_sampling_rate_hi') :
+      p_sampling_rate_hi = self.getInputFromPort('p_sampling_rate_hi')
+    p_sampling_rate_lo = 1.0
+    if self.hasInputFromPort('p_sampling_rate_lo') :
+      p_sampling_rate_lo = self.getInputFromPort('p_sampling_rate_lo')
+    p_gradient_min = 0.0
+    if self.hasInputFromPort('p_gradient_min') :
+      p_gradient_min = self.getInputFromPort('p_gradient_min')
+    p_gradient_max = 0.0
+    if self.hasInputFromPort('p_gradient_max') :
+      p_gradient_max = self.getInputFromPort('p_gradient_max')
+    p_adaptive = 1
+    if self.hasInputFromPort('p_adaptive') :
+      p_adaptive = self.getInputFromPort('p_adaptive')
+    p_cmap_size = 8
+    if self.hasInputFromPort('p_cmap_size') :
+      p_cmap_size = self.getInputFromPort('p_cmap_size')
+    p_sw_raster = 0
+    if self.hasInputFromPort('p_sw_raster') :
+      p_sw_raster = self.getInputFromPort('p_sw_raster')
+    p_render_style = 0
+    if self.hasInputFromPort('p_render_style') :
+      p_render_style = self.getInputFromPort('p_render_style')
+    p_alpha_scale = 0.0
+    if self.hasInputFromPort('p_alpha_scale') :
+      p_alpha_scale = self.getInputFromPort('p_alpha_scale')
+    p_interp_mode = 1
+    if self.hasInputFromPort('p_interp_mode') :
+      p_interp_mode = self.getInputFromPort('p_interp_mode')
+    p_shading = 0
+    if self.hasInputFromPort('p_shading') :
+      p_shading = self.getInputFromPort('p_shading')
+    p_ambient = 0.5
+    if self.hasInputFromPort('p_ambient') :
+      p_ambient = self.getInputFromPort('p_ambient')
+    p_diffuse = 0.5
+    if self.hasInputFromPort('p_diffuse') :
+      p_diffuse = self.getInputFromPort('p_diffuse')
+    p_specular = 0.0
+    if self.hasInputFromPort('p_specular') :
+      p_specular = self.getInputFromPort('p_specular')
+    p_shine = 30.0
+    if self.hasInputFromPort('p_shine') :
+      p_shine = self.getInputFromPort('p_shine')
+    p_light = 0
+    if self.hasInputFromPort('p_light') :
+      p_light = self.getInputFromPort('p_light')
+    p_blend_res = 8
+    if self.hasInputFromPort('p_blend_res') :
+      p_blend_res = self.getInputFromPort('p_blend_res')
+    p_multi_level = 1
+    if self.hasInputFromPort('p_multi_level') :
+      p_multi_level = self.getInputFromPort('p_multi_level')
+    p_use_stencil = 0
+    if self.hasInputFromPort('p_use_stencil') :
+      p_use_stencil = self.getInputFromPort('p_use_stencil')
+    p_invert_opacity = 0
+    if self.hasInputFromPort('p_invert_opacity') :
+      p_invert_opacity = self.getInputFromPort('p_invert_opacity')
+    p_num_clipping_planes = 0
+    if self.hasInputFromPort('p_num_clipping_planes') :
+      p_num_clipping_planes = self.getInputFromPort('p_num_clipping_planes')
+    p_show_clipping_widgets = 1
+    if self.hasInputFromPort('p_show_clipping_widgets') :
+      p_show_clipping_widgets = self.getInputFromPort('p_show_clipping_widgets')
+    p_level_on = ''
+    if self.hasInputFromPort('p_level_on') :
+      p_level_on = self.getInputFromPort('p_level_on')
+    p_level_vals = ''
+    if self.hasInputFromPort('p_level_vals') :
+      p_level_vals = self.getInputFromPort('p_level_vals')
     Texture = 0
     if self.hasInputFromPort('Texture') :
       Texture = self.getInputFromPort('Texture')
@@ -3785,11 +3344,11 @@ class SCIRun_ShowTextureVolume(Module) :
     ColorMap2 = 0
     if self.hasInputFromPort('ColorMap2') :
       ColorMap2 = self.getInputFromPort('ColorMap2')
-    results = sr_py.ShowTextureVolume(Texture,ColorMap,ColorMap2,sampling_rate_hi,sampling_rate_lo,gradient_min,gradient_max,adaptive,cmap_size,sw_raster,render_style,alpha_scale,interp_mode,shading,ambient,diffuse,specular,shine,light,blend_res,multi_level,use_stencil,invert_opacity,num_clipping_planes,show_clipping_widgets,level_on,level_vals)
+    results = sr_py.ShowTextureVolume(Texture,ColorMap,ColorMap2,p_sampling_rate_hi,p_sampling_rate_lo,p_gradient_min,p_gradient_max,p_adaptive,p_cmap_size,p_sw_raster,p_render_style,p_alpha_scale,p_interp_mode,p_shading,p_ambient,p_diffuse,p_specular,p_shine,p_light,p_blend_res,p_multi_level,p_use_stencil,p_invert_opacity,p_num_clipping_planes,p_show_clipping_widgets,p_level_on,p_level_vals)
     self.setResult('Geometry', sr_py.read_at_index(results,0))
     self.setResult('ColorMap', sr_py.read_at_index(results,1))
 
-class SCIRun_GetCentroidsFromMesh(Module) :
+class scirun_GetCentroidsFromMesh(Module) :
   def compute(self) :
     TetVolField = 0
     if self.hasInputFromPort('TetVolField') :
@@ -3797,19 +3356,7 @@ class SCIRun_GetCentroidsFromMesh(Module) :
     results = sr_py.GetCentroidsFromMesh(TetVolField)
     self.setResult('PointCloudField', results)
 
-class SCIRun_ReadColorMap2D(Module) :
-  def compute(self) :
-    from_env = ''
-    if self.hasInputFromPort('from_env') :
-      from_env = self.getInputFromPort('from_env')
-    Filename = 0
-    if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
-    results = sr_py.ReadColorMap2D(Filename,from_env)
-    self.setResult('Output Data', sr_py.read_at_index(results,0))
-    self.setResult('Filename', sr_py.read_at_index(results,1))
-
-class SCIRun_ConvertLatVolDataFromNodeToElem(Module) :
+class scirun_ConvertLatVolDataFromNodeToElem(Module) :
   def compute(self) :
     Node_Field = 0
     if self.hasInputFromPort('Node Field') :
@@ -3817,110 +3364,158 @@ class SCIRun_ConvertLatVolDataFromNodeToElem(Module) :
     results = sr_py.ConvertLatVolDataFromNodeToElem(Node_Field)
     self.setResult('Elem Field', results)
 
-class SCIRun_InsertHexVolSheetAlongSurface(Module) :
+class scirun_ReadColorMap2D(Module) :
   def compute(self) :
-    side = 'side1'
-    if self.hasInputFromPort('side') :
-      side = self.getInputFromPort('side')
-    addlayer = 'On'
-    if self.hasInputFromPort('addlayer') :
-      addlayer = self.getInputFromPort('addlayer')
-    HexField = 0
-    if self.hasInputFromPort('HexField') :
-      HexField = self.getInputFromPort('HexField')
-    TriField = 0
-    if self.hasInputFromPort('TriField') :
-      TriField = self.getInputFromPort('TriField')
-    results = sr_py.InsertHexVolSheetAlongSurface(HexField,TriField,side,addlayer)
-    self.setResult('Side1Field', sr_py.read_at_index(results,0))
-    self.setResult('Side2Field', sr_py.read_at_index(results,1))
+    p_from_env = ''
+    if self.hasInputFromPort('p_from_env') :
+      p_from_env = self.getInputFromPort('p_from_env')
+    Filename = 0
+    if self.hasInputFromPort('Filename') :
+      Filename = self.getInputFromPort('Filename')
+    results = sr_py.ReadColorMap2D(Filename,p_from_env)
+    self.setResult('Output Data', sr_py.read_at_index(results,0))
+    self.setResult('Filename', sr_py.read_at_index(results,1))
 
-class SCIRun_ExtractIsosurfaceByFunction(Module) :
+class scirun_GetColumnOrRowFromMatrix(Module) :
   def compute(self) :
-    function = 'result = sqrt(x*x + y*y);'
-    if self.hasInputFromPort('function') :
-      function = self.getInputFromPort('function')
-    zero_checks = 0
-    if self.hasInputFromPort('zero_checks') :
-      zero_checks = self.getInputFromPort('zero_checks')
-    slice_value_min = 0.0
-    if self.hasInputFromPort('slice_value_min') :
-      slice_value_min = self.getInputFromPort('slice_value_min')
-    slice_value_max = 99.0
-    if self.hasInputFromPort('slice_value_max') :
-      slice_value_max = self.getInputFromPort('slice_value_max')
-    slice_value = 0.0
-    if self.hasInputFromPort('slice_value') :
-      slice_value = self.getInputFromPort('slice_value')
-    slice_value_typed = 0.0
-    if self.hasInputFromPort('slice_value_typed') :
-      slice_value_typed = self.getInputFromPort('slice_value_typed')
-    slice_value_quantity = 1
-    if self.hasInputFromPort('slice_value_quantity') :
-      slice_value_quantity = self.getInputFromPort('slice_value_quantity')
-    quantity_range = 'field'
-    if self.hasInputFromPort('quantity_range') :
-      quantity_range = self.getInputFromPort('quantity_range')
-    quantity_clusive = 'exclusive'
-    if self.hasInputFromPort('quantity_clusive') :
-      quantity_clusive = self.getInputFromPort('quantity_clusive')
-    quantity_min = 0.0
-    if self.hasInputFromPort('quantity_min') :
-      quantity_min = self.getInputFromPort('quantity_min')
-    quantity_max = 100.0
-    if self.hasInputFromPort('quantity_max') :
-      quantity_max = self.getInputFromPort('quantity_max')
-    quantity_list = ''
-    if self.hasInputFromPort('quantity_list') :
-      quantity_list = self.getInputFromPort('quantity_list')
-    slice_value_list = 'No values present.'
-    if self.hasInputFromPort('slice_value_list') :
-      slice_value_list = self.getInputFromPort('slice_value_list')
-    matrix_list = 'No matrix present - execution needed.'
-    if self.hasInputFromPort('matrix_list') :
-      matrix_list = self.getInputFromPort('matrix_list')
-    extract_from_new_field = 1
-    if self.hasInputFromPort('extract_from_new_field') :
-      extract_from_new_field = self.getInputFromPort('extract_from_new_field')
-    algorithm = 0
-    if self.hasInputFromPort('algorithm') :
-      algorithm = self.getInputFromPort('algorithm')
-    build_trisurf = 1
-    if self.hasInputFromPort('build_trisurf') :
-      build_trisurf = self.getInputFromPort('build_trisurf')
-    build_geom = 1
-    if self.hasInputFromPort('build_geom') :
-      build_geom = self.getInputFromPort('build_geom')
-    active_slice_value_selection_tab = 0
-    if self.hasInputFromPort('active_slice_value_selection_tab') :
-      active_slice_value_selection_tab = self.getInputFromPort('active_slice_value_selection_tab')
-    active_tab = 0
-    if self.hasInputFromPort('active_tab') :
-      active_tab = self.getInputFromPort('active_tab')
-    update_type = 'On Release'
-    if self.hasInputFromPort('update_type') :
-      update_type = self.getInputFromPort('update_type')
+    p_row_or_col = 'row'
+    if self.hasInputFromPort('p_row_or_col') :
+      p_row_or_col = self.getInputFromPort('p_row_or_col')
+    p_selectable_min = 0
+    if self.hasInputFromPort('p_selectable_min') :
+      p_selectable_min = self.getInputFromPort('p_selectable_min')
+    p_selectable_max = 100
+    if self.hasInputFromPort('p_selectable_max') :
+      p_selectable_max = self.getInputFromPort('p_selectable_max')
+    p_selectable_inc = 1
+    if self.hasInputFromPort('p_selectable_inc') :
+      p_selectable_inc = self.getInputFromPort('p_selectable_inc')
+    p_selectable_units = ''
+    if self.hasInputFromPort('p_selectable_units') :
+      p_selectable_units = self.getInputFromPort('p_selectable_units')
+    p_range_min = 0
+    if self.hasInputFromPort('p_range_min') :
+      p_range_min = self.getInputFromPort('p_range_min')
+    p_range_max = 100
+    if self.hasInputFromPort('p_range_max') :
+      p_range_max = self.getInputFromPort('p_range_max')
+    p_playmode = 'once'
+    if self.hasInputFromPort('p_playmode') :
+      p_playmode = self.getInputFromPort('p_playmode')
+    p_current = 0
+    if self.hasInputFromPort('p_current') :
+      p_current = self.getInputFromPort('p_current')
+    p_execmode = 'init'
+    if self.hasInputFromPort('p_execmode') :
+      p_execmode = self.getInputFromPort('p_execmode')
+    p_delay = 0
+    if self.hasInputFromPort('p_delay') :
+      p_delay = self.getInputFromPort('p_delay')
+    p_inc_amount = 1
+    if self.hasInputFromPort('p_inc_amount') :
+      p_inc_amount = self.getInputFromPort('p_inc_amount')
+    p_send_amount = 1
+    if self.hasInputFromPort('p_send_amount') :
+      p_send_amount = self.getInputFromPort('p_send_amount')
+    p_data_series_done = 0
+    if self.hasInputFromPort('p_data_series_done') :
+      p_data_series_done = self.getInputFromPort('p_data_series_done')
+    Matrix = 0
+    if self.hasInputFromPort('Matrix') :
+      Matrix = self.getInputFromPort('Matrix')
+    Weight_Vector = 0
+    if self.hasInputFromPort('Weight Vector') :
+      Weight_Vector = self.getInputFromPort('Weight Vector')
+    Current_Index = 0
+    if self.hasInputFromPort('Current Index') :
+      Current_Index = self.getInputFromPort('Current Index')
+    results = sr_py.GetColumnOrRowFromMatrix(Matrix,Weight_Vector,Current_Index,p_row_or_col,p_selectable_min,p_selectable_max,p_selectable_inc,p_selectable_units,p_range_min,p_range_max,p_playmode,p_current,p_execmode,p_delay,p_inc_amount,p_send_amount,p_data_series_done)
+    self.setResult('Vector', sr_py.read_at_index(results,0))
+    self.setResult('Selected Index', sr_py.read_at_index(results,1))
+
+class scirun_ExtractIsosurfaceByFunction(Module) :
+  def compute(self) :
+    p_function = 'result = sqrt(x*x + y*y);'
+    if self.hasInputFromPort('p_function') :
+      p_function = self.getInputFromPort('p_function')
+    p_zero_checks = 0
+    if self.hasInputFromPort('p_zero_checks') :
+      p_zero_checks = self.getInputFromPort('p_zero_checks')
+    p_slice_value_min = 0.0
+    if self.hasInputFromPort('p_slice_value_min') :
+      p_slice_value_min = self.getInputFromPort('p_slice_value_min')
+    p_slice_value_max = 99.0
+    if self.hasInputFromPort('p_slice_value_max') :
+      p_slice_value_max = self.getInputFromPort('p_slice_value_max')
+    p_slice_value = 0.0
+    if self.hasInputFromPort('p_slice_value') :
+      p_slice_value = self.getInputFromPort('p_slice_value')
+    p_slice_value_typed = 0.0
+    if self.hasInputFromPort('p_slice_value_typed') :
+      p_slice_value_typed = self.getInputFromPort('p_slice_value_typed')
+    p_slice_value_quantity = 1
+    if self.hasInputFromPort('p_slice_value_quantity') :
+      p_slice_value_quantity = self.getInputFromPort('p_slice_value_quantity')
+    p_quantity_range = 'field'
+    if self.hasInputFromPort('p_quantity_range') :
+      p_quantity_range = self.getInputFromPort('p_quantity_range')
+    p_quantity_clusive = 'exclusive'
+    if self.hasInputFromPort('p_quantity_clusive') :
+      p_quantity_clusive = self.getInputFromPort('p_quantity_clusive')
+    p_quantity_min = 0.0
+    if self.hasInputFromPort('p_quantity_min') :
+      p_quantity_min = self.getInputFromPort('p_quantity_min')
+    p_quantity_max = 100.0
+    if self.hasInputFromPort('p_quantity_max') :
+      p_quantity_max = self.getInputFromPort('p_quantity_max')
+    p_quantity_list = ''
+    if self.hasInputFromPort('p_quantity_list') :
+      p_quantity_list = self.getInputFromPort('p_quantity_list')
+    p_slice_value_list = 'No values present.'
+    if self.hasInputFromPort('p_slice_value_list') :
+      p_slice_value_list = self.getInputFromPort('p_slice_value_list')
+    p_matrix_list = 'No matrix present - execution needed.'
+    if self.hasInputFromPort('p_matrix_list') :
+      p_matrix_list = self.getInputFromPort('p_matrix_list')
+    p_algorithm = 0
+    if self.hasInputFromPort('p_algorithm') :
+      p_algorithm = self.getInputFromPort('p_algorithm')
+    p_build_trisurf = 1
+    if self.hasInputFromPort('p_build_trisurf') :
+      p_build_trisurf = self.getInputFromPort('p_build_trisurf')
+    p_build_geom = 1
+    if self.hasInputFromPort('p_build_geom') :
+      p_build_geom = self.getInputFromPort('p_build_geom')
+    p_active_slice_value_selection_tab = '0'
+    if self.hasInputFromPort('p_active_slice_value_selection_tab') :
+      p_active_slice_value_selection_tab = self.getInputFromPort('p_active_slice_value_selection_tab')
+    p_active_tab = '0'
+    if self.hasInputFromPort('p_active_tab') :
+      p_active_tab = self.getInputFromPort('p_active_tab')
+    p_update_type = 'On Release'
+    if self.hasInputFromPort('p_update_type') :
+      p_update_type = self.getInputFromPort('p_update_type')
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
     Optional_Slice_values = 0
     if self.hasInputFromPort('Optional Slice values') :
       Optional_Slice_values = self.getInputFromPort('Optional Slice values')
-    results = sr_py.ExtractIsosurfaceByFunction(Input_Field,Optional_Slice_values,function,zero_checks,slice_value_min,slice_value_max,slice_value,slice_value_typed,slice_value_quantity,quantity_range,quantity_clusive,quantity_min,quantity_max,quantity_list,slice_value_list,matrix_list,extract_from_new_field,algorithm,build_trisurf,build_geom,active_slice_value_selection_tab,active_tab,update_type)
+    results = sr_py.ExtractIsosurfaceByFunction(Input_Field,Optional_Slice_values,p_function,p_zero_checks,p_slice_value_min,p_slice_value_max,p_slice_value,p_slice_value_typed,p_slice_value_quantity,p_quantity_range,p_quantity_clusive,p_quantity_min,p_quantity_max,p_quantity_list,p_slice_value_list,p_matrix_list,p_algorithm,p_build_trisurf,p_build_geom,p_active_slice_value_selection_tab,p_active_tab,p_update_type)
     self.setResult('Output Field', results)
 
-class SCIRun_BuildNoiseColumnMatrix(Module) :
+class scirun_BuildNoiseColumnMatrix(Module) :
   def compute(self) :
-    snr = 10.0
-    if self.hasInputFromPort('snr') :
-      snr = self.getInputFromPort('snr')
+    p_snr = 10.0
+    if self.hasInputFromPort('p_snr') :
+      p_snr = self.getInputFromPort('p_snr')
     Signal = 0
     if self.hasInputFromPort('Signal') :
       Signal = self.getInputFromPort('Signal')
-    results = sr_py.BuildNoiseColumnMatrix(Signal,snr)
+    results = sr_py.BuildNoiseColumnMatrix(Signal,p_snr)
     self.setResult('Noise', results)
 
-class SCIRun_MergeTriSurfs(Module) :
+class scirun_MergeTriSurfs(Module) :
   def compute(self) :
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
@@ -3928,23 +3523,23 @@ class SCIRun_MergeTriSurfs(Module) :
     results = sr_py.MergeTriSurfs(Input_Field)
     self.setResult('Output Field', results)
 
-class SCIRun_ReadString(Module) :
+class scirun_ReadString(Module) :
   def compute(self) :
-    from_env = ''
-    if self.hasInputFromPort('from_env') :
-      from_env = self.getInputFromPort('from_env')
+    p_from_env = ''
+    if self.hasInputFromPort('p_from_env') :
+      p_from_env = self.getInputFromPort('p_from_env')
     Filename = 0
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
-    results = sr_py.ReadString(Filename,from_env)
+    results = sr_py.ReadString(Filename,p_from_env)
     self.setResult('Output Data', sr_py.read_at_index(results,0))
     self.setResult('Filename', sr_py.read_at_index(results,1))
 
-class SCIRun_InterfaceWithTetGen(Module) :
+class scirun_InterfaceWithTetGen(Module) :
   def compute(self) :
-    switch = 'pqYAz'
-    if self.hasInputFromPort('switch') :
-      switch = self.getInputFromPort('switch')
+    p_switch = 'pqYAz'
+    if self.hasInputFromPort('p_switch') :
+      p_switch = self.getInputFromPort('p_switch')
     Main = 0
     if self.hasInputFromPort('Main') :
       Main = self.getInputFromPort('Main')
@@ -3957,14 +3552,14 @@ class SCIRun_InterfaceWithTetGen(Module) :
     Regions = 0
     if self.hasInputFromPort('Regions') :
       Regions = self.getInputFromPort('Regions')
-    results = sr_py.InterfaceWithTetGen(Main,Points,Region_Attribs,Regions,switch)
+    results = sr_py.InterfaceWithTetGen(Main,Points,Region_Attribs,Regions,p_switch)
     self.setResult('TetVol', results)
 
-class SCIRun_CalculateMeshNodes(Module) :
+class scirun_CalculateMeshNodes(Module) :
   def compute(self) :
-    function = 'NEWPOS = 3*POS;'
-    if self.hasInputFromPort('function') :
-      function = self.getInputFromPort('function')
+    p_function = 'NEWPOS = 3*POS;'
+    if self.hasInputFromPort('p_function') :
+      p_function = self.getInputFromPort('p_function')
     Field = 0
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
@@ -3974,301 +3569,293 @@ class SCIRun_CalculateMeshNodes(Module) :
     Array = 0
     if self.hasInputFromPort('Array') :
       Array = self.getInputFromPort('Array')
-    results = sr_py.CalculateMeshNodes(Field,Function,Array,function)
+    results = sr_py.CalculateMeshNodes(Field,Function,Array,p_function)
     self.setResult('Field', results)
 
-class SCIRun_CreateImage(Module) :
+class scirun_CreateImage(Module) :
   def compute(self) :
-    sizex = 20
-    if self.hasInputFromPort('sizex') :
-      sizex = self.getInputFromPort('sizex')
-    sizey = 20
-    if self.hasInputFromPort('sizey') :
-      sizey = self.getInputFromPort('sizey')
-    sizez = 2
-    if self.hasInputFromPort('sizez') :
-      sizez = self.getInputFromPort('sizez')
-    z_value = 0
-    if self.hasInputFromPort('z_value') :
-      z_value = self.getInputFromPort('z_value')
-    auto_size = 0
-    if self.hasInputFromPort('auto_size') :
-      auto_size = self.getInputFromPort('auto_size')
-    axis = 0
-    if self.hasInputFromPort('axis') :
-      axis = self.getInputFromPort('axis')
-    padpercent = 0.0
-    if self.hasInputFromPort('padpercent') :
-      padpercent = self.getInputFromPort('padpercent')
-    pos = 0.0
-    if self.hasInputFromPort('pos') :
-      pos = self.getInputFromPort('pos')
-    data_at = 'Nodes'
-    if self.hasInputFromPort('data_at') :
-      data_at = self.getInputFromPort('data_at')
-    update_type = 'On Release'
-    if self.hasInputFromPort('update_type') :
-      update_type = self.getInputFromPort('update_type')
-    corigin_x = 0.0
-    if self.hasInputFromPort('corigin_x') :
-      corigin_x = self.getInputFromPort('corigin_x')
-    corigin_y = 0.0
-    if self.hasInputFromPort('corigin_y') :
-      corigin_y = self.getInputFromPort('corigin_y')
-    corigin_z = 0.0
-    if self.hasInputFromPort('corigin_z') :
-      corigin_z = self.getInputFromPort('corigin_z')
-    cnormal_x = 1.0
-    if self.hasInputFromPort('cnormal_x') :
-      cnormal_x = self.getInputFromPort('cnormal_x')
-    cnormal_y = 1.0
-    if self.hasInputFromPort('cnormal_y') :
-      cnormal_y = self.getInputFromPort('cnormal_y')
-    cnormal_z = 1.0
-    if self.hasInputFromPort('cnormal_z') :
-      cnormal_z = self.getInputFromPort('cnormal_z')
+    p_sizex = 20
+    if self.hasInputFromPort('p_sizex') :
+      p_sizex = self.getInputFromPort('p_sizex')
+    p_sizey = 20
+    if self.hasInputFromPort('p_sizey') :
+      p_sizey = self.getInputFromPort('p_sizey')
+    p_sizez = 2
+    if self.hasInputFromPort('p_sizez') :
+      p_sizez = self.getInputFromPort('p_sizez')
+    p_z_value = 0
+    if self.hasInputFromPort('p_z_value') :
+      p_z_value = self.getInputFromPort('p_z_value')
+    p_auto_size = 0
+    if self.hasInputFromPort('p_auto_size') :
+      p_auto_size = self.getInputFromPort('p_auto_size')
+    p_axis = 0
+    if self.hasInputFromPort('p_axis') :
+      p_axis = self.getInputFromPort('p_axis')
+    p_padpercent = 0.0
+    if self.hasInputFromPort('p_padpercent') :
+      p_padpercent = self.getInputFromPort('p_padpercent')
+    p_pos = 0.0
+    if self.hasInputFromPort('p_pos') :
+      p_pos = self.getInputFromPort('p_pos')
+    p_data_at = 'Nodes'
+    if self.hasInputFromPort('p_data_at') :
+      p_data_at = self.getInputFromPort('p_data_at')
+    p_update_type = 'On Release'
+    if self.hasInputFromPort('p_update_type') :
+      p_update_type = self.getInputFromPort('p_update_type')
+    p_corigin_x = '0.0'
+    if self.hasInputFromPort('p_corigin_x') :
+      p_corigin_x = self.getInputFromPort('p_corigin_x')
+    p_corigin_y = '0.0'
+    if self.hasInputFromPort('p_corigin_y') :
+      p_corigin_y = self.getInputFromPort('p_corigin_y')
+    p_corigin_z = '0.0'
+    if self.hasInputFromPort('p_corigin_z') :
+      p_corigin_z = self.getInputFromPort('p_corigin_z')
+    p_cnormal_x = '1.0'
+    if self.hasInputFromPort('p_cnormal_x') :
+      p_cnormal_x = self.getInputFromPort('p_cnormal_x')
+    p_cnormal_y = '1.0'
+    if self.hasInputFromPort('p_cnormal_y') :
+      p_cnormal_y = self.getInputFromPort('p_cnormal_y')
+    p_cnormal_z = '1.0'
+    if self.hasInputFromPort('p_cnormal_z') :
+      p_cnormal_z = self.getInputFromPort('p_cnormal_z')
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
-    results = sr_py.CreateImage(Input_Field,sizex,sizey,sizez,z_value,auto_size,axis,padpercent,pos,data_at,update_type,corigin_x,corigin_y,corigin_z,cnormal_x,cnormal_y,cnormal_z)
+    results = sr_py.CreateImage(Input_Field,p_sizex,p_sizey,p_sizez,p_z_value,p_auto_size,p_axis,p_padpercent,p_pos,p_data_at,p_update_type,p_corigin_x,p_corigin_y,p_corigin_z,p_cnormal_x,p_cnormal_y,p_cnormal_z)
     self.setResult('Output Sample Field', results)
 
-class SCIRun_SplitNodesByDomain(Module) :
+class scirun_CalculateFieldDataCompiled(Module) :
   def compute(self) :
-    Field = 0
-    if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
-    results = sr_py.SplitNodesByDomain(Field)
-    self.setResult('SplitField', results)
-
-class SCIRun_CalculateFieldDataCompiled(Module) :
-  def compute(self) :
-    outputdatatype = 'port 0 input'
-    if self.hasInputFromPort('outputdatatype') :
-      outputdatatype = self.getInputFromPort('outputdatatype')
-    function = 'result = v0 + v1 + v2;'
-    if self.hasInputFromPort('function') :
-      function = self.getInputFromPort('function')
-    cache = 0
-    if self.hasInputFromPort('cache') :
-      cache = self.getInputFromPort('cache')
+    p_outputdatatype = 'port 0 input'
+    if self.hasInputFromPort('p_outputdatatype') :
+      p_outputdatatype = self.getInputFromPort('p_outputdatatype')
+    p_function = 'result = v0 + v1 + v2;'
+    if self.hasInputFromPort('p_function') :
+      p_function = self.getInputFromPort('p_function')
+    p_cache = 0
+    if self.hasInputFromPort('p_cache') :
+      p_cache = self.getInputFromPort('p_cache')
     Function = 0
     if self.hasInputFromPort('Function') :
       Function = self.getInputFromPort('Function')
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
-    results = sr_py.CalculateFieldDataCompiled(Function,Input_Field,outputdatatype,function,cache)
+    results = sr_py.CalculateFieldDataCompiled(Function,Input_Field,p_outputdatatype,p_function,p_cache)
     self.setResult('Output Field', results)
 
-class SCIRun_ReadColorMap(Module) :
+class scirun_ReadColorMap(Module) :
   def compute(self) :
-    from_env = ''
-    if self.hasInputFromPort('from_env') :
-      from_env = self.getInputFromPort('from_env')
+    p_from_env = ''
+    if self.hasInputFromPort('p_from_env') :
+      p_from_env = self.getInputFromPort('p_from_env')
     Filename = 0
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
-    results = sr_py.ReadColorMap(Filename,from_env)
+    results = sr_py.ReadColorMap(Filename,p_from_env)
     self.setResult('Output Data', sr_py.read_at_index(results,0))
     self.setResult('Filename', sr_py.read_at_index(results,1))
 
-class SCIRun_MapFieldDataFromElemToNode(Module) :
+class scirun_MapFieldDataFromElemToNode(Module) :
   def compute(self) :
-    method = 'Interpolate'
-    if self.hasInputFromPort('method') :
-      method = self.getInputFromPort('method')
+    p_method = 'Interpolate'
+    if self.hasInputFromPort('p_method') :
+      p_method = self.getInputFromPort('p_method')
     Field = 0
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
-    results = sr_py.MapFieldDataFromElemToNode(Field,method)
+    results = sr_py.MapFieldDataFromElemToNode(Field,p_method)
     self.setResult('Field', results)
 
-class SCIRun_ShowFieldGlyphs(Module) :
+class scirun_ShowFieldGlyphs(Module) :
   def compute(self) :
-    scalars_has_data = 0
-    if self.hasInputFromPort('scalars_has_data') :
-      scalars_has_data = self.getInputFromPort('scalars_has_data')
-    scalars_on = 0
-    if self.hasInputFromPort('scalars_on') :
-      scalars_on = self.getInputFromPort('scalars_on')
-    scalars_display_type = 'Spheres'
-    if self.hasInputFromPort('scalars_display_type') :
-      scalars_display_type = self.getInputFromPort('scalars_display_type')
-    scalars_transparency = 0
-    if self.hasInputFromPort('scalars_transparency') :
-      scalars_transparency = self.getInputFromPort('scalars_transparency')
-    scalars_normalize = 0
-    if self.hasInputFromPort('scalars_normalize') :
-      scalars_normalize = self.getInputFromPort('scalars_normalize')
-    scalars_color_type = 0
-    if self.hasInputFromPort('scalars_color_type') :
-      scalars_color_type = self.getInputFromPort('scalars_color_type')
-    scalars_resolution = 6
-    if self.hasInputFromPort('scalars_resolution') :
-      scalars_resolution = self.getInputFromPort('scalars_resolution')
-    vectors_has_data = 0
-    if self.hasInputFromPort('vectors_has_data') :
-      vectors_has_data = self.getInputFromPort('vectors_has_data')
-    vectors_on = 0
-    if self.hasInputFromPort('vectors_on') :
-      vectors_on = self.getInputFromPort('vectors_on')
-    vectors_display_type = 'Arrows'
-    if self.hasInputFromPort('vectors_display_type') :
-      vectors_display_type = self.getInputFromPort('vectors_display_type')
-    vectors_transparency = 0
-    if self.hasInputFromPort('vectors_transparency') :
-      vectors_transparency = self.getInputFromPort('vectors_transparency')
-    vectors_normalize = 0
-    if self.hasInputFromPort('vectors_normalize') :
-      vectors_normalize = self.getInputFromPort('vectors_normalize')
-    vectors_bidirectional = 0
-    if self.hasInputFromPort('vectors_bidirectional') :
-      vectors_bidirectional = self.getInputFromPort('vectors_bidirectional')
-    vectors_color_type = 0
-    if self.hasInputFromPort('vectors_color_type') :
-      vectors_color_type = self.getInputFromPort('vectors_color_type')
-    vectors_resolution = 6
-    if self.hasInputFromPort('vectors_resolution') :
-      vectors_resolution = self.getInputFromPort('vectors_resolution')
-    tensors_has_data = 0
-    if self.hasInputFromPort('tensors_has_data') :
-      tensors_has_data = self.getInputFromPort('tensors_has_data')
-    tensors_on = 0
-    if self.hasInputFromPort('tensors_on') :
-      tensors_on = self.getInputFromPort('tensors_on')
-    tensors_display_type = 'Colored Boxes'
-    if self.hasInputFromPort('tensors_display_type') :
-      tensors_display_type = self.getInputFromPort('tensors_display_type')
-    tensors_transparency = 0
-    if self.hasInputFromPort('tensors_transparency') :
-      tensors_transparency = self.getInputFromPort('tensors_transparency')
-    tensors_normalize = 0
-    if self.hasInputFromPort('tensors_normalize') :
-      tensors_normalize = self.getInputFromPort('tensors_normalize')
-    tensors_color_type = 0
-    if self.hasInputFromPort('tensors_color_type') :
-      tensors_color_type = self.getInputFromPort('tensors_color_type')
-    tensors_resolution = 6
-    if self.hasInputFromPort('tensors_resolution') :
-      tensors_resolution = self.getInputFromPort('tensors_resolution')
-    tensors_emphasis = 0.825
-    if self.hasInputFromPort('tensors_emphasis') :
-      tensors_emphasis = self.getInputFromPort('tensors_emphasis')
-    secondary_has_data = 0
-    if self.hasInputFromPort('secondary_has_data') :
-      secondary_has_data = self.getInputFromPort('secondary_has_data')
-    secondary_on = 0
-    if self.hasInputFromPort('secondary_on') :
-      secondary_on = self.getInputFromPort('secondary_on')
-    secondary_display_type = 'Major Radius'
-    if self.hasInputFromPort('secondary_display_type') :
-      secondary_display_type = self.getInputFromPort('secondary_display_type')
-    secondary_color_type = 0
-    if self.hasInputFromPort('secondary_color_type') :
-      secondary_color_type = self.getInputFromPort('secondary_color_type')
-    secondary_alpha = 0
-    if self.hasInputFromPort('secondary_alpha') :
-      secondary_alpha = self.getInputFromPort('secondary_alpha')
-    secondary_value = 1
-    if self.hasInputFromPort('secondary_value') :
-      secondary_value = self.getInputFromPort('secondary_value')
-    tertiary_has_data = 0
-    if self.hasInputFromPort('tertiary_has_data') :
-      tertiary_has_data = self.getInputFromPort('tertiary_has_data')
-    tertiary_on = 0
-    if self.hasInputFromPort('tertiary_on') :
-      tertiary_on = self.getInputFromPort('tertiary_on')
-    tertiary_display_type = 'Minor Radius'
-    if self.hasInputFromPort('tertiary_display_type') :
-      tertiary_display_type = self.getInputFromPort('tertiary_display_type')
-    tertiary_color_type = 0
-    if self.hasInputFromPort('tertiary_color_type') :
-      tertiary_color_type = self.getInputFromPort('tertiary_color_type')
-    tertiary_alpha = 0
-    if self.hasInputFromPort('tertiary_alpha') :
-      tertiary_alpha = self.getInputFromPort('tertiary_alpha')
-    tertiary_value = 1
-    if self.hasInputFromPort('tertiary_value') :
-      tertiary_value = self.getInputFromPort('tertiary_value')
-    text_on = 0
-    if self.hasInputFromPort('text_on') :
-      text_on = self.getInputFromPort('text_on')
-    text_color_type = 0
-    if self.hasInputFromPort('text_color_type') :
-      text_color_type = self.getInputFromPort('text_color_type')
-    text_color_r = 1.0
-    if self.hasInputFromPort('text_color_r') :
-      text_color_r = self.getInputFromPort('text_color_r')
-    text_color_g = 1.0
-    if self.hasInputFromPort('text_color_g') :
-      text_color_g = self.getInputFromPort('text_color_g')
-    text_color_b = 1.0
-    if self.hasInputFromPort('text_color_b') :
-      text_color_b = self.getInputFromPort('text_color_b')
-    text_backface_cull = 0
-    if self.hasInputFromPort('text_backface_cull') :
-      text_backface_cull = self.getInputFromPort('text_backface_cull')
-    text_always_visible = 0
-    if self.hasInputFromPort('text_always_visible') :
-      text_always_visible = self.getInputFromPort('text_always_visible')
-    text_fontsize = 0
-    if self.hasInputFromPort('text_fontsize') :
-      text_fontsize = self.getInputFromPort('text_fontsize')
-    text_precision = 3
-    if self.hasInputFromPort('text_precision') :
-      text_precision = self.getInputFromPort('text_precision')
-    text_render_locations = 0
-    if self.hasInputFromPort('text_render_locations') :
-      text_render_locations = self.getInputFromPort('text_render_locations')
-    text_show_data = 1
-    if self.hasInputFromPort('text_show_data') :
-      text_show_data = self.getInputFromPort('text_show_data')
-    text_show_nodes = 0
-    if self.hasInputFromPort('text_show_nodes') :
-      text_show_nodes = self.getInputFromPort('text_show_nodes')
-    text_show_edges = 0
-    if self.hasInputFromPort('text_show_edges') :
-      text_show_edges = self.getInputFromPort('text_show_edges')
-    text_show_faces = 0
-    if self.hasInputFromPort('text_show_faces') :
-      text_show_faces = self.getInputFromPort('text_show_faces')
-    text_show_cells = 0
-    if self.hasInputFromPort('text_show_cells') :
-      text_show_cells = self.getInputFromPort('text_show_cells')
-    def_color_r = 0.5
-    if self.hasInputFromPort('def_color_r') :
-      def_color_r = self.getInputFromPort('def_color_r')
-    def_color_g = 0.5
-    if self.hasInputFromPort('def_color_g') :
-      def_color_g = self.getInputFromPort('def_color_g')
-    def_color_b = 0.5
-    if self.hasInputFromPort('def_color_b') :
-      def_color_b = self.getInputFromPort('def_color_b')
-    def_color_a = 0.75
-    if self.hasInputFromPort('def_color_a') :
-      def_color_a = self.getInputFromPort('def_color_a')
-    active_tab = 'Scalars'
-    if self.hasInputFromPort('active_tab') :
-      active_tab = self.getInputFromPort('active_tab')
-    interactive_mode = 'Interactive'
-    if self.hasInputFromPort('interactive_mode') :
-      interactive_mode = self.getInputFromPort('interactive_mode')
-    show_progress = 0
-    if self.hasInputFromPort('show_progress') :
-      show_progress = self.getInputFromPort('show_progress')
-    field_name = ''
-    if self.hasInputFromPort('field_name') :
-      field_name = self.getInputFromPort('field_name')
-    field_name_override = 0
-    if self.hasInputFromPort('field_name_override') :
-      field_name_override = self.getInputFromPort('field_name_override')
-    approx_div = 1
-    if self.hasInputFromPort('approx_div') :
-      approx_div = self.getInputFromPort('approx_div')
-    use_default_size = 0
-    if self.hasInputFromPort('use_default_size') :
-      use_default_size = self.getInputFromPort('use_default_size')
+    p_scalars_has_data = 0
+    if self.hasInputFromPort('p_scalars_has_data') :
+      p_scalars_has_data = self.getInputFromPort('p_scalars_has_data')
+    p_scalars_on = 0
+    if self.hasInputFromPort('p_scalars_on') :
+      p_scalars_on = self.getInputFromPort('p_scalars_on')
+    p_scalars_display_type = 'Spheres'
+    if self.hasInputFromPort('p_scalars_display_type') :
+      p_scalars_display_type = self.getInputFromPort('p_scalars_display_type')
+    p_scalars_transparency = 0
+    if self.hasInputFromPort('p_scalars_transparency') :
+      p_scalars_transparency = self.getInputFromPort('p_scalars_transparency')
+    p_scalars_normalize = 0
+    if self.hasInputFromPort('p_scalars_normalize') :
+      p_scalars_normalize = self.getInputFromPort('p_scalars_normalize')
+    p_scalars_color_type = 1
+    if self.hasInputFromPort('p_scalars_color_type') :
+      p_scalars_color_type = self.getInputFromPort('p_scalars_color_type')
+    p_scalars_resolution = 6
+    if self.hasInputFromPort('p_scalars_resolution') :
+      p_scalars_resolution = self.getInputFromPort('p_scalars_resolution')
+    p_vectors_has_data = 0
+    if self.hasInputFromPort('p_vectors_has_data') :
+      p_vectors_has_data = self.getInputFromPort('p_vectors_has_data')
+    p_vectors_on = 0
+    if self.hasInputFromPort('p_vectors_on') :
+      p_vectors_on = self.getInputFromPort('p_vectors_on')
+    p_vectors_display_type = 'Arrows'
+    if self.hasInputFromPort('p_vectors_display_type') :
+      p_vectors_display_type = self.getInputFromPort('p_vectors_display_type')
+    p_vectors_transparency = 0
+    if self.hasInputFromPort('p_vectors_transparency') :
+      p_vectors_transparency = self.getInputFromPort('p_vectors_transparency')
+    p_vectors_normalize = 0
+    if self.hasInputFromPort('p_vectors_normalize') :
+      p_vectors_normalize = self.getInputFromPort('p_vectors_normalize')
+    p_vectors_bidirectional = 0
+    if self.hasInputFromPort('p_vectors_bidirectional') :
+      p_vectors_bidirectional = self.getInputFromPort('p_vectors_bidirectional')
+    p_vectors_color_type = 1
+    if self.hasInputFromPort('p_vectors_color_type') :
+      p_vectors_color_type = self.getInputFromPort('p_vectors_color_type')
+    p_vectors_resolution = 6
+    if self.hasInputFromPort('p_vectors_resolution') :
+      p_vectors_resolution = self.getInputFromPort('p_vectors_resolution')
+    p_tensors_has_data = 0
+    if self.hasInputFromPort('p_tensors_has_data') :
+      p_tensors_has_data = self.getInputFromPort('p_tensors_has_data')
+    p_tensors_on = 0
+    if self.hasInputFromPort('p_tensors_on') :
+      p_tensors_on = self.getInputFromPort('p_tensors_on')
+    p_tensors_display_type = 'Colored Boxes'
+    if self.hasInputFromPort('p_tensors_display_type') :
+      p_tensors_display_type = self.getInputFromPort('p_tensors_display_type')
+    p_tensors_transparency = 0
+    if self.hasInputFromPort('p_tensors_transparency') :
+      p_tensors_transparency = self.getInputFromPort('p_tensors_transparency')
+    p_tensors_normalize = 0
+    if self.hasInputFromPort('p_tensors_normalize') :
+      p_tensors_normalize = self.getInputFromPort('p_tensors_normalize')
+    p_tensors_color_type = 1
+    if self.hasInputFromPort('p_tensors_color_type') :
+      p_tensors_color_type = self.getInputFromPort('p_tensors_color_type')
+    p_tensors_resolution = 6
+    if self.hasInputFromPort('p_tensors_resolution') :
+      p_tensors_resolution = self.getInputFromPort('p_tensors_resolution')
+    p_tensors_emphasis = 0.825
+    if self.hasInputFromPort('p_tensors_emphasis') :
+      p_tensors_emphasis = self.getInputFromPort('p_tensors_emphasis')
+    p_secondary_has_data = 0
+    if self.hasInputFromPort('p_secondary_has_data') :
+      p_secondary_has_data = self.getInputFromPort('p_secondary_has_data')
+    p_secondary_on = 0
+    if self.hasInputFromPort('p_secondary_on') :
+      p_secondary_on = self.getInputFromPort('p_secondary_on')
+    p_secondary_display_type = 'Major Radius'
+    if self.hasInputFromPort('p_secondary_display_type') :
+      p_secondary_display_type = self.getInputFromPort('p_secondary_display_type')
+    p_secondary_color_type = 0
+    if self.hasInputFromPort('p_secondary_color_type') :
+      p_secondary_color_type = self.getInputFromPort('p_secondary_color_type')
+    p_secondary_alpha = 0
+    if self.hasInputFromPort('p_secondary_alpha') :
+      p_secondary_alpha = self.getInputFromPort('p_secondary_alpha')
+    p_secondary_value = 1
+    if self.hasInputFromPort('p_secondary_value') :
+      p_secondary_value = self.getInputFromPort('p_secondary_value')
+    p_tertiary_has_data = 0
+    if self.hasInputFromPort('p_tertiary_has_data') :
+      p_tertiary_has_data = self.getInputFromPort('p_tertiary_has_data')
+    p_tertiary_on = 0
+    if self.hasInputFromPort('p_tertiary_on') :
+      p_tertiary_on = self.getInputFromPort('p_tertiary_on')
+    p_tertiary_display_type = 'Minor Radius'
+    if self.hasInputFromPort('p_tertiary_display_type') :
+      p_tertiary_display_type = self.getInputFromPort('p_tertiary_display_type')
+    p_tertiary_color_type = 0
+    if self.hasInputFromPort('p_tertiary_color_type') :
+      p_tertiary_color_type = self.getInputFromPort('p_tertiary_color_type')
+    p_tertiary_alpha = 0
+    if self.hasInputFromPort('p_tertiary_alpha') :
+      p_tertiary_alpha = self.getInputFromPort('p_tertiary_alpha')
+    p_tertiary_value = 1
+    if self.hasInputFromPort('p_tertiary_value') :
+      p_tertiary_value = self.getInputFromPort('p_tertiary_value')
+    p_text_on = 0
+    if self.hasInputFromPort('p_text_on') :
+      p_text_on = self.getInputFromPort('p_text_on')
+    p_text_color_type = 0
+    if self.hasInputFromPort('p_text_color_type') :
+      p_text_color_type = self.getInputFromPort('p_text_color_type')
+    p_text_color_r = 1.0
+    if self.hasInputFromPort('p_text_color_r') :
+      p_text_color_r = self.getInputFromPort('p_text_color_r')
+    p_text_color_g = 1.0
+    if self.hasInputFromPort('p_text_color_g') :
+      p_text_color_g = self.getInputFromPort('p_text_color_g')
+    p_text_color_b = 1.0
+    if self.hasInputFromPort('p_text_color_b') :
+      p_text_color_b = self.getInputFromPort('p_text_color_b')
+    p_text_backface_cull = 0
+    if self.hasInputFromPort('p_text_backface_cull') :
+      p_text_backface_cull = self.getInputFromPort('p_text_backface_cull')
+    p_text_always_visible = 0
+    if self.hasInputFromPort('p_text_always_visible') :
+      p_text_always_visible = self.getInputFromPort('p_text_always_visible')
+    p_text_fontsize = 0
+    if self.hasInputFromPort('p_text_fontsize') :
+      p_text_fontsize = self.getInputFromPort('p_text_fontsize')
+    p_text_precision = 3
+    if self.hasInputFromPort('p_text_precision') :
+      p_text_precision = self.getInputFromPort('p_text_precision')
+    p_text_render_locations = 0
+    if self.hasInputFromPort('p_text_render_locations') :
+      p_text_render_locations = self.getInputFromPort('p_text_render_locations')
+    p_text_show_data = 1
+    if self.hasInputFromPort('p_text_show_data') :
+      p_text_show_data = self.getInputFromPort('p_text_show_data')
+    p_text_show_nodes = 0
+    if self.hasInputFromPort('p_text_show_nodes') :
+      p_text_show_nodes = self.getInputFromPort('p_text_show_nodes')
+    p_text_show_edges = 0
+    if self.hasInputFromPort('p_text_show_edges') :
+      p_text_show_edges = self.getInputFromPort('p_text_show_edges')
+    p_text_show_faces = 0
+    if self.hasInputFromPort('p_text_show_faces') :
+      p_text_show_faces = self.getInputFromPort('p_text_show_faces')
+    p_text_show_cells = 0
+    if self.hasInputFromPort('p_text_show_cells') :
+      p_text_show_cells = self.getInputFromPort('p_text_show_cells')
+    p_def_color_r = 0.5
+    if self.hasInputFromPort('p_def_color_r') :
+      p_def_color_r = self.getInputFromPort('p_def_color_r')
+    p_def_color_g = 0.5
+    if self.hasInputFromPort('p_def_color_g') :
+      p_def_color_g = self.getInputFromPort('p_def_color_g')
+    p_def_color_b = 0.5
+    if self.hasInputFromPort('p_def_color_b') :
+      p_def_color_b = self.getInputFromPort('p_def_color_b')
+    p_def_color_a = 0.75
+    if self.hasInputFromPort('p_def_color_a') :
+      p_def_color_a = self.getInputFromPort('p_def_color_a')
+    p_active_tab = 'Scalars'
+    if self.hasInputFromPort('p_active_tab') :
+      p_active_tab = self.getInputFromPort('p_active_tab')
+    p_interactive_mode = 'Interactive'
+    if self.hasInputFromPort('p_interactive_mode') :
+      p_interactive_mode = self.getInputFromPort('p_interactive_mode')
+    p_show_progress = 0
+    if self.hasInputFromPort('p_show_progress') :
+      p_show_progress = self.getInputFromPort('p_show_progress')
+    p_field_name = ''
+    if self.hasInputFromPort('p_field_name') :
+      p_field_name = self.getInputFromPort('p_field_name')
+    p_field_name_override = 0
+    if self.hasInputFromPort('p_field_name_override') :
+      p_field_name_override = self.getInputFromPort('p_field_name_override')
+    p_approx_div = 1
+    if self.hasInputFromPort('p_approx_div') :
+      p_approx_div = self.getInputFromPort('p_approx_div')
+    p_use_default_size = 0
+    if self.hasInputFromPort('p_use_default_size') :
+      p_use_default_size = self.getInputFromPort('p_use_default_size')
     Primary_Data = 0
     if self.hasInputFromPort('Primary Data') :
       Primary_Data = self.getInputFromPort('Primary Data')
@@ -4287,10 +3874,10 @@ class SCIRun_ShowFieldGlyphs(Module) :
     Tertiary_ColorMap = 0
     if self.hasInputFromPort('Tertiary ColorMap') :
       Tertiary_ColorMap = self.getInputFromPort('Tertiary ColorMap')
-    results = sr_py.ShowFieldGlyphs(Primary_Data,Primary_ColorMap,Secondary_Data,Secondary_ColorMap,Tertiary_Data,Tertiary_ColorMap,scalars_has_data,scalars_on,scalars_display_type,scalars_transparency,scalars_normalize,scalars_color_type,scalars_resolution,vectors_has_data,vectors_on,vectors_display_type,vectors_transparency,vectors_normalize,vectors_bidirectional,vectors_color_type,vectors_resolution,tensors_has_data,tensors_on,tensors_display_type,tensors_transparency,tensors_normalize,tensors_color_type,tensors_resolution,tensors_emphasis,secondary_has_data,secondary_on,secondary_display_type,secondary_color_type,secondary_alpha,secondary_value,tertiary_has_data,tertiary_on,tertiary_display_type,tertiary_color_type,tertiary_alpha,tertiary_value,text_on,text_color_type,text_color_r,text_color_g,text_color_b,text_backface_cull,text_always_visible,text_fontsize,text_precision,text_render_locations,text_show_data,text_show_nodes,text_show_edges,text_show_faces,text_show_cells,def_color_r,def_color_g,def_color_b,def_color_a,active_tab,interactive_mode,show_progress,field_name,field_name_override,approx_div,use_default_size)
+    results = sr_py.ShowFieldGlyphs(Primary_Data,Primary_ColorMap,Secondary_Data,Secondary_ColorMap,Tertiary_Data,Tertiary_ColorMap,p_scalars_has_data,p_scalars_on,p_scalars_display_type,p_scalars_transparency,p_scalars_normalize,p_scalars_color_type,p_scalars_resolution,p_vectors_has_data,p_vectors_on,p_vectors_display_type,p_vectors_transparency,p_vectors_normalize,p_vectors_bidirectional,p_vectors_color_type,p_vectors_resolution,p_tensors_has_data,p_tensors_on,p_tensors_display_type,p_tensors_transparency,p_tensors_normalize,p_tensors_color_type,p_tensors_resolution,p_tensors_emphasis,p_secondary_has_data,p_secondary_on,p_secondary_display_type,p_secondary_color_type,p_secondary_alpha,p_secondary_value,p_tertiary_has_data,p_tertiary_on,p_tertiary_display_type,p_tertiary_color_type,p_tertiary_alpha,p_tertiary_value,p_text_on,p_text_color_type,p_text_color_r,p_text_color_g,p_text_color_b,p_text_backface_cull,p_text_always_visible,p_text_fontsize,p_text_precision,p_text_render_locations,p_text_show_data,p_text_show_nodes,p_text_show_edges,p_text_show_faces,p_text_show_cells,p_def_color_r,p_def_color_g,p_def_color_b,p_def_color_a,p_active_tab,p_interactive_mode,p_show_progress,p_field_name,p_field_name_override,p_approx_div,p_use_default_size)
     self.setResult('Scene Graph', results)
 
-class SCIRun_JoinBundles(Module) :
+class scirun_JoinBundles(Module) :
   def compute(self) :
     bundle = 0
     if self.hasInputFromPort('bundle') :
@@ -4298,17 +3885,42 @@ class SCIRun_JoinBundles(Module) :
     results = sr_py.JoinBundles(bundle)
     self.setResult('bundle', results)
 
-class SCIRun_ReportBundleInfo(Module) :
+class scirun_ApplyFilterToFieldData(Module) :
   def compute(self) :
-    tclinfostring = ''
-    if self.hasInputFromPort('tclinfostring') :
-      tclinfostring = self.getInputFromPort('tclinfostring')
-    bundle = 0
-    if self.hasInputFromPort('bundle') :
-      bundle = self.getInputFromPort('bundle')
-    results = sr_py.ReportBundleInfo(bundle,tclinfostring)
+    p_method = 'erodedilate'
+    if self.hasInputFromPort('p_method') :
+      p_method = self.getInputFromPort('p_method')
+    p_ed_method = 'erode'
+    if self.hasInputFromPort('p_ed_method') :
+      p_ed_method = self.getInputFromPort('p_ed_method')
+    p_ed_iterations = 3
+    if self.hasInputFromPort('p_ed_iterations') :
+      p_ed_iterations = self.getInputFromPort('p_ed_iterations')
+    Field = 0
+    if self.hasInputFromPort('Field') :
+      Field = self.getInputFromPort('Field')
+    results = sr_py.ApplyFilterToFieldData(Field,p_method,p_ed_method,p_ed_iterations)
+    self.setResult('Field', results)
 
-class SCIRun_GetFieldData(Module) :
+class scirun_InsertHexVolSheetAlongSurface(Module) :
+  def compute(self) :
+    p_side = 'side1'
+    if self.hasInputFromPort('p_side') :
+      p_side = self.getInputFromPort('p_side')
+    p_addlayer = 'On'
+    if self.hasInputFromPort('p_addlayer') :
+      p_addlayer = self.getInputFromPort('p_addlayer')
+    HexField = 0
+    if self.hasInputFromPort('HexField') :
+      HexField = self.getInputFromPort('HexField')
+    TriField = 0
+    if self.hasInputFromPort('TriField') :
+      TriField = self.getInputFromPort('TriField')
+    results = sr_py.InsertHexVolSheetAlongSurface(HexField,TriField,p_side,p_addlayer)
+    self.setResult('Side1Field', sr_py.read_at_index(results,0))
+    self.setResult('Side2Field', sr_py.read_at_index(results,1))
+
+class scirun_GetFieldData(Module) :
   def compute(self) :
     Field = 0
     if self.hasInputFromPort('Field') :
@@ -4316,25 +3928,14 @@ class SCIRun_GetFieldData(Module) :
     results = sr_py.GetFieldData(Field)
     self.setResult('Data', results)
 
-class SCIRun_ReportDataArrayMeasure(Module) :
+class scirun_CalculateFieldData2(Module) :
   def compute(self) :
-    measure = 'Sum'
-    if self.hasInputFromPort('measure') :
-      measure = self.getInputFromPort('measure')
-    Array = 0
-    if self.hasInputFromPort('Array') :
-      Array = self.getInputFromPort('Array')
-    results = sr_py.ReportDataArrayMeasure(Array,measure)
-    self.setResult('Measure', results)
-
-class SCIRun_CalculateFieldData2(Module) :
-  def compute(self) :
-    function = 'RESULT = abs(DATA1);'
-    if self.hasInputFromPort('function') :
-      function = self.getInputFromPort('function')
-    format = 'Scalar'
-    if self.hasInputFromPort('format') :
-      format = self.getInputFromPort('format')
+    p_function = 'RESULT = abs(DATA1);'
+    if self.hasInputFromPort('p_function') :
+      p_function = self.getInputFromPort('p_function')
+    p_format = 'Scalar'
+    if self.hasInputFromPort('p_format') :
+      p_format = self.getInputFromPort('p_format')
     Field1 = 0
     if self.hasInputFromPort('Field1') :
       Field1 = self.getInputFromPort('Field1')
@@ -4347,21 +3948,86 @@ class SCIRun_CalculateFieldData2(Module) :
     Array = 0
     if self.hasInputFromPort('Array') :
       Array = self.getInputFromPort('Array')
-    results = sr_py.CalculateFieldData2(Field1,Field2,Function,Array,function,format)
+    results = sr_py.CalculateFieldData2(Field1,Field2,Function,Array,p_function,p_format)
     self.setResult('Field', results)
 
-class SCIRun_SplitFileName(Module) :
+class scirun_ReportBundleInfo(Module) :
   def compute(self) :
-    Filename = 0
-    if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
-    results = sr_py.SplitFileName(Filename)
-    self.setResult('Pathname', sr_py.read_at_index(results,0))
-    self.setResult('Filename Base', sr_py.read_at_index(results,1))
-    self.setResult('Extension', sr_py.read_at_index(results,2))
-    self.setResult('Filename', sr_py.read_at_index(results,3))
+    p_tclinfostring = ''
+    if self.hasInputFromPort('p_tclinfostring') :
+      p_tclinfostring = self.getInputFromPort('p_tclinfostring')
+    bundle = 0
+    if self.hasInputFromPort('bundle') :
+      bundle = self.getInputFromPort('bundle')
+    results = sr_py.ReportBundleInfo(bundle,p_tclinfostring)
 
-class SCIRun_SmoothMesh(Module) :
+class scirun_GenerateSinglePointProbeFromField(Module) :
+  def compute(self) :
+    p_main_frame = ''
+    if self.hasInputFromPort('p_main_frame') :
+      p_main_frame = self.getInputFromPort('p_main_frame')
+    p_locx = 0.0
+    if self.hasInputFromPort('p_locx') :
+      p_locx = self.getInputFromPort('p_locx')
+    p_locy = 0.0
+    if self.hasInputFromPort('p_locy') :
+      p_locy = self.getInputFromPort('p_locy')
+    p_locz = 0.0
+    if self.hasInputFromPort('p_locz') :
+      p_locz = self.getInputFromPort('p_locz')
+    p_value = ''
+    if self.hasInputFromPort('p_value') :
+      p_value = self.getInputFromPort('p_value')
+    p_node = ''
+    if self.hasInputFromPort('p_node') :
+      p_node = self.getInputFromPort('p_node')
+    p_edge = ''
+    if self.hasInputFromPort('p_edge') :
+      p_edge = self.getInputFromPort('p_edge')
+    p_face = ''
+    if self.hasInputFromPort('p_face') :
+      p_face = self.getInputFromPort('p_face')
+    p_cell = ''
+    if self.hasInputFromPort('p_cell') :
+      p_cell = self.getInputFromPort('p_cell')
+    p_show_value = 1
+    if self.hasInputFromPort('p_show_value') :
+      p_show_value = self.getInputFromPort('p_show_value')
+    p_show_node = 1
+    if self.hasInputFromPort('p_show_node') :
+      p_show_node = self.getInputFromPort('p_show_node')
+    p_show_edge = 0
+    if self.hasInputFromPort('p_show_edge') :
+      p_show_edge = self.getInputFromPort('p_show_edge')
+    p_show_face = 0
+    if self.hasInputFromPort('p_show_face') :
+      p_show_face = self.getInputFromPort('p_show_face')
+    p_show_cell = 1
+    if self.hasInputFromPort('p_show_cell') :
+      p_show_cell = self.getInputFromPort('p_show_cell')
+    p_probe_scale = 5.0
+    if self.hasInputFromPort('p_probe_scale') :
+      p_probe_scale = self.getInputFromPort('p_probe_scale')
+    Input_Field = 0
+    if self.hasInputFromPort('Input Field') :
+      Input_Field = self.getInputFromPort('Input Field')
+    results = sr_py.GenerateSinglePointProbeFromField(Input_Field,p_main_frame,p_locx,p_locy,p_locz,p_value,p_node,p_edge,p_face,p_cell,p_show_value,p_show_node,p_show_edge,p_show_face,p_show_cell,p_probe_scale)
+    self.setResult('GenerateSinglePointProbeFromField Widget', sr_py.read_at_index(results,0))
+    self.setResult('GenerateSinglePointProbeFromField Point', sr_py.read_at_index(results,1))
+    self.setResult('Element Index', sr_py.read_at_index(results,2))
+
+class scirun_ReportDataArrayMeasure(Module) :
+  def compute(self) :
+    p_measure = 'Sum'
+    if self.hasInputFromPort('p_measure') :
+      p_measure = self.getInputFromPort('p_measure')
+    Array = 0
+    if self.hasInputFromPort('Array') :
+      Array = self.getInputFromPort('Array')
+    results = sr_py.ReportDataArrayMeasure(Array,p_measure)
+    self.setResult('Measure', results)
+
+class scirun_SmoothMesh(Module) :
   def compute(self) :
     Input = 0
     if self.hasInputFromPort('Input') :
@@ -4372,119 +4038,47 @@ class SCIRun_SmoothMesh(Module) :
     results = sr_py.SmoothMesh(Input,IsoValue)
     self.setResult('Smoothed', results)
 
-class SCIRun_GenerateSinglePointProbeFromField(Module) :
+class scirun_InsertPathsIntoBundle(Module) :
   def compute(self) :
-    main_frame = ''
-    if self.hasInputFromPort('main_frame') :
-      main_frame = self.getInputFromPort('main_frame')
-    locx = 0.0
-    if self.hasInputFromPort('locx') :
-      locx = self.getInputFromPort('locx')
-    locy = 0.0
-    if self.hasInputFromPort('locy') :
-      locy = self.getInputFromPort('locy')
-    locz = 0.0
-    if self.hasInputFromPort('locz') :
-      locz = self.getInputFromPort('locz')
-    value = ''
-    if self.hasInputFromPort('value') :
-      value = self.getInputFromPort('value')
-    node = ''
-    if self.hasInputFromPort('node') :
-      node = self.getInputFromPort('node')
-    edge = ''
-    if self.hasInputFromPort('edge') :
-      edge = self.getInputFromPort('edge')
-    face = ''
-    if self.hasInputFromPort('face') :
-      face = self.getInputFromPort('face')
-    cell = ''
-    if self.hasInputFromPort('cell') :
-      cell = self.getInputFromPort('cell')
-    show_value = 1
-    if self.hasInputFromPort('show_value') :
-      show_value = self.getInputFromPort('show_value')
-    show_node = 1
-    if self.hasInputFromPort('show_node') :
-      show_node = self.getInputFromPort('show_node')
-    show_edge = 0
-    if self.hasInputFromPort('show_edge') :
-      show_edge = self.getInputFromPort('show_edge')
-    show_face = 0
-    if self.hasInputFromPort('show_face') :
-      show_face = self.getInputFromPort('show_face')
-    show_cell = 1
-    if self.hasInputFromPort('show_cell') :
-      show_cell = self.getInputFromPort('show_cell')
-    probe_scale = 5.0
-    if self.hasInputFromPort('probe_scale') :
-      probe_scale = self.getInputFromPort('probe_scale')
-    Input_Field = 0
-    if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
-    results = sr_py.GenerateSinglePointProbeFromField(Input_Field,main_frame,locx,locy,locz,value,node,edge,face,cell,show_value,show_node,show_edge,show_face,show_cell,probe_scale)
-    self.setResult('GenerateSinglePointProbeFromField Widget', sr_py.read_at_index(results,0))
-    self.setResult('GenerateSinglePointProbeFromField Point', sr_py.read_at_index(results,1))
-    self.setResult('Element Index', sr_py.read_at_index(results,2))
-
-class SCIRun_CalculateInsideWhichField(Module) :
-  def compute(self) :
-    outputbasis = 'same as input'
-    if self.hasInputFromPort('outputbasis') :
-      outputbasis = self.getInputFromPort('outputbasis')
-    outputtype = 'double'
-    if self.hasInputFromPort('outputtype') :
-      outputtype = self.getInputFromPort('outputtype')
-    Field = 0
-    if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
-    Object = 0
-    if self.hasInputFromPort('Object') :
-      Object = self.getInputFromPort('Object')
-    results = sr_py.CalculateInsideWhichField(Field,Object,outputbasis,outputtype)
-    self.setResult('Field', results)
-
-class SCIRun_InsertPathsIntoBundle(Module) :
-  def compute(self) :
-    path1_name = 'path1'
-    if self.hasInputFromPort('path1_name') :
-      path1_name = self.getInputFromPort('path1_name')
-    path2_name = 'path2'
-    if self.hasInputFromPort('path2_name') :
-      path2_name = self.getInputFromPort('path2_name')
-    path3_name = 'path3'
-    if self.hasInputFromPort('path3_name') :
-      path3_name = self.getInputFromPort('path3_name')
-    path4_name = 'path4'
-    if self.hasInputFromPort('path4_name') :
-      path4_name = self.getInputFromPort('path4_name')
-    path5_name = 'path5'
-    if self.hasInputFromPort('path5_name') :
-      path5_name = self.getInputFromPort('path5_name')
-    path6_name = 'path6'
-    if self.hasInputFromPort('path6_name') :
-      path6_name = self.getInputFromPort('path6_name')
-    replace1 = 1
-    if self.hasInputFromPort('replace1') :
-      replace1 = self.getInputFromPort('replace1')
-    replace2 = 1
-    if self.hasInputFromPort('replace2') :
-      replace2 = self.getInputFromPort('replace2')
-    replace3 = 1
-    if self.hasInputFromPort('replace3') :
-      replace3 = self.getInputFromPort('replace3')
-    replace4 = 1
-    if self.hasInputFromPort('replace4') :
-      replace4 = self.getInputFromPort('replace4')
-    replace5 = 1
-    if self.hasInputFromPort('replace5') :
-      replace5 = self.getInputFromPort('replace5')
-    replace6 = 1
-    if self.hasInputFromPort('replace6') :
-      replace6 = self.getInputFromPort('replace6')
-    bundlename = ''
-    if self.hasInputFromPort('bundlename') :
-      bundlename = self.getInputFromPort('bundlename')
+    p_path1_name = 'path1'
+    if self.hasInputFromPort('p_path1_name') :
+      p_path1_name = self.getInputFromPort('p_path1_name')
+    p_path2_name = 'path2'
+    if self.hasInputFromPort('p_path2_name') :
+      p_path2_name = self.getInputFromPort('p_path2_name')
+    p_path3_name = 'path3'
+    if self.hasInputFromPort('p_path3_name') :
+      p_path3_name = self.getInputFromPort('p_path3_name')
+    p_path4_name = 'path4'
+    if self.hasInputFromPort('p_path4_name') :
+      p_path4_name = self.getInputFromPort('p_path4_name')
+    p_path5_name = 'path5'
+    if self.hasInputFromPort('p_path5_name') :
+      p_path5_name = self.getInputFromPort('p_path5_name')
+    p_path6_name = 'path6'
+    if self.hasInputFromPort('p_path6_name') :
+      p_path6_name = self.getInputFromPort('p_path6_name')
+    p_replace1 = 1
+    if self.hasInputFromPort('p_replace1') :
+      p_replace1 = self.getInputFromPort('p_replace1')
+    p_replace2 = 1
+    if self.hasInputFromPort('p_replace2') :
+      p_replace2 = self.getInputFromPort('p_replace2')
+    p_replace3 = 1
+    if self.hasInputFromPort('p_replace3') :
+      p_replace3 = self.getInputFromPort('p_replace3')
+    p_replace4 = 1
+    if self.hasInputFromPort('p_replace4') :
+      p_replace4 = self.getInputFromPort('p_replace4')
+    p_replace5 = 1
+    if self.hasInputFromPort('p_replace5') :
+      p_replace5 = self.getInputFromPort('p_replace5')
+    p_replace6 = 1
+    if self.hasInputFromPort('p_replace6') :
+      p_replace6 = self.getInputFromPort('p_replace6')
+    p_bundlename = ''
+    if self.hasInputFromPort('p_bundlename') :
+      p_bundlename = self.getInputFromPort('p_bundlename')
     bundle = 0
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
@@ -4506,44 +4100,21 @@ class SCIRun_InsertPathsIntoBundle(Module) :
     path6 = 0
     if self.hasInputFromPort('path6') :
       path6 = self.getInputFromPort('path6')
-    results = sr_py.InsertPathsIntoBundle(bundle,path1,path2,path3,path4,path5,path6,path1_name,path2_name,path3_name,path4_name,path5_name,path6_name,replace1,replace2,replace3,replace4,replace5,replace6,bundlename)
+    results = sr_py.InsertPathsIntoBundle(bundle,path1,path2,path3,path4,path5,path6,p_path1_name,p_path2_name,p_path3_name,p_path4_name,p_path5_name,p_path6_name,p_replace1,p_replace2,p_replace3,p_replace4,p_replace5,p_replace6,p_bundlename)
     self.setResult('bundle', results)
 
-class SCIRun_RemoveZerosFromMatrix(Module) :
+class scirun_SplitFileName(Module) :
   def compute(self) :
-    row_or_col = 'row'
-    if self.hasInputFromPort('row_or_col') :
-      row_or_col = self.getInputFromPort('row_or_col')
-    Matrix = 0
-    if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
-    results = sr_py.RemoveZerosFromMatrix(Matrix,row_or_col)
-    self.setResult('Matrix', results)
+    Filename = 0
+    if self.hasInputFromPort('Filename') :
+      Filename = self.getInputFromPort('Filename')
+    results = sr_py.SplitFileName(Filename)
+    self.setResult('Pathname', sr_py.read_at_index(results,0))
+    self.setResult('Filename Base', sr_py.read_at_index(results,1))
+    self.setResult('Extension', sr_py.read_at_index(results,2))
+    self.setResult('Filename', sr_py.read_at_index(results,3))
 
-class SCIRun_GetNetworkFileName(Module) :
-  def compute(self) :
-    results = sr_py.GetNetworkFileName()
-    self.setResult('String', results)
-
-class SCIRun_RemoveZeroRowsAndColumns(Module) :
-  def compute(self) :
-    Matrix = 0
-    if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
-    results = sr_py.RemoveZeroRowsAndColumns(Matrix)
-    self.setResult('ReducedMatrix', sr_py.read_at_index(results,0))
-    self.setResult('LeftMapping', sr_py.read_at_index(results,1))
-    self.setResult('RightMapping', sr_py.read_at_index(results,2))
-
-class SCIRun_CalculateGradients(Module) :
-  def compute(self) :
-    Input_Field = 0
-    if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
-    results = sr_py.CalculateGradients(Input_Field)
-    self.setResult('Output CalculateGradients', results)
-
-class SCIRun_CalculateLatVolGradientsAtNodes(Module) :
+class scirun_CalculateLatVolGradientsAtNodes(Module) :
   def compute(self) :
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
@@ -4551,33 +4122,41 @@ class SCIRun_CalculateLatVolGradientsAtNodes(Module) :
     results = sr_py.CalculateLatVolGradientsAtNodes(Input_Field)
     self.setResult('Output Gradient', results)
 
-class SCIRun_GetColorMap2sFromBundle(Module) :
+class scirun_CalculateGradients(Module) :
   def compute(self) :
-    colormap21_name = 'colormap21'
-    if self.hasInputFromPort('colormap21_name') :
-      colormap21_name = self.getInputFromPort('colormap21_name')
-    colormap22_name = 'colormap22'
-    if self.hasInputFromPort('colormap22_name') :
-      colormap22_name = self.getInputFromPort('colormap22_name')
-    colormap23_name = 'colormap23'
-    if self.hasInputFromPort('colormap23_name') :
-      colormap23_name = self.getInputFromPort('colormap23_name')
-    colormap24_name = 'colormap24'
-    if self.hasInputFromPort('colormap24_name') :
-      colormap24_name = self.getInputFromPort('colormap24_name')
-    colormap25_name = 'colormap25'
-    if self.hasInputFromPort('colormap25_name') :
-      colormap25_name = self.getInputFromPort('colormap25_name')
-    colormap26_name = 'colormap26'
-    if self.hasInputFromPort('colormap26_name') :
-      colormap26_name = self.getInputFromPort('colormap26_name')
-    colormap2_selection = ''
-    if self.hasInputFromPort('colormap2_selection') :
-      colormap2_selection = self.getInputFromPort('colormap2_selection')
+    Input_Field = 0
+    if self.hasInputFromPort('Input Field') :
+      Input_Field = self.getInputFromPort('Input Field')
+    results = sr_py.CalculateGradients(Input_Field)
+    self.setResult('Output CalculateGradients', results)
+
+class scirun_GetColorMap2sFromBundle(Module) :
+  def compute(self) :
+    p_colormap21_name = 'colormap21'
+    if self.hasInputFromPort('p_colormap21_name') :
+      p_colormap21_name = self.getInputFromPort('p_colormap21_name')
+    p_colormap22_name = 'colormap22'
+    if self.hasInputFromPort('p_colormap22_name') :
+      p_colormap22_name = self.getInputFromPort('p_colormap22_name')
+    p_colormap23_name = 'colormap23'
+    if self.hasInputFromPort('p_colormap23_name') :
+      p_colormap23_name = self.getInputFromPort('p_colormap23_name')
+    p_colormap24_name = 'colormap24'
+    if self.hasInputFromPort('p_colormap24_name') :
+      p_colormap24_name = self.getInputFromPort('p_colormap24_name')
+    p_colormap25_name = 'colormap25'
+    if self.hasInputFromPort('p_colormap25_name') :
+      p_colormap25_name = self.getInputFromPort('p_colormap25_name')
+    p_colormap26_name = 'colormap26'
+    if self.hasInputFromPort('p_colormap26_name') :
+      p_colormap26_name = self.getInputFromPort('p_colormap26_name')
+    p_colormap2_selection = ''
+    if self.hasInputFromPort('p_colormap2_selection') :
+      p_colormap2_selection = self.getInputFromPort('p_colormap2_selection')
     bundle = 0
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
-    results = sr_py.GetColorMap2sFromBundle(bundle,colormap21_name,colormap22_name,colormap23_name,colormap24_name,colormap25_name,colormap26_name,colormap2_selection)
+    results = sr_py.GetColorMap2sFromBundle(bundle,p_colormap21_name,p_colormap22_name,p_colormap23_name,p_colormap24_name,p_colormap25_name,p_colormap26_name,p_colormap2_selection)
     self.setResult('bundle', sr_py.read_at_index(results,0))
     self.setResult('colormap21', sr_py.read_at_index(results,1))
     self.setResult('colormap22', sr_py.read_at_index(results,2))
@@ -4586,230 +4165,190 @@ class SCIRun_GetColorMap2sFromBundle(Module) :
     self.setResult('colormap25', sr_py.read_at_index(results,5))
     self.setResult('colormap26', sr_py.read_at_index(results,6))
 
-class SCIRun_ReadMatrix(Module) :
+class scirun_ReadMatrix(Module) :
   def compute(self) :
-    from_env = ''
-    if self.hasInputFromPort('from_env') :
-      from_env = self.getInputFromPort('from_env')
+    p_from_env = ''
+    if self.hasInputFromPort('p_from_env') :
+      p_from_env = self.getInputFromPort('p_from_env')
     Filename = 0
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
-    results = sr_py.ReadMatrix(Filename,from_env)
+    results = sr_py.ReadMatrix(Filename,p_from_env)
     self.setResult('Output Data', sr_py.read_at_index(results,0))
     self.setResult('Filename', sr_py.read_at_index(results,1))
 
-class SCIRun_GenerateStreamLines(Module) :
+class scirun_GenerateStreamLines(Module) :
   def compute(self) :
-    stepsize = 0.01
-    if self.hasInputFromPort('stepsize') :
-      stepsize = self.getInputFromPort('stepsize')
-    tolerance = 0.0001
-    if self.hasInputFromPort('tolerance') :
-      tolerance = self.getInputFromPort('tolerance')
-    maxsteps = 2000
-    if self.hasInputFromPort('maxsteps') :
-      maxsteps = self.getInputFromPort('maxsteps')
-    direction = 1
-    if self.hasInputFromPort('direction') :
-      direction = self.getInputFromPort('direction')
-    value = 1
-    if self.hasInputFromPort('value') :
-      value = self.getInputFromPort('value')
-    remove_colinear_pts = 1
-    if self.hasInputFromPort('remove_colinear_pts') :
-      remove_colinear_pts = self.getInputFromPort('remove_colinear_pts')
-    method = 4
-    if self.hasInputFromPort('method') :
-      method = self.getInputFromPort('method')
-    nthreads = 1
-    if self.hasInputFromPort('nthreads') :
-      nthreads = self.getInputFromPort('nthreads')
-    auto_parameterize = 0
-    if self.hasInputFromPort('auto_parameterize') :
-      auto_parameterize = self.getInputFromPort('auto_parameterize')
+    p_stepsize = 0.01
+    if self.hasInputFromPort('p_stepsize') :
+      p_stepsize = self.getInputFromPort('p_stepsize')
+    p_tolerance = 0.0001
+    if self.hasInputFromPort('p_tolerance') :
+      p_tolerance = self.getInputFromPort('p_tolerance')
+    p_maxsteps = 2000
+    if self.hasInputFromPort('p_maxsteps') :
+      p_maxsteps = self.getInputFromPort('p_maxsteps')
+    p_direction = 1
+    if self.hasInputFromPort('p_direction') :
+      p_direction = self.getInputFromPort('p_direction')
+    p_value = 1
+    if self.hasInputFromPort('p_value') :
+      p_value = self.getInputFromPort('p_value')
+    p_remove_colinear_pts = 1
+    if self.hasInputFromPort('p_remove_colinear_pts') :
+      p_remove_colinear_pts = self.getInputFromPort('p_remove_colinear_pts')
+    p_method = 4
+    if self.hasInputFromPort('p_method') :
+      p_method = self.getInputFromPort('p_method')
+    p_nthreads = 1
+    if self.hasInputFromPort('p_nthreads') :
+      p_nthreads = self.getInputFromPort('p_nthreads')
+    p_auto_parameterize = 0
+    if self.hasInputFromPort('p_auto_parameterize') :
+      p_auto_parameterize = self.getInputFromPort('p_auto_parameterize')
     Vector_Field = 0
     if self.hasInputFromPort('Vector Field') :
       Vector_Field = self.getInputFromPort('Vector Field')
     Seed_Points = 0
     if self.hasInputFromPort('Seed Points') :
       Seed_Points = self.getInputFromPort('Seed Points')
-    results = sr_py.GenerateStreamLines(Vector_Field,Seed_Points,stepsize,tolerance,maxsteps,direction,value,remove_colinear_pts,method,nthreads,auto_parameterize)
+    results = sr_py.GenerateStreamLines(Vector_Field,Seed_Points,p_stepsize,p_tolerance,p_maxsteps,p_direction,p_value,p_remove_colinear_pts,p_method,p_nthreads,p_auto_parameterize)
     self.setResult('Streamlines', results)
 
-class SCIRun_EditMeshBoundingBox(Module) :
+class scirun_EditMeshBoundingBox(Module) :
   def compute(self) :
-    outputcenterx = 0.0
-    if self.hasInputFromPort('outputcenterx') :
-      outputcenterx = self.getInputFromPort('outputcenterx')
-    outputcentery = 0.0
-    if self.hasInputFromPort('outputcentery') :
-      outputcentery = self.getInputFromPort('outputcentery')
-    outputcenterz = 0.0
-    if self.hasInputFromPort('outputcenterz') :
-      outputcenterz = self.getInputFromPort('outputcenterz')
-    outputsizex = 0.0
-    if self.hasInputFromPort('outputsizex') :
-      outputsizex = self.getInputFromPort('outputsizex')
-    outputsizey = 0.0
-    if self.hasInputFromPort('outputsizey') :
-      outputsizey = self.getInputFromPort('outputsizey')
-    outputsizez = 0.0
-    if self.hasInputFromPort('outputsizez') :
-      outputsizez = self.getInputFromPort('outputsizez')
-    useoutputcenter = 0
-    if self.hasInputFromPort('useoutputcenter') :
-      useoutputcenter = self.getInputFromPort('useoutputcenter')
-    useoutputsize = 0
-    if self.hasInputFromPort('useoutputsize') :
-      useoutputsize = self.getInputFromPort('useoutputsize')
-    box_scale = -1.0
-    if self.hasInputFromPort('box_scale') :
-      box_scale = self.getInputFromPort('box_scale')
-    box_mode = 0
-    if self.hasInputFromPort('box_mode') :
-      box_mode = self.getInputFromPort('box_mode')
-    box_real_scale = -1.0
-    if self.hasInputFromPort('box_real_scale') :
-      box_real_scale = self.getInputFromPort('box_real_scale')
-    box_center_x = 0.0
-    if self.hasInputFromPort('box_center_x') :
-      box_center_x = self.getInputFromPort('box_center_x')
-    box_center_y = 0.0
-    if self.hasInputFromPort('box_center_y') :
-      box_center_y = self.getInputFromPort('box_center_y')
-    box_center_z = 0.0
-    if self.hasInputFromPort('box_center_z') :
-      box_center_z = self.getInputFromPort('box_center_z')
-    box_right_x = 0.0
-    if self.hasInputFromPort('box_right_x') :
-      box_right_x = self.getInputFromPort('box_right_x')
-    box_right_y = 0.0
-    if self.hasInputFromPort('box_right_y') :
-      box_right_y = self.getInputFromPort('box_right_y')
-    box_right_z = 0.0
-    if self.hasInputFromPort('box_right_z') :
-      box_right_z = self.getInputFromPort('box_right_z')
-    box_down_x = 0.0
-    if self.hasInputFromPort('box_down_x') :
-      box_down_x = self.getInputFromPort('box_down_x')
-    box_down_y = 0.0
-    if self.hasInputFromPort('box_down_y') :
-      box_down_y = self.getInputFromPort('box_down_y')
-    box_down_z = 0.0
-    if self.hasInputFromPort('box_down_z') :
-      box_down_z = self.getInputFromPort('box_down_z')
-    box_in_x = 0.0
-    if self.hasInputFromPort('box_in_x') :
-      box_in_x = self.getInputFromPort('box_in_x')
-    box_in_y = 0.0
-    if self.hasInputFromPort('box_in_y') :
-      box_in_y = self.getInputFromPort('box_in_y')
-    box_in_z = 0.0
-    if self.hasInputFromPort('box_in_z') :
-      box_in_z = self.getInputFromPort('box_in_z')
+    p_outputcenterx = 0.0
+    if self.hasInputFromPort('p_outputcenterx') :
+      p_outputcenterx = self.getInputFromPort('p_outputcenterx')
+    p_outputcentery = 0.0
+    if self.hasInputFromPort('p_outputcentery') :
+      p_outputcentery = self.getInputFromPort('p_outputcentery')
+    p_outputcenterz = 0.0
+    if self.hasInputFromPort('p_outputcenterz') :
+      p_outputcenterz = self.getInputFromPort('p_outputcenterz')
+    p_outputsizex = 0.0
+    if self.hasInputFromPort('p_outputsizex') :
+      p_outputsizex = self.getInputFromPort('p_outputsizex')
+    p_outputsizey = 0.0
+    if self.hasInputFromPort('p_outputsizey') :
+      p_outputsizey = self.getInputFromPort('p_outputsizey')
+    p_outputsizez = 0.0
+    if self.hasInputFromPort('p_outputsizez') :
+      p_outputsizez = self.getInputFromPort('p_outputsizez')
+    p_useoutputcenter = 0
+    if self.hasInputFromPort('p_useoutputcenter') :
+      p_useoutputcenter = self.getInputFromPort('p_useoutputcenter')
+    p_useoutputsize = 0
+    if self.hasInputFromPort('p_useoutputsize') :
+      p_useoutputsize = self.getInputFromPort('p_useoutputsize')
+    p_box_scale = -1.0
+    if self.hasInputFromPort('p_box_scale') :
+      p_box_scale = self.getInputFromPort('p_box_scale')
+    p_box_mode = 0
+    if self.hasInputFromPort('p_box_mode') :
+      p_box_mode = self.getInputFromPort('p_box_mode')
+    p_box_real_scale = -1.0
+    if self.hasInputFromPort('p_box_real_scale') :
+      p_box_real_scale = self.getInputFromPort('p_box_real_scale')
+    p_box_center_x = '0.0'
+    if self.hasInputFromPort('p_box_center_x') :
+      p_box_center_x = self.getInputFromPort('p_box_center_x')
+    p_box_center_y = '0.0'
+    if self.hasInputFromPort('p_box_center_y') :
+      p_box_center_y = self.getInputFromPort('p_box_center_y')
+    p_box_center_z = '0.0'
+    if self.hasInputFromPort('p_box_center_z') :
+      p_box_center_z = self.getInputFromPort('p_box_center_z')
+    p_box_right_x = '0.0'
+    if self.hasInputFromPort('p_box_right_x') :
+      p_box_right_x = self.getInputFromPort('p_box_right_x')
+    p_box_right_y = '0.0'
+    if self.hasInputFromPort('p_box_right_y') :
+      p_box_right_y = self.getInputFromPort('p_box_right_y')
+    p_box_right_z = '0.0'
+    if self.hasInputFromPort('p_box_right_z') :
+      p_box_right_z = self.getInputFromPort('p_box_right_z')
+    p_box_down_x = '0.0'
+    if self.hasInputFromPort('p_box_down_x') :
+      p_box_down_x = self.getInputFromPort('p_box_down_x')
+    p_box_down_y = '0.0'
+    if self.hasInputFromPort('p_box_down_y') :
+      p_box_down_y = self.getInputFromPort('p_box_down_y')
+    p_box_down_z = '0.0'
+    if self.hasInputFromPort('p_box_down_z') :
+      p_box_down_z = self.getInputFromPort('p_box_down_z')
+    p_box_in_x = '0.0'
+    if self.hasInputFromPort('p_box_in_x') :
+      p_box_in_x = self.getInputFromPort('p_box_in_x')
+    p_box_in_y = '0.0'
+    if self.hasInputFromPort('p_box_in_y') :
+      p_box_in_y = self.getInputFromPort('p_box_in_y')
+    p_box_in_z = '0.0'
+    if self.hasInputFromPort('p_box_in_z') :
+      p_box_in_z = self.getInputFromPort('p_box_in_z')
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
-    results = sr_py.EditMeshBoundingBox(Input_Field,outputcenterx,outputcentery,outputcenterz,outputsizex,outputsizey,outputsizez,useoutputcenter,useoutputsize,box_scale,box_mode,box_real_scale,box_center_x,box_center_y,box_center_z,box_right_x,box_right_y,box_right_z,box_down_x,box_down_y,box_down_z,box_in_x,box_in_y,box_in_z)
+    results = sr_py.EditMeshBoundingBox(Input_Field,p_outputcenterx,p_outputcentery,p_outputcenterz,p_outputsizex,p_outputsizey,p_outputsizez,p_useoutputcenter,p_useoutputsize,p_box_scale,p_box_mode,p_box_real_scale,p_box_center_x,p_box_center_y,p_box_center_z,p_box_right_x,p_box_right_y,p_box_right_z,p_box_down_x,p_box_down_y,p_box_down_z,p_box_in_x,p_box_in_y,p_box_in_z)
     self.setResult('Output Field', sr_py.read_at_index(results,0))
     self.setResult('Transformation Widget', sr_py.read_at_index(results,1))
     self.setResult('Transformation Matrix', sr_py.read_at_index(results,2))
 
-class SCIRun_PrintStringIntoString(Module) :
+class scirun_PrintStringIntoString(Module) :
   def compute(self) :
-    formatstring = 'my string: %s'
-    if self.hasInputFromPort('formatstring') :
-      formatstring = self.getInputFromPort('formatstring')
+    p_formatstring = 'my string: %s'
+    if self.hasInputFromPort('p_formatstring') :
+      p_formatstring = self.getInputFromPort('p_formatstring')
     Format = 0
     if self.hasInputFromPort('Format') :
       Format = self.getInputFromPort('Format')
     Input = 0
     if self.hasInputFromPort('Input') :
       Input = self.getInputFromPort('Input')
-    results = sr_py.PrintStringIntoString(Format,Input,formatstring)
+    results = sr_py.PrintStringIntoString(Format,Input,p_formatstring)
     self.setResult('Output', results)
 
-class SCIRun_SetFieldDataValues(Module) :
+class scirun_GenerateStreamLinesWithPlacementHeuristic(Module) :
   def compute(self) :
-    newval = 1.0
-    if self.hasInputFromPort('newval') :
-      newval = self.getInputFromPort('newval')
-    InField = 0
-    if self.hasInputFromPort('InField') :
-      InField = self.getInputFromPort('InField')
-    results = sr_py.SetFieldDataValues(InField,newval)
-    self.setResult('OutField', results)
-
-class SCIRun_GetSubmatrix(Module) :
-  def compute(self) :
-    mincol = '---'
-    if self.hasInputFromPort('mincol') :
-      mincol = self.getInputFromPort('mincol')
-    maxcol = '---'
-    if self.hasInputFromPort('maxcol') :
-      maxcol = self.getInputFromPort('maxcol')
-    minrow = '---'
-    if self.hasInputFromPort('minrow') :
-      minrow = self.getInputFromPort('minrow')
-    maxrow = '---'
-    if self.hasInputFromPort('maxrow') :
-      maxrow = self.getInputFromPort('maxrow')
-    nrow = '??'
-    if self.hasInputFromPort('nrow') :
-      nrow = self.getInputFromPort('nrow')
-    ncol = '??'
-    if self.hasInputFromPort('ncol') :
-      ncol = self.getInputFromPort('ncol')
-    Input_Matrix = 0
-    if self.hasInputFromPort('Input Matrix') :
-      Input_Matrix = self.getInputFromPort('Input Matrix')
-    Optional_Range_Bounds = 0
-    if self.hasInputFromPort('Optional Range Bounds') :
-      Optional_Range_Bounds = self.getInputFromPort('Optional Range Bounds')
-    results = sr_py.GetSubmatrix(Input_Matrix,Optional_Range_Bounds,mincol,maxcol,minrow,maxrow,nrow,ncol)
-    self.setResult('Output Matrix', results)
-
-class SCIRun_GenerateStreamLinesWithPlacementHeuristic(Module) :
-  def compute(self) :
-    numsl = 10
-    if self.hasInputFromPort('numsl') :
-      numsl = self.getInputFromPort('numsl')
-    numpts = 10
-    if self.hasInputFromPort('numpts') :
-      numpts = self.getInputFromPort('numpts')
-    minper = 0
-    if self.hasInputFromPort('minper') :
-      minper = self.getInputFromPort('minper')
-    maxper = 1
-    if self.hasInputFromPort('maxper') :
-      maxper = self.getInputFromPort('maxper')
-    ming = 0
-    if self.hasInputFromPort('ming') :
-      ming = self.getInputFromPort('ming')
-    maxg = 1
-    if self.hasInputFromPort('maxg') :
-      maxg = self.getInputFromPort('maxg')
-    numsamples = 3
-    if self.hasInputFromPort('numsamples') :
-      numsamples = self.getInputFromPort('numsamples')
-    method = 0
-    if self.hasInputFromPort('method') :
-      method = self.getInputFromPort('method')
-    stepsize = 0.01
-    if self.hasInputFromPort('stepsize') :
-      stepsize = self.getInputFromPort('stepsize')
-    stepout = 100
-    if self.hasInputFromPort('stepout') :
-      stepout = self.getInputFromPort('stepout')
-    maxsteps = 10000
-    if self.hasInputFromPort('maxsteps') :
-      maxsteps = self.getInputFromPort('maxsteps')
-    minmag = '1e-07'
-    if self.hasInputFromPort('minmag') :
-      minmag = self.getInputFromPort('minmag')
-    direction = 1
-    if self.hasInputFromPort('direction') :
-      direction = self.getInputFromPort('direction')
+    p_numsl = 10
+    if self.hasInputFromPort('p_numsl') :
+      p_numsl = self.getInputFromPort('p_numsl')
+    p_numpts = 10
+    if self.hasInputFromPort('p_numpts') :
+      p_numpts = self.getInputFromPort('p_numpts')
+    p_minper = 0
+    if self.hasInputFromPort('p_minper') :
+      p_minper = self.getInputFromPort('p_minper')
+    p_maxper = 1
+    if self.hasInputFromPort('p_maxper') :
+      p_maxper = self.getInputFromPort('p_maxper')
+    p_ming = 0
+    if self.hasInputFromPort('p_ming') :
+      p_ming = self.getInputFromPort('p_ming')
+    p_maxg = 1
+    if self.hasInputFromPort('p_maxg') :
+      p_maxg = self.getInputFromPort('p_maxg')
+    p_numsamples = 3
+    if self.hasInputFromPort('p_numsamples') :
+      p_numsamples = self.getInputFromPort('p_numsamples')
+    p_method = 0
+    if self.hasInputFromPort('p_method') :
+      p_method = self.getInputFromPort('p_method')
+    p_stepsize = 0.01
+    if self.hasInputFromPort('p_stepsize') :
+      p_stepsize = self.getInputFromPort('p_stepsize')
+    p_stepout = 100
+    if self.hasInputFromPort('p_stepout') :
+      p_stepout = self.getInputFromPort('p_stepout')
+    p_maxsteps = 10000
+    if self.hasInputFromPort('p_maxsteps') :
+      p_maxsteps = self.getInputFromPort('p_maxsteps')
+    p_minmag = 1e-07
+    if self.hasInputFromPort('p_minmag') :
+      p_minmag = self.getInputFromPort('p_minmag')
+    p_direction = 1
+    if self.hasInputFromPort('p_direction') :
+      p_direction = self.getInputFromPort('p_direction')
     Source = 0
     if self.hasInputFromPort('Source') :
       Source = self.getInputFromPort('Source')
@@ -4825,11 +4364,11 @@ class SCIRun_GenerateStreamLinesWithPlacementHeuristic(Module) :
     Seed_points = 0
     if self.hasInputFromPort('Seed points') :
       Seed_points = self.getInputFromPort('Seed points')
-    results = sr_py.GenerateStreamLinesWithPlacementHeuristic(Source,Weighting,Flow,Compare,Seed_points,numsl,numpts,minper,maxper,ming,maxg,numsamples,method,stepsize,stepout,maxsteps,minmag,direction)
+    results = sr_py.GenerateStreamLinesWithPlacementHeuristic(Source,Weighting,Flow,Compare,Seed_points,p_numsl,p_numpts,p_minper,p_maxper,p_ming,p_maxg,p_numsamples,p_method,p_stepsize,p_stepout,p_maxsteps,p_minmag,p_direction)
     self.setResult('Streamlines', sr_py.read_at_index(results,0))
     self.setResult('Render', sr_py.read_at_index(results,1))
 
-class SCIRun_CalculateSignedDistanceToField(Module) :
+class scirun_CalculateSignedDistanceToField(Module) :
   def compute(self) :
     Field = 0
     if self.hasInputFromPort('Field') :
@@ -4840,61 +4379,101 @@ class SCIRun_CalculateSignedDistanceToField(Module) :
     results = sr_py.CalculateSignedDistanceToField(Field,ObjectField)
     self.setResult('SignedDistanceField', results)
 
-class SCIRun_EvaluateLinAlgUnary(Module) :
+class scirun_SetFieldDataValues(Module) :
   def compute(self) :
-    op = 'Function'
-    if self.hasInputFromPort('op') :
-      op = self.getInputFromPort('op')
-    function = 'x+10'
-    if self.hasInputFromPort('function') :
-      function = self.getInputFromPort('function')
+    p_newval = 1.0
+    if self.hasInputFromPort('p_newval') :
+      p_newval = self.getInputFromPort('p_newval')
+    InField = 0
+    if self.hasInputFromPort('InField') :
+      InField = self.getInputFromPort('InField')
+    results = sr_py.SetFieldDataValues(InField,p_newval)
+    self.setResult('OutField', results)
+
+class scirun_EvaluateLinAlgUnary(Module) :
+  def compute(self) :
+    p_op = 'Function'
+    if self.hasInputFromPort('p_op') :
+      p_op = self.getInputFromPort('p_op')
+    p_function = 'x+10'
+    if self.hasInputFromPort('p_function') :
+      p_function = self.getInputFromPort('p_function')
     Input = 0
     if self.hasInputFromPort('Input') :
       Input = self.getInputFromPort('Input')
-    results = sr_py.EvaluateLinAlgUnary(Input,op,function)
+    results = sr_py.EvaluateLinAlgUnary(Input,p_op,p_function)
     self.setResult('Output', results)
 
-class SCIRun_InsertMatricesIntoBundle(Module) :
+class scirun_GetSubmatrix(Module) :
   def compute(self) :
-    matrix1_name = 'matrix1'
-    if self.hasInputFromPort('matrix1_name') :
-      matrix1_name = self.getInputFromPort('matrix1_name')
-    matrix2_name = 'matrix2'
-    if self.hasInputFromPort('matrix2_name') :
-      matrix2_name = self.getInputFromPort('matrix2_name')
-    matrix3_name = 'matrix3'
-    if self.hasInputFromPort('matrix3_name') :
-      matrix3_name = self.getInputFromPort('matrix3_name')
-    matrix4_name = 'matrix4'
-    if self.hasInputFromPort('matrix4_name') :
-      matrix4_name = self.getInputFromPort('matrix4_name')
-    matrix5_name = 'matrix5'
-    if self.hasInputFromPort('matrix5_name') :
-      matrix5_name = self.getInputFromPort('matrix5_name')
-    matrix6_name = 'matrix6'
-    if self.hasInputFromPort('matrix6_name') :
-      matrix6_name = self.getInputFromPort('matrix6_name')
-    replace1 = 1
-    if self.hasInputFromPort('replace1') :
-      replace1 = self.getInputFromPort('replace1')
-    replace2 = 1
-    if self.hasInputFromPort('replace2') :
-      replace2 = self.getInputFromPort('replace2')
-    replace3 = 1
-    if self.hasInputFromPort('replace3') :
-      replace3 = self.getInputFromPort('replace3')
-    replace4 = 1
-    if self.hasInputFromPort('replace4') :
-      replace4 = self.getInputFromPort('replace4')
-    replace5 = 1
-    if self.hasInputFromPort('replace5') :
-      replace5 = self.getInputFromPort('replace5')
-    replace6 = 1
-    if self.hasInputFromPort('replace6') :
-      replace6 = self.getInputFromPort('replace6')
-    bundlename = ''
-    if self.hasInputFromPort('bundlename') :
-      bundlename = self.getInputFromPort('bundlename')
+    p_mincol = '---'
+    if self.hasInputFromPort('p_mincol') :
+      p_mincol = self.getInputFromPort('p_mincol')
+    p_maxcol = '---'
+    if self.hasInputFromPort('p_maxcol') :
+      p_maxcol = self.getInputFromPort('p_maxcol')
+    p_minrow = '---'
+    if self.hasInputFromPort('p_minrow') :
+      p_minrow = self.getInputFromPort('p_minrow')
+    p_maxrow = '---'
+    if self.hasInputFromPort('p_maxrow') :
+      p_maxrow = self.getInputFromPort('p_maxrow')
+    p_nrow = '??'
+    if self.hasInputFromPort('p_nrow') :
+      p_nrow = self.getInputFromPort('p_nrow')
+    p_ncol = '??'
+    if self.hasInputFromPort('p_ncol') :
+      p_ncol = self.getInputFromPort('p_ncol')
+    Input_Matrix = 0
+    if self.hasInputFromPort('Input Matrix') :
+      Input_Matrix = self.getInputFromPort('Input Matrix')
+    Optional_Range_Bounds = 0
+    if self.hasInputFromPort('Optional Range Bounds') :
+      Optional_Range_Bounds = self.getInputFromPort('Optional Range Bounds')
+    results = sr_py.GetSubmatrix(Input_Matrix,Optional_Range_Bounds,p_mincol,p_maxcol,p_minrow,p_maxrow,p_nrow,p_ncol)
+    self.setResult('Output Matrix', results)
+
+class scirun_InsertMatricesIntoBundle(Module) :
+  def compute(self) :
+    p_matrix1_name = 'matrix1'
+    if self.hasInputFromPort('p_matrix1_name') :
+      p_matrix1_name = self.getInputFromPort('p_matrix1_name')
+    p_matrix2_name = 'matrix2'
+    if self.hasInputFromPort('p_matrix2_name') :
+      p_matrix2_name = self.getInputFromPort('p_matrix2_name')
+    p_matrix3_name = 'matrix3'
+    if self.hasInputFromPort('p_matrix3_name') :
+      p_matrix3_name = self.getInputFromPort('p_matrix3_name')
+    p_matrix4_name = 'matrix4'
+    if self.hasInputFromPort('p_matrix4_name') :
+      p_matrix4_name = self.getInputFromPort('p_matrix4_name')
+    p_matrix5_name = 'matrix5'
+    if self.hasInputFromPort('p_matrix5_name') :
+      p_matrix5_name = self.getInputFromPort('p_matrix5_name')
+    p_matrix6_name = 'matrix6'
+    if self.hasInputFromPort('p_matrix6_name') :
+      p_matrix6_name = self.getInputFromPort('p_matrix6_name')
+    p_replace1 = 1
+    if self.hasInputFromPort('p_replace1') :
+      p_replace1 = self.getInputFromPort('p_replace1')
+    p_replace2 = 1
+    if self.hasInputFromPort('p_replace2') :
+      p_replace2 = self.getInputFromPort('p_replace2')
+    p_replace3 = 1
+    if self.hasInputFromPort('p_replace3') :
+      p_replace3 = self.getInputFromPort('p_replace3')
+    p_replace4 = 1
+    if self.hasInputFromPort('p_replace4') :
+      p_replace4 = self.getInputFromPort('p_replace4')
+    p_replace5 = 1
+    if self.hasInputFromPort('p_replace5') :
+      p_replace5 = self.getInputFromPort('p_replace5')
+    p_replace6 = 1
+    if self.hasInputFromPort('p_replace6') :
+      p_replace6 = self.getInputFromPort('p_replace6')
+    p_bundlename = ''
+    if self.hasInputFromPort('p_bundlename') :
+      p_bundlename = self.getInputFromPort('p_bundlename')
     bundle = 0
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
@@ -4916,10 +4495,74 @@ class SCIRun_InsertMatricesIntoBundle(Module) :
     matrix6 = 0
     if self.hasInputFromPort('matrix6') :
       matrix6 = self.getInputFromPort('matrix6')
-    results = sr_py.InsertMatricesIntoBundle(bundle,matrix1,matrix2,matrix3,matrix4,matrix5,matrix6,matrix1_name,matrix2_name,matrix3_name,matrix4_name,matrix5_name,matrix6_name,replace1,replace2,replace3,replace4,replace5,replace6,bundlename)
+    results = sr_py.InsertMatricesIntoBundle(bundle,matrix1,matrix2,matrix3,matrix4,matrix5,matrix6,p_matrix1_name,p_matrix2_name,p_matrix3_name,p_matrix4_name,p_matrix5_name,p_matrix6_name,p_replace1,p_replace2,p_replace3,p_replace4,p_replace5,p_replace6,p_bundlename)
     self.setResult('bundle', results)
 
-class SCIRun_AppendDataArrays(Module) :
+class scirun_CalculateInsideWhichField(Module) :
+  def compute(self) :
+    p_outputbasis = 'same as input'
+    if self.hasInputFromPort('p_outputbasis') :
+      p_outputbasis = self.getInputFromPort('p_outputbasis')
+    p_outputtype = 'double'
+    if self.hasInputFromPort('p_outputtype') :
+      p_outputtype = self.getInputFromPort('p_outputtype')
+    Field = 0
+    if self.hasInputFromPort('Field') :
+      Field = self.getInputFromPort('Field')
+    Object = 0
+    if self.hasInputFromPort('Object') :
+      Object = self.getInputFromPort('Object')
+    results = sr_py.CalculateInsideWhichField(Field,Object,p_outputbasis,p_outputtype)
+    self.setResult('Field', results)
+
+class scirun_WriteString(Module) :
+  def compute(self) :
+    p_filetype = 'Binary'
+    if self.hasInputFromPort('p_filetype') :
+      p_filetype = self.getInputFromPort('p_filetype')
+    p_confirm = '0'
+    if self.hasInputFromPort('p_confirm') :
+      p_confirm = self.getInputFromPort('p_confirm')
+    p_confirm_once = '0'
+    if self.hasInputFromPort('p_confirm_once') :
+      p_confirm_once = self.getInputFromPort('p_confirm_once')
+    String = 0
+    if self.hasInputFromPort('String') :
+      String = self.getInputFromPort('String')
+    Filename = 0
+    if self.hasInputFromPort('Filename') :
+      Filename = self.getInputFromPort('Filename')
+    results = sr_py.WriteString(String,Filename,p_filetype,p_confirm,p_confirm_once)
+
+class scirun_TimeControls(Module) :
+  def compute(self) :
+    p_execmode = 'init'
+    if self.hasInputFromPort('p_execmode') :
+      p_execmode = self.getInputFromPort('p_execmode')
+    p_scale_factor = 1.0
+    if self.hasInputFromPort('p_scale_factor') :
+      p_scale_factor = self.getInputFromPort('p_scale_factor')
+    results = sr_py.TimeControls(p_execmode,p_scale_factor)
+    self.setResult('time', results)
+
+class scirun_InterfaceWithCubit(Module) :
+  def compute(self) :
+    p_cubitdir = '.'
+    if self.hasInputFromPort('p_cubitdir') :
+      p_cubitdir = self.getInputFromPort('p_cubitdir')
+    p_ncdump = 'ncdump'
+    if self.hasInputFromPort('p_ncdump') :
+      p_ncdump = self.getInputFromPort('p_ncdump')
+    Field = 0
+    if self.hasInputFromPort('Field') :
+      Field = self.getInputFromPort('Field')
+    PointCloudField = 0
+    if self.hasInputFromPort('PointCloudField') :
+      PointCloudField = self.getInputFromPort('PointCloudField')
+    results = sr_py.InterfaceWithCubit(Field,PointCloudField,p_cubitdir,p_ncdump)
+    self.setResult('Field', results)
+
+class scirun_AppendDataArrays(Module) :
   def compute(self) :
     Array = 0
     if self.hasInputFromPort('Array') :
@@ -4927,71 +4570,160 @@ class SCIRun_AppendDataArrays(Module) :
     results = sr_py.AppendDataArrays(Array)
     self.setResult('Array', results)
 
-class SCIRun_WriteString(Module) :
+class scirun_ReadPath(Module) :
   def compute(self) :
-    filetype = 'Binary'
-    if self.hasInputFromPort('filetype') :
-      filetype = self.getInputFromPort('filetype')
-    confirm = 0
-    if self.hasInputFromPort('confirm') :
-      confirm = self.getInputFromPort('confirm')
-    confirm_once = 0
-    if self.hasInputFromPort('confirm_once') :
-      confirm_once = self.getInputFromPort('confirm_once')
-    String = 0
-    if self.hasInputFromPort('String') :
-      String = self.getInputFromPort('String')
+    p_from_env = ''
+    if self.hasInputFromPort('p_from_env') :
+      p_from_env = self.getInputFromPort('p_from_env')
     Filename = 0
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
-    results = sr_py.WriteString(String,Filename,filetype,confirm,confirm_once)
+    results = sr_py.ReadPath(Filename,p_from_env)
+    self.setResult('Output Data', sr_py.read_at_index(results,0))
+    self.setResult('Filename', sr_py.read_at_index(results,1))
 
-class SCIRun_TimeControls(Module) :
+class scirun_CreateString(Module) :
   def compute(self) :
-    results = sr_py.TimeControls()
-    self.setResult('time', results)
+    p_inputstring = ''
+    if self.hasInputFromPort('p_inputstring') :
+      p_inputstring = self.getInputFromPort('p_inputstring')
+    results = sr_py.CreateString(p_inputstring)
+    self.setResult('Output', results)
 
-class SCIRun_InsertNrrdsIntoBundle(Module) :
+class scirun_ClipFieldByFunction(Module) :
   def compute(self) :
-    nrrd1_name = 'nrrd1'
-    if self.hasInputFromPort('nrrd1_name') :
-      nrrd1_name = self.getInputFromPort('nrrd1_name')
-    nrrd2_name = 'nrrd2'
-    if self.hasInputFromPort('nrrd2_name') :
-      nrrd2_name = self.getInputFromPort('nrrd2_name')
-    nrrd3_name = 'nrrd3'
-    if self.hasInputFromPort('nrrd3_name') :
-      nrrd3_name = self.getInputFromPort('nrrd3_name')
-    nrrd4_name = 'nrrd4'
-    if self.hasInputFromPort('nrrd4_name') :
-      nrrd4_name = self.getInputFromPort('nrrd4_name')
-    nrrd5_name = 'nrrd5'
-    if self.hasInputFromPort('nrrd5_name') :
-      nrrd5_name = self.getInputFromPort('nrrd5_name')
-    nrrd6_name = 'nrrd6'
-    if self.hasInputFromPort('nrrd6_name') :
-      nrrd6_name = self.getInputFromPort('nrrd6_name')
-    replace1 = 1
-    if self.hasInputFromPort('replace1') :
-      replace1 = self.getInputFromPort('replace1')
-    replace2 = 1
-    if self.hasInputFromPort('replace2') :
-      replace2 = self.getInputFromPort('replace2')
-    replace3 = 1
-    if self.hasInputFromPort('replace3') :
-      replace3 = self.getInputFromPort('replace3')
-    replace4 = 1
-    if self.hasInputFromPort('replace4') :
-      replace4 = self.getInputFromPort('replace4')
-    replace5 = 1
-    if self.hasInputFromPort('replace5') :
-      replace5 = self.getInputFromPort('replace5')
-    replace6 = 1
-    if self.hasInputFromPort('replace6') :
-      replace6 = self.getInputFromPort('replace6')
-    bundlename = ''
-    if self.hasInputFromPort('bundlename') :
-      bundlename = self.getInputFromPort('bundlename')
+    p_mode = 'allnodes'
+    if self.hasInputFromPort('p_mode') :
+      p_mode = self.getInputFromPort('p_mode')
+    p_function = 'return (x < 0);'
+    if self.hasInputFromPort('p_function') :
+      p_function = self.getInputFromPort('p_function')
+    Function = 0
+    if self.hasInputFromPort('Function') :
+      Function = self.getInputFromPort('Function')
+    Input = 0
+    if self.hasInputFromPort('Input') :
+      Input = self.getInputFromPort('Input')
+    results = sr_py.ClipFieldByFunction(Function,Input,p_mode,p_function)
+    self.setResult('Clipped', sr_py.read_at_index(results,0))
+    self.setResult('Mapping', sr_py.read_at_index(results,1))
+    self.setResult('MaskVector', sr_py.read_at_index(results,2))
+
+class scirun_CreateTensorArray(Module) :
+  def compute(self) :
+    EigenVector1 = 0
+    if self.hasInputFromPort('EigenVector1') :
+      EigenVector1 = self.getInputFromPort('EigenVector1')
+    EigenVector2 = 0
+    if self.hasInputFromPort('EigenVector2') :
+      EigenVector2 = self.getInputFromPort('EigenVector2')
+    EigenValue1 = 0
+    if self.hasInputFromPort('EigenValue1') :
+      EigenValue1 = self.getInputFromPort('EigenValue1')
+    EigenValue2 = 0
+    if self.hasInputFromPort('EigenValue2') :
+      EigenValue2 = self.getInputFromPort('EigenValue2')
+    EigenValue3 = 0
+    if self.hasInputFromPort('EigenValue3') :
+      EigenValue3 = self.getInputFromPort('EigenValue3')
+    results = sr_py.CreateTensorArray(EigenVector1,EigenVector2,EigenValue1,EigenValue2,EigenValue3)
+    self.setResult('TensorArray', results)
+
+class scirun_WriteField(Module) :
+  def compute(self) :
+    p_filetype = 'Binary'
+    if self.hasInputFromPort('p_filetype') :
+      p_filetype = self.getInputFromPort('p_filetype')
+    p_confirm = '0'
+    if self.hasInputFromPort('p_confirm') :
+      p_confirm = self.getInputFromPort('p_confirm')
+    p_confirm_once = '0'
+    if self.hasInputFromPort('p_confirm_once') :
+      p_confirm_once = self.getInputFromPort('p_confirm_once')
+    p_exporttype = ''
+    if self.hasInputFromPort('p_exporttype') :
+      p_exporttype = self.getInputFromPort('p_exporttype')
+    p_increment = 0
+    if self.hasInputFromPort('p_increment') :
+      p_increment = self.getInputFromPort('p_increment')
+    p_current = 0
+    if self.hasInputFromPort('p_current') :
+      p_current = self.getInputFromPort('p_current')
+    Input_Data = 0
+    if self.hasInputFromPort('Input Data') :
+      Input_Data = self.getInputFromPort('Input Data')
+    Filename = 0
+    if self.hasInputFromPort('Filename') :
+      Filename = self.getInputFromPort('Filename')
+    results = sr_py.WriteField(Input_Data,Filename,p_filetype,p_confirm,p_confirm_once,p_exporttype,p_increment,p_current)
+
+class scirun_BuildMappingMatrix(Module) :
+  def compute(self) :
+    p_interpolation_basis = 'linear'
+    if self.hasInputFromPort('p_interpolation_basis') :
+      p_interpolation_basis = self.getInputFromPort('p_interpolation_basis')
+    p_map_source_to_single_dest = 0
+    if self.hasInputFromPort('p_map_source_to_single_dest') :
+      p_map_source_to_single_dest = self.getInputFromPort('p_map_source_to_single_dest')
+    p_exhaustive_search = 0
+    if self.hasInputFromPort('p_exhaustive_search') :
+      p_exhaustive_search = self.getInputFromPort('p_exhaustive_search')
+    p_exhaustive_search_max_dist = -1.0
+    if self.hasInputFromPort('p_exhaustive_search_max_dist') :
+      p_exhaustive_search_max_dist = self.getInputFromPort('p_exhaustive_search_max_dist')
+    p_np = 1
+    if self.hasInputFromPort('p_np') :
+      p_np = self.getInputFromPort('p_np')
+    Source = 0
+    if self.hasInputFromPort('Source') :
+      Source = self.getInputFromPort('Source')
+    Destination = 0
+    if self.hasInputFromPort('Destination') :
+      Destination = self.getInputFromPort('Destination')
+    results = sr_py.BuildMappingMatrix(Source,Destination,p_interpolation_basis,p_map_source_to_single_dest,p_exhaustive_search,p_exhaustive_search_max_dist,p_np)
+    self.setResult('Mapping', results)
+
+class scirun_InsertNrrdsIntoBundle(Module) :
+  def compute(self) :
+    p_nrrd1_name = 'nrrd1'
+    if self.hasInputFromPort('p_nrrd1_name') :
+      p_nrrd1_name = self.getInputFromPort('p_nrrd1_name')
+    p_nrrd2_name = 'nrrd2'
+    if self.hasInputFromPort('p_nrrd2_name') :
+      p_nrrd2_name = self.getInputFromPort('p_nrrd2_name')
+    p_nrrd3_name = 'nrrd3'
+    if self.hasInputFromPort('p_nrrd3_name') :
+      p_nrrd3_name = self.getInputFromPort('p_nrrd3_name')
+    p_nrrd4_name = 'nrrd4'
+    if self.hasInputFromPort('p_nrrd4_name') :
+      p_nrrd4_name = self.getInputFromPort('p_nrrd4_name')
+    p_nrrd5_name = 'nrrd5'
+    if self.hasInputFromPort('p_nrrd5_name') :
+      p_nrrd5_name = self.getInputFromPort('p_nrrd5_name')
+    p_nrrd6_name = 'nrrd6'
+    if self.hasInputFromPort('p_nrrd6_name') :
+      p_nrrd6_name = self.getInputFromPort('p_nrrd6_name')
+    p_replace1 = 1
+    if self.hasInputFromPort('p_replace1') :
+      p_replace1 = self.getInputFromPort('p_replace1')
+    p_replace2 = 1
+    if self.hasInputFromPort('p_replace2') :
+      p_replace2 = self.getInputFromPort('p_replace2')
+    p_replace3 = 1
+    if self.hasInputFromPort('p_replace3') :
+      p_replace3 = self.getInputFromPort('p_replace3')
+    p_replace4 = 1
+    if self.hasInputFromPort('p_replace4') :
+      p_replace4 = self.getInputFromPort('p_replace4')
+    p_replace5 = 1
+    if self.hasInputFromPort('p_replace5') :
+      p_replace5 = self.getInputFromPort('p_replace5')
+    p_replace6 = 1
+    if self.hasInputFromPort('p_replace6') :
+      p_replace6 = self.getInputFromPort('p_replace6')
+    p_bundlename = ''
+    if self.hasInputFromPort('p_bundlename') :
+      p_bundlename = self.getInputFromPort('p_bundlename')
     bundle = 0
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
@@ -5013,179 +4745,50 @@ class SCIRun_InsertNrrdsIntoBundle(Module) :
     nrrd6 = 0
     if self.hasInputFromPort('nrrd6') :
       nrrd6 = self.getInputFromPort('nrrd6')
-    results = sr_py.InsertNrrdsIntoBundle(bundle,nrrd1,nrrd2,nrrd3,nrrd4,nrrd5,nrrd6,nrrd1_name,nrrd2_name,nrrd3_name,nrrd4_name,nrrd5_name,nrrd6_name,replace1,replace2,replace3,replace4,replace5,replace6,bundlename)
+    results = sr_py.InsertNrrdsIntoBundle(bundle,nrrd1,nrrd2,nrrd3,nrrd4,nrrd5,nrrd6,p_nrrd1_name,p_nrrd2_name,p_nrrd3_name,p_nrrd4_name,p_nrrd5_name,p_nrrd6_name,p_replace1,p_replace2,p_replace3,p_replace4,p_replace5,p_replace6,p_bundlename)
     self.setResult('bundle', results)
 
-class SCIRun_InterfaceWithCubit(Module) :
+class scirun_InsertBundlesIntoBundle(Module) :
   def compute(self) :
-    cubitdir = '.'
-    if self.hasInputFromPort('cubitdir') :
-      cubitdir = self.getInputFromPort('cubitdir')
-    ncdump = 'ncdump'
-    if self.hasInputFromPort('ncdump') :
-      ncdump = self.getInputFromPort('ncdump')
-    Field = 0
-    if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
-    PointCloudField = 0
-    if self.hasInputFromPort('PointCloudField') :
-      PointCloudField = self.getInputFromPort('PointCloudField')
-    results = sr_py.InterfaceWithCubit(Field,PointCloudField,cubitdir,ncdump)
-    self.setResult('Field', results)
-
-class SCIRun_CreateString(Module) :
-  def compute(self) :
-    inputstring = ''
-    if self.hasInputFromPort('inputstring') :
-      inputstring = self.getInputFromPort('inputstring')
-    results = sr_py.CreateString(inputstring)
-    self.setResult('Output', results)
-
-class SCIRun_ClipFieldByFunction(Module) :
-  def compute(self) :
-    mode = 'allnodes'
-    if self.hasInputFromPort('mode') :
-      mode = self.getInputFromPort('mode')
-    function = 'return (x < 0);'
-    if self.hasInputFromPort('function') :
-      function = self.getInputFromPort('function')
-    Function = 0
-    if self.hasInputFromPort('Function') :
-      Function = self.getInputFromPort('Function')
-    Input = 0
-    if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
-    results = sr_py.ClipFieldByFunction(Function,Input,mode,function)
-    self.setResult('Clipped', sr_py.read_at_index(results,0))
-    self.setResult('Mapping', sr_py.read_at_index(results,1))
-    self.setResult('MaskVector', sr_py.read_at_index(results,2))
-
-class SCIRun_CreateTensorArray(Module) :
-  def compute(self) :
-    EigenVector1 = 0
-    if self.hasInputFromPort('EigenVector1') :
-      EigenVector1 = self.getInputFromPort('EigenVector1')
-    EigenVector2 = 0
-    if self.hasInputFromPort('EigenVector2') :
-      EigenVector2 = self.getInputFromPort('EigenVector2')
-    EigenValue1 = 0
-    if self.hasInputFromPort('EigenValue1') :
-      EigenValue1 = self.getInputFromPort('EigenValue1')
-    EigenValue2 = 0
-    if self.hasInputFromPort('EigenValue2') :
-      EigenValue2 = self.getInputFromPort('EigenValue2')
-    EigenValue3 = 0
-    if self.hasInputFromPort('EigenValue3') :
-      EigenValue3 = self.getInputFromPort('EigenValue3')
-    results = sr_py.CreateTensorArray(EigenVector1,EigenVector2,EigenValue1,EigenValue2,EigenValue3)
-    self.setResult('TensorArray', results)
-
-class SCIRun_WriteField(Module) :
-  def compute(self) :
-    filetype = 'Binary'
-    if self.hasInputFromPort('filetype') :
-      filetype = self.getInputFromPort('filetype')
-    confirm = 0
-    if self.hasInputFromPort('confirm') :
-      confirm = self.getInputFromPort('confirm')
-    confirm_once = 0
-    if self.hasInputFromPort('confirm_once') :
-      confirm_once = self.getInputFromPort('confirm_once')
-    exporttype = ''
-    if self.hasInputFromPort('exporttype') :
-      exporttype = self.getInputFromPort('exporttype')
-    increment = 0
-    if self.hasInputFromPort('increment') :
-      increment = self.getInputFromPort('increment')
-    current = 0
-    if self.hasInputFromPort('current') :
-      current = self.getInputFromPort('current')
-    Input_Data = 0
-    if self.hasInputFromPort('Input Data') :
-      Input_Data = self.getInputFromPort('Input Data')
-    Filename = 0
-    if self.hasInputFromPort('Filename') :
-      Filename = self.getInputFromPort('Filename')
-    results = sr_py.WriteField(Input_Data,Filename,filetype,confirm,confirm_once,exporttype,increment,current)
-
-class SCIRun_BuildMappingMatrix(Module) :
-  def compute(self) :
-    interpolation_basis = 'linear'
-    if self.hasInputFromPort('interpolation_basis') :
-      interpolation_basis = self.getInputFromPort('interpolation_basis')
-    map_source_to_single_dest = 0
-    if self.hasInputFromPort('map_source_to_single_dest') :
-      map_source_to_single_dest = self.getInputFromPort('map_source_to_single_dest')
-    exhaustive_search = 0
-    if self.hasInputFromPort('exhaustive_search') :
-      exhaustive_search = self.getInputFromPort('exhaustive_search')
-    exhaustive_search_max_dist = -1.0
-    if self.hasInputFromPort('exhaustive_search_max_dist') :
-      exhaustive_search_max_dist = self.getInputFromPort('exhaustive_search_max_dist')
-    np = 1
-    if self.hasInputFromPort('np') :
-      np = self.getInputFromPort('np')
-    Source = 0
-    if self.hasInputFromPort('Source') :
-      Source = self.getInputFromPort('Source')
-    Destination = 0
-    if self.hasInputFromPort('Destination') :
-      Destination = self.getInputFromPort('Destination')
-    results = sr_py.BuildMappingMatrix(Source,Destination,interpolation_basis,map_source_to_single_dest,exhaustive_search,exhaustive_search_max_dist,np)
-    self.setResult('Mapping', results)
-
-class SCIRun_MapFieldDataFromNodeToElem(Module) :
-  def compute(self) :
-    method = 'Interpolate'
-    if self.hasInputFromPort('method') :
-      method = self.getInputFromPort('method')
-    Field = 0
-    if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
-    results = sr_py.MapFieldDataFromNodeToElem(Field,method)
-    self.setResult('Field', results)
-
-class SCIRun_InsertBundlesIntoBundle(Module) :
-  def compute(self) :
-    bundle1_name = 'bundle1'
-    if self.hasInputFromPort('bundle1_name') :
-      bundle1_name = self.getInputFromPort('bundle1_name')
-    bundle2_name = 'bundle2'
-    if self.hasInputFromPort('bundle2_name') :
-      bundle2_name = self.getInputFromPort('bundle2_name')
-    bundle3_name = 'bundle3'
-    if self.hasInputFromPort('bundle3_name') :
-      bundle3_name = self.getInputFromPort('bundle3_name')
-    bundle4_name = 'bundle4'
-    if self.hasInputFromPort('bundle4_name') :
-      bundle4_name = self.getInputFromPort('bundle4_name')
-    bundle5_name = 'bundle5'
-    if self.hasInputFromPort('bundle5_name') :
-      bundle5_name = self.getInputFromPort('bundle5_name')
-    bundle6_name = 'bundle6'
-    if self.hasInputFromPort('bundle6_name') :
-      bundle6_name = self.getInputFromPort('bundle6_name')
-    replace1 = 1
-    if self.hasInputFromPort('replace1') :
-      replace1 = self.getInputFromPort('replace1')
-    replace2 = 1
-    if self.hasInputFromPort('replace2') :
-      replace2 = self.getInputFromPort('replace2')
-    replace3 = 1
-    if self.hasInputFromPort('replace3') :
-      replace3 = self.getInputFromPort('replace3')
-    replace4 = 1
-    if self.hasInputFromPort('replace4') :
-      replace4 = self.getInputFromPort('replace4')
-    replace5 = 1
-    if self.hasInputFromPort('replace5') :
-      replace5 = self.getInputFromPort('replace5')
-    replace6 = 1
-    if self.hasInputFromPort('replace6') :
-      replace6 = self.getInputFromPort('replace6')
-    bundlename = ''
-    if self.hasInputFromPort('bundlename') :
-      bundlename = self.getInputFromPort('bundlename')
+    p_bundle1_name = 'bundle1'
+    if self.hasInputFromPort('p_bundle1_name') :
+      p_bundle1_name = self.getInputFromPort('p_bundle1_name')
+    p_bundle2_name = 'bundle2'
+    if self.hasInputFromPort('p_bundle2_name') :
+      p_bundle2_name = self.getInputFromPort('p_bundle2_name')
+    p_bundle3_name = 'bundle3'
+    if self.hasInputFromPort('p_bundle3_name') :
+      p_bundle3_name = self.getInputFromPort('p_bundle3_name')
+    p_bundle4_name = 'bundle4'
+    if self.hasInputFromPort('p_bundle4_name') :
+      p_bundle4_name = self.getInputFromPort('p_bundle4_name')
+    p_bundle5_name = 'bundle5'
+    if self.hasInputFromPort('p_bundle5_name') :
+      p_bundle5_name = self.getInputFromPort('p_bundle5_name')
+    p_bundle6_name = 'bundle6'
+    if self.hasInputFromPort('p_bundle6_name') :
+      p_bundle6_name = self.getInputFromPort('p_bundle6_name')
+    p_replace1 = 1
+    if self.hasInputFromPort('p_replace1') :
+      p_replace1 = self.getInputFromPort('p_replace1')
+    p_replace2 = 1
+    if self.hasInputFromPort('p_replace2') :
+      p_replace2 = self.getInputFromPort('p_replace2')
+    p_replace3 = 1
+    if self.hasInputFromPort('p_replace3') :
+      p_replace3 = self.getInputFromPort('p_replace3')
+    p_replace4 = 1
+    if self.hasInputFromPort('p_replace4') :
+      p_replace4 = self.getInputFromPort('p_replace4')
+    p_replace5 = 1
+    if self.hasInputFromPort('p_replace5') :
+      p_replace5 = self.getInputFromPort('p_replace5')
+    p_replace6 = 1
+    if self.hasInputFromPort('p_replace6') :
+      p_replace6 = self.getInputFromPort('p_replace6')
+    p_bundlename = ''
+    if self.hasInputFromPort('p_bundlename') :
+      p_bundlename = self.getInputFromPort('p_bundlename')
     bundle = 0
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
@@ -5207,51 +4810,51 @@ class SCIRun_InsertBundlesIntoBundle(Module) :
     bundle6 = 0
     if self.hasInputFromPort('bundle6') :
       bundle6 = self.getInputFromPort('bundle6')
-    results = sr_py.InsertBundlesIntoBundle(bundle,bundle1,bundle2,bundle3,bundle4,bundle5,bundle6,bundle1_name,bundle2_name,bundle3_name,bundle4_name,bundle5_name,bundle6_name,replace1,replace2,replace3,replace4,replace5,replace6,bundlename)
+    results = sr_py.InsertBundlesIntoBundle(bundle,bundle1,bundle2,bundle3,bundle4,bundle5,bundle6,p_bundle1_name,p_bundle2_name,p_bundle3_name,p_bundle4_name,p_bundle5_name,p_bundle6_name,p_replace1,p_replace2,p_replace3,p_replace4,p_replace5,p_replace6,p_bundlename)
     self.setResult('bundle', results)
 
-class SCIRun_ReadBundle(Module) :
+class scirun_ReadBundle(Module) :
   def compute(self) :
-    from_env = ''
-    if self.hasInputFromPort('from_env') :
-      from_env = self.getInputFromPort('from_env')
-    types = 'SCIRun Bundle File} {.bdl} } {{SCIRun Bundle Any} {.*} } '
-    if self.hasInputFromPort('types') :
-      types = self.getInputFromPort('types')
+    p_from_env = ''
+    if self.hasInputFromPort('p_from_env') :
+      p_from_env = self.getInputFromPort('p_from_env')
+    p_types = 'SCIRun Bundle File} {.bdl} } {{SCIRun Bundle Any} {.*} } '
+    if self.hasInputFromPort('p_types') :
+      p_types = self.getInputFromPort('p_types')
     Filename = 0
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
-    results = sr_py.ReadBundle(Filename,from_env,types)
+    results = sr_py.ReadBundle(Filename,p_from_env,p_types)
     self.setResult('bundle', sr_py.read_at_index(results,0))
     self.setResult('Filename', sr_py.read_at_index(results,1))
 
-class SCIRun_GetStringsFromBundle(Module) :
+class scirun_GetStringsFromBundle(Module) :
   def compute(self) :
-    string1_name = 'string1'
-    if self.hasInputFromPort('string1_name') :
-      string1_name = self.getInputFromPort('string1_name')
-    string2_name = 'string2'
-    if self.hasInputFromPort('string2_name') :
-      string2_name = self.getInputFromPort('string2_name')
-    string3_name = 'string3'
-    if self.hasInputFromPort('string3_name') :
-      string3_name = self.getInputFromPort('string3_name')
-    string4_name = 'string4'
-    if self.hasInputFromPort('string4_name') :
-      string4_name = self.getInputFromPort('string4_name')
-    string5_name = 'string5'
-    if self.hasInputFromPort('string5_name') :
-      string5_name = self.getInputFromPort('string5_name')
-    string6_name = 'string6'
-    if self.hasInputFromPort('string6_name') :
-      string6_name = self.getInputFromPort('string6_name')
-    string_selection = ''
-    if self.hasInputFromPort('string_selection') :
-      string_selection = self.getInputFromPort('string_selection')
+    p_string1_name = 'string1'
+    if self.hasInputFromPort('p_string1_name') :
+      p_string1_name = self.getInputFromPort('p_string1_name')
+    p_string2_name = 'string2'
+    if self.hasInputFromPort('p_string2_name') :
+      p_string2_name = self.getInputFromPort('p_string2_name')
+    p_string3_name = 'string3'
+    if self.hasInputFromPort('p_string3_name') :
+      p_string3_name = self.getInputFromPort('p_string3_name')
+    p_string4_name = 'string4'
+    if self.hasInputFromPort('p_string4_name') :
+      p_string4_name = self.getInputFromPort('p_string4_name')
+    p_string5_name = 'string5'
+    if self.hasInputFromPort('p_string5_name') :
+      p_string5_name = self.getInputFromPort('p_string5_name')
+    p_string6_name = 'string6'
+    if self.hasInputFromPort('p_string6_name') :
+      p_string6_name = self.getInputFromPort('p_string6_name')
+    p_string_selection = ''
+    if self.hasInputFromPort('p_string_selection') :
+      p_string_selection = self.getInputFromPort('p_string_selection')
     bundle = 0
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
-    results = sr_py.GetStringsFromBundle(bundle,string1_name,string2_name,string3_name,string4_name,string5_name,string6_name,string_selection)
+    results = sr_py.GetStringsFromBundle(bundle,p_string1_name,p_string2_name,p_string3_name,p_string4_name,p_string5_name,p_string6_name,p_string_selection)
     self.setResult('bundle', sr_py.read_at_index(results,0))
     self.setResult('string1', sr_py.read_at_index(results,1))
     self.setResult('string2', sr_py.read_at_index(results,2))
@@ -5260,57 +4863,36 @@ class SCIRun_GetStringsFromBundle(Module) :
     self.setResult('string5', sr_py.read_at_index(results,5))
     self.setResult('string6', sr_py.read_at_index(results,6))
 
-class SCIRun_ShowString(Module) :
+class scirun_ShowString(Module) :
   def compute(self) :
-    bbox = 1
-    if self.hasInputFromPort('bbox') :
-      bbox = self.getInputFromPort('bbox')
-    size = 1
-    if self.hasInputFromPort('size') :
-      size = self.getInputFromPort('size')
-    location_x = -0.96875
-    if self.hasInputFromPort('location_x') :
-      location_x = self.getInputFromPort('location_x')
-    location_y = 0.96875
-    if self.hasInputFromPort('location_y') :
-      location_y = self.getInputFromPort('location_y')
-    color_r = 1.0
-    if self.hasInputFromPort('color_r') :
-      color_r = self.getInputFromPort('color_r')
-    color_g = 1.0
-    if self.hasInputFromPort('color_g') :
-      color_g = self.getInputFromPort('color_g')
-    color_b = 1.0
-    if self.hasInputFromPort('color_b') :
-      color_b = self.getInputFromPort('color_b')
+    p_bbox = 1
+    if self.hasInputFromPort('p_bbox') :
+      p_bbox = self.getInputFromPort('p_bbox')
+    p_size = 1
+    if self.hasInputFromPort('p_size') :
+      p_size = self.getInputFromPort('p_size')
+    p_location_x = -0.96875
+    if self.hasInputFromPort('p_location_x') :
+      p_location_x = self.getInputFromPort('p_location_x')
+    p_location_y = 0.96875
+    if self.hasInputFromPort('p_location_y') :
+      p_location_y = self.getInputFromPort('p_location_y')
+    p_color_r = 1.0
+    if self.hasInputFromPort('p_color_r') :
+      p_color_r = self.getInputFromPort('p_color_r')
+    p_color_g = 1.0
+    if self.hasInputFromPort('p_color_g') :
+      p_color_g = self.getInputFromPort('p_color_g')
+    p_color_b = 1.0
+    if self.hasInputFromPort('p_color_b') :
+      p_color_b = self.getInputFromPort('p_color_b')
     Format_String = 0
     if self.hasInputFromPort('Format String') :
       Format_String = self.getInputFromPort('Format String')
-    results = sr_py.ShowString(Format_String,bbox,size,location_x,location_y,color_r,color_g,color_b)
+    results = sr_py.ShowString(Format_String,p_bbox,p_size,p_location_x,p_location_y,p_color_r,p_color_g,p_color_b)
     self.setResult('Title', results)
 
-class SCIRun_ReportStringInfo(Module) :
-  def compute(self) :
-    inputstring = ''
-    if self.hasInputFromPort('inputstring') :
-      inputstring = self.getInputFromPort('inputstring')
-    Input = 0
-    if self.hasInputFromPort('Input') :
-      Input = self.getInputFromPort('Input')
-    results = sr_py.ReportStringInfo(Input,inputstring)
-
-class SCIRun_SortMatrix(Module) :
-  def compute(self) :
-    row_or_col = 'row'
-    if self.hasInputFromPort('row_or_col') :
-      row_or_col = self.getInputFromPort('row_or_col')
-    Matrix = 0
-    if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
-    results = sr_py.SortMatrix(Matrix,row_or_col)
-    self.setResult('Matrix', results)
-
-class SCIRun_SwapNodeLocationsWithMatrixEntries(Module) :
+class scirun_SwapNodeLocationsWithMatrixEntries(Module) :
   def compute(self) :
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
@@ -5322,7 +4904,7 @@ class SCIRun_SwapNodeLocationsWithMatrixEntries(Module) :
     self.setResult('Output Field', sr_py.read_at_index(results,0))
     self.setResult('Output Matrix', sr_py.read_at_index(results,1))
 
-class SCIRun_ReorderMatrixByReverseCuthillMcKee(Module) :
+class scirun_ReorderMatrixByReverseCuthillMcKee(Module) :
   def compute(self) :
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
@@ -5332,35 +4914,46 @@ class SCIRun_ReorderMatrixByReverseCuthillMcKee(Module) :
     self.setResult('Mapping', sr_py.read_at_index(results,1))
     self.setResult('InverseMapping', sr_py.read_at_index(results,2))
 
-class SCIRun_GetDomainBoundary(Module) :
+class scirun_MapFieldDataFromNodeToElem(Module) :
   def compute(self) :
-    userange = 0
-    if self.hasInputFromPort('userange') :
-      userange = self.getInputFromPort('userange')
-    minrange = 0.0
-    if self.hasInputFromPort('minrange') :
-      minrange = self.getInputFromPort('minrange')
-    maxrange = 255.0
-    if self.hasInputFromPort('maxrange') :
-      maxrange = self.getInputFromPort('maxrange')
-    usevalue = 0
-    if self.hasInputFromPort('usevalue') :
-      usevalue = self.getInputFromPort('usevalue')
-    value = 1.0
-    if self.hasInputFromPort('value') :
-      value = self.getInputFromPort('value')
-    includeouterboundary = 1
-    if self.hasInputFromPort('includeouterboundary') :
-      includeouterboundary = self.getInputFromPort('includeouterboundary')
-    innerboundaryonly = 0
-    if self.hasInputFromPort('innerboundaryonly') :
-      innerboundaryonly = self.getInputFromPort('innerboundaryonly')
-    noinnerboundary = 0
-    if self.hasInputFromPort('noinnerboundary') :
-      noinnerboundary = self.getInputFromPort('noinnerboundary')
-    disconnect = 1
-    if self.hasInputFromPort('disconnect') :
-      disconnect = self.getInputFromPort('disconnect')
+    p_method = 'Interpolate'
+    if self.hasInputFromPort('p_method') :
+      p_method = self.getInputFromPort('p_method')
+    Field = 0
+    if self.hasInputFromPort('Field') :
+      Field = self.getInputFromPort('Field')
+    results = sr_py.MapFieldDataFromNodeToElem(Field,p_method)
+    self.setResult('Field', results)
+
+class scirun_GetDomainBoundary(Module) :
+  def compute(self) :
+    p_userange = 0
+    if self.hasInputFromPort('p_userange') :
+      p_userange = self.getInputFromPort('p_userange')
+    p_minrange = 0.0
+    if self.hasInputFromPort('p_minrange') :
+      p_minrange = self.getInputFromPort('p_minrange')
+    p_maxrange = 255.0
+    if self.hasInputFromPort('p_maxrange') :
+      p_maxrange = self.getInputFromPort('p_maxrange')
+    p_usevalue = 0
+    if self.hasInputFromPort('p_usevalue') :
+      p_usevalue = self.getInputFromPort('p_usevalue')
+    p_value = 1.0
+    if self.hasInputFromPort('p_value') :
+      p_value = self.getInputFromPort('p_value')
+    p_includeouterboundary = 1
+    if self.hasInputFromPort('p_includeouterboundary') :
+      p_includeouterboundary = self.getInputFromPort('p_includeouterboundary')
+    p_innerboundaryonly = 0
+    if self.hasInputFromPort('p_innerboundaryonly') :
+      p_innerboundaryonly = self.getInputFromPort('p_innerboundaryonly')
+    p_noinnerboundary = 0
+    if self.hasInputFromPort('p_noinnerboundary') :
+      p_noinnerboundary = self.getInputFromPort('p_noinnerboundary')
+    p_disconnect = 1
+    if self.hasInputFromPort('p_disconnect') :
+      p_disconnect = self.getInputFromPort('p_disconnect')
     Field = 0
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
@@ -5370,81 +4963,68 @@ class SCIRun_GetDomainBoundary(Module) :
     MaxValue = 0
     if self.hasInputFromPort('MaxValue') :
       MaxValue = self.getInputFromPort('MaxValue')
-    results = sr_py.GetDomainBoundary(Field,MinValueValue,MaxValue,userange,minrange,maxrange,usevalue,value,includeouterboundary,innerboundaryonly,noinnerboundary,disconnect)
+    results = sr_py.GetDomainBoundary(Field,MinValueValue,MaxValue,p_userange,p_minrange,p_maxrange,p_usevalue,p_value,p_includeouterboundary,p_innerboundaryonly,p_noinnerboundary,p_disconnect)
     self.setResult('Field', results)
 
-class SCIRun_CollectFields(Module) :
+class scirun_CollectFields(Module) :
   def compute(self) :
-    buffersize = 20
-    if self.hasInputFromPort('buffersize') :
-      buffersize = self.getInputFromPort('buffersize')
+    p_buffersize = 20
+    if self.hasInputFromPort('p_buffersize') :
+      p_buffersize = self.getInputFromPort('p_buffersize')
     Field = 0
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
     BufferSize = 0
     if self.hasInputFromPort('BufferSize') :
       BufferSize = self.getInputFromPort('BufferSize')
-    results = sr_py.CollectFields(Field,BufferSize,buffersize)
+    results = sr_py.CollectFields(Field,BufferSize,p_buffersize)
     self.setResult('Fields', results)
 
-class SCIRun_ScaleFieldMeshAndData(Module) :
+class scirun_ReportStringInfo(Module) :
   def compute(self) :
-    datascale = 1
-    if self.hasInputFromPort('datascale') :
-      datascale = self.getInputFromPort('datascale')
-    geomscale = 1
-    if self.hasInputFromPort('geomscale') :
-      geomscale = self.getInputFromPort('geomscale')
-    usegeomcenter = 1
-    if self.hasInputFromPort('usegeomcenter') :
-      usegeomcenter = self.getInputFromPort('usegeomcenter')
-    Field = 0
-    if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
-    GeomScaleFactor = 0
-    if self.hasInputFromPort('GeomScaleFactor') :
-      GeomScaleFactor = self.getInputFromPort('GeomScaleFactor')
-    DataScaleFactor = 0
-    if self.hasInputFromPort('DataScaleFactor') :
-      DataScaleFactor = self.getInputFromPort('DataScaleFactor')
-    results = sr_py.ScaleFieldMeshAndData(Field,GeomScaleFactor,DataScaleFactor,datascale,geomscale,usegeomcenter)
-    self.setResult('Field', results)
+    p_inputstring = ''
+    if self.hasInputFromPort('p_inputstring') :
+      p_inputstring = self.getInputFromPort('p_inputstring')
+    Input = 0
+    if self.hasInputFromPort('Input') :
+      Input = self.getInputFromPort('Input')
+    results = sr_py.ReportStringInfo(Input,p_inputstring)
 
-class SCIRun_StreamMatrixFromDisk(Module) :
+class scirun_StreamMatrixFromDisk(Module) :
   def compute(self) :
-    row_or_col = 'column'
-    if self.hasInputFromPort('row_or_col') :
-      row_or_col = self.getInputFromPort('row_or_col')
-    slider_min = 0
-    if self.hasInputFromPort('slider_min') :
-      slider_min = self.getInputFromPort('slider_min')
-    slider_max = 100
-    if self.hasInputFromPort('slider_max') :
-      slider_max = self.getInputFromPort('slider_max')
-    range_min = 0
-    if self.hasInputFromPort('range_min') :
-      range_min = self.getInputFromPort('range_min')
-    range_max = 100
-    if self.hasInputFromPort('range_max') :
-      range_max = self.getInputFromPort('range_max')
-    playmode = 'once'
-    if self.hasInputFromPort('playmode') :
-      playmode = self.getInputFromPort('playmode')
-    current = 0
-    if self.hasInputFromPort('current') :
-      current = self.getInputFromPort('current')
-    execmode = 'init'
-    if self.hasInputFromPort('execmode') :
-      execmode = self.getInputFromPort('execmode')
-    delay = 0
-    if self.hasInputFromPort('delay') :
-      delay = self.getInputFromPort('delay')
-    inc_amount = 1
-    if self.hasInputFromPort('inc_amount') :
-      inc_amount = self.getInputFromPort('inc_amount')
-    send_amount = 1
-    if self.hasInputFromPort('send_amount') :
-      send_amount = self.getInputFromPort('send_amount')
+    p_row_or_col = 'column'
+    if self.hasInputFromPort('p_row_or_col') :
+      p_row_or_col = self.getInputFromPort('p_row_or_col')
+    p_slider_min = 0
+    if self.hasInputFromPort('p_slider_min') :
+      p_slider_min = self.getInputFromPort('p_slider_min')
+    p_slider_max = 100
+    if self.hasInputFromPort('p_slider_max') :
+      p_slider_max = self.getInputFromPort('p_slider_max')
+    p_range_min = 0
+    if self.hasInputFromPort('p_range_min') :
+      p_range_min = self.getInputFromPort('p_range_min')
+    p_range_max = 100
+    if self.hasInputFromPort('p_range_max') :
+      p_range_max = self.getInputFromPort('p_range_max')
+    p_playmode = 'once'
+    if self.hasInputFromPort('p_playmode') :
+      p_playmode = self.getInputFromPort('p_playmode')
+    p_current = 0
+    if self.hasInputFromPort('p_current') :
+      p_current = self.getInputFromPort('p_current')
+    p_execmode = 'init'
+    if self.hasInputFromPort('p_execmode') :
+      p_execmode = self.getInputFromPort('p_execmode')
+    p_delay = 0
+    if self.hasInputFromPort('p_delay') :
+      p_delay = self.getInputFromPort('p_delay')
+    p_inc_amount = 1
+    if self.hasInputFromPort('p_inc_amount') :
+      p_inc_amount = self.getInputFromPort('p_inc_amount')
+    p_send_amount = 1
+    if self.hasInputFromPort('p_send_amount') :
+      p_send_amount = self.getInputFromPort('p_send_amount')
     Indices = 0
     if self.hasInputFromPort('Indices') :
       Indices = self.getInputFromPort('Indices')
@@ -5454,144 +5034,185 @@ class SCIRun_StreamMatrixFromDisk(Module) :
     Filename = 0
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
-    results = sr_py.StreamMatrixFromDisk(Indices,Weights,Filename,row_or_col,slider_min,slider_max,range_min,range_max,playmode,current,execmode,delay,inc_amount,send_amount)
+    results = sr_py.StreamMatrixFromDisk(Indices,Weights,Filename,p_row_or_col,p_slider_min,p_slider_max,p_range_min,p_range_max,p_playmode,p_current,p_execmode,p_delay,p_inc_amount,p_send_amount)
     self.setResult('DataVector', sr_py.read_at_index(results,0))
     self.setResult('Index', sr_py.read_at_index(results,1))
     self.setResult('Scaled Index', sr_py.read_at_index(results,2))
     self.setResult('Filename', sr_py.read_at_index(results,3))
 
-class SCIRun_WriteMatrix(Module) :
+class scirun_WriteMatrix(Module) :
   def compute(self) :
-    filetype = 'Binary'
-    if self.hasInputFromPort('filetype') :
-      filetype = self.getInputFromPort('filetype')
-    confirm = 0
-    if self.hasInputFromPort('confirm') :
-      confirm = self.getInputFromPort('confirm')
-    confirm_once = 0
-    if self.hasInputFromPort('confirm_once') :
-      confirm_once = self.getInputFromPort('confirm_once')
-    exporttype = ''
-    if self.hasInputFromPort('exporttype') :
-      exporttype = self.getInputFromPort('exporttype')
-    split = 0
-    if self.hasInputFromPort('split') :
-      split = self.getInputFromPort('split')
+    p_filetype = 'Binary'
+    if self.hasInputFromPort('p_filetype') :
+      p_filetype = self.getInputFromPort('p_filetype')
+    p_confirm = '0'
+    if self.hasInputFromPort('p_confirm') :
+      p_confirm = self.getInputFromPort('p_confirm')
+    p_confirm_once = '0'
+    if self.hasInputFromPort('p_confirm_once') :
+      p_confirm_once = self.getInputFromPort('p_confirm_once')
+    p_exporttype = ''
+    if self.hasInputFromPort('p_exporttype') :
+      p_exporttype = self.getInputFromPort('p_exporttype')
+    p_split = 0
+    if self.hasInputFromPort('p_split') :
+      p_split = self.getInputFromPort('p_split')
     Input_Data = 0
     if self.hasInputFromPort('Input Data') :
       Input_Data = self.getInputFromPort('Input Data')
     Filename = 0
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
-    results = sr_py.WriteMatrix(Input_Data,Filename,filetype,confirm,confirm_once,exporttype,split)
+    results = sr_py.WriteMatrix(Input_Data,Filename,p_filetype,p_confirm,p_confirm_once,p_exporttype,p_split)
 
-class SCIRun_ConvertFieldDataType(Module) :
+class scirun_ConvertFieldDataType(Module) :
   def compute(self) :
-    outputdatatype = 'double'
-    if self.hasInputFromPort('outputdatatype') :
-      outputdatatype = self.getInputFromPort('outputdatatype')
+    p_outputdatatype = 'double'
+    if self.hasInputFromPort('p_outputdatatype') :
+      p_outputdatatype = self.getInputFromPort('p_outputdatatype')
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
-    results = sr_py.ConvertFieldDataType(Input_Field,outputdatatype)
+    results = sr_py.ConvertFieldDataType(Input_Field,p_outputdatatype)
     self.setResult('Output Field', results)
 
-class SCIRun_GetSliceFromStructuredFieldByIndices(Module) :
+class scirun_GeneratePointSamplesFromField(Module) :
   def compute(self) :
-    axis = 2
-    if self.hasInputFromPort('axis') :
-      axis = self.getInputFromPort('axis')
-    dims = 3
-    if self.hasInputFromPort('dims') :
-      dims = self.getInputFromPort('dims')
-    dim_i = 1
-    if self.hasInputFromPort('dim_i') :
-      dim_i = self.getInputFromPort('dim_i')
-    dim_j = 1
-    if self.hasInputFromPort('dim_j') :
-      dim_j = self.getInputFromPort('dim_j')
-    dim_k = 1
-    if self.hasInputFromPort('dim_k') :
-      dim_k = self.getInputFromPort('dim_k')
-    index_i = 1
-    if self.hasInputFromPort('index_i') :
-      index_i = self.getInputFromPort('index_i')
-    index_j = 1
-    if self.hasInputFromPort('index_j') :
-      index_j = self.getInputFromPort('index_j')
-    index_k = 1
-    if self.hasInputFromPort('index_k') :
-      index_k = self.getInputFromPort('index_k')
-    update_type = 'Manual'
-    if self.hasInputFromPort('update_type') :
-      update_type = self.getInputFromPort('update_type')
-    continuous = 0
-    if self.hasInputFromPort('continuous') :
-      continuous = self.getInputFromPort('continuous')
+    p_num_seeds = 1
+    if self.hasInputFromPort('p_num_seeds') :
+      p_num_seeds = self.getInputFromPort('p_num_seeds')
+    p_probe_scale = 5.0
+    if self.hasInputFromPort('p_probe_scale') :
+      p_probe_scale = self.getInputFromPort('p_probe_scale')
+    p_send = 0
+    if self.hasInputFromPort('p_send') :
+      p_send = self.getInputFromPort('p_send')
+    p_widget = 0
+    if self.hasInputFromPort('p_widget') :
+      p_widget = self.getInputFromPort('p_widget')
+    p_red = 0.5
+    if self.hasInputFromPort('p_red') :
+      p_red = self.getInputFromPort('p_red')
+    p_green = 0.5
+    if self.hasInputFromPort('p_green') :
+      p_green = self.getInputFromPort('p_green')
+    p_blue = 0.5
+    if self.hasInputFromPort('p_blue') :
+      p_blue = self.getInputFromPort('p_blue')
+    p_auto_execute = 1
+    if self.hasInputFromPort('p_auto_execute') :
+      p_auto_execute = self.getInputFromPort('p_auto_execute')
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
-    Input_Matrix = 0
-    if self.hasInputFromPort('Input Matrix') :
-      Input_Matrix = self.getInputFromPort('Input Matrix')
-    results = sr_py.GetSliceFromStructuredFieldByIndices(Input_Field,Input_Matrix,axis,dims,dim_i,dim_j,dim_k,index_i,index_j,index_k,update_type,continuous)
-    self.setResult('Output Field', sr_py.read_at_index(results,0))
-    self.setResult('Output Matrix', sr_py.read_at_index(results,1))
-
-class SCIRun_GeneratePointSamplesFromField(Module) :
-  def compute(self) :
-    num_seeds = 1
-    if self.hasInputFromPort('num_seeds') :
-      num_seeds = self.getInputFromPort('num_seeds')
-    probe_scale = 5.0
-    if self.hasInputFromPort('probe_scale') :
-      probe_scale = self.getInputFromPort('probe_scale')
-    send = 0
-    if self.hasInputFromPort('send') :
-      send = self.getInputFromPort('send')
-    widget = 0
-    if self.hasInputFromPort('widget') :
-      widget = self.getInputFromPort('widget')
-    red = 0.5
-    if self.hasInputFromPort('red') :
-      red = self.getInputFromPort('red')
-    green = 0.5
-    if self.hasInputFromPort('green') :
-      green = self.getInputFromPort('green')
-    blue = 0.5
-    if self.hasInputFromPort('blue') :
-      blue = self.getInputFromPort('blue')
-    auto_execute = 1
-    if self.hasInputFromPort('auto_execute') :
-      auto_execute = self.getInputFromPort('auto_execute')
-    Input_Field = 0
-    if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
-    results = sr_py.GeneratePointSamplesFromField(Input_Field,num_seeds,probe_scale,send,widget,red,green,blue,auto_execute)
+    results = sr_py.GeneratePointSamplesFromField(Input_Field,p_num_seeds,p_probe_scale,p_send,p_widget,p_red,p_green,p_blue,p_auto_execute)
     self.setResult('GeneratePointSamplesFromField Widget', sr_py.read_at_index(results,0))
     self.setResult('GeneratePointSamplesFromField Point', sr_py.read_at_index(results,1))
 
-class SCIRun_CreateMatrix(Module) :
+class scirun_GeneratePointSamplesFromFieldOrWidget(Module) :
   def compute(self) :
-    rows = 1
-    if self.hasInputFromPort('rows') :
-      rows = self.getInputFromPort('rows')
-    cols = 1
-    if self.hasInputFromPort('cols') :
-      cols = self.getInputFromPort('cols')
-    data = 0.0
-    if self.hasInputFromPort('data') :
-      data = self.getInputFromPort('data')
-    clabel = 0
-    if self.hasInputFromPort('clabel') :
-      clabel = self.getInputFromPort('clabel')
-    rlabel = 0
-    if self.hasInputFromPort('rlabel') :
-      rlabel = self.getInputFromPort('rlabel')
-    results = sr_py.CreateMatrix(rows,cols,data,clabel,rlabel)
+    p_wtype = 'rake'
+    if self.hasInputFromPort('p_wtype') :
+      p_wtype = self.getInputFromPort('p_wtype')
+    p_endpoints = 0
+    if self.hasInputFromPort('p_endpoints') :
+      p_endpoints = self.getInputFromPort('p_endpoints')
+    p_maxseeds = 15.0
+    if self.hasInputFromPort('p_maxseeds') :
+      p_maxseeds = self.getInputFromPort('p_maxseeds')
+    p_numseeds = 10
+    if self.hasInputFromPort('p_numseeds') :
+      p_numseeds = self.getInputFromPort('p_numseeds')
+    p_rngseed = 1
+    if self.hasInputFromPort('p_rngseed') :
+      p_rngseed = self.getInputFromPort('p_rngseed')
+    p_rnginc = 1
+    if self.hasInputFromPort('p_rnginc') :
+      p_rnginc = self.getInputFromPort('p_rnginc')
+    p_clamp = 0
+    if self.hasInputFromPort('p_clamp') :
+      p_clamp = self.getInputFromPort('p_clamp')
+    p_autoexecute = 1
+    if self.hasInputFromPort('p_autoexecute') :
+      p_autoexecute = self.getInputFromPort('p_autoexecute')
+    p_dist = 'uniuni'
+    if self.hasInputFromPort('p_dist') :
+      p_dist = self.getInputFromPort('p_dist')
+    p_whichtab = 'Widget'
+    if self.hasInputFromPort('p_whichtab') :
+      p_whichtab = self.getInputFromPort('p_whichtab')
+    Field_to_Sample = 0
+    if self.hasInputFromPort('Field to Sample') :
+      Field_to_Sample = self.getInputFromPort('Field to Sample')
+    results = sr_py.GeneratePointSamplesFromFieldOrWidget(Field_to_Sample,p_wtype,p_endpoints,p_maxseeds,p_numseeds,p_rngseed,p_rnginc,p_clamp,p_autoexecute,p_dist,p_whichtab)
+    self.setResult('Samples', sr_py.read_at_index(results,0))
+    self.setResult('Sampling Widget', sr_py.read_at_index(results,1))
+
+class scirun_CreateMatrix(Module) :
+  def compute(self) :
+    p_rows = 1
+    if self.hasInputFromPort('p_rows') :
+      p_rows = self.getInputFromPort('p_rows')
+    p_cols = 1
+    if self.hasInputFromPort('p_cols') :
+      p_cols = self.getInputFromPort('p_cols')
+    p_data = '0.0'
+    if self.hasInputFromPort('p_data') :
+      p_data = self.getInputFromPort('p_data')
+    p_clabel = '0'
+    if self.hasInputFromPort('p_clabel') :
+      p_clabel = self.getInputFromPort('p_clabel')
+    p_rlabel = '0'
+    if self.hasInputFromPort('p_rlabel') :
+      p_rlabel = self.getInputFromPort('p_rlabel')
+    results = sr_py.CreateMatrix(p_rows,p_cols,p_data,p_clabel,p_rlabel)
     self.setResult('matrix', results)
 
-class SCIRun_DecimateTriSurf(Module) :
+class scirun_CalculateIsInsideField(Module) :
+  def compute(self) :
+    p_outputbasis = 'same as input'
+    if self.hasInputFromPort('p_outputbasis') :
+      p_outputbasis = self.getInputFromPort('p_outputbasis')
+    p_outputtype = 'double'
+    if self.hasInputFromPort('p_outputtype') :
+      p_outputtype = self.getInputFromPort('p_outputtype')
+    p_outval = 0
+    if self.hasInputFromPort('p_outval') :
+      p_outval = self.getInputFromPort('p_outval')
+    p_inval = 1
+    if self.hasInputFromPort('p_inval') :
+      p_inval = self.getInputFromPort('p_inval')
+    Field = 0
+    if self.hasInputFromPort('Field') :
+      Field = self.getInputFromPort('Field')
+    ObjectField = 0
+    if self.hasInputFromPort('ObjectField') :
+      ObjectField = self.getInputFromPort('ObjectField')
+    results = sr_py.CalculateIsInsideField(Field,ObjectField,p_outputbasis,p_outputtype,p_outval,p_inval)
+    self.setResult('Field', results)
+
+class scirun_CreateAndEditColorMap(Module) :
+  def compute(self) :
+    p_rgbhsv = 1
+    if self.hasInputFromPort('p_rgbhsv') :
+      p_rgbhsv = self.getInputFromPort('p_rgbhsv')
+    p_rgb_points = '0 0.05 0.1 0 1 0.95 0.9 1 '
+    if self.hasInputFromPort('p_rgb_points') :
+      p_rgb_points = self.getInputFromPort('p_rgb_points')
+    p_alpha_points = '0 0 0 0.25 0.5 0.5 0.8 0.75 0.8 1 '
+    if self.hasInputFromPort('p_alpha_points') :
+      p_alpha_points = self.getInputFromPort('p_alpha_points')
+    p_resolution = 256
+    if self.hasInputFromPort('p_resolution') :
+      p_resolution = self.getInputFromPort('p_resolution')
+    ColorMap = 0
+    if self.hasInputFromPort('ColorMap') :
+      ColorMap = self.getInputFromPort('ColorMap')
+    results = sr_py.CreateAndEditColorMap(ColorMap,p_rgbhsv,p_rgb_points,p_alpha_points,p_resolution)
+    self.setResult('ColorMap', sr_py.read_at_index(results,0))
+    self.setResult('Geometry', sr_py.read_at_index(results,1))
+
+class scirun_DecimateTriSurf(Module) :
   def compute(self) :
     TriSurf = 0
     if self.hasInputFromPort('TriSurf') :
@@ -5599,112 +5220,29 @@ class SCIRun_DecimateTriSurf(Module) :
     results = sr_py.DecimateTriSurf(TriSurf)
     self.setResult('Decimated', results)
 
-class SCIRun_GeneratePointSamplesFromFieldOrWidget(Module) :
+class scirun_CoregisterPointClouds(Module) :
   def compute(self) :
-    wtype = 'rake'
-    if self.hasInputFromPort('wtype') :
-      wtype = self.getInputFromPort('wtype')
-    endpoints = 0
-    if self.hasInputFromPort('endpoints') :
-      endpoints = self.getInputFromPort('endpoints')
-    maxseeds = 15.0
-    if self.hasInputFromPort('maxseeds') :
-      maxseeds = self.getInputFromPort('maxseeds')
-    numseeds = 10
-    if self.hasInputFromPort('numseeds') :
-      numseeds = self.getInputFromPort('numseeds')
-    rngseed = 1
-    if self.hasInputFromPort('rngseed') :
-      rngseed = self.getInputFromPort('rngseed')
-    rnginc = 1
-    if self.hasInputFromPort('rnginc') :
-      rnginc = self.getInputFromPort('rnginc')
-    clamp = 0
-    if self.hasInputFromPort('clamp') :
-      clamp = self.getInputFromPort('clamp')
-    autoexecute = 1
-    if self.hasInputFromPort('autoexecute') :
-      autoexecute = self.getInputFromPort('autoexecute')
-    dist = 'uniuni'
-    if self.hasInputFromPort('dist') :
-      dist = self.getInputFromPort('dist')
-    whichtab = 'Widget'
-    if self.hasInputFromPort('whichtab') :
-      whichtab = self.getInputFromPort('whichtab')
-    Field_to_Sample = 0
-    if self.hasInputFromPort('Field to Sample') :
-      Field_to_Sample = self.getInputFromPort('Field to Sample')
-    results = sr_py.GeneratePointSamplesFromFieldOrWidget(Field_to_Sample,wtype,endpoints,maxseeds,numseeds,rngseed,rnginc,clamp,autoexecute,dist,whichtab)
-    self.setResult('Samples', sr_py.read_at_index(results,0))
-    self.setResult('Sampling Widget', sr_py.read_at_index(results,1))
-
-class SCIRun_CalculateIsInsideField(Module) :
-  def compute(self) :
-    outputbasis = 'same as input'
-    if self.hasInputFromPort('outputbasis') :
-      outputbasis = self.getInputFromPort('outputbasis')
-    outputtype = 'double'
-    if self.hasInputFromPort('outputtype') :
-      outputtype = self.getInputFromPort('outputtype')
-    outval = 0
-    if self.hasInputFromPort('outval') :
-      outval = self.getInputFromPort('outval')
-    inval = 1
-    if self.hasInputFromPort('inval') :
-      inval = self.getInputFromPort('inval')
-    Field = 0
-    if self.hasInputFromPort('Field') :
-      Field = self.getInputFromPort('Field')
-    ObjectField = 0
-    if self.hasInputFromPort('ObjectField') :
-      ObjectField = self.getInputFromPort('ObjectField')
-    results = sr_py.CalculateIsInsideField(Field,ObjectField,outputbasis,outputtype,outval,inval)
-    self.setResult('Field', results)
-
-class SCIRun_CreateAndEditColorMap(Module) :
-  def compute(self) :
-    rgbhsv = 1
-    if self.hasInputFromPort('rgbhsv') :
-      rgbhsv = self.getInputFromPort('rgbhsv')
-    rgb_points = '0 0.05 0.1 0 1 0.95 0.9 1 '
-    if self.hasInputFromPort('rgb_points') :
-      rgb_points = self.getInputFromPort('rgb_points')
-    alpha_points = '0 0 0 0.25 0.5 0.5 0.8 0.75 0.8 1 '
-    if self.hasInputFromPort('alpha_points') :
-      alpha_points = self.getInputFromPort('alpha_points')
-    resolution = 256
-    if self.hasInputFromPort('resolution') :
-      resolution = self.getInputFromPort('resolution')
-    ColorMap = 0
-    if self.hasInputFromPort('ColorMap') :
-      ColorMap = self.getInputFromPort('ColorMap')
-    results = sr_py.CreateAndEditColorMap(ColorMap,rgbhsv,rgb_points,alpha_points,resolution)
-    self.setResult('ColorMap', sr_py.read_at_index(results,0))
-    self.setResult('Geometry', sr_py.read_at_index(results,1))
-
-class SCIRun_CoregisterPointClouds(Module) :
-  def compute(self) :
-    allowScale = 1
-    if self.hasInputFromPort('allowScale') :
-      allowScale = self.getInputFromPort('allowScale')
-    allowRotate = 1
-    if self.hasInputFromPort('allowRotate') :
-      allowRotate = self.getInputFromPort('allowRotate')
-    allowTranslate = 1
-    if self.hasInputFromPort('allowTranslate') :
-      allowTranslate = self.getInputFromPort('allowTranslate')
-    seed = 1
-    if self.hasInputFromPort('seed') :
-      seed = self.getInputFromPort('seed')
-    iters = 1000
-    if self.hasInputFromPort('iters') :
-      iters = self.getInputFromPort('iters')
-    misfitTol = 0.001
-    if self.hasInputFromPort('misfitTol') :
-      misfitTol = self.getInputFromPort('misfitTol')
-    method = 'Analytic'
-    if self.hasInputFromPort('method') :
-      method = self.getInputFromPort('method')
+    p_allowScale = 1
+    if self.hasInputFromPort('p_allowScale') :
+      p_allowScale = self.getInputFromPort('p_allowScale')
+    p_allowRotate = 1
+    if self.hasInputFromPort('p_allowRotate') :
+      p_allowRotate = self.getInputFromPort('p_allowRotate')
+    p_allowTranslate = 1
+    if self.hasInputFromPort('p_allowTranslate') :
+      p_allowTranslate = self.getInputFromPort('p_allowTranslate')
+    p_seed = 1
+    if self.hasInputFromPort('p_seed') :
+      p_seed = self.getInputFromPort('p_seed')
+    p_iters = 1000
+    if self.hasInputFromPort('p_iters') :
+      p_iters = self.getInputFromPort('p_iters')
+    p_misfitTol = 0.001
+    if self.hasInputFromPort('p_misfitTol') :
+      p_misfitTol = self.getInputFromPort('p_misfitTol')
+    p_method = 'Analytic'
+    if self.hasInputFromPort('p_method') :
+      p_method = self.getInputFromPort('p_method')
     Fixed_PointCloudField = 0
     if self.hasInputFromPort('Fixed PointCloudField') :
       Fixed_PointCloudField = self.getInputFromPort('Fixed PointCloudField')
@@ -5714,10 +5252,10 @@ class SCIRun_CoregisterPointClouds(Module) :
     DistanceField_From_Fixed = 0
     if self.hasInputFromPort('DistanceField From Fixed') :
       DistanceField_From_Fixed = self.getInputFromPort('DistanceField From Fixed')
-    results = sr_py.CoregisterPointClouds(Fixed_PointCloudField,Mobile_PointCloudField,DistanceField_From_Fixed,allowScale,allowRotate,allowTranslate,seed,iters,misfitTol,method)
+    results = sr_py.CoregisterPointClouds(Fixed_PointCloudField,Mobile_PointCloudField,DistanceField_From_Fixed,p_allowScale,p_allowRotate,p_allowTranslate,p_seed,p_iters,p_misfitTol,p_method)
     self.setResult('Transform', results)
 
-class SCIRun_SolveMinNormLeastSqSystem(Module) :
+class scirun_SolveMinNormLeastSqSystem(Module) :
   def compute(self) :
     BasisVec1 = 0
     if self.hasInputFromPort('BasisVec1') :
@@ -5735,14 +5273,14 @@ class SCIRun_SolveMinNormLeastSqSystem(Module) :
     self.setResult('WeightVec(Col)', sr_py.read_at_index(results,0))
     self.setResult('ResultVec(Col)', sr_py.read_at_index(results,1))
 
-class SCIRun_CalculateFieldData(Module) :
+class scirun_CalculateFieldData(Module) :
   def compute(self) :
-    function = 'RESULT = abs(DATA);'
-    if self.hasInputFromPort('function') :
-      function = self.getInputFromPort('function')
-    format = 'Scalar'
-    if self.hasInputFromPort('format') :
-      format = self.getInputFromPort('format')
+    p_function = 'RESULT = abs(DATA);'
+    if self.hasInputFromPort('p_function') :
+      p_function = self.getInputFromPort('p_function')
+    p_format = 'Scalar'
+    if self.hasInputFromPort('p_format') :
+      p_format = self.getInputFromPort('p_format')
     Field = 0
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
@@ -5752,38 +5290,38 @@ class SCIRun_CalculateFieldData(Module) :
     Array = 0
     if self.hasInputFromPort('Array') :
       Array = self.getInputFromPort('Array')
-    results = sr_py.CalculateFieldData(Field,Function,Array,function,format)
+    results = sr_py.CalculateFieldData(Field,Function,Array,p_function,p_format)
     self.setResult('Field', results)
 
-class SCIRun_MapFieldDataToNodeCoordinate(Module) :
+class scirun_MapFieldDataToNodeCoordinate(Module) :
   def compute(self) :
-    coord = 2
-    if self.hasInputFromPort('coord') :
-      coord = self.getInputFromPort('coord')
+    p_coord = 2
+    if self.hasInputFromPort('p_coord') :
+      p_coord = self.getInputFromPort('p_coord')
     Input_Field = 0
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
-    results = sr_py.MapFieldDataToNodeCoordinate(Input_Field,coord)
+    results = sr_py.MapFieldDataToNodeCoordinate(Input_Field,p_coord)
     self.setResult('Output Field', results)
 
-class SCIRun_ShowMeshBoundingBox(Module) :
+class scirun_ShowMeshBoundingBox(Module) :
   def compute(self) :
-    sizex = 10
-    if self.hasInputFromPort('sizex') :
-      sizex = self.getInputFromPort('sizex')
-    sizey = 10
-    if self.hasInputFromPort('sizey') :
-      sizey = self.getInputFromPort('sizey')
-    sizez = 10
-    if self.hasInputFromPort('sizez') :
-      sizez = self.getInputFromPort('sizez')
+    p_sizex = 10
+    if self.hasInputFromPort('p_sizex') :
+      p_sizex = self.getInputFromPort('p_sizex')
+    p_sizey = 10
+    if self.hasInputFromPort('p_sizey') :
+      p_sizey = self.getInputFromPort('p_sizey')
+    p_sizez = 10
+    if self.hasInputFromPort('p_sizez') :
+      p_sizez = self.getInputFromPort('p_sizez')
     Field = 0
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
-    results = sr_py.ShowMeshBoundingBox(Field,sizex,sizey,sizez)
+    results = sr_py.ShowMeshBoundingBox(Field,p_sizex,p_sizey,p_sizez)
     self.setResult('Scene Graph', results)
 
-class SCIRun_ViewGraph(Module) :
+class scirun_ViewGraph(Module) :
   def compute(self) :
     Title = 0
     if self.hasInputFromPort('Title') :
@@ -5793,96 +5331,88 @@ class SCIRun_ViewGraph(Module) :
       Input = self.getInputFromPort('Input')
     results = sr_py.ViewGraph(Title,Input)
 
-class SCIRun_GetAllSegmentationBoundaries(Module) :
+class scirun_CreateStandardColorMaps(Module) :
   def compute(self) :
-    Segmentations = 0
-    if self.hasInputFromPort('Segmentations') :
-      Segmentations = self.getInputFromPort('Segmentations')
-    results = sr_py.GetAllSegmentationBoundaries(Segmentations)
-    self.setResult('Boundaries', results)
-
-class SCIRun_CreateStandardColorMaps(Module) :
-  def compute(self) :
-    mapName = 'Rainbow'
-    if self.hasInputFromPort('mapName') :
-      mapName = self.getInputFromPort('mapName')
-    gamma = 0.0
-    if self.hasInputFromPort('gamma') :
-      gamma = self.getInputFromPort('gamma')
-    resolution = 256
-    if self.hasInputFromPort('resolution') :
-      resolution = self.getInputFromPort('resolution')
-    reverse = 0
-    if self.hasInputFromPort('reverse') :
-      reverse = self.getInputFromPort('reverse')
-    faux = 0
-    if self.hasInputFromPort('faux') :
-      faux = self.getInputFromPort('faux')
-    positionList = ''
-    if self.hasInputFromPort('positionList') :
-      positionList = self.getInputFromPort('positionList')
-    nodeList = ''
-    if self.hasInputFromPort('nodeList') :
-      nodeList = self.getInputFromPort('nodeList')
-    width = 1
-    if self.hasInputFromPort('width') :
-      width = self.getInputFromPort('width')
-    height = 1
-    if self.hasInputFromPort('height') :
-      height = self.getInputFromPort('height')
-    results = sr_py.CreateStandardColorMaps(mapName,gamma,resolution,reverse,faux,positionList,nodeList,width,height)
+    p_mapName = 'Rainbow'
+    if self.hasInputFromPort('p_mapName') :
+      p_mapName = self.getInputFromPort('p_mapName')
+    p_gamma = 0.0
+    if self.hasInputFromPort('p_gamma') :
+      p_gamma = self.getInputFromPort('p_gamma')
+    p_resolution = 256
+    if self.hasInputFromPort('p_resolution') :
+      p_resolution = self.getInputFromPort('p_resolution')
+    p_reverse = 0
+    if self.hasInputFromPort('p_reverse') :
+      p_reverse = self.getInputFromPort('p_reverse')
+    p_faux = 0
+    if self.hasInputFromPort('p_faux') :
+      p_faux = self.getInputFromPort('p_faux')
+    p_positionList = ''
+    if self.hasInputFromPort('p_positionList') :
+      p_positionList = self.getInputFromPort('p_positionList')
+    p_nodeList = ''
+    if self.hasInputFromPort('p_nodeList') :
+      p_nodeList = self.getInputFromPort('p_nodeList')
+    p_width = 1
+    if self.hasInputFromPort('p_width') :
+      p_width = self.getInputFromPort('p_width')
+    p_height = 1
+    if self.hasInputFromPort('p_height') :
+      p_height = self.getInputFromPort('p_height')
+    results = sr_py.CreateStandardColorMaps(p_mapName,p_gamma,p_resolution,p_reverse,p_faux,p_positionList,p_nodeList,p_width,p_height)
     self.setResult('ColorMap', results)
 
-class SCIRun_ShowTextureSlices(Module) :
+class scirun_ShowTextureSlices(Module) :
   def compute(self) :
-    control_pos_saved = 0
-    if self.hasInputFromPort('control_pos_saved') :
-      control_pos_saved = self.getInputFromPort('control_pos_saved')
-    drawX = 0
-    if self.hasInputFromPort('drawX') :
-      drawX = self.getInputFromPort('drawX')
-    drawY = 0
-    if self.hasInputFromPort('drawY') :
-      drawY = self.getInputFromPort('drawY')
-    drawZ = 0
-    if self.hasInputFromPort('drawZ') :
-      drawZ = self.getInputFromPort('drawZ')
-    drawView = 0
-    if self.hasInputFromPort('drawView') :
-      drawView = self.getInputFromPort('drawView')
-    interp_mode = 1
-    if self.hasInputFromPort('interp_mode') :
-      interp_mode = self.getInputFromPort('interp_mode')
-    draw_phi_0 = 0
-    if self.hasInputFromPort('draw_phi_0') :
-      draw_phi_0 = self.getInputFromPort('draw_phi_0')
-    draw_phi_1 = 0
-    if self.hasInputFromPort('draw_phi_1') :
-      draw_phi_1 = self.getInputFromPort('draw_phi_1')
-    phi_0 = 30.0
-    if self.hasInputFromPort('phi_0') :
-      phi_0 = self.getInputFromPort('phi_0')
-    phi_1 = 60.0
-    if self.hasInputFromPort('phi_1') :
-      phi_1 = self.getInputFromPort('phi_1')
-    multi_level = 1
-    if self.hasInputFromPort('multi_level') :
-      multi_level = self.getInputFromPort('multi_level')
-    color_changed = 1
-    if self.hasInputFromPort('color_changed') :
-      color_changed = self.getInputFromPort('color_changed')
-    colors = ''
-    if self.hasInputFromPort('colors') :
-      colors = self.getInputFromPort('colors')
-    level_on = ''
-    if self.hasInputFromPort('level_on') :
-      level_on = self.getInputFromPort('level_on')
-    outline_levels = 0
-    if self.hasInputFromPort('outline_levels') :
-      outline_levels = self.getInputFromPort('outline_levels')
-    use_stencil = 0
-    if self.hasInputFromPort('use_stencil') :
-      use_stencil = self.getInputFromPort('use_stencil')
+    p_control_pos_saved = 0
+    if self.hasInputFromPort('p_control_pos_saved') :
+      p_control_pos_saved = self.getInputFromPort('p_control_pos_saved')
+    p_drawX = 0
+    if self.hasInputFromPort('p_drawX') :
+      p_drawX = self.getInputFromPort('p_drawX')
+    p_drawY = 0
+    if self.hasInputFromPort('p_drawY') :
+      p_drawY = self.getInputFromPort('p_drawY')
+    p_drawZ = 0
+    if self.hasInputFromPort('p_drawZ') :
+      p_drawZ = self.getInputFromPort('p_drawZ')
+    p_drawView = 0
+    if self.hasInputFromPort('p_drawView') :
+      p_drawView = self.getInputFromPort('p_drawView')
+    p_interp_mode = 1
+    if self.hasInputFromPort('p_interp_mode') :
+      p_interp_mode = self.getInputFromPort('p_interp_mode')
+    p_draw_phi_0 = 0
+    if self.hasInputFromPort('p_draw_phi_0') :
+      p_draw_phi_0 = self.getInputFromPort('p_draw_phi_0')
+    p_draw_phi_1 = 0
+    if self.hasInputFromPort('p_draw_phi_1') :
+      p_draw_phi_1 = self.getInputFromPort('p_draw_phi_1')
+    p_phi_0 = 30.0
+    if self.hasInputFromPort('p_phi_0') :
+      p_phi_0 = self.getInputFromPort('p_phi_0')
+    p_phi_1 = 60.0
+    if self.hasInputFromPort('p_phi_1') :
+      p_phi_1 = self.getInputFromPort('p_phi_1')
+    p_multi_level = 1
+    if self.hasInputFromPort('p_multi_level') :
+      p_multi_level = self.getInputFromPort('p_multi_level')
+    p_color_changed = 1
+    if self.hasInputFromPort('p_color_changed') :
+      p_color_changed = self.getInputFromPort('p_color_changed')
+    p_colors = ''
+    if self.hasInputFromPort('p_colors') :
+      p_colors = self.getInputFromPort('p_colors')
+    p_level_on = ''
+    if self.hasInputFromPort('p_level_on') :
+      p_level_on = self.getInputFromPort('p_level_on')
+    p_outline_levels = 0
+    if self.hasInputFromPort('p_outline_levels') :
+      p_outline_levels = self.getInputFromPort('p_outline_levels')
+    p_use_stencil = 0
+    if self.hasInputFromPort('p_use_stencil') :
+      p_use_stencil = self.getInputFromPort('p_use_stencil')
     Texture = 0
     if self.hasInputFromPort('Texture') :
       Texture = self.getInputFromPort('Texture')
@@ -5892,173 +5422,160 @@ class SCIRun_ShowTextureSlices(Module) :
     ColorMap2 = 0
     if self.hasInputFromPort('ColorMap2') :
       ColorMap2 = self.getInputFromPort('ColorMap2')
-    results = sr_py.ShowTextureSlices(Texture,ColorMap,ColorMap2,control_pos_saved,drawX,drawY,drawZ,drawView,interp_mode,draw_phi_0,draw_phi_1,phi_0,phi_1,multi_level,color_changed,colors,level_on,outline_levels,use_stencil)
+    results = sr_py.ShowTextureSlices(Texture,ColorMap,ColorMap2,p_control_pos_saved,p_drawX,p_drawY,p_drawZ,p_drawView,p_interp_mode,p_draw_phi_0,p_draw_phi_1,p_phi_0,p_phi_1,p_multi_level,p_color_changed,p_colors,p_level_on,p_outline_levels,p_use_stencil)
     self.setResult('Geometry', sr_py.read_at_index(results,0))
     self.setResult('ColorMap', sr_py.read_at_index(results,1))
 
-class SCIRun_ShowMatrix(Module) :
+class scirun_ShowMatrix(Module) :
   def compute(self) :
-    xpos = 0.0
-    if self.hasInputFromPort('xpos') :
-      xpos = self.getInputFromPort('xpos')
-    ypos = 0.0
-    if self.hasInputFromPort('ypos') :
-      ypos = self.getInputFromPort('ypos')
-    xscale = 1.0
-    if self.hasInputFromPort('xscale') :
-      xscale = self.getInputFromPort('xscale')
-    yscale = 2.0
-    if self.hasInputFromPort('yscale') :
-      yscale = self.getInputFromPort('yscale')
-    a3d_mode = 1
-    if self.hasInputFromPort('a3d_mode') :
-      a3d_mode = self.getInputFromPort('a3d_mode')
-    gmode = 1
-    if self.hasInputFromPort('gmode') :
-      gmode = self.getInputFromPort('gmode')
-    showtext = 0
-    if self.hasInputFromPort('showtext') :
-      showtext = self.getInputFromPort('showtext')
-    row_begin = 0
-    if self.hasInputFromPort('row_begin') :
-      row_begin = self.getInputFromPort('row_begin')
-    rows = 10000
-    if self.hasInputFromPort('rows') :
-      rows = self.getInputFromPort('rows')
-    col_begin = 0
-    if self.hasInputFromPort('col_begin') :
-      col_begin = self.getInputFromPort('col_begin')
-    cols = 10000
-    if self.hasInputFromPort('cols') :
-      cols = self.getInputFromPort('cols')
-    colormapmode = 0
-    if self.hasInputFromPort('colormapmode') :
-      colormapmode = self.getInputFromPort('colormapmode')
+    p_xpos = 0.0
+    if self.hasInputFromPort('p_xpos') :
+      p_xpos = self.getInputFromPort('p_xpos')
+    p_ypos = 0.0
+    if self.hasInputFromPort('p_ypos') :
+      p_ypos = self.getInputFromPort('p_ypos')
+    p_xscale = 1.0
+    if self.hasInputFromPort('p_xscale') :
+      p_xscale = self.getInputFromPort('p_xscale')
+    p_yscale = 2.0
+    if self.hasInputFromPort('p_yscale') :
+      p_yscale = self.getInputFromPort('p_yscale')
+    p_3d_mode = 1
+    if self.hasInputFromPort('p_3d_mode') :
+      p_3d_mode = self.getInputFromPort('p_3d_mode')
+    p_gmode = 1
+    if self.hasInputFromPort('p_gmode') :
+      p_gmode = self.getInputFromPort('p_gmode')
+    p_showtext = 0
+    if self.hasInputFromPort('p_showtext') :
+      p_showtext = self.getInputFromPort('p_showtext')
+    p_row_begin = 0
+    if self.hasInputFromPort('p_row_begin') :
+      p_row_begin = self.getInputFromPort('p_row_begin')
+    p_rows = 10000
+    if self.hasInputFromPort('p_rows') :
+      p_rows = self.getInputFromPort('p_rows')
+    p_col_begin = 0
+    if self.hasInputFromPort('p_col_begin') :
+      p_col_begin = self.getInputFromPort('p_col_begin')
+    p_cols = 10000
+    if self.hasInputFromPort('p_cols') :
+      p_cols = self.getInputFromPort('p_cols')
+    p_colormapmode = 0
+    if self.hasInputFromPort('p_colormapmode') :
+      p_colormapmode = self.getInputFromPort('p_colormapmode')
     ColorMap = 0
     if self.hasInputFromPort('ColorMap') :
       ColorMap = self.getInputFromPort('ColorMap')
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
       Matrix = self.getInputFromPort('Matrix')
-    results = sr_py.ShowMatrix(ColorMap,Matrix,xpos,ypos,xscale,yscale,a3d_mode,gmode,showtext,row_begin,rows,col_begin,cols,colormapmode)
+    results = sr_py.ShowMatrix(ColorMap,Matrix,p_xpos,p_ypos,p_xscale,p_yscale,p_3d_mode,p_gmode,p_showtext,p_row_begin,p_rows,p_col_begin,p_cols,p_colormapmode)
     self.setResult('Geometry', results)
 
-class SCIRun_CreateViewerClockIcon(Module) :
+class scirun_GetSliceFromStructuredFieldByIndices(Module) :
   def compute(self) :
-    type = 0
-    if self.hasInputFromPort('type') :
-      type = self.getInputFromPort('type')
-    bbox = 1
-    if self.hasInputFromPort('bbox') :
-      bbox = self.getInputFromPort('bbox')
-    format = '%8.3f seconds'
-    if self.hasInputFromPort('format') :
-      format = self.getInputFromPort('format')
-    min = 0.0
-    if self.hasInputFromPort('min') :
-      min = self.getInputFromPort('min')
-    max = 1.0
-    if self.hasInputFromPort('max') :
-      max = self.getInputFromPort('max')
-    current = 0
-    if self.hasInputFromPort('current') :
-      current = self.getInputFromPort('current')
-    size = 100
-    if self.hasInputFromPort('size') :
-      size = self.getInputFromPort('size')
-    location_x = -0.96875
-    if self.hasInputFromPort('location_x') :
-      location_x = self.getInputFromPort('location_x')
-    location_y = 0.96875
-    if self.hasInputFromPort('location_y') :
-      location_y = self.getInputFromPort('location_y')
-    color_r = 1.0
-    if self.hasInputFromPort('color_r') :
-      color_r = self.getInputFromPort('color_r')
-    color_g = 1.0
-    if self.hasInputFromPort('color_g') :
-      color_g = self.getInputFromPort('color_g')
-    color_b = 1.0
-    if self.hasInputFromPort('color_b') :
-      color_b = self.getInputFromPort('color_b')
-    Time_Matrix = 0
-    if self.hasInputFromPort('Time Matrix') :
-      Time_Matrix = self.getInputFromPort('Time Matrix')
-    Time_Nrrd = 0
-    if self.hasInputFromPort('Time Nrrd') :
-      Time_Nrrd = self.getInputFromPort('Time Nrrd')
-    results = sr_py.CreateViewerClockIcon(Time_Matrix,Time_Nrrd,type,bbox,format,min,max,current,size,location_x,location_y,color_r,color_g,color_b)
-    self.setResult('Clock', results)
+    p_axis = 2
+    if self.hasInputFromPort('p_axis') :
+      p_axis = self.getInputFromPort('p_axis')
+    p_dims = 3
+    if self.hasInputFromPort('p_dims') :
+      p_dims = self.getInputFromPort('p_dims')
+    p_dim_i = 1
+    if self.hasInputFromPort('p_dim_i') :
+      p_dim_i = self.getInputFromPort('p_dim_i')
+    p_dim_j = 1
+    if self.hasInputFromPort('p_dim_j') :
+      p_dim_j = self.getInputFromPort('p_dim_j')
+    p_dim_k = 1
+    if self.hasInputFromPort('p_dim_k') :
+      p_dim_k = self.getInputFromPort('p_dim_k')
+    p_index_i = 1
+    if self.hasInputFromPort('p_index_i') :
+      p_index_i = self.getInputFromPort('p_index_i')
+    p_index_j = 1
+    if self.hasInputFromPort('p_index_j') :
+      p_index_j = self.getInputFromPort('p_index_j')
+    p_index_k = 1
+    if self.hasInputFromPort('p_index_k') :
+      p_index_k = self.getInputFromPort('p_index_k')
+    p_update_type = 'Manual'
+    if self.hasInputFromPort('p_update_type') :
+      p_update_type = self.getInputFromPort('p_update_type')
+    p_continuous = 0
+    if self.hasInputFromPort('p_continuous') :
+      p_continuous = self.getInputFromPort('p_continuous')
+    Input_Field = 0
+    if self.hasInputFromPort('Input Field') :
+      Input_Field = self.getInputFromPort('Input Field')
+    Input_Matrix = 0
+    if self.hasInputFromPort('Input Matrix') :
+      Input_Matrix = self.getInputFromPort('Input Matrix')
+    results = sr_py.GetSliceFromStructuredFieldByIndices(Input_Field,Input_Matrix,p_axis,p_dims,p_dim_i,p_dim_j,p_dim_k,p_index_i,p_index_j,p_index_k,p_update_type,p_continuous)
+    self.setResult('Output Field', sr_py.read_at_index(results,0))
+    self.setResult('Output Matrix', sr_py.read_at_index(results,1))
 
-class SCIRun_ConvertMatrixType(Module) :
+class scirun_ConvertMatrixType(Module) :
   def compute(self) :
-    oldtype = 'Same'
-    if self.hasInputFromPort('oldtype') :
-      oldtype = self.getInputFromPort('oldtype')
-    newtype = 'Unknown'
-    if self.hasInputFromPort('newtype') :
-      newtype = self.getInputFromPort('newtype')
-    nrow = '??'
-    if self.hasInputFromPort('nrow') :
-      nrow = self.getInputFromPort('nrow')
-    ncol = '??'
-    if self.hasInputFromPort('ncol') :
-      ncol = self.getInputFromPort('ncol')
+    p_oldtype = 'Same'
+    if self.hasInputFromPort('p_oldtype') :
+      p_oldtype = self.getInputFromPort('p_oldtype')
+    p_newtype = 'Unknown'
+    if self.hasInputFromPort('p_newtype') :
+      p_newtype = self.getInputFromPort('p_newtype')
+    p_nrow = '??'
+    if self.hasInputFromPort('p_nrow') :
+      p_nrow = self.getInputFromPort('p_nrow')
+    p_ncol = '??'
+    if self.hasInputFromPort('p_ncol') :
+      p_ncol = self.getInputFromPort('p_ncol')
     Input = 0
     if self.hasInputFromPort('Input') :
       Input = self.getInputFromPort('Input')
-    results = sr_py.ConvertMatrixType(Input,oldtype,newtype,nrow,ncol)
+    results = sr_py.ConvertMatrixType(Input,p_oldtype,p_newtype,p_nrow,p_ncol)
     self.setResult('Output', results)
 
-class SCIRun_JoinStrings(Module) :
+class scirun_InsertColorMapsIntoBundle(Module) :
   def compute(self) :
-    input = 0
-    if self.hasInputFromPort('input') :
-      input = self.getInputFromPort('input')
-    results = sr_py.JoinStrings(input)
-    self.setResult('Output', results)
-
-class SCIRun_InsertColorMapsIntoBundle(Module) :
-  def compute(self) :
-    colormap1_name = 'colormap1'
-    if self.hasInputFromPort('colormap1_name') :
-      colormap1_name = self.getInputFromPort('colormap1_name')
-    colormap2_name = 'colormap2'
-    if self.hasInputFromPort('colormap2_name') :
-      colormap2_name = self.getInputFromPort('colormap2_name')
-    colormap3_name = 'colormap3'
-    if self.hasInputFromPort('colormap3_name') :
-      colormap3_name = self.getInputFromPort('colormap3_name')
-    colormap4_name = 'colormap4'
-    if self.hasInputFromPort('colormap4_name') :
-      colormap4_name = self.getInputFromPort('colormap4_name')
-    colormap5_name = 'colormap5'
-    if self.hasInputFromPort('colormap5_name') :
-      colormap5_name = self.getInputFromPort('colormap5_name')
-    colormap6_name = 'colormap6'
-    if self.hasInputFromPort('colormap6_name') :
-      colormap6_name = self.getInputFromPort('colormap6_name')
-    replace1 = 1
-    if self.hasInputFromPort('replace1') :
-      replace1 = self.getInputFromPort('replace1')
-    replace2 = 1
-    if self.hasInputFromPort('replace2') :
-      replace2 = self.getInputFromPort('replace2')
-    replace3 = 1
-    if self.hasInputFromPort('replace3') :
-      replace3 = self.getInputFromPort('replace3')
-    replace4 = 1
-    if self.hasInputFromPort('replace4') :
-      replace4 = self.getInputFromPort('replace4')
-    replace5 = 1
-    if self.hasInputFromPort('replace5') :
-      replace5 = self.getInputFromPort('replace5')
-    replace6 = 1
-    if self.hasInputFromPort('replace6') :
-      replace6 = self.getInputFromPort('replace6')
-    bundlename = ''
-    if self.hasInputFromPort('bundlename') :
-      bundlename = self.getInputFromPort('bundlename')
+    p_colormap1_name = 'colormap1'
+    if self.hasInputFromPort('p_colormap1_name') :
+      p_colormap1_name = self.getInputFromPort('p_colormap1_name')
+    p_colormap2_name = 'colormap2'
+    if self.hasInputFromPort('p_colormap2_name') :
+      p_colormap2_name = self.getInputFromPort('p_colormap2_name')
+    p_colormap3_name = 'colormap3'
+    if self.hasInputFromPort('p_colormap3_name') :
+      p_colormap3_name = self.getInputFromPort('p_colormap3_name')
+    p_colormap4_name = 'colormap4'
+    if self.hasInputFromPort('p_colormap4_name') :
+      p_colormap4_name = self.getInputFromPort('p_colormap4_name')
+    p_colormap5_name = 'colormap5'
+    if self.hasInputFromPort('p_colormap5_name') :
+      p_colormap5_name = self.getInputFromPort('p_colormap5_name')
+    p_colormap6_name = 'colormap6'
+    if self.hasInputFromPort('p_colormap6_name') :
+      p_colormap6_name = self.getInputFromPort('p_colormap6_name')
+    p_replace1 = 1
+    if self.hasInputFromPort('p_replace1') :
+      p_replace1 = self.getInputFromPort('p_replace1')
+    p_replace2 = 1
+    if self.hasInputFromPort('p_replace2') :
+      p_replace2 = self.getInputFromPort('p_replace2')
+    p_replace3 = 1
+    if self.hasInputFromPort('p_replace3') :
+      p_replace3 = self.getInputFromPort('p_replace3')
+    p_replace4 = 1
+    if self.hasInputFromPort('p_replace4') :
+      p_replace4 = self.getInputFromPort('p_replace4')
+    p_replace5 = 1
+    if self.hasInputFromPort('p_replace5') :
+      p_replace5 = self.getInputFromPort('p_replace5')
+    p_replace6 = 1
+    if self.hasInputFromPort('p_replace6') :
+      p_replace6 = self.getInputFromPort('p_replace6')
+    p_bundlename = ''
+    if self.hasInputFromPort('p_bundlename') :
+      p_bundlename = self.getInputFromPort('p_bundlename')
     bundle = 0
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
@@ -6080,21 +5597,88 @@ class SCIRun_InsertColorMapsIntoBundle(Module) :
     colormap6 = 0
     if self.hasInputFromPort('colormap6') :
       colormap6 = self.getInputFromPort('colormap6')
-    results = sr_py.InsertColorMapsIntoBundle(bundle,colormap1,colormap2,colormap3,colormap4,colormap5,colormap6,colormap1_name,colormap2_name,colormap3_name,colormap4_name,colormap5_name,colormap6_name,replace1,replace2,replace3,replace4,replace5,replace6,bundlename)
+    results = sr_py.InsertColorMapsIntoBundle(bundle,colormap1,colormap2,colormap3,colormap4,colormap5,colormap6,p_colormap1_name,p_colormap2_name,p_colormap3_name,p_colormap4_name,p_colormap5_name,p_colormap6_name,p_replace1,p_replace2,p_replace3,p_replace4,p_replace5,p_replace6,p_bundlename)
     self.setResult('bundle', results)
 
-class SCIRun_CollectPointClouds(Module) :
+class scirun_JoinStrings(Module) :
   def compute(self) :
-    num_fields = 1
-    if self.hasInputFromPort('num_fields') :
-      num_fields = self.getInputFromPort('num_fields')
-    Point_Cloud = 0
-    if self.hasInputFromPort('Point Cloud') :
-      Point_Cloud = self.getInputFromPort('Point Cloud')
-    results = sr_py.CollectPointClouds(Point_Cloud,num_fields)
-    self.setResult('Curve', results)
+    input = 0
+    if self.hasInputFromPort('input') :
+      input = self.getInputFromPort('input')
+    results = sr_py.JoinStrings(input)
+    self.setResult('Output', results)
 
-class SCIRun_ReorderMatrixByCuthillMcKee(Module) :
+class scirun_CreateViewerClockIcon(Module) :
+  def compute(self) :
+    p_type = 0
+    if self.hasInputFromPort('p_type') :
+      p_type = self.getInputFromPort('p_type')
+    p_bbox = 1
+    if self.hasInputFromPort('p_bbox') :
+      p_bbox = self.getInputFromPort('p_bbox')
+    p_format = '%8.3f seconds'
+    if self.hasInputFromPort('p_format') :
+      p_format = self.getInputFromPort('p_format')
+    p_min = 0.0
+    if self.hasInputFromPort('p_min') :
+      p_min = self.getInputFromPort('p_min')
+    p_max = 1.0
+    if self.hasInputFromPort('p_max') :
+      p_max = self.getInputFromPort('p_max')
+    p_current = '0'
+    if self.hasInputFromPort('p_current') :
+      p_current = self.getInputFromPort('p_current')
+    p_size = 100
+    if self.hasInputFromPort('p_size') :
+      p_size = self.getInputFromPort('p_size')
+    p_location_x = -0.96875
+    if self.hasInputFromPort('p_location_x') :
+      p_location_x = self.getInputFromPort('p_location_x')
+    p_location_y = 0.96875
+    if self.hasInputFromPort('p_location_y') :
+      p_location_y = self.getInputFromPort('p_location_y')
+    p_color_r = 1.0
+    if self.hasInputFromPort('p_color_r') :
+      p_color_r = self.getInputFromPort('p_color_r')
+    p_color_g = 1.0
+    if self.hasInputFromPort('p_color_g') :
+      p_color_g = self.getInputFromPort('p_color_g')
+    p_color_b = 1.0
+    if self.hasInputFromPort('p_color_b') :
+      p_color_b = self.getInputFromPort('p_color_b')
+    Time_Matrix = 0
+    if self.hasInputFromPort('Time Matrix') :
+      Time_Matrix = self.getInputFromPort('Time Matrix')
+    Time_Nrrd = 0
+    if self.hasInputFromPort('Time Nrrd') :
+      Time_Nrrd = self.getInputFromPort('Time Nrrd')
+    results = sr_py.CreateViewerClockIcon(Time_Matrix,Time_Nrrd,p_type,p_bbox,p_format,p_min,p_max,p_current,p_size,p_location_x,p_location_y,p_color_r,p_color_g,p_color_b)
+    self.setResult('Clock', results)
+
+class scirun_ReportMatrixRowMeasure(Module) :
+  def compute(self) :
+    p_method = 'Sum'
+    if self.hasInputFromPort('p_method') :
+      p_method = self.getInputFromPort('p_method')
+    Matrix = 0
+    if self.hasInputFromPort('Matrix') :
+      Matrix = self.getInputFromPort('Matrix')
+    results = sr_py.ReportMatrixRowMeasure(Matrix,p_method)
+    self.setResult('Vector', results)
+
+class scirun_RemoveHexVolSheet(Module) :
+  def compute(self) :
+    p_edge_list = 'No values present.'
+    if self.hasInputFromPort('p_edge_list') :
+      p_edge_list = self.getInputFromPort('p_edge_list')
+    HexField = 0
+    if self.hasInputFromPort('HexField') :
+      HexField = self.getInputFromPort('HexField')
+    results = sr_py.RemoveHexVolSheet(HexField,p_edge_list)
+    self.setResult('NewHexField', sr_py.read_at_index(results,0))
+    self.setResult('ExtractedHexes', sr_py.read_at_index(results,1))
+
+class scirun_ReorderMatrixByCuthillMcKee(Module) :
   def compute(self) :
     Matrix = 0
     if self.hasInputFromPort('Matrix') :
@@ -6104,38 +5688,7 @@ class SCIRun_ReorderMatrixByCuthillMcKee(Module) :
     self.setResult('Mapping', sr_py.read_at_index(results,1))
     self.setResult('InverseMapping', sr_py.read_at_index(results,2))
 
-class SCIRun_ReportMatrixRowMeasure(Module) :
-  def compute(self) :
-    method = 'Sum'
-    if self.hasInputFromPort('method') :
-      method = self.getInputFromPort('method')
-    Matrix = 0
-    if self.hasInputFromPort('Matrix') :
-      Matrix = self.getInputFromPort('Matrix')
-    results = sr_py.ReportMatrixRowMeasure(Matrix,method)
-    self.setResult('Vector', results)
-
-class SCIRun_RemoveHexVolSheet(Module) :
-  def compute(self) :
-    edge_list = 'No values present.'
-    if self.hasInputFromPort('edge_list') :
-      edge_list = self.getInputFromPort('edge_list')
-    HexField = 0
-    if self.hasInputFromPort('HexField') :
-      HexField = self.getInputFromPort('HexField')
-    results = sr_py.RemoveHexVolSheet(HexField,edge_list)
-    self.setResult('NewHexField', sr_py.read_at_index(results,0))
-    self.setResult('ExtractedHexes', sr_py.read_at_index(results,1))
-
-class SCIRun_ColorMap2DSemantics(Module) :
-  def compute(self) :
-    Input_Colormap = 0
-    if self.hasInputFromPort('Input Colormap') :
-      Input_Colormap = self.getInputFromPort('Input Colormap')
-    results = sr_py.ColorMap2DSemantics(Input_Colormap)
-    self.setResult('Output Colormap', results)
-
-class SCIRun_ReportMatrixInfo(Module) :
+class scirun_ReportMatrixInfo(Module) :
   def compute(self) :
     Input = 0
     if self.hasInputFromPort('Input') :
@@ -6145,24 +5698,73 @@ class SCIRun_ReportMatrixInfo(Module) :
     self.setResult('NumCols', sr_py.read_at_index(results,1))
     self.setResult('NumElements', sr_py.read_at_index(results,2))
 
-class SCIRun_RefineMesh(Module) :
+class scirun_SubsampleStructuredFieldByIndices(Module) :
   def compute(self) :
-    Mesh = 0
-    if self.hasInputFromPort('Mesh') :
-      Mesh = self.getInputFromPort('Mesh')
-    Isovalue = 0
-    if self.hasInputFromPort('Isovalue') :
-      Isovalue = self.getInputFromPort('Isovalue')
-    results = sr_py.RefineMesh(Mesh,Isovalue)
-    self.setResult('RefinedMesh', sr_py.read_at_index(results,0))
-    self.setResult('Mapping', sr_py.read_at_index(results,1))
+    p_power_app = 0
+    if self.hasInputFromPort('p_power_app') :
+      p_power_app = self.getInputFromPort('p_power_app')
+    p_wrap = 0
+    if self.hasInputFromPort('p_wrap') :
+      p_wrap = self.getInputFromPort('p_wrap')
+    p_dims = 3
+    if self.hasInputFromPort('p_dims') :
+      p_dims = self.getInputFromPort('p_dims')
+    p_dim_i = 2
+    if self.hasInputFromPort('p_dim_i') :
+      p_dim_i = self.getInputFromPort('p_dim_i')
+    p_dim_j = 2
+    if self.hasInputFromPort('p_dim_j') :
+      p_dim_j = self.getInputFromPort('p_dim_j')
+    p_dim_k = 2
+    if self.hasInputFromPort('p_dim_k') :
+      p_dim_k = self.getInputFromPort('p_dim_k')
+    p_start_i = 0
+    if self.hasInputFromPort('p_start_i') :
+      p_start_i = self.getInputFromPort('p_start_i')
+    p_start_j = 0
+    if self.hasInputFromPort('p_start_j') :
+      p_start_j = self.getInputFromPort('p_start_j')
+    p_start_k = 0
+    if self.hasInputFromPort('p_start_k') :
+      p_start_k = self.getInputFromPort('p_start_k')
+    p_stop_i = 1
+    if self.hasInputFromPort('p_stop_i') :
+      p_stop_i = self.getInputFromPort('p_stop_i')
+    p_stop_j = 1
+    if self.hasInputFromPort('p_stop_j') :
+      p_stop_j = self.getInputFromPort('p_stop_j')
+    p_stop_k = 1
+    if self.hasInputFromPort('p_stop_k') :
+      p_stop_k = self.getInputFromPort('p_stop_k')
+    p_stride_i = 1
+    if self.hasInputFromPort('p_stride_i') :
+      p_stride_i = self.getInputFromPort('p_stride_i')
+    p_stride_j = 1
+    if self.hasInputFromPort('p_stride_j') :
+      p_stride_j = self.getInputFromPort('p_stride_j')
+    p_stride_k = 1
+    if self.hasInputFromPort('p_stride_k') :
+      p_stride_k = self.getInputFromPort('p_stride_k')
+    p_wrap_i = 0
+    if self.hasInputFromPort('p_wrap_i') :
+      p_wrap_i = self.getInputFromPort('p_wrap_i')
+    p_wrap_j = 0
+    if self.hasInputFromPort('p_wrap_j') :
+      p_wrap_j = self.getInputFromPort('p_wrap_j')
+    p_wrap_k = 0
+    if self.hasInputFromPort('p_wrap_k') :
+      p_wrap_k = self.getInputFromPort('p_wrap_k')
+    Input_Field = 0
+    if self.hasInputFromPort('Input Field') :
+      Input_Field = self.getInputFromPort('Input Field')
+    Input_Matrix = 0
+    if self.hasInputFromPort('Input Matrix') :
+      Input_Matrix = self.getInputFromPort('Input Matrix')
+    results = sr_py.SubsampleStructuredFieldByIndices(Input_Field,Input_Matrix,p_power_app,p_wrap,p_dims,p_dim_i,p_dim_j,p_dim_k,p_start_i,p_start_j,p_start_k,p_stop_i,p_stop_j,p_stop_k,p_stride_i,p_stride_j,p_stride_k,p_wrap_i,p_wrap_j,p_wrap_k)
+    self.setResult('Output Field', sr_py.read_at_index(results,0))
+    self.setResult('Output Matrix', sr_py.read_at_index(results,1))
 
-class SCIRun_InsertEnvironmentIntoBundle(Module) :
-  def compute(self) :
-    results = sr_py.InsertEnvironmentIntoBundle()
-    self.setResult('Environment', results)
-
-class SCIRun_CalculateDistanceToField(Module) :
+class scirun_CalculateDistanceToField(Module) :
   def compute(self) :
     Field = 0
     if self.hasInputFromPort('Field') :
@@ -6173,79 +5775,177 @@ class SCIRun_CalculateDistanceToField(Module) :
     results = sr_py.CalculateDistanceToField(Field,ObjectField)
     self.setResult('DistanceField', results)
 
-class SCIRun_SubsampleStructuredFieldByIndices(Module) :
+class scirun_GetAllSegmentationBoundaries(Module) :
   def compute(self) :
-    power_app = 0
-    if self.hasInputFromPort('power_app') :
-      power_app = self.getInputFromPort('power_app')
-    wrap = 0
-    if self.hasInputFromPort('wrap') :
-      wrap = self.getInputFromPort('wrap')
-    dims = 3
-    if self.hasInputFromPort('dims') :
-      dims = self.getInputFromPort('dims')
-    dim_i = 2
-    if self.hasInputFromPort('dim_i') :
-      dim_i = self.getInputFromPort('dim_i')
-    dim_j = 2
-    if self.hasInputFromPort('dim_j') :
-      dim_j = self.getInputFromPort('dim_j')
-    dim_k = 2
-    if self.hasInputFromPort('dim_k') :
-      dim_k = self.getInputFromPort('dim_k')
-    start_i = 0
-    if self.hasInputFromPort('start_i') :
-      start_i = self.getInputFromPort('start_i')
-    start_j = 0
-    if self.hasInputFromPort('start_j') :
-      start_j = self.getInputFromPort('start_j')
-    start_k = 0
-    if self.hasInputFromPort('start_k') :
-      start_k = self.getInputFromPort('start_k')
-    stop_i = 1
-    if self.hasInputFromPort('stop_i') :
-      stop_i = self.getInputFromPort('stop_i')
-    stop_j = 1
-    if self.hasInputFromPort('stop_j') :
-      stop_j = self.getInputFromPort('stop_j')
-    stop_k = 1
-    if self.hasInputFromPort('stop_k') :
-      stop_k = self.getInputFromPort('stop_k')
-    stride_i = 1
-    if self.hasInputFromPort('stride_i') :
-      stride_i = self.getInputFromPort('stride_i')
-    stride_j = 1
-    if self.hasInputFromPort('stride_j') :
-      stride_j = self.getInputFromPort('stride_j')
-    stride_k = 1
-    if self.hasInputFromPort('stride_k') :
-      stride_k = self.getInputFromPort('stride_k')
-    wrap_i = 0
-    if self.hasInputFromPort('wrap_i') :
-      wrap_i = self.getInputFromPort('wrap_i')
-    wrap_j = 0
-    if self.hasInputFromPort('wrap_j') :
-      wrap_j = self.getInputFromPort('wrap_j')
-    wrap_k = 0
-    if self.hasInputFromPort('wrap_k') :
-      wrap_k = self.getInputFromPort('wrap_k')
-    Input_Field = 0
-    if self.hasInputFromPort('Input Field') :
-      Input_Field = self.getInputFromPort('Input Field')
-    Input_Matrix = 0
-    if self.hasInputFromPort('Input Matrix') :
-      Input_Matrix = self.getInputFromPort('Input Matrix')
-    results = sr_py.SubsampleStructuredFieldByIndices(Input_Field,Input_Matrix,power_app,wrap,dims,dim_i,dim_j,dim_k,start_i,start_j,start_k,stop_i,stop_j,stop_k,stride_i,stride_j,stride_k,wrap_i,wrap_j,wrap_k)
-    self.setResult('Output Field', sr_py.read_at_index(results,0))
-    self.setResult('Output Matrix', sr_py.read_at_index(results,1))
+    Segmentations = 0
+    if self.hasInputFromPort('Segmentations') :
+      Segmentations = self.getInputFromPort('Segmentations')
+    results = sr_py.GetAllSegmentationBoundaries(Segmentations)
+    self.setResult('Boundaries', results)
 
-class SCIRun_Matrix(Constant):
-  def compute(self): 
-    pass
+class scirun_ClipFieldWithSeed(Module) :
+  def compute(self) :
+    p_mode = 'allnodes'
+    if self.hasInputFromPort('p_mode') :
+      p_mode = self.getInputFromPort('p_mode')
+    p_function = 'return (fx < 0);'
+    if self.hasInputFromPort('p_function') :
+      p_function = self.getInputFromPort('p_function')
+    Function = 0
+    if self.hasInputFromPort('Function') :
+      Function = self.getInputFromPort('Function')
+    Input = 0
+    if self.hasInputFromPort('Input') :
+      Input = self.getInputFromPort('Input')
+    Seeds = 0
+    if self.hasInputFromPort('Seeds') :
+      Seeds = self.getInputFromPort('Seeds')
+    results = sr_py.ClipFieldWithSeed(Function,Input,Seeds,p_mode,p_function)
+    self.setResult('Clipped', sr_py.read_at_index(results,0))
+    self.setResult('Mapping', sr_py.read_at_index(results,1))
+    self.setResult('MaskVector', sr_py.read_at_index(results,2))
+
+class scirun_CreateParameterBundle(Module) :
+  def compute(self) :
+    p_data = '0 "example field" string "example" ""} {0 "example scalar" scalar 1.0 ""} '
+    if self.hasInputFromPort('p_data') :
+      p_data = self.getInputFromPort('p_data')
+    p_new_field_count = 1
+    if self.hasInputFromPort('p_new_field_count') :
+      p_new_field_count = self.getInputFromPort('p_new_field_count')
+    p_update_all = '::SCIRun_Bundle_CreateParameterBundle_0 update_all_data'
+    if self.hasInputFromPort('p_update_all') :
+      p_update_all = self.getInputFromPort('p_update_all')
+    results = sr_py.CreateParameterBundle(p_data,p_new_field_count,p_update_all)
+    self.setResult('ParameterList', results)
+
+class scirun_CollectPointClouds(Module) :
+  def compute(self) :
+    p_num_fields = 1
+    if self.hasInputFromPort('p_num_fields') :
+      p_num_fields = self.getInputFromPort('p_num_fields')
+    Point_Cloud = 0
+    if self.hasInputFromPort('Point Cloud') :
+      Point_Cloud = self.getInputFromPort('Point Cloud')
+    results = sr_py.CollectPointClouds(Point_Cloud,p_num_fields)
+    self.setResult('Curve', results)
+
+class scirun_InsertEnvironmentIntoBundle(Module) :
+  def compute(self) :
+    results = sr_py.InsertEnvironmentIntoBundle()
+    self.setResult('Environment', results)
+
+class scirun_ScaleFieldMeshAndData(Module) :
+  def compute(self) :
+    p_datascale = 1
+    if self.hasInputFromPort('p_datascale') :
+      p_datascale = self.getInputFromPort('p_datascale')
+    p_geomscale = 1
+    if self.hasInputFromPort('p_geomscale') :
+      p_geomscale = self.getInputFromPort('p_geomscale')
+    p_usegeomcenter = 1
+    if self.hasInputFromPort('p_usegeomcenter') :
+      p_usegeomcenter = self.getInputFromPort('p_usegeomcenter')
+    Field = 0
+    if self.hasInputFromPort('Field') :
+      Field = self.getInputFromPort('Field')
+    GeomScaleFactor = 0
+    if self.hasInputFromPort('GeomScaleFactor') :
+      GeomScaleFactor = self.getInputFromPort('GeomScaleFactor')
+    DataScaleFactor = 0
+    if self.hasInputFromPort('DataScaleFactor') :
+      DataScaleFactor = self.getInputFromPort('DataScaleFactor')
+    results = sr_py.ScaleFieldMeshAndData(Field,GeomScaleFactor,DataScaleFactor,p_datascale,p_geomscale,p_usegeomcenter)
+    self.setResult('Field', results)
+
+class scirun_ConvertFieldsToTexture(Module) :
+  def compute(self) :
+    p_vmin = 0.0
+    if self.hasInputFromPort('p_vmin') :
+      p_vmin = self.getInputFromPort('p_vmin')
+    p_vmax = 1.0
+    if self.hasInputFromPort('p_vmax') :
+      p_vmax = self.getInputFromPort('p_vmax')
+    p_gmin = 0.0
+    if self.hasInputFromPort('p_gmin') :
+      p_gmin = self.getInputFromPort('p_gmin')
+    p_gmax = 1.0
+    if self.hasInputFromPort('p_gmax') :
+      p_gmax = self.getInputFromPort('p_gmax')
+    p_is_fixed = 0
+    if self.hasInputFromPort('p_is_fixed') :
+      p_is_fixed = self.getInputFromPort('p_is_fixed')
+    p_card_mem = 16
+    if self.hasInputFromPort('p_card_mem') :
+      p_card_mem = self.getInputFromPort('p_card_mem')
+    p_card_mem_auto = 1
+    if self.hasInputFromPort('p_card_mem_auto') :
+      p_card_mem_auto = self.getInputFromPort('p_card_mem_auto')
+    p_histogram = 1
+    if self.hasInputFromPort('p_histogram') :
+      p_histogram = self.getInputFromPort('p_histogram')
+    p_gamma = 0.5
+    if self.hasInputFromPort('p_gamma') :
+      p_gamma = self.getInputFromPort('p_gamma')
+    Value_Field = 0
+    if self.hasInputFromPort('Value Field') :
+      Value_Field = self.getInputFromPort('Value Field')
+    Gradient_Magnitude_Field = 0
+    if self.hasInputFromPort('Gradient Magnitude Field') :
+      Gradient_Magnitude_Field = self.getInputFromPort('Gradient Magnitude Field')
+    results = sr_py.ConvertFieldsToTexture(Value_Field,Gradient_Magnitude_Field,p_vmin,p_vmax,p_gmin,p_gmax,p_is_fixed,p_card_mem,p_card_mem_auto,p_histogram,p_gamma)
+    self.setResult('Texture', sr_py.read_at_index(results,0))
+    self.setResult('JointHistoGram', sr_py.read_at_index(results,1))
+
+class scirun_SplitNodesByDomain(Module) :
+  def compute(self) :
+    Field = 0
+    if self.hasInputFromPort('Field') :
+      Field = self.getInputFromPort('Field')
+    results = sr_py.SplitNodesByDomain(Field)
+    self.setResult('SplitField', results)
+
+class scirun_RemoveZerosFromMatrix(Module) :
+  def compute(self) :
+    p_row_or_col = 'row'
+    if self.hasInputFromPort('p_row_or_col') :
+      p_row_or_col = self.getInputFromPort('p_row_or_col')
+    Matrix = 0
+    if self.hasInputFromPort('Matrix') :
+      Matrix = self.getInputFromPort('Matrix')
+    results = sr_py.RemoveZerosFromMatrix(Matrix,p_row_or_col)
+    self.setResult('Matrix', results)
+
+class scirun_GetNetworkFileName(Module) :
+  def compute(self) :
+    results = sr_py.GetNetworkFileName()
+    self.setResult('String', results)
+
+class scirun_RemoveZeroRowsAndColumns(Module) :
+  def compute(self) :
+    Matrix = 0
+    if self.hasInputFromPort('Matrix') :
+      Matrix = self.getInputFromPort('Matrix')
+    results = sr_py.RemoveZeroRowsAndColumns(Matrix)
+    self.setResult('ReducedMatrix', sr_py.read_at_index(results,0))
+    self.setResult('LeftMapping', sr_py.read_at_index(results,1))
+    self.setResult('RightMapping', sr_py.read_at_index(results,2))
+
+class scirun_ColorMap2DSemantics(Module) :
+  def compute(self) :
+    Input_Colormap = 0
+    if self.hasInputFromPort('Input Colormap') :
+      Input_Colormap = self.getInputFromPort('Input Colormap')
+    results = sr_py.ColorMap2DSemantics(Input_Colormap)
+    self.setResult('Output Colormap', results)
+
 class SCIRun_Bundle(Constant):
   def compute(self): 
     pass
 class SCIRun_Field(Constant):
+  def compute(self): 
+    pass
+class SCIRun_Matrix(Constant):
   def compute(self): 
     pass
 class SCIRun_Geometry(Constant):
@@ -6294,4465 +5994,4263 @@ def initialize(*args, **keywords):
 
   reg.add_module(SCIRun_Geometry)
 
+  reg.add_module(SCIRun_Matrix)
+
   reg.add_module(SCIRun_Field)
 
   reg.add_module(SCIRun_Bundle)
 
-  reg.add_module(SCIRun_Matrix)
-
-  reg.add_module(SCIRun_CreateDataArray)
-  reg.add_input_port(SCIRun_CreateDataArray, 'function',
+  reg.add_module(scirun_WriteBundle)
+  reg.add_input_port(scirun_WriteBundle, 'p_filetype',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateDataArray, 'format',
+  reg.add_input_port(scirun_WriteBundle, 'p_confirm',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateDataArray, 'Size',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_CreateDataArray, 'Function',
-                   (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_CreateDataArray, 'Array',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_CreateDataArray, 'DataArray', 
-                    (SCIRun_Matrix, 'DataArray'))
-
-  reg.add_module(SCIRun_WriteBundle)
-  reg.add_input_port(SCIRun_WriteBundle, 'filetype',
+  reg.add_input_port(scirun_WriteBundle, 'p_confirm_once',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteBundle, 'confirm',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteBundle, 'confirm_once',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteBundle, 'bundle',
+  reg.add_input_port(scirun_WriteBundle, 'bundle',
                    (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_input_port(SCIRun_WriteBundle, 'Filename',
+  reg.add_input_port(scirun_WriteBundle, 'Filename',
                    (core.modules.basic_modules.String, 'tip'))
 
-  reg.add_module(SCIRun_JoinFields)
-  reg.add_input_port(SCIRun_JoinFields, 'accumulating',
+  reg.add_module(scirun_JoinFields)
+  reg.add_input_port(scirun_JoinFields, 'p_tolerance',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_JoinFields, 'tolerance',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_JoinFields, 'force_nodemerge',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_JoinFields, 'force_pointcloud',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_JoinFields, 'matchval',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_JoinFields, 'meshonly',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_JoinFields, 'Field',
+  reg.add_input_port(scirun_JoinFields, 'p_force_nodemerge',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_JoinFields, 'p_force_pointcloud',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_JoinFields, 'p_matchval',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_JoinFields, 'p_meshonly',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_JoinFields, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_JoinFields, 'Output Field', 
+  reg.add_output_port(scirun_JoinFields, 'Output Field', 
                     (SCIRun_Field, 'Output Field'))
 
-  reg.add_module(SCIRun_MaskLatVolWithTriSurf)
-  reg.add_input_port(SCIRun_MaskLatVolWithTriSurf, 'LatVolField',
+  reg.add_module(scirun_ApplyMappingMatrix)
+  reg.add_input_port(scirun_ApplyMappingMatrix, 'Source',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_MaskLatVolWithTriSurf, 'TriSurfField',
+  reg.add_input_port(scirun_ApplyMappingMatrix, 'Destination',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_MaskLatVolWithTriSurf, 'LatVol Mask', 
+  reg.add_input_port(scirun_ApplyMappingMatrix, 'Mapping',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_ApplyMappingMatrix, 'Output', 
+                    (SCIRun_Field, 'Output'))
+
+  reg.add_module(scirun_TransformPlanarMesh)
+  reg.add_input_port(scirun_TransformPlanarMesh, 'p_axis',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_TransformPlanarMesh, 'p_invert',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_TransformPlanarMesh, 'p_trans_x',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_TransformPlanarMesh, 'p_trans_y',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_TransformPlanarMesh, 'Input Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_input_port(scirun_TransformPlanarMesh, 'Index Matrix',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_TransformPlanarMesh, 'Transformed Field', 
+                    (SCIRun_Field, 'Transformed Field'))
+
+  reg.add_module(scirun_MaskLatVolWithTriSurf)
+  reg.add_input_port(scirun_MaskLatVolWithTriSurf, 'LatVolField',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_input_port(scirun_MaskLatVolWithTriSurf, 'TriSurfField',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_MaskLatVolWithTriSurf, 'LatVol Mask', 
                     (SCIRun_Field, 'LatVol Mask'))
 
-  reg.add_module(SCIRun_ApplyMappingMatrix)
-  reg.add_input_port(SCIRun_ApplyMappingMatrix, 'Source',
+  reg.add_module(scirun_RefineMeshByIsovalue)
+  reg.add_input_port(scirun_RefineMeshByIsovalue, 'p_isoval',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_RefineMeshByIsovalue, 'p_lte',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_RefineMeshByIsovalue, 'Input',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_ApplyMappingMatrix, 'Destination',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_ApplyMappingMatrix, 'Mapping',
+  reg.add_input_port(scirun_RefineMeshByIsovalue, 'Optional Isovalue',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ApplyMappingMatrix, 'Output', 
-                    (SCIRun_Field, 'Output'))
-
-  reg.add_module(SCIRun_TransformPlanarMesh)
-  reg.add_input_port(SCIRun_TransformPlanarMesh, 'axis',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_TransformPlanarMesh, 'invert',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_TransformPlanarMesh, 'trans_x',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_TransformPlanarMesh, 'trans_y',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_TransformPlanarMesh, 'Input Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_TransformPlanarMesh, 'Index Matrix',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_TransformPlanarMesh, 'Transformed Field', 
-                    (SCIRun_Field, 'Transformed Field'))
-
-  reg.add_module(SCIRun_ViewScene)
-  reg.add_input_port(SCIRun_ViewScene, 'Geometry',
-                   (SCIRun_Geometry, "SCIRun_Geometry"))
-
-  reg.add_module(SCIRun_RefineMeshByIsovalue)
-  reg.add_input_port(SCIRun_RefineMeshByIsovalue, 'isoval',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_RefineMeshByIsovalue, 'lte',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_RefineMeshByIsovalue, 'Input',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_RefineMeshByIsovalue, 'Optional Isovalue',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_RefineMeshByIsovalue, 'Refined', 
+  reg.add_output_port(scirun_RefineMeshByIsovalue, 'Refined', 
                     (SCIRun_Field, 'Refined'))
-  reg.add_output_port(SCIRun_RefineMeshByIsovalue, 'Mapping', 
+  reg.add_output_port(scirun_RefineMeshByIsovalue, 'Mapping', 
                     (SCIRun_Matrix, 'Mapping'))
 
-  reg.add_module(SCIRun_AppendMatrix)
-  reg.add_input_port(SCIRun_AppendMatrix, 'row_or_column',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_AppendMatrix, 'BaseMatrix',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_AppendMatrix, 'AppendMatrix',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_AppendMatrix, 'Matrix', 
-                    (SCIRun_Matrix, 'Matrix'))
+  reg.add_module(scirun_ViewScene)
+  reg.add_input_port(scirun_ViewScene, 'Geometry',
+                   (SCIRun_Geometry, "SCIRun_Geometry"))
 
-  reg.add_module(SCIRun_ReportColumnMatrixMisfit)
-  reg.add_input_port(SCIRun_ReportColumnMatrixMisfit, 'have_ui',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportColumnMatrixMisfit, 'methodTCL',
+  reg.add_module(scirun_ReportColumnMatrixMisfit)
+  reg.add_input_port(scirun_ReportColumnMatrixMisfit, 'p_have_ui',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReportColumnMatrixMisfit, 'p_methodTCL',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportColumnMatrixMisfit, 'pTCL',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportColumnMatrixMisfit, 'Vec1',
+  reg.add_input_port(scirun_ReportColumnMatrixMisfit, 'p_pTCL',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReportColumnMatrixMisfit, 'Vec1',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_ReportColumnMatrixMisfit, 'Vec2',
+  reg.add_input_port(scirun_ReportColumnMatrixMisfit, 'Vec2',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ReportColumnMatrixMisfit, 'Error Out', 
+  reg.add_output_port(scirun_ReportColumnMatrixMisfit, 'Error Out', 
                     (SCIRun_Matrix, 'Error Out'))
 
-  reg.add_module(SCIRun_EvaluateLinAlgGeneral)
-  reg.add_input_port(SCIRun_EvaluateLinAlgGeneral, 'function',
+  reg.add_module(scirun_EvaluateLinAlgGeneral)
+  reg.add_input_port(scirun_EvaluateLinAlgGeneral, 'p_function',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_EvaluateLinAlgGeneral, 'i1',
+  reg.add_input_port(scirun_EvaluateLinAlgGeneral, 'i1',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_EvaluateLinAlgGeneral, 'i2',
+  reg.add_input_port(scirun_EvaluateLinAlgGeneral, 'i2',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_EvaluateLinAlgGeneral, 'i3',
+  reg.add_input_port(scirun_EvaluateLinAlgGeneral, 'i3',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_EvaluateLinAlgGeneral, 'i4',
+  reg.add_input_port(scirun_EvaluateLinAlgGeneral, 'i4',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_EvaluateLinAlgGeneral, 'i5',
+  reg.add_input_port(scirun_EvaluateLinAlgGeneral, 'i5',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_EvaluateLinAlgGeneral, 'o1', 
+  reg.add_output_port(scirun_EvaluateLinAlgGeneral, 'o1', 
                     (SCIRun_Matrix, 'o1'))
-  reg.add_output_port(SCIRun_EvaluateLinAlgGeneral, 'o2', 
+  reg.add_output_port(scirun_EvaluateLinAlgGeneral, 'o2', 
                     (SCIRun_Matrix, 'o2'))
-  reg.add_output_port(SCIRun_EvaluateLinAlgGeneral, 'o3', 
+  reg.add_output_port(scirun_EvaluateLinAlgGeneral, 'o3', 
                     (SCIRun_Matrix, 'o3'))
-  reg.add_output_port(SCIRun_EvaluateLinAlgGeneral, 'o4', 
+  reg.add_output_port(scirun_EvaluateLinAlgGeneral, 'o4', 
                     (SCIRun_Matrix, 'o4'))
-  reg.add_output_port(SCIRun_EvaluateLinAlgGeneral, 'o5', 
+  reg.add_output_port(scirun_EvaluateLinAlgGeneral, 'o5', 
                     (SCIRun_Matrix, 'o5'))
 
-  reg.add_module(SCIRun_ReportMeshQualityMeasures)
-  reg.add_input_port(SCIRun_ReportMeshQualityMeasures, 'Input',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ReportMeshQualityMeasures, 'Checked', 
-                    (SCIRun_Nrrd, 'Checked'))
+  reg.add_module(scirun_AppendMatrix)
+  reg.add_input_port(scirun_AppendMatrix, 'p_row_or_column',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_AppendMatrix, 'BaseMatrix',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_input_port(scirun_AppendMatrix, 'AppendMatrix',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_AppendMatrix, 'Matrix', 
+                    (SCIRun_Matrix, 'Matrix'))
 
-  reg.add_module(SCIRun_ApplyFilterToFieldData)
-  reg.add_input_port(SCIRun_ApplyFilterToFieldData, 'method',
+  reg.add_module(scirun_CreateDataArray)
+  reg.add_input_port(scirun_CreateDataArray, 'p_function',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ApplyFilterToFieldData, 'ed_method',
+  reg.add_input_port(scirun_CreateDataArray, 'p_format',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ApplyFilterToFieldData, 'ed_iterations',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ApplyFilterToFieldData, 'Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ApplyFilterToFieldData, 'Field', 
-                    (SCIRun_Field, 'Field'))
+  reg.add_input_port(scirun_CreateDataArray, 'Size',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_input_port(scirun_CreateDataArray, 'Function',
+                   (core.modules.basic_modules.String, 'tip'))
+  reg.add_input_port(scirun_CreateDataArray, 'Array',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_CreateDataArray, 'DataArray', 
+                    (SCIRun_Matrix, 'DataArray'))
 
-  reg.add_module(SCIRun_FairMesh)
-  reg.add_input_port(SCIRun_FairMesh, 'iterations',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_FairMesh, 'method',
+  reg.add_module(scirun_FairMesh)
+  reg.add_input_port(scirun_FairMesh, 'p_iterations',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_FairMesh, 'p_method',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_FairMesh, 'Input Mesh',
+  reg.add_input_port(scirun_FairMesh, 'Input Mesh',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_FairMesh, 'Faired Mesh', 
+  reg.add_output_port(scirun_FairMesh, 'Faired Mesh', 
                     (SCIRun_Field, 'Faired Mesh'))
 
-  reg.add_module(SCIRun_EvaluateLinAlgBinary)
-  reg.add_input_port(SCIRun_EvaluateLinAlgBinary, 'op',
+  reg.add_module(scirun_EvaluateLinAlgBinary)
+  reg.add_input_port(scirun_EvaluateLinAlgBinary, 'p_op',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_EvaluateLinAlgBinary, 'function',
+  reg.add_input_port(scirun_EvaluateLinAlgBinary, 'p_function',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_EvaluateLinAlgBinary, 'A',
+  reg.add_input_port(scirun_EvaluateLinAlgBinary, 'A',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_EvaluateLinAlgBinary, 'B',
+  reg.add_input_port(scirun_EvaluateLinAlgBinary, 'B',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_EvaluateLinAlgBinary, 'Output', 
+  reg.add_output_port(scirun_EvaluateLinAlgBinary, 'Output', 
                     (SCIRun_Matrix, 'Output'))
 
-  reg.add_module(SCIRun_PrintMatrixIntoString)
-  reg.add_input_port(SCIRun_PrintMatrixIntoString, 'formatstring',
+  reg.add_module(scirun_PrintMatrixIntoString)
+  reg.add_input_port(scirun_PrintMatrixIntoString, 'p_formatstring',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_PrintMatrixIntoString, 'Format',
+  reg.add_input_port(scirun_PrintMatrixIntoString, 'Format',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_PrintMatrixIntoString, 'Input',
+  reg.add_input_port(scirun_PrintMatrixIntoString, 'Input',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_PrintMatrixIntoString, 'Output', 
+  reg.add_output_port(scirun_PrintMatrixIntoString, 'Output', 
                     (core.modules.basic_modules.String, 'Output'))
 
-  reg.add_module(SCIRun_SetFieldProperty)
-  reg.add_input_port(SCIRun_SetFieldProperty, 'num_entries',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SetFieldProperty, 'property',
+  reg.add_module(scirun_SetFieldProperty)
+  reg.add_input_port(scirun_SetFieldProperty, 'p_num_entries',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SetFieldProperty, 'type',
+  reg.add_input_port(scirun_SetFieldProperty, 'p_property',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SetFieldProperty, 'value',
+  reg.add_input_port(scirun_SetFieldProperty, 'p_type',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SetFieldProperty, 'readonly',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SetFieldProperty, 'Field',
+  reg.add_input_port(scirun_SetFieldProperty, 'p_value',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_SetFieldProperty, 'p_readonly',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_SetFieldProperty, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_SetFieldProperty, 'Field', 
+  reg.add_output_port(scirun_SetFieldProperty, 'Field', 
                     (SCIRun_Field, 'Field'))
 
-  reg.add_module(SCIRun_ConvertFieldBasis)
-  reg.add_input_port(SCIRun_ConvertFieldBasis, 'output_basis',
+  reg.add_module(scirun_ConvertFieldBasis)
+  reg.add_input_port(scirun_ConvertFieldBasis, 'p_output_basis',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertFieldBasis, 'Input',
+  reg.add_input_port(scirun_ConvertFieldBasis, 'Input',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ConvertFieldBasis, 'Output', 
+  reg.add_output_port(scirun_ConvertFieldBasis, 'Output', 
                     (SCIRun_Field, 'Output'))
-  reg.add_output_port(SCIRun_ConvertFieldBasis, 'Mapping', 
+  reg.add_output_port(scirun_ConvertFieldBasis, 'Mapping', 
                     (SCIRun_Matrix, 'Mapping'))
 
-  reg.add_module(SCIRun_CreateDataArrayFromIndices)
-  reg.add_input_port(SCIRun_CreateDataArrayFromIndices, 'Indices',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_CreateDataArrayFromIndices, 'Template',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_CreateDataArrayFromIndices, 'DataArray', 
-                    (SCIRun_Matrix, 'DataArray'))
-
-  reg.add_module(SCIRun_SelectAndSetFieldData)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData, 'selection1',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData, 'function1',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData, 'selection2',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData, 'function2',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData, 'selection3',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData, 'function3',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData, 'selection4',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData, 'function4',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData, 'functiondef',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData, 'format',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData, 'Field',
+  reg.add_module(scirun_ReportMeshQualityMeasures)
+  reg.add_input_port(scirun_ReportMeshQualityMeasures, 'Input',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_SelectAndSetFieldData, 'Array',
+  reg.add_output_port(scirun_ReportMeshQualityMeasures, 'Checked', 
+                    (SCIRun_Nrrd, 'Checked'))
+
+  reg.add_module(scirun_SelectAndSetFieldData)
+  reg.add_input_port(scirun_SelectAndSetFieldData, 'p_selection1',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_SelectAndSetFieldData, 'p_function1',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_SelectAndSetFieldData, 'p_selection2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_SelectAndSetFieldData, 'p_function2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_SelectAndSetFieldData, 'p_selection3',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_SelectAndSetFieldData, 'p_function3',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_SelectAndSetFieldData, 'p_selection4',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_SelectAndSetFieldData, 'p_function4',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_SelectAndSetFieldData, 'p_functiondef',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_SelectAndSetFieldData, 'p_format',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_SelectAndSetFieldData, 'Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_input_port(scirun_SelectAndSetFieldData, 'Array',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_SelectAndSetFieldData, 'Field', 
+  reg.add_output_port(scirun_SelectAndSetFieldData, 'Field', 
                     (SCIRun_Field, 'Field'))
 
-  reg.add_module(SCIRun_GetColorMapsFromBundle)
-  reg.add_input_port(SCIRun_GetColorMapsFromBundle, 'colormap1_name',
+  reg.add_module(scirun_GetColorMapsFromBundle)
+  reg.add_input_port(scirun_GetColorMapsFromBundle, 'p_colormap1_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColorMapsFromBundle, 'colormap2_name',
+  reg.add_input_port(scirun_GetColorMapsFromBundle, 'p_colormap2_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColorMapsFromBundle, 'colormap3_name',
+  reg.add_input_port(scirun_GetColorMapsFromBundle, 'p_colormap3_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColorMapsFromBundle, 'colormap4_name',
+  reg.add_input_port(scirun_GetColorMapsFromBundle, 'p_colormap4_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColorMapsFromBundle, 'colormap5_name',
+  reg.add_input_port(scirun_GetColorMapsFromBundle, 'p_colormap5_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColorMapsFromBundle, 'colormap6_name',
+  reg.add_input_port(scirun_GetColorMapsFromBundle, 'p_colormap6_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColorMapsFromBundle, 'colormap_selection',
+  reg.add_input_port(scirun_GetColorMapsFromBundle, 'p_colormap_selection',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColorMapsFromBundle, 'bundle',
+  reg.add_input_port(scirun_GetColorMapsFromBundle, 'bundle',
                    (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_output_port(SCIRun_GetColorMapsFromBundle, 'bundle', 
+  reg.add_output_port(scirun_GetColorMapsFromBundle, 'bundle', 
                     (SCIRun_Bundle, 'bundle'))
-  reg.add_output_port(SCIRun_GetColorMapsFromBundle, 'colormap1', 
+  reg.add_output_port(scirun_GetColorMapsFromBundle, 'colormap1', 
                     (SCIRun_ColorMap, 'colormap1'))
-  reg.add_output_port(SCIRun_GetColorMapsFromBundle, 'colormap2', 
+  reg.add_output_port(scirun_GetColorMapsFromBundle, 'colormap2', 
                     (SCIRun_ColorMap, 'colormap2'))
-  reg.add_output_port(SCIRun_GetColorMapsFromBundle, 'colormap3', 
+  reg.add_output_port(scirun_GetColorMapsFromBundle, 'colormap3', 
                     (SCIRun_ColorMap, 'colormap3'))
-  reg.add_output_port(SCIRun_GetColorMapsFromBundle, 'colormap4', 
+  reg.add_output_port(scirun_GetColorMapsFromBundle, 'colormap4', 
                     (SCIRun_ColorMap, 'colormap4'))
-  reg.add_output_port(SCIRun_GetColorMapsFromBundle, 'colormap5', 
+  reg.add_output_port(scirun_GetColorMapsFromBundle, 'colormap5', 
                     (SCIRun_ColorMap, 'colormap5'))
-  reg.add_output_port(SCIRun_GetColorMapsFromBundle, 'colormap6', 
+  reg.add_output_port(scirun_GetColorMapsFromBundle, 'colormap6', 
                     (SCIRun_ColorMap, 'colormap6'))
 
-  reg.add_module(SCIRun_CreateStructHex)
-  reg.add_input_port(SCIRun_CreateStructHex, 'sizex',
+  reg.add_module(scirun_CreateStructHex)
+  reg.add_input_port(scirun_CreateStructHex, 'p_sizex',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateStructHex, 'p_sizey',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateStructHex, 'p_sizez',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateStructHex, 'p_padpercent',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateStructHex, 'sizey',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateStructHex, 'sizez',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateStructHex, 'padpercent',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateStructHex, 'data_at',
+  reg.add_input_port(scirun_CreateStructHex, 'p_data_at',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateStructHex, 'Input Field',
+  reg.add_input_port(scirun_CreateStructHex, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_CreateStructHex, 'Output Sample Field', 
+  reg.add_output_port(scirun_CreateStructHex, 'Output Sample Field', 
                     (SCIRun_Field, 'Output Sample Field'))
 
-  reg.add_module(SCIRun_ShowColorMap)
-  reg.add_input_port(SCIRun_ShowColorMap, 'length',
+  reg.add_module(scirun_ShowColorMap)
+  reg.add_input_port(scirun_ShowColorMap, 'p_length',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowColorMap, 'side',
+  reg.add_input_port(scirun_ShowColorMap, 'p_side',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowColorMap, 'numlabels',
+  reg.add_input_port(scirun_ShowColorMap, 'p_numlabels',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowColorMap, 'p_scale',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowColorMap, 'scale',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowColorMap, 'numsigdigits',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowColorMap, 'units',
+  reg.add_input_port(scirun_ShowColorMap, 'p_numsigdigits',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowColorMap, 'p_units',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowColorMap, 'color_r',
+  reg.add_input_port(scirun_ShowColorMap, 'p_color_r',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowColorMap, 'color_g',
+  reg.add_input_port(scirun_ShowColorMap, 'p_color_g',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowColorMap, 'color_b',
+  reg.add_input_port(scirun_ShowColorMap, 'p_color_b',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowColorMap, 'text_fontsize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowColorMap, 'extra_padding',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowColorMap, 'ColorMap',
+  reg.add_input_port(scirun_ShowColorMap, 'p_text_fontsize',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowColorMap, 'p_extra_padding',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowColorMap, 'ColorMap',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_output_port(SCIRun_ShowColorMap, 'Geometry', 
+  reg.add_output_port(scirun_ShowColorMap, 'Geometry', 
                     (SCIRun_Geometry, 'Geometry'))
 
-  reg.add_module(SCIRun_CalculateFieldData3)
-  reg.add_input_port(SCIRun_CalculateFieldData3, 'function',
+  reg.add_module(scirun_CalculateFieldData3)
+  reg.add_input_port(scirun_CalculateFieldData3, 'p_function',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateFieldData3, 'format',
+  reg.add_input_port(scirun_CalculateFieldData3, 'p_format',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateFieldData3, 'Field1',
+  reg.add_input_port(scirun_CalculateFieldData3, 'Field1',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_CalculateFieldData3, 'Field2',
+  reg.add_input_port(scirun_CalculateFieldData3, 'Field2',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_CalculateFieldData3, 'Field3',
+  reg.add_input_port(scirun_CalculateFieldData3, 'Field3',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_CalculateFieldData3, 'Function',
+  reg.add_input_port(scirun_CalculateFieldData3, 'Function',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_CalculateFieldData3, 'Array',
+  reg.add_input_port(scirun_CalculateFieldData3, 'Array',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_CalculateFieldData3, 'Field', 
+  reg.add_output_port(scirun_CalculateFieldData3, 'Field', 
                     (SCIRun_Field, 'Field'))
 
-  reg.add_module(SCIRun_InsertFieldsIntoBundle)
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'field1_name',
+  reg.add_module(scirun_InsertFieldsIntoBundle)
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'p_field1_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'field2_name',
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'p_field2_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'field3_name',
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'p_field3_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'field4_name',
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'p_field4_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'field5_name',
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'p_field5_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'field6_name',
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'p_field6_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'replace1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'replace2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'replace3',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'replace4',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'replace5',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'replace6',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'bundlename',
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'p_replace1',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'p_replace2',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'p_replace3',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'p_replace4',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'p_replace5',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'p_replace6',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'p_bundlename',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'bundle',
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'bundle',
                    (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'field1',
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'field1',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'field2',
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'field2',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'field3',
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'field3',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'field4',
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'field4',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'field5',
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'field5',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_InsertFieldsIntoBundle, 'field6',
+  reg.add_input_port(scirun_InsertFieldsIntoBundle, 'field6',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_InsertFieldsIntoBundle, 'bundle', 
+  reg.add_output_port(scirun_InsertFieldsIntoBundle, 'bundle', 
                     (SCIRun_Bundle, 'bundle'))
 
-  reg.add_module(SCIRun_CreateAndEditColorMap2D)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'panx',
+  reg.add_module(scirun_CreateAndEditColorMap2D)
+  reg.add_input_port(scirun_CreateAndEditColorMap2D, 'p_histo',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'pany',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'scale_factor',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'histo',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'selected_widget',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'selected_object',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'num_entries',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'faux',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'name_0',
+  reg.add_input_port(scirun_CreateAndEditColorMap2D, 'p_selected_widget',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateAndEditColorMap2D, 'p_selected_object',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateAndEditColorMap2D, 'p_num_entries',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateAndEditColorMap2D, 'p_marker',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'a0_color_r',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'a0_color_g',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'a0_color_b',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'a0_color_a',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'state_0',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'shadeType_0',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'on_0',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'name_1',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'a1_color_r',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'a1_color_g',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'a1_color_b',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'a1_color_a',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'state_1',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'shadeType_1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'on_1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'marker',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'Input Colormap',
+  reg.add_input_port(scirun_CreateAndEditColorMap2D, 'Input Colormap',
                    (SCIRun_ColorMap2, "SCIRun_ColorMap2"))
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'Histogram',
+  reg.add_input_port(scirun_CreateAndEditColorMap2D, 'Histogram',
                    (SCIRun_Nrrd, "SCIRun_Nrrd"))
-  reg.add_input_port(SCIRun_CreateAndEditColorMap2D, 'Colormap',
-                   (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_output_port(SCIRun_CreateAndEditColorMap2D, 'Output Colormap', 
+  reg.add_output_port(scirun_CreateAndEditColorMap2D, 'Output Colormap', 
                     (SCIRun_ColorMap2, 'Output Colormap'))
 
-  reg.add_module(SCIRun_ReportScalarFieldStats)
-  reg.add_input_port(SCIRun_ReportScalarFieldStats, 'min',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportScalarFieldStats, 'max',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportScalarFieldStats, 'mean',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportScalarFieldStats, 'median',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportScalarFieldStats, 'sigma',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportScalarFieldStats, 'is_fixed',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportScalarFieldStats, 'nbuckets',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportScalarFieldStats, 'Input Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-
-  reg.add_module(SCIRun_ReportDataArrayInfo)
-  reg.add_input_port(SCIRun_ReportDataArrayInfo, 'DataArray',
+  reg.add_module(scirun_CreateDataArrayFromIndices)
+  reg.add_input_port(scirun_CreateDataArrayFromIndices, 'Indices',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ReportDataArrayInfo, 'NumElements', 
+  reg.add_input_port(scirun_CreateDataArrayFromIndices, 'Template',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_CreateDataArrayFromIndices, 'DataArray', 
+                    (SCIRun_Matrix, 'DataArray'))
+
+  reg.add_module(scirun_ReportDataArrayInfo)
+  reg.add_input_port(scirun_ReportDataArrayInfo, 'DataArray',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_ReportDataArrayInfo, 'NumElements', 
                     (SCIRun_Matrix, 'NumElements'))
 
-  reg.add_module(SCIRun_GetFieldsFromBundle)
-  reg.add_input_port(SCIRun_GetFieldsFromBundle, 'field1_name',
+  reg.add_module(scirun_ConvertMaskVectorToMappingMatrix)
+  reg.add_input_port(scirun_ConvertMaskVectorToMappingMatrix, 'MaskVector',
+                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
+  reg.add_output_port(scirun_ConvertMaskVectorToMappingMatrix, 'MappingMatrix', 
+                    (SCIRun_Matrix, 'MappingMatrix'))
+
+  reg.add_module(scirun_GetFieldsFromBundle)
+  reg.add_input_port(scirun_GetFieldsFromBundle, 'p_field1_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetFieldsFromBundle, 'field2_name',
+  reg.add_input_port(scirun_GetFieldsFromBundle, 'p_field2_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetFieldsFromBundle, 'field3_name',
+  reg.add_input_port(scirun_GetFieldsFromBundle, 'p_field3_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetFieldsFromBundle, 'field4_name',
+  reg.add_input_port(scirun_GetFieldsFromBundle, 'p_field4_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetFieldsFromBundle, 'field5_name',
+  reg.add_input_port(scirun_GetFieldsFromBundle, 'p_field5_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetFieldsFromBundle, 'field6_name',
+  reg.add_input_port(scirun_GetFieldsFromBundle, 'p_field6_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetFieldsFromBundle, 'field_selection',
+  reg.add_input_port(scirun_GetFieldsFromBundle, 'p_field_selection',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetFieldsFromBundle, 'bundle',
+  reg.add_input_port(scirun_GetFieldsFromBundle, 'bundle',
                    (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_output_port(SCIRun_GetFieldsFromBundle, 'bundle', 
+  reg.add_output_port(scirun_GetFieldsFromBundle, 'bundle', 
                     (SCIRun_Bundle, 'bundle'))
-  reg.add_output_port(SCIRun_GetFieldsFromBundle, 'field1', 
+  reg.add_output_port(scirun_GetFieldsFromBundle, 'field1', 
                     (SCIRun_Field, 'field1'))
-  reg.add_output_port(SCIRun_GetFieldsFromBundle, 'field2', 
+  reg.add_output_port(scirun_GetFieldsFromBundle, 'field2', 
                     (SCIRun_Field, 'field2'))
-  reg.add_output_port(SCIRun_GetFieldsFromBundle, 'field3', 
+  reg.add_output_port(scirun_GetFieldsFromBundle, 'field3', 
                     (SCIRun_Field, 'field3'))
-  reg.add_output_port(SCIRun_GetFieldsFromBundle, 'field4', 
+  reg.add_output_port(scirun_GetFieldsFromBundle, 'field4', 
                     (SCIRun_Field, 'field4'))
-  reg.add_output_port(SCIRun_GetFieldsFromBundle, 'field5', 
+  reg.add_output_port(scirun_GetFieldsFromBundle, 'field5', 
                     (SCIRun_Field, 'field5'))
-  reg.add_output_port(SCIRun_GetFieldsFromBundle, 'field6', 
+  reg.add_output_port(scirun_GetFieldsFromBundle, 'field6', 
                     (SCIRun_Field, 'field6'))
 
-  reg.add_module(SCIRun_ConvertMaskVectorToMappingMatrix)
-  reg.add_input_port(SCIRun_ConvertMaskVectorToMappingMatrix, 'MaskVector',
-                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
-  reg.add_output_port(SCIRun_ConvertMaskVectorToMappingMatrix, 'MappingMatrix', 
-                    (SCIRun_Matrix, 'MappingMatrix'))
-
-  reg.add_module(SCIRun_CreateViewerAxes)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'precision',
+  reg.add_module(scirun_ReportScalarFieldStats)
+  reg.add_input_port(scirun_ReportScalarFieldStats, 'p_min',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'squash',
+  reg.add_input_port(scirun_ReportScalarFieldStats, 'p_max',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'valuerez',
+  reg.add_input_port(scirun_ReportScalarFieldStats, 'p_mean',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'labelrez',
+  reg.add_input_port(scirun_ReportScalarFieldStats, 'p_median',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_absolute',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_divisions',
+  reg.add_input_port(scirun_ReportScalarFieldStats, 'p_sigma',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_offset',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_range_first',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_range_second',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_min_absolute',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_max_absolute',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_minplane',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_maxplane',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_lines',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_minticks',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_maxticks',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_minlabel',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_maxlabel',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_minvalue',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_maxvalue',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_width',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_tickangle',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_ticktilt',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_ticksize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_labelangle',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_labelheight',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_valuesize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_0_Axis_valuesquash',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_absolute',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_divisions',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_offset',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_range_first',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_range_second',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_min_absolute',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_max_absolute',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_minplane',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_maxplane',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_lines',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_minticks',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_maxticks',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_minlabel',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_maxlabel',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_minvalue',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_maxvalue',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_width',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_tickangle',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_ticktilt',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_ticksize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_labelangle',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_labelheight',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_valuesize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_01_1_Axis_valuesquash',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_absolute',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_divisions',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_offset',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_range_first',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_range_second',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_min_absolute',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_max_absolute',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_minplane',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_maxplane',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_lines',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_minticks',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_maxticks',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_minlabel',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_maxlabel',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_minvalue',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_maxvalue',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_width',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_tickangle',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_ticktilt',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_ticksize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_labelangle',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_labelheight',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_valuesize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_0_Axis_valuesquash',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_absolute',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_divisions',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_offset',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_range_first',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_range_second',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_min_absolute',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_max_absolute',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_minplane',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_maxplane',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_lines',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_minticks',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_maxticks',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_minlabel',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_maxlabel',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_minvalue',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_maxvalue',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_width',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_tickangle',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_ticktilt',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_ticksize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_labelangle',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_labelheight',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_valuesize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_02_2_Axis_valuesquash',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_absolute',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_divisions',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_offset',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_range_first',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_range_second',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_min_absolute',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_max_absolute',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_minplane',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_maxplane',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_lines',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_minticks',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_maxticks',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_minlabel',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_maxlabel',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_minvalue',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_maxvalue',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_width',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_tickangle',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_ticktilt',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_ticksize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_labelangle',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_labelheight',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_valuesize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_1_Axis_valuesquash',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_absolute',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_divisions',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_offset',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_range_first',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_range_second',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_min_absolute',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_max_absolute',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_minplane',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_maxplane',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_lines',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_minticks',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_maxticks',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_minlabel',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_maxlabel',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_minvalue',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_maxvalue',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_width',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_tickangle',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_ticktilt',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_ticksize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_labelangle',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_labelheight',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_valuesize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Plane_12_2_Axis_valuesquash',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerAxes, 'Field',
+  reg.add_input_port(scirun_ReportScalarFieldStats, 'p_is_fixed',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReportScalarFieldStats, 'p_nbuckets',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReportScalarFieldStats, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_CreateViewerAxes, 'Axes', 
-                    (SCIRun_Geometry, 'Axes'))
 
-  reg.add_module(SCIRun_ShowField)
-  reg.add_input_port(SCIRun_ShowField, 'nodes_on',
-                   (core.modules.basic_modules.Boolean, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'nodes_transparency',
-                   (core.modules.basic_modules.Boolean, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'nodes_color_type',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'nodes_display_type',
+  reg.add_module(scirun_ShowField)
+  reg.add_input_port(scirun_ShowField, 'p_nodes_on',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_nodes_transparency',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_nodes_color_type',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_nodes_display_type',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'edges_on',
-                   (core.modules.basic_modules.Boolean, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'edges_transparency',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'edges_color_type',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'edges_display_type',
+  reg.add_input_port(scirun_ShowField, 'p_edges_on',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_edges_transparency',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_edges_color_type',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_edges_display_type',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'faces_on',
-                   (core.modules.basic_modules.Boolean, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'faces_transparency',
-                   (core.modules.basic_modules.Boolean, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'faces_color_type',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'faces_normals',
-                   (core.modules.basic_modules.Boolean, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'faces_usetexture',
-                   (core.modules.basic_modules.Boolean, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'text_on',
-                   (core.modules.basic_modules.Boolean, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'text_color_type',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'text_color_r',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'text_color_g',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'text_color_b',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'text_backface_cull',
-                   (core.modules.basic_modules.Boolean, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'text_always_visible',
-                   (core.modules.basic_modules.Boolean, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'text_fontsize',
+  reg.add_input_port(scirun_ShowField, 'p_faces_on',
                    (core.modules.basic_modules.Integer, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'text_precision',
+  reg.add_input_port(scirun_ShowField, 'p_faces_transparency',
                    (core.modules.basic_modules.Integer, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'text_render_locations',
+  reg.add_input_port(scirun_ShowField, 'p_faces_color_type',
                    (core.modules.basic_modules.Integer, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'text_show_data',
-                   (core.modules.basic_modules.Boolean, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'text_show_nodes',
-                   (core.modules.basic_modules.Boolean, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'text_show_edges',
-                   (core.modules.basic_modules.Boolean, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'text_show_faces',
-                   (core.modules.basic_modules.Boolean, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'text_show_cells',
-                   (core.modules.basic_modules.Boolean, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'def_color_r',
+  reg.add_input_port(scirun_ShowField, 'p_faces_normals',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_faces_usetexture',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_text_on',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_text_color_type',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_text_color_r',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'def_color_g',
+  reg.add_input_port(scirun_ShowField, 'p_text_color_g',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'def_color_b',
+  reg.add_input_port(scirun_ShowField, 'p_text_color_b',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'def_color_a',
+  reg.add_input_port(scirun_ShowField, 'p_text_backface_cull',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_text_always_visible',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_text_fontsize',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_text_precision',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_text_render_locations',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_text_show_data',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_text_show_nodes',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_text_show_edges',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_text_show_faces',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_text_show_cells',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_def_color_r',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'nodes_scale',
+  reg.add_input_port(scirun_ShowField, 'p_def_color_g',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'nodes_scaleNV',
+  reg.add_input_port(scirun_ShowField, 'p_def_color_b',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'edges_scale',
+  reg.add_input_port(scirun_ShowField, 'p_def_color_a',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'edges_scaleNV',
+  reg.add_input_port(scirun_ShowField, 'p_nodes_scale',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'active_tab',
+  reg.add_input_port(scirun_ShowField, 'p_nodes_scaleNV',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_edges_scale',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_edges_scaleNV',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_active_tab',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'interactive_mode',
+  reg.add_input_port(scirun_ShowField, 'p_interactive_mode',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'show_progress',
-                   (core.modules.basic_modules.Boolean, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'field_name',
+  reg.add_input_port(scirun_ShowField, 'p_show_progress',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_field_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'field_name_override',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'nodes_resolution',
+  reg.add_input_port(scirun_ShowField, 'p_field_name_override',
                    (core.modules.basic_modules.Integer, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'edges_resolution',
+  reg.add_input_port(scirun_ShowField, 'p_nodes_resolution',
                    (core.modules.basic_modules.Integer, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'approx_div',
+  reg.add_input_port(scirun_ShowField, 'p_edges_resolution',
                    (core.modules.basic_modules.Integer, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'use_default_size',
-                   (core.modules.basic_modules.Boolean, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowField, 'Mesh',
+  reg.add_input_port(scirun_ShowField, 'p_approx_div',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'p_use_default_size',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowField, 'Mesh',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_ShowField, 'ColorMap',
+  reg.add_input_port(scirun_ShowField, 'ColorMap',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_output_port(SCIRun_ShowField, 'Scene Graph', 
+  reg.add_output_port(scirun_ShowField, 'Scene Graph', 
                     (SCIRun_Geometry, 'Scene Graph'))
 
-  reg.add_module(SCIRun_SetFieldData)
-  reg.add_input_port(SCIRun_SetFieldData, 'keepscalartype',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SetFieldData, 'Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_SetFieldData, 'Matrix Data',
+  reg.add_module(scirun_CreateVectorArray)
+  reg.add_input_port(scirun_CreateVectorArray, 'X',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_SetFieldData, 'Nrrd Data',
-                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
-  reg.add_output_port(SCIRun_SetFieldData, 'Field', 
-                    (SCIRun_Field, 'Field'))
-
-  reg.add_module(SCIRun_CreateVectorArray)
-  reg.add_input_port(SCIRun_CreateVectorArray, 'X',
+  reg.add_input_port(scirun_CreateVectorArray, 'Y',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_CreateVectorArray, 'Y',
+  reg.add_input_port(scirun_CreateVectorArray, 'Z',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_CreateVectorArray, 'Z',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_CreateVectorArray, 'Vector', 
+  reg.add_output_port(scirun_CreateVectorArray, 'Vector', 
                     (SCIRun_Matrix, 'Vector'))
 
-  reg.add_module(SCIRun_SynchronizeGeometry)
-  reg.add_input_port(SCIRun_SynchronizeGeometry, 'enforce',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SynchronizeGeometry, 'Input Geometry',
+  reg.add_module(scirun_SynchronizeGeometry)
+  reg.add_input_port(scirun_SynchronizeGeometry, 'p_enforce',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SynchronizeGeometry, 'Input Geometry',
                    (SCIRun_Geometry, "SCIRun_Geometry"))
-  reg.add_output_port(SCIRun_SynchronizeGeometry, 'Output Geometry', 
+  reg.add_output_port(scirun_SynchronizeGeometry, 'Output Geometry', 
                     (SCIRun_Geometry, 'Output Geometry'))
 
-  reg.add_module(SCIRun_ClipFieldWithSeed)
-  reg.add_input_port(SCIRun_ClipFieldWithSeed, 'mode',
+  reg.add_module(scirun_SolveLinearSystem)
+  reg.add_input_port(scirun_SolveLinearSystem, 'p_target_error',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_SolveLinearSystem, 'p_flops',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_SolveLinearSystem, 'p_floprate',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_SolveLinearSystem, 'p_memrefs',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_SolveLinearSystem, 'p_memrate',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_SolveLinearSystem, 'p_orig_error',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_SolveLinearSystem, 'p_current_error',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldWithSeed, 'function',
+  reg.add_input_port(scirun_SolveLinearSystem, 'p_method',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldWithSeed, 'Function',
-                   (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_ClipFieldWithSeed, 'Input',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_ClipFieldWithSeed, 'Seeds',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ClipFieldWithSeed, 'Clipped', 
-                    (SCIRun_Field, 'Clipped'))
-  reg.add_output_port(SCIRun_ClipFieldWithSeed, 'Mapping', 
-                    (SCIRun_Matrix, 'Mapping'))
-  reg.add_output_port(SCIRun_ClipFieldWithSeed, 'MaskVector', 
-                    (SCIRun_Nrrd, 'MaskVector'))
-
-  reg.add_module(SCIRun_SolveLinearSystem)
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'target_error',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'flops',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'floprate',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'memrefs',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'memrate',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'orig_error',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'current_error',
+  reg.add_input_port(scirun_SolveLinearSystem, 'p_precond',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'method',
+  reg.add_input_port(scirun_SolveLinearSystem, 'p_iteration',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SolveLinearSystem, 'p_maxiter',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SolveLinearSystem, 'p_use_previous_soln',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SolveLinearSystem, 'p_emit_partial',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SolveLinearSystem, 'p_emit_iter',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SolveLinearSystem, 'p_status',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'precond',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'iteration',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'maxiter',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'use_previous_soln',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'emit_partial',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'emit_iter',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'status',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'np',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'Matrix',
+  reg.add_input_port(scirun_SolveLinearSystem, 'p_np',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SolveLinearSystem, 'Matrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_SolveLinearSystem, 'RHS',
+  reg.add_input_port(scirun_SolveLinearSystem, 'RHS',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_SolveLinearSystem, 'Solution', 
+  reg.add_output_port(scirun_SolveLinearSystem, 'Solution', 
                     (SCIRun_Matrix, 'Solution'))
 
-  reg.add_module(SCIRun_ShowFieldV1)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'nodes_on',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'nodes_transparency',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'nodes_as_disks',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'nodes_usedefcolor',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'edges_on',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'edges_transparency',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'edges_usedefcolor',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'faces_on',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'use_normals',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'use_transparency',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'faces_usedefcolor',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'faces_usetexture',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'scalars_on',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'scalars_transparency',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'normalize_scalars',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'scalars_usedefcolor',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'has_scalar_data',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'vectors_on',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'vectors_transparency',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'normalize_vectors',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'has_vector_data',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'bidirectional',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'vectors_usedefcolor',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'tensors_on',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'tensors_transparency',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'normalize_tensors',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'has_tensor_data',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'tensors_usedefcolor',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'tensors_emphasis',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'text_on',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'text_use_default_color',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'text_color_r',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'text_color_g',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'text_color_b',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'text_backface_cull',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'text_always_visible',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'text_fontsize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'text_precision',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'text_render_locations',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'text_show_data',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'text_show_nodes',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'text_show_edges',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'text_show_faces',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'text_show_cells',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'def_color_r',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'def_color_g',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'def_color_b',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'def_color_a',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'node_display_type',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'edge_display_type',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'data_display_type',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'tensor_display_type',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'scalar_display_type',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'active_tab',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'node_scale',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'node_scaleNV',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'edge_scale',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'edge_scaleNV',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'vectors_scale',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'vectors_scaleNV',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'tensors_scale',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'tensors_scaleNV',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'scalars_scale',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'scalars_scaleNV',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'interactive_mode',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'field_name',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'field_name_override',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'field_name_update',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'node_resolution',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'edge_resolution',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'data_resolution',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'approx_div',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'use_default_size',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldV1, 'Field',
+  reg.add_module(scirun_SetFieldData)
+  reg.add_input_port(scirun_SetFieldData, 'p_keepscalartype',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SetFieldData, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_ShowFieldV1, 'ColorMap',
-                   (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_input_port(SCIRun_ShowFieldV1, 'Orientation Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ShowFieldV1, 'Scene Graph', 
-                    (SCIRun_Geometry, 'Scene Graph'))
+  reg.add_input_port(scirun_SetFieldData, 'Matrix Data',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_input_port(scirun_SetFieldData, 'Nrrd Data',
+                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
+  reg.add_output_port(scirun_SetFieldData, 'Field', 
+                    (SCIRun_Field, 'Field'))
 
-  reg.add_module(SCIRun_ReadPath)
-  reg.add_input_port(SCIRun_ReadPath, 'from_env',
+  reg.add_module(scirun_InsertColorMap2sIntoBundle)
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'p_colormap21_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadPath, 'Filename',
-                   (core.modules.basic_modules.String, 'tip'))
-  reg.add_output_port(SCIRun_ReadPath, 'Output Data', 
-                    (SCIRun_Path, 'Output Data'))
-  reg.add_output_port(SCIRun_ReadPath, 'Filename', 
-                    (core.modules.basic_modules.String, 'Filename'))
-
-  reg.add_module(SCIRun_InsertColorMap2sIntoBundle)
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'colormap21_name',
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'p_colormap22_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'colormap22_name',
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'p_colormap23_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'colormap23_name',
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'p_colormap24_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'colormap24_name',
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'p_colormap25_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'colormap25_name',
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'p_colormap26_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'colormap26_name',
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'p_replace1',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'p_replace2',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'p_replace3',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'p_replace4',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'p_replace5',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'p_replace6',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'p_bundlename',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'replace1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'replace2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'replace3',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'replace4',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'replace5',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'replace6',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'bundlename',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'bundle',
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'bundle',
                    (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'colormap21',
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'colormap21',
                    (SCIRun_ColorMap2, "SCIRun_ColorMap2"))
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'colormap22',
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'colormap22',
                    (SCIRun_ColorMap2, "SCIRun_ColorMap2"))
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'colormap23',
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'colormap23',
                    (SCIRun_ColorMap2, "SCIRun_ColorMap2"))
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'colormap24',
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'colormap24',
                    (SCIRun_ColorMap2, "SCIRun_ColorMap2"))
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'colormap25',
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'colormap25',
                    (SCIRun_ColorMap2, "SCIRun_ColorMap2"))
-  reg.add_input_port(SCIRun_InsertColorMap2sIntoBundle, 'colormap26',
+  reg.add_input_port(scirun_InsertColorMap2sIntoBundle, 'colormap26',
                    (SCIRun_ColorMap2, "SCIRun_ColorMap2"))
-  reg.add_output_port(SCIRun_InsertColorMap2sIntoBundle, 'bundle', 
+  reg.add_output_port(scirun_InsertColorMap2sIntoBundle, 'bundle', 
                     (SCIRun_Bundle, 'bundle'))
 
-  reg.add_module(SCIRun_ConvertMatrixToString)
-  reg.add_input_port(SCIRun_ConvertMatrixToString, 'Matrix',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ConvertMatrixToString, 'String', 
-                    (core.modules.basic_modules.String, 'String'))
-
-  reg.add_module(SCIRun_ExtractIsosurface)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'isoval_min',
+  reg.add_module(scirun_ExtractIsosurface)
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_isoval_min',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'isoval_max',
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_isoval_max',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'isoval',
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_isoval',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'isoval_typed',
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_isoval_typed',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'isoval_quantity',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'quantity_range',
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_isoval_quantity',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_quantity_range',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'quantity_clusive',
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_quantity_clusive',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'quantity_min',
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_quantity_min',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'quantity_max',
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_quantity_max',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'quantity_list',
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_quantity_list',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'isoval_list',
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_isoval_list',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'matrix_list',
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_matrix_list',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'extract_from_new_field',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'algorithm',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'build_trisurf',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'build_geom',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'np',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'active_isoval_selection_tab',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'active_tab',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'update_type',
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_algorithm',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_build_trisurf',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_build_geom',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_np',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_active_isoval_selection_tab',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'color_r',
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_active_tab',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_update_type',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_color_r',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'color_g',
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_color_g',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'color_b',
+  reg.add_input_port(scirun_ExtractIsosurface, 'p_color_b',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'Field',
+  reg.add_input_port(scirun_ExtractIsosurface, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'Optional Color Map',
+  reg.add_input_port(scirun_ExtractIsosurface, 'Optional Color Map',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_input_port(SCIRun_ExtractIsosurface, 'Optional Isovalues',
+  reg.add_input_port(scirun_ExtractIsosurface, 'Optional Isovalues',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ExtractIsosurface, 'Surface', 
+  reg.add_output_port(scirun_ExtractIsosurface, 'Surface', 
                     (SCIRun_Field, 'Surface'))
-  reg.add_output_port(SCIRun_ExtractIsosurface, 'Geometry', 
+  reg.add_output_port(scirun_ExtractIsosurface, 'Geometry', 
                     (SCIRun_Geometry, 'Geometry'))
-  reg.add_output_port(SCIRun_ExtractIsosurface, 'Mapping', 
+  reg.add_output_port(scirun_ExtractIsosurface, 'Mapping', 
                     (SCIRun_Matrix, 'Mapping'))
 
-  reg.add_module(SCIRun_ConvertMeshToUnstructuredMesh)
-  reg.add_input_port(SCIRun_ConvertMeshToUnstructuredMesh, 'Input Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ConvertMeshToUnstructuredMesh, 'Output Field', 
-                    (SCIRun_Field, 'Output Field'))
-
-  reg.add_module(SCIRun_ReportMatrixColumnMeasure)
-  reg.add_input_port(SCIRun_ReportMatrixColumnMeasure, 'method',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportMatrixColumnMeasure, 'Matrix',
+  reg.add_module(scirun_ConvertMatrixToString)
+  reg.add_input_port(scirun_ConvertMatrixToString, 'Matrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ReportMatrixColumnMeasure, 'Vector', 
+  reg.add_output_port(scirun_ConvertMatrixToString, 'String', 
+                    (core.modules.basic_modules.String, 'String'))
+
+  reg.add_module(scirun_ReportMatrixColumnMeasure)
+  reg.add_input_port(scirun_ReportMatrixColumnMeasure, 'p_method',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReportMatrixColumnMeasure, 'Matrix',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_ReportMatrixColumnMeasure, 'Vector', 
                     (SCIRun_Matrix, 'Vector'))
 
-  reg.add_module(SCIRun_ReplicateDataArray)
-  reg.add_input_port(SCIRun_ReplicateDataArray, 'size',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReplicateDataArray, 'DataArray',
+  reg.add_module(scirun_ReplicateDataArray)
+  reg.add_input_port(scirun_ReplicateDataArray, 'p_size',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReplicateDataArray, 'DataArray',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_ReplicateDataArray, 'Size',
+  reg.add_input_port(scirun_ReplicateDataArray, 'Size',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ReplicateDataArray, 'DataArray', 
+  reg.add_output_port(scirun_ReplicateDataArray, 'DataArray', 
                     (SCIRun_Matrix, 'DataArray'))
 
-  reg.add_module(SCIRun_SwapFieldDataWithMatrixEntries)
-  reg.add_input_port(SCIRun_SwapFieldDataWithMatrixEntries, 'preserve_scalar_type',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SwapFieldDataWithMatrixEntries, 'Input Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_SwapFieldDataWithMatrixEntries, 'Input Matrix',
+  reg.add_module(scirun_SortMatrix)
+  reg.add_input_port(scirun_SortMatrix, 'p_row_or_col',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_SortMatrix, 'Matrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_SwapFieldDataWithMatrixEntries, 'Output Field', 
-                    (SCIRun_Field, 'Output Field'))
-  reg.add_output_port(SCIRun_SwapFieldDataWithMatrixEntries, 'Output Matrix', 
-                    (SCIRun_Matrix, 'Output Matrix'))
+  reg.add_output_port(scirun_SortMatrix, 'Matrix', 
+                    (SCIRun_Matrix, 'Matrix'))
 
-  reg.add_module(SCIRun_SelectFieldROIWithBoxWidget)
-  reg.add_input_port(SCIRun_SelectFieldROIWithBoxWidget, 'stampvalue',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectFieldROIWithBoxWidget, 'runmode',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectFieldROIWithBoxWidget, 'Input Field',
+  reg.add_module(scirun_ConvertMeshToUnstructuredMesh)
+  reg.add_input_port(scirun_ConvertMeshToUnstructuredMesh, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_SelectFieldROIWithBoxWidget, 'Selection Widget', 
+  reg.add_output_port(scirun_ConvertMeshToUnstructuredMesh, 'Output Field', 
+                    (SCIRun_Field, 'Output Field'))
+
+  reg.add_module(scirun_CreateViewerAxes)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_precision',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_squash',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_valuerez',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_labelrez',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_divisions',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_offset',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_range_first',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_range_second',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_min_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_max_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_minplane',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_maxplane',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_lines',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_minticks',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_maxticks',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_minlabel',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_maxlabel',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_minvalue',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_maxvalue',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_width',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_tickangle',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_ticktilt',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_ticksize',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_labelangle',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_labelheight',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_valuesize',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_0_Axis_valuesquash',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_divisions',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_offset',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_range_first',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_range_second',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_min_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_max_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_minplane',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_maxplane',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_lines',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_minticks',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_maxticks',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_minlabel',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_maxlabel',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_minvalue',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_maxvalue',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_width',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_tickangle',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_ticktilt',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_ticksize',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_labelangle',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_labelheight',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_valuesize',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_01_1_Axis_valuesquash',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_divisions',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_offset',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_range_first',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_range_second',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_min_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_max_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_minplane',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_maxplane',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_lines',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_minticks',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_maxticks',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_minlabel',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_maxlabel',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_minvalue',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_maxvalue',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_width',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_tickangle',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_ticktilt',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_ticksize',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_labelangle',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_labelheight',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_valuesize',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_0_Axis_valuesquash',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_divisions',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_offset',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_range_first',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_range_second',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_min_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_max_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_minplane',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_maxplane',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_lines',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_minticks',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_maxticks',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_minlabel',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_maxlabel',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_minvalue',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_maxvalue',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_width',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_tickangle',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_ticktilt',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_ticksize',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_labelangle',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_labelheight',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_valuesize',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_02_2_Axis_valuesquash',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_divisions',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_offset',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_range_first',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_range_second',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_min_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_max_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_minplane',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_maxplane',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_lines',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_minticks',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_maxticks',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_minlabel',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_maxlabel',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_minvalue',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_maxvalue',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_width',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_tickangle',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_ticktilt',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_ticksize',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_labelangle',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_labelheight',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_valuesize',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_1_Axis_valuesquash',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_divisions',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_offset',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_range_first',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_range_second',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_min_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_max_absolute',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_minplane',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_maxplane',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_lines',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_minticks',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_maxticks',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_minlabel',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_maxlabel',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_minvalue',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_maxvalue',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_width',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_tickangle',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_ticktilt',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_ticksize',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_labelangle',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_labelheight',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_valuesize',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'p_Plane_12_2_Axis_valuesquash',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerAxes, 'Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_CreateViewerAxes, 'Axes', 
+                    (SCIRun_Geometry, 'Axes'))
+
+  reg.add_module(scirun_SelectFieldROIWithBoxWidget)
+  reg.add_input_port(scirun_SelectFieldROIWithBoxWidget, 'p_stampvalue',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SelectFieldROIWithBoxWidget, 'p_runmode',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SelectFieldROIWithBoxWidget, 'Input Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_SelectFieldROIWithBoxWidget, 'Selection Widget', 
                     (SCIRun_Geometry, 'Selection Widget'))
-  reg.add_output_port(SCIRun_SelectFieldROIWithBoxWidget, 'Output Field', 
+  reg.add_output_port(scirun_SelectFieldROIWithBoxWidget, 'Output Field', 
                     (SCIRun_Field, 'Output Field'))
 
-  reg.add_module(SCIRun_SetTetVolFieldDataValues)
-  reg.add_input_port(SCIRun_SetTetVolFieldDataValues, 'newval',
+  reg.add_module(scirun_SetTetVolFieldDataValues)
+  reg.add_input_port(scirun_SetTetVolFieldDataValues, 'p_newval',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SetTetVolFieldDataValues, 'InField',
+  reg.add_input_port(scirun_SetTetVolFieldDataValues, 'InField',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_SetTetVolFieldDataValues, 'OutField', 
+  reg.add_output_port(scirun_SetTetVolFieldDataValues, 'OutField', 
                     (SCIRun_Field, 'OutField'))
 
-  reg.add_module(SCIRun_WritePath)
-  reg.add_input_port(SCIRun_WritePath, 'filetype',
+  reg.add_module(scirun_WritePath)
+  reg.add_input_port(scirun_WritePath, 'p_filetype',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_WritePath, 'confirm',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_WritePath, 'confirm_once',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_WritePath, 'Input Data',
+  reg.add_input_port(scirun_WritePath, 'p_confirm',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_WritePath, 'p_confirm_once',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_WritePath, 'Input Data',
                    (SCIRun_Path, "SCIRun_Path"))
-  reg.add_input_port(SCIRun_WritePath, 'Filename',
+  reg.add_input_port(scirun_WritePath, 'Filename',
                    (core.modules.basic_modules.String, 'tip'))
 
-  reg.add_module(SCIRun_ClipLatVolByIndicesOrWidget)
-  reg.add_input_port(SCIRun_ClipLatVolByIndicesOrWidget, 'use_text_bbox',
+  reg.add_module(scirun_ClipLatVolByIndicesOrWidget)
+  reg.add_input_port(scirun_ClipLatVolByIndicesOrWidget, 'p_use_text_bbox',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ClipLatVolByIndicesOrWidget, 'p_text_min_x',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipLatVolByIndicesOrWidget, 'text_min_x',
+  reg.add_input_port(scirun_ClipLatVolByIndicesOrWidget, 'p_text_min_y',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipLatVolByIndicesOrWidget, 'text_min_y',
+  reg.add_input_port(scirun_ClipLatVolByIndicesOrWidget, 'p_text_min_z',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipLatVolByIndicesOrWidget, 'text_min_z',
+  reg.add_input_port(scirun_ClipLatVolByIndicesOrWidget, 'p_text_max_x',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipLatVolByIndicesOrWidget, 'text_max_x',
+  reg.add_input_port(scirun_ClipLatVolByIndicesOrWidget, 'p_text_max_y',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipLatVolByIndicesOrWidget, 'text_max_y',
+  reg.add_input_port(scirun_ClipLatVolByIndicesOrWidget, 'p_text_max_z',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipLatVolByIndicesOrWidget, 'text_max_z',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipLatVolByIndicesOrWidget, 'Input Field',
+  reg.add_input_port(scirun_ClipLatVolByIndicesOrWidget, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ClipLatVolByIndicesOrWidget, 'Selection Widget', 
+  reg.add_output_port(scirun_ClipLatVolByIndicesOrWidget, 'Selection Widget', 
                     (SCIRun_Geometry, 'Selection Widget'))
-  reg.add_output_port(SCIRun_ClipLatVolByIndicesOrWidget, 'Output Field', 
+  reg.add_output_port(scirun_ClipLatVolByIndicesOrWidget, 'Output Field', 
                     (SCIRun_Field, 'Output Field'))
-  reg.add_output_port(SCIRun_ClipLatVolByIndicesOrWidget, 'MaskVector', 
+  reg.add_output_port(scirun_ClipLatVolByIndicesOrWidget, 'MaskVector', 
                     (SCIRun_Nrrd, 'MaskVector'))
 
-  reg.add_module(SCIRun_GetBundlesFromBundle)
-  reg.add_input_port(SCIRun_GetBundlesFromBundle, 'bundle1_name',
+  reg.add_module(scirun_GetBundlesFromBundle)
+  reg.add_input_port(scirun_GetBundlesFromBundle, 'p_bundle1_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetBundlesFromBundle, 'bundle2_name',
+  reg.add_input_port(scirun_GetBundlesFromBundle, 'p_bundle2_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetBundlesFromBundle, 'bundle3_name',
+  reg.add_input_port(scirun_GetBundlesFromBundle, 'p_bundle3_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetBundlesFromBundle, 'bundle4_name',
+  reg.add_input_port(scirun_GetBundlesFromBundle, 'p_bundle4_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetBundlesFromBundle, 'bundle5_name',
+  reg.add_input_port(scirun_GetBundlesFromBundle, 'p_bundle5_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetBundlesFromBundle, 'bundle6_name',
+  reg.add_input_port(scirun_GetBundlesFromBundle, 'p_bundle6_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetBundlesFromBundle, 'bundle_selection',
+  reg.add_input_port(scirun_GetBundlesFromBundle, 'p_bundle_selection',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetBundlesFromBundle, 'bundle',
+  reg.add_input_port(scirun_GetBundlesFromBundle, 'bundle',
                    (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_output_port(SCIRun_GetBundlesFromBundle, 'bundle', 
+  reg.add_output_port(scirun_GetBundlesFromBundle, 'bundle', 
                     (SCIRun_Bundle, 'bundle'))
-  reg.add_output_port(SCIRun_GetBundlesFromBundle, 'bundle1', 
+  reg.add_output_port(scirun_GetBundlesFromBundle, 'bundle1', 
                     (SCIRun_Bundle, 'bundle1'))
-  reg.add_output_port(SCIRun_GetBundlesFromBundle, 'bundle2', 
+  reg.add_output_port(scirun_GetBundlesFromBundle, 'bundle2', 
                     (SCIRun_Bundle, 'bundle2'))
-  reg.add_output_port(SCIRun_GetBundlesFromBundle, 'bundle3', 
+  reg.add_output_port(scirun_GetBundlesFromBundle, 'bundle3', 
                     (SCIRun_Bundle, 'bundle3'))
-  reg.add_output_port(SCIRun_GetBundlesFromBundle, 'bundle4', 
+  reg.add_output_port(scirun_GetBundlesFromBundle, 'bundle4', 
                     (SCIRun_Bundle, 'bundle4'))
-  reg.add_output_port(SCIRun_GetBundlesFromBundle, 'bundle5', 
+  reg.add_output_port(scirun_GetBundlesFromBundle, 'bundle5', 
                     (SCIRun_Bundle, 'bundle5'))
-  reg.add_output_port(SCIRun_GetBundlesFromBundle, 'bundle6', 
+  reg.add_output_port(scirun_GetBundlesFromBundle, 'bundle6', 
                     (SCIRun_Bundle, 'bundle6'))
 
-  reg.add_module(SCIRun_RescaleColorMap)
-  reg.add_input_port(SCIRun_RescaleColorMap, 'main_frame',
+  reg.add_module(scirun_RescaleColorMap)
+  reg.add_input_port(scirun_RescaleColorMap, 'p_main_frame',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_RescaleColorMap, 'isFixed',
+  reg.add_input_port(scirun_RescaleColorMap, 'p_isFixed',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_RescaleColorMap, 'p_min',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_RescaleColorMap, 'min',
+  reg.add_input_port(scirun_RescaleColorMap, 'p_max',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_RescaleColorMap, 'max',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_RescaleColorMap, 'makeSymmetric',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_RescaleColorMap, 'ColorMap',
+  reg.add_input_port(scirun_RescaleColorMap, 'p_makeSymmetric',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_RescaleColorMap, 'ColorMap',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_input_port(SCIRun_RescaleColorMap, 'Field',
+  reg.add_input_port(scirun_RescaleColorMap, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_RescaleColorMap, 'ColorMap', 
+  reg.add_output_port(scirun_RescaleColorMap, 'ColorMap', 
                     (SCIRun_ColorMap, 'ColorMap'))
 
-  reg.add_module(SCIRun_ConvertNrrdsToTexture)
-  reg.add_input_port(SCIRun_ConvertNrrdsToTexture, 'vmin',
+  reg.add_module(scirun_ConvertNrrdsToTexture)
+  reg.add_input_port(scirun_ConvertNrrdsToTexture, 'p_vmin',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertNrrdsToTexture, 'vmax',
+  reg.add_input_port(scirun_ConvertNrrdsToTexture, 'p_vmax',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertNrrdsToTexture, 'gmin',
+  reg.add_input_port(scirun_ConvertNrrdsToTexture, 'p_gmin',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertNrrdsToTexture, 'gmax',
+  reg.add_input_port(scirun_ConvertNrrdsToTexture, 'p_gmax',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertNrrdsToTexture, 'mmin',
+  reg.add_input_port(scirun_ConvertNrrdsToTexture, 'p_mmin',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertNrrdsToTexture, 'mmax',
+  reg.add_input_port(scirun_ConvertNrrdsToTexture, 'p_mmax',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertNrrdsToTexture, 'is_fixed',
+  reg.add_input_port(scirun_ConvertNrrdsToTexture, 'p_is_fixed',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ConvertNrrdsToTexture, 'p_card_mem',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ConvertNrrdsToTexture, 'p_card_mem_auto',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ConvertNrrdsToTexture, 'p_is_uchar',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ConvertNrrdsToTexture, 'p_histogram',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ConvertNrrdsToTexture, 'p_gamma',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertNrrdsToTexture, 'card_mem',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertNrrdsToTexture, 'card_mem_auto',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertNrrdsToTexture, 'is_uchar',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertNrrdsToTexture, 'histogram',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertNrrdsToTexture, 'gamma',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertNrrdsToTexture, 'Value Nrrd',
+  reg.add_input_port(scirun_ConvertNrrdsToTexture, 'Value Nrrd',
                    (SCIRun_Nrrd, "SCIRun_Nrrd"))
-  reg.add_input_port(SCIRun_ConvertNrrdsToTexture, 'Gradient Magnitude Nrrd',
+  reg.add_input_port(scirun_ConvertNrrdsToTexture, 'Gradient Magnitude Nrrd',
                    (SCIRun_Nrrd, "SCIRun_Nrrd"))
-  reg.add_output_port(SCIRun_ConvertNrrdsToTexture, 'Texture', 
+  reg.add_output_port(scirun_ConvertNrrdsToTexture, 'Texture', 
                     (SCIRun_Texture, 'Texture'))
-  reg.add_output_port(SCIRun_ConvertNrrdsToTexture, 'JointHistoGram', 
+  reg.add_output_port(scirun_ConvertNrrdsToTexture, 'JointHistoGram', 
                     (SCIRun_Nrrd, 'JointHistoGram'))
 
-  reg.add_module(SCIRun_ConvertQuadSurfToTriSurf)
-  reg.add_input_port(SCIRun_ConvertQuadSurfToTriSurf, 'QuadSurf',
+  reg.add_module(scirun_ConvertQuadSurfToTriSurf)
+  reg.add_input_port(scirun_ConvertQuadSurfToTriSurf, 'QuadSurf',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ConvertQuadSurfToTriSurf, 'TriSurf', 
+  reg.add_output_port(scirun_ConvertQuadSurfToTriSurf, 'TriSurf', 
                     (SCIRun_Field, 'TriSurf'))
 
-  reg.add_module(SCIRun_WriteColorMap2D)
-  reg.add_input_port(SCIRun_WriteColorMap2D, 'filetype',
+  reg.add_module(scirun_WriteColorMap2D)
+  reg.add_input_port(scirun_WriteColorMap2D, 'p_filetype',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteColorMap2D, 'confirm',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteColorMap2D, 'confirm_once',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteColorMap2D, 'exporttype',
+  reg.add_input_port(scirun_WriteColorMap2D, 'p_confirm',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteColorMap2D, 'Input Data',
+  reg.add_input_port(scirun_WriteColorMap2D, 'p_confirm_once',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_WriteColorMap2D, 'p_exporttype',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_WriteColorMap2D, 'Input Data',
                    (SCIRun_ColorMap2, "SCIRun_ColorMap2"))
-  reg.add_input_port(SCIRun_WriteColorMap2D, 'Filename',
+  reg.add_input_port(scirun_WriteColorMap2D, 'Filename',
                    (core.modules.basic_modules.String, 'tip'))
 
-  reg.add_module(SCIRun_BuildMatrixOfSurfaceNormals)
-  reg.add_input_port(SCIRun_BuildMatrixOfSurfaceNormals, 'Surface Field',
+  reg.add_module(scirun_BuildMatrixOfSurfaceNormals)
+  reg.add_input_port(scirun_BuildMatrixOfSurfaceNormals, 'Surface Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_BuildMatrixOfSurfaceNormals, 'Nodal Surface Normals', 
+  reg.add_output_port(scirun_BuildMatrixOfSurfaceNormals, 'Nodal Surface Normals', 
                     (SCIRun_Matrix, 'Nodal Surface Normals'))
 
-  reg.add_module(SCIRun_ReadHDF5File)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'have_HDF5',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'power_app',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'datasets',
+  reg.add_module(scirun_ReadHDF5File)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_have_HDF5',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_power_app',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_datasets',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'dumpname',
+  reg.add_input_port(scirun_ReadHDF5File, 'p_dumpname',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'ports',
+  reg.add_input_port(scirun_ReadHDF5File, 'p_ports',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'ndims',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'mergeData',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'assumeSVT',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'animate',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'animate_tab',
+  reg.add_input_port(scirun_ReadHDF5File, 'p_ndims',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_mergeData',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_assumeSVT',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_animate',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_animate_tab',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'basic_tab',
+  reg.add_input_port(scirun_ReadHDF5File, 'p_basic_tab',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'extended_tab',
+  reg.add_input_port(scirun_ReadHDF5File, 'p_extended_tab',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'playmode_tab',
+  reg.add_input_port(scirun_ReadHDF5File, 'p_playmode_tab',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'selectable_min',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'selectable_max',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'selectable_inc',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'range_min',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'range_max',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'playmode',
+  reg.add_input_port(scirun_ReadHDF5File, 'p_selectable_min',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_selectable_max',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_selectable_inc',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_range_min',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_range_max',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_playmode',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'current',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'execmode',
+  reg.add_input_port(scirun_ReadHDF5File, 'p_current',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_execmode',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'delay',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'inc_amount',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'update_type',
+  reg.add_input_port(scirun_ReadHDF5File, 'p_delay',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_inc_amount',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_update_type',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'have_group',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'have_attributes',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'have_datasets',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'continuous',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'selectionString',
+  reg.add_input_port(scirun_ReadHDF5File, 'p_have_group',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_have_attributes',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_have_datasets',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_continuous',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_selectionString',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'regexp',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'allow_selection',
+  reg.add_input_port(scirun_ReadHDF5File, 'p_regexp',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_allow_selection',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'read_error',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'max_dims',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a0_dim',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a0_start',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a0_start2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a0_count',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a0_count2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a0_stride',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a0_stride2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a1_dim',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a1_start',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a1_start2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a1_count',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a1_count2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a1_stride',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a1_stride2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a2_dim',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a2_start',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a2_start2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a2_count',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a2_count2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a2_stride',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a2_stride2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a3_dim',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a3_start',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a3_start2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a3_count',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a3_count2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a3_stride',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a3_stride2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a4_dim',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a4_start',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a4_start2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a4_count',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a4_count2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a4_stride',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a4_stride2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a5_dim',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a5_start',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a5_start2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a5_count',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a5_count2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a5_stride',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'a5_stride2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadHDF5File, 'Full filename',
+  reg.add_input_port(scirun_ReadHDF5File, 'p_read_error',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_max_dims',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_0_dim',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_0_start',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_0_start2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_0_count',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_0_count2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_0_stride',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_0_stride2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_1_dim',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_1_start',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_1_start2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_1_count',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_1_count2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_1_stride',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_1_stride2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_2_dim',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_2_start',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_2_start2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_2_count',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_2_count2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_2_stride',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_2_stride2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_3_dim',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_3_start',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_3_start2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_3_count',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_3_count2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_3_stride',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_3_stride2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_4_dim',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_4_start',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_4_start2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_4_count',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_4_count2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_4_stride',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_4_stride2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_5_dim',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_5_start',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_5_start2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_5_count',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_5_count2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_5_stride',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'p_5_stride2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadHDF5File, 'Full filename',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_ReadHDF5File, 'Current Index',
+  reg.add_input_port(scirun_ReadHDF5File, 'Current Index',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ReadHDF5File, 'Output 0 Nrrd', 
+  reg.add_output_port(scirun_ReadHDF5File, 'Output 0 Nrrd', 
                     (SCIRun_Nrrd, 'Output 0 Nrrd'))
-  reg.add_output_port(SCIRun_ReadHDF5File, 'Output 1 Nrrd', 
+  reg.add_output_port(scirun_ReadHDF5File, 'Output 1 Nrrd', 
                     (SCIRun_Nrrd, 'Output 1 Nrrd'))
-  reg.add_output_port(SCIRun_ReadHDF5File, 'Output 2 Nrrd', 
+  reg.add_output_port(scirun_ReadHDF5File, 'Output 2 Nrrd', 
                     (SCIRun_Nrrd, 'Output 2 Nrrd'))
-  reg.add_output_port(SCIRun_ReadHDF5File, 'Output 3 Nrrd', 
+  reg.add_output_port(scirun_ReadHDF5File, 'Output 3 Nrrd', 
                     (SCIRun_Nrrd, 'Output 3 Nrrd'))
-  reg.add_output_port(SCIRun_ReadHDF5File, 'Output 4 Nrrd', 
+  reg.add_output_port(scirun_ReadHDF5File, 'Output 4 Nrrd', 
                     (SCIRun_Nrrd, 'Output 4 Nrrd'))
-  reg.add_output_port(SCIRun_ReadHDF5File, 'Output 5 Nrrd', 
+  reg.add_output_port(scirun_ReadHDF5File, 'Output 5 Nrrd', 
                     (SCIRun_Nrrd, 'Output 5 Nrrd'))
-  reg.add_output_port(SCIRun_ReadHDF5File, 'Output 6 Nrrd', 
+  reg.add_output_port(scirun_ReadHDF5File, 'Output 6 Nrrd', 
                     (SCIRun_Nrrd, 'Output 6 Nrrd'))
-  reg.add_output_port(SCIRun_ReadHDF5File, 'Output 7 Nrrd', 
+  reg.add_output_port(scirun_ReadHDF5File, 'Output 7 Nrrd', 
                     (SCIRun_Nrrd, 'Output 7 Nrrd'))
-  reg.add_output_port(SCIRun_ReadHDF5File, 'Selected Index', 
+  reg.add_output_port(scirun_ReadHDF5File, 'Selected Index', 
                     (SCIRun_Matrix, 'Selected Index'))
 
-  reg.add_module(SCIRun_GetPathsFromBundle)
-  reg.add_input_port(SCIRun_GetPathsFromBundle, 'path1_name',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetPathsFromBundle, 'path2_name',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetPathsFromBundle, 'path3_name',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetPathsFromBundle, 'path4_name',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetPathsFromBundle, 'path5_name',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetPathsFromBundle, 'path6_name',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetPathsFromBundle, 'path_selection',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetPathsFromBundle, 'bundle',
-                   (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_output_port(SCIRun_GetPathsFromBundle, 'bundle', 
-                    (SCIRun_Bundle, 'bundle'))
-  reg.add_output_port(SCIRun_GetPathsFromBundle, 'path1', 
-                    (SCIRun_Path, 'path1'))
-  reg.add_output_port(SCIRun_GetPathsFromBundle, 'path2', 
-                    (SCIRun_Path, 'path2'))
-  reg.add_output_port(SCIRun_GetPathsFromBundle, 'path3', 
-                    (SCIRun_Path, 'path3'))
-  reg.add_output_port(SCIRun_GetPathsFromBundle, 'path4', 
-                    (SCIRun_Path, 'path4'))
-  reg.add_output_port(SCIRun_GetPathsFromBundle, 'path5', 
-                    (SCIRun_Path, 'path5'))
-  reg.add_output_port(SCIRun_GetPathsFromBundle, 'path6', 
-                    (SCIRun_Path, 'path6'))
-
-  reg.add_module(SCIRun_GetFieldBoundary)
-  reg.add_input_port(SCIRun_GetFieldBoundary, 'Field',
+  reg.add_module(scirun_SwapFieldDataWithMatrixEntries)
+  reg.add_input_port(scirun_SwapFieldDataWithMatrixEntries, 'p_preserve_scalar_type',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SwapFieldDataWithMatrixEntries, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_GetFieldBoundary, 'BoundaryField', 
+  reg.add_input_port(scirun_SwapFieldDataWithMatrixEntries, 'Input Matrix',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_SwapFieldDataWithMatrixEntries, 'Output Field', 
+                    (SCIRun_Field, 'Output Field'))
+  reg.add_output_port(scirun_SwapFieldDataWithMatrixEntries, 'Output Matrix', 
+                    (SCIRun_Matrix, 'Output Matrix'))
+
+  reg.add_module(scirun_GetFieldBoundary)
+  reg.add_input_port(scirun_GetFieldBoundary, 'Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_GetFieldBoundary, 'BoundaryField', 
                     (SCIRun_Field, 'BoundaryField'))
-  reg.add_output_port(SCIRun_GetFieldBoundary, 'Mapping', 
+  reg.add_output_port(scirun_GetFieldBoundary, 'Mapping', 
                     (SCIRun_Matrix, 'Mapping'))
 
-  reg.add_module(SCIRun_TransformMeshWithFunction)
-  reg.add_input_port(SCIRun_TransformMeshWithFunction, 'function',
+  reg.add_module(scirun_ConvertMatricesToMesh)
+  reg.add_input_port(scirun_ConvertMatricesToMesh, 'p_fieldname',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_TransformMeshWithFunction, 'Input Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_TransformMeshWithFunction, 'Output Field', 
+  reg.add_input_port(scirun_ConvertMatricesToMesh, 'p_meshname',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ConvertMatricesToMesh, 'p_fieldbasetype',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ConvertMatricesToMesh, 'p_datatype',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ConvertMatricesToMesh, 'Mesh Elements',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_input_port(scirun_ConvertMatricesToMesh, 'Mesh Positions',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_input_port(scirun_ConvertMatricesToMesh, 'Mesh Normals',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_ConvertMatricesToMesh, 'Output Field', 
                     (SCIRun_Field, 'Output Field'))
 
-  reg.add_module(SCIRun_ConvertMatricesToMesh)
-  reg.add_input_port(SCIRun_ConvertMatricesToMesh, 'fieldname',
+  reg.add_module(scirun_TransformMeshWithFunction)
+  reg.add_input_port(scirun_TransformMeshWithFunction, 'p_function',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertMatricesToMesh, 'meshname',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertMatricesToMesh, 'fieldbasetype',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertMatricesToMesh, 'datatype',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertMatricesToMesh, 'Mesh Elements',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_ConvertMatricesToMesh, 'Mesh Positions',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_ConvertMatricesToMesh, 'Mesh Normals',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ConvertMatricesToMesh, 'Output Field', 
+  reg.add_input_port(scirun_TransformMeshWithFunction, 'Input Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_TransformMeshWithFunction, 'Output Field', 
                     (SCIRun_Field, 'Output Field'))
 
-  reg.add_module(SCIRun_ReportFieldInfo)
-  reg.add_input_port(SCIRun_ReportFieldInfo, 'Input Field',
+  reg.add_module(scirun_PrintHelloWorldToScreen)
+
+  reg.add_module(scirun_ReportFieldInfo)
+  reg.add_input_port(scirun_ReportFieldInfo, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ReportFieldInfo, 'NumNodes', 
+  reg.add_output_port(scirun_ReportFieldInfo, 'NumNodes', 
                     (SCIRun_Matrix, 'NumNodes'))
-  reg.add_output_port(SCIRun_ReportFieldInfo, 'NumElements', 
+  reg.add_output_port(scirun_ReportFieldInfo, 'NumElements', 
                     (SCIRun_Matrix, 'NumElements'))
-  reg.add_output_port(SCIRun_ReportFieldInfo, 'NumData', 
+  reg.add_output_port(scirun_ReportFieldInfo, 'NumData', 
                     (SCIRun_Matrix, 'NumData'))
-  reg.add_output_port(SCIRun_ReportFieldInfo, 'DataMin', 
+  reg.add_output_port(scirun_ReportFieldInfo, 'DataMin', 
                     (SCIRun_Matrix, 'DataMin'))
-  reg.add_output_port(SCIRun_ReportFieldInfo, 'DataMax', 
+  reg.add_output_port(scirun_ReportFieldInfo, 'DataMax', 
                     (SCIRun_Matrix, 'DataMax'))
-  reg.add_output_port(SCIRun_ReportFieldInfo, 'FieldSize', 
+  reg.add_output_port(scirun_ReportFieldInfo, 'FieldSize', 
                     (SCIRun_Matrix, 'FieldSize'))
-  reg.add_output_port(SCIRun_ReportFieldInfo, 'FieldCenter', 
+  reg.add_output_port(scirun_ReportFieldInfo, 'FieldCenter', 
                     (SCIRun_Matrix, 'FieldCenter'))
-  reg.add_output_port(SCIRun_ReportFieldInfo, 'Dimensions', 
+  reg.add_output_port(scirun_ReportFieldInfo, 'Dimensions', 
                     (SCIRun_Matrix, 'Dimensions'))
 
-  reg.add_module(SCIRun_ConvertFieldsToTexture)
-  reg.add_input_port(SCIRun_ConvertFieldsToTexture, 'vmin',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertFieldsToTexture, 'vmax',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertFieldsToTexture, 'gmin',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertFieldsToTexture, 'gmax',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertFieldsToTexture, 'is_fixed',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertFieldsToTexture, 'card_mem',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertFieldsToTexture, 'card_mem_auto',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertFieldsToTexture, 'histogram',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertFieldsToTexture, 'gamma',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertFieldsToTexture, 'Value Field',
+  reg.add_module(scirun_ConvertLatVolDataFromElemToNode)
+  reg.add_input_port(scirun_ConvertLatVolDataFromElemToNode, 'Elem Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_ConvertFieldsToTexture, 'Gradient Magnitude Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ConvertFieldsToTexture, 'Texture', 
-                    (SCIRun_Texture, 'Texture'))
-  reg.add_output_port(SCIRun_ConvertFieldsToTexture, 'JointHistoGram', 
-                    (SCIRun_Nrrd, 'JointHistoGram'))
-
-  reg.add_module(SCIRun_PrintHelloWorldToScreen)
-
-  reg.add_module(SCIRun_MapFieldDataFromSourceToDestination)
-  reg.add_input_port(SCIRun_MapFieldDataFromSourceToDestination, 'interpolation_basis',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_MapFieldDataFromSourceToDestination, 'map_source_to_single_dest',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_MapFieldDataFromSourceToDestination, 'exhaustive_search',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_MapFieldDataFromSourceToDestination, 'exhaustive_search_max_dist',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_MapFieldDataFromSourceToDestination, 'np',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_MapFieldDataFromSourceToDestination, 'Source',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_MapFieldDataFromSourceToDestination, 'Destination',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_MapFieldDataFromSourceToDestination, 'Remapped Destination', 
-                    (SCIRun_Field, 'Remapped Destination'))
-
-  reg.add_module(SCIRun_ConvertLatVolDataFromElemToNode)
-  reg.add_input_port(SCIRun_ConvertLatVolDataFromElemToNode, 'Elem Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ConvertLatVolDataFromElemToNode, 'Node Field', 
+  reg.add_output_port(scirun_ConvertLatVolDataFromElemToNode, 'Node Field', 
                     (SCIRun_Field, 'Node Field'))
 
-  reg.add_module(SCIRun_CreateGeometricTransform)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'rotate_x',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'rotate_y',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'rotate_z',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'rotate_theta',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'translate_x',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'translate_y',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'translate_z',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'scale_uniform',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'scale_x',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'scale_y',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'scale_z',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'shear_plane_a',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'shear_plane_b',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'shear_plane_c',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'widget_resizable',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'permute_x',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'permute_y',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'permute_z',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'pre_transform',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'which_transform',
+  reg.add_module(scirun_GetPathsFromBundle)
+  reg.add_input_port(scirun_GetPathsFromBundle, 'p_path1_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'widget_scale',
+  reg.add_input_port(scirun_GetPathsFromBundle, 'p_path2_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GetPathsFromBundle, 'p_path3_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GetPathsFromBundle, 'p_path4_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GetPathsFromBundle, 'p_path5_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GetPathsFromBundle, 'p_path6_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GetPathsFromBundle, 'p_path_selection',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GetPathsFromBundle, 'bundle',
+                   (SCIRun_Bundle, "SCIRun_Bundle"))
+  reg.add_output_port(scirun_GetPathsFromBundle, 'bundle', 
+                    (SCIRun_Bundle, 'bundle'))
+  reg.add_output_port(scirun_GetPathsFromBundle, 'path1', 
+                    (SCIRun_Path, 'path1'))
+  reg.add_output_port(scirun_GetPathsFromBundle, 'path2', 
+                    (SCIRun_Path, 'path2'))
+  reg.add_output_port(scirun_GetPathsFromBundle, 'path3', 
+                    (SCIRun_Path, 'path3'))
+  reg.add_output_port(scirun_GetPathsFromBundle, 'path4', 
+                    (SCIRun_Path, 'path4'))
+  reg.add_output_port(scirun_GetPathsFromBundle, 'path5', 
+                    (SCIRun_Path, 'path5'))
+  reg.add_output_port(scirun_GetPathsFromBundle, 'path6', 
+                    (SCIRun_Path, 'path6'))
+
+  reg.add_module(scirun_CreateGeometricTransform)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_rotate_x',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'ignoring_widget_changes',
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_rotate_y',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateGeometricTransform, 'Matrix',
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_rotate_z',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_rotate_theta',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_translate_x',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_translate_y',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_translate_z',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_scale_uniform',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_scale_x',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_scale_y',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_scale_z',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_shear_plane_a',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_shear_plane_b',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_shear_plane_c',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_widget_resizable',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_permute_x',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_permute_y',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_permute_z',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_pre_transform',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_which_transform',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_widget_scale',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'p_ignoring_widget_changes',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateGeometricTransform, 'Matrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_CreateGeometricTransform, 'Matrix', 
+  reg.add_output_port(scirun_CreateGeometricTransform, 'Matrix', 
                     (SCIRun_Matrix, 'Matrix'))
-  reg.add_output_port(SCIRun_CreateGeometricTransform, 'Geometry', 
+  reg.add_output_port(scirun_CreateGeometricTransform, 'Geometry', 
                     (SCIRun_Geometry, 'Geometry'))
 
-  reg.add_module(SCIRun_CalculateNodeNormals)
-  reg.add_input_port(SCIRun_CalculateNodeNormals, 'Input Field',
+  reg.add_module(scirun_CalculateNodeNormals)
+  reg.add_input_port(scirun_CalculateNodeNormals, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_CalculateNodeNormals, 'Input Point',
+  reg.add_input_port(scirun_CalculateNodeNormals, 'Input Point',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_CalculateNodeNormals, 'Output Field', 
+  reg.add_output_port(scirun_CalculateNodeNormals, 'Output Field', 
                     (SCIRun_Field, 'Output Field'))
 
-  reg.add_module(SCIRun_ReportFieldGeometryMeasures)
-  reg.add_input_port(SCIRun_ReportFieldGeometryMeasures, 'simplexString',
+  reg.add_module(scirun_ReportFieldGeometryMeasures)
+  reg.add_input_port(scirun_ReportFieldGeometryMeasures, 'p_simplexString',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportFieldGeometryMeasures, 'xFlag',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportFieldGeometryMeasures, 'yFlag',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportFieldGeometryMeasures, 'zFlag',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportFieldGeometryMeasures, 'idxFlag',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportFieldGeometryMeasures, 'sizeFlag',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportFieldGeometryMeasures, 'normalsFlag',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportFieldGeometryMeasures, 'Input Field',
+  reg.add_input_port(scirun_ReportFieldGeometryMeasures, 'p_xFlag',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReportFieldGeometryMeasures, 'p_yFlag',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReportFieldGeometryMeasures, 'p_zFlag',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReportFieldGeometryMeasures, 'p_idxFlag',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReportFieldGeometryMeasures, 'p_sizeFlag',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReportFieldGeometryMeasures, 'p_normalsFlag',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ReportFieldGeometryMeasures, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ReportFieldGeometryMeasures, 'Output Measures Matrix', 
+  reg.add_output_port(scirun_ReportFieldGeometryMeasures, 'Output Measures Matrix', 
                     (SCIRun_Matrix, 'Output Measures Matrix'))
 
-  reg.add_module(SCIRun_CalculateVectorMagnitudes)
-  reg.add_input_port(SCIRun_CalculateVectorMagnitudes, 'Input Field',
+  reg.add_module(scirun_CalculateVectorMagnitudes)
+  reg.add_input_port(scirun_CalculateVectorMagnitudes, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_CalculateVectorMagnitudes, 'Output CalculateVectorMagnitudes', 
+  reg.add_output_port(scirun_CalculateVectorMagnitudes, 'Output CalculateVectorMagnitudes', 
                     (SCIRun_Field, 'Output CalculateVectorMagnitudes'))
 
-  reg.add_module(SCIRun_GetInputField)
-  reg.add_input_port(SCIRun_GetInputField, 'InField',
+  reg.add_module(scirun_GetInputField)
+  reg.add_input_port(scirun_GetInputField, 'InField',
                    (SCIRun_Field, "SCIRun_Field"))
 
-  reg.add_module(SCIRun_ChooseMatrix)
-  reg.add_input_port(SCIRun_ChooseMatrix, 'use_first_valid',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ChooseMatrix, 'port_valid_index',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ChooseMatrix, 'port_selected_index',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ChooseMatrix, 'Matrix',
+  reg.add_module(scirun_ChooseMatrix)
+  reg.add_input_port(scirun_ChooseMatrix, 'p_use_first_valid',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ChooseMatrix, 'p_port_valid_index',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ChooseMatrix, 'p_port_selected_index',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ChooseMatrix, 'Matrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ChooseMatrix, 'Matrix', 
+  reg.add_output_port(scirun_ChooseMatrix, 'Matrix', 
                     (SCIRun_Matrix, 'Matrix'))
 
-  reg.add_module(SCIRun_ClipFieldToFieldOrWidget)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'clip_location',
+  reg.add_module(scirun_ClipFieldToFieldOrWidget)
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_clip_location',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'clipmode',
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_clipmode',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'autoexecute',
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_autoexecute',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_autoinvert',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_execmode',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_center_x',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'autoinvert',
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_center_y',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'execmode',
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_center_z',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'center_x',
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_right_x',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'center_y',
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_right_y',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'center_z',
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_right_z',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'right_x',
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_down_x',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'right_y',
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_down_y',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'right_z',
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_down_z',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'down_x',
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_in_x',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'down_y',
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_in_y',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'down_z',
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_in_z',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'in_x',
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'p_scale',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'in_y',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'in_z',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'scale',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'Input Field',
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_ClipFieldToFieldOrWidget, 'Clip Field',
+  reg.add_input_port(scirun_ClipFieldToFieldOrWidget, 'Clip Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ClipFieldToFieldOrWidget, 'Selection Widget', 
+  reg.add_output_port(scirun_ClipFieldToFieldOrWidget, 'Selection Widget', 
                     (SCIRun_Geometry, 'Selection Widget'))
-  reg.add_output_port(SCIRun_ClipFieldToFieldOrWidget, 'Output Field', 
+  reg.add_output_port(scirun_ClipFieldToFieldOrWidget, 'Output Field', 
                     (SCIRun_Field, 'Output Field'))
 
-  reg.add_module(SCIRun_ConvertHexVolToTetVol)
-  reg.add_input_port(SCIRun_ConvertHexVolToTetVol, 'HexVol',
+  reg.add_module(scirun_ConvertHexVolToTetVol)
+  reg.add_input_port(scirun_ConvertHexVolToTetVol, 'HexVol',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ConvertHexVolToTetVol, 'TetVol', 
+  reg.add_output_port(scirun_ConvertHexVolToTetVol, 'TetVol', 
                     (SCIRun_Field, 'TetVol'))
 
-  reg.add_module(SCIRun_SetFieldOrMeshStringProperty)
-  reg.add_input_port(SCIRun_SetFieldOrMeshStringProperty, 'prop',
+  reg.add_module(scirun_SetFieldOrMeshStringProperty)
+  reg.add_input_port(scirun_SetFieldOrMeshStringProperty, 'p_prop',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SetFieldOrMeshStringProperty, 'val',
+  reg.add_input_port(scirun_SetFieldOrMeshStringProperty, 'p_val',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SetFieldOrMeshStringProperty, 'meshprop',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SetFieldOrMeshStringProperty, 'Input',
+  reg.add_input_port(scirun_SetFieldOrMeshStringProperty, 'p_meshprop',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SetFieldOrMeshStringProperty, 'Input',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_SetFieldOrMeshStringProperty, 'Output', 
+  reg.add_output_port(scirun_SetFieldOrMeshStringProperty, 'Output', 
                     (SCIRun_Field, 'Output'))
 
-  reg.add_module(SCIRun_ConvertMeshCoordinateSystem)
-  reg.add_input_port(SCIRun_ConvertMeshCoordinateSystem, 'oldsystem',
+  reg.add_module(scirun_ConvertMeshCoordinateSystem)
+  reg.add_input_port(scirun_ConvertMeshCoordinateSystem, 'p_oldsystem',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertMeshCoordinateSystem, 'newsystem',
+  reg.add_input_port(scirun_ConvertMeshCoordinateSystem, 'p_newsystem',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertMeshCoordinateSystem, 'Input Field',
+  reg.add_input_port(scirun_ConvertMeshCoordinateSystem, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ConvertMeshCoordinateSystem, 'Output Field', 
+  reg.add_output_port(scirun_ConvertMeshCoordinateSystem, 'Output Field', 
                     (SCIRun_Field, 'Output Field'))
 
-  reg.add_module(SCIRun_RefineMeshByIsovalue2)
-  reg.add_input_port(SCIRun_RefineMeshByIsovalue2, 'isoval',
+  reg.add_module(scirun_RefineMeshByIsovalue2)
+  reg.add_input_port(scirun_RefineMeshByIsovalue2, 'p_isoval',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_RefineMeshByIsovalue2, 'lte',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_RefineMeshByIsovalue2, 'Input',
+  reg.add_input_port(scirun_RefineMeshByIsovalue2, 'p_lte',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_RefineMeshByIsovalue2, 'Input',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_RefineMeshByIsovalue2, 'Optional Isovalue',
+  reg.add_input_port(scirun_RefineMeshByIsovalue2, 'Optional Isovalue',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_RefineMeshByIsovalue2, 'Refined', 
+  reg.add_output_port(scirun_RefineMeshByIsovalue2, 'Refined', 
                     (SCIRun_Field, 'Refined'))
-  reg.add_output_port(SCIRun_RefineMeshByIsovalue2, 'Mapping', 
+  reg.add_output_port(scirun_RefineMeshByIsovalue2, 'Mapping', 
                     (SCIRun_Matrix, 'Mapping'))
 
-  reg.add_module(SCIRun_SetTetVolFieldDataValuesToZero)
-  reg.add_input_port(SCIRun_SetTetVolFieldDataValuesToZero, 'InField',
+  reg.add_module(scirun_SetTetVolFieldDataValuesToZero)
+  reg.add_input_port(scirun_SetTetVolFieldDataValuesToZero, 'InField',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_SetTetVolFieldDataValuesToZero, 'OutField', 
+  reg.add_output_port(scirun_SetTetVolFieldDataValuesToZero, 'OutField', 
                     (SCIRun_Field, 'OutField'))
 
-  reg.add_module(SCIRun_ViewSlices)
-  reg.add_input_port(SCIRun_ViewSlices, 'clut_ww',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'clut_wl',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'probe',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'show_colormap2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'painting',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'crop',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'crop_minAxis0',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'crop_minAxis1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'crop_minAxis2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'crop_maxAxis0',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'crop_maxAxis1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'crop_maxAxis2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'crop_minPadAxis0',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'crop_minPadAxis1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'crop_minPadAxis2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'crop_maxPadAxis0',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'crop_maxPadAxis1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'crop_maxPadAxis2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'texture_filter',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'anatomical_coordinates',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'show_text',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'color_font_r',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'color_font_g',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'color_font_b',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'color_font_a',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'min',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'max',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'dim0',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'dim1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'dim2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'geom_flushed',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'background_threshold',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'gradient_threshold',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'font_size',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ViewSlices, 'Nrrd1',
+  reg.add_module(scirun_ViewSlices)
+  reg.add_input_port(scirun_ViewSlices, 'p_clut_ww',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_clut_wl',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_probe',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_show_colormap2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_painting',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_crop',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_crop_minAxis0',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_crop_minAxis1',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_crop_minAxis2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_crop_maxAxis0',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_crop_maxAxis1',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_crop_maxAxis2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_crop_minPadAxis0',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_crop_minPadAxis1',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_crop_minPadAxis2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_crop_maxPadAxis0',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_crop_maxPadAxis1',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_crop_maxPadAxis2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_texture_filter',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_anatomical_coordinates',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_show_text',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_color_font_r',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_color_font_g',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_color_font_b',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_color_font_a',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_min',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_max',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_dim0',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_dim1',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_dim2',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_geom_flushed',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_background_threshold',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_gradient_threshold',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'p_font_size',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ViewSlices, 'Nrrd1',
                    (SCIRun_Nrrd, "SCIRun_Nrrd"))
-  reg.add_input_port(SCIRun_ViewSlices, 'Nrrd2',
+  reg.add_input_port(scirun_ViewSlices, 'Nrrd2',
                    (SCIRun_Nrrd, "SCIRun_Nrrd"))
-  reg.add_input_port(SCIRun_ViewSlices, 'Nrrd1ColorMap',
+  reg.add_input_port(scirun_ViewSlices, 'Nrrd1ColorMap',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_input_port(SCIRun_ViewSlices, 'Nrrd2ColorMap',
+  reg.add_input_port(scirun_ViewSlices, 'Nrrd2ColorMap',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_input_port(SCIRun_ViewSlices, 'InputColorMap2',
+  reg.add_input_port(scirun_ViewSlices, 'InputColorMap2',
                    (SCIRun_ColorMap2, "SCIRun_ColorMap2"))
-  reg.add_input_port(SCIRun_ViewSlices, 'NrrdGradient',
+  reg.add_input_port(scirun_ViewSlices, 'NrrdGradient',
                    (SCIRun_Nrrd, "SCIRun_Nrrd"))
-  reg.add_output_port(SCIRun_ViewSlices, 'Geometry', 
+  reg.add_output_port(scirun_ViewSlices, 'Geometry', 
                     (SCIRun_Geometry, 'Geometry'))
-  reg.add_output_port(SCIRun_ViewSlices, 'ColorMap2', 
+  reg.add_output_port(scirun_ViewSlices, 'ColorMap2', 
                     (SCIRun_ColorMap2, 'ColorMap2'))
 
-  reg.add_module(SCIRun_SplitVectorArrayInXYZ)
-  reg.add_input_port(SCIRun_SplitVectorArrayInXYZ, 'VectorArray',
+  reg.add_module(scirun_SplitVectorArrayInXYZ)
+  reg.add_input_port(scirun_SplitVectorArrayInXYZ, 'VectorArray',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_SplitVectorArrayInXYZ, 'X', 
+  reg.add_output_port(scirun_SplitVectorArrayInXYZ, 'X', 
                     (SCIRun_Matrix, 'X'))
-  reg.add_output_port(SCIRun_SplitVectorArrayInXYZ, 'Y', 
+  reg.add_output_port(scirun_SplitVectorArrayInXYZ, 'Y', 
                     (SCIRun_Matrix, 'Y'))
-  reg.add_output_port(SCIRun_SplitVectorArrayInXYZ, 'Z', 
+  reg.add_output_port(scirun_SplitVectorArrayInXYZ, 'Z', 
                     (SCIRun_Matrix, 'Z'))
 
-  reg.add_module(SCIRun_ConvertIndicesToFieldData)
-  reg.add_input_port(SCIRun_ConvertIndicesToFieldData, 'outputtype',
+  reg.add_module(scirun_ConvertIndicesToFieldData)
+  reg.add_input_port(scirun_ConvertIndicesToFieldData, 'p_outputtype',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertIndicesToFieldData, 'Field',
+  reg.add_input_port(scirun_ConvertIndicesToFieldData, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_ConvertIndicesToFieldData, 'Data',
+  reg.add_input_port(scirun_ConvertIndicesToFieldData, 'Data',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ConvertIndicesToFieldData, 'Field', 
+  reg.add_output_port(scirun_ConvertIndicesToFieldData, 'Field', 
                     (SCIRun_Field, 'Field'))
 
-  reg.add_module(SCIRun_CreateAndEditCameraPath)
-  reg.add_input_port(SCIRun_CreateAndEditCameraPath, 'Path',
-                   (SCIRun_Path, "SCIRun_Path"))
-  reg.add_output_port(SCIRun_CreateAndEditCameraPath, 'Path', 
-                    (SCIRun_Path, 'Path'))
-  reg.add_output_port(SCIRun_CreateAndEditCameraPath, 'Geometry', 
-                    (SCIRun_Geometry, 'Geometry'))
-  reg.add_output_port(SCIRun_CreateAndEditCameraPath, 'Camera View', 
-                    (SCIRun_Path, 'Camera View'))
-
-  reg.add_module(SCIRun_CalculateDistanceToFieldBoundary)
-  reg.add_input_port(SCIRun_CalculateDistanceToFieldBoundary, 'Field',
+  reg.add_module(scirun_CalculateDistanceToFieldBoundary)
+  reg.add_input_port(scirun_CalculateDistanceToFieldBoundary, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_CalculateDistanceToFieldBoundary, 'DistanceField', 
+  reg.add_output_port(scirun_CalculateDistanceToFieldBoundary, 'DistanceField', 
                     (SCIRun_Field, 'DistanceField'))
 
-  reg.add_module(SCIRun_ConvertMappingMatrixToMaskVector)
-  reg.add_input_port(SCIRun_ConvertMappingMatrixToMaskVector, 'MappingMatrix',
+  reg.add_module(scirun_ConvertMappingMatrixToMaskVector)
+  reg.add_input_port(scirun_ConvertMappingMatrixToMaskVector, 'MappingMatrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ConvertMappingMatrixToMaskVector, 'MaskVector', 
+  reg.add_output_port(scirun_ConvertMappingMatrixToMaskVector, 'MaskVector', 
                     (SCIRun_Nrrd, 'MaskVector'))
 
-  reg.add_module(SCIRun_CreateFieldData)
-  reg.add_input_port(SCIRun_CreateFieldData, 'function',
+  reg.add_module(scirun_MapFieldDataFromSourceToDestination)
+  reg.add_input_port(scirun_MapFieldDataFromSourceToDestination, 'p_interpolation_basis',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateFieldData, 'format',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateFieldData, 'basis',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateFieldData, 'Field',
+  reg.add_input_port(scirun_MapFieldDataFromSourceToDestination, 'p_map_source_to_single_dest',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_MapFieldDataFromSourceToDestination, 'p_exhaustive_search',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_MapFieldDataFromSourceToDestination, 'p_exhaustive_search_max_dist',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_MapFieldDataFromSourceToDestination, 'p_np',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_MapFieldDataFromSourceToDestination, 'Source',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_CreateFieldData, 'Function',
-                   (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_CreateFieldData, 'DataArray',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_CreateFieldData, 'Field', 
-                    (SCIRun_Field, 'Field'))
+  reg.add_input_port(scirun_MapFieldDataFromSourceToDestination, 'Destination',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_MapFieldDataFromSourceToDestination, 'Remapped Destination', 
+                    (SCIRun_Field, 'Remapped Destination'))
 
-  reg.add_module(SCIRun_CreateLatVol)
-  reg.add_input_port(SCIRun_CreateLatVol, 'sizex',
+  reg.add_module(scirun_CreateLatVol)
+  reg.add_input_port(scirun_CreateLatVol, 'p_sizex',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateLatVol, 'p_sizey',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateLatVol, 'p_sizez',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateLatVol, 'p_padpercent',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateLatVol, 'sizey',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateLatVol, 'sizez',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateLatVol, 'padpercent',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateLatVol, 'data_at',
+  reg.add_input_port(scirun_CreateLatVol, 'p_data_at',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateLatVol, 'element_size',
+  reg.add_input_port(scirun_CreateLatVol, 'p_element_size',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateLatVol, 'Input Field',
+  reg.add_input_port(scirun_CreateLatVol, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_CreateLatVol, 'LatVol Size',
+  reg.add_input_port(scirun_CreateLatVol, 'LatVol Size',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_CreateLatVol, 'Output Sample Field', 
+  reg.add_output_port(scirun_CreateLatVol, 'Output Sample Field', 
                     (SCIRun_Field, 'Output Sample Field'))
 
-  reg.add_module(SCIRun_ResizeMatrix)
-  reg.add_input_port(SCIRun_ResizeMatrix, 'dim_m',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ResizeMatrix, 'dim_n',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ResizeMatrix, 'Matrix',
+  reg.add_module(scirun_ResizeMatrix)
+  reg.add_input_port(scirun_ResizeMatrix, 'p_dim_m',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ResizeMatrix, 'p_dim_n',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ResizeMatrix, 'Matrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_ResizeMatrix, 'M',
+  reg.add_input_port(scirun_ResizeMatrix, 'M',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_ResizeMatrix, 'N',
+  reg.add_input_port(scirun_ResizeMatrix, 'N',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ResizeMatrix, 'Matrix', 
+  reg.add_output_port(scirun_ResizeMatrix, 'Matrix', 
                     (SCIRun_Matrix, 'Matrix'))
 
-  reg.add_module(SCIRun_GetInputFieldAndSendAsOutput)
-  reg.add_input_port(SCIRun_GetInputFieldAndSendAsOutput, 'InField',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_GetInputFieldAndSendAsOutput, 'OutField', 
-                    (SCIRun_Field, 'OutField'))
-
-  reg.add_module(SCIRun_ShowAndEditCameraWidget)
-  reg.add_input_port(SCIRun_ShowAndEditCameraWidget, 'frame',
+  reg.add_module(scirun_ShowAndEditCameraWidget)
+  reg.add_input_port(scirun_ShowAndEditCameraWidget, 'p_frame',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowAndEditCameraWidget, 'p_num_frames',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowAndEditCameraWidget, 'p_time',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowAndEditCameraWidget, 'num_frames',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowAndEditCameraWidget, 'time',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowAndEditCameraWidget, 'playmode',
+  reg.add_input_port(scirun_ShowAndEditCameraWidget, 'p_playmode',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowAndEditCameraWidget, 'execmode',
+  reg.add_input_port(scirun_ShowAndEditCameraWidget, 'p_execmode',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowAndEditCameraWidget, 'track',
+  reg.add_input_port(scirun_ShowAndEditCameraWidget, 'p_track',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowAndEditCameraWidget, 'p_B',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowAndEditCameraWidget, 'B',
+  reg.add_input_port(scirun_ShowAndEditCameraWidget, 'p_C',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowAndEditCameraWidget, 'C',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_output_port(SCIRun_ShowAndEditCameraWidget, 'Geometry', 
+  reg.add_output_port(scirun_ShowAndEditCameraWidget, 'Geometry', 
                     (SCIRun_Geometry, 'Geometry'))
 
-  reg.add_module(SCIRun_InterfaceWithCamal)
-  reg.add_input_port(SCIRun_InterfaceWithCamal, 'TriSurf',
+  reg.add_module(scirun_InterfaceWithCamal)
+  reg.add_input_port(scirun_InterfaceWithCamal, 'TriSurf',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_InterfaceWithCamal, 'TetVol', 
+  reg.add_output_port(scirun_InterfaceWithCamal, 'TetVol', 
                     (SCIRun_Field, 'TetVol'))
 
-  reg.add_module(SCIRun_CreateParameterBundle)
-  reg.add_input_port(SCIRun_CreateParameterBundle, 'data',
+  reg.add_module(scirun_SelectAndSetFieldData3)
+  reg.add_input_port(scirun_SelectAndSetFieldData3, 'p_selection1',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateParameterBundle, 'new_field_count',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateParameterBundle, 'update_all',
+  reg.add_input_port(scirun_SelectAndSetFieldData3, 'p_function1',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_output_port(SCIRun_CreateParameterBundle, 'ParameterList', 
-                    (SCIRun_Bundle, 'ParameterList'))
-
-  reg.add_module(SCIRun_SelectAndSetFieldData3)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData3, 'selection1',
+  reg.add_input_port(scirun_SelectAndSetFieldData3, 'p_selection2',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData3, 'function1',
+  reg.add_input_port(scirun_SelectAndSetFieldData3, 'p_function2',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData3, 'selection2',
+  reg.add_input_port(scirun_SelectAndSetFieldData3, 'p_selection3',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData3, 'function2',
+  reg.add_input_port(scirun_SelectAndSetFieldData3, 'p_function3',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData3, 'selection3',
+  reg.add_input_port(scirun_SelectAndSetFieldData3, 'p_selection4',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData3, 'function3',
+  reg.add_input_port(scirun_SelectAndSetFieldData3, 'p_function4',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData3, 'selection4',
+  reg.add_input_port(scirun_SelectAndSetFieldData3, 'p_functiondef',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData3, 'function4',
+  reg.add_input_port(scirun_SelectAndSetFieldData3, 'p_format',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData3, 'functiondef',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData3, 'format',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SelectAndSetFieldData3, 'Field1',
+  reg.add_input_port(scirun_SelectAndSetFieldData3, 'Field1',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_SelectAndSetFieldData3, 'Field2',
+  reg.add_input_port(scirun_SelectAndSetFieldData3, 'Field2',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_SelectAndSetFieldData3, 'Field3',
+  reg.add_input_port(scirun_SelectAndSetFieldData3, 'Field3',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_SelectAndSetFieldData3, 'Array',
+  reg.add_input_port(scirun_SelectAndSetFieldData3, 'Array',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_SelectAndSetFieldData3, 'Field', 
+  reg.add_output_port(scirun_SelectAndSetFieldData3, 'Field', 
                     (SCIRun_Field, 'Field'))
 
-  reg.add_module(SCIRun_ConvertMeshToPointCloud)
-  reg.add_input_port(SCIRun_ConvertMeshToPointCloud, 'datalocation',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertMeshToPointCloud, 'Field',
+  reg.add_module(scirun_ConvertMeshToPointCloud)
+  reg.add_input_port(scirun_ConvertMeshToPointCloud, 'p_datalocation',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ConvertMeshToPointCloud, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ConvertMeshToPointCloud, 'Field', 
+  reg.add_output_port(scirun_ConvertMeshToPointCloud, 'Field', 
                     (SCIRun_Field, 'Field'))
 
-  reg.add_module(SCIRun_InsertStringsIntoBundle)
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'string1_name',
+  reg.add_module(scirun_CreateFieldData)
+  reg.add_input_port(scirun_CreateFieldData, 'p_function',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'string2_name',
+  reg.add_input_port(scirun_CreateFieldData, 'p_format',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'string3_name',
+  reg.add_input_port(scirun_CreateFieldData, 'p_basis',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'string4_name',
+  reg.add_input_port(scirun_CreateFieldData, 'Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_input_port(scirun_CreateFieldData, 'Function',
+                   (core.modules.basic_modules.String, 'tip'))
+  reg.add_input_port(scirun_CreateFieldData, 'DataArray',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_CreateFieldData, 'Field', 
+                    (SCIRun_Field, 'Field'))
+
+  reg.add_module(scirun_InsertStringsIntoBundle)
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'p_string1_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'string5_name',
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'p_string2_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'string6_name',
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'p_string3_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'replace1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'replace2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'replace3',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'replace4',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'replace5',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'replace6',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'bundle',
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'p_string4_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'p_string5_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'p_string6_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'p_replace1',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'p_replace2',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'p_replace3',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'p_replace4',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'p_replace5',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'p_replace6',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'bundle',
                    (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'string1',
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'string1',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'string2',
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'string2',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'string3',
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'string3',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'string4',
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'string4',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'string5',
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'string5',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_InsertStringsIntoBundle, 'string6',
+  reg.add_input_port(scirun_InsertStringsIntoBundle, 'string6',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_output_port(SCIRun_InsertStringsIntoBundle, 'bundle', 
+  reg.add_output_port(scirun_InsertStringsIntoBundle, 'bundle', 
                     (SCIRun_Bundle, 'bundle'))
 
-  reg.add_module(SCIRun_GetMatricesFromBundle)
-  reg.add_input_port(SCIRun_GetMatricesFromBundle, 'matrix1_name',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetMatricesFromBundle, 'matrix2_name',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetMatricesFromBundle, 'matrix3_name',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetMatricesFromBundle, 'matrix4_name',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetMatricesFromBundle, 'matrix5_name',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetMatricesFromBundle, 'matrix6_name',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetMatricesFromBundle, 'transposenrrd1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetMatricesFromBundle, 'transposenrrd2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetMatricesFromBundle, 'transposenrrd3',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetMatricesFromBundle, 'transposenrrd4',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetMatricesFromBundle, 'transposenrrd5',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetMatricesFromBundle, 'transposenrrd6',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetMatricesFromBundle, 'matrix_selection',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetMatricesFromBundle, 'bundle',
-                   (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_output_port(SCIRun_GetMatricesFromBundle, 'bundle', 
-                    (SCIRun_Bundle, 'bundle'))
-  reg.add_output_port(SCIRun_GetMatricesFromBundle, 'matrix1', 
-                    (SCIRun_Matrix, 'matrix1'))
-  reg.add_output_port(SCIRun_GetMatricesFromBundle, 'matrix2', 
-                    (SCIRun_Matrix, 'matrix2'))
-  reg.add_output_port(SCIRun_GetMatricesFromBundle, 'matrix3', 
-                    (SCIRun_Matrix, 'matrix3'))
-  reg.add_output_port(SCIRun_GetMatricesFromBundle, 'matrix4', 
-                    (SCIRun_Matrix, 'matrix4'))
-  reg.add_output_port(SCIRun_GetMatricesFromBundle, 'matrix5', 
-                    (SCIRun_Matrix, 'matrix5'))
-  reg.add_output_port(SCIRun_GetMatricesFromBundle, 'matrix6', 
-                    (SCIRun_Matrix, 'matrix6'))
+  reg.add_module(scirun_GetInputFieldAndSendAsOutput)
+  reg.add_input_port(scirun_GetInputFieldAndSendAsOutput, 'InField',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_GetInputFieldAndSendAsOutput, 'OutField', 
+                    (SCIRun_Field, 'OutField'))
 
-  reg.add_module(SCIRun_GetNrrdsFromBundle)
-  reg.add_input_port(SCIRun_GetNrrdsFromBundle, 'nrrd1_name',
+  reg.add_module(scirun_GetNrrdsFromBundle)
+  reg.add_input_port(scirun_GetNrrdsFromBundle, 'p_nrrd1_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetNrrdsFromBundle, 'nrrd2_name',
+  reg.add_input_port(scirun_GetNrrdsFromBundle, 'p_nrrd2_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetNrrdsFromBundle, 'nrrd3_name',
+  reg.add_input_port(scirun_GetNrrdsFromBundle, 'p_nrrd3_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetNrrdsFromBundle, 'nrrd4_name',
+  reg.add_input_port(scirun_GetNrrdsFromBundle, 'p_nrrd4_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetNrrdsFromBundle, 'nrrd5_name',
+  reg.add_input_port(scirun_GetNrrdsFromBundle, 'p_nrrd5_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetNrrdsFromBundle, 'nrrd6_name',
+  reg.add_input_port(scirun_GetNrrdsFromBundle, 'p_nrrd6_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetNrrdsFromBundle, 'transposenrrd1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetNrrdsFromBundle, 'transposenrrd2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetNrrdsFromBundle, 'transposenrrd3',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetNrrdsFromBundle, 'transposenrrd4',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetNrrdsFromBundle, 'transposenrrd5',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetNrrdsFromBundle, 'transposenrrd6',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetNrrdsFromBundle, 'nrrd_selection',
+  reg.add_input_port(scirun_GetNrrdsFromBundle, 'p_transposenrrd1',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetNrrdsFromBundle, 'p_transposenrrd2',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetNrrdsFromBundle, 'p_transposenrrd3',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetNrrdsFromBundle, 'p_transposenrrd4',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetNrrdsFromBundle, 'p_transposenrrd5',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetNrrdsFromBundle, 'p_transposenrrd6',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetNrrdsFromBundle, 'p_nrrd_selection',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetNrrdsFromBundle, 'bundle',
+  reg.add_input_port(scirun_GetNrrdsFromBundle, 'bundle',
                    (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_output_port(SCIRun_GetNrrdsFromBundle, 'bundle', 
+  reg.add_output_port(scirun_GetNrrdsFromBundle, 'bundle', 
                     (SCIRun_Bundle, 'bundle'))
-  reg.add_output_port(SCIRun_GetNrrdsFromBundle, 'nrrd1', 
+  reg.add_output_port(scirun_GetNrrdsFromBundle, 'nrrd1', 
                     (SCIRun_Nrrd, 'nrrd1'))
-  reg.add_output_port(SCIRun_GetNrrdsFromBundle, 'nrrd2', 
+  reg.add_output_port(scirun_GetNrrdsFromBundle, 'nrrd2', 
                     (SCIRun_Nrrd, 'nrrd2'))
-  reg.add_output_port(SCIRun_GetNrrdsFromBundle, 'nrrd3', 
+  reg.add_output_port(scirun_GetNrrdsFromBundle, 'nrrd3', 
                     (SCIRun_Nrrd, 'nrrd3'))
-  reg.add_output_port(SCIRun_GetNrrdsFromBundle, 'nrrd4', 
+  reg.add_output_port(scirun_GetNrrdsFromBundle, 'nrrd4', 
                     (SCIRun_Nrrd, 'nrrd4'))
-  reg.add_output_port(SCIRun_GetNrrdsFromBundle, 'nrrd5', 
+  reg.add_output_port(scirun_GetNrrdsFromBundle, 'nrrd5', 
                     (SCIRun_Nrrd, 'nrrd5'))
-  reg.add_output_port(SCIRun_GetNrrdsFromBundle, 'nrrd6', 
+  reg.add_output_port(scirun_GetNrrdsFromBundle, 'nrrd6', 
                     (SCIRun_Nrrd, 'nrrd6'))
 
-  reg.add_module(SCIRun_ManageFieldSeries)
-  reg.add_input_port(SCIRun_ManageFieldSeries, 'num_ports',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ManageFieldSeries, 'Input',
+  reg.add_module(scirun_ManageFieldSeries)
+  reg.add_input_port(scirun_ManageFieldSeries, 'p_num_ports',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ManageFieldSeries, 'Input',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ManageFieldSeries, 'Output 0', 
+  reg.add_output_port(scirun_ManageFieldSeries, 'Output 0', 
                     (SCIRun_Field, 'Output 0'))
-  reg.add_output_port(SCIRun_ManageFieldSeries, 'Output 1', 
+  reg.add_output_port(scirun_ManageFieldSeries, 'Output 1', 
                     (SCIRun_Field, 'Output 1'))
-  reg.add_output_port(SCIRun_ManageFieldSeries, 'Output 2', 
+  reg.add_output_port(scirun_ManageFieldSeries, 'Output 2', 
                     (SCIRun_Field, 'Output 2'))
-  reg.add_output_port(SCIRun_ManageFieldSeries, 'Output 3', 
+  reg.add_output_port(scirun_ManageFieldSeries, 'Output 3', 
                     (SCIRun_Field, 'Output 3'))
 
-  reg.add_module(SCIRun_ConvertMatrixToField)
-  reg.add_input_port(SCIRun_ConvertMatrixToField, 'datalocation',
+  reg.add_module(scirun_ConvertMatrixToField)
+  reg.add_input_port(scirun_ConvertMatrixToField, 'p_datalocation',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertMatrixToField, 'Matrix',
+  reg.add_input_port(scirun_ConvertMatrixToField, 'Matrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ConvertMatrixToField, 'Field', 
+  reg.add_output_port(scirun_ConvertMatrixToField, 'Field', 
                     (SCIRun_Field, 'Field'))
 
-  reg.add_module(SCIRun_ChooseColorMap)
-  reg.add_input_port(SCIRun_ChooseColorMap, 'use_first_valid',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ChooseColorMap, 'port_valid_index',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ChooseColorMap, 'port_selected_index',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ChooseColorMap, 'ColorMap',
-                   (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_output_port(SCIRun_ChooseColorMap, 'ColorMap', 
-                    (SCIRun_ColorMap, 'ColorMap'))
-
-  reg.add_module(SCIRun_CollectMatrices)
-  reg.add_input_port(SCIRun_CollectMatrices, 'append',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CollectMatrices, 'row',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CollectMatrices, 'front',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CollectMatrices, 'Optional BaseMatrix',
+  reg.add_module(scirun_CollectMatrices)
+  reg.add_input_port(scirun_CollectMatrices, 'p_append',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CollectMatrices, 'p_row',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CollectMatrices, 'p_front',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CollectMatrices, 'Optional BaseMatrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_CollectMatrices, 'SubMatrix',
+  reg.add_input_port(scirun_CollectMatrices, 'SubMatrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_CollectMatrices, 'CompositeMatrix', 
+  reg.add_output_port(scirun_CollectMatrices, 'CompositeMatrix', 
                     (SCIRun_Matrix, 'CompositeMatrix'))
 
-  reg.add_module(SCIRun_ReadField)
-  reg.add_input_port(SCIRun_ReadField, 'from_env',
+  reg.add_module(scirun_ChooseColorMap)
+  reg.add_input_port(scirun_ChooseColorMap, 'p_use_first_valid',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadField, 'Filename',
+  reg.add_input_port(scirun_ChooseColorMap, 'p_port_valid_index',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ChooseColorMap, 'p_port_selected_index',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ChooseColorMap, 'ColorMap',
+                   (SCIRun_ColorMap, "SCIRun_ColorMap"))
+  reg.add_output_port(scirun_ChooseColorMap, 'ColorMap', 
+                    (SCIRun_ColorMap, 'ColorMap'))
+
+  reg.add_module(scirun_ReadField)
+  reg.add_input_port(scirun_ReadField, 'p_from_env',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadField, 'Filename',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_output_port(SCIRun_ReadField, 'Output Data', 
+  reg.add_output_port(scirun_ReadField, 'Output Data', 
                     (SCIRun_Field, 'Output Data'))
-  reg.add_output_port(SCIRun_ReadField, 'Filename', 
+  reg.add_output_port(scirun_ReadField, 'Filename', 
                     (core.modules.basic_modules.String, 'Filename'))
 
-  reg.add_module(SCIRun_GetFileName)
-  reg.add_input_port(SCIRun_GetFileName, 'filename_base',
+  reg.add_module(scirun_GetFileName)
+  reg.add_input_port(scirun_GetFileName, 'p_filename_base',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetFileName, 'delay',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetFileName, 'pinned',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_output_port(SCIRun_GetFileName, 'Full Filename', 
+  reg.add_input_port(scirun_GetFileName, 'p_delay',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetFileName, 'p_pinned',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_output_port(scirun_GetFileName, 'Full Filename', 
                     (core.modules.basic_modules.String, 'Full Filename'))
 
-  reg.add_module(SCIRun_ClipVolumeByIsovalue)
-  reg.add_input_port(SCIRun_ClipVolumeByIsovalue, 'isoval_min',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipVolumeByIsovalue, 'isoval_max',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipVolumeByIsovalue, 'isoval',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipVolumeByIsovalue, 'lte',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipVolumeByIsovalue, 'update_type',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipVolumeByIsovalue, 'Input',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_ClipVolumeByIsovalue, 'Optional Isovalue',
+  reg.add_module(scirun_DecomposeTensorArrayIntoEigenVectors)
+  reg.add_input_port(scirun_DecomposeTensorArrayIntoEigenVectors, 'TensorArray',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ClipVolumeByIsovalue, 'Clipped', 
-                    (SCIRun_Field, 'Clipped'))
-  reg.add_output_port(SCIRun_ClipVolumeByIsovalue, 'Mapping', 
-                    (SCIRun_Matrix, 'Mapping'))
-
-  reg.add_module(SCIRun_DecomposeTensorArrayIntoEigenVectors)
-  reg.add_input_port(SCIRun_DecomposeTensorArrayIntoEigenVectors, 'TensorArray',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_DecomposeTensorArrayIntoEigenVectors, 'EigenVector1', 
+  reg.add_output_port(scirun_DecomposeTensorArrayIntoEigenVectors, 'EigenVector1', 
                     (SCIRun_Matrix, 'EigenVector1'))
-  reg.add_output_port(SCIRun_DecomposeTensorArrayIntoEigenVectors, 'EigenVector2', 
+  reg.add_output_port(scirun_DecomposeTensorArrayIntoEigenVectors, 'EigenVector2', 
                     (SCIRun_Matrix, 'EigenVector2'))
-  reg.add_output_port(SCIRun_DecomposeTensorArrayIntoEigenVectors, 'EigenVector3', 
+  reg.add_output_port(scirun_DecomposeTensorArrayIntoEigenVectors, 'EigenVector3', 
                     (SCIRun_Matrix, 'EigenVector3'))
-  reg.add_output_port(SCIRun_DecomposeTensorArrayIntoEigenVectors, 'EigenValue1', 
+  reg.add_output_port(scirun_DecomposeTensorArrayIntoEigenVectors, 'EigenValue1', 
                     (SCIRun_Matrix, 'EigenValue1'))
-  reg.add_output_port(SCIRun_DecomposeTensorArrayIntoEigenVectors, 'EigenValue2', 
+  reg.add_output_port(scirun_DecomposeTensorArrayIntoEigenVectors, 'EigenValue2', 
                     (SCIRun_Matrix, 'EigenValue2'))
-  reg.add_output_port(SCIRun_DecomposeTensorArrayIntoEigenVectors, 'EigenValue3', 
+  reg.add_output_port(scirun_DecomposeTensorArrayIntoEigenVectors, 'EigenValue3', 
                     (SCIRun_Matrix, 'EigenValue3'))
 
-  reg.add_module(SCIRun_TransformMeshWithTransform)
-  reg.add_input_port(SCIRun_TransformMeshWithTransform, 'Input Field',
+  reg.add_module(scirun_TransformMeshWithTransform)
+  reg.add_input_port(scirun_TransformMeshWithTransform, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_TransformMeshWithTransform, 'Transform Matrix',
+  reg.add_input_port(scirun_TransformMeshWithTransform, 'Transform Matrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_TransformMeshWithTransform, 'Transformed Field', 
+  reg.add_output_port(scirun_TransformMeshWithTransform, 'Transformed Field', 
                     (SCIRun_Field, 'Transformed Field'))
 
-  reg.add_module(SCIRun_ReportSearchGridInfo)
-  reg.add_input_port(SCIRun_ReportSearchGridInfo, 'Input Field',
+  reg.add_module(scirun_ClipVolumeByIsovalue)
+  reg.add_input_port(scirun_ClipVolumeByIsovalue, 'p_isoval_min',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ClipVolumeByIsovalue, 'p_isoval_max',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ClipVolumeByIsovalue, 'p_isoval',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ClipVolumeByIsovalue, 'p_lte',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ClipVolumeByIsovalue, 'p_update_type',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ClipVolumeByIsovalue, 'Input',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ReportSearchGridInfo, 'Output Sample Field', 
+  reg.add_input_port(scirun_ClipVolumeByIsovalue, 'Optional Isovalue',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_ClipVolumeByIsovalue, 'Clipped', 
+                    (SCIRun_Field, 'Clipped'))
+  reg.add_output_port(scirun_ClipVolumeByIsovalue, 'Mapping', 
+                    (SCIRun_Matrix, 'Mapping'))
+
+  reg.add_module(scirun_ReportSearchGridInfo)
+  reg.add_input_port(scirun_ReportSearchGridInfo, 'Input Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_ReportSearchGridInfo, 'Output Sample Field', 
                     (SCIRun_Field, 'Output Sample Field'))
 
-  reg.add_module(SCIRun_ChooseField)
-  reg.add_input_port(SCIRun_ChooseField, 'use_first_valid',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ChooseField, 'port_valid_index',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ChooseField, 'port_selected_index',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ChooseField, 'Field',
+  reg.add_module(scirun_ChooseField)
+  reg.add_input_port(scirun_ChooseField, 'p_use_first_valid',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ChooseField, 'p_port_valid_index',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ChooseField, 'p_port_selected_index',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ChooseField, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ChooseField, 'Field', 
+  reg.add_output_port(scirun_ChooseField, 'Field', 
                     (SCIRun_Field, 'Field'))
 
-  reg.add_module(SCIRun_CreateLightForViewer)
-  reg.add_input_port(SCIRun_CreateLightForViewer, 'control_pos_saved',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateLightForViewer, 'control_x',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateLightForViewer, 'control_y',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateLightForViewer, 'control_z',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateLightForViewer, 'at_x',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateLightForViewer, 'at_y',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateLightForViewer, 'at_z',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateLightForViewer, 'type',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateLightForViewer, 'on',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_output_port(SCIRun_CreateLightForViewer, 'Geometry', 
-                    (SCIRun_Geometry, 'Geometry'))
-
-  reg.add_module(SCIRun_ConvertRegularMeshToStructuredMesh)
-  reg.add_input_port(SCIRun_ConvertRegularMeshToStructuredMesh, 'Input Field',
+  reg.add_module(scirun_ConvertRegularMeshToStructuredMesh)
+  reg.add_input_port(scirun_ConvertRegularMeshToStructuredMesh, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ConvertRegularMeshToStructuredMesh, 'Output Field', 
+  reg.add_output_port(scirun_ConvertRegularMeshToStructuredMesh, 'Output Field', 
                     (SCIRun_Field, 'Output Field'))
 
-  reg.add_module(SCIRun_WriteColorMap)
-  reg.add_input_port(SCIRun_WriteColorMap, 'filetype',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteColorMap, 'confirm',
+  reg.add_module(scirun_CreateLightForViewer)
+  reg.add_input_port(scirun_CreateLightForViewer, 'p_control_pos_saved',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateLightForViewer, 'p_control_x',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteColorMap, 'confirm_once',
+  reg.add_input_port(scirun_CreateLightForViewer, 'p_control_y',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteColorMap, 'exporttype',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteColorMap, 'Input Data',
-                   (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_input_port(SCIRun_WriteColorMap, 'Filename',
-                   (core.modules.basic_modules.String, 'tip'))
+  reg.add_input_port(scirun_CreateLightForViewer, 'p_control_z',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateLightForViewer, 'p_at_x',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateLightForViewer, 'p_at_y',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateLightForViewer, 'p_at_z',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateLightForViewer, 'p_type',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateLightForViewer, 'p_on',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_output_port(scirun_CreateLightForViewer, 'Geometry', 
+                    (SCIRun_Geometry, 'Geometry'))
 
-  reg.add_module(SCIRun_MergeFields)
-  reg.add_input_port(SCIRun_MergeFields, 'Container Mesh',
+  reg.add_module(scirun_GetMatricesFromBundle)
+  reg.add_input_port(scirun_GetMatricesFromBundle, 'p_matrix1_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GetMatricesFromBundle, 'p_matrix2_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GetMatricesFromBundle, 'p_matrix3_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GetMatricesFromBundle, 'p_matrix4_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GetMatricesFromBundle, 'p_matrix5_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GetMatricesFromBundle, 'p_matrix6_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GetMatricesFromBundle, 'p_transposenrrd1',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetMatricesFromBundle, 'p_transposenrrd2',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetMatricesFromBundle, 'p_transposenrrd3',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetMatricesFromBundle, 'p_transposenrrd4',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetMatricesFromBundle, 'p_transposenrrd5',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetMatricesFromBundle, 'p_transposenrrd6',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetMatricesFromBundle, 'p_matrix_selection',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GetMatricesFromBundle, 'bundle',
+                   (SCIRun_Bundle, "SCIRun_Bundle"))
+  reg.add_output_port(scirun_GetMatricesFromBundle, 'bundle', 
+                    (SCIRun_Bundle, 'bundle'))
+  reg.add_output_port(scirun_GetMatricesFromBundle, 'matrix1', 
+                    (SCIRun_Matrix, 'matrix1'))
+  reg.add_output_port(scirun_GetMatricesFromBundle, 'matrix2', 
+                    (SCIRun_Matrix, 'matrix2'))
+  reg.add_output_port(scirun_GetMatricesFromBundle, 'matrix3', 
+                    (SCIRun_Matrix, 'matrix3'))
+  reg.add_output_port(scirun_GetMatricesFromBundle, 'matrix4', 
+                    (SCIRun_Matrix, 'matrix4'))
+  reg.add_output_port(scirun_GetMatricesFromBundle, 'matrix5', 
+                    (SCIRun_Matrix, 'matrix5'))
+  reg.add_output_port(scirun_GetMatricesFromBundle, 'matrix6', 
+                    (SCIRun_Matrix, 'matrix6'))
+
+  reg.add_module(scirun_RefineMesh)
+  reg.add_input_port(scirun_RefineMesh, 'p_select',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_RefineMesh, 'p_method',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_RefineMesh, 'p_isoval',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_RefineMesh, 'Mesh',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_MergeFields, 'Insert Field',
+  reg.add_input_port(scirun_RefineMesh, 'Isovalue',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_RefineMesh, 'RefinedMesh', 
+                    (SCIRun_Field, 'RefinedMesh'))
+  reg.add_output_port(scirun_RefineMesh, 'Mapping', 
+                    (SCIRun_Matrix, 'Mapping'))
+
+  reg.add_module(scirun_MergeFields)
+  reg.add_input_port(scirun_MergeFields, 'Container Mesh',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_MergeFields, 'Combined Field', 
+  reg.add_input_port(scirun_MergeFields, 'Insert Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_MergeFields, 'Combined Field', 
                     (SCIRun_Field, 'Combined Field'))
-  reg.add_output_port(SCIRun_MergeFields, 'Extended Insert Field', 
+  reg.add_output_port(scirun_MergeFields, 'Extended Insert Field', 
                     (SCIRun_Field, 'Extended Insert Field'))
-  reg.add_output_port(SCIRun_MergeFields, 'Combined To Extended Mapping', 
+  reg.add_output_port(scirun_MergeFields, 'Combined To Extended Mapping', 
                     (SCIRun_Matrix, 'Combined To Extended Mapping'))
 
-  reg.add_module(SCIRun_BuildPointCloudToLatVolMappingMatrix)
-  reg.add_input_port(SCIRun_BuildPointCloudToLatVolMappingMatrix, 'epsilon',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_BuildPointCloudToLatVolMappingMatrix, 'PointCloudField',
+  reg.add_module(scirun_BuildPointCloudToLatVolMappingMatrix)
+  reg.add_input_port(scirun_BuildPointCloudToLatVolMappingMatrix, 'p_epsilon',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_BuildPointCloudToLatVolMappingMatrix, 'PointCloudField',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_BuildPointCloudToLatVolMappingMatrix, 'LatVolField',
+  reg.add_input_port(scirun_BuildPointCloudToLatVolMappingMatrix, 'LatVolField',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_BuildPointCloudToLatVolMappingMatrix, 'MappingMatrix', 
+  reg.add_output_port(scirun_BuildPointCloudToLatVolMappingMatrix, 'MappingMatrix', 
                     (SCIRun_Matrix, 'MappingMatrix'))
 
-  reg.add_module(SCIRun_CalculateDataArray)
-  reg.add_input_port(SCIRun_CalculateDataArray, 'function',
+  reg.add_module(scirun_CalculateDataArray)
+  reg.add_input_port(scirun_CalculateDataArray, 'p_function',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateDataArray, 'format',
+  reg.add_input_port(scirun_CalculateDataArray, 'p_format',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateDataArray, 'DataArray',
+  reg.add_input_port(scirun_CalculateDataArray, 'DataArray',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_CalculateDataArray, 'Function',
+  reg.add_input_port(scirun_CalculateDataArray, 'Function',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_CalculateDataArray, 'Array',
+  reg.add_input_port(scirun_CalculateDataArray, 'Array',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_CalculateDataArray, 'DataArray', 
+  reg.add_output_port(scirun_CalculateDataArray, 'DataArray', 
                     (SCIRun_Matrix, 'DataArray'))
 
-  reg.add_module(SCIRun_GetColumnOrRowFromMatrix)
-  reg.add_input_port(SCIRun_GetColumnOrRowFromMatrix, 'row_or_col',
+  reg.add_module(scirun_WriteColorMap)
+  reg.add_input_port(scirun_WriteColorMap, 'p_filetype',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColumnOrRowFromMatrix, 'selectable_min',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColumnOrRowFromMatrix, 'selectable_max',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColumnOrRowFromMatrix, 'selectable_inc',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColumnOrRowFromMatrix, 'selectable_units',
+  reg.add_input_port(scirun_WriteColorMap, 'p_confirm',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColumnOrRowFromMatrix, 'range_min',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColumnOrRowFromMatrix, 'range_max',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColumnOrRowFromMatrix, 'playmode',
+  reg.add_input_port(scirun_WriteColorMap, 'p_confirm_once',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColumnOrRowFromMatrix, 'current',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColumnOrRowFromMatrix, 'execmode',
+  reg.add_input_port(scirun_WriteColorMap, 'p_exporttype',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColumnOrRowFromMatrix, 'delay',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColumnOrRowFromMatrix, 'inc_amount',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColumnOrRowFromMatrix, 'send_amount',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColumnOrRowFromMatrix, 'data_series_done',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColumnOrRowFromMatrix, 'Matrix',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_GetColumnOrRowFromMatrix, 'Weight Vector',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_GetColumnOrRowFromMatrix, 'Current Index',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_GetColumnOrRowFromMatrix, 'Vector', 
-                    (SCIRun_Matrix, 'Vector'))
-  reg.add_output_port(SCIRun_GetColumnOrRowFromMatrix, 'Selected Index', 
-                    (SCIRun_Matrix, 'Selected Index'))
-
-  reg.add_module(SCIRun_ShowTextureVolume)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'sampling_rate_hi',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'sampling_rate_lo',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'gradient_min',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'gradient_max',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'adaptive',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'cmap_size',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'sw_raster',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'render_style',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'alpha_scale',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'interp_mode',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'shading',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'ambient',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'diffuse',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'specular',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'shine',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'light',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'blend_res',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'multi_level',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'use_stencil',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'invert_opacity',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'num_clipping_planes',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'show_clipping_widgets',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'level_on',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'level_vals',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'Texture',
-                   (SCIRun_Texture, "SCIRun_Texture"))
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'ColorMap',
+  reg.add_input_port(scirun_WriteColorMap, 'Input Data',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_input_port(SCIRun_ShowTextureVolume, 'ColorMap2',
+  reg.add_input_port(scirun_WriteColorMap, 'Filename',
+                   (core.modules.basic_modules.String, 'tip'))
+
+  reg.add_module(scirun_ShowTextureVolume)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_sampling_rate_hi',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_sampling_rate_lo',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_gradient_min',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_gradient_max',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_adaptive',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_cmap_size',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_sw_raster',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_render_style',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_alpha_scale',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_interp_mode',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_shading',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_ambient',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_diffuse',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_specular',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_shine',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_light',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_blend_res',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_multi_level',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_use_stencil',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_invert_opacity',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_num_clipping_planes',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_show_clipping_widgets',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_level_on',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'p_level_vals',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureVolume, 'Texture',
+                   (SCIRun_Texture, "SCIRun_Texture"))
+  reg.add_input_port(scirun_ShowTextureVolume, 'ColorMap',
+                   (SCIRun_ColorMap, "SCIRun_ColorMap"))
+  reg.add_input_port(scirun_ShowTextureVolume, 'ColorMap2',
                    (SCIRun_ColorMap2, "SCIRun_ColorMap2"))
-  reg.add_output_port(SCIRun_ShowTextureVolume, 'Geometry', 
+  reg.add_output_port(scirun_ShowTextureVolume, 'Geometry', 
                     (SCIRun_Geometry, 'Geometry'))
-  reg.add_output_port(SCIRun_ShowTextureVolume, 'ColorMap', 
+  reg.add_output_port(scirun_ShowTextureVolume, 'ColorMap', 
                     (SCIRun_ColorMap, 'ColorMap'))
 
-  reg.add_module(SCIRun_GetCentroidsFromMesh)
-  reg.add_input_port(SCIRun_GetCentroidsFromMesh, 'TetVolField',
+  reg.add_module(scirun_GetCentroidsFromMesh)
+  reg.add_input_port(scirun_GetCentroidsFromMesh, 'TetVolField',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_GetCentroidsFromMesh, 'PointCloudField', 
+  reg.add_output_port(scirun_GetCentroidsFromMesh, 'PointCloudField', 
                     (SCIRun_Field, 'PointCloudField'))
 
-  reg.add_module(SCIRun_ReadColorMap2D)
-  reg.add_input_port(SCIRun_ReadColorMap2D, 'from_env',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadColorMap2D, 'Filename',
-                   (core.modules.basic_modules.String, 'tip'))
-  reg.add_output_port(SCIRun_ReadColorMap2D, 'Output Data', 
-                    (SCIRun_ColorMap2, 'Output Data'))
-  reg.add_output_port(SCIRun_ReadColorMap2D, 'Filename', 
-                    (core.modules.basic_modules.String, 'Filename'))
-
-  reg.add_module(SCIRun_ConvertLatVolDataFromNodeToElem)
-  reg.add_input_port(SCIRun_ConvertLatVolDataFromNodeToElem, 'Node Field',
+  reg.add_module(scirun_ConvertLatVolDataFromNodeToElem)
+  reg.add_input_port(scirun_ConvertLatVolDataFromNodeToElem, 'Node Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ConvertLatVolDataFromNodeToElem, 'Elem Field', 
+  reg.add_output_port(scirun_ConvertLatVolDataFromNodeToElem, 'Elem Field', 
                     (SCIRun_Field, 'Elem Field'))
 
-  reg.add_module(SCIRun_InsertHexVolSheetAlongSurface)
-  reg.add_input_port(SCIRun_InsertHexVolSheetAlongSurface, 'side',
+  reg.add_module(scirun_ReadColorMap2D)
+  reg.add_input_port(scirun_ReadColorMap2D, 'p_from_env',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertHexVolSheetAlongSurface, 'addlayer',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertHexVolSheetAlongSurface, 'HexField',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_InsertHexVolSheetAlongSurface, 'TriField',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_InsertHexVolSheetAlongSurface, 'Side1Field', 
-                    (SCIRun_Field, 'Side1Field'))
-  reg.add_output_port(SCIRun_InsertHexVolSheetAlongSurface, 'Side2Field', 
-                    (SCIRun_Field, 'Side2Field'))
+  reg.add_input_port(scirun_ReadColorMap2D, 'Filename',
+                   (core.modules.basic_modules.String, 'tip'))
+  reg.add_output_port(scirun_ReadColorMap2D, 'Output Data', 
+                    (SCIRun_ColorMap2, 'Output Data'))
+  reg.add_output_port(scirun_ReadColorMap2D, 'Filename', 
+                    (core.modules.basic_modules.String, 'Filename'))
 
-  reg.add_module(SCIRun_ExtractIsosurfaceByFunction)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'function',
+  reg.add_module(scirun_GetColumnOrRowFromMatrix)
+  reg.add_input_port(scirun_GetColumnOrRowFromMatrix, 'p_row_or_col',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'zero_checks',
+  reg.add_input_port(scirun_GetColumnOrRowFromMatrix, 'p_selectable_min',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'slice_value_min',
+  reg.add_input_port(scirun_GetColumnOrRowFromMatrix, 'p_selectable_max',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'slice_value_max',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'slice_value',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'slice_value_typed',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'slice_value_quantity',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'quantity_range',
+  reg.add_input_port(scirun_GetColumnOrRowFromMatrix, 'p_selectable_inc',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetColumnOrRowFromMatrix, 'p_selectable_units',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'quantity_clusive',
+  reg.add_input_port(scirun_GetColumnOrRowFromMatrix, 'p_range_min',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetColumnOrRowFromMatrix, 'p_range_max',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetColumnOrRowFromMatrix, 'p_playmode',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'quantity_min',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'quantity_max',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'quantity_list',
+  reg.add_input_port(scirun_GetColumnOrRowFromMatrix, 'p_current',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetColumnOrRowFromMatrix, 'p_execmode',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'slice_value_list',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'matrix_list',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'extract_from_new_field',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'algorithm',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'build_trisurf',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'build_geom',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'active_slice_value_selection_tab',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'active_tab',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'update_type',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'Input Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_ExtractIsosurfaceByFunction, 'Optional Slice values',
+  reg.add_input_port(scirun_GetColumnOrRowFromMatrix, 'p_delay',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetColumnOrRowFromMatrix, 'p_inc_amount',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetColumnOrRowFromMatrix, 'p_send_amount',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetColumnOrRowFromMatrix, 'p_data_series_done',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetColumnOrRowFromMatrix, 'Matrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ExtractIsosurfaceByFunction, 'Output Field', 
+  reg.add_input_port(scirun_GetColumnOrRowFromMatrix, 'Weight Vector',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_input_port(scirun_GetColumnOrRowFromMatrix, 'Current Index',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_GetColumnOrRowFromMatrix, 'Vector', 
+                    (SCIRun_Matrix, 'Vector'))
+  reg.add_output_port(scirun_GetColumnOrRowFromMatrix, 'Selected Index', 
+                    (SCIRun_Matrix, 'Selected Index'))
+
+  reg.add_module(scirun_ExtractIsosurfaceByFunction)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_function',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_zero_checks',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_slice_value_min',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_slice_value_max',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_slice_value',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_slice_value_typed',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_slice_value_quantity',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_quantity_range',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_quantity_clusive',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_quantity_min',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_quantity_max',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_quantity_list',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_slice_value_list',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_matrix_list',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_algorithm',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_build_trisurf',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_build_geom',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_active_slice_value_selection_tab',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_active_tab',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'p_update_type',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'Input Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_input_port(scirun_ExtractIsosurfaceByFunction, 'Optional Slice values',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_ExtractIsosurfaceByFunction, 'Output Field', 
                     (SCIRun_Field, 'Output Field'))
 
-  reg.add_module(SCIRun_BuildNoiseColumnMatrix)
-  reg.add_input_port(SCIRun_BuildNoiseColumnMatrix, 'snr',
+  reg.add_module(scirun_BuildNoiseColumnMatrix)
+  reg.add_input_port(scirun_BuildNoiseColumnMatrix, 'p_snr',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_BuildNoiseColumnMatrix, 'Signal',
+  reg.add_input_port(scirun_BuildNoiseColumnMatrix, 'Signal',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_BuildNoiseColumnMatrix, 'Noise', 
+  reg.add_output_port(scirun_BuildNoiseColumnMatrix, 'Noise', 
                     (SCIRun_Matrix, 'Noise'))
 
-  reg.add_module(SCIRun_MergeTriSurfs)
-  reg.add_input_port(SCIRun_MergeTriSurfs, 'Input Field',
+  reg.add_module(scirun_MergeTriSurfs)
+  reg.add_input_port(scirun_MergeTriSurfs, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_MergeTriSurfs, 'Output Field', 
+  reg.add_output_port(scirun_MergeTriSurfs, 'Output Field', 
                     (SCIRun_Field, 'Output Field'))
 
-  reg.add_module(SCIRun_ReadString)
-  reg.add_input_port(SCIRun_ReadString, 'from_env',
+  reg.add_module(scirun_ReadString)
+  reg.add_input_port(scirun_ReadString, 'p_from_env',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadString, 'Filename',
+  reg.add_input_port(scirun_ReadString, 'Filename',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_output_port(SCIRun_ReadString, 'Output Data', 
+  reg.add_output_port(scirun_ReadString, 'Output Data', 
                     (core.modules.basic_modules.String, 'Output Data'))
-  reg.add_output_port(SCIRun_ReadString, 'Filename', 
+  reg.add_output_port(scirun_ReadString, 'Filename', 
                     (core.modules.basic_modules.String, 'Filename'))
 
-  reg.add_module(SCIRun_InterfaceWithTetGen)
-  reg.add_input_port(SCIRun_InterfaceWithTetGen, 'switch',
+  reg.add_module(scirun_InterfaceWithTetGen)
+  reg.add_input_port(scirun_InterfaceWithTetGen, 'p_switch',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InterfaceWithTetGen, 'Main',
+  reg.add_input_port(scirun_InterfaceWithTetGen, 'Main',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_InterfaceWithTetGen, 'Points',
+  reg.add_input_port(scirun_InterfaceWithTetGen, 'Points',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_InterfaceWithTetGen, 'Region Attribs',
+  reg.add_input_port(scirun_InterfaceWithTetGen, 'Region Attribs',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_InterfaceWithTetGen, 'Regions',
+  reg.add_input_port(scirun_InterfaceWithTetGen, 'Regions',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_InterfaceWithTetGen, 'TetVol', 
+  reg.add_output_port(scirun_InterfaceWithTetGen, 'TetVol', 
                     (SCIRun_Field, 'TetVol'))
 
-  reg.add_module(SCIRun_CalculateMeshNodes)
-  reg.add_input_port(SCIRun_CalculateMeshNodes, 'function',
+  reg.add_module(scirun_CalculateMeshNodes)
+  reg.add_input_port(scirun_CalculateMeshNodes, 'p_function',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateMeshNodes, 'Field',
+  reg.add_input_port(scirun_CalculateMeshNodes, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_CalculateMeshNodes, 'Function',
+  reg.add_input_port(scirun_CalculateMeshNodes, 'Function',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_CalculateMeshNodes, 'Array',
+  reg.add_input_port(scirun_CalculateMeshNodes, 'Array',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_CalculateMeshNodes, 'Field', 
+  reg.add_output_port(scirun_CalculateMeshNodes, 'Field', 
                     (SCIRun_Field, 'Field'))
 
-  reg.add_module(SCIRun_CreateImage)
-  reg.add_input_port(SCIRun_CreateImage, 'sizex',
+  reg.add_module(scirun_CreateImage)
+  reg.add_input_port(scirun_CreateImage, 'p_sizex',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateImage, 'p_sizey',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateImage, 'p_sizez',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateImage, 'p_z_value',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateImage, 'p_auto_size',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateImage, 'p_axis',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateImage, 'p_padpercent',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateImage, 'sizey',
+  reg.add_input_port(scirun_CreateImage, 'p_pos',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateImage, 'sizez',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateImage, 'z_value',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateImage, 'auto_size',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateImage, 'axis',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateImage, 'padpercent',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateImage, 'pos',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateImage, 'data_at',
+  reg.add_input_port(scirun_CreateImage, 'p_data_at',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateImage, 'update_type',
+  reg.add_input_port(scirun_CreateImage, 'p_update_type',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateImage, 'corigin_x',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateImage, 'corigin_y',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateImage, 'corigin_z',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateImage, 'cnormal_x',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateImage, 'cnormal_y',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateImage, 'cnormal_z',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateImage, 'Input Field',
+  reg.add_input_port(scirun_CreateImage, 'p_corigin_x',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateImage, 'p_corigin_y',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateImage, 'p_corigin_z',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateImage, 'p_cnormal_x',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateImage, 'p_cnormal_y',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateImage, 'p_cnormal_z',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateImage, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_CreateImage, 'Output Sample Field', 
+  reg.add_output_port(scirun_CreateImage, 'Output Sample Field', 
                     (SCIRun_Field, 'Output Sample Field'))
 
-  reg.add_module(SCIRun_SplitNodesByDomain)
-  reg.add_input_port(SCIRun_SplitNodesByDomain, 'Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_SplitNodesByDomain, 'SplitField', 
-                    (SCIRun_Field, 'SplitField'))
-
-  reg.add_module(SCIRun_CalculateFieldDataCompiled)
-  reg.add_input_port(SCIRun_CalculateFieldDataCompiled, 'outputdatatype',
+  reg.add_module(scirun_CalculateFieldDataCompiled)
+  reg.add_input_port(scirun_CalculateFieldDataCompiled, 'p_outputdatatype',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateFieldDataCompiled, 'function',
+  reg.add_input_port(scirun_CalculateFieldDataCompiled, 'p_function',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateFieldDataCompiled, 'cache',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateFieldDataCompiled, 'Function',
+  reg.add_input_port(scirun_CalculateFieldDataCompiled, 'p_cache',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CalculateFieldDataCompiled, 'Function',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_CalculateFieldDataCompiled, 'Input Field',
+  reg.add_input_port(scirun_CalculateFieldDataCompiled, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_CalculateFieldDataCompiled, 'Output Field', 
+  reg.add_output_port(scirun_CalculateFieldDataCompiled, 'Output Field', 
                     (SCIRun_Field, 'Output Field'))
 
-  reg.add_module(SCIRun_ReadColorMap)
-  reg.add_input_port(SCIRun_ReadColorMap, 'from_env',
+  reg.add_module(scirun_ReadColorMap)
+  reg.add_input_port(scirun_ReadColorMap, 'p_from_env',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadColorMap, 'Filename',
+  reg.add_input_port(scirun_ReadColorMap, 'Filename',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_output_port(SCIRun_ReadColorMap, 'Output Data', 
+  reg.add_output_port(scirun_ReadColorMap, 'Output Data', 
                     (SCIRun_ColorMap, 'Output Data'))
-  reg.add_output_port(SCIRun_ReadColorMap, 'Filename', 
+  reg.add_output_port(scirun_ReadColorMap, 'Filename', 
                     (core.modules.basic_modules.String, 'Filename'))
 
-  reg.add_module(SCIRun_MapFieldDataFromElemToNode)
-  reg.add_input_port(SCIRun_MapFieldDataFromElemToNode, 'method',
+  reg.add_module(scirun_MapFieldDataFromElemToNode)
+  reg.add_input_port(scirun_MapFieldDataFromElemToNode, 'p_method',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_MapFieldDataFromElemToNode, 'Field',
+  reg.add_input_port(scirun_MapFieldDataFromElemToNode, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_MapFieldDataFromElemToNode, 'Field', 
+  reg.add_output_port(scirun_MapFieldDataFromElemToNode, 'Field', 
                     (SCIRun_Field, 'Field'))
 
-  reg.add_module(SCIRun_ShowFieldGlyphs)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'scalars_has_data',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'scalars_on',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'scalars_display_type',
+  reg.add_module(scirun_ShowFieldGlyphs)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_scalars_has_data',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_scalars_on',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_scalars_display_type',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'scalars_transparency',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'scalars_normalize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'scalars_color_type',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'scalars_resolution',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'vectors_has_data',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'vectors_on',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'vectors_display_type',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_scalars_transparency',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_scalars_normalize',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_scalars_color_type',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_scalars_resolution',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_vectors_has_data',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_vectors_on',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_vectors_display_type',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'vectors_transparency',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'vectors_normalize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'vectors_bidirectional',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'vectors_color_type',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'vectors_resolution',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'tensors_has_data',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'tensors_on',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'tensors_display_type',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_vectors_transparency',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_vectors_normalize',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_vectors_bidirectional',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_vectors_color_type',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_vectors_resolution',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_tensors_has_data',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_tensors_on',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_tensors_display_type',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'tensors_transparency',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_tensors_transparency',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_tensors_normalize',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_tensors_color_type',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_tensors_resolution',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_tensors_emphasis',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'tensors_normalize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'tensors_color_type',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'tensors_resolution',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'tensors_emphasis',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'secondary_has_data',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'secondary_on',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'secondary_display_type',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_secondary_has_data',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_secondary_on',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_secondary_display_type',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'secondary_color_type',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'secondary_alpha',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'secondary_value',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'tertiary_has_data',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'tertiary_on',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'tertiary_display_type',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_secondary_color_type',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_secondary_alpha',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_secondary_value',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_tertiary_has_data',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_tertiary_on',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_tertiary_display_type',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'tertiary_color_type',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_tertiary_color_type',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_tertiary_alpha',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_tertiary_value',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_text_on',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_text_color_type',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_text_color_r',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'tertiary_alpha',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_text_color_g',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'tertiary_value',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_text_color_b',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'text_on',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_text_backface_cull',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_text_always_visible',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_text_fontsize',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_text_precision',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_text_render_locations',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_text_show_data',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_text_show_nodes',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_text_show_edges',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_text_show_faces',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_text_show_cells',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_def_color_r',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'text_color_type',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_def_color_g',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'text_color_r',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_def_color_b',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'text_color_g',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_def_color_a',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'text_color_b',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'text_backface_cull',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'text_always_visible',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'text_fontsize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'text_precision',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'text_render_locations',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'text_show_data',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'text_show_nodes',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'text_show_edges',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'text_show_faces',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'text_show_cells',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'def_color_r',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'def_color_g',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'def_color_b',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'def_color_a',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'active_tab',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_active_tab',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'interactive_mode',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_interactive_mode',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'show_progress',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'field_name',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_show_progress',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_field_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'field_name_override',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'approx_div',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'use_default_size',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'Primary Data',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_field_name_override',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_approx_div',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'p_use_default_size',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'Primary Data',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'Primary ColorMap',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'Primary ColorMap',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'Secondary Data',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'Secondary Data',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'Secondary ColorMap',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'Secondary ColorMap',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'Tertiary Data',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'Tertiary Data',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_ShowFieldGlyphs, 'Tertiary ColorMap',
+  reg.add_input_port(scirun_ShowFieldGlyphs, 'Tertiary ColorMap',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_output_port(SCIRun_ShowFieldGlyphs, 'Scene Graph', 
+  reg.add_output_port(scirun_ShowFieldGlyphs, 'Scene Graph', 
                     (SCIRun_Geometry, 'Scene Graph'))
 
-  reg.add_module(SCIRun_JoinBundles)
-  reg.add_input_port(SCIRun_JoinBundles, 'bundle',
+  reg.add_module(scirun_JoinBundles)
+  reg.add_input_port(scirun_JoinBundles, 'bundle',
                    (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_output_port(SCIRun_JoinBundles, 'bundle', 
+  reg.add_output_port(scirun_JoinBundles, 'bundle', 
                     (SCIRun_Bundle, 'bundle'))
 
-  reg.add_module(SCIRun_ReportBundleInfo)
-  reg.add_input_port(SCIRun_ReportBundleInfo, 'tclinfostring',
+  reg.add_module(scirun_ApplyFilterToFieldData)
+  reg.add_input_port(scirun_ApplyFilterToFieldData, 'p_method',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportBundleInfo, 'bundle',
-                   (SCIRun_Bundle, "SCIRun_Bundle"))
-
-  reg.add_module(SCIRun_GetFieldData)
-  reg.add_input_port(SCIRun_GetFieldData, 'Field',
+  reg.add_input_port(scirun_ApplyFilterToFieldData, 'p_ed_method',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ApplyFilterToFieldData, 'p_ed_iterations',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ApplyFilterToFieldData, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_GetFieldData, 'Data', 
+  reg.add_output_port(scirun_ApplyFilterToFieldData, 'Field', 
+                    (SCIRun_Field, 'Field'))
+
+  reg.add_module(scirun_InsertHexVolSheetAlongSurface)
+  reg.add_input_port(scirun_InsertHexVolSheetAlongSurface, 'p_side',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_InsertHexVolSheetAlongSurface, 'p_addlayer',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_InsertHexVolSheetAlongSurface, 'HexField',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_input_port(scirun_InsertHexVolSheetAlongSurface, 'TriField',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_InsertHexVolSheetAlongSurface, 'Side1Field', 
+                    (SCIRun_Field, 'Side1Field'))
+  reg.add_output_port(scirun_InsertHexVolSheetAlongSurface, 'Side2Field', 
+                    (SCIRun_Field, 'Side2Field'))
+
+  reg.add_module(scirun_GetFieldData)
+  reg.add_input_port(scirun_GetFieldData, 'Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_GetFieldData, 'Data', 
                     (SCIRun_Matrix, 'Data'))
 
-  reg.add_module(SCIRun_ReportDataArrayMeasure)
-  reg.add_input_port(SCIRun_ReportDataArrayMeasure, 'measure',
+  reg.add_module(scirun_CalculateFieldData2)
+  reg.add_input_port(scirun_CalculateFieldData2, 'p_function',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportDataArrayMeasure, 'Array',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ReportDataArrayMeasure, 'Measure', 
-                    (SCIRun_Matrix, 'Measure'))
-
-  reg.add_module(SCIRun_CalculateFieldData2)
-  reg.add_input_port(SCIRun_CalculateFieldData2, 'function',
+  reg.add_input_port(scirun_CalculateFieldData2, 'p_format',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateFieldData2, 'format',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateFieldData2, 'Field1',
+  reg.add_input_port(scirun_CalculateFieldData2, 'Field1',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_CalculateFieldData2, 'Field2',
+  reg.add_input_port(scirun_CalculateFieldData2, 'Field2',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_CalculateFieldData2, 'Function',
+  reg.add_input_port(scirun_CalculateFieldData2, 'Function',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_CalculateFieldData2, 'Array',
+  reg.add_input_port(scirun_CalculateFieldData2, 'Array',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_CalculateFieldData2, 'Field', 
+  reg.add_output_port(scirun_CalculateFieldData2, 'Field', 
                     (SCIRun_Field, 'Field'))
 
-  reg.add_module(SCIRun_SplitFileName)
-  reg.add_input_port(SCIRun_SplitFileName, 'Filename',
-                   (core.modules.basic_modules.String, 'tip'))
-  reg.add_output_port(SCIRun_SplitFileName, 'Pathname', 
-                    (core.modules.basic_modules.String, 'Pathname'))
-  reg.add_output_port(SCIRun_SplitFileName, 'Filename Base', 
-                    (core.modules.basic_modules.String, 'Filename Base'))
-  reg.add_output_port(SCIRun_SplitFileName, 'Extension', 
-                    (core.modules.basic_modules.String, 'Extension'))
-  reg.add_output_port(SCIRun_SplitFileName, 'Filename', 
-                    (core.modules.basic_modules.String, 'Filename'))
+  reg.add_module(scirun_ReportBundleInfo)
+  reg.add_input_port(scirun_ReportBundleInfo, 'p_tclinfostring',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReportBundleInfo, 'bundle',
+                   (SCIRun_Bundle, "SCIRun_Bundle"))
 
-  reg.add_module(SCIRun_SmoothMesh)
-  reg.add_input_port(SCIRun_SmoothMesh, 'Input',
+  reg.add_module(scirun_GenerateSinglePointProbeFromField)
+  reg.add_input_port(scirun_GenerateSinglePointProbeFromField, 'p_main_frame',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GenerateSinglePointProbeFromField, 'p_locx',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_GenerateSinglePointProbeFromField, 'p_locy',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_GenerateSinglePointProbeFromField, 'p_locz',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_GenerateSinglePointProbeFromField, 'p_value',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GenerateSinglePointProbeFromField, 'p_node',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GenerateSinglePointProbeFromField, 'p_edge',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GenerateSinglePointProbeFromField, 'p_face',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GenerateSinglePointProbeFromField, 'p_cell',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GenerateSinglePointProbeFromField, 'p_show_value',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateSinglePointProbeFromField, 'p_show_node',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateSinglePointProbeFromField, 'p_show_edge',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateSinglePointProbeFromField, 'p_show_face',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateSinglePointProbeFromField, 'p_show_cell',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateSinglePointProbeFromField, 'p_probe_scale',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_GenerateSinglePointProbeFromField, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_SmoothMesh, 'IsoValue',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_SmoothMesh, 'Smoothed', 
-                    (SCIRun_Field, 'Smoothed'))
-
-  reg.add_module(SCIRun_GenerateSinglePointProbeFromField)
-  reg.add_input_port(SCIRun_GenerateSinglePointProbeFromField, 'main_frame',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateSinglePointProbeFromField, 'locx',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateSinglePointProbeFromField, 'locy',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateSinglePointProbeFromField, 'locz',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateSinglePointProbeFromField, 'value',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateSinglePointProbeFromField, 'node',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateSinglePointProbeFromField, 'edge',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateSinglePointProbeFromField, 'face',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateSinglePointProbeFromField, 'cell',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateSinglePointProbeFromField, 'show_value',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateSinglePointProbeFromField, 'show_node',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateSinglePointProbeFromField, 'show_edge',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateSinglePointProbeFromField, 'show_face',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateSinglePointProbeFromField, 'show_cell',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateSinglePointProbeFromField, 'probe_scale',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateSinglePointProbeFromField, 'Input Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_GenerateSinglePointProbeFromField, 'GenerateSinglePointProbeFromField Widget', 
+  reg.add_output_port(scirun_GenerateSinglePointProbeFromField, 'GenerateSinglePointProbeFromField Widget', 
                     (SCIRun_Geometry, 'GenerateSinglePointProbeFromField Widget'))
-  reg.add_output_port(SCIRun_GenerateSinglePointProbeFromField, 'GenerateSinglePointProbeFromField Point', 
+  reg.add_output_port(scirun_GenerateSinglePointProbeFromField, 'GenerateSinglePointProbeFromField Point', 
                     (SCIRun_Field, 'GenerateSinglePointProbeFromField Point'))
-  reg.add_output_port(SCIRun_GenerateSinglePointProbeFromField, 'Element Index', 
+  reg.add_output_port(scirun_GenerateSinglePointProbeFromField, 'Element Index', 
                     (SCIRun_Matrix, 'Element Index'))
 
-  reg.add_module(SCIRun_CalculateInsideWhichField)
-  reg.add_input_port(SCIRun_CalculateInsideWhichField, 'outputbasis',
+  reg.add_module(scirun_ReportDataArrayMeasure)
+  reg.add_input_port(scirun_ReportDataArrayMeasure, 'p_measure',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateInsideWhichField, 'outputtype',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateInsideWhichField, 'Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_CalculateInsideWhichField, 'Object',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_CalculateInsideWhichField, 'Field', 
-                    (SCIRun_Field, 'Field'))
+  reg.add_input_port(scirun_ReportDataArrayMeasure, 'Array',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_ReportDataArrayMeasure, 'Measure', 
+                    (SCIRun_Matrix, 'Measure'))
 
-  reg.add_module(SCIRun_InsertPathsIntoBundle)
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'path1_name',
+  reg.add_module(scirun_SmoothMesh)
+  reg.add_input_port(scirun_SmoothMesh, 'Input',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_input_port(scirun_SmoothMesh, 'IsoValue',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_SmoothMesh, 'Smoothed', 
+                    (SCIRun_Field, 'Smoothed'))
+
+  reg.add_module(scirun_InsertPathsIntoBundle)
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'p_path1_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'path2_name',
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'p_path2_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'path3_name',
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'p_path3_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'path4_name',
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'p_path4_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'path5_name',
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'p_path5_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'path6_name',
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'p_path6_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'replace1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'replace2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'replace3',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'replace4',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'replace5',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'replace6',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'bundlename',
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'p_replace1',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'p_replace2',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'p_replace3',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'p_replace4',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'p_replace5',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'p_replace6',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'p_bundlename',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'bundle',
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'bundle',
                    (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'path1',
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'path1',
                    (SCIRun_Path, "SCIRun_Path"))
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'path2',
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'path2',
                    (SCIRun_Path, "SCIRun_Path"))
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'path3',
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'path3',
                    (SCIRun_Path, "SCIRun_Path"))
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'path4',
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'path4',
                    (SCIRun_Path, "SCIRun_Path"))
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'path5',
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'path5',
                    (SCIRun_Path, "SCIRun_Path"))
-  reg.add_input_port(SCIRun_InsertPathsIntoBundle, 'path6',
+  reg.add_input_port(scirun_InsertPathsIntoBundle, 'path6',
                    (SCIRun_Path, "SCIRun_Path"))
-  reg.add_output_port(SCIRun_InsertPathsIntoBundle, 'bundle', 
+  reg.add_output_port(scirun_InsertPathsIntoBundle, 'bundle', 
                     (SCIRun_Bundle, 'bundle'))
 
-  reg.add_module(SCIRun_RemoveZerosFromMatrix)
-  reg.add_input_port(SCIRun_RemoveZerosFromMatrix, 'row_or_col',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_RemoveZerosFromMatrix, 'Matrix',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_RemoveZerosFromMatrix, 'Matrix', 
-                    (SCIRun_Matrix, 'Matrix'))
+  reg.add_module(scirun_SplitFileName)
+  reg.add_input_port(scirun_SplitFileName, 'Filename',
+                   (core.modules.basic_modules.String, 'tip'))
+  reg.add_output_port(scirun_SplitFileName, 'Pathname', 
+                    (core.modules.basic_modules.String, 'Pathname'))
+  reg.add_output_port(scirun_SplitFileName, 'Filename Base', 
+                    (core.modules.basic_modules.String, 'Filename Base'))
+  reg.add_output_port(scirun_SplitFileName, 'Extension', 
+                    (core.modules.basic_modules.String, 'Extension'))
+  reg.add_output_port(scirun_SplitFileName, 'Filename', 
+                    (core.modules.basic_modules.String, 'Filename'))
 
-  reg.add_module(SCIRun_GetNetworkFileName)
-  reg.add_output_port(SCIRun_GetNetworkFileName, 'String', 
-                    (core.modules.basic_modules.String, 'String'))
-
-  reg.add_module(SCIRun_RemoveZeroRowsAndColumns)
-  reg.add_input_port(SCIRun_RemoveZeroRowsAndColumns, 'Matrix',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_RemoveZeroRowsAndColumns, 'ReducedMatrix', 
-                    (SCIRun_Matrix, 'ReducedMatrix'))
-  reg.add_output_port(SCIRun_RemoveZeroRowsAndColumns, 'LeftMapping', 
-                    (SCIRun_Matrix, 'LeftMapping'))
-  reg.add_output_port(SCIRun_RemoveZeroRowsAndColumns, 'RightMapping', 
-                    (SCIRun_Matrix, 'RightMapping'))
-
-  reg.add_module(SCIRun_CalculateGradients)
-  reg.add_input_port(SCIRun_CalculateGradients, 'Input Field',
+  reg.add_module(scirun_CalculateLatVolGradientsAtNodes)
+  reg.add_input_port(scirun_CalculateLatVolGradientsAtNodes, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_CalculateGradients, 'Output CalculateGradients', 
-                    (SCIRun_Field, 'Output CalculateGradients'))
-
-  reg.add_module(SCIRun_CalculateLatVolGradientsAtNodes)
-  reg.add_input_port(SCIRun_CalculateLatVolGradientsAtNodes, 'Input Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_CalculateLatVolGradientsAtNodes, 'Output Gradient', 
+  reg.add_output_port(scirun_CalculateLatVolGradientsAtNodes, 'Output Gradient', 
                     (SCIRun_Field, 'Output Gradient'))
 
-  reg.add_module(SCIRun_GetColorMap2sFromBundle)
-  reg.add_input_port(SCIRun_GetColorMap2sFromBundle, 'colormap21_name',
+  reg.add_module(scirun_CalculateGradients)
+  reg.add_input_port(scirun_CalculateGradients, 'Input Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_CalculateGradients, 'Output CalculateGradients', 
+                    (SCIRun_Field, 'Output CalculateGradients'))
+
+  reg.add_module(scirun_GetColorMap2sFromBundle)
+  reg.add_input_port(scirun_GetColorMap2sFromBundle, 'p_colormap21_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColorMap2sFromBundle, 'colormap22_name',
+  reg.add_input_port(scirun_GetColorMap2sFromBundle, 'p_colormap22_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColorMap2sFromBundle, 'colormap23_name',
+  reg.add_input_port(scirun_GetColorMap2sFromBundle, 'p_colormap23_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColorMap2sFromBundle, 'colormap24_name',
+  reg.add_input_port(scirun_GetColorMap2sFromBundle, 'p_colormap24_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColorMap2sFromBundle, 'colormap25_name',
+  reg.add_input_port(scirun_GetColorMap2sFromBundle, 'p_colormap25_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColorMap2sFromBundle, 'colormap26_name',
+  reg.add_input_port(scirun_GetColorMap2sFromBundle, 'p_colormap26_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColorMap2sFromBundle, 'colormap2_selection',
+  reg.add_input_port(scirun_GetColorMap2sFromBundle, 'p_colormap2_selection',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetColorMap2sFromBundle, 'bundle',
+  reg.add_input_port(scirun_GetColorMap2sFromBundle, 'bundle',
                    (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_output_port(SCIRun_GetColorMap2sFromBundle, 'bundle', 
+  reg.add_output_port(scirun_GetColorMap2sFromBundle, 'bundle', 
                     (SCIRun_Bundle, 'bundle'))
-  reg.add_output_port(SCIRun_GetColorMap2sFromBundle, 'colormap21', 
+  reg.add_output_port(scirun_GetColorMap2sFromBundle, 'colormap21', 
                     (SCIRun_ColorMap2, 'colormap21'))
-  reg.add_output_port(SCIRun_GetColorMap2sFromBundle, 'colormap22', 
+  reg.add_output_port(scirun_GetColorMap2sFromBundle, 'colormap22', 
                     (SCIRun_ColorMap2, 'colormap22'))
-  reg.add_output_port(SCIRun_GetColorMap2sFromBundle, 'colormap23', 
+  reg.add_output_port(scirun_GetColorMap2sFromBundle, 'colormap23', 
                     (SCIRun_ColorMap2, 'colormap23'))
-  reg.add_output_port(SCIRun_GetColorMap2sFromBundle, 'colormap24', 
+  reg.add_output_port(scirun_GetColorMap2sFromBundle, 'colormap24', 
                     (SCIRun_ColorMap2, 'colormap24'))
-  reg.add_output_port(SCIRun_GetColorMap2sFromBundle, 'colormap25', 
+  reg.add_output_port(scirun_GetColorMap2sFromBundle, 'colormap25', 
                     (SCIRun_ColorMap2, 'colormap25'))
-  reg.add_output_port(SCIRun_GetColorMap2sFromBundle, 'colormap26', 
+  reg.add_output_port(scirun_GetColorMap2sFromBundle, 'colormap26', 
                     (SCIRun_ColorMap2, 'colormap26'))
 
-  reg.add_module(SCIRun_ReadMatrix)
-  reg.add_input_port(SCIRun_ReadMatrix, 'from_env',
+  reg.add_module(scirun_ReadMatrix)
+  reg.add_input_port(scirun_ReadMatrix, 'p_from_env',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadMatrix, 'Filename',
+  reg.add_input_port(scirun_ReadMatrix, 'Filename',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_output_port(SCIRun_ReadMatrix, 'Output Data', 
+  reg.add_output_port(scirun_ReadMatrix, 'Output Data', 
                     (SCIRun_Matrix, 'Output Data'))
-  reg.add_output_port(SCIRun_ReadMatrix, 'Filename', 
+  reg.add_output_port(scirun_ReadMatrix, 'Filename', 
                     (core.modules.basic_modules.String, 'Filename'))
 
-  reg.add_module(SCIRun_GenerateStreamLines)
-  reg.add_input_port(SCIRun_GenerateStreamLines, 'stepsize',
+  reg.add_module(scirun_GenerateStreamLines)
+  reg.add_input_port(scirun_GenerateStreamLines, 'p_stepsize',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLines, 'tolerance',
+  reg.add_input_port(scirun_GenerateStreamLines, 'p_tolerance',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLines, 'maxsteps',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLines, 'direction',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLines, 'value',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLines, 'remove_colinear_pts',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLines, 'method',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLines, 'nthreads',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLines, 'auto_parameterize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLines, 'Vector Field',
+  reg.add_input_port(scirun_GenerateStreamLines, 'p_maxsteps',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLines, 'p_direction',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLines, 'p_value',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLines, 'p_remove_colinear_pts',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLines, 'p_method',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLines, 'p_nthreads',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLines, 'p_auto_parameterize',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLines, 'Vector Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_GenerateStreamLines, 'Seed Points',
+  reg.add_input_port(scirun_GenerateStreamLines, 'Seed Points',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_GenerateStreamLines, 'Streamlines', 
+  reg.add_output_port(scirun_GenerateStreamLines, 'Streamlines', 
                     (SCIRun_Field, 'Streamlines'))
 
-  reg.add_module(SCIRun_EditMeshBoundingBox)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'outputcenterx',
+  reg.add_module(scirun_EditMeshBoundingBox)
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_outputcenterx',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'outputcentery',
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_outputcentery',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'outputcenterz',
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_outputcenterz',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'outputsizex',
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_outputsizex',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'outputsizey',
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_outputsizey',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'outputsizez',
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_outputsizez',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'useoutputcenter',
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_useoutputcenter',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_useoutputsize',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_box_scale',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'useoutputsize',
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_box_mode',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_box_real_scale',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'box_scale',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'box_mode',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'box_real_scale',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'box_center_x',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'box_center_y',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'box_center_z',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'box_right_x',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'box_right_y',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'box_right_z',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'box_down_x',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'box_down_y',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'box_down_z',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'box_in_x',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'box_in_y',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'box_in_z',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_EditMeshBoundingBox, 'Input Field',
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_box_center_x',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_box_center_y',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_box_center_z',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_box_right_x',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_box_right_y',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_box_right_z',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_box_down_x',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_box_down_y',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_box_down_z',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_box_in_x',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_box_in_y',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'p_box_in_z',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_EditMeshBoundingBox, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_EditMeshBoundingBox, 'Output Field', 
+  reg.add_output_port(scirun_EditMeshBoundingBox, 'Output Field', 
                     (SCIRun_Field, 'Output Field'))
-  reg.add_output_port(SCIRun_EditMeshBoundingBox, 'Transformation Widget', 
+  reg.add_output_port(scirun_EditMeshBoundingBox, 'Transformation Widget', 
                     (SCIRun_Geometry, 'Transformation Widget'))
-  reg.add_output_port(SCIRun_EditMeshBoundingBox, 'Transformation Matrix', 
+  reg.add_output_port(scirun_EditMeshBoundingBox, 'Transformation Matrix', 
                     (SCIRun_Matrix, 'Transformation Matrix'))
 
-  reg.add_module(SCIRun_PrintStringIntoString)
-  reg.add_input_port(SCIRun_PrintStringIntoString, 'formatstring',
+  reg.add_module(scirun_PrintStringIntoString)
+  reg.add_input_port(scirun_PrintStringIntoString, 'p_formatstring',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_PrintStringIntoString, 'Format',
+  reg.add_input_port(scirun_PrintStringIntoString, 'Format',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_PrintStringIntoString, 'Input',
+  reg.add_input_port(scirun_PrintStringIntoString, 'Input',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_output_port(SCIRun_PrintStringIntoString, 'Output', 
+  reg.add_output_port(scirun_PrintStringIntoString, 'Output', 
                     (core.modules.basic_modules.String, 'Output'))
 
-  reg.add_module(SCIRun_SetFieldDataValues)
-  reg.add_input_port(SCIRun_SetFieldDataValues, 'newval',
+  reg.add_module(scirun_GenerateStreamLinesWithPlacementHeuristic)
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'p_numsl',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'p_numpts',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'p_minper',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SetFieldDataValues, 'InField',
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'p_maxper',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'p_ming',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'p_maxg',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'p_numsamples',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'p_method',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'p_stepsize',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'p_stepout',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'p_maxsteps',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'p_minmag',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'p_direction',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'Source',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_SetFieldDataValues, 'OutField', 
-                    (SCIRun_Field, 'OutField'))
-
-  reg.add_module(SCIRun_GetSubmatrix)
-  reg.add_input_port(SCIRun_GetSubmatrix, 'mincol',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetSubmatrix, 'maxcol',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetSubmatrix, 'minrow',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetSubmatrix, 'maxrow',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetSubmatrix, 'nrow',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetSubmatrix, 'ncol',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetSubmatrix, 'Input Matrix',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_GetSubmatrix, 'Optional Range Bounds',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_GetSubmatrix, 'Output Matrix', 
-                    (SCIRun_Matrix, 'Output Matrix'))
-
-  reg.add_module(SCIRun_GenerateStreamLinesWithPlacementHeuristic)
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'numsl',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'numpts',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'minper',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'maxper',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'ming',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'maxg',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'numsamples',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'method',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'stepsize',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'stepout',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'maxsteps',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'minmag',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'direction',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'Source',
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'Weighting',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'Weighting',
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'Flow',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'Flow',
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'Compare',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'Compare',
+  reg.add_input_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'Seed points',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'Seed points',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'Streamlines', 
+  reg.add_output_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'Streamlines', 
                     (SCIRun_Field, 'Streamlines'))
-  reg.add_output_port(SCIRun_GenerateStreamLinesWithPlacementHeuristic, 'Render', 
+  reg.add_output_port(scirun_GenerateStreamLinesWithPlacementHeuristic, 'Render', 
                     (SCIRun_Field, 'Render'))
 
-  reg.add_module(SCIRun_CalculateSignedDistanceToField)
-  reg.add_input_port(SCIRun_CalculateSignedDistanceToField, 'Field',
+  reg.add_module(scirun_CalculateSignedDistanceToField)
+  reg.add_input_port(scirun_CalculateSignedDistanceToField, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_CalculateSignedDistanceToField, 'ObjectField',
+  reg.add_input_port(scirun_CalculateSignedDistanceToField, 'ObjectField',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_CalculateSignedDistanceToField, 'SignedDistanceField', 
+  reg.add_output_port(scirun_CalculateSignedDistanceToField, 'SignedDistanceField', 
                     (SCIRun_Field, 'SignedDistanceField'))
 
-  reg.add_module(SCIRun_EvaluateLinAlgUnary)
-  reg.add_input_port(SCIRun_EvaluateLinAlgUnary, 'op',
+  reg.add_module(scirun_SetFieldDataValues)
+  reg.add_input_port(scirun_SetFieldDataValues, 'p_newval',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_SetFieldDataValues, 'InField',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_SetFieldDataValues, 'OutField', 
+                    (SCIRun_Field, 'OutField'))
+
+  reg.add_module(scirun_EvaluateLinAlgUnary)
+  reg.add_input_port(scirun_EvaluateLinAlgUnary, 'p_op',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_EvaluateLinAlgUnary, 'function',
+  reg.add_input_port(scirun_EvaluateLinAlgUnary, 'p_function',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_EvaluateLinAlgUnary, 'Input',
+  reg.add_input_port(scirun_EvaluateLinAlgUnary, 'Input',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_EvaluateLinAlgUnary, 'Output', 
+  reg.add_output_port(scirun_EvaluateLinAlgUnary, 'Output', 
                     (SCIRun_Matrix, 'Output'))
 
-  reg.add_module(SCIRun_InsertMatricesIntoBundle)
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'matrix1_name',
+  reg.add_module(scirun_GetSubmatrix)
+  reg.add_input_port(scirun_GetSubmatrix, 'p_mincol',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'matrix2_name',
+  reg.add_input_port(scirun_GetSubmatrix, 'p_maxcol',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'matrix3_name',
+  reg.add_input_port(scirun_GetSubmatrix, 'p_minrow',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'matrix4_name',
+  reg.add_input_port(scirun_GetSubmatrix, 'p_maxrow',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'matrix5_name',
+  reg.add_input_port(scirun_GetSubmatrix, 'p_nrow',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'matrix6_name',
+  reg.add_input_port(scirun_GetSubmatrix, 'p_ncol',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'replace1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'replace2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'replace3',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'replace4',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'replace5',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'replace6',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'bundlename',
+  reg.add_input_port(scirun_GetSubmatrix, 'Input Matrix',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_input_port(scirun_GetSubmatrix, 'Optional Range Bounds',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_GetSubmatrix, 'Output Matrix', 
+                    (SCIRun_Matrix, 'Output Matrix'))
+
+  reg.add_module(scirun_InsertMatricesIntoBundle)
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'p_matrix1_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'bundle',
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'p_matrix2_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'p_matrix3_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'p_matrix4_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'p_matrix5_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'p_matrix6_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'p_replace1',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'p_replace2',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'p_replace3',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'p_replace4',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'p_replace5',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'p_replace6',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'p_bundlename',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'bundle',
                    (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'matrix1',
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'matrix1',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'matrix2',
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'matrix2',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'matrix3',
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'matrix3',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'matrix4',
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'matrix4',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'matrix5',
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'matrix5',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_InsertMatricesIntoBundle, 'matrix6',
+  reg.add_input_port(scirun_InsertMatricesIntoBundle, 'matrix6',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_InsertMatricesIntoBundle, 'bundle', 
+  reg.add_output_port(scirun_InsertMatricesIntoBundle, 'bundle', 
                     (SCIRun_Bundle, 'bundle'))
 
-  reg.add_module(SCIRun_AppendDataArrays)
-  reg.add_input_port(SCIRun_AppendDataArrays, 'Array',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_AppendDataArrays, 'Array', 
-                    (SCIRun_Matrix, 'Array'))
-
-  reg.add_module(SCIRun_WriteString)
-  reg.add_input_port(SCIRun_WriteString, 'filetype',
+  reg.add_module(scirun_CalculateInsideWhichField)
+  reg.add_input_port(scirun_CalculateInsideWhichField, 'p_outputbasis',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteString, 'confirm',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteString, 'confirm_once',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteString, 'String',
+  reg.add_input_port(scirun_CalculateInsideWhichField, 'p_outputtype',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CalculateInsideWhichField, 'Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_input_port(scirun_CalculateInsideWhichField, 'Object',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_CalculateInsideWhichField, 'Field', 
+                    (SCIRun_Field, 'Field'))
+
+  reg.add_module(scirun_WriteString)
+  reg.add_input_port(scirun_WriteString, 'p_filetype',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_WriteString, 'p_confirm',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_WriteString, 'p_confirm_once',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_WriteString, 'String',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_WriteString, 'Filename',
+  reg.add_input_port(scirun_WriteString, 'Filename',
                    (core.modules.basic_modules.String, 'tip'))
 
-  reg.add_module(SCIRun_TimeControls)
-  reg.add_output_port(SCIRun_TimeControls, 'time', 
+  reg.add_module(scirun_TimeControls)
+  reg.add_input_port(scirun_TimeControls, 'p_execmode',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_TimeControls, 'p_scale_factor',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_output_port(scirun_TimeControls, 'time', 
                     (SCIRun_Time, 'time'))
 
-  reg.add_module(SCIRun_InsertNrrdsIntoBundle)
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'nrrd1_name',
+  reg.add_module(scirun_InterfaceWithCubit)
+  reg.add_input_port(scirun_InterfaceWithCubit, 'p_cubitdir',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'nrrd2_name',
+  reg.add_input_port(scirun_InterfaceWithCubit, 'p_ncdump',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'nrrd3_name',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'nrrd4_name',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'nrrd5_name',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'nrrd6_name',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'replace1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'replace2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'replace3',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'replace4',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'replace5',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'replace6',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'bundlename',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'bundle',
-                   (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'nrrd1',
-                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'nrrd2',
-                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'nrrd3',
-                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'nrrd4',
-                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'nrrd5',
-                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
-  reg.add_input_port(SCIRun_InsertNrrdsIntoBundle, 'nrrd6',
-                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
-  reg.add_output_port(SCIRun_InsertNrrdsIntoBundle, 'bundle', 
-                    (SCIRun_Bundle, 'bundle'))
-
-  reg.add_module(SCIRun_InterfaceWithCubit)
-  reg.add_input_port(SCIRun_InterfaceWithCubit, 'cubitdir',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InterfaceWithCubit, 'ncdump',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InterfaceWithCubit, 'Field',
+  reg.add_input_port(scirun_InterfaceWithCubit, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_InterfaceWithCubit, 'PointCloudField',
+  reg.add_input_port(scirun_InterfaceWithCubit, 'PointCloudField',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_InterfaceWithCubit, 'Field', 
+  reg.add_output_port(scirun_InterfaceWithCubit, 'Field', 
                     (SCIRun_Field, 'Field'))
 
-  reg.add_module(SCIRun_CreateString)
-  reg.add_input_port(SCIRun_CreateString, 'inputstring',
+  reg.add_module(scirun_AppendDataArrays)
+  reg.add_input_port(scirun_AppendDataArrays, 'Array',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_AppendDataArrays, 'Array', 
+                    (SCIRun_Matrix, 'Array'))
+
+  reg.add_module(scirun_ReadPath)
+  reg.add_input_port(scirun_ReadPath, 'p_from_env',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_output_port(SCIRun_CreateString, 'Output', 
+  reg.add_input_port(scirun_ReadPath, 'Filename',
+                   (core.modules.basic_modules.String, 'tip'))
+  reg.add_output_port(scirun_ReadPath, 'Output Data', 
+                    (SCIRun_Path, 'Output Data'))
+  reg.add_output_port(scirun_ReadPath, 'Filename', 
+                    (core.modules.basic_modules.String, 'Filename'))
+
+  reg.add_module(scirun_CreateString)
+  reg.add_input_port(scirun_CreateString, 'p_inputstring',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_output_port(scirun_CreateString, 'Output', 
                     (core.modules.basic_modules.String, 'Output'))
 
-  reg.add_module(SCIRun_ClipFieldByFunction)
-  reg.add_input_port(SCIRun_ClipFieldByFunction, 'mode',
+  reg.add_module(scirun_ClipFieldByFunction)
+  reg.add_input_port(scirun_ClipFieldByFunction, 'p_mode',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldByFunction, 'function',
+  reg.add_input_port(scirun_ClipFieldByFunction, 'p_function',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ClipFieldByFunction, 'Function',
+  reg.add_input_port(scirun_ClipFieldByFunction, 'Function',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_ClipFieldByFunction, 'Input',
+  reg.add_input_port(scirun_ClipFieldByFunction, 'Input',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ClipFieldByFunction, 'Clipped', 
+  reg.add_output_port(scirun_ClipFieldByFunction, 'Clipped', 
                     (SCIRun_Field, 'Clipped'))
-  reg.add_output_port(SCIRun_ClipFieldByFunction, 'Mapping', 
+  reg.add_output_port(scirun_ClipFieldByFunction, 'Mapping', 
                     (SCIRun_Matrix, 'Mapping'))
-  reg.add_output_port(SCIRun_ClipFieldByFunction, 'MaskVector', 
+  reg.add_output_port(scirun_ClipFieldByFunction, 'MaskVector', 
                     (SCIRun_Nrrd, 'MaskVector'))
 
-  reg.add_module(SCIRun_CreateTensorArray)
-  reg.add_input_port(SCIRun_CreateTensorArray, 'EigenVector1',
+  reg.add_module(scirun_CreateTensorArray)
+  reg.add_input_port(scirun_CreateTensorArray, 'EigenVector1',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_CreateTensorArray, 'EigenVector2',
+  reg.add_input_port(scirun_CreateTensorArray, 'EigenVector2',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_CreateTensorArray, 'EigenValue1',
+  reg.add_input_port(scirun_CreateTensorArray, 'EigenValue1',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_CreateTensorArray, 'EigenValue2',
+  reg.add_input_port(scirun_CreateTensorArray, 'EigenValue2',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_CreateTensorArray, 'EigenValue3',
+  reg.add_input_port(scirun_CreateTensorArray, 'EigenValue3',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_CreateTensorArray, 'TensorArray', 
+  reg.add_output_port(scirun_CreateTensorArray, 'TensorArray', 
                     (SCIRun_Matrix, 'TensorArray'))
 
-  reg.add_module(SCIRun_WriteField)
-  reg.add_input_port(SCIRun_WriteField, 'filetype',
+  reg.add_module(scirun_WriteField)
+  reg.add_input_port(scirun_WriteField, 'p_filetype',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteField, 'confirm',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteField, 'confirm_once',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteField, 'exporttype',
+  reg.add_input_port(scirun_WriteField, 'p_confirm',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteField, 'increment',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteField, 'current',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteField, 'Input Data',
+  reg.add_input_port(scirun_WriteField, 'p_confirm_once',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_WriteField, 'p_exporttype',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_WriteField, 'p_increment',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_WriteField, 'p_current',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_WriteField, 'Input Data',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_WriteField, 'Filename',
+  reg.add_input_port(scirun_WriteField, 'Filename',
                    (core.modules.basic_modules.String, 'tip'))
 
-  reg.add_module(SCIRun_BuildMappingMatrix)
-  reg.add_input_port(SCIRun_BuildMappingMatrix, 'interpolation_basis',
+  reg.add_module(scirun_BuildMappingMatrix)
+  reg.add_input_port(scirun_BuildMappingMatrix, 'p_interpolation_basis',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_BuildMappingMatrix, 'map_source_to_single_dest',
+  reg.add_input_port(scirun_BuildMappingMatrix, 'p_map_source_to_single_dest',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_BuildMappingMatrix, 'p_exhaustive_search',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_BuildMappingMatrix, 'p_exhaustive_search_max_dist',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_BuildMappingMatrix, 'exhaustive_search',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_BuildMappingMatrix, 'exhaustive_search_max_dist',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_BuildMappingMatrix, 'np',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_BuildMappingMatrix, 'Source',
+  reg.add_input_port(scirun_BuildMappingMatrix, 'p_np',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_BuildMappingMatrix, 'Source',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_BuildMappingMatrix, 'Destination',
+  reg.add_input_port(scirun_BuildMappingMatrix, 'Destination',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_BuildMappingMatrix, 'Mapping', 
+  reg.add_output_port(scirun_BuildMappingMatrix, 'Mapping', 
                     (SCIRun_Matrix, 'Mapping'))
 
-  reg.add_module(SCIRun_MapFieldDataFromNodeToElem)
-  reg.add_input_port(SCIRun_MapFieldDataFromNodeToElem, 'method',
+  reg.add_module(scirun_InsertNrrdsIntoBundle)
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'p_nrrd1_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_MapFieldDataFromNodeToElem, 'Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_MapFieldDataFromNodeToElem, 'Field', 
-                    (SCIRun_Field, 'Field'))
-
-  reg.add_module(SCIRun_InsertBundlesIntoBundle)
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'bundle1_name',
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'p_nrrd2_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'bundle2_name',
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'p_nrrd3_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'bundle3_name',
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'p_nrrd4_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'bundle4_name',
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'p_nrrd5_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'bundle5_name',
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'p_nrrd6_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'bundle6_name',
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'p_replace1',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'p_replace2',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'p_replace3',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'p_replace4',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'p_replace5',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'p_replace6',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'p_bundlename',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'replace1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'replace2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'replace3',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'replace4',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'replace5',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'replace6',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'bundlename',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'bundle',
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'bundle',
                    (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'bundle1',
-                   (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'bundle2',
-                   (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'bundle3',
-                   (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'bundle4',
-                   (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'bundle5',
-                   (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_input_port(SCIRun_InsertBundlesIntoBundle, 'bundle6',
-                   (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_output_port(SCIRun_InsertBundlesIntoBundle, 'bundle', 
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'nrrd1',
+                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'nrrd2',
+                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'nrrd3',
+                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'nrrd4',
+                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'nrrd5',
+                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
+  reg.add_input_port(scirun_InsertNrrdsIntoBundle, 'nrrd6',
+                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
+  reg.add_output_port(scirun_InsertNrrdsIntoBundle, 'bundle', 
                     (SCIRun_Bundle, 'bundle'))
 
-  reg.add_module(SCIRun_ReadBundle)
-  reg.add_input_port(SCIRun_ReadBundle, 'from_env',
+  reg.add_module(scirun_InsertBundlesIntoBundle)
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'p_bundle1_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadBundle, 'types',
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'p_bundle2_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReadBundle, 'Filename',
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'p_bundle3_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'p_bundle4_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'p_bundle5_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'p_bundle6_name',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'p_replace1',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'p_replace2',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'p_replace3',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'p_replace4',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'p_replace5',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'p_replace6',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'p_bundlename',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'bundle',
+                   (SCIRun_Bundle, "SCIRun_Bundle"))
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'bundle1',
+                   (SCIRun_Bundle, "SCIRun_Bundle"))
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'bundle2',
+                   (SCIRun_Bundle, "SCIRun_Bundle"))
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'bundle3',
+                   (SCIRun_Bundle, "SCIRun_Bundle"))
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'bundle4',
+                   (SCIRun_Bundle, "SCIRun_Bundle"))
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'bundle5',
+                   (SCIRun_Bundle, "SCIRun_Bundle"))
+  reg.add_input_port(scirun_InsertBundlesIntoBundle, 'bundle6',
+                   (SCIRun_Bundle, "SCIRun_Bundle"))
+  reg.add_output_port(scirun_InsertBundlesIntoBundle, 'bundle', 
+                    (SCIRun_Bundle, 'bundle'))
+
+  reg.add_module(scirun_ReadBundle)
+  reg.add_input_port(scirun_ReadBundle, 'p_from_env',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadBundle, 'p_types',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReadBundle, 'Filename',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_output_port(SCIRun_ReadBundle, 'bundle', 
+  reg.add_output_port(scirun_ReadBundle, 'bundle', 
                     (SCIRun_Bundle, 'bundle'))
-  reg.add_output_port(SCIRun_ReadBundle, 'Filename', 
+  reg.add_output_port(scirun_ReadBundle, 'Filename', 
                     (core.modules.basic_modules.String, 'Filename'))
 
-  reg.add_module(SCIRun_GetStringsFromBundle)
-  reg.add_input_port(SCIRun_GetStringsFromBundle, 'string1_name',
+  reg.add_module(scirun_GetStringsFromBundle)
+  reg.add_input_port(scirun_GetStringsFromBundle, 'p_string1_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetStringsFromBundle, 'string2_name',
+  reg.add_input_port(scirun_GetStringsFromBundle, 'p_string2_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetStringsFromBundle, 'string3_name',
+  reg.add_input_port(scirun_GetStringsFromBundle, 'p_string3_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetStringsFromBundle, 'string4_name',
+  reg.add_input_port(scirun_GetStringsFromBundle, 'p_string4_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetStringsFromBundle, 'string5_name',
+  reg.add_input_port(scirun_GetStringsFromBundle, 'p_string5_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetStringsFromBundle, 'string6_name',
+  reg.add_input_port(scirun_GetStringsFromBundle, 'p_string6_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetStringsFromBundle, 'string_selection',
+  reg.add_input_port(scirun_GetStringsFromBundle, 'p_string_selection',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetStringsFromBundle, 'bundle',
+  reg.add_input_port(scirun_GetStringsFromBundle, 'bundle',
                    (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_output_port(SCIRun_GetStringsFromBundle, 'bundle', 
+  reg.add_output_port(scirun_GetStringsFromBundle, 'bundle', 
                     (SCIRun_Bundle, 'bundle'))
-  reg.add_output_port(SCIRun_GetStringsFromBundle, 'string1', 
+  reg.add_output_port(scirun_GetStringsFromBundle, 'string1', 
                     (core.modules.basic_modules.String, 'string1'))
-  reg.add_output_port(SCIRun_GetStringsFromBundle, 'string2', 
+  reg.add_output_port(scirun_GetStringsFromBundle, 'string2', 
                     (core.modules.basic_modules.String, 'string2'))
-  reg.add_output_port(SCIRun_GetStringsFromBundle, 'string3', 
+  reg.add_output_port(scirun_GetStringsFromBundle, 'string3', 
                     (core.modules.basic_modules.String, 'string3'))
-  reg.add_output_port(SCIRun_GetStringsFromBundle, 'string4', 
+  reg.add_output_port(scirun_GetStringsFromBundle, 'string4', 
                     (core.modules.basic_modules.String, 'string4'))
-  reg.add_output_port(SCIRun_GetStringsFromBundle, 'string5', 
+  reg.add_output_port(scirun_GetStringsFromBundle, 'string5', 
                     (core.modules.basic_modules.String, 'string5'))
-  reg.add_output_port(SCIRun_GetStringsFromBundle, 'string6', 
+  reg.add_output_port(scirun_GetStringsFromBundle, 'string6', 
                     (core.modules.basic_modules.String, 'string6'))
 
-  reg.add_module(SCIRun_ShowString)
-  reg.add_input_port(SCIRun_ShowString, 'bbox',
+  reg.add_module(scirun_ShowString)
+  reg.add_input_port(scirun_ShowString, 'p_bbox',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowString, 'p_size',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowString, 'p_location_x',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowString, 'size',
+  reg.add_input_port(scirun_ShowString, 'p_location_y',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowString, 'location_x',
+  reg.add_input_port(scirun_ShowString, 'p_color_r',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowString, 'location_y',
+  reg.add_input_port(scirun_ShowString, 'p_color_g',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowString, 'color_r',
+  reg.add_input_port(scirun_ShowString, 'p_color_b',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowString, 'color_g',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowString, 'color_b',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowString, 'Format String',
+  reg.add_input_port(scirun_ShowString, 'Format String',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_output_port(SCIRun_ShowString, 'Title', 
+  reg.add_output_port(scirun_ShowString, 'Title', 
                     (SCIRun_Geometry, 'Title'))
 
-  reg.add_module(SCIRun_ReportStringInfo)
-  reg.add_input_port(SCIRun_ReportStringInfo, 'inputstring',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportStringInfo, 'Input',
-                   (core.modules.basic_modules.String, 'tip'))
-
-  reg.add_module(SCIRun_SortMatrix)
-  reg.add_input_port(SCIRun_SortMatrix, 'row_or_col',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_SortMatrix, 'Matrix',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_SortMatrix, 'Matrix', 
-                    (SCIRun_Matrix, 'Matrix'))
-
-  reg.add_module(SCIRun_SwapNodeLocationsWithMatrixEntries)
-  reg.add_input_port(SCIRun_SwapNodeLocationsWithMatrixEntries, 'Input Field',
+  reg.add_module(scirun_SwapNodeLocationsWithMatrixEntries)
+  reg.add_input_port(scirun_SwapNodeLocationsWithMatrixEntries, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_SwapNodeLocationsWithMatrixEntries, 'Input Matrix',
+  reg.add_input_port(scirun_SwapNodeLocationsWithMatrixEntries, 'Input Matrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_SwapNodeLocationsWithMatrixEntries, 'Output Field', 
+  reg.add_output_port(scirun_SwapNodeLocationsWithMatrixEntries, 'Output Field', 
                     (SCIRun_Field, 'Output Field'))
-  reg.add_output_port(SCIRun_SwapNodeLocationsWithMatrixEntries, 'Output Matrix', 
+  reg.add_output_port(scirun_SwapNodeLocationsWithMatrixEntries, 'Output Matrix', 
                     (SCIRun_Matrix, 'Output Matrix'))
 
-  reg.add_module(SCIRun_ReorderMatrixByReverseCuthillMcKee)
-  reg.add_input_port(SCIRun_ReorderMatrixByReverseCuthillMcKee, 'Matrix',
+  reg.add_module(scirun_ReorderMatrixByReverseCuthillMcKee)
+  reg.add_input_port(scirun_ReorderMatrixByReverseCuthillMcKee, 'Matrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ReorderMatrixByReverseCuthillMcKee, 'Matrix', 
+  reg.add_output_port(scirun_ReorderMatrixByReverseCuthillMcKee, 'Matrix', 
                     (SCIRun_Matrix, 'Matrix'))
-  reg.add_output_port(SCIRun_ReorderMatrixByReverseCuthillMcKee, 'Mapping', 
+  reg.add_output_port(scirun_ReorderMatrixByReverseCuthillMcKee, 'Mapping', 
                     (SCIRun_Matrix, 'Mapping'))
-  reg.add_output_port(SCIRun_ReorderMatrixByReverseCuthillMcKee, 'InverseMapping', 
+  reg.add_output_port(scirun_ReorderMatrixByReverseCuthillMcKee, 'InverseMapping', 
                     (SCIRun_Matrix, 'InverseMapping'))
 
-  reg.add_module(SCIRun_GetDomainBoundary)
-  reg.add_input_port(SCIRun_GetDomainBoundary, 'userange',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetDomainBoundary, 'minrange',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetDomainBoundary, 'maxrange',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetDomainBoundary, 'usevalue',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetDomainBoundary, 'value',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetDomainBoundary, 'includeouterboundary',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetDomainBoundary, 'innerboundaryonly',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetDomainBoundary, 'noinnerboundary',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetDomainBoundary, 'disconnect',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetDomainBoundary, 'Field',
+  reg.add_module(scirun_MapFieldDataFromNodeToElem)
+  reg.add_input_port(scirun_MapFieldDataFromNodeToElem, 'p_method',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_MapFieldDataFromNodeToElem, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_GetDomainBoundary, 'MinValueValue',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_GetDomainBoundary, 'MaxValue',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_GetDomainBoundary, 'Field', 
+  reg.add_output_port(scirun_MapFieldDataFromNodeToElem, 'Field', 
                     (SCIRun_Field, 'Field'))
 
-  reg.add_module(SCIRun_CollectFields)
-  reg.add_input_port(SCIRun_CollectFields, 'buffersize',
+  reg.add_module(scirun_GetDomainBoundary)
+  reg.add_input_port(scirun_GetDomainBoundary, 'p_userange',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetDomainBoundary, 'p_minrange',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CollectFields, 'Field',
+  reg.add_input_port(scirun_GetDomainBoundary, 'p_maxrange',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_GetDomainBoundary, 'p_usevalue',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetDomainBoundary, 'p_value',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_GetDomainBoundary, 'p_includeouterboundary',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetDomainBoundary, 'p_innerboundaryonly',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetDomainBoundary, 'p_noinnerboundary',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetDomainBoundary, 'p_disconnect',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetDomainBoundary, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_CollectFields, 'BufferSize',
+  reg.add_input_port(scirun_GetDomainBoundary, 'MinValueValue',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_CollectFields, 'Fields', 
+  reg.add_input_port(scirun_GetDomainBoundary, 'MaxValue',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_GetDomainBoundary, 'Field', 
+                    (SCIRun_Field, 'Field'))
+
+  reg.add_module(scirun_CollectFields)
+  reg.add_input_port(scirun_CollectFields, 'p_buffersize',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CollectFields, 'Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_input_port(scirun_CollectFields, 'BufferSize',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_CollectFields, 'Fields', 
                     (SCIRun_Field, 'Fields'))
 
-  reg.add_module(SCIRun_ScaleFieldMeshAndData)
-  reg.add_input_port(SCIRun_ScaleFieldMeshAndData, 'datascale',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ScaleFieldMeshAndData, 'geomscale',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ScaleFieldMeshAndData, 'usegeomcenter',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ScaleFieldMeshAndData, 'Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_ScaleFieldMeshAndData, 'GeomScaleFactor',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_ScaleFieldMeshAndData, 'DataScaleFactor',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ScaleFieldMeshAndData, 'Field', 
-                    (SCIRun_Field, 'Field'))
-
-  reg.add_module(SCIRun_StreamMatrixFromDisk)
-  reg.add_input_port(SCIRun_StreamMatrixFromDisk, 'row_or_col',
+  reg.add_module(scirun_ReportStringInfo)
+  reg.add_input_port(scirun_ReportStringInfo, 'p_inputstring',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_StreamMatrixFromDisk, 'slider_min',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_StreamMatrixFromDisk, 'slider_max',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_StreamMatrixFromDisk, 'range_min',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_StreamMatrixFromDisk, 'range_max',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_StreamMatrixFromDisk, 'playmode',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_StreamMatrixFromDisk, 'current',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_StreamMatrixFromDisk, 'execmode',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_StreamMatrixFromDisk, 'delay',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_StreamMatrixFromDisk, 'inc_amount',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_StreamMatrixFromDisk, 'send_amount',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_StreamMatrixFromDisk, 'Indices',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_StreamMatrixFromDisk, 'Weights',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_StreamMatrixFromDisk, 'Filename',
+  reg.add_input_port(scirun_ReportStringInfo, 'Input',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_output_port(SCIRun_StreamMatrixFromDisk, 'DataVector', 
+
+  reg.add_module(scirun_StreamMatrixFromDisk)
+  reg.add_input_port(scirun_StreamMatrixFromDisk, 'p_row_or_col',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_StreamMatrixFromDisk, 'p_slider_min',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_StreamMatrixFromDisk, 'p_slider_max',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_StreamMatrixFromDisk, 'p_range_min',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_StreamMatrixFromDisk, 'p_range_max',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_StreamMatrixFromDisk, 'p_playmode',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_StreamMatrixFromDisk, 'p_current',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_StreamMatrixFromDisk, 'p_execmode',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_StreamMatrixFromDisk, 'p_delay',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_StreamMatrixFromDisk, 'p_inc_amount',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_StreamMatrixFromDisk, 'p_send_amount',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_StreamMatrixFromDisk, 'Indices',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_input_port(scirun_StreamMatrixFromDisk, 'Weights',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_input_port(scirun_StreamMatrixFromDisk, 'Filename',
+                   (core.modules.basic_modules.String, 'tip'))
+  reg.add_output_port(scirun_StreamMatrixFromDisk, 'DataVector', 
                     (SCIRun_Matrix, 'DataVector'))
-  reg.add_output_port(SCIRun_StreamMatrixFromDisk, 'Index', 
+  reg.add_output_port(scirun_StreamMatrixFromDisk, 'Index', 
                     (SCIRun_Matrix, 'Index'))
-  reg.add_output_port(SCIRun_StreamMatrixFromDisk, 'Scaled Index', 
+  reg.add_output_port(scirun_StreamMatrixFromDisk, 'Scaled Index', 
                     (SCIRun_Matrix, 'Scaled Index'))
-  reg.add_output_port(SCIRun_StreamMatrixFromDisk, 'Filename', 
+  reg.add_output_port(scirun_StreamMatrixFromDisk, 'Filename', 
                     (core.modules.basic_modules.String, 'Filename'))
 
-  reg.add_module(SCIRun_WriteMatrix)
-  reg.add_input_port(SCIRun_WriteMatrix, 'filetype',
+  reg.add_module(scirun_WriteMatrix)
+  reg.add_input_port(scirun_WriteMatrix, 'p_filetype',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteMatrix, 'confirm',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteMatrix, 'confirm_once',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteMatrix, 'exporttype',
+  reg.add_input_port(scirun_WriteMatrix, 'p_confirm',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteMatrix, 'split',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_WriteMatrix, 'Input Data',
+  reg.add_input_port(scirun_WriteMatrix, 'p_confirm_once',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_WriteMatrix, 'p_exporttype',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_WriteMatrix, 'p_split',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_WriteMatrix, 'Input Data',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_WriteMatrix, 'Filename',
+  reg.add_input_port(scirun_WriteMatrix, 'Filename',
                    (core.modules.basic_modules.String, 'tip'))
 
-  reg.add_module(SCIRun_ConvertFieldDataType)
-  reg.add_input_port(SCIRun_ConvertFieldDataType, 'outputdatatype',
+  reg.add_module(scirun_ConvertFieldDataType)
+  reg.add_input_port(scirun_ConvertFieldDataType, 'p_outputdatatype',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertFieldDataType, 'Input Field',
+  reg.add_input_port(scirun_ConvertFieldDataType, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ConvertFieldDataType, 'Output Field', 
+  reg.add_output_port(scirun_ConvertFieldDataType, 'Output Field', 
                     (SCIRun_Field, 'Output Field'))
 
-  reg.add_module(SCIRun_GetSliceFromStructuredFieldByIndices)
-  reg.add_input_port(SCIRun_GetSliceFromStructuredFieldByIndices, 'axis',
+  reg.add_module(scirun_GeneratePointSamplesFromField)
+  reg.add_input_port(scirun_GeneratePointSamplesFromField, 'p_num_seeds',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GeneratePointSamplesFromField, 'p_probe_scale',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetSliceFromStructuredFieldByIndices, 'dims',
+  reg.add_input_port(scirun_GeneratePointSamplesFromField, 'p_send',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GeneratePointSamplesFromField, 'p_widget',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GeneratePointSamplesFromField, 'p_red',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetSliceFromStructuredFieldByIndices, 'dim_i',
+  reg.add_input_port(scirun_GeneratePointSamplesFromField, 'p_green',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetSliceFromStructuredFieldByIndices, 'dim_j',
+  reg.add_input_port(scirun_GeneratePointSamplesFromField, 'p_blue',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetSliceFromStructuredFieldByIndices, 'dim_k',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetSliceFromStructuredFieldByIndices, 'index_i',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetSliceFromStructuredFieldByIndices, 'index_j',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetSliceFromStructuredFieldByIndices, 'index_k',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetSliceFromStructuredFieldByIndices, 'update_type',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GetSliceFromStructuredFieldByIndices, 'continuous',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GetSliceFromStructuredFieldByIndices, 'Input Field',
+  reg.add_input_port(scirun_GeneratePointSamplesFromField, 'p_auto_execute',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GeneratePointSamplesFromField, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_GetSliceFromStructuredFieldByIndices, 'Input Matrix',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_GetSliceFromStructuredFieldByIndices, 'Output Field', 
-                    (SCIRun_Field, 'Output Field'))
-  reg.add_output_port(SCIRun_GetSliceFromStructuredFieldByIndices, 'Output Matrix', 
-                    (SCIRun_Matrix, 'Output Matrix'))
-
-  reg.add_module(SCIRun_GeneratePointSamplesFromField)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromField, 'num_seeds',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromField, 'probe_scale',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromField, 'send',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromField, 'widget',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromField, 'red',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromField, 'green',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromField, 'blue',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromField, 'auto_execute',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromField, 'Input Field',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_GeneratePointSamplesFromField, 'GeneratePointSamplesFromField Widget', 
+  reg.add_output_port(scirun_GeneratePointSamplesFromField, 'GeneratePointSamplesFromField Widget', 
                     (SCIRun_Geometry, 'GeneratePointSamplesFromField Widget'))
-  reg.add_output_port(SCIRun_GeneratePointSamplesFromField, 'GeneratePointSamplesFromField Point', 
+  reg.add_output_port(scirun_GeneratePointSamplesFromField, 'GeneratePointSamplesFromField Point', 
                     (SCIRun_Field, 'GeneratePointSamplesFromField Point'))
 
-  reg.add_module(SCIRun_CreateMatrix)
-  reg.add_input_port(SCIRun_CreateMatrix, 'rows',
+  reg.add_module(scirun_GeneratePointSamplesFromFieldOrWidget)
+  reg.add_input_port(scirun_GeneratePointSamplesFromFieldOrWidget, 'p_wtype',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GeneratePointSamplesFromFieldOrWidget, 'p_endpoints',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GeneratePointSamplesFromFieldOrWidget, 'p_maxseeds',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateMatrix, 'cols',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateMatrix, 'data',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateMatrix, 'clabel',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateMatrix, 'rlabel',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_output_port(SCIRun_CreateMatrix, 'matrix', 
-                    (SCIRun_Matrix, 'matrix'))
-
-  reg.add_module(SCIRun_DecimateTriSurf)
-  reg.add_input_port(SCIRun_DecimateTriSurf, 'TriSurf',
+  reg.add_input_port(scirun_GeneratePointSamplesFromFieldOrWidget, 'p_numseeds',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GeneratePointSamplesFromFieldOrWidget, 'p_rngseed',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GeneratePointSamplesFromFieldOrWidget, 'p_rnginc',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GeneratePointSamplesFromFieldOrWidget, 'p_clamp',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GeneratePointSamplesFromFieldOrWidget, 'p_autoexecute',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GeneratePointSamplesFromFieldOrWidget, 'p_dist',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GeneratePointSamplesFromFieldOrWidget, 'p_whichtab',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_GeneratePointSamplesFromFieldOrWidget, 'Field to Sample',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_DecimateTriSurf, 'Decimated', 
-                    (SCIRun_Field, 'Decimated'))
-
-  reg.add_module(SCIRun_GeneratePointSamplesFromFieldOrWidget)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromFieldOrWidget, 'wtype',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromFieldOrWidget, 'endpoints',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromFieldOrWidget, 'maxseeds',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromFieldOrWidget, 'numseeds',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromFieldOrWidget, 'rngseed',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromFieldOrWidget, 'rnginc',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromFieldOrWidget, 'clamp',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromFieldOrWidget, 'autoexecute',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromFieldOrWidget, 'dist',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromFieldOrWidget, 'whichtab',
-                   (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_GeneratePointSamplesFromFieldOrWidget, 'Field to Sample',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_GeneratePointSamplesFromFieldOrWidget, 'Samples', 
+  reg.add_output_port(scirun_GeneratePointSamplesFromFieldOrWidget, 'Samples', 
                     (SCIRun_Field, 'Samples'))
-  reg.add_output_port(SCIRun_GeneratePointSamplesFromFieldOrWidget, 'Sampling Widget', 
+  reg.add_output_port(scirun_GeneratePointSamplesFromFieldOrWidget, 'Sampling Widget', 
                     (SCIRun_Geometry, 'Sampling Widget'))
 
-  reg.add_module(SCIRun_CalculateIsInsideField)
-  reg.add_input_port(SCIRun_CalculateIsInsideField, 'outputbasis',
+  reg.add_module(scirun_CreateMatrix)
+  reg.add_input_port(scirun_CreateMatrix, 'p_rows',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateMatrix, 'p_cols',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateMatrix, 'p_data',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateIsInsideField, 'outputtype',
+  reg.add_input_port(scirun_CreateMatrix, 'p_clabel',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateIsInsideField, 'outval',
+  reg.add_input_port(scirun_CreateMatrix, 'p_rlabel',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_output_port(scirun_CreateMatrix, 'matrix', 
+                    (SCIRun_Matrix, 'matrix'))
+
+  reg.add_module(scirun_CalculateIsInsideField)
+  reg.add_input_port(scirun_CalculateIsInsideField, 'p_outputbasis',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CalculateIsInsideField, 'p_outputtype',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CalculateIsInsideField, 'p_outval',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateIsInsideField, 'inval',
+  reg.add_input_port(scirun_CalculateIsInsideField, 'p_inval',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateIsInsideField, 'Field',
+  reg.add_input_port(scirun_CalculateIsInsideField, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_CalculateIsInsideField, 'ObjectField',
+  reg.add_input_port(scirun_CalculateIsInsideField, 'ObjectField',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_CalculateIsInsideField, 'Field', 
+  reg.add_output_port(scirun_CalculateIsInsideField, 'Field', 
                     (SCIRun_Field, 'Field'))
 
-  reg.add_module(SCIRun_CreateAndEditColorMap)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap, 'rgbhsv',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap, 'rgb_points',
+  reg.add_module(scirun_CreateAndEditColorMap)
+  reg.add_input_port(scirun_CreateAndEditColorMap, 'p_rgbhsv',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateAndEditColorMap, 'p_rgb_points',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap, 'alpha_points',
+  reg.add_input_port(scirun_CreateAndEditColorMap, 'p_alpha_points',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap, 'resolution',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateAndEditColorMap, 'ColorMap',
+  reg.add_input_port(scirun_CreateAndEditColorMap, 'p_resolution',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateAndEditColorMap, 'ColorMap',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_output_port(SCIRun_CreateAndEditColorMap, 'ColorMap', 
+  reg.add_output_port(scirun_CreateAndEditColorMap, 'ColorMap', 
                     (SCIRun_ColorMap, 'ColorMap'))
-  reg.add_output_port(SCIRun_CreateAndEditColorMap, 'Geometry', 
+  reg.add_output_port(scirun_CreateAndEditColorMap, 'Geometry', 
                     (SCIRun_Geometry, 'Geometry'))
 
-  reg.add_module(SCIRun_CoregisterPointClouds)
-  reg.add_input_port(SCIRun_CoregisterPointClouds, 'allowScale',
+  reg.add_module(scirun_DecimateTriSurf)
+  reg.add_input_port(scirun_DecimateTriSurf, 'TriSurf',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_DecimateTriSurf, 'Decimated', 
+                    (SCIRun_Field, 'Decimated'))
+
+  reg.add_module(scirun_CoregisterPointClouds)
+  reg.add_input_port(scirun_CoregisterPointClouds, 'p_allowScale',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CoregisterPointClouds, 'p_allowRotate',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CoregisterPointClouds, 'p_allowTranslate',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CoregisterPointClouds, 'p_seed',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CoregisterPointClouds, 'p_iters',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CoregisterPointClouds, 'p_misfitTol',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CoregisterPointClouds, 'allowRotate',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CoregisterPointClouds, 'allowTranslate',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CoregisterPointClouds, 'seed',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CoregisterPointClouds, 'iters',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CoregisterPointClouds, 'misfitTol',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CoregisterPointClouds, 'method',
+  reg.add_input_port(scirun_CoregisterPointClouds, 'p_method',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CoregisterPointClouds, 'Fixed PointCloudField',
+  reg.add_input_port(scirun_CoregisterPointClouds, 'Fixed PointCloudField',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_CoregisterPointClouds, 'Mobile PointCloudField',
+  reg.add_input_port(scirun_CoregisterPointClouds, 'Mobile PointCloudField',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_CoregisterPointClouds, 'DistanceField From Fixed',
+  reg.add_input_port(scirun_CoregisterPointClouds, 'DistanceField From Fixed',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_CoregisterPointClouds, 'Transform', 
+  reg.add_output_port(scirun_CoregisterPointClouds, 'Transform', 
                     (SCIRun_Matrix, 'Transform'))
 
-  reg.add_module(SCIRun_SolveMinNormLeastSqSystem)
-  reg.add_input_port(SCIRun_SolveMinNormLeastSqSystem, 'BasisVec1',
+  reg.add_module(scirun_SolveMinNormLeastSqSystem)
+  reg.add_input_port(scirun_SolveMinNormLeastSqSystem, 'BasisVec1',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_SolveMinNormLeastSqSystem, 'BasisVec2',
+  reg.add_input_port(scirun_SolveMinNormLeastSqSystem, 'BasisVec2',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_SolveMinNormLeastSqSystem, 'BasisVec3',
+  reg.add_input_port(scirun_SolveMinNormLeastSqSystem, 'BasisVec3',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_SolveMinNormLeastSqSystem, 'TargetVec',
+  reg.add_input_port(scirun_SolveMinNormLeastSqSystem, 'TargetVec',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_SolveMinNormLeastSqSystem, 'WeightVec(Col)', 
+  reg.add_output_port(scirun_SolveMinNormLeastSqSystem, 'WeightVec(Col)', 
                     (SCIRun_Matrix, 'WeightVec(Col)'))
-  reg.add_output_port(SCIRun_SolveMinNormLeastSqSystem, 'ResultVec(Col)', 
+  reg.add_output_port(scirun_SolveMinNormLeastSqSystem, 'ResultVec(Col)', 
                     (SCIRun_Matrix, 'ResultVec(Col)'))
 
-  reg.add_module(SCIRun_CalculateFieldData)
-  reg.add_input_port(SCIRun_CalculateFieldData, 'function',
+  reg.add_module(scirun_CalculateFieldData)
+  reg.add_input_port(scirun_CalculateFieldData, 'p_function',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateFieldData, 'format',
+  reg.add_input_port(scirun_CalculateFieldData, 'p_format',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CalculateFieldData, 'Field',
+  reg.add_input_port(scirun_CalculateFieldData, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_CalculateFieldData, 'Function',
+  reg.add_input_port(scirun_CalculateFieldData, 'Function',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_CalculateFieldData, 'Array',
+  reg.add_input_port(scirun_CalculateFieldData, 'Array',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_CalculateFieldData, 'Field', 
+  reg.add_output_port(scirun_CalculateFieldData, 'Field', 
                     (SCIRun_Field, 'Field'))
 
-  reg.add_module(SCIRun_MapFieldDataToNodeCoordinate)
-  reg.add_input_port(SCIRun_MapFieldDataToNodeCoordinate, 'coord',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_MapFieldDataToNodeCoordinate, 'Input Field',
+  reg.add_module(scirun_MapFieldDataToNodeCoordinate)
+  reg.add_input_port(scirun_MapFieldDataToNodeCoordinate, 'p_coord',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_MapFieldDataToNodeCoordinate, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_MapFieldDataToNodeCoordinate, 'Output Field', 
+  reg.add_output_port(scirun_MapFieldDataToNodeCoordinate, 'Output Field', 
                     (SCIRun_Field, 'Output Field'))
 
-  reg.add_module(SCIRun_ShowMeshBoundingBox)
-  reg.add_input_port(SCIRun_ShowMeshBoundingBox, 'sizex',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowMeshBoundingBox, 'sizey',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowMeshBoundingBox, 'sizez',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowMeshBoundingBox, 'Field',
+  reg.add_module(scirun_ShowMeshBoundingBox)
+  reg.add_input_port(scirun_ShowMeshBoundingBox, 'p_sizex',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowMeshBoundingBox, 'p_sizey',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowMeshBoundingBox, 'p_sizez',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowMeshBoundingBox, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_ShowMeshBoundingBox, 'Scene Graph', 
+  reg.add_output_port(scirun_ShowMeshBoundingBox, 'Scene Graph', 
                     (SCIRun_Geometry, 'Scene Graph'))
 
-  reg.add_module(SCIRun_ViewGraph)
-  reg.add_input_port(SCIRun_ViewGraph, 'Title',
+  reg.add_module(scirun_ViewGraph)
+  reg.add_input_port(scirun_ViewGraph, 'Title',
                    (core.modules.basic_modules.String, 'tip'))
-  reg.add_input_port(SCIRun_ViewGraph, 'Input',
+  reg.add_input_port(scirun_ViewGraph, 'Input',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
 
-  reg.add_module(SCIRun_GetAllSegmentationBoundaries)
-  reg.add_input_port(SCIRun_GetAllSegmentationBoundaries, 'Segmentations',
-                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
-  reg.add_output_port(SCIRun_GetAllSegmentationBoundaries, 'Boundaries', 
-                    (SCIRun_Field, 'Boundaries'))
-
-  reg.add_module(SCIRun_CreateStandardColorMaps)
-  reg.add_input_port(SCIRun_CreateStandardColorMaps, 'mapName',
+  reg.add_module(scirun_CreateStandardColorMaps)
+  reg.add_input_port(scirun_CreateStandardColorMaps, 'p_mapName',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateStandardColorMaps, 'gamma',
+  reg.add_input_port(scirun_CreateStandardColorMaps, 'p_gamma',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateStandardColorMaps, 'resolution',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateStandardColorMaps, 'reverse',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateStandardColorMaps, 'faux',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateStandardColorMaps, 'positionList',
+  reg.add_input_port(scirun_CreateStandardColorMaps, 'p_resolution',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateStandardColorMaps, 'p_reverse',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateStandardColorMaps, 'p_faux',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateStandardColorMaps, 'p_positionList',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateStandardColorMaps, 'nodeList',
+  reg.add_input_port(scirun_CreateStandardColorMaps, 'p_nodeList',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateStandardColorMaps, 'width',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateStandardColorMaps, 'height',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_output_port(SCIRun_CreateStandardColorMaps, 'ColorMap', 
+  reg.add_input_port(scirun_CreateStandardColorMaps, 'p_width',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateStandardColorMaps, 'p_height',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_output_port(scirun_CreateStandardColorMaps, 'ColorMap', 
                     (SCIRun_ColorMap, 'ColorMap'))
 
-  reg.add_module(SCIRun_ShowTextureSlices)
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'control_pos_saved',
+  reg.add_module(scirun_ShowTextureSlices)
+  reg.add_input_port(scirun_ShowTextureSlices, 'p_control_pos_saved',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureSlices, 'p_drawX',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureSlices, 'p_drawY',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureSlices, 'p_drawZ',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureSlices, 'p_drawView',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureSlices, 'p_interp_mode',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureSlices, 'p_draw_phi_0',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureSlices, 'p_draw_phi_1',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureSlices, 'p_phi_0',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'drawX',
+  reg.add_input_port(scirun_ShowTextureSlices, 'p_phi_1',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'drawY',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'drawZ',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'drawView',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'interp_mode',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'draw_phi_0',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'draw_phi_1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'phi_0',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'phi_1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'multi_level',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'color_changed',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'colors',
+  reg.add_input_port(scirun_ShowTextureSlices, 'p_multi_level',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureSlices, 'p_color_changed',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureSlices, 'p_colors',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'level_on',
+  reg.add_input_port(scirun_ShowTextureSlices, 'p_level_on',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'outline_levels',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'use_stencil',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'Texture',
+  reg.add_input_port(scirun_ShowTextureSlices, 'p_outline_levels',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureSlices, 'p_use_stencil',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowTextureSlices, 'Texture',
                    (SCIRun_Texture, "SCIRun_Texture"))
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'ColorMap',
+  reg.add_input_port(scirun_ShowTextureSlices, 'ColorMap',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_input_port(SCIRun_ShowTextureSlices, 'ColorMap2',
+  reg.add_input_port(scirun_ShowTextureSlices, 'ColorMap2',
                    (SCIRun_ColorMap2, "SCIRun_ColorMap2"))
-  reg.add_output_port(SCIRun_ShowTextureSlices, 'Geometry', 
+  reg.add_output_port(scirun_ShowTextureSlices, 'Geometry', 
                     (SCIRun_Geometry, 'Geometry'))
-  reg.add_output_port(SCIRun_ShowTextureSlices, 'ColorMap', 
+  reg.add_output_port(scirun_ShowTextureSlices, 'ColorMap', 
                     (SCIRun_ColorMap, 'ColorMap'))
 
-  reg.add_module(SCIRun_ShowMatrix)
-  reg.add_input_port(SCIRun_ShowMatrix, 'xpos',
+  reg.add_module(scirun_ShowMatrix)
+  reg.add_input_port(scirun_ShowMatrix, 'p_xpos',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowMatrix, 'ypos',
+  reg.add_input_port(scirun_ShowMatrix, 'p_ypos',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowMatrix, 'xscale',
+  reg.add_input_port(scirun_ShowMatrix, 'p_xscale',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowMatrix, 'yscale',
+  reg.add_input_port(scirun_ShowMatrix, 'p_yscale',
                    (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowMatrix, 'a3d_mode',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowMatrix, 'gmode',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowMatrix, 'showtext',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowMatrix, 'row_begin',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowMatrix, 'rows',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowMatrix, 'col_begin',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowMatrix, 'cols',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowMatrix, 'colormapmode',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_ShowMatrix, 'ColorMap',
+  reg.add_input_port(scirun_ShowMatrix, 'p_3d_mode',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowMatrix, 'p_gmode',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowMatrix, 'p_showtext',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowMatrix, 'p_row_begin',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowMatrix, 'p_rows',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowMatrix, 'p_col_begin',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowMatrix, 'p_cols',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowMatrix, 'p_colormapmode',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ShowMatrix, 'ColorMap',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_input_port(SCIRun_ShowMatrix, 'Matrix',
+  reg.add_input_port(scirun_ShowMatrix, 'Matrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ShowMatrix, 'Geometry', 
+  reg.add_output_port(scirun_ShowMatrix, 'Geometry', 
                     (SCIRun_Geometry, 'Geometry'))
 
-  reg.add_module(SCIRun_CreateViewerClockIcon)
-  reg.add_input_port(SCIRun_CreateViewerClockIcon, 'type',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerClockIcon, 'bbox',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerClockIcon, 'format',
+  reg.add_module(scirun_GetSliceFromStructuredFieldByIndices)
+  reg.add_input_port(scirun_GetSliceFromStructuredFieldByIndices, 'p_axis',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetSliceFromStructuredFieldByIndices, 'p_dims',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetSliceFromStructuredFieldByIndices, 'p_dim_i',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetSliceFromStructuredFieldByIndices, 'p_dim_j',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetSliceFromStructuredFieldByIndices, 'p_dim_k',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetSliceFromStructuredFieldByIndices, 'p_index_i',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetSliceFromStructuredFieldByIndices, 'p_index_j',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetSliceFromStructuredFieldByIndices, 'p_index_k',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetSliceFromStructuredFieldByIndices, 'p_update_type',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerClockIcon, 'min',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerClockIcon, 'max',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerClockIcon, 'current',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerClockIcon, 'size',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerClockIcon, 'location_x',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerClockIcon, 'location_y',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerClockIcon, 'color_r',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerClockIcon, 'color_g',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerClockIcon, 'color_b',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CreateViewerClockIcon, 'Time Matrix',
+  reg.add_input_port(scirun_GetSliceFromStructuredFieldByIndices, 'p_continuous',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_GetSliceFromStructuredFieldByIndices, 'Input Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_input_port(scirun_GetSliceFromStructuredFieldByIndices, 'Input Matrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_input_port(SCIRun_CreateViewerClockIcon, 'Time Nrrd',
-                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
-  reg.add_output_port(SCIRun_CreateViewerClockIcon, 'Clock', 
-                    (SCIRun_Geometry, 'Clock'))
+  reg.add_output_port(scirun_GetSliceFromStructuredFieldByIndices, 'Output Field', 
+                    (SCIRun_Field, 'Output Field'))
+  reg.add_output_port(scirun_GetSliceFromStructuredFieldByIndices, 'Output Matrix', 
+                    (SCIRun_Matrix, 'Output Matrix'))
 
-  reg.add_module(SCIRun_ConvertMatrixType)
-  reg.add_input_port(SCIRun_ConvertMatrixType, 'oldtype',
+  reg.add_module(scirun_ConvertMatrixType)
+  reg.add_input_port(scirun_ConvertMatrixType, 'p_oldtype',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertMatrixType, 'newtype',
+  reg.add_input_port(scirun_ConvertMatrixType, 'p_newtype',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertMatrixType, 'nrow',
+  reg.add_input_port(scirun_ConvertMatrixType, 'p_nrow',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertMatrixType, 'ncol',
+  reg.add_input_port(scirun_ConvertMatrixType, 'p_ncol',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ConvertMatrixType, 'Input',
+  reg.add_input_port(scirun_ConvertMatrixType, 'Input',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ConvertMatrixType, 'Output', 
+  reg.add_output_port(scirun_ConvertMatrixType, 'Output', 
                     (SCIRun_Matrix, 'Output'))
 
-  reg.add_module(SCIRun_JoinStrings)
-  reg.add_input_port(SCIRun_JoinStrings, 'input',
-                   (core.modules.basic_modules.String, 'tip'))
-  reg.add_output_port(SCIRun_JoinStrings, 'Output', 
-                    (core.modules.basic_modules.String, 'Output'))
-
-  reg.add_module(SCIRun_InsertColorMapsIntoBundle)
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'colormap1_name',
+  reg.add_module(scirun_InsertColorMapsIntoBundle)
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'p_colormap1_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'colormap2_name',
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'p_colormap2_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'colormap3_name',
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'p_colormap3_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'colormap4_name',
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'p_colormap4_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'colormap5_name',
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'p_colormap5_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'colormap6_name',
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'p_colormap6_name',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'replace1',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'replace2',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'replace3',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'replace4',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'replace5',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'replace6',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'bundlename',
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'p_replace1',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'p_replace2',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'p_replace3',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'p_replace4',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'p_replace5',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'p_replace6',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'p_bundlename',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'bundle',
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'bundle',
                    (SCIRun_Bundle, "SCIRun_Bundle"))
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'colormap1',
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'colormap1',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'colormap2',
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'colormap2',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'colormap3',
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'colormap3',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'colormap4',
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'colormap4',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'colormap5',
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'colormap5',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_input_port(SCIRun_InsertColorMapsIntoBundle, 'colormap6',
+  reg.add_input_port(scirun_InsertColorMapsIntoBundle, 'colormap6',
                    (SCIRun_ColorMap, "SCIRun_ColorMap"))
-  reg.add_output_port(SCIRun_InsertColorMapsIntoBundle, 'bundle', 
+  reg.add_output_port(scirun_InsertColorMapsIntoBundle, 'bundle', 
                     (SCIRun_Bundle, 'bundle'))
 
-  reg.add_module(SCIRun_CollectPointClouds)
-  reg.add_input_port(SCIRun_CollectPointClouds, 'num_fields',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_CollectPointClouds, 'Point Cloud',
-                   (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_CollectPointClouds, 'Curve', 
-                    (SCIRun_Field, 'Curve'))
+  reg.add_module(scirun_JoinStrings)
+  reg.add_input_port(scirun_JoinStrings, 'input',
+                   (core.modules.basic_modules.String, 'tip'))
+  reg.add_output_port(scirun_JoinStrings, 'Output', 
+                    (core.modules.basic_modules.String, 'Output'))
 
-  reg.add_module(SCIRun_ReorderMatrixByCuthillMcKee)
-  reg.add_input_port(SCIRun_ReorderMatrixByCuthillMcKee, 'Matrix',
-                   (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ReorderMatrixByCuthillMcKee, 'Matrix', 
-                    (SCIRun_Matrix, 'Matrix'))
-  reg.add_output_port(SCIRun_ReorderMatrixByCuthillMcKee, 'Mapping', 
-                    (SCIRun_Matrix, 'Mapping'))
-  reg.add_output_port(SCIRun_ReorderMatrixByCuthillMcKee, 'InverseMapping', 
-                    (SCIRun_Matrix, 'InverseMapping'))
-
-  reg.add_module(SCIRun_ReportMatrixRowMeasure)
-  reg.add_input_port(SCIRun_ReportMatrixRowMeasure, 'method',
+  reg.add_module(scirun_CreateViewerClockIcon)
+  reg.add_input_port(scirun_CreateViewerClockIcon, 'p_type',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerClockIcon, 'p_bbox',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerClockIcon, 'p_format',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_ReportMatrixRowMeasure, 'Matrix',
+  reg.add_input_port(scirun_CreateViewerClockIcon, 'p_min',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerClockIcon, 'p_max',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerClockIcon, 'p_current',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerClockIcon, 'p_size',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerClockIcon, 'p_location_x',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerClockIcon, 'p_location_y',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerClockIcon, 'p_color_r',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerClockIcon, 'p_color_g',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerClockIcon, 'p_color_b',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_CreateViewerClockIcon, 'Time Matrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ReportMatrixRowMeasure, 'Vector', 
+  reg.add_input_port(scirun_CreateViewerClockIcon, 'Time Nrrd',
+                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
+  reg.add_output_port(scirun_CreateViewerClockIcon, 'Clock', 
+                    (SCIRun_Geometry, 'Clock'))
+
+  reg.add_module(scirun_ReportMatrixRowMeasure)
+  reg.add_input_port(scirun_ReportMatrixRowMeasure, 'p_method',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ReportMatrixRowMeasure, 'Matrix',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_ReportMatrixRowMeasure, 'Vector', 
                     (SCIRun_Matrix, 'Vector'))
 
-  reg.add_module(SCIRun_RemoveHexVolSheet)
-  reg.add_input_port(SCIRun_RemoveHexVolSheet, 'edge_list',
+  reg.add_module(scirun_RemoveHexVolSheet)
+  reg.add_input_port(scirun_RemoveHexVolSheet, 'p_edge_list',
                    (core.modules.basic_modules.String, 'tip'), True)
-  reg.add_input_port(SCIRun_RemoveHexVolSheet, 'HexField',
+  reg.add_input_port(scirun_RemoveHexVolSheet, 'HexField',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_RemoveHexVolSheet, 'NewHexField', 
+  reg.add_output_port(scirun_RemoveHexVolSheet, 'NewHexField', 
                     (SCIRun_Field, 'NewHexField'))
-  reg.add_output_port(SCIRun_RemoveHexVolSheet, 'ExtractedHexes', 
+  reg.add_output_port(scirun_RemoveHexVolSheet, 'ExtractedHexes', 
                     (SCIRun_Field, 'ExtractedHexes'))
 
-  reg.add_module(SCIRun_ColorMap2DSemantics)
-  reg.add_input_port(SCIRun_ColorMap2DSemantics, 'Input Colormap',
-                   (SCIRun_ColorMap2, "SCIRun_ColorMap2"))
-  reg.add_output_port(SCIRun_ColorMap2DSemantics, 'Output Colormap', 
-                    (SCIRun_ColorMap2, 'Output Colormap'))
-
-  reg.add_module(SCIRun_ReportMatrixInfo)
-  reg.add_input_port(SCIRun_ReportMatrixInfo, 'Input',
+  reg.add_module(scirun_ReorderMatrixByCuthillMcKee)
+  reg.add_input_port(scirun_ReorderMatrixByCuthillMcKee, 'Matrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_ReportMatrixInfo, 'NumRows', 
+  reg.add_output_port(scirun_ReorderMatrixByCuthillMcKee, 'Matrix', 
+                    (SCIRun_Matrix, 'Matrix'))
+  reg.add_output_port(scirun_ReorderMatrixByCuthillMcKee, 'Mapping', 
+                    (SCIRun_Matrix, 'Mapping'))
+  reg.add_output_port(scirun_ReorderMatrixByCuthillMcKee, 'InverseMapping', 
+                    (SCIRun_Matrix, 'InverseMapping'))
+
+  reg.add_module(scirun_ReportMatrixInfo)
+  reg.add_input_port(scirun_ReportMatrixInfo, 'Input',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_ReportMatrixInfo, 'NumRows', 
                     (SCIRun_Matrix, 'NumRows'))
-  reg.add_output_port(SCIRun_ReportMatrixInfo, 'NumCols', 
+  reg.add_output_port(scirun_ReportMatrixInfo, 'NumCols', 
                     (SCIRun_Matrix, 'NumCols'))
-  reg.add_output_port(SCIRun_ReportMatrixInfo, 'NumElements', 
+  reg.add_output_port(scirun_ReportMatrixInfo, 'NumElements', 
                     (SCIRun_Matrix, 'NumElements'))
 
-  reg.add_module(SCIRun_RefineMesh)
-  reg.add_input_port(SCIRun_RefineMesh, 'Mesh',
+  reg.add_module(scirun_SubsampleStructuredFieldByIndices)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_power_app',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_wrap',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_dims',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_dim_i',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_dim_j',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_dim_k',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_start_i',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_start_j',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_start_k',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_stop_i',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_stop_j',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_stop_k',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_stride_i',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_stride_j',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_stride_k',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_wrap_i',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_wrap_j',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'p_wrap_k',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'Input Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_RefineMesh, 'Isovalue',
+  reg.add_input_port(scirun_SubsampleStructuredFieldByIndices, 'Input Matrix',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_RefineMesh, 'RefinedMesh', 
-                    (SCIRun_Field, 'RefinedMesh'))
-  reg.add_output_port(SCIRun_RefineMesh, 'Mapping', 
-                    (SCIRun_Matrix, 'Mapping'))
+  reg.add_output_port(scirun_SubsampleStructuredFieldByIndices, 'Output Field', 
+                    (SCIRun_Field, 'Output Field'))
+  reg.add_output_port(scirun_SubsampleStructuredFieldByIndices, 'Output Matrix', 
+                    (SCIRun_Matrix, 'Output Matrix'))
 
-  reg.add_module(SCIRun_InsertEnvironmentIntoBundle)
-  reg.add_output_port(SCIRun_InsertEnvironmentIntoBundle, 'Environment', 
-                    (SCIRun_Bundle, 'Environment'))
-
-  reg.add_module(SCIRun_CalculateDistanceToField)
-  reg.add_input_port(SCIRun_CalculateDistanceToField, 'Field',
+  reg.add_module(scirun_CalculateDistanceToField)
+  reg.add_input_port(scirun_CalculateDistanceToField, 'Field',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_CalculateDistanceToField, 'ObjectField',
+  reg.add_input_port(scirun_CalculateDistanceToField, 'ObjectField',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_output_port(SCIRun_CalculateDistanceToField, 'DistanceField', 
+  reg.add_output_port(scirun_CalculateDistanceToField, 'DistanceField', 
                     (SCIRun_Field, 'DistanceField'))
 
-  reg.add_module(SCIRun_SubsampleStructuredFieldByIndices)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'power_app',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'wrap',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'dims',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'dim_i',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'dim_j',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'dim_k',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'start_i',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'start_j',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'start_k',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'stop_i',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'stop_j',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'stop_k',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'stride_i',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'stride_j',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'stride_k',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'wrap_i',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'wrap_j',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'wrap_k',
-                   (core.modules.basic_modules.Float, 'tip'), True)
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'Input Field',
+  reg.add_module(scirun_GetAllSegmentationBoundaries)
+  reg.add_input_port(scirun_GetAllSegmentationBoundaries, 'Segmentations',
+                   (SCIRun_Nrrd, "SCIRun_Nrrd"))
+  reg.add_output_port(scirun_GetAllSegmentationBoundaries, 'Boundaries', 
+                    (SCIRun_Field, 'Boundaries'))
+
+  reg.add_module(scirun_ClipFieldWithSeed)
+  reg.add_input_port(scirun_ClipFieldWithSeed, 'p_mode',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ClipFieldWithSeed, 'p_function',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_ClipFieldWithSeed, 'Function',
+                   (core.modules.basic_modules.String, 'tip'))
+  reg.add_input_port(scirun_ClipFieldWithSeed, 'Input',
                    (SCIRun_Field, "SCIRun_Field"))
-  reg.add_input_port(SCIRun_SubsampleStructuredFieldByIndices, 'Input Matrix',
+  reg.add_input_port(scirun_ClipFieldWithSeed, 'Seeds',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_ClipFieldWithSeed, 'Clipped', 
+                    (SCIRun_Field, 'Clipped'))
+  reg.add_output_port(scirun_ClipFieldWithSeed, 'Mapping', 
+                    (SCIRun_Matrix, 'Mapping'))
+  reg.add_output_port(scirun_ClipFieldWithSeed, 'MaskVector', 
+                    (SCIRun_Nrrd, 'MaskVector'))
+
+  reg.add_module(scirun_CreateParameterBundle)
+  reg.add_input_port(scirun_CreateParameterBundle, 'p_data',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_CreateParameterBundle, 'p_new_field_count',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CreateParameterBundle, 'p_update_all',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_output_port(scirun_CreateParameterBundle, 'ParameterList', 
+                    (SCIRun_Bundle, 'ParameterList'))
+
+  reg.add_module(scirun_CollectPointClouds)
+  reg.add_input_port(scirun_CollectPointClouds, 'p_num_fields',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_CollectPointClouds, 'Point Cloud',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_CollectPointClouds, 'Curve', 
+                    (SCIRun_Field, 'Curve'))
+
+  reg.add_module(scirun_InsertEnvironmentIntoBundle)
+  reg.add_output_port(scirun_InsertEnvironmentIntoBundle, 'Environment', 
+                    (SCIRun_Bundle, 'Environment'))
+
+  reg.add_module(scirun_ScaleFieldMeshAndData)
+  reg.add_input_port(scirun_ScaleFieldMeshAndData, 'p_datascale',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ScaleFieldMeshAndData, 'p_geomscale',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ScaleFieldMeshAndData, 'p_usegeomcenter',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ScaleFieldMeshAndData, 'Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_input_port(scirun_ScaleFieldMeshAndData, 'GeomScaleFactor',
                    (SCIRun_Matrix, "SCIRun_Matrix"))
-  reg.add_output_port(SCIRun_SubsampleStructuredFieldByIndices, 'Output Field', 
-                    (SCIRun_Field, 'Output Field'))
-  reg.add_output_port(SCIRun_SubsampleStructuredFieldByIndices, 'Output Matrix', 
-                    (SCIRun_Matrix, 'Output Matrix'))
+  reg.add_input_port(scirun_ScaleFieldMeshAndData, 'DataScaleFactor',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_ScaleFieldMeshAndData, 'Field', 
+                    (SCIRun_Field, 'Field'))
+
+  reg.add_module(scirun_ConvertFieldsToTexture)
+  reg.add_input_port(scirun_ConvertFieldsToTexture, 'p_vmin',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ConvertFieldsToTexture, 'p_vmax',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ConvertFieldsToTexture, 'p_gmin',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ConvertFieldsToTexture, 'p_gmax',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ConvertFieldsToTexture, 'p_is_fixed',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ConvertFieldsToTexture, 'p_card_mem',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ConvertFieldsToTexture, 'p_card_mem_auto',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ConvertFieldsToTexture, 'p_histogram',
+                   (core.modules.basic_modules.Integer, 'tip'), True)
+  reg.add_input_port(scirun_ConvertFieldsToTexture, 'p_gamma',
+                   (core.modules.basic_modules.Float, 'tip'), True)
+  reg.add_input_port(scirun_ConvertFieldsToTexture, 'Value Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_input_port(scirun_ConvertFieldsToTexture, 'Gradient Magnitude Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_ConvertFieldsToTexture, 'Texture', 
+                    (SCIRun_Texture, 'Texture'))
+  reg.add_output_port(scirun_ConvertFieldsToTexture, 'JointHistoGram', 
+                    (SCIRun_Nrrd, 'JointHistoGram'))
+
+  reg.add_module(scirun_SplitNodesByDomain)
+  reg.add_input_port(scirun_SplitNodesByDomain, 'Field',
+                   (SCIRun_Field, "SCIRun_Field"))
+  reg.add_output_port(scirun_SplitNodesByDomain, 'SplitField', 
+                    (SCIRun_Field, 'SplitField'))
+
+  reg.add_module(scirun_RemoveZerosFromMatrix)
+  reg.add_input_port(scirun_RemoveZerosFromMatrix, 'p_row_or_col',
+                   (core.modules.basic_modules.String, 'tip'), True)
+  reg.add_input_port(scirun_RemoveZerosFromMatrix, 'Matrix',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_RemoveZerosFromMatrix, 'Matrix', 
+                    (SCIRun_Matrix, 'Matrix'))
+
+  reg.add_module(scirun_GetNetworkFileName)
+  reg.add_output_port(scirun_GetNetworkFileName, 'String', 
+                    (core.modules.basic_modules.String, 'String'))
+
+  reg.add_module(scirun_RemoveZeroRowsAndColumns)
+  reg.add_input_port(scirun_RemoveZeroRowsAndColumns, 'Matrix',
+                   (SCIRun_Matrix, "SCIRun_Matrix"))
+  reg.add_output_port(scirun_RemoveZeroRowsAndColumns, 'ReducedMatrix', 
+                    (SCIRun_Matrix, 'ReducedMatrix'))
+  reg.add_output_port(scirun_RemoveZeroRowsAndColumns, 'LeftMapping', 
+                    (SCIRun_Matrix, 'LeftMapping'))
+  reg.add_output_port(scirun_RemoveZeroRowsAndColumns, 'RightMapping', 
+                    (SCIRun_Matrix, 'RightMapping'))
+
+  reg.add_module(scirun_ColorMap2DSemantics)
+  reg.add_input_port(scirun_ColorMap2DSemantics, 'Input Colormap',
+                   (SCIRun_ColorMap2, "SCIRun_ColorMap2"))
+  reg.add_output_port(scirun_ColorMap2DSemantics, 'Output Colormap', 
+                    (SCIRun_ColorMap2, 'Output Colormap'))
+
+
 
   import viewercell
   viewercell.registerSelf()
 
 
-
 def package_dependencies():
   return ['edu.utah.sci.vistrails.spreadsheet']
+
 
 def finalize():
   sr_py.terminate()
