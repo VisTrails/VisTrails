@@ -49,7 +49,7 @@ class scirun_WriteBundle(Module) :
     bundle = 0
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
-    Filename = 0
+    Filename = ''
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
     results = sr_py.WriteBundle(bundle,Filename,p_filetype,p_confirm,p_confirm_once)
@@ -140,8 +140,8 @@ class scirun_RefineMeshByIsovalue(Module) :
     if self.hasInputFromPort('Optional Isovalue') :
       Optional_Isovalue = self.getInputFromPort('Optional Isovalue')
     results = sr_py.RefineMeshByIsovalue(Input,Optional_Isovalue,p_isoval,p_lte)
-    self.setResult('Refined', sr_py.read_at_index(results,0))
-    self.setResult('Mapping', sr_py.read_at_index(results,1))
+    self.setResult('Refined', results[0])
+    self.setResult('Mapping', results[1])
 
 class scirun_ViewScene(Module) :
   def compute(self) :
@@ -191,11 +191,11 @@ class scirun_EvaluateLinAlgGeneral(Module) :
     if self.hasInputFromPort('i5') :
       i5 = self.getInputFromPort('i5')
     results = sr_py.EvaluateLinAlgGeneral(i1,i2,i3,i4,i5,p_function)
-    self.setResult('o1', sr_py.read_at_index(results,0))
-    self.setResult('o2', sr_py.read_at_index(results,1))
-    self.setResult('o3', sr_py.read_at_index(results,2))
-    self.setResult('o4', sr_py.read_at_index(results,3))
-    self.setResult('o5', sr_py.read_at_index(results,4))
+    self.setResult('o1', results[0])
+    self.setResult('o2', results[1])
+    self.setResult('o3', results[2])
+    self.setResult('o4', results[3])
+    self.setResult('o5', results[4])
 
 class scirun_AppendMatrix(Module) :
   def compute(self) :
@@ -222,7 +222,7 @@ class scirun_CreateDataArray(Module) :
     Size = 0
     if self.hasInputFromPort('Size') :
       Size = self.getInputFromPort('Size')
-    Function = 0
+    Function = ''
     if self.hasInputFromPort('Function') :
       Function = self.getInputFromPort('Function')
     Array = 0
@@ -267,7 +267,7 @@ class scirun_PrintMatrixIntoString(Module) :
     p_formatstring = 'time: %5.4f ms'
     if self.hasInputFromPort('p_formatstring') :
       p_formatstring = self.getInputFromPort('p_formatstring')
-    Format = 0
+    Format = ''
     if self.hasInputFromPort('Format') :
       Format = self.getInputFromPort('Format')
     Input = 0
@@ -308,8 +308,8 @@ class scirun_ConvertFieldBasis(Module) :
     if self.hasInputFromPort('Input') :
       Input = self.getInputFromPort('Input')
     results = sr_py.ConvertFieldBasis(Input,p_output_basis)
-    self.setResult('Output', sr_py.read_at_index(results,0))
-    self.setResult('Mapping', sr_py.read_at_index(results,1))
+    self.setResult('Output', results[0])
+    self.setResult('Mapping', results[1])
 
 class scirun_ReportMeshQualityMeasures(Module) :
   def compute(self) :
@@ -387,13 +387,13 @@ class scirun_GetColorMapsFromBundle(Module) :
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
     results = sr_py.GetColorMapsFromBundle(bundle,p_colormap1_name,p_colormap2_name,p_colormap3_name,p_colormap4_name,p_colormap5_name,p_colormap6_name,p_colormap_selection)
-    self.setResult('bundle', sr_py.read_at_index(results,0))
-    self.setResult('colormap1', sr_py.read_at_index(results,1))
-    self.setResult('colormap2', sr_py.read_at_index(results,2))
-    self.setResult('colormap3', sr_py.read_at_index(results,3))
-    self.setResult('colormap4', sr_py.read_at_index(results,4))
-    self.setResult('colormap5', sr_py.read_at_index(results,5))
-    self.setResult('colormap6', sr_py.read_at_index(results,6))
+    self.setResult('bundle', results[0])
+    self.setResult('colormap1', results[1])
+    self.setResult('colormap2', results[2])
+    self.setResult('colormap3', results[3])
+    self.setResult('colormap4', results[4])
+    self.setResult('colormap5', results[5])
+    self.setResult('colormap6', results[6])
 
 class scirun_CreateStructHex(Module) :
   def compute(self) :
@@ -476,7 +476,7 @@ class scirun_CalculateFieldData3(Module) :
     Field3 = 0
     if self.hasInputFromPort('Field3') :
       Field3 = self.getInputFromPort('Field3')
-    Function = 0
+    Function = ''
     if self.hasInputFromPort('Function') :
       Function = self.getInputFromPort('Function')
     Array = 0
@@ -630,13 +630,13 @@ class scirun_GetFieldsFromBundle(Module) :
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
     results = sr_py.GetFieldsFromBundle(bundle,p_field1_name,p_field2_name,p_field3_name,p_field4_name,p_field5_name,p_field6_name,p_field_selection)
-    self.setResult('bundle', sr_py.read_at_index(results,0))
-    self.setResult('field1', sr_py.read_at_index(results,1))
-    self.setResult('field2', sr_py.read_at_index(results,2))
-    self.setResult('field3', sr_py.read_at_index(results,3))
-    self.setResult('field4', sr_py.read_at_index(results,4))
-    self.setResult('field5', sr_py.read_at_index(results,5))
-    self.setResult('field6', sr_py.read_at_index(results,6))
+    self.setResult('bundle', results[0])
+    self.setResult('field1', results[1])
+    self.setResult('field2', results[2])
+    self.setResult('field3', results[3])
+    self.setResult('field4', results[4])
+    self.setResult('field5', results[5])
+    self.setResult('field6', results[6])
 
 class scirun_ReportScalarFieldStats(Module) :
   def compute(self) :
@@ -1056,9 +1056,9 @@ class scirun_ExtractIsosurface(Module) :
     if self.hasInputFromPort('Optional Isovalues') :
       Optional_Isovalues = self.getInputFromPort('Optional Isovalues')
     results = sr_py.ExtractIsosurface(Field,Optional_Color_Map,Optional_Isovalues,p_isoval_min,p_isoval_max,p_isoval,p_isoval_typed,p_isoval_quantity,p_quantity_range,p_quantity_clusive,p_quantity_min,p_quantity_max,p_quantity_list,p_isoval_list,p_matrix_list,p_algorithm,p_build_trisurf,p_build_geom,p_np,p_active_isoval_selection_tab,p_active_tab,p_update_type,p_color_r,p_color_g,p_color_b)
-    self.setResult('Surface', sr_py.read_at_index(results,0))
-    self.setResult('Geometry', sr_py.read_at_index(results,1))
-    self.setResult('Mapping', sr_py.read_at_index(results,2))
+    self.setResult('Surface', results[0])
+    self.setResult('Geometry', results[1])
+    self.setResult('Mapping', results[2])
 
 class scirun_ConvertMatrixToString(Module) :
   def compute(self) :
@@ -1576,8 +1576,8 @@ class scirun_SelectFieldROIWithBoxWidget(Module) :
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
     results = sr_py.SelectFieldROIWithBoxWidget(Input_Field,p_stampvalue,p_runmode)
-    self.setResult('Selection Widget', sr_py.read_at_index(results,0))
-    self.setResult('Output Field', sr_py.read_at_index(results,1))
+    self.setResult('Selection Widget', results[0])
+    self.setResult('Output Field', results[1])
 
 class scirun_SetTetVolFieldDataValues(Module) :
   def compute(self) :
@@ -1604,7 +1604,7 @@ class scirun_WritePath(Module) :
     Input_Data = 0
     if self.hasInputFromPort('Input Data') :
       Input_Data = self.getInputFromPort('Input Data')
-    Filename = 0
+    Filename = ''
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
     results = sr_py.WritePath(Input_Data,Filename,p_filetype,p_confirm,p_confirm_once)
@@ -1636,9 +1636,9 @@ class scirun_ClipLatVolByIndicesOrWidget(Module) :
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
     results = sr_py.ClipLatVolByIndicesOrWidget(Input_Field,p_use_text_bbox,p_text_min_x,p_text_min_y,p_text_min_z,p_text_max_x,p_text_max_y,p_text_max_z)
-    self.setResult('Selection Widget', sr_py.read_at_index(results,0))
-    self.setResult('Output Field', sr_py.read_at_index(results,1))
-    self.setResult('MaskVector', sr_py.read_at_index(results,2))
+    self.setResult('Selection Widget', results[0])
+    self.setResult('Output Field', results[1])
+    self.setResult('MaskVector', results[2])
 
 class scirun_GetBundlesFromBundle(Module) :
   def compute(self) :
@@ -1667,13 +1667,13 @@ class scirun_GetBundlesFromBundle(Module) :
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
     results = sr_py.GetBundlesFromBundle(bundle,p_bundle1_name,p_bundle2_name,p_bundle3_name,p_bundle4_name,p_bundle5_name,p_bundle6_name,p_bundle_selection)
-    self.setResult('bundle', sr_py.read_at_index(results,0))
-    self.setResult('bundle1', sr_py.read_at_index(results,1))
-    self.setResult('bundle2', sr_py.read_at_index(results,2))
-    self.setResult('bundle3', sr_py.read_at_index(results,3))
-    self.setResult('bundle4', sr_py.read_at_index(results,4))
-    self.setResult('bundle5', sr_py.read_at_index(results,5))
-    self.setResult('bundle6', sr_py.read_at_index(results,6))
+    self.setResult('bundle', results[0])
+    self.setResult('bundle1', results[1])
+    self.setResult('bundle2', results[2])
+    self.setResult('bundle3', results[3])
+    self.setResult('bundle4', results[4])
+    self.setResult('bundle5', results[5])
+    self.setResult('bundle6', results[6])
 
 class scirun_RescaleColorMap(Module) :
   def compute(self) :
@@ -1746,8 +1746,8 @@ class scirun_ConvertNrrdsToTexture(Module) :
     if self.hasInputFromPort('Gradient Magnitude Nrrd') :
       Gradient_Magnitude_Nrrd = self.getInputFromPort('Gradient Magnitude Nrrd')
     results = sr_py.ConvertNrrdsToTexture(Value_Nrrd,Gradient_Magnitude_Nrrd,p_vmin,p_vmax,p_gmin,p_gmax,p_mmin,p_mmax,p_is_fixed,p_card_mem,p_card_mem_auto,p_is_uchar,p_histogram,p_gamma)
-    self.setResult('Texture', sr_py.read_at_index(results,0))
-    self.setResult('JointHistoGram', sr_py.read_at_index(results,1))
+    self.setResult('Texture', results[0])
+    self.setResult('JointHistoGram', results[1])
 
 class scirun_ConvertQuadSurfToTriSurf(Module) :
   def compute(self) :
@@ -1774,7 +1774,7 @@ class scirun_WriteColorMap2D(Module) :
     Input_Data = 0
     if self.hasInputFromPort('Input Data') :
       Input_Data = self.getInputFromPort('Input Data')
-    Filename = 0
+    Filename = ''
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
     results = sr_py.WriteColorMap2D(Input_Data,Filename,p_filetype,p_confirm,p_confirm_once,p_exporttype)
@@ -2014,22 +2014,22 @@ class scirun_ReadHDF5File(Module) :
     p_5_stride2 = '1'
     if self.hasInputFromPort('p_5_stride2') :
       p_5_stride2 = self.getInputFromPort('p_5_stride2')
-    Full_filename = 0
+    Full_filename = ''
     if self.hasInputFromPort('Full filename') :
       Full_filename = self.getInputFromPort('Full filename')
     Current_Index = 0
     if self.hasInputFromPort('Current Index') :
       Current_Index = self.getInputFromPort('Current Index')
     results = sr_py.ReadHDF5File(Full_filename,Current_Index,p_have_HDF5,p_power_app,p_datasets,p_dumpname,p_ports,p_ndims,p_mergeData,p_assumeSVT,p_animate,p_animate_tab,p_basic_tab,p_extended_tab,p_playmode_tab,p_selectable_min,p_selectable_max,p_selectable_inc,p_range_min,p_range_max,p_playmode,p_current,p_execmode,p_delay,p_inc_amount,p_update_type,p_have_group,p_have_attributes,p_have_datasets,p_continuous,p_selectionString,p_regexp,p_allow_selection,p_read_error,p_max_dims,p_0_dim,p_0_start,p_0_start2,p_0_count,p_0_count2,p_0_stride,p_0_stride2,p_1_dim,p_1_start,p_1_start2,p_1_count,p_1_count2,p_1_stride,p_1_stride2,p_2_dim,p_2_start,p_2_start2,p_2_count,p_2_count2,p_2_stride,p_2_stride2,p_3_dim,p_3_start,p_3_start2,p_3_count,p_3_count2,p_3_stride,p_3_stride2,p_4_dim,p_4_start,p_4_start2,p_4_count,p_4_count2,p_4_stride,p_4_stride2,p_5_dim,p_5_start,p_5_start2,p_5_count,p_5_count2,p_5_stride,p_5_stride2)
-    self.setResult('Output 0 Nrrd', sr_py.read_at_index(results,0))
-    self.setResult('Output 1 Nrrd', sr_py.read_at_index(results,1))
-    self.setResult('Output 2 Nrrd', sr_py.read_at_index(results,2))
-    self.setResult('Output 3 Nrrd', sr_py.read_at_index(results,3))
-    self.setResult('Output 4 Nrrd', sr_py.read_at_index(results,4))
-    self.setResult('Output 5 Nrrd', sr_py.read_at_index(results,5))
-    self.setResult('Output 6 Nrrd', sr_py.read_at_index(results,6))
-    self.setResult('Output 7 Nrrd', sr_py.read_at_index(results,7))
-    self.setResult('Selected Index', sr_py.read_at_index(results,8))
+    self.setResult('Output 0 Nrrd', results[0])
+    self.setResult('Output 1 Nrrd', results[1])
+    self.setResult('Output 2 Nrrd', results[2])
+    self.setResult('Output 3 Nrrd', results[3])
+    self.setResult('Output 4 Nrrd', results[4])
+    self.setResult('Output 5 Nrrd', results[5])
+    self.setResult('Output 6 Nrrd', results[6])
+    self.setResult('Output 7 Nrrd', results[7])
+    self.setResult('Selected Index', results[8])
 
 class scirun_SwapFieldDataWithMatrixEntries(Module) :
   def compute(self) :
@@ -2043,8 +2043,8 @@ class scirun_SwapFieldDataWithMatrixEntries(Module) :
     if self.hasInputFromPort('Input Matrix') :
       Input_Matrix = self.getInputFromPort('Input Matrix')
     results = sr_py.SwapFieldDataWithMatrixEntries(Input_Field,Input_Matrix,p_preserve_scalar_type)
-    self.setResult('Output Field', sr_py.read_at_index(results,0))
-    self.setResult('Output Matrix', sr_py.read_at_index(results,1))
+    self.setResult('Output Field', results[0])
+    self.setResult('Output Matrix', results[1])
 
 class scirun_GetFieldBoundary(Module) :
   def compute(self) :
@@ -2052,8 +2052,8 @@ class scirun_GetFieldBoundary(Module) :
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
     results = sr_py.GetFieldBoundary(Field)
-    self.setResult('BoundaryField', sr_py.read_at_index(results,0))
-    self.setResult('Mapping', sr_py.read_at_index(results,1))
+    self.setResult('BoundaryField', results[0])
+    self.setResult('Mapping', results[1])
 
 class scirun_ConvertMatricesToMesh(Module) :
   def compute(self) :
@@ -2102,14 +2102,14 @@ class scirun_ReportFieldInfo(Module) :
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
     results = sr_py.ReportFieldInfo(Input_Field)
-    self.setResult('NumNodes', sr_py.read_at_index(results,0))
-    self.setResult('NumElements', sr_py.read_at_index(results,1))
-    self.setResult('NumData', sr_py.read_at_index(results,2))
-    self.setResult('DataMin', sr_py.read_at_index(results,3))
-    self.setResult('DataMax', sr_py.read_at_index(results,4))
-    self.setResult('FieldSize', sr_py.read_at_index(results,5))
-    self.setResult('FieldCenter', sr_py.read_at_index(results,6))
-    self.setResult('Dimensions', sr_py.read_at_index(results,7))
+    self.setResult('NumNodes', results[0])
+    self.setResult('NumElements', results[1])
+    self.setResult('NumData', results[2])
+    self.setResult('DataMin', results[3])
+    self.setResult('DataMax', results[4])
+    self.setResult('FieldSize', results[5])
+    self.setResult('FieldCenter', results[6])
+    self.setResult('Dimensions', results[7])
 
 class scirun_ConvertLatVolDataFromElemToNode(Module) :
   def compute(self) :
@@ -2146,13 +2146,13 @@ class scirun_GetPathsFromBundle(Module) :
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
     results = sr_py.GetPathsFromBundle(bundle,p_path1_name,p_path2_name,p_path3_name,p_path4_name,p_path5_name,p_path6_name,p_path_selection)
-    self.setResult('bundle', sr_py.read_at_index(results,0))
-    self.setResult('path1', sr_py.read_at_index(results,1))
-    self.setResult('path2', sr_py.read_at_index(results,2))
-    self.setResult('path3', sr_py.read_at_index(results,3))
-    self.setResult('path4', sr_py.read_at_index(results,4))
-    self.setResult('path5', sr_py.read_at_index(results,5))
-    self.setResult('path6', sr_py.read_at_index(results,6))
+    self.setResult('bundle', results[0])
+    self.setResult('path1', results[1])
+    self.setResult('path2', results[2])
+    self.setResult('path3', results[3])
+    self.setResult('path4', results[4])
+    self.setResult('path5', results[5])
+    self.setResult('path6', results[6])
 
 class scirun_CreateGeometricTransform(Module) :
   def compute(self) :
@@ -2226,8 +2226,8 @@ class scirun_CreateGeometricTransform(Module) :
     if self.hasInputFromPort('Matrix') :
       Matrix = self.getInputFromPort('Matrix')
     results = sr_py.CreateGeometricTransform(Matrix,p_rotate_x,p_rotate_y,p_rotate_z,p_rotate_theta,p_translate_x,p_translate_y,p_translate_z,p_scale_uniform,p_scale_x,p_scale_y,p_scale_z,p_shear_plane_a,p_shear_plane_b,p_shear_plane_c,p_widget_resizable,p_permute_x,p_permute_y,p_permute_z,p_pre_transform,p_which_transform,p_widget_scale,p_ignoring_widget_changes)
-    self.setResult('Matrix', sr_py.read_at_index(results,0))
-    self.setResult('Geometry', sr_py.read_at_index(results,1))
+    self.setResult('Matrix', results[0])
+    self.setResult('Geometry', results[1])
 
 class scirun_CalculateNodeNormals(Module) :
   def compute(self) :
@@ -2364,8 +2364,8 @@ class scirun_ClipFieldToFieldOrWidget(Module) :
     if self.hasInputFromPort('Clip Field') :
       Clip_Field = self.getInputFromPort('Clip Field')
     results = sr_py.ClipFieldToFieldOrWidget(Input_Field,Clip_Field,p_clip_location,p_clipmode,p_autoexecute,p_autoinvert,p_execmode,p_center_x,p_center_y,p_center_z,p_right_x,p_right_y,p_right_z,p_down_x,p_down_y,p_down_z,p_in_x,p_in_y,p_in_z,p_scale)
-    self.setResult('Selection Widget', sr_py.read_at_index(results,0))
-    self.setResult('Output Field', sr_py.read_at_index(results,1))
+    self.setResult('Selection Widget', results[0])
+    self.setResult('Output Field', results[1])
 
 class scirun_ConvertHexVolToTetVol(Module) :
   def compute(self) :
@@ -2421,8 +2421,8 @@ class scirun_RefineMeshByIsovalue2(Module) :
     if self.hasInputFromPort('Optional Isovalue') :
       Optional_Isovalue = self.getInputFromPort('Optional Isovalue')
     results = sr_py.RefineMeshByIsovalue2(Input,Optional_Isovalue,p_isoval,p_lte)
-    self.setResult('Refined', sr_py.read_at_index(results,0))
-    self.setResult('Mapping', sr_py.read_at_index(results,1))
+    self.setResult('Refined', results[0])
+    self.setResult('Mapping', results[1])
 
 class scirun_SetTetVolFieldDataValuesToZero(Module) :
   def compute(self) :
@@ -2555,8 +2555,8 @@ class scirun_ViewSlices(Module) :
     if self.hasInputFromPort('NrrdGradient') :
       NrrdGradient = self.getInputFromPort('NrrdGradient')
     results = sr_py.ViewSlices(Nrrd1,Nrrd2,Nrrd1ColorMap,Nrrd2ColorMap,InputColorMap2,NrrdGradient,p_clut_ww,p_clut_wl,p_probe,p_show_colormap2,p_painting,p_crop,p_crop_minAxis0,p_crop_minAxis1,p_crop_minAxis2,p_crop_maxAxis0,p_crop_maxAxis1,p_crop_maxAxis2,p_crop_minPadAxis0,p_crop_minPadAxis1,p_crop_minPadAxis2,p_crop_maxPadAxis0,p_crop_maxPadAxis1,p_crop_maxPadAxis2,p_texture_filter,p_anatomical_coordinates,p_show_text,p_color_font_r,p_color_font_g,p_color_font_b,p_color_font_a,p_min,p_max,p_dim0,p_dim1,p_dim2,p_geom_flushed,p_background_threshold,p_gradient_threshold,p_font_size)
-    self.setResult('Geometry', sr_py.read_at_index(results,0))
-    self.setResult('ColorMap2', sr_py.read_at_index(results,1))
+    self.setResult('Geometry', results[0])
+    self.setResult('ColorMap2', results[1])
 
 class scirun_SplitVectorArrayInXYZ(Module) :
   def compute(self) :
@@ -2564,9 +2564,9 @@ class scirun_SplitVectorArrayInXYZ(Module) :
     if self.hasInputFromPort('VectorArray') :
       VectorArray = self.getInputFromPort('VectorArray')
     results = sr_py.SplitVectorArrayInXYZ(VectorArray)
-    self.setResult('X', sr_py.read_at_index(results,0))
-    self.setResult('Y', sr_py.read_at_index(results,1))
-    self.setResult('Z', sr_py.read_at_index(results,2))
+    self.setResult('X', results[0])
+    self.setResult('Y', results[1])
+    self.setResult('Z', results[2])
 
 class scirun_ConvertIndicesToFieldData(Module) :
   def compute(self) :
@@ -2782,7 +2782,7 @@ class scirun_CreateFieldData(Module) :
     Field = 0
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
-    Function = 0
+    Function = ''
     if self.hasInputFromPort('Function') :
       Function = self.getInputFromPort('Function')
     DataArray = 0
@@ -2832,22 +2832,22 @@ class scirun_InsertStringsIntoBundle(Module) :
     bundle = 0
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
-    string1 = 0
+    string1 = ''
     if self.hasInputFromPort('string1') :
       string1 = self.getInputFromPort('string1')
-    string2 = 0
+    string2 = ''
     if self.hasInputFromPort('string2') :
       string2 = self.getInputFromPort('string2')
-    string3 = 0
+    string3 = ''
     if self.hasInputFromPort('string3') :
       string3 = self.getInputFromPort('string3')
-    string4 = 0
+    string4 = ''
     if self.hasInputFromPort('string4') :
       string4 = self.getInputFromPort('string4')
-    string5 = 0
+    string5 = ''
     if self.hasInputFromPort('string5') :
       string5 = self.getInputFromPort('string5')
-    string6 = 0
+    string6 = ''
     if self.hasInputFromPort('string6') :
       string6 = self.getInputFromPort('string6')
     results = sr_py.InsertStringsIntoBundle(bundle,string1,string2,string3,string4,string5,string6,p_string1_name,p_string2_name,p_string3_name,p_string4_name,p_string5_name,p_string6_name,p_replace1,p_replace2,p_replace3,p_replace4,p_replace5,p_replace6)
@@ -2906,13 +2906,13 @@ class scirun_GetNrrdsFromBundle(Module) :
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
     results = sr_py.GetNrrdsFromBundle(bundle,p_nrrd1_name,p_nrrd2_name,p_nrrd3_name,p_nrrd4_name,p_nrrd5_name,p_nrrd6_name,p_transposenrrd1,p_transposenrrd2,p_transposenrrd3,p_transposenrrd4,p_transposenrrd5,p_transposenrrd6,p_nrrd_selection)
-    self.setResult('bundle', sr_py.read_at_index(results,0))
-    self.setResult('nrrd1', sr_py.read_at_index(results,1))
-    self.setResult('nrrd2', sr_py.read_at_index(results,2))
-    self.setResult('nrrd3', sr_py.read_at_index(results,3))
-    self.setResult('nrrd4', sr_py.read_at_index(results,4))
-    self.setResult('nrrd5', sr_py.read_at_index(results,5))
-    self.setResult('nrrd6', sr_py.read_at_index(results,6))
+    self.setResult('bundle', results[0])
+    self.setResult('nrrd1', results[1])
+    self.setResult('nrrd2', results[2])
+    self.setResult('nrrd3', results[3])
+    self.setResult('nrrd4', results[4])
+    self.setResult('nrrd5', results[5])
+    self.setResult('nrrd6', results[6])
 
 class scirun_ManageFieldSeries(Module) :
   def compute(self) :
@@ -2923,10 +2923,10 @@ class scirun_ManageFieldSeries(Module) :
     if self.hasInputFromPort('Input') :
       Input = self.getInputFromPort('Input')
     results = sr_py.ManageFieldSeries(Input,p_num_ports)
-    self.setResult('Output 0', sr_py.read_at_index(results,0))
-    self.setResult('Output 1', sr_py.read_at_index(results,1))
-    self.setResult('Output 2', sr_py.read_at_index(results,2))
-    self.setResult('Output 3', sr_py.read_at_index(results,3))
+    self.setResult('Output 0', results[0])
+    self.setResult('Output 1', results[1])
+    self.setResult('Output 2', results[2])
+    self.setResult('Output 3', results[3])
 
 class scirun_ConvertMatrixToField(Module) :
   def compute(self) :
@@ -2981,12 +2981,12 @@ class scirun_ReadField(Module) :
     p_from_env = ''
     if self.hasInputFromPort('p_from_env') :
       p_from_env = self.getInputFromPort('p_from_env')
-    Filename = 0
+    Filename = ''
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
     results = sr_py.ReadField(Filename,p_from_env)
-    self.setResult('Output Data', sr_py.read_at_index(results,0))
-    self.setResult('Filename', sr_py.read_at_index(results,1))
+    self.setResult('Output Data', results[0])
+    self.setResult('Filename', results[1])
 
 class scirun_GetFileName(Module) :
   def compute(self) :
@@ -3008,12 +3008,12 @@ class scirun_DecomposeTensorArrayIntoEigenVectors(Module) :
     if self.hasInputFromPort('TensorArray') :
       TensorArray = self.getInputFromPort('TensorArray')
     results = sr_py.DecomposeTensorArrayIntoEigenVectors(TensorArray)
-    self.setResult('EigenVector1', sr_py.read_at_index(results,0))
-    self.setResult('EigenVector2', sr_py.read_at_index(results,1))
-    self.setResult('EigenVector3', sr_py.read_at_index(results,2))
-    self.setResult('EigenValue1', sr_py.read_at_index(results,3))
-    self.setResult('EigenValue2', sr_py.read_at_index(results,4))
-    self.setResult('EigenValue3', sr_py.read_at_index(results,5))
+    self.setResult('EigenVector1', results[0])
+    self.setResult('EigenVector2', results[1])
+    self.setResult('EigenVector3', results[2])
+    self.setResult('EigenValue1', results[3])
+    self.setResult('EigenValue2', results[4])
+    self.setResult('EigenValue3', results[5])
 
 class scirun_TransformMeshWithTransform(Module) :
   def compute(self) :
@@ -3050,8 +3050,8 @@ class scirun_ClipVolumeByIsovalue(Module) :
     if self.hasInputFromPort('Optional Isovalue') :
       Optional_Isovalue = self.getInputFromPort('Optional Isovalue')
     results = sr_py.ClipVolumeByIsovalue(Input,Optional_Isovalue,p_isoval_min,p_isoval_max,p_isoval,p_lte,p_update_type)
-    self.setResult('Clipped', sr_py.read_at_index(results,0))
-    self.setResult('Mapping', sr_py.read_at_index(results,1))
+    self.setResult('Clipped', results[0])
+    self.setResult('Mapping', results[1])
 
 class scirun_ReportSearchGridInfo(Module) :
   def compute(self) :
@@ -3163,13 +3163,13 @@ class scirun_GetMatricesFromBundle(Module) :
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
     results = sr_py.GetMatricesFromBundle(bundle,p_matrix1_name,p_matrix2_name,p_matrix3_name,p_matrix4_name,p_matrix5_name,p_matrix6_name,p_transposenrrd1,p_transposenrrd2,p_transposenrrd3,p_transposenrrd4,p_transposenrrd5,p_transposenrrd6,p_matrix_selection)
-    self.setResult('bundle', sr_py.read_at_index(results,0))
-    self.setResult('matrix1', sr_py.read_at_index(results,1))
-    self.setResult('matrix2', sr_py.read_at_index(results,2))
-    self.setResult('matrix3', sr_py.read_at_index(results,3))
-    self.setResult('matrix4', sr_py.read_at_index(results,4))
-    self.setResult('matrix5', sr_py.read_at_index(results,5))
-    self.setResult('matrix6', sr_py.read_at_index(results,6))
+    self.setResult('bundle', results[0])
+    self.setResult('matrix1', results[1])
+    self.setResult('matrix2', results[2])
+    self.setResult('matrix3', results[3])
+    self.setResult('matrix4', results[4])
+    self.setResult('matrix5', results[5])
+    self.setResult('matrix6', results[6])
 
 class scirun_RefineMesh(Module) :
   def compute(self) :
@@ -3189,8 +3189,8 @@ class scirun_RefineMesh(Module) :
     if self.hasInputFromPort('Isovalue') :
       Isovalue = self.getInputFromPort('Isovalue')
     results = sr_py.RefineMesh(Mesh,Isovalue,p_select,p_method,p_isoval)
-    self.setResult('RefinedMesh', sr_py.read_at_index(results,0))
-    self.setResult('Mapping', sr_py.read_at_index(results,1))
+    self.setResult('RefinedMesh', results[0])
+    self.setResult('Mapping', results[1])
 
 class scirun_MergeFields(Module) :
   def compute(self) :
@@ -3201,9 +3201,9 @@ class scirun_MergeFields(Module) :
     if self.hasInputFromPort('Insert Field') :
       Insert_Field = self.getInputFromPort('Insert Field')
     results = sr_py.MergeFields(Container_Mesh,Insert_Field)
-    self.setResult('Combined Field', sr_py.read_at_index(results,0))
-    self.setResult('Extended Insert Field', sr_py.read_at_index(results,1))
-    self.setResult('Combined To Extended Mapping', sr_py.read_at_index(results,2))
+    self.setResult('Combined Field', results[0])
+    self.setResult('Extended Insert Field', results[1])
+    self.setResult('Combined To Extended Mapping', results[2])
 
 class scirun_BuildPointCloudToLatVolMappingMatrix(Module) :
   def compute(self) :
@@ -3230,7 +3230,7 @@ class scirun_CalculateDataArray(Module) :
     DataArray = 0
     if self.hasInputFromPort('DataArray') :
       DataArray = self.getInputFromPort('DataArray')
-    Function = 0
+    Function = ''
     if self.hasInputFromPort('Function') :
       Function = self.getInputFromPort('Function')
     Array = 0
@@ -3256,7 +3256,7 @@ class scirun_WriteColorMap(Module) :
     Input_Data = 0
     if self.hasInputFromPort('Input Data') :
       Input_Data = self.getInputFromPort('Input Data')
-    Filename = 0
+    Filename = ''
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
     results = sr_py.WriteColorMap(Input_Data,Filename,p_filetype,p_confirm,p_confirm_once,p_exporttype)
@@ -3345,8 +3345,8 @@ class scirun_ShowTextureVolume(Module) :
     if self.hasInputFromPort('ColorMap2') :
       ColorMap2 = self.getInputFromPort('ColorMap2')
     results = sr_py.ShowTextureVolume(Texture,ColorMap,ColorMap2,p_sampling_rate_hi,p_sampling_rate_lo,p_gradient_min,p_gradient_max,p_adaptive,p_cmap_size,p_sw_raster,p_render_style,p_alpha_scale,p_interp_mode,p_shading,p_ambient,p_diffuse,p_specular,p_shine,p_light,p_blend_res,p_multi_level,p_use_stencil,p_invert_opacity,p_num_clipping_planes,p_show_clipping_widgets,p_level_on,p_level_vals)
-    self.setResult('Geometry', sr_py.read_at_index(results,0))
-    self.setResult('ColorMap', sr_py.read_at_index(results,1))
+    self.setResult('Geometry', results[0])
+    self.setResult('ColorMap', results[1])
 
 class scirun_GetCentroidsFromMesh(Module) :
   def compute(self) :
@@ -3369,12 +3369,12 @@ class scirun_ReadColorMap2D(Module) :
     p_from_env = ''
     if self.hasInputFromPort('p_from_env') :
       p_from_env = self.getInputFromPort('p_from_env')
-    Filename = 0
+    Filename = ''
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
     results = sr_py.ReadColorMap2D(Filename,p_from_env)
-    self.setResult('Output Data', sr_py.read_at_index(results,0))
-    self.setResult('Filename', sr_py.read_at_index(results,1))
+    self.setResult('Output Data', results[0])
+    self.setResult('Filename', results[1])
 
 class scirun_GetColumnOrRowFromMatrix(Module) :
   def compute(self) :
@@ -3430,8 +3430,8 @@ class scirun_GetColumnOrRowFromMatrix(Module) :
     if self.hasInputFromPort('Current Index') :
       Current_Index = self.getInputFromPort('Current Index')
     results = sr_py.GetColumnOrRowFromMatrix(Matrix,Weight_Vector,Current_Index,p_row_or_col,p_selectable_min,p_selectable_max,p_selectable_inc,p_selectable_units,p_range_min,p_range_max,p_playmode,p_current,p_execmode,p_delay,p_inc_amount,p_send_amount,p_data_series_done)
-    self.setResult('Vector', sr_py.read_at_index(results,0))
-    self.setResult('Selected Index', sr_py.read_at_index(results,1))
+    self.setResult('Vector', results[0])
+    self.setResult('Selected Index', results[1])
 
 class scirun_ExtractIsosurfaceByFunction(Module) :
   def compute(self) :
@@ -3528,12 +3528,12 @@ class scirun_ReadString(Module) :
     p_from_env = ''
     if self.hasInputFromPort('p_from_env') :
       p_from_env = self.getInputFromPort('p_from_env')
-    Filename = 0
+    Filename = ''
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
     results = sr_py.ReadString(Filename,p_from_env)
-    self.setResult('Output Data', sr_py.read_at_index(results,0))
-    self.setResult('Filename', sr_py.read_at_index(results,1))
+    self.setResult('Output Data', results[0])
+    self.setResult('Filename', results[1])
 
 class scirun_InterfaceWithTetGen(Module) :
   def compute(self) :
@@ -3563,7 +3563,7 @@ class scirun_CalculateMeshNodes(Module) :
     Field = 0
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
-    Function = 0
+    Function = ''
     if self.hasInputFromPort('Function') :
       Function = self.getInputFromPort('Function')
     Array = 0
@@ -3639,7 +3639,7 @@ class scirun_CalculateFieldDataCompiled(Module) :
     p_cache = 0
     if self.hasInputFromPort('p_cache') :
       p_cache = self.getInputFromPort('p_cache')
-    Function = 0
+    Function = ''
     if self.hasInputFromPort('Function') :
       Function = self.getInputFromPort('Function')
     Input_Field = 0
@@ -3653,12 +3653,12 @@ class scirun_ReadColorMap(Module) :
     p_from_env = ''
     if self.hasInputFromPort('p_from_env') :
       p_from_env = self.getInputFromPort('p_from_env')
-    Filename = 0
+    Filename = ''
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
     results = sr_py.ReadColorMap(Filename,p_from_env)
-    self.setResult('Output Data', sr_py.read_at_index(results,0))
-    self.setResult('Filename', sr_py.read_at_index(results,1))
+    self.setResult('Output Data', results[0])
+    self.setResult('Filename', results[1])
 
 class scirun_MapFieldDataFromElemToNode(Module) :
   def compute(self) :
@@ -3917,8 +3917,8 @@ class scirun_InsertHexVolSheetAlongSurface(Module) :
     if self.hasInputFromPort('TriField') :
       TriField = self.getInputFromPort('TriField')
     results = sr_py.InsertHexVolSheetAlongSurface(HexField,TriField,p_side,p_addlayer)
-    self.setResult('Side1Field', sr_py.read_at_index(results,0))
-    self.setResult('Side2Field', sr_py.read_at_index(results,1))
+    self.setResult('Side1Field', results[0])
+    self.setResult('Side2Field', results[1])
 
 class scirun_GetFieldData(Module) :
   def compute(self) :
@@ -3942,7 +3942,7 @@ class scirun_CalculateFieldData2(Module) :
     Field2 = 0
     if self.hasInputFromPort('Field2') :
       Field2 = self.getInputFromPort('Field2')
-    Function = 0
+    Function = ''
     if self.hasInputFromPort('Function') :
       Function = self.getInputFromPort('Function')
     Array = 0
@@ -4012,9 +4012,9 @@ class scirun_GenerateSinglePointProbeFromField(Module) :
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
     results = sr_py.GenerateSinglePointProbeFromField(Input_Field,p_main_frame,p_locx,p_locy,p_locz,p_value,p_node,p_edge,p_face,p_cell,p_show_value,p_show_node,p_show_edge,p_show_face,p_show_cell,p_probe_scale)
-    self.setResult('GenerateSinglePointProbeFromField Widget', sr_py.read_at_index(results,0))
-    self.setResult('GenerateSinglePointProbeFromField Point', sr_py.read_at_index(results,1))
-    self.setResult('Element Index', sr_py.read_at_index(results,2))
+    self.setResult('GenerateSinglePointProbeFromField Widget', results[0])
+    self.setResult('GenerateSinglePointProbeFromField Point', results[1])
+    self.setResult('Element Index', results[2])
 
 class scirun_ReportDataArrayMeasure(Module) :
   def compute(self) :
@@ -4105,14 +4105,14 @@ class scirun_InsertPathsIntoBundle(Module) :
 
 class scirun_SplitFileName(Module) :
   def compute(self) :
-    Filename = 0
+    Filename = ''
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
     results = sr_py.SplitFileName(Filename)
-    self.setResult('Pathname', sr_py.read_at_index(results,0))
-    self.setResult('Filename Base', sr_py.read_at_index(results,1))
-    self.setResult('Extension', sr_py.read_at_index(results,2))
-    self.setResult('Filename', sr_py.read_at_index(results,3))
+    self.setResult('Pathname', results[0])
+    self.setResult('Filename Base', results[1])
+    self.setResult('Extension', results[2])
+    self.setResult('Filename', results[3])
 
 class scirun_CalculateLatVolGradientsAtNodes(Module) :
   def compute(self) :
@@ -4157,25 +4157,25 @@ class scirun_GetColorMap2sFromBundle(Module) :
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
     results = sr_py.GetColorMap2sFromBundle(bundle,p_colormap21_name,p_colormap22_name,p_colormap23_name,p_colormap24_name,p_colormap25_name,p_colormap26_name,p_colormap2_selection)
-    self.setResult('bundle', sr_py.read_at_index(results,0))
-    self.setResult('colormap21', sr_py.read_at_index(results,1))
-    self.setResult('colormap22', sr_py.read_at_index(results,2))
-    self.setResult('colormap23', sr_py.read_at_index(results,3))
-    self.setResult('colormap24', sr_py.read_at_index(results,4))
-    self.setResult('colormap25', sr_py.read_at_index(results,5))
-    self.setResult('colormap26', sr_py.read_at_index(results,6))
+    self.setResult('bundle', results[0])
+    self.setResult('colormap21', results[1])
+    self.setResult('colormap22', results[2])
+    self.setResult('colormap23', results[3])
+    self.setResult('colormap24', results[4])
+    self.setResult('colormap25', results[5])
+    self.setResult('colormap26', results[6])
 
 class scirun_ReadMatrix(Module) :
   def compute(self) :
     p_from_env = ''
     if self.hasInputFromPort('p_from_env') :
       p_from_env = self.getInputFromPort('p_from_env')
-    Filename = 0
+    Filename = ''
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
     results = sr_py.ReadMatrix(Filename,p_from_env)
-    self.setResult('Output Data', sr_py.read_at_index(results,0))
-    self.setResult('Filename', sr_py.read_at_index(results,1))
+    self.setResult('Output Data', results[0])
+    self.setResult('Filename', results[1])
 
 class scirun_GenerateStreamLines(Module) :
   def compute(self) :
@@ -4290,19 +4290,19 @@ class scirun_EditMeshBoundingBox(Module) :
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
     results = sr_py.EditMeshBoundingBox(Input_Field,p_outputcenterx,p_outputcentery,p_outputcenterz,p_outputsizex,p_outputsizey,p_outputsizez,p_useoutputcenter,p_useoutputsize,p_box_scale,p_box_mode,p_box_real_scale,p_box_center_x,p_box_center_y,p_box_center_z,p_box_right_x,p_box_right_y,p_box_right_z,p_box_down_x,p_box_down_y,p_box_down_z,p_box_in_x,p_box_in_y,p_box_in_z)
-    self.setResult('Output Field', sr_py.read_at_index(results,0))
-    self.setResult('Transformation Widget', sr_py.read_at_index(results,1))
-    self.setResult('Transformation Matrix', sr_py.read_at_index(results,2))
+    self.setResult('Output Field', results[0])
+    self.setResult('Transformation Widget', results[1])
+    self.setResult('Transformation Matrix', results[2])
 
 class scirun_PrintStringIntoString(Module) :
   def compute(self) :
     p_formatstring = 'my string: %s'
     if self.hasInputFromPort('p_formatstring') :
       p_formatstring = self.getInputFromPort('p_formatstring')
-    Format = 0
+    Format = ''
     if self.hasInputFromPort('Format') :
       Format = self.getInputFromPort('Format')
-    Input = 0
+    Input = ''
     if self.hasInputFromPort('Input') :
       Input = self.getInputFromPort('Input')
     results = sr_py.PrintStringIntoString(Format,Input,p_formatstring)
@@ -4365,8 +4365,8 @@ class scirun_GenerateStreamLinesWithPlacementHeuristic(Module) :
     if self.hasInputFromPort('Seed points') :
       Seed_points = self.getInputFromPort('Seed points')
     results = sr_py.GenerateStreamLinesWithPlacementHeuristic(Source,Weighting,Flow,Compare,Seed_points,p_numsl,p_numpts,p_minper,p_maxper,p_ming,p_maxg,p_numsamples,p_method,p_stepsize,p_stepout,p_maxsteps,p_minmag,p_direction)
-    self.setResult('Streamlines', sr_py.read_at_index(results,0))
-    self.setResult('Render', sr_py.read_at_index(results,1))
+    self.setResult('Streamlines', results[0])
+    self.setResult('Render', results[1])
 
 class scirun_CalculateSignedDistanceToField(Module) :
   def compute(self) :
@@ -4526,10 +4526,10 @@ class scirun_WriteString(Module) :
     p_confirm_once = '0'
     if self.hasInputFromPort('p_confirm_once') :
       p_confirm_once = self.getInputFromPort('p_confirm_once')
-    String = 0
+    String = ''
     if self.hasInputFromPort('String') :
       String = self.getInputFromPort('String')
-    Filename = 0
+    Filename = ''
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
     results = sr_py.WriteString(String,Filename,p_filetype,p_confirm,p_confirm_once)
@@ -4575,12 +4575,12 @@ class scirun_ReadPath(Module) :
     p_from_env = ''
     if self.hasInputFromPort('p_from_env') :
       p_from_env = self.getInputFromPort('p_from_env')
-    Filename = 0
+    Filename = ''
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
     results = sr_py.ReadPath(Filename,p_from_env)
-    self.setResult('Output Data', sr_py.read_at_index(results,0))
-    self.setResult('Filename', sr_py.read_at_index(results,1))
+    self.setResult('Output Data', results[0])
+    self.setResult('Filename', results[1])
 
 class scirun_CreateString(Module) :
   def compute(self) :
@@ -4598,16 +4598,16 @@ class scirun_ClipFieldByFunction(Module) :
     p_function = 'return (x < 0);'
     if self.hasInputFromPort('p_function') :
       p_function = self.getInputFromPort('p_function')
-    Function = 0
+    Function = ''
     if self.hasInputFromPort('Function') :
       Function = self.getInputFromPort('Function')
     Input = 0
     if self.hasInputFromPort('Input') :
       Input = self.getInputFromPort('Input')
     results = sr_py.ClipFieldByFunction(Function,Input,p_mode,p_function)
-    self.setResult('Clipped', sr_py.read_at_index(results,0))
-    self.setResult('Mapping', sr_py.read_at_index(results,1))
-    self.setResult('MaskVector', sr_py.read_at_index(results,2))
+    self.setResult('Clipped', results[0])
+    self.setResult('Mapping', results[1])
+    self.setResult('MaskVector', results[2])
 
 class scirun_CreateTensorArray(Module) :
   def compute(self) :
@@ -4652,7 +4652,7 @@ class scirun_WriteField(Module) :
     Input_Data = 0
     if self.hasInputFromPort('Input Data') :
       Input_Data = self.getInputFromPort('Input Data')
-    Filename = 0
+    Filename = ''
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
     results = sr_py.WriteField(Input_Data,Filename,p_filetype,p_confirm,p_confirm_once,p_exporttype,p_increment,p_current)
@@ -4821,12 +4821,12 @@ class scirun_ReadBundle(Module) :
     p_types = 'SCIRun Bundle File} {.bdl} } {{SCIRun Bundle Any} {.*} } '
     if self.hasInputFromPort('p_types') :
       p_types = self.getInputFromPort('p_types')
-    Filename = 0
+    Filename = ''
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
     results = sr_py.ReadBundle(Filename,p_from_env,p_types)
-    self.setResult('bundle', sr_py.read_at_index(results,0))
-    self.setResult('Filename', sr_py.read_at_index(results,1))
+    self.setResult('bundle', results[0])
+    self.setResult('Filename', results[1])
 
 class scirun_GetStringsFromBundle(Module) :
   def compute(self) :
@@ -4855,13 +4855,13 @@ class scirun_GetStringsFromBundle(Module) :
     if self.hasInputFromPort('bundle') :
       bundle = self.getInputFromPort('bundle')
     results = sr_py.GetStringsFromBundle(bundle,p_string1_name,p_string2_name,p_string3_name,p_string4_name,p_string5_name,p_string6_name,p_string_selection)
-    self.setResult('bundle', sr_py.read_at_index(results,0))
-    self.setResult('string1', sr_py.read_at_index(results,1))
-    self.setResult('string2', sr_py.read_at_index(results,2))
-    self.setResult('string3', sr_py.read_at_index(results,3))
-    self.setResult('string4', sr_py.read_at_index(results,4))
-    self.setResult('string5', sr_py.read_at_index(results,5))
-    self.setResult('string6', sr_py.read_at_index(results,6))
+    self.setResult('bundle', results[0])
+    self.setResult('string1', results[1])
+    self.setResult('string2', results[2])
+    self.setResult('string3', results[3])
+    self.setResult('string4', results[4])
+    self.setResult('string5', results[5])
+    self.setResult('string6', results[6])
 
 class scirun_ShowString(Module) :
   def compute(self) :
@@ -4886,7 +4886,7 @@ class scirun_ShowString(Module) :
     p_color_b = 1.0
     if self.hasInputFromPort('p_color_b') :
       p_color_b = self.getInputFromPort('p_color_b')
-    Format_String = 0
+    Format_String = ''
     if self.hasInputFromPort('Format String') :
       Format_String = self.getInputFromPort('Format String')
     results = sr_py.ShowString(Format_String,p_bbox,p_size,p_location_x,p_location_y,p_color_r,p_color_g,p_color_b)
@@ -4901,8 +4901,8 @@ class scirun_SwapNodeLocationsWithMatrixEntries(Module) :
     if self.hasInputFromPort('Input Matrix') :
       Input_Matrix = self.getInputFromPort('Input Matrix')
     results = sr_py.SwapNodeLocationsWithMatrixEntries(Input_Field,Input_Matrix)
-    self.setResult('Output Field', sr_py.read_at_index(results,0))
-    self.setResult('Output Matrix', sr_py.read_at_index(results,1))
+    self.setResult('Output Field', results[0])
+    self.setResult('Output Matrix', results[1])
 
 class scirun_ReorderMatrixByReverseCuthillMcKee(Module) :
   def compute(self) :
@@ -4910,9 +4910,9 @@ class scirun_ReorderMatrixByReverseCuthillMcKee(Module) :
     if self.hasInputFromPort('Matrix') :
       Matrix = self.getInputFromPort('Matrix')
     results = sr_py.ReorderMatrixByReverseCuthillMcKee(Matrix)
-    self.setResult('Matrix', sr_py.read_at_index(results,0))
-    self.setResult('Mapping', sr_py.read_at_index(results,1))
-    self.setResult('InverseMapping', sr_py.read_at_index(results,2))
+    self.setResult('Matrix', results[0])
+    self.setResult('Mapping', results[1])
+    self.setResult('InverseMapping', results[2])
 
 class scirun_MapFieldDataFromNodeToElem(Module) :
   def compute(self) :
@@ -4985,7 +4985,7 @@ class scirun_ReportStringInfo(Module) :
     p_inputstring = ''
     if self.hasInputFromPort('p_inputstring') :
       p_inputstring = self.getInputFromPort('p_inputstring')
-    Input = 0
+    Input = ''
     if self.hasInputFromPort('Input') :
       Input = self.getInputFromPort('Input')
     results = sr_py.ReportStringInfo(Input,p_inputstring)
@@ -5031,14 +5031,14 @@ class scirun_StreamMatrixFromDisk(Module) :
     Weights = 0
     if self.hasInputFromPort('Weights') :
       Weights = self.getInputFromPort('Weights')
-    Filename = 0
+    Filename = ''
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
     results = sr_py.StreamMatrixFromDisk(Indices,Weights,Filename,p_row_or_col,p_slider_min,p_slider_max,p_range_min,p_range_max,p_playmode,p_current,p_execmode,p_delay,p_inc_amount,p_send_amount)
-    self.setResult('DataVector', sr_py.read_at_index(results,0))
-    self.setResult('Index', sr_py.read_at_index(results,1))
-    self.setResult('Scaled Index', sr_py.read_at_index(results,2))
-    self.setResult('Filename', sr_py.read_at_index(results,3))
+    self.setResult('DataVector', results[0])
+    self.setResult('Index', results[1])
+    self.setResult('Scaled Index', results[2])
+    self.setResult('Filename', results[3])
 
 class scirun_WriteMatrix(Module) :
   def compute(self) :
@@ -5060,7 +5060,7 @@ class scirun_WriteMatrix(Module) :
     Input_Data = 0
     if self.hasInputFromPort('Input Data') :
       Input_Data = self.getInputFromPort('Input Data')
-    Filename = 0
+    Filename = ''
     if self.hasInputFromPort('Filename') :
       Filename = self.getInputFromPort('Filename')
     results = sr_py.WriteMatrix(Input_Data,Filename,p_filetype,p_confirm,p_confirm_once,p_exporttype,p_split)
@@ -5106,8 +5106,8 @@ class scirun_GeneratePointSamplesFromField(Module) :
     if self.hasInputFromPort('Input Field') :
       Input_Field = self.getInputFromPort('Input Field')
     results = sr_py.GeneratePointSamplesFromField(Input_Field,p_num_seeds,p_probe_scale,p_send,p_widget,p_red,p_green,p_blue,p_auto_execute)
-    self.setResult('GeneratePointSamplesFromField Widget', sr_py.read_at_index(results,0))
-    self.setResult('GeneratePointSamplesFromField Point', sr_py.read_at_index(results,1))
+    self.setResult('GeneratePointSamplesFromField Widget', results[0])
+    self.setResult('GeneratePointSamplesFromField Point', results[1])
 
 class scirun_GeneratePointSamplesFromFieldOrWidget(Module) :
   def compute(self) :
@@ -5145,8 +5145,8 @@ class scirun_GeneratePointSamplesFromFieldOrWidget(Module) :
     if self.hasInputFromPort('Field to Sample') :
       Field_to_Sample = self.getInputFromPort('Field to Sample')
     results = sr_py.GeneratePointSamplesFromFieldOrWidget(Field_to_Sample,p_wtype,p_endpoints,p_maxseeds,p_numseeds,p_rngseed,p_rnginc,p_clamp,p_autoexecute,p_dist,p_whichtab)
-    self.setResult('Samples', sr_py.read_at_index(results,0))
-    self.setResult('Sampling Widget', sr_py.read_at_index(results,1))
+    self.setResult('Samples', results[0])
+    self.setResult('Sampling Widget', results[1])
 
 class scirun_CreateMatrix(Module) :
   def compute(self) :
@@ -5209,8 +5209,8 @@ class scirun_CreateAndEditColorMap(Module) :
     if self.hasInputFromPort('ColorMap') :
       ColorMap = self.getInputFromPort('ColorMap')
     results = sr_py.CreateAndEditColorMap(ColorMap,p_rgbhsv,p_rgb_points,p_alpha_points,p_resolution)
-    self.setResult('ColorMap', sr_py.read_at_index(results,0))
-    self.setResult('Geometry', sr_py.read_at_index(results,1))
+    self.setResult('ColorMap', results[0])
+    self.setResult('Geometry', results[1])
 
 class scirun_DecimateTriSurf(Module) :
   def compute(self) :
@@ -5270,8 +5270,8 @@ class scirun_SolveMinNormLeastSqSystem(Module) :
     if self.hasInputFromPort('TargetVec') :
       TargetVec = self.getInputFromPort('TargetVec')
     results = sr_py.SolveMinNormLeastSqSystem(BasisVec1,BasisVec2,BasisVec3,TargetVec)
-    self.setResult('WeightVec(Col)', sr_py.read_at_index(results,0))
-    self.setResult('ResultVec(Col)', sr_py.read_at_index(results,1))
+    self.setResult('WeightVec(Col)', results[0])
+    self.setResult('ResultVec(Col)', results[1])
 
 class scirun_CalculateFieldData(Module) :
   def compute(self) :
@@ -5284,7 +5284,7 @@ class scirun_CalculateFieldData(Module) :
     Field = 0
     if self.hasInputFromPort('Field') :
       Field = self.getInputFromPort('Field')
-    Function = 0
+    Function = ''
     if self.hasInputFromPort('Function') :
       Function = self.getInputFromPort('Function')
     Array = 0
@@ -5323,7 +5323,7 @@ class scirun_ShowMeshBoundingBox(Module) :
 
 class scirun_ViewGraph(Module) :
   def compute(self) :
-    Title = 0
+    Title = ''
     if self.hasInputFromPort('Title') :
       Title = self.getInputFromPort('Title')
     Input = 0
@@ -5423,8 +5423,8 @@ class scirun_ShowTextureSlices(Module) :
     if self.hasInputFromPort('ColorMap2') :
       ColorMap2 = self.getInputFromPort('ColorMap2')
     results = sr_py.ShowTextureSlices(Texture,ColorMap,ColorMap2,p_control_pos_saved,p_drawX,p_drawY,p_drawZ,p_drawView,p_interp_mode,p_draw_phi_0,p_draw_phi_1,p_phi_0,p_phi_1,p_multi_level,p_color_changed,p_colors,p_level_on,p_outline_levels,p_use_stencil)
-    self.setResult('Geometry', sr_py.read_at_index(results,0))
-    self.setResult('ColorMap', sr_py.read_at_index(results,1))
+    self.setResult('Geometry', results[0])
+    self.setResult('ColorMap', results[1])
 
 class scirun_ShowMatrix(Module) :
   def compute(self) :
@@ -5512,8 +5512,8 @@ class scirun_GetSliceFromStructuredFieldByIndices(Module) :
     if self.hasInputFromPort('Input Matrix') :
       Input_Matrix = self.getInputFromPort('Input Matrix')
     results = sr_py.GetSliceFromStructuredFieldByIndices(Input_Field,Input_Matrix,p_axis,p_dims,p_dim_i,p_dim_j,p_dim_k,p_index_i,p_index_j,p_index_k,p_update_type,p_continuous)
-    self.setResult('Output Field', sr_py.read_at_index(results,0))
-    self.setResult('Output Matrix', sr_py.read_at_index(results,1))
+    self.setResult('Output Field', results[0])
+    self.setResult('Output Matrix', results[1])
 
 class scirun_ConvertMatrixType(Module) :
   def compute(self) :
@@ -5602,7 +5602,7 @@ class scirun_InsertColorMapsIntoBundle(Module) :
 
 class scirun_JoinStrings(Module) :
   def compute(self) :
-    input = 0
+    input = ''
     if self.hasInputFromPort('input') :
       input = self.getInputFromPort('input')
     results = sr_py.JoinStrings(input)
@@ -5675,8 +5675,8 @@ class scirun_RemoveHexVolSheet(Module) :
     if self.hasInputFromPort('HexField') :
       HexField = self.getInputFromPort('HexField')
     results = sr_py.RemoveHexVolSheet(HexField,p_edge_list)
-    self.setResult('NewHexField', sr_py.read_at_index(results,0))
-    self.setResult('ExtractedHexes', sr_py.read_at_index(results,1))
+    self.setResult('NewHexField', results[0])
+    self.setResult('ExtractedHexes', results[1])
 
 class scirun_ReorderMatrixByCuthillMcKee(Module) :
   def compute(self) :
@@ -5684,9 +5684,9 @@ class scirun_ReorderMatrixByCuthillMcKee(Module) :
     if self.hasInputFromPort('Matrix') :
       Matrix = self.getInputFromPort('Matrix')
     results = sr_py.ReorderMatrixByCuthillMcKee(Matrix)
-    self.setResult('Matrix', sr_py.read_at_index(results,0))
-    self.setResult('Mapping', sr_py.read_at_index(results,1))
-    self.setResult('InverseMapping', sr_py.read_at_index(results,2))
+    self.setResult('Matrix', results[0])
+    self.setResult('Mapping', results[1])
+    self.setResult('InverseMapping', results[2])
 
 class scirun_ReportMatrixInfo(Module) :
   def compute(self) :
@@ -5694,9 +5694,9 @@ class scirun_ReportMatrixInfo(Module) :
     if self.hasInputFromPort('Input') :
       Input = self.getInputFromPort('Input')
     results = sr_py.ReportMatrixInfo(Input)
-    self.setResult('NumRows', sr_py.read_at_index(results,0))
-    self.setResult('NumCols', sr_py.read_at_index(results,1))
-    self.setResult('NumElements', sr_py.read_at_index(results,2))
+    self.setResult('NumRows', results[0])
+    self.setResult('NumCols', results[1])
+    self.setResult('NumElements', results[2])
 
 class scirun_SubsampleStructuredFieldByIndices(Module) :
   def compute(self) :
@@ -5761,8 +5761,8 @@ class scirun_SubsampleStructuredFieldByIndices(Module) :
     if self.hasInputFromPort('Input Matrix') :
       Input_Matrix = self.getInputFromPort('Input Matrix')
     results = sr_py.SubsampleStructuredFieldByIndices(Input_Field,Input_Matrix,p_power_app,p_wrap,p_dims,p_dim_i,p_dim_j,p_dim_k,p_start_i,p_start_j,p_start_k,p_stop_i,p_stop_j,p_stop_k,p_stride_i,p_stride_j,p_stride_k,p_wrap_i,p_wrap_j,p_wrap_k)
-    self.setResult('Output Field', sr_py.read_at_index(results,0))
-    self.setResult('Output Matrix', sr_py.read_at_index(results,1))
+    self.setResult('Output Field', results[0])
+    self.setResult('Output Matrix', results[1])
 
 class scirun_CalculateDistanceToField(Module) :
   def compute(self) :
@@ -5791,7 +5791,7 @@ class scirun_ClipFieldWithSeed(Module) :
     p_function = 'return (fx < 0);'
     if self.hasInputFromPort('p_function') :
       p_function = self.getInputFromPort('p_function')
-    Function = 0
+    Function = ''
     if self.hasInputFromPort('Function') :
       Function = self.getInputFromPort('Function')
     Input = 0
@@ -5801,9 +5801,9 @@ class scirun_ClipFieldWithSeed(Module) :
     if self.hasInputFromPort('Seeds') :
       Seeds = self.getInputFromPort('Seeds')
     results = sr_py.ClipFieldWithSeed(Function,Input,Seeds,p_mode,p_function)
-    self.setResult('Clipped', sr_py.read_at_index(results,0))
-    self.setResult('Mapping', sr_py.read_at_index(results,1))
-    self.setResult('MaskVector', sr_py.read_at_index(results,2))
+    self.setResult('Clipped', results[0])
+    self.setResult('Mapping', results[1])
+    self.setResult('MaskVector', results[2])
 
 class scirun_CreateParameterBundle(Module) :
   def compute(self) :
@@ -5894,8 +5894,8 @@ class scirun_ConvertFieldsToTexture(Module) :
     if self.hasInputFromPort('Gradient Magnitude Field') :
       Gradient_Magnitude_Field = self.getInputFromPort('Gradient Magnitude Field')
     results = sr_py.ConvertFieldsToTexture(Value_Field,Gradient_Magnitude_Field,p_vmin,p_vmax,p_gmin,p_gmax,p_is_fixed,p_card_mem,p_card_mem_auto,p_histogram,p_gamma)
-    self.setResult('Texture', sr_py.read_at_index(results,0))
-    self.setResult('JointHistoGram', sr_py.read_at_index(results,1))
+    self.setResult('Texture', results[0])
+    self.setResult('JointHistoGram', results[1])
 
 class scirun_SplitNodesByDomain(Module) :
   def compute(self) :
@@ -5927,9 +5927,9 @@ class scirun_RemoveZeroRowsAndColumns(Module) :
     if self.hasInputFromPort('Matrix') :
       Matrix = self.getInputFromPort('Matrix')
     results = sr_py.RemoveZeroRowsAndColumns(Matrix)
-    self.setResult('ReducedMatrix', sr_py.read_at_index(results,0))
-    self.setResult('LeftMapping', sr_py.read_at_index(results,1))
-    self.setResult('RightMapping', sr_py.read_at_index(results,2))
+    self.setResult('ReducedMatrix', results[0])
+    self.setResult('LeftMapping', results[1])
+    self.setResult('RightMapping', results[2])
 
 class scirun_ColorMap2DSemantics(Module) :
   def compute(self) :
