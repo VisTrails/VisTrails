@@ -164,10 +164,10 @@ def open_vistrail_from_zip_xml(filename):
     (file_, xmlfname) = tempfile.mkstemp(suffix='.xml')
     core.requirements.require_executable('unzip')
     os.close(file_)
+    cmdline = 'unzip -p "%s" "%s" > "%s"' % (filename,
+                                             name_in_archive,
+                                             xmlfname)
     if systemType not in ['Windows', 'Microsoft']:
-        cmdline = 'unzip -p %s %s > %s' % (filename,
-                                           name_in_archive,
-                                           xmlfname)
         process = popen2.Popen4(cmdline)
         result = -1
         while result == -1:
@@ -175,9 +175,6 @@ def open_vistrail_from_zip_xml(filename):
         output = process.fromchild.readlines()
         
     else:
-        cmdline = 'unzip -p "%s" "%s" > "%s"' % (filename,
-                                                 name_in_archive,
-                                                 xmlfname)
         result = -1
         out, inp = popen2.popen4(cmdline)
         output = out.readlines()
@@ -223,7 +220,7 @@ def save_vistrail_to_zip_xml(vistrail, filename):
     core.requirements.require_executable('zip')
     os.rename(xmlfname,name_in_archive)
     if systemType not in ['Windows', 'Microsoft']:
-        cmdline = 'zip -r -j -q %s %s' % (filename, name_in_archive)
+        cmdline = 'zip -r -j -q "%s" "%s"' % (filename, name_in_archive)
         process = popen2.Popen4(cmdline)
         result = -1
         while result == -1:
