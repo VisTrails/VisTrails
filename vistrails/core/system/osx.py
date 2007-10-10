@@ -31,7 +31,7 @@ import shutil
 import sys
 import time
 from core.system.unix import executable_is_in_path, list2cmdline, \
-     executable_is_in_pythonpath
+     executable_is_in_pythonpath, execute_cmdline
 import core.utils
 
 #are we building a binary distribution?

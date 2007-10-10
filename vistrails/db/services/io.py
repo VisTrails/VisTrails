@@ -22,13 +22,12 @@
 
 from datetime import datetime
 from core.system import get_elementtree_library, temporary_directory,\
-     systemType
+     execute_cmdline
 import core.requirements
 ElementTree = get_elementtree_library()
 
 import sys
 import os
-import popen2
 import os.path
 import tempfile
 
@@ -164,20 +163,10 @@ def open_vistrail_from_zip_xml(filename):
     (file_, xmlfname) = tempfile.mkstemp(suffix='.xml')
     core.requirements.require_executable('unzip')
     os.close(file_)
-    cmdline = 'unzip -p "%s" "%s" > "%s"' % (filename,
-                                             name_in_archive,
-                                             xmlfname)
-    if systemType not in ['Windows', 'Microsoft']:
-        process = popen2.Popen4(cmdline)
-        result = -1
-        while result == -1:
-            result = process.poll()
-        output = process.fromchild.readlines()
-        
-    else:
-        result = -1
-        out, inp = popen2.popen4(cmdline)
-        output = out.readlines()
+    output = []
+    cmdline = ['unzip', '-p', filename, name_in_archive, '>', xmlfname]
+    result = execute_cmdline(cmdline,output)
+    
     #print result, output    
     if result == 0 or len(output) == 0:
         vistrail = open_vistrail_from_xml(xmlfname)
@@ -219,18 +208,10 @@ def save_vistrail_to_zip_xml(vistrail, filename):
     save_vistrail_to_xml(vistrail,xmlfname)
     core.requirements.require_executable('zip')
     os.rename(xmlfname,name_in_archive)
-    if systemType not in ['Windows', 'Microsoft']:
-        cmdline = 'zip -r -j -q "%s" "%s"' % (filename, name_in_archive)
-        process = popen2.Popen4(cmdline)
-        result = -1
-        while result == -1:
-            result = process.poll()
-        output = process.fromchild.readlines()
-    else:
-        cmdline = 'zip -r -j "%s" "%s"' % (filename, name_in_archive)
-        result = -1
-        out, inp = popen2.popen4(cmdline)
-        output = out.readlines()
+    output = []
+    cmdline = ['zip', '-r', '-j', '-q', filename, name_in_archive]
+    result = execute_cmdline(cmdline,output)
+    
     #print result, output
     os.unlink(name_in_archive)
     if result != 0 and len(output) != 0:

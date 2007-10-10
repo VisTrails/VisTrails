@@ -37,7 +37,7 @@ if systemType in ['Windows', 'Microsoft']:
         home_directory, remote_copy_program, remote_shell_program, \
         graph_viz_dot_command_line, remove_graph_viz_temporaries, \
         link_or_copy,executable_is_in_path, executable_is_in_pythonpath, \
-        TestWindows
+        execute_cmdline, TestWindows
 
 elif systemType in ['Linux']:
     from core.system.linux import guess_total_memory, temporary_directory, \
@@ -45,7 +45,7 @@ elif systemType in ['Linux']:
         home_directory, remote_copy_program, remote_shell_program, \
         graph_viz_dot_command_line, remove_graph_viz_temporaries, \
         link_or_copy, XDestroyWindow, executable_is_in_path, \
-        executable_is_in_pythonpath, TestLinux
+        executable_is_in_pythonpath, execute_cmdline, TestLinux
 
 elif systemType in ['Darwin']:
     from core.system.osx import guess_total_memory, temporary_directory, \
@@ -53,7 +53,7 @@ elif systemType in ['Darwin']:
         home_directory, remote_copy_program, remote_shell_program, \
         graph_viz_dot_command_line, remove_graph_viz_temporaries, \
         link_or_copy, executable_is_in_path, executable_is_in_pythonpath, \
-        TestMacOSX
+        execute_cmdline, TestMacOSX
 else:
     print "Critical error"
     print "VisTrails could not detect your operating system."
@@ -232,17 +232,8 @@ def vistrails_revision():
     try:
         release = "954"
         if core.requirements.executable_file_exists('svn'):
-            if systemType not in ['Windows', 'Microsoft']:
-                process = popen2.Popen4("svn info")
-                result = -1
-                while result == -1:
-                    result = process.poll()
-                svn_output = process.fromchild
-            else:
-                #Popen4 does not seem to be present on Windows
-                svn_output, input = popen2.popen4("svn info")
-                result = 0
-            lines = svn_output.readlines()
+            lines = []
+            result = execute_cmdline(['svn', 'info'], lines)
             if len(lines) > 5:
                 revision_line = lines[4][:-1].split(' ')
                 if result == 0:

@@ -33,11 +33,9 @@ def executable_is_in_path(filename):
     """executable_is_in_path(filename): string
     Tests if filename corresponds to an executable file on the path. Returns
 the filename if true, or an empty string if false."""
-    cmdline = 'which %s' % filename
-    process = popen2.Popen4(cmdline)
-    result = -1
-    while result == -1:
-        result = process.poll()
+    cmdline = ['which','%s' % filename]
+    output = []
+    result = execute_cmdline(cmdline, output)
     if result == 256:
         return ""
     if result != 0:
@@ -45,8 +43,7 @@ the filename if true, or an empty string if false."""
                (cmdline, result))
         raise core.utils.VistrailsInternalError(msg)
     else:
-        conv_output = process.fromchild
-        output = conv_output.readlines()[0][:-1]
+        output = output[0][:-1]
         return output
 
 def executable_is_in_pythonpath(filename):
@@ -71,3 +68,16 @@ def list2cmdline(lst):
         assert type(el) == str
     return subprocess.list2cmdline(lst)
 
+def execute_cmdline(lst, output):
+    """execute_cmdline(lst: list of str)-> int
+    Builds a command line enquoting the arguments properly and executes it
+    using Popen4. It returns the error code and the output is on 'output'. 
+
+    """
+    cmdline = list2cmdline(lst)
+    process = popen2.Popen4(cmdline)
+    result = -1
+    while result == -1:
+        result = process.poll()
+    output.extend(process.fromchild.readlines())
+    return result

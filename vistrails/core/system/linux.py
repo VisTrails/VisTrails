@@ -23,7 +23,7 @@ import os
 import shutil
 from ctypes import CDLL, c_void_p
 from core.system.unix import executable_is_in_path,\
-     executable_is_in_pythonpath, list2cmdline
+     executable_is_in_pythonpath, list2cmdline, execute_cmdline
 import core.bundles
 
 ################################################################################
