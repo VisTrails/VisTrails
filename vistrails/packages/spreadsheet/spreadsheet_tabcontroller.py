@@ -25,13 +25,14 @@
 ################################################################################
 import os.path
 from PyQt4 import QtCore, QtGui
-from core.db.locator import FileLocator
+from core.db.locator import FileLocator, _DBLocator as DBLocator
 from core.interpreter.default import get_default_interpreter
 from spreadsheet_registry import spreadsheetRegistry
 from spreadsheet_tab import (StandardWidgetTabBar,
                              StandardWidgetSheetTab, StandardTabDockWidget)
 from spreadsheet_registry import spreadsheetRegistry
 from core.utils import DummyView
+from core.utils.uxml import XMLWrapper, named_elements
 import copy
 import gc
 from gui.theme import CurrentTheme
@@ -95,7 +96,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Return the monitored location associated with spec
         
         """
-        key = ((spec[0]['vistrailName'], spec[0]['version']), spec[1], spec[2])
+        key = ((spec[0]['locator'], spec[0]['version']), spec[1], spec[2])
         if key in self.monitoredPipelines:
             return self.monitoredPipelines[key]
         else:
@@ -106,12 +107,12 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Return the monitored location associated with spec
         
         """
-        key = ((spec[0]['vistrailName'], spec[0]['version']), spec[1], spec[2])
+        key = ((spec[0]['locator'], spec[0]['version']), spec[1], spec[2])
         if key in self.monitoredPipelines:
             self.monitoredPipelines[key].append(value)
         else:
             self.monitoredPipelines[key] = [value]
-
+         
     def newSheetAction(self):
         """ newSheetAction() -> QAction
         Return the 'New Sheet' action
@@ -507,7 +508,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Add vistrail pipeline executions to history
         
         """
-        vistrail = (pipelineInfo['vistrailName'], pipelineInfo['version'])
+        vistrail = (pipelineInfo['locator'], pipelineInfo['version'])
         self.executedPipelines[0].append(vistrail)
         if not vistrail in self.executedPipelines[1]:
             self.executedPipelines[1][vistrail] = 0
@@ -520,7 +521,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Get the current pipeline id
         
         """
-        vistrail = (pipelineInfo['vistrailName'], pipelineInfo['version'])
+        vistrail = (pipelineInfo['locator'], pipelineInfo['version'])
         return self.executedPipelines[1][vistrail]
 
     def increasePipelineCellId(self, pipelineInfo):
@@ -528,7 +529,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Increase the current cell pipeline id
         
         """
-        vistrail = (pipelineInfo['vistrailName'], pipelineInfo['version'])
+        vistrail = (pipelineInfo['locator'], pipelineInfo['version'])
         cid = self.executedPipelines[2][vistrail]
         self.executedPipelines[2][vistrail] += 1
         return cid
@@ -538,7 +539,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Get current pipeline cell id
         
         """
-        vistrail = (pipelineInfo['vistrailName'], pipelineInfo['version'])
+        vistrail = (pipelineInfo['locator'], pipelineInfo['version'])
         return self.executedPipelines[2][vistrail]
         
     def addPipelineCell(self, pipelineInfo):
@@ -546,7 +547,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         Add vistrail pipeline executions to history
         
         """
-        vistrail = (pipelineInfo['vistrailName'], pipelineInfo['version'])
+        vistrail = (pipelineInfo['locator'], pipelineInfo['version'])
         self.executedPipelines[0].append(vistrail)
         if not vistrail in self.executedPipelines[1]:
             self.executedPipelines[1][vistrail] = 0
@@ -560,6 +561,14 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         None. Else, pop up a dialog to ask for a file name.
         
         """
+        def serialize_locator(locator):
+            wrapper = XMLWrapper()
+            dom = wrapper.create_document('spreadsheet_locator')
+            root = dom.documentElement
+            root.setAttribute("version", "1.0")
+            locator.serialize(dom,root)
+            return dom.toxml()
+        
         if fileName==None:
             fileName = self.spreadsheetFileName
         if fileName:
@@ -575,17 +584,20 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                     for c in xrange(dim[1]):
                         info = t.getCellPipelineInfo(r,c)
                         if info:
-                            info = copy.copy(info)
-                            info[0]['pipeline'] = None
-                            info[0]['actions'] = []
+                            newinfo0 = copy.copy(info[0])
+                            newinfo0['pipeline'] = None
+                            newinfo0['actions'] = []
+                            newinfo0['locator'] = \
+                                          serialize_locator(newinfo0['locator'])
                             indexFile.write('%s\n'
                                             %str((r, c,
-                                                  info[0],
+                                                  newinfo0,
                                                   info[1], info[2])))
                 indexFile.write('---\n')
             indexFile.write(str(len(self.executedPipelines[0]))+'\n')
             for vistrail in self.executedPipelines[0]:
-                indexFile.write('%s\n'%str(vistrail))
+                indexFile.write('%s\n'%str((serialize_locator(vistrail[0]),
+                                            vistrail[1])))
             self.changeSpreadsheetFileName(fileName)
             indexFile.close()
         else:
@@ -615,6 +627,21 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         all the version using the saved spreadsheet
         
         """
+        def parse_locator(text):
+            locator = None
+            wrapper = XMLWrapper()
+            dom = wrapper.create_document_from_string(text)
+            root = dom.documentElement
+            version = None
+            version = root.getAttribute('version')
+            if version == '1.0':
+                for element in named_elements(root, 'locator'):
+                    if str(element.getAttribute('type')) == 'file':
+                        locator = FileLocator.parse(element)
+                    elif str(element.getAttribute('type')) == 'db':
+                        locator = DBLocator.parse(element)
+            return locator
+        locators = {}
         indexFile = open(fileName, 'r')
         contents = indexFile.read()
         self.clearTabs()
@@ -630,6 +657,12 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             self.addTabWidget(sheet, tabInfo[0])
             while lines[lidx]!='---':
                 (r, c, vistrail, pid, cid) = eval(lines[lidx])
+                locator = vistrail['locator']
+                if locators.has_key(locator):
+                    vistrail['locator'] = locators[locator]
+                else:
+                    locators[locator] = parse_locator(vistrail['locator'])
+                    vistrail['locator'] = locators[locator]
                 self.appendMonitoredLocations((vistrail, pid, cid),
                                               (sheet, r, c))
                 lidx += 1
@@ -644,17 +677,23 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                          );
         progress.show()
         for pipelineIdx in xrange(pipelineCount):
-            (vistrailFileName, version) = eval(lines[lidx])
-            locator = FileLocator(vistrailFileName)
-            vistrail = locator.load()
-            pipeline = vistrail.getPipeline(version)
-            execution = get_default_interpreter()
-            progress.setValue(pipelineIdx)
-            QtCore.QCoreApplication.processEvents()
-            if progress.wasCanceled():
-                break
-            execution.execute(None, pipeline, vistrailFileName,
-                              version, DummyView(), None)
+            (serializedLocator, version) = eval(lines[lidx])
+            try:
+                locator = locators[serializedLocator]
+            except KeyError:
+                locator = parse_locator(serializedLocator)
+            if locator:
+                vistrail = locator.load()
+                pipeline = vistrail.getPipeline(version)
+                execution = get_default_interpreter()
+                progress.setValue(pipelineIdx)
+                QtCore.QCoreApplication.processEvents()
+                if progress.wasCanceled():
+                    break
+                execution.execute(None, pipeline, locator,
+                                  version, DummyView(), None)
+            else:
+                raise Exception("Couldn't load spreadsheet")
             lidx += 1
         progress.setValue(pipelineCount)
         QtCore.QCoreApplication.processEvents()

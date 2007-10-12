@@ -116,7 +116,7 @@ class XMLWrapper(object):
 
     def open_file(self, filename):
         """open_file(filename: str) -> None 
-        Parses a XML file.
+        Parses an XML file.
 
         """
         self.filename = filename
@@ -124,6 +124,17 @@ class XMLWrapper(object):
             self.dom = minidom.parse(filename)
         except xml.parsers.expat.ExpatError, e:
             raise self.XMLParseError(e.lineno, e.offset, e.code) 
+
+    def create_document_from_string(self, text):
+        """parse_string(text:str) -> dom
+        Parses an xml string and returns the DOM object
+
+        """
+        try:
+            dom = minidom.parseString(text)
+        except xml.parsers.expat.ExpatError, e:
+            raise self.XMLParseError(e.lineno, e.offset, e.code)
+        return dom
     
     def close_file(self):
         """close_file() -> None 

@@ -83,40 +83,41 @@ class SpreadsheetAnalogyObject(object):
         analogy is not applicable, this should return None
         
         """
-        def get_vistrail_by_name(vname):
+        def get_vistrail_by_locator(locator):
             import gui.application
-            v = gui.application.VistrailsApplication
-            m = v.builderWindow.viewManager
+            app = gui.application.VistrailsApplication
+            m = app.builderWindow.viewManager
             # slow, but who cares
-            for v in v.builderWindow.viewManager._views.values():
-                if v.name == vname:
+            for v in app.builderWindow.viewManager._views.values():
+                if v.locator == locator:
                     return v.vistrail
             if not v:
                 raise Exception("Couldn't find")
 
 
-        (p1_vistrail, p1_number, p1_actions, p1_pipeline) = self._p1Info
-        (p2_vistrail, p2_number, p2_actions, p2_pipeline) = self._p2Info
-        (p3_vistrail, p3_number, p3_actions, p3_pipeline) = pInfo
+        (p1_locator, p1_number, p1_actions, p1_pipeline) = self._p1Info
+        (p2_locator, p2_number, p2_actions, p2_pipeline) = self._p2Info
+        (p3_locator, p3_number, p3_actions, p3_pipeline) = pInfo
 
-        if (p1_vistrail != p2_vistrail or
-            p1_vistrail != p3_vistrail or
+        print type(p1_locator), p1_locator
+        if (p1_locator != p2_locator or
+            p1_locator != p3_locator or
             p1_actions or
             p2_actions or
             p3_actions):
             return None
-        p1_vistrail = os.path.split(p1_vistrail)[1]
+        #p1_locator = os.path.split(p1_vistrail)[1]
 
         perform = core.analogy.perform_analogy_on_vistrail
 
 
-        vt = get_vistrail_by_name(p1_vistrail)
+        vt = get_vistrail_by_locator(p1_locator)
         new_version = perform(vt,
                               p1_number, p2_number, p3_number,
                               0.15)
         new_pipeline = vt.getPipeline(new_version)
         
-        return (p1_vistrail, new_version, [], new_pipeline)
+        return (p1_locator, new_version, [], new_pipeline)
 
     def __call__(self):
         """ __call__() -> SpreadsheetAnalogy

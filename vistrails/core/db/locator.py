@@ -203,6 +203,22 @@ class FileLocator(CoreLocator):
         return db_gui.get_save_file_locator_from_gui(parent_widget, 
                                                          locator)
 
+    @staticmethod
+    def parse(element):
+        """ parse(element) -> XMLFileLocator
+        Parse an XML object representing a locator and returns an
+        XMLFileLocator or a ZIPFileLocator object.
+
+        """
+        if str(element.getAttribute('type')) == 'file':
+            for n in element.childNodes:
+                if n.localName == "name":
+                    filename = str(n.firstChild.nodeValue).strip(" \n\t")
+                    return FileLocator(filename)
+            return None
+        else:
+            return None
+
 def untitled_locator():
     basename = 'untitled' + vistrails_default_file_type()
     config = get_vistrails_configuration()

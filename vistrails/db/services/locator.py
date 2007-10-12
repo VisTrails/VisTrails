@@ -25,6 +25,7 @@ import core.configuration
 import core.system
 from db.services import io
 import urllib
+from db import VistrailsDBException
 
 class BaseLocator(object):
 
@@ -49,6 +50,13 @@ class BaseLocator(object):
     def has_temporaries(self):
         pass # True if temporaries are present
 
+    def serialize(self, dom, element):
+        pass #Serializes this locator to XML
+
+    @staticmethod
+    def parse(element):
+        pass #Parse an XML object representing a locator and returns a Locator
+    
     def _get_name(self):
         pass # Returns a name that will be displayed for the vistrail
     name = property(_get_name)
@@ -106,6 +114,38 @@ class XMLFileLocator(BaseLocator):
         """
         name = urllib.quote_plus(filename) + '_tmp_'
         return os.path.join(self._dot_vistrails, name)
+
+    def serialize(self, dom, element):
+        """serialize(dom, element) -> None
+        Convert this object to an XML representation.
+
+        """
+        locator = dom.createElement('locator')
+        locator.setAttribute('type', 'file')
+        node = dom.createElement('name')
+        filename = dom.createTextNode(str(self._name))
+        node.appendChild(filename)
+        locator.appendChild(node)
+        element.appendChild(locator)
+
+    @staticmethod
+    def parse(element):
+        """ parse(element) -> XMLFileLocator or None
+        Parse an XML object representing a locator and returns a
+        XMLFileLocator object.
+
+        """
+        if str(element.getAttribute('type')) == 'file':
+            for n in element.childNodes:
+                if n.localName == "name":
+                    filename = str(n.firstChild.nodeValue).strip(" \n\t")
+                    return XMLFileLocator(filename)
+            return None
+        else:
+            return None
+
+    def __str__(self):
+        return '<%s vistrail_name=" %s/>' % (self.__class__.__name__, self._name)
     
     ##########################################################################
 
@@ -209,6 +249,22 @@ class ZIPFileLocator(XMLFileLocator):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    @staticmethod
+    def parse(element):
+        """ parse(element) -> ZIPFileLocator or None
+        Parse an XML object representing a locator and returns a
+        ZIPFileLocator object.
+
+        """
+        if str(element.getAttribute('type')) == 'file':
+            for n in element.childNodes:
+                if n.localName == "name":
+                    filename = str(n.firstChild.nodeValue).strip(" \n\t")
+                    return ZIPFileLocator(filename)
+            return None
+        else:
+            return None
+
 class DBLocator(BaseLocator):
     
     connections = {}
@@ -245,6 +301,22 @@ class DBLocator(BaseLocator):
             self._vt_name
     name = property(_get_name)
 
+    def is_valid(self):
+        if self._conn_id is not None \
+                and DBLocator.connections.has_key(self._conn_id):
+            return True
+        else:
+            config = {'host': str(self._host),
+                      'port': int(self._port),
+                      'db': str(self._db),
+                      'user': str(self._user),
+                      'passwd': str(self._passwd)}
+            try:
+                io.test_db_connection(config)
+            except VistrailsDBException, e:
+                return False
+            return True
+        
     def get_connection(self):
         if self._conn_id is not None \
                 and DBLocator.connections.has_key(self._conn_id):
@@ -279,6 +351,52 @@ class DBLocator(BaseLocator):
         vistrail.locator = self
         return vistrail
 
+    def serialize(self, dom, element):
+        """serialize(dom, element) -> None
+        Convert this object to an XML representation.
+
+        """
+        locator = dom.createElement('locator')
+        locator.setAttribute('type', 'db')
+        locator.setAttribute('host', str(self._host))
+        locator.setAttribute('port', str(self._port))
+        locator.setAttribute('db', str(self._db))
+        locator.setAttribute('vt_id', str(self._vt_id))
+        node = dom.createElement('name')
+        filename = dom.createTextNode(str(self._vt_name))
+        node.appendChild(filename)
+        locator.appendChild(node)
+        element.appendChild(locator)
+
+    @staticmethod
+    def parse(element):
+        """ parse(element) -> DBFileLocator or None
+        Parse an XML object representing a locator and returns a
+        DBFileLocator object.
+
+        """
+        if str(element.getAttribute('type')) == 'db':
+            host = str(element.getAttribute('host'))
+            port = int(element.getAttribute('port'))
+            database = str(element.getAttribute('db'))
+            vt_id = str(element.getAttribute('vt_id'))
+            user = None
+            passwd = None
+            for n in element.childNodes:
+                if n.localName == "name":
+                    name = str(n.firstChild.nodeValue).strip(" \n\t")
+                    #print host, port, database, name, vt_id
+                    return DBLocator(host, port, database,
+                                     user, passwd, name, vt_id, None)
+            return None
+        else:
+            return None
+
+    def __str__(self):
+        return '<DBLocator host="%s" port="%s" database="%s" vistrail_id="%s"\
+vistrail_name="%s"/>' % ( self._host, self._port, self._db,
+                          self._vt_id, self._vt_name)
+    
     ###########################################################################
     # Operators
 

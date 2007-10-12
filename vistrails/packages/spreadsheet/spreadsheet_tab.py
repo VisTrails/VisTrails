@@ -408,7 +408,6 @@ class StandardWidgetSheetTabInterface(object):
             pipeline = newSheet.setPipelineToLocateAt(newRow, newCol,
                                                       info['pipeline'], [mId])
             executePipelineWithProgress(pipeline, 'Copy Cell',
-                                        vistrailName=info['vistrailName'],
                                         currentVersion=info['version'],
                                         actions=info['actions'],
                                         reason=info['reason'],
@@ -417,18 +416,17 @@ class StandardWidgetSheetTabInterface(object):
 
     def executePipelineToCell(self, pInfo, row, col, reason=''):
         """ executePipelineToCell(p: tuple, row: int, col: int) -> None
-        p: (vistrailName, version, actions, pipeline)
+        p: (locator, version, actions, pipeline)
         
         Execute a pipeline and put all of its cell to (row, col). This
         need to be fixed to layout all cells inside the pipeline
         
-        """        
+        """
         pipeline = self.setPipelineToLocateAt(row, col, pInfo[3])
         executePipelineWithProgress(pipeline, 'Execute Cell',
-                                    vistrailName=pInfo[0],
+                                    vistrailLocator=pInfo[0],
                                     currentVersion=pInfo[1],
                                     actions=pInfo[2],
-                                    vistrailLocator=info['locator'],
                                     reason=reason)
 
     def setPipelineToLocateAt(self, row, col, inPipeline, cellIds=[]):
@@ -444,12 +442,12 @@ class StandardWidgetSheetTabInterface(object):
 
     def getPipelineInfo(self, row, col):
         """ getPipelineInfo(row: int, col: int) -> tuple
-        Return (vistrailName, versionNumber, actions, pipeline) for a cell
+        Return (locator, versionNumber, actions, pipeline) for a cell
         
         """
         info = self.getCellPipelineInfo(row, col)
         if info:
-            return (info[0]['vistrailName'],
+            return (info[0]['locator'],
                     info[0]['version'],
                     info[0]['actions'],
                     info[0]['pipeline'])
