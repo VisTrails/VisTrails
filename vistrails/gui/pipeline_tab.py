@@ -133,7 +133,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         self.methodPalette.setUpdatesEnabled(False)
         self.moduleMethods.setUpdatesEnabled(False)
         try:
-            self.methodPalette.treeWidget.updateModule(module)
+            self.methodPalette.updateModule(module)
             self.moduleMethods.updateModule(module)
             self.emit(QtCore.SIGNAL('moduleSelectionChange'),
                       [m.id for m in selection])
@@ -165,6 +165,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
             self.connect(controller,
                          QtCore.SIGNAL('flushMoveActions()'),
                          self.flushMoveActions)
+            self.methodPalette.controller = controller
             self.moduleMethods.controller = controller
             controller.currentPipelineView = self.pipelineView.scene()
 

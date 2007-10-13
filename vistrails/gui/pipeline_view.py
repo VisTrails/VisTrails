@@ -792,7 +792,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.id = module.id
         self.setZValue(float(self.id))
         self.module = module
-        self.label = module.name
+        # self.label = module.name
+        self.label = module.label
         if module.has_annotation_with_key('__desc__'):
             self.description = \
                 module.get_annotation_by_key('__desc__').value.strip()
@@ -1201,14 +1202,14 @@ mutual connections."""
                    if type(x) == QGraphicsModuleItem]
         return self.controller.currentPipeline.graph.subgraph(modules)
 
-    def create_abstraction(self):
-        subgraph = self.selected_subgraph()
-        try:
-            self.controller.create_abstraction(subgraph)
-        except Vistrail.InvalidAbstraction, e:
-            dlg = QtGui.QMessageBox.warning(None,
-                                            "Invalid Abstraction",
-                                            str(e))
+#     def create_abstraction(self):
+#         subgraph = self.selected_subgraph()
+#         try:
+#             self.controller.create_abstraction(subgraph)
+#         except Vistrail.InvalidAbstraction, e:
+#             dlg = QtGui.QMessageBox.warning(None,
+#                                             "Invalid Abstraction",
+#                                             str(e))
 
 #    def contextMenuEvent(self, event):
 #        selectedItems = self.selectedItems()
@@ -1493,34 +1494,55 @@ mutual connections."""
             QInteractiveGraphicsScene.keyPressEvent(self, event)
             # super(QPipelineScene, self).keyPressEvent(event)
 
+    def get_selected_item_ids(self, dangling=False):
+        """get_selected_item_ids( self, dangling: bool) -> 
+             (module_ids : list, connection_ids : list)
+           returns the list of selected modules and the connections
+           between them.  If dangling is true, it includes connections
+           for which only one end point is selected, otherwise it only
+           includes connectiosn where both end points are selected
+
+        """
+        selectedItems = self.selectedItems()
+        if len(selectedItems) <= 0:
+            return None
+        
+        connection_ids = {}
+        module_ids = {}
+        for item in selectedItems:
+            if type(item)==QGraphicsModuleItem:
+                module_ids[item.module.id] = 1
+        for item in selectedItems:
+            if type(item)==QGraphicsModuleItem:
+                for (connItem, start) in item.dependingConnectionItems():
+                    conn = connItem.connection
+                    if not connection_ids.has_key(conn.id):
+                        source_exists = module_ids.has_key(conn.sourceId)
+                        dest_exists = module_ids.has_key(conn.destinationId)
+                        if source_exists and dest_exists:
+                            connection_ids[conn.id] = 1
+                        elif dangling and (source_exists or dest_exists):
+                            connection_ids[conn.id] = 1
+        return (module_ids.keys(), connection_ids.keys())
+
+    def create_abstraction(self):
+        items = self.get_selected_item_ids(True)
+        if items is not None:
+            self.controller.create_abstraction(items[0], items[1], 
+                                               'Abstraction')
+            self.clear()
+            self.controller.resendVersionWasChanged()
+            self.reset_module_colors()
+        
     def copySelection(self):
         """ copySelection() -> None
         Copy the current selected modules into clipboard
         
         """
-        selectedItems = self.selectedItems()
-        if len(selectedItems)>0:
+        items = self.get_selected_item_ids(False)
+        if items is not None:
             cb = QtGui.QApplication.clipboard()
-#             dom = getDOMImplementation().createDocument(None, 'network', None)
-#             root = dom.documentElement
-            connections = {}
-            modules = {}
-            for item in selectedItems:
-                if type(item)==QGraphicsModuleItem:
-                    module = item.module
-#                   module.dumpToXML(dom,root)
-                    modules[module.id] = module
-            for item in selectedItems:
-                if type(item)==QGraphicsModuleItem:
-                    for (connItem, start) in item.dependingConnectionItems():
-                        conn = connItem.connection
-                        if ((not connections.has_key(conn)) and
-                            modules.has_key(conn.sourceId) and
-                            modules.has_key(conn.destinationId)):
-#                           conn.serialize(dom, root)
-                            connections[conn.id] = conn
-            text = self.controller.copyModulesAndConnections(modules.values(), 
-                                                             connections.values())
+            text = self.controller.copyModulesAndConnections(items[0],items[1])
             cb.setText(text)
             
     def pasteFromClipboard(self):

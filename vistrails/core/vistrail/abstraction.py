@@ -73,24 +73,28 @@ class Abstraction(DBAbstraction):
     def _get_action_list(self):
         return self.db_actions
     action_list = property(_get_action_list)
-    def add_action(self, action, parent):
-        Action.convert(action)
-        if action.id < 0:
-            action.id = self.idScope.getNewId(action.vtType)
-        action.prevId = parent
-        action.date = self.getDate()
-        action.user = self.getUser()
-        for op in action.operations:
-            if op.id < 0:
-                op.id = self.idScope.getNewId('operation')
-        self.addVersion(action)                
-        
+    
     def _get_tags(self):
         return self.db_tags_id_index
     tags = property(_get_tags)
     def _get_tag_list(self):
         return self.db_tags
     tag_list = property(_get_tag_list)
+
+    ##########################################################################
+
+    def add_action(self, action, parent):
+        Action.convert(action)
+        if action.id < 0:
+            action.id = self.idScope.getNewId(action.vtType)
+        action.prevId = parent
+        for op in action.operations:
+            if op.id < 0:
+                op.id = self.idScope.getNewId('operation')
+        self.add_version(action)                
+
+    def add_version(self, action):
+        self.db_add_action(action)
 
     ##########################################################################
     # Operators

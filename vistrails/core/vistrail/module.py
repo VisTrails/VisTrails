@@ -123,6 +123,8 @@ class Module(DBModule):
 	# want to convert functions to hash...?
         self.db_functions = functions
     functions = property(_get_functions, _set_functions)
+    def add_function(self, function):
+        self.db_add_function(function)
 
     # type check this (list, hash)
     def _get_annotations(self):
@@ -151,12 +153,19 @@ class Module(DBModule):
     def _set_name(self, name):
         self.db_name = name
     name = property(_get_name, _set_name)
+    label = property(_get_name, _set_name)
 
     def _get_package(self):
         return self.db_package
     def _set_package(self, package):
         self.db_package = package
     package = property(_get_package, _set_package)
+
+    def _get_tag(self):
+        return self.db_tag
+    def _set_tag(self, tag):
+        self.db_tag = tag
+    tag = property(_get_tag, _set_tag)
 
     def _get_version(self):
         return self.db_version
@@ -225,7 +234,7 @@ class Module(DBModule):
         port = Port()
         port.name = port_spec.name
         port.spec = core.modules.module_registry.PortSpec(signature)
-        self.registry.add_port(module, endpoint, port)
+        self.registry.add_port(module, endpoint, port)        
 
     def delete_port_from_registry(self, id):
         if not self.port_specs.has_key(id):
@@ -246,7 +255,6 @@ class Module(DBModule):
             self.registry.delete_input_port(module, port.name)
         else:
             self.registry.delete_output_port(module, port.name)
-
 
     ##########################################################################
     # Debugging

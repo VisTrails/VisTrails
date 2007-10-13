@@ -35,9 +35,10 @@ def create_action_from_ops(op_list):
     Action.convert(action)
     return action
 
-def create_paste_action(pipeline, id_scope):
+def create_paste_action(pipeline, id_scope, id_remap=None):
     action_list = []
-    id_remap = {}
+    if id_remap is None:
+        id_remap = {}
     for module in pipeline.modules.itervalues():
         module.location = Location(id=id_scope.getNewId(Location.vtType),
                                    x=module.location.x + 10.0,

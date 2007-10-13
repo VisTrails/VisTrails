@@ -31,7 +31,8 @@ import xml.sax.saxutils
 ################################################################################
 
 class SearchParseError(Exception):
-    pass
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
 
 class SearchStmt(object):
     def __init__(self, content):

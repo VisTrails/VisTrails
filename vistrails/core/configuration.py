@@ -30,7 +30,6 @@ from core.utils.uxml import (named_elements,
                              quote_xml_value)
 from PyQt4 import QtCore
 import copy
-import core.logger
 import os.path
 import shutil
 import sys

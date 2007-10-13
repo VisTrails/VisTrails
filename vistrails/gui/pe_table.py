@@ -299,8 +299,9 @@ class QParameterExplorationTable(QPromptWidget):
                         pName = old_param.name
                         pAlias = old_param.alias
                         actions = []
+                        tmp_id = -1L
                         for v in values:
-                            new_param = ModuleParam(id=-1,
+                            new_param = ModuleParam(id=tmp_id,
                                                     pos=old_param.pos,
                                                     name=pName,
                                                     alias=pAlias,
@@ -312,6 +313,7 @@ class QParameterExplorationTable(QPromptWidget):
                             action = core.db.action.create_action([action_spec])
                             actions.append(action)
                         parameterValues[dim].append(actions)
+                        tmp_id -= 1
         return [zip(*p) for p in parameterValues]
 
 class QDimensionLabel(QtGui.QWidget):

@@ -30,6 +30,8 @@ from gui.theme import CurrentTheme
 from gui.vistrail_view import QVistrailView
 from core import system
 from core.db.locator import FileLocator, untitled_locator
+from core.log.log import Log
+from core.vistrail.pipeline import Pipeline
 from core.vistrail.vistrail import Vistrail
 from core.modules.module_registry import ModuleRegistry
 import copy
@@ -164,6 +166,15 @@ class QViewManager(QtGui.QTabWidget):
         if vistrailView:
             vistrailView.pipelineTab.pipelineView.scene().copySelection()
 
+    def create_abstraction(self):
+        """create_abstraction() -> None
+        Creates an abstraction from the selected pipeline modules
+        
+        """
+        vistrailView = self.currentWidget()
+        if vistrailView:
+            vistrailView.pipelineTab.pipelineView.scene().create_abstraction()
+
     def currentView(self):
         """currentView() -> VistrailView. Returns the current vistrail view."""
         return self.currentWidget()
@@ -273,7 +284,7 @@ class QViewManager(QtGui.QTabWidget):
         if view:
             return view
         try:
-            vistrail = locator.load()
+            vistrail = locator.load(Vistrail)
             result = self.setVistrailView(vistrail, locator)
             if locator.has_temporaries():
                 result.controller.setChanged(True)
@@ -305,18 +316,64 @@ class QViewManager(QtGui.QTabWidget):
             gui_get = locator_class.save_from_gui
             # get a locator to write to
             if force_choose_locator:
-                locator = gui_get(self, vistrailView.controller.locator)
+                locator = gui_get(self, Vistrail.vtType,
+                                  vistrailView.controller.locator)
             else:
                 locator = (vistrailView.controller.locator or
-                           gui_get(self, vistrailView.controller.locator))
+                           gui_get(self, Vistrail.vtType,
+                                   vistrailView.controller.locator))
             if locator == untitled_locator():
-                locator = gui_get(self, vistrailView.controller.locator)
+                locator = gui_get(self, Vistrail.vtType,
+                                  vistrailView.controller.locator)
             # if couldn't get one, ignore the request
             if not locator:
                 return False
             vistrailView.controller.write_vistrail(locator)
             return True
-                
+   
+    def save_workflow(self, locator_class, force_choose_locator=True):
+        vistrailView = self.currentWidget()
+
+        if vistrailView:
+            vistrailView.flush_changes()
+            gui_get = locator_class.save_from_gui
+            if force_choose_locator:
+                locator = gui_get(self, Pipeline.vtType,
+                                  vistrailView.controller.locator)
+            else:
+                locator = (vistrailView.controller.locator or
+                           gui_get(self, Pipeline.vtType,
+                                   vistrailView.controller.locator))
+            if locator == untitled_locator():
+                locator = gui_get(self, Pipeline.vtType,
+                                  vistrailView.controller.locator)
+            if not locator:
+                return False
+            vistrailView.controller.write_workflow(locator)
+            return True
+
+    def save_log(self, locator_class, force_choose_locator=True):
+        vistrailView = self.currentWidget()
+
+        if vistrailView:
+            vistrailView.flush_changes()
+            gui_get = locator_class.save_from_gui
+            if force_choose_locator:
+                locator = gui_get(self, Log.vtType,
+                                  vistrailView.controller.locator)
+            else:
+                locator = (vistrailView.controller.locator or
+                           gui_get(self, Log.vtType,
+                                   vistrailView.controller.locator))
+            if locator == untitled_locator():
+                locator = gui_get(self, Log.vtType,
+                                  vistrailView.controller.locator)
+            if not locator:
+                return False
+            vistrailView.controller.write_log(locator)
+            return True
+
+             
     def closeVistrail(self, vistrailView=None, quiet=False):
         """ closeVistrail(vistrailView: QVistrailView, quiet: bool) -> bool
         Close the current active vistrail

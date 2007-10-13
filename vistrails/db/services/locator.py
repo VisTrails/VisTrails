@@ -30,18 +30,18 @@ from db import VistrailsDBException
 class BaseLocator(object):
 
     def load(self):
-        pass # returns a vistrail
+        pass # returns an object
 
-    def save(self, vistrail):
-        pass # saves a vistrail in the given place
+    def save(self, obj):
+        pass # saves an object in the given place
 
-    def save_as(self, vistrail):
-        return self.save(vistrail) # calls save by default
+    def save_as(self, obj):
+        return self.save(obj) # calls save by default
 
     def is_valid(self):
-        pass # Returns true if locator refers to a valid vistrail
+        pass # Returns true if locator refers to a valid object
 
-    def save_temporary(self, vistrail):
+    def save_temporary(self, obj):
         pass # Saves a temporary file (useful for making crashes less horrible)
 
     def clean_temporaries(self):
@@ -58,7 +58,7 @@ class BaseLocator(object):
         pass #Parse an XML object representing a locator and returns a Locator
     
     def _get_name(self):
-        pass # Returns a name that will be displayed for the vistrail
+        pass # Returns a name that will be displayed for the object
     name = property(_get_name)
 
     ###########################################################################
@@ -79,26 +79,26 @@ class XMLFileLocator(BaseLocator):
         else:
             self._dot_vistrails = core.system.default_dot_vistrails()
 
-    def load(self):
+    def load(self, type):
         fname = self._find_latest_temporary()
         if fname:
-            vistrail = io.open_vistrail_from_xml(fname)
+            obj = io.open_from_xml(fname, type)
         else:
-            vistrail = io.open_vistrail_from_xml(self._name)
-        vistrail.locator = self
-        return vistrail
+            obj = io.open_from_xml(self._name, type)
+        obj.locator = self
+        return obj
 
-    def save(self, vistrail, do_copy=True):
-        vistrail = io.save_vistrail_to_xml(vistrail, self._name)
-        vistrail.locator = self
+    def save(self, obj, do_copy=True):
+        obj = io.save_to_xml(obj, self._name)
+        obj.locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()
-        return vistrail
+        return obj
 
-    def save_temporary(self, vistrail):
+    def save_temporary(self, obj):
         fname = self._find_latest_temporary()
         new_temp_fname = self._next_temporary(fname)
-        io.save_vistrail_to_xml(vistrail, new_temp_fname)
+        io.save_to_xml(obj, new_temp_fname)
 
     def is_valid(self):
         return os.path.isfile(self._name)
@@ -222,21 +222,21 @@ class ZIPFileLocator(XMLFileLocator):
     def __init__(self, filename):
         XMLFileLocator.__init__(self, filename)
 
-    def load(self):
+    def load(self, type):
         fname = self._find_latest_temporary()
         if fname:
-            vistrail = io.open_vistrail_from_xml(fname)
+            obj = io.open_from_xml(fname, type)
         else:
-            vistrail = io.open_vistrail_from_zip_xml(self._name)
-        vistrail.locator = self
-        return vistrail
+            obj = io.open_from_zip_xml(self._name, type)
+        obj.locator = self
+        return obj
 
-    def save(self, vistrail, do_copy=True):
-        vistrail = io.save_vistrail_to_zip_xml(vistrail, self._name)
-        vistrail.locator = self
+    def save(self, obj, do_copy=True):
+        obj = io.save_to_zip_xml(obj, self._name)
+        obj.locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()
-        return vistrail
+        return obj
 
     ###########################################################################
     # Operators
@@ -270,14 +270,15 @@ class DBLocator(BaseLocator):
     connections = {}
 
     def __init__(self, host, port, database, user, passwd, name=None,
-                 vistrail_id=None, connection_id=None):
+                 obj_id=None, obj_type=None, connection_id=None):
         self._host = host
         self._port = port
         self._db = database
         self._user = user
         self._passwd = passwd
-        self._vt_name = name
-        self._vt_id = vistrail_id
+        self._name = name
+        self._obj_id = obj_id
+        self._obj_type = obj_type
         self._conn_id = connection_id
 
     def _get_host(self):
@@ -288,9 +289,13 @@ class DBLocator(BaseLocator):
         return self._port
     port = property(_get_port)
 
-    def _get_vistrail_id(self):
-        return self._vt_id
-    vistrail_id = property(_get_vistrail_id)
+    def _get_obj_id(self):
+        return self._obj_id
+    obj_id = property(_get_obj_id)
+
+    def _get_obj_type(self):
+        return self._obj_type
+    obj_type = property(_get_obj_type)
 
     def _get_connection_id(self):
         return self._conn_id
@@ -298,7 +303,7 @@ class DBLocator(BaseLocator):
     
     def _get_name(self):
         return self._host + ':' + str(self._port) + ':' + self._db + ':' + \
-            self._vt_name
+            self._name
     name = property(_get_name)
 
     def is_valid(self):
@@ -336,20 +341,21 @@ class DBLocator(BaseLocator):
             DBLocator.connections[self._conn_id] = connection
         return connection
 
-    def load(self):
+    def load(self, type):
         connection = self.get_connection()
-        vistrail = io.open_vistrail_from_db(connection, self.vistrail_id)
-        self._vt_name = vistrail.db_name
-        vistrail.locator = self
-        return vistrail
+        obj = io.open_from_db(connection, type, self.obj_id)
+        self._name = obj.db_name
+        obj.locator = self
+        return obj
 
-    def save(self, vistrail, do_copy=False):
+    def save(self, obj, do_copy=False):
         connection = self.get_connection()
-        vistrail.db_name = self._vt_name
-        vistrail = io.save_vistrail_to_db(vistrail, connection, do_copy)
-        self._vt_id = vistrail.db_id
-        vistrail.locator = self
-        return vistrail
+        obj.db_name = self._name
+        obj = io.save_to_db(obj, connection, do_copy)
+        self._obj_id = obj.db_id
+        self._obj_type = obj.vtType
+        obj.locator = self
+        return obj
 
     def serialize(self, dom, element):
         """serialize(dom, element) -> None
@@ -407,8 +413,9 @@ vistrail_name="%s"/>' % ( self._host, self._port, self._db,
                 self._port == other._port and
                 self._db == other._db and
                 self._user == other._user and
-                self._vt_name == other._vt_name and
-                self._vt_id == other._vt_id)
+                self._name == other._name and
+                self._obj_id == other._obj_id and
+                self._obj_type == other._obj_type)
 
     def __ne__(self, other):
         return not self.__eq__(other)

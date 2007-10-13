@@ -79,24 +79,18 @@ class Port(DBPort):
 
         cp.optional = self.optional
         cp.sort_key = self.sort_key
-        cp._spec = copy.copy(self._spec)
+        cp.spec = copy.copy(self.spec)
         return cp
 
     @staticmethod
     def convert(_port):
-	_port.__class__ = Port
-#         if _port.db_sig is not None:
-#             (_port._name, _port._spec) = _port.make_name_spec_tuple()
-#         else:
-#             _port._name = ""
-#             _port._spec = []
+        if _port.__class__ == Port:
+            return
+        _port.__class__ = Port
 
         _port.optional = False
         _port.sort_key = -1
         _port._spec = None
-        # the following makes sense because _set_name actually fixes the name
-        # for us for now.
-        # _port._set_name(_port._get_name())
 
     ##########################################################################
 
@@ -152,13 +146,20 @@ class Port(DBPort):
         return self._spec
     def _set_spec(self, spec):
         self._spec = spec
+        if self._spec is not None:
+            self.db_spec = self._spec.create_sigstring()
     spec = property(_get_spec, _set_spec)
 
     def _get_sig(self):
         return self.name + self.specStr
     sig = property(_get_sig)
 
-		     
+    def _get_type(self):
+        return self.db_type
+    def _set_type(self, type):
+        self.db_type = type
+    type = property(_get_type, _set_type)
+
 #     def _get_type(self):
 #  	return self._type
 #     def _set_type(self, type):

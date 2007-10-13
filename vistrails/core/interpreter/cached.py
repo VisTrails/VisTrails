@@ -23,12 +23,17 @@
 from core import modules
 from core.common import *
 from core.data_structures.bijectivedict import Bidict
+import core.db.io
+from core.log.controller import DummyLogController
 from core.modules.module_utils import FilePool
 from core.modules.vistrails_module import ModuleConnector, ModuleError
 from core.utils import DummyView
+from core.vistrail.annotation import Annotation
+from core.vistrail.vistrail import Vistrail
 import copy
 import core.interpreter.base
 import core.interpreter.utils
+import core.system
 import core.vistrail.pipeline
 import gc
 
@@ -92,16 +97,39 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         executed over and over again. This allows nested execution."""
         if view == None:
             raise VistrailsInternalError("This shouldn't have happened")
+        logger = kwargs['logger']
         self.resolve_aliases(pipeline,aliases)
-        (tmp_to_persistent_module_map,
-         conn_map,
-         module_added_set,
-         conn_added_set) = self.add_to_persistent_pipeline(pipeline)
 
+        def get_remapped_id(id):
+            return get_remapped_info(id)[0]
+
+        def get_remapped_info(id, is_persistent=True):
+            """get_remapped_info(id : long) -> (pipeline_local_id : long,
+                                                abstraction_local_id : long,
+                                                abstraction_id : long,
+                                                abstraction_version : long)
+
+            """
+            if is_persistent:
+                new_id = tmp_to_persistent_module_map.inverse[id]
+            else:
+                new_id = id
+            info = (new_id, new_id, None, None)
+            if kwargs.has_key('module_remap'):
+                while kwargs['module_remap'].has_key(new_id):
+                    # want to only set the immediate info, but need to go back
+                    # all the way to get the id for the displayed abstraction
+                    new_info = kwargs['module_remap'][new_id]
+                    new_id = new_info[0]
+                    abstractions[new_info[2]] = new_info[0]
+                    if info[2] is None:
+                        # only want to return the immediate info
+                        info = new_info
+            return (new_id, info[1], info[2], info[3])
 
         parameter_changes = []
         def change_parameter(obj, name, value):
-            parameter_changes.append((tmp_to_persistent_module_map.inverse[obj.id],
+            parameter_changes.append((get_remapped_id(obj.id),
                                       name, value))
 
         # the executed dict works on persistent ids
@@ -110,32 +138,61 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             if kwargs.has_key('moduleExecutedHook'):
                 for callable_ in kwargs['moduleExecutedHook']:
                     callable_(obj.id)
+
         # views work on local ids
         def begin_compute(obj):
-            i = tmp_to_persistent_module_map.inverse[obj.id]
+            (i, old_id, a_id, version) = get_remapped_info(obj.id)
             view.set_module_computing(i)
+
+            reg = modules.module_registry.registry
+            module_name = reg.get_descriptor(obj.__class__).name
+
+            logger.start_module_execution(obj, old_id, module_name, a_id,
+                                          version)
+
         # views and loggers work on local ids
         def begin_update(obj):
-            i = tmp_to_persistent_module_map.inverse[obj.id]
+            i = get_remapped_id(obj.id)
             view.set_module_active(i)
+
+        def update_cached(obj):
+            (i, old_id, a_id, version) = get_remapped_info(obj.id)
+
             reg = modules.module_registry.registry
-            name = reg.get_descriptor(obj.__class__).name
-            self._logger.start_module_execution(locator, 
-                                                currentVersion, i, name)
+            module_name = reg.get_descriptor(obj.__class__).name
+
+            logger.start_module_execution(obj, old_id, module_name, a_id,
+                                          version, 1)
+            logger.finish_module_execution(obj)
+
         # views and loggers work on local ids
         def end_update(obj, error=''):
-            i = tmp_to_persistent_module_map.inverse[obj.id]
+            i = get_remapped_id(obj.id)
             if not error:
                 view.set_module_success(i)
             else:
                 view.set_module_error(i, error)
-            self._logger.finish_module_execution(locator, 
-                                                 currentVersion, i)
+            
+            logger.finish_module_execution(obj)
+
         # views and loggers work on local ids
         def annotate(obj, d):
-            i = tmp_to_persistent_module_map.inverse[obj.id]
-            self._logger.insert_annotation_DB(locator, 
-                                            currentVersion, i, d)
+            i = get_remapped_id(obj.id)
+            logger.insert_module_annotations(obj, d)
+
+        logging_obj = InstanceObject(signalSuccess=add_to_executed,
+                                     begin_update=begin_update,
+                                     begin_compute=begin_compute,
+                                     end_update=end_update,
+                                     update_cached=update_cached,
+                                     annotate=annotate)
+
+        (tmp_to_persistent_module_map,
+         conn_map,
+         module_added_set,
+         conn_added_set) = self.add_to_persistent_pipeline(pipeline, 
+                                                           logging_obj)
+
 
         def create_null():
             """Creates a Null value"""
@@ -161,14 +218,10 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             persistent_sinks = [tmp_to_persistent_module_map[sink]
                                 for sink in pipeline.graph.sinks()]
             
-        logging_obj = InstanceObject(signalSuccess=add_to_executed,
-                                     begin_update=begin_update,
-                                     begin_compute=begin_compute,
-                                     end_update=end_update,
-                                     annotate=annotate)
         errors = {}
         executed = {}
-        
+        abstractions = {}
+
         def make_change_parameter(obj):
             return lambda *args: change_parameter(obj, *args)
     
@@ -254,7 +307,19 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             if executed.has_key(pst_id):
                 execs[tmp_id] = executed[pst_id]
             else:
+                # these modules didn't execute
                 execs[tmp_id] = False
+
+        # FIXME all abstractions will register as "executed" due to expansion
+        # can probably fix by keeping track of all ids and determine status
+        # from the pieces recursively, but too much work for now
+        for m_id in abstractions.itervalues():
+            info = get_remapped_info(m_id, False)
+            obj = InstanceObject()
+            logger.start_module_execution(obj, info[1], 'Abstraction', 
+                                          info[2], info[3])
+            logger.finish_module_execution(obj)
+            
 
         # Clean up modules that failed to execute
         self.clean_modules(to_delete)
@@ -301,23 +366,38 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
         If modules have no error associated with but were not executed, it
         means they were cached."""
-        self._logger.start_workflow_execution(vistrailLocator, currentVersion)
 
+        
         self.clean_non_cacheable_modules()
 
+        if kwargs.has_key('logger'):
+            logger = kwargs['logger']
+        else:
+            logger = DummyLogController()
+            kwargs['logger'] = logger
+
+        if controller is not None:
+            vistrail = controller.vistrail
+            (pipeline, module_remap) = \
+                core.db.io.expand_workflow(vistrail, pipeline)
+            kwargs['module_remap'] = module_remap
+        else:
+            vistrail = None
+
+        logger.start_workflow_execution(vistrail, pipeline, currentVersion)
         result = self.unlocked_execute(controller, pipeline, vistrailLocator,
                                        currentVersion,
                                        view, aliases,
                                        **kwargs)
-
-        self._logger.finish_workflow_execution(vistrailLocator, currentVersion)
+        logger.finish_workflow_execution()
 
         return result
 
-    def add_to_persistent_pipeline(self, pipeline):
-        """add_to_persistent_pipeline(pipeline):
+    def add_to_persistent_pipeline(self, pipeline, logging_obj):
+        """add_to_persistent_pipeline(pipeline, logging_obj):
         (module_id_map, connection_id_map, modules_added)
-        Adds a pipeline to the persistent pipeline of the cached interpreter.
+        Adds a pipeline to the persistent pipeline of the cached interpreter
+        and adds current logging object to each existing module.
 
         Returns four things: two dictionaries describing the mapping
         of ids from the passed pipeline to the persistent one (the
@@ -346,6 +426,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 i = self._persistent_pipeline \
                         .subpipeline_id_from_signature(new_sig)
                 module_id_map[new_module_id] = i
+                # FIXME accessing self._objects here; is this ok?
+                self._objects[i].logging = logging_obj
         for connection in pipeline.connections.itervalues():
             new_sig = pipeline.connection_signature(connection.id)
             if not self._persistent_pipeline.has_connection_signature(new_sig):

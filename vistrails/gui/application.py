@@ -344,9 +344,6 @@ run in batch mode.')
         self.showSplash = self.configuration.showSplash
 
     def finishSession(self):
-        logger = core.logger.Logger.get() 
-        if logger:
-            logger.finish_session()
         core.interpreter.cached.CachedInterpreter.cleanup()
    
     def eventFilter(self, o, event):

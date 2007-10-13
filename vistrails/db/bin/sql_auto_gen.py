@@ -253,6 +253,7 @@ class SQLAutoGen(AutoGen):
                     if ref_prop.isReference() and \
                             ref_prop.getReference() == obj.getRegularName():
                         return (choice, True)
+        raise Exception("didn't work")
 
     def generateSchema(self):
 	self.reset(SQL_SPACES)
@@ -367,12 +368,15 @@ class SQLAutoGen(AutoGen):
                             field.getPythonType(), field.getType()))
             count += 1
             if field.isGlobal():
-                self.printLine("global_props['%s'] = " % \
-                                   field.getGlobalName() +
-                               "self.convertToDB(%s, '%s', '%s')\n" % \
-                                   (field.getRegularName(),
-                                    field.getPythonType(),
-                                    field.getType()))
+                self.printLine("if not global_props.has_key('%s'):\n" % \
+                               field.getGlobalName())
+                self.indentLine("global_props['%s'] = " % \
+                                    field.getGlobalName() +
+                                "self.convertToDB(%s, '%s', '%s')\n" % \
+                                    (field.getRegularName(),
+                                     field.getPythonType(),
+                                     field.getType()))
+                self.unindent()
 
         attrPairs = []
         for field in self.getNormalSQLColumnsAndKey(object):
@@ -482,12 +486,15 @@ class SQLAutoGen(AutoGen):
             self.unindent()
         for property in self.getNormalSQLColumnsAndKey(object):
             if property.isGlobal():
-                self.printLine("global_props['%s'] = " % \
-                                      property.getGlobalName() +
-                                  "self.convertToDB(obj.%s, '%s', '%s')\n" % \
-                                      (property.getPythonName(),
-                                       property.getPythonType(),
-                                       property.getType()))
+                self.printLine("if not global_props.has_key('%s'):\n" % \
+                               property.getGlobalName())
+                self.indentLine("global_props['%s'] = " % \
+                                    property.getGlobalName() +
+                                "self.convertToDB(obj.%s, '%s', '%s')\n" % \
+                                    (property.getPythonName(),
+                                     property.getPythonType(),
+                                     property.getType()))
+                self.unindent()
 
         self.printLine('\n')
 
@@ -503,13 +510,19 @@ class SQLAutoGen(AutoGen):
             self.unindent()
         for ref in references:
             ref_obj = self.getReferencedObject(ref.getReference())
+            try:
+                (ref_field, is_choice) = \
+                    self.get_sql_referenced(ref_obj, object)
+            except Exception:
+                print "can't find tie between %s and %s" % (ref_obj.getName(),
+                                                            object.getName())
+                continue
             if ref.isPlural():
                 self.printLine('for child in obj.%s:\n' % ref.getIterator())
                 self.indent()
             else:
                 self.printLine('if obj.%s is not None:\n' % ref.getFieldName())
                 self.indentLine('child = obj.%s\n' % ref.getFieldName())
-            (ref_field, is_choice) = self.get_sql_referenced(ref_obj, object)
             if is_choice:
                 # need to set discriminator and foreign key
                 disc = ref_field.getDiscriminator()

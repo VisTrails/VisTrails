@@ -92,6 +92,8 @@ class InputPort(Module):
             
 _reg.add_module(InputPort)
 _reg.add_input_port(InputPort, "name", String, True)
+_reg.add_input_port(InputPort, "spec", String, True)
+_reg.add_input_port(InputPort, "old_name", String, True)
 _reg.add_input_port(InputPort, "ExternalPipe", Module, True)
 _reg.add_output_port(InputPort, "InternalPipe", Variant)
 
@@ -105,10 +107,17 @@ class OutputPort(Module):
     
 _reg.add_module(OutputPort)
 _reg.add_input_port(OutputPort, "name", String, True)
+_reg.add_input_port(OutputPort, "spec", String, True)
 _reg.add_input_port(OutputPort, "InternalPipe", Module)
 _reg.add_output_port(OutputPort, "ExternalPipe", Variant, True)
 
 ###############################################################################
+
+class Abstraction(NotCacheable, Module):
+    def compute(self):
+        pass
+    
+_reg.add_module(Abstraction)
 
 class SubModule(NotCacheable, Module):
     """

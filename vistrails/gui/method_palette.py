@@ -42,6 +42,22 @@ class QMethodPalette(QSearchTreeWindow, QToolWindowInterface):
     own type of tree widget
 
     """
+    def __init__(self, parent=None):
+        QSearchTreeWindow.__init__(self, parent)
+        
+        tagLayout = QtGui.QHBoxLayout()
+        tagLayout.setMargin(0)
+        tagLayout.setSpacing(2)
+        tagLabel = QtGui.QLabel('Tag:', self)
+        tagLayout.addWidget(tagLabel)
+        self.tagEdit = QtGui.QLineEdit()
+        tagLabel.setBuddy(self.tagEdit)
+        tagLayout.addWidget(self.tagEdit)
+        self.layout().insertLayout(0, tagLayout)
+
+        self.connect(self.tagEdit, QtCore.SIGNAL('editingFinished()'),
+                     self.tagFinished)
+
     def createTreeWidget(self):
         """ createTreeWidget() -> QMethodTreeWidget
         Return the search tree widget for this window
@@ -49,6 +65,22 @@ class QMethodPalette(QSearchTreeWindow, QToolWindowInterface):
         """
         self.setWindowTitle('Methods')
         return QMethodTreeWidget(self)
+
+    def updateModule(self, module):
+        self.module = module
+        if module is not None and module.tag is not None:
+            self.tagEdit.setText(module.tag)
+        else:
+            self.tagEdit.setText('')
+        self.treeWidget.updateModule(module)
+
+    def tagFinished(self):
+        text = str(self.tagEdit.text())
+        self.module.tag = text
+        if self.controller:
+            self.controller.update_module_tag(self.module, text)
+#         if text.strip() != '':
+#             self.module.tag = text
 
 class QMethodTreeWidget(QSearchTreeWidget):
     """
@@ -64,7 +96,7 @@ class QMethodTreeWidget(QSearchTreeWidget):
         QSearchTreeWidget.__init__(self, parent)
         self.header().setStretchLastSection(True)
         self.setHeaderLabels(QtCore.QStringList() << 'Method' << 'Signature')
-        
+
     def updateModule(self, module):
         """ updateModule(module: Module) -> None        
         Setup this tree widget to show functions of module

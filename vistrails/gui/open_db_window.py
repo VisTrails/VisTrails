@@ -19,17 +19,18 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
-""" File for the window used when opening a vistrail from the database
+""" File for the window used when opening VisTrails objects from the database
 
 QOpenDBWindow
 QDBConnectionList
 QDBConnectionListItem
-QVistrailList
-QVistrailListItem
+QDBObjectList
+QDBObjectListItem
 QConnectionDBSetupWindow
 
 """
 from PyQt4 import QtCore, QtGui
+from db import VistrailsDBException
 import db.services.io
 from core.external_connection import ExtConnectionList, DBConnection
 from core.system import default_connections_file
@@ -68,16 +69,16 @@ class QOpenDBWindow(QtGui.QDialog):
         self.saveasLabel.setVisible(False)
         self.saveasEdt.setVisible(False)
         self.connectionList = QDBConnectionList(self)
-        self.vistrailList = QVistrailList(self)
+        self.objectList = QDBObjectList(self)
 
         dbLabel = QtGui.QLabel("Databases:")
-        vtLabel = QtGui.QLabel("Vistrails: ")
+        self.vtLabel = QtGui.QLabel("Vistrails: ")
         
         panelsLayout.addWidget(dbLabel,0,0,1,1)
         panelsLayout.setColumnMinimumWidth(1,10)
-        panelsLayout.addWidget(vtLabel,0,2,1,2)
+        panelsLayout.addWidget(self.vtLabel,0,2,1,2)
         panelsLayout.addWidget(self.connectionList,1,0,1,1)
-        panelsLayout.addWidget(self.vistrailList,1,2,1,2)
+        panelsLayout.addWidget(self.objectList,1,2,1,2)
 
         self.addButton = QtGui.QToolButton()
         self.addButton.setDefaultAction(self.addAct)
@@ -140,7 +141,7 @@ Would you like to create one?"
             if res == YES_BUTTON:
                 self.showConnConfig()
         else:
-            self.updateVistrailsList()
+            self.updateDBObjectsList()
 
     def connectSignals(self):
         """ connectSignals() -> None
@@ -161,34 +162,34 @@ Would you like to create one?"
                      self.connectionList.removeConnection)
         self.connect(self.connectionList,
                      QtCore.SIGNAL('itemSelectionChanged()'),
-                     self.updateVistrailsList)
+                     self.updateDBObjectsList)
         self.connect(self.connectionList,
                      QtCore.SIGNAL('itemSelectionChanged()'),
                      self.updateButtons)
         self.connect(self.connectionList,
                      QtCore.SIGNAL('itemClicked(QListWidgetItem *)'),
-                     self.updateVistrailsList)
+                     self.updateDBObjectsList)
         self.connect(self.connectionList,
                      QtCore.SIGNAL("reloadConnections"),
-                     self.vistrailList.updateContents)
-        self.connect(self.vistrailList,
+                     self.updateDBObjectsList)
+        self.connect(self.objectList,
                      QtCore.SIGNAL('itemSelectionChanged()'),
                      self.updateButtons)
         self.connect(self.saveasEdt,
                      QtCore.SIGNAL('textChanged(QString)'),
                      self.updateButtons)
-        self.connect(self.vistrailList,
+        self.connect(self.objectList,
                      QtCore.SIGNAL('itemDoubleClicked(QListWidgetItem *)'),
                      self.accept)
         
-    def updateVistrailsList(self):
-        """ updateVistrailsList() -> None
-        It reloads the vistrail list for the selected connection. If nothing
-        is selected, it will clear the list.
+    def updateDBObjectsList(self):
+        """ updateDBObjectsList() -> None
+        It reloads the vistrails object list for the selected connection. 
+        If nothing is selected, it will clear the list.
 
         """
         conn = self.connectionList.getCurrentItemId()
-        self.vistrailList.updateContents(conn)
+        self.objectList.updateContents(conn)
         self.updateEditButtons(conn)
 
     def updateButtons(self):
@@ -197,7 +198,7 @@ Would you like to create one?"
         of saving a vistrail, if a connection is selected and the name is valid
 
         """
-        vtlist = self.vistrailList
+        vtlist = self.objectList
         if not self.save:
             if len(vtlist.selectedItems()) > 0:
                 self.openButton.setEnabled(True)
@@ -242,39 +243,52 @@ Would you like to create one?"
                       'db': str(dialog.databaseEdt.text())}
             id = self.connectionList.setConnectionInfo(**config)
             self.connectionList.setCurrentId(id)
+            return True
+        else:
+            return False
 
-    def prepareForOpening(self):
+    def prepareForOpening(self, obj_type):
         """prepareForOpening() -> None
         It will prepare the dialog to be a Open Dialog
         
         """
-        self.setWindowTitle("Choose a vistrail")
+        self.setWindowTitle("Choose a %s" % obj_type.capitalize())
+        if obj_type != 'vistrail':
+            self.vtLabel.text = 'VisTrails %ss' % obj_type.capitalize()
+        else:
+            self.vtLabel.text = 'Vistrails'
         self.save = False
-        self.vistrailList.setEnabled(True)
+        self.objectList.obj_type = obj_type
+        self.objectList.setEnabled(True)
         self.saveasLabel.setVisible(False)
         self.saveasEdt.setVisible(False)
         self.openButton.setEnabled(False)
         self.openButton.setText("Open")
 
-    def prepareForSaving(self):
+    def prepareForSaving(self, obj_type):
         """prepareForSaving() -> None
         It will prepare the dialog to be a save as dialog 
         
         """
-        self.setWindowTitle("Save Vistrail...")
+        self.setWindowTitle("Save %s..." % obj_type.capitalize())
+        if obj_type != 'vistrail':
+            self.vtLabel.text = 'VisTrails %ss' % obj_type.capitalize()
+        else:
+            self.vtLabel.text = 'Vistrails'
         self.save = True
-        self.vistrailList.setEnabled(False)
+        self.objectList.obj_type = obj_type
+        self.objectList.setEnabled(False)
         self.saveasLabel.setVisible(True)
         self.saveasEdt.setVisible(True)
         self.openButton.setText("Save")
         self.openButton.setEnabled(False)
         
     @staticmethod
-    def getOpenVistrail():
-        """getOpenVistrail() -> (dict,int)
-        Creates a dialog for opening a vistrail from the database. It will
-        return the selected connection configuration information and
-        the vistrail id.
+    def getOpenDBObject(obj_type):
+        """getOpenDBObject(obj_type : str) -> (dict,int)
+        Creates a dialog for opening a vistrails object from the database. 
+        It will return the selected connection configuration information and
+        the object id.
         
         """
         if QOpenDBWindow._instance:
@@ -282,20 +296,20 @@ Would you like to create one?"
         else:
             dlg = QOpenDBWindow()
 
-        dlg.prepareForOpening()
+        dlg.prepareForOpening(obj_type)
         
         if dlg.exec_() == QtGui.QDialog.Accepted:
             return (dlg.connectionList.getCurrentConnConfig(),
-                    dlg.vistrailList.currentItem().id)
+                    dlg.objectList.currentItem().id)
         else:
             return({},-1)
 
     @staticmethod
-    def getSaveVistrail():
-        """getSaveVistrail() -> (dict, str)
-        Creates a dialog for saving a vistrail to the database. It will return
-        the selected connection configuration information and the vistrail
-        name
+    def getSaveDBObject(obj_type):
+        """getSaveDBObject(obj_type : str) -> (dict, str)
+        Creates a dialog for saving a vistrails object to the database. 
+        It will return the selected connection configuration information 
+        and the object name
 
         """
         if QOpenDBWindow._instance:
@@ -303,7 +317,7 @@ Would you like to create one?"
         else:
             dlg = QOpenDBWindow()
 
-        dlg.prepareForSaving()
+        dlg.prepareForSaving(obj_type)
 
         if dlg.exec_() == QtGui.QDialog.Accepted:
             return (dlg.connectionList.getCurrentConnConfig(),
@@ -485,9 +499,9 @@ class QDBConnectionList(QtGui.QListWidget):
             del config['name']
         return config
     
-    def getVistrailList(self, conn_id):
-        """getVistrailList(conn_id: int) -> list
-        Returns list of vistrails
+    def getDBObjectList(self, conn_id, obj_type):
+        """getDBObjectList(conn_id: int, obj_type : str) -> list
+        Returns list of vistrails objects
 
         """
         conn = self.__list.get_connection(conn_id)
@@ -498,7 +512,7 @@ class QDBConnectionList(QtGui.QListWidget):
             del config['name']
             config_id = config['id']
             del config['id']
-        vt_list = db.services.io.get_db_vistrail_list(config)
+        vt_list = db.services.io.get_db_object_list(config, obj_type)
         if conn.dbtype == 'MySQL':
             config['name'] = config_name
             config['id'] = config_id
@@ -519,14 +533,15 @@ class QDBConnectionListItem(QtGui.QListWidgetItem):
 
 ################################################################################
 
-class QVistrailList(QtGui.QListWidget):
+class QDBObjectList(QtGui.QListWidget):
     """
-    QVistrailList is a widget to show the vistrails available in the selected
+    QDBObjectList is a widget to show the vistrails available in the selected
     database
 
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, obj_type='vistrail'):
         QtGui.QListWidget.__init__(self, parent)
+        self.obj_type = obj_type
 
     def updateContents(self, conn_id=-1):
         """updateContents(connection_id: int) -> None
@@ -537,17 +552,16 @@ class QVistrailList(QtGui.QListWidget):
         if conn_id != -1:
             parent = self.parent()
             try:
+                objs = parent.connectionList.getDBObjectList(int(conn_id),
+                                                             self.obj_type)
                 
-                vistrails = parent.connectionList.getVistrailList(int(conn_id))
-                
-                for (id,vistrail,date,user) in vistrails:
-                    item = QVistrailListItem(CurrentTheme.FILE_ICON,
+                for (id,obj,date) in objs:
+                    item = QDBObjectListItem(CurrentTheme.FILE_ICON,
                                              int(id),
-                                             str(vistrail),
-                                             str(date),
-                                             str(user))
+                                             str(obj),
+                                             str(date))
                     self.addItem(item)
-            except Exception, e:
+            except VistrailsDBException, e:
                 #show connection setup
                 config = parent.connectionList.getConnectionInfo(int(conn_id))
                 if config != None:
@@ -558,20 +572,19 @@ class QVistrailList(QtGui.QListWidget):
             
 ################################################################################
 
-class QVistrailListItem(QtGui.QListWidgetItem):
+class QDBObjectListItem(QtGui.QListWidgetItem):
     
-    def __init__(self, icon, id, name, date, user, parent=None):
+    def __init__(self, icon, id, name, date, parent=None):
         """__init__(icon: QIcon, id: int, name: QString,
                     date: QString, user: QString, parent: QListWidget)
-                         -> QVistrailListItem
+                         -> QDBObjectListItem
         Creates an item with id
         
         """
-        QtGui.QListWidgetItem.__init__(self,icon, name, parent)
+        QtGui.QListWidgetItem.__init__(self, icon, name, parent)
         self.id = id
-        self.user = user
         self.date = date
-        self.setToolTip("Last Modified on %s by %s" % (date, user))
+        self.setToolTip("Last Modified on %s" % date)
 
 ################################################################################
 

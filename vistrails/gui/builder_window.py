@@ -25,7 +25,8 @@ QBuilderWindow
 """
 from PyQt4 import QtCore, QtGui
 from core import system
-from core.db.locator import DBLocator, FileLocator
+from core.db.locator import DBLocator, FileLocator, XMLFileLocator
+from core.vistrail.vistrail import Vistrail
 from gui.application import VistrailsApplication
 #from gui.bookmark_window import QBookmarksWindow
 from gui.graphics_view import QInteractiveGraphicsView
@@ -197,6 +198,26 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.closeVistrailAction.setStatusTip('Close the current vistrail')
         self.closeVistrailAction.setEnabled(False)
 
+        self.saveLogAction = QtGui.QAction('Save Log...', self)
+        self.saveLogAction.setStatusTip('Save the execution log to '
+                                        'a file')
+        self.saveLogAction.setEnabled(True)
+
+        self.exportLogAction = QtGui.QAction('Export Log...', self)
+        self.exportLogAction.setStatusTip('Save the execution log to '
+                                          'a database')
+        self.exportLogAction.setEnabled(True)
+
+        self.saveWorkflowAction = QtGui.QAction('Save Workflow...', self)
+        self.saveWorkflowAction.setStatusTip('Save the current workflow to '
+                                             'a file')
+        self.saveWorkflowAction.setEnabled(True)
+
+        self.exportWorkflowAction = QtGui.QAction('Export Workflow...', self)
+        self.exportWorkflowAction.setStatusTip('Save the current workflow to '
+                                               'a database')
+        self.exportWorkflowAction.setEnabled(True)
+
         self.quitVistrailsAction = QtGui.QAction('Quit', self)
         self.quitVistrailsAction.setShortcut('Ctrl+Q')
         self.quitVistrailsAction.setStatusTip('Exit Vistrails')
@@ -220,6 +241,13 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.pasteAction.setEnabled(False)
         self.pasteAction.setStatusTip('Paste copied modules in the clipboard '
                                       'into the current pipeline view')
+
+        self.abstractionAction = QtGui.QAction('Make Abstraction', self)
+        self.abstractionAction.setShortcut('Ctrl+G')
+        self.abstractionAction.setEnabled(False)
+        self.abstractionAction.setStatusTip('Create an abstraction from the '
+                                            'selected modules in '
+                                            'the current pipeline view')
         
         self.selectAllAction = QtGui.QAction('Select All\tCtrl+A', self)
         self.selectAllAction.setEnabled(False)
@@ -298,6 +326,11 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.fileMenu.addAction(self.importFileAction)
         self.fileMenu.addAction(self.exportFileAction)
         self.fileMenu.addSeparator()
+        self.fileMenu.addAction(self.saveLogAction)
+        self.fileMenu.addAction(self.exportLogAction)
+        self.fileMenu.addAction(self.saveWorkflowAction)
+        self.fileMenu.addAction(self.exportWorkflowAction)
+        self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.quitVistrailsAction)
 
         self.editMenu = self.menuBar().addMenu('&Edit')
@@ -306,6 +339,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editMenu.addSeparator()
         self.editMenu.addAction(self.copyAction)
         self.editMenu.addAction(self.pasteAction)
+        self.editMenu.addAction(self.abstractionAction)
         self.editMenu.addAction(self.selectAllAction)
         self.editMenu.addSeparator()
         self.editMenu.addAction(self.editPreferencesAction)
@@ -390,7 +424,8 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.undoAction, self.viewManager.undo),
             (self.copyAction, self.viewManager.copySelection),
             (self.pasteAction, self.viewManager.pasteToCurrentPipeline),
-            (self.pasteAction, self.viewManager.selectAllModules),
+            (self.abstractionAction, self.viewManager.create_abstraction),
+            (self.selectAllAction, self.viewManager.selectAllModules),
             (self.newVistrailAction, self.newVistrail),
             (self.openFileAction, self.open_vistrail_default),
             (self.importFileAction, self.import_vistrail_default),
@@ -398,6 +433,10 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.saveFileAsAction, self.save_vistrail_default_as),
             (self.exportFileAction, self.export_vistrail_default),
             (self.closeVistrailAction, self.viewManager.closeVistrail),
+            (self.saveLogAction, self.save_log_default),
+            (self.exportLogAction, self.export_log_default),
+            (self.saveWorkflowAction, self.save_workflow_default),
+            (self.exportWorkflowAction, self.export_workflow_default),
             (self.helpAction, self.showAboutMessage),
             (self.editPreferencesAction, self.showPreferences),
             (self.executeCurrentWorkflowAction,
@@ -496,7 +535,16 @@ class QBuilderWindow(QtGui.QMainWindow):
                                                'different database location')
             self.exportFileAction.setStatusTip('Save the current vistrail to '
                                                ' a file')
+            self.exportLogAction.setStatusTip('Save the execution log to '
+                                              'a file')
+            self.saveLogAction.setStatusTip('Save the execution log to '
+                                            'a database')
+            self.exportWorkflowAction.setStatusTip('Save the current workflow '
+                                                   'to a file')
+            self.saveWorkflowAction.setStatusTip('Save the current workflow '
+                                                 'to a database')
 
+            
         else:
             self.openFileAction.setIcon(CurrentTheme.OPEN_VISTRAIL_ICON)
             self.openFileAction.setStatusTip('Open an existing vistrail from '
@@ -510,6 +558,14 @@ class QBuilderWindow(QtGui.QMainWindow):
                                                'different file location')
             self.exportFileAction.setStatusTip('Save the current vistrail to '
                                                ' a database')
+            self.saveLogAction.setStatusTip('Save the execution log to '
+                                            'a file')
+            self.exportLogAction.setStatusTip('Export the execution log to '
+                                              'a database')
+            self.saveWorkflowAction.setStatusTip('Save the current workflow '
+                                                 'to a file')
+            self.exportWorkflowAction.setStatusTip('Save the current workflow '
+                                                   'to a database')
 
     def moduleSelectionChange(self, selection):
         """ moduleSelectionChange(selection: list[id]) -> None
@@ -517,6 +573,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         
         """
         self.copyAction.setEnabled(len(selection)>0)
+        self.abstractionAction.setEnabled(len(selection)>0)
 
     def versionSelectionChange(self, versionId):
         """ versionSelectionChange(versionId: int) -> None
@@ -628,7 +685,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         Prompt user for information to get to a vistrail in different ways,
         depending on the locator class given.
         """
-        locator = locator_class.load_from_gui(self)
+        locator = locator_class.load_from_gui(self, Vistrail.vtType)
         if locator:
             self.open_vistrail_without_prompt(locator)
             
@@ -709,7 +766,32 @@ class QBuilderWindow(QtGui.QMainWindow):
         else:
             self.viewManager.save_vistrail(DBLocator,
                                            force_choose_locator=True)
-            
+        
+    def save_log(self, invert=False, choose=True):
+        # want xor of invert and dbDefault
+        if (invert and not self.dbDefault) or (not invert and self.dbDefault):
+            self.viewManager.save_log(DBLocator,
+                                      force_choose_locator=choose)
+        else:
+            self.viewManager.save_log(XMLFileLocator,
+                                      force_choose_locator=choose)
+    def save_log_default(self):
+        self.save_log(False)
+    def export_log_default(self):
+        self.save_log(True)
+
+    def save_workflow(self, invert=False, choose=True):
+        # want xor of invert and dbDefault
+        if (invert and not self.dbDefault) or (not invert and self.dbDefault):
+            self.viewManager.save_workflow(DBLocator,
+                                           force_choose_locator=choose)
+        else:
+            self.viewManager.save_workflow(XMLFileLocator,
+                                           force_choose_locator=choose)
+    def save_workflow_default(self):
+        self.save_workflow(False)
+    def export_workflow_default(self):
+        self.save_workflow(True)
 
     def quitVistrails(self):
         """ quitVistrails() -> bool

@@ -24,10 +24,16 @@ import copy
 from itertools import izip
 from sets import Set
 
+import core.modules.module_registry
+import core.modules.vistrails_module
+from core.modules.basic_modules import Variant
+from core.modules.module_registry import registry, ModuleRegistry
+from core.vistrail.annotation import Annotation
 from core.vistrail.location import Location
 from core.vistrail.module_function import ModuleFunction
-from core.vistrail.annotation import Annotation
+from core.vistrail.port import Port, PortEndPoint
 from db.domain import DBAbstractionRef
+
 
 class AbstractionModule(DBAbstractionRef):
 
@@ -39,6 +45,8 @@ class AbstractionModule(DBAbstractionRef):
         if self.id is None:
             self.id = -1
         self.portVisible = Set()
+        self._registry = None
+        self.abstraction = None
         # FIXME should we have a registry for an abstraction module?
 
     def __copy__(self):
@@ -48,6 +56,8 @@ class AbstractionModule(DBAbstractionRef):
         cp = DBAbstractionRef.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = AbstractionModule
         cp.portVisible = copy.copy(self.portVisible)
+        cp._registry = self._registry
+        cp.abstraction = self.abstraction
         return cp
 
     @staticmethod
@@ -62,6 +72,8 @@ class AbstractionModule(DBAbstractionRef):
         for _annotation in _abstraction_module.db_get_annotations():
             Annotation.convert(_annotation)
         _abstraction_module.portVisible = Set()
+        _abstraction_module._registry = None
+        _abstraction_module.abstraction = None
 
 
     ##########################################################################
@@ -90,6 +102,7 @@ class AbstractionModule(DBAbstractionRef):
     def _set_location(self, location):
         self.db_location = location
     location = property(_get_location, _set_location)
+    center = property(_get_location, _set_location)
 
     def _get_version(self):
         return self.db_version
@@ -97,11 +110,12 @@ class AbstractionModule(DBAbstractionRef):
         self.db_version = version
     version = property(_get_version, _set_version)
 
-    def _get_name(self):
+    def _get_tag(self):
         return self.db_name
-    def _set_name(self, name):
-        self.db_name = name
-    name = property(_get_name, _set_name)
+    def _set_tag(self, tag):
+        self.db_name = tag
+    tag = property(_get_tag, _set_tag)
+    label = property(_get_tag, _set_tag)
 
     def _get_functions(self):
         self.db_functions.sort(key=lambda x: x.db_pos)
@@ -111,12 +125,35 @@ class AbstractionModule(DBAbstractionRef):
         self.db_functions = functions
     functions = property(_get_functions, _set_functions)
 
+    def _get_pipeline(self):
+        from core.vistrail.pipeline import Pipeline
+        import db.services.vistrail
+        workflow = db.services.vistrail.materializeWorkflow(self.abstraction, 
+                                                            self.version)
+        Pipeline.convert(workflow)
+        return workflow
+    pipeline = property(_get_pipeline)
+
+    def _get_name(self):
+        # this references core.modules.sub_module.Abstraction
+        return 'Abstraction'
+    def _set_name(self, name):
+        # print "doesn't make sense for abstraction module"
+        pass
+    name = property(_get_name, _set_name)
+
     def _get_package(self):
-        return self._package
+        return 'edu.utah.sci.vistrails.basic'
     def _set_package(self, package):
-        print "doesn't make sense for abstraction module"
-        self._package = package
+        # print "doesn't make sense for abstraction module"
+        pass
     package = property(_get_package, _set_package)
+
+    def _get_registry(self):
+        if not self._registry:
+            self.make_registry()
+        return self._registry
+    registry = property(_get_registry)
 
     def _get_annotations(self):
         return self.db_annotations
@@ -132,15 +169,61 @@ class AbstractionModule(DBAbstractionRef):
     def get_annotation_by_key(self, key):
         return self.db_get_annotation_by_key(key)        
 
+    def getNumFunctions(self):
+        """getNumFunctions() -> int - Returns the number of functions """
+        return len(self.functions)
+
     def summon(self):
         # we shouldn't ever call this since we're expanding abstractions
         return None
 
+    @staticmethod
+    def make_port_from_module(module, port_type):
+        for function in module.functions:
+            if function.name == 'name':
+                port_name = function.params[0].strValue
+            if function.name == 'spec':
+                port_spec = function.params[0].strValue
+        port = Port(id=-1,
+                    name=port_name,
+                    type=port_type)
+        portSpecs = port_spec[1:-1].split(',')
+        signature = []
+        for s in portSpecs:
+            spec = s.split(':')
+            signature.append(registry.get_descriptor_by_name(spec[0],
+                                                             spec[1]).module)
+        port.spec = core.modules.module_registry.PortSpec(signature)
+        return port
+
+    def make_registry(self):
+        reg_module = \
+            registry.get_descriptor_by_name('edu.utah.sci.vistrails.basic', 
+                                            self.name).module
+        self._registry = ModuleRegistry()
+        self._registry.add_hierarchy(registry, self)
+        for module in self.pipeline.module_list:
+            if module.name == 'OutputPort':
+                port = self.make_port_from_module(module, 'source')
+                self._registry.add_port(reg_module, PortEndPoint.Source, port)
+            elif module.name == 'InputPort':
+                port = self.make_port_from_module(module, 'destination')
+                self._registry.add_port(reg_module, PortEndPoint.Destination, 
+                                        port)
+
     def sourcePorts(self):
-        return []
+        ports = []
+        for module in self.pipeline.module_list:
+            if module.name == 'OutputPort':
+                ports.append(self.make_port_from_module(module, 'source'))
+        return ports
 
     def destinationPorts(self):
-        return []
+        ports = []
+        for module in self.pipeline.module_list:
+            if module.name == 'InputPort':
+                ports.append(self.make_port_from_module(module, 'destination'))
+        return ports
 
     ##########################################################################
     # Operators

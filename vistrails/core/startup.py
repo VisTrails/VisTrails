@@ -27,7 +27,6 @@ from core import system
 from core.utils.uxml import named_elements, elements_filter, \
      eval_xml_value, enter_named_element
 import copy
-import core.logger
 import core.packagemanager
 import core.utils
 import os.path
@@ -78,9 +77,6 @@ class VistrailsStartup(object):
         self.setupBaseModules()
         self.installPackages()
         self.runStartupHooks()
-        if not self.configuration.check('nologger'):
-            core.logger._nologger = False
-            core.logger.Logger.get()
 
     ##########################################################################
     # startup.xml related

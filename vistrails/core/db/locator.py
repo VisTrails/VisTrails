@@ -22,7 +22,6 @@
 
 import os.path
 from core.configuration import get_vistrails_configuration
-from core.vistrail.vistrail import Vistrail
 from core.system import vistrails_default_file_type
 from db.services.locator import XMLFileLocator as _XMLFileLocator, \
     DBLocator as _DBLocator, ZIPFileLocator as _ZIPFileLocator
@@ -31,13 +30,13 @@ import core.configuration
 class CoreLocator(object):
 
     @staticmethod
-    def load_from_gui(parent_widget):
+    def load_from_gui(parent_widget, obj_type):
         pass # Opens a dialog that the user will be able to use to
              # show the right values, and returns a locator suitable
              # for loading a file
 
     @staticmethod
-    def save_from_gui(parent_widget, locator):
+    def save_from_gui(parent_widget, obj_type, locator):
         pass # Opens a dialog that the user will be able to use to
              # show the right values, and returns a locator suitable
              # for saving a file
@@ -47,23 +46,28 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
     def __init__(self, filename):
         _XMLFileLocator.__init__(self, filename)
         
-    def load(self):
-        vistrail = _XMLFileLocator.load(self)
-        Vistrail.convert(vistrail)
-        vistrail.locator = self
-        return vistrail
+    def load(self, klass=None):
+        from core.vistrail.vistrail import Vistrail
+        if klass is None:
+            klass = Vistrail
+        obj = _XMLFileLocator.load(self, klass.vtType)
+        klass.convert(obj)
+        obj.locator = self
+        return obj
 
-    def save(self, vistrail):
-        vistrail = _XMLFileLocator.save(self, vistrail, False)
-        Vistrail.convert(vistrail)
-        vistrail.locator = self
-        return vistrail
+    def save(self, obj):
+        klass = obj.__class__
+        obj = _XMLFileLocator.save(self, obj, False)
+        klass.convert(obj)
+        obj.locator = self
+        return obj
 
-    def save_as(self, vistrail):
-        vistrail = _XMLFileLocator.save(self, vistrail, True)
-        Vistrail.convert(vistrail)
-        vistrail.locator = self
-        return vistrail
+    def save_as(self, obj):
+        klass = obj.__class__
+        obj = _XMLFileLocator.save(self, obj, True)
+        klass.convert(obj)
+        obj.locator = self
+        return obj
 
     ##########################################################################
 
@@ -75,40 +79,45 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
     ##########################################################################
 
     @staticmethod
-    def load_from_gui(parent_widget):
+    def load_from_gui(parent_widget, obj_type):
         import gui.extras.core.db.locator as db_gui
-        return db_gui.get_load_file_locator_from_gui(parent_widget)
+        return db_gui.get_load_file_locator_from_gui(parent_widget, obj_type)
 
     @staticmethod
-    def save_from_gui(parent_widget, locator=None):
+    def save_from_gui(parent_widget, obj_type, locator=None):
         import gui.extras.core.db.locator as db_gui
-        return db_gui.get_save_file_locator_from_gui(parent_widget, 
+        return db_gui.get_save_file_locator_from_gui(parent_widget, obj_type,
                                                          locator)
 
 class DBLocator(_DBLocator, CoreLocator):
 
     def __init__(self, host, port, database, user, passwd, name=None,
-                 vistrail_id=None, connection_id=None):
+                 obj_id=None, obj_type=None, connection_id=None):
         _DBLocator.__init__(self, host, port, database, user, passwd, name,
-                            vistrail_id, connection_id)
+                            obj_id, obj_type, connection_id)
 
-    def load(self):
-        vistrail = _DBLocator.load(self)
-        Vistrail.convert(vistrail)
-        vistrail.locator = self
-        return vistrail
+    def load(self, klass=None):
+        from core.vistrail.vistrail import Vistrail
+        if klass is None:
+            klass = Vistrail
+        obj = _DBLocator.load(self, klass.vtType)
+        klass.convert(obj)
+        obj.locator = self
+        return obj
 
-    def save(self, vistrail):
-        vistrail = _DBLocator.save(self, vistrail, False)
-        Vistrail.convert(vistrail)
-        vistrail.locator = self
-        return vistrail
+    def save(self, obj):
+        klass = obj.__class__
+        obj = _DBLocator.save(self, obj, False)
+        klass.convert(obj)
+        obj.locator = self
+        return obj
 
-    def save_as(self, vistrail):
-        vistrail = _DBLocator.save(self, vistrail, True)
-        Vistrail.convert(vistrail)
-        vistrail.locator = self
-        return vistrail
+    def save_as(self, obj):
+        klass = obj.__class__
+        obj = _DBLocator.save(self, obj, True)
+        klass.convert(obj)
+        obj.locator = self
+        return obj
 
     ##########################################################################
 
@@ -119,43 +128,50 @@ class DBLocator(_DBLocator, CoreLocator):
                 self._port == other._port and
                 self._db == other._db and
                 self._user == other._user and
-                self._vt_name == other._vt_name and
-                self._vt_id == other._vt_id)
+                self._name == other._name and
+                self._obj_id == other._obj_id and
+                self._obj_type == other._obj_type)
 
     ##########################################################################
         
     @staticmethod
-    def load_from_gui(parent_widget):
+    def load_from_gui(parent_widget, obj_type):
         import gui.extras.core.db.locator as db_gui
-        return db_gui.get_load_db_locator_from_gui(parent_widget)
+        return db_gui.get_load_db_locator_from_gui(parent_widget, obj_type)
 
     @staticmethod
-    def save_from_gui(parent_widget, locator=None):
+    def save_from_gui(parent_widget, obj_type, locator=None):
         import gui.extras.core.db.locator as db_gui
-        return db_gui.get_save_db_locator_from_gui(parent_widget, locator)
+        return db_gui.get_save_db_locator_from_gui(parent_widget, obj_type,
+                                                   locator)
 
 class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 
     def __init__(self, filename):
         _ZIPFileLocator.__init__(self, filename)
         
-    def load(self):
-        vistrail = _ZIPFileLocator.load(self)
-        Vistrail.convert(vistrail)
-        vistrail.locator = self
-        return vistrail
+    def load(self, klass=None):
+        from core.vistrail.vistrail import Vistrail
+        if klass is None:
+            klass = Vistrail
+        obj = _ZIPFileLocator.load(self, klass.vtType)
+        klass.convert(obj)
+        obj.locator = self
+        return obj
 
-    def save(self, vistrail):
-        vistrail = _ZIPFileLocator.save(self, vistrail, False)
-        Vistrail.convert(vistrail)
-        vistrail.locator = self
-        return vistrail
+    def save(self, obj):
+        klass = obj.__class__
+        obj = _ZIPFileLocator.save(self, obj, False)
+        klass.convert(obj)
+        obj.locator = self
+        return obj
 
-    def save_as(self, vistrail):
-        vistrail = _ZIPFileLocator.save(self, vistrail, True)
-        Vistrail.convert(vistrail)
-        vistrail.locator = self
-        return vistrail
+    def save_as(self, obj):
+        klass = obj.__class__
+        obj = _ZIPFileLocator.save(self, obj, True)
+        klass.convert(obj)
+        obj.locator = self
+        return obj
 
     ##########################################################################
 
@@ -167,14 +183,14 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
     ##########################################################################
 
     @staticmethod
-    def load_from_gui(parent_widget):
+    def load_from_gui(parent_widget, obj_type):
         import gui.extras.core.db.locator as db_gui
-        return db_gui.get_load_file_locator_from_gui(parent_widget)
+        return db_gui.get_load_file_locator_from_gui(parent_widget, obj_type)
 
     @staticmethod
-    def save_from_gui(parent_widget, locator=None):
+    def save_from_gui(parent_widget, obj_type, locator=None):
         import gui.extras.core.db.locator as db_gui
-        return db_gui.get_save_file_locator_from_gui(parent_widget, 
+        return db_gui.get_save_file_locator_from_gui(parent_widget, obj_type,
                                                          locator)
 
 class FileLocator(CoreLocator):
@@ -193,14 +209,14 @@ class FileLocator(CoreLocator):
                 return XMLFileLocator
     
     @staticmethod
-    def load_from_gui(parent_widget):
+    def load_from_gui(parent_widget, obj_type):
         import gui.extras.core.db.locator as db_gui
-        return db_gui.get_load_file_locator_from_gui(parent_widget)
+        return db_gui.get_load_file_locator_from_gui(parent_widget, obj_type)
 
     @staticmethod
-    def save_from_gui(parent_widget, locator=None):
+    def save_from_gui(parent_widget, obj_type, locator=None):
         import gui.extras.core.db.locator as db_gui
-        return db_gui.get_save_file_locator_from_gui(parent_widget, 
+        return db_gui.get_save_file_locator_from_gui(parent_widget, obj_type,
                                                          locator)
 
     @staticmethod

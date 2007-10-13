@@ -19,11 +19,14 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
+import datetime
+import getpass
 import os
 import os.path
 import sys
 import platform
 import popen2
+import socket
 from core.utils import unimplemented, VistrailsInternalError
 import core.requirements
 
@@ -242,7 +245,44 @@ def vistrails_revision():
         return release
     finally:
         os.chdir(old_dir)
-        
+
+def current_user():
+    return getpass.getuser()
+
+def current_ip():
+    """ current_ip() -> str
+    Gets current IP address trying to avoid the IPv6 interface """
+    info = socket.getaddrinfo(socket.gethostname(), None)
+    for i in info:
+        if len(i[4][0]) <= 15:
+            return i[4][0]
+    else:
+        return '0.0.0.0'
+
+def current_time():
+    """current_time() -> datetime.datetime
+    Returns the current time
+
+    """
+    # FIXME should use DB if available...
+    return datetime.datetime.now()
+
+def current_machine():
+    return socket.getfqdn()
+
+def current_architecture():
+    bit_string = platform.architecture()[0]
+    if bit_string.endswith('bit'):
+        return int(bit_string[:-3])
+    else:
+        return 32 # default value
+
+def current_processor():
+    proc = platform.processor()
+    if not proc:
+        proc = 'n/a'
+    return proc
+
 def about_string():
    """about_string() -> string - Returns the about string for VisTrails."""
    return """VisTrails version %s.%s -- vistrails@sci.utah.edu

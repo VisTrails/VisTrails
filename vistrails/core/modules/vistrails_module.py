@@ -67,6 +67,7 @@ class DummyModuleLogging(object):
     def end_update(*args, **kwargs): pass
     def begin_update(*args, **kwargs): pass
     def begin_compute(*args, **kwargs): pass
+    def update_cached(*args, **kwargs): pass
     def signalSuccess(*args, **kwargs): pass
     def annotate(*args, **kwargs): pass
 
@@ -218,10 +219,11 @@ context."""
         modules. Report to the logger if available
         
         """
-        if self.upToDate:
-            return
         self.logging.begin_update(self)
         self.updateUpstream()
+        if self.upToDate:
+            self.logging.update_cached(self)
+            return
         self.logging.begin_compute(self)
         try:
             self.compute()

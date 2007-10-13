@@ -67,6 +67,12 @@ class Vistrail(DBVistrail):
         # self.prunedVersions = set()
         self.savedQueries = []
         self.locator = None
+
+    def _get_id(self):
+        return self.db_id
+    def _set_id(self, id):
+        self.db_id = id
+    id = property(_get_id, _set_id)
         
     def _get_actions(self):
         return self.db_actions
@@ -174,6 +180,8 @@ class Vistrail(DBVistrail):
         """
 #        return Pipeline(self.actionChain(version))
         workflow = core.db.io.get_workflow(self, version)
+#        workflow = core.db.io.expand_workflow(self, version)
+        workflow.set_abstraction_map(self.abstractionMap)
         return workflow
 
 
@@ -611,6 +619,9 @@ class Vistrail(DBVistrail):
         result.reverse()
         return result
     
+    def update_object(self, obj, **kwargs):
+        self.db_update_object(obj, **kwargs)
+
     def add_action(self, action, parent):
         # FIXME: this should go to core.db.io
         Action.convert(action)
@@ -622,6 +633,8 @@ class Vistrail(DBVistrail):
         for op in action.operations:
             if op.id < 0:
                 op.id = self.idScope.getNewId('operation')
+                if op.vtType == 'add' or op.vtType == 'change':
+                    self.db_add_object(op.db_data)
         self.addVersion(action)                
 
     def add_abstraction(self, abstraction):
@@ -723,15 +736,19 @@ class Vistrail(DBVistrail):
     
         if self.actionMap.has_key(version_number):
             action = self.actionMap[version_number]
+            if action.has_annotation_with_key('notes'):
+                old_annotation = action.get_annotation_by_key('notes')
+                if old_annotation.value == notes:
+                    return False
+                action.delete_annotation(old_annotation)
             annotation = Annotation(id=self.idScope.getNewId(Annotation.vtType),
                                    key='notes',
                                    value=notes)
-            if action.has_annotation_with_key('notes'):
-                old_annotation = action.get_annotation_by_key('notes')
-                action.delete_annotation(old_annotation)
             if notes.strip() != '':
                 action.add_annotation(annotation)
             self.changed = True
+            return True
+        return False
         
     def getVersionGraph(self):
         """getVersionGraph() -> Graph 
@@ -842,7 +859,7 @@ class Vistrail(DBVistrail):
 	return getpass.getuser()
 
     def serialize(self, filename):
-        dbservice.saveVistrail(self, filename)
+        pass
 
     def setExp(self, exp):
         """setExp(exp) -> None - Set current list of nodes to be expanded"""
