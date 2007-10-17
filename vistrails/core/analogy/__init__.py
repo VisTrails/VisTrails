@@ -87,6 +87,9 @@ def perform_analogy_on_vistrail(vistrail,
                      in d.iteritems()])
 
     module_name_remap = name_remap(module_remap)
+    input_module_name_remap = name_remap(input_module_remap)
+    output_module_name_remap = name_remap(output_module_remap)
+
     # find connection remap
     connection_remap = {}
     for a_connect in pipeline_a.connections.itervalues():
@@ -95,11 +98,11 @@ def perform_analogy_on_vistrail(vistrail,
         a_dest = a_connect.destination.moduleId
         match = None
         for c_connect in pipeline_c.connections.itervalues():
-            if module_remap[a_source] == c_connect.source.moduleId and \
-                    module_remap[a_dest] == c_connect.destination.moduleId:
+            if (output_module_remap[a_source] == c_connect.source.moduleId and 
+                input_module_remap[a_dest] == c_connect.destination.moduleId):
                 match = c_connect
-                if a_connect.source.sig == c_connect.source.sig and \
-                        a_connect.destination.sig == c_connect.destination.sig:
+                if (a_connect.source.sig == c_connect.source.sig and 
+                    a_connect.destination.sig == c_connect.destination.sig):
                     break
         if match is not None:
             connection_remap[a_connect.id] = c_connect.id
@@ -165,9 +168,25 @@ def perform_analogy_on_vistrail(vistrail,
                                            op.parentObjId)]
             if op.what == 'port':
                 port = op.data
+                print port.type
                 if id_remap.has_key(('module', port.moduleId)):
-                    port.moduleName = module_name_remap[port.moduleId]
-                    port.moduleId = id_remap[('module', port.moduleId)]
+                    if port.type == 'source':
+                        try:
+                            port.moduleName = output_module_name_remap[port.moduleId]
+                            port.moduleId = output_module_remap[port.moduleId]
+                        except KeyError:
+                            # This happens when the module was added as part of the analogy
+                            port.moduleName = module_name_remap[port.moduleId]
+                            port.moduleId = id_remap[('module', port.moduleId)]
+                    elif port.type == 'destination':
+                        try:
+                            port.moduleName = input_module_name_remap[port.moduleId]
+                            port.moduleId = input_module_remap[port.moduleId]
+                        except KeyError:
+                            # This happens when the module was added as part of the analogy
+                            port.moduleName = module_name_remap[port.moduleId]
+                            port.moduleId = id_remap[('module', port.moduleId)]
+                        
             ops.append(op)
     baAction.operations = ops
     # baAction should now have remapped everything
