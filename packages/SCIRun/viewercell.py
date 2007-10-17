@@ -41,9 +41,11 @@ import time
 import uuid
 
 ################################################################################
+class Render(SpreadsheetCell):
+  def compute(self): 
+    pass
 
-
-class ViewerCell(SpreadsheetCell):
+class ViewerCell(Render):
     """
     ViewerCell is a VisTrails Module that can display SCIRun Viewer.
     
@@ -276,10 +278,11 @@ def registerSelf():
     Registry module with the registry
     """
     identifier = "edu.utah.sci.vistrails.scirun"
+    registry.add_module(Render, abstract=True)
     registry.add_module(ViewerCell)
     registry.add_input_port(ViewerCell, "Location", CellLocation)
     registry.add_input_port(ViewerCell, "Scene Graph",
                             registry.get_module_by_name(identifier,
-                                                        'SCIRun_Geometry'),
+                                                        'Geometry'),
                             'Scene Graph')
 
