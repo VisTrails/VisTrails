@@ -1240,13 +1240,32 @@ mutual connections."""
         del self.modules[m_id]
         self._old_module_ids.remove(m_id)
 
+    def remove_connection(self, c_id):
+        """remove_connection(c_id): None
+
+        Removes connection from scene, updating appropriate data structures.
+
+        """
+        self.removeItem(self.connections[c_id])
+        del self.connections[c_id]
+        self._old_connection_ids.remove(c_id)
+        
+
     def recreate_module(self, pipeline, m_id):
         """recreate_module(pipeline, m_id): None
 
         Recreates a module on the scene."""
         selected = self.modules[m_id].isSelected()
+
+        depending_connections = self.modules[m_id].dependingConnectionItems()
         self.remove_module(m_id)
+        for it in depending_connections:
+            self.remove_connection(it[0].id)
+        
         self.addModule(pipeline.modules[m_id])
+        for it in depending_connections:
+            self.addConnection(pipeline.connections[it[0].id])
+                               
         if selected:
             self.modules[m_id].setSelected(True)
         
