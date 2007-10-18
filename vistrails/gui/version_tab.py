@@ -128,6 +128,8 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         self.versionView.scene().setupScene(self.controller)
         if self.controller and self.controller.resetVersionView:
             self.versionView.scene().fitToAllViews()
+        if self.controller:
+            self.versionProp.updateVersion(self.controller.currentVersion)
         self.emit(QtCore.SIGNAL("vistrailChanged()"))
 
     def add_bookmark(self, id, name):
