@@ -621,6 +621,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         """
         if len(self.selectedItems()) != 1:
             self._pipeline_scene.clear()
+            self.emit(QtCore.SIGNAL('versionSelected(int, bool)'),
+                      -1, True)
         qt_super(QVersionTreeScene, self).mouseReleaseEvent(event)
 
 class QVersionTreeView(QInteractiveGraphicsView):
