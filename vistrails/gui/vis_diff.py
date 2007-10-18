@@ -23,9 +23,11 @@
 operation """
 from PyQt4 import QtCore, QtGui
 from core.utils.color import ColorByName
+from core.vistrail.pipeline import Pipeline
 from gui.pipeline_view import QPipelineView
 from gui.theme import CurrentTheme
 from core import system
+import core.db.io
 import copy
 
 ################################################################################
@@ -461,9 +463,29 @@ class QVisualDiff(QtGui.QMainWindow):
         (p1, p2, v1Andv2, v1Only, v2Only, paramChanged) = self.diff
         p1.ensure_connection_specs()
         p2.ensure_connection_specs()
+        p_both = Pipeline()
         
         scene = self.pipelineView.scene()
         scene.clearItems()
+
+        # FIXME HACK: We will create a dummy object that looks like a
+        # controller so that the qgraphicsmoduleitems and the scene
+        # are happy. It will simply store the pipeline will all
+        # modules and connections of the diff, and know how to copy stuff
+        class DummyController(object):
+            def __init__(self, pip):
+                self.currentPipeline = pip
+                self.search = None
+            def copyModulesAndConnections(self, modules, connections):
+                pipeline = Pipeline()
+                for module in modules:
+                    pipeline.add_module(module)
+                for connection in connections:
+                    pipeline.add_connection(connection)
+                return core.db.io.serialize(pipeline)
+                
+        controller = DummyController(p_both)
+        scene.controller = controller
 
         # Find the max version id from v1 and start the adding process
         self.maxId1 = 0
@@ -474,24 +496,32 @@ class QVisualDiff(QtGui.QMainWindow):
 
         # First add all shared modules, just use v1 module id
         for (m1id, m2id) in v1Andv2:
-            scene.addModule(p1.modules[m1id],            
-                            CurrentTheme.VISUAL_DIFF_SHARED_BRUSH)
+            item = scene.addModule(p1.modules[m1id],
+                                   CurrentTheme.VISUAL_DIFF_SHARED_BRUSH)
+            item.controller = controller
+            p_both.add_module(copy.copy(p1.modules[m1id]))
             
         # Then add parameter changed version
         for ((m1id, m2id), matching) in paramChanged:
-            scene.addModule(p1.modules[m1id],
-                            CurrentTheme.VISUAL_DIFF_PARAMETER_CHANGED_BRUSH)
+            item = scene.addModule(p1.modules[m1id],
+                                   CurrentTheme.VISUAL_DIFF_PARAMETER_CHANGED_BRUSH)
+            item.controller = controller
+            p_both.add_module(copy.copy(p1.modules[m1id]))
 
         # Now add the ones only applicable for v1, still using v1 ids
         for m1id in v1Only:
-            scene.addModule(p1.modules[m1id],
-                            CurrentTheme.VISUAL_DIFF_FROM_VERSION_BRUSH)
+            item = scene.addModule(p1.modules[m1id],
+                                   CurrentTheme.VISUAL_DIFF_FROM_VERSION_BRUSH)
+            item.controller = controller
+            p_both.add_module(copy.copy(p1.modules[m1id]))
 
         # Now add the ones for v2 only but must shift the ids away from v1
         for m2id in v2Only:
             p2.modules[m2id].id = m2id + shiftId
-            scene.addModule(p2.modules[m2id],
-                            CurrentTheme.VISUAL_DIFF_TO_VERSION_BRUSH)
+            item = scene.addModule(p2.modules[m2id],
+                                   CurrentTheme.VISUAL_DIFF_TO_VERSION_BRUSH)
+            item.controller = controller
+            p_both.add_module(copy.copy(p2.modules[m2id]))
 
         # Create a mapping between share modules between v1 and v2
         v1Tov2 = {}
@@ -540,6 +570,7 @@ class QVisualDiff(QtGui.QMainWindow):
 
         connectionItems = []
         for c in allConnections.values():
+            p_both.add_connection(copy.copy(c))
             connectionItems.append(scene.addConnection(c))
 
         # Color Code connections
@@ -554,6 +585,8 @@ class QVisualDiff(QtGui.QMainWindow):
                 pen = QtGui.QPen(CurrentTheme.CONNECTION_PEN)
                 pen.setBrush(CurrentTheme.VISUAL_DIFF_FROM_VERSION_BRUSH)
                 c.connectionPen = pen
+
+       
 
         scene.updateSceneBoundingRect()
         scene.fitToView(self.pipelineView)
