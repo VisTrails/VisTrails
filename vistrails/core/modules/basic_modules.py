@@ -365,6 +365,92 @@ _reg.add_input_port(PythonSource, 'source', String, True)
 
 ##############################################################################
 
+class SmartSource(NotCacheable, Module):
+
+    def run_code(self, code_str,
+                 use_input=False,
+                 use_output=False):
+        
+        def fail(msg):
+            raise ModuleError(self, msg)
+        def cache_this():
+            self.is_cacheable = lambda *args, **kwargs: True
+        locals_ = locals()
+
+        def smart_input_entry(k):
+            v = self.getInputFromPort(k)
+            if isinstance(v, Module) and hasattr(v, 'get_source'):
+                v = v.get_source()
+            return (k, v)
+
+        def get_mro(v):
+            # Tries to get the mro from strange class hierarchies like VTK's
+            try:
+                return v.mro()
+            except AttributeError:
+                def yield_all(v):
+                    b = v.__bases__
+                    yield v
+                    for base in b:
+                        g = yield_all(base)
+                        while 1: yield g.next()
+                return [x for x in yield_all(v)]
+            
+        if use_input:
+            inputDict = dict([smart_input_entry(k)
+                              for k in self.inputPorts])
+            locals_.update(inputDict)
+        if use_output:
+            outputDict = dict([(k, None)
+                               for k in self.outputPorts])
+            locals_.update(outputDict)
+        _m = core.packagemanager.get_package_manager()
+        locals_.update({'fail': fail,
+                        'package_manager': _m,
+                        'cache_this': cache_this,
+                        'self': self})
+        del locals_['source']
+        exec code_str in locals_, locals_
+        if use_output:
+            oports = self.registry.get_descriptor(SmartSource).output_ports
+            for k in outputDict.iterkeys():
+                if locals_[k] != None:
+                    v = locals_[k]
+                    spec = oports.get(k, None)
+                    
+                    if spec:
+                        # See explanation of algo in doc/smart_source_resolution_algo.txt
+                        port_vistrail_base_class = spec.types()[0]
+                        mro = get_mro(type(v))
+                        source_types = self.registry.python_source_types
+                        found = False
+                        for python_class in mro:
+                            if python_class in source_types:
+                                vistrail_classes = [x for x in source_types[python_class]
+                                                    if issubclass(x, port_vistrail_base_class)]
+                                if len(vistrail_classes) == 0:
+                                    # FIXME better error handling
+                                    raise ModuleError(self, "Module Registry inconsistent")
+                                vt_class = vistrail_classes[0]
+                                found = True
+                                break
+                        if found:
+                            vt_instance = vt_class()
+                            vt_instance.set_source(v)
+                            v = vt_instance
+                    self.setResult(k, v)
+
+    def compute(self):
+        s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        self.run_code(s, use_input=True, use_output=True)
+
+_reg.add_module(SmartSource,
+                configureWidgetType=module_configure.PythonSourceConfigurationWidget)
+_reg.add_input_port(SmartSource, 'source', String, True)
+
+
+##############################################################################
+
 class TestPortConfig(Module):
     
     def compute(self):
