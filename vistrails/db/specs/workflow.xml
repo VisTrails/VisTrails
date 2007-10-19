@@ -45,6 +45,11 @@
     <xml nodeType="xs:element"/>
   </property>
 
+  <!-- only need for copy/paste for no sql bindings -->
+  <property ref="true" object="abstraction" type="list" mapping="one-to-many">
+    <xml nodeType="xs:element"/>
+  </property>
+
   <property ref="true" object="other" type="list" mapping="one-to-many">
     <xml nodeType="xs:element"/>
   </property>

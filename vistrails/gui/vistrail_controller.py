@@ -926,13 +926,16 @@ class VistrailController(QtCore.QObject):
                     return False
                 if a1.action_list[0].user != a2.action_list[0].user:
                     return False
-                return a1.action_list[0].date == a2.action_list[0].date
+                if a1.action_list[0].date != a2.action_list[0].date:
+                    return False
+                return True
 
             id_remap = {}
-            for new_abstraction in pipeline.abstractions:
+            for new_abstraction in pipeline.get_abstractions():
                 # don't want to duplicate an existing abstraction...
                 # FIXME going to use a heuristic for this
                 new_id = -1
+                
                 for abstraction in self.vistrail.abstractions:
                     if compare_abstractions(new_abstraction, abstraction):
                         new_id = abstraction.id
@@ -951,7 +954,8 @@ class VistrailController(QtCore.QObject):
                                                         id_remap)
             modules = [op.objectId
                        for op in action.operations
-                       if op.what == 'module']
+                       if (op.what == 'module' or 
+                           op.what == 'abstractionRef')]
             connections = [op.objectId
                            for op in action.operations
                            if op.what == 'connection']

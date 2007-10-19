@@ -23,9 +23,11 @@
 operation """
 from PyQt4 import QtCore, QtGui
 from core.utils.color import ColorByName
+from core.vistrail.abstraction_module import AbstractionModule
 from core.vistrail.pipeline import Pipeline
 from gui.pipeline_view import QPipelineView
 from gui.theme import CurrentTheme
+from gui.vistrail_controller import VistrailController
 from core import system
 import core.db.io
 import copy
@@ -464,6 +466,8 @@ class QVisualDiff(QtGui.QMainWindow):
         p1.ensure_connection_specs()
         p2.ensure_connection_specs()
         p_both = Pipeline()
+        # the abstraction map is the same for both p1 and p2
+        p_both.set_abstraction_map(p1.abstraction_map)
         
         scene = self.pipelineView.scene()
         scene.clearItems()
@@ -476,11 +480,24 @@ class QVisualDiff(QtGui.QMainWindow):
             def __init__(self, pip):
                 self.currentPipeline = pip
                 self.search = None
-            def copyModulesAndConnections(self, modules, connections):
+            def copyModulesAndConnections(self, module_ids, connection_ids):
+                """copyModulesAndConnections(module_ids: [long],
+                                             connection_ids: [long]) -> str
+                Serializes a list of modules and connections
+                """
+
                 pipeline = Pipeline()
-                for module in modules:
+                pipeline.set_abstraction_map( \
+                    self.currentPipeline.abstraction_map)
+                for module_id in module_ids:
+                    module = self.currentPipeline.modules[module_id]
+                    if module.vtType == AbstractionModule.vtType:
+                        abstraction = \
+                            pipeline.abstraction_map[module.abstraction_id]
+                        pipeline.add_abstraction(abstraction)
                     pipeline.add_module(module)
-                for connection in connections:
+                for connection_id in connection_ids:
+                    connection = self.currentPipeline.connections[connection_id]
                     pipeline.add_connection(connection)
                 return core.db.io.serialize(pipeline)
                 

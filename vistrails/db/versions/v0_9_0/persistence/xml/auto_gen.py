@@ -793,6 +793,7 @@ class DBWorkflowXMLDAOBase(XMLDAO):
         
         connections = []
         annotations = []
+        abstractions = []
         others = []
         modules = []
         
@@ -804,6 +805,9 @@ class DBWorkflowXMLDAOBase(XMLDAO):
             elif child.tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
+            elif child.tag == 'abstraction':
+                _data = self.getDao('abstraction').fromXML(child)
+                abstractions.append(_data)
             elif child.tag == 'other':
                 _data = self.getDao('other').fromXML(child)
                 others.append(_data)
@@ -824,6 +828,7 @@ class DBWorkflowXMLDAOBase(XMLDAO):
                          version=version,
                          connections=connections,
                          annotations=annotations,
+                         abstractions=abstractions,
                          others=others,
                          vistrail_id=vistrail_id)
         obj.is_dirty = False
@@ -848,6 +853,10 @@ class DBWorkflowXMLDAOBase(XMLDAO):
         for annotation in annotations:
             childNode = ElementTree.SubElement(node, 'annotation')
             self.getDao('annotation').toXML(annotation, childNode)
+        abstractions = workflow.db_abstractions
+        for abstraction in abstractions:
+            childNode = ElementTree.SubElement(node, 'abstraction')
+            self.getDao('abstraction').toXML(abstraction, childNode)
         others = workflow.db_others
         for other in others:
             childNode = ElementTree.SubElement(node, 'other')

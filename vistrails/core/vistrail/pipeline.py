@@ -123,6 +123,8 @@ class Pipeline(DBWorkflow):
                 _connection.source.moduleId,
                 _connection.destination.moduleId,
                 _connection.db_id)
+        for _abstraction in _workflow.db_abstractions:
+            Abstraction.convert(_abstraction)
         #there should be another way to do this
         for _obj in _workflow.objects.itervalues():
             if _obj.vtType == 'function':
@@ -186,6 +188,14 @@ class Pipeline(DBWorkflow):
         for module in self.module_list:
             if module.vtType == AbstractionModule.vtType:
                 module.abstraction = self.abstraction_map[module.abstraction_id]
+
+    # ONLY FOR COPY/PASTE...
+    def add_abstraction(self, abstraction):
+        """only used for copy/paste--abstractions live on the vistrail"""
+        self.db_add_abstraction(abstraction)
+    def get_abstractions(self):
+        """only used for copy/paste--abstractions live on the vistrail"""
+        return self.db_abstractions
 
     def clear(self):
         """clear() -> None. Erases pipeline contents."""

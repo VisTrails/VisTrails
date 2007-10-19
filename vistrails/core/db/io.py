@@ -73,7 +73,9 @@ def get_workflow_diff(vt, v1, v2):
     (v1, v2, pairs, v1Only, v2Only, paramChanges, _, _, _) = \
         db.services.vistrail.getWorkflowDiff(vt, v1, v2, True)
     Pipeline.convert(v1)
+    v1.set_abstraction_map(vt.abstractionMap)
     Pipeline.convert(v2)
+    v2.set_abstraction_map(vt.abstractionMap)
     #     print 'pairs:', pairs
     #     print 'v1Only:', v1Only
     #     print 'v2Only:', v2Only
@@ -85,7 +87,9 @@ def get_workflow_diff_with_connections(vt, v1, v2):
     (v1, v2, mPairs, v1Only, v2Only, paramChanges, cPairs, c1Only, c2Only) = \
         db.services.vistrail.getWorkflowDiff(vt, v1, v2, False)
     Pipeline.convert(v1)
+    v1.set_abstraction_map(vt.abstractionMap)
     Pipeline.convert(v2)
+    v2.set_abstraction_map(vt.abstractionMap)
     #     print 'mPairs:', mPairs
     #     print 'v1Only:', v1Only
     #     print 'v2Only:', v2Only

@@ -2116,7 +2116,7 @@ class DBWorkflow(object):
 
     vtType = 'workflow'
 
-    def __init__(self, modules=None, id=None, entity_type=None, name=None, version=None, last_modified=None, connections=None, annotations=None, others=None, vistrail_id=None):
+    def __init__(self, modules=None, id=None, entity_type=None, name=None, version=None, last_modified=None, connections=None, annotations=None, abstractions=None, others=None, vistrail_id=None):
         self.db_deleted_modules = []
         self.db_modules_id_index = {}
         if modules is None:
@@ -2146,6 +2146,14 @@ class DBWorkflow(object):
             self.__db_annotations = annotations
             for v in self.__db_annotations:
                 self.db_annotations_id_index[v.db_id] = v
+        self.db_deleted_abstractions = []
+        self.db_abstractions_id_index = {}
+        if abstractions is None:
+            self.__db_abstractions = []
+        else:
+            self.__db_abstractions = abstractions
+            for v in self.__db_abstractions:
+                self.db_abstractions_id_index[v.db_id] = v
         self.db_deleted_others = []
         self.db_others_id_index = {}
         if others is None:
@@ -2180,6 +2188,10 @@ class DBWorkflow(object):
             cp.db_annotations = []
         else:
             cp.db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self.db_annotations]
+        if self.db_abstractions is None:
+            cp.db_abstractions = []
+        else:
+            cp.db_abstractions = [v.do_copy(new_ids, id_scope, id_remap) for v in self.db_abstractions]
         if self.db_others is None:
             cp.db_others = []
         else:
@@ -2204,6 +2216,8 @@ class DBWorkflow(object):
             cp.db_connections_id_index[v.db_id] = v
         for v in cp.__db_annotations:
             cp.db_annotations_id_index[v.db_id] = v
+        for v in cp.__db_abstractions:
+            cp.db_abstractions_id_index[v.db_id] = v
         for v in cp.__db_others:
             cp.db_others_id_index[v.db_id] = v
         cp.is_dirty = self.is_dirty
@@ -2227,6 +2241,13 @@ class DBWorkflow(object):
         for child in to_del:
             self.db_delete_annotation(child)
         to_del = []
+        for child in self.db_abstractions:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_abstraction(child)
+        to_del = []
         for child in self.db_others:
             children.extend(child.db_children((self.vtType, self.db_id), orphan))
             if orphan:
@@ -2246,11 +2267,13 @@ class DBWorkflow(object):
         children = []
         children.extend(self.db_deleted_connections)
         children.extend(self.db_deleted_annotations)
+        children.extend(self.db_deleted_abstractions)
         children.extend(self.db_deleted_others)
         children.extend(self.db_deleted_modules)
         if remove:
             self.db_deleted_connections = []
             self.db_deleted_annotations = []
+            self.db_deleted_abstractions = []
             self.db_deleted_others = []
             self.db_deleted_modules = []
         return children
@@ -2261,6 +2284,9 @@ class DBWorkflow(object):
             if child.has_changes():
                 return True
         for child in self.db_annotations:
+            if child.has_changes():
+                return True
+        for child in self.db_abstractions:
             if child.has_changes():
                 return True
         for child in self.db_others:
@@ -2460,6 +2486,48 @@ class DBWorkflow(object):
         return self.db_annotations_id_index[key]
     def db_has_annotation_with_id(self, key):
         return self.db_annotations_id_index.has_key(key)
+    
+    def __get_db_abstractions(self):
+        return self.__db_abstractions
+    def __set_db_abstractions(self, abstractions):
+        self.__db_abstractions = abstractions
+        self.is_dirty = True
+    db_abstractions = property(__get_db_abstractions, __set_db_abstractions)
+    def db_get_abstractions(self):
+        return self.__db_abstractions
+    def db_add_abstraction(self, abstraction):
+        self.is_dirty = True
+        self.__db_abstractions.append(abstraction)
+        self.db_abstractions_id_index[abstraction.db_id] = abstraction
+    def db_change_abstraction(self, abstraction):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self.__db_abstractions)):
+            if self.__db_abstractions[i].db_id == abstraction.db_id:
+                self.__db_abstractions[i] = abstraction
+                found = True
+                break
+        if not found:
+            self.__db_abstractions.append(abstraction)
+        self.db_abstractions_id_index[abstraction.db_id] = abstraction
+    def db_delete_abstraction(self, abstraction):
+        self.is_dirty = True
+        for i in xrange(len(self.__db_abstractions)):
+            if self.__db_abstractions[i].db_id == abstraction.db_id:
+                if not self.__db_abstractions[i].is_new:
+                    self.db_deleted_abstractions.append(self.__db_abstractions[i])
+                del self.__db_abstractions[i]
+                break
+        del self.db_abstractions_id_index[abstraction.db_id]
+    def db_get_abstraction(self, key):
+        for i in xrange(len(self.__db_abstractions)):
+            if self.__db_abstractions[i].db_id == key:
+                return self.__db_abstractions[i]
+        return None
+    def db_get_abstraction_by_id(self, key):
+        return self.db_abstractions_id_index[key]
+    def db_has_abstraction_with_id(self, key):
+        return self.db_abstractions_id_index.has_key(key)
     
     def __get_db_others(self):
         return self.__db_others

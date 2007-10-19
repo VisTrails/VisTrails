@@ -641,21 +641,21 @@ class Vistrail(DBVistrail):
         Abstraction.convert(abstraction)
         if abstraction.id < 0:
             abstraction.id = self.idScope.getNewId(abstraction.vtType)
+            action_remap = {}
+            for action in abstraction.actions.itervalues():
+                if action.id < 0:
+                    new_id = abstraction.idScope.getNewId(action.vtType)
+                    action_remap[action.id] = new_id
+                    action.id = new_id
+                action.date = self.getDate()
+                action.user = self.getUser()
+                for op in action.operations:
+                    if op.id < 0:
+                        op.id = self.idScope.getNewId('operation')
+            for action in abstraction.actions.itervalues():
+                if action.prevId < 0:
+                    action.prevId = action_remap[action.prevId]
 
-        action_remap = {}
-        for action in abstraction.actions.itervalues():
-            if action.id < 0:
-                new_id = abstraction.idScope.getNewId(action.vtType)
-                action_remap[action.id] = new_id
-                action.id = new_id
-            action.date = self.getDate()
-            action.user = self.getUser()
-            for op in action.operations:
-                if op.id < 0:
-                    op.id = self.idScope.getNewId('operation')
-        for action in abstraction.actions.itervalues():
-            if action.prevId < 0:
-                action.prevId = action_remap[action.prevId]
         self.db_add_abstraction(abstraction)
 
     def hasVersion(self, version):

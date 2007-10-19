@@ -144,6 +144,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         Adjust view to fit and center the whole scene
         
         """
+        self.updateSceneBoundingRect()
         view.centerOn(self.sceneBoundingRect.center())
         view.fitInView(self.sceneBoundingRect, QtCore.Qt.KeepAspectRatio)
             

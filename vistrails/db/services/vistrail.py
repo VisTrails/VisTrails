@@ -790,7 +790,7 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
     sharedConnectionIds = []
     sharedFunctionIds = {}
     for op in sharedOps:
-        if op.what == 'module':
+        if op.what == 'module' or op.what == 'abstractionRef':
             sharedModuleIds.append(getNewObjId(op))
         elif op.what == 'connection':
             sharedConnectionIds.append(getNewObjId(op))
@@ -804,7 +804,7 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
         moduleDeleteIds = []
         connectionDeleteIds = []
         for op in vDeletes:
-            if op.what == 'module':
+            if op.what == 'module' or op.what == 'abstractionRef':
                 moduleDeleteIds.append(getOldObjId(op))
                 if getOldObjId(op) in sharedModuleIds:
                     sharedModuleIds.remove(getOldObjId(op))
@@ -830,10 +830,12 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
         moduleAddIds = []
         connectionAddIds = []
         for op in vAdds:
-            if op.what == 'module':
+            if op.what == 'module' or op.what == 'abstractionRef':
                 moduleAddIds.append(getNewObjId(op))
-            elif op.what == 'function' and op.db_parentObjType == 'module' \
-                    and op.db_parentObjId in sharedModuleIds:
+            elif (op.what == 'function' and
+                  (op.db_parentObjType == 'module' or
+                   op.db_parentObjType == 'abstractionRef') and
+                  op.db_parentObjId in sharedModuleIds):
                 # have a function change
                 paramChgModules[op.db_parentObjId] = None
                 sharedModuleIds.remove(op.db_parentObjId)
