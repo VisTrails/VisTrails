@@ -172,28 +172,34 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
                 ports.append(('input', name, '('+typeName+')'))
         return ports
 
-    def registryChanges(self, newPorts):
-        """ registryChanges(ports: [port]) -> (keep, delete, add ports)
-        Check the module registry to see if we have to keep, delete and add
-        ports
-        
-        """
-        if self.module.registry:
-            dstPorts = self.module.registry.destination_ports_from_descriptor(self.module_descriptor, False)
-            oldIn = [('input', p.name,
-                      '('+registry.get_descriptor(p.spec.signatures[0][0]).name+
-                      ')') for p in dstPorts]
+    def specsFromPorts(self, portType, ports):
+        return [(portType,
+                 p.name,
+                 '('+registry.get_descriptor(p.spec.signature[0][0]).name+')')
+                for p in ports[0][1]]
+
+    def registryChanges(self, oldRegistry, newPorts):
+        if oldRegistry:
+            oldIn = self.specsFromPorts('input',
+                                        oldRegistry.all_destination_ports(self.module_descriptor))
+            oldOut = self.specsFromPorts('output',
+                                         oldRegistry.all_source_ports(self.module_descriptor))
         else:
             oldIn = []
-        return self.lcs(oldIn, newPorts)
+            oldOut = []
+        deletePorts = [p for p in oldIn if not p in newPorts]
+        deletePorts += [p for p in oldOut if not p in newPorts]
+        addPorts = [p for p in newPorts if ((not p in oldIn) and (not p in oldOut))]
+        return (deletePorts, addPorts)
     
     def updateVistrail(self):
         """ updateVistrail() -> None
         Update Vistrail to contain changes in the port table
         
         """
+        old_registry = self.module.registry
         newPorts = self.newInputPorts()
-        (samePorts, deletePorts, addPorts) = self.registryChanges(newPorts)
+        (deletePorts, addPorts) = self.registryChanges(old_registry, newPorts)
 
         # Remove any connections or functions related to delete ports
         for (cid, c) in self.controller.currentPipeline.connections.items():
