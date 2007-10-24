@@ -136,6 +136,33 @@ class Graph(object):
         self.inverse_adjacency_list.pop(id)
         self.vertices.pop(id)
         
+    def change_edge(self, old_froom, old_to, new_to, old_id=None, new_id=None):
+        """ change_edge(old_froom: id, old_to: id, new_to: id, 
+                        old_id: id, new_id: id) -> None
+        Changes the destination of an edge in a graph **in place**
+        
+        Keyword arguments:
+        old_froom -- 'immutable' origin vertex id
+        old_to    -- 'immutable' destination vertex id
+        new_to    -- 'immutable' destination vertex id
+        old_id    -- 'immutable' edge id (default None)
+        new_id    -- 'immutable' edge id (default None)
+        """
+        
+        if old_id == None:
+            efroom = self.adjacency_list[old_froom]
+            for i, edge in enumerate(efroom):
+                if edge[0] == old_to:
+                    old_id = edge[1]
+                    forward_idx = i
+                    break
+        else:
+            forward_idx = self.adjacency_list[old_froom].index((old_to, old_id))
+
+        self.adjacency_list[old_froom][forward_idx] = ((new_to, new_id))
+        self.inverse_adjacency_list[old_to].remove((old_froom, old_id))
+        self.inverse_adjacency_list[new_to].append((old_froom, new_id))
+
     def delete_edge(self, froom, to, id=None):
         """ delete_edge(froom: id type, to: id type, id: id type) -> None
         Remove an edge from graph and return nothing

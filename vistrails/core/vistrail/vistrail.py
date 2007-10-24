@@ -757,10 +757,15 @@ class Vistrail(DBVistrail):
         """
         result = Graph()
         result.add_vertex(0)
-        for action in self.actionMap.values():
-            if (result.vertices.has_key(action.parent) and
-                action.prune != 1):
-                # action.timestep not in self.prunedVersions):
+
+        # the sorting is for the display using graphviz
+        # we want to always add nodes from left to right
+        for action in sorted(self.actionMap.itervalues(), 
+                             key=lambda x: x.timestep):
+            # DAK: not sure why we need to check the has_key
+            # if (result.vertices.has_key(action.parent) and
+            #    action.prune != 1):
+            if action.prune != 1:
                 result.add_edge(action.parent,
                                action.timestep,
                                0)
@@ -785,9 +790,10 @@ class Vistrail(DBVistrail):
             if len(efrom) == 1 and len(eto) == 1 and not self.hasTag(current):
                 to_me = eto[0][0]
                 from_me = efrom[0][0]
-                complete.delete_edge(to_me, current, None)
                 complete.delete_edge(current, from_me, None)
-                complete.add_edge(to_me, from_me, -1)
+                complete.change_edge(to_me, current, from_me, None, -1)
+                # complete.delete_edge(to_me, current, None)
+                # complete.add_edge(to_me, from_me, -1)
                 complete.delete_vertex(current)
         return complete
 

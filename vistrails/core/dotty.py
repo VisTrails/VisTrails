@@ -112,7 +112,7 @@ class DotLayout(object):
         for id in graph.vertices.keys():
             froom = graph.edges_from(id)
             for (first,second) in froom:
-                f.write('%s -> %s;\n' % (id, first))
+                f.write('  %s -> %s;\n' % (id, first))
 
     def layout_from(self, vistrail, graph):
         """ layout_from(vistrail: VisTrail, graph: Graph) -> None
@@ -123,6 +123,7 @@ class DotLayout(object):
         tmp_graph_file = file(core.system.temporary_directory() +
                             'dot_tmp_vistrails.txt', 'w')
         tmp_graph_file.write('digraph G {\n')
+        tmp_graph_file.write('  ordering=out;\n')
         self.output_vistrail_graph(tmp_graph_file, vistrail, graph)
         tmp_graph_file.write('}\n')
         tmp_graph_file.close()
@@ -146,4 +147,4 @@ class DotLayout(object):
 
         # Parse Dotty's output
         self.parse_dotty_output(file_in)
-        core.system.remove_graph_viz_temporaries()
+        # core.system.remove_graph_viz_temporaries()
