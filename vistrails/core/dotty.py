@@ -147,4 +147,4 @@ class DotLayout(object):
 
         # Parse Dotty's output
         self.parse_dotty_output(file_in)
-        # core.system.remove_graph_viz_temporaries()
+        core.system.remove_graph_viz_temporaries()
