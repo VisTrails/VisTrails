@@ -55,6 +55,7 @@ class DefaultTheme(object):
     # Width and Height of Port shape
     PORT_WIDTH = 10
     PORT_HEIGHT = 10
+    PORT_RECT = QtCore.QRectF(0, 0, PORT_WIDTH, PORT_HEIGHT)
 
     # Width and Height of Configure button shape
     CONFIGURE_WIDTH = 6

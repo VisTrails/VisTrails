@@ -336,8 +336,8 @@ run in batch mode.')
 
             # This is so that we don't import too many things before we
             # have to. Otherwise, requirements are checked too late.
-            #import gui.bookmark_window
-            #gui.bookmark_window.initBookmarks(system.default_bookmarks_file())    
+           # import gui.bookmark_window
+           # gui.bookmark_window.initBookmarks(system.default_bookmarks_file())    
             
         #initBookmarks()
         if self.configuration.check('pythonPrompt'):
@@ -345,9 +345,6 @@ run in batch mode.')
         self.showSplash = self.configuration.showSplash
 
     def finishSession(self):
-        logger = core.logger.Logger.get() 
-        if logger:
-            logger.finish_session()
         core.interpreter.cached.CachedInterpreter.cleanup()
    
     def eventFilter(self, o, event):
