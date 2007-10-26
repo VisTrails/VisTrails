@@ -8,7 +8,7 @@ Usage:
 from setuptools import setup
 import sys
 
-VERSION = '1.0b.954'
+VERSION = '1.0.1015'
 plist = dict(
     CFBundleName='VisTrails',
     CFBundleShortVersionString=VERSION,
@@ -23,9 +23,9 @@ APP = ['../../vistrails/vistrails.py']
 #folders to include (not for code!)
 #DATA_FILES = ['/usr/local/graphviz-2.12/bin/dot',]
 OPTIONS = {'argv_emulation': True,
-           'iconfile': 'resources/vistrails_icon_small.icns',
+           'iconfile': 'resources/vistrails_icon.icns',
            'includes': 'sip,pylab',
-           'packages': 'PyQt4,vtk,SOAPpy,MySQLdb,matplotlib,packages,core,gui',
+           'packages': 'PyQt4,vtk,SOAPpy,MySQLdb,matplotlib,packages,core,gui,db',
            'plist': plist,
            }
 

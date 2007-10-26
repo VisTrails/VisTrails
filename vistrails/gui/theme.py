@@ -55,7 +55,6 @@ class DefaultTheme(object):
     # Width and Height of Port shape
     PORT_WIDTH = 10
     PORT_HEIGHT = 10
-    PORT_RECT = QtCore.QRectF(0, 0, PORT_WIDTH, PORT_HEIGHT)
 
     # Width and Height of Configure button shape
     CONFIGURE_WIDTH = 6
@@ -518,6 +517,21 @@ class DefaultTheme(object):
         self.HOVER_SELECT_COLOR = QtGui.QColor(
             *ColorByName.get_int('blue'))
 
+class MacTheme(DefaultTheme):
+
+    def __init__(self):
+        DefaultTheme.__init__(self)
+        #### ICONS & IMAGES ####
+        #The application icon
+        self.APPLICATION_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/vistrails_icon.png')
+
+        #The application pixmap
+        self.APPLICATION_PIXMAP = QtGui.QPixmap(
+             core.system.vistrails_root_directory() +
+            '/gui/resources/images/vistrails_icon.png')
+
 
 class ThemeHolder(object):
     """
@@ -544,13 +558,22 @@ class ThemeHolder(object):
         """
         self.theme = theme
 
+def get_current_theme():
+    """get_current_theme() -> subclass of DefaultTheme
+    Instantiates the theme according to the current platform """
+    if core.system.systemType in ['Darwin']:
+        return MacTheme()
+    else:
+        return DefaultTheme()
+    
 def initializeCurrentTheme():
     """ initializeCurrentTheme() -> None
     Assign the current theme to the default theme
     
     """
     global CurrentTheme
-    CurrentTheme.setTheme(DefaultTheme())
+    
+    CurrentTheme.setTheme(get_current_theme())
 
 global CurrentTheme
 CurrentTheme = ThemeHolder()

@@ -30,6 +30,7 @@ from core.utils.uxml import (named_elements,
                              quote_xml_value)
 from PyQt4 import QtCore
 import copy
+import core.logger
 import os.path
 import shutil
 import sys
@@ -147,7 +148,8 @@ def default():
         'userPackageDirectory': (None, str),
         'verbosenessLevel': (None, int),
         }
-    return ConfigurationObject(**base_dir)
+    specific_dir = add_specific_config(base_dir)
+    return ConfigurationObject(**specific_dir)
 
 def default_logger():
     """default_logger() -> ConfigurationObject
@@ -186,6 +188,18 @@ def default_shell():
     else:
         raise VistrailsInternalError('system type not recognized')
     return ConfigurationObject(**shell_dir)
+
+def add_specific_config(base_dir):
+     """add_specific_config() -> dict
+    Returns a dict with other specific configuration
+    to the current platform added to base_dir
+    
+    """
+     newdir = dict(base_dir)
+     if system.systemType == 'Darwin':
+         newdir['useMacBrushedMetalStyle'] = True
+         
+     return newdir
 
 def get_vistrails_configuration():
     """get_vistrails_configuration() -> ConfigurationObject or None

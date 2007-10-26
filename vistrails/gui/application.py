@@ -206,7 +206,8 @@ run in batch mode.')
         
         """
         self.setupSplashScreen()
-        if system.systemType in ['Darwin']:
+        metalstyle = self.configuration.check('useMacBrushedMetalStyle')
+        if metalstyle:
             #to make all widgets to have the mac's nice looking
             self.installEventFilter(self)
 
@@ -344,6 +345,9 @@ run in batch mode.')
         self.showSplash = self.configuration.showSplash
 
     def finishSession(self):
+        logger = core.logger.Logger.get() 
+        if logger:
+            logger.finish_session()
         core.interpreter.cached.CachedInterpreter.cleanup()
    
     def eventFilter(self, o, event):

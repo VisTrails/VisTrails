@@ -222,34 +222,13 @@ class QGeneralConfiguration(QtGui.QWidget):
         layout.setSpacing(10)
         self.setLayout(layout)
         self._configuration = None
-
-        self._autosave_cb = QtGui.QCheckBox(self)
-        self._autosave_cb.setText('Automatically save vistrails')
-        layout.addWidget(self._autosave_cb)
-
-        self._db_connect_cb = QtGui.QCheckBox(self)
-        self._db_connect_cb.setText('Read/Write to database by default')
-        layout.addWidget(self._db_connect_cb)
-        
-        self._use_cache_cb = QtGui.QCheckBox(self)
-        self._use_cache_cb.setText('Cache execution results')
-        layout.addWidget(self._use_cache_cb)
-
-        self._splash_cb = QtGui.QCheckBox(self)
-        self._splash_cb.setText('Show splash dialog on startup')
-        layout.addWidget(self._splash_cb)
-
-        self._maximize_cb = QtGui.QCheckBox(self)
-        self._maximize_cb.setText('Maximize windows on startup')
-        layout.addWidget(self._maximize_cb)
-
-        self._multi_head_cb = QtGui.QCheckBox(self)
-        self._multi_head_cb.setText('Use multiple displays on startup')
-        layout.addWidget(self._multi_head_cb)
-        layout.addStretch()
-
+        self.create_default_widgets(self,layout)
+        self.create_other_widgets(self,layout)
         self.update_state(configuration_object)
-
+        self.connect_default_signals()
+        self.connect_other_signals()
+        
+    def connect_default_signals(self):
         self.connect(self._autosave_cb,
                      QtCore.SIGNAL('stateChanged(int)'),
                      self.autosave_changed)
@@ -268,6 +247,53 @@ class QGeneralConfiguration(QtGui.QWidget):
         self.connect(self._multi_head_cb,
                      QtCore.SIGNAL('stateChanged(int)'),
                      self.multi_head_changed)
+
+    def connect_other_signals(self):
+        if core.system.systemType in ['Darwin']:
+            self.connect(self._use_metal_style_cb,
+                         QtCore.SIGNAL('stateChanged(int)'),
+                         self.metalstyle_changed)
+        
+    def create_default_widgets(self, parent, layout):
+        """create_default_widgets(parent: QWidget, layout: QLayout)-> None
+        Creates default widgets in parent
+        
+        """
+        parent._autosave_cb = QtGui.QCheckBox(parent)
+        parent._autosave_cb.setText('Automatically save vistrails')
+        layout.addWidget(parent._autosave_cb)
+
+        parent._db_connect_cb = QtGui.QCheckBox(parent)
+        parent._db_connect_cb.setText('Read/Write to database by default')
+        layout.addWidget(parent._db_connect_cb)
+        
+        parent._use_cache_cb = QtGui.QCheckBox(parent)
+        parent._use_cache_cb.setText('Cache execution results')
+        layout.addWidget(parent._use_cache_cb)
+
+        parent._splash_cb = QtGui.QCheckBox(parent)
+        parent._splash_cb.setText('Show splash dialog on startup')
+        layout.addWidget(parent._splash_cb)
+
+        parent._maximize_cb = QtGui.QCheckBox(parent)
+        parent._maximize_cb.setText('Maximize windows on startup')
+        layout.addWidget(parent._maximize_cb)
+
+        parent._multi_head_cb = QtGui.QCheckBox(parent)
+        parent._multi_head_cb.setText('Use multiple displays on startup')
+        layout.addWidget(parent._multi_head_cb)
+        
+
+    def create_other_widgets(self, parent, layout):
+        """create_other_widgets(parent: QWidget, layout: QLayout)-> None
+        Creates system specific widgets in parent
+        
+        """
+        if core.system.systemType in ['Darwin']:
+            parent._use_metal_style_cb = QtGui.QCheckBox(parent)
+            parent._use_metal_style_cb.setText('Use brushed metal appearance')
+            layout.addWidget(parent._use_metal_style_cb)
+        layout.addStretch()
 
     def update_state(self, configuration):
         """ update_state(configuration: VistrailConfiguration) -> None
@@ -295,6 +321,17 @@ class QGeneralConfiguration(QtGui.QWidget):
         if self._configuration.has('multiHeads'):
             self._multi_head_cb.setChecked(
                 getattr(self._configuration, 'multiHeads'))
+        #other widgets
+        self.update_other_state()
+        
+    def update_other_state(self):
+        """ update_state(configuration: VistrailConfiguration) -> None
+        
+        Update the dialog state based on a new configuration
+        """
+        if core.system.systemType in ['Darwin']:
+            self._use_metal_style_cb.setChecked(
+                self._configuration.check('useMacBrushedMetalStyle'))
             
     def autosave_changed(self, on):
         """ autosave_changed(on: int) -> None
@@ -346,6 +383,15 @@ class QGeneralConfiguration(QtGui.QWidget):
 
         """
         item = 'multiHeads'
+        setattr(self._configuration, item, bool(on))
+        self.emit(QtCore.SIGNAL('configuration_changed'),
+                  None, bool(on))
+
+    def metalstyle_changed(self, on):
+        """ metalstyle_changed(on: int) -> None
+        
+        """
+        item = 'useMacBrushedMetalStyle'
         setattr(self._configuration, item, bool(on))
         self.emit(QtCore.SIGNAL('configuration_changed'),
                   None, bool(on))
