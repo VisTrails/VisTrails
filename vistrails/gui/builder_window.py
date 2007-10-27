@@ -883,9 +883,36 @@ class QBuilderWindow(QtGui.QMainWindow):
         Displays Application about message
 
         """
-        QtGui.QMessageBox.about(self,self.tr("About VisTrails..."),
-                                self.tr(system.about_string()))
-
+        class About(QtGui.QLabel):
+            def mousePressEvent(self, e):
+                self.emit(QtCore.SIGNAL("clicked()"))
+                
+        dlg = QtGui.QDialog(self, QtCore.Qt.FramelessWindowHint)
+        layout = QtGui.QVBoxLayout()
+        layout.setMargin(0)
+        layout.setSpacing(0)
+        bgimage = About(dlg)
+        bgimage.setPixmap(CurrentTheme.DISCLAIMER_IMAGE)
+        layout.addWidget(bgimage)
+        dlg.setLayout(layout)
+        text = "<font color=\"white\"><b>%s</b></font>" % \
+               system.short_about_string()
+        version = About(text, dlg)
+        version.setGeometry(11,20,400,30)
+        self.connect(bgimage,
+                     QtCore.SIGNAL('clicked()'),
+                     dlg,
+                     QtCore.SLOT('accept()'))
+        self.connect(version,
+                     QtCore.SIGNAL('clicked()'),
+                     dlg,
+                     QtCore.SLOT('accept()'))
+        dlg.setSizeGripEnabled(False)
+        dlg.exec_()
+        
+        #QtGui.QMessageBox.about(self,self.tr("About VisTrails..."),
+        #                        self.tr(system.about_string()))
+ 
     def showPreferences(self):
         """showPreferences() -> None
         Display Preferences dialog

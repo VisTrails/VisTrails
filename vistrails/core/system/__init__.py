@@ -283,6 +283,10 @@ def current_processor():
         proc = 'n/a'
     return proc
 
+def short_about_string():
+     return """VisTrails version %s.%s -- vistrails@sci.utah.edu""" % (
+         vistrails_version(), vistrails_revision())
+ 
 def about_string():
    """about_string() -> string - Returns the about string for VisTrails."""
    return """VisTrails version %s.%s -- vistrails@sci.utah.edu

@@ -270,6 +270,10 @@ class DefaultTheme(object):
 
 
         #### ICONS & IMAGES ####
+        #The application disclaimer image
+        self.DISCLAIMER_IMAGE = QtGui.QPixmap(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/disclaimer.png')
         #The application icon
         self.APPLICATION_ICON = QtGui.QIcon(
             core.system.vistrails_root_directory() +
