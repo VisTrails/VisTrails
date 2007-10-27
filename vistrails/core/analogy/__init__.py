@@ -168,12 +168,35 @@ def perform_analogy_on_vistrail(vistrail,
                                            op.parentObjId)]
             if op.what == 'port':
                 port = op.data
-                print port.type
                 if id_remap.has_key(('module', port.moduleId)):
                     if port.type == 'source':
                         try:
                             port.moduleName = output_module_name_remap[port.moduleId]
                             port.moduleId = output_module_remap[port.moduleId]
+                            m = pipeline_c.modules[port.moduleId]
+                            d = reg.get_descriptor_by_name(m.package, m.name)
+                            def remap():
+                                pspec = core.modules.module_registry.PortSpec.from_sigstring(port.db_spec)
+                                all_ports = reg.all_source_ports(d)
+                                # print "pspec", pspec
+                                # First try to find a perfect match
+                                for (klass_name, ports) in all_ports:
+                                    for candidate_port in ports:
+                                        if (candidate_port.spec.type_equals(pspec) and
+                                            candidate_port.name == port.name):
+                                            #print "found perfect match"
+                                            return True
+                                # Now try to find an imperfect one
+                                for (klass_name, ports) in all_ports:
+                                    for candidate_port in ports:
+                                        print candidate_port.spec
+                                        if candidate_port.spec.type_equals(pspec):
+                                            port.name = candidate_port.name
+                                            #print "found imperfect match"
+                                            return True
+                                return False
+                            if not remap():
+                                print "COULD NOT FIND source MATCH!!!"
                         except KeyError:
                             # This happens when the module was added as part of the analogy
                             port.moduleName = module_name_remap[port.moduleId]
@@ -182,6 +205,30 @@ def perform_analogy_on_vistrail(vistrail,
                         try:
                             port.moduleName = input_module_name_remap[port.moduleId]
                             port.moduleId = input_module_remap[port.moduleId]
+                            m = pipeline_c.modules[port.moduleId]
+                            d = reg.get_descriptor_by_name(m.package, m.name)
+                            def remap():
+                                pspec = core.modules.module_registry.PortSpec.from_sigstring(port.db_spec)
+#                                 print "This is the spec", port.spec, port.db_spec
+                                all_ports = reg.all_destination_ports(d)
+                                # First try to find a perfect match
+                                for (klass_name, ports) in all_ports:
+                                    for candidate_port in ports:
+                                        if (candidate_port.spec.type_equals(pspec) and
+                                            candidate_port.name == port.name):
+                                            # print "found perfect match"
+                                            return True
+                                # Now try to find an imperfect one
+                                for (klass_name, ports) in all_ports:
+                                    for candidate_port in ports:
+                                        if candidate_port.spec.type_equals(pspec):
+                                            port.name = candidate_port.name
+                                            # print "found imperfect match"
+                                            return True
+                                return False
+                            if not remap():
+                                print "COULD NOT FIND destination MATCH!!!"
+                            remap()
                         except KeyError:
                             # This happens when the module was added as part of the analogy
                             port.moduleName = module_name_remap[port.moduleId]

@@ -347,6 +347,7 @@ class PythonSource(NotCacheable, Module):
         locals_.update({'fail': fail,
                         'package_manager': _m,
                         'cache_this': cache_this,
+                        'registry': _reg,
                         'self': self})
         del locals_['source']
         exec code_str in locals_, locals_

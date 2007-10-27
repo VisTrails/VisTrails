@@ -106,6 +106,19 @@ class PortSpec(object):
     def types(self):
         return [entry[0] for entry in self._entries]
 
+    def type_equals(self, other):
+        """type_equals(other: PortSpec) -> Bool
+
+        Checks equality ignoring description strings. Only cares about types.
+        Does not do subtyping or supertyping: match must be perfect.
+
+        """
+        for (mine, their) in izip(self._entries, other._entries):
+            if mine[0] != their[0]:
+                return False
+        return True
+        
+
     def is_method(self):
         """is_method(self) -> Bool
 
