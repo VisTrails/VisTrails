@@ -83,21 +83,13 @@ class ScalarMultiply(MatrixOperation):
 
 class ElementMultiply(MatrixOperation):
     def compute(self):
+        from numpy import array
         a = self.getInputFromPort("InputMatrix1")
         b = self.getInputFromPort("InputMatrix2")
-        c = SparseMatrix()
-        c.matrix = sparse.csc_matrix((a.matrix.shape[0], b.matrix.shape[1]))
         if a.matrix.shape != b.matrix.shape:
             raise ModuleError(self, 'Mismatching input dimensions!')
-
-        i = 0
-        j = 0
-        while i < a.matrix.shape[0]:
-            while j < a.matrix.shape[1]:
-                c.matrix[i,j] = a.matrix[i,j] * b.matrix[i,j]
-                j = j+1
-            i = i+1
-
+        c = SparseMatrix()
+        c.matrix = sparse.csc_matrix(array(a.matrix.toarray())*array(b.matrix.toarray()))
         self.setResult("OutputMatrix", c)
 
 class Transpose(MatrixOperation):
@@ -118,16 +110,19 @@ class GetColumnRange(Matrix):
         start = self.getInputFromPort("StartIndex")
         end = self.getInputFromPort("EndIndex")
         size = end - start
-        self.matrix = sparse.csc_matrix((m.matrix.shape[0], size))
+        out = SparseMatrix()
+        out.matrix = sparse.csc_matrix((m.matrix.shape[0], size))
+
         i = 0
         j = 0
         while j < m.matrix.shape[0]:
             while i < size:
-                self.matrix[j,i] = m.matrix[j,i]
+                val = m.matrix[j,start+i]
+                out.matrix[j,i] = val
                 i = i + 1
             j = j + 1
-        m.matrix = self.matrix
-        self.setResult("Output", m)
+        
+        self.setResult("Output", out)
         
 class ATan2(MatrixOperation):
     def compute(self):
