@@ -1240,9 +1240,24 @@ class VistrailController(QtCore.QObject):
 
     def write_workflow(self, locator):
         if self.currentPipeline:
-            workflow = core.db.io.expand_workflow(self.vistrail, 
-                                                  self.currentPipeline)
+            pipeline = Pipeline()
+            pipeline.set_abstraction_map(self.vistrail.abstractionMap)
+            for module in self.currentPipeline.modules.itervalues():
+                if module.vtType == AbstractionModule.vtType:
+                    abstraction = \
+                        pipeline.abstraction_map[module.abstraction_id]
+                    pipeline.add_abstraction(abstraction)
+                pipeline.add_module(module)
+            for connection in self.currentPipeline.connections.itervalues():
+                pipeline.add_connection(connection)            
+            locator.save_as(pipeline)
+
+    def write_expanded_workflow(self, locator):
+        if self.currentPipeline:
+            (workflow, _) = core.db.io.expand_workflow(self.vistrail, 
+                                                       self.currentPipeline)
             locator.save_as(workflow)
+        
     
     def write_log(self, locator):
         if self.log:
