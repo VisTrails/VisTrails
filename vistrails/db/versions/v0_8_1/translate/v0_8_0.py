@@ -20,7 +20,14 @@
 ##
 ############################################################################
 
+from db import VistrailsDBException
 from db.versions.v0_8_0.domain import DBAdd, DBAnnotation, DBChange, DBDelete
+
+# two step process
+# 1. remap all the old "notes" so that they exist in the id scope
+# 2. remap all the annotations that were numbered correctly
+# note that for 2, we don't need to worry about uniqueness -- they are unique
+# but step 1 may have taken some of their ids...
 
 def translateVistrail(vistrail):
     id_remap = {}
@@ -31,24 +38,35 @@ def translateVistrail(vistrail):
             annotation.db_id = vistrail.idScope.getNewId(DBAnnotation.vtType)
             new_action_idx[annotation.db_id] = annotation
         action.db_annotations_id_index = new_action_idx
+
         for operation in action.db_get_operations():
             # never have annotations as parent objs so 
             # don't have to worry about those ids
             if operation.db_what == DBAnnotation.vtType:
-                new_id = vistrail.idScope.getNewId(DBAnnotation.vtType)
-                if operation.vtType == 'add' or operation.vtType == 'delete':
+                if operation.vtType == 'add':
+                    new_id = vistrail.idScope.getNewId(DBAnnotation.vtType)
                     old_id = operation.db_objectId
                     operation.db_objectId = new_id
-                else:
+                    operation.db_data.db_id = new_id
+                    id_remap[old_id] = new_id
+                elif operation.vtType == 'change':
                     changed_id = operation.db_oldObjId
                     if id_remap.has_key(changed_id):
                         operation.db_oldObjId = id_remap[changed_id]
                     else:
-                        raise Exception('cannot translate')
+                        raise VistrailsDBException('cannot translate')
+
+                    new_id = vistrail.idScope.getNewId(DBAnnotation.vtType)
                     old_id = operation.db_newObjId
                     operation.db_newObjId = new_id
+                    operation.db_data.db_id = new_id
+                    id_remap[old_id] = new_id
+                elif operation.vtType == 'delete':
+                    old_id = operation.db_objectId
+                    if id_remap.has_key(old_id):
+                        operation.db_objectId = id_remap[old_id]
+                    else:
+                        raise VistrailsDBException('cannot translate')
 
-                operation.db_data.db_id = new_id
-                id_remap[old_id] = new_id
     vistrail.db_version = '0.8.1'
     return vistrail
