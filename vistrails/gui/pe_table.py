@@ -228,6 +228,8 @@ class QParameterExplorationTable(QPromptWidget):
             if pEditor and type(pEditor)==QParameterSetEditor:
                 pEditor.table = None
                 self.layout().removeWidget(pEditor)
+                pEditor.hide()
+                pEditor.deleteLater()
         self.label.resetCounts()
         self.showPrompt()
         self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 3)
@@ -237,9 +239,14 @@ class QParameterExplorationTable(QPromptWidget):
         Assign a pipeline to the current table
         
         """
-        if pipeline!=self.pipeline:
-            self.pipeline = pipeline
-            self.clear()
+        if pipeline:
+            for i in xrange(self.layout().count()):
+                pEditor = self.layout().itemAt(i).widget()
+                if pEditor and type(pEditor)==QParameterSetEditor:
+                    for param in pEditor.info[1]:
+                        if not pipeline.db_has_object(param[3], param[2]):
+                            pEditor.removeSelf()
+        self.pipeline = pipeline
         self.label.setEnabled(self.pipeline!=None)
 
     def collectParameterActions(self):
