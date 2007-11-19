@@ -246,6 +246,8 @@ class QParameterExplorationTable(QPromptWidget):
                     for param in pEditor.info[1]:
                         if not pipeline.db_has_object(param[3], param[2]):
                             pEditor.removeSelf()
+        else:
+            self.clear()
         self.pipeline = pipeline
         self.label.setEnabled(self.pipeline!=None)
 
