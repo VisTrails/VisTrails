@@ -385,7 +385,15 @@ def start_application(optionsDict=None):
         print "Application already started."""
         return
     VistrailsApplication = VistrailsApplicationSingleton()
-    core.requirements.check_all_vistrails_requirements()
+    try:
+        core.requirements.check_all_vistrails_requirements()
+    except core.requirements.MissingRequirement, e:
+        msg = ("VisTrails requires %s to properly run.\n" %
+               e.requirement)
+        QtGui.QMessageBox.critical(None, "Missing requirement",
+                                   msg)
+        sys.exit(1)
+                                   
     x = VistrailsApplication.init(optionsDict)
     if x == True:
         return 0
