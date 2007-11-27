@@ -267,10 +267,15 @@ def open_vistrail_from_xml(filename):
     """open_vistrail_from_xml(filename) -> Vistrail"""
     tree = ElementTree.parse(filename)
     version = get_version_for_xml(tree.getroot())
-    daoList = getVersionDAO(version)
-    vistrail = daoList.open_from_xml(filename, DBVistrail.vtType)
-    vistrail = translateVistrail(vistrail, version)
-    db.services.vistrail.update_id_scope(vistrail)
+    try:
+        daoList = getVersionDAO(version)
+        vistrail = daoList.open_from_xml(filename, DBVistrail.vtType)
+        vistrail = translateVistrail(vistrail, version)
+        db.services.vistrail.update_id_scope(vistrail)
+    except VistrailsDBException, e:
+        msg = "This vistrail was created by a newer version of VisTrails "
+        msg += "and cannot be opened."
+        raise VistrailsDBException(msg)
     return vistrail
 
 def open_vistrail_from_zip_xml(filename):
