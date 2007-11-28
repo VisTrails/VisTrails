@@ -39,33 +39,32 @@ import copy
 import sr_py
 import time
 import uuid
-from renderbase import Render, registerRender
-
+from renderbase import Render
 
 ################################################################################
-class ViewerCell(Render):
+class CM2ViewCell(Render):
     """
-    ViewerCell is a VisTrails Module that can display SCIRun Viewer.
+    CM2ViewCell is a VisTrails Module that can display SCIRun Viewer.
     
     """
     def compute(self):
         """ compute() -> None
         Dispatch the SCIRun scene graph to the Viewer
         """
-        sg = self.forceGetInputListFromPort('Scene Graph')
-        self.display(QViewerWidget, (sg))
+        sg = self.forceGetInputListFromPort('ColorMap2')
+        self.display(QCM2ViewWidget, (sg))
         
 
 
-class QViewerWidget(QtOpenGL.QGLWidget) :
+class QCM2ViewWidget(QtOpenGL.QGLWidget) :
     """
-    QViewerWidget is the actual rendering widget that can display
+    QCM2ViewWidget is the actual rendering widget that can display
     a SCIRun scene graph inside a Qt QWidget
     
     """
     def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
-        """ QViewerWidget(parent: QWidget, f: WindowFlags) -> QViewerWidget
-        Initialize QViewerWidget.
+        """ QCM2ViewWidget(parent: QWidget, f: WindowFlags) -> QCM2ViewWidget
+        Initialize QCM2ViewWidget.
         context
         
         """
@@ -162,7 +161,7 @@ class QViewerWidget(QtOpenGL.QGLWidget) :
 
     def initializeGL(self):
         # create the viewer
-        self.vid = sr_py.create_viewer(self.sci_context, self._id)
+        self.vid = sr_py.create_cm2view(self.sci_context, self._id)
         #start the timer
         #self.timer.start(33)
         
@@ -171,7 +170,7 @@ class QViewerWidget(QtOpenGL.QGLWidget) :
 ##         pass
 
     def glDraw(self):
-        sr_py.update_viewer(self.vid);
+        sr_py.update_cm2view(self.vid);
         
         if self.timer.isActive() and not self.full_speed :
             self.full_speed = True
@@ -265,24 +264,21 @@ class QViewerWidget(QtOpenGL.QGLWidget) :
         Connects the input scene graph to this viewer
         
         """
-        for p in inputPorts :
-          try:
-            for i in p:
-              if i != 0 :
-                print i
-                sr_py.send_scene(i, self._id);
-          except:
-            if p != 0 :
-              sr_py.send_scene(p, self._id);
+
+##         p = inputPorts[0]
+##         for i in p:
+##             if i != 0 :
+##                 sr_py.send_scene(i, self._id);
+
 def registerSelf():
     """ registerSelf() -> None
     Registry module with the registry
     """
     identifier = "edu.utah.sci.vistrails.scirun"
-    registerRender()
-    registry.add_module(ViewerCell)
-    registry.add_input_port(ViewerCell, "Location", CellLocation)
-    registry.add_input_port(ViewerCell, "Scene Graph",
+#    registry.add_module(Render, abstract=True)
+    registry.add_module(CM2ViewCell)
+    registry.add_input_port(CM2ViewCell, "Location", CellLocation)
+    registry.add_input_port(CM2ViewCell, "Scene Graph",
                             registry.get_module_by_name(identifier,
                                                         'Geometry'),
                             'Scene Graph')
