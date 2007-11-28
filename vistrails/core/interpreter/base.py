@@ -135,7 +135,10 @@ class BaseInterpreter(object):
         if not atype in ['string', 'String']:
             if base=='':
                 base = '0'
-            base = eval(base,None,None)
+            try:
+                base = eval(base,None,None)
+            except:
+                pass
         return base
 
     def resolve_aliases(self, pipeline,

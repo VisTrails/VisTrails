@@ -81,6 +81,20 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
             self._logger.insert_annotation_DB(locator, 
                                             currentVersion, obj.id, d)
 
+        def create_constant(param):
+            """Creates a Constant from a parameter spec"""
+            getter = modules.module_registry.registry.get_descriptor_by_name
+            # FIXME: for now any constant that is not in the basic package
+            # is considered a String. We need to store the package info inside
+            # the parameter as well
+            try:
+                desc = getter('edu.utah.sci.vistrails.basic', param.type)
+            except:
+                desc = getter('edu.utah.sci.vistrails.basic', 'String')
+            constant = desc.module()
+            constant.setValue(p.evaluatedStrValue)
+            return constant
+        
         try:
             self.filePool = FilePool()
             objects = {}
@@ -120,10 +134,7 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                                                                    'value'), is_method=True)
                     if len(f.params)==1:
                         p = f.params[0]
-                        constant = reg.get_descriptor_by_name(
-                            'edu.utah.sci.vistrails.basic',
-                            p.type).module()
-                        constant.setValue(p.evaluatedStrValue)
+                        constant = create_constant(p)
                         objects[id].set_input_port(f.name, 
                                                  ModuleConnector(constant, 
                                                                  'value'), is_method=True)
@@ -131,10 +142,7 @@ class Interpreter(core.interpreter.base.BaseInterpreter):
                         tupleModule = core.interpreter.base.InternalTuple()
                         tupleModule.length = len(f.params)
                         for (i,p) in iter_with_index(f.params):
-                            constant = reg.get_descriptor_by_name(
-                                'edu.utah.sci.vistrails.basic',
-                                p.type).module()
-                            constant.setValue(p.evaluatedStrValue)
+                            constant = create_constant(p)
                             tupleModule.set_input_port(i, 
                                                        ModuleConnector(constant, 
                                                                        'value'))
