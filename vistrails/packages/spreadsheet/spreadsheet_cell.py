@@ -779,8 +779,24 @@ class QCellManipulator(QtGui.QFrame):
         self.connect(self.updateButton, QtCore.SIGNAL('clicked(bool)'),
                      self.updateVersion)
         self.buttons.append(self.updateButton)
+
+        self.locateButton = QtGui.QToolButton()
+        self.locateButton.setIconSize(QtCore.QSize(64, 64))
+        self.locateButton.setIcon(QtGui.QIcon(QtGui.QPixmap(            
+            ':/images/locate.png')))
+        self.locateButton.setAutoRaise(True)
+        self.locateButton.setToolTip('Select this pipeline in the version tree ')
+        self.locateButton.setStatusTip(self.locateButton.toolTip())
+        self.locateButton.setText('Locate Version')
+        self.locateButton.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
+        self.connect(self.locateButton, QtCore.SIGNAL('clicked(bool)'),
+                     self.locateVersion)
+        self.buttons.append(self.locateButton)
+
+        
         uLayout = QtGui.QHBoxLayout()
         uLayout.addStretch()
+        uLayout.addWidget(self.locateButton)
         uLayout.addWidget(self.updateButton)
         uLayout.addStretch()
         layout.addLayout(uLayout)
@@ -917,6 +933,25 @@ class QCellManipulator(QtGui.QFrame):
                     controller.changeSelectedVersion(info['version'])
                     controller.perform_param_changes(info['actions'])
                     # controller.performBulkActions(info['actions'])
+
+    def locateVersion(self):
+        """ locateVersion() -> None        
+        Select the version node on the version that has generated this cell
+        
+        """
+        spreadsheetController = spreadsheet_controller.spreadsheetController
+        builderWindow = spreadsheetController.getBuilderWindow()
+        if builderWindow:
+            info = self.cellInfo[0].getCellPipelineInfo(self.cellInfo[1],
+                                                        self.cellInfo[2])
+            if info:
+                info = info[0]
+                viewManager = builderWindow.viewManager
+                view = viewManager.ensureVistrail(info['locator'])
+                if view:
+                    controller = view.controller
+                    controller.changeSelectedVersion(info['version'])
+                    controller.invalidate_version_tree()
 
 ################################################################################
 
