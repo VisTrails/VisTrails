@@ -25,6 +25,7 @@ should have no interaction with VisTrail core"""
 
 from PyQt4 import QtCore, QtGui
 from gui.theme import CurrentTheme
+from core.modules.constant_configuration import StandardConstantWidget
 import bisect
 
 ################################################################################
@@ -391,7 +392,43 @@ class QStringEdit(QtGui.QFrame):
         if not fileName.isEmpty():
             self.setText(fileName)
         
+class MultiLineWidget(StandardConstantWidget):
+     def __init__(self, contents, contentType, parent=None):
+        """__init__(contents: str, contentType: str, parent: QWidget) ->
+                                             StandardConstantWidget
+        Initialize the line edit with its contents. Content type is limited
+        to 'int', 'float', and 'string'
+        
+        """
+        StandardConstantWidget.__init__(self, parent)
 
+     def update_parent(self):
+         pass
+     
+     def keyPressEvent(self, event):
+         """ keyPressEvent(event) -> None       
+         If this is a string line edit, we can use Ctrl+Enter to enter
+         the file name 	       
+
+         """
+         k = event.key()
+         s = event.modifiers()
+         if ((k == QtCore.Qt.Key_Enter or k == QtCore.Qt.Key_Return) and
+             s & QtCore.Qt.ShiftModifier):
+             event.accept()
+             if self.contentIsString and self.multiLines:
+                 fileNames = QtGui.QFileDialog.getOpenFileNames(self,
+                                                                'Use Filename '
+                                                                'as Value...',
+                                                                self.text(),
+                                                                'All files '
+                                                                '(*.*)')
+                 fileName = fileNames.join(',')
+                 if not fileName.isEmpty():
+                     self.setText(fileName)
+                     return
+         QtGui.QLineEdit.keyPressEvent(self,event)
+        
 class QSearchBox(QtGui.QWidget):
     """ 
     QSearchBox contains a search combo box with a clear button and

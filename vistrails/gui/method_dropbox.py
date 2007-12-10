@@ -31,6 +31,8 @@ QHoverAliasLabel
 from PyQt4 import QtCore, QtGui
 from core.utils import expression
 from core.vistrail.module_function import ModuleFunction
+from core.modules import module_registry
+from core.modules.constant_configuration import FileChooserToolButton
 from gui.common_widgets import QPromptWidget
 from gui.method_palette import QMethodTreeWidget
 from gui.theme import CurrentTheme
@@ -231,9 +233,10 @@ class QMethodInputForm(QtGui.QGroupBox):
         methodBox = self.parent().parent().parent()
         if methodBox.controller:
             paramList = []
-            for i in xrange(len(self.lineEdits)):
-                paramList.append((str(self.lineEdits[i].text()),
+            for i in xrange(len(self.widgets)):
+                paramList.append((str(self.widgets[i].contents()),
                                   self.function.params[i].type,
+                                  self.function.params[i].identifier,
                                   str(self.labels[i].alias)))
             methodBox.lockUpdate()
             methodBox.controller.replace_method(methodBox.module,
@@ -256,22 +259,27 @@ class QMethodInputForm(QtGui.QGroupBox):
         Auto create widgets to describes the function 'function'
         
         """
+        reg = module_registry.registry
         self.setTitle(function.name)
         self.function = function
-        self.lineEdits = []
+        self.widgets = []
         self.labels = []
         for pIndex in xrange(len(function.params)):
             p = function.params[pIndex]
+            #print p.identifier, p.type
+            p_module = reg.get_module_by_name(p.identifier,
+                                              p.type)()
+            widget_type = p_module.get_configure_widget_type()
             label = QHoverAliasLabel(p.alias, p.type)
-            lineEdit = QPythonValueLineEdit(p.strValue, p.type, self)            
-            self.lineEdits.append(lineEdit)
+            constant_widget = widget_type(p.strValue, p.type, self)            
+            self.widgets.append(constant_widget)
             self.labels.append(label)
             self.layout().addWidget(label, pIndex, 0)
-            self.layout().addWidget(lineEdit, pIndex, 1)
+            self.layout().addWidget(constant_widget, pIndex, 1)
             # Ugly hack to add browse button to methods that look like
             # they have to do with files
             if('file' in function.name.lower() and p.type == 'String'):
-                browseButton = QMethodFileChooser(self, lineEdit)
+                browseButton = FileChooserToolButton(self, constant_widget)
                 self.layout().addWidget(browseButton, pIndex, 2)
 
     def keyPressEvent(self, e):
@@ -368,158 +376,3 @@ class QHoverAliasLabel(QtGui.QLabel):
                     self.updateText()
                     self.parent().updateMethod()
 
-                    
-
-class QPythonValueLineEdit(QtGui.QLineEdit):
-    """
-    QPythonValueLineEdit is a line edit that can be used to edit
-    int/float/string contents. It supports expression evaluation as
-    well by using a double '$$'
-    
-    """
-    def __init__(self, contents, contentType, parent=None, multiLines=False):
-        """ QPythonValueLineEdit(contents: str,
-                                 contentType: str,
-                                 container: QWidget,
-                                 parent: QWidget) -> QPythonValueLineEdit                                 
-        Initialize the line edit with its container and
-        contents. Content type is limited to 'int', 'float', and
-        'string'
-        
-        """
-        QtGui.QLineEdit.__init__(self, contents, parent)
-        self.contentType = contentType
-        self.contentIsString = contentType=='String'
-        self.lastText = ''
-        self.multiLines = multiLines
-        self.connect(self,
-                     QtCore.SIGNAL('returnPressed()'),
-                     self.updateParent)                     
-
-    def keyPressEvent(self, event):
-        """ keyPressEvent(event) -> None        
-        If this is a string line edit, we can use Ctrl+Enter to enter
-        the file name
-        
-        """
-        k = event.key()
-        s = event.modifiers()
-        if (k == QtCore.Qt.Key_Enter or k == QtCore.Qt.Key_Return):
-            if s & QtCore.Qt.ShiftModifier:
-                event.accept()
-                if self.contentIsString and not self.multiLines:
-                    fileName = QtGui.QFileDialog.getOpenFileName(self,
-                                                                 'Use Filename '
-                                                                 'as Value...',
-                                                                 self.text(),
-                                                                 'All files '
-                                                                 '(*.*)')
-                    if not fileName.isEmpty():
-                        self.setText(fileName)
-                        self.updateParent()
-                        
-
-                if self.contentIsString and self.multiLines:
-                    fileNames = QtGui.QFileDialog.getOpenFileNames(self,
-                                                                 'Use Filename '
-                                                                 'as Value...',
-                                                                 self.text(),
-                                                                 'All files '
-                                                                 '(*.*)')
-                    fileName = fileNames.join(',')
-                    if not fileName.isEmpty():
-                        self.setText(fileName)
-                        self.updateParent()
-                        return
-                
-            else:
-                event.accept()
-                self.updateText()
-        QtGui.QLineEdit.keyPressEvent(self,event)
-        # super(QPythonValueLineEdit, self).keyPressEvent(event)
-
-    def focusInEvent(self, event):
-        """ focusInEvent(event: QEvent) -> None
-        Pass the event to the parent
-        
-        """
-        self.lastText = str(self.text())
-        if self.parent():
-            self.parent().focusInEvent(event)
-        QtGui.QLineEdit.focusInEvent(self, event)
-        # super(QPythonValueLineEdit, self).focusInEvent(event)
-
-    def focusOutEvent(self, event):
-        """ focusOutEvent(event: QEvent) -> None
-        Update when finishing editing, then pass the event to the parent
-        
-        """
-        self.updateParent()
-        if self.parent():
-            self.parent().focusOutEvent(event)
-        QtGui.QLineEdit.focusOutEvent(self, event)
-        # super(QPythonValueLineEdit, self).focusOutEvent(event)
-
-    def updateParent(self):
-        """ updateParent() -> None
-        Update parent parameters info if necessary
-        
-        """
-        self.updateText()
-        if self.parent():
-            newText = str(self.text())
-            if newText!=self.lastText:
-                self.parent().updateMethod()
-
-    def updateText(self):
-        """ updateText() -> None
-        Update the text to the result of the evaluation
-        
-        """
-        base = expression.evaluate_expressions(self.text())
-        if self.contentIsString:
-            self.setText(base)
-        else:
-            try:
-                self.setText(str(eval(str(base), None, None)))
-            except:
-                self.setText(base)
-
-class QMethodFileChooser(QtGui.QToolButton):
-    """ 
-    QMethodFileChooser is a toolbar button that opens a browser for
-    files.  The lineEdit is updated with the filename that is
-    selected.  
-
-    """
-    def __init__(self, parent=None, lineEdit=None):
-        """
-        QMethodFileChooser(parent: QWidget, lineEdit: QPythonValueEdit) -> None
-
-        """
-        QtGui.QToolButton.__init__(self, parent)
-        self.setIcon(QtGui.QIcon(
-                self.style().standardPixmap(QtGui.QStyle.SP_DirOpenIcon)))
-        self.setIconSize(QtCore.QSize(12,12))
-        self.setToolTip('Open a file chooser')
-        self.setAutoRaise(True)
-        self.lineEdit = lineEdit
-        self.connect(self,
-                     QtCore.SIGNAL('clicked()'),
-                     self.openChooser)
-             
-
-    def openChooser(self):
-        """
-        openChooser() -> None
-        
-        """
-        fileName = QtGui.QFileDialog.getOpenFileName(self,
-                                                     'Use Filename '
-                                                     'as Value...',
-                                                     self.text(),
-                                                     'All files '
-                                                     '(*.*)')
-        if self.lineEdit and not fileName.isEmpty():
-            self.lineEdit.setText(fileName)
-            self.lineEdit.updateParent()

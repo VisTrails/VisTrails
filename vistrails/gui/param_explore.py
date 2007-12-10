@@ -28,9 +28,8 @@ QParameterExploration
 import thread
 from PyQt4 import QtCore, QtGui, QtOpenGL
 from core.param_explore import InterpolateDiscreteParam, ParameterExploration
-from gui.common_widgets import QToolWindowInterface
-from gui.method_dropbox import (QMethodDropBox, QMethodInputForm, 
-                                QPythonValueLineEdit)
+from gui.common_widgets import QToolWindowInterface, MultiLineWidget
+from gui.method_dropbox import QMethodDropBox, QMethodInputForm
 from gui.theme import CurrentTheme
 ################################################################################
 
@@ -287,7 +286,7 @@ class QRangeString(QtGui.QFrame):
         self.setUpdatesEnabled(False)
         hl = QtGui.QHBoxLayout()
         
-        self.lineEdit = QPythonValueLineEdit('','String', self, multiLines=True)
+        self.lineEdit = MultiLineWidget('','String', self, multiLines=True)
         hl.addWidget(self.lineEdit)
         self.addBtn = QtGui.QToolButton()
         self.addBtn.setToolTip(self.tr("Add string"))

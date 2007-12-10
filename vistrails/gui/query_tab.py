@@ -35,7 +35,8 @@ from core.vistrail.location import Location
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.vistrail import Vistrail
 import db.services.io
-from gui.method_dropbox import QMethodInputForm, QPythonValueLineEdit
+from core.modules import module_registry
+from gui.method_dropbox import QMethodInputForm
 from gui.pipeline_tab import QPipelineTab
 from gui.theme import CurrentTheme
 from gui.vistrail_controller import VistrailController
@@ -96,12 +97,17 @@ class QFunctionQueryForm(QMethodInputForm):
         Auto create widgets to describes the function 'function'
         
         """
+        reg = module_registry.registry
         self.function = function
         self.setTitle(function.name)
         gLayout = self.layout()
         for pIdx in xrange(len(function.params)):
             p = function.params[pIdx]
-            field = QParameterQuery(p.strValue, p.type, p.queryMethod)
+            constant = reg.get_module_by_name(p.identifier,
+                                              p.type)()
+            widget_type = constant.get_configure_widget_type()
+            field = QParameterQuery(p.strValue, p.type,
+                                    p.queryMethod, widget_type)
             self.fields.append(field)
             gLayout.addWidget(field, pIdx, 0)
         self.update()
@@ -120,7 +126,7 @@ class QFunctionQueryForm(QMethodInputForm):
             f = pipeline.modules[methodBox.module.id].functions[self.fId]
             p = f.params
             for i in xrange(len(self.fields)):
-                p[i].strValue = str(self.fields[i].editor.text())
+                p[i].strValue = str(self.fields[i].editor.contents())
                 p[i].queryMethod = self.fields[i].selector.getCurrentMethod()
 
         # Go upstream to update the pipeline
@@ -138,7 +144,7 @@ class QParameterQuery(QtGui.QWidget):
     menu allowing users to choose how they want to query a parameter
     
     """
-    def __init__(self, pValue, pType, pMethod, parent=None):
+    def __init__(self, pValue, pType, pMethod, widget_type, parent=None):
         """ QParameterQuery(pValue: str, pType: str, parent: QWidget,
                             pMethod: int) -> QParameterQuery
         Construct the widget layout
@@ -159,7 +165,8 @@ class QParameterQuery(QtGui.QWidget):
         self.selector = QParameterQuerySelector(pType)
         layout.addWidget(self.selector)        
 
-        self.editor = QPythonValueLineEdit(pValue, pType)
+        
+        self.editor = widget_type(pValue, pType)
         layout.addWidget(self.editor)
 
         self.connect(self.selector.operationActionGroup,

@@ -34,7 +34,8 @@ vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk'})
 
 from core.utils import all, any, VistrailsInternalError, iter_with_index
 from core.debug import log
-from core.modules.basic_modules import Integer, Float, String, File, Variant
+from core.modules.basic_modules import Integer, Float, String, File, \
+     Variant, Color
 from core.modules.module_registry import (registry, add_module,
                                           has_input_port,
                                           add_input_port, add_output_port)
@@ -352,6 +353,22 @@ def addSetGetPorts(module, get_set_dict):
             if name == 'FileName':
                 add_input_port(module, 'SetFile', (File, 'input file'),
                                False)
+            # Wrap color methods for VisTrails GUI facilities
+            elif name == 'DiffuseColor':
+                add_input_port(module, 'SetDiffuseColorWidget',
+                               (Color, 'color'), True)
+            elif name == 'Color':
+                add_input_port(module, 'SetColorWidget', (Color, 'color'),
+                               True)
+            elif name == 'AmbientColor':
+                add_input_port(module, 'SetAmbientColorWidget',
+                               (Color, 'color'), True)
+            elif name == 'SpecularColor':
+                add_input_port(module, 'SetSpecularColorWidget',
+                               (Color, 'color'), True)
+            elif name == 'EdgeColor':
+                add_input_port(module, 'SetEdgeColorWidget',
+                               (Color, 'color'), True)
 
 disallowed_toggle_ports = set(['GlobalWarningDisplay',
                                'Debug',
@@ -620,6 +637,41 @@ def class_dict(base_module, node):
             old_compute(self)
         return compute
 
+    def compute_SetDiffuseColorWidget(old_compute):
+        if old_compute != None:
+            return old_compute
+        def call_SetDiffuseColorWidget(self, color):
+            self.vtkInstance.SetDiffuseColor(*eval(color.value))
+        return call_SetDiffuseColorWidget
+
+    def compute_SetAmbientColorWidget(old_compute):
+        if old_compute != None:
+            return old_compute
+        def call_SetAmbientColorWidget(self, color):
+            self.vtkInstance.SetAmbientColor(*eval(color.value))
+        return call_SetAmbientColorWidget
+
+    def compute_SetSpecularColorWidget(old_compute):
+        if old_compute != None:
+            return old_compute
+        def call_SetSpecularColorWidget(self, color):
+            self.vtkInstance.SetSpecularColor(*eval(color.value))
+        return call_SetSpecularColorWidget
+
+    def compute_SetColorWidget(old_compute):
+        if old_compute != None:
+            return old_compute
+        def call_SetColorWidget(self, color):
+            self.vtkInstance.SetColor(*eval(color.value))
+        return call_SetColorWidget
+
+    def compute_SetEdgeColorWidget(old_compute):
+        if old_compute != None:
+            return old_compute
+        def call_SetEdgeColorWidget(self, color):
+            self.vtkInstance.SetEdgeColor(*eval(color.value))
+        return call_SetEdgeColorWidget
+    
     def compute_SetFile(old_compute_SetFile):
         if old_compute_SetFile != None:
             return old_compute_SetFile
@@ -652,7 +704,22 @@ def class_dict(base_module, node):
         # this is brittle..
         if node.klass.__name__.endswith('Reader'):
             update_dict('compute', guarded_SetFileName_wrap_compute)
-
+    #color gui wrapping
+    if hasattr(node.klass, 'SetDiffuseColor'):
+        update_dict('_special_input_function_SetDiffuseColorWidget',
+                    compute_SetDiffuseColorWidget)
+    if hasattr(node.klass, 'SetAmbientColor'):
+        update_dict('_special_input_function_SetAmbientColorWidget',
+                    compute_SetAmbientColorWidget)
+    if hasattr(node.klass, 'SetSpecularColor'):
+        update_dict('_special_input_function_SetSpecularColorWidget',
+                    compute_SetDiffuseColorWidget)
+    if hasattr(node.klass, 'SetEdgeColor'):
+        update_dict('_special_input_function_SetEdgeColorWidget',
+                    compute_SetEdgeColorWidget)
+    if hasattr(node.klass, 'SetColor'):
+        update_dict('_special_input_function_SetColorWidget',
+                    compute_SetColorWidget)
     if issubclass(node.klass, vtk.vtkWriter):
         update_dict('compute', guarded_Writer_wrap_compute)
 

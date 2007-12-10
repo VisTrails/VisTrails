@@ -148,6 +148,7 @@ class PortSpec(object):
             f.name = port.name
             for specitem in self._entries:
                 p = ModuleParam()
+                p.identifier = get_descriptor(specitem[0]).identifier
                 p.type = specitem[0].__name__
                 p.name = specitem[1]
                 f.addParameter(p)
@@ -987,6 +988,17 @@ class ModuleRegistry(QtCore.QObject):
                                         sorted))
                 for klass in self.get_module_hierarchy(descriptor)]
 
+    def get_port_from_all_destinations(self, descriptor, name):
+        """Searches for port identified by name in the destination ports
+        for all hierarchy leading to given module """
+        all_ports = self.all_destination_ports(descriptor)
+        for (klass, port_list) in all_ports:
+            for port in port_list:
+                if port.name == name:
+                    return port
+        else:
+            return None
+        
     def method_ports(self, module):
         """method_ports(module: class) -> list of VisPort
 

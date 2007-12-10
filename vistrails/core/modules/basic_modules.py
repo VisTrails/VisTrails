@@ -29,6 +29,9 @@ from core.modules import vistrails_module
 from core.modules.vistrails_module import Module, new_module, \
      NotCacheable, ModuleError
 from core.modules.tuple_configuration import TupleConfigurationWidget
+from core.modules.constant_configuration import StandardConstantWidget, \
+     FileChooserWidget, ColorWidget
+
 import core.packagemanager
 import core.system
 import os
@@ -41,13 +44,25 @@ _reg = module_registry.registry
 
 class Constant(Module):
     """Base class for all Modules that represent a constant value of
-    some type."""
+    some type.
+    When implementing your own constant, please make sure to implement the
+    following methods:
+       translate_to_python(x)
+       translate_to_string()
+       compute()
+
+    You can also define the constant's own widget.
+    See constant_configuration.py file for details.
     
+    """
     def __init__(self):
         Module.__init__(self)
         self.value = None
+        self.default_value = None
         self.addRequestPort("value_as_string", self.valueAsString)
-
+        self.python_type = None
+        self._widget_type = StandardConstantWidget
+        
     def compute(self):
         """Constant.compute() only checks validity (and presence) of
         input value."""
@@ -57,17 +72,19 @@ class Constant(Module):
             v = self.value
 
         # TODO: This is a bogus check ('except: pass' is bad). Fix it.
+        # I think now that we have the python_type this is fixed.
         try:
-            b = isinstance(v, self.convert)
+            b = isinstance(v, self.python_type)
         except:
-            pass
-        else:
-            if not b:
-                raise Exception("Value should be a %s" % self.convert.__name__)
+            print "Exception in Constant.compute():\
+            %s is not a instance of %s" % (v,self.python_type)
+        if not b:
+            raise Exception("Value %s(%s) should be a %s" % (
+                v, type(v), self.python_type.__name__))
         self.setResult("value", v)
 
     def setValue(self, v):
-        self.value = self.convert(v)
+        self.value = self.translate_to_python(v)
     
 #     def __str__(self):
 #         if not self.upToDate:
@@ -77,23 +94,45 @@ class Constant(Module):
 
     def valueAsString(self):
         return str(self.value)
+    
+    def get_configure_widget_type(self):
+        return self._widget_type
+
+    def set_configure_widget_type(self,widget_type):
+        self._widget_type = widget_type
+
+    @staticmethod
+    def translate_to_python(x):
+        """translate_to_python(x: str) -> any type"""
+        return None
+
+    def translate_to_string(self):
+        return str(self.value)
+        
 
 _reg.add_module(Constant)
 
 
-def new_constant(name, conversion):
-    """new_constant(conversion) -> Module
+def new_constant(name, conversion, python_type, default_value,
+                 widget_type=None):
+    """new_constant(name: str, conversion: function, python_type: type,
+                    default_value: python_type, widget_type: QWidget type) ->
+                                                                     Module
 
     new_constant dynamically creates a new Module derived from Constant
-    that with a given conversion function. conversion is a python
-    callable that takes a string and returns a python value of the type
-    that the class should hold.
+    with a given conversion function, a corresponding python type and a
+    widget type. conversion is a python callable that takes a string and
+    returns a python value of the type that the class should hold.
 
     This is the quickest way to create new Constant Modules."""
     
     def __init__(self):
         Constant.__init__(self)
-        self.convert = conversion
+        self.translate_to_python = conversion
+        self.python_type = python_type
+        self.default_value = default_value
+        if widget_type:
+            self._widget_type = widget_type
     
     m = new_module(Constant, name, {'__init__': __init__})
     module_registry.registry.add_module(m)
@@ -116,30 +155,54 @@ def int_conv(x):
     else:
         return int(x)
 
-Boolean = new_constant('Boolean' , bool_conv)
-Float   = new_constant('Float'   , float)
-Integer = new_constant('Integer' , int_conv)
-String  = new_constant('String'  , str)
+Boolean = new_constant('Boolean' , bool_conv, bool, False)
+Float   = new_constant('Float'   , float, float, 0.0)
+Integer = new_constant('Integer' , int_conv, int, 0)
+String  = new_constant('String'  , str, str, "")
 _reg.add_output_port(Constant, "value_as_string", String)
 
 ##############################################################################
 
-class File(Module):
+class File(Constant):
     """File is a VisTrails Module that represents a file stored on a
     file system local to the machine where VisTrails is running."""
 
+    def __init__(self):
+        Constant.__init__(self)
+        self.python_type = str
+        self._widget_type = FileChooserWidget
+        self.default_value = ""
+
+    @staticmethod
+    def translate_to_python(x):
+        return str(x)
+
+    def translate_to_string(self):
+        return str(self.name)
+    
     def compute(self):
-        self.checkInputPort("name")
-        n = self.getInputFromPort("name")
+        n = None
+        if self.hasInputFromPort("value"):
+            n = self.getInputFromPort("value").name
+        else:
+            n = self.value
+        if not n:
+            self.checkInputPort("name")
+            n = self.getInputFromPort("name")
+
         if (self.hasInputFromPort("create_file") and
             self.getInputFromPort("create_file")):
             core.system.touch(n)
         self.name = n
+        self.value = n
         if not os.path.isfile(n):
             raise ModuleError(self, "File '%s' not existent" % n)
         self.setResult("local_filename", self.name)
+        self.setResult("value", self)
 
 _reg.add_module(File)
+_reg.add_input_port(File, "value", File, True)
+_reg.add_output_port(File, "value", File, True)
 _reg.add_input_port(File, "name", String)
 _reg.add_output_port(File, "self", File)
 _reg.add_input_port(File, "create_file", Boolean)
@@ -176,6 +239,31 @@ _reg.add_input_port(FileSink,  "file", File)
 _reg.add_input_port(FileSink,  "outputName", String)
 _reg.add_input_port(FileSink,  "overrideFile", Boolean)
 
+##############################################################################
+
+class Color(Constant):
+    def __init__(self):
+        Constant.__init__(self)
+        self.python_type = str
+        self._widget_type = ColorWidget
+        self.default_value = "1,1,1"
+        
+    def compute(self):
+        if self.hasInputFromPort("value"):
+            self.value = self.getInputFromPort("value").value
+            
+        self.setResult("value", self)
+
+    @staticmethod
+    def translate_to_python(x):
+        return str(x)
+
+    def translate_to_string(self):
+        return str(self.value)
+                
+_reg.add_module(Color)
+_reg.add_input_port(Color, "value", Color)
+_reg.add_output_port(Color, "value", Color)    
 ##############################################################################
 
 # class OutputWindow(Module):
@@ -459,8 +547,8 @@ class TestPortConfig(Module):
     
 _reg.add_module(TestPortConfig)
 _reg.add_input_port(TestPortConfig,
-                 'ColorPort', [Float,Float,Float],
-                 False, port_configure.ColorConfigurationWidget)
+                    'ColorPort', [Float,Float,Float],
+                    False, port_configure.ColorConfigurationWidget)
 _reg.add_input_port(TestPortConfig, 'IntegerPort', Integer)
 
 ##############################################################################

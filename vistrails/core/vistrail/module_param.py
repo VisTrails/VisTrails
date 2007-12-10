@@ -27,12 +27,12 @@ from db.domain import DBParameter
 from core.utils import enum
 
 ################################################################################
-def bool_conv(x):
-    s = str(x).upper()
-    if s == 'TRUE':
-        return True
-    if s == 'FALSE':
-        return False
+# def bool_conv(x):
+#     s = str(x).upper()
+#     if s == 'TRUE':
+#         return True
+#     if s == 'FALSE':
+#         return False
 
 class ModuleParam(DBParameter):
     """ Stores a parameter setting for a vistrail function """
@@ -44,8 +44,8 @@ class ModuleParam(DBParameter):
 	DBParameter.__init__(self, *args, **kwargs)
         if self.real_id is None:
             self.real_id = -1
-        if self.type is None:
-            self.type = ""
+        if self.db_type is None:
+            self.db_type = ""
         if self.strValue is None:
             self.strValue = ""
         if self.alias is None:
@@ -54,11 +54,13 @@ class ModuleParam(DBParameter):
             self.pos = -1
         if self.name is None:
             self.name = ""
-
+    
         self.minValue = ""
         self.maxValue = ""
         self.evaluatedStrValue = ""
-
+        self.identifier = ""
+        self._type = ""
+        
         # This is used for visual query and will not get serialized
         self.queryMethod = 0
 
@@ -72,6 +74,8 @@ class ModuleParam(DBParameter):
         cp.maxValue = self.maxValue
         cp.evaluatedStrValue = self.evaluatedStrValue
         cp.queryMethod = 0
+        cp.identifier = self.identifier
+        cp._type = self._type
         return cp
 
     @staticmethod
@@ -83,7 +87,9 @@ class ModuleParam(DBParameter):
         _parameter.minValue = ""
         _parameter.maxValue = ""
         _parameter.evaluatedStrValue = ""
-
+        _parameter.identifier = ""
+        _parameter._type = ""
+        _parameter.parse_type_str(_parameter.db_type)
     ##########################################################################
 
     # id isn't really the id, it's a relative position
@@ -107,11 +113,23 @@ class ModuleParam(DBParameter):
     name = property(_get_name, _set_name)
 
     def _get_type(self):
-        return self.db_type
+        if not self._type:
+            self.parse_type_str(self.db_type)
+        return self._type
     def _set_type(self, type):
-        self.db_type = type
+        self._type = type
+        if self._type is not None:
+            self.db_type = self.create_type_str()
     type = property(_get_type, _set_type)
 
+    def _get_typeStr(self):
+        if self.db_type is None:
+            self.db_type = self.create_type_str()
+        return self.db_type
+    def _set_typeStr(self, typeStr):
+        self.db_type = typeStr
+    typeStr = property(_get_typeStr, _set_typeStr)
+    
     def _get_strValue(self):
         return self.db_val
     def _set_strValue(self, value):
@@ -123,6 +141,19 @@ class ModuleParam(DBParameter):
     def _set_alias(self, alias):
         self.db_alias = alias
     alias = property(_get_alias, _set_alias)
+
+    def create_type_str(self):
+        return self.identifier + ":" + self._type
+
+    def parse_type_str(self, type_str):
+        if type_str != "":
+            data = type_str.split(":")
+            if len(data) > 1:
+                self.identifier = data[0]
+                self.type = data[1]
+            else:
+                self.identifier = "edu.utah.sci.vistrails.basic"
+                self.type = data[0]
         
     def serialize(self, dom, element):
         """ serialize(dom, element) -> None 
@@ -134,7 +165,7 @@ class ModuleParam(DBParameter):
         ctype = dom.createElement('type')
         cval = dom.createElement('val')
         calias = dom.createElement('alias')
-        ttype = dom.createTextNode(self.type)
+        ttype = dom.createTextNode(self.typeStr)
         tval = dom.createTextNode(self.strValue)        
         talias = dom.createTextNode(self.alias)
         child.appendchild(ctype)
@@ -144,40 +175,62 @@ class ModuleParam(DBParameter):
         calias.appendChild(talias)
         element.appendChild(child)
 
+    def get_default_value(self):
+        """ get_default_value() -> any type
+        Query the registry for this constant's default value
+        
+        """
+        from core.modules import module_registry
+        reg = module_registry.registry
+        module = reg.get_module_by_name(self.identifier, self._type)()
+        return module.default_value
+
+    def translate_to_python(self):
+        """ translate_to_python() -> function or callable
+        Query the registry for this constant's conversion function
+
+        """
+        #FIXME this seems not to be used anywhere...
+        from core.modules import module_registry
+        reg = module_registry.registry
+        module = reg.get_module_by_name(self.identifier, self._type)()
+        return module.translate_to_python
+    
     def value(self):
         """  value() -> any type 
         Returns its strValue as a python type.
 
         """
         if self.strValue == "":
-            self.strValue = ModuleParam.defaultValue[self.type][0]
-            return ModuleParam.defaultValue[self.type][1]
-        return ModuleParam.dispatchValue[self.type](self.strValue)
+            v = self.get_default_value()
+            self.strValue = str(v)
+            return v
+        return self.translate_to_python()(self.strValue)
 
-    dispatchValue = {'Float': float,
-                     'Integer': int,
-                     'String': str,
-                     'Boolean': bool_conv}
+#     dispatchValue = {'Float': float,
+#                      'Integer': int,
+#                      'String': str,
+#                      'Boolean': bool_conv}
 
-    defaultValue = {'Float': ("0", 0.0),
-                    'Integer': ("0", 0),
-                    'String': ("", ""),
-                    'Boolean': ("False", False)}
+#     defaultValue = {'Float': ("0", 0.0),
+#                     'Integer': ("0", 0),
+#                     'String': ("", ""),
+#                     'Boolean': ("False", False)}
 
-    def quoteValue(self):
-        """ quoteValue() -> str -  Returns its strValue as an quote string."""
-        return ModuleParam.dispatchQuoteValue[self.type](self.strValue)
+#     def quoteValue(self):
+#         """ quoteValue() -> str -  Returns its strValue as an quote string."""
+#         return ModuleParam.dispatchQuoteValue[self.type](self.strValue)
     
-    dispatchQuoteValue = {'float': str,
-                          'double': str,
-                          'int': str,
-                          'vtkIdType': str,
-                          'str': lambda x: "'" + str(x) + "'",
-                          'string': lambda x: "'" + str(x) + "'",
-                          'const char *': lambda x: "'" + str(x) + "'",
-                          'const char*': lambda x: "'" + str(x) + "'",
-                          'char *': lambda x: "'" + str(x) + "'",
-                          'char*': lambda x: "'" + str(x) + "'"}
+#     dispatchQuoteValue = {'float': str,
+#                           'double': str,
+#                           'int': str,
+#                           'vtkIdType': str,
+#                           'str': lambda x: "'" + str(x) + "'",
+#                           'string': lambda x: "'" + str(x) + "'",
+#                           'const char *': lambda x: "'" + str(x) + "'",
+#                           'const char*': lambda x: "'" + str(x) + "'",
+#                           'char *': lambda x: "'" + str(x) + "'",
+#                           'char*': lambda x: "'" + str(x) + "'"}
 
     ##########################################################################
     # Debugging
@@ -186,7 +239,7 @@ class ModuleParam(DBParameter):
         if type(self) != type(other):
             print "type mismatch"
             return
-        if self.type != other.type:
+        if self.typeStr != other.typeStr:
             print "paramtype mismatch"
             return
         if self.strValue != other.strValue:
@@ -220,12 +273,13 @@ class ModuleParam(DBParameter):
         if self.minValue != "":
             assert False
         else:
-            return ("(Param '%s' type='%s' strValue='%s' real_id='%s' pos='%s' alias='%s')@%X" %
+            return ("(Param '%s' db_type='%s' strValue='%s' real_id='%s' pos='%s' identifier='%s' alias='%s')@%X" %
                     (self.name,
-                     self.type,
+                     self.db_type,
                      self.strValue,
                      self.real_id,
                      self.pos,
+                     self.identifier,
                      self.alias,
                      id(self)))
 

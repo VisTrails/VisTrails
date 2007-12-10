@@ -207,11 +207,11 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             # is considered a String. We need to store the package info inside
             # the parameter as well
             try:
-                desc = getter('edu.utah.sci.vistrails.basic', param.type)
+                desc = getter(param.identifier, param.type)
             except:
                 desc = getter('edu.utah.sci.vistrails.basic', 'String')
             constant = desc.module()
-            constant.setValue(p.evaluatedStrValue)
+            constant.setValue(param.evaluatedStrValue)
             return constant
                 
         ## Checking 'sinks' from kwagrs to resolve only requested sinks
