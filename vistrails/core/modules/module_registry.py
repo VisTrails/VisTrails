@@ -1260,16 +1260,16 @@ class ModuleRegistry(QtCore.QObject):
             pName = 'edu.utah.sci.vistrails.basic'
         self._current_package_name = pName
 
-    def get_module_package(self, identifier, name):
+    def get_module_package(self, identifier, name, namespace):
         """ get_module_package(identifier, moduleName: str) -> str
         Return the name of the package where the module is registered.
         
         """
-        descriptor = self.get_descriptor_by_name(identifier, name)
+        descriptor = self.get_descriptor_by_name(identifier, name, namespace)
         return descriptor.module_package()
 
-    def get_configuration_widget(self, identifier, name):
-        descriptor = self.get_descriptor_by_name(identifier, name)
+    def get_configuration_widget(self, identifier, name, namespace):
+        descriptor = self.get_descriptor_by_name(identifier, name, namespace)
         return descriptor.configuration_widget()
         
 
