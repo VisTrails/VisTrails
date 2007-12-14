@@ -63,6 +63,15 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
     own type of tree widget
 
     """
+    def connect_registry_signals(self):
+        self.connect(registry, registry.new_module_signal, 
+                     self.newModule)
+        self.connect(registry, registry.deleted_module_signal,
+                     self.deletedModule)
+        self.connect(registry, registry.deleted_package_signal, 
+                     self.deletedPackage)
+        
+    
     def createTreeWidget(self):
         """ createTreeWidget() -> QModuleTreeWidget
         Return the search tree widget for this window

@@ -144,12 +144,7 @@ after self.init()"""
         """
         self.builderWindow.create_first_vistrail()
         self.builderWindow.modulePalette.treeWidget.updateFromModuleRegistry()
-        registry.connect(registry, registry.new_module_signal, 
-                         self.builderWindow.modulePalette.newModule)
-        registry.connect(registry, registry.deleted_module_signal,
-                         self.builderWindow.modulePalette.deletedModule)
-        registry.connect(registry, registry.deleted_package_signal, 
-                         self.builderWindow.modulePalette.deletedPackage)
+        self.builderWindow.modulePalette.connect_registry_signals()
         if self.configuration.check('showSplash'):
             self.splashScreen.finish(self.builderWindow)
         if self.input:
