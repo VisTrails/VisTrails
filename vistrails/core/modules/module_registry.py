@@ -770,8 +770,8 @@ class ModuleRegistry(QtCore.QObject):
         assert type(module) == type
         assert issubclass(module, core.modules.vistrails_module.Module)
         assert self._module_key_map.has_key(module)
-        (identifier, name) = self._module_key_map[module]
-        return self.get_descriptor_by_name(identifier, name)
+        k = self._module_key_map[module]
+        return self.get_descriptor_by_name(*k)
 
     def add_module(self, module, **kwargs):
         """add_module(module: class, **kwargs) -> Tree
@@ -876,7 +876,6 @@ class ModuleRegistry(QtCore.QObject):
         descriptor.set_module_abstract(is_abstract)
         descriptor.set_configuration_widget(configureWidgetType)
 
-        # Right now we don't support custom cache callable calls.
         if signatureCallable:
             descriptor.set_hasher_callable(signatureCallable)
         descriptor.set_module_color(moduleColor)
