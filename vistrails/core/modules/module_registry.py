@@ -276,8 +276,7 @@ class ModuleDescriptor(object):
         self._left_fringe = None
         self._right_fringe = None
         self._module_color = None
-        # Currently unimplemented
-        # self._hasher_callable = None
+        self._hasher_callable = None
         self._widget_item = None
         self._input_port_cache = {}
         self._output_port_cache = {}
@@ -299,8 +298,7 @@ class ModuleDescriptor(object):
         self._left_fringe = copy.copy(other._left_fringe)
         self._right_fringe = copy.copy(other._right_fringe)
         self._module_color = other._module_color
-        # Currently unimplemented
-        # self._hasher_callable = other._hasher_callable
+        self._hasher_callable = other._hasher_callable
         
 
     ##########################################################################
@@ -477,11 +475,10 @@ class ModuleDescriptor(object):
     def module_package(self):
         return self.identifier
 
-    # Currently unimplemented 
-    # def set_hasher_callable(self, callable_):
-    #     self._hasher_callable = callable_
-    # def hasher_callable(self):
-    #     return self._hasher_callable
+    def set_hasher_callable(self, callable_):
+        self._hasher_callable = callable_
+    def hasher_callable(self):
+        return self._hasher_callable
 
 ###############################################################################
 # ModuleRegistry
@@ -698,24 +695,21 @@ class ModuleRegistry(QtCore.QObject):
     def class_tree(self):
         return self._class_tree
 
-    def module_signature(self, module):
-        """Returns signature of a given core.vistrail.Module, possibly
-        using user-defined hasher.
-
-        NOTE: Currently we don't support this, so it always returns
-        the basic hasher."""
-        return core.cache.hasher.Hasher.module_signature(module)
-
-        # Currently unimplemented
-        # descriptor = self.get_descriptor_by_name(module.package,
-        #                                          module.name)
-        # if not descriptor:
-        #     return core.cache.hasher.Hasher.module_signature(module)
-        # c = descriptor.hasher_callable()
-        # if c:
-        #     return c(module)
-        # else:
-        #     return core.cache.hasher.Hasher.module_signature(module)
+    def module_signature(self, pipeline, module):
+        """Returns signature of a given core.vistrail.Module in the
+        given core.vistrail.Pipeline, possibly using user-defined
+        hasher.
+        """
+        descriptor = self.get_descriptor_by_name(module.package,
+                                                 module.name,
+                                                 module.namespace)
+        if not descriptor:
+            return core.cache.hasher.Hasher.module_signature(module)
+        c = descriptor.hasher_callable()
+        if c:
+            return c(pipeline, module)
+        else:
+            return core.cache.hasher.Hasher.module_signature(module)
 
     def has_module(self, identifier, name, namespace=None):
         """has_module(identifier, name, namespace=None) -> Boolean. True if 'name' is registered
@@ -785,7 +779,7 @@ class ModuleRegistry(QtCore.QObject):
         kwargs:
           name=None,
           configureWidgetType=None,
-          cacheCallable=None,
+          signatureCallable=None,
           moduleColor=None,
           moduleFringe=None,
           moduleLeftFringe=None,
@@ -824,6 +818,12 @@ class ModuleRegistry(QtCore.QObject):
         identifier so that multiple modules inside the same package
         can share the same name.
 
+        If signatureCallable is not None, then the cache uses this
+        callable as the function to generate the signature for the
+        module in the cache. The function should take two parameters,
+        the pipeline (of type core.vistrail.Pipeline) and the module
+        (of type core.vistrail.Module), respectively.
+
         Notice: in the future, more named parameters might be added to
         this method, and the order is not specified. Always call
         add_module with named parameters.
@@ -840,7 +840,7 @@ class ModuleRegistry(QtCore.QObject):
             return r
         name = fetch('name', module.__name__)
         configureWidgetType = fetch('configureWidgetType', None)
-        cacheCallable = fetch('cacheCallable', None)
+        signatureCallable = fetch('signatureCallable', None)
         moduleColor = fetch('moduleColor', None)
         moduleFringe = fetch('moduleFringe', None)
         moduleLeftFringe = fetch('moduleLeftFringe', None) 
@@ -877,9 +877,8 @@ class ModuleRegistry(QtCore.QObject):
         descriptor.set_configuration_widget(configureWidgetType)
 
         # Right now we don't support custom cache callable calls.
-        if cacheCallable:
-            raise VistrailsInternalError("Unimplemented!")
-            # descriptor.set_hasher_callable(cacheCallable)
+        if signatureCallable:
+            descriptor.set_hasher_callable(signatureCallable)
         descriptor.set_module_color(moduleColor)
 
         if moduleFringe:

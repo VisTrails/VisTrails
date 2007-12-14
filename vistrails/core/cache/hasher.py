@@ -82,3 +82,13 @@ signatures for the upstream pipelines and connections.
         for pipeline_connection_sig in upstream_sigs:
             hasher.update(pipeline_connection_sig)
         return hasher.digest()
+
+    @staticmethod
+    def compound_signature(sig_list):
+        """compound_signature(list of signatures) -> sha digest
+        returns the signature of the compound object formed by the list
+        of signatures, assuming the list order is irrelevant"""
+        hasher = sha.new()
+        for h in sorted(sig_list):
+            hasher.update(h)
+        return hasher.digest()

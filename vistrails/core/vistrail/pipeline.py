@@ -622,7 +622,7 @@ class Pipeline(DBWorkflow):
         Returns the signature for the module with given module_id."""
         if not self._module_signatures.has_key(module_id):
             m = self.modules[module_id]
-            sig = registry.module_signature(m)
+            sig = registry.module_signature(self, m)
             self._module_signatures[module_id] = sig
         return self._module_signatures[module_id]
 

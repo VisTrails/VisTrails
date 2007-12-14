@@ -214,7 +214,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             constant.setValue(param.evaluatedStrValue)
             return constant
                 
-        ## Checking 'sinks' from kwagrs to resolve only requested sinks
+        ## Checking 'sinks' from kwargs to resolve only requested sinks
         if kwargs.has_key('sinks'):
             requestedSinks = kwargs['sinks']
             persistent_sinks = [tmp_to_persistent_module_map[sink]

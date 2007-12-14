@@ -40,6 +40,7 @@ from core.modules.module_registry import (registry, add_module,
                                           has_input_port,
                                           add_input_port, add_output_port)
 from core.modules.vistrails_module import new_module, ModuleError
+from core.cache.hasher import Hasher
 from base_module import vtkBaseModule
 from class_tree import ClassTree
 from vtk_parser import VTKMethodParser
@@ -50,7 +51,7 @@ from itertools import izip
 import offscreen
 import fix_classes
 
-version = '0.9.0'
+version = '0.9.1'
 identifier = 'edu.utah.sci.vistrails.vtk'
 name = 'VTK'
 
@@ -764,12 +765,26 @@ def createModule(baseModule, node):
                        class_dict(baseModule, node),
                        docstring=getattr(vtk, node.name).__doc__
                        )
+
+    # This is the user-defined hasher for VTK, that takes into account
+    # incoming and outgoing connections
+    def hasher(pipeline, module):
+        outgoing_connections = pipeline.graph.edges_from(module.id)
+        incoming_connections = pipeline.graph.edges_to(module.id)
+        current_hash = Hasher.module_signature(module)
+        chashes = [Hasher.connection_signature(pipeline.connections[c_id])
+                   for (_, c_id) in outgoing_connections]
+        chashes += [Hasher.connection_signature(pipeline.connections[c_id])
+                   for (_, c_id) in incoming_connections]
+        compound_hash = Hasher.compound_signature(chashes)
+        return Hasher.compound_signature([current_hash, compound_hash])
+
     # This is sitting on the class
     if hasattr(fix_classes, node.klass.__name__ + '_fixed'):
         module.vtkClass = getattr(fix_classes, node.klass.__name__ + '_fixed')
     else:
         module.vtkClass = node.klass
-    add_module(module, abstract=is_abstract())
+    add_module(module, abstract=is_abstract(), signatureCallable=hasher)
     for child in node.children:
         if child.name in disallowed_classes:
             continue
