@@ -33,184 +33,19 @@ import core.vistrail.pipeline
 
 ################################################################################
 
-class Interpreter(core.interpreter.base.BaseInterpreter):
-    def __init__(self):
-        core.interpreter.base.BaseInterpreter.__init__(self)
+class Interpreter(core.interpreter.cached.CachedInterpreter):
 
-    typeConversion = {'Float': float,
-                      'Integer': int,
-                      'String': lambda x: x}
+    def clean_non_cacheable_modules(self):
+        non_cacheable_modules = [i for
+                                 (i, mod) in self._objects.iteritems()]
+        self.clean_modules(non_cacheable_modules)
 
-    @lock_method(core.interpreter.utils.get_interpreter_lock())
-    def locked_execute(self, controller, pipeline, locator,
-                       currentVersion, view, aliases=None, **kwargs):
-        return self.unlocked_execute(controller, pipeline, locator,
-                                     currentVersion, view, aliases, **kwargs)
-    
-    def unlocked_execute(self, controller, pipeline,
-                         locator, currentVersion,
-                         view, aliases=None, **kwargs):
-        if view == None:
-            raise VistrailsInternalError("Must pass a view object")
-
-        self.resolve_aliases(pipeline, aliases)
-
-        self._logger.start_workflow_execution(locator, currentVersion)
-
-        def add_to_executed(obj):
-            executed[obj.id] = True
-            if kwargs.has_key('moduleExecutedHook'):
-                for callable_ in kwargs['moduleExecutedHook']:
-                    callable_(obj.id)
-        def begin_compute(obj):
-            view.set_module_computing(obj.id)
-        def begin_update(obj):
-            view.set_module_active(obj.id)
-            reg = modules.module_registry.registry
-            name = reg.getDescriptor(obj.__class__).name
-            self._logger.start_module_execution(locator,
-                                              currentVersion, obj.id, name)
-        def end_update(obj, error=''):
-            if not error:
-                view.set_module_success(obj.id)
-            else:
-                view.set_module_error(obj.id, error)
-            self._logger.finish_module_execution(locator, 
-                                               currentVersion, obj.id)
-        def annotate(obj, d):
-            self._logger.insert_annotation_DB(locator, 
-                                            currentVersion, obj.id, d)
-
-        def create_constant(param):
-            """Creates a Constant from a parameter spec"""
-            getter = modules.module_registry.registry.get_descriptor_by_name
-            # FIXME: for now any constant that is not in the basic package
-            # is considered a String. We need to store the package info inside
-            # the parameter as well
-            try:
-                desc = getter(param.identifier, param.type)
-            except:
-                desc = getter('edu.utah.sci.vistrails.basic', 'String')
-            constant = desc.module()
-            constant.setValue(param.evaluatedStrValue)
-            return constant
-        
-        try:
-            self.filePool = FilePool()
-            objects = {}
-            errors = {}
-            executed = {}
-            logging_obj = InstanceObject(signalSuccess=add_to_executed,
-                                         begin_update=begin_update,
-                                         begin_compute=begin_compute,
-                                         end_update=end_update,
-                                         annotate=annotate)
-            # create objects
-            for id, module in pipeline.modules.items():
-                objects[id] = module.summon()
-                objects[id].interpreter = self
-                objects[id].id = id
-                objects[id].logging = logging_obj
-                
-                # Update object pipeline information
-                obj = objects[id]
-                obj.moduleInfo['locator'] = locator
-                obj.moduleInfo['version'] = currentVersion
-                obj.moduleInfo['moduleId'] = id
-                obj.moduleInfo['pipeline'] = pipeline
-                if kwargs.has_key('reason'):
-                    obj.moduleInfo['reason'] = kwargs['reason']
-                if kwargs.has_key('actions'):
-                    obj.moduleInfo['actions'] = kwargs['actions']
-                
-                reg = modules.module_registry.registry
-                for f in module.functions:
-                    if len(f.params)==0:
-                        nullObject = reg.get_descriptor_by_name(
-                            'edu.utah.sci.vistrails.basic',
-                            'Null').module()
-                        objects[id].set_input_port(f.name, 
-                                                   ModuleConnector(nullObject,
-                                                                   'value'), is_method=True)
-                    if len(f.params)==1:
-                        p = f.params[0]
-                        constant = create_constant(p)
-                        objects[id].set_input_port(f.name, 
-                                                 ModuleConnector(constant, 
-                                                                 'value'), is_method=True)
-                    if len(f.params)>1:
-                        tupleModule = core.interpreter.base.InternalTuple()
-                        tupleModule.length = len(f.params)
-                        for (i,p) in iter_with_index(f.params):
-                            constant = create_constant(p)
-                            tupleModule.set_input_port(i, 
-                                                       ModuleConnector(constant, 
-                                                                       'value'))
-                        objects[id].set_input_port(f.name, 
-                                                   ModuleConnector(tupleModule,
-                                                                   'value'), is_method=True)
-            
-            # create connections
-            for id, conn in pipeline.connections.items():
-                src = objects[conn.sourceId]
-                dst = objects[conn.destinationId]
-                dstModule = pipeline.modules[conn.destinationId]
-                conn.makeConnection(src, dst)
-
-            if self.done_summon_hook:
-                self.done_summon_hook(pipeline, objects)
-            if kwargs.has_key('done_summon_hook'):
-                for callable_ in kwargs['done_summon_hook']:
-                    callable_(pipeline, objects)
-
-            if kwargs.has_key('sinks'):
-                requestedSinks = kwargs['sinks']
-                allSinks = [sink
-                            for sink in pipeline.graph.sinks()
-                            if sink in requestedSinks]
-            else:
-                allSinks = pipeline.graph.sinks()
-            
-            for v in allSinks:
-                try:
-                    objects[v].update()
-                    
-                except ModuleError, me:
-                    me.module.logging.end_update(me.module, me.msg)
-                    errors[me.module.id] = me
-        
-            if self.done_update_hook:
-                self.done_update_hook(pipeline, objects)
-        
-
-        finally:
-            self.filePool.cleanup()
-            del self.filePool
-
-        self._logger.finish_workflow_execution(locator, currentVersion)
-        
-        return InstanceObject(objects=objects,
-                              errors=errors,
-                              executed=executed)
-        
-    def execute(self, controller, pipeline, vistrailLocator,
-                currentVersion=-1, view=DummyView(),
-                useLock=True, **kwargs):
-        if useLock:
-            method_call = self.locked_execute
-        else:
-            method_call = self.unlocked_execute
-
-        return method_call(controller, pipeline, vistrailLocator,
-                           currentVersion, view, **kwargs)
-
-
+    __instance = None
     @staticmethod
     def get():
-        return Interpreter()
-
-    @staticmethod
-    def cleanup():
-        pass
+        if not Interpreter.__instance:
+            Interpreter.__instance = Interpreter()
+        return Interpreter.__instance
         
+
 ################################################################################

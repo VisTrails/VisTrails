@@ -37,6 +37,7 @@ from core.utils.uxml import (named_elements,
                              elements_filter, enter_named_element)
 from gui import qt
 import core.configuration
+import core.interpreter.default
 import core.interpreter.cached
 import core.requirements
 import core.startup
@@ -78,6 +79,8 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         gui.theme.initializeCurrentTheme()
         self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
         self.configuration = core.configuration.default()
+        core.interpreter.default.connect_to_configuration(self.configuration)
+        
         self.keyChain = keychain.KeyChain()
         self.setupOptions()
 

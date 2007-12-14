@@ -27,7 +27,19 @@ cached_interpreter = core.interpreter.cached.CachedInterpreter
 noncached_interpreter = core.interpreter.noncached.Interpreter
 __default_interpreter = cached_interpreter
 
+from PyQt4 import QtCore
+
 ##############################################################################
+
+def set_cache_configuration(field, value):
+    assert field == 'useCache'
+    if value:
+        set_default_interpreter(cached_interpreter)
+    else:
+        set_default_interpreter(noncached_interpreter)
+
+def connect_to_configuration(configuration):
+    configuration.subscribe('useCache', set_cache_configuration)
 
 def get_default_interpreter():
     """Returns an instance of the default interpreter class."""

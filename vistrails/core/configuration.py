@@ -35,6 +35,8 @@ import os.path
 import shutil
 import sys
 import tempfile
+from core.utils import append_to_dict_of_lists
+import weakref
 
 ##############################################################################
 
@@ -49,6 +51,37 @@ class ConfigurationObject(InstanceObject):
 
     """
 
+    def __init__(self, *args, **kwargs):
+        InstanceObject.__init__(self, *args, **kwargs)
+        self.__subscribers__ = {}
+   
+    def __setattr__(self, name, value):
+        object.__setattr__(self, name, value)
+        if name == '__subscribers__':
+            return
+        if name in self.__subscribers__:
+            to_remove = []
+            for subscriber in self.__subscribers__[name]:
+                obj = subscriber()
+                if obj:
+                    obj(name, value)
+                else:
+                    to_remove.append(obj)
+            for ref in to_remove:
+                self.__subscribers__[name].remove(ref)
+
+    def unsubscribe(self, field, callable_):
+        """unsubscribe(field, callable_): remove observer from subject
+        """
+        self.__subscribers__[field].remove(weakref.ref(callable_))
+        
+    def subscribe(self, field, callable_):
+        """subscribe(field, callable_): call observer callable_ when
+        self.field is set.
+        """
+        append_to_dict_of_lists(self.__subscribers__, field,
+                                weakref.ref(callable_))
+                  
     def has(self, key):
         """has(key) -> bool.
 
@@ -83,6 +116,8 @@ class ConfigurationObject(InstanceObject):
         conf_element = dom.createElement('configuration')
         element.appendChild(conf_element)
         for (key, value) in self.__dict__.iteritems():
+            if key == '__subscribers__':
+                continue
             key_element = dom.createElement('key')
             key_element.setAttribute('name', key)
             if type(value) in [int, str, bool, float]:
