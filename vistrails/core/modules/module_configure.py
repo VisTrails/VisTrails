@@ -37,7 +37,8 @@ class StandardModuleConfigurationWidget(QtGui.QDialog):
         reg = module.registry or registry
         self.module_descriptor = reg.get_descriptor_by_name(
             self.module.package,
-            self.module.name)
+            self.module.name,
+            self.module.namespace)
         self.controller = controller
 
 

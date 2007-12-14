@@ -803,7 +803,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.computeBoundingRect()
         self.resetMatrix()
         self.translate(module.center.x, -module.center.y)
-        c = registry.get_module_color(module.package, module.name)
+        c = registry.get_module_color(module.package, module.name, module.namespace)
         if c:
             ic = [int(cl*255) for cl in c]
             b = QtGui.QBrush(QtGui.QColor(ic[0], ic[1], ic[2]))
@@ -874,7 +874,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.createConfigureItem(x, y)
         
         # Update module shape, if necessary
-        fringe = registry.get_module_fringe(module.package, module.name)
+        fringe = registry.get_module_fringe(module.package,
+                                            module.name,
+                                            module.namespace)
         if fringe:
             left_fringe, right_fringe = fringe
             if left_fringe[0] != (0.0, 0.0):
@@ -1389,7 +1391,8 @@ mutual connections."""
             item.descriptor.identifier,
             item.descriptor.name,
             event.scenePos().x(),
-            -event.scenePos().y())
+            -event.scenePos().y(),
+            item.descriptor.namespace)
         self.reset_module_colors()
         graphics_item = self.addModule(module)
         graphics_item.update()
@@ -1636,7 +1639,7 @@ mutual connections."""
         if self.controller:
             module = self.controller.currentPipeline.modules[id]
             getter = registry.get_configuration_widget
-            widgetType = getter(module.package, module.name)
+            widgetType = getter(module.package, module.name, module.namespace)
             if not widgetType:
                 widgetType = DefaultModuleConfigurationWidget
             global widget
@@ -1653,7 +1656,9 @@ mutual connections."""
         """
         if self.controller:
             module = self.controller.currentPipeline.modules[id]
-            descriptor = registry.get_descriptor_by_name(module.package, module.name)
+            descriptor = registry.get_descriptor_by_name(module.package,
+                                                         module.name,
+                                                         module.namespace)
             widget = QModuleDocumentation(descriptor, None)
             widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
             widget.exec_()

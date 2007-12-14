@@ -38,6 +38,24 @@ from core.packagemanager import get_package_manager
 import weakref
 
 ################################################################################
+
+# helper function to add namespace treewidgetitems to widget
+def _ensure_namespace(descriptor, parentItem):
+    desc = descriptor
+    # Ensures all namespaces have nodes
+    items = desc.namespace.split('/')
+    current_parent = parentItem
+    for item in items:
+        if not item in current_parent._namespace_items:
+            nsitem = QModuleTreeWidgetItem(None,
+                                           current_parent,
+                                           QtCore.QStringList(item))
+            nsitem._namespace_items = {}
+            current_parent._namespace_items[item] = weakref.ref(nsitem)
+            current_parent = nsitem
+    return current_parent
+
+################################################################################
                 
 class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
     """
@@ -73,7 +91,6 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
 
         parent = item.parent()
         parent.takeChild(parent.indexOfChild(item))
-        del self.treeWidget._item_map[(identifier, moduleName)]
 
     def deletedPackage(self, package):
         """ deletedPackage(package):
@@ -110,32 +127,17 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
             parentItem = QModuleTreeWidgetItem(None,
                                                None,
                                                QtCore.QStringList(packageName))
+            parentItem._namespace_items = {}
             self.treeWidget.insertTopLevelItem(0, parentItem)
         else:
             parentItem = packageItems[0]
 
-        # Determines where to attach the new item
-        direct_parent = registry.get_module_hierarchy(descriptor)[1]
-        parent_descriptor = registry.get_descriptor(direct_parent)
-
-        # if module package is different, attach to toplevel of this package.
-
-        if parent_descriptor.module_package() == identifier:
-            # if module package is the same, then find the parent in this package
-
-            # filtering is necessary for cases where module name is
-            # the same as top-level
-            
-            # _item_map stores weakrefs, and we dereference them by __call__ing it.
-            parentItem = self.treeWidget._item_map[
-                (parent_descriptor.identifier,
-                 parent_descriptor.name)]()
+        if descriptor.namespace:
+            parentItem = _ensure_namespace(descriptor, parentItem)
 
         item = QModuleTreeWidgetItem(descriptor,
                                      parentItem,
                                      QtCore.QStringList(moduleName))
-        self.treeWidget._item_map[(descriptor.identifier,
-                                   descriptor.name)] = weakref.ref(item)
 
 class QModuleTreeWidget(QSearchTreeWidget):
     """
@@ -156,7 +158,6 @@ class QModuleTreeWidget(QSearchTreeWidget):
         self.connect(self,
                      QtCore.SIGNAL('itemPressed(QTreeWidgetItem *,int)'),
                      self.onItemPressed)
-        self._item_map = {}
 
     def onItemPressed(self, item, column):
         """ onItemPressed(item: QTreeWidgetItem, column: int) -> None
@@ -189,18 +190,18 @@ class QModuleTreeWidget(QSearchTreeWidget):
             its module item
             
             """
+            desc = module.descriptor
             labels = QtCore.QStringList(module.descriptor.name)
             packageName = module.descriptor.module_package()
             parentItem = parentItems[packageName]
-            moduleItem = QModuleTreeWidgetItem(module.descriptor,
-                                               parentItem,
-                                               labels)
-            self._item_map[(module.descriptor.identifier,
-                            module.descriptor.name)] = weakref.ref(moduleItem)
-            parentItems[packageName] = moduleItem
+            if desc.namespace:
+                parentItem = _ensure_namespace(desc, parentItem)
+            if not desc.module_abstract():
+                moduleItem = QModuleTreeWidgetItem(module.descriptor,
+                                                   parentItem,
+                                                   labels)
             for child in module.children:
                 createModuleItem(child)
-            parentItems[packageName] = parentItem
 
         pm = get_package_manager()
         for packageName in registry.package_modules.iterkeys():
@@ -208,10 +209,12 @@ class QModuleTreeWidget(QSearchTreeWidget):
             item = QModuleTreeWidgetItem(None,
                                          self,
                                          QtCore.QStringList(name))
+            item._namespace_items = {}
             item.setFlags(item.flags() & ~QtCore.Qt.ItemIsDragEnabled)
             parentItems[packageName] = item
         module = registry.class_tree()
         createModuleItem(module)
+        self.sortItems(0, QtCore.Qt.AscendingOrder)
         self.expandAll()
 
 class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):

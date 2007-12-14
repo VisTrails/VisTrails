@@ -144,7 +144,7 @@ class PipelineInspector(object):
             cellType = registry.get_descriptor_by_name('edu.utah.sci.vistrails.spreadsheet',
                                                        'SpreadsheetCell').module
             for mId, module in pipeline.modules.iteritems():
-                desc = registry.get_descriptor_by_name(module.package, module.name)
+                desc = registry.get_descriptor_by_name(module.package, module.name, module.namespace)
                 if issubclass(desc.module, cellType):
                     self.spreadsheet_cells.append(mId)
 

@@ -761,13 +761,17 @@ class Pipeline(DBWorkflow):
                                   if (p.__dict__['_DBPort__db_name'] ==
                                       port.__dict__['_DBPort__db_name'])])
 
-            do_it(reg.module_source_ports(False, module.package, module.name))
+            do_it(reg.module_source_ports(False,
+                                          module.package,
+                                          module.name,
+                                          module.namespace))
             if len(port_list) == 0:
                 # The port might still be in the original registry
                 do_it(registry.module_source_ports(False, module.package,
-                                                   module.name))
+                                                   module.name,
+                                                   module.namespace))
             if len(port_list) == 0:
-                print "Failed", module.package, module.name, port.name
+                print "Failed", module.package, module.name, module.namespace, port.name
                 assert False
             
             # if port_list has more than one element, then it's an
@@ -794,13 +798,14 @@ class Pipeline(DBWorkflow):
                                   if (p.__dict__['_DBPort__db_name'] ==
                                       port.__dict__['_DBPort__db_name'])])
 
-            do_it(reg.module_destination_ports(False, module.package, module.name))
+            do_it(reg.module_destination_ports(False, module.package, module.name, module.namespace))
             if len(port_list) == 0:
                 # The port might still be in the original registry
                 do_it(registry.module_destination_ports(False, module.package,
-                                                        module.name))
+                                                        module.name,
+                                                        module.namespace))
             if len(port_list) == 0:
-                print "Failed", module.package, module.name, port.name
+                print "Failed", module.package, module.name, module.namespace, port.name
                 assert False
 
             # if port_list has more than one element, then it's an

@@ -54,6 +54,11 @@ class Module(DBModule):
     # Constructor and copy
 
     def __init__(self, *args, **kwargs):
+        if 'namespace' in kwargs:
+            namespace = kwargs['namespace']
+            del kwargs['namespace']
+        else:
+            namespace = ''
         DBModule.__init__(self, *args, **kwargs)
         if self.cache is None:
             self.cache = 1
@@ -69,6 +74,7 @@ class Module(DBModule):
             self.version = ''
         self.portVisible = Set()
         self.registry = None
+        self.namespace = namespace
 
     def __copy__(self):
         """__copy__() -> Module - Returns a clone of itself"""
@@ -79,6 +85,7 @@ class Module(DBModule):
         cp.__class__ = Module
         # cp.registry = copy.copy(self.registry)
         cp.registry = None
+        cp.namespace = self.namespace
         for port_spec in cp.db_portSpecs:
             cp.add_port_to_registry(port_spec)
         cp.portVisible = copy.copy(self.portVisible)
@@ -88,6 +95,7 @@ class Module(DBModule):
     def convert(_module):
 	_module.__class__ = Module
 	_module.registry = None
+        _module.namespace = None
         for _port_spec in _module.db_portSpecs:
             PortSpec.convert(_port_spec)
             _module.add_port_to_registry(_port_spec)
@@ -183,7 +191,7 @@ class Module(DBModule):
 
     def summon(self):
         get = registry.get_descriptor_by_name
-        result = get(self.package, self.name).module()
+        result = get(self.package, self.name, self.namespace).module()
         if self.cache != 1:
             result.is_cacheable = lambda *args: False
         if hasattr(result, 'srcPortsOrder'):
@@ -202,9 +210,9 @@ class Module(DBModule):
 
         """
 
-        ports = registry.module_source_ports(True, self.package, self.name)
+        ports = registry.module_source_ports(True, self.package, self.name, self.namespace)
         if self.registry:
-            ports.extend(self.registry.module_source_ports(False, self.package, self.name))
+            ports.extend(self.registry.module_source_ports(False, self.package, self.name, self.namespace))
         return ports
 
     def destinationPorts(self):
@@ -212,14 +220,14 @@ class Module(DBModule):
         Returns list of destination (input) ports module supports
 
         """
-        ports = registry.module_destination_ports(True, self.package, self.name)
+        ports = registry.module_destination_ports(True, self.package, self.name, self.namespace)
         if self.registry:
-            ports.extend(self.registry.module_destination_ports(False, self.package, self.name))
+            ports.extend(self.registry.module_destination_ports(False, self.package, self.name, self.namespace))
         return ports
 
     def add_port_to_registry(self, port_spec):
         module = \
-            registry.get_descriptor_by_name(self.package, self.name).module
+            registry.get_descriptor_by_name(self.package, self.name, self.namespace).module
         if self.registry is None:
             self.registry = ModuleRegistry()
             self.registry.add_hierarchy(registry, self)
@@ -248,7 +256,7 @@ class Module(DBModule):
         port.spec = core.modules.module_registry.PortSpec(signature)
 
         module = \
-            registry.get_descriptor_by_name(self.package, self.name).module
+            registry.get_descriptor_by_name(self.package, self.name, self.namespace).module
         assert isinstance(self.registry, ModuleRegistry)
 
         if portSpec.type == 'input':

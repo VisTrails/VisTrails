@@ -192,8 +192,8 @@ class PortSpec(object):
         assert sig[0] == '(' and sig[-1] == ')'
         vs = sig[1:-1].split(',')
         for v in vs:
-            (identifier, name) = v.split(':')
-            klass = get_descriptor_by_name(identifier, name).module
+            k = v.split(':') # this will be either package:name or package:name:namespace
+            klass = get_descriptor_by_name(*k).module
             result._entries.append((klass, '<no description>'))
         return result
 
@@ -214,17 +214,47 @@ class PortSpec(object):
 
 class ModuleDescriptor(object):
     """ModuleDescriptor is a class that holds information about
-    modules in the registry.
+    modules in the registry. There exists exactly one ModuleDescriptor
+    for every registered VisTrails module in the system.
 
+    self.module: reference to the python class that defines the module
+    self.name: name of the module
+    self.identifier: identifier of the package that module belongs to
+    self.input_ports: dictionary of names of input ports to the types
+      consumed by the ports
+    self.output_ports: dictionary of names of output ports to the types
+      produces by the ports
+    self.input_ports_optional: dictionary of input port names that records
+      whether ports should show up by default on GUI
+    self.output_ports_optional: dictionary of output port names that records
+      whether ports should show up by default on GUI
+    self.port_order: stores a map from names to numbers to order the ports
+      in the GUI
+
+    self._is_abstract: whether module is abstract
+    self._configuration_widget: reference to the Qt class that provides a
+      custom configuration widget for the class.
+    self._left_fringe and self._right_fringe: lists of 2D points that
+      define a drawing style for modules in the GUI
+    self._module_color: color of the module in the GUI
+
+    self._widget_item: stores a reference to the ModuleTreeWidgetItem so
+      that when ports are added to modules things get correctly updated.
+
+    self._input_port_cache, self._output_port_cache,
+      self._port_caches: Dictionaries for fast port spec lookup,
+      created because port spec lookups are sometimes part of hot code
+      paths and need to go as fast as possible.
     """
 
     ##########################################################################
 
-    def __init__(self, tree_node, module, identifier, name=None):
+    def __init__(self, tree_node, module, identifier, name=None, namespace=None):
         self._tree_node = weakref.proxy(tree_node)
         if not name:
             name = module.__name__
         self.module = module
+        self.namespace = namespace
         candidates = ModuleRegistry.get_subclass_candidates(self.module)
         if len(candidates) > 0:
             base = candidates[0]
@@ -239,16 +269,15 @@ class ModuleDescriptor(object):
         self.output_ports = {}
         self.input_ports_optional = {}
         self.output_ports_optional = {}
-        self.input_ports_configure_widget_type = {}
         self.port_order = {}
 
         self._is_abstract = False
         self._configuration_widget = None
-        self._left_fringe = None # Fringes are lists of pairs of floats
+        self._left_fringe = None
         self._right_fringe = None
         self._module_color = None
-        self._module_package = None
-        self._hasher_callable = None
+        # Currently unimplemented
+        # self._hasher_callable = None
         self._widget_item = None
         self._input_port_cache = {}
         self._output_port_cache = {}
@@ -264,15 +293,14 @@ class ModuleDescriptor(object):
         self.output_ports = copy.deepcopy(other.output_ports)
         self.input_ports_optional = copy.deepcopy(other.input_ports_optional)
         self.output_ports_optional = copy.deepcopy(other.output_ports_optional)
-        self.input_ports_configure_widget_type = copy.deepcopy(other.input_ports_configure_widget_type)
         
         self._is_abstract = other._is_abstract
         self._configuration_widget = other._configuration_widget
         self._left_fringe = copy.copy(other._left_fringe)
         self._right_fringe = copy.copy(other._right_fringe)
         self._module_color = other._module_color
-        self._module_package = other._module_package
-        self._hasher_callable = other._hasher_callable
+        # Currently unimplemented
+        # self._hasher_callable = other._hasher_callable
         
 
     ##########################################################################
@@ -365,7 +393,6 @@ class ModuleDescriptor(object):
         result = self._append_to_port_list(self.input_ports,
                                            self.input_ports_optional,
                                            name, spec, optional)
-        self.input_ports_configure_widget_type[name] = configureWidgetType
         self.new_input_port()
         return result
 
@@ -410,8 +437,8 @@ class ModuleDescriptor(object):
         self._is_abstract = v
 
     def module_abstract(self):
-        if not self.has_ports():
-            return True
+#         if not self.has_ports():
+#             return True
         return self._is_abstract
 
     def set_configuration_widget(self, configuration_widget_type):
@@ -437,7 +464,8 @@ class ModuleDescriptor(object):
             self._left_fringe = None
             self._right_fringe = None
         else:
-            _check_fringe(left_fringe, right_fringe)
+            _check_fringe(left_fringe)
+            _check_fringe(right_fringe)
             self._left_fringe = left_fringe
             self._right_fringe = right_fringe
 
@@ -449,11 +477,11 @@ class ModuleDescriptor(object):
     def module_package(self):
         return self.identifier
 
-    def set_hasher_callable(self, callable_):
-        self._hasher_callable = callable_
-
-    def hasher_callable(self):
-        return self._hasher_callable
+    # Currently unimplemented 
+    # def set_hasher_callable(self, callable_):
+    #     self._hasher_callable = callable_
+    # def hasher_callable(self):
+    #     return self._hasher_callable
 
 ###############################################################################
 # ModuleRegistry
@@ -493,6 +521,13 @@ class ModuleRegistry(QtCore.QObject):
     # Constructor and copy
 
     def __init__(self):
+        """ModuleRegistry is the base class for objects that store a hierarchy
+        of registered VisTrails Modules. There is one global registry for the
+        system, and some modules have local registries (in the case of
+        dynamically configurable modules, like PythonSource).
+
+        """
+        
         QtCore.QObject.__init__(self)
         self._current_package_name = 'edu.utah.sci.vistrails.basic'
         base_node = Tree(core.modules.vistrails_module.Module,
@@ -529,13 +564,20 @@ class ModuleRegistry(QtCore.QObject):
         # missing base class. We do _NOT_ add the ports, so watch out!
         
         reg = global_registry
-        d = reg.get_descriptor_by_name(module.package, module.name)
+        d = reg.get_descriptor_by_name(module.package, module.name, module.namespace)
         # we exclude the first module in the hierarchy because it's Module
         # and we exclude 
         hierarchy = reg.get_module_hierarchy(d)
         for m in reversed(hierarchy[:-1]):
-            (package, name) = reg._module_key_map[m]
-            self.add_module(m, name=name, package=package)
+            k = reg._module_key_map[m]
+            if len(k) == 3:
+                (package, name, namespace) = k
+                self.add_module(m, name=name, package=package,
+                                namespace=namespace)
+            else:
+                assert len(k) == 2
+                (package, name) = k
+                self.add_module(m, name=name, package=package)
 
     ##########################################################################
     # Performance
@@ -555,39 +597,39 @@ class ModuleRegistry(QtCore.QObject):
                 result.append(ports[i])
         return result
 
-    def module_source_ports(self, sorted, identifier, module_name):
+    def module_source_ports(self, sorted, identifier, module_name, namespace=None):
         if (self._monotonic and
-            (sorted, identifier, module_name) in self._module_source_ports_cache):
+            (sorted, identifier, module_name, namespace) in self._module_source_ports_cache):
              # make sure list is fresh
-            return self._module_source_ports_cache[(sorted, identifier, module_name)][:]
+            return self._module_source_ports_cache[(sorted, identifier, module_name, namespace)][:]
         ports = []
-        descriptor = self.get_descriptor_by_name(identifier, module_name)
+        descriptor = self.get_descriptor_by_name(identifier, module_name, namespace)
 
         for (n, registry_ports) in self.all_source_ports(descriptor, sorted=False):
             ports.extend([copy.copy(x) for x in registry_ports])
         if sorted:
             ports = self._unique_sorted_ports(ports)
         if self._monotonic:
-            self._module_source_ports_cache[(sorted, identifier, module_name)] = ports
-            return self._module_source_ports_cache[(sorted, identifier, module_name)][:]
+            self._module_source_ports_cache[(sorted, identifier, module_name, namespace)] = ports
+            return self._module_source_ports_cache[(sorted, identifier, module_name, namespace)][:]
         else:
             return ports[:]
 
-    def module_destination_ports(self, sorted, identifier, module_name):
+    def module_destination_ports(self, sorted, identifier, module_name, namespace=None):
         if (self._monotonic and
-            (sorted, identifier, module_name) in self._module_destination_ports_cache):
+            (sorted, identifier, module_name, namespace) in self._module_destination_ports_cache):
              # make sure list is fresh
-            return self._module_destination_ports_cache[(sorted, identifier, module_name)][:]
+            return self._module_destination_ports_cache[(sorted, identifier, module_name, namespace)][:]
         ports = []
-        descriptor = self.get_descriptor_by_name(identifier, module_name)
+        descriptor = self.get_descriptor_by_name(identifier, module_name, namespace)
 
         for (n, registry_ports) in self.all_destination_ports(descriptor, sorted=False):
             ports.extend([copy.copy(x) for x in registry_ports])
         if sorted:
             ports = self._unique_sorted_ports(ports)
         if self._monotonic:
-            self._module_destination_ports_cache[(sorted, identifier, module_name)] = ports
-            return self._module_destination_ports_cache[(sorted, identifier, module_name)][:]
+            self._module_destination_ports_cache[(sorted, identifier, module_name, namespace)] = ports
+            return self._module_destination_ports_cache[(sorted, identifier, module_name, namespace)][:]
         else:
             return ports[:]
 
@@ -604,8 +646,12 @@ class ModuleRegistry(QtCore.QObject):
         n = self._key_tree_map[k]
         return n.descriptor
 
-    def get_tree_node_from_name(self, identifier, name):
-        return self._key_tree_map[(identifier, name)]
+    def get_tree_node_from_name(self, identifier, name, namespace=None):
+        if namespace:
+            k = (identifier, name, namespace)
+        else:
+            k = (identifier, name)
+        return self._key_tree_map[k]
 
     ##########################################################################
     # Legacy
@@ -628,8 +674,7 @@ class ModuleRegistry(QtCore.QObject):
                                             name)
         if len(matches) > 1:
             raise Exception("ambiguous resolution...")
-        result = self.get_descriptor_by_name(matches[0][0],
-                                             matches[0][1])
+        result = self.get_descriptor_by_name(*(matches[0]))
         self._legacy_name_only_map[name] = result
         return result
 
@@ -655,51 +700,68 @@ class ModuleRegistry(QtCore.QObject):
 
     def module_signature(self, module):
         """Returns signature of a given core.vistrail.Module, possibly
-        using user-defined hasher."""
-        descriptor = self.get_descriptor_by_name(module.package,
-                                                 module.name)
-        if not descriptor:
-            return core.cache.hasher.Hasher.module_signature(module)
-        c = descriptor.hasher_callable()
-        if c:
-            return c(module)
-        else:
-            return core.cache.hasher.Hasher.module_signature(module)
+        using user-defined hasher.
 
-    def has_module(self, identifier, name):
-        """has_module(identifier, name) -> Boolean. True if 'name' is registered
+        NOTE: Currently we don't support this, so it always returns
+        the basic hasher."""
+        return core.cache.hasher.Hasher.module_signature(module)
+
+        # Currently unimplemented
+        # descriptor = self.get_descriptor_by_name(module.package,
+        #                                          module.name)
+        # if not descriptor:
+        #     return core.cache.hasher.Hasher.module_signature(module)
+        # c = descriptor.hasher_callable()
+        # if c:
+        #     return c(module)
+        # else:
+        #     return core.cache.hasher.Hasher.module_signature(module)
+
+    def has_module(self, identifier, name, namespace=None):
+        """has_module(identifier, name, namespace=None) -> Boolean. True if 'name' is registered
         as a module."""
-        return self._key_tree_map.has_key((identifier, name))
+        if namespace:
+            k = (identifier, name, namespace)
+        else:
+            k = (identifier, name)
+        return self._key_tree_map.has_key(k)
 
-    def get_module_color(self, identifier, name):
-        return self.get_descriptor_by_name(identifier, name).module_color()
+    def get_module_color(self, identifier, name, namespace=None):
+        return self.get_descriptor_by_name(identifier, name, namespace).module_color()
 
-    def get_module_fringe(self, identifier, name):
-        return self.get_descriptor_by_name(identifier, name).module_fringe()
+    def get_module_fringe(self, identifier, name, namespace=None):
+        return self.get_descriptor_by_name(identifier, name, namespace).module_fringe()
 
-    def get_module_by_name(self, identifier, name):
+    def get_module_by_name(self, identifier, name, namespace=None):
         """get_module_by_name(name: string): class
 
         Returns the VisTrails module (the class) registered under the
         given name.
 
         """
-        return self.get_descriptor_by_name(identifier, name).module
+        return self.get_descriptor_by_name(identifier, name, namespace).module
 
-    def has_descriptor_with_name(self, identifier, name):
-        return self._key_tree_map.has_key((identifier, name))
+    def has_descriptor_with_name(self, identifier, name, namespace=None):
+        if namespace:
+            k = (identifier, name, namespace)
+        else:
+            k = (identifier, name)
+        return self._key_tree_map.has_key(k)
 
-    def get_descriptor_by_name(self, identifier, name):
+    def get_descriptor_by_name(self, identifier, name, namespace=None):
         """get_descriptor_by_name(package_identifier,
                                   module_name) -> ModuleDescriptor"""
+        if namespace:
+            key = (identifier, name, namespace)
+        else:
+            key = (identifier, name)
         if identifier not in self.package_modules:
             msg = ("Cannot find package %s: it is missing" % identifier)
             core.debug.critical(msg)
             raise self.MissingModulePackage(identifier, name)
-        key = (identifier, name)
         if not self._key_tree_map.has_key(key):
             msg = ("Package %s does not contain module %s" %
-                   (identifier, name))
+                   key)
             core.debug.critical(msg)
             raise self.MissingModulePackage(identifier, name)
         return self._key_tree_map[key].descriptor
@@ -730,6 +792,7 @@ class ModuleRegistry(QtCore.QObject):
           moduleRightFringe=None,
           abstract=None
           package=None
+          namespace=None
 
         Registers a new module with VisTrails. Receives the class
         itself and an optional name that will be the name of the
@@ -756,12 +819,17 @@ class ModuleRegistry(QtCore.QObject):
         don't know what a local per-module registry is, you can ignore
         this, and never use the 'package' option).        
 
+        If namespace is not None, then we associate a namespace with
+        the module. A namespace is essentially appended to the package
+        identifier so that multiple modules inside the same package
+        can share the same name.
+
         Notice: in the future, more named parameters might be added to
         this method, and the order is not specified. Always call
         add_module with named parameters.
 
         """
-        # Setup named arguments. We don't use passed parameters so
+        # Setup named arguments. We don't use named parameters so
         # that positional parameter calls fail earlier
         def fetch(name, default):
             r = kwargs.get(name, default)
@@ -779,11 +847,18 @@ class ModuleRegistry(QtCore.QObject):
         moduleRightFringe = fetch('moduleRightFringe', None)
         is_abstract = fetch('abstract', False)
         identifier = fetch('package', self._current_package_name)
+        namespace = fetch('namespace', None)
+        if namespace:
+            key = (identifier, name, namespace)
+        else:
+            key = (identifier, name)
+        
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed to addModule: %s' % kwargs)
-        if self._key_tree_map.has_key((identifier, name)):
+        if self._key_tree_map.has_key(key):
             raise ModuleAlreadyExists(identifier, name)
-        # try to eliminate mixins
+        # We allow multiple inheritance as long as only one of the superclasses
+        # is a subclass of Module.
         candidates = self.get_subclass_candidates(module)
         if len(candidates) != 1:
             raise InvalidModuleClass(module)
@@ -793,8 +868,7 @@ class ModuleRegistry(QtCore.QObject):
         
         base_key = self._module_key_map[baseClass]
         base_node = self._key_tree_map[base_key]
-        module_node = base_node.add_module(module, identifier, name)
-        key = (identifier, name)
+        module_node = base_node.add_module(module, identifier, name, namespace)
         self._module_key_map[module] = key
         self._key_tree_map[key] = module_node
 
@@ -802,9 +876,10 @@ class ModuleRegistry(QtCore.QObject):
         descriptor.set_module_abstract(is_abstract)
         descriptor.set_configuration_widget(configureWidgetType)
 
+        # Right now we don't support custom cache callable calls.
         if cacheCallable:
             raise VistrailsInternalError("Unimplemented!")
-        descriptor.set_hasher_callable(cacheCallable)
+            # descriptor.set_hasher_callable(cacheCallable)
         descriptor.set_module_color(moduleColor)
 
         if moduleFringe:
@@ -816,9 +891,14 @@ class ModuleRegistry(QtCore.QObject):
             _check_fringe(moduleRightFringe)
             descriptor.set_module_fringe(moduleLeftFringe, moduleRightFringe)
 
-        append_to_dict_of_lists(self.package_modules,
-                                identifier,
-                                name)
+        if namespace:
+            append_to_dict_of_lists(self.package_modules,
+                                    identifier,
+                                    (name, namespace))
+        else:
+            append_to_dict_of_lists(self.package_modules,
+                                    identifier,
+                                    name)
 
         # Adds python_source_type registry entry, if possible
         try:
@@ -885,14 +965,20 @@ class ModuleRegistry(QtCore.QObject):
                   descriptor.identifier,
                   descriptor.name, portName, spec)
 
-    def delete_module(self, identifier, module_name):
+    def delete_module(self, identifier, module_name, namespace=None):
         """deleteModule(module_name): Removes a module from the registry."""
-        descriptor = self.get_descriptor_by_name(identifier, module_name)
-        key = (identifier, module_name)
+        descriptor = self.get_descriptor_by_name(identifier, module_name, namespace)
+        if namespace:
+            key = (identifier, module_name, namespace)
+        else:
+            key = (identifier, module_name)
         tree_node = self._key_tree_map[key]
         assert len(tree_node.children) == 0
         self.emit(self.deleted_module_signal, descriptor)
-        self.package_modules[descriptor.module_package()].remove(module_name)
+        if namespace:
+            self.package_modules[descriptor.module_package()].remove((module_name, namespace))
+        else:
+            self.package_modules[descriptor.module_package()].remove(module_name)
         del self._key_tree_map[key]
         del self._module_key_map[descriptor.module]
         tree_node.parent.children.remove(tree_node)
@@ -906,7 +992,10 @@ class ModuleRegistry(QtCore.QObject):
         for module_name in modules:
             graph.add_vertex(module_name)
         for module_name in modules:
-            key = (package.identifier, module_name)
+            if type(modules) == str:
+                key = (package.identifier, module_name)
+            else:
+                key = (package.identifier, module_name[0], module_name[1])
             tree_node = self._key_tree_map[key]
 
             # Module is the only one that has no parent,
@@ -920,8 +1009,16 @@ class ModuleRegistry(QtCore.QObject):
                 graph.add_edge(module_name, parent_name)
 
         top_sort = graph.vertices_topological_sort()
-        for module in top_sort:
-            self.delete_module(package.identifier, module)
+        # set up fast removal of model
+        for module_name in top_sort:
+            if type(module_name) == str:
+                desc = self.get_descriptor_by_name(package.identifier, module_name)
+                self.delete_module(package.identifier, module_name, desc.namespace)
+            else:
+                desc = self.get_descriptor_by_name(package.identifier,
+                                                   module_name[0],
+                                                   module_name[1])
+                self.delete_module(package.identifier, module_name[0], desc.namespace)
         del self.package_modules[package.identifier]
 
         self.emit(self.deleted_package_signal, package)
@@ -1106,7 +1203,7 @@ class ModuleRegistry(QtCore.QObject):
         FIXME: This should be renamed.
         
         """
-        descriptor = self.get_descriptor_by_name(module.package, module.name)
+        descriptor = self.get_descriptor_by_name(module.package, module.name, module.namespace)
         if module.registry:
             reg = module.registry
         else:
@@ -1126,7 +1223,7 @@ class ModuleRegistry(QtCore.QObject):
         FIXME: This should be renamed.
         
         """
-        descriptor = self.get_descriptor_by_name(module.package, module.name)
+        descriptor = self.get_descriptor_by_name(module.package, module.name, module.namespace)
         if module.registry:
             reg = module.registry
         else:
@@ -1203,9 +1300,9 @@ class Tree(object):
 
     ##########################################################################
 
-    def add_module(self, submodule, identifier=None, name=None):
+    def add_module(self, submodule, identifier=None, name=None, namespace=None):
         assert self.descriptor.module in submodule.__bases__
-        result = Tree(submodule, identifier, name)
+        result = Tree(submodule, identifier, name, namespace)
         result.parent = self
         self.children.append(result)
         return result

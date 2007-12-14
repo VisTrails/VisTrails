@@ -106,7 +106,8 @@ class QMethodTreeWidget(QSearchTreeWidget):
 
         if module:
             descriptor = registry.get_descriptor_by_name(module.package,
-                                                         module.name)
+                                                         module.name,
+                                                         module.namespace)
             moduleHierarchy = registry.get_module_hierarchy(descriptor)
             for baseModule in moduleHierarchy:
                 baseName = registry.get_descriptor(baseModule).name
@@ -177,7 +178,8 @@ class QMethodTreeWidgetItem(QtGui.QTreeWidgetItem):
         
     def view_documentation(self):
         descriptor = registry.get_descriptor_by_name(self.module.package,
-                                                     self.module.name)
+                                                     self.module.name,
+                                                     self.module.namespace)
         widget = QPortDocumentation(descriptor,
                                     PortEndPoint.Destination,
                                     self.port.name)

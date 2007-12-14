@@ -60,7 +60,7 @@ class ModuleParam(DBParameter):
         self.evaluatedStrValue = ""
         self.identifier = ""
         self._type = ""
-        
+        self.namespace = ""
         # This is used for visual query and will not get serialized
         self.queryMethod = 0
 
@@ -75,6 +75,7 @@ class ModuleParam(DBParameter):
         cp.evaluatedStrValue = self.evaluatedStrValue
         cp.queryMethod = 0
         cp.identifier = self.identifier
+        cp.namespace = self.namespace
         cp._type = self._type
         return cp
 
@@ -88,6 +89,7 @@ class ModuleParam(DBParameter):
         _parameter.maxValue = ""
         _parameter.evaluatedStrValue = ""
         _parameter.identifier = ""
+        _parameter.namespace = ""
         _parameter._type = ""
         _parameter.parse_type_str(_parameter.db_type)
     ##########################################################################
@@ -143,17 +145,28 @@ class ModuleParam(DBParameter):
     alias = property(_get_alias, _set_alias)
 
     def create_type_str(self):
-        return self.identifier + ":" + self._type
+        result = self.identifier + ":" + self._type
+        if self.namespace:
+            return result + ':' + self.namespace
+        else:
+            return result
 
     def parse_type_str(self, type_str):
         if type_str != "":
             data = type_str.split(":")
-            if len(data) > 1:
+            if len(data) == 3:
                 self.identifier = data[0]
                 self.type = data[1]
+                self.namespace = data[2]
+            if len(data) == 2:
+                self.identifier = data[0]
+                self.type = data[1]
+                self.namespace = ''
             else:
+                assert len(data) == 1
                 self.identifier = "edu.utah.sci.vistrails.basic"
                 self.type = data[0]
+                self.namespace = ''
         
     def serialize(self, dom, element):
         """ serialize(dom, element) -> None 
@@ -182,7 +195,7 @@ class ModuleParam(DBParameter):
         """
         from core.modules import module_registry
         reg = module_registry.registry
-        module = reg.get_module_by_name(self.identifier, self._type)()
+        module = reg.get_module_by_name(self.identifier, self._type, self.namespace)()
         return module.default_value
 
     def translate_to_python(self):
@@ -193,7 +206,7 @@ class ModuleParam(DBParameter):
         #FIXME this seems not to be used anywhere...
         from core.modules import module_registry
         reg = module_registry.registry
-        module = reg.get_module_by_name(self.identifier, self._type)()
+        module = reg.get_module_by_name(self.identifier, self._type, self.namespace)()
         return module.translate_to_python
     
     def value(self):
@@ -273,7 +286,7 @@ class ModuleParam(DBParameter):
         if self.minValue != "":
             assert False
         else:
-            return ("(Param '%s' db_type='%s' strValue='%s' real_id='%s' pos='%s' identifier='%s' alias='%s')@%X" %
+            return ("(Param '%s' db_type='%s' strValue='%s' real_id='%s' pos='%s' identifier='%s' alias='%s' namespace='%s')@%X" %
                     (self.name,
                      self.db_type,
                      self.strValue,
@@ -281,6 +294,7 @@ class ModuleParam(DBParameter):
                      self.pos,
                      self.identifier,
                      self.alias,
+                     self.namespace,
                      id(self)))
 
     def __eq__(self, other):
@@ -353,23 +367,27 @@ class TestModuleParam(unittest.TestCase):
         """ Test values returned by value() function """
         p = ModuleParam()
         p.type = "Float"
+        p.identifier = 'edu.utah.sci.vistrails.basic'
         assert p.value() == 0.0
         p.strValue = "1.5"
         assert p.value() == 1.5
 
         p.type = "Integer"
+        p.identifier = 'edu.utah.sci.vistrails.basic'
         p.strValue = ""
         assert p.value() == 0
         p.strValue = "2"
         assert p.value() == 2
 
         p.type = "String"
+        p.identifier = 'edu.utah.sci.vistrails.basic'
         p.strValue = ""
         assert p.value() == ""
         p.strValue = "test"
         assert p.value() == "test"
 
         p.type = "Boolean"
+        p.identifier = 'edu.utah.sci.vistrails.basic'
         p.strValue = ""
         assert p.value() == False
         p.strValue = "False"

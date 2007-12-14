@@ -172,8 +172,8 @@ class VistrailController(QtCore.QObject):
                 self.invalidate_version_tree()
         return action.db_id
 
-    def add_module(self, identifier, name, x, y):
-        """ addModule(identifier, name: str, x: int, y: int) -> version id
+    def add_module(self, identifier, name, x, y, namespace=''):
+        """ addModule(identifier, name: str, x: int, y: int, namespace='') -> version id
         Add a new module into the current pipeline
         
         """
@@ -190,6 +190,7 @@ class VistrailController(QtCore.QObject):
                             name=name,
                             package=identifier,
                             location=location,
+                            namespace=namespace,
                             )
             action = core.db.action.create_action([('add', module)])
             self.vistrail.add_action(action, self.currentVersion)
