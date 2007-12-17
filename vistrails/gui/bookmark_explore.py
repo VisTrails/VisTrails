@@ -33,9 +33,96 @@ from PyQt4 import QtCore, QtGui
 from gui.theme import CurrentTheme
 from gui.common_widgets import QToolWindowInterface
 from gui.bookmark_alias import QAliasTable, QAliasTableWidgetItem
-from gui.param_explore import QRangeString 
 
 ################################################################################
+
+class QRangeString(QtGui.QFrame):
+
+    def __init__(self, row, parent=None):
+        QtGui.QFrame.__init__(self, parent)
+        self.setObjectName('RangeString')
+        layout = QtGui.QVBoxLayout()
+        self.groupBox = parent
+        self.setLayout(layout)
+        self.frame = self # hack to make qvaluelineedit happy
+        self.strings = []
+        self.row = row
+        self.setLineEdits()
+    
+    def setLineEdits(self):
+        self.setUpdatesEnabled(False)
+        hl = QtGui.QHBoxLayout()
+        
+        self.lineEdit = MultiLineWidget('','String', self, multiLines=True)
+        hl.addWidget(self.lineEdit)
+        self.addBtn = QtGui.QToolButton()
+        self.addBtn.setToolTip(self.tr("Add string"))
+        self.addBtn.setIcon(CurrentTheme.ADD_STRING_ICON)
+        self.addBtn.setIconSize(QtCore.QSize(16,16))
+        self.connect(self.addBtn, QtCore.SIGNAL("clicked()"), self.addString)
+        hl.addWidget(self.addBtn)
+        hl.setSpacing(0)
+        hl.setMargin(0)
+        self.layout().addLayout(hl)
+        self.layout().setSpacing(0)
+        self.layout().setMargin(0)
+        
+        self.listWidget = QStringListWidget(self.groupBox)        
+        vl = QtGui.QVBoxLayout()
+        vl.setSpacing(0)
+        vl.setMargin(0)
+
+        self.upBtn = QtGui.QToolButton()
+        self.upBtn.setToolTip(self.tr("Move up"))
+        self.upBtn.setIcon(CurrentTheme.UP_STRING_ICON)
+        self.upBtn.setIconSize(QtCore.QSize(16,16))
+        self.connect(self.upBtn, QtCore.SIGNAL("clicked()"), self.moveUp)
+        vl.addWidget(self.upBtn)
+
+        self.downBtn = QtGui.QToolButton()
+        self.downBtn.setToolTip(self.tr("Move down"))
+        self.downBtn.setIcon(CurrentTheme.DOWN_STRING_ICON)
+        self.downBtn.setIconSize(QtCore.QSize(16,16))
+        self.connect(self.downBtn, QtCore.SIGNAL("clicked()"), self.moveDown)
+        vl.addWidget(self.downBtn)
+
+        hl2 = QtGui.QHBoxLayout()
+        hl2.setSpacing(0)
+        hl2.setMargin(0)
+        hl2.addWidget(self.listWidget)
+        hl2.addLayout(vl)
+        self.parent().layout().addLayout(hl2,self.row + 1, 1, 1, 2)
+        
+        
+        self.setUpdatesEnabled(True)
+        self.parent().adjustSize()
+        if self.parent().parent().layout():
+            self.parent().parent().layout().invalidate()
+
+    def addString(self):
+        if not self.lineEdit.text().isEmpty():
+            slist = self.lineEdit.text().split(",",QtCore.QString.SkipEmptyParts)
+            self.listWidget.addText(slist)
+
+    def moveUp(self):
+        row = self.listWidget.currentRow()
+        if row > 0:
+            item = self.listWidget.takeItem(row)
+            self.listWidget.insertItem(row-1,item)
+            self.listWidget.setCurrentRow(row-1)
+
+    def moveDown(self):
+        row = self.listWidget.currentRow()
+        if row < self.listWidget.count()-1:
+            item = self.listWidget.takeItem(row)
+            self.listWidget.insertItem(row+1,item)
+            self.listWidget.setCurrentRow(row+1)
+    
+    def updateMethod(self):
+        pass
+
+################################################################################
+    
 class QAliasExplorationPanel(QtGui.QFrame, QToolWindowInterface):
     """
     QAliasExplorationPanel shows aliases to be explored.
