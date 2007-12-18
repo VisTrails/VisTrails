@@ -43,7 +43,7 @@ import weakref
 def _ensure_namespace(descriptor, parentItem):
     desc = descriptor
     # Ensures all namespaces have nodes
-    items = desc.namespace.split('/')
+    items = desc.namespace.split('|')
     current_parent = parentItem
     for item in items:
         if not item in current_parent._namespace_items:
