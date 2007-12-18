@@ -53,6 +53,8 @@ def _ensure_namespace(descriptor, parentItem):
             nsitem._namespace_items = {}
             current_parent._namespace_items[item] = weakref.ref(nsitem)
             current_parent = nsitem
+        else:
+            current_parent = current_parent._namespace_items[item]()
     return current_parent
 
 ################################################################################
