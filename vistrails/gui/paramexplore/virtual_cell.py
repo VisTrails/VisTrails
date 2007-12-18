@@ -37,7 +37,7 @@ import db.services.action
 # from core.vistrail.action import AddModuleAction, AddConnectionAction, \
 #      DeleteConnectionAction, ChangeParameterAction
 from gui.common_widgets import QToolWindowInterface
-from gui.pe_pipeline import QAnnotatedPipelineView
+from gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
 from gui.theme import CurrentTheme
 import copy
 import string

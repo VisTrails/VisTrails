@@ -28,8 +28,8 @@ from core.inspector import PipelineInspector
 from core.vistrail.module_param import ModuleParam
 from gui.common_widgets import QSearchTreeWindow, QSearchTreeWidget, \
      QToolWindowInterface
-from gui.virtual_cell import QVirtualCellWindow
-from gui.pe_pipeline import QAnnotatedPipelineView
+from gui.paramexplore.virtual_cell import QVirtualCellWindow
+from gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
 import operator
 
 ################################################################################

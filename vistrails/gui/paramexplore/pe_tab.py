@@ -29,10 +29,10 @@ from core.interpreter.default import get_default_interpreter
 from core.modules.module_registry import registry
 from core.param_explore import ActionBasedParameterExploration
 from gui.common_widgets import QDockContainer, QToolWindowInterface
-from gui.pe_table import QParameterExplorationWidget
-from gui.virtual_cell import QVirtualCellWindow
-from gui.param_view import QParameterView
-from gui.pe_pipeline import QAnnotatedPipelineView
+from gui.paramexplore.pe_table import QParameterExplorationWidget
+from gui.paramexplore.virtual_cell import QVirtualCellWindow
+from gui.paramexplore.param_view import QParameterView
+from gui.paramexplore.pe_pipeline import QAnnotatedPipelineView
 
 ################################################################################
 

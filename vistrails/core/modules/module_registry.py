@@ -848,6 +848,7 @@ class ModuleRegistry(QtCore.QObject):
         is_abstract = fetch('abstract', False)
         identifier = fetch('package', self._current_package_name)
         namespace = fetch('namespace', None)
+
         if namespace:
             key = (identifier, name, namespace)
         else:

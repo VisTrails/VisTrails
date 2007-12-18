@@ -27,7 +27,7 @@ QParameterExplorationTable
 
 from PyQt4 import QtCore, QtGui
 from gui.common_widgets import QPromptWidget, QStringEdit
-from gui.param_view import QParameterTreeWidget
+from gui.paramexplore.param_view import QParameterTreeWidget
 from gui.theme import CurrentTheme
 from gui.utils import show_warning
 from core.modules.module_configure import PythonEditor
