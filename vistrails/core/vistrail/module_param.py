@@ -188,62 +188,17 @@ class ModuleParam(DBParameter):
         calias.appendChild(talias)
         element.appendChild(child)
 
-    def get_default_value(self):
-        """ get_default_value() -> any type
-        Query the registry for this constant's default value
-        
-        """
-        from core.modules import module_registry
-        reg = module_registry.registry
-        module = reg.get_module_by_name(self.identifier, self._type, self.namespace)()
-        return module.default_value
-
-    def translate_to_python(self):
-        """ translate_to_python() -> function or callable
-        Query the registry for this constant's conversion function
-
-        """
-        #FIXME this seems not to be used anywhere...
-        from core.modules import module_registry
-        reg = module_registry.registry
-        module = reg.get_module_by_name(self.identifier, self._type, self.namespace)()
-        return module.translate_to_python
-    
     def value(self):
         """  value() -> any type 
         Returns its strValue as a python type.
 
         """
+        from core.modules.module_registry import registry
+        module = registry.get_module_by_name(self.identifier, self._type, self.namespace)
         if self.strValue == "":
-            v = self.get_default_value()
-            self.strValue = str(v)
-            return v
-        return self.translate_to_python()(self.strValue)
-
-#     dispatchValue = {'Float': float,
-#                      'Integer': int,
-#                      'String': str,
-#                      'Boolean': bool_conv}
-
-#     defaultValue = {'Float': ("0", 0.0),
-#                     'Integer': ("0", 0),
-#                     'String': ("", ""),
-#                     'Boolean': ("False", False)}
-
-#     def quoteValue(self):
-#         """ quoteValue() -> str -  Returns its strValue as an quote string."""
-#         return ModuleParam.dispatchQuoteValue[self.type](self.strValue)
-    
-#     dispatchQuoteValue = {'float': str,
-#                           'double': str,
-#                           'int': str,
-#                           'vtkIdType': str,
-#                           'str': lambda x: "'" + str(x) + "'",
-#                           'string': lambda x: "'" + str(x) + "'",
-#                           'const char *': lambda x: "'" + str(x) + "'",
-#                           'const char*': lambda x: "'" + str(x) + "'",
-#                           'char *': lambda x: "'" + str(x) + "'",
-#                           'char*': lambda x: "'" + str(x) + "'"}
+            self.strValue = module.default_value
+            return module.default_value
+        return module.translate_to_python(self.strValue)
 
     ##########################################################################
     # Debugging

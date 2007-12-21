@@ -201,7 +201,7 @@ class ColorChooserButton(QtGui.QFrame):
         self.setAutoFillBackground(True)
         self.setColor(QtCore.Qt.white)
         self.setFixedSize(30,22)
-        if system.systemType in ['Darwin']:
+        if system.systemType == 'Darwin':
             #the mac's nice look messes up with the colors
             self.setAttribute(QtCore.Qt.WA_MacMetalStyle, False)
         

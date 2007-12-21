@@ -261,7 +261,7 @@ class InstanceObject(object):
         self.__dict__.update(kw)
 
     def __str__(self):
-        pre = "(InstanceObject "
+        pre = "(%s " % self.__class__.__name__
         items = [('%s: %s' % (k, str(v)))
                  for (k, v)
                  in sorted(self.__dict__.items())]
@@ -271,8 +271,8 @@ class InstanceObject(object):
     
     def write_source(self, prefix=""):
         result = ""
-        for (k, v) in  sorted(self.__dict__.items()):
-            if type(v) == InstanceObject:
+        for (k, v) in sorted(self.__dict__.items()):
+            if isinstance(v, InstanceObject):
                 newprefix = prefix + "." + k
                 result += v.write_source(newprefix)
             else:

@@ -45,11 +45,32 @@ _reg = module_registry.registry
 class Constant(Module):
     """Base class for all Modules that represent a constant value of
     some type.
-    When implementing your own constant, please make sure to implement the
-    following methods:
-       translate_to_python(x)
-       translate_to_string()
-       compute()
+    
+    When implementing your own constant, You have to adhere to the
+    following interface:
+
+    Implement the following methods:
+    
+       translate_to_python(x): Given a string, translate_to_python
+       must return a python value that will be the value seen by the
+       execution modules.
+
+       For example, translate_to_python called on a float parameter
+       with value '3.15' will return float('3.15').
+       
+       translate_to_string(): Return a string representation of the
+       current constant, which will eventually be passed to
+       translate_to_python.
+
+       validate(v): return True if given python value is a plausible
+       value for the constant. It should be implemented such that
+       validate(translate_to_python(x)) == True for all valid x
+
+    A constant must also expose its default value, through the field
+    default_value.
+
+    There are fields you are not allowed to use in your constant classes.
+    These are: 'id', 'interpreter', 'logging' and 'change_parameter'
 
     You can also define the constant's own widget.
     See constant_configuration.py file for details.
@@ -57,7 +78,6 @@ class Constant(Module):
     """
     def __init__(self):
         Module.__init__(self)
-        self.value = None
         self.default_value = None
         self.addRequestPort("value_as_string", self.valueAsString)
         self.python_type = None
@@ -66,31 +86,15 @@ class Constant(Module):
     def compute(self):
         """Constant.compute() only checks validity (and presence) of
         input value."""
-        if self.hasInputFromPort("value"):
-            v = self.getInputFromPort("value")
-        else:
-            v = self.value
-
-        # TODO: This is a bogus check ('except: pass' is bad). Fix it.
-        # I think now that we have the python_type this is fixed.
-        try:
-            b = isinstance(v, self.python_type)
-        except:
-            print "Exception in Constant.compute():\
-            %s is not a instance of %s" % (v,self.python_type)
+        v = self.getInputFromPort("value")
+        b = self.validate(v)
         if not b:
-            raise Exception("Value %s(%s) should be a %s" % (
-                v, type(v), self.python_type.__name__))
+            raise ModuleError(self, "Internal Error: Constant failed validation")
         self.setResult("value", v)
 
     def setValue(self, v):
-        self.value = self.translate_to_python(v)
-    
-#     def __str__(self):
-#         if not self.upToDate:
-#             return str(self.value)
-#         else:
-#             return str(self.get_output("value"))
+        self.setResult("value", self.translate_to_python(v))
+        self.upToDate = True
 
     def valueAsString(self):
         return str(self.value)
@@ -101,19 +105,10 @@ class Constant(Module):
     def set_configure_widget_type(self,widget_type):
         self._widget_type = widget_type
 
-    @staticmethod
-    def translate_to_python(x):
-        """translate_to_python(x: str) -> any type"""
-        return None
-
-    def translate_to_string(self):
-        return str(self.value)
-        
-
 _reg.add_module(Constant)
 
-
-def new_constant(name, conversion, python_type, default_value,
+def new_constant(name, conversion, default_value,
+                 validation,
                  widget_type=None):
     """new_constant(name: str, conversion: function, python_type: type,
                     default_value: python_type, widget_type: QWidget type) ->
@@ -128,13 +123,12 @@ def new_constant(name, conversion, python_type, default_value,
     
     def __init__(self):
         Constant.__init__(self)
-        self.translate_to_python = conversion
-        self.python_type = python_type
-        self.default_value = default_value
-        if widget_type:
-            self._widget_type = widget_type
     
-    m = new_module(Constant, name, {'__init__': __init__})
+    m = new_module(Constant, name, {'__init__': __init__,
+                                    'validate': validation,
+                                    'translate_to_python': conversion,
+                                    '_widget_type': widget_type,
+                                    'default_value': default_value})
     module_registry.registry.add_module(m)
     module_registry.registry.add_input_port(m, "value", m)
     module_registry.registry.add_output_port(m, "value", m)
@@ -155,10 +149,10 @@ def int_conv(x):
     else:
         return int(x)
 
-Boolean = new_constant('Boolean' , bool_conv, bool, False)
-Float   = new_constant('Float'   , float, float, 0.0)
-Integer = new_constant('Integer' , int_conv, int, 0)
-String  = new_constant('String'  , str, str, "")
+Boolean = new_constant('Boolean' , staticmethod(bool_conv), False, staticmethod(lambda x: type(x) == bool))
+Float   = new_constant('Float'   , staticmethod(float), 0.0, staticmethod(lambda x: type(x) == float))
+Integer = new_constant('Integer' , staticmethod(int_conv), 0, staticmethod(lambda x: type(x) == int))
+String  = new_constant('String'  , staticmethod(str), "", staticmethod(lambda x: type(x) == str))
 _reg.add_output_port(Constant, "value_as_string", String)
 
 ##############################################################################
@@ -169,13 +163,16 @@ class File(Constant):
 
     def __init__(self):
         Constant.__init__(self)
-        self.python_type = str
         self._widget_type = FileChooserWidget
         self.default_value = ""
 
     @staticmethod
     def translate_to_python(x):
-        return str(x)
+        result = File()
+        result.name = x
+        result.setResult("value", result)
+        result.upToDate = True
+        return result
 
     def translate_to_string(self):
         return str(self.name)
@@ -184,8 +181,6 @@ class File(Constant):
         n = None
         if self.hasInputFromPort("value"):
             n = self.getInputFromPort("value").name
-        else:
-            n = self.value
         if not n:
             self.checkInputPort("name")
             n = self.getInputFromPort("name")
@@ -194,7 +189,6 @@ class File(Constant):
             self.getInputFromPort("create_file")):
             core.system.touch(n)
         self.name = n
-        self.value = n
         if not os.path.isfile(n):
             raise ModuleError(self, "File '%s' not existent" % n)
         self.setResult("local_filename", self.name)
@@ -244,7 +238,6 @@ _reg.add_input_port(FileSink,  "overrideFile", Boolean)
 class Color(Constant):
     def __init__(self):
         Constant.__init__(self)
-        self.python_type = str
         self._widget_type = ColorWidget
         self.default_value = "1,1,1"
         
@@ -260,6 +253,10 @@ class Color(Constant):
 
     def translate_to_string(self):
         return str(self.value)
+
+    @staticmethod
+    def validate(x):
+        return type(x) == str
                 
 _reg.add_module(Color)
 _reg.add_input_port(Color, "value", Color)

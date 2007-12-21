@@ -200,17 +200,18 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             descriptor = getter('edu.utah.sci.vistrails.basic', 'Null')
             return descriptor.module()
         
-        def create_constant(param):
+        def create_constant(param, module):
             """Creates a Constant from a parameter spec"""
             getter = modules.module_registry.registry.get_descriptor_by_name
             # FIXME: for now any constant that is not in the basic package
             # is considered a String. We need to store the package info inside
             # the parameter as well
             try:
-                desc = getter(param.identifier, param.type)
+                desc = getter(param.identifier, param.type, param.namespace)
             except:
                 desc = getter('edu.utah.sci.vistrails.basic', 'String')
             constant = desc.module()
+            constant.id = module.id
             constant.setValue(param.evaluatedStrValue)
             return constant
                 
@@ -258,12 +259,12 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                     connector = ModuleConnector(create_null(), 'value')
                 elif len(f.params) == 1:
                     p = f.params[0]
-                    connector = ModuleConnector(create_constant(p), 'value')
+                    connector = ModuleConnector(create_constant(p, module), 'value')
                 else:
                     tupleModule = core.interpreter.base.InternalTuple()
                     tupleModule.length = len(f.params)
                     for (i,p) in iter_with_index(f.params):
-                        constant = create_constant(p)
+                        constant = create_constant(p, module)
                         constant.update()
                         connector = ModuleConnector(constant, 'value')
                         tupleModule.set_input_port(i, connector)
