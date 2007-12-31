@@ -31,6 +31,7 @@ from core.modules.module_registry import registry
 from gui.theme import CurrentTheme
 from core.modules.module_configure import PythonEditor
 from gui.utils import show_warning
+from core.utils import all
 
 ##############################################################################
 
@@ -58,17 +59,30 @@ class QParameterEditor(QtGui.QWidget):
         hLayout.setSpacing(0)
         self.setLayout(hLayout)
 
+        module = registry.get_module_by_name(param_info.identifier,
+                                             param_info.type,
+                                             param_info.namespace)
+
         self.stackedEditors = QtGui.QStackedWidget()
         self.stackedEditors.setSizePolicy(QtGui.QSizePolicy.Expanding,
                                           QtGui.QSizePolicy.Maximum)
-        self.stackedEditors.addWidget(QLinearInterpolationEditor(param_info, size))
-        self.stackedEditors.addWidget(QListInterpolationEditor(param_info, size))
-        self.stackedEditors.addWidget(QUserFunctionEditor(param_info, size))
-        self.stackedEditors.addWidget(QtGui.QLabel('<i>This is a duplicated '
-                                                   'parameter</i>'))
+        self._exploration_widgets = []
+
+        def add_exploration_widget(wd):
+            self._exploration_widgets.append(wd)
+            self.stackedEditors.addWidget(wd)
+        
+        if hasattr(module, 'parameter_exploration_widgets'):
+            for widget_class in module.parameter_exploration_widgets:
+                new_widget = widget_class(param_info, size)
+                add_exploration_widget(new_widget)
+
+        add_exploration_widget(QListInterpolationEditor(param_info, size))
+        add_exploration_widget(QUserFunctionEditor(param_info, size))
+
         hLayout.addWidget(self.stackedEditors)
 
-        selector = QParameterEditorSelector(self.type)
+        selector = QParameterEditorSelector(param_info, self._exploration_widgets)
         self.connect(selector.actionGroup,
                      QtCore.SIGNAL('triggered(QAction*)'),
                      self.changeInterpolator)
@@ -91,14 +105,14 @@ class QParameterEditorSelector(QtGui.QToolButton):
     users to select which type of interpolator he/she wants to use
     
     """
-    def __init__(self, pType, parent=None):
-        """ QParameterEditorSelector(pType: str, parent: QWidget)
-                                     -> QParameterEditorSelector
-        Put a stacked widget and a popup button
-        
+    def __init__(self, param_info, widget_list, parent=None):
+        """ QParameterEditorSelector(param_info: ParameterInfo,
+        widget_list: list of widgets that conform to the parameter
+        exploration widget interface.
         """
         QtGui.QToolButton.__init__(self, parent)
-        self.type = pType        
+        self._param_info = param_info
+        self.type = param_info.type
         self.setAutoRaise(True)
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextOnly)
         self.setPopupMode(QtGui.QToolButton.InstantPopup)
@@ -106,21 +120,18 @@ class QParameterEditorSelector(QtGui.QToolButton):
         self.setText(QtCore.QString(QtCore.QChar(0x25bc))) # Down triangle
 
         self.actionGroup = QtGui.QActionGroup(self)
-        
-        self.linearAction = QtGui.QAction('Linear Interpolation',
-                                          self.actionGroup)
-        self.listAction = QtGui.QAction('List', self.actionGroup)
-        self.userAction = QtGui.QAction('User-defined Function',
-                                        self.actionGroup)
+
+        self._actions = []
+        for widget in widget_list:
+            action = QtGui.QAction(widget.exploration_name, self.actionGroup)
+            self._actions.append(action)
+
         aId = 0
         for action in self.actionGroup.actions():
             action.setCheckable(True)
             action.setData(QtCore.QVariant(aId))
             aId += 1
 
-        if pType=='String' or pType=='Boolean':
-            self.linearAction.setEnabled(False)
-            
         menu = QtGui.QMenu(self)
         menu.addActions(self.actionGroup.actions())
         self.setMenu(menu)
@@ -130,10 +141,9 @@ class QParameterEditorSelector(QtGui.QToolButton):
         Select the first choice of selector based on self.type
         
         """
-        if self.type=='String' or self.type=='Boolean':
-            self.listAction.trigger()
-        else:
-            self.linearAction.trigger()
+        self._actions[0].trigger()
+
+##############################################################################
 
 class LinearInterpolator(object):
 
@@ -170,7 +180,7 @@ class QLinearInterpolationEditor(QtGui.QWidget):
         hLayout.setSpacing(0)
         self.setLayout(hLayout)
 
-        if pType=='Integer':            
+        if param_info.type=='Integer':            
             validatorType = QtGui.QIntValidator
         else:
             validatorType = QtGui.QDoubleValidator
@@ -188,9 +198,10 @@ class QLinearInterpolationEditor(QtGui.QWidget):
         
         hLayout.addSpacing(5)
         
-        self.toEdit = QtGui.QLineEdit(pValue)
+        self.toEdit = QtGui.QLineEdit(param_info.value)
         self.toEdit.setValidator(validatorType(self.toEdit))
         hLayout.addWidget(self.toEdit)
+        self.exploration_name = 'Linaer Interpolation'
 
     def getValues(self, size):
         """ getValues(size: int) -> tuple
@@ -205,7 +216,9 @@ class QLinearInterpolationEditor(QtGui.QWidget):
                                   end,
                                   size)
         return lerp.get_values()
-    
+
+##############################################################################
+
 class QListInterpolationEditor(QtGui.QWidget):
     """
     QListInterpolationEditor is the actual widget allowing users to
@@ -228,7 +241,7 @@ class QListInterpolationEditor(QtGui.QWidget):
         self.setLayout(hLayout)
         
         self.listValues = QtGui.QLineEdit()
-        if pType=='String':
+        if param_info.type=='String':
             self.listValues.setText("['%s']" % pValue.replace("'", "\'"))
         else:
             self.listValues.setText('[%s]' % param_info.value)
@@ -237,39 +250,66 @@ class QListInterpolationEditor(QtGui.QWidget):
         self.listValues.home(False)
         hLayout.addWidget(self.listValues)
 
+        self.connect(self.listValues, QtCore.SIGNAL('textEdited(QString)'),
+                     self.values_were_edited)
+
         inputButton = QtGui.QToolButton()
         inputButton.setText('...')
         self.connect(inputButton, QtCore.SIGNAL('clicked()'),
                      self.editListValues)
         hLayout.addWidget(inputButton)
+        self.exploration_name = 'List'
+        self._str_values = [param_info.value]
+
+    def values_were_edited(self, new_text):
+        """values_were_edited(new_text): None
+
+        Connected to self.listValues.textEdited. Updates self._str_values.
+        
+        NB: Allowing the user to edit the LineEdit field directly is
+        not a very good idea, because we don't know what are the
+        syntactic rules for the translate_to_python() calls in
+        arbitrary classes.  Right now, I'm assuming removing the
+        leading and trailing brackets and splitting on ',' is
+        enough. (in passing, The previous call to eval() is just
+        broken is a general scenario like we have now)
+
+        For example, this will break horribly if the user manually edits
+        a list of strings with commas in them."""
+
+        t = str(new_text)
+        if len(t) < 2:
+            self._str_values = []
+            return
+        if not (t[0] == '[' and t[-1] == ']'):
+            self._str_values = []
+        else: 
+            self._str_values = t[1:-1].split(',')
 
     def getValues(self, count):
-        """ getValues() -> []        
+        """ getValues(count) -> []        
         Convert the list values into a list
+
+        count should be an integer with the expected size of the list (given
+        by the dimension 'size' in the exploration)
         
         """
 
-        def get():
-            text = str(self.listValues.text())
-            try:
-                return [str(v) for v in eval(text)]
-            except:
-                i = text.find('[')
-                if i!=-1:
-                    j = text.find(']')
-                    if j>i:
-                        return text[i+1:j].split(',')
-                return [text]
-
-        result = get()
-        if (len(result)!=count):
+        param_info = self._param_info
+        module = registry.get_module_by_name(param_info.identifier,
+                                             param_info.type,
+                                             param_info.namespace)
+        result = [module.translate_to_python(m)
+                  for m in self._str_values]
+        if len(result) != count:
             show_warning('Inconsistent Size',
                          'One of the <i>%s</i>\'s list '
                          'interpolated '
                          'values has a different '
                          'size from the step count. '
+                         'Expected %d, got %d instead. '
                          'Parameter Exploration aborted.'
-                         % pEditor.info[0])
+                         % (self.type, count, len(result)))
             return None
         return result
 
@@ -278,15 +318,18 @@ class QListInterpolationEditor(QtGui.QWidget):
         Show a dialog for editing the values
         
         """
-        dialog = QListEditDialog(self.type, self.getValues(), None)
-        if dialog.exec_()==QtGui.QDialog.Accepted:
+        dialog = QListEditDialog(self.type, self._str_values, None)
+        if dialog.exec_() == QtGui.QDialog.Accepted:
             values = dialog.getList()
-            if self.type=='String':
+            self._str_values = [str(v) for v in values]
+            if self.type == 'String':
                 values = ["'%s'" % v.replace("'", "\'")
                           for v in values]
             self.listValues.setText('[%s]' % ', '.join(values))
             self.listValues.home(False)
         dialog.deleteLater()
+
+##############################################################################
 
 class QListEditDialog(QtGui.QDialog):
     """
@@ -294,8 +337,8 @@ class QListEditDialog(QtGui.QDialog):
     values and export to a string
     
     """
-    def __init__(self, pType, values, parent=None):
-        """ QListEditDialog(pType: str, values: list, parent: QWidget)
+    def __init__(self, pType, strValues, parent=None):
+        """ QListEditDialog(pType: str, strValues: list, parent: QWidget)
                             -> QListEditDialog
         Parse values and setup the table
         
@@ -324,8 +367,8 @@ class QListEditDialog(QtGui.QDialog):
         self.delegate = QListEditItemDelegate()
         self.table.setItemDelegate(self.delegate)
         self.table.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        for i in xrange(len(values)):
-            self.addRow(str(values[i]))
+        for v in strValues:
+            self.addRow(v)
         self.connect(self.table.verticalHeader(),
                      QtCore.SIGNAL('sectionMoved(int,int,int)'),
                      self.rowMoved)
@@ -421,6 +464,8 @@ class QListEditDialog(QtGui.QDialog):
         for item in self.table.selectedItems():
             self.table.removeRow(item.row())
 
+##############################################################################
+
 class QListEditItemDelegate(QtGui.QItemDelegate):
     """
     QListEditItemDelegate sets up the editor for the QListEditDialog
@@ -477,6 +522,8 @@ class QListEditItemDelegate(QtGui.QItemDelegate):
         if self.editor:
             self.emit(QtCore.SIGNAL('commitData(QWidget*)'), self.editor)
 
+##############################################################################
+
 class QUserFunctionEditor(QtGui.QFrame):
     """
     QUserFunctionEditor shows user-defined interpolation function
@@ -516,13 +563,14 @@ class QUserFunctionEditor(QtGui.QFrame):
         self.listValues.home(False)
         hLayout.addWidget(self.listValues)
 
-        self.setSize(size)
+        self.size_was_updated(size)
 
         inputButton = QtGui.QToolButton()
         inputButton.setText('...')
         self.connect(inputButton, QtCore.SIGNAL('clicked()'),
                      self.editFunction)
         hLayout.addWidget(inputButton)
+        self.exploration_name = 'User-defined Function'
 
     def defaultFunction(self):
         """ defaultFunction() -> str
@@ -533,14 +581,13 @@ class QUserFunctionEditor(QtGui.QFrame):
             quote = '"'
         else:
             quote = ''
-        pythonType = {'Integer': 'int', 'Float': 'float', 'String': 'str',
-                      'Boolean': 'bool'}
-        return 'def value(i):\n    """ value(i: int) -> %s\n'\
-               '    Return the interpolated value at step i\n'\
-               '    i is from 0 to <step count>-1\n\n'\
+        return 'def value(i):\n    """ value(i: int) -> value\n'\
+               '    Returns the i-th value\n'\
+               '    i is from 0 to <step count>-1.\n'\
+               '    If this function has an error, the value will be\n'\
+               '    the default constant value\n'\
                '    """\n'\
-               '    return %s%s%s'\
-               % (pythonType[self.type], quote, str(self.defaultValue), quote)
+               '    # Define your function here\n'
 
     def getValues(self, count):
         """ getValues() -> []        
@@ -548,39 +595,40 @@ class QUserFunctionEditor(QtGui.QFrame):
         request.
         
         """
+        param_info = self._param_info
+        module = registry.get_module_by_name(param_info.identifier,
+                                             param_info.type,
+                                             param_info.namespace)
         def get():
-            firstError = True
+            import code
             values = []
-            pythonType = {'Integer': int, 'Float': float, 'String': str,
-                          'Boolean': bool}
-            for i in xrange(self.size):
-                v = self.defaultValue
+            d = {}
+            try:
+                exec(self.function) in {}, d
+            except Exception, e:
+                return [module.default_value] * count
+            def evaluate(i):
                 try:
-                    exec(self.function + '\nv = value(%d)' % i) in {}, {}
-                    if self.type != 'String' and self.type != 'Boolean':
-                        v = pythonType[self.type](v)
-                except:
-                    v = 'ERROR'
-                values.append(v)
-            return values
+                    v = d['value'](i)
+                    if v == None:
+                        return module.default_value
+                    return v
+                except Exception, e:
+                    return str(e)
+            return [evaluate(i) for i in xrange(self.size)]
         result = get()
-
-        typeCast = {'Integer': int,
-                    'Float': float,
-                    'String': str,
-                    'Boolean': bool,
-                    }
-        realType = typeCast[self._param_info.type]
-
-        if [True for v in values if type(v)!=realType]:
-            show_warning('Inconsistent Type',
+        
+        if not all(result, module.validate):
+            show_warning('Failed Validation',
                          'One of the <i>%s</i>\'s user defined '
-                         'functions has generated '
-                         'a value of type different '
+                         'functions has failed validation, '
+                         'which usually means it generated a '
+                         'value of a type different '
                          'than that specified by the '
                          'parameter. Parameter Exploration '
-                         'aborted.' % pEditor.info[0])
+                         'aborted.' % param_info.type)
             return None
+        return result
         
 
     def getValuesString(self):
@@ -588,7 +636,11 @@ class QUserFunctionEditor(QtGui.QFrame):
         Return a string representation of the parameter list
         
         """
-        return '{%s}' % ','.join([str(v) for v in self.getValues()])
+        r = self.getValues(self.size)
+        if r is None:
+            return '{ERROR}'
+        else:
+            return '{%s}' % ','.join([str(v) for v in r])
 
     def editFunction(self):
         """ editFunction() -> None
@@ -601,18 +653,20 @@ class QUserFunctionEditor(QtGui.QFrame):
             self.listValues.setText(self.getValuesString())
         dialog.deleteLater()
 
-    def setSize(self, size):
-        """ setSize(size: int) -> None
-        Set the size of the interpolation. Values are re-calculated
-        
-        """
+    def size_was_updated(self, size):
+        """ size_was_updated(size: int) -> None
+
+        This is called whenever the size of the interpolation is changed.
+        Values are re-calculated."""
         if size!=self.size:
             self.size = size
             htmlText = '<html><big>&fnof;</big>(n) <b>:</b> ' \
                        '[0,%d) &rarr; </html>' % size
             self.label.setText(htmlText)
             self.listValues.setText(self.getValuesString())
-    
+
+##############################################################################
+
 class QUserFunctionDialog(QtGui.QDialog):
     """
     QUserFunctionDialog provides an interface for user to edit a

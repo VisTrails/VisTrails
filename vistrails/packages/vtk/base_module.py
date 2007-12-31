@@ -95,17 +95,26 @@ class vtkBaseModule(Module):
         """
 
         def call_it(function, p):
-            if type(p) == tuple:
-                param = list(p)
-            elif p == None: param = []
-            else: param = [p]
-            for i in xrange(len(param)):
-                if hasattr(param[i], 'vtkInstance'):
-                    param[i] = param[i].vtkInstance
+            # Translate between VisTrails objects and VTK objects
+            if p is None:
+                # None indicates a call with no parameters
+                params = []
+            elif type(p) == tuple:
+                # A tuple indicates a call with many parameters
+                params = list(p)
+            else:
+                # Otherwise, it's a single parameter
+                params = [p]
+
+            # Unwraps VTK objects
+            for i in xrange(len(params)):
+                if hasattr(params[i], 'vtkInstance'):
+                    params[i] = params[i].vtkInstance
             try:
-                self.call_input_function(function, param)
+                self.call_input_function(function, params)
             except Exception, e:
-                raise ModuleError(self, 'VTK Exception: ' + str(type(e)) + ': ' + str(e))
+                msg = 'VTK Exception: '
+                raise ModuleError(self, msg  + str(type(e)) + ': ' + str(e))
 
         # Always re-create vtkInstance module, no caching here
         if self.vtkInstance:

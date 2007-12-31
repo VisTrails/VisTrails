@@ -133,7 +133,7 @@ class QParameterExplorationTable(QPromptWidget):
         for labelIcon in self.label.labelIcons:
             self.connect(labelIcon.countWidget,
                          QtCore.SIGNAL('editingFinished()'),
-                         self.updateUserDefinedFunctions)
+                         self.updateWidgets)
         vLayout.addWidget(self.label)
 
         for i in xrange(2):
@@ -143,7 +143,7 @@ class QParameterExplorationTable(QPromptWidget):
         self._parameterCount = 0
 
     def addParameter(self, paramInfo):
-        """ addParameter(paramInfo: (str, [tuple]) -> None
+        """ addParameter(paramInfo: (str, [ParameterInfo]) -> None
         Add a parameter to the table. The parameter info is specified
         in QParameterTreeWidgetItem
         
@@ -204,9 +204,9 @@ class QParameterExplorationTable(QPromptWidget):
         self.showPrompt(self.layout().count()<=3)
         self.emit(QtCore.SIGNAL('exploreChange(bool)'), self.layout().count() > 3)
 
-    def updateUserDefinedFunctions(self):
-        """ updateUserDefinedFunctions() -> None
-        Update all user-defined function to reflect the step count
+    def updateWidgets(self):
+        """ updateWidgets() -> None
+        Update all widgets to reflect the step count
         
         """
         # Go through all possible parameter widgets
@@ -217,8 +217,12 @@ class QParameterExplorationTable(QPromptWidget):
                 for paramWidget in pEditor.paramWidgets:
                     dim = paramWidget.getDimension()
                     if dim in [0, 1, 2, 3]:
-                        userWidget = paramWidget.editor.stackedEditors.widget(2)
-                        userWidget.setSize(counts[dim])
+                        se = paramWidget.editor.stackedEditors
+                        # Notifies editor widgets of size update 
+                        for i in xrange(se.count()):
+                            wd = se.widget(i)
+                            if hasattr(wd, 'size_was_updated'):
+                                wd.size_was_updated(counts[dim])
 
     def clear(self):
         """ clear() -> None

@@ -27,12 +27,6 @@ from db.domain import DBParameter
 from core.utils import enum
 
 ################################################################################
-# def bool_conv(x):
-#     s = str(x).upper()
-#     if s == 'TRUE':
-#         return True
-#     if s == 'FALSE':
-#         return False
 
 class ModuleParam(DBParameter):
     """ Stores a parameter setting for a vistrail function """
@@ -364,6 +358,3 @@ class TestModuleParam(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
-
-        

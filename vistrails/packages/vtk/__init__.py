@@ -642,35 +642,35 @@ def class_dict(base_module, node):
         if old_compute != None:
             return old_compute
         def call_SetDiffuseColorWidget(self, color):
-            self.vtkInstance.SetDiffuseColor(*eval(color.value))
+            self.vtkInstance.SetDiffuseColor(color.tuple)
         return call_SetDiffuseColorWidget
 
     def compute_SetAmbientColorWidget(old_compute):
         if old_compute != None:
             return old_compute
         def call_SetAmbientColorWidget(self, color):
-            self.vtkInstance.SetAmbientColor(*eval(color.value))
+            self.vtkInstance.SetAmbientColor(color.tuple)
         return call_SetAmbientColorWidget
 
     def compute_SetSpecularColorWidget(old_compute):
         if old_compute != None:
             return old_compute
         def call_SetSpecularColorWidget(self, color):
-            self.vtkInstance.SetSpecularColor(*eval(color.value))
+            self.vtkInstance.SetSpecularColor(color.tuple)
         return call_SetSpecularColorWidget
 
     def compute_SetColorWidget(old_compute):
         if old_compute != None:
             return old_compute
         def call_SetColorWidget(self, color):
-            self.vtkInstance.SetColor(*eval(color.value))
+            self.vtkInstance.SetColor(color.tuple)
         return call_SetColorWidget
 
     def compute_SetEdgeColorWidget(old_compute):
         if old_compute != None:
             return old_compute
         def call_SetEdgeColorWidget(self, color):
-            self.vtkInstance.SetEdgeColor(*eval(color.value))
+            self.vtkInstance.SetEdgeColor(color.tuple)
         return call_SetEdgeColorWidget
     
     def compute_SetFile(old_compute_SetFile):

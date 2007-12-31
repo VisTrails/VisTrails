@@ -31,6 +31,8 @@ from core.modules.vistrails_module import Module, new_module, \
 from core.modules.tuple_configuration import TupleConfigurationWidget
 from core.modules.constant_configuration import StandardConstantWidget, \
      FileChooserWidget, ColorWidget
+from core.utils import InstanceObject
+from core.modules.paramexplore import QLinearInterpolationEditor
 
 import core.packagemanager
 import core.system
@@ -72,7 +74,7 @@ class Constant(Module):
     There are fields you are not allowed to use in your constant classes.
     These are: 'id', 'interpreter', 'logging' and 'change_parameter'
 
-    You can also define the constant's own widget.
+    You can also define the constant's own GUI widget.
     See constant_configuration.py file for details.
     
     """
@@ -154,6 +156,9 @@ Float   = new_constant('Float'   , staticmethod(float), 0.0, staticmethod(lambda
 Integer = new_constant('Integer' , staticmethod(int_conv), 0, staticmethod(lambda x: type(x) == int))
 String  = new_constant('String'  , staticmethod(str), "", staticmethod(lambda x: type(x) == str))
 _reg.add_output_port(Constant, "value_as_string", String)
+
+Float.parameter_exploration_widgets   = [QLinearInterpolationEditor]
+Integer.parameter_exploration_widgets = [QLinearInterpolationEditor]
 
 ##############################################################################
 
@@ -239,7 +244,7 @@ class Color(Constant):
     def __init__(self):
         Constant.__init__(self)
         self._widget_type = ColorWidget
-        self.default_value = "1,1,1"
+        self.default_value = InstanceObject(tuple=(1,1,1))
         
     def compute(self):
         if self.hasInputFromPort("value"):
@@ -249,7 +254,7 @@ class Color(Constant):
 
     @staticmethod
     def translate_to_python(x):
-        return str(x)
+        return InstanceObject(tuple=tuple([float(a) for a in x[1:-1].split(',')]))
 
     def translate_to_string(self):
         return str(self.value)
