@@ -30,9 +30,12 @@ from core.modules.vistrails_module import Module, new_module, \
      NotCacheable, ModuleError
 from core.modules.tuple_configuration import TupleConfigurationWidget
 from core.modules.constant_configuration import StandardConstantWidget, \
-     FileChooserWidget, ColorWidget
+     FileChooserWidget, ColorWidget, ColorChooserButton
 from core.utils import InstanceObject
-from core.modules.paramexplore import QLinearInterpolationEditor
+from core.modules.paramexplore import make_interpolator, \
+     QFloatLineEdit, QIntegerLineEdit, FloatLinearInterpolator, \
+     IntegerLinearInterpolator
+from PyQt4 import QtGui
 
 import core.packagemanager
 import core.system
@@ -157,8 +160,14 @@ Integer = new_constant('Integer' , staticmethod(int_conv), 0, staticmethod(lambd
 String  = new_constant('String'  , staticmethod(str), "", staticmethod(lambda x: type(x) == str))
 _reg.add_output_port(Constant, "value_as_string", String)
 
-Float.parameter_exploration_widgets   = [QLinearInterpolationEditor]
-Integer.parameter_exploration_widgets = [QLinearInterpolationEditor]
+Float.parameter_exploration_widgets   = [
+    make_interpolator(QFloatLineEdit,
+                      FloatLinearInterpolator,
+                      'Linear Interpolation')]
+Integer.parameter_exploration_widgets = [
+    make_interpolator(QIntegerLineEdit,
+                      IntegerLinearInterpolator,
+                      'Linear Interpolation')]
 
 ##############################################################################
 
@@ -254,7 +263,8 @@ class Color(Constant):
 
     @staticmethod
     def translate_to_python(x):
-        return InstanceObject(tuple=tuple([float(a) for a in x[1:-1].split(',')]))
+        return InstanceObject(
+            tuple=tuple([float(a) for a in x[1:-1].split(',')]))
 
     def translate_to_string(self):
         return str(self.value)
@@ -262,7 +272,91 @@ class Color(Constant):
     @staticmethod
     def validate(x):
         return type(x) == str
-                
+
+    @staticmethod
+    def to_string(r, g, b):
+        return "%s,%s,%s" % (r,g,b)
+        
+    default_value="1,1,1"
+
+class BaseColorInterpolator(object):
+
+    def __init__(self, ifunc, begin, end, size):
+        self._ifunc = ifunc
+        self.begin = begin
+        self.end = end
+        self.size = size
+
+    def get_values(self):
+        if self.size <= 1:
+            return [self.begin]
+        result = [self._ifunc(self.begin, self.end, self.size, i)
+                  for i in xrange(self.size)]
+        return result
+
+class RGBColorInterpolator(BaseColorInterpolator):
+
+    def __init__(self, begin, end, size):
+        def fun(b, e, s, i):
+            b = [float(x) for x in b.split(',')]
+            e = [float(x) for x in e.split(',')]
+            u = float(i) / (float(s) - 1.0)
+            [r,g,b] = [b[i] + u * (e[i] - b[i]) for i in [0,1,2]]
+            return Color.to_string(r, g, b)
+        BaseColorInterpolator.__init__(self, fun, begin, end, size)
+
+class HSVColorInterpolator(BaseColorInterpolator):
+    def __init__(self, begin, end, size):
+        def fun(b, e, s, i):
+            b = [float(x) for x in b.split(',')]
+            e = [float(x) for x in e.split(',')]
+            u = float(i) / (float(s) - 1.0)
+
+            # Use QtGui.QColor as easy converter between rgb and hsv
+            color_b = QtGui.QColor(int(b[0] * 255),
+                                   int(b[1] * 255),
+                                   int(b[2] * 255))
+            color_e = QtGui.QColor(int(e[0] * 255),
+                                   int(e[1] * 255),
+                                   int(e[2] * 255))
+
+            b_hsv = [color_b.hueF(), color_b.saturationF(), color_b.valueF()]
+            e_hsv = [color_e.hueF(), color_e.saturationF(), color_e.valueF()]
+
+            [new_h, new_s, new_v] = [b_hsv[i] + u * (e_hsv[i] - b_hsv[i])
+                                     for i in [0,1,2]]
+            new_color = QtGui.QColor()
+            new_color.setHsvF(new_h, new_s, new_v)
+            return Color.to_string(new_color.redF(),
+                                   new_color.greenF(),
+                                   new_color.blueF())
+        BaseColorInterpolator.__init__(self, fun, begin, end, size)
+    
+
+class PEColorChooserButton(ColorChooserButton):
+
+    def __init__(self, param_info, parent=None):
+        ColorChooserButton.__init__(self, parent)
+        r,g,b = [int(float(i) * 255) for i in param_info.value.split(',')]
+        
+        self.setColor(QtGui.QColor(r,g,b))
+        self.setFixedHeight(22)
+        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
+                           QtGui.QSizePolicy.Fixed)
+
+    def get_value(self):
+        return Color.to_string(self.qcolor.redF(),
+                               self.qcolor.greenF(),
+                               self.qcolor.blueF())
+
+Color.parameter_exploration_widgets = [
+    make_interpolator(PEColorChooserButton,
+                      RGBColorInterpolator,
+                      'RGB Interpolation'),
+    make_interpolator(PEColorChooserButton,
+                      HSVColorInterpolator,
+                      'HSV Interpolation')]
+
 _reg.add_module(Color)
 _reg.add_input_port(Color, "value", Color)
 _reg.add_output_port(Color, "value", Color)    

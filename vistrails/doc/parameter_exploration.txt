@@ -1,0 +1,57 @@
+This file describes the API for creating user-defined parameter
+exploration widgets.
+
+--------------------------------------------------------------------------------
+User-defined parameter exploration widgets allow users to define
+methods for performing parameter exploration on user-defined
+constants. If you want to know how to define your own constants,
+please see doc/user_defined_constants.txt.
+
+A user-defined parameter exploration widget is simply a QtGui.QWidget
+subclass that respects a certain small interface. The constant class
+is then made aware of the (possible many) widgets, and VisTrails takes
+care of instantiating them correctly. This is what each of your
+subclasses will have to implement:
+
+- a constructor that takes the parameter exploration information
+
+- a method 'get_values' that will return a list of strings
+  corresponding to the associated values of the exploration
+
+- a field 'exploration_name' that will store the string name to be
+  associated with the particular type of exploration (for example,
+  "HSV Interpolation" or "RGB Interpolation")
+
+- optionally, a method 'size_was_updated', which gets called when the
+  parameter exploration dimension is changed. You can use this to
+  automatically refresh your widget if necessary (the user function
+  editor does this, for example)
+
+--------------------------------------------------------------------------------
+The constructor
+
+The constructor should take two mandatory arguments. The first
+parameter is an instance of ParameterInfo, an object that identifies
+the parameter being changed. The fields you will probably care about
+are 'type', 'identifier', 'namespace' and 'value'. The first three
+will allow you to get to the constant's information in the registry,
+and 'value' is the string representation of the current parameter
+value in the pipeline (typically used as an initialization parameter
+for the widget). The second parameter is an integer corresponding to
+the 'size' of the exploration, the number of steps in that particular
+dimension. The constructor should also accept an optional 'parent'
+parameter, with default value None.
+
+--------------------------------------------------------------------------------
+The get_values method
+
+The 'get_values' method should take a parameter corresponding to the
+size of the exploration, and should return a list of string values
+with length size. These values should correspond to the steps of the
+exploration.
+
+--------------------------------------------------------------------------------
+The size_was_updated method
+
+The 'size_was_updated' method should take a parameter corresponding to
+the new size of the exploration.

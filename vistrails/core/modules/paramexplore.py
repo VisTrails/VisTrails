@@ -44,8 +44,8 @@ class QParameterEditor(QtGui.QWidget):
     
     """
     def __init__(self, param_info, size, parent=None):
-        """ QParameterEditor(pType: str, pValue: str, parent: QWidget,
-                             size: int) -> QParameterEditor
+        """ QParameterEditor(param_info: ParameterInfo: str,
+                             size: int, parent=None: QWidget) -> QParameterEditor
         Put a stacked widget and a popup button
         
         """
@@ -145,7 +145,7 @@ class QParameterEditorSelector(QtGui.QToolButton):
 
 ##############################################################################
 
-class LinearInterpolator(object):
+class BaseLinearInterpolator(object):
 
     def __init__(self, ptype, mn, mx, steps):
         self._ptype = ptype
@@ -164,58 +164,73 @@ class LinearInterpolator(object):
                   for i in xrange(size)]
         return result
 
-class QLinearInterpolationEditor(QtGui.QWidget):
-    """
-    QLinearInterpolationEditor is the actual widget allowing users to
-    edit his/her linear interpolation parameters.
+class IntegerLinearInterpolator(BaseLinearInterpolator):
+    def __init__(self, mn, mx, steps):
+        BaseLinearInterpolator.__init__(self, int, mn, mx, steps)
+
+class QIntegerLineEdit(QtGui.QLineEdit):
+    def __init__(self, param_info, parent=None):
+        QtGui.QLineEdit.__init__(self, param_info.value, parent)
+        self.setValidator(QtGui.QIntValidator(self))
+    def get_value(self):
+        return int(str(self.text()))
+
+class FloatLinearInterpolator(BaseLinearInterpolator):
+    def __init__(self, mn, mx, steps):
+        BaseLinearInterpolator.__init__(self, float, mn, mx, steps)
     
-    """
-    def __init__(self, param_info, size, parent=None):
-        QtGui.QWidget.__init__(self, parent)
-        self._param_info = param_info
-        self.type = param_info.type
-        
-        hLayout = QtGui.QHBoxLayout(self)
-        hLayout.setMargin(0)
-        hLayout.setSpacing(0)
-        self.setLayout(hLayout)
+class QFloatLineEdit(QtGui.QLineEdit):
+    def __init__(self, param_info, parent=None):
+        QtGui.QLineEdit.__init__(self, param_info.value, parent)
+        self.setValidator(QtGui.QDoubleValidator(self))
+    def get_value(self):
+        return float(str(self.text()))
 
-        if param_info.type=='Integer':            
-            validatorType = QtGui.QIntValidator
-        else:
-            validatorType = QtGui.QDoubleValidator
+##############################################################################
 
-        self.fromEdit = QtGui.QLineEdit(param_info.value)
-        self.fromEdit.setValidator(validatorType(self.fromEdit))
-        hLayout.addWidget(self.fromEdit)
-
-        hLayout.addSpacing(5)
-
-        rightArrow = QtGui.QLabel()
-        pixmap = self.style().standardPixmap(QtGui.QStyle.SP_ArrowRight)
-        rightArrow.setPixmap(CurrentTheme.RIGHT_ARROW_PIXMAP)
-        hLayout.addWidget(rightArrow)
-        
-        hLayout.addSpacing(5)
-        
-        self.toEdit = QtGui.QLineEdit(param_info.value)
-        self.toEdit.setValidator(validatorType(self.toEdit))
-        hLayout.addWidget(self.toEdit)
-        self.exploration_name = 'Linaer Interpolation'
-
-    def getValues(self, size):
-        """ getValues(size: int) -> tuple
-        Return the linear interpolated list containing 'size' values
-        
+def make_interpolator(widget_class, interpolator_class, name):
+    class InterpolationEditor(QtGui.QWidget):
         """
-        cast = {'Integer': int, 'Float': float}[self.type]
-        begin = cast(str(self.fromEdit.text()))
-        end = cast(str(self.toEdit.text()))
-        lerp = LinearInterpolator(cast,
-                                  begin,
-                                  end,
-                                  size)
-        return lerp.get_values()
+        QLinearInterpolationEditor is the actual widget allowing users to
+        edit his/her linear interpolation parameters.
+
+        """
+        def __init__(self, param_info, size, parent=None):
+            QtGui.QWidget.__init__(self, parent)
+            self._param_info = param_info
+            self.type = param_info.type
+
+            hLayout = QtGui.QHBoxLayout(self)
+            hLayout.setMargin(0)
+            hLayout.setSpacing(0)
+            self.setLayout(hLayout)
+
+            self.fromEdit = widget_class(param_info)
+            hLayout.addWidget(self.fromEdit)
+
+            hLayout.addSpacing(5)
+
+            rightArrow = QtGui.QLabel()
+            pixmap = self.style().standardPixmap(QtGui.QStyle.SP_ArrowRight)
+            rightArrow.setPixmap(CurrentTheme.RIGHT_ARROW_PIXMAP)
+            hLayout.addWidget(rightArrow)
+
+            hLayout.addSpacing(5)
+
+            self.toEdit = widget_class(param_info)
+            hLayout.addWidget(self.toEdit)
+            self.exploration_name = name
+
+        def get_values(self, size):
+            """ get_values(size: int) -> tuple
+            Return the interpolated list containing 'size' values
+
+            """
+            begin = self.fromEdit.get_value()
+            end = self.toEdit.get_value()
+            lerp = interpolator_class(begin, end, size)
+            return lerp.get_values()
+    return InterpolationEditor
 
 ##############################################################################
 
@@ -286,8 +301,8 @@ class QListInterpolationEditor(QtGui.QWidget):
         else: 
             self._str_values = t[1:-1].split(',')
 
-    def getValues(self, count):
-        """ getValues(count) -> []        
+    def get_values(self, count):
+        """ get_values(count) -> []        
         Convert the list values into a list
 
         count should be an integer with the expected size of the list (given
@@ -589,8 +604,8 @@ class QUserFunctionEditor(QtGui.QFrame):
                '    """\n'\
                '    # Define your function here\n'
 
-    def getValues(self, count):
-        """ getValues() -> []        
+    def get_values(self, count):
+        """ get_values() -> []        
         Convert the user define function into a list. Size specifies the size
         request.
         
@@ -636,7 +651,7 @@ class QUserFunctionEditor(QtGui.QFrame):
         Return a string representation of the parameter list
         
         """
-        r = self.getValues(self.size)
+        r = self.get_values(self.size)
         if r is None:
             return '{ERROR}'
         else:
@@ -727,7 +742,7 @@ import unittest
 class TestLinearInterpolator(unittest.TestCase):
 
     def test_int(self):
-        x = LinearInterpolator(int, 0, 999, 1000)
+        x = BaseLinearInterpolator(int, 0, 999, 1000)
         assert x.get_values() == range(1000)
 
     def test_float(self):
@@ -739,7 +754,7 @@ class TestLinearInterpolator(unittest.TestCase):
         v2 = random.random()
         mn = min(v1, v2)
         mx = max(v1, v2)
-        x = LinearInterpolator(float, mn, mx, s).get_values()
+        x = BaseLinearInterpolator(float, mn, mx, s).get_values()
         v1 = random.randint(0, s-1)
         v2 = 0
         while v2 == v1:

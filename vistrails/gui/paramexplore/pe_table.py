@@ -276,7 +276,7 @@ class QParameterExplorationTable(QPromptWidget):
                     dim = paramWidget.getDimension()
                     if dim in [0, 1, 2, 3]:
                         count = counts[dim]
-                        values = interpolator.getValues(count)
+                        values = interpolator.get_values(count)
                         if not values:
                             return None
                         pId = paramInfo.id
