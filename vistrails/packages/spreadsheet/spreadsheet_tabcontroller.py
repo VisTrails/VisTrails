@@ -650,6 +650,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         tabCount = int(lines[lidx])
         lidx += 1
         for tabIdx in xrange(tabCount):
+            # FIXME: eval should pretty much never be used
             tabInfo = eval(lines[lidx])
             lidx += 1
             sheet = spreadsheetRegistry.getSheet(tabInfo[1])(self)
@@ -677,6 +678,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                                          );
         progress.show()
         for pipelineIdx in xrange(pipelineCount):
+            # FIXME: eval should pretty much never be used
             (serializedLocator, version) = eval(lines[lidx])
             try:
                 locator = locators[serializedLocator]

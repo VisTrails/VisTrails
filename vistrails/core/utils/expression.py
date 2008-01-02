@@ -28,6 +28,8 @@ def evaluate_expressions(expressions):
     Evaluate the contents of the line edit inside each '$' pair
     
     """
+
+    # FIXME: eval should pretty much never be used
     (base, exps) = parse_expression(str(expressions))
     for e in exps:
         try:                        

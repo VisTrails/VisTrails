@@ -80,6 +80,7 @@ class StandardConstantWidget(QtGui.QLineEdit):
         Update the text to the result of the evaluation
         
         """
+        # FIXME: eval should pretty much never be used
         base = expression.evaluate_expressions(self.text())
         if self.contentIsString:
             self.setText(base)

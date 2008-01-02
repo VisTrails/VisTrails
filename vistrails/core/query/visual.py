@@ -184,6 +184,7 @@ class VisualQuery(query.Query):
                 except:
                     return False
         else:
+            # FIXME: eval should pretty much never be used
             if template.strValue.strip()=='':
                 return True
             realTypeDict = {'Integer': int, 'Float': float}

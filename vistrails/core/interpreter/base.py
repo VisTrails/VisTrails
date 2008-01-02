@@ -126,6 +126,7 @@ class BaseInterpreter(object):
         return ordered
 
     def evaluate_exp(self, atype, base, exps, aliases):
+        # FIXME: eval should pretty much never be used
         import datetime        
         for e in exps: base = (base[:e[0]] +
                                str(eval(e[1],
