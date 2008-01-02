@@ -387,7 +387,7 @@ class ModuleDescriptor(object):
         else:
             raise VistrailsInternalError("invalid endpoint")
  
-    def add_input_port(self, name, spec, optional, configureWidgetType):
+    def add_input_port(self, name, spec, optional):
         result = self._append_to_port_list(self.input_ports,
                                            self.input_ports_optional,
                                            name, spec, optional)
@@ -929,22 +929,19 @@ class ModuleRegistry(QtCore.QObject):
         descriptor = self.get_descriptor(module)
         return descriptor.output_ports.has_key(portName)
 
-    def add_input_port(self, module, portName, portSignature, optional=False,
-                       configureWidgetType=None):
+    def add_input_port(self, module, portName, portSignature, optional=False):
         """add_input_port(module: class,
         portName: string,
         portSignature: string,
-        optional=False,
-        configureWidgetType=None) -> None
+        optional=False) -> None
 
         Registers a new input port with VisTrails. Receives the module
         that will now have a certain port, a string representing the
         name, and a signature of the port, described in
         doc/module_registry.txt. Optionally, it receives whether the
-        input port is optional, and the type for its configure widget."""
+        input port is optional."""
         descriptor = self.get_descriptor(module)
-        spec = descriptor.add_input_port(portName, portSignature, optional,
-                                         configureWidgetType)
+        spec = descriptor.add_input_port(portName, portSignature, optional)
         self.emit(self.new_input_port_signal,
                   descriptor.identifier,
                   descriptor.name, portName, spec)
@@ -956,8 +953,7 @@ class ModuleRegistry(QtCore.QObject):
         module that will now have a certain port, a string
         representing the name, and a signature of the port, described
         in doc/module_registry.txt. Optionally, it receives whether
-        the output port is optional, and the type for its configure
-        widget."""
+        the output port is optional."""
         descriptor = self.get_descriptor(module)
         spec = descriptor.add_output_port(portName, portSignature, optional)
         self.emit(self.new_output_port_signal,
@@ -1178,7 +1174,6 @@ class ModuleRegistry(QtCore.QObject):
                 return False
         return True
 
-
     def get_module_hierarchy(self, descriptor):
         """get_module_hierarchy(descriptor) -> [klass].
         Returns the module hierarchy all the way to Module, excluding
@@ -1186,13 +1181,6 @@ class ModuleRegistry(QtCore.QObject):
         return [klass
                 for klass in descriptor.module.mro()
                 if issubclass(klass, core.modules.vistrails_module.Module)]
-
-    def get_port_configure_widget_type(self, identifier, moduleName, portName):
-        moduleDescriptor = self.get_descriptor_by_name(identifier, moduleName)
-        if moduleDescriptor.input_ports_configure_widget_type.has_key(portName):
-            return moduleDescriptor.input_ports_configure_widget_type[portName]
-        else:
-            return None
         
     def get_input_port_spec(self, module, portName):
         """ get_input_port_spec(module: Module, portName: str) ->

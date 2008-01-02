@@ -44,6 +44,8 @@ import copy
 
 ################################################################################
 
+# FIXME: We need new infrastructure for QBE on user-defined types.
+
 class QQueryTab(QPipelineTab):
     """
     QQuery is the similar to the pipeline tab where we can interact
@@ -103,9 +105,10 @@ class QFunctionQueryForm(QMethodInputForm):
         gLayout = self.layout()
         for pIdx in xrange(len(function.params)):
             p = function.params[pIdx]
-            constant = reg.get_module_by_name(p.identifier,
-                                              p.type)()
-            widget_type = constant.get_configure_widget_type()
+            constant_class = reg.get_module_by_name(p.identifier,
+                                                    p.type,
+                                                    p.namespace)
+            widget_type = constant_class.get_widget_class()
             field = QParameterQuery(p.strValue, p.type,
                                     p.queryMethod, widget_type)
             self.fields.append(field)

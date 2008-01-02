@@ -379,11 +379,26 @@ class ModuleConnector(object):
         return self.obj.get_output(self.port)
 
 def new_module(baseModule, name, dict={}, docstring=None):
-    assert issubclass(baseModule, Module)
+    """new_module(baseModule or [baseModule list],
+                  name,
+                  dict={},
+                  docstring=None
+
+    Creates a new VisTrails module dynamically. Exactly one of the
+    elements of the baseModule list (or baseModule itself, in the case
+    it's a single class) should be a subclass of Module.
+    """
+    if type(baseModule) == type:
+        assert issubclass(baseModule, Module)
+        superclasses = (baseModule, )
+    elif type(baseModule) == list:
+        assert len([x for x in baseModule
+                    if issubclass(x, Module)]) == 1
+        superclasses = tuple(baseModule)
     d = copy.copy(dict)
     if docstring:
         d['__doc__'] = docstring
-    return type(name, (baseModule, ), d)
+    return type(name, superclasses, d)
 
 # This is the gist of how type() works. The example is run from a python
 # toplevel

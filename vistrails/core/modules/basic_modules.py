@@ -78,7 +78,7 @@ class Constant(Module):
     These are: 'id', 'interpreter', 'logging' and 'change_parameter'
 
     You can also define the constant's own GUI widget.
-    See constant_configuration.py file for details.
+    See core/modules/constant_configuration.py for details.
     
     """
     def __init__(self):
@@ -86,7 +86,6 @@ class Constant(Module):
         self.default_value = None
         self.addRequestPort("value_as_string", self.valueAsString)
         self.python_type = None
-        self._widget_type = StandardConstantWidget
         
     def compute(self):
         """Constant.compute() only checks validity (and presence) of
@@ -104,17 +103,15 @@ class Constant(Module):
     def valueAsString(self):
         return str(self.value)
     
-    def get_configure_widget_type(self):
-        return self._widget_type
-
-    def set_configure_widget_type(self,widget_type):
-        self._widget_type = widget_type
+    @staticmethod
+    def get_widget_class():
+        return StandardConstantWidget
 
 _reg.add_module(Constant)
 
 def new_constant(name, conversion, default_value,
                  validation,
-                 widget_type=None):
+                 widget_type=StandardConstantWidget):
     """new_constant(name: str, conversion: function, python_type: type,
                     default_value: python_type, widget_type: QWidget type) ->
                                                                      Module
@@ -128,11 +125,15 @@ def new_constant(name, conversion, default_value,
     
     def __init__(self):
         Constant.__init__(self)
+
+    @staticmethod
+    def get_widget_class():
+        return widget_type
     
     m = new_module(Constant, name, {'__init__': __init__,
                                     'validate': validation,
                                     'translate_to_python': conversion,
-                                    '_widget_type': widget_type,
+                                    'get_widget_class': get_widget_class,
                                     'default_value': default_value})
     module_registry.registry.add_module(m)
     module_registry.registry.add_input_port(m, "value", m)
@@ -177,7 +178,6 @@ class File(Constant):
 
     def __init__(self):
         Constant.__init__(self)
-        self._widget_type = FileChooserWidget
         self.default_value = ""
 
     @staticmethod
@@ -207,6 +207,10 @@ class File(Constant):
             raise ModuleError(self, "File '%s' not existent" % n)
         self.setResult("local_filename", self.name)
         self.setResult("value", self)
+
+    @staticmethod
+    def get_widget_class():
+        return FileChooserWidget
 
 _reg.add_module(File)
 _reg.add_input_port(File, "value", File, True)
@@ -252,7 +256,6 @@ _reg.add_input_port(FileSink,  "overrideFile", Boolean)
 class Color(Constant):
     def __init__(self):
         Constant.__init__(self)
-        self._widget_type = ColorWidget
         self.default_value = InstanceObject(tuple=(1,1,1))
         
     def compute(self):
@@ -276,6 +279,10 @@ class Color(Constant):
     @staticmethod
     def to_string(r, g, b):
         return "%s,%s,%s" % (r,g,b)
+
+    @staticmethod
+    def get_widget_class():
+        return ColorWidget
         
     default_value="1,1,1"
 
@@ -633,19 +640,6 @@ _reg.add_module(SmartSource,
                 configureWidgetType=module_configure.PythonSourceConfigurationWidget)
 _reg.add_input_port(SmartSource, 'source', String, True)
 
-
-##############################################################################
-
-class TestPortConfig(Module):
-    
-    def compute(self):
-        pass
-    
-_reg.add_module(TestPortConfig)
-_reg.add_input_port(TestPortConfig,
-                    'ColorPort', [Float,Float,Float],
-                    False, port_configure.ColorConfigurationWidget)
-_reg.add_input_port(TestPortConfig, 'IntegerPort', Integer)
 
 ##############################################################################
 

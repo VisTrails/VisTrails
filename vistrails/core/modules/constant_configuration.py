@@ -31,7 +31,20 @@ from core.modules.module_registry import registry
 from core.utils import any, expression
 from core import system
 ############################################################################
-class StandardConstantWidget(QtGui.QLineEdit):
+
+class ConstantWidgetMixin(object):
+
+    def __init__(self):
+        self._last_contents = None
+                
+    def update_parent(self):
+        if self.parent():
+            newContents = self.contents()
+            if newContents != self._last_contents:
+                self.parent().updateMethod()
+                self._last_contents = newContents
+
+class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
     """
     StandardConstantWidget is a basic widget to be used
     to edit int/float/string values in VisTrails.
@@ -49,22 +62,26 @@ class StandardConstantWidget(QtGui.QLineEdit):
        presses the return key.
 
     """
-    def __init__(self, contents, contentType, parent=None):
-        """__init__(contents: str, contentType: str, parent: QWidget) ->
-                                             StandardConstantWidget
+    def __init__(self, param, parent=None):
+        """__init__(param: core.vistrail.module_param.ModuleParam,
+                    parent: QWidget)
+
         Initialize the line edit with its contents. Content type is limited
         to 'int', 'float', and 'string'
         
         """
-        QtGui.QWidget.__init__(self, parent)
+        QtGui.QLineEdit.__init__(self, parent)
+        ConstantWidgetMixin.__init__(self)
+        assert param.namespace == ''
+        assert param.identifier == 'edu.utah.sci.vistrails.basic'
+        contents = param.strValue
+        contentType = param.type
         self.setText(contents)
         self._contentType = contentType
-        self._last_text = None
-        self.contentIsString = contentType=='String'
         self.connect(self,
                      QtCore.SIGNAL('returnPressed()'),
                      self.update_parent)               
-        
+
     def contents(self):
         """contents() -> str
         Re-implement this method to make sure that it will return a string
@@ -82,20 +99,13 @@ class StandardConstantWidget(QtGui.QLineEdit):
         """
         # FIXME: eval should pretty much never be used
         base = expression.evaluate_expressions(self.text())
-        if self.contentIsString:
+        if self._contentType == 'String':
             self.setText(base)
         else:
             try:
                 self.setText(str(eval(str(base), None, None)))
             except:
                 self.setText(base)
-                
-    def update_parent(self):
-        if self.parent():
-            newText = self.contents()
-            if newText!= self._last_text:
-                self.parent().updateMethod()
-                self._last_text = newText
                 
     ###########################################################################
     # event handlers
@@ -157,22 +167,22 @@ class FileChooserToolButton(QtGui.QToolButton):
             self.lineEdit.setText(fileName)
             self.lineEdit.update_parent()
             
-class FileChooserWidget(QtGui.QWidget):
+class FileChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
     """ 
     FileChooserWidget is a widget containing a line edit and a button that
     opens a browser for files. The lineEdit is updated with the filename that is
     selected.  
 
     """
-    def __init__(self, contents, contentType, parent=None):
-        """__init__(contents: str, contentType: str, parent: QWidget) ->
-                                              FileChooserWidget
+    def __init__(self, param, parent=None):
+        """__init__(param: core.vistrail.module_param.ModuleParam,
+                    parent: QWidget)
         Initializes the line edit with contents
         
         """
         QtGui.QWidget.__init__(self)
         layout = QtGui.QHBoxLayout()
-        self.line_edit = StandardConstantWidget(contents, contentType, self)
+        self.line_edit = StandardConstantWidget(param, self)
         self.browse_button = FileChooserToolButton(self, self.line_edit) 
         layout.setMargin(5)
         layout.setSpacing(5)
@@ -231,11 +241,13 @@ class ColorChooserButton(QtGui.QFrame):
             self.setColor(self.qcolor)
 
             
-class ColorWidget(QtGui.QWidget):
-    def __init__(self, contents, contentType, parent=None):
-        """__init__(contents: str, contentType: str, parent: QWidget) ->
-                                              ColorWidget
+class ColorWidget(QtGui.QWidget, ConstantWidgetMixin):
+    def __init__(self, param, parent=None):
+        """__init__(param: core.vistrail.module_param.ModuleParam,
+                    parent: QWidget)
         """
+        contents = param.strValue
+        contentsType = param.type
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QHBoxLayout()
         self.color_indicator = ColorChooserButton(self)
@@ -254,7 +266,6 @@ class ColorWidget(QtGui.QWidget):
                                   float(color[1])*255,
                                   float(color[2])*255)
             self.color_indicator.setColor(qcolor)
-        #self.update()
 
     def contents(self):
         """contents() -> str
@@ -264,129 +275,3 @@ class ColorWidget(QtGui.QWidget):
         return "%s,%s,%s" % (self.color_indicator.qcolor.redF(),
                              self.color_indicator.qcolor.greenF(),
                              self.color_indicator.qcolor.blueF())
-
-    def update_parent(self):
-        if self.parent():
-            newContents = self.contents()
-            if newContents!= self._last_contents:
-                self.parent().updateMethod()
-                self._last_contents = newContents
-                
-# class QPythonValueLineEdit(QtGui.QLineEdit):
-#     """
-#     QPythonValueLineEdit is a line edit that can be used to edit
-#     int/float/string contents.
-    
-#     """
-#     def __init__(self, contents, contentType, parent=None):
-#         """ QPythonValueLineEdit(contents: str,
-#                                  contentType: str,
-#                                  parent: QWidget) -> QPythonValueLineEdit                                 
-#         Initialize the line edit with its container and
-#         contents. Content type is limited to 'int', 'float', and
-#         'string'
-        
-#         """
-#         QtGui.QLineEdit.__init__(self, contents, parent)
-#         self._contents = contents
-#         self._contentType = contentType
-#         self.contentIsString = contentType=='String'
-#         self.connect(self,
-#                      QtCore.SIGNAL('returnPressed()'),
-#                      self.update_parent)                     
-
-#     def keyPressEvent(self, event):
-#         """ keyPressEvent(event) -> None        
-#         If this is a string line edit, we can use Shift+Enter to enter
-#         the file name
-        
-#         """
-#         k = event.key()
-#         s = event.modifiers()
-#         if (k == QtCore.Qt.Key_Enter or k == QtCore.Qt.Key_Return):
-#             if s & QtCore.Qt.ShiftModifier:
-#                 event.accept()
-#                 if self.contentIsString and not self.multiLines:
-#                     fileName = QtGui.QFileDialog.getOpenFileName(self,
-#                                                                  'Use Filename '
-#                                                                  'as Value...',
-#                                                                  self.text(),
-#                                                                  'All files '
-#                                                                  '(*.*)')
-#                     if not fileName.isEmpty():
-#                         self.setText(fileName)
-#                         self.update_parent()
-                        
-
-#                 # if self.contentIsString and self.multiLines:
-# #                     fileNames = QtGui.QFileDialog.getOpenFileNames(self,
-# #                                                                  'Use Filename '
-# #                                                                  'as Value...',
-# #                                                                  self.text(),
-# #                                                                  'All files '
-# #                                                                  '(*.*)')
-# #                     fileName = fileNames.join(',')
-# #                     if not fileName.isEmpty():
-# #                         self.setText(fileName)
-# #                         self.updateParent()
-# #                         return
-                
-#             else:
-#                 event.accept()
-#                 self.update_text()
-#         QtGui.QLineEdit.keyPressEvent(self,event)
-#         # super(QPythonValueLineEdit, self).keyPressEvent(event)
-
-#     def focusInEvent(self, event):
-#         """ focusInEvent(event: QEvent) -> None
-#         Pass the event to the parent
-        
-#         """
-#         self._contents = str(self.text())
-#         if self.parent():
-#             self.parent().focusInEvent(event)
-#         QtGui.QLineEdit.focusInEvent(self, event)
-#         # super(QPythonValueLineEdit, self).focusInEvent(event)
-
-#     def focusOutEvent(self, event):
-#         """ focusOutEvent(event: QEvent) -> None
-#         Update when finishing editing, then pass the event to the parent
-        
-#         """
-#         self.update_parent()
-#         if self.parent():
-#             self.parent().focusOutEvent(event)
-#         QtGui.QLineEdit.focusOutEvent(self, event)
-#         # super(QPythonValueLineEdit, self).focusOutEvent(event)
-
-#     def update_parent(self):
-#         """ update_parent() -> None
-#         Update parent parameters info if necessary
-        
-#         """
-#         self.update_text()
-#         if self.parent():
-#             newText = str(self.contents())
-#             if newText!=self.last_text:
-#                 self.parent().updateMethod()
-#                 self.last_text = newText
-
-#     def update_text(self):
-#         """ update_text() -> None
-#         Update the text to the result of the evaluation
-        
-#         """
-#         base = expression.evaluate_expressions(self.text())
-#         if self.contentIsString:
-#             self.setText(base)
-#         else:
-#             try:
-#                 self.setText(str(eval(str(base), None, None)))
-#             except:
-#                 self.setText(base)
-
-#     def contents(self):
-#         """contents() -> str
-#         As this is a QLineEdit, we just call text() """
-#         return str(self.text())
-    

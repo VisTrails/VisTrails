@@ -266,20 +266,18 @@ class QMethodInputForm(QtGui.QGroupBox):
         self.labels = []
         for pIndex in xrange(len(function.params)):
             p = function.params[pIndex]
-            #print p.identifier, p.type
             # FIXME: Find the source of this problem instead
             # of working around it here.
             if p.identifier == '':
-                p_module = reg.get_module_by_name('edu.utah.sci.vistrails.basic',
-                                                  p.type,
-                                                  p.namespace)()
+                idn = 'edu.utah.sci.vistrails.basic'
             else:
-                p_module = reg.get_module_by_name(p.identifier,
-                                                  p.type,
-                                                  p.namespace)()
-            widget_type = p_module.get_configure_widget_type()
+                idn = p.identifier
+            p_module = reg.get_module_by_name(idn,
+                                              p.type,
+                                              p.namespace)
+            widget_type = p_module.get_widget_class()
             label = QHoverAliasLabel(p.alias, p.type)
-            constant_widget = widget_type(p.strValue, p.type, self)            
+            constant_widget = widget_type(p, self)            
             self.widgets.append(constant_widget)
             self.labels.append(label)
             self.layout().addWidget(label, pIndex, 0)

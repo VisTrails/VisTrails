@@ -565,6 +565,7 @@ class SearchCompiler(object):
 ################################################################################
 
 import unittest
+import datetime
 
 class TestSearch(unittest.TestCase):
     def test1(self):
@@ -574,14 +575,19 @@ class TestSearch(unittest.TestCase):
         self.assertEquals((TimeSearchStmt('12 mar 2006').date -
                            TimeSearchStmt('11 mar 2006').date), TimeSearchStmt.oneDay)
     def test3(self):
+        # This will fail if year flips during execution. Oh well :)
+        yr = datetime.datetime.today().year
         self.assertEquals((TimeSearchStmt('12 mar').date -
-                           TimeSearchStmt('12 mar 2007').date), 0.0)
+                           TimeSearchStmt('12 mar %d' % year).date), 0.0)
     def test4(self):
+        # This will fail if year flips during execution. Oh well :)
+        yr = datetime.datetime.today().year
         self.assertEquals((TimeSearchStmt('mar 12').date -
-                           TimeSearchStmt('12 mar 2007').date), 0.0)
+                           TimeSearchStmt('12 mar %d' % yr).date), 0.0)
     def test5(self):
+        yr = datetime.datetime.today().year
         self.assertEquals((TimeSearchStmt('03 15').date -
-                           TimeSearchStmt('15 mar 2007').date), 0.0)
+                           TimeSearchStmt('15 mar %d' % yr).date), 0.0)
     def test6(self):
         self.assertEquals((TimeSearchStmt('03/15/2006').date -
                            TimeSearchStmt('15 mar 2006').date), 0.0)
@@ -604,7 +610,9 @@ class TestSearch(unittest.TestCase):
         self.assertEquals(TimeSearchStmt('12 mar 2007 21:00:00').date,
                           TimeSearchStmt('21:00:00 12 mar 2007').date)
     def test13(self):
-        self.assertEquals(TimeSearchStmt('12 mar 2007 21:00').date,
+        # This will fail if year flips during execution. Oh well :)
+        yr = datetime.datetime.today().year
+        self.assertEquals(TimeSearchStmt('12 mar %d 21:00' % yr).date,
                           TimeSearchStmt('21:00:00 12 mar').date)
     def test14(self):
         self.assertEquals(TimeSearchStmt('13 apr 2006 21:00').date,
