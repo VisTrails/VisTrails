@@ -257,7 +257,7 @@ class QListInterpolationEditor(QtGui.QWidget):
         
         self.listValues = QtGui.QLineEdit()
         if param_info.type=='String':
-            self.listValues.setText("['%s']" % pValue.replace("'", "\'"))
+            self.listValues.setText("['%s']" % param_info.value.replace("'", "\'"))
         else:
             self.listValues.setText('[%s]' % param_info.value)
         self.listValues.setSizePolicy(QtGui.QSizePolicy.Expanding,
