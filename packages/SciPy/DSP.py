@@ -24,6 +24,7 @@ import core.modules.module_registry
 from core.modules.vistrails_module import Module, ModuleError
 from SciPy import SciPy
 from Matrix import *
+import scipy
 from scipy import sparse, fftpack
 import numpy
 
@@ -91,4 +92,59 @@ class WindowedFourierTransform(DSP):
 
         out = SparseMatrix()
         out.matrix = sparse.csc_matrix(out_array)
+        self.setResult("FFT Output", out)
+
+class ShortTimeFourierTransform(DSP):
+    def get_signal(self, sigs, window, offset, size):
+        win = scipy.zeros(sigs.shape[0]).ravel()
+        win[offset:offset+size] = window.ravel()
+        part = sigs * win
+        return part
+    
+    def compute(self):
+        mat = self.getInputFromPort("Signal")
+        sr = self.getInputFromPort("Sampling Rate")
+
+        if self.hasInputFromPort("Window"):
+            window = self.getInputFromPort("Window").matrix.toarray()
+            win_size = window.shape[1]
+        else:
+            win_size = self.getInputFromPort("WindowSize")
+            window = scipy.signal.hamming(win_size)
+
+        if self.hasInputFromPort("Stride"):
+            stride = self.getInputFromPort("Stride")
+        else:
+            stride = int(win_size / 2)
+
+        signal_array = mat.matrix.transpose().toarray().ravel()
+
+        samples = signal_array.shape[0]
+
+        offset = 0
+        sig = self.get_signal(signal_array, window, offset, win_size)
+        phasors = fftpack.fft(sig).ravel()
+        out_array = phasors
+        offset += stride
+
+        i = 1
+        while 1:
+            try:
+                sig = self.get_signal(signal_array, window, offset, win_size)
+                phasors = fftpack.fft(sig)
+                offset += stride
+                out_array = numpy.vstack([out_array, phasors.ravel()])
+                i += 1
+            except:
+                break
+
+        (slices, freqs) = out_array.shape
+        ar = out_array[0:,0:sr*2]
+        ar = ar[0:,::-1]
+
+        out = SparseMatrix()
+        sigout = SparseMatrix()
+        sigout.matrix = sparse.csc_matrix(signal_array)
+        out.matrix = sparse.csc_matrix(ar)
+        self.setResult("Signal Output", sigout)
         self.setResult("FFT Output", out)

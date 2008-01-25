@@ -135,5 +135,5 @@ class ATan2(MatrixOperation):
             im = self.getInputFromPort("ImaginaryMatrix").matrix
 
         out = SparseMatrix()
-        out.matrix = sparse.csc_matrix(scipy.vectorize(math.atan2)(r.toarray(),im.toarray()))
+        out.matrix = sparse.csc_matrix(scipy.arctan2(im.toarray(),r.toarray()))
         self.setResult("Output", out)

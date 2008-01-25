@@ -20,10 +20,12 @@
 ##
 ############################################################################
 import core.modules
+import core.modules.module_registry
 from core.modules.vistrails_module import Module, ModuleError
 from SciPy import SciPy
 from Matrix import Matrix, COOMatrix, SparseMatrix, CSRMatrix
 from scipy import sparse
+import numpy, scipy
 
 class MatrixConvert(SciPy):
 
@@ -72,3 +74,77 @@ class vtkDataSetToMatrix(SciPy):
             pass
 
         self.setResult("Output Matrix", self.matrix_)
+
+class PhaseHistogramToVTKPoints(SciPy):
+
+    def form_point_set(self, histo, point_set):
+        (slices, numbins) = histo.shape
+        phases = numpy.arange(numbins)
+        phases = phases * (360. / numbins)
+        phases += phases[1] / 2.
+        phi_step = phases[0]
+        
+        for time in xrange(slices):
+            z = float(time)
+            for bin in xrange(numbins):
+                r = histo[time,bin]
+                theta = phi_step * (bin+1)
+                theta *= (scipy.pi / 180.)
+                x = r*scipy.cos(theta)
+                y = r*scipy.sin(theta)
+                point_set.InsertNextPoint(x, y, z)
+
+            for bin in xrange(numbins):
+                curbin = bin
+                lastbin = bin-1
+                if lastbin < 0:
+                    lastbin = numbins-1
+
+                r = (histo[time,bin] -  histo[time,lastbin]) / 2.
+                theta = curbin * 360. / numbins
+                x = r*scipy.cos(theta)
+                y = r*scipy.sin(theta)
+                point_set.InsertNextPoint(x, y, z)
+                
+
+    def compute(self):
+        import vtk
+        
+        phasors = self.getInputFromPort("FFT Input")
+        numbins = self.getInputFromPort("Num Bins")
+        phasor_matrix = phasors.matrix.toarray()
+        (timeslices,phases) = phasor_matrix.shape
+
+        point_set = vtk.vtkPoints()
+
+        histo = numpy.zeros((timeslices, numbins))
+
+        for time in xrange(timeslices):
+            phase_slice = phasor_matrix[time,:]
+            reals = phase_slice.real
+            imaginary = phase_slice.imag
+            phases = scipy.arctan2(imaginary, reals)
+            phases = phases * (180. / scipy.pi)
+            bins = phases % numbins
+            for b in bins:
+                histo[time,b] += 1
+
+        self.form_point_set(histo, point_set)
+
+        pointdata = vtk.vtkUnstructuredGrid()
+        pointdata.SetPoints(point_set)
+
+        self.surf_filter = vtk.vtkSurfaceReconstructionFilter()
+
+        self.surf_filter.SetInput(0,pointdata)
+#        self.surf_filter.Update()
+        reg = core.modules.module_registry
+        vtk_set = reg.registry.get_descriptor_by_name('edu.utah.sci.vistrails.vtk', 'vtkAlgorithmOutput').module()
+        vtk_set.vtkInstance = self.surf_filter.GetOutputPort()
+
+        histo_mat = SparseMatrix()
+        histo_mat.matrix = sparse.csc_matrix(histo)
+
+        self.setResult("Num Slices", timeslices)
+        self.setResult("Phase Histogram", histo_mat)
+        self.setResult("Phase Geometry", vtk_set)

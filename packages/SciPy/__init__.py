@@ -26,9 +26,10 @@ from SciPy import SciPy
 from Matrix import *
 from MatlabReader import MatlabReader
 from MatrixInfo import MatrixInfo
-from MatrixConvert import MatrixConvert, vtkDataSetToMatrix
+from MatrixConvert import *
 from MatrixOperations import *
 from DSP import *
+from Filters import *
 import core.modules.basic_modules
 
 version = '0.9.0'
@@ -47,7 +48,62 @@ def initialize(*args, **keywords):
     reg.add_module(Matrix)
     reg.add_module(MatrixOperation)
     reg.add_module(DSP)
-    
+    reg.add_module(DSPFilters, name="DSP Window Filters")
+
+    reg.add_module(HanningWindow)
+    reg.add_input_port(HanningWindow, "Window Size", (basic.Integer, 'Window Size'))
+    reg.add_output_port(HanningWindow, "Window", (SparseMatrix, 'Window'))
+
+    reg.add_module(TriangularWindow)
+    reg.add_input_port(TriangularWindow, "Window Size", (basic.Integer, 'Window Size'))
+    reg.add_output_port(TriangularWindow, "Window", (SparseMatrix, 'Window'))
+
+    reg.add_module(BlackmanWindow)
+    reg.add_input_port(BlackmanWindow, "Window Size", (basic.Integer, 'Window Size'))
+    reg.add_output_port(BlackmanWindow, "Window", (SparseMatrix, 'Window'))
+
+    reg.add_module(BlackmanHarrisWindow)
+    reg.add_input_port(BlackmanHarrisWindow, "Window Size", (basic.Integer, 'Window Size'))
+    reg.add_output_port(BlackmanHarrisWindow, "Window", (SparseMatrix, 'Window'))
+
+    reg.add_module(ParzenWindow)
+    reg.add_input_port(ParzenWindow, "Window Size", (basic.Integer, 'Window Size'))
+    reg.add_output_port(ParzenWindow, "Window", (SparseMatrix, 'Window'))
+
+    reg.add_module(HammingWindow)
+    reg.add_input_port(HammingWindow, "Window Size", (basic.Integer, 'Window Size'))
+    reg.add_output_port(HammingWindow, "Window", (SparseMatrix, 'Window'))
+
+    reg.add_module(KaiserWindow)
+    reg.add_input_port(KaiserWindow, "Window Size", (basic.Integer, 'Window Size'))
+    reg.add_input_port(KaiserWindow, "Beta", (basic.Float, 'Beta'))
+    reg.add_output_port(KaiserWindow, "Window", (SparseMatrix, 'Window'))
+
+    reg.add_module(BartlettHannWindow)
+    reg.add_input_port(BartlettHannWindow, "Window Size", (basic.Integer, 'Window Size'))
+    reg.add_output_port(BartlettHannWindow, "Window", (SparseMatrix, 'Window'))
+
+    reg.add_module(GaussianWindow)
+    reg.add_input_port(GaussianWindow, "Window Size", (basic.Integer, 'Window Size'))
+    reg.add_input_port(GaussianWindow, "Sigma", (basic.Integer, 'Sigma (Std. Deviation)'))
+    reg.add_output_port(GaussianWindow, "Window", (SparseMatrix, 'Window'))
+
+    reg.add_module(BoxcarWindow)
+    reg.add_input_port(BoxcarWindow, "Window Size", (basic.Integer, 'Window Size'))
+    reg.add_output_port(BoxcarWindow, "Window", (SparseMatrix, 'Window'))
+
+    reg.add_module(BohmanWindow)
+    reg.add_input_port(BohmanWindow, "Window Size", (basic.Integer, 'Window Size'))
+    reg.add_output_port(BohmanWindow, "Window", (SparseMatrix, 'Window'))
+
+    reg.add_module(BartlettWindow)
+    reg.add_input_port(BartlettWindow, "Window Size", (basic.Integer, 'Window Size'))
+    reg.add_output_port(BartlettWindow, "Window", (SparseMatrix, 'Window'))
+
+    reg.add_module(NuttallBlackmanHarrisWindow)
+    reg.add_input_port(NuttallBlackmanHarrisWindow, "Window Size", (basic.Integer, 'Window Size'))
+    reg.add_output_port(NuttallBlackmanHarrisWindow, "Window", (SparseMatrix, 'Window'))
+
     reg.add_module(SparseMatrix)
     reg.add_input_port(SparseMatrix, "size", (basic.Integer, 'Matrix Size'))
     reg.add_output_port(SparseMatrix, "output", (SparseMatrix, 'Output Matrix'))
@@ -130,12 +186,36 @@ def initialize(*args, **keywords):
     reg.add_input_port(FFT, "FFT Samples", (basic.Integer, 'FFT Samples'))
     reg.add_output_port(FFT, "FFT Output", (SparseMatrix, 'FFT Output'))
 
-    if reg.registry.has_module('edu.sci.utah.vistrails.vtk',
-                               'vtkAlgorithmOutput'):
-        reg.add_module(vtkDataSetToMatrix)
-        reg.add_input_port(vtkDataSetToMatrix, "vtkUnstructuredGrid", (reg.registry.get_descriptor_by_name('edu.utah.sci.vistrails.vtk',
-                                                                                                           'vtkAlgorithmOutput').module, 'Input Unstructured Grid'))
-        reg.add_output_port(vtkDataSetToMatrix, "Output Matrix", (SparseMatrix, 'Output Matrix'))
+    reg.add_module(FFT2)
+    reg.add_input_port(FFT2, "Signals", (Matrix, 'Input Signal Matrix'))
+    reg.add_output_port(FFT2, "FFT Output", (SparseMatrix, 'FFT Output'))
+
+    reg.add_module(WindowedFourierTransform)
+    reg.add_input_port(WindowedFourierTransform, "Signal", (Matrix, 'Input Signal'))
+    reg.add_input_port(WindowedFourierTransform, "Sampling Rate", (basic.Integer, 'Sampling Rate'))
+    reg.add_input_port(WindowedFourierTransform, "Window Size", (basic.Integer, 'Window Size'), True)
+    reg.add_input_port(WindowedFourierTransform, "Stride", (basic.Integer, 'Window Stride'), True)
+    reg.add_output_port(WindowedFourierTransform, "FFT Output", (SparseMatrix, 'FFT Output'))
+
+    reg.add_module(ShortTimeFourierTransform)
+    reg.add_input_port(ShortTimeFourierTransform, "Signal", (Matrix, 'Input Signal'))
+    reg.add_input_port(ShortTimeFourierTransform, "Sampling Rate", (basic.Integer, 'Sampling Rate'))
+    reg.add_input_port(ShortTimeFourierTransform, "Stride", (basic.Integer, 'Window Stride'))
+    reg.add_input_port(ShortTimeFourierTransform, "Window", (Matrix, 'Window Function'), True)
+    reg.add_input_port(ShortTimeFourierTransform, "WindowSize", (basic.Integer, 'Window Size'))
+    reg.add_output_port(ShortTimeFourierTransform, "FFT Output", (SparseMatrix, 'FFT Output'))
+    reg.add_output_port(ShortTimeFourierTransform, "Signal Output", (SparseMatrix, 'Signal Output'), True)
+    
+    reg.add_module(vtkDataSetToMatrix)
+    reg.add_input_port(vtkDataSetToMatrix, "vtkUnstructuredGrid", (reg.registry.get_descriptor_by_name('edu.utah.sci.vistrails.vtk', 'vtkAlgorithmOutput').module, 'Input Unstructured Grid'))
+    reg.add_output_port(vtkDataSetToMatrix, "Output Matrix", (SparseMatrix, 'Output Matrix'))
+
+    reg.add_module(PhaseHistogramToVTKPoints)
+    reg.add_input_port(PhaseHistogramToVTKPoints, "FFT Input", (SparseMatrix, 'FFT Input'))
+    reg.add_input_port(PhaseHistogramToVTKPoints, "Num Bins", (basic.Integer, 'Number of Phase Bins'))
+    reg.add_output_port(PhaseHistogramToVTKPoints, "Num Slices", (basic.Integer, 'Number of Histogram Timeslices'), True)
+    reg.add_output_port(PhaseHistogramToVTKPoints, "Phase Histogram", (SparseMatrix, 'Phase Histogram'), True)
+    reg.add_output_port(PhaseHistogramToVTKPoints, "Phase Geometry", (reg.registry.get_descriptor_by_name('edu.utah.sci.vistrails.vtk', 'vtkAlgorithmOutput').module, 'Phase Geometry Connection'))
 
 def package_dependencies():
     import core.packagemanager
