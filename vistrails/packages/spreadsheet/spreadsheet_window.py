@@ -322,8 +322,6 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         
         """
         if self.eventMap.has_key(e.type()):
-            if e.type() in [DisplayCellEventType, BatchDisplayCellEventType]:
-                self.tabController.addPipeline(e.vistrail)
             self.eventMap[e.type()](e)
             return False
         return QtGui.QMainWindow.event(self, e)
@@ -345,6 +343,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         Display a cell when receive this event
         
         """
+        self.tabController.addPipeline(e.vistrail)
         cid = self.tabController.increasePipelineCellId(e.vistrail)
         pid = self.tabController.getCurrentPipelineId(e.vistrail)
         if self.tabController.isLoadingMode():
@@ -354,6 +353,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 sheet.tabWidget.setCurrentWidget(sheet)
                 sheet.setCellPipelineInfo(row, col, (e.vistrail, pid, cid))
                 sheet.setCellByType(row, col, e.cellType, e.inputPorts)
+            return None
         else:
             reference = e.sheetReference
             if reference==None:
@@ -370,12 +370,14 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             QtCore.QCoreApplication.processEvents()
             if self.editingModeAction().isChecked():
                 sheet.setCellEditingMode(row, col, True)
+            return sheet.getCell(row, col)
 
     def batchDisplayCellEvent(self, batchEvent):
         """ batchDisplayCellEvent(batchEvent: BatchDisplayCellEvent) -> None
         Handle event where a series of cells are arrived
         
         """
+        self.tabController.addPipeline(batchEvent.vistrail)
         for e in batchEvent.displayEvents:
             e.vistrail = batchEvent.vistrail
             self.displayCellEvent(e)

@@ -47,6 +47,7 @@ from vtk_parser import VTKMethodParser
 import re
 import os.path
 from itertools import izip
+from vtkcell import VTKCell
 
 import offscreen
 import fix_classes
@@ -354,6 +355,9 @@ def addSetGetPorts(module, get_set_dict):
             if name == 'FileName':
                 add_input_port(module, 'SetFile', (File, 'input file'),
                                False)
+            # Wrap SetRenderWindow for exporters
+            elif name == 'RenderWindow':
+                add_input_port(module, 'SetVTKCell', VTKCell, False)
             # Wrap color methods for VisTrails GUI facilities
             elif name == 'DiffuseColor':
                 add_input_port(module, 'SetDiffuseColorWidget',
@@ -672,13 +676,21 @@ def class_dict(base_module, node):
         def call_SetEdgeColorWidget(self, color):
             self.vtkInstance.SetEdgeColor(color.tuple)
         return call_SetEdgeColorWidget
+
+    def compute_SetVTKCell(old_compute):
+        if old_compute != None:
+            return old_compute
+        def call_SetRenderWindow(self, cellObj):
+            if cellObj.cellWidget:
+                self.vtkInstance.SetRenderWindow(cellObj.cellWidget.mRenWin)
+        return call_SetRenderWindow
     
     def compute_SetFile(old_compute_SetFile):
         if old_compute_SetFile != None:
             return old_compute_SetFile
         def call_SetFile(self, file_obj):
             self.vtkInstance.SetFileName(file_obj.name)
-        return call_SetFile
+        return call_SetFile    
 
     def guarded_Writer_wrap_compute(old_compute):
         # The behavior for vtkWriter subclasses is to call Write()
@@ -705,6 +717,9 @@ def class_dict(base_module, node):
         # this is brittle..
         if node.klass.__name__.endswith('Reader'):
             update_dict('compute', guarded_SetFileName_wrap_compute)
+    if hasattr(node.klass, 'SetRenderWindow'):
+        update_dict('_special_input_function_SetVTKCell',
+                    compute_SetVTKCell)
     #color gui wrapping
     if hasattr(node.klass, 'SetDiffuseColor'):
         update_dict('_special_input_function_SetDiffuseColorWidget',

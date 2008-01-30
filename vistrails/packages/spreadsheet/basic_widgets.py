@@ -31,6 +31,7 @@ from spreadsheet_base import (StandardSheetReference,
                               StandardSingleCellSheetReference)
 from spreadsheet_controller import spreadsheetController
 from spreadsheet_event import DisplayCellEvent
+from PyQt4 import QtCore
 
 ################################################################################
 
@@ -198,6 +199,32 @@ class SpreadsheetCell(NotCacheable, Module):
         e.cellType = cellType
         e.inputPorts = inputPorts
         spreadsheetController.postEventToSpreadsheet(e)
+
+    def displayAndWait(self, cellType, inputPorts):
+        """ displayAndWait(cellType: python type, iputPorts: tuple)
+        Send the message and wait for the cell to complete its movement
+        constructed to return it
+
+        Keyword arguments:
+        cellType   --- widget type, this is truely a python type
+        inputPorts --- a tuple of input data that cellType() will understand
+        
+        """
+        e = DisplayCellEvent()
+        e.vistrail = self.moduleInfo
+        if self.location:
+            location = self.location
+        else:
+            location = self.forceGetInputFromPort("Location")
+        if location:
+            e.row = location.row
+            e.col = location.col
+            e.sheetReference = location.sheetReference
+        e.cellType = cellType
+        e.inputPorts = inputPorts
+        QtCore.QCoreApplication.processEvents()
+        spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
+        return spreadsheetWindow.displayCellEvent(e)
 
 class SingleCellSheetReference(SheetReference):
     """

@@ -51,14 +51,19 @@ class VTKCell(SpreadsheetCell):
     VTKCell is a VisTrails Module that can display vtkRenderWindow inside a cell
     
     """
+
+    def __init__(self):
+        SpreadsheetCell.__init__(self)
+        self.cellWidget = None
+    
     def compute(self):
         """ compute() -> None
         Dispatch the vtkRenderer to the actual rendering widget
         """
         renderers = self.forceGetInputListFromPort('AddRenderer')
         iHandlers = self.forceGetInputListFromPort('InteractionHandler')
-        iStyle = self.forceGetInputFromPort('InteractorStyle')
-        self.display(QVTKWidget, (renderers, iHandlers, iStyle))
+        iStyle = self.forceGetInputFromPort('InteractorStyle')        
+        self.cellWidget = self.displayAndWait(QVTKWidget, (renderers, iHandlers, iStyle))
 
 AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None,
@@ -1144,9 +1149,10 @@ def registerSelf():
     registry.add_module(VTKCell)
     registry.add_input_port(VTKCell, "Location", CellLocation)
     [vR, vIH, vIS] = [registry.get_descriptor_by_name(identifier, name).module
-                      for name in ['vtkRenderer',
-                                   'vtkInteractionHandler',
-                                   'vtkInteractorStyle']]
+                           for name in ['vtkRenderer',
+                                        'vtkInteractionHandler',
+                                        'vtkInteractorStyle']]
     registry.add_input_port(VTKCell, "AddRenderer", vR)
     registry.add_input_port(VTKCell, "InteractionHandler", vIH)
     registry.add_input_port(VTKCell, "InteractorStyle", vIS)
+    registry.add_output_port(VTKCell, "self", VTKCell)
