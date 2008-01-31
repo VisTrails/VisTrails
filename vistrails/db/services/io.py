@@ -390,6 +390,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False):
     # remove abstractions for db write
     vistrail.db_new_abstractions = []
     save_abstractions(vistrail, vistrail)
+    new_abstractions = vistrail.db_new_abstractions
     vistrail.db_abstractions = []
     vistrail.db_abstractions_id_index = {}
 
@@ -412,7 +413,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False):
     db_connection.commit()
     
     # add abstractions back
-    vistrail.db_abstractions = vistrail.db_new_abstractions
+    vistrail.db_abstractions = new_abstractions
     for abstraction in vistrail.db_abstractions:
         vistrail.db_abstractions_id_index[abstraction.db_id] = abstraction
     return vistrail
@@ -592,7 +593,7 @@ def write_sql_objects(db_connection, objectList, do_copy=False):
         children = object.db_children()
         children.reverse()
         global_props = {'entity_type': "'" + object.vtType + "'"}
-        print 'global_props:', global_props
+        # print 'global_props:', global_props
 
         # assumes not deleting entire thing
         (child, _, _) = children[0]
@@ -606,8 +607,11 @@ def write_sql_objects(db_connection, objectList, do_copy=False):
                                                                   obj,
                                                                   global_props)
 
-        children.pop(0)
+        (child, _, _) = children.pop(0)
+        child.is_dirty = False
+        child.is_new = False
         for (child, _, _) in children:
+            # print "child:", child.vtType, child.db_id
             dao_list['sql'][child.vtType].set_sql_columns(db_connection, child, 
                                                           global_props, do_copy)
             dao_list['sql'][child.vtType].to_sql_fast(child, do_copy)

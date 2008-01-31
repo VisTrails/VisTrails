@@ -48,5 +48,10 @@ def create_paste_action(pipeline, id_scope, id_remap=None):
     for connection in pipeline.connections.itervalues():
         connection = connection.do_copy(True, id_scope, id_remap)
         action_list.append(('add', connection))
-    return create_action(action_list)
+    action = create_action(action_list)
+
+    # fun stuff to work around bug where pasted entities aren't dirty
+    for (child, _, _) in action.db_children():
+        child.is_dirty = True
+    return action
 
