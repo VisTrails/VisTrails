@@ -987,7 +987,7 @@ class ModuleRegistry(QtCore.QObject):
         for module_name in modules:
             graph.add_vertex(module_name)
         for module_name in modules:
-            if type(modules) == str:
+            if type(module_name) == str:
                 key = (package.identifier, module_name)
             else:
                 key = (package.identifier, module_name[0], module_name[1])
