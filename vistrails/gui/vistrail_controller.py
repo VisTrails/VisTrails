@@ -1226,6 +1226,9 @@ class VistrailController(QtCore.QObject):
 
     def write_vistrail(self, locator):
         if self.vistrail and (self.changed or self.locator != locator):
+            # FIXME hack to use db_currentVersion for convenience
+            # it's not an actual field
+            self.vistrail.db_currentVersion = self.currentVersion
             if self.locator != locator:
                 old_locator = self.get_locator()
                 self.locator = locator
@@ -1236,7 +1239,9 @@ class VistrailController(QtCore.QObject):
             else:
                 new_vistrail = self.locator.save(self.vistrail)
             if id(self.vistrail) != id(new_vistrail):
+                new_version = new_vistrail.db_currentVersion
                 self.setVistrail(new_vistrail, locator)
+                self.changeSelectedVersion(new_version)
                 self.invalidate_version_tree()
             self.setChanged(False)
 

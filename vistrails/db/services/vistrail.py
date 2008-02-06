@@ -252,6 +252,7 @@ def performActions(actions, workflow):
     performAdds(getCurrentOperations(actions), workflow)
 
 def synchronize(old_vistrail, new_vistrail):
+    current_version = new_vistrail.db_currentVersion
     id_remap = {}
     for action in new_vistrail.db_actions:
         if action.is_new:
@@ -298,12 +299,21 @@ def synchronize(old_vistrail, new_vistrail):
             # remap id
             if id_remap.has_key((DBAction.vtType, new_tag.db_id)):
                 new_tag.db_id = id_remap[(DBAction.vtType, new_tag.db_id)]
+            if old_vistrail.db_tags_name_index.has_key(new_tag.db_name):
+                # FIXME conflict!
+                print "tag conflict--name already used"
+                old_tag = old_vistrail.db_tags_name_index[new_tag.db_name]
+                old_vistrail.db_delete_tag(old_tag)
             if old_vistrail.db_tags_id_index.has_key(new_tag.db_id):
                 # FIXME conflict!
                 print 'possible tag conflict -- WILL NOT GET HERE!'
                 old_tag = old_vistrail.db_tags_id_index[new_tag.db_id]
                 old_vistrail.db_delete_tag(old_tag)
             old_vistrail.db_add_tag(new_tag)
+
+    new_version = \
+        id_remap.get((DBAction.vtType, current_version), current_version)
+    old_vistrail.db_currentVersion = new_version
 
 ################################################################################
 # Analogy methods
