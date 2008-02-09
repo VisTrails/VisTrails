@@ -38,7 +38,7 @@ from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
 from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.port_spec import PortSpec
-from core.utils import NoSummon, VistrailsInternalError
+from core.utils import NoSummon, VistrailsInternalError, report_stack
 import core.modules.module_registry
 from core.modules.module_registry import registry, ModuleRegistry
 
@@ -95,7 +95,16 @@ class Module(DBModule):
     def convert(_module):
 	_module.__class__ = Module
 	_module.registry = None
-        _module.namespace = None
+        # FIXME
+        # Some modules get here without a namespace attribute
+        # in particular, the ones coming from core/db/locator.py:158 (load)
+        # So we need to set this to None
+        # We cannot set it unconditionally because modules that are added
+        # to the pipeline via the GUI already have a namespace set to them.
+        # This madness should go away once the namespaces are handled in
+        # the db layer.
+        if not hasattr(_module, 'namespace'):
+            _module.namespace = None
         for _port_spec in _module.db_portSpecs:
             PortSpec.convert(_port_spec)
             _module.add_port_to_registry(_port_spec)

@@ -578,7 +578,7 @@ class TestSearch(unittest.TestCase):
         # This will fail if year flips during execution. Oh well :)
         yr = datetime.datetime.today().year
         self.assertEquals((TimeSearchStmt('12 mar').date -
-                           TimeSearchStmt('12 mar %d' % year).date), 0.0)
+                           TimeSearchStmt('12 mar %d' % yr).date), 0.0)
     def test4(self):
         # This will fail if year flips during execution. Oh well :)
         yr = datetime.datetime.today().year

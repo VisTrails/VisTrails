@@ -66,6 +66,8 @@ and dest subpipelines"""
     def module_signature(obj):
         hasher = sha.new()
         hasher.update(obj.name)
+        hasher.update(obj.package)
+        hasher.update(obj.namespace or '')
         hasher.update(hash_list(obj.functions, Hasher.function_signature))
         return hasher.digest()
 
