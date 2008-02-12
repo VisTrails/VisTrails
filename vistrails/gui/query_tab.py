@@ -78,6 +78,7 @@ class QQueryTab(QPipelineTab):
         Update the pipeline when the vistrail version has changed
         
         """
+        self.controller.currentPipeline.ensure_connection_specs()
         self.updatePipeline(self.controller.currentPipeline)
         self.emit(QtCore.SIGNAL("queryPipelineChange"),
                   len(self.controller.currentPipeline.modules)>0)
@@ -99,18 +100,12 @@ class QFunctionQueryForm(QMethodInputForm):
         Auto create widgets to describes the function 'function'
         
         """
-        reg = module_registry.registry
         self.function = function
         self.setTitle(function.name)
         gLayout = self.layout()
         for pIdx in xrange(len(function.params)):
             p = function.params[pIdx]
-            constant_class = reg.get_module_by_name(p.identifier,
-                                                    p.type,
-                                                    p.namespace)
-            widget_type = constant_class.get_widget_class()
-            field = QParameterQuery(p.strValue, p.type,
-                                    p.queryMethod, widget_type)
+            field = QParameterQuery(p)
             self.fields.append(field)
             gLayout.addWidget(field, pIdx, 0)
         self.update()
@@ -147,15 +142,14 @@ class QParameterQuery(QtGui.QWidget):
     menu allowing users to choose how they want to query a parameter
     
     """
-    def __init__(self, pValue, pType, pMethod, widget_type, parent=None):
-        """ QParameterQuery(pValue: str, pType: str, parent: QWidget,
-                            pMethod: int) -> QParameterQuery
+    def __init__(self, param, parent=None):
+        """ QParameterQuery(param: ModuleParam) -> QParameterQuery
         Construct the widget layout
         
         """
         QtGui.QWidget.__init__(self, parent)
-        self.value = pValue
-        self.type = pType
+        self.value = param.strValue
+        self.type = param.type
         
         layout = QtGui.QHBoxLayout()
         layout.setSpacing(0)
@@ -165,21 +159,25 @@ class QParameterQuery(QtGui.QWidget):
         self.label = QtGui.QLabel('')
         layout.addWidget(self.label)
         
-        self.selector = QParameterQuerySelector(pType)
+        self.selector = QParameterQuerySelector(self.type)
         layout.addWidget(self.selector)        
 
-        
-        self.editor = widget_type(pValue, pType)
+        reg = module_registry.registry
+        constant_class = reg.get_module_by_name(param.identifier,
+                                                param.type,
+                                                param.namespace)
+        widget_type = constant_class.get_widget_class() 
+        self.editor = widget_type(param)
         layout.addWidget(self.editor)
 
         self.connect(self.selector.operationActionGroup,
                      QtCore.SIGNAL('triggered(QAction*)'),
                      self.operationChanged)
-        if pType=='String':            
+        if self.type =='String':            
             self.connect(self.selector.caseActionGroup,
                          QtCore.SIGNAL('triggered(QAction*)'),
                          self.caseChanged)
-        self.selector.initAction(pMethod)
+        self.selector.initAction(param.queryMethod)
 
     def operationChanged(self, action):
         """ operationChanged(action: QAction) -> None
