@@ -762,12 +762,14 @@ class Vistrail(DBVistrail):
         # we want to always add nodes from left to right
         for action in sorted(self.actionMap.itervalues(), 
                              key=lambda x: x.timestep):
-            # DAK: not sure why we need to check the has_key
-            # if (result.vertices.has_key(action.parent) and
-            #    action.prune != 1):
-            if action.prune != 1:
+            # We need to check the presence of the parent's timestep
+            # on the graph because it might have been previously
+            # pruned. Remember that pruning is only marked for the
+            # topmost invisible action.
+            if (result.vertices.has_key(action.parent) and
+                action.prune != 1):
                 result.add_edge(action.parent,
-                               action.timestep,
+                                action.timestep,
                                0)
         return result
 
