@@ -176,11 +176,11 @@ class FileChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
     """
     def __init__(self, param, parent=None):
         """__init__(param: core.vistrail.module_param.ModuleParam,
-                    parent: QWidget)
+        parent: QWidget)
         Initializes the line edit with contents
         
         """
-        QtGui.QWidget.__init__(self)
+        QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QHBoxLayout()
         self.line_edit = StandardConstantWidget(param, self)
         self.browse_button = FileChooserToolButton(self, self.line_edit) 
@@ -200,6 +200,38 @@ class FileChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
 
         """
         return self.line_edit.contents()
+
+class BooleanWidget(QtGui.QComboBox, ConstantWidgetMixin):
+
+    _values = ['True', 'False']
+
+    def __init__(self, param, parent=None):
+        """__init__(param: core.vistrail.module_param.ModuleParam,
+                    parent: QWidget)
+        Initializes the line edit with contents
+        """
+        QtGui.QComboBox.__init__(self, parent)
+        ConstantWidgetMixin.__init__(self)
+        assert param.type == 'Boolean'
+        assert param.identifier == 'edu.utah.sci.vistrails.basic'
+        assert param.namespace == ''
+        if param.strValue:
+            value = param.strValue
+        else:
+            value = "False"
+        assert value in self._values
+        self.addItem("True")
+        self.addItem("False")
+        self.setEditable(False)
+        self.connect(self, QtCore.SIGNAL('currentIndexChanged(int)'),
+                     self.change_index)
+        self.setCurrentIndex(self._values.index(value))
+
+    def contents(self):
+        return str(self.itemText(self.currentIndex()))
+
+    def change_index(self, new_index):
+        self.update_parent()
 
 ###############################################################################
 # Constant Color widgets

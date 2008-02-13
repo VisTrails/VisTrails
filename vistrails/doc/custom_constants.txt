@@ -101,3 +101,18 @@ translated to the expected python types (Null becomes None).
 Note, however, that this translation does _not_ happen for any other
 constant, so if you need programmatic access to a constant in your
 code, you should distinguish between these cases.
+
+--------------------------------------------------------------------------------
+Gotchas, what to watch out for:
+
+If your custom widget is generating errors with tracebacks similar to:
+
+  File "/home/cscheid/vistrails/trunk/vistrails/core/modules/constant_configuration.py", line 43, in update_parent
+
+    if newContents != self._last_contents: 
+AttributeError:_last_contents
+
+It probably means you forgot to call the constructor to
+ConstantWidgetMixin.
+
+--------------------------------------------------------------------------------

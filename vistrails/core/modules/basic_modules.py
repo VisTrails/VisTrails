@@ -30,7 +30,7 @@ from core.modules.vistrails_module import Module, new_module, \
      NotCacheable, ModuleError
 from core.modules.tuple_configuration import TupleConfigurationWidget
 from core.modules.constant_configuration import StandardConstantWidget, \
-     FileChooserWidget, ColorWidget, ColorChooserButton
+     FileChooserWidget, ColorWidget, ColorChooserButton, BooleanWidget
 from core.utils import InstanceObject
 from core.modules.paramexplore import make_interpolator, \
      QFloatLineEdit, QIntegerLineEdit, FloatLinearInterpolator, \
@@ -147,7 +147,7 @@ def bool_conv(x):
     if s == 'FALSE':
         return False
     raise ValueError('Boolean from String in VisTrails should be either \
-"true" or "false"')
+"true" or "false", got "%s" instead' % x)
 
 def int_conv(x):
     if x.startswith('0x'):
@@ -155,7 +155,9 @@ def int_conv(x):
     else:
         return int(x)
 
-Boolean = new_constant('Boolean' , staticmethod(bool_conv), False, staticmethod(lambda x: type(x) == bool))
+Boolean = new_constant('Boolean' , staticmethod(bool_conv),
+                       False, staticmethod(lambda x: type(x) == bool),
+                       BooleanWidget)
 Float   = new_constant('Float'   , staticmethod(float), 0.0, staticmethod(lambda x: type(x) == float))
 Integer = new_constant('Integer' , staticmethod(int_conv), 0, staticmethod(lambda x: type(x) == int))
 String  = new_constant('String'  , staticmethod(str), "", staticmethod(lambda x: type(x) == str))
