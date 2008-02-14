@@ -21,7 +21,7 @@
 ############################################################################
 """ This file specifies the configuration widget for Constant
 modules. Please notice that this is different from the module configuration
-widget described in module_configure.py. We present a Color constand to be
+widget described in module_configure.py. We present a Color constant to be
 used as a template for creating a configuration widget for other custom
 constants.
 
@@ -72,8 +72,8 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
         """
         QtGui.QLineEdit.__init__(self, parent)
         ConstantWidgetMixin.__init__(self)
-        assert param.namespace is None
-        assert param.identifier == 'edu.utah.sci.vistrails.basic'
+        # assert param.namespace == None
+        # assert param.identifier == 'edu.utah.sci.vistrails.basic'
         contents = param.strValue
         contentType = param.type
         self.setText(contents)
@@ -280,6 +280,7 @@ class ColorWidget(QtGui.QWidget, ConstantWidgetMixin):
         contents = param.strValue
         contentsType = param.type
         QtGui.QWidget.__init__(self, parent)
+        ConstantWidgetMixin.__init__(self)
         layout = QtGui.QHBoxLayout()
         self.color_indicator = ColorChooserButton(self)
         self.connect(self.color_indicator,

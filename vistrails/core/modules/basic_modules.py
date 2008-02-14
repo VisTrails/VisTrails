@@ -112,9 +112,10 @@ _reg.add_module(Constant)
 def new_constant(name, conversion, default_value,
                  validation,
                  widget_type=StandardConstantWidget):
-    """new_constant(name: str, conversion: function, python_type: type,
-                    default_value: python_type, widget_type: QWidget type) ->
-                                                                     Module
+    """new_constant(name: str, conversion: callable, python_type: type,
+                    default_value: python_type,
+                    validation: callable
+                    widget_type: QWidget type) -> Module
 
     new_constant dynamically creates a new Module derived from Constant
     with a given conversion function, a corresponding python type and a

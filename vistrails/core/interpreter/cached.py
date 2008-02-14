@@ -203,16 +203,13 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         def create_constant(param, module):
             """Creates a Constant from a parameter spec"""
             getter = modules.module_registry.registry.get_descriptor_by_name
-            # FIXME: for now any constant that is not in the basic package
-            # is considered a String. We need to store the package info inside
-            # the parameter as well
-            try:
-                desc = getter(param.identifier, param.type, param.namespace)
-            except:
-                desc = getter('edu.utah.sci.vistrails.basic', 'String')
+            desc = getter(param.identifier, param.type, param.namespace)
             constant = desc.module()
             constant.id = module.id
-            constant.setValue(param.evaluatedStrValue)
+            if param.evaluatedStrValue:
+                constant.setValue(param.evaluatedStrValue)
+            else:
+                constant.setValue(constant.default_value)
             return constant
                 
         ## Checking 'sinks' from kwargs to resolve only requested sinks
