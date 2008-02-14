@@ -58,7 +58,7 @@ class Module(DBModule):
             namespace = kwargs['namespace']
             del kwargs['namespace']
         else:
-            namespace = ''
+            namespace = None
         DBModule.__init__(self, *args, **kwargs)
         if self.cache is None:
             self.cache = 1
@@ -85,10 +85,10 @@ class Module(DBModule):
         cp.__class__ = Module
         # cp.registry = copy.copy(self.registry)
         cp.registry = None
-        cp.namespace = self.namespace
         for port_spec in cp.db_portSpecs:
             cp.add_port_to_registry(port_spec)
         cp.portVisible = copy.copy(self.portVisible)
+        cp.parse_db_name()
         return cp
 
     @staticmethod
@@ -103,8 +103,7 @@ class Module(DBModule):
         # to the pipeline via the GUI already have a namespace set to them.
         # This madness should go away once the namespaces are handled in
         # the db layer.
-        if not hasattr(_module, 'namespace'):
-            _module.namespace = None
+        _module.parse_db_name()
         for _port_spec in _module.db_portSpecs:
             PortSpec.convert(_port_spec)
             _module.add_port_to_registry(_port_spec)
@@ -165,12 +164,36 @@ class Module(DBModule):
     location = property(_get_location, _set_location)
     center = property(_get_location, _set_location)
 
+    def parse_db_name(self):
+        if self.db_name and self.db_name.rfind('|') != -1:
+            (self._namespace, self._name) = self.db_name.rsplit('|',1)
+        else:
+            self._name = self.db_name
+            self._namespace = None 
+    def update_db_name(self):
+        if self._namespace is None:
+            self.db_name = self._name
+        else:
+            self.db_name = self._namespace + '|' + self._name
+
     def _get_name(self):
-        return self.db_name
+        if not hasattr(self, '_name'):
+            self.parse_db_name()
+        return self._name
     def _set_name(self, name):
-        self.db_name = name
+        self._name = name
+        self.update_db_name()
     name = property(_get_name, _set_name)
     label = property(_get_name, _set_name)
+
+    def _get_namespace(self):
+        if not hasattr(self, '_namespace'):
+            self.parse_db_name()
+        return self._namespace
+    def _set_namespace(self, namespace):
+        self._namespace = namespace
+        self.update_db_name()
+    namespace = property(_get_namespace, _set_namespace)
 
     def _get_package(self):
         return self.db_package

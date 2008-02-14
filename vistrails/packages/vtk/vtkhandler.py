@@ -273,7 +273,8 @@ class HandlerConfigurationWidget(StandardModuleConfigurationWidget):
                 controller.addMethod(self.module.id, f)
             else:
                 # do change parameter
-                paramList = [(code, 'String', '')]
+                paramList = [(code, 'String',  None, 
+                              'edu.utah.sci.vistrails.basic', '')]
                 controller.replace_method(self.module, fid, paramList)
 
 #             if fid==-1:

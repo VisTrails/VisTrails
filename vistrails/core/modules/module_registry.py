@@ -140,7 +140,8 @@ class PortSpec(object):
         def from_source_port():
             f = ModuleFunction()
             f.name = port.name
-            f.returnType = self._entries[0].__name__
+            descriptor = get_descriptor(self._entries[0])
+            f.returnType = descriptor.name
             return f
 
         def from_destination_port():
@@ -148,8 +149,13 @@ class PortSpec(object):
             f.name = port.name
             for specitem in self._entries:
                 p = ModuleParam()
-                p.identifier = get_descriptor(specitem[0]).identifier
-                p.type = specitem[0].__name__
+                descriptor = get_descriptor(specitem[0])
+                # p.identifier = get_descriptor(specitem[0]).identifier
+                # p.type = specitem[0].__name__
+                p.identifier = descriptor.identifier
+                p.namespace = descriptor.namespace
+                p.type = descriptor.name
+                
                 p.name = specitem[1]
                 f.addParameter(p)
             return f
@@ -755,7 +761,7 @@ class ModuleRegistry(QtCore.QObject):
             raise self.MissingModulePackage(identifier, name)
         if not self._key_tree_map.has_key(key):
             msg = ("Package %s does not contain module %s" %
-                   key)
+                   (identifier, key))
             core.debug.critical(msg)
             raise self.MissingModulePackage(identifier, name)
         return self._key_tree_map[key].descriptor

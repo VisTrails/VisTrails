@@ -354,7 +354,7 @@ class VistrailController(QtCore.QObject):
         action_list = []
         must_change = False
         for i in xrange(len(param_list)):
-            (p_val, p_type, p_identifier, p_alias) = param_list[i]
+            (p_val, p_type, p_namespace, p_identifier, p_alias) = param_list[i]
             function = module.functions[function_pos]
             old_param = function.params[i]
             param_id = self.vistrail.idScope.getNewId(ModuleParam.vtType)
@@ -364,8 +364,9 @@ class VistrailController(QtCore.QObject):
                                     alias=p_alias,
                                     val=p_val,
                                     type=p_type,
+                                    identifier=p_identifier,
+                                    namespace=p_namespace,
                                     )
-            new_param.identifier = p_identifier
             must_change |= (new_param != old_param)
             action_list.append(('change', old_param, new_param, 
                                 function.vtType, function.real_id))

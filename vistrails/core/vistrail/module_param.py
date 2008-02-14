@@ -35,11 +35,19 @@ class ModuleParam(DBParameter):
     # Constructor
 
     def __init__(self, *args, **kwargs):
+        if 'identifier' in kwargs:
+            identifier = kwargs['identifier']
+            del kwargs['identifier']
+        else:
+            identifier = None
+        if 'namespace' in kwargs:
+            namespace = kwargs['namespace']
+            del kwargs['namespace']
+        else:
+            namespace = None
 	DBParameter.__init__(self, *args, **kwargs)
         if self.real_id is None:
             self.real_id = -1
-        if self.db_type is None:
-            self.db_type = ""
         if self.strValue is None:
             self.strValue = ""
         if self.alias is None:
@@ -52,9 +60,13 @@ class ModuleParam(DBParameter):
         self.minValue = ""
         self.maxValue = ""
         self.evaluatedStrValue = ""
-        self.identifier = ""
-        self._type = ""
-        self.namespace = ""
+
+        self.parse_db_type()
+        if identifier:
+            self.identifier = identifier
+        if namespace:
+            self.namespace = namespace
+
         # This is used for visual query and will not get serialized
         self.queryMethod = 0
 
@@ -68,9 +80,12 @@ class ModuleParam(DBParameter):
         cp.maxValue = self.maxValue
         cp.evaluatedStrValue = self.evaluatedStrValue
         cp.queryMethod = 0
-        cp.identifier = self.identifier
-        cp.namespace = self.namespace
-        cp._type = self._type
+
+        # cp.identifier = self.identifier
+        # cp.namespace = self.namespace
+        # cp._type = self._type
+        cp.parse_db_type()
+
         return cp
 
     @staticmethod
@@ -82,10 +97,13 @@ class ModuleParam(DBParameter):
         _parameter.minValue = ""
         _parameter.maxValue = ""
         _parameter.evaluatedStrValue = ""
-        _parameter.identifier = ""
-        _parameter.namespace = ""
-        _parameter._type = ""
-        _parameter.parse_type_str(_parameter.db_type)
+
+        # _parameter.identifier = ""
+        # _parameter.namespace = ""
+        # _parameter._type = ""
+        # _parameter.parse_type_str(_parameter.db_type)
+        _parameter.parse_db_type()
+
     ##########################################################################
 
     # id isn't really the id, it's a relative position
@@ -108,19 +126,60 @@ class ModuleParam(DBParameter):
         self.db_name = name
     name = property(_get_name, _set_name)
 
-    def _get_type(self):
+    def parse_db_type(self):
+        if self.db_type and self.db_type.find(':') != -1:
+            (self._identifier, name) = self.db_type.split(':', 1)
+            if name.find('|') != -1:
+                (self._namespace, self._type) = name.rsplit('|', 1)
+            else:
+                self._namespace = None
+                self._type = name
+        else:
+            # FIXME don't hardcode this
+            self._identifier = "edu.utah.sci.vistrails.basic"
+            self._namespace = None
+            self._type = self.db_type
+    def update_db_type(self):
         if not self._type:
-            self.parse_type_str(self.db_type)
+            self.db_type = None
+        else:
+            if not self._identifier:
+                # FIXME don't hardcode this
+                self._identifier = "edu.utah.sci.vistrails.basic"
+            if self._namespace:
+                self.db_type = self._identifier + ':' + self._namespace + \
+                    '|' + self._type
+            else:
+                self.db_type = self._identifier + ':' + self._type
+
+    def _get_type(self):
+        if not hasattr(self, '_type'):
+            self.parse_db_type()
         return self._type
     def _set_type(self, type):
         self._type = type
-        if self._type is not None:
-            self.db_type = self.create_type_str()
+        self.update_db_type()
     type = property(_get_type, _set_type)
 
+    def _get_namespace(self):
+        if not hasattr(self, '_namespace'):
+            self.parse_db_type()
+        return self._namespace
+    def _set_namespace(self, namespace):
+        self._namespace = namespace
+        self.update_db_type()
+    namespace = property(_get_namespace, _set_namespace)
+
+    def _get_identifier(self):
+        if not hasattr(self, '_identifier'):
+            self.parse_db_type()
+        return self._identifier
+    def _set_identifier(self, identifier):
+        self._identifier = identifier
+        self.update_db_type()
+    identifier = property(_get_identifier, _set_identifier)
+
     def _get_typeStr(self):
-        if self.db_type is None:
-            self.db_type = self.create_type_str()
         return self.db_type
     def _set_typeStr(self, typeStr):
         self.db_type = typeStr
@@ -137,30 +196,6 @@ class ModuleParam(DBParameter):
     def _set_alias(self, alias):
         self.db_alias = alias
     alias = property(_get_alias, _set_alias)
-
-    def create_type_str(self):
-        result = self.identifier + ":" + self._type
-        if self.namespace:
-            return result + ':' + self.namespace
-        else:
-            return result
-
-    def parse_type_str(self, type_str):
-        if type_str != "":
-            data = type_str.split(":")
-            if len(data) == 3:
-                self.identifier = data[0]
-                self.type = data[1]
-                self.namespace = data[2]
-            if len(data) == 2:
-                self.identifier = data[0]
-                self.type = data[1]
-                self.namespace = ''
-            else:
-                assert len(data) == 1
-                self.identifier = "edu.utah.sci.vistrails.basic"
-                self.type = data[0]
-                self.namespace = ''
         
     def serialize(self, dom, element):
         """ serialize(dom, element) -> None 
@@ -188,7 +223,8 @@ class ModuleParam(DBParameter):
 
         """
         from core.modules.module_registry import registry
-        module = registry.get_module_by_name(self.identifier, self._type, self.namespace)
+        module = registry.get_module_by_name(self.identifier, self.type, 
+                                             self.namespace)
         if self.strValue == "":
             self.strValue = module.default_value
             return module.default_value

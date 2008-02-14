@@ -236,6 +236,7 @@ class QMethodInputForm(QtGui.QGroupBox):
             for i in xrange(len(self.widgets)):
                 paramList.append((str(self.widgets[i].contents()),
                                   self.function.params[i].type,
+                                  self.function.params[i].namespace,
                                   self.function.params[i].identifier,
                                   str(self.labels[i].alias)))
             methodBox.lockUpdate()

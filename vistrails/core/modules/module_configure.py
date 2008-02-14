@@ -460,7 +460,8 @@ class PythonSourceConfigurationWidget(StandardModuleConfigurationWidget):
                 controller.addMethod(self.module.id, f)
             else:
                 # do change parameter
-                paramList = [(code, 'String', 'edu.utah.sci.vistrails.basic', '')]
+                paramList = [(code, 'String', None, 
+                              'edu.utah.sci.vistrails.basic', '')]
                 controller.replace_method(self.module, fid, paramList)
 #             action = ChangeParameterAction()
 #             action.addParameter(self.module.id, fid, 0, 'source',

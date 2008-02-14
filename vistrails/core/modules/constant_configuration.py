@@ -72,7 +72,7 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
         """
         QtGui.QLineEdit.__init__(self, parent)
         ConstantWidgetMixin.__init__(self)
-        assert param.namespace == ''
+        assert param.namespace is None
         assert param.identifier == 'edu.utah.sci.vistrails.basic'
         contents = param.strValue
         contentType = param.type
