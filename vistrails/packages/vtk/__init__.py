@@ -48,7 +48,7 @@ import re
 import os.path
 from itertools import izip
 from vtkcell import VTKCell
-
+import tf_widget
 import offscreen
 import fix_classes
 
@@ -586,6 +586,9 @@ def addPorts(module):
     elif klass==vtk.vtkImageWriter:
         add_output_port(module, 'file', typeMap('File',
                                                 'edu.utah.sci.vistrails.basic'))
+    elif klass==vtk.vtkVolumeProperty:
+        add_input_port(module, 'SetTransferFunction',
+                       typeMap('TransferFunction'))
 
 def setAllPorts(treeNode):
     """ setAllPorts(treeNode: TreeNode) -> None
@@ -692,6 +695,14 @@ def class_dict(base_module, node):
             self.vtkInstance.SetFileName(file_obj.name)
         return call_SetFile    
 
+    def compute_SetTransferFunction(old_compute):
+        # This sets the transfer function
+        if old_compute != None:
+            return old_compute
+        def call_SetTransferFunction(self, tf):
+            tf.set_on_vtk_volume_property(self.vtkInstance)
+        return call_SetTransferFunction
+
     def guarded_Writer_wrap_compute(old_compute):
         # The behavior for vtkWriter subclasses is to call Write()
         # If the user sets a name, we will create a file with that name
@@ -708,7 +719,7 @@ def class_dict(base_module, node):
             self.vtkInstance.Write()
             self.setResult('file', o)
         return compute
-            
+        
     if hasattr(node.klass, 'SetFileName'):
         # Everyone that has a SetFileName should have a SetFile port too
         update_dict('_special_input_function_SetFile', compute_SetFile)
@@ -741,6 +752,10 @@ def class_dict(base_module, node):
 
     if issubclass(node.klass, vtk.vtkScalarTree):
         update_dict('compute', guarded_SimpleScalarTree_wrap_compute)
+
+    if issubclass(node.klass, vtk.vtkVolumeProperty):
+        update_dict('_special_input_function_SetTransferFunction',
+                    compute_SetTransferFunction)
 
     return class_dict_
 
@@ -862,6 +877,11 @@ def initialize():
         > >= 5.0.0")
     inheritanceGraph = ClassTree(vtk)
     inheritanceGraph.create()
+
+    # Transfer Function constant
+    tf_widget.initialize()
+
+    # Add VTK modules
     add_module(vtkBaseModule)
     createAllModules(inheritanceGraph)
     setAllPorts(registry.get_tree_node_from_name(identifier,
@@ -877,6 +897,24 @@ def initialize():
 
     # register offscreen rendering module
     offscreen.register_self()
+
+
+    # register Transfer Function adjustment
+    # This can't be reordered -- TransferFunction needs to go before
+    # vtkVolumeProperty, but vtkScaledTransferFunction needs
+    # to go after vtkAlgorithmOutput
+    
+    add_module(tf_widget.vtkScaledTransferFunction)
+    add_input_port(tf_widget.vtkScaledTransferFunction,
+                   'Input',
+                   registry.get_descriptor_by_name('edu.utah.sci.vistrails.vtk',
+                                                   'vtkAlgorithmOutput').module)
+    add_input_port(tf_widget.vtkScaledTransferFunction,
+                   'TransferFunction',
+                   tf_widget.TransferFunctionConstant)
+    add_output_port(tf_widget.vtkScaledTransferFunction,
+                    'TransferFunction',
+                    tf_widget.TransferFunctionConstant)
 
 def package_dependencies():
     import core.packagemanager
