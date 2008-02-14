@@ -201,36 +201,35 @@ class FileChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
         """
         return self.line_edit.contents()
 
-class BooleanWidget(QtGui.QComboBox, ConstantWidgetMixin):
+class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
 
     _values = ['True', 'False']
+    _states = [QtCore.Qt.Checked, QtCore.Qt.Unchecked]
 
     def __init__(self, param, parent=None):
         """__init__(param: core.vistrail.module_param.ModuleParam,
                     parent: QWidget)
         Initializes the line edit with contents
         """
-        QtGui.QComboBox.__init__(self, parent)
+        QtGui.QCheckBox.__init__(self, parent)
         ConstantWidgetMixin.__init__(self)
         assert param.type == 'Boolean'
         assert param.identifier == 'edu.utah.sci.vistrails.basic'
-        assert param.namespace == ''
+        assert param.namespace is None
         if param.strValue:
             value = param.strValue
         else:
             value = "False"
         assert value in self._values
-        self.addItem("True")
-        self.addItem("False")
-        self.setEditable(False)
-        self.connect(self, QtCore.SIGNAL('currentIndexChanged(int)'),
-                     self.change_index)
-        self.setCurrentIndex(self._values.index(value))
+
+        self.connect(self, QtCore.SIGNAL('stateChanged(int)'),
+                     self.change_state)
+        self.setCheckState(self._states[self._values.index(value)])
 
     def contents(self):
-        return str(self.itemText(self.currentIndex()))
+        return self._values[self._states.index(self.checkState())]
 
-    def change_index(self, new_index):
+    def change_state(self, state):
         self.update_parent()
 
 ###############################################################################
