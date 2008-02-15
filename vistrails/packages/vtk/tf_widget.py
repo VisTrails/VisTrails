@@ -27,6 +27,7 @@ from PyQt4 import QtCore, QtGui
 from core.modules.constant_configuration import ConstantWidgetMixin
 from core.modules.basic_modules import new_constant, Module
 from core.modules.module_registry import registry
+from core.utils.color import ColorByName
 import vtk
 import math
 import pickle
@@ -124,7 +125,8 @@ class TransferFunction(object):
 
 class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
 
-    selection_pens = { True: QtGui.QPen(QtGui.QColor(255, 255, 0)),
+    selection_pens = { True: QtGui.QPen(QtGui.QBrush(
+        QtGui.QColor(*(ColorByName.get_int('goldenrod_medium')))),0.012),
                        False: QtGui.QPen() }
 
     def __init__(self, scalar, opacity, color, parent=None):
@@ -147,6 +149,10 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
         self._point = QtCore.QPointF(scalar, opacity)
         self.refresh()
 
+        self.setToolTip("Double-click to change color\n"
+                        "Right-click to remove point\n"
+                        "Scalar: %.5f, Opacity: %.5f" % (self._scalar,
+                                                         self._opacity))
         # This sets up the linked list of Lines
 
     def keyPressEvent(self, event):
@@ -198,6 +204,10 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
                 self._right_line.refresh()
             if self.scene():
                 self.scene()._tf_poly.setup()
+            self.setToolTip("Double-click to change color\n"
+                        "Right-click to remove point\n"
+                        "Scalar: %.5f, Opacity: %.5f" % (self._scalar,
+                                                         self._opacity))
             return QtGui.QGraphicsItem.itemChange(self, change,
                                                   QtCore.QVariant(pt))
         return QtGui.QGraphicsItem.itemChange(self, change, value)
@@ -237,7 +247,7 @@ class TransferFunctionPoint(QtGui.QGraphicsEllipseItem):
             self.remove_self()
         else:
             QtGui.QGraphicsEllipseItem.mousePressEvent(self, event)
-
+        
     def add_self_to_transfer_function(self, tf):
         tf.add_point(self._scalar,
                      self._opacity,
@@ -292,7 +302,7 @@ class TransferFunctionLine(QtGui.QGraphicsPolygonItem):
         self.setup(1.0, 1.0)
         self._sx = 1.0
         self._sy = 1.0
-
+        
     def setup(self, sx, sy):
         d = self._point_right._point - self._point_left._point
         d_normal = QtCore.QPointF(d.y(), -d.x())
@@ -365,6 +375,7 @@ class TransferFunctionLine(QtGui.QGraphicsPolygonItem):
         # This needs to be here, otherwise mouseDoubleClickEvent does
         # not get called.
         event.accept()
+        
 
 ##############################################################################
 # Scene, view, widget
@@ -379,7 +390,7 @@ class TransferFunctionScene(QtGui.QGraphicsScene):
         self._tf_poly = poly
         self.addItem(poly)
         self.create_tf_items(tf)
-        
+            
         # Add outlines
         line_color = QtGui.QColor(200, 200, 200)
         pen = QtGui.QPen(line_color)
@@ -415,9 +426,11 @@ class TransferFunctionScene(QtGui.QGraphicsScene):
             pt_left = TransferFunctionPoint(0.0, 0.0, (0.0, 0.0, 0.0))
             pt_right = TransferFunctionPoint(1.0, 0.0, (0.0, 0.0, 0.0))
             line = TransferFunctionLine(pt_left, pt_right)
+            
             self.addItem(pt_left)
             self.addItem(pt_right)
             self.addItem(line)
+            
         else:
             pts = [TransferFunctionPoint(*pt)
                    for pt in tf._pts]
@@ -462,12 +475,12 @@ class TransferFunctionView(QtGui.QGraphicsView):
         self.setRenderHint(QtGui.QPainter.Antialiasing)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-
+        
     def resizeEvent(self, event):
         self.setMatrix(QtGui.QMatrix(event.size().width() / (10.0/9), 0,
                                      0, -event.size().height() / (10.0/9), 0, 0))
         self.scene().update_scale(event.size().width()/(2000.0/9), event.size().height()/(2000.0/9))
-
+        
     def focusOutEvent(self, event):
         self.parent().update_parent()
         QtGui.QGraphicsView.focusOutEvent(self, event)
@@ -496,7 +509,12 @@ class TransferFunctionWidget(QtGui.QWidget, ConstantWidgetMixin):
                                  QtGui.QSizePolicy.Expanding)
         self._view.setMatrix(QtGui.QMatrix(180, 0, 0, -180, 0, 0))
         self.setMinimumSize(200,200)
+        caption = QtGui.QLabel("Double-click on the line to add a point")
+        font = QtGui.QFont('Arial', 11)
+        font.setItalic(True)
+        caption.setFont(font)
         layout.addWidget(self._view)
+        layout.addWidget(caption)
 
     def contents(self):
         return pickle.dumps(self._scene.get_transfer_function()).encode('hex')

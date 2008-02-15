@@ -36,7 +36,7 @@ class ConstantWidgetMixin(object):
 
     def __init__(self):
         self._last_contents = None
-                
+
     def update_parent(self):
         if self.parent():
             newContents = self.contents()
@@ -68,7 +68,7 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
 
         Initialize the line edit with its contents. Content type is limited
         to 'int', 'float', and 'string'
-        
+
         """
         QtGui.QLineEdit.__init__(self, parent)
         ConstantWidgetMixin.__init__(self)
@@ -80,7 +80,7 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
         self._contentType = contentType
         self.connect(self,
                      QtCore.SIGNAL('returnPressed()'),
-                     self.update_parent)               
+                     self.update_parent)
 
     def contents(self):
         """contents() -> str
@@ -95,7 +95,7 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
     def update_text(self):
         """ update_text() -> None
         Update the text to the result of the evaluation
-        
+
         """
         # FIXME: eval should pretty much never be used
         base = expression.evaluate_expressions(self.text())
@@ -106,20 +106,20 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
                 self.setText(str(eval(str(base), None, None)))
             except:
                 self.setText(base)
-                
+
     ###########################################################################
     # event handlers
-    
+
     def focusInEvent(self, event):
         """ focusInEvent(event: QEvent) -> None
         Pass the event to the parent
-        
+
         """
         self._contents = str(self.text())
         if self.parent():
             self.parent().focusInEvent(event)
         QtGui.QLineEdit.focusInEvent(self, event)
-        
+
     def focusOutEvent(self, event):
         self.update_parent()
         QtGui.QWidget.focusOutEvent(self, event)
@@ -128,10 +128,10 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
 # File Constant Widgets
 
 class FileChooserToolButton(QtGui.QToolButton):
-    """ 
+    """
     MethodFileChooser is a toolbar button that opens a browser for
     files.  The lineEdit is updated with the filename that is
-    selected.  
+    selected.
 
     """
     def __init__(self, parent=None, lineEdit=None):
@@ -150,12 +150,12 @@ class FileChooserToolButton(QtGui.QToolButton):
         self.connect(self,
                      QtCore.SIGNAL('clicked()'),
                      self.openChooser)
-             
+
 
     def openChooser(self):
         """
         openChooser() -> None
-        
+
         """
         fileName = QtGui.QFileDialog.getOpenFileName(self,
                                                      'Use Filename '
@@ -166,24 +166,25 @@ class FileChooserToolButton(QtGui.QToolButton):
         if self.lineEdit and not fileName.isEmpty():
             self.lineEdit.setText(fileName)
             self.lineEdit.update_parent()
-            
+
 class FileChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
-    """ 
+    """
     FileChooserWidget is a widget containing a line edit and a button that
     opens a browser for files. The lineEdit is updated with the filename that is
-    selected.  
+    selected.
 
     """
     def __init__(self, param, parent=None):
         """__init__(param: core.vistrail.module_param.ModuleParam,
         parent: QWidget)
         Initializes the line edit with contents
-        
+
         """
         QtGui.QWidget.__init__(self, parent)
+        ConstantWidgetMixin.__init__(self)
         layout = QtGui.QHBoxLayout()
         self.line_edit = StandardConstantWidget(param, self)
-        self.browse_button = FileChooserToolButton(self, self.line_edit) 
+        self.browse_button = FileChooserToolButton(self, self.line_edit)
         layout.setMargin(5)
         layout.setSpacing(5)
         layout.addWidget(self.line_edit)
@@ -246,7 +247,7 @@ class ColorChooserButton(QtGui.QFrame):
         if system.systemType == 'Darwin':
             #the mac's nice look messes up with the colors
             self.setAttribute(QtCore.Qt.WA_MacMetalStyle, False)
-        
+
     def setColor(self, qcolor):
         self.qcolor = qcolor
         self.palette().setBrush(QtGui.QPalette.Window, self.qcolor)
@@ -262,7 +263,7 @@ class ColorChooserButton(QtGui.QFrame):
     def openChooser(self):
         """
         openChooser() -> None
-        
+
         """
         color = QtGui.QColorDialog.getColor(self.qcolor, self.parent())
         if color.isValid():
@@ -271,7 +272,7 @@ class ColorChooserButton(QtGui.QFrame):
         else:
             self.setColor(self.qcolor)
 
-            
+
 class ColorWidget(QtGui.QWidget, ConstantWidgetMixin):
     def __init__(self, param, parent=None):
         """__init__(param: core.vistrail.module_param.ModuleParam,
