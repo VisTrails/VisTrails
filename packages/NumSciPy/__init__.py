@@ -10,6 +10,9 @@ from ArrayConvert import *
 
 # Scipy package imports
 from Matrix import *
+from MatrixUtilities import *
+from DSP import *
+from Filters import *
 
 version = '0.1.3'
 name = 'Num-SciPy'
@@ -87,7 +90,43 @@ def initialize(*args, **keywords):
     reg.add_module(Matrix, name="Scipy Matrix", namespace=Matrix.my_namespace)
     
     matrixclasses = [MatrixMultiply,
-                     MatrixConjugate]
+                     MatrixConjugate,
+                     MatrixToArray]
 
     for cls in matrixclasses:
         cls.register(reg,basic)
+
+    #########################################################################################
+    #  Scipy Matrix Utilities Registry
+    matrixutils = [MatlabReader]
+
+    for cls in matrixutils:
+        cls.register(reg, basic)
+
+    #########################################################################################
+    #  Scipy DSP Registry
+    dspclasses = [FFT,
+                  FFTN,
+                  ShortTimeFourierTransform]
+
+    for cls in dspclasses:
+        cls.register(reg, basic)
+
+    #########################################################################################
+    #  Scipy Windows Registry
+    winclasses = [HanningWindow,
+                  TriangularWindow,
+                  BlackmanWindow,
+                  BlackmanHarrisWindow,
+                  ParzenWindow,
+                  HammingWindow,
+                  KaiserWindow,
+                  BartlettHannWindow,
+                  GaussianWindow,
+                  BoxcarWindow,
+                  BohmanWindow,
+                  BartlettWindow,
+                  NuttallBlackmanHarrisWindow]
+
+    for cls in winclasses:
+        cls.register(reg, basic)
