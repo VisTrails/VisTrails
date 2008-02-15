@@ -34,25 +34,25 @@ def translateVistrail(_vistrail):
             if op.vtType == 'add':
                 data = convert_data(op.db_data)
                 ops.append(DBAdd(id=op.db_id,
-                                 what=op.db_what, 
-                                 objectId=op.db_objectId, 
-                                 parentObjId=op.db_parentObjId, 
-                                 parentObjType=op.db_parentObjType, 
+                                 what=op.db_what,
+                                 objectId=op.db_objectId,
+                                 parentObjId=op.db_parentObjId,
+                                 parentObjType=op.db_parentObjType,
                                  data=data))
             elif op.vtType == 'change':
                 data = convert_data(op.db_data)
                 ops.append(DBChange(id=op.db_id,
-                                    what=op.db_what, 
-                                    oldObjId=op.db_oldObjId, 
+                                    what=op.db_what,
+                                    oldObjId=op.db_oldObjId,
                                     newObjId=op.db_newObjId,
-                                    parentObjId=op.db_parentObjId, 
-                                    parentObjType=op.db_parentObjType, 
+                                    parentObjId=op.db_parentObjId,
+                                    parentObjType=op.db_parentObjType,
                                     data=data))
             elif op.vtType == 'delete':
                 ops.append(DBDelete(id=op.db_id,
-                                    what=op.db_what, 
-                                    objectId=op.db_objectId, 
-                                    parentObjId=op.db_parentObjId, 
+                                    what=op.db_what,
+                                    objectId=op.db_objectId,
+                                    parentObjId=op.db_parentObjId,
                                     parentObjType=op.db_parentObjType))
         annotations = []
         for annotation in _action.db_annotations:
@@ -60,9 +60,10 @@ def translateVistrail(_vistrail):
                                             key=annotation.db_key,
                                             value=annotation.db_value))
         action = DBAction(id=_action.db_id,
-                          prevId=_action.db_prevId, 
-                          date=_action.db_date, 
-                          user=_action.db_user, 
+                          prevId=_action.db_prevId,
+                          date=_action.db_date,
+                          user=_action.db_user,
+                          prune=_action.db_prune,
                           operations=ops,
                           annotations=annotations)
         vistrail.db_add_action(action)
@@ -78,32 +79,32 @@ def translateVistrail(_vistrail):
 def convert_data(child):
     if child.vtType == 'module':
         return DBModule(id=child.db_id,
-                        cache=child.db_cache, 
+                        cache=child.db_cache,
                         name=child.db_name,
                         package=child.db_package)
     elif child.vtType == 'abstractionRef':
         return DBAbstractionRef(id=child.db_id,
-                                name=child.db_name, 
-                                cache=child.db_cache, 
-                                abstraction_id=child.db_abstraction_id, 
+                                name=child.db_name,
+                                cache=child.db_cache,
+                                abstraction_id=child.db_abstraction_id,
                                 version=child.db_version)
     elif child.vtType == 'connection':
         return DBConnection(id=child.db_id)
     elif child.vtType == 'portSpec':
         return DBPortSpec(id=child.db_id,
-                          name=child.db_name, 
-                          type=child.db_type, 
+                          name=child.db_name,
+                          type=child.db_type,
                           spec=child.db_spec)
     elif child.vtType == 'function':
         return DBFunction(id=child.db_id,
-                          pos=child.db_pos, 
+                          pos=child.db_pos,
                           name=child.db_name)
     elif child.vtType == 'parameter':
         return DBParameter(id=child.db_id,
                            pos=child.db_pos,
-                           name=child.db_name, 
-                           type=child.db_type, 
-                           val=child.db_val, 
+                           name=child.db_name,
+                           type=child.db_type,
+                           val=child.db_val,
                            alias=child.db_alias)
     elif child.vtType == 'location':
         return DBLocation(id=child.db_id,
@@ -115,8 +116,8 @@ def convert_data(child):
                             value=child.db_value)
     elif child.vtType == 'port':
         return DBPort(id=child.db_id,
-                      type=child.db_type, 
-                      moduleId=child.db_moduleId, 
-                      moduleName=child.db_moduleName, 
+                      type=child.db_type,
+                      moduleId=child.db_moduleId,
+                      moduleName=child.db_moduleName,
                       name=child.db_name,
                       spec=child.db_spec)
