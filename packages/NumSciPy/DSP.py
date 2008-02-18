@@ -116,7 +116,10 @@ class ShortTimeFourierTransform(DSPModule, Module):
         else:
             stride = int(win_size / 2)
 
-        print sigs.get_shape()
+        sh = sigs.get_shape()
+        if len(sh) < 2:
+            shp = (1, sh[0])
+            sigs.reshape(shp)
         (num_sigs, num_samps) = sigs.get_shape()
 
         for i in xrange(num_sigs):
@@ -139,12 +142,10 @@ class ShortTimeFourierTransform(DSPModule, Module):
                     break
 
             #  STFT of one signal is done.  Clean up the output
-            print im_array.shape
             (slices, freqs) = im_array.shape
             ar = im_array[0:,0:sr*2]
             ar = ar[0:,::-1]
 
-            print ar.shape
             if out_vol == None:
                 out_vol = ar
                 ovshape = out_vol.shape
@@ -153,7 +154,7 @@ class ShortTimeFourierTransform(DSPModule, Module):
                 arshape = ar.shape
                 ar.shape = 1, arshape[0], arshape[1]
                 out_vol = numpy.vstack([out_vol, ar])
-                
+
         # All signals have been processed and are in the volume.
         out = NDArray()
         out.set_array(out_vol)
