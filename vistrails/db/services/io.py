@@ -580,8 +580,9 @@ def read_sql_objects(db_connection, vtType, id, lock=False):
             continue
         all_objects.update(dao.get_sql_columns(db_connection, global_props, 
                                                lock))
-    for obj in all_objects.values():
+    for obj in all_objects.itervalues():
         dao_list['sql'][obj.vtType].from_sql_fast(obj, all_objects)
+    for obj in all_objects.itervalues():
         obj.is_dirty = False
         obj.is_new = False
     return res
