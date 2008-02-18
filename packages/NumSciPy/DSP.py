@@ -30,9 +30,21 @@ class FFT(DSPModule, Module):
         else:
             pts = sig_array.get_shape()[1]
 
-        phasors = fftpack.fft(sig_array.get_array(), pts)
+        sh = sig_array.get_shape()
+        if len(sh) < 2:
+            shp = (1, sh[0])
+            sig_array.reshape(shp)
+
+        (num_sigs, num_samps) = sig_array.get_shape()
+        phasors = fftpack.fft(sig_array.get_row_range(0,0), pts)
+        out_ar = phasors
+
+        for i in xrange(1,num_sigs):
+            phasors = fftpack.fft(sig_array.get_row_range(i,i), pts)
+            out_ar = numpy.vstack([out_ar, phasors])
+        
         out = NDArray()
-        out.set_array(phasors)
+        out.set_array(out_ar)
         self.setResult("FFT Output", out)
 
     @classmethod
@@ -94,7 +106,7 @@ class ShortTimeFourierTransform(DSPModule, Module):
 
         if self.hasInputFromPort("Window"):
             window = self.getInputFromPort("Window")
-            win_size = window.get_shape()[1]
+            win_size = window.get_shape()[0]
         else:
             win_size = self.getInputFromPort("WindowSize")
             window = scipy.signal.hamming(win_size)
@@ -104,6 +116,7 @@ class ShortTimeFourierTransform(DSPModule, Module):
         else:
             stride = int(win_size / 2)
 
+        print sigs.get_shape()
         (num_sigs, num_samps) = sigs.get_shape()
 
         for i in xrange(num_sigs):
@@ -126,10 +139,12 @@ class ShortTimeFourierTransform(DSPModule, Module):
                     break
 
             #  STFT of one signal is done.  Clean up the output
+            print im_array.shape
             (slices, freqs) = im_array.shape
             ar = im_array[0:,0:sr*2]
             ar = ar[0:,::-1]
 
+            print ar.shape
             if out_vol == None:
                 out_vol = ar
                 ovshape = out_vol.shape
