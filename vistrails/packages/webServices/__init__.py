@@ -20,7 +20,7 @@
 ##
 ############################################################################
 """ This package defines a set of methods to deal with web services.
-It requires pyXML, fpconst and SOAPpy modules to be installed. Click on
+It requires ZSI library to be installed. Click on
 configure to add wsdl urls to the package (use a ; to separate the urls).
 
 """
@@ -129,7 +129,6 @@ def webServiceTypesDict(WBobj):
             if (isrequest == True):
                 WBobj.isRequestType = True
                 req = getattr(self.modclient,requestname)()
-                #req = getattr(WBobj.modclient,requestname)()
                 #Set the values in the input ports
                 for types in WBobj.ports:
                     nameport = str(types[0])
@@ -517,6 +516,7 @@ def initialize(*args, **keywords):
                  sys.exit(1)
 
     for w in wsdlList:
+        w = w.strip()
         #Create the stub files for the webservices that have been modified since the last time
         #they where loaded in VisTrails
         s = w.split('/')
