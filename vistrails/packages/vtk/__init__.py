@@ -910,6 +910,10 @@ def initialize():
                    registry.get_descriptor_by_name('edu.utah.sci.vistrails.vtk',
                                                    'vtkAlgorithmOutput').module)
     add_input_port(tf_widget.vtkScaledTransferFunction,
+                   'Dataset',
+                   registry.get_descriptor_by_name('edu.utah.sci.vistrails.vtk',
+                                                   'vtkDataObject').module)
+    add_input_port(tf_widget.vtkScaledTransferFunction,
                    'TransferFunction',
                    tf_widget.TransferFunctionConstant)
     add_output_port(tf_widget.vtkScaledTransferFunction,
