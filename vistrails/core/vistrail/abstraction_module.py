@@ -149,6 +149,10 @@ class AbstractionModule(DBAbstractionRef):
         pass
     package = property(_get_package, _set_package)
 
+    def _get_namespace(self):
+        return None
+    namespace = property(_get_namespace)
+
     def _get_registry(self):
         if not self._registry:
             self.make_registry()
