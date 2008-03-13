@@ -21,7 +21,6 @@
 ############################################################################
 
 from core.utils import \
-     with_index, iter_with_index, \
      InstanceObject, \
      lock_method, \
      enum, \

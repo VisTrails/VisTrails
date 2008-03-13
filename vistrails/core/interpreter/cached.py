@@ -260,7 +260,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 else:
                     tupleModule = core.interpreter.base.InternalTuple()
                     tupleModule.length = len(f.params)
-                    for (i,p) in iter_with_index(f.params):
+                    for (i,p) in enumerate(f.params):
                         constant = create_constant(p, module)
                         constant.update()
                         connector = ModuleConnector(constant, 'value')

@@ -210,17 +210,6 @@ def any(bool_list, pred = lambda x: x):
             return True
     return False
 
-def with_index(lst):
-    """with_index(list) -> [(index, element)] - Returns a list with
-    elements and their indices. Useful for iterating through the list."""
-    return zip(xrange(len(lst)), lst)
-
-def iter_with_index(iterable):
-    """iter_with_index(iterable) -> iterable - Iterator version
-    of with_index."""
-    return itertools.izip(itertools.count(0),
-                          iterable)
-
 def iter_index(iterable, item):
     """iter_index(iterable, item) -> int - Iterates through iterator
     until item is found, and returns the index inside the iterator.
@@ -408,21 +397,6 @@ class TestCommon(unittest.TestCase):
         self.assertEquals(count[0], 2)
         t.f(C2, 0)
         self.assertEquals(count[0], 3)
-
-    def test_with_index(self):
-        l = [0, 5, 10]
-        l1 = with_index(l)
-        l2 = [v for v in iter_with_index(l)]
-        self.assertEquals(l1, l2)
-
-    def test_iter_index(self):
-        l = [0, 2, 4, 6, 8, 9, 11, 13, 15]
-        x = itertools.chain(l)
-        self.assertEquals(iter_index(l, 9), 5)
-        self.assertEquals(iter_index(x, 9), 5)
-        x = itertools.chain(l)
-        self.assertEquals(iter_index(l, 14), -1)
-        self.assertEquals(iter_index(x, 14), -1)
 
     def test_version_string_to_list(self):
         self.assertEquals(version_string_to_list("0.1"), [0, 1])

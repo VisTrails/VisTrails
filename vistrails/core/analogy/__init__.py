@@ -20,7 +20,6 @@
 ##
 ############################################################################
 
-from core.utils import iter_with_index
 from core.data_structures.bijectivedict import Bidict
 import scipy
 from itertools import imap, chain

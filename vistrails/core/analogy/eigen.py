@@ -20,7 +20,6 @@
 ##
 ############################################################################
 from core.data_structures.bijectivedict import Bidict
-from core.utils import iter_with_index
 from itertools import imap, chain
 import copy
 import core.modules.module_registry
@@ -74,7 +73,7 @@ class EigenBase(object):
         m_o = mzeros((num_verts_p1, num_verts_p2))
         def get_vertex_map(g):
             return Bidict([(v, k) for (k, v)
-                           in iter_with_index(g.iter_vertices())])
+                           in enumerate(g.iter_vertices())])
         # vertex_maps: vertex_id to matrix index
         self._g1_vertex_map = get_vertex_map(self._p1.graph)
         self._g2_vertex_map = get_vertex_map(self._p2.graph)
@@ -93,8 +92,8 @@ class EigenBase(object):
 
     def init_edge_similarity(self):
         def get_edge_map(g):
-            itor = iter_with_index(imap(lambda x: x[2],
-                                        g.iter_all_edges()))
+            itor = enumerate(imap(lambda x: x[2],
+                                  g.iter_all_edges()))
             return Bidict([(v, k) for (k, v)
                            in itor])
         # edge_maps: edge_id to matrix index
@@ -366,7 +365,7 @@ class EigenPipelineSimilarity(EigenBase):
         mp = [(self._g1_vertex_map.inverse[ix],
                self._g2_vertex_map.inverse[v])
               for (ix, v) in
-              iter_with_index(self._vertex_s8y.argmax(1))]
+              enumerate(self._vertex_s8y.argmax(1))]
         return dict(mp)
         
 ##############################################################################
@@ -513,15 +512,15 @@ class EigenPipelineSimilarity2(EigenBase):
         inputmap = dict([(self._g1_vertex_map.inverse[ix],
                           self._g2_vertex_map.inverse[v[0,0]])
                          for (ix, v) in
-                         iter_with_index(r_in.argmax(1))])
+                         enumerate(r_in.argmax(1))])
         outputmap = dict([(self._g1_vertex_map.inverse[ix],
                            self._g2_vertex_map.inverse[v[0,0]])
                           for (ix, v) in
-                          iter_with_index(r_out.argmax(1))])
+                          enumerate(r_out.argmax(1))])
         combinedmap = dict([(self._g1_vertex_map.inverse[ix],
                              self._g2_vertex_map.inverse[v[0,0]])
                             for (ix, v) in
-                            iter_with_index(r_combined.argmax(1))])
+                            enumerate(r_combined.argmax(1))])
 #         print inputmap
 #         print outputmap
         return inputmap, outputmap, combinedmap

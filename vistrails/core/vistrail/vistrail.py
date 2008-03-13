@@ -39,8 +39,7 @@ from core.data_structures.graph import Graph
 from core.data_structures.bijectivedict import Bidict
 from core.debug import DebugPrint
 import core.db.io
-from core.utils import enum, VistrailsInternalError, InstanceObject, \
-     iter_with_index
+from core.utils import enum, VistrailsInternalError, InstanceObject
 from core.vistrail.action import Action
 from core.vistrail.abstraction import Abstraction
 from core.vistrail.annotation import Annotation
@@ -341,7 +340,7 @@ class Vistrail(DBVistrail):
         def make_param_change(fto_name, fto_params,
                               m_id, f_id, m):
             action = ChangeParameterAction()
-            for (p_id, param) in iter_with_index(fto_params):
+            for (p_id, param) in enumerate(fto_params):
                 p_name = m.functions[f_id].params[p_id].name
                 p_alias = m.functions[f_id].params[p_id].alias
                 (p_type, p_value) = param
@@ -355,7 +354,7 @@ class Vistrail(DBVistrail):
                 m_from = p1.modules[m_to_id]
                 for ((ffrom_name, ffrom_params),
                      (fto_name, fto_params)) in plist:
-                    for (f_id, f) in iter_with_index(m_from.functions):
+                    for (f_id, f) in enumerate(m_from.functions):
                         if f.name != fto_name: continue
                         new_action = make_param_change(fto_name,
                                                        fto_params,

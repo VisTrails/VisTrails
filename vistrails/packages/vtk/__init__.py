@@ -32,7 +32,7 @@ from core.bundles import py_import
 
 vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk'})
 
-from core.utils import all, any, VistrailsInternalError, iter_with_index
+from core.utils import all, any, VistrailsInternalError
 from core.debug import log
 from core.modules.basic_modules import Integer, Float, String, File, \
      Variant, Color
@@ -421,7 +421,7 @@ def addStatePorts(module, state_dict):
             # be necessary
             if len(setterSig) > 1:
                 prune_signatures(module, 'Set%s'%name, setterSig)
-            for ix, setter in iter_with_index(setterSig):
+            for ix, setter in enumerate(setterSig):
                 if len(setterSig) == 1:
                     n = 'Set' + name
                 else:
@@ -485,7 +485,7 @@ def addOtherPorts(module, other_list):
             signatures = get_method_signature(method)
             if len(signatures) > 1:
                 prune_signatures(module, name, signatures)
-            for (ix, sig) in iter_with_index(signatures):
+            for (ix, sig) in enumerate(signatures):
                 ([result], params) = sig
                 types = []
                 if params:
@@ -516,7 +516,7 @@ def addOtherPorts(module, other_list):
             signatures = get_method_signature(method)
             if len(signatures) > 1:
                 prune_signatures(module, name, signatures)
-            for (ix, sig) in iter_with_index(signatures):
+            for (ix, sig) in enumerate(signatures):
                 ([result], params) = sig
                 types = []
                 if params:
@@ -550,7 +550,7 @@ def addGetPorts(module, get_list):
         signatures = get_method_signature(method)
         if len(signatures) > 1:
             prune_signatures(module, name, signatures, output=True)
-        for ix, getter in iter_with_index(signatures):
+        for ix, getter in enumerate(signatures):
             if getter[1] or len(getter[0]) > 1:
                 continue
             class_ = typeMap(getter[0][0])

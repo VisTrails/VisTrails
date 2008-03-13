@@ -529,7 +529,7 @@ class VistrailController(QtCore.QObject):
         def add_aliases(m_id, f_index, params):
             function = pipeline.modules[m_id].functions[f_index]
             result = []
-            for (index, param) in iter_with_index(params):
+            for (index, param) in enumerate(params):
                 result.append((param.strValue, param.type,
                                function.params[index].alias))
             return result
