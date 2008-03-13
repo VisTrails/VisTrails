@@ -118,7 +118,7 @@ a class that's being registered as a module within VisTrails."""
 
     def __str__(self):
         return ("class '%s' cannot be registered in VisTrails. Please" +
-                " consult the documentation." % klass.__name__)
+                " consult the documentation.") % self.klass.__name__
 
 class ModuleAlreadyExists(Exception):
     """ModuleAlreadyExists is raised when trying to add a class that
