@@ -173,6 +173,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
                 self.removeItem(item)
 
     def saveToPDF(self, filename):
+        self.updateSceneBoundingRect()
         printer = QtGui.QPrinter()
         printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
