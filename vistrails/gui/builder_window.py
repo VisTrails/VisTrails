@@ -218,6 +218,18 @@ class QBuilderWindow(QtGui.QMainWindow):
                                                'a database')
         self.exportWorkflowAction.setEnabled(True)
 
+        self.saveVersionTreeToPDFAction = \
+            QtGui.QAction('Save Version Tree as PDF...', self)
+        self.saveVersionTreeToPDFAction.setStatusTip('Save the current version'
+                                                     'tree to a PDF file')
+        self.saveVersionTreeToPDFAction.setEnabled(True)
+
+        self.saveWorkflowToPDFAction = \
+            QtGui.QAction('Save Workflow as PDF...', self)
+        self.saveWorkflowToPDFAction.setStatusTip('Save the current workflow'
+                                                     'to a PDF file')
+        self.saveWorkflowToPDFAction.setEnabled(True)
+
         self.quitVistrailsAction = QtGui.QAction('Quit', self)
         self.quitVistrailsAction.setShortcut('Ctrl+Q')
         self.quitVistrailsAction.setStatusTip('Exit Vistrails')
@@ -331,6 +343,9 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.fileMenu.addAction(self.saveWorkflowAction)
         self.fileMenu.addAction(self.exportWorkflowAction)
         self.fileMenu.addSeparator()
+        self.fileMenu.addAction(self.saveVersionTreeToPDFAction)
+        self.fileMenu.addAction(self.saveWorkflowToPDFAction)
+        self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.quitVistrailsAction)
 
         self.editMenu = self.menuBar().addMenu('&Edit')
@@ -437,6 +452,8 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.exportLogAction, self.export_log_default),
             (self.saveWorkflowAction, self.save_workflow_default),
             (self.exportWorkflowAction, self.export_workflow_default),
+            (self.saveVersionTreeToPDFAction, self.save_tree_to_pdf),
+            (self.saveWorkflowToPDFAction, self.save_workflow_to_pdf),
             (self.helpAction, self.showAboutMessage),
             (self.editPreferencesAction, self.showPreferences),
             (self.executeCurrentWorkflowAction,
@@ -792,6 +809,11 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.save_workflow(False)
     def export_workflow_default(self):
         self.save_workflow(True)
+
+    def save_tree_to_pdf(self):
+        self.viewManager.save_tree_to_pdf()
+    def save_workflow_to_pdf(self):
+        self.viewManager.save_workflow_to_pdf()
 
     def quitVistrails(self):
         """ quitVistrails() -> bool

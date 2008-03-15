@@ -31,6 +31,7 @@ from gui.vistrail_view import QVistrailView
 from core import system
 from core.db.locator import FileLocator, untitled_locator
 from core.log.log import Log
+import core.system
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.vistrail import Vistrail
 from core.modules.module_registry import ModuleRegistry
@@ -373,6 +374,34 @@ class QViewManager(QtGui.QTabWidget):
             vistrailView.controller.write_log(locator)
             return True
 
+    def save_tree_to_pdf(self):
+        vistrailView = self.currentWidget()
+        fileName = QtGui.QFileDialog.getSaveFileName(
+            self,
+            "Save PDF...",
+            core.system.vistrails_file_directory(),
+            "PDF files (*.pdf)",
+            None)
+
+        if fileName.isEmpty():
+            return None
+        f = str(fileName)
+        vistrailView.versionTab.versionView.scene().saveToPDF(f)
+        
+    def save_workflow_to_pdf(self):
+        vistrailView = self.currentWidget()
+        fileName = QtGui.QFileDialog.getSaveFileName(
+            self,
+            "Save PDF...",
+            core.system.vistrails_file_directory(),
+            "PDF files (*.pdf)",
+            None)
+
+        if fileName.isEmpty():
+            return None
+        f = str(fileName)
+        vistrailView.pipelineTab.pipelineView.scene().saveToPDF(f)
+        
              
     def closeVistrail(self, vistrailView=None, quiet=False):
         """ closeVistrail(vistrailView: QVistrailView, quiet: bool) -> bool

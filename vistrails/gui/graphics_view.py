@@ -172,6 +172,18 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
             if item.scene():
                 self.removeItem(item)
 
+    def saveToPDF(self, filename):
+        printer = QtGui.QPrinter()
+        printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
+        printer.setOutputFileName(filename)
+        painter = QtGui.QPainter(printer)
+        brush = self.backgroundBrush()
+        self.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(255,255,255)))
+        b_rect = self.sceneBoundingRect
+        self.render(painter, QtCore.QRectF(), b_rect)
+        painter.end()
+        self.setBackgroundBrush(brush)
+
 class QInteractiveGraphicsView(QtGui.QGraphicsView):
     """
     QInteractiveGraphicsView is QGraphicsView with abilities to
