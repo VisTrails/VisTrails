@@ -194,7 +194,7 @@ class AbstractionModule(DBAbstractionRef):
         portSpecs = port_spec[1:-1].split(',')
         signature = []
         for s in portSpecs:
-            spec = s.split(':')
+            spec = s.split(':', 2)
             signature.append(registry.get_descriptor_by_name(*spec).module)
         port.spec = core.modules.module_registry.PortSpec(signature)
         return port
