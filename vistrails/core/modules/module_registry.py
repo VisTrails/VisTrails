@@ -181,11 +181,16 @@ class PortSpec(object):
             descriptor = get_descriptor(klass)
             if short:
                 return descriptor.name
+            if descriptor.namespace:
+                namespace_str = ":" + descriptor.namespace
+            else:
+                namespace_str = ""
             return (descriptor.identifier +
                     ":" +
-                    descriptor.name)
-        return "(" + ",".join([getter(v[0])
-                               for v in self._entries]) + ")"
+                    descriptor.name +
+                    namespace_str)
+        return  "(" + ",".join([getter(v[0])
+                                for v in self._entries]) + ")"
 
     @staticmethod
     def from_sigstring(sig):
