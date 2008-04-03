@@ -531,11 +531,14 @@ class vtkScaledTransferFunction(Module):
             port = self.getInputFromPort('Input')
             algo = port.vtkInstance.GetProducer()
             output = algo.GetOutput(port.vtkInstance.GetIndex())
-        else:
+            (new_tf._min_range, new_tf._max_range) = output.GetScalarRange()
+        elif self.hasInputFromPort('Dataset'):
             algo = self.getInputFromPort('Dataset').vtkInstance
             output = algo
+            (new_tf._min_range, new_tf._max_range) = output.GetScalarRange()
+        else:
+            (new_tf._min_range, new_tf._max_range) = self.getInputFromPort('Range')
             
-        (new_tf._min_range, new_tf._max_range) = output.GetScalarRange()
         self.setResult('TransferFunction', new_tf)
 
 ##############################################################################
