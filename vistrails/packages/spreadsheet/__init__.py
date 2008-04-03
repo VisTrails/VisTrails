@@ -113,4 +113,5 @@ def finalize():
     ### DO NOT ADD BACK spreadsheetWindow.destroy()
     ### That will crash VisTrails on Mac. 
     ### It is not supposed to be called directly
+    spreadsheetWindow.cleanup()
     spreadsheetWindow.deleteLater()

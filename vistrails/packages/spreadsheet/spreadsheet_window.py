@@ -69,6 +69,9 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                      self.setWindowTitle)
         self.file_pool = module_utils.FilePool()
 
+    def cleanup(self):
+        self.file_pool.cleanup()
+
     def destroy(self):
         self.tabController.cleanup()
         self.file_pool.cleanup()
