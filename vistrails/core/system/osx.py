@@ -37,9 +37,10 @@ from core.system.unix import executable_is_in_path, list2cmdline, \
 import core.utils
 
 #are we building a binary distribution?
-__building_app__ = False
+# __building_app__ = False
 
-if __building_app__:
+# if __building_app__:
+if os.getenv("EXECUTABLEPATH", None):
     path_vistrails = os.getenv("EXECUTABLEPATH").strip("\n \t")
     path_dot = os.path.dirname(path_vistrails)
     os.environ['PATH'] += os.path.pathsep + path_dot
