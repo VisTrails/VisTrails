@@ -631,7 +631,8 @@ def class_dict(base_module, node):
             # it has other ways of specifying files, like SetFilePrefix for
             # multiple files
             if any([vtk.vtkImageReader,
-                    vtk.vtkPLOT3DReader],
+                    vtk.vtkPLOT3DReader,
+                    vtk.vtkDICOMImageReader],
                    lambda x: issubclass(self.vtkClass, x)):
                 old_compute(self)
                 return
@@ -728,7 +729,8 @@ def class_dict(base_module, node):
         # readers. VTK is nice enough to be consistent with names, but
         # this is brittle..
         if node.klass.__name__.endswith('Reader'):
-            update_dict('compute', guarded_SetFileName_wrap_compute)
+            if not node.klass.__name__.endswith('TiffReader'):
+                update_dict('compute', guarded_SetFileName_wrap_compute)
     if hasattr(node.klass, 'SetRenderWindow'):
         update_dict('_special_input_function_SetVTKCell',
                     compute_SetVTKCell)
