@@ -1,0 +1,23 @@
+<diagnostic author="PCMDI's software team" programminglanguage="Python" type="class" url="http://cdat.sf.net" version="5.0.0.alpha7" codepath="cdms2.dataset.CdmsFile">
+	<action name="__call__" type="function">
+        <input>
+           <id doc="" instance="str" position="0" required="True"/>
+        </input>
+        <output>
+            <variable doc="" instance="cdms2.tvariable.TransientVariable" position="0"/>
+        </output>
+    <doc>
+        Function: __call__     # Call a variable object with the given id
+
+Description of Function:
+    Call a variable object with the given id
+    Exception if not found.
+    Call the variable with the other arguments.
+###################################################################################################################
+###########################################                         ###############################################
+########################################## End _call_ Description ################################################
+#########################################                         #################################################
+###################################################################################################################
+    </doc>
+</action>
+</diagnostic>

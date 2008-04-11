@@ -2718,4 +2718,30 @@ time &quot;&quot; (cdtime.comptime/cdtime.reltime/cdtime.abstime) () replaces ti
 #################################################################################################################
 		</doc>
 	</action>
+    <action name="png" type="function">
+		<input>
+			<file doc="" instance="str" position="0" required="True"/>
+			<width doc="" instance="float" position="1" required="False"/>
+			<height doc="" instance="float" position="2" required="False"/>
+			<units doc="" instance="str" position="3" required="False"/>
+		</input>
+		<doc>
+			Function: png
+
+ Description of Function:
+    Png output is another form of raster graphics.
+
+ Example of Use:
+    a=vcs.init()
+    a.plot(array)
+    a.png('example')       # Overwrite a png file
+    a.png('example', width=11.5, height= 8.5)  # US Legal
+    a.png('example', width=21, height=29.7, units='cm')  # A4
+#################################################################################################################
+###########################################                       ###############################################
+########################################## End png Description ################################################
+#########################################                       #################################################
+#################################################################################################################
+		</doc>
+    </action>
 </diagnostic>

@@ -26,7 +26,6 @@ def convert_to_vt_type(t):
                     'int':'core.modules.basic_modules.Integer',
                     'bool':'core.modules.basic_modules.Boolean',
                     'numpy.ndarray':'reg.get_module_by_name("edu.utah.sci.vistrails.numpyscipy", "Numpy Array", namespace="numpy|array")',
-                    #'cdms2.tvariable.TransientVariable': 'TransientVariable'
                     }
     if vt_type_dict.has_key(t):
         return vt_type_dict[t]
@@ -34,7 +33,10 @@ def convert_to_vt_type(t):
         print "Type %s not found!" % t
         return None
 
+do_not_cache_me = ['png','plot','isofill','isoline','boxfill']
 class CDATModule:
+    _extra_modules = []
+    _extra_vistrails_modules = {}
     def __init__(self, author=None, language=None, type=None, url=None,
                  codepath=None, version=None, actions=None):
         self._author = author
@@ -45,34 +47,40 @@ class CDATModule:
         self._version = version
         self._actions = actions
         (self._namespace, self._name) = self.split(codepath)
-        self._extra_modules = []
-        self._extra_vistrails_modules = {}
 
-    def split(self,codepath):
+    @staticmethod
+    def split(codepath):
         dot = codepath.rfind('.')
-        name = codepath[dot+1:]
-        data = codepath[:dot]
-        namespace = data.replace('.','|')
+        if dot != -1:
+            name = codepath[dot+1:]
+            data = codepath[:dot]
+            namespace = data.replace('.','|')
+        else:
+            name = codepath
+            namespace = codepath
         return (namespace,name)
 
     def write_extra_module_definition(self, lines, name):
         lines.append("%s = new_module(Module,'%s')\n"%(name,name))
 
-    def write_extra_module_definitions(self, lines):
+    @staticmethod
+    def write_extra_module_definitions_init(lines):
         lines.append("vt_type_dict = {}\n")
         lines.append("def get_late_type(type):\n")
         lines.append("    return vt_type_dict[type]\n\n")
 
-        for t in self._extra_modules:
-            namespace,name = self.split(t)
+    @staticmethod
+    def write_extra_module_definitions(lines):
+        for t in CDATModule._extra_modules:
+            namespace,name = CDATModule.split(t)
             lines.append("%s = new_module(Module,'%s')\n"%(name,name))
             lines.append("vt_type_dict['%s'] = %s\n"%(t,name))
-            self._extra_vistrails_modules[name] = namespace
+            CDATModule._extra_vistrails_modules[name] = namespace
         lines.append("\n\n")
 
-
-    def register_extra_vistrails_modules(self,lines, ident=''):
-        for (name,namespace) in self._extra_vistrails_modules.iteritems():
+    @staticmethod
+    def register_extra_vistrails_modules(lines, ident=''):
+        for (name,namespace) in CDATModule._extra_vistrails_modules.iteritems():
             lines.append(ident + "    reg.add_module(%s,namespace='%s')\n"%(name,
                                                                       namespace))
 
@@ -87,9 +95,13 @@ class CDATModule:
     def register_vistrails_modules(self, lines):
         for a in self._actions:
             a.register_itself(lines,self._namespace)
-            for t in a._output_types:
-                if t not in self._extra_modules:
-                    self._extra_modules.append(t)
+
+    def build_vistrails_modules_dict(self):
+        for a in self._actions:
+            types = a.check_output_types()
+            for t in types:
+                if t not in CDATModule._extra_modules:
+                    CDATModule._extra_modules.append(t)
 
     def add_extra_input_port_to_all_modules(self, lines, port_name, port_type,
                                             doc, optional = False):
@@ -113,24 +125,26 @@ class CDATAction:
         self._inputs = inputs
         self._outputs = outputs
         self._doc = doc
-        self._output_types = []
 
-    def write_module_definition(self, lines, ident=''):
+    def write_module_definition(self, lines, ident='', compute_method=None):
         def write_compute_method(self,lines, ident):
             lines.append(ident + "def compute(self):\n")
             lines.append(ident + "    if self.hasInputFromPort('canvas'):\n")
             lines.append(ident + "        canvas = self.getInputFromPort('canvas')\n")
             lines.append(ident + "    else:\n")
             lines.append(ident + "        canvas = vcs.init()\n")
+            lines.append(ident + "    args = []\n")
             for inp in self._inputs:
                 lines.append(ident + "    %s = None\n"%inp._name)
                 for inst in inp._valid_instances:
                     if inp._valid_instances.index(inst) == 0:
                         lines.append(ident + "    if self.hasInputFromPort('%s'):\n" % inst)
                         lines.append(ident + "        %s = self.getInputFromPort('%s')\n" % (inp._name, inst))
+                        lines.append(ident + "        args.append(%s)\n"%inp._name)
                     else:
                         lines.append(ident + "    elif self.hasInputFromPort('%s'):\n" % inst)
                         lines.append(ident + "        %s = self.getInputFromPort('%s')\n" % (inp._name, inst))
+                        lines.append(ident + "        args.append(%s)\n"%inp._name)
                 if inp._required:
                     lines.append("\n"+ ident +"    # %s is a required port\n" % inp._name)
                     lines.append(ident + "    if %s == None:\n" % inp._name)
@@ -147,17 +161,23 @@ class CDATAction:
                     else:
                         lines.append(ident +"    elif self.hasInputFromPort('%s'):\n" % inst)
                         lines.append(ident +"        kwargs['%s'] = self.getInputFromPort('%s')\n" % (opt._name, inst))
-            s_input = ''
-            for inp in self._inputs:
-                s_input += "%s, "% inp._name
-            lines.append(ident + "    res = canvas.%s(%s**kwargs)\n"%(self._name,s_input))
+
+            lines.append(ident + "    #force images to be created in the background\n")
+            lines.append(ident + "    kwargs['bg'] = 1\n")
+            lines.append(ident + "    res = canvas.%s(*args,**kwargs)\n"%self._name)
             lines.append(ident + "    self.setResult('%s',res)\n"%(self._outputs[0]._name))
             lines.append(ident + "    self.setResult('canvas',canvas)\n")
             lines.append("\n")
-        lines.append(ident + "class %s(Module):\n" % self._name)
+        if self._name in do_not_cache_me:
+            lines.append(ident + "class %s(Module,NotCacheable):\n" % self._name)
+        else:
+            lines.append(ident + "class %s(Module):\n" % self._name)
         lines.append(ident + '    """%s\n'%self._doc)
         lines.append(ident + '    """\n')
-        write_compute_method(self,lines,ident="    ")
+        if not compute_method:
+            write_compute_method(self,lines,ident="    ")
+        else:
+            lines.extend(compute_method)
 
     def register_itself(self,lines, namespace):
         lines.append("\n    #Module %s\n" % self._name)
@@ -168,8 +188,13 @@ class CDATAction:
             opt.write_input_ports(self._name, lines, True, force=False)
         for out in self._outputs:
             out.write_output_ports(self._name, lines, force=True)
-            if out._instance[0] not in self._output_types:
-                self._output_types.append(out._instance[0])
+
+    def check_output_types(self):
+        types = []
+        for out in self._outputs:
+            if out._instance[0] not in types:
+                types.append(out._instance[0])
+        return types
 
     def register_extra_input_port(self, port_name, port_type, lines, doc,
                                   optional=False):
@@ -214,6 +239,8 @@ class CDATItem:
                      force=False):
         if len(self._instance) == 1:
             type = convert_to_vt_type(self._instance[0])
+            if type == None and self._instance[0] in CDATModule._extra_modules:
+                force = True
             if force and type == None:
                 type = "get_late_type('%s')"%self._instance[0]
             if type != None:
@@ -232,7 +259,10 @@ class CDATItem:
             count = 0
             for i in xrange(len(self._instance)):
                 type = convert_to_vt_type(self._instance[i])
-                if force and type == None:
+                new_force = force
+                if type == None and self._instance[i] in CDATModule._extra_modules:
+                    new_force = True
+                if new_force and type == None:
                     type = "get_late_type('%s')"%self._instance[i]
                 if type != None:
                     name = "%s_%s"%(self._name,count)

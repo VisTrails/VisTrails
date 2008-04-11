@@ -1,0 +1,26 @@
+<diagnostic author="PCMDI's software team" programminglanguage="Python" type="class" url="http://cdat.sf.net" version="5.0.0.alpha7" codepath="cdms2">
+	<action name="open" type="function">
+        <input>
+           <uri doc="" instance="str" position="0" required="True"/>
+           <mode doc="" instance="str" position="1" required="False"/>
+           <template doc="" instance="str" position="2" required="False"/>
+           <dods doc="" instance="int" position="3" required="False"/>
+        </input>
+        <output>
+            <dataset doc="" instance="cdms2.dataset.CdmsFile" position="0"/>
+        </output>
+    <doc>
+        Function: open     # Open an existing dataset
+
+Description of Function:
+    'uri' is a Uniform Resource Identifier, referring to a cdunif file, XML file,
+    or LDAP URL of a catalog dataset entry.
+    'mode' is 'r', 'r+', 'a', or 'w'
+###################################################################################################################
+###########################################                         ###############################################
+########################################## End open Description ################################################
+#########################################                         #################################################
+###################################################################################################################
+    </doc>
+</action>
+</diagnostic>
