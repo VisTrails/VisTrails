@@ -33,6 +33,7 @@ QVersionTreeView
 
 from PyQt4 import QtCore, QtGui
 from core.dotty import DotLayout
+from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from core.system import systemType
 from gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
@@ -247,10 +248,21 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         """
         self.id = node.id
         self.label = label
-        self.setRect(QtCore.QRectF(node.p.x-node.width/2,
-                                   -node.p.y/2,
+#
+#       #what was this hacking??? the coordinates inside
+#       #the input "node" should come to this point ready. This is
+#       #not the point to do layout calculations (e.g. -node.p.y/2)
+#
+#        self.setRect(QtCore.QRectF(node.p.x-node.width/2,
+#                                   -node.p.y/2,
+#                                   node.width,
+#                                   node.height))
+        self.setRect(QtCore.QRectF(node.p.x-node.width/2.0,
+                                   node.p.y-node.height/2.0,
                                    node.width,
                                    node.height))
+
+
     def boundingRect(self):
         """ boundingRect() -> QRectF
         Add a padded space to avoid un-updated area
@@ -573,7 +585,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
 
         # Call dotty to perform graph layout
         (graph, self.fullGraph) = controller.refineGraph()
-        layout = DotLayout()
+        #layout = DotLayout()
+        layout = VistrailsTreeLayoutLW()
         layout.layout_from(controller.vistrail, graph)
 
         # Put the layout to the graphics view
