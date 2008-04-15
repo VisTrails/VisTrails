@@ -67,11 +67,11 @@ _buttons_captions_dict = { OK_BUTTON   : "Ok",
                            IGNORE_BUTTON : "Ignore",
                            NOBUTTON_BUTTON : ""}
 
-                           
+
 def show_warning(title, message):
     """ show_warning(title: str, message: str) -> None
     Show a warning  message box with a specific title and contents
-    
+
     """
     if systemType not in ['Darwin']:
         QtGui.QMessageBox.warning(None, title, message)
@@ -91,33 +91,36 @@ def show_question(title,
     button that will take role when the user press 'Enter' without
     selecting a button. The function returns the button that ends the
     dialog.
-    
+
     """
     qButtons = QtGui.QMessageBox.StandardButtons()
     for button in buttons:
         qButtons |= button
     if systemType not in ['Darwin']:
-        return QtGui.QMessageBox.question(None, title, message, 
+        return QtGui.QMessageBox.question(None, title, message,
                                           qButtons, default)
     else:
         return show_custom(title,message,None,buttons)
 
-def show_custom(title, message, icon=None,
-                buttons = [OK_BUTTON], default=OK_BUTTON, escape=-1):
+def build_custom_window(title, message, icon=None,
+                buttons = [OK_BUTTON], default=OK_BUTTON, escape=-1,
+                modal=True, parent=None):
     """ show_custom(title: str,
                     message: str,
                     icon: QPixmap,
                     buttons: list of buttons (defined above),
                     default: str,
-                    escape: str) -> int                    
-    Show a custom dialog box. 
+                    escape: str,
+                    modal: bool,
+                    parent: QWidget) -> QMessageBox
+    Build a custom dialog box.
     Default is the button in buttons that will be clicked if
-    the user presses Enter. escape is the button in buttons 
+    the user presses Enter. escape is the button in buttons
     that will be clicked if Esc is pressed.
     The function returns the index of the button that was pressed.
-    
+
     """
-    msgBox = QtGui.QMessageBox()
+    msgBox = QtGui.QMessageBox(parent)
     abstractButtons = {}
     for b in buttons:
         msgBox.addButton(b)
@@ -126,15 +129,44 @@ def show_custom(title, message, icon=None,
         msgBox.setDefaultButton(abstractButtons[default])
     if escape != -1:
         msgBox.setEscapeButton(abstractButtons[escape])
-                               
-    msgBox.setWindowModality(QtCore.Qt.ApplicationModal)
+    msgBox.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.WindowStaysOnTopHint)
+    if modal:
+        msgBox.setWindowModality(QtCore.Qt.ApplicationModal)
+    else:
+        msgBox.setWindowModality(QtCore.Qt.NonModal)
     if icon:
         msgBox.setIconPixmap(icon)
     else:
-        msgBox.setIconPixmap(CurrentTheme.APPLICATION_PIXMAP)
-    msgBox.setWindowTitle(title)
-    msgBox.setText(message)
+        pixmap = CurrentTheme.APPLICATION_PIXMAP.scaledToHeight(48)
+        msgBox.setIconPixmap(pixmap)
+
+    #mac doesn't show a window title
+    #we need to include the title as part of the message
+    if systemType not in ['Darwin']:
+        msgBox.setWindowTitle(title)
+        msgBox.setText(message)
+    else:
+        msgBox.setText("%s\n%s"%(title,
+                                 message))
+
     qButtons = QtGui.QMessageBox.StandardButtons()
- 
-    return msgBox.exec_()                                  
-    
+    return msgBox
+
+def show_custom(title, message, icon=None,
+                buttons = [OK_BUTTON], default=OK_BUTTON, escape=-1):
+    """ show_custom(title: str,
+                    message: str,
+                    icon: QPixmap,
+                    buttons: list of buttons (defined above),
+                    default: str,
+                    escape: str) -> int
+    Show a custom dialog box.
+    Default is the button in buttons that will be clicked if
+    the user presses Enter. escape is the button in buttons
+    that will be clicked if Esc is pressed.
+    The function returns the index of the button that was pressed.
+
+    """
+    msgBox = build_custom_window(title,message,icon,
+                          buttons, default,escape)
+    return msgBox.exec_()

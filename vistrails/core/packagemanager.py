@@ -35,7 +35,7 @@ import core.data_structures.graph
 import os
 import sys
 import traceback
-
+from PyQt4 import QtCore
 ##############################################################################
 
 class Package(object):
@@ -67,11 +67,11 @@ class Package(object):
         If package is already initialized, this is a NOP.
 
         """
-        
+
         errors = []
         def module_import(name):
-            return 
-            
+            return
+
         if self._initialized:
             return
         if module is not None:
@@ -133,12 +133,20 @@ class Package(object):
         else:
             callable_()
 
+    def menu_items(self):
+        try:
+            callable_ = self._module.menu_items
+        except AttributeError:
+            return None
+        else:
+            return callable_()
+
     def can_be_disabled(self):
         """Returns whether has no reverse dependencies (other
         packages that depend on it."""
         mgr = get_package_manager()
         return mgr.dependency_graph().in_degree(self.identifier) == 0
-    
+
     def finalize(self):
         if not self._initialized:
             return
@@ -150,7 +158,7 @@ class Package(object):
         else:
             callable_()
         self._initialized = False
-            
+
     def dependencies(self):
         try:
             callable_ = self._module.package_dependencies
@@ -210,7 +218,7 @@ class Package(object):
 #     def _get_registry_name(self):
 #         return self._registry_name
 #     registry_name = property(_get_registry_name)
-    
+
 
     def _get_version(self):
         return self._module.version
@@ -237,7 +245,7 @@ class Package(object):
     codepath = property(_get_codepath)
 
 
-    
+
     ##########################################################################
     # Configuration
 
@@ -283,11 +291,11 @@ class Package(object):
         packages.removeChild(package_node)
         disabledpackages.appendChild(package_node)
         startup.write_startup_dom(dom)
-        
+
     def reset_configuration(self):
         """Reset_configuration() -> Resets configuration to original
         package settings."""
-        
+
         (dom, element) = self.find_own_dom_element()
         doc = dom.documentElement
         configuration = enter_named_element(element, 'configuration')
@@ -298,13 +306,13 @@ class Package(object):
         from PyQt4 import QtCore
         startup = QtCore.QCoreApplication.instance().vistrailsStartup
         startup.write_startup_dom(dom)
-        
+
     def find_own_dom_element(self):
         """find_own_dom_element() -> (DOM, Node)
 
         Opens the startup DOM, looks for the element that belongs to the package,
         and returns DOM and node. Creates a new one if element is not there.
-        
+
         """
         from PyQt4 import QtCore
         dom = QtCore.QCoreApplication.instance().vistrailsStartup.startup_dom()
@@ -319,14 +327,14 @@ class Package(object):
         package_node = dom.createElement("package")
         package_node.setAttribute('name', self.codepath)
         packages.appendChild(package_node)
-        
+
         from PyQt4 import QtCore
         QtCore.QCoreApplication.instance().vistrailsStartup.write_startup_dom(dom)
         return (dom, package_node)
 
     def load_persistent_configuration(self):
         (dom, element) = self.find_own_dom_element()
-        
+
         configuration = enter_named_element(element, 'configuration')
         if configuration:
             self.configuration.set_from_dom_node(configuration)
@@ -362,14 +370,22 @@ class Package(object):
             from PyQt4 import QtCore
             QtCore.QCoreApplication.instance().vistrailsStartup.write_startup_dom(dom)
         dom.unlink()
-        
-         
+
+
 ##############################################################################
 
 global _package_manager
 _package_manager = None
 
-class PackageManager(object):
+class PackageManager(QtCore.QObject):
+    # add_package_menu_signal is emitted with a tuple containing the package
+    # identifier, package name and the menu item
+    add_package_menu_signal = QtCore.SIGNAL("add_package_menu")
+    # remove_package_menu_signal is emitted with the package identifier
+    remove_package_menu_signal = QtCore.SIGNAL("remove_package_menu")
+    #package_error_message_signal is emitted with the package identifier,
+    # package name and the error message
+    package_error_message_signal = QtCore.SIGNAL("package_error_message_signal")
 
     class DependencyCycle(Exception):
         def __init__(self, p1, p2):
@@ -426,13 +442,14 @@ class PackageManager(object):
         finally:
             sys.path = old_sys_path
         return userpackages
-        
+
 
     def __init__(self, configuration):
         global _package_manager
         if _package_manager:
             m = "Package manager can only be constructed once."
             raise VistrailsInternalError(m)
+        QtCore.QObject.__init__(self)
         _package_manager = self
         self._configuration = configuration
         self._package_list = {}
@@ -458,6 +475,7 @@ To do so, call initialize_packages()"""
         self._dependency_graph.delete_vertex(pkg.identifier)
         del self._identifier_map[pkg.identifier]
         pkg.finalize()
+        self.remove_menu_items(pkg)
         del self._package_list[codepath]
         registry.delete_package(pkg)
 
@@ -500,7 +518,7 @@ Returns true if given package identifier is present."""
     def get_package_configuration(self, codepath):
         """get_package_configuration(codepath: string) ->
         ConfigurationObject or None
-        
+
         Returns the configuration object for the package, if existing,
         or None. Throws MissingPackage if package doesn't exist.
         """
@@ -532,7 +550,7 @@ Returns true if given package identifier is present."""
             raise ImportError("Package '%s' has unmet dependencies: %s" %
                               (package.name,
                                missing_packages))
-        
+
         for dep_name in deps:
             if (dep_name not in
                 self._dependency_graph.adjacency_list[package.identifier]):
@@ -554,6 +572,7 @@ Returns true if given package identifier is present."""
         self.add_dependencies(pkg)
         pkg.check_requirements()
         pkg.initialize()
+        self.add_menu_items(pkg)
 
     def late_disable_package(self, package_codepath):
         """late_disable_package disables a package 'late', that is,
@@ -589,7 +608,7 @@ creating a class that behaves similarly)."""
         # determine dependencies
         for package in self._package_list.itervalues():
             self.add_dependencies(package)
-            
+
         # perform actual initialization
         try:
             g = self._dependency_graph.inverse_immutable()
@@ -597,12 +616,45 @@ creating a class that behaves similarly)."""
         except core.data_structures.graph.Graph.GraphContainsCycles, e:
             raise self.DependencyCycle(e.back_edge[0],
                                        e.back_edge[1])
-        
+
         for name in sorted_packages:
             pkg = self._identifier_map[name]
             if not pkg.initialized():
                 pkg.check_requirements()
                 pkg.initialize()
+                self.add_menu_items(pkg)
+
+    def add_menu_items(self, pkg):
+        """add_menu_items(pkg: Package) -> None
+        If the package implemented the function menu_items(),
+        the package manager will emit a signal with the menu items to
+        be added to the builder window """
+        items = pkg.menu_items()
+        if items:
+            self.emit(self.add_package_menu_signal,
+                      pkg.identifier,
+                       pkg.name,
+                       items)
+
+    def remove_menu_items(self, pkg):
+        """remove_menu_items(pkg: Package) -> None
+        Send a signal with the pkg identifier. The builder window should
+        catch this signal and remove the package menu items"""
+        if pkg.menu_items():
+            self.emit(self.remove_package_menu_signal,
+                      pkg.identifier)
+
+    def show_error_message(self, pkg, msg):
+        """show_error_message(pkg: Package, msg: str) -> None
+        Print a message to standard error output and emit a signal to the
+        builder so if it is possible, a message box is also shown """
+        print "Package %s (%s) says: %s"%(pkg.name,
+                                         pkg.identifier,
+                                         msg)
+        self.emit(self.package_error_message_signal,
+                  pkg.identifier,
+                  pkg.name,
+                  msg)
 
     def enabled_package_list(self):
         """package_list() -> returns list of all enabled packages."""
@@ -615,7 +667,7 @@ creating a class that behaves similarly)."""
         The distinction between package names, identifiers and
         code-paths is described in doc/package_system.txt
         """
-        
+
         lst = []
 
         def is_vistrails_package(path):
@@ -652,6 +704,5 @@ def get_package_manager():
     if not _package_manager:
         raise VistrailsInternalError("package manager not constructed yet.")
     return _package_manager
-        
+
 ##############################################################################
-            

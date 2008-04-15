@@ -26,9 +26,9 @@ QBuilderWindow
 from PyQt4 import QtCore, QtGui
 from core import system
 from core.db.locator import DBLocator, FileLocator, XMLFileLocator
+from core.packagemanager import get_package_manager
 from core.vistrail.vistrail import Vistrail
 from gui.application import VistrailsApplication
-#from gui.bookmark_window import QBookmarksWindow
 from gui.graphics_view import QInteractiveGraphicsView
 from gui.module_palette import QModulePalette
 from gui.open_db_window import QOpenDBWindow
@@ -39,6 +39,7 @@ from gui.view_manager import QViewManager
 from gui.vistrail_toolbar import QVistrailViewToolBar
 from gui.preferences import QPreferencesDialog
 from gui.vis_diff import QVisualDiff
+from gui.utils import build_custom_window
 import copy
 import core.interpreter.cached
 import os
@@ -52,27 +53,25 @@ class QBuilderWindow(QtGui.QMainWindow):
     VisTrails and several tool windows. Also remarks that almost all
     of QBuilderWindow components are floating dockwidget. This mimics
     a setup of an IDE
-    
+
     """
     def __init__(self, parent=None):
         """ QBuilderWindow(parent: QWidget) -> QBuilderWindow
         Construct the main window with menus, toolbar, and floating toolwindow
-        
+
         """
         QtGui.QMainWindow.__init__(self, parent)
         self.setWindowTitle('VisTrails Builder')
         self.setStatusBar(QtGui.QStatusBar(self))
         self.setDockNestingEnabled(True)
-        
+
         self.viewManager = QViewManager()
         self.setCentralWidget(self.viewManager)
 
         self.modulePalette = QModulePalette(self)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,
                            self.modulePalette.toolWindow())
-        
-        #self.bookmarksWindow = QBookmarksWindow(parent=self)
-        
+
         self.viewIndex = 0
         self.dbDefault = False
 
@@ -88,33 +87,36 @@ class QBuilderWindow(QtGui.QMainWindow):
         # We can't allow other executions.
         self._executing = False
 
+        # This keeps track of the menu items for each package
+        self._package_menu_items = {}
+
     def create_first_vistrail(self):
         self.newVistrailAction.trigger()
         self.viewManager.set_first_view(self.viewManager.currentView())
-        
+
     def sizeHint(self):
         """ sizeHint() -> QRect
         Return the recommended size of the builder window
-        
+
         """
         return QtCore.QSize(1280, 768)
 
     def closeEvent(self, e):
         """ closeEvent(e: QCloseEvent) -> None
         Close the whole application when the builder is closed
-        
+
         """
         if not self.quitVistrails():
             e.ignore()
 
     def keyPressEvent(self, event):
-        """ keyPressEvent(event: QKeyEvent) -> None        
+        """ keyPressEvent(event: QKeyEvent) -> None
         Capture modifiers (Ctrl, Alt, Shift) and send them to one of
         the widget under the mouse cursor. It first starts at the
         widget directly under the mouse and check if the widget has
         property named captureModifiers. If yes, it calls
         'modifiersPressed' function
-        
+
         """
         if event.key() in [QtCore.Qt.Key_Control,
                            QtCore.Qt.Key_Alt,
@@ -130,7 +132,7 @@ class QBuilderWindow(QtGui.QMainWindow):
                     widget = widget.parent()
         QtGui.QMainWindow.keyPressEvent(self, event)
         # super(QBuilderWindow, self).keyPressEvent(event)
-            
+
     def keyReleaseEvent(self, event):
         """ keyReleaseEvent(event: QKeyEvent) -> None
         Capture modifiers (Ctrl, Alt, Shift) and send them to one of
@@ -138,7 +140,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         widget directly under the mouse and check if the widget has
         property named captureModifiers. If yes, it calls
         'modifiersReleased' function
-        
+
         """
         if event.key() in [QtCore.Qt.Key_Control,
                            QtCore.Qt.Key_Alt,
@@ -153,17 +155,17 @@ class QBuilderWindow(QtGui.QMainWindow):
                         break
                     widget = widget.parent()
         QtGui.QMainWindow.keyReleaseEvent(self, event)
-            
+
     def createActions(self):
         """ createActions() -> None
         Construct all menu/toolbar actions for builder window
-        
+
         """
         self.newVistrailAction = QtGui.QAction(CurrentTheme.NEW_VISTRAIL_ICON,
                                                '&New', self)
         self.newVistrailAction.setShortcut('Ctrl+N')
         self.newVistrailAction.setStatusTip('Create a new Vistrail')
-        
+
         self.openFileAction = QtGui.QAction(CurrentTheme.OPEN_VISTRAIL_ICON,
                                             '&Open', self)
         self.openFileAction.setShortcut('Ctrl+O')
@@ -181,7 +183,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.saveFileAction.setStatusTip('Save the current vistrail '
                                          'to a file')
         self.saveFileAction.setEnabled(False)
-        
+
         self.saveFileAsAction = QtGui.QAction('Save as...', self)
         self.saveFileAsAction.setShortcut('Ctrl+Shift+S')
         self.saveFileAsAction.setStatusTip('Save the current vistrail '
@@ -233,7 +235,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.quitVistrailsAction = QtGui.QAction('Quit', self)
         self.quitVistrailsAction.setShortcut('Ctrl+Q')
         self.quitVistrailsAction.setStatusTip('Exit Vistrails')
-       
+
         self.undoAction = QtGui.QAction('Undo', self)
         self.undoAction.setEnabled(False)
         self.undoAction.setStatusTip('Go back to the previous version')
@@ -260,7 +262,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.abstractionAction.setStatusTip('Create an abstraction from the '
                                             'selected modules in '
                                             'the current pipeline view')
-        
+
         self.selectAllAction = QtGui.QAction('Select All\tCtrl+A', self)
         self.selectAllAction.setEnabled(False)
         self.selectAllAction.setStatusTip('Select all modules in '
@@ -269,16 +271,11 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editPreferencesAction = QtGui.QAction('Preferences...', self)
         self.editPreferencesAction.setEnabled(True)
         self.editPreferencesAction.setStatusTip('Edit system preferences')
-        
+
         self.shellAction = QtGui.QAction(CurrentTheme.CONSOLE_MODE_ICON,
                                          'VisTrails Console', self)
         self.shellAction.setCheckable(True)
         self.shellAction.setShortcut('Ctrl+H')
-
-        # self.bookmarksAction = QtGui.QAction(CurrentTheme.BOOKMARKS_ICON,
-#                                              'Bookmarks', self)
-#         self.bookmarksAction.setCheckable(True)
-#         self.bookmarksAction.setShortcut('Ctrl+D')
 
         self.pipViewAction = QtGui.QAction('Picture-in-Picture', self)
         self.pipViewAction.setCheckable(True)
@@ -321,12 +318,12 @@ class QBuilderWindow(QtGui.QMainWindow):
             QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.ControlModifier +
                                                QtCore.Qt.Key_Enter), self)
             ]
-            
-        
+
+
     def createMenu(self):
         """ createMenu() -> None
         Initialize menu bar of builder window
-        
+
         """
         self.fileMenu = self.menuBar().addMenu('&File')
         self.fileMenu.addAction(self.newVistrailAction)
@@ -358,9 +355,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editMenu.addAction(self.selectAllAction)
         self.editMenu.addSeparator()
         self.editMenu.addAction(self.editPreferencesAction)
-        
+
         self.viewMenu = self.menuBar().addMenu('&View')
-        #self.viewMenu.addAction(self.bookmarksAction)
         self.viewMenu.addAction(self.shellAction)
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.pipViewAction)
@@ -382,13 +378,16 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.vistrailMenu.menuAction().setEnabled(False)
         self.vistrailActionGroup = QtGui.QActionGroup(self)
 
+        self.packagesMenu = self.menuBar().addMenu('Packages')
+        self.packagesMenu.menuAction().setEnabled(False)
+
         self.helpMenu = self.menuBar().addMenu('Help')
         self.helpMenu.addAction(self.helpAction)
 
     def createToolBar(self):
         """ createToolBar() -> None
         Create a default toolbar for this builder window
-        
+
         """
         self.toolBar = QtGui.QToolBar(self)
         self.toolBar.setWindowTitle('Vistrail File')
@@ -397,16 +396,15 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.toolBar.addAction(self.newVistrailAction)
         self.toolBar.addAction(self.openFileAction)
         self.toolBar.addAction(self.saveFileAction)
-        #self.toolBar.addSeparator()
-        #self.toolBar.addAction(self.bookmarksAction)
+        self.toolBar.addSeparator()
 
         self.viewToolBar = QVistrailViewToolBar(self)
         self.addToolBar(self.viewToolBar)
 
     def connectSignals(self):
         """ connectSignals() -> None
-        Map signals between various GUI components        
-        
+        Map signals between various GUI components
+
         """
         self.connect(self.viewManager,
                      QtCore.SIGNAL('moduleSelectionChange'),
@@ -429,7 +427,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.viewManager,
                      QtCore.SIGNAL('vistrailViewRemoved'),
                      self.vistrailViewRemoved)
-                     
+
         self.connect(QtGui.QApplication.clipboard(),
                      QtCore.SIGNAL('dataChanged()'),
                      self.clipboardChanged)
@@ -488,30 +486,22 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.vistrailActionGroup,
                      QtCore.SIGNAL('triggered(QAction *)'),
                      self.vistrailSelectFromMenu)
-        
+
         self.connect(self.shellAction,
                      QtCore.SIGNAL('triggered(bool)'),
                      self.showShell)
-        
-        # self.connect(self.bookmarksAction,
-#                      QtCore.SIGNAL('triggered(bool)'),
-#                      self.showBookmarks)
 
-#         self.connect(self.bookmarksWindow,
-#                      QtCore.SIGNAL("bookmarksHidden()"),
-#                      self.bookmarksAction.toggle)
-        
         for shortcut in self.executeShortcuts:
             self.connect(shortcut,
                          QtCore.SIGNAL('activated()'),
                          self.execute_current_pipeline)
 
-                
+
         # Make sure we can change view when requested
         self.connect(self.viewToolBar,
                      QtCore.SIGNAL('viewModeChanged(int)'),
                      self.viewModeChanged)
-        
+
         # Change cursor action
         self.connect(self.viewToolBar,
                      QtCore.SIGNAL('cursorChanged(int)'),
@@ -532,11 +522,79 @@ class QBuilderWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('triggered(bool)'),
                      self.viewManager.redo)
 
+        self.connect_package_manager_signals()
+
+    def connect_package_manager_signals(self):
+        """ connect_package_manager_signals()->None
+        Connect specific signals related to the package manager """
+        pm = get_package_manager()
+        self.connect(pm,
+                     pm.add_package_menu_signal,
+                     self.add_package_menu_items)
+        self.connect(pm,
+                     pm.remove_package_menu_signal,
+                     self.remove_package_menu_items)
+        self.connect(pm,
+                     pm.package_error_message_signal,
+                     self.show_package_error_message)
+
+    def add_package_menu_items(self, pkg_id, pkg_name, items):
+        """add_package_menu_items(pkg_id: str,pkg_name: str,items: list)->None
+        Add a pacckage menu entry with submenus defined by 'items' to
+        Packages menu.
+
+        """
+        if len(self._package_menu_items) == 0:
+            self.packagesMenu.menuAction().setEnabled(True)
+
+        # we don't support a menu hierarchy yet, only a flat list
+        # this can be added later
+        if not self._package_menu_items.has_key(pkg_id):
+            pkg_menu = self.packagesMenu.addMenu(str(pkg_name))
+            self._package_menu_items[pkg_id] = pkg_menu
+        else:
+            pkg_menu = self._package_menu_items[pkg_id]
+            pkg_menu.clear()
+        for item in items:
+            (name, callback) = item
+            action = QtGui.QAction(name,self)
+            self.connect(action, QtCore.SIGNAL('triggered()'),
+                         callback)
+            pkg_menu.addAction(action)
+
+    def remove_package_menu_items(self, pkg_id):
+        """remove_package_menu_items(pkg_id: str)-> None
+        removes all menu entries from the Packages Menu created by pkg_id """
+        if self._package_menu_items.has_key(pkg_id):
+            pkg_menu = self._package_menu_items[pkg_id]
+            del self._package_menu_items[pkg_id]
+            pkg_menu.clear()
+            pkg_menu.deleteLater()
+        if len(self._package_menu_items) == 0:
+            self.packagesMenu.menuAction().setEnabled(False)
+
+    def show_package_error_message(self, pkg_id, pkg_name, msg):
+        """show_package_error_message(pkg_id: str, pkg_name: str, msg:str)->None
+        shows a message box with the message msg.
+        Because the way initialization is being set up, the messages will be
+        shown after the builder window is shown.
+
+        """
+        msgbox = build_custom_window("Package %s (%s) says:"%(pkg_name,pkg_id),
+                                    msg,
+                                    modal=True,
+                                    parent=self)
+        #we cannot call self.msgbox.exec_() or the initialization will hang
+        # creating a modal window and calling show() does not cause it to hang
+        # and forces the messages to be shown on top of the builder window after
+        # initialization
+        msgbox.show()
+
     def setDBDefault(self, on):
         """ setDBDefault(on: bool) -> None
         The preferences are set to turn on/off read/write from db instead of
         file. Update the state accordingly.
-        
+
         """
         self.dbDefault = on
         if self.dbDefault:
@@ -561,7 +619,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.saveWorkflowAction.setStatusTip('Save the current workflow '
                                                  'to a database')
 
-            
+
         else:
             self.openFileAction.setIcon(CurrentTheme.OPEN_VISTRAIL_ICON)
             self.openFileAction.setStatusTip('Open an existing vistrail from '
@@ -587,7 +645,7 @@ class QBuilderWindow(QtGui.QMainWindow):
     def moduleSelectionChange(self, selection):
         """ moduleSelectionChange(selection: list[id]) -> None
         Update the status of tool bar buttons if there is module selected
-        
+
         """
         self.copyAction.setEnabled(len(selection)>0)
         self.abstractionAction.setEnabled(len(selection)>0)
@@ -595,7 +653,7 @@ class QBuilderWindow(QtGui.QMainWindow):
     def versionSelectionChange(self, versionId):
         """ versionSelectionChange(versionId: int) -> None
         Update the status of tool bar buttons if there is a version selected
-        
+
         """
         self.undoAction.setEnabled(versionId>0)
         self.viewToolBar.undoAction().setEnabled(versionId>0)
@@ -612,9 +670,9 @@ class QBuilderWindow(QtGui.QMainWindow):
         """ execStateChange() -> None
         Something changed on the canvas that effects the execution state,
         update interface accordingly.
-        
+
         """
-        currentView = self.viewManager.currentWidget()        
+        currentView = self.viewManager.currentWidget()
         if currentView:
             # Update toolbar
             if self.viewIndex == 2:
@@ -642,17 +700,17 @@ class QBuilderWindow(QtGui.QMainWindow):
     def viewModeChanged(self, index):
         """ viewModeChanged(index: int) -> None
         Update the state of the view buttons
-        
+
         """
         self.viewIndex = index
         self.execStateChange()
         self.viewManager.viewModeChanged(index)
 
     def clipboardChanged(self, mode=QtGui.QClipboard.Clipboard):
-        """ clipboardChanged(mode: QClipboard) -> None        
+        """ clipboardChanged(mode: QClipboard) -> None
         Update the status of tool bar buttons when the clipboard
         contents has been changed
-        
+
         """
         clipboard = QtGui.QApplication.clipboard()
         self.pasteAction.setEnabled(not clipboard.text().isEmpty())
@@ -660,7 +718,7 @@ class QBuilderWindow(QtGui.QMainWindow):
     def currentVistrailChanged(self, vistrailView):
         """ currentVistrailChanged(vistrailView: QVistrailView) -> None
         Redisplay the new title of vistrail
-        
+
         """
         self.execStateChange()
         if vistrailView:
@@ -679,11 +737,11 @@ class QBuilderWindow(QtGui.QMainWindow):
             if not vistrailView.viewAction.isChecked():
                 vistrailView.viewAction.setChecked(True)
 
-    
+
     def vistrailChanged(self):
         """ vistrailChanged() -> None
         An action was performed on the current vistrail
-        
+
         """
         self.saveFileAction.setEnabled(True)
         self.saveFileAsAction.setEnabled(True)
@@ -692,7 +750,7 @@ class QBuilderWindow(QtGui.QMainWindow):
     def newVistrail(self):
         """ newVistrail() -> None
         Start a new vistrail
-        
+
         """
         self.viewManager.newVistrail()
         self.viewToolBar.changeView(0)
@@ -705,7 +763,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         locator = locator_class.load_from_gui(self, Vistrail.vtType)
         if locator:
             self.open_vistrail_without_prompt(locator)
-            
+
     def open_vistrail_without_prompt(self, locator):
         """open_vistrail_without_prompt(locator_class) -> None
         Open vistrail depending on the locator class given.
@@ -716,11 +774,11 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.exportFileAction.setEnabled(True)
         self.vistrailMenu.menuAction().setEnabled(True)
         self.viewToolBar.changeView(1)
-        
+
     def open_vistrail_default(self):
         """ open_vistrail_default() -> None
         Opens a vistrail from the file/db
-        
+
         """
         if self.dbDefault:
             self.open_vistrail(DBLocator)
@@ -740,7 +798,7 @@ class QBuilderWindow(QtGui.QMainWindow):
     def save_vistrail(self):
         """ save_vistrail() -> None
         Save the current vistrail to file
-        
+
         """
         current_view = self.viewManager.currentWidget()
         locator = current_view.controller.locator
@@ -753,7 +811,7 @@ class QBuilderWindow(QtGui.QMainWindow):
     def save_vistrail_default(self):
         """ save_vistrail_default() -> None
         Save the current vistrail to the file/db
-        
+
         """
         if self.dbDefault:
             self.viewManager.save_vistrail(DBLocator)
@@ -763,7 +821,7 @@ class QBuilderWindow(QtGui.QMainWindow):
     def save_vistrail_default_as(self):
         """ save_vistrail_file_as() -> None
         Save the current vistrail to the file/db
-        
+
         """
         if self.dbDefault:
             self.viewManager.save_vistrail(DBLocator,
@@ -775,7 +833,7 @@ class QBuilderWindow(QtGui.QMainWindow):
     def export_vistrail_default(self):
         """ export_vistrail_default() -> None
         Export the current vistrail to the file/db
-        
+
         """
         if self.dbDefault:
             self.viewManager.save_vistrail(FileLocator(),
@@ -783,7 +841,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         else:
             self.viewManager.save_vistrail(DBLocator,
                                            force_choose_locator=True)
-        
+
     def save_log(self, invert=False, choose=True):
         # want xor of invert and dbDefault
         if (invert and not self.dbDefault) or (not invert and self.dbDefault):
@@ -818,7 +876,7 @@ class QBuilderWindow(QtGui.QMainWindow):
     def quitVistrails(self):
         """ quitVistrails() -> bool
         Quit Vistrail, return False if not succeeded
-        
+
         """
         if self.viewManager.closeAllVistrails():
             QtCore.QCoreApplication.quit()
@@ -827,7 +885,7 @@ class QBuilderWindow(QtGui.QMainWindow):
     def vistrailViewAdded(self, view):
         """ vistrailViewAdded(view: QVistrailView) -> None
         Add this vistrail to the Vistrail menu
-        
+
         """
         view.viewAction = QtGui.QAction(view.windowTitle(), self)
         view.viewAction.view = view
@@ -840,7 +898,7 @@ class QBuilderWindow(QtGui.QMainWindow):
     def vistrailViewRemoved(self, view):
         """ vistrailViewRemoved(view: QVistrailView) -> None
         Remove this vistrail from the Vistrail menu
-        
+
         """
         self.vistrailActionGroup.removeAction(view.viewAction)
         self.vistrailMenu.removeAction(view.viewAction)
@@ -849,14 +907,14 @@ class QBuilderWindow(QtGui.QMainWindow):
     def vistrailSelectFromMenu(self, menuAction):
         """ vistrailSelectFromMenu(menuAction: QAction) -> None
         Handle clicked from the Vistrail menu
-        
+
         """
         self.viewManager.setCurrentWidget(menuAction.view)
 
     def showShell(self, checked=True):
         """ showShell() -> None
         Display the shell console
-        
+
         """
         if checked:
             self.savePythonPrompt()
@@ -878,7 +936,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.stdout = sys.stdout
         self.stdin = sys.stdin
         self.stderr = sys.stderr
-    
+
     def recoverPythonPrompt(self):
         """recoverPythonPrompt() -> None
         Reassign system standard input and output to previous saved state.
@@ -891,7 +949,7 @@ class QBuilderWindow(QtGui.QMainWindow):
 #     def showBookmarks(self, checked=True):
 #         """ showBookmarks() -> None
 #         Display Bookmarks Interactor Window
-        
+
 #         """
 #         if checked:
 #             if self.bookmarksWindow:
@@ -899,7 +957,7 @@ class QBuilderWindow(QtGui.QMainWindow):
 #         else:
 #             if self.bookmarksWindow:
 #                 self.bookmarksWindow.hide()
-        
+
     def showAboutMessage(self):
         """showAboutMessage() -> None
         Displays Application about message
@@ -908,7 +966,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         class About(QtGui.QLabel):
             def mousePressEvent(self, e):
                 self.emit(QtCore.SIGNAL("clicked()"))
-                
+
         dlg = QtGui.QDialog(self, QtCore.Qt.FramelessWindowHint)
         layout = QtGui.QVBoxLayout()
         layout.setMargin(0)
@@ -931,10 +989,10 @@ class QBuilderWindow(QtGui.QMainWindow):
                      QtCore.SLOT('accept()'))
         dlg.setSizeGripEnabled(False)
         dlg.exec_()
-        
+
         #QtGui.QMessageBox.about(self,self.tr("About VisTrails..."),
         #                        self.tr(system.about_string()))
- 
+
     def showPreferences(self):
         """showPreferences() -> None
         Display Preferences dialog
@@ -952,10 +1010,10 @@ class QBuilderWindow(QtGui.QMainWindow):
     def showDiff(self):
         """showDiff() -> None
         Show the visual difference interface
-        
+
         """
         currentView = self.viewManager.currentWidget()
-        if (currentView and currentView.execDiffId1 > 0 and 
+        if (currentView and currentView.execDiffId1 > 0 and
             currentView.execDiffId2 > 0):
             visDiff = QVisualDiff(currentView.controller.vistrail,
                                   currentView.execDiffId1,
@@ -967,7 +1025,7 @@ class QBuilderWindow(QtGui.QMainWindow):
     def execute(self):
         """ execute() -> None
         Execute something depending on the view
-        
+
         """
         if self.viewToolBar.currentViewIndex == 2:
             self.queryVistrail()
@@ -979,7 +1037,7 @@ class QBuilderWindow(QtGui.QMainWindow):
     def queryVistrail(self):
         """ queryVistrail() -> None
         Execute a query and switch to history view if in query or explore mode
-        
+
         """
         if self.viewIndex > 1:
             self.viewToolBar.changeView(1)
@@ -1017,5 +1075,3 @@ class QBuilderWindow(QtGui.QMainWindow):
         finally:
             self._executing = False
             self.viewToolBar.executeAction().setEnabled(True)
-
-

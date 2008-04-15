@@ -108,6 +108,18 @@ def initialize(*args, **keywords):
         global spreadsheetWindow        
         spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
 
+def menu_items():
+    """menu_items() -> tuple of (str,function)
+    It returns a list of pairs containing text for the menu and a
+    callback function that will be executed when that menu item is selected.
+    
+    """
+    def show_spreadsheet():
+        spreadsheetWindow.show()
+    lst = []
+    lst.append(("Show Spreadsheet", show_spreadsheet))
+    return tuple(lst)
+
 def finalize():
     spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
     ### DO NOT ADD BACK spreadsheetWindow.destroy()
