@@ -46,6 +46,10 @@ import core.modules.module_registry
 import core.modules.basic_modules
 from core.modules.vistrails_module import Module, ModuleError, new_module
 from packages.HTTP import HTTPFile
+from PyQt4 import QtCore, QtGui
+from core.modules.constant_configuration import ConstantWidgetMixin
+from core.modules.basic_modules import Constant
+import enumeration_widget
 
 import subprocess
 import platform
@@ -53,7 +57,6 @@ import popen2
 
 package_directory = None
 modulesDict = {}
-visrespobj = None
 
 configuration = ConfigurationObject(wsdlList=(None, str))
 identifier = 'edu.utah.sci.vistrails.webservices'
@@ -81,6 +84,7 @@ class WebService(Module):
 class WBModule:
     def __init__(self,name):
         self.name = name
+        self.namespace = ''
         self.type = '' #Instance of the type
         self.typeobj = ''   #Enumeration or ComplexType
         self.ports = []
@@ -88,6 +92,7 @@ class WBModule:
         self.isEmptySequence = False
         self.isExtension = False
         self.ExtensionBase = ''
+        self.docstring = ''
 
 def webServiceNameClassifier():
     """  """
@@ -107,6 +112,38 @@ def webServiceNameMethodDict():
 def webServiceTypesDict(WBobj):
     """ This will create a correct compute method according to the complex type
     or enumeration name. """
+
+    def unwrapRequestobj(self,libobj,visobj):
+     global modulesDict
+
+     #Find the children for the vistrail type and set the attributes
+     dictkey = self.webservice + "." + visobj.name
+     obj = modulesDict[dictkey]
+     for child in obj.ports:
+         namechild = child[0]
+         typechild = child[1]
+         nameattrib = str(namechild)
+         nameattrib = nameattrib[0].upper() + nameattrib[1:]
+         sentence = "visobj" + "." + nameattrib
+         visdata = eval(sentence)
+         if visdata != None:
+             try:
+                 Type = wsdlTypesDict[str(typechild)]
+                 setattr(libobj,nameattrib,visdata)
+             except KeyError:
+                 #Check if the port is an Enumeration Constant
+                 keyvalue = WBobj.namespace.replace('|Types','') + "." + str(child[1])
+                 childType = modulesDict[keyvalue]
+                 if childType.typeobj == 'Enumeration':
+                     visobjchild = getattr(visobj,nameattrib)
+                     setattr(libobj, nameattrib, visobjchild)
+                 else:
+                     namemethod = "new_" + namechild
+                     libobjchild = getattr(libobj,namemethod)()
+                     visobjchild = getattr(visobj,nameattrib)
+                     setattr(libobj,nameattrib,libobjchild)
+                     unwrapRequestobj(self,libobjchild,visobjchild)
+
     def compute(self):
         reg = core.modules.module_registry
         #Check if it is an enumeration
@@ -116,14 +153,14 @@ def webServiceTypesDict(WBobj):
                 inputport = self.getInputFromPort(nameport)
                 self.holder = inputport
                 self.setResult(WBobj.name,self)
-        else:        
+        else:
             #Check if the type is a request type
             porttype = str(WBobj.type.server._wsdl.portTypes.keys()[0][0][1])
             modname = WBobj.name
             listoperations = WBobj.type.server._wsdl.portTypes[porttype].operations.values()
             isrequest = False
             for element in listoperations:
-                if modname == element.input.getMessage().name or modname == element.input.getMessage().name.replace('SoapRequest','') or modname == element.input.getMessage().name.replace('SoapIn',''):
+                if modname == element.input.getMessage().name or modname == element.input.getMessage().name.replace('SoapRequest','') or modname == element.input.getMessage().name.replace('SoapIn','') or modname == element.input.getMessage().name.replace('Request',''):
                     isrequest = True
                     requestname = element.input.getMessage().name
             if (isrequest == True):
@@ -133,25 +170,62 @@ def webServiceTypesDict(WBobj):
                 for types in WBobj.ports:
                     nameport = str(types[0])
                     if self.hasInputFromPort(nameport):
+                        #We need to distinguish between simple and complex types.
                         inputport = self.getInputFromPort(nameport)
-                        namemethod = "set_element_" + nameport
                         try:
-                            getattr(req, namemethod)(inputport)
-                        except:
-                            namemethod = nameport
-                            setattr(req, namemethod,inputport)
+                            Type = str(types[1])
+                            if len(Type) > 5:
+                                if Type[0:5] == 'Array':
+                                    Type = 'Array'
+                            Type = wsdlTypesDict[Type]
+                            namemethod = "set_element_" + nameport
+                            try:
+                                getattr(req, namemethod)(inputport)
+                            except:
+                                namemethod = nameport
+                                setattr(req, namemethod,inputport)
+                        except KeyError:
+                            keyvalue = WBobj.namespace.replace('|Types','') + "." + str(types[1])
+                            #Check if the port is an Enumeration Constant
+                            childType = modulesDict[keyvalue]
+                            if childType.typeobj == 'Enumeration':
+                                namemethod = "set_element_" + nameport
+                                getattr(req, namemethod)(inputport)
+                            else:
+                                namemethod = "new_" + nameport
+                                libobj = getattr(req,namemethod)()
+                                unwrapRequestobj(self,libobj,inputport)
+                                namemethod = "set_element_" + nameport
+                                getattr(req, namemethod)(libobj)
                 #Set the value in the response output port
                 nameport = str(WBobj.name)
-                self.setResult(nameport,req)                        
+                self.setResult(nameport,req)
             else:
                 nameport = str(WBobj.name)
                 if self.hasInputFromPort(nameport):
+                    #Output modules
                     inputport = self.getInputFromPort(nameport)
-                    nameport = str(WBobj.ports[0][0])
-                    nameattrib = nameport[0].upper() + nameport[1:]
-                    sentence = "inputport" + "." + nameattrib
-                    outputport = eval(sentence)
-                    self.setResult(nameport,outputport)
+                    for nameport in WBobj.ports:
+                        nameattrib = nameport[0][0].upper() + nameport[0][1:]
+                        sentence = "inputport" + "." + nameattrib
+                        outputport = eval(sentence)
+                        self.setResult(nameport[0],outputport)
+                else:    
+                    #Set the values in the input ports
+                    #Input modules
+                    for types in WBobj.ports:
+                        nameport = str(types[0])
+                        nameattrib = str(nameport)
+                        nameattrib = nameattrib[0].upper() + nameattrib[1:]
+                        if self.hasInputFromPort(nameport):
+                            inputport = self.getInputFromPort(nameport)
+                            setattr(self,nameattrib,inputport)
+                        else:
+                            setattr(self,nameattrib,None)
+                    #Set the value in the response output port
+                    nameport = str(WBobj.name)
+                    self.setResult(nameport,self)
+
     return {'compute':compute}
 
 
@@ -164,7 +238,6 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
         
     def wrapResponseobj(self,resp,visobj):
      global modulesDict
-     global visrespobj
      if type(resp)==types.ListType:
          ptype = resp[0].typecode.type[1]
      else:
@@ -192,7 +265,8 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                  ans = eval(sentence)
              nameattrib = str(namechild)
              nameattrib = nameattrib[0].upper() + nameattrib[1:]
-             setattr(visobj,nameattrib,ans)  
+             setattr(visobj,nameattrib,ans)
+             
          except KeyError:
              if type(resp) != types.ListType:
                  namemethod = "get_element_" + namechild
@@ -230,7 +304,6 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                  wrapResponseobj(self,resp,visobjchild)
                  
     def compute(self):
-        global visrespobj
         dirmodule = dir(self.modclient)
         #Get the locator name
         for elemlist in dirmodule:
@@ -270,6 +343,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
                         setattr(req, namemethod,inputport)
             resp = getattr(port,name)(req)
             namemethod = "get_element_" + outparams[0].name
+            
             try:
                 result = getattr(resp,namemethod)()
             except:
@@ -280,18 +354,24 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
         except KeyError:
             #This part is for the complex types methods parameters
             inparam = str(inparams[0].name)
+            
             if self.hasInputFromPort(inparam):
                 request = self.getInputFromPort(inparam)
-                resp = getattr(port,name)(request)
+                try:
+                    resp = getattr(port,name)(request)
+                except:
+                    print "sys.exc_value", sys.exc_value
+                    print "sys.exc_traceback", sys.exc_traceback
                 #Wrap the ZSI attributes into the vistrails module attributes
                 nameclass = str(outparams[0].type[1])
                 dictkey = self.webservice + "." + nameclass
                 obj = modulesDict[dictkey]
                 visclass = obj.type
                 visobj = visclass()
+                
                 wrapResponseobj(self,resp, visobj)
                 self.setResult(outparams[0].name,visobj)
-        
+                
     return {'compute':compute}
 
 def processEnumeration(complexschema):
@@ -323,6 +403,7 @@ def processArray(complexschema,w):
 def processType(complexschema,w):
     global modulesDict
     contentschema = ''
+    
     modulename = str(complexschema.attributes['name'])
     modulekey = w + "." + modulename
     objModule = WBModule(modulename)
@@ -431,15 +512,23 @@ def addTypesModules(w,modclient,server):
     for dictkey in keys:
         obj = modulesDict[dictkey]
         if obj.webservice == w:
-            mt = new_module(WebService,obj.name, webServiceTypesDict(obj))
-            mt.webservice = w
-            mt.modclient = modclient
-            mt.server = server
             namespace = w + '|Types'
-            reg.add_module(mt, namespace= namespace)
+            obj.namespace = namespace
+            if obj.typeobj == 'Enumeration':
+                mt = enumeration_widget.initialize(obj.name, namespace,identifier)
+            else:    
+                mt = new_module(WebService,obj.name, webServiceTypesDict(obj))
+                mt.name = obj.name
+                mt.webservice = w
+                mt.modclient = modclient
+                mt.server = server
+                mt.isEnumeration = False
+                mt.namespace = namespace
+                reg.add_module(mt, namespace= namespace)
             #Add module type to modulesDict
             modbyname = reg.get_module_by_name(identifier = identifier, name = obj.name, namespace = namespace)
             obj.type = modbyname
+            
         
 
 def addPortsToModules(w):
@@ -454,16 +543,17 @@ def addPortsToModules(w):
         if obj.webservice == w:
             reg.add_input_port(obj.type,obj.name,(obj.type, ''))
             reg.add_output_port(obj.type,obj.name,(obj.type, ''))
-            #Add ports according to the input and output parameters
-            for ports in obj.ports:
-                try:
-                    Type = wsdlTypesDict[str(ports[1])]
-                except KeyError:
-                    portname = str(ports[1])
-                    namespace = w + '|Types'
-                    Type = reg.get_module_by_name(identifier = identifier, name =portname, namespace = namespace)
-                reg.add_input_port(obj.type,str(ports[0]),(Type, ''))
-                reg.add_output_port(obj.type,str(ports[0]),(Type, ''))
+            if obj.typeobj != 'Enumeration':
+                #Add ports according to the input and output parameters
+                for ports in obj.ports:
+                    try:
+                        Type = wsdlTypesDict[str(ports[1])]
+                    except KeyError:
+                        portname = str(ports[1])
+                        namespace = w + '|Types'
+                        Type = reg.get_module_by_name(identifier = identifier, name =portname, namespace = namespace)
+                    reg.add_input_port(obj.type,str(ports[0]),(Type, ''))
+                    reg.add_output_port(obj.type,str(ports[0]),(Type, ''))
 
 #Dictionary of primitive types
 wsdlTypesDict = { 'string' : core.modules.basic_modules.String,
@@ -532,7 +622,7 @@ def initialize(*args, **keywords):
         try:
             wsdl = load(location)
         except:
-            print "Problem loading web service: ", w
+            pm.show_error_message(pm.get_package_by_identifier(identifier),"Problem loading web service: %s"%w)
             continue
         wsm = WriteServiceModule(wsdl)
         client_mod = wsm.getClientModuleName()
@@ -565,24 +655,28 @@ def initialize(*args, **keywords):
                     print "'%s' does not exist and parent directory is writable"
                     sys.exit(1)
             #generate the stub files
-            from ZSI.generate.containers import ServiceHeaderContainer,\
-                 TypecodeContainerBase, TypesHeaderContainer
-            kwargs = {'module':'ZSI.generate.pyclass', 
-                  'metaclass':'pyclass_type'}
-            TypecodeContainerBase.metaclass = kwargs['metaclass']
-            TypesHeaderContainer.imports.append(\
+            try:
+                from ZSI.generate.containers import ServiceHeaderContainer,\
+                     TypecodeContainerBase, TypesHeaderContainer
+                kwargs = {'module':'ZSI.generate.pyclass', 
+                          'metaclass':'pyclass_type'}
+                TypecodeContainerBase.metaclass = kwargs['metaclass']
+                TypesHeaderContainer.imports.append(\
                   'from %(module)s import %(metaclass)s' %kwargs
                   )
-            ServiceHeaderContainer.imports.append (\
+                ServiceHeaderContainer.imports.append (\
                   'from %(module)s import %(metaclass)s' %kwargs
                   ) 
-            fd = open(client_file, 'w+')
-            wsm.writeClient(fd)
-            fd.close()
+                fd = open(client_file, 'w+')
+                wsm.writeClient(fd)
+                fd.close()
         
-            fd = open(types_file, 'w+' )
-            wsm.writeTypes(fd)
-            fd.close()
+                fd = open(types_file, 'w+' )
+                wsm.writeTypes(fd)
+                fd.close()
+            except:
+                print "Error generating the stub files for the webservice: ", w
+                continue
         
         #import the stub generated files
         modclient = __import__(client_mod)
@@ -590,100 +684,47 @@ def initialize(*args, **keywords):
         server = ServiceProxy(w, pyclass=True, tracefile=sys.stdout)
         
         #Set up the dictionary with all the complex types modules and their ports.
-        keys = server._methods.keys()
-        keys.sort()
+        for schematypes in server._wsdl.types.keys():
+            schema = server._wsdl.types[str(schematypes)]
+            if len(schema.types.keys()) != 0:
+                for schematype in schema.types.keys():
+                    try:
+                        complex1 = schema.types[str(schematype)]
+                        modulename = str(complex1.attributes['name'])
+                        try:
+                            dictkey = w + "." + modulename
+                            typeObj = modulesDict[dictkey]
+                        except KeyError:
+                            #Check if it is an array.  Arrays are python lists,
+                            #not complex types though they can contain complex types elements.
+                            Type = str(schematype) 
+                            if len(Type) >= 5:
+                                if (Type[0:5] != 'Array'):
+                                    processType(complex1,w)
+                                else:
+                                    processArray(complex1,w)    
+                    except KeyError:
+                        pass
+            if len(schema.elements.keys()) != 0:
+                for schematype in schema.elements.keys():
+                    try:
+                        complex1 = schema.elements[str(schematype)]
+                        modulename = str(complex1.attributes['name'])
+                        try:
+                            dictkey = w + "." + modulename
+                            typeObj = modulesDict[dictkey]
+                        except KeyError:
+                            #Check if it is an array.  Arrays are python lists,
+                            #not complex types, though they can contain complex types elements.
+                            Type = str(schematype) 
+                            if len(Type) >= 5:
+                                if (Type[0:5] != 'Array'):
+                                    processType(complex1,w)
+                                else:
+                                    processArray(complex1,w)
+                    except KeyError:
+                        pass
 
-        #input parameters
-        for kw in keys:
-            methods = server._methods[kw]
-            callInfo = methods[0].callinfo
-            inparams = callInfo.inparams
-            for p in inparams:
-                try:
-                    basicType = wsdlTypesDict[str(p.type[1])]
-                except KeyError:
-                    for schematypes in server._wsdl.types.keys():
-                        schema = server._wsdl.types[str(schematypes)]
-                        if len(schema.types.keys()) != 0:
-                            try:
-                                complex1 = schema.types[p.type[1]]
-                                modulename = str(complex1.attributes['name'])
-                                try:
-                                    dictkey = w + "." + modulename
-                                    typeObj = modulesDict[dictkey]
-                                except KeyError:
-                                    #Check if it is an array.  Arrays are python lists,
-                                    #not complex types though they can contain complex types elements.
-                                    Type = str(p.type[1]) 
-                                    if len(Type) >= 5:
-                                        if (Type[0:5] != 'Array'):
-                                            processType(complex1,w)
-                                        else:
-                                            processArray(complex1,w)    
-                            except KeyError:
-                                pass
-                        if len(schema.elements.keys()) != 0:
-                            try:
-                                complex1 = schema.elements[p.type[1]]
-                                modulename = str(complex1.attributes['name'])
-                                try:
-                                    dictkey = w + "." + modulename
-                                    typeObj = modulesDict[dictkey]
-                                except KeyError:
-                                    #Check if it is an array.  Arrays are python lists,
-                                    #not complex types, though they can contain complex types elements.
-                                    Type = str(p.type[1]) 
-                                    if len(Type) >= 5:
-                                        if (Type[0:5] != 'Array'):
-                                            processType(complex1,w)
-                                        else:
-                                            processArray(complex1,w)
-                            except KeyError:
-                                pass
-
-        #output parameters
-        for kw in keys:
-            methods = server._methods[kw]
-            callInfo = methods[0].callinfo
-            outparams = callInfo.outparams
-            for p in outparams:
-                try:
-                    basicType = wsdlTypesDict[str(p.type[1])]
-                except KeyError:
-                    for schematypes in server._wsdl.types.keys():
-                        schema = server._wsdl.types[str(schematypes)]
-                        if len(schema.types.keys()) != 0:
-                            try:
-                                complex1 = schema.types[p.type[1]]
-                                modulename = str(complex1.attributes['name'])
-                                try:
-                                    dictkey = w + "." + modulename
-                                    typeObj = modulesDict[dictkey]
-                                except KeyError:
-                                    Type = str(p.type[1])
-                                    if len(Type) >= 5:
-                                        if (Type[0:5] != 'Array'):
-                                            processType(complex1,w)
-                                        else:
-                                            processArray(complex1,w)
-                            except KeyError:
-                                pass        
-                        if len(schema.elements.keys()) != 0:
-                            try:
-                                complex1 = schema.elements[p.type[1]]
-                                modulename = str(complex1.attributes['name'])
-                                try:
-                                    dictkey = w + "." + modulename
-                                    typeObj = modulesDict[dictkey]
-                                except KeyError:
-                                    Type = str(p.type[1])
-                                    if len(Type) >= 5:
-                                        if (Type[0:5] != 'Array'):
-                                            processType(complex1,w)
-                                        else:
-                                            processArray(complex1,w)    
-                            except KeyError:
-                                pass
         #get all the service's methods and for each method create a module also create
         #a module for the complex types classes and enumerations.
 
@@ -695,6 +736,9 @@ def initialize(*args, **keywords):
         addPortsToModules(w)
         
         #Add the Methods
+        keys = server._methods.keys()
+        keys.sort()
+        
         for kw in keys:
             methods = server._methods[kw]
             callInfo = methods[0].callinfo
