@@ -1350,8 +1350,8 @@ class VistrailController(QtCore.QObject):
 
     def add_analogy(self, analogy_name, version_from, version_to):
         assert type(analogy_name) == str
-        assert type(version_from) == int
-        assert type(version_to) == int
+        assert type(version_from) == int or type(version_from) == long
+        assert type(version_to) == int or type(version_to) == long
         if analogy_name in self.analogy:
             raise VistrailsInternalError("duplicated analogy name '%s'" %
                                          analogy_name)
