@@ -50,12 +50,12 @@ class ConvertVTKToVT(object):
                     does_continue:
                 if line.rstrip() == 'import vtk':
                     print >>out_file, 'import sys'
-                    print >>out_file, \
-                        'sys.path.append("/vistrails/vtk_examples")'
+                    print >>out_file, 'sys.path.append' + \
+                        '("/vistrails/src/trunk/scripts/gen_vtk_examples")'
                     print >>out_file, 'import vtk_imposter'
                     print >>out_file, 'from colors import *'
                     print >>out_file, 'vtk = vtk_imposter.vtk()'
-                    print >>out_file, 'VTK_DATA_ROOT = "/scratch/vtkdata-5.0.4"'
+                    print >>out_file, 'VTK_DATA_ROOT = ""'
                     print >>out_file, ''
                     print >>out_file, '#', line[:-1]
                 else:

@@ -20,11 +20,11 @@
 ##
 ############################################################################
 
-if __name__ == '__main__':
-    import sys
-    import os
-    import re
+import sys
+import os
+import re
 
+def run(in_dir, out_dir)
     def collectFilenames(dir):
         # create the regular expression matcher machines
         fileNameParser = re.compile('.*\.py')
@@ -41,21 +41,25 @@ if __name__ == '__main__':
                 result += collectFilenames(childDirOrFile)
         return result
 
-    if len(sys.argv) < 3:
-        print 'Usage: %s <in_directory> <out_directory>' % sys.argv[0]
     
-    all_files = collectFilenames(sys.argv[1])
+    all_files = collectFilenames(in_dir)
 
-    in_base = os.path.basename(sys.argv[1])
-    out_base = os.path.basename(sys.argv[2])
+    in_base = os.path.basename(in_dir)
+    out_base = os.path.basename(out_dir)
     for fname in all_files:
         path_before = os.path.dirname(fname)
         path_end = os.path.basename(fname)
         while os.path.basename(path_before) != in_base:
             path_end = os.path.join(os.path.basename(path_before), path_end)
             path_before = os.path.dirname(path_before)
-        other_fname = os.path.join(sys.argv[2], path_end)
+        other_fname = os.path.join(out_dir, path_end)
 
         cmd_line = "diff %s %s" % (fname, other_fname)
         print cmd_line
         os.system(cmd_line)
+
+if __name__ == '__main__':
+    if len(sys.argv) < 3:
+        print 'Usage: python %s <in_directory> <out_directory>' % sys.argv[0]
+        sys.exit(-1)
+    run(*sys.argv[1:])

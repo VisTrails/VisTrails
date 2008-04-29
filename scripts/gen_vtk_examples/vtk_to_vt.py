@@ -26,6 +26,7 @@ import os
 os.environ['EXECUTABLEPATH'] = ""
 import copy
 import datetime
+import re
 import urllib
 
 from db.domain import DBModule, DBConnection, DBPort, DBFunction, \
@@ -33,9 +34,11 @@ from db.domain import DBModule, DBConnection, DBPort, DBFunction, \
 from vtk_imposter import vtk_module, vtk_function
 
 class VTK2VT(object):
+    vtk_data_url = 'http://www.vtk.org/files/release/5.0/vtkdata-5.0.4.zip'
     package_name = 'edu.utah.sci.vistrails.vtk'
     basic_name = 'edu.utah.sci.vistrails.basic'
     pythoncalc_name = 'edu.utah.sci.vistrails.pythoncalc'
+    http_name = 'edu.utah.sci.vistrails.http'
     unused_functions = set(['Update', 
                             'Read', 
                             'Write', 
@@ -157,6 +160,8 @@ class VTK2VT(object):
                'GetRenderWindow': {None: ('SetVTKCell', 'VTKCell', None)},
                }
 
+    set_file_name_pattern = re.compile('Set.*FileName$')
+
     def __init__(self):
         self.created_modules = {}
         self.modules = {}
@@ -172,6 +177,7 @@ class VTK2VT(object):
         self.max_connection_id = 0
         self.max_port_id = 0
         self.max_port_spec_id = 0
+        self.http_module = None
 
     def create_module(self, module):
         # print 'creating module', module._name, id(module)
@@ -181,10 +187,12 @@ class VTK2VT(object):
             module_name = 'VTKCell'
         elif module_name == 'vtkRenderWindowInteractor':
             return
-        elif module_name == 'Tuple':
+        elif module_name == 'Tuple' or module_name == 'Unzip':
             package_name = self.basic_name
         elif module_name == 'PythonCalc':
             package_name = self.pythoncalc_name
+        elif module_name == 'HTTPFile':
+            package_name = self.http_name
         db_module = DBModule(id=self.max_module_id,
                              name=module_name,
                              package=package_name,
@@ -639,7 +647,26 @@ class VTK2VT(object):
 #                                       inspector_module.GetScalarRange())
 #                     connections = [function._args[1]]
 #                     parameters = [function._args[0]]   
-                    
+            if self.set_file_name_pattern.match(function._name) and \
+                    type(function.parent) == vtk_module and \
+                    len(function._args) == 1 and \
+                    type(function._args[0]) == str:
+                # replace SetFileName with a HTTPFile -> Unzip -> SetFile
+                if not self.http_module:
+                    self.http_module = vtk_module('HTTPFile')
+                    self.http_module.url(self.vtk_data_url)
+                    self.create_module(self.http_module)
+                    self.create_functions(self.http_module)
+                unzip_module = vtk_module('Unzip')
+                self.create_module(unzip_module)
+                unzip_module.filename_in_archive(function._args[0][1:])
+                unzip_module.archive_file(self.http_module.file())
+                self.create_functions(unzip_module)
+                set_file_function = vtk_function(function._name[:-4])
+                set_file_function.parent = function.parent
+                set_file_function._args = [unzip_module.file()]
+                self.create_functions(function.parent, [set_file_function])
+                return None
             if function._name == 'SetInteractor' and \
                     len(function._args) == 1 and \
                     type(function._args[0]) == vtk_module and \

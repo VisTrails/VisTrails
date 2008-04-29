@@ -23,9 +23,14 @@ We will use three different directories:
 
 modified_scripts_dir: directory that stores vtk examples with
   manual modifications to allow better translation.
-old_out_dir: scratch directory where we attempt to translate all scripts
-new_out_dir: final directory where initial modified python script and
+intermediate_dir: scratch directory where we attempt to translate all scripts
+out_dir: final directory where initial modified python script and
   the translated vt file are stored.
+
+To run the entire process:
+
+  python gen_vtk_examples.py <modified_scripts_dir> <intermediate_dir> 
+    <out_dir>
 
 Note that the modified_scripts_dir assumes the standard vtk structure
 (ie "DataManipulation/Python/Arrays.py") while the other dirs omit the
@@ -38,7 +43,7 @@ correctly (ie use PythonCalc to do arithmetic computations).
 
 (2) Run
 
-  python copy_vtk_examples.py <modified_scripts_dir> <old_out_dir>
+  python copy_vtk_examples.py <modified_scripts_dir> <intermediate_dir>
 
 This script will call "convert_to_vt.py" to swap some of the inputs
 and call the translator code at the end of the script and copy this
@@ -49,7 +54,8 @@ which translates this class into a pipeline.
 
 (3) Run
 
-  python get_vtk_examples.py examples_list.txt <old_out_dir> <modified_scripts_dir> <new_out_dir>
+  python get_vtk_examples.py examples_list.txt <modified_scripts_dir> 
+    <intermediate_dir> <out_dir>
 
 This script copies over the modified python script (not the converted
 script) and the new vistrail to a final output directory.  It uses the

@@ -20,9 +20,10 @@
 ##
 ############################################################################
 
+import sys
 import os
 
-def run(filename, in_dirname, py_dirname, out_dirname):
+def run(py_dirname, in_dirname, out_dirname, filename='examples_list.txt'):
     f = open(filename)
     total = 0
     total_good = 0
@@ -60,9 +61,8 @@ def run(filename, in_dirname, py_dirname, out_dirname):
     print "%d of %d" % (total_good, total)
 
 if __name__ == '__main__':
-    import sys
-    if len(sys.argv) <= 4:
+    if len(sys.argv) < 5:
         print "Usage: python %s " % sys.argv[0] + \
-            "<examples_list> <in_dir> <python_dir> <out_dir>"
+            "<python_dir> <in_dir> <out_dir> [examples_list]"
         sys.exit(-1)
     run(*sys.argv[1:])

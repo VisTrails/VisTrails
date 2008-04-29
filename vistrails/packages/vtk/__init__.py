@@ -1,4 +1,4 @@
-############################################################################
+###########################################################################
 ##
 ## Copyright (C) 2006-2007 University of Utah. All rights reserved.
 ##
@@ -91,6 +91,9 @@ typeMapDict = {'int': Integer,
                'const char*': String,
                'const char *': String}
 typeMapDictValues = [Integer, Float, String]
+
+file_name_pattern = re.compile('.*FileName$')
+set_file_name_pattern = re.compile('Set.*FileName$')
 
 def typeMap(name, package=None):
     """ typeMap(name: str) -> Module
@@ -353,9 +356,9 @@ def addSetGetPorts(module, get_set_dict):
                 if all(classes, is_class_allowed):
                     add_input_port(module, n, classes, True)
             # Wrap SetFileNames for VisTrails file access
-            if name == 'FileName':
-                add_input_port(module, 'SetFile', (File, 'input file'),
-                               False)
+            if file_name_pattern.match(name):
+                add_input_port(module, 'Set' + name[:-4], 
+                               (File, 'input file'), False)
             # Wrap SetRenderWindow for exporters
             elif name == 'RenderWindow':
                 add_input_port(module, 'SetVTKCell', VTKCell, False)
@@ -696,13 +699,6 @@ def class_dict(base_module, node):
                 self.vtkInstance.SetRenderWindow(cellObj.cellWidget.mRenWin)
         return call_SetRenderWindow
     
-    def compute_SetFile(old_compute_SetFile):
-        if old_compute_SetFile != None:
-            return old_compute_SetFile
-        def call_SetFile(self, file_obj):
-            self.vtkInstance.SetFileName(file_obj.name)
-        return call_SetFile    
-
     def compute_SetTransferFunction(old_compute):
         # This sets the transfer function
         if old_compute != None:
@@ -750,10 +746,22 @@ def class_dict(base_module, node):
             self.vtkInstance.Write()
             self.setResult('file', o)
         return compute
-        
+
+    for var in dir(node.klass):
+        # Everyone that has a Set.*FileName should have a Set.*File port too
+        if set_file_name_pattern.match(var):
+            def get_compute_SetFile(method_name):
+                def compute_SetFile(old_compute):
+                    if old_compute != None:
+                        return old_compute
+                    def call_SetFile(self, file_obj):
+                        getattr(self.vtkInstance, method_name)(file_obj.name)
+                    return call_SetFile
+                return compute_SetFile
+            update_dict('_special_input_function_' + var[:-4], 
+                        get_compute_SetFile(var))
+
     if hasattr(node.klass, 'SetFileName'):
-        # Everyone that has a SetFileName should have a SetFile port too
-        update_dict('_special_input_function_SetFile', compute_SetFile)
         # ... BUT we only want to check existence of filenames on
         # readers. VTK is nice enough to be consistent with names, but
         # this is brittle..

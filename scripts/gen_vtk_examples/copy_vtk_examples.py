@@ -20,12 +20,12 @@
 ##
 ############################################################################
 
-if __name__ == '__main__':
-    import sys
-    import os
-    import re
-    from convert_to_vt import ConvertVTKToVT
+import sys
+import os
+import re
+from convert_to_vt import ConvertVTKToVT
 
+def run(in_dir, out_dir):
     def collectFilenames(dir):
         # create the regular expression matcher machines
         fileNameParser = re.compile('.*\.py')
@@ -41,12 +41,9 @@ if __name__ == '__main__':
             elif os.path.isdir(childDirOrFile):
                 result += collectFilenames(childDirOrFile)
         return result
-
-    if len(sys.argv) < 3:
-        print 'Usage: %s <in_directory> <out_directory>' % sys.argv[0]
     
-    all_files = collectFilenames(sys.argv[1])
-    in_base = os.path.basename(sys.argv[1])
+    all_files = collectFilenames(in_dir)
+    in_base = os.path.basename(in_dir)
     for fname in all_files:
         path_before = os.path.dirname(fname)
         path_end = ''
@@ -58,7 +55,7 @@ if __name__ == '__main__':
                     path_end = os.path.join(os.path.basename(path_before), 
                                             path_end)
             path_before = os.path.dirname(path_before)
-        out_dirname = os.path.join(sys.argv[2], path_end)
+        out_dirname = os.path.join(out_dir, path_end)
 
         to_make_dirs = []
         a_dirname = out_dirname
@@ -81,3 +78,9 @@ if __name__ == '__main__':
         print >>sys.stderr, "running 'python %s %s'..." % (out_py_name,
                                                            out_vt_name)
         os.system('python %s %s' % (out_py_name, out_vt_name))
+
+if __name__ == '__main__':
+    if len(sys.argv) < 3:
+        print 'Usage: %s <in_directory> <out_directory>' % sys.argv[0]
+        sys.exit(-1)
+    run(*sys.argv[1:])
