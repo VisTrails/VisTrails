@@ -61,7 +61,6 @@ class Vistrail(DBVistrail):
 
         self.changed = False
         self.currentVersion = -1
-        self.expand=[] #to expand selections in versiontree
         self.currentGraph=None
         # self.prunedVersions = set()
         self.savedQueries = []
@@ -103,7 +102,6 @@ class Vistrail(DBVistrail):
 	_vistrail.__class__ = Vistrail
         _vistrail.changed = False
         _vistrail.currentVersion = -1
-        _vistrail.expand=[] #to expand selections in versiontree
         _vistrail.currentGraph=None
         # _vistrail.prunedVersions = set()
         _vistrail.savedQueries = []
@@ -798,47 +796,6 @@ class Vistrail(DBVistrail):
                 complete.delete_vertex(current)
         return complete
 
-    def getSemiTerseGraph(self):
-        """ getSemiTerseGraph() -> Graph 
-        Uses the data in self.expand to expand a localized part of the graph
-        self.expand has tuples to be expanded. (list of tuples)
-
-        """
-
-        fullgraph=self.getVersionGraph()
-        result=self.getCurrentGraph()
-
-        highest=lowest=0
-
-        if len(self.expand):
-            lowest=0
-            highest=self.expand[0][0]
-
-        while len(self.expand):
-            (v1,v2)=self.expand.pop()
-            bottom=max(v1,v2)
-            top=min(v1,v2)
-            lowest=max(lowest,bottom)
-            highest=min(highest,top)
-            V = result.vertices
-            #check to see if the edge is there, since the graph may be refined
-            if V.has_key(top) and V.has_key(bottom):
-                if ( (bottom,-1) in result.edges_from(top) and 
-                     (top,-1) in result.edges_to(bottom) ):
-                    result.delete_edge(top,bottom,-1)
-            while bottom>top:
-                p=fullgraph.parent(bottom)
-                result.add_vertex(p)
-                result.add_edge(p,bottom,0) #0 means not annotated
-                bottom=p
-         #on a refined expansion, this is necessary
-        if ( (lowest,-1) in result.edges_from(highest) and 
-             (highest,-1) in result.edges_to(lowest) ):
-            result.delete_edge(highest,lowest,-1)
-            
-        self.expand=[]
-        return result
-
     def getCurrentGraph(self):
         """getCurrentGraph() -> Graph
         returns the current version graph. if there is not one, returns the
@@ -867,10 +824,6 @@ class Vistrail(DBVistrail):
 
     def serialize(self, filename):
         pass
-
-    def setExp(self, exp):
-        """setExp(exp) -> None - Set current list of nodes to be expanded"""
-        self.expand=exp
 
     def pruneVersion(self, version):
         """ pruneVersion(version: int) -> None
