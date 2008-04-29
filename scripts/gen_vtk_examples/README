@@ -1,0 +1,61 @@
+David Koop
+04/28/2008
+
+These scripts are used to generate VisTrails versions of the vtk
+example python scripts.  The general idea is that because most of the
+scripts use qualified vtk calls, we can hijack the "import vtk" call
+and import a vtk class that generates a trace of the pipeline calls.
+From this trace, we can reconstruct a pipeline based on
+function/argument pairs.  In addition, we use a set of specialized
+functions to:
+
+  - translate calls to "existing" objects like GetActiveCamera(),
+    GetProperty() to use constructed objects instead
+
+  - translate linked "Get" calls (ie
+    "GetPointData().GetScalars().GetRange()") to use inspectors (part
+    of the VisTrails vtk package).
+
+  - translate other specialized functions calls like observers to work
+    with the VisTrails vtk package
+
+We will use three different directories:
+
+modified_scripts_dir: directory that stores vtk examples with
+  manual modifications to allow better translation.
+old_out_dir: scratch directory where we attempt to translate all scripts
+new_out_dir: final directory where initial modified python script and
+  the translated vt file are stored.
+
+Note that the modified_scripts_dir assumes the standard vtk structure
+(ie "DataManipulation/Python/Arrays.py") while the other dirs omit the
+Python subdir (ie "DataManipulation/Arrays.py").
+
+Currently, these scripts work as a 3-step process:
+
+(1) Modify existing vtk python scripts to allow process to work
+correctly (ie use PythonCalc to do arithmetic computations).
+
+(2) Run
+
+  python copy_vtk_examples.py <modified_scripts_dir> <old_out_dir>
+
+This script will call "convert_to_vt.py" to swap some of the inputs
+and call the translator code at the end of the script and copy this
+file to the output directory.  Then, it will run the python script.
+Because we use a class ("vtk_imposter.py") to intercept all vtk calls,
+we end up with a trace of the script.  We then invoke "vtk_to_vt.py"
+which translates this class into a pipeline.
+
+(3) Run
+
+  python get_vtk_examples.py examples_list.txt <old_out_dir> <modified_scripts_dir> <new_out_dir>
+
+This script copies over the modified python script (not the converted
+script) and the new vistrail to a final output directory.  It uses the
+examples_list.txt to determine which scripts it ought to copy ('Y'
+indicates a successsful translation, 'N' indicates an unsuccessful
+translation).  This example list is updated **manually**.
+
+Note that "check_diffs.py" can be used to check the differences
+between the original and modified Python scripts.

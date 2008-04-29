@@ -590,6 +590,11 @@ def addPorts(module):
     elif klass==vtk.vtkVolumeProperty:
         add_input_port(module, 'SetTransferFunction',
                        typeMap('TransferFunction'))
+    elif klass==vtk.vtkDataSet:
+        add_input_port(module, 'SetPointData', typeMap('vtkPointData'))
+        add_input_port(module, 'SetCallData', typeMap('vtkCellData'))
+    elif klass==vtk.vtkCell:
+        add_input_port(module, 'SetPointIds', typeMap('vtkIdList'))
 
 def setAllPorts(treeNode):
     """ setAllPorts(treeNode: TreeNode) -> None
@@ -630,7 +635,8 @@ def class_dict(base_module, node):
             # Skips the check if it's a vtkImageReader or vtkPLOT3DReader, because
             # it has other ways of specifying files, like SetFilePrefix for
             # multiple files
-            if any([vtk.vtkImageReader,
+            if any([vtk.vtkBYUReader,
+                    vtk.vtkImageReader,
                     vtk.vtkPLOT3DReader,
                     vtk.vtkDICOMImageReader],
                    lambda x: issubclass(self.vtkClass, x)):
@@ -705,6 +711,29 @@ def class_dict(base_module, node):
             tf.set_on_vtk_volume_property(self.vtkInstance)
         return call_SetTransferFunction
 
+    def compute_SetPointData(old_compute):
+        if old_compute != None:
+            return old_compute
+        def call_SetPointData(self, pd):
+            self.vtkInstance.GetPointData().ShallowCopy(pd)
+        return call_SetPointData
+
+    def compute_SetCellData(old_compute):
+        if old_compute != None:
+            return old_compute
+        def call_SetCellData(self, cd):
+            self.vtkInstance.GetCellData().ShallowCopy(cd)
+        return call_SetCellData            
+
+    def compute_SetPointIds(old_compute):
+        if old_compute != None:
+            return old_compute
+        def call_SetPointIds(self, point_ids):
+            self.vtkInstance.GetPointIds().SetNumberOfIds(point_ids.GetNumberOfIds())
+            for i in xrange(point_ids.GetNumberOfIds()):
+                self.vtkInstance.GetPointIds().SetId(i, point_ids.GetId(i))
+        return call_SetPointIds
+
     def guarded_Writer_wrap_compute(old_compute):
         # The behavior for vtkWriter subclasses is to call Write()
         # If the user sets a name, we will create a file with that name
@@ -759,7 +788,14 @@ def class_dict(base_module, node):
     if issubclass(node.klass, vtk.vtkVolumeProperty):
         update_dict('_special_input_function_SetTransferFunction',
                     compute_SetTransferFunction)
-
+    if issubclass(node.klass, vtk.vtkDataSet):
+        update_dict('_special_input_function_SetPointData',
+                    compute_SetPointData)
+        update_dict('_special_input_function_SetCellData',
+                    compute_SetCellData)
+    if issubclass(node.klass, vtk.vtkCell):
+        update_dict('_special_input_function_SetPointIds',
+                    compute_SetPointIds)
     return class_dict_
 
 def createModule(baseModule, node):

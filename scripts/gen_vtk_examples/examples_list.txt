@@ -1,0 +1,83 @@
+Annotation/DispAllFonts.py N vtkTkRenderWindowInteractor
+Annotation/TestText.py YC 
+Annotation/TestTextOldWay.py N python fails vtkTextMapper error (may work)
+Annotation/annotatePick.py N connections and parameters for Pick
+Annotation/cubeAxes.py Y
+Annotation/labeledMesh.py N cycles (vtkSelectVisiblePoints)
+Annotation/multiLineText.py N ShallowCopy and vtkTextMapper error
+Annotation/textOrigin.py YC
+Annotation/xyPlot.py Y
+DataManipulation/Arrays.py Y
+DataManipulation/BuildUGrid.py YC
+DataManipulation/CreateStrip.py Y
+DataManipulation/FinancialField.py N GetRange()[1] vtkProgrammable*
+DataManipulation/marching.py YC
+DataManipulation/pointToCellData.py YC
+GUI/BoxWidget.py N vtkPlanes -- probably can change to make vtkClipPolyData an input to the vtkInteractionHandler
+GUI/CustomInteraction.py N Observers aren't being added
+GUI/ImagePlaneWidget.py N GetWholeExtent assignment to tuple, others
+GUI/ImageTracerWidget.py N scalar range list index, others
+GUI/ImplicitPlaneWidget.py Y
+GUI/OrthogonalPlanesWithTkPhoto.py N non qualified vtk modules
+GUI/ProbeWithPointWidget.py YM multiplication between function and float
+GUI/ProbingWithPlaneWidget.py Y
+GUI/SphereWidget.py N GetElevationBounds()[0]
+GUI/StreamlinesWithLineWidget.py Y a little buggy on updates
+GUI/TransformWithBoxWidget.py Y
+GUI/VolumeRenderWithBoxWidget.py Y
+IO/flamingo.py YC also background color wrong...
+IO/stl.py YC
+ImageProcessing/Contours2D.py YC
+ImageProcessing/ImageInteractor.py N polyDataMapper error + interactor
+Medical/Medical1.py YC
+Medical/Medical2.py YC
+Medical/Medical3.py YC
+Modelling/DelMesh.py N vtkMath.Random()
+Modelling/Delaunay3D.py N vtkMath.Random()
+Modelling/PerlinTerrain.py YC
+Modelling/SpherePuzzle.py N vtkTkRenderWindowInteractor
+Modelling/constrainedDelaunay.py YC
+Modelling/expCos.py N vtkProgrammableFilter
+Modelling/faultLines.py Y
+Modelling/hello.py YC
+Modelling/iceCream.py YC
+Modelling/procrustesAlignment.py N SetInputConnection(int, object)
+Modelling/reconstructSurface.py N SetExecuteMethod
+ParallelProcessing/MPI/ParallelCone.py N non-qualified vtk modules
+Rendering/CADPart.py YC
+Rendering/CSpline.py N vtkMath.Random()
+Rendering/Cylinder.py YC
+Rendering/FilterCADPart.py YC
+Rendering/RenderLargeImage.py N png image header corrputed
+Rendering/TPlane.py YC
+Rendering/assembly.py Y 
+Rendering/rainbow.py Y
+Tutorial/Step1/Cone.py YC
+Tutorial/Step2/Cone2.py YM no observer to do print, removed azimuth loop
+Tutorial/Step3/Cone3.py YMC removed azimuth loop
+Tutorial/Step4/Cone4.py YM removed azimuth loop, extra SetColor
+Tutorial/Step5/Cone5.py Y
+Tutorial/Step6/Cone6.py YM BoxWidget callback and On call
+VisualizationAlgorithms/BandContourTerrain.py Y extra vtkLookupTable
+VisualizationAlgorithms/ClipCow.py YC
+VisualizationAlgorithms/ColorIsosurface.py Y
+VisualizationAlgorithms/CutCombustor.py Y fix SetScalarRange call
+VisualizationAlgorithms/DepthSort.py N Circular vtkActor-vtkDepthSortPolyData
+VisualizationAlgorithms/ExtractGeometry.py Y
+VisualizationAlgorithms/ExtractUGrid.py Y 
+VisualizationAlgorithms/GenerateTextureCoords.py Y
+VisualizationAlgorithms/SubsampleGrid.py Y
+VisualizationAlgorithms/TextureThreshold.py Y
+VisualizationAlgorithms/VisQuad.py Y
+VisualizationAlgorithms/deciFran.py P script isn't written correctly!
+VisualizationAlgorithms/imageWarp.py Y
+VisualizationAlgorithms/officeTube.py Y
+VisualizationAlgorithms/officeTubes.py Y
+VisualizationAlgorithms/probeComb.py Y
+VisualizationAlgorithms/smoothFran.py Y
+VisualizationAlgorithms/spikeF.py Y
+VisualizationAlgorithms/streamSurface.py Y
+VisualizationAlgorithms/warpComb.py Y
+VolumeRendering/PseudoVolumeRendering.py Y
+VolumeRendering/SimpleRayCast.py Y
+VolumeRendering/SimpleTextureMap2D.py Y
