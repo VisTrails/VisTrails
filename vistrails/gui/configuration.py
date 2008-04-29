@@ -52,8 +52,7 @@ class QConfigurationTreeWidgetItem(QtGui.QTreeWidgetItem):
             lst << '' << ''
             QtGui.QTreeWidgetItem.__init__(self, parent, lst)
             self.setFlags(self.flags() & ~(QtCore.Qt.ItemIsDragEnabled |
-                                           QtCore.Qt.ItemIsSelectable |
-                                           QtCore.Qt.ItemIsEnabled))
+                                           QtCore.Qt.ItemIsSelectable ))
         elif t == tuple and obj[0] is None and type(obj[1]) == type:
             self._obj_type = obj[1]
             lst << '' << obj[1].__name__
@@ -134,7 +133,7 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
 
     def __init__(self, parent, configuration_object):
         QSearchTreeWidget.__init__(self, parent)
-        self.setMatchedFlags(QtCore.Qt.ItemIsEnabled)
+        self.setMatchedFlags(QtCore.Qt.ItemIsEditable)
         self.setColumnCount(3)
         lst = QtCore.QStringList()
         lst << 'Name'

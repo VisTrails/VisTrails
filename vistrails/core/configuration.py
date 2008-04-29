@@ -104,14 +104,21 @@ class ConfigurationObject(InstanceObject):
         
         return self.has(key) and getattr(self, key)
 
-    def keys(self):
-        """keys() -> list of strings
+    def allkeys(self):
+        """allkeys() -> list of strings
 
         Returns all options stored in this object.
         """
         
         return self.__dict__.keys()
 
+    def keys(self):
+        """keys(self) -> list of strings
+        Returns all public options stored in this object.
+        Public options are keys that do not start with a _
+        """
+        return [k for k in self.__dict__.keys() if not k.startswith('_')]
+    
     def write_to_dom(self, dom, element):
         conf_element = dom.createElement('configuration')
         element.appendChild(conf_element)

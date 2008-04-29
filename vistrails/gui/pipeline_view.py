@@ -652,8 +652,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         Create the shape, initialize its pen and brush accordingly
         
         """
-        self.paddedRect = QtCore.QRectF()
         QtGui.QGraphicsItem.__init__(self, parent, scene)
+        self.paddedRect = QtCore.QRectF()
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable |
                       QtGui.QGraphicsItem.ItemIsMovable)
         self.setZValue(0)
@@ -716,7 +716,11 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         Returns the bounding box of the module
         
         """
-        return self.paddedRect.adjusted(-2, -2, 2, 2)
+        try:
+            r = self.paddedRect.adjusted(-2, -2, 2, 2)
+        except:
+            r = QtCore.QRectF()
+        return r
 
     def setGhosted(self, ghosted):
         """ setGhosted(ghosted: True) -> None
