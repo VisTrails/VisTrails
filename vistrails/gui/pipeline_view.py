@@ -307,6 +307,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         menu.addAction(self.configureAct)
         menu.addAction(self.annotateAct)
         menu.addAction(self.viewDocumentationAct)
+        menu.addAction(self.changeModuleLabelAct)
         menu.exec_(event.screenPos())
 
     def createActions(self):
@@ -329,6 +330,11 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.viewDocumentationAct,
                                QtCore.SIGNAL("triggered()"),
                                self.viewDocumentation)
+        self.changeModuleLabelAct = QtGui.QAction("Set Module Label...", self.scene())
+        self.changeModuleLabelAct.setStatusTip("Set or remove module label")
+        QtCore.QObject.connect(self.changeModuleLabelAct,
+                               QtCore.SIGNAL("triggered()"),
+                               self.changeModuleLabel)
 
     def configure(self):
         """ configure() -> None
@@ -350,6 +356,13 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         """
         assert self.moduleId >= 0
         self.scene().open_documentation_window(self.moduleId)
+
+    def changeModuleLabel(self):
+        """ changeModuleLabel() -> None
+        Show the module label configuration widget
+        """
+        if self.moduleId>=0:
+            self.scene().open_module_label_window(self.moduleId)
         
         
                                                
@@ -796,12 +809,11 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.id = module.id
         self.setZValue(float(self.id))
         self.module = module
-        # self.label = module.name
-        self.label = module.label
         if module.has_annotation_with_key('__desc__'):
-            self.description = \
-                module.get_annotation_by_key('__desc__').value.strip()
+            self.label = module.get_annotation_by_key('__desc__').value.strip()
+            self.description = module.label
         else:
+            self.label = module.label
             self.description = ''
         self.setToolTip(self.description)
         self.computeBoundingRect()
@@ -825,7 +837,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             else:
                 self.optionalInputPorts.append(p)
         inputPorts += visibleOptionalPorts
-        
+
         visibleOptionalPorts = []
         outputPorts = []
         self.optionalOutputPorts = []
@@ -1274,6 +1286,17 @@ mutual connections."""
                                
         if selected:
             self.modules[m_id].setSelected(True)
+
+    def moduleTextHasChanged(self, m1, m2):
+        if m1.tag != m2.tag:
+            return True
+        if m1.has_annotation_with_key('__desc__')!=m2.has_annotation_with_key('__desc__'):
+            return True        
+        if (m1.has_annotation_with_key('__desc__') and
+            m1.get_annotation_by_key('__desc__').value.strip()!=
+            m2.get_annotation_by_key('__desc__').value.strip()):
+            return True            
+        return False
         
     def setupScene(self, pipeline):
         """ setupScene(pipeline: Pipeline) -> None
@@ -1308,6 +1331,9 @@ mutual connections."""
                     pipeline.modules[m_id].center):
                     self.recreate_module(pipeline, m_id)
                     moved.add(m_id)
+                elif self.moduleTextHasChanged(self.modules[m_id].module,
+                                               pipeline.modules[m_id]):
+                    self.recreate_module(pipeline, m_id)                    
                 self.modules[m_id].module = pipeline.modules[m_id]
                 m = self.modules[m_id]
                 if m._moved:
@@ -1676,6 +1702,29 @@ mutual connections."""
             widget = QModuleAnnotation(module, self.controller, None)
             widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
             widget.exec_()
+
+    def open_module_label_window(self, id):
+        """ open_module_label_window(int) -> None
+        Opens the modal module label window for setting module label
+        """
+        if self.controller:
+            module = self.controller.currentPipeline.modules[id]
+            if module.has_annotation_with_key('__desc__'):
+                currentLabel = module.get_annotation_by_key('__desc__').value.strip()
+            else:
+                currentLabel = ''
+            (text, ok) = QtGui.QInputDialog.getText(None, 'Set Module Label',
+                                                    'Enter the module label',
+                                                    QtGui.QLineEdit.Normal,
+                                                    currentLabel)
+            if ok:
+                if text.isEmpty():
+                    if module.has_annotation_with_key('__desc__'):
+                        self.controller.deleteAnnotation('__desc__', id)
+                        self.recreate_module(self.controller.currentPipeline, id)
+                else:
+                    self.controller.addAnnotation(('__desc__', str(text)), id)
+                    self.recreate_module(self.controller.currentPipeline, id)
 
     ##########################################################################
     # Execution reporting API

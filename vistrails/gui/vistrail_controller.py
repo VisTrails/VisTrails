@@ -385,9 +385,9 @@ class VistrailController(QtCore.QObject):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
         module = self.currentPipeline.get_module_by_id(module_id)
-        annotation = module.get_annotation_with_key(key)
+        annotation = module.get_annotation_by_key(key)
         action = core.db.action.create_action([('delete', annotation,
-                                                    module.vtType, module.id)])
+                                                module.vtType, module.id)])
         self.vistrail.add_action(action, self.currentVersion)
         return self.perform_action(action)
 
