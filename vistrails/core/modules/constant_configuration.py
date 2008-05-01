@@ -122,7 +122,7 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
 
     def focusOutEvent(self, event):
         self.update_parent()
-        QtGui.QWidget.focusOutEvent(self, event)
+        QtGui.QLineEdit.focusOutEvent(self, event)
 
 ###############################################################################
 # File Constant Widgets
