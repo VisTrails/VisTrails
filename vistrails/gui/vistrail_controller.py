@@ -655,6 +655,82 @@ class VistrailController(QtCore.QObject):
         reference
         
         """
+        # get full version tree (including pruned nodes)
+        # this tree is kept updated all the time. This
+        # data is read only and should not be updated!
+        fullVersionTree = self.vistrail.tree.getVersionTree()
+
+        # create tersed tree
+        x = [(0,None)]
+        from core.data_structures.graph import Graph
+        tersedVersionTree = Graph()
+        while len(x):
+            (current,parent)=x.pop()
+
+            # print "processing %d"  % (current)
+            
+            # is root
+            isRoot = (current == 0)
+
+            # mount childs list
+            childs = []
+            for (to,froom) in fullVersionTree.edges_from(current):
+
+                # if it is not a pruned child add it 
+                # to be childs list
+                if self.vistrail.actionMap.has_key(to) and not self.vistrail.actionMap[to].prune:
+                    # print "add child %5d -> %5d" % (current, to)
+                    childs.append(to)
+
+            # some properties of the current node
+            hasTag = not isRoot and self.vistrail.tagMap.has_key(current)
+            oneChild = len(childs) == 1
+            isCurrentVersion = (current == self.currentVersion)
+            
+            # include this node in the tersed tree?
+            include = False
+            if self.fullTree:
+                include = True
+            elif isRoot:
+                include = True
+            elif hasTag:
+                include = True
+            elif not oneChild:
+                include = True # include leaves and branch nodes
+            elif isCurrentVersion:
+                include = True
+
+            if include:
+                # yes it will!
+
+                # add vertex...
+                tersedVersionTree.add_vertex(current)
+                
+                # ...and the parent
+                if parent != None:
+                    tersedVersionTree.add_edge(parent,current,0)
+
+            # update the parent info that will 
+            # be used by the childs of this node
+            parentToChilds = parent
+            if include:
+                parentToChilds = current
+
+            # add childs to the processing list
+            for i in xrange(len(childs)-1,-1,-1): #child in childs:
+                child = childs[i]
+                x.append((child,parentToChilds))
+
+        return (tersedVersionTree, self.vistrail.tree.getVersionTree())
+
+    # FIXME: remove this function (left here only for transition)
+    def refineGraphOld(self):
+        """ refineGraph(controller: VistrailController) -> (Graph, Graph)        
+        Refine the graph of the current vistrail based the search
+        status of the controller. It also return the full graph as a
+        reference
+        
+        """
         if self.fullTree:
             terse = copy.copy(self.vistrail.getVersionGraph())
         else:
@@ -693,6 +769,8 @@ class VistrailController(QtCore.QObject):
         self.vistrail.setCurrentGraph(terse)
         return self.ensureCurrentVersion(terse, full)
 
+
+    # FIXME: remove this function (left here only for transition)
     def ensureCurrentVersion(self, terse, full):
         """ ensureCurrentVersion(terse: Graph, full: Graph) -> (terse, full)
         Make sure the current version is in the terse graph

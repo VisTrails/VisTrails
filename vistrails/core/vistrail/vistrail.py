@@ -66,6 +66,10 @@ class Vistrail(DBVistrail):
         self.savedQueries = []
         self.locator = None
 
+        # object to keep explicit expanded 
+        # version tree always updated
+        self.tree = ExplicitExpandedVersionTree(self)
+
     def _get_id(self):
         return self.db_id
     def _set_id(self, id):
@@ -113,6 +117,15 @@ class Vistrail(DBVistrail):
         for abstraction in _vistrail.abstractions:
             Abstraction.convert(abstraction)
 	_vistrail.changed = False
+
+        # brute force creation of Vistrail object
+        # needs a "tree" field also!
+        _vistrail.tree = ExplicitExpandedVersionTree(_vistrail)
+
+        # add all versions to the trees
+	for action in _vistrail.actions:
+	    _vistrail.tree.addVersion(action.id, action.prevId)
+
 
     def getVersionName(self, version):
         """ getVersionName(version) -> str 
@@ -672,6 +685,9 @@ class Vistrail(DBVistrail):
         self.db_add_action(action)
         self.changed = True
 
+        # signal to update explicit tree
+        self.tree.addVersion(action.id, action.prevId)
+
     def hasTag(self, tag):
         """ hasTag(tag) -> boolean 
         Returns True if a tag with given name or number exists
@@ -747,6 +763,7 @@ class Vistrail(DBVistrail):
             return True
         return False
         
+    # FIXME: remove this function (left here only for transition)
     def getVersionGraph(self):
         """getVersionGraph() -> Graph 
         Returns the version graph
@@ -770,6 +787,10 @@ class Vistrail(DBVistrail):
                                0)
         return result
 
+    # FIXME: remove this function (left here only for transition)
+    # the idea of terse graph does not need 
+    # to be so intrinsic to be in the Vistrail 
+    # class. It can be treated in a higher layer.
     def getTerseGraph(self):
         """ getTerseGraph() -> Graph 
         Returns the version graph skiping the non-tagged internal nodes. 
@@ -1094,6 +1115,27 @@ class TestVistrail(unittest.TestCase):
 #         version = v.get_version_number('WindowedSync (lambda-mu) Error')
 #         sub = p.graph.subgraph([43, 45])
 #         v.create_abstraction(version, sub, "FOOBAR")
+
+
+class ExplicitExpandedVersionTree:
+    """
+    Keep explicit expanded and tersed version 
+    trees.
+    """
+    def __init__(self, vistrail):
+        self.vistrail = vistrail
+        self.expandedVersionTree = Graph()
+        self.expandedVersionTree.add_vertex(0)
+        self.tersedVersionTree = Graph()
+
+    def addVersion(self, id, prevId):
+        # print "add version %d child of %d" % (id, prevId)
+        self.expandedVersionTree.add_vertex(id)
+        self.expandedVersionTree.add_edge(prevId,id,0)
+    
+    def getVersionTree(self):
+        return self.expandedVersionTree
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -66,6 +66,12 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
         self.startVersion = -1
         self.endVersion = -1
         self.ghosted = False
+        
+        # save centers
+        self.c1 = None
+        self.c2 = None
+        self.compact = None
+
 
     def setGhosted(self, ghosted):
         """ setGhosted(ghosted: True) -> None
@@ -87,6 +93,20 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
         self.endVersion = max(v1.id, v2.id)
         c1 = v1.sceneBoundingRect().center()
         c2 = v2.sceneBoundingRect().center()
+
+        # check if it is the same geometry 
+        # improves performance on updates
+        if self.c1 != None and self.c2 != None and self.compact != None:
+            isTheSame = self.c1 == c1 and \
+                self.c2 == c2 and \
+                self.compact == compact
+            if isTheSame:
+                return
+        
+        # update current state
+        self.c1 = c1
+        self.c2 = c2
+        self.compact = compact
 
         # Compute the line of the link and its normal line throught
         # the midpoint
@@ -241,13 +261,20 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             newHsv = (h, s*sat, v+(1.0-v)*(1-sat), a)
             self.versionBrush = QtGui.QBrush(QtGui.QColor.fromHsvF(*newHsv))
 
-    def setupVersion(self, node, label):
+    def setupVersion(self, id, label, rect):
         """ setupPort(node: DotNode, label: str) -> None
         Update the version dimensions and id
         
         """
-        self.id = node.id
-        self.label = label
+        self.id = id
+        if self.label != label:
+            self.label = label
+        if self.rect() != rect:
+            self.setRect(rect)
+
+
+#         self.label = label
+#         self.rect()
 #
 #       #what was this hacking??? the coordinates inside
 #       #the input "node" should come to this point ready. This is
@@ -257,11 +284,10 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
 #                                   -node.p.y/2,
 #                                   node.width,
 #                                   node.height))
-        self.setRect(QtCore.QRectF(node.p.x-node.width/2.0,
-                                   node.p.y-node.height/2.0,
-                                   node.width,
-                                   node.height))
-
+#         self.setRect(QtCore.QRectF(node.p.x-node.width/2.0,
+#                                    node.p.y-node.height/2.0,
+#                                    node.width,
+#                                    node.height))
 
     def boundingRect(self):
         """ boundingRect() -> QRectF
@@ -444,10 +470,10 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         Captures context menu event.
 
         """
-        menu = QtGui.QMenu()
         #menu.addAction(self.addToBookmarksAct)
         controller = self.scene().controller
         if len(controller.analogy) > 0:
+            menu = QtGui.QMenu()
             analogies = QtGui.QMenu("Perform analogy...")
             for title in sorted(controller.analogy.keys()):
                 act = QtGui.QAction(title, self.scene())
@@ -456,7 +482,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
                                        QtCore.SIGNAL("triggered()"),
                                        self.perform_analogy)
             menu.addMenu(analogies)
-        menu.exec_(event.screenPos())
+            menu.exec_(event.screenPos())
 
     def createActions(self):
         """ createActions() -> None
@@ -507,7 +533,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         QInteractiveGraphicsScene.__init__(self, parent)
         self.setBackgroundBrush(CurrentTheme.VERSION_TREE_BACKGROUND_BRUSH)
         self.setSceneRect(QtCore.QRectF(-5000, -5000, 10000, 10000))
-        self.versions = {}
+        self.versions = {}  # id -> version gui object
+        self.edges = {}     # (sourceVersion, targetVersion) -> edge gui object
         self.controller = None
         self.fullGraph = None
 
@@ -517,21 +544,42 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         
         """
         versionShape = QGraphicsVersionItem(None)
-        versionShape.setupVersion(node, label)
+        rect = QtCore.QRectF(node.p.x-node.width/2.0,
+                      node.p.y-node.height/2.0,
+                      node.width,
+                      node.height)
+        versionShape.setupVersion(node.id, label, rect)
         self.addItem(versionShape)
         self.versions[node.id] = versionShape
 
-    def addLink(self, v1, v2):
+    def removeVersion(self, v):
+        """ addLink(v: integer) -> None
+        Remove version from scene and mapping
+        
+        """
+        versionShape = self.versions[v]
+        self.removeItem(versionShape)
+        self.versions.pop(v)
+
+    def addLink(self, guiSource, guiTarget, compact):
         """ addLink(v1, v2: QGraphicsVersionItem) -> None
         Add a link to the scene
         
         """
         linkShape = QGraphicsLinkItem()
-        linkShape.setupLink(v1, v2,
-                            (self.fullGraph.parent(v1.id)==v2.id or
-                             self.fullGraph.parent(v2.id)==v1.id))
+        linkShape.setupLink(guiSource, guiTarget, compact)
         self.addItem(linkShape)
+        self.edges[(guiSource.id, guiTarget.id)] = linkShape
         
+    def removeLink(self, source, target):
+        """ removeLink(v1, v2: integers) -> None
+        Remove link from scene and mapping
+        
+        """
+        linkShape = self.edges[(source,target)]
+        self.removeItem(linkShape)
+        self.edges.pop((source, target))
+
     def clear(self):
         """ clear() -> None
         Clear the whole scene
@@ -571,44 +619,135 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             elif otherNodes.has_key(nodeId):
                 item.setSaturation(False,
                                    float(otherNodes[nodeId]+1)/otherNorm)
-            
+
+    def has_edge(self, graph, frm, to):
+        """ FIXME: this should go to the graph classget_edge(frm, to) -> edge_id
+        Returns the id from the edge from->to."""
+        for (t, e_id) in graph.edges_from(frm):
+            if t == to:
+                return True
+        return False
+
 
     def setupScene(self, controller):
         """ setupScene(vistrail: VistrailController) -> None
         Construct the scene to view a version tree
         
         """
+
+        import time
+        t = time.clock()
+
+        tClearRefine = time.clock()
+
         # Clean the previous scene
-        self.clear()
+        # self.clear()
         
         self.controller = controller
 
         # Call dotty to perform graph layout
-        (graph, self.fullGraph) = controller.refineGraph()
+        (tree, self.fullGraph) = controller.refineGraph()
+
+        tClearRefine = time.clock() - tClearRefine
+
+        # compute nodes that should be removed
+        # O(n  * (hashmap query key time)) on 
+        # where n is the number of current 
+        # nodes in the scene
+        removeNodeSet = set()
+        for id in self.versions.iterkeys():
+            if not tree.vertices.has_key(id):
+                removeNodeSet.add(id)
+
+        # compute edges to be removed
+        # O(n * (hashmap query key time)) 
+        # where n is the number of current 
+        # edges in the scene
+        removeEdgeSet = set()
+        for e in self.edges.iterkeys():
+            (source,target) = e
+            if source in removeNodeSet:
+                removeEdgeSet.add(e)
+            elif target in removeNodeSet:
+                removeEdgeSet.add(e)
+            elif not self.has_edge(tree,source,target):
+                removeEdgeSet.add(e)
+
+        # remove gui edges from scene
+        for (v1, v2) in removeEdgeSet:
+            self.removeLink(v1,v2)
+
+        # remove gui nodes from scene
+        for v in removeNodeSet:
+            self.removeVersion(v)
+
+
+        # layout the tree
+        # remove nodes from the scene
+        tLayout = time.clock()
         #layout = DotLayout()
         layout = VistrailsTreeLayoutLW()
-        layout.layout_from(controller.vistrail, graph)
+        layout.layout_from(controller.vistrail, tree)
+        tLayout = time.clock() - tLayout
 
-        # Put the layout to the graphics view
+        tCreate = time.clock()
+
+        # loop on the nodes of the tree
         for node in layout.nodes.itervalues():
+
+            # version id
+            v = node.id
+
+            # label of version
             label = ''
-            if controller.vistrail.tagMap.has_key(node.id):
-                label = controller.vistrail.tagMap[node.id].name
-            self.addVersion(node, label)
-            if node.id==controller.currentVersion:
-                self.versions[node.id].setSelected(True)
-                
+            if controller.vistrail.tagMap.has_key(v):
+                label = controller.vistrail.tagMap[v].name
+
+            # if the version gui object already exists...
+            if self.versions.has_key(v):
+                versionShape = self.versions[v]
+                rect = QtCore.QRectF(node.p.x-node.width/2.0,
+                                     node.p.y-node.height/2.0,
+                                     node.width,
+                                     node.height)
+                versionShape.setupVersion(node.id, label, rect)
+            else:
+                self.addVersion(node, label)
+
+            # set as selected
+            if v == controller.currentVersion:
+                self.versions[v].setSelected(True)
+            else:
+                self.versions[v].setSelected(False)
+
+        # adjust the colors
         self.adjustVersionColors(controller)
-            
-        # Add version links
-        for nodeId in graph.vertices.keys():
-            eFrom = graph.edges_from(nodeId)
-            for (v1, v2) in eFrom:
-                if self.versions.has_key(nodeId) and self.versions.has_key(v1):
-                    self.addLink(self.versions[nodeId], self.versions[v1])
-            
+
+        # Add or update links
+        for source in tree.vertices.iterkeys():
+            eFrom = tree.edges_from(source)
+            for (target, aux) in eFrom:
+                guiSource = self.versions[source]
+                guiTarget = self.versions[target]
+                if self.edges.has_key((source,target)):
+                    linkShape = self.edges[(source,target)]
+                    linkShape.setupLink(guiSource, guiTarget,
+                       (self.fullGraph.parent(target)==source))
+                else:
+                    #print "add link %d %d" % (source, target)
+                    self.addLink(guiSource, guiTarget, 
+                       (self.fullGraph.parent(target)==source))
+
+        tCreate = time.clock() - tCreate
+
         # Update bounding rects and fit to all view
+        tUpdate = time.clock()
         self.updateSceneBoundingRect()
+        tUpdate = time.clock() - tUpdate
+
+        t = time.clock() - t
+        # print "time in msec to setupScene total: %f  refine %f  layout %f  create %f" % (t, tClearRefine, tLayout, tCreate)
+
 
     def keyPressEvent(self, event):
         """ keyPressEvent(event: QKeyEvent) -> None
