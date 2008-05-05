@@ -633,8 +633,8 @@ creating a class that behaves similarly)."""
         if items:
             self.emit(self.add_package_menu_signal,
                       pkg.identifier,
-                       pkg.name,
-                       items)
+                      pkg.name,
+                      items)
 
     def remove_menu_items(self, pkg):
         """remove_menu_items(pkg: Package) -> None

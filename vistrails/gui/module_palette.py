@@ -34,6 +34,7 @@ from gui.common_widgets import (QSearchTreeWindow,
 from gui.module_documentation import QModuleDocumentation
 from core.modules.module_registry import registry
 from core.system import systemType
+from core.utils import VistrailsInternalError
 from core.packagemanager import get_package_manager
 import weakref
 
@@ -97,9 +98,20 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
                                            QtCore.Qt.MatchWrap |
                                            QtCore.Qt.MatchRecursive)
                  if not x.is_top_level()]
-        assert len(items) == 1
-        item = items[0]
-
+        if descriptor.module_abstract():
+            # skip abstract modules, they're no longer in the tree
+            return
+        if len(items) <> 1:
+            raise VistrailsInternalError("Expected one item (%s), got %d: %s" %
+                                         (moduleName,
+                                          len(items),
+                                          ";".join(x.descriptor.name for x in items)))
+        for item in items:
+            if item.descriptor == descriptor:
+                break
+            item = None
+        if not item:
+            raise VistrailsInternalError("No match for the descriptor")
         parent = item.parent()
         parent.takeChild(parent.indexOfChild(item))
 
@@ -123,6 +135,9 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         A new module has been added to VisTrails
         
         """
+        if descriptor.module_abstract():
+            # skip abstract modules, they're no longer in the tree
+            return
         moduleName = descriptor.name
         identifier = descriptor.identifier
         pm = get_package_manager()
