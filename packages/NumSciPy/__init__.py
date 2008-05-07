@@ -95,7 +95,8 @@ def initialize(*args, **keywords):
 
     #########################################################################################
     #  Array IO registry
-    ioclasses = []
+    ioclasses = [ReadRAW,
+                 ReadNHDR]
     try:
         import pylab
         ioclasses.append(ReadPNG)
