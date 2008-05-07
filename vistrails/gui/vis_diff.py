@@ -520,6 +520,35 @@ class QVisualDiff(QtGui.QMainWindow):
             
         # Then add parameter changed version
         for ((m1id, m2id), matching) in paramChanged:
+            m1 = p1.modules[m1id]
+            m2 = p2.modules[m2id]
+            
+            #this is a hack for modules with a dynamic local registry.
+            #The problem arises when modules have the same name but different
+            #input/output ports. We just make sure that the module we add to
+            # the canvas has the ports from both modules, so we don't have
+            # addconnection errors.
+            if m1.registry:
+                m1ports = m1.port_specs.itervalues()
+                ports = {}
+                for p in m1.port_specs.itervalues():
+                    ports[p.name] = p
+                for port in m2.port_specs.itervalues():
+                    if not ports.has_key(port.name):
+                        m1.add_port_to_registry(port)
+                    else:
+                        if ports[port.name].spec != port.spec:
+                            #if we add this port, we will get port overloading.
+                            #To avoid this, just cast the current port to be of
+                            # Module or Variant type.
+                            new_port = ports[port.name]
+                            m1.delete_port_from_registry(new_port.id)
+                            if new_port.type == 'input':
+                                new_port.spec = "(Module)"
+                            else:
+                                new_port.spec = "(Variant)"
+                            m1.add_port_to_registry(new_port)
+                            
             item = scene.addModule(p1.modules[m1id],
                                    CurrentTheme.VISUAL_DIFF_PARAMETER_CHANGED_BRUSH)
             item.controller = controller

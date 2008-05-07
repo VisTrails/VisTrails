@@ -975,7 +975,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     self.nextInputPortPos[0] += (CurrentTheme.PORT_WIDTH +
                                                  CurrentTheme.MODULE_PORT_SPACE)
                     return portShape.sceneBoundingRect().center()
-            raise VistrailsInternalError("Error: did not find input port")
+            raise VistrailsInternalError("Error: did not find input port %s in %s"%(port,self.label))
         return pos
         
     def getOutputPortPosition(self, port):
@@ -992,7 +992,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                     self.nextOutputPortPos[0] += (CurrentTheme.PORT_WIDTH +
                                                   CurrentTheme.MODULE_PORT_SPACE)
                     return portShape.sceneBoundingRect().center()
-            raise VistrailsInternalError("Error: did not find output port")
+            raise VistrailsInternalError("Error: did not find output port %s in %s"%(port,self.label))
         return pos
 
     def dependingConnectionItems(self):
