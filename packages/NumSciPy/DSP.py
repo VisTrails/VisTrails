@@ -28,7 +28,10 @@ class FFT(DSPModule, Module):
             pts = self.getInputFromPort("Samples")
             
         else:
-            pts = sig_array.get_shape()[1]
+            try:
+                pts = sig_array.get_shape()[1]
+            except:
+                pts = sig_array.get_shape()[0]
 
         sh = sig_array.get_shape()
         if len(sh) < 2:
@@ -108,7 +111,7 @@ class ShortTimeFourierTransform(DSPModule, Module):
             window = self.getInputFromPort("Window")
             win_size = window.get_shape()[0]
         else:
-            win_size = self.getInputFromPort("WindowSize")
+            win_size = self.getInputFromPort("Window Size")
             window = scipy.signal.hamming(win_size)
 
         if self.hasInputFromPort("Stride"):

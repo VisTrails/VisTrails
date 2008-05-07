@@ -243,7 +243,7 @@ class GetTranspose(Module, ArrayAccess):
         a = self.getInputFromPort("Array")
         out = NDArray()
         out.set_array(a.get_transpose())
-        self.setResult("Transpose", a.get_transpose())
+        self.setResult("Transpose", out)
 
     @classmethod
     def register(cls, reg, basic):
@@ -276,7 +276,7 @@ class GetColumnRange(Module, ArrayAccess):
         s = self.getInputFromPort("Start")
         e = self.getInputFromPort("End")
         out = NDArray()
-        out.set_array(a.get_col_range(s, e))
+        out.set_array(a.get_col_range(s, e-1))
         self.setResult("Output Array", out)
 
     @classmethod

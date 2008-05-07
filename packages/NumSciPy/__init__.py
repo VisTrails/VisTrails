@@ -7,12 +7,15 @@ from Array import *
 from ArrayAccess import *
 from ArrayOperations import *
 from ArrayConvert import *
+from ArrayIO import *
+from Imaging import *
 
 # Scipy package imports
 from Matrix import *
 from MatrixUtilities import *
 from DSP import *
 from Filters import *
+from EnsembleOrdering import *
 
 version = '0.1.3'
 name = 'Num-SciPy'
@@ -25,6 +28,7 @@ def initialize(*args, **keywords):
     #########################################################################################
     #  Numpy Registry
     reg.add_module(NDArray, name="Numpy Array", namespace=NDArray.my_namespace)
+    reg.add_output_port(NDArray, "self", (NDArray, 'self'))
     
     #########################################################################################
     #  Array Access registry
@@ -60,6 +64,7 @@ def initialize(*args, **keywords):
                  ArrayCumulativeProduct,
                  ArrayFill,
                  ArrayResize,
+                 ArrayExtractRegion,
                  ArrayRavel,
                  ArrayRound,
                  ArrayGetSigma,
@@ -69,7 +74,8 @@ def initialize(*args, **keywords):
                  ArrayVariance,
                  ArrayTrace,
                  ArraySwapAxes,
-                 ArraySqueeze]
+                 ArraySqueeze,
+                 ArrayScalarMultiply]
 
     for cls in opclasses:
         cls.register(reg, basic)
@@ -78,13 +84,40 @@ def initialize(*args, **keywords):
     #########################################################################################
     #  Array Convert registry
     convertclasses = [ArrayDumpToFile,
-                     ArrayDumpToString,
-                     ArrayToFile,
-                     ArrayToString]
+                      ArrayDumpToString,
+                      ArrayToFile,
+                      ArrayToString,
+                      ArrayToMatrix,
+                      ArrayToVTKImageData]
     
     for cls in convertclasses:
         cls.register(reg, basic)
 
+    #########################################################################################
+    #  Array IO registry
+    ioclasses = []
+    try:
+        import pylab
+        ioclasses.append(ReadPNG)
+    except:
+        pass
+    
+    for cls in ioclasses:
+        cls.register(reg, basic)
+
+    #########################################################################################
+    #  Array Imaging registry
+    imclasses = [ExtractRGBAChannel,
+                 GaussianGradientMagnitude,
+                 JointHistogram,
+                 GaussianSmooth,
+                 MedianFilter,
+                 ImageDifference,
+                 ImageNormalize]
+
+    for cls in imclasses:
+        cls.register(reg, basic)
+        
     #########################################################################################
     #  Scipy Registry
     reg.add_module(Matrix, name="Scipy Matrix", namespace=Matrix.my_namespace)
@@ -98,7 +131,8 @@ def initialize(*args, **keywords):
 
     #########################################################################################
     #  Scipy Matrix Utilities Registry
-    matrixutils = [MatlabReader]
+    matrixutils = [MatlabReader,
+                   MatlabWriter]
 
     for cls in matrixutils:
         cls.register(reg, basic)
@@ -126,7 +160,23 @@ def initialize(*args, **keywords):
                   BoxcarWindow,
                   BohmanWindow,
                   BartlettWindow,
-                  NuttallBlackmanHarrisWindow]
+                  NuttallBlackmanHarrisWindow]    
 
     for cls in winclasses:
         cls.register(reg, basic)
+
+    #########################################################################################
+    #  Scipy Signal Ensembles Registry
+    ensembles = [OrderByIndexes,
+                 OrderByCorrelation]
+
+    for cls in ensembles:
+        cls.register(reg, basic)
+
+def package_dependencies():
+    import core.packagemanager
+    manager = core.packagemanager.get_package_manager()
+    if manager.has_package('edu.utah.sci.vistrails.vtk'):
+        return ['edu.utah.sci.vistrails.vtk']
+    else:
+        return []

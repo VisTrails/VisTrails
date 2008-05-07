@@ -56,7 +56,23 @@ class ArrayCumulativeSum(ArrayOperationModule, Module):
         reg.add_module(cls, namespace=cls.my_namespace)
         reg.add_input_port(cls, "Array", (NDArray, 'Input Array'))
         reg.add_output_port(cls, "Array Output", (NDArray, 'Output Array'))
-    
+
+class ArrayScalarMultiply(ArrayOperationModule, Module):
+    """ Multiply the input array with a given scalar """
+    def compute(self):
+        a = self.getInputFromPort("Array")
+        b = self.getInputFromPort("Scalar")
+        out = NDArray()
+        out.set_array(a.get_array() * b)
+        self.setResult("Array Output", out)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Array", (NDArray, 'Input Array'))
+        reg.add_input_port(cls, "Scalar", (basic.Float, 'Input Scalar'))
+        reg.add_output_port(cls, "Array Output", (NDArray, 'Output Array'))
+
 class ArraySort(ArrayOperationModule, Module):
     def __init__(self):
         Module.__init__(self)
@@ -151,7 +167,8 @@ class ArrayResize(ArrayOperationModule, Module):
 	    newdims.append(self.getInputFromPort(pname))
 
         try:
-            b = a.resize(tuple(newdims))
+            t = tuple(newdims)
+            b = a.resize(t)
             out = NDArray()
             out.set_array(b)
         except:
@@ -163,6 +180,7 @@ class ArrayResize(ArrayOperationModule, Module):
     def register(cls, reg, basic):
         reg.add_module(cls, namespace=cls.my_namespace)
         reg.add_input_port(cls, "Array", (NDArray, 'Input Array'))
+        reg.add_input_port(cls, "Dims", (basic.Integer, 'Output Dimensionality'))
         reg.add_input_port(cls, "dim0", (basic.Integer, 'Dimension Size'))
         reg.add_input_port(cls, "dim1", (basic.Integer, 'Dimension Size'))
         reg.add_input_port(cls, "dim2", (basic.Integer, 'Dimension Size'))
@@ -171,7 +189,45 @@ class ArrayResize(ArrayOperationModule, Module):
         reg.add_input_port(cls, "dim5", (basic.Integer, 'Dimension Size'), True)
         reg.add_input_port(cls, "dim6", (basic.Integer, 'Dimension Size'), True)
         reg.add_input_port(cls, "dim7", (basic.Integer, 'Dimension Size'), True)
+        reg.add_output_port(cls, "Array Output", (NDArray, 'Output Array'))
+
+class ArrayExtractRegion(ArrayOperationModule, Module):
+    """ Extract a region from array as specified by the
+    dimension and starting and ending indices """
+    def compute(self):
+        import operator
+        a = self.getInputFromPort("Array")
+        dims = self.getInputFromPort("Dims")
+        a_dims = len(a.get_shape())
+        if dims > a_dims:
+            raise ModuleError("Output Dimensionality larger than Input Dimensionality")
+
+        slices = []
+        for i in xrange(dims):
+            (start, stop) = self.getInputFromPort("dim"+str(i))
+            slices.append(slice(start, stop))
+
+        ar = operator.__getitem__(a.get_array(), tuple(slices))
+        out = NDArray()
+        out.set_array(ar)
+        self.setResult("Array Output", out)
         
+    @classmethod
+    def register(cls, reg, basic):
+        l = [basic.Integer, basic.Integer]
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Array", (NDArray, 'Input Array'))
+        reg.add_input_port(cls, "Dims", (basic.Integer, 'Output Dimensionality'))
+        reg.add_input_port(cls, "dim0", l, True)
+        reg.add_input_port(cls, "dim1", l, True)
+        reg.add_input_port(cls, "dim2", l, True)
+        reg.add_input_port(cls, "dim3", l, True)
+        reg.add_input_port(cls, "dim4", l, True)
+        reg.add_input_port(cls, "dim5", l, True)
+        reg.add_input_port(cls, "dim6", l, True)
+        reg.add_input_port(cls, "dim7", l, True)
+        reg.add_output_port(cls, "Array Output", (NDArray, 'Output Array'))
+
 class ArrayRavel(ArrayOperationModule, Module):
     """ Get a 1D array containing the elements of the input array"""
     def compute(self):
