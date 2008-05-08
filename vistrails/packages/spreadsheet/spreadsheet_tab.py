@@ -141,6 +141,9 @@ class StandardWidgetSheetTabInterface(object):
     """
     ### Belows are API Wrappers to connect to self.sheet
 
+    def __init(self):
+        self.lastCellLocation = (0, 0)
+
     def isSheetTabWidget(self):
         """ isSheetTabWidget() -> boolean
         Return True if this is a sheet tab widget
@@ -205,6 +208,7 @@ class StandardWidgetSheetTabInterface(object):
         else:
             container = cellWidget
         self.setCellWidget(row, col, container)
+        self.lastCellLocation = (row, col)
 
     def getCellToolBar(self, row, col):
         """ getCellToolBar(row: int, col: int) -> QWidget
@@ -253,7 +257,9 @@ class StandardWidgetSheetTabInterface(object):
                 col = self.sheet.horizontalHeader().logicalIndex(c)
                 if w==None or (type(w)==QCellPresenter and w.cellWidget==None):
                     return (r,c)
-        return (0, 0)
+        (r, c) = self.lastCellLocation
+        index = (colCount * r + c + 1) % (rowCount*colCount)        
+        return (index/colCount, index%colCount)
 
     def setCellByType(self, row, col, cellType, inputPorts):
         """ setCellByType(row: int,
@@ -278,6 +284,7 @@ class StandardWidgetSheetTabInterface(object):
                 oldCell.deleteLater()
         else:
             oldCell.updateContents(inputPorts)
+        self.lastCellLocation = (row, col)
 
     def showHelpers(self, show, globalPos):
         """ showHelpers(show: boolean, globalPos: QPoint) -> None    
