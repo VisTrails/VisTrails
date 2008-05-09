@@ -375,8 +375,7 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
             # moduletree widgets for abstract modules are never
             # draggable or enabled
             flags = flags & ~(QtCore.Qt.ItemIsDragEnabled |
-                              QtCore.Qt.ItemIsSelectable |
-                              QtCore.Qt.ItemIsEnabled)
+                              QtCore.Qt.ItemIsSelectable)
         QtGui.QTreeWidgetItem.setFlags(self, flags)
             
     def is_top_level(self):

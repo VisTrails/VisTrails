@@ -128,7 +128,7 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
                            QtGui.QSizePolicy.Expanding)
         self.setRootIsDecorated(True)
         self.setDragEnabled(True)
-        self.flags = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsDragEnabled
+        self.flags = QtCore.Qt.ItemIsDragEnabled
 
     def searchItemName(self, name):
         """ searchItemName(name: QString) -> None        

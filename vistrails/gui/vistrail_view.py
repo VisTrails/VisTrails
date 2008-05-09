@@ -32,7 +32,7 @@ from gui.query_tab import QQueryTab
 from gui.version_tab import QVersionTab
 from gui.vistrail_controller import VistrailController
 from core.utils import any
-
+from core.system import vistrails_default_file_type
 ################################################################################
 
 class QVistrailView(QDockContainer):
@@ -49,7 +49,7 @@ class QVistrailView(QDockContainer):
         QDockContainer.__init__(self, parent)
         
         # The window title is the name of the vistrail file
-        self.setWindowTitle('Untitled.xml')
+        self.setWindowTitle('untitled%s'%vistrails_default_file_type())
 
         # Create the views
         self.pipelineTab = QPipelineTab()
@@ -242,7 +242,7 @@ class QVistrailView(QDockContainer):
         """
         title = self.controller.name
         if title=='':
-            title = 'Untitled.xml'
+            title = 'untitled%s'%vistrails_default_file_type()
         if self.controller.changed:
             title += '*'
         self.setWindowTitle(title)

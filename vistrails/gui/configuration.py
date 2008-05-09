@@ -66,7 +66,8 @@ class QConfigurationTreeWidgetItem(QtGui.QTreeWidgetItem):
                           QtCore.Qt.ItemIsEditable)
 
     def change_value(self, new_value):
-        setattr(self._parent_obj, self._name, self._obj_type(new_value))
+        if self._parent_obj:
+            setattr(self._parent_obj, self._name, self._obj_type(new_value))
 
     def _get_name(self):
         return self._name
@@ -165,10 +166,11 @@ class QConfigurationTreeWidget(QSearchTreeWidget):
                      self.change_configuration)
 
     def change_configuration(self, item, col):
-        new_value = self.indexFromItem(item, col).data().toString()
-        item.change_value(new_value)
-        self.emit(QtCore.SIGNAL('configuration_changed'),
-                  item, new_value)
+        if item.flags() & QtCore.Qt.ItemIsEditable:
+            new_value = self.indexFromItem(item, col).data().toString()
+            item.change_value(new_value)
+            self.emit(QtCore.SIGNAL('configuration_changed'),
+                      item, new_value)
         
 class QConfigurationTreeWindow(QSearchTreeWindow):
 

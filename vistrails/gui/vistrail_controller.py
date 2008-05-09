@@ -36,6 +36,7 @@ from core.modules.sub_module import InputPort, OutputPort
 from core.vistrail.action import Action
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
+from core.system import vistrails_default_file_type
 from core.vistrail.abstraction import Abstraction
 from core.vistrail.abstraction_module import AbstractionModule
 from core.vistrail.annotation import Annotation
@@ -74,7 +75,7 @@ class VistrailController(QtCore.QObject):
         """
         QtCore.QObject.__init__(self)
         self.name = ''
-        self.fileName = ''
+        self.fileName = None
         self.setFileName(name)
         self.vistrail = vis
         self.log = Log()
@@ -1289,7 +1290,7 @@ class VistrailController(QtCore.QObject):
             self.fileName = fileName
             self.name = os.path.split(fileName)[1]
             if self.name=='':
-                self.name = 'Untitled.xml'
+                self.name = 'untitled%s'%vistrails_default_file_type()
             self.emit(QtCore.SIGNAL('stateChanged'))
 
     def checkAlias(self, name):

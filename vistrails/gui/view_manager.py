@@ -416,7 +416,7 @@ class QViewManager(QtGui.QTabWidget):
             if not quiet and vistrailView.controller.changed:
                 text = vistrailView.controller.name
                 if text=='':
-                    text = 'Untitled.xml'
+                    text = 'Untitled%s'%core.system.vistrails_default_file_type()
                 text = ('Vistrail ' +
                         QtCore.Qt.escape(text) +
                         ' contains unsaved changes.\n Do you want to '
