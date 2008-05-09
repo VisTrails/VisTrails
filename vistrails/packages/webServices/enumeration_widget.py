@@ -39,8 +39,11 @@ class EnumerationWidget(QtGui.QComboBox, ConstantWidgetMixin):
                     parent: QWidget)
         Initializes the line edit with contents
         """
-        dictkey = param._namespace.replace('|Types','') + "." + param._type
-        obj = packages.webServices.modulesDict[dictkey]
+        dictkey = param._namespace
+        typedict = packages.webServices.webServicesmodulesDict[dictkey]
+        w = param._namespace.replace('|Types','')
+        dictkey = w + "." + param._type
+        obj = typedict[dictkey]
         self.enumerationlist = obj.ports[0][0]
         QtGui.QComboBox.__init__(self, parent)
         ConstantWidgetMixin.__init__(self)
