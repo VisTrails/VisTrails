@@ -39,6 +39,8 @@ import weakref
 
 ##############################################################################
 
+# This is used by add_module to make sure the fringe specifications
+# make sense
 def _check_fringe(fringe):
     assert type(fringe) == list
     assert len(fringe) >= 1

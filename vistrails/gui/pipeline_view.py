@@ -826,6 +826,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.moduleBrush = b
 
         # Check to see which ports will be shown on the screen
+        # setupModule is in a hotpath, performance-wise, which is the
+        # reason for the strange .__dict__[] lookup calls - we're
+        # avoiding property calls
         visibleOptionalPorts = []
         inputPorts = []
         self.optionalInputPorts = []
@@ -1305,74 +1308,83 @@ mutual connections."""
         """
         if self.noUpdate: return
         needReset = len(self.items())==0
-        
-        if pipeline:
-            new_modules = set(pipeline.modules)
-            modules_to_be_added = new_modules - self._old_module_ids
-            modules_to_be_deleted = self._old_module_ids - new_modules
-            common_modules = new_modules.intersection(self._old_module_ids)
 
-            # remove old module shapes
-            for m_id in modules_to_be_deleted:
-                self.removeItem(self.modules[m_id])
-                del self.modules[m_id]
+        try:
+            if pipeline:
+                new_modules = set(pipeline.modules)
+                modules_to_be_added = new_modules - self._old_module_ids
+                modules_to_be_deleted = self._old_module_ids - new_modules
+                common_modules = new_modules.intersection(self._old_module_ids)
 
-            selected_modules = []
-            # create new module shapes
-            for m_id in modules_to_be_added:
-                self.addModule(pipeline.modules[m_id])
-                if self.modules[m_id].isSelected:
-                    selected_modules.append(m_id)
+                # remove old module shapes
+                for m_id in modules_to_be_deleted:
+                    self.removeItem(self.modules[m_id])
+                    del self.modules[m_id]
 
-            moved = set()
-            # Update common modules
-            for m_id in common_modules:
-                if (self.modules[m_id].module.center !=
-                    pipeline.modules[m_id].center):
-                    self.recreate_module(pipeline, m_id)
-                    moved.add(m_id)
-                elif self.moduleTextHasChanged(self.modules[m_id].module,
-                                               pipeline.modules[m_id]):
-                    self.recreate_module(pipeline, m_id)                    
-                self.modules[m_id].module = pipeline.modules[m_id]
-                m = self.modules[m_id]
-                if m._moved:
-                    self.recreate_module(pipeline, m_id)
-                    moved.add(m_id)
-                    m._moved = False
-                if self.modules[m_id].isSelected:
-                    selected_modules.append(m_id)
+                selected_modules = []
+                # create new module shapes
+                for m_id in modules_to_be_added:
+                    self.addModule(pipeline.modules[m_id])
+                    if self.modules[m_id].isSelected:
+                        selected_modules.append(m_id)
 
-            new_connections = set(pipeline.connections)
-            connections_to_be_added = new_connections - self._old_connection_ids
-            connections_to_be_deleted = self._old_connection_ids - new_connections
-            common_connections = new_connections.intersection(self._old_connection_ids)
+                moved = set()
+                # Update common modules
+                for m_id in common_modules:
+                    if (self.modules[m_id].module.center !=
+                        pipeline.modules[m_id].center):
+                        self.recreate_module(pipeline, m_id)
+                        moved.add(m_id)
+                    elif self.moduleTextHasChanged(self.modules[m_id].module,
+                                                   pipeline.modules[m_id]):
+                        self.recreate_module(pipeline, m_id)                    
+                    self.modules[m_id].module = pipeline.modules[m_id]
+                    m = self.modules[m_id]
+                    if m._moved:
+                        self.recreate_module(pipeline, m_id)
+                        moved.add(m_id)
+                        m._moved = False
+                    if self.modules[m_id].isSelected:
+                        selected_modules.append(m_id)
 
-            # remove old connection shapes
-            for c_id in connections_to_be_deleted:
-                self.removeItem(self.connections[c_id])
-                del self.connections[c_id]
+                new_connections = set(pipeline.connections)
+                connections_to_be_added = new_connections - self._old_connection_ids
+                connections_to_be_deleted = self._old_connection_ids - new_connections
+                common_connections = new_connections.intersection(self._old_connection_ids)
 
-            # create new connection shapes
-            for c_id in connections_to_be_added:
-                self.addConnection(pipeline.connections[c_id])
+                # remove old connection shapes
+                for c_id in connections_to_be_deleted:
+                    self.removeItem(self.connections[c_id])
+                    del self.connections[c_id]
 
-            # Update common connections
-            for c_id in common_connections:
-                connection = pipeline.connections[c_id]
-                pip_c = self.connections[c_id]
-                pip_c.connectingModules = (self.modules[connection.source.moduleId],
-                                           self.modules[connection.destination.moduleId])
-                (srcModule, dstModule) = pip_c.connectingModules
-                if (srcModule.module.id in moved) or (dstModule.module.id in moved):
-                    srcPoint = srcModule.getOutputPortPosition(connection.source)
-                    dstPoint = dstModule.getInputPortPosition(connection.destination)
-                    pip_c.setupConnection(dstPoint, srcPoint)
+                # create new connection shapes
+                for c_id in connections_to_be_added:
+                    self.addConnection(pipeline.connections[c_id])
 
-            self._old_module_ids = new_modules
-            self._old_connection_ids = new_connections
-            self.unselect_all()
-            self.reset_module_colors()
+                # Update common connections
+                for c_id in common_connections:
+                    connection = pipeline.connections[c_id]
+                    pip_c = self.connections[c_id]
+                    pip_c.connectingModules = (self.modules[connection.source.moduleId],
+                                               self.modules[connection.destination.moduleId])
+                    (srcModule, dstModule) = pip_c.connectingModules
+                    if (srcModule.module.id in moved) or (dstModule.module.id in moved):
+                        srcPoint = srcModule.getOutputPortPosition(connection.source)
+                        dstPoint = dstModule.getInputPortPosition(connection.destination)
+                        pip_c.setupConnection(dstPoint, srcPoint)
+
+                self._old_module_ids = new_modules
+                self._old_connection_ids = new_connections
+                self.unselect_all()
+                self.reset_module_colors()
+        except registry.MissingModulePackage, e:
+            views = self.views()
+            assert len(views) > 0
+            QtGui.QMessageBox.critical(views[0],
+                                       self.tr("Missing package/module"),
+                                       self.tr("Package '%s' is missing (or module '%s' is not present in that package)" % (e._identifier, e._name)))
+            self.clear()
+            self.controller.changeSelectedVersion(0)
 
             
         # Update bounding rects and fit to all view
