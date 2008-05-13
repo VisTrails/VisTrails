@@ -28,6 +28,7 @@ if __name__ == '__main__':
     from PyQt4 import QtGui
     import gui.application
     import sys
+    import os
     try:
         v = gui.application.start_application()
         app = gui.application.VistrailsApplication()
@@ -41,4 +42,4 @@ if __name__ == '__main__':
     if len(QtGui.QApplication.topLevelWidgets()):
         v = app.exec_()
         gui.application.stop_application()
-    sys.exit(v)
+    os._exit(v)
