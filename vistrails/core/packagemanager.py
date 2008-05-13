@@ -118,6 +118,10 @@ class Package(object):
         registry.set_current_package_name(self._get_identifier())
         try:
             self._module.initialize()
+            # Perform auto-initialization
+            if hasattr(self._module, '_modules'):
+                for module in self._module._modules:
+                    registry.auto_add_module(module)
         except Exception, e:
             raise self.InitializationFailed(self, e, traceback.format_exc())
 

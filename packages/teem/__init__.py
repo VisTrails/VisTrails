@@ -3,7 +3,7 @@
 
 import core.modules
 import core.modules.module_registry
-import core.modules.basic_modules
+import core.modules.basic_modules as basic
 from core.modules.vistrails_module import Module, ModuleError, \
      new_module, IncompleteImplementation
 
@@ -19,6 +19,14 @@ version = '0.1'
 name = 'teem'
 
 ###############################################################################
+
+FileType = [(basic.File, '')]
+FloatType = [(basic.Float, '')]
+IntegerType = [(basic.Integer, '')]
+StringType = [(basic.String, '')]
+Vec3Type = [(basic.Float, 'x'),
+            (basic.Float, 'y'),
+            (basic.Float, 'z')]
 
 class Teem(Module):
 
@@ -123,6 +131,12 @@ class Emap(Teem):
         
         self.setResult("output_file", output_file)
 
+    _input_ports = [('right_hand', []),
+                    ('input_file', [(basic.File, 'the lights input file')]),
+                    ('from', Vec3Type),
+                    ('ambient', Vec3Type),
+                    ('up', Vec3Type)]
+    _output_ports = [('output_file', [(basic.File, 'the resulting nrrd')])]
 
 class Soid(Teem):
 
@@ -150,6 +164,17 @@ class Soid(Teem):
 
         self.run_limn_test(*cmdline)
         self.setResult("output_file", output_file)
+
+    _input_ports = [('resolution', [(basic.Float, 'The ellipsoid resolution')]),
+                    ('radius', [(basic.Float, 'The radius')]),
+                    ('sphere', []),
+                    ('scalings', Vec3Type),
+                    ('AB', [(basic.Float, 'A exponent'),
+                            (basic.Float, 'B exponent')]),
+                    ('A', [(basic.Float, 'A exponent')]),
+                    ('B', [(basic.Float, 'B exponent')]),
+                    ]
+    _output_ports = [('output_file', [(basic.File, 'the resulting OFF file')])]
 
 
 class OffToEps(Teem):
@@ -189,6 +214,24 @@ class OffToEps(Teem):
         self.setResult("output_file", output_file)
 
 
+    _input_ports = [
+        ("right_hand", []),
+        ("input_file", [(basic.File, 'the input OFF file')]),
+        ("environment_map", [(basic.File, 'the nrrd storing the environment map')]),
+        ("from_point", [(basic.Float, '')] * 3),
+        ("u_range", [(basic.Float, '')] * 2),
+        ("v_range", [(basic.Float, '')] * 2),
+        ("edge_widths", [(basic.Float, '')] * 5),
+        ("orthogonal", []),
+        ("no_background", []),
+        ("concave", []),
+        ("world_to_points_scale", [(basic.Float, '')]),
+        ]
+
+    _output_ports = [
+        ("output_file", [(basic.File, '')]),
+        ]
+
 class EpsToPpm(Teem):
 
     def compute(self):
@@ -203,7 +246,15 @@ class EpsToPpm(Teem):
         self.run_path(*cmdline)
         self.setResult("output_file", output_file)
 
+    _input_ports = [
+        ("input_file", [(basic.File, 'the input EPS')]),
+        ("resolution", [(basic.Float, 'the resolution to rasterize the EPS')]),
+        ]
 
+    _output_ports = [
+        ("output_file", [(basic.File, 'the resulting PPM file')]),
+        ]
+    
 class Unu(Teem):
 
     def do_output(self):
@@ -218,7 +269,15 @@ class Unu(Teem):
         self.checkInputPort('input_file')
         return ['-i', self.getInputFromPort('input_file').name]
 
+    _input_ports = [
+        ("format", [(basic.String, 'file format for output')]),
+        ]
+    _output_ports = [
+        ("output_file", [(basic.File, 'the output file')]),
+        ]
+
 class UnuSave(Unu):
+    
     def compute(self):
 	cmdline = ['unu save']
 	cmdline += self.do_input()
@@ -228,6 +287,31 @@ class UnuSave(Unu):
 	cmdline += ocmd
 	cmdline += self.opt_command_line_val(port_name='output_format', option_name='-f')
 	self.run_teem(*cmdline)
+        
+    _input_ports = [
+        ("input_file", [(basic.File, 'Input File')]),
+        ("output_format", [(basic.String, 'Output Format')]),
+        ]
+    _output_ports = [
+        ("output_name", [(basic.String, 'Output Filename')]),
+        ]
+
+class UnuSwap(Unu):
+
+    def compute(self):
+        cmdline = ['unu swap']
+        cmdline += self.do_input()
+        (ocmd, output_file) = self.do_output()
+        self.setResult("output_file", output_file)
+        v1, v2 = self.getInputFromPort('axes')
+        cmdline += ['-a', str(v1), str(v2)]
+        cmdline += ocmd
+        self.run_teem(*cmdline)
+
+    _input_ports = [
+        ("input_file", [(basic.File, 'Input File')]),
+        ("axes", [(basic.Integer, '')]*2),
+        ]
 
 class UnuProject(Unu):
 
@@ -243,6 +327,56 @@ class UnuProject(Unu):
                                              option_name='-m')
         self.run_teem(*cmdline)
 
+    _input_ports = [
+        ("input_file", [(basic.File, 'the input file')]),
+        ("measure", [(basic.String, 'the measure to use')]),
+        ("axis", (basic.Integer, 'the axis to project')),
+        ]
+
+class UnuMinmax(Teem):
+
+    def do_input(self):
+        self.checkInputPort('input_file')
+        return [self.getInputFromPort('input_file').name]
+
+    def compute(self):
+        cmdline = ['unu minmax']
+        cmdline += self.do_input()
+        if self.hasInputFromPort('blind8'):
+            cmdline += '-blind8 true'
+        output_file = self.interpreter.filePool.create_file()
+        # FIXME use popen*
+        cmdline += ['>%s'%output_file.name]
+        self.run_teem(*cmdline)
+        f = file(output_file.name)
+        try:
+            mn = float(f.readline().split()[-1])
+            mx = float(f.readline().split()[-1])
+        except:
+            raise ModuleError(self, 'Could not read result')
+        self.setResult('range', (mn, mx))
+
+    _input_ports = [('input_file', [(basic.File, 'the input file')]),
+                    ('blind8', [])]
+    _output_ports = [('range', [(basic.Float,'')] * 2)]
+
+class UnuReshape(Unu):
+
+    def compute(self):
+        cmdline = ['unu reshape']
+        cmdline += self.do_input()
+        cmdline += self.opt_command_line_val(port_name='axes',
+                                             option_name='-s')
+        (ocmd, output_file) = self.do_output()
+        self.setResult("output_file", output_file)
+        cmdline += ocmd
+        self.run_teem(*cmdline)
+
+    _input_ports = [
+        ("input_file", [(basic.File, 'the input file')]),
+        ("axes", [(basic.String, 'axes to split')]),
+        ]
+    
 
 class UnuResample(Unu):
 
@@ -254,10 +388,18 @@ class UnuResample(Unu):
         self.setResult("output_file", output_file)
         cmdline += self.opt_command_line_val(port_name='sampling_spec',
                                              option_name='-s')
+        cmdline += self.opt_command_line_val(port_name='centering',
+                                             option_name='-c')
         cmdline += self.opt_command_line_val(port_name='kernel',
                                              option_name='-k')
         self.run_teem(*cmdline)
 
+    _input_ports = [
+        ("input_file", [(basic.File, 'the input file')]),
+        ("sampling_spec", [(basic.String, 'the sampling spec')]),
+        ("centering", [(basic.String, 'centering (node/cell)')]),
+        ("kernel", [(basic.String, 'the resampling kernel')]),
+        ]
 
 class UnuJoin(Unu):
 
@@ -276,7 +418,37 @@ class UnuJoin(Unu):
         self.setResult("output_file", output_file)
         self.run_teem(*cmdline)
 
+    _input_ports = [
+        ("input_list", [(basic.List, 'list of input files')]),
+        ("axis", [(basic.Integer, 'the axis to join')]),
+        ]
+    
+class UnuQuantize(Unu):
 
+    def do_input(self):
+        current = Unu.do_input(self)
+        self.checkInputPort('bits')
+        return current + ['-b', self.getInputFromPort('bits')]
+
+    def compute(self):
+        cmdline = ['unu quantize']
+        cmdline += self.do_input()
+        cmdline += self.opt_command_line_val(port_name='min',
+                                             option_name='-min')
+        cmdline += self.opt_command_line_val(port_name='max',
+                                             option_name='-max')
+        (ocmd, output_file) = self.do_output()
+        cmdline += ocmd
+        self.setResult("output_file", output_file)
+        self.run_teem(*cmdline)
+
+    _input_ports = [
+        ("input_file", [(basic.File, 'the input file')]),
+        ('bits', [(basic.Integer, 'bits to quantize down to')]),
+        ('min', [(basic.Float, 'min value')]),
+        ('max', [(basic.Float, 'max value')]),
+        ]
+    
 class Unu1op(Unu):
 
     def do_input(self):
@@ -307,6 +479,10 @@ class Unu1op(Unu):
         self.setResult('output_file', output_file)
         self.run_teem(*cmdline)
 
+    _input_ports = [
+        ("in1_file", [(basic.File, 'input file 1')]),
+        ("op", [(basic.String, 'the operation')]),
+        ]
 
 class Unu2op(Unu):
 
@@ -328,7 +504,7 @@ class Unu2op(Unu):
 
     def compute(self):
         allowed_ops = ['+', '-', 'x', '/',
-                       '^', 'spow', '%', 'fmod', 'atan2',
+                       '^', 'pow', 'spow', '%', 'fmod', 'atan2',
                        'min', 'max', 'lt', 'lte', 'gt', 'gte'
                        'eq', 'neq', 'comp', 'if', 'exists']
         self.checkInputPort('op')
@@ -342,6 +518,14 @@ class Unu2op(Unu):
         cmdline += ocmd
         self.setResult('output_file', output_file)
         self.run_teem(*cmdline)
+
+    _input_ports = [
+        ("in1_file", [(basic.File, 'input file 1')]),
+        ("in1_value", [(basic.String, 'input value 1')]),
+        ("in2_file", [(basic.File, 'input file 2')]),
+        ("in2_value", [(basic.String, 'input value 2')]),
+        ("op", [(basic.String, 'the operation')]),
+        ]
 
 
 class Unu3op(Unu):
@@ -386,6 +570,16 @@ class Unu3op(Unu):
         self.setResult('output_file', output_file)
         self.run_teem(*cmdline)
 
+    _input_ports = [
+        ("in1_file", [(basic.File, 'input file 1')]),
+        ("in1_value", [(basic.String, 'input value 1')]),
+        ("in2_file", [(basic.File, 'input file 2')]),
+        ("in2_value", [(basic.String, 'input value 2')]),
+        ("in3_file", [(basic.File, 'input file 3')]),
+        ("in3_value", [(basic.String, 'input value 3')]),
+        ("op", [(basic.String, 'the operation')]),
+    ]
+    
 class Teem_TT(Teem):
     _cmdline_base = 'tt'
     _cmdline_inputs = [('v', 'num_samples', '-n'),
@@ -398,6 +592,18 @@ class Teem_TT(Teem):
     _cmdline_output = ('output_file', '-o', '.nrrd')
     _cmdline_callable = Teem.run_ten_test
 
+    _input_ports = [
+        ("num_samples", [(basic.String, 'number of samples')]),
+        ("location", Vec3Type),
+        ("max_ca", [(basic.Float, 'max CA')]),
+        ("westin_metric", [(basic.Float, 'Metric to use')]),
+        ("hack", [(basic.Float, '"this is a hack"')]),
+        ("right_triangle", []),
+        ("whole", []),
+        ]
+    _output_ports = [
+        ("output_file", [(basic.File, "the output file")]),
+        ]
 
 class Tend_norm(Teem):
     _cmdline_base = 'tend norm'
@@ -407,6 +613,17 @@ class Tend_norm(Teem):
                        ('f', 'input_file', '-i')]
     _cmdline_output = ('output_file', '-o', 'nrrd')
     _cmdline_callable = Teem.run_teem
+
+    _input_ports = [
+        ("weights", Vec3Type),
+        ("amount", [(basic.Float, "amount of normalization")]),
+        ("target", [(basic.Float, "target size post normalization")]),
+        ("input_file", [(basic.File, "input DT volume")]),
+        ]
+
+    _output_ports = [
+        ("output_file", [(basic.File, "output file")]),
+        ]
 
 class Tend_glyph(Teem):
     _cmdline_base = 'tend glyph'
@@ -428,7 +645,192 @@ class Tend_glyph(Teem):
                        ('V', 'widths', '-wd')]
     _cmdline_output = ('output_file', '-o', 'eps')
     _cmdline_callable = Teem.run_teem
- 
+
+    _input_ports = [
+        ("sat", [(basic.Float, "max saturation")]),
+        ("from_point", [(basic.Float, '')] * 3),
+        ("up", [(basic.Float, '')] * 3),
+        ("psc", [(basic.Float, 'ps scale')]),
+        ("u_range", [(basic.Float, '')] * 2),
+        ("v_range", [(basic.Float, '')] * 2),
+        ("orthogonal", []),
+        ("atr", [(basic.Float, 'anisotropy threshold')]),
+        ("emap", [(basic.File, 'environment map nrrd')]),
+        ("input_file", [(basic.File, 'the input file')]),
+        ("no_background", []),
+        ("glyph_shape", [(basic.String, 'glyph shape')]),
+        ("glyph_size", [(basic.Float, 'glyph size in world space')]),
+        ("glyph_resolution", [(basic.Integer, 'glyph resolution of polygonization')]),
+        ("widths", [(basic.Float, '')] * 3),
+        ("right_hand", []),
+    ]
+    _output_ports = [
+        ("output_file", [(basic.File, 'output EPS file')])
+        ]
+    
+###############################################################################
+
+class TeemScaledTransferFunction(Teem):
+    _input_ports = [('range', [(basic.Float, '')] * 2),
+                    ('steps', [basic.Integer])]
+    _output_ports = [('nrrd', [(basic.File, 'the output TF')])]
+
+    def compute(self):
+        ramp = self.interpreter.filePool.create_file(suffix='.txt')
+        tf_vals = self.interpreter.filePool.create_file(suffix='.txt')
+        output = self.interpreter.filePool.create_file(suffix='.nrrd')
+        steps = self.getInputFromPort('steps')
+        rng = self.getInputFromPort('range')
+        self.run_teem('echo "0 1"',
+                      '| unu reshape -s 1 2',
+                      '| unu resample -s = %d -k tent -c node' % steps,
+                      '| unu save -f text -o %s' % ramp.name)
+        tf_file = file(tf_vals.name, 'w')
+        tf = self.getInputFromPort('transfer_function')
+        for (scalar, op, (r, g, b)) in tf._pts:
+            tf_file.write('%f %f %f %f %f\n' % (scalar, r, g, b, op))
+#             tf_file.write('%f %f\n' % (scalar, op))
+        tf_file.close()
+        self.run_teem('cat %s' % tf_vals.name,
+                      '| unu reshape -s 5 %d' % len(tf._pts),
+                      '| unu imap -i %s -r -m -' % ramp.name,
+                      '| unu reshape -s 4 %d' % steps,
+                      '| unu axinfo -a 0 -l "RGBA"',
+                      '| unu axinfo -a 1 -l "gage(scalar:v)" -mm %f %f -o %s' % (rng[0],
+                                                                                 rng[1],
+                                                                                 output.name))
+        self.setResult('nrrd', output)
+
+##############################################################################
+
+class Miter(Teem):
+
+    _input_ports = [
+        # Input data
+        ('input_file', FileType),
+        ('transfer_function', FileType),
+        # Camera
+        ('from_point', Vec3Type),
+        ('at_point', Vec3Type),
+        ('up_vec', Vec3Type),
+        ('right_handed', []),
+        ('relative_to_at_point', []),
+        ('near_dist', FloatType),
+        ('far_dist', FloatType),
+        ('image_plane_dist', FloatType),
+        ('urange', FloatType * 2),
+        ('vrange', FloatType * 2),
+        ('image_size', IntegerType * 2),
+        # Lighting
+        ('light_pos', Vec3Type),
+        ('ambient_light', FloatType * 3),
+        ('phong_components', FloatType * 3),
+        ('shininess', FloatType),
+        ('value_kernel', StringType),
+        ('d_kernel', StringType),
+        ('dd_kernel', StringType),
+        ('step_size', FloatType),
+        ('ref_step_size', FloatType),
+        ('thread_count', IntegerType),
+        ('opacity_termination', FloatType),
+        ]
+
+    _output_ports = [('output_file', FileType)]
+    
+    def compute(self):
+        cmdline = ['miter']
+        self.checkInputPort('input_file')
+        self.checkInputPort('transfer_function')
+        cmdline += self.opt_command_line_file('-i', 'input_file')
+        f = self.interpreter.filePool.create_file(suffix='.nrrd')
+        cmdline += ['-o', f.name]
+        cmdline += self.opt_command_line_vec('-fr', 'from_point')
+        cmdline += self.opt_command_line_vec('-at', 'at_point')
+        cmdline += self.opt_command_line_vec('-up', 'up_vec')
+        cmdline += self.opt_command_line_noopt('-rh', 'right_handed')
+        cmdline += self.opt_command_line_noopt('-ar', 'relative_to_at_point')
+        cmdline += self.opt_command_line_val('-dn', 'near_dist')
+        cmdline += self.opt_command_line_val('-di', 'image_plane_dist')
+        cmdline += self.opt_command_line_val('-df', 'far_dist')
+        cmdline += self.opt_command_line_vec('-ur', 'urange')
+        cmdline += self.opt_command_line_vec('-vr', 'vrange')
+        cmdline += self.opt_command_line_vec('-is', 'image_size')
+        cmdline += self.opt_command_line_vec('-ld', 'light_pos')
+        cmdline += self.opt_command_line_vec('-am', 'ambient_light')
+        cmdline += self.opt_command_line_vec('-ads', 'phong_components')
+        cmdline += self.opt_command_line_val('-sp', 'shininess')
+        cmdline += self.opt_command_line_val('-k00', 'value_kernel')
+        cmdline += self.opt_command_line_val('-k11', 'd_kernel')
+        cmdline += self.opt_command_line_val('-k22', 'dd_kernel')
+        cmdline += self.opt_command_line_val('-step', 'step_size')
+        cmdline += self.opt_command_line_val('-ref', 'ref_step_size')
+        cmdline += self.opt_command_line_val('-nt', 'thread_count')
+        cmdline += self.opt_command_line_val('-n1', 'opacity_termination')
+        cmdline += self.opt_command_line_file('-txf', 'transfer_function')
+        self.setResult('output_file', f) 
+        self.run_teem(*cmdline)
+        
+###############################################################################
+
+class OverRGB(Teem):
+
+    _input_ports = [
+        ('input_file', FileType),
+        ('contrast', FloatType),
+        ('component_fixed_point', FloatType),
+        ('gamma', FloatType),
+        ('background', Vec3Type),
+        ('background_image', FileType),]
+
+    _output_ports = [
+        ('output_image', FileType),
+        ]
+
+    def compute(self):
+        cmdline = ['overrgb']
+        self.checkInputPort('input_file')
+        cmdline += self.opt_command_line_file('-i', 'input_file')
+        f = self.interpreter.filePool.create_file(suffix='.png')
+        cmdline += ['-o', f.name]
+        self.setResult('output_image', f)
+        cmdline += self.opt_command_line_val('-c', 'contrast')
+        cmdline += self.opt_command_line_val('-cfp', 'component_fixed_point')
+        cmdline += self.opt_command_line_val('-g', 'gamma')
+        cmdline += self.opt_command_line_vec('-b', 'background')
+        cmdline += self.opt_command_line_file('-bi', 'background_image')
+        self.run_teem(*cmdline)
+        
+###############################################################################
+
+_modules = [Teem, Emap, Soid, Miter, OverRGB,
+            OffToEps,
+            EpsToPpm,
+            Unu,
+            UnuMinmax,
+            UnuSave,
+            UnuSwap,
+            UnuProject,
+            UnuReshape,
+            UnuResample,
+            UnuJoin,
+            UnuQuantize,
+            Unu1op,
+            Unu2op,
+            Unu3op,
+            Teem_TT,
+            Tend_norm,
+            Tend_glyph]
+
+##############################################################################
+
+def package_dependencies():
+    import core.packagemanager
+    manager = core.packagemanager.get_package_manager()
+    if manager.has_package('edu.utah.sci.vistrails.vtk'):
+        return ['edu.utah.sci.vistrails.vtk']
+    else:
+        return []
+
 ###############################################################################
 
 def initialize(path=None, limnTestPath=None, tenTestPath=None,
@@ -459,159 +861,16 @@ def initialize(path=None, limnTestPath=None, tenTestPath=None,
         print "will use tenTest tools from ", tenTestPath
         _teemTenTestPath = tenTestPath + '/'
 
-    reg = core.modules.module_registry
-    basic = core.modules.basic_modules
-    reg.add_module(Teem)
-    reg.add_module(Unu)
-    reg.add_input_port(Unu, "format",
-                     (basic.String, 'file format for output'))
-    reg.add_output_port(Unu, "output_file",
-                      (basic.File, 'the output file'))
-    
-    reg.add_module(Emap)
-    reg.add_input_port(Emap, "right_hand", [])
-    reg.add_input_port(Emap, "input_file",
-                     (basic.File, 'the lights input file'))
-    reg.add_input_port(Emap, "from", [(basic.Float, 'x'),
-                                    (basic.Float, 'y'),
-                                    (basic.Float, 'z')])
-    reg.add_input_port(Emap, "ambient", [(basic.Float, 'x'),
-                                       (basic.Float, 'y'),
-                                       (basic.Float, 'z')])
-    reg.add_input_port(Emap, "up", [(basic.Float, 'x'),
-                                  (basic.Float, 'y'),
-                                  (basic.Float, 'z')])
-    reg.add_output_port(Emap, "output_file",
-                      (basic.File, 'the resulting nrrd'))
+    reg = core.modules.module_registry.registry
 
-    reg.add_module(Soid)
-    reg.add_input_port(Soid, "resolution",
-                     (basic.Float, 'The ellipsoid resolution'))
-    reg.add_input_port(Soid, "radius", (basic.Float, 'The radius'))
-    reg.add_input_port(Soid, "sphere", [])
-    reg.add_input_port(Soid, "scalings", [(basic.Float, 'x scaling'),
-                                        (basic.Float, 'y scaling'),
-                                        (basic.Float, 'z scaling')])
-    reg.add_input_port(Soid, "AB", [(basic.Float, 'A exponent'),
-                                  (basic.Float, 'B exponent')])
-    reg.add_input_port(Soid, "A", (basic.Float, 'A exponent'))
-    reg.add_input_port(Soid, "B", (basic.Float, 'B exponent'))
-    reg.add_output_port(Soid, "output_file",
-                      (basic.File, 'the resulting OFF file'))
-
-    reg.add_module(OffToEps)
-    reg.add_input_port(OffToEps, "right_hand", [])
-    reg.add_input_port(OffToEps, "input_file",
-                     (basic.File, 'the input OFF file'))
-    reg.add_input_port(OffToEps, "environment_map",
-                     (basic.File, 'the nrrd storing the environment map'))
-    reg.add_input_port(OffToEps, "from_point", [(basic.Float, '')] * 3)
-    reg.add_input_port(OffToEps, "u_range", [(basic.Float, '')] * 2)
-    reg.add_input_port(OffToEps, "v_range", [(basic.Float, '')] * 2)
-    reg.add_input_port(OffToEps, "edge_widths", [(basic.Float, '')] * 5)
-    reg.add_input_port(OffToEps, "orthogonal", [])
-    reg.add_input_port(OffToEps, "no_background", [])
-    reg.add_input_port(OffToEps, "concave", [])
-    reg.add_input_port(OffToEps, "world_to_points_scale", (basic.Float, ''))
-    reg.add_output_port(OffToEps, "output_file", (basic.File, ''))
-
-    reg.add_module(EpsToPpm)
-    reg.add_input_port(EpsToPpm, "input_file", (basic.File, 'the input EPS'))
-    reg.add_input_port(EpsToPpm, "resolution",
-                     (basic.Float, 'the resolution to rasterize the EPS'))
-    reg.add_output_port(EpsToPpm, "output_file",
-                      (basic.File, 'the resulting PPM file'))
-
-    reg.add_module(UnuSave)
-    reg.add_input_port(UnuSave, "input_file", (basic.File, 'Input File'))
-    reg.add_input_port(UnuSave, "output_format", (basic.String, 'Output Format'))
-    reg.add_output_port(UnuSave, "output_name", (basic.String, 'Output Filename'))
-
-    reg.add_module(UnuProject)
-    reg.add_input_port(UnuProject, "input_file", (basic.File, 'the input file'))
-    reg.add_input_port(UnuProject, "measure",
-                     (basic.String, 'the measure to use'))
-    reg.add_input_port(UnuProject, "axis",
-                     (basic.Integer, 'the axis to project'))
-
-    reg.add_module(UnuResample)
-    reg.add_input_port(UnuResample, "input_file", (basic.File, 'the input file'))
-    reg.add_input_port(UnuResample, "sampling_spec", (basic.String, 'the sampling spec'))
-    reg.add_input_port(UnuResample, "kernel", (basic.String, 'the resampling kernel'))
-
-    reg.add_module(UnuJoin)
-    reg.add_input_port(UnuJoin, "input_list", (basic.List, 'list of input files'))
-    reg.add_input_port(UnuJoin, "axis", (basic.Integer, 'the axis to join'))
-
-    reg.add_module(Unu1op)
-    reg.add_input_port(Unu1op, "in1_file", (basic.File, 'input file 1'))
-    reg.add_input_port(Unu1op, "op", (basic.String, 'the operation'))
-
-    reg.add_module(Unu2op)
-    reg.add_input_port(Unu2op, "in1_file", (basic.File, 'input file 1'))
-    reg.add_input_port(Unu2op, "in1_value", (basic.String, 'input value 1'))
-    reg.add_input_port(Unu2op, "in2_file", (basic.File, 'input file 2'))
-    reg.add_input_port(Unu2op, "in2_value", (basic.String, 'input value 2'))
-    reg.add_input_port(Unu2op, "op", (basic.String, 'the operation'))
-
-    reg.add_module(Unu3op)
-    reg.add_input_port(Unu3op, "in1_file", (basic.File, 'input file 1'))
-    reg.add_input_port(Unu3op, "in1_value", (basic.String, 'input value 1'))
-    reg.add_input_port(Unu3op, "in2_file", (basic.File, 'input file 2'))
-    reg.add_input_port(Unu3op, "in2_value", (basic.String, 'input value 2'))
-    reg.add_input_port(Unu3op, "in3_file", (basic.File, 'input file 3'))
-    reg.add_input_port(Unu3op, "in3_value", (basic.String, 'input value 3'))
-    reg.add_input_port(Unu3op, "op", (basic.String, 'the operation'))
-
-
-    reg.add_module(Teem_TT)
-    reg.add_input_port(Teem_TT, "num_samples", (basic.String, 'number of samples'))
-    reg.add_input_port(Teem_TT, "location", [(basic.Float, 'u'),
-                                           (basic.Float, 'v'),
-                                           (basic.Float, 'w')])
-    reg.add_input_port(Teem_TT, "max_ca", (basic.Float, 'max CA'))
-    reg.add_input_port(Teem_TT, "westin_metric", (basic.Float, 'Metric to use'))
-    reg.add_input_port(Teem_TT, "hack", (basic.Float, '"this is a hack"'))
-    reg.add_input_port(Teem_TT, "right_triangle", [])
-    reg.add_input_port(Teem_TT, "whole", [])
-    reg.add_output_port(Teem_TT, "output_file", (basic.File, "the output file"))
-
-    reg.add_module(Tend_norm)
-    reg.add_input_port(Tend_norm, "weights", [(basic.Float, 'w0'),
-                                            (basic.Float, 'w1'),
-                                            (basic.Float, 'w2')])
-    reg.add_input_port(Tend_norm, "amount", (basic.Float,
-                                           "amount of normalization"))
-    reg.add_input_port(Tend_norm, "target", (basic.Float,
-                                           "target size post normalization"))
-    reg.add_input_port(Tend_norm, "input_file", (basic.File,
-                                               "input DT volume"))
-    reg.add_output_port(Tend_norm, "output_file", (basic.File,
-                                                 "output file"))
-
-    reg.add_module(Tend_glyph)
-    reg.add_input_port(Tend_glyph, "sat", (basic.Float, "max saturation"))
-    reg.add_input_port(Tend_glyph, "from_point", [(basic.Float, '')] * 3)
-    reg.add_input_port(Tend_glyph, "up", [(basic.Float, '')] * 3)
-    reg.add_input_port(Tend_glyph, "psc", [(basic.Float, 'ps scale')])
-    reg.add_input_port(Tend_glyph, "u_range", [(basic.Float, '')] * 2)
-    reg.add_input_port(Tend_glyph, "v_range", [(basic.Float, '')] * 2)
-    reg.add_input_port(Tend_glyph, "orthogonal", [])
-    reg.add_input_port(Tend_glyph, "atr", [(basic.Float,
-                                          'anisotropy threshold')])
-    reg.add_input_port(Tend_glyph, "emap", [(basic.File,
-                                           'environment map nrrd')])
-    reg.add_input_port(Tend_glyph, "input_file", [(basic.File,
-                                                 'the input file')])
-    reg.add_input_port(Tend_glyph, "no_background", [])
-    reg.add_input_port(Tend_glyph, "glyph_shape", [(basic.String,
-                                                  'glyph shape')])
-    reg.add_input_port(Tend_glyph, "glyph_size",
-                     [(basic.Float, 'glyph size in world space')])
-    reg.add_input_port(Tend_glyph, "glyph_resolution",
-                     [(basic.Integer, 'glyph resolution of polygonization')])
-    reg.add_input_port(Tend_glyph, "widths", [(basic.Float, '')] * 3)
-    reg.add_input_port(Tend_glyph, "right_hand", [])
-    reg.add_output_port(Tend_glyph, "output_file",
-                      [(basic.File, 'output EPS file')])
-
+    # Register the TF widget interaction modules if they're available
+    if reg.has_module('edu.utah.sci.vistrails.vtk',
+                      'TransferFunction'):
+        # Update the auto-add _modules list
+        _modules.append(TeemScaledTransferFunction)
+        TF = reg.get_descriptor_by_name('edu.utah.sci.vistrails.vtk',
+                                        'TransferFunction').module
+        # Update the input ports for TeemScaledTransferFunction now that we
+        # know TF is present
+        TeemScaledTransferFunction._input_ports.append(('transfer_function', [(TF,
+                                                                               "the transfer function")]))

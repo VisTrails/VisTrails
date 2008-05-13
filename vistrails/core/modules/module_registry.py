@@ -786,6 +786,28 @@ class ModuleRegistry(QtCore.QObject):
         k = self._module_key_map[module]
         return self.get_descriptor_by_name(*k)
 
+    def auto_add_module(self, module):
+        """auto_add_module(module or (module, kwargs)): add module and
+        input/output ports to registry. Don't call this directly - it is
+        meant to be used by the packagemanager, when inspecting the package
+        contents."""
+
+        if type(module) == type:
+            self.add_module(module)
+        elif (type(module) == tuple and
+              len(module) == 2 and
+              type(module[0]) == type and
+              type(module[1]) == dict):
+            self.add_module(module[0], **module[1])
+        else:
+            raise TypeError("Expected module or (module, kwargs)")
+        if hasattr(module, '_input_ports'):
+            for (port_name, port_types) in module._input_ports:
+                self.add_input_port(module, port_name, port_types)
+        if hasattr(module, '_output_ports'):
+            for (port_name, port_types) in module._output_ports:
+                self.add_output_port(module, port_name, port_types)
+
     def add_module(self, module, **kwargs):
         """add_module(module: class, **kwargs) -> Tree
 
