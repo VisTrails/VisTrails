@@ -641,7 +641,8 @@ def class_dict(base_module, node):
             if any([vtk.vtkBYUReader,
                     vtk.vtkImageReader,
                     vtk.vtkPLOT3DReader,
-                    vtk.vtkDICOMImageReader],
+                    vtk.vtkDICOMImageReader,
+                    vtk.vtkTIFFReader],
                    lambda x: issubclass(self.vtkClass, x)):
                 old_compute(self)
                 return
