@@ -118,7 +118,10 @@ def webServiceTypesDict(WBobj):
    def unwrapRequestobj(self,libobj,visobj):
 
     #Find the children for the vistrail type and set the attributes
-    dictkey = WBobj.webservice + "." + visobj.name
+
+    #Check to see if the name of the port is repeated
+    portname = visobj.name
+    dictkey = WBobj.webservice + "." + portname
     complexsdict = webServicesmodulesDict[WBobj.namespace] 
     obj = complexsdict[dictkey]
     for child in obj.ports:
@@ -126,6 +129,7 @@ def webServiceTypesDict(WBobj):
         typechild = child[1]
         nameattrib = str(namechild)
         nameattrib = nameattrib[0].upper() + nameattrib[1:]
+        
         sentence = "visobj" + "." + nameattrib
         visdata = eval(sentence)
         if visdata != None:
@@ -156,16 +160,21 @@ def webServiceTypesDict(WBobj):
                self.holder = inputport
                self.setResult(WBobj.name,self)
        else:
-           #Check if the type is a request type
+           #Check if it is a request type
            modbyname = reg.get_module_by_name(identifier = identifier, name = WBobj.name, namespace = WBobj.namespace)
            porttype = str(modbyname.server._wsdl.portTypes.keys()[0][0][1])
-           modname = WBobj.name
            listoperations = modbyname.server._wsdl.portTypes[porttype].operations.values()
            isrequest = False
+           requestname = ''
+           modname = WBobj.name
            for element in listoperations:
-               if modname == element.input.getMessage().name or modname == element.input.getMessage().name.replace('SoapRequest','') or modname == element.input.getMessage().name.replace('SoapIn','') or modname == element.input.getMessage().name.replace('Request',''):
-                   isrequest = True
-                   requestname = element.input.getMessage().name
+              parts = modbyname.server._wsdl.messages[element.input.getMessage().name].parts.values()
+              for part in parts:
+                 if str(part.element[1]).strip() == modname.strip():
+                    requestname = element.input.getMessage().name
+                    isrequest = True
+                    break
+
            if (isrequest == True):
                WBobj.isRequestType = True
                req = getattr(self.modclient,requestname)()
@@ -202,9 +211,18 @@ def webServiceTypesDict(WBobj):
                                getattr(req, namemethod)(libobj)
                #Set the value in the response output port
                nameport = str(WBobj.name)
+               #This step is to warranty that the name are not going to repeat    
+               for ports in WBobj.ports:
+                   if str(WBobj.name.strip()) == str(ports[0].strip()):
+                       nameport = WBobj.vistrailsname
+                       break
                self.setResult(nameport,req)
            else:
                nameport = str(WBobj.name)
+               for ports in WBobj.ports:
+                   if str(WBobj.name.strip()) == str(ports[0].strip()):
+                       nameport = WBobj.vistrailsname
+                       break
                if self.hasInputFromPort(nameport):
                    #Output modules
                    inputport = self.getInputFromPort(nameport)
@@ -227,6 +245,11 @@ def webServiceTypesDict(WBobj):
                            setattr(self,nameattrib,None)
                    #Set the value in the response output port
                    nameport = str(WBobj.name)
+                   #This step is to warranty that the name are not going to repeat    
+                   for ports in WBobj.ports:
+                      if str(WBobj.name.strip()) == str(ports[0].strip()):
+                         nameport = WBobj.vistrailsname
+                         break
                    self.setResult(nameport,self)
 
    return {'compute':compute}
@@ -413,7 +436,11 @@ def isArray(Type):
          return True
       else:
          return False
-      
+
+def generatename(name):
+   name = name + "_1"
+   return name
+
 def processType(complexschema,w):
    contentschema = ''
 
@@ -571,8 +598,16 @@ def addPortsToTypes(w):
        obj = complexsdict[dictkey]
        if obj.webservice == w:
            objtype = reg.get_module_by_name(identifier = identifier, name = obj.name, namespace = obj.namespace)
-           reg.add_input_port(objtype,obj.name,(objtype, ''))
-           reg.add_output_port(objtype,obj.name,(objtype, ''))
+           portname = obj.name
+           if obj.typeobj != 'Enumeration':
+              for ports in obj.ports:
+                 #This step is to warranty that the name are not going to repeat
+                 if str(portname.strip()) == str(ports[0].strip()):
+                    obj.vistrailsname = generatename(obj.name)
+                    portname = obj.vistrailsname
+                    break
+           reg.add_input_port(objtype,portname,(objtype, ''))
+           reg.add_output_port(objtype,portname,(objtype, ''))
            if obj.typeobj != 'Enumeration':
                #Add ports according to the input and output parameters
                for ports in obj.ports:
