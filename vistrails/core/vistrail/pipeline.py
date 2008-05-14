@@ -33,6 +33,7 @@ from core.utils.uxml import named_elements
 from core.vistrail.abstraction import Abstraction
 from core.vistrail.abstraction_module import AbstractionModule
 from core.vistrail.connection import Connection
+from core.vistrail.group import Group
 from core.vistrail.module import Module
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
@@ -70,6 +71,8 @@ class Pipeline(DBWorkflow):
                 Module.convert(module)
             elif module.vtType == AbstractionModule.vtType:
                 AbstractionModule.convert(module)
+            elif module.vtType == Group.vtType:
+                Group.convert(module)
             self.graph.add_vertex(module.id)
         for connection in self.connection_list:
             self.graph.add_edge(connection.source.moduleId,
@@ -116,6 +119,8 @@ class Pipeline(DBWorkflow):
                 Module.convert(_module)
             elif _module.vtType == AbstractionModule.vtType:
                 AbstractionModule.convert(_module)
+            elif _module.vtType == Group.vtType:
+                Group.convert(_module)
             _workflow.graph.add_vertex(_module.id)
 	for _connection in _workflow.db_connections:
             Connection.convert(_connection)
@@ -277,7 +282,7 @@ class Pipeline(DBWorkflow):
 
     def perform_operation(self, op):
         # print "doing %s %s" % (op.vtType, op.what)
-        if op.what == 'abstractionRef':
+        if op.what == 'abstractionRef' or op.what == 'group':
             what = 'module'
         else:
             what = op.what
@@ -559,7 +564,8 @@ class Pipeline(DBWorkflow):
         
         """
         result = self.modules[id]
-        if result.vtType != AbstractionModule.vtType and result.package is None:
+        if result.vtType != AbstractionModule.vtType and \
+                result.vtType != Group.vtType and result.package is None:
             DebugPrint.critical('module %d is missing package' % id)
             descriptor = registry.get_descriptor_from_name_only(result.name)
             result.package = descriptor.identifier

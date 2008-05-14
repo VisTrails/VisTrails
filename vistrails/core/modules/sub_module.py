@@ -119,6 +119,16 @@ class Abstraction(NotCacheable, Module):
     
 _reg.add_module(Abstraction)
 
+class Group(Module):
+    def __init__(self):
+        Module.__init__(self)
+        self.pipeline = None
+
+    def compute(self):
+        pass
+
+_reg.add_module(Group)
+
 class SubModule(NotCacheable, Module):
     """
     SubModule is the base class of all SubModule class. Inherited

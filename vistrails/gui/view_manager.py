@@ -167,14 +167,23 @@ class QViewManager(QtGui.QTabWidget):
         if vistrailView:
             vistrailView.pipelineTab.pipelineView.scene().copySelection()
 
-    def create_abstraction(self):
-        """create_abstraction() -> None
-        Creates an abstraction from the selected pipeline modules
+    def group(self):
+        """group() -> None
+        Creates a group from the selected pipeline modules
         
         """
         vistrailView = self.currentWidget()
         if vistrailView:
-            vistrailView.pipelineTab.pipelineView.scene().create_abstraction()
+            vistrailView.pipelineTab.pipelineView.scene().group()
+
+    def ungroup(self):
+        """ungroup() -> None
+        Ungroups selected pipeline modules
+        
+        """
+        vistrailView = self.currentWidget()
+        if vistrailView:
+            vistrailView.pipelineTab.pipelineView.scene().ungroup()
 
     def currentView(self):
         """currentView() -> VistrailView. Returns the current vistrail view."""

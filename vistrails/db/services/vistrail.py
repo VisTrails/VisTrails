@@ -21,7 +21,7 @@
 ############################################################################
 
 from db.domain import DBWorkflow, DBAdd, DBDelete, DBAction, DBAbstractionRef, \
-    DBModule, DBConnection, DBPort, DBFunction, DBParameter
+    DBModule, DBConnection, DBPort, DBFunction, DBParameter, DBGroup
 from db.services.action_chain import getActionChain, getCurrentOperationDict, \
     getCurrentOperations
 from db import VistrailsDBException
@@ -64,12 +64,12 @@ def materializeWorkflow(vistrail, version):
     elif version == 0:
         return DBWorkflow()
 
-def expandAbstractions(vistrail, workflow, module_remap=None):
+def expandGroups(vistrail, workflow, module_remap=None):
     workflow.__class__ = DBWorkflow
     def get_tmp_id(type):
         return -workflow.tmp_id.getNewId(type)
     
-    found_abstraction = False
+    found_group = False
     if module_remap is None:
         module_remap = {}
     add_modules = []
@@ -79,13 +79,14 @@ def expandAbstractions(vistrail, workflow, module_remap=None):
     in_conns = {}
     out_conns = {}
     for module in workflow.db_modules:
-        if module.vtType == DBAbstractionRef.vtType:
+        if module.vtType == DBGroup.vtType:
             delete_modules[module.db_id] = module
-            found_abstraction = True
+            found_group = True
             id_remap = {}
-            abstraction = \
-                vistrail.db_abstractions_id_index[module.db_abstraction_id]
-            sub_workflow = materializeWorkflow(abstraction, module.db_version)
+#             abstraction = \
+#                 vistrail.db_abstractions_id_index[module.db_abstraction_id]
+#             sub_workflow = materializeWorkflow(abstraction, module.db_version)
+            sub_workflow = module.pipeline
 
             # need to copy modules and connections over to workflow
             # except that connections from abstraction module to "outside"
@@ -99,7 +100,7 @@ def expandAbstractions(vistrail, workflow, module_remap=None):
                     id_remap[a_module.db_id] = new_id
                     module_remap[new_id] = (module.db_id, 
                                             a_module.db_id,
-                                            module.db_abstraction_id,
+                                            module.db_id,
                                             module.db_version)
                     a_module.db_id = new_id
                     add_modules.append(a_module)
@@ -193,9 +194,9 @@ def expandAbstractions(vistrail, workflow, module_remap=None):
     for connection in add_connections:
         workflow.db_add_connection(connection)
 
-    if not found_abstraction:
+    if not found_group:
         return (workflow, module_remap)
-    return expandAbstractions(vistrail, workflow, module_remap)
+    return expandGroups(vistrail, workflow, module_remap)
 
 def expandWorkflow(vistrail, workflow=None, version=None):
     if workflow is None:
@@ -206,7 +207,7 @@ def expandWorkflow(vistrail, workflow=None, version=None):
             raise VistrailsDBException(msg)
     else:
         workflow = workflow.do_copy()
-    return expandAbstractions(vistrail, workflow)
+    return expandGroups(vistrail, workflow)
         
 def performAction(action, workflow):
     if action.actionType == 'add':

@@ -138,6 +138,9 @@ class Field:
 	return self.getMapping() == 'one-to-many' or \
 	    self.getMapping() == 'many-to-many'
  
+    def shouldExpand(self):
+        return self.params.get('expand','true') == 'true'
+
     def hasDiscriminator(self):
         return self.params.has_key('discriminator')
 

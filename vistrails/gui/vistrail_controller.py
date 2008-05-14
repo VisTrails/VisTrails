@@ -41,6 +41,7 @@ from core.vistrail.abstraction import Abstraction
 from core.vistrail.abstraction_module import AbstractionModule
 from core.vistrail.annotation import Annotation
 from core.vistrail.connection import Connection
+from core.vistrail.group import Group
 from core.vistrail.location import Location
 from core.vistrail.module import Module
 from core.vistrail.module_function import ModuleFunction
@@ -51,6 +52,7 @@ from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import TagExists
 from core.interpreter.default import get_default_interpreter
 from core.inspector import PipelineInspector
+from db.domain import IdScope
 from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 # Broken right now
 # from core.modules.sub_module import addSubModule, DupplicateSubModule
@@ -1046,6 +1048,351 @@ class VistrailController(QtCore.QObject):
             self.perform_action(action)
             self.currentPipeline.ensure_connection_specs(connections)
         return modules
+
+    def create_group(self, module_ids, connection_ids, name):
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+
+        id_remap = {}
+        pipeline = Pipeline()
+        id_scope = IdScope(1, {Group.vtType: Module.vtType})
+
+        avg_x = 0.0
+        avg_y = 0.0
+        
+        abs_modules = []
+        abs_connections = []
+        changed_ports = []
+
+        del_action_list = []
+        for module_id in module_ids:
+            module = self.currentPipeline.modules[module_id]
+            del_action_list.append(('delete', module))
+            avg_x += module.location.x
+            avg_y += module.location.y
+            tmp_remap = {}
+            new_module = module.do_copy(True, id_scope, tmp_remap)
+
+            # hack to make sure that we don't adds ids from group.pipeline
+            if module.vtType == Group.vtType:
+                id_remap[(Module.vtType, module_id)] = new_module.id
+            else:
+                id_remap.update(tmp_remap)
+            pipeline.add_module(new_module)
+
+        print '**** id_remap:', id_remap
+
+        in_names = {}
+        out_names = {}
+        name_remap = {}
+        for connection_id in connection_ids:
+            connection = self.currentPipeline.connections[connection_id]
+            all_inside = True
+            all_outside = True
+            for port in connection.ports:
+                if not id_remap.has_key((Module.vtType, port.moduleId)):
+                    all_inside = False
+                else:
+                    all_outside = False
+
+            # if a connection has an "external" connection, we need to
+            # create an input port or output port module
+            new_ports = []
+            if not all_inside and not all_outside:
+                for port in connection.ports:
+                    if not id_remap.has_key((Module.vtType, port.moduleId)):
+
+                        loc_id = id_scope.getNewId(Location.vtType)
+                        # FIXME get better location
+                        # should use location of current attached module
+                        location = Location(id=loc_id,
+                                            x=0.0,
+                                            y=0.0,
+                                            )
+                        if port.endPoint == PortEndPoint.Source:
+                            port_klass = Variant
+                            port_type = InputPort.__name__
+                            port_specStr = connection.destination.specStr
+                            base_name = connection.destination.name
+                            names = in_names
+                        elif port.endPoint == PortEndPoint.Destination:
+                            port_klass = core.modules.vistrails_module.Module
+                            port_type = OutputPort.__name__
+                            port_specStr = connection.source.specStr
+                            base_name = connection.source.name
+                            names = out_names
+                        if names.has_key(base_name):
+                            port_name = base_name + '_' + str(names[base_name])
+                            names[base_name] += 1
+                        else:
+                            port_name = base_name
+                            names[base_name] = 2
+                        name_remap[connection.id] = port_name
+
+                        param_id = \
+                            id_scope.getNewId(ModuleParam.vtType)
+                        param = ModuleParam(id=param_id,
+                                            pos=0,
+                                            type='String',
+                                            val=port_name)
+                        function_id = \
+                            id_scope.getNewId(ModuleFunction.vtType)
+                        function_1 = ModuleFunction(id=function_id,
+                                                  name='name',
+                                                  parameters=[param])
+
+                        param_id = \
+                            id_scope.getNewId(ModuleParam.vtType)
+                        param = ModuleParam(id=param_id,
+                                            pos=0,
+                                            type='String',
+                                            val=port_specStr)
+
+                        function_id = \
+                            id_scope.getNewId(ModuleFunction.vtType)
+                        function_2 = ModuleFunction(id=function_id,
+                                                  name='spec',
+                                                  parameters=[param])
+
+                        param_id = \
+                            id_scope.getNewId(ModuleParam.vtType)
+                        param = ModuleParam(id=param_id,
+                                            pos=0,
+                                            type='String',
+                                            val=base_name)
+
+                        function_id = \
+                            id_scope.getNewId(ModuleFunction.vtType)
+                        function_3 = ModuleFunction(id=function_id,
+                                                  name='old_name',
+                                                  parameters=[param])
+
+                        functions = [function_1, function_2, function_3]
+#                         if port.endPoint == PortEndPoint.Source:
+#                             functions.append(function_3)
+
+                        # FIXME package name should not be hard-coded
+                        new_id = id_scope.getNewId(Module.vtType)
+                        module = Module(id=new_id,
+                                        name=port_type,
+                                        package='edu.utah.sci.vistrails.basic',
+                                        location=location,
+                                        functions=functions
+                                        )
+                        pipeline.add_module(module, id_remap)
+                        # action_list.append(('add', module))
+                        spec_str = '(edu.sci.utah.vistrails.basic:%s)' % \
+                            port_type
+                        port_id = id_scope.getNewId(Port.vtType)
+                        new_port = Port(id=port_id,
+                                        type=port.type,
+                                        moduleId=module.id,
+                                        moduleName=port_type,
+                                        name='InternalPipe')
+                        new_port.spec = \
+                            core.modules.module_registry.PortSpec(port_klass)
+                        new_ports.append(new_port)  
+                    else:
+                        changed_ports.append((port, connection))
+            new_connection = connection.do_copy(True, id_scope, id_remap)
+
+            for port in new_ports:
+                if port.endPoint == PortEndPoint.Source:
+                    new_connection.source = port
+                elif port.endPoint == PortEndPoint.Destination:
+                    new_connection.destination = port
+            # action_list.append(('add', new_connection))
+            pipeline.add_connection(new_connection)
+
+            # assume that we don't have len(new_ports) >= 2
+            if len(new_ports) <= 1:
+                # connection inside abstraction
+                del_action_list.append(('delete', connection))                
+            # else a change port -- done later
+
+#         action = core.db.action.create_action(action_list)
+#         action.date = self.vistrail.getDate()
+#         action.user = self.vistrail.getUser()
+
+#         abstraction.add_action(action, 0)
+#         self.vistrail.add_abstraction(abstraction)
+
+        # now group to vistrail
+        loc_id = self.vistrail.idScope.getNewId(Location.vtType)
+        location = Location(id=loc_id,
+                            x=avg_x/len(module_ids), 
+                            y=avg_y/len(module_ids),
+                            )
+        group_id = self.vistrail.idScope.getNewId(Group.vtType)
+        group = Group(id=group_id, 
+                      name=name, 
+                      package='edu.utah.sci.vistrails.basic', 
+                      location=location, 
+                      pipeline=pipeline)
+
+#         module_id = self.vistrail.idScope.getNewId(AbstractionModule.vtType)
+#         module = AbstractionModule(id=module_id,
+#                                    abstraction_id=abstraction.id,
+#                                    version=1,
+#                                    name=name, 
+#                                    location=location,
+#                                    cache=0,
+#                                    )
+        # need to delete connections before modules
+        del_action_list.reverse()
+        add_action_list = []
+        add_action_list.append(('add', group))
+        
+        for (old_port, connection) in changed_ports:
+            new_connection = connection.do_copy(True, self.vistrail.idScope, 
+                                                id_remap)
+            port_id = self.vistrail.idScope.getNewId(Port.vtType)
+            changed_port = Port(id=port_id,
+                                type=old_port.type,
+                                moduleId=group.id,
+                                moduleName=group.name,
+                                name=name_remap[connection.id])
+            changed_port.specStr = old_port.specStr
+            changed_port.spec = old_port.spec
+
+            if old_port.type == 'source':
+                new_connection.source = changed_port
+            else:
+                new_connection.destination = changed_port
+            add_action_list.append(('add', new_connection))
+#         print 'add_actions:'
+#         for a in add_action_list:
+#             print a
+#         print 'del actions:'
+#         for a in del_action_list:
+#             print a
+        action = core.db.action.create_action(add_action_list + del_action_list)
+        for op in action.db_operations:
+            print op.vtType, op.what, op.old_obj_id, op.new_obj_id
+        self.vistrail.add_action(action, self.currentVersion)
+        self.perform_action(action)
+
+        # FIXME we shouldn't have to return a module
+        # we don't do it for any other type
+        # doesn't match documentation either
+        return group
+
+    def ungroup_set(self, module_ids):
+        for m_id in module_ids:
+            self.ungroup(m_id)
+
+    def ungroup(self, module_id):
+
+        group = self.currentPipeline.modules[module_id]
+        if group.vtType != Group.vtType:
+            return
+        pipeline = group.pipeline
+        pipeline.ensure_connection_specs()
+
+        id_remap = {}
+        add_action_list = []
+        del_action_list = []
+        for module in pipeline.module_list:
+            if module.name != InputPort.__name__ and \
+                    module.name != OutputPort.__name__:
+                new_module = module.do_copy(True, self.vistrail.idScope, 
+                                            id_remap)
+                add_action_list.append(('add', new_module))
+
+        in_conns = {}
+        out_conns = {}
+        for connection in pipeline.connection_list:
+            all_inside = True
+            all_outside = True
+            for port in connection.ports:
+                if (Module.vtType, port.moduleId) not in id_remap:
+                    all_inside = False
+                else:
+                    all_outside = False
+            
+            if not all_inside and not all_outside:
+                source = connection.source
+                dest = connection.destination
+                def get_port_info(m_id):
+                    module = pipeline.modules[m_id]
+                    for function in module.functions:
+                        port_old_name = None
+                        if function.name == 'name':
+                            port_name = function.params[0].strValue
+                        elif function.name == 'spec':
+                            port_spec = function.params[0].strValue
+                        elif function.name == 'old_name':
+                            port_old_name = function.params[0].strValue
+                    return (port_name, port_spec, port_old_name)
+
+                if (Module.vtType, source.moduleId) not in id_remap:
+                    (port_name, port_spec, port_old_name) = \
+                        get_port_info(source.moduleId)
+                    in_conns[(port_name, port_spec)] = connection
+
+                    for function in group.functions:
+                        if function.name == port_name:
+                            target_module = pipeline.modules[dest.moduleId]
+                            new_function = \
+                                function.do_copy(True, self.vistrail.idScope, 
+                                                 id_remap)
+                            if port_old_name is None:
+                                print "ERROR old_name is None"
+                            new_function.name = port_old_name
+                            target_module.add_function(new_function)
+
+                elif (Module.vtType, dest.moduleId) not in id_remap:
+                    (port_name, port_spec, port_old_name) = \
+                        get_port_info(dest.moduleId)
+                    out_conns[(port_name, port_spec)] = connection
+            else:
+                new_connection = connection.do_copy(True, 
+                                                    self.vistrail.idScope, 
+                                                    id_remap)
+                add_action_list.append(('add', new_connection))
+                
+        
+        for connection in self.currentPipeline.connection_list:
+            source = connection.source
+            dest = connection.dest
+            rewire = False
+            for port in connection.ports:
+                if port.moduleId == group.id:
+                    # need to rewire
+                    rewire = True
+                    if port.endPoint == PortEndPoint.Source:
+                        key = (source.name, source.specStr)
+                        if key not in out_conns:
+                            print "ERROR: key not in out_conns"
+                        old_connection = out_conns[key]
+                        source = old_connection.source
+                        source = source.do_copy(True, self.vistrail.idScope, 
+                                                id_remap)
+                        d_map = {}
+                        dest = dest.do_copy(True, self.vistrail.idScope, d_map)
+                    elif port.endPoint == PortEndPoint.Destination:
+                        key = (dest.name, dest.specStr)
+                        if key not in in_conns:
+                            print "ERROR: key not in in_conns"
+                        old_connection = in_conns[key]
+                        dest = old_connection.destination
+                        dest = dest.do_copy(True, self.vistrail.idScope,
+                                            id_remap)
+                        s_map = {}
+                        source = \
+                            source.do_copy(True, self.vistrail.idScope, s_map)
+            if rewire:
+                new_id = self.vistrail.idScope.getNewId(Connection.vtType)
+                new_connection = Connection(id=new_id,
+                                            ports=[source, dest])
+                add_action_list.append(('add', new_connection))
+                del_action_list.append(('delete', connection))
+                          
+        del_action_list.append(('delete', group))
+        action = core.db.action.create_action(add_action_list + del_action_list)
+        for op in action.db_operations:
+            print op.vtType, op.what, op.old_obj_id, op.new_obj_id
+        self.vistrail.add_action(action, self.currentVersion)
+        self.perform_action(action)
 
     def create_abstraction(self, module_ids, connection_ids, name):
         """ create_abstraction (module_ids : list[long], 

@@ -1589,11 +1589,19 @@ mutual connections."""
                             connection_ids[conn.id] = 1
         return (module_ids.keys(), connection_ids.keys())
 
-    def create_abstraction(self):
+    def group(self):
         items = self.get_selected_item_ids(True)
         if items is not None:
-            self.controller.create_abstraction(items[0], items[1], 
-                                               'Abstraction')
+            self.controller.create_group(items[0], items[1], 
+                                               'Group')
+            self.clear()
+            self.controller.resendVersionWasChanged()
+            self.reset_module_colors()
+
+    def ungroup(self):
+        items = self.get_selected_item_ids(True)
+        if items is not None:
+            self.controller.ungroup_set(items[0])
             self.clear()
             self.controller.resendVersionWasChanged()
             self.reset_module_colors()

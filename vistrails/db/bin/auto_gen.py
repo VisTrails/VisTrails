@@ -371,7 +371,7 @@ class AutoGen:
         refs = self.getReferences(object)
         self.indentLine('children = []\n')
         for ref in refs:
-            if ref.isInverse():
+            if ref.isInverse() or not ref.shouldExpand():
                 continue
             refObj = self.getReferencedObject(ref.getReference())
             if not ref.isPlural():

@@ -256,12 +256,18 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.pasteAction.setStatusTip('Paste copied modules in the clipboard '
                                       'into the current pipeline view')
 
-        self.abstractionAction = QtGui.QAction('Make Abstraction', self)
-        self.abstractionAction.setShortcut('Ctrl+G')
-        self.abstractionAction.setEnabled(False)
-        self.abstractionAction.setStatusTip('Create an abstraction from the '
-                                            'selected modules in '
-                                            'the current pipeline view')
+        self.groupAction = QtGui.QAction('Group', self)
+        self.groupAction.setShortcut('Ctrl+G')
+        self.groupAction.setEnabled(False)
+        self.groupAction.setStatusTip('Group the '
+                                      'selected modules in '
+                                      'the current pipeline view')
+        self.ungroupAction = QtGui.QAction('Ungroup', self)
+        self.ungroupAction.setShortcut('Ctrl+Shift+G')
+        self.ungroupAction.setEnabled(False)
+        self.ungroupAction.setStatusTip('Ungroup the '
+                                      'selected groups in '
+                                      'the current pipeline view')
 
         self.selectAllAction = QtGui.QAction('Select All\tCtrl+A', self)
         self.selectAllAction.setEnabled(False)
@@ -351,9 +357,11 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editMenu.addSeparator()
         self.editMenu.addAction(self.copyAction)
         self.editMenu.addAction(self.pasteAction)
-        self.editMenu.addAction(self.abstractionAction)
         self.editMenu.addAction(self.selectAllAction)
         self.editMenu.addSeparator()
+        self.editMenu.addAction(self.groupAction)
+        self.editMenu.addAction(self.ungroupAction)
+        self.editMenu.addSeparator()        
         self.editMenu.addAction(self.editPreferencesAction)
 
         self.viewMenu = self.menuBar().addMenu('&View')
@@ -437,8 +445,9 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.undoAction, self.viewManager.undo),
             (self.copyAction, self.viewManager.copySelection),
             (self.pasteAction, self.viewManager.pasteToCurrentPipeline),
-            (self.abstractionAction, self.viewManager.create_abstraction),
             (self.selectAllAction, self.viewManager.selectAllModules),
+            (self.groupAction, self.viewManager.group),
+            (self.ungroupAction, self.viewManager.ungroup),
             (self.newVistrailAction, self.newVistrail),
             (self.openFileAction, self.open_vistrail_default),
             (self.importFileAction, self.import_vistrail_default),
@@ -648,7 +657,8 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         """
         self.copyAction.setEnabled(len(selection)>0)
-        self.abstractionAction.setEnabled(len(selection)>0)
+        self.groupAction.setEnabled(len(selection)>0)
+        self.ungroupAction.setEnabled(len(selection)>0)
 
     def versionSelectionChange(self, versionId):
         """ versionSelectionChange(versionId: int) -> None
