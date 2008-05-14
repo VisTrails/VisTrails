@@ -675,6 +675,14 @@ class QBuilderWindow(QtGui.QMainWindow):
         else:
             self.redoAction.setEnabled(False)
             self.viewToolBar.redoAction().setEnabled(False)
+        
+        #copy and paste
+        if versionId > 0:
+            clipboard = QtGui.QApplication.clipboard()
+            self.pasteAction.setEnabled(not clipboard.text().isEmpty())
+        else:
+            self.pasteAction.setEnabled(False)
+        
 
     def execStateChange(self):
         """ execStateChange() -> None
