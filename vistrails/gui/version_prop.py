@@ -262,6 +262,7 @@ class QVersionNotes(QtGui.QTextEdit):
         
         """
         self.commit_changes()
+        QtGui.QTextEdit.focusOutEvent(self,event)
 
     def trim_first_paragraph(self):
         doc = self.document()

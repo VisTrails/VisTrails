@@ -482,11 +482,4 @@ class QPreferencesDialog(QtGui.QDialog):
         """
         from PyQt4 import QtCore
         from gui.application import VistrailsApplication
-        startup = QtCore.QCoreApplication.instance().vistrailsStartup
-        dom = startup.startup_dom()
-        doc = dom.documentElement
-        configuration_element = enter_named_element(doc, 'configuration')
-        doc.removeChild(configuration_element)
-        VistrailsApplication.configuration.write_to_dom(dom, doc)
-        startup.write_startup_dom(dom)
-        dom.unlink()
+        VistrailsApplication.save_configuration()

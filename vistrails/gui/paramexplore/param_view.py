@@ -111,7 +111,7 @@ class QParameterTreeWidget(QSearchTreeWidget):
                                       dbtype=ptype,
                                       parent_dbtype=parentType,
                                       parent_id=parentId)
-                aliasItem = QParameterTreeWidgetItem((alias, [pinfo]),
+                aliasItem = QParameterTreeWidgetItem((alias, [pInfo]),
                                                      aliasRoot, label)
             aliasRoot.setExpanded(True)
             

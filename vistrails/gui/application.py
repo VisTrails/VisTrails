@@ -44,6 +44,7 @@ import core.startup
 import gui.theme
 import os.path
 import sys
+import copy
 
 ################################################################################
 
@@ -86,14 +87,15 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
 
         # Setup configuration to default or saved preferences
         self.vistrailsStartup = core.startup.VistrailsStartup(self.configuration)
-
+        self.temp_configuration = copy.copy(self.configuration)
+        
         # Command line options override configuration
         self.readOptions()
         if optionsDict:
             for (k, v) in optionsDict.iteritems():
                 setattr(self.configuration, k, v)
 
-        interactive = self.configuration.check('interactiveMode')
+        interactive = self.temp_configuration.check('interactiveMode')
         if interactive:
             self.setIcon()
             self.createWindows()
@@ -105,9 +107,9 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         # The window does not get maximized. If we do it too early,
         # there are no created windows during spreadsheet initialization.
         if interactive:
-            if self.configuration.check('maximizeWindows'):
+            if  self.temp_configuration.check('maximizeWindows'):
                 self.builderWindow.showMaximized()
-            if self.configuration.check('dbDefault'):
+            if self.temp_configuration.check('dbDefault'):
                 self.builderWindow.setDBDefault(True)
         self.runInitialization()
         self._python_environment = self.vistrailsStartup.get_python_environment()
@@ -148,7 +150,7 @@ after self.init()"""
         self.builderWindow.create_first_vistrail()
         self.builderWindow.modulePalette.treeWidget.updateFromModuleRegistry()
         self.builderWindow.modulePalette.connect_registry_signals()
-        if self.configuration.check('showSplash'):
+        if self.temp_configuration.check('showSplash'):
             self.splashScreen.finish(self.builderWindow)
         if self.input:
             for filename in self.input:
@@ -191,7 +193,7 @@ run in batch mode.')
         Create the splash-screen at startup
         
         """
-        if self.configuration.check('showSplash'):
+        if self.temp_configuration.check('showSplash'):
             splashPath = (system.vistrails_root_directory() +
                           "/gui/resources/images/vistrails_splash.png")
             pixmap = QtGui.QPixmap(splashPath)
@@ -284,38 +286,36 @@ run in batch mode.')
         """
         get = command_line.CommandLineParser().get_option
         if get('prompt')!=None:
-            self.configuration.pythonPrompt = bool(get('prompt'))
+            self.temp_configuration.pythonPrompt = bool(get('prompt'))
         if get('nosplash')!=None:
-            self.configuration.showSplash = bool(get('nosplash'))
+            self.temp_configuration.showSplash = bool(get('nosplash'))
         if get('debugsignals')!=None:
-            self.configuration.debugSignals = bool(get('debugsignals'))
+            self.temp_configuration.debugSignals = bool(get('debugsignals'))
         if get('dotVistrails')!=None:
-            self.configuration.dotVistrails = get('dotVistrails')
+            self.temp_configuration.dotVistrails = get('dotVistrails')
         if not self.configuration.check('dotVistrails'):
             self.configuration.dotVistrails = system.default_dot_vistrails()
+            self.temp_configuration.dotVistrails = system.default_dot_vistrails()
         if get('multiheads')!=None:
-            self.configuration.multiHeads = bool(get('multiheads'))
+            self.temp_configuration.multiHeads = bool(get('multiheads'))
         if get('maximized')!=None:
-            self.configuration.maximizeWindows = bool(get('maximized'))
+            self.temp_configuration.maximizeWindows = bool(get('maximized'))
         if get('movies')!=None:
-            self.configuration.showMovies = bool(get('movies'))
+            self.temp_configuration.showMovies = bool(get('movies'))
         if get('cache')!=None:
-            self.configuration.useCache = bool(get('cache'))
+            self.temp_configuration.useCache = bool(get('cache'))
         if get('verbose')!=None:
-            self.configuration.verbosenessLevel = get('verbose')
+            self.temp_configuration.verbosenessLevel = get('verbose')
         if get('noninteractive')!=None:
-            self.configuration.interactiveMode = not bool(get('noninteractive'))
+            self.temp_configuration.interactiveMode = not bool(get('noninteractive'))
         
-        if not self.configuration.interactiveMode:
+        if not self.temp_configuration.interactiveMode:
             self.nonInteractiveOpts = InstanceObject(workflow=get('workflow'),
                                                      parameters=get('parameters'))
         if get('nologger')!=None:
-            self.configuration.nologger = bool(get('nologger'))
+            self.temp_configuration.nologger = bool(get('nologger'))
         self.input = command_line.CommandLineParser().positional_arguments()
-        if get('workflow') and self.configuration.interactiveMode:
-            print "Workflow option only allowed in noninteractive mode."
-            sys.exit(1)
-
+        
     def runInitialization(self):
         """ runInitialization() -> None
         Run init script on the user folder
@@ -338,7 +338,7 @@ run in batch mode.')
            # gui.bookmark_window.initBookmarks(system.default_bookmarks_file())    
             
         #initBookmarks()
-        if self.configuration.check('pythonPrompt'):
+        if self.temp_configuration.check('pythonPrompt'):
             debug.startVisTrailsREPL(locals())
         self.showSplash = self.configuration.showSplash
 
@@ -361,7 +361,8 @@ run in batch mode.')
         """ save_configuration() -> None
         Save the current vistrail configuration to the startup.xml file.
         This is required to capture changes to the configuration that we 
-        make the session, ie., browsed directories or window sizes.
+        make programmatically during the session, ie., browsed directories or
+        window sizes.
 
         """
         dom = self.vistrailsStartup.startup_dom()

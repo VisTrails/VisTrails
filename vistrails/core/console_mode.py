@@ -54,8 +54,10 @@ def run_and_get_results(locator, workflow, parameters=''):
             key = e[:pos].strip()
             value = e[pos+1:].strip()
             
-            if pip.hasAlias(key):
-                ptype = pip.aliases[key][0]
+            if pip.has_alias(key):
+                (vttype, pId,_,_) = pip.aliases[key]
+                parameter = pip.db_get_object(vttype,pId)
+                ptype = parameter.type
                 aliases[key] = (ptype,expression.parse_expression(value))
     view = DummyView()
     interpreter = core.interpreter.default.get_default_interpreter()
