@@ -88,6 +88,10 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         A module has been removed from VisTrails
 
         """
+        if descriptor.module_abstract():
+            # skip abstract modules, they're no longer in the tree
+            return
+
         moduleName = descriptor.name
         identifier = descriptor.identifier
 
@@ -97,21 +101,14 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
                                            QtCore.Qt.MatchExactly |
                                            QtCore.Qt.MatchWrap |
                                            QtCore.Qt.MatchRecursive)
-                 if not x.is_top_level()]
-        if descriptor.module_abstract():
-            # skip abstract modules, they're no longer in the tree
-            return
+                 if not x.is_top_level()
+                 and x.descriptor == descriptor]
         if len(items) <> 1:
             raise VistrailsInternalError("Expected one item (%s), got %d: %s" %
                                          (moduleName,
                                           len(items),
                                           ";".join(x.descriptor.name for x in items)))
-        for item in items:
-            if item.descriptor == descriptor:
-                break
-            item = None
-        if not item:
-            raise VistrailsInternalError("No match for the descriptor")
+        item = items[0]
         parent = item.parent()
         parent.takeChild(parent.indexOfChild(item))
 
