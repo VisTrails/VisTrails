@@ -698,7 +698,7 @@ class QPipelineInfo(QtGui.QFrame):
         
         """
         if info:
-            self.edits[0].setText(info[0]['vistrailName'])
+            self.edits[0].setText(str(info[0]['locator'].name))
             self.edits[1].setText('(Pipeline: %d, Module: %d)'
                                   % (info[0]['version'], info[0]['moduleId']))
             self.edits[2].setText(str(info[0]['reason']))
@@ -891,12 +891,15 @@ class QCellManipulator(QtGui.QFrame):
             if action=='apply_analogy':
                 p1Info = cellInfo[0].getPipelineInfo(cellInfo[1], cellInfo[2])
                 analogy = analogy_api.SpreadsheetAnalogy()
-                newPipeline = analogy.applyAnalogy(p1Info)
+                (newPipeline, controller) = analogy.applyAnalogy(p1Info)
                 if newPipeline:
                     self.cellInfo[0].executePipelineToCell(newPipeline,
                                                            self.cellInfo[1],
                                                            self.cellInfo[2],
                                                            'Apply Analogy')
+                    controller.setChanged(True)
+                    controller.invalidate_version_tree()
+                    
 
         else:
             event.ignore()

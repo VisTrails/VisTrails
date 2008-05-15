@@ -83,14 +83,14 @@ class SpreadsheetAnalogyObject(object):
         analogy is not applicable, this should return None
         
         """
-        def get_vistrail_by_locator(locator):
+        def get_controller_by_locator(locator):
             import gui.application
             app = gui.application.VistrailsApplication
             m = app.builderWindow.viewManager
             # slow, but who cares
             for v in app.builderWindow.viewManager._views.values():
                 if v.locator == locator:
-                    return v.vistrail
+                    return v
             if not v:
                 raise Exception("Couldn't find")
 
@@ -111,13 +111,13 @@ class SpreadsheetAnalogyObject(object):
         perform = core.analogy.perform_analogy_on_vistrail
 
 
-        vt = get_vistrail_by_locator(p1_locator)
+        controller = get_controller_by_locator(p3_locator)
+        vt = controller.vistrail
         new_version = perform(vt,
                               p1_number, p2_number, p3_number,
                               0.15)
         new_pipeline = vt.getPipeline(new_version)
-        
-        return (p1_locator, new_version, [], new_pipeline)
+        return ((p3_locator, new_version, [], new_pipeline), controller)
 
     def __call__(self):
         """ __call__() -> SpreadsheetAnalogy
