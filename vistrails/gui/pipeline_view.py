@@ -689,6 +689,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.ghosted = False
         self._module_shape = None
         self._moved = False
+        self._old_connection_ids = None
 
     def computeBoundingRect(self):
         """ computeBoundingRect() -> None
@@ -1279,8 +1280,16 @@ mutual connections."""
         selected = self.modules[m_id].isSelected()
 
         depending_connections = self.modules[m_id].dependingConnectionItems()
+        old_depending_connections = self.modules[m_id]._old_connection_ids
+        
         self.remove_module(m_id)
-        for it in depending_connections:
+        
+        #when configuring a python source, maybe connections were deleted
+        # but are not in the current pipeline. So we need to check the depending
+        # connections of the module just before the configure. 
+        if not old_depending_connections: 
+            old_depending_connections = []
+        for it in set(depending_connections+old_depending_connections):
             self.remove_connection(it[0].id)
         
         self.addModule(pipeline.modules[m_id])
@@ -1289,6 +1298,8 @@ mutual connections."""
                                
         if selected:
             self.modules[m_id].setSelected(True)
+            
+        self.modules[m_id]._old_connection_ids = None
 
     def moduleTextHasChanged(self, m1, m2):
         if m1.tag != m2.tag:
@@ -1695,6 +1706,13 @@ mutual connections."""
             global widget
             widget = widgetType(module, self.controller, None)
             widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+            
+            #if connections will be removed as a result of the configuration
+            # we need to be able to get them when calling
+            # self.recreate_module()
+            self.modules[id]._old_connection_ids = \
+                             self.modules[id].dependingConnectionItems()
+            
             widget.exec_()
             self.reset_module_colors()
             self.pipeline_tab.flushMoveActions()
