@@ -4,7 +4,7 @@ from core.modules.vistrails_module import Module, ModuleError
 import numpy
 from Array import *
 
-class ArrayAccess:
+class ArrayAccess(object):
     my_namespace = "numpy|array|access"
 
 class GetShape(Module, ArrayAccess):

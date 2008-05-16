@@ -4,7 +4,7 @@ from core.modules.vistrails_module import Module, ModuleError
 
 import numpy
 
-class ArrayModule:
+class ArrayModule(object):
     my_namespace = 'numpy|array'
 
 class NDArray(Module, ArrayModule):

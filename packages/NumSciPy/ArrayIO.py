@@ -32,8 +32,9 @@ class NrrdHelper(object):
         
     def read_raw(self, fn, sizes, dtype, little_end=True):
         try:
-            fn = "/scratch/eranders/data/joao/foot/" + fn
+#            fn = "/scratch/eranders/data/joao/foot/" + fn
             fid = open(fn, 'rb')
+            print 'fid open'
             dt = self.num_bytes(dtype)
             ndim = len(sizes)
             num_el = 1
@@ -45,6 +46,7 @@ class NrrdHelper(object):
             else:
                 data = scipy.io.fread(fid, num_el, dt, 'd', byteswap=1)
             fid.close()
+            print 'fid closed'
             data.shape = sizes
             return data
         except:
