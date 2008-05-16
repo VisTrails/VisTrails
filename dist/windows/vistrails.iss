@@ -21,10 +21,10 @@
 ;############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 1.0 (rev954)
+AppVerName=VisTrails 1.1
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
-WizardImageBackColor=$e3dfe0
+WizardImageBackColor=$9d5942
 DefaultDirName={code:CustomAppDir}\VisTrails
 SetupIconFile=resources\icons\vistrails_install2.ico
 DefaultGroupName=VisTrails
@@ -34,8 +34,6 @@ PrivilegesRequired=none
 RestartIfNeededByRun=false
 ChangesAssociations=true
 [Files]
-Source: C:\Program Files\ATT\Graphviz\bin\*.dll; DestDir: {app}\vistrails
-Source: C:\Program Files\ATT\Graphviz\bin\dot.exe; DestDir: {app}\vistrails
 Source: C:\Python25\w9xpopen.exe; DestDir: {app}\vistrails\Python25
 Source: C:\Python25\LICENSE.txt; DestDir: {app}\vistrails\Python25
 Source: C:\Python25\pylupdate4.exe; DestDir: {app}\vistrails\Python25
@@ -56,6 +54,10 @@ Source: C:\Python25\Tools\*; DestDir: {app}\vistrails\Python25\Tools; Flags: rec
 Source: C:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 Source: ..\..\examples\brain_vistrail.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\chembiogrid_webservice.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\gridfieldexample.vt; DestDir: {app}\examples; Components: examples
+;Source: ..\..\examples\bathymetry.vt; DestDir: {app}\examples; Components: examples
+;Source: ..\..\examples\croos2.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\gridfieldexample.xml; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\head.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\lung.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\offscreen.vt; DestDir: {app}\examples; Components: examples
@@ -65,6 +67,7 @@ Source: ..\..\examples\terminator.vt; DestDir: {app}\examples; Components: examp
 Source: ..\..\examples\vtk.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\vtk_book_3rd_p189.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\vtk_book_3rd_p193.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\vtk_examples\*; DestDir: {app}\examples\vtk_examples; Components: examples; Flags: recursesubdirs
 Source: ..\..\examples\vtk_http.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\data\torus.vtk; DestDir: {app}\examples\data; Components: examples
 Source: ..\..\examples\data\carotid.vtk; DestDir: {app}\examples\data; Components: examples
@@ -73,6 +76,7 @@ Source: ..\..\examples\data\gktbhL123.vtk; DestDir: {app}\examples\data; Compone
 Source: ..\..\examples\data\head.120.vtk; DestDir: {app}\examples\data; Components: examples
 Source: ..\..\examples\data\spx.vtk; DestDir: {app}\examples\data; Components: examples
 Source: ..\..\examples\data\vslice_circ1.bp; DestDir: {app}\examples\data; Components: examples
+Source: ..\..\scripts\*; DestDir: {app}\scripts; Flags: recursesubdirs
 Source: ..\..\vistrails\*; DestDir: {app}\vistrails; Flags: recursesubdirs
 Source: Input\unzip.exe; DestDir: {app}\vistrails
 Source: Input\zip.exe; DestDir: {app}\vistrails
@@ -87,7 +91,10 @@ Source: C:\src\VTKbuild\bin\release\*.pyd; DestDir: {app}\vistrails
 Name: {%HOMEDRIVE}\{%HOMEPATH}\.vistrails
 Name: {app}\vistrails
 Name: {app}\examples; Components: ; Tasks: 
+Name: {app}\examples\vtk_examples
 Name: {app}\examples\data
+Name: {app}\scripts
+Name: {app}\scripts\gen_vtk_examples
 Name: {app}\vistrails\Python25
 Name: {app}\vistrails\vtk
 Name: {app}\vistrails\vistrails\vtk
@@ -121,6 +128,22 @@ Root: HKCR; Subkey: .vt; ValueType: string; ValueData: VisTrailsFile; Flags: uni
 Root: HKCR; Subkey: VisTrailsFile; ValueType: string; ValueData: VisTrails File; Flags: uninsdeletekey; Tasks: associatefiles
 Root: HKCR; Subkey: VisTrailsFile\DefaultIcon; ValueType: string; ValueData: {app}\vistrails\gui\resources\images\vistrails_icon_small.ico; Tasks: associatefiles; Flags: uninsdeletekey
 Root: HKCR; Subkey: VisTrailsFile\shell\open\command; ValueType: string; ValueData: """{app}\vistrails\Python25\python.exe"" ""{app}\runvistrails.py"" ""{app}\vistrails\Python25\python.exe"" ""{app}\vistrails\vistrails.py"" ""{app}\vistrails"" ""%1"""; Tasks: associatefiles; Flags: uninsdeletekey
+[InstallDelete]
+Name: {app}\vistrails\dot.exe; Type: files
+Name: {app}\vistrails\freetype6.dll; Type: files
+Name: {app}\vistrails\jpeg.dll; Type: files
+Name: {app}\vistrails\libexpat.dll; Type: files
+Name: {app}\vistrails\libexpatw.dll; Type: files
+Name: {app}\vistrails\png.dll; Type: files
+Name: {app}\vistrails\z.dll; Type: files
+Name: {app}\vistrails\zlib1.dll; Type: files
+Name: {app}\vistrails\python24.dll; Type: files
+Name: {app}\vistrails\Python24; Type: filesandordirs
+
+
+
+
+
 [Code]
 var
 	FinishedInstall: Boolean;
@@ -139,18 +162,16 @@ begin
 end;
 
 procedure CurPageChanged(CurPageID: Integer);
-var
-  oldPythonDir: String;
 begin
-  case CurPageID of
-    wpReady:
-    begin
-	  DeleteFile(ExpandConstant('{app}') + '\vistrails\python24.dll');
-      oldPythonDir := ExpandConstant('{app}') + '\vistrails\Python24';
-	  if DirExists(oldPythonDir) then
-	    DelTree(oldPythonDir, True, True, True);
-	end;
-  end;
+//  case CurPageID of
+//    wpReady:
+//    begin
+//	  DeleteFile(ExpandConstant('{app}') + '\vistrails\python24.dll');
+//      oldPythonDir := ExpandConstant('{app}') + '\vistrails\Python24';
+//	  if DirExists(oldPythonDir) then
+//	    DelTree(oldPythonDir, True, True, True);}
+//	end;
+//  end;
 end;
 
 procedure DeinitializeSetup();
