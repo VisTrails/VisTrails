@@ -222,7 +222,7 @@ def vistrails_version():
    # 0.3 was the plugin/vtk version
    # 0.4 is cleaned up version with new GUI
    # 1.0 is version with new schema
-   return '1.0'
+   return '1.1'
 
 def vistrails_revision():
     """vistrails_revision() -> str 
@@ -233,7 +233,7 @@ def vistrails_revision():
     old_dir = os.getcwd()
     os.chdir(vistrails_root_directory())
     try:
-        release = "954"
+        release = "1141"
         if core.requirements.executable_file_exists('svn'):
             lines = []
             result = execute_cmdline(['svn', 'info'], lines)

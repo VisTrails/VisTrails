@@ -1,3 +1,4 @@
+
 VisTrails
 
 HOW TO INSTALL
@@ -14,8 +15,73 @@ Please see the About Message for Licensing and Disclaimers.
 
 RELEASE NOTES
 -------------
-Release Name: v1.0beta rev954
 
+Release Name: v1.1 build 1141
+
+Changes:
+ - Added "Set Module Label" feature (through the configuration pop-up
+    menu of the GUI)
+ - Improved error messages
+ - Added vistrails files for many of the vtk examples
+ - Added support for packages to create menus in the builder window
+   (see spreadsheet package for an example)
+ - Modules and input ports can be automatically registered by 
+   setting per-module _input_ports and _output_ports fields and 
+   per-package _modules field (see teem package at www.vistrails.org)
+ - Removed graphviz dependency
+ - Ability to export workflow and history views to PDF
+ - In WevServices Package: Improved support to web services using
+   complex types 
+ - Added a BooleanWidget, so Booleans are now given by a checkbox 
+ - In VTK Package: 
+   + Added Transfer Function Widget
+   + Added dataset inspectors, special vtk modules that allow users
+     to easily query bounds and scalar range of an object.
+   + Added support for vtkTIFFReader to allow volumetric (slice-based)
+     reads.
+ - Added support for grouping modules in pipelines
+ - Incorporated many optimizations in the code
+ - Added namespace support to packages
+
+Bug fixes:
+ - Fixed analogies
+ - Version tree was not refreshed when analogy was applied on the spreadsheet
+ - Fixed double drawing of module names and version node names on the mac
+ - Added support for running Visual Diff for pipelines with 
+   PythonSources and other modules with a local registry that 
+   have different input and output ports
+ - Changed the behavior of selecting new cell locations on the
+   spreadsheet when it is full (cycling vs. using always the first
+   cell)
+ - Fixed bug where options passed through the command line were
+   written to the startup.xml file
+
+----------------------------------------
+From Release v1.0.1 build 1063 
+Changes:
+ - In VTK Package: Exporters now take a VTKCell as input when exporting 
+   the scene
+ 
+Bug fixes:
+ - Caching mechanism: VTK modules didn't take the connections into account 
+   when deciding whether to cache or not. This is related with the error
+   message "function expects 1 argument, got 0 instead".
+ - Fixed Parameter Exploration bugs where parameter widgets did not update 
+   correctly when changes are made to the pipeline.
+
+
+From Release 1.0 build 1024
+Changes:
+ - Added a preference option to enable/disable Brushed Metal Style on Mac
+ 
+Bug fixes:
+ - Opening/Saving a .vt file on a path with spaces was not working on Unix 
+   systems
+ - Creating/Applying analogies  on the spreadsheet
+ - Opening/Saving spreadsheets
+
+
+From Release 1.0 beta rev954:
 Changes:
  - Added module VTKRenderOffscreen to vtk package
 

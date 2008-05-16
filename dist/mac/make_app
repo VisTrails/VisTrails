@@ -1,6 +1,21 @@
 #!/usr/bin/env sh
+# usage: make_app <volname> <vers>
+# Based on the modified script posted on Mac OS X Hints
+# http://www.macosxhints.com/article.php?story=20020311215452999
+# Creates a disk image (dmg) of VisTrails on Mac OS X from the command line.
+#
+# Where <volname> is the name to use for the mounted image, 
+#       <vers> is the version number of the volume
+#
+# The result will be a file called <volname>-<vers>.dmg
+
+if [ $# != 2 ]; then
+ echo "usage: make_app volname vers"
+ exit 0
+fi
 echo "removing build and dist folders..."
 rm -rf dist/ build/
+rm "${1}-${2}.dmg"
 echo "building bundle..."
 python setup.py py2app
 echo "copying dot and its libraries to the right place..."
@@ -13,9 +28,30 @@ cp -r /Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/xml dist/V
 echo "copying qt.conf..."
 cp Input/qt.conf dist/VisTrails.app/Contents/Resources/
 echo "copying plugins..."
-cp -r Input/plugins/* dist/Vistrails.app/Contents/MacOS/
+# Get the OS Version String from the SystemVersion Bundle
+OS_VERSION=`cat /System/Library/CoreServices/SystemVersion.plist | \
+grep -A 1 ProductVersion | tail -1 | \
+sed -E 's/<string>([0-9]+\.[0-9]+\.[0-9]+)<\/string>/\1/'`
+
+# Spilt the Version String into it's parts
+OS_MAJOR=`echo $OS_VERSION | sed -E 's/([0-9]+)\.[0-9]+\.[0-9]+/\1/'`
+OS_MINOR=`echo $OS_VERSION | sed -E 's/[0-9]+\.([0-9]+)\.[0-9]+/\1/'`
+OS_MICRO=`echo $OS_VERSION | sed -E 's/[0-9]+\.[0-9]+\.([0-9]+)/\1/'`
+
+if [ $OS_MINOR > 4 ]; then
+  echo "$OS_MINOR" 4 
+  cp -r Input/plugins/* dist/Vistrails.app/Contents/MacOS
+else
+  cp -r Input/plugins/* dist/Vistrails.app/Contents/MacOS/
+fi
 echo "copying examples folder..."
 cp -r Input/examples dist/
 echo "copying README file..."
 cp Input/README dist/
+echo "packing everything inside the VisTrails folder..."
+mkdir dist/VisTrails
+mv dist/Vistrails.app dist/VisTrails/
+mv dist/examples dist/VisTrails/
+echo "creating the dmg file..."
+./mkdmg "$1" "$2" dist
 echo "Done."
