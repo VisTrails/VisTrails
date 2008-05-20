@@ -54,6 +54,18 @@ class Package(object):
                      self.exception,
                      self.traceback))
 
+    class LoadFailed(Exception):
+        def __init__(self, package, exception, traceback):
+            self.package = package
+            self.exception = exception
+            self.traceback = traceback
+        def __str__(self):
+            return ("Package '%s' failed to load, raising '%s: %s'. Traceback:\n%s" %
+                    (self.package._codepath,
+                     self.exception.__class__.__name__,
+                     self.exception,
+                     self.traceback))
+
     def __init__(self, codepath, load_configuration=True):
         self._codepath = codepath
         self._load_configuration = load_configuration
@@ -90,8 +102,13 @@ class Package(object):
                 return False
             return True
 
-        if (not import_from('packages.') and
-            not import_from('userpackages.')):
+        try:
+            r = (not import_from('packages.') and
+                 not import_from('userpackages.'))
+        except Exception, e:
+            raise self.LoadFailed(self, e, traceback.format_exc())
+            
+        if r:
             dbg = debug.DebugPrint
             dbg.critical("Could not enable package %s" % self._codepath)
             for e in errors:
@@ -598,16 +615,29 @@ creating a class that behaves similarly)."""
         packages = self.import_packages_module()
         userpackages = self.import_user_packages_module()
 
+        failed = []
         # import the modules
         for package in self._package_list.itervalues():
             if package.initialized():
                 continue
-            package.load(package_dictionary.get(package.codepath, None))
-            if self._dependency_graph.vertices.has_key(package.identifier):
-                raise VistrailsInternalError('duplicate package identifier: %s' %
-                                             package.identifier)
-            self._dependency_graph.add_vertex(package.identifier)
-            self._identifier_map[package.identifier] = package
+            try:
+                package.load(package_dictionary.get(package.codepath, None))
+            except Package.LoadFailed, e:
+                print "FAILED TO LOAD, let's disable it"
+                # We disable the package manually to skip over things
+                # we know will not be necessary - the only thing needed is
+                # the reference in the package list
+                package.remove_own_dom_element()
+                failed.append(package)
+            else:
+                if self._dependency_graph.vertices.has_key(package.identifier):
+                    raise VistrailsInternalError('duplicate package identifier: %s' %
+                                                 package.identifier)
+                self._dependency_graph.add_vertex(package.identifier)
+                self._identifier_map[package.identifier] = package
+
+        for pkg in failed:
+            del self._package_list[pkg.codepath]
 
         # determine dependencies
         for package in self._package_list.itervalues():
