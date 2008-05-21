@@ -73,15 +73,19 @@ def linux_ubuntu_install(package_name):
 
     return (result == 0) # 0 indicates success
 
-def show_question():
+def show_question(which_files):
     qt = has_qt()
     if qt:
         import gui.utils
-        v = gui.utils.show_question("Required package missing",
-                                    "A required package is missing, but VisTrails can " +
-                                    "automaticallly install it. " +
+        if type(which_files) == str:
+            which_files = [which_files]
+        v = gui.utils.show_question("Required packages missing",
+                                    "One or more required packages are missing: " +
+                                    " ".join(which_files) +
+                                    ". VisTrails can " +
+                                    "automaticallly install them. " +
                                     "If you click OK, VisTrails will need "+
-                                    "administrator privileges, and you" +
+                                    "administrator privileges, and you " +
                                     "might be asked for the administrator password.",
                                     buttons=[gui.utils.OK_BUTTON,
                                              gui.utils.CANCEL_BUTTON],
@@ -109,9 +113,10 @@ about which system it runs on."""
     if not dependency_dictionary.has_key(distro):
         return False
     else:
-        if show_question():
+        files = dependency_dictionary[distro]
+        if show_question(files):
             callable_ = getattr(core.bundles.installbundle,
                                 distro.replace('-', '_') + '_install')
-            return callable_(dependency_dictionary[distro])
+            return callable_(files)
         else:
             return False
