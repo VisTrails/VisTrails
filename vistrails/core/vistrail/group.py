@@ -24,8 +24,10 @@ import copy
 from itertools import izip
 from sets import Set
 
+from core.vistrail.annotation import Annotation
 from core.vistrail.location import Location
 from core.vistrail.module import Module
+from core.vistrail.module_function import ModuleFunction
 from core.vistrail.port import Port, PortEndPoint
 from db.domain import DBGroup
 
