@@ -26,7 +26,6 @@ should have no interaction with VisTrail core"""
 from PyQt4 import QtCore, QtGui
 from gui.theme import CurrentTheme
 from core.modules.constant_configuration import StandardConstantWidget
-import bisect
 
 ################################################################################
 
@@ -129,7 +128,7 @@ class QSearchTreeWidget(QtGui.QTreeWidget):
         self.setRootIsDecorated(True)
         self.setDragEnabled(True)
         self.flags = QtCore.Qt.ItemIsDragEnabled
-
+    
     def searchItemName(self, name):
         """ searchItemName(name: QString) -> None        
         Search and refine the module tree widget to contain only items

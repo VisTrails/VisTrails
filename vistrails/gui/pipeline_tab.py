@@ -50,12 +50,11 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         """
         QDockContainer.__init__(self, parent)
         self.setWindowTitle('Pipeline')
-        self.toolWindow().setFeatures(QtGui.QDockWidget.NoDockWidgetFeatures)
-        self.toolWindow().hide()        
-
         self.pipelineView = QPipelineView()
         self.pipelineView.scene().pipeline_tab = proxy(self)
         self.setCentralWidget(self.pipelineView)
+        self.toolWindow().setFeatures(QtGui.QDockWidget.NoDockWidgetFeatures)
+        self.toolWindow().hide()        
         
         self.methodPalette = QMethodPalette(self)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea,
@@ -98,7 +97,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         Setup the pipeline to display and control a specific pipeline
         
         """
-        if not self.pipelineView.scene().noUpdate:            
+        if not self.pipelineView.scene().noUpdate:
             self.pipelineView.scene().setupScene(pipeline)
 
     def updateWindowTitle(self, topLevel):
