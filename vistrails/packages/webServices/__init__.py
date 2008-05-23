@@ -865,7 +865,7 @@ def initialize(*args, **keywords):
                wsm.writeTypes(fd)
                fd.close()
            except:
-               print "Error generating the stub files for the webservice: ", w
+               pm.show_error_message(pm.get_package_by_identifier(identifier),"Syntax problem in wsdl of web service: %s"%w)
                continue
 
            #import the stub generated files
