@@ -727,6 +727,8 @@ def initialize(*args, **keywords):
    if os.path.isfile(pathfile):
        #Verify if there is a need to update the modules configuration file (modules.conf)
        for w in wsdlList:
+           if w == '':
+              continue
            s = w.split('/')
            host = s[2]
            location = w
@@ -773,6 +775,8 @@ def initialize(*args, **keywords):
        webServicesmodulesDict = cPickle.load(inf)
        inf.close()
        for w in wsdlList:
+           if w == '':
+              continue
            complexsdict = {} #Dictionary that contains the methods or the types of a web service
            w = w.strip()
            s = w.split('/')
@@ -806,6 +810,8 @@ def initialize(*args, **keywords):
            addPortsToMethods(w)
    else:
        for w in wsdlList:
+           if w == '':
+              continue
            complexsdict = {} #This dictionary stores the complex types for a webservice w
            w = w.strip()
            #Create the stub files for the webservices that have been modified since the last time
