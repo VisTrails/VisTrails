@@ -21,10 +21,10 @@
 ############################################################################
 
 from core.data_structures.bijectivedict import Bidict
-import scipy
 from itertools import imap, chain
 import core.modules.module_registry
 import core.db.io
+from core.requirements import MissingRequirement
 from core.vistrail.port import PortEndPoint
 from core.vistrail.module import Module
 import copy

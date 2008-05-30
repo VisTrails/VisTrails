@@ -30,7 +30,8 @@ the world. http://www.vtk.org"""
 
 from core.bundles import py_import
 
-vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk'})
+vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk',
+                        'linux-fedora': 'vtk-python'})
 
 from core.utils import all, any, VistrailsInternalError
 from core.debug import log

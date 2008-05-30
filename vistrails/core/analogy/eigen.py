@@ -23,7 +23,12 @@ from core.data_structures.bijectivedict import Bidict
 from itertools import imap, chain
 import copy
 import core.modules.module_registry
-import scipy
+try:
+    import scipy
+    _analogies_available = True
+except ImportError:
+    _analogies_available = False
+
 import math
 from pipeline_utils import *
 
@@ -424,7 +429,6 @@ class EigenPipelineSimilarity2(EigenBase):
         self._e = mones(n) / n
 
     def step(self, pi_k):
-        d = scipy.dot
         r = self._h * pi_k * self._alpha
         t = pi_k * self._alpha * self._a.transpose()
         r += self._v * (t[0,0] + 1.0 - self._alpha)

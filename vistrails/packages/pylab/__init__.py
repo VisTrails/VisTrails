@@ -40,7 +40,8 @@ identifier = 'edu.utah.sci.vistrails.matplotlib'
 
 from core.bundles import py_import
 try:
-    mpl_dict = {'linux-ubuntu': 'python-matplotlib'}
+    mpl_dict = {'linux-ubuntu': 'python-matplotlib',
+                'linux-fedora': 'python-matplotlib'}
     matplotlib = py_import('matplotlib', mpl_dict)
     matplotlib.use('Qt4Agg')
     pylab = py_import('pylab', mpl_dict)

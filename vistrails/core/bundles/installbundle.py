@@ -38,8 +38,7 @@ def has_qt():
     except ImportError:
         return False
 
-def linux_ubuntu_install(package_name):
-    
+def hide_splash_if_necessary():
     qt = has_qt()
     # HACK, otherwise splashscreen stays in front of windows
     if qt:
@@ -48,6 +47,10 @@ def linux_ubuntu_install(package_name):
             PyQt4.QtCore.QCoreApplication.instance().splashScreen.hide()
         except:
             pass
+
+def linux_ubuntu_install(package_name):
+    qt = has_qt()
+    hide_splash_if_necessary()
         
     if qt:
         cmd = core.system.vistrails_root_directory()
@@ -72,6 +75,35 @@ def linux_ubuntu_install(package_name):
     result = os.system(sucmd)
 
     return (result == 0) # 0 indicates success
+
+def linux_fedora_install(package_name):
+    qt = has_qt()
+    hide_splash_if_necessary()
+    if qt:
+        cmd = core.system.vistrails_root_directory()
+        cmd += '/core/bundles/linux_fedora_install.py'
+    else:
+        cmd = 'yum -y install'
+
+    if type(package_name) == str:
+        cmd += ' ' + package_name
+    elif type(package_name) == list:
+        for package in package_name:
+            if type(package) != str:
+                raise TypeError("Expected string or list of strings")
+            cmd += ' ' + package
+
+    if qt:
+        sucmd = guess_graphical_sudo() + " " + cmd
+    else:
+        print ("VisTrails wants to install package(s) '%s' through _sudo_. Make sure" +
+               " you are a sudoer.") % package_name
+        sucmd = "sudo " + cmd
+
+    print sucmd
+    result = os.system(sucmd)
+    print "RETURN VALUE", result
+    return (result == 0)
 
 def show_question(which_files):
     qt = has_qt()

@@ -34,6 +34,13 @@ privileges."""
         return 'kdesu -c'
     elif core.system.executable_is_in_path('gksu'):
         return 'gksu'
+    elif (core.system.executable_is_in_path('sudo') and
+          core.system.executable_is_in_path('zenity')):
+        # This is a reasonably convoluted hack to only prompt for the password
+        # if user has not recently entered it
+        return ('((echo "" | sudo -v -S -p "") || ' +
+                '(zenity --entry --title "sudo password prompt" --text "Please enter your password '
+                'to give the system install authorization." --hide-text="" | sudo -v -S -p "")); sudo -S -p ""')
     else:
         print "Could not find a graphical su-like command."
         print "Will use regular su"
@@ -78,6 +85,10 @@ def _guess_ubuntu():
     return os.path.isfile('/etc/apt/apt.conf.d/01ubuntu')
 _system_guesser.add_test(_guess_ubuntu, 'linux-ubuntu')
 
+def _guess_fedora():
+    return os.path.isfile('/etc/fedora-release')
+_system_guesser.add_test(_guess_fedora, 'linux-fedora')
+
 ##############################################################################
 
 def guess_system():
@@ -86,5 +97,6 @@ will be a string describing the system. This is more discriminating than
 Linux/OSX/Windows: We'll try to figure out whether you're running SuSE, Debian,
 Ubuntu, RedHat, fink, darwinports, etc.
 
-Currently, we only support SuSE and Ubuntu"""
+Currently, we only support SuSE, Ubuntu and Fedora. However, we only have
+actual bundle installing for Ubuntu and Fedora."""
     return _system_guesser.guess_system()

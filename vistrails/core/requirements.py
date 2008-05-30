@@ -78,21 +78,15 @@ def check_pyqt4():
 
 
 def check_all_vistrails_requirements():
-    # check dot
-#     try:
-#         require_executable('dot')
-#     except MissingRequirement:
-#         r = core.bundles.installbundle.install({'linux-ubuntu': 'graphviz'})
-#         if not r:
-#             raise
+    pass
 
     # check scipy
-    try:
-        require_python_module('scipy')
-    except MissingRequirement:
-        r = core.bundles.installbundle.install({'linux-ubuntu': 'python-scipy'})
-        if not r:
-            raise
+#     try:
+#         require_python_module('scipy')
+#     except MissingRequirement:
+#         r = core.bundles.installbundle.install({'linux-ubuntu': 'python-scipy'})
+#         if not r:
+#             raise
         
 
 ##############################################################################
