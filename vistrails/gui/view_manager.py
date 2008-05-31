@@ -74,7 +74,7 @@ class QViewManager(QtGui.QTabWidget):
         self._views[view] = view.controller
         if self.indexOf(view)!=-1:
             return
-        self.addTab(view, view.windowTitle())
+        
         view.installEventFilter(self)
         self.connect(view.pipelineTab,
                      QtCore.SIGNAL('moduleSelectionChange'),
@@ -99,6 +99,7 @@ class QViewManager(QtGui.QTabWidget):
                      self.resetQuery)
 
         self.emit(QtCore.SIGNAL('vistrailViewAdded'), view)
+        self.addTab(view, view.windowTitle())
         if self.count()==1:
             self.emit(QtCore.SIGNAL('currentChanged(int)'), 0)
 
