@@ -779,6 +779,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             setModulePen()
             painter.drawRect(self.paddedRect)
 
+        if self.ghosted:
+            self.moduleBrush = CurrentTheme.GHOSTED_MODULE_BRUSH
         if self._module_shape:
             drawCustomShape()
         else:
