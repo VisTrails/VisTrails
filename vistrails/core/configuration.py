@@ -52,7 +52,7 @@ class ConfigurationObject(InstanceObject):
     """
 
     def __init__(self, *args, **kwargs):
-        InstanceObject.__init__(self, **kwargs)
+        InstanceObject.__init__(self, *args, **kwargs)
         self.__subscribers__ = {}
    
     def __setattr__(self, name, value):

@@ -286,7 +286,7 @@ class Pipeline(DBWorkflow):
             what = 'module'
         else:
             what = op.what
-	funname = '%s_%s' % (op.vtType, what)
+        funname = '%s_%s' % (op.vtType, what)
         if hasattr(self, funname):
             if op.vtType == 'add':
                 getattr(self, funname)(op.data, 

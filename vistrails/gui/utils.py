@@ -170,3 +170,12 @@ def show_custom(title, message, icon=None,
     msgBox = build_custom_window(title,message,icon,
                           buttons, default,escape)
     return msgBox.exec_()
+
+def getBuilderWindow():
+    """ getBuilderWindow() -> QMainWindow
+    Return the current builder window of VisTrails if exists    
+    """
+    try:
+        return QtCore.QCoreApplication.instance().builderWindow
+    except:
+        return None

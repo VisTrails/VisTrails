@@ -900,10 +900,6 @@ class VistrailController(QtCore.QObject):
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
-#         pInspector = PipelineInspector()
-#         if self.currentPipeline:
-#             pInspector.inspect_input_output_ports(self.currentPipeline)
-            
         try:
             if self.vistrail.hasTag(self.currentVersion):
                 self.vistrail.changeTag(tag, self.currentVersion)
@@ -915,15 +911,6 @@ class VistrailController(QtCore.QObject):
                          "Please enter a different one." % tag)
             return
 
-#         if pInspector.is_sub_module() and tag!='':
-#             ans = show_question("Add Sub-Module",
-#                                 "'%s' can be used as a module in VisTrails. "
-#                                 "Do you want to add it to VisTrails Modules?"
-#                                 % tag,
-#                                 [YES_BUTTON, NO_BUTTON], YES_BUTTON)
-#             if ans==YES_BUTTON:
-#                 self.addSubModule(tag, self.name, self.vistrail, self.fileName,
-#                                   self.currentVersion, pInspector)
         self.setChanged(True)
 
         self.resetVersionView = False

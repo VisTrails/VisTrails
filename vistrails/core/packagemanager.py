@@ -483,7 +483,9 @@ exiting VisTrails."""
         for package in self._package_list.itervalues():
             package.finalize()
         self._package_list = {}
-        self._identifier_map = {}
+        self._identifier_map = {}        
+        global _package_manager
+        _package_manager = None
 
     def add_package(self, packageName):
         """Adds a new package to the manager. This does not initialize it.

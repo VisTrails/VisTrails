@@ -358,7 +358,7 @@ Makes sure input port 'name' is filled."""
             return m()
         except:
             msg = "Cannot get module named " + str(name) + " with identifier " + str(ident) + " and namespace " + ns
-            raise ModuleError(msg)
+            raise ModuleError(self, msg)
 
     @classmethod
     def provide_input_port_documentation(cls, port_name):
