@@ -348,8 +348,8 @@ Makes sure input port 'name' is filled."""
             if conList==[]:
                 del self.inputPorts[inputPort]
 
-    def get_instance_of_type(self, ident, name, ns=''):
-        """ Get a vistrails module from the module registry.  This creates an instance of the module
+    def create_instance_of_type(self, ident, name, ns=''):
+        """ Create a vistrails module from the module registry.  This creates an instance of the module
         for use in creating the object output by a Module.
         """
         import core.modules.vistrails_module
