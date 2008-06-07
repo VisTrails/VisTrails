@@ -750,6 +750,11 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.modulePen = CurrentTheme.MODULE_PEN
             self.moduleBrush = CurrentTheme.MODULE_BRUSH
             self.labelPen = CurrentTheme.MODULE_LABEL_PEN
+
+        for port in self.inputPorts.itervalues():
+            port.setGhosted(ghosted)
+        for port in self.outputPorts.itervalues():
+            port.setGhosted(ghosted)
             
     def paint(self, painter, option, widget=None):
         """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
