@@ -1359,6 +1359,14 @@ mutual connections."""
                         m._moved = False
                     if self.modules[m_id].isSelected:
                         selected_modules.append(m_id)
+                    if self.controller and self.controller.search:
+                        q_module = pipeline.modules[m_id]
+                        moduleQuery = (self.controller.currentVersion, q_module)
+                        matched = \
+                            self.controller.search.matchModule(*moduleQuery)
+                        self.modules[m_id].setGhosted(not matched)
+                    else:
+                        self.modules[m_id].setGhosted(False)
 
                 new_connections = set(pipeline.connections)
                 connections_to_be_added = new_connections - self._old_connection_ids
@@ -1855,6 +1863,11 @@ class QPipelineView(QInteractiveGraphicsView):
         QInteractiveGraphicsView.__init__(self, parent)
         self.setWindowTitle('Pipeline')
         self.setScene(QPipelineScene(self))
+
+    def setQueryEnabled(self, on):
+        QInteractiveGraphicsView.setQueryEnabled(self, on)
+        if not self.scene().noUpdate and self.scene().controller:
+            self.scene().setupScene(self.scene().controller.currentPipeline)
 
 ################################################################################
 
