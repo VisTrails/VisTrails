@@ -79,7 +79,6 @@ class QQueryTab(QPipelineTab):
         
         """
         self.controller.currentPipeline.ensure_connection_specs()
-        self.updatePipeline(self.controller.currentPipeline)
         self.emit(QtCore.SIGNAL("queryPipelineChange"),
                   len(self.controller.currentPipeline.modules)>0)
         
