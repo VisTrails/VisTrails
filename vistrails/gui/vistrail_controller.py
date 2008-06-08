@@ -1041,6 +1041,9 @@ class VistrailController(QtCore.QObject):
 
         id_remap = {}
         pipeline = Pipeline()
+
+        # get rid of id so that sql saves correctly
+        pipeline.id = None
         id_scope = IdScope(1, {Group.vtType: Module.vtType})
 
         avg_x = 0.0

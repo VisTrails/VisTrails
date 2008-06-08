@@ -486,8 +486,12 @@ class SQLAutoGen(AutoGen):
             self.unindent()
         for property in self.getNormalSQLColumnsAndKey(object):
             if property.isGlobal():
-                self.printLine("if not global_props.has_key('%s'):\n" % \
-                               property.getGlobalName())
+#                 self.printLine("if not global_props.has_key('%s'):\n" % \
+#                                property.getGlobalName())
+                self.printLine("if hasattr(obj, '%s') and obj.%s " % \
+                                   (property.getPythonName(), 
+                                    property.getPythonName()) + \
+                                   "is not None:\n")
                 self.indentLine("global_props['%s'] = " % \
                                     property.getGlobalName() +
                                 "self.convertToDB(obj.%s, '%s', '%s')\n" % \

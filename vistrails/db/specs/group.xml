@@ -1,7 +1,7 @@
 <object name="group" parentClass="module">
   <layout>
     <xml name="group" nodeType="xs:element"/>
-    <sql table="group"/>
+    <sql table="group_tbl"/>
   </layout>
 
   <property name="id" type="long" primaryKey="true">

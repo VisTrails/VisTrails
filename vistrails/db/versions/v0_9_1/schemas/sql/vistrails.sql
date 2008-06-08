@@ -69,7 +69,7 @@ CREATE TABLE port(
     parent_id int
 ) engine=InnoDB;
 
-CREATE TABLE group(
+CREATE TABLE group_tbl(
     id int,
     cache int,
     name varchar(255),
@@ -168,12 +168,14 @@ CREATE TABLE abstraction(
 
 CREATE TABLE workflow(
     id int not null auto_increment primary key,
+    entity_id int,
     entity_type char(16),
     name varchar(255),
     version char(16),
     last_modified datetime,
     vistrail_id int,
-    parent_id int
+    parent_id int,
+    parent_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE abstraction_ref(

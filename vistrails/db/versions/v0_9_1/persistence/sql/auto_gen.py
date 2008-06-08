@@ -489,7 +489,7 @@ class DBGroupSQLDAOBase(SQLDAO):
 
     def get_sql_columns(self, db, global_props,lock=False):
         columns = ['id', 'cache', 'name', 'namespace', 'package', 'version', 'tag', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
-        table = 'group'
+        table = 'group_tbl'
         whereMap = global_props
         orderBy = 'id'
 
@@ -528,7 +528,7 @@ class DBGroupSQLDAOBase(SQLDAO):
     def from_sql_fast(self, obj, all_objects):
         if obj.db_parentType == 'workflow':
             p = all_objects[('workflow', obj.db_parent)]
-            p.db_add_group(obj)
+            p.db_add_parent(obj)
         elif obj.db_parentType == 'add':
             p = all_objects[('add', obj.db_parent)]
             p.db_add_data(obj)
@@ -540,7 +540,7 @@ class DBGroupSQLDAOBase(SQLDAO):
         if not do_copy and not obj.is_dirty:
             return
         columns = ['id', 'cache', 'name', 'namespace', 'package', 'version', 'tag', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
-        table = 'group'
+        table = 'group_tbl'
         whereMap = {}
         whereMap.update(global_props)
         if obj.db_id is not None:
@@ -593,7 +593,7 @@ class DBGroupSQLDAOBase(SQLDAO):
             return
         if obj.db_workflow is not None:
             child = obj.db_workflow
-            child.db_group = obj.db_id
+            child.db_parent = obj.db_id
         if obj.db_location is not None:
             child = obj.db_location
             child.db_parentType = obj.vtType
@@ -606,7 +606,7 @@ class DBGroupSQLDAOBase(SQLDAO):
             child.db_parent = obj.db_id
         
     def delete_sql_column(self, db, obj, global_props):
-        table = 'group'
+        table = 'group_tbl'
         whereMap = {}
         whereMap.update(global_props)
         if obj.db_id is not None:
@@ -697,9 +697,9 @@ class DBLogSQLDAOBase(SQLDAO):
         if obj.db_id is None:
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if not global_props.has_key('entity_type'):
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             global_props['entity_type'] = self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
-        if not global_props.has_key('entity_id'):
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
@@ -1446,9 +1446,9 @@ class DBAbstractionSQLDAOBase(SQLDAO):
         if obj.db_id is None:
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if not global_props.has_key('entity_type'):
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             global_props['entity_type'] = self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
-        if not global_props.has_key('entity_id'):
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
@@ -1480,7 +1480,7 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'entity_type', 'name', 'version', 'last_modified', 'vistrail_id', 'parent_id']
+        columns = ['id', 'entity_id', 'entity_type', 'name', 'version', 'last_modified', 'vistrail_id', 'parent_id', 'parent_type']
         table = 'workflow'
         whereMap = global_props
         orderBy = 'id'
@@ -1492,14 +1492,16 @@ class DBWorkflowSQLDAOBase(SQLDAO):
             id = self.convertFromDB(row[0], 'long', 'int')
             if not global_props.has_key('entity_id'):
                 global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
-            entity_type = self.convertFromDB(row[1], 'str', 'char(16)')
+            entity_id = self.convertFromDB(row[1], 'long', 'int')
+            entity_type = self.convertFromDB(row[2], 'str', 'char(16)')
             if not global_props.has_key('entity_type'):
                 global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
-            name = self.convertFromDB(row[2], 'str', 'varchar(255)')
-            version = self.convertFromDB(row[3], 'str', 'char(16)')
-            last_modified = self.convertFromDB(row[4], 'datetime', 'datetime')
-            vistrail_id = self.convertFromDB(row[5], 'long', 'int')
-            group = self.convertFromDB(row[6], 'str', 'int')
+            name = self.convertFromDB(row[3], 'str', 'varchar(255)')
+            version = self.convertFromDB(row[4], 'str', 'char(16)')
+            last_modified = self.convertFromDB(row[5], 'datetime', 'datetime')
+            vistrail_id = self.convertFromDB(row[6], 'long', 'int')
+            parent = self.convertFromDB(row[7], 'long', 'int')
+            parentType = self.convertFromDB(row[8], 'str', 'char(16)')
             
             workflow = DBWorkflow(entity_type=entity_type,
                                   name=name,
@@ -1507,20 +1509,22 @@ class DBWorkflowSQLDAOBase(SQLDAO):
                                   last_modified=last_modified,
                                   vistrail_id=vistrail_id,
                                   id=id)
-            workflow.db_group = group
+            workflow.db_entity_id = entity_id
+            workflow.db_parent = parent
+            workflow.db_parentType = parentType
             workflow.is_dirty = False
             res[('workflow', id)] = workflow
 
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('group', obj.db_group)]
+        p = all_objects[('group', obj.db_parent)]
         p.db_add_workflow(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'entity_type', 'name', 'version', 'last_modified', 'vistrail_id', 'parent_id']
+        columns = ['id', 'entity_id', 'entity_type', 'name', 'version', 'last_modified', 'vistrail_id', 'parent_id', 'parent_type']
         table = 'workflow'
         whereMap = {}
         whereMap.update(global_props)
@@ -1531,6 +1535,9 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_id') and obj.db_id is not None:
             columnMap['id'] = \
                 self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             columnMap['entity_type'] = \
                 self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
@@ -1546,9 +1553,12 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_vistrail_id') and obj.db_vistrail_id is not None:
             columnMap['vistrail_id'] = \
                 self.convertToDB(obj.db_vistrail_id, 'long', 'int')
-        if hasattr(obj, 'db_group') and obj.db_group is not None:
+        if hasattr(obj, 'db_parent') and obj.db_parent is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_group, 'str', 'int')
+                self.convertToDB(obj.db_parent, 'long', 'int')
+        if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
+            columnMap['parent_type'] = \
+                self.convertToDB(obj.db_parentType, 'str', 'char(16)')
         columnMap.update(global_props)
 
         if obj.is_new or do_copy:
@@ -1559,9 +1569,9 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         if obj.db_id is None:
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if not global_props.has_key('entity_type'):
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             global_props['entity_type'] = self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
-        if not global_props.has_key('entity_id'):
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):
@@ -2461,9 +2471,9 @@ class DBVistrailSQLDAOBase(SQLDAO):
         if obj.db_id is None:
             obj.db_id = lastId
             keyStr = self.convertToDB(obj.db_id, 'long', 'int')
-        if not global_props.has_key('entity_type'):
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             global_props['entity_type'] = self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
-        if not global_props.has_key('entity_id'):
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
             global_props['entity_id'] = self.convertToDB(obj.db_id, 'long', 'int')
         
     def to_sql_fast(self, obj, do_copy=True):

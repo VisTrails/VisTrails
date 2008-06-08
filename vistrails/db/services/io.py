@@ -32,7 +32,7 @@ import os.path
 import tempfile
 
 from db import VistrailsDBException
-from db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction
+from db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup
 import db.services.abstraction
 import db.services.log
 import db.services.workflow
@@ -566,34 +566,53 @@ def read_sql_objects(db_connection, vtType, id, lock=False):
     all_objects = {}
     res = []
     global_props = {'id': id}
-    all_objects.update(dao_list['sql'][vtType].get_sql_columns(db_connection, 
-                                                               global_props,
-                                                               lock))
-    res = all_objects.values()
+    # print global_props
+    res_objects = dao_list['sql'][vtType].get_sql_columns(db_connection, 
+                                                          global_props,
+                                                          lock)
+    all_objects.update(res_objects)
+    res = res_objects.values()
     del global_props['id']
 
     for dao in dao_list['sql'].itervalues():
         if (dao == dao_list['sql'][DBVistrail.vtType] or
-            dao == dao_list['sql'][DBWorkflow.vtType] or
+            # dao == dao_list['sql'][DBWorkflow.vtType] or
             dao == dao_list['sql'][DBLog.vtType] or
             dao == dao_list['sql'][DBAbstraction.vtType]):
             continue
-        all_objects.update(dao.get_sql_columns(db_connection, global_props, 
-                                               lock))
-    for obj in all_objects.itervalues():
+        current_objs = dao.get_sql_columns(db_connection, global_props, lock)
+        if dao == dao_list['sql'][DBWorkflow.vtType]:
+            for key, obj in current_objs.iteritems():
+                if key[0] == vtType and key[1] == id:
+                    continue
+                elif key[0] == DBWorkflow.vtType:
+                    res_objs = \
+                        read_sql_objects(db_connection, key[0], key[1], lock)
+                    res_dict = {}
+                    for res_obj in res_objs:
+                        res_dict[(res_obj.db_id, res_obj.vtType)] = res_obj
+                    all_objects.update(res_dict)
+        else:
+            all_objects.update(current_objs)
+
+    for key, obj in all_objects.iteritems():
+        if key[0] == vtType and key[1] == id:
+            continue
         dao_list['sql'][obj.vtType].from_sql_fast(obj, all_objects)
     for obj in all_objects.itervalues():
         obj.is_dirty = False
         obj.is_new = False
     return res
 
-def write_sql_objects(db_connection, objectList, do_copy=False):
+def write_sql_objects(db_connection, objectList, do_copy=False, 
+                      global_props=None):
     dao_list = getVersionDAO(currentVersion)
 
     for object in objectList:
-        children = object.db_children()
+        children = object.db_children() # forSQL=True)
         children.reverse()
-        global_props = {'entity_type': "'" + object.vtType + "'"}
+        if global_props is None:
+            global_props = {'entity_type': "'" + object.vtType + "'"}
         # print 'global_props:', global_props
 
         # assumes not deleting entire thing
@@ -616,6 +635,16 @@ def write_sql_objects(db_connection, objectList, do_copy=False):
             dao_list['sql'][child.vtType].set_sql_columns(db_connection, child, 
                                                           global_props, do_copy)
             dao_list['sql'][child.vtType].to_sql_fast(child, do_copy)
+            if child.vtType == DBGroup.vtType:
+                if child.db_workflow:
+                    # print '*** entity_type:', global_props['entity_type']
+                    write_sql_objects(db_connection, [child.db_workflow],
+                                      do_copy,
+                                      {'entity_id': global_props['entity_id'],
+                                       'entity_type': \
+                                           global_props['entity_type']}
+                                      )
+                                            
             child.is_dirty = False
             child.is_new = False
 
