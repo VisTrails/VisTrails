@@ -241,7 +241,7 @@ class EigenBase(object):
         print "[ ",
         for j in xrange(c):
             if left_digits != None:
-                d = left_digits[j]
+                d = left_digits[0,j]
             else:
                 d = 0
             fmt = ("%" +
@@ -429,7 +429,7 @@ class EigenPipelineSimilarity2(EigenBase):
         self._e = mones(n) / n
 
     def step(self, pi_k):
-        r = self._h * pi_k * self._alpha
+        r = pi_k * self._h * self._alpha
         t = pi_k * self._alpha * self._a.transpose()
         r += self._v * (t[0,0] + 1.0 - self._alpha)
         return r
