@@ -146,6 +146,26 @@ class Package(object):
         registry.set_current_package_name(None)
         self._initialized = True
 
+    def report_missing_module(self, module_name, module_namespace):
+        """report_missing_module(name, namespace):
+
+        Calls the package's module handle_missing_module function, if
+        present, to allow the package to dynamically add a missing
+        module.
+        """
+        try:
+            handle = self._module.handle_missing_module
+        except AttributeError:
+            return False
+        try:
+            return handle(module_name, module_namespace)
+        except Exception, e:
+            debug.DebugPrint.critical("Call to handle_missing_module in package '%s'"
+                                      " raised exception '%s'. Assuming package could not"
+                                      " handle call" % (self.name,
+                                                        str(e)))
+        return False
+
     def check_requirements(self):
         try:
             callable_ = self._module.package_requirements
@@ -236,10 +256,6 @@ class Package(object):
             return "No description available"
     description = property(_get_description)
 
-#     def _get_registry_name(self):
-#         return self._registry_name
-#     registry_name = property(_get_registry_name)
-
 
     def _get_version(self):
         return self._module.version
@@ -257,7 +273,7 @@ class Package(object):
             debug.DebugPrint.critical(msg)
             raise e
 
-    # identifer is the unique identifier across packages
+    # identifier is the unique identifier across packages
     identifier = property(_get_identifier)
 
     # codepath is the package codepath
@@ -695,6 +711,26 @@ creating a class that behaves similarly)."""
     def enabled_package_list(self):
         """package_list() -> returns list of all enabled packages."""
         return self._package_list.values()
+
+    def identifier_is_available(self, identifier):
+        """identifier_is_available(identifier: str) -> Pkg
+
+        returns true if there exists a package with the given
+        identifier in the list of available (ie, disabled) packages.
+
+        If true, returns succesfully loaded, uninitialized package."""
+        for codepath in self.available_package_names_list():
+            try:
+                pkg = self.get_package_by_codepath(codepath)
+            except self.MissingPackage:
+                pkg = self.look_at_available_package(codepath)
+                try:
+                    pkg.load()
+                except pkg.LoadFailed:
+                    pass
+                if pkg.identifier == identifier:
+                    return pkg
+        return None
 
     def available_package_names_list(self):
         """available_package_names_list() -> returns list with code-paths of all

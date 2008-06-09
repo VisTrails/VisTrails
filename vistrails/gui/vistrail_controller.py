@@ -33,6 +33,7 @@ from core.modules import module_registry
 from core.modules.module_registry import ModuleRegistry
 from core.modules.basic_modules import Variant
 from core.modules.sub_module import InputPort, OutputPort
+from core.packagemanager import get_package_manager
 from core.vistrail.action import Action
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
@@ -585,30 +586,91 @@ class VistrailController(QtCore.QObject):
                                        self.currentPipeline,
                                        self.currentPipelineView)])
 
-    def changeSelectedVersion(self, newVersion):
-        """ changeSelectedVersion(newVersion: int) -> None        
-        Change the current vistrail version into newVersion and emit a
+    def changeSelectedVersion(self, new_version):
+        """ changeSelectedVersion(new_version: int) -> None        
+        Change the current vistrail version into new_version and emit a
         notification signal
         
         """
-        self.currentVersion = newVersion
-        if newVersion>=0:
+        # We assign to temporaries to avoid partial state changes
+        # being hosed by an exception
+        if new_version == -1:
+            new_pipeline = None
+        else:
             try:
-                self.currentPipeline = self.vistrail.getPipeline(newVersion)
-                self.currentPipeline.ensure_connection_specs()
+                new_pipeline = self.vistrail.getPipeline(new_version)
+                new_pipeline.ensure_connection_specs()
+                new_pipeline.ensure_modules_are_on_registry()
             except ModuleRegistry.MissingModulePackage, e:
                 from gui.application import VistrailsApplication
-                QtGui.QMessageBox.critical(VistrailsApplication.builderWindow,
-                                           'Missing package',
-                                           (('Cannot find module "%s" in \n' % e._name) +
-                                             ('package "%s". Make sure package is \n' % e._identifier) +
-                                             'enabled in the Preferences dialog.'))
-                self.currentPipeline = None
-                self.currentVersion = 0
-        else:
-            self.currentPipeline = None
-        self.emit(QtCore.SIGNAL('versionWasChanged'), newVersion)
-            
+                # if package is present, then we first let the package know
+                # that the module is missing - this might trigger
+                # some new modules.
+                pm = get_package_manager()
+                try:
+                    pkg = pm.get_package_by_identifier(e._identifier)
+                    res = pkg.report_missing_module(e._name, e._namespace)
+                    if not res:
+                        msg = (('Cannot find module "%s" in\n' % e._name) +
+                               ('loaded package "%s". A different package version\n' %
+                                pkg.name) +
+                               'might be necessary.')
+
+                        QtGui.QMessageBox.critical(VistrailsApplication.builderWindow,
+                                                   'Missing module in package',
+                                                   msg)
+                        return
+                    else:
+                        # package reported success in handling missing
+                        # module, so we retry changing the version by
+                        # recursing, since other packages/modules
+                        # might still be needed.
+                        return self.changeSelectedVersion(new_version)
+                except pm.MissingPackage:
+                    pass
+
+                # Ok, package is missing - let's see if user wants to
+                # late-enable it.
+                pkg = pm.identifier_is_available(e._identifier)
+                if pkg:
+                    res = show_question('Enable package?',
+                                        "This pipeline contains a module in package '%s'."
+                                        " Do you want to enable that package?"  % e._identifier,
+                                        [YES_BUTTON, NO_BUTTON], YES_BUTTON)
+                    if res == NO_BUTTON:
+                        return
+                    # Ok, user wants to late-enable it. Let's give it a shot
+                    try:
+                        pm.late_enable_package(pkg.codepath)
+                    except pkg.InitializationFailed:
+                        QtGui.QMessageBox.critical(VistrailsApplication.builderWindow,
+                                                   'Package load failed',
+                                                   'Package "%s" failed during initialization.'
+                                                   ' Please contact the developer of that package'
+                                                   ' and report a bug' % pkg.name)
+                        return
+                    except Exception, e:
+                        msg = "Weird - this exception '%s' shouldn't have happened" % str(e)
+                        raise VistrailsInternalError()
+                        
+                    # there's a new package in the system, so we retry
+                    # changing the version by recursing, since other
+                    # packages/modules might still be needed.
+                    return self.changeSelectedVersion(new_version)
+                else:
+                    QtGui.QMessageBox.critical(VistrailsApplication.builderWindow,
+                                               'Unavailable package',
+                                               'Cannot find package "%s" in\n'
+                                               'list of available packages. \n'
+                                               'Please install it first.' % e._identifier)
+                    return
+
+        # If execution arrives here, we handled all exceptions, so
+        # assign values
+        self.currentPipeline = new_pipeline
+        self.currentVersion = new_version
+        self.emit(QtCore.SIGNAL('versionWasChanged'), new_version)
+
     def resendVersionWasChanged(self):
         """ resendVersionWasChanged() -> None
         Resubmit the notification signal of the current vistrail version

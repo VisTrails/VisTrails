@@ -105,9 +105,14 @@ class QMethodTreeWidget(QSearchTreeWidget):
         self.clear()
 
         if module:
-            descriptor = registry.get_descriptor_by_name(module.package,
-                                                         module.name,
-                                                         module.namespace)
+            try:
+                descriptor = registry.get_descriptor_by_name(module.package,
+                                                             module.name,
+                                                             module.namespace)
+            except registry.MissingModulePackage, e:
+                # FIXME handle this the same way as
+                # vistrail_controller:changeSelectedVersion
+                raise
             moduleHierarchy = registry.get_module_hierarchy(descriptor)
             for baseModule in moduleHierarchy:
                 baseName = registry.get_descriptor(baseModule).name

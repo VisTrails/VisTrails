@@ -837,6 +837,27 @@ class Pipeline(DBWorkflow):
             if not conn.destination.spec:
                 conn.destination.spec = destination_spec(conn.destination)
 
+    def ensure_modules_are_on_registry(self, module_ids=None):
+        """ensure_modules_are_on_registry(module_ids: optional list of module ids) -> None
+
+        Queries the module registry for the module information in the
+        given modules.  The only goal of this function is to trigger
+        exceptions in the registry that will be treated somewhere else
+        in the calling stack.
+        
+        If modules are not on registry, the registry will raise
+        MissingModulePackage exceptions that should be caught and handled.
+
+        if no module_ids list is given, we assume every module in the pipeline.
+        """
+
+        if module_ids == None:
+            module_ids = self.modules.iterkeys()
+        for mid in module_ids:
+            registry.get_descriptor_by_name(self.modules[mid].package,
+                                            self.modules[mid].name,
+                                            self.modules[mid].namespace)
+
     ##########################################################################
     # Debugging
 

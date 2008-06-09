@@ -512,12 +512,20 @@ class ModuleRegistry(QtCore.QObject):
     new_output_port_signal = QtCore.SIGNAL("new_output_port_signal")
 
     class MissingModulePackage(Exception):
-        def __init__(self, identifier, name):
+        def __init__(self, identifier, name, namespace):
             Exception.__init__(self)
             self._identifier = identifier
             self._name = name
+            self._namespace = namespace
         def __str__(self):
-            return "Missing package: %s, %s" % (self._identifier, self._name)
+            if self._namespace:
+                return "Missing package: %s, %s|%s" % (self._identifier,
+                                                       self._namespace,
+                                                       self._name)
+            else:
+                return "Missing package: %s, %s" % (self._identifier,
+                                                    self._name)
+                
 
     class MissingBaseClass(Exception):
         def __init__(self, base):
@@ -681,7 +689,8 @@ class ModuleRegistry(QtCore.QObject):
                    if x[1] == name]
         if len(matches) == 0:
             raise self.MissingModulePackage("<unknown package>",
-                                            name)
+                                            name,
+                                            None)
         if len(matches) > 1:
             raise Exception("ambiguous resolution...")
         result = self.get_descriptor_by_name(*(matches[0]))
@@ -765,12 +774,12 @@ class ModuleRegistry(QtCore.QObject):
         if identifier not in self.package_modules:
             msg = ("Cannot find package %s: it is missing" % identifier)
             core.debug.critical(msg)
-            raise self.MissingModulePackage(identifier, name)
+            raise self.MissingModulePackage(identifier, name, namespace)
         if not self._key_tree_map.has_key(key):
             msg = ("Package %s does not contain module %s" %
                    (identifier, key))
             core.debug.critical(msg)
-            raise self.MissingModulePackage(identifier, name)
+            raise self.MissingModulePackage(identifier, name, namespace)
         return self._key_tree_map[key].descriptor
 
     def get_descriptor(self, module):
