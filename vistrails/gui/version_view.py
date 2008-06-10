@@ -261,33 +261,36 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             newHsv = (h, s*sat, v+(1.0-v)*(1-sat), a)
             self.versionBrush = QtGui.QBrush(QtGui.QColor.fromHsvF(*newHsv))
 
-    def setupVersion(self, id, label, rect):
-        """ setupPort(node: DotNode, label: str) -> None
+    def setupVersion(self, node, action, tag):
+        """ setupPort(node: DotNode,
+                      action: DBAction,
+                      tag: DBTag) -> None
         Update the version dimensions and id
         
         """
-        self.id = id
-        if self.label != label:
-            self.label = label
-        if self.rect() != rect:
-            self.setRect(rect)
+        # Lauro:
+        # what was this hacking??? the coordinates inside
+        # the input "node" should come to this point ready. This is
+        # not the point to do layout calculations (e.g. -node.p.y/2)
 
+        # Carlos:
+        # This is not layout as much as dealing with the way Qt
+        # specifies rectangles. Besides, moving this back here reduces
+        # code duplication, and allows customized behavior for
+        # subclasses.
 
-#         self.label = label
-#         self.rect()
-#
-#       #what was this hacking??? the coordinates inside
-#       #the input "node" should come to this point ready. This is
-#       #not the point to do layout calculations (e.g. -node.p.y/2)
-#
-#        self.setRect(QtCore.QRectF(node.p.x-node.width/2,
-#                                   -node.p.y/2,
-#                                   node.width,
-#                                   node.height))
-#         self.setRect(QtCore.QRectF(node.p.x-node.width/2.0,
-#                                    node.p.y-node.height/2.0,
-#                                    node.width,
-#                                    node.height))
+        rect = QtCore.QRectF(node.p.x-node.width/2.0,
+                             node.p.y-node.height/2.0,
+                             node.width,
+                             node.height)
+        if tag is None:
+            label = ''
+        else:
+            label = tag.name
+        self.id = node.id
+        self.label = label
+        self.setRect(rect)
+
 
     def boundingRect(self):
         """ boundingRect() -> QRectF
@@ -491,32 +494,6 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         """
         self.addToBookmarksAct = QtGui.QAction("Add To Bookmarks", self.scene())
         self.addToBookmarksAct.setStatusTip("Add this pipeline to bookmarks")
-#         QtCore.QObject.connect(self.addToBookmarksAct, 
-#                                QtCore.SIGNAL("triggered()"),
-#                                self.add_bookmark)
-
-#     def add_bookmark(self):
-#         """add_bookmark() -> None
-#         Emit signal containing version info: tag and number 
-        
-#         """
-#         modified = False
-#         if self.scene().controller.changed:
-#             modified = True
-#             res = gui.utils.show_question("VisTrails",
-#                                     "You need to save your file before\
-#  adding a bookmark.\nDo you want to save your changes?",
-#                                     [gui.utils.SAVE_BUTTON, 
-#                                      gui.utils.CANCEL_BUTTON],
-#                                     gui.utils.SAVE_BUTTON)
-#             if res == gui.utils.SAVE_BUTTON:
-#                 fileName = self.scene().controller.fileName
-#                 self.scene().controller.writeVistrail(str(fileName))
-#                 modified = False
-
-#         if not modified:
-#             self.scene().emit( QtCore.SIGNAL('addToBookmarks'), 
-#                                self.id, self.label) 
 
 class QVersionTreeScene(QInteractiveGraphicsScene):
     """
@@ -537,18 +514,14 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.edges = {}     # (sourceVersion, targetVersion) -> edge gui object
         self.controller = None
         self.fullGraph = None
-
-    def addVersion(self, node, label):
-        """ addModule(node: DotNode) -> None
-        Add a module to the scene
+        
+    def addVersion(self, node, action, tag):
+        """ addModule(node, action: DBAction, tag: DBTag) -> None
+        Add a module to the scene.
         
         """
         versionShape = QGraphicsVersionItem(None)
-        rect = QtCore.QRectF(node.p.x-node.width/2.0,
-                      node.p.y-node.height/2.0,
-                      node.width,
-                      node.height)
-        versionShape.setupVersion(node.id, label, rect)
+        versionShape.setupVersion(node, action, tag)
         self.addItem(versionShape)
         self.versions[node.id] = versionShape
 
@@ -698,27 +671,19 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             # version id
             v = node.id
 
-            # label of version
-            label = ''
-            if controller.vistrail.tagMap.has_key(v):
-                label = controller.vistrail.tagMap[v].name
+            # version tag
+            tag = controller.vistrail.tagMap.get(v, None)
+            action = controller.vistrail.actionMap.get(v, None)
 
             # if the version gui object already exists...
             if self.versions.has_key(v):
                 versionShape = self.versions[v]
-                rect = QtCore.QRectF(node.p.x-node.width/2.0,
-                                     node.p.y-node.height/2.0,
-                                     node.width,
-                                     node.height)
-                versionShape.setupVersion(node.id, label, rect)
+                versionShape.setupVersion(node, action, tag)
             else:
-                self.addVersion(node, label)
+                self.addVersion(node, action, tag)
 
             # set as selected
-            if v == controller.currentVersion:
-                self.versions[v].setSelected(True)
-            else:
-                self.versions[v].setSelected(False)
+            self.versions[v].setSelected(v == controller.currentVersion)
 
         # adjust the colors
         self.adjustVersionColors(controller)
