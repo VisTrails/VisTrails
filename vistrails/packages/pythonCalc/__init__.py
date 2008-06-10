@@ -103,7 +103,7 @@ on its inputs."""
         # ModuleError with a descriptive error. This allows the interpreter
         # to capture the error and report it to the caller of the evaluation
         # function.
-        raise ModuleError("unrecognized operation: '%s'" % op)
+        raise ModuleError(self, "unrecognized operation: '%s'" % op)
 
 ###############################################################################
 # the function initialize is called for each package, after all
