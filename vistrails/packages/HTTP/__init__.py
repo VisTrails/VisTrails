@@ -75,8 +75,11 @@ class HTTPFile(HTTP):
     def parse_url(self, url):
         # TODO: There's gotta be a urllib method for this.
         s = url.split('/')
-        self.host = s[2]
-        self.filename = '/' + '/'.join(s[3:])
+        try:
+            self.host = s[2]
+            self.filename = '/' + '/'.join(s[3:])
+        except:
+            raise ModuleError(self, "Malformed URL: %s" % url)
 
     def is_outdated(self, remoteHeader, localFile):
         """Checks whether local file is outdated."""
@@ -136,7 +139,7 @@ def initialize(*args, **keywords):
     reg = core.modules.module_registry
     basic = core.modules.basic_modules
 
-    reg.add_module(HTTP)
+    reg.add_module(HTTP, abstract=True)
     reg.add_module(HTTPFile)
     reg.add_input_port(HTTPFile, "url", (basic.String, 'URL'))
     reg.add_output_port(HTTPFile, "file", (basic.File, 'local File object'))
