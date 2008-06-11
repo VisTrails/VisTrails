@@ -25,7 +25,7 @@ initializations to the theme, packages and the builder...
 """
 
 
-from PyQt4 import QtGui, QtCore, Qt
+from PyQt4 import QtGui, QtCore
 from core import command_line
 from core import debug
 from core import system
@@ -66,7 +66,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
 
     def __init__(self):
         QtGui.QApplication.__init__(self, sys.argv)
-        if Qt.QT_VERSION < 0x40200: # 0x40200 = 4.2.0
+        if QtCore.QT_VERSION < 0x40200: # 0x40200 = 4.2.0
             raise core.requirements.MissingRequirement("Qt version >= 4.2")
         self._initialized = False
         qt.allowQObjects()
@@ -392,7 +392,6 @@ def start_application(optionsDict=None):
         QtGui.QMessageBox.critical(None, "Missing requirement",
                                    msg)
         sys.exit(1)
-                                   
     x = VistrailsApplication.init(optionsDict)
     if x == True:
         return 0
@@ -407,3 +406,4 @@ def stop_application():
     VistrailsApplication.save_configuration()
     VistrailsApplication.destroy()
     VistrailsApplication.deleteLater()
+
