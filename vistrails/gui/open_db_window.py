@@ -677,6 +677,9 @@ class QConnectionDBSetupWindow(QtGui.QDialog):
         self.connect(self.testButton,
                      QtCore.SIGNAL('clicked()'),
                      self.testConnection)
+        self.connect(self.nameEdt,
+                     QtCore.SIGNAL('textChanged(QString)'),
+                     self.updateButtons)
         self.connect(self.hostEdt,
                      QtCore.SIGNAL('textChanged(QString)'),
                      self.updateButtons)
@@ -702,7 +705,7 @@ class QConnectionDBSetupWindow(QtGui.QDialog):
                   'db': str(self.databaseEdt.text())}
         try:
             db.services.io.test_db_connection(config)
-            show_warning('Vistrails',"Connection succeeded!")
+            gui.utils.show_info('Vistrails',"Connection succeeded!")
             
         except Exception, e:
             QtGui.QMessageBox.critical(None,

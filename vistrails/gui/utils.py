@@ -78,6 +78,16 @@ def show_warning(title, message):
     else:
         show_custom(title,message)
 
+def show_info(title, message):
+    """ show_info(title: str, message: str) -> None
+    Show an information message box with a specific title and contents
+
+    """
+    if systemType not in ['Darwin']:
+        QtGui.QMessageBox.information(None, title, message)
+    else:
+        show_custom(title,message)
+
 def show_question(title,
                   message,
                   buttons = [OK_BUTTON],
