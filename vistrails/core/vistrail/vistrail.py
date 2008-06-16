@@ -20,11 +20,6 @@
 ##
 ############################################################################
 """ This file contains the definition of the class Vistrail """
-if __name__ == '__main__':
-    import qt
-    global app
-    app = qt.createBogusQtApp()
-
 
 import copy
 import datetime
@@ -56,7 +51,7 @@ from core.vistrail.tag import Tag
 
 class Vistrail(DBVistrail):
 	
-    def __init__(self):
+    def __init__(self, locator=None):
 	DBVistrail.__init__(self)
 
         self.changed = False
@@ -64,7 +59,7 @@ class Vistrail(DBVistrail):
         self.currentGraph=None
         # self.prunedVersions = set()
         self.savedQueries = []
-        self.locator = None
+        self.locator = locator
 
         # object to keep explicit expanded 
         # version tree always updated

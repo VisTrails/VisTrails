@@ -35,11 +35,6 @@ import __builtin__
 
 ################################################################################
 
-if __name__ == '__main__':
-    import qt
-    global app
-    app = qt.createBogusQtApp()
-
 PipelineElementType = enum('PipelineElementType',
                            ['Module', 'Connection', 'Function', 'Parameter'])
 

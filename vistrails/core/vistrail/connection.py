@@ -21,10 +21,6 @@
 ############################################################################
 """ This python module defines Connection class.
 """
-if __name__ == '__main__':
-    import qt
-    global app
-    app = qt.createBogusQtApp()
 
 import copy
 from db.domain import DBConnection

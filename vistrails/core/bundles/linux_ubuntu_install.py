@@ -48,7 +48,7 @@ if pkg.isInstalled:
 
 ##############################################################################
 
-from PyQt4 import Qt, QtCore, QtGui
+from PyQt4 import QtCore, QtGui
 
 class GUIInstallProgress(InstallProgress):
     def __init__(self, pbar, status_label):

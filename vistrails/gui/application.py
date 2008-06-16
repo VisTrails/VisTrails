@@ -93,7 +93,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         self.readOptions()
         if optionsDict:
             for (k, v) in optionsDict.iteritems():
-                setattr(self.configuration, k, v)
+                setattr(self.temp_configuration, k, v)
 
         interactive = self.temp_configuration.check('interactiveMode')
         if interactive:

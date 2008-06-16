@@ -981,38 +981,40 @@ def package_requirements():
 
 ################################################################################
 
-from core.console_mode import run
-import os
-import core.system
-import unittest
-from core.db.locator import XMLFileLocator
+# Commenting out because we no longer have a vtkRenderWindow module..
 
-class TestVTKPackage(unittest.TestCase):
+# from core.console_mode import run
+# import os
+# import core.system
+# import unittest
+# from core.db.locator import XMLFileLocator
 
-    def test_writer(self):
+# class TestVTKPackage(unittest.TestCase):
 
-        result_filename = (core.system.temporary_directory() +
-                           os.path.sep +
-                           'test_vtk_12345.vtk')
-        template_filename = (core.system.vistrails_root_directory() +
-                             '/tests/resources/vtkfiles/vtk_quadric_writer_test.vtk')
+#     def test_writer(self):
 
-        def compare():
-            for (l1, l2) in izip(file(result_filename, 'r'),
-                                 file(template_filename, 'r')):
-                if l1 != l2:
-                    self.fail("Resulting file doesn't match template")
+#         result_filename = (core.system.temporary_directory() +
+#                            os.path.sep +
+#                            'test_vtk_12345.vtk')
+#         template_filename = (core.system.vistrails_root_directory() +
+#                              '/tests/resources/vtkfiles/vtk_quadric_writer_test.vtk')
+
+#         def compare():
+#             for (l1, l2) in izip(file(result_filename, 'r'),
+#                                  file(template_filename, 'r')):
+#                 if l1 != l2:
+#                     self.fail("Resulting file doesn't match template")
             
-        locator = XMLFileLocator(core.system.vistrails_root_directory() +
-                                 '/tests/resources/vtk.xml')
+#         locator = XMLFileLocator(core.system.vistrails_root_directory() +
+#                                  '/tests/resources/vtk.xml')
 
-        result = run(locator, "writer_test")
-        self.assertEquals(result, True)
-        compare()
-        os.remove(result_filename)
+#         result = run(locator, "writer_test")
+#         self.assertEquals(result, True)
+#         compare()
+#         os.remove(result_filename)
 
-        result = run(locator, "writer_test_filesink")
-        self.assertEquals(result, True)
-        compare()
-        os.remove(result_filename)
+#         result = run(locator, "writer_test_filesink")
+#         self.assertEquals(result, True)
+#         compare()
+#         os.remove(result_filename)
         

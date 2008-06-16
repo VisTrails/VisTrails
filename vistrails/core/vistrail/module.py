@@ -22,10 +22,6 @@
 # Check for testing
 """ This module defines the class Module 
 """
-if __name__ == '__main__':
-    import gui.qt
-    global app
-    app = gui.qt.createBogusQtApp()
 
 import copy
 from itertools import izip
