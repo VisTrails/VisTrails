@@ -235,6 +235,9 @@ class EigenBase(object):
 
     @staticmethod
     def pv(v, digits=5, left_digits=None):
+        # FIXME - some scipy indexing seems to be currently
+        # inconsistent across different deployed versions. Fix this.
+        return
         if type(v) == scipy.matrix:
             v = scipy.array(v)[0]
         (c,) = v.shape
