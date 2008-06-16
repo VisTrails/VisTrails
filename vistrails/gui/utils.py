@@ -189,3 +189,15 @@ def getBuilderWindow():
         return QtCore.QCoreApplication.instance().builderWindow
     except:
         return None
+
+def getCurrentVersion():
+    """ getCurrentVersion() -> int
+    Return the current version on VisTrails, return -1 if the GUI is not available
+    
+    """
+    builderWindow = getBuilderWindow()
+    if builderWindow!=None:
+        current_view = builderWindow.viewManager.currentWidget()
+        if current_view!=None:
+            return current_view.controller.currentVersion
+    return -1
