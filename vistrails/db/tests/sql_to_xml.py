@@ -1,4 +1,8 @@
 # MACOSX binary install stuff
+if __name__ != '__main__':
+    import tests
+    raise tests.NotModule('This should not be imported as a module')
+    
 import os
 os.environ['EXECUTABLEPATH'] = '/vistrails/VisTrails.app/Contents/MacOS'
 

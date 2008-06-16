@@ -48,6 +48,8 @@ else:
     root_directory = os.path.join(_this_dir,  '..')
 sys.path.append(root_directory)
 
+import tests
+
 ###############################################################################
 # Utility
 
@@ -85,7 +87,9 @@ if len(sys.argv) > 1:
 # creates the app so that testing can happen
 import gui.application
 sys.argv = sys.argv[:1]
-gui.application.start_application({'interactiveMode': False,
+
+# We need the windows so we can test events, etc.
+gui.application.start_application({'interactiveMode': True,
                                    'nologger': True})
 
 print "Test Suite for VisTrails"
@@ -130,6 +134,9 @@ for (p, subdirs, files) in os.walk(root_directory):
                 m = __import__(module, globals(), locals(), ['foo'])
             else:
                 m = __import__(module)
+        except tests.NotModule:
+            if verbose >= 1:
+                print "Skipping %s, not an importable module" % filename
         except:
             print msg, "ERROR: Could not import module!"
             continue

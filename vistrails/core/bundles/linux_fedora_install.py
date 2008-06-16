@@ -176,4 +176,11 @@
 
 import os
 import sys
+
+if __name__ != '__main__':
+    import tests
+    raise tests.NotModule('This should not be imported as a module')
+
 sys.exit(os.system('yum -y install ' + ' '.join(sys.argv[1:])))
+
+################################################################################

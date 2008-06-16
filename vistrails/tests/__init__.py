@@ -19,4 +19,19 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
-pass
+
+class NotModule(Exception):
+    """This is a special exception that is caught by the testing
+    infrastructure. If a particular python file is not meant to be
+    imported as a module, that file should have the following lines:
+
+    if __name__ != '__main__':
+        import tests
+        raise tests.NotModule('This should not be imported as a module')
+
+    This way, the testing infrastructure will now not to report failure
+    to import that file as an error.
+    """
+
+    pass
+

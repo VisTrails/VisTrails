@@ -23,6 +23,10 @@
 
 # Installs a package through APT, showing progress.
 
+if __name__ != '__main__':
+    import tests
+    raise tests.NotModule('This should not be imported as a module')
+
 import apt
 import apt_pkg
 import sys, os
