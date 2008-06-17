@@ -1648,7 +1648,9 @@ mutual connections."""
         Paste modules/connections from the clipboard into this pipeline view
         
         """
-        if self.controller and self.controller.currentPipeline:
+        if self.controller:
+            if self.controller.currentVersion == -1:
+                self.controller.changeSelectedVersion(0)
             cb = QtGui.QApplication.clipboard()        
             text = str(cb.text())
             if text=='': return

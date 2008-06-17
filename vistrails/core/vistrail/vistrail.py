@@ -50,6 +50,27 @@ from core.vistrail.tag import Tag
 ################################################################################
 
 class Vistrail(DBVistrail):
+    """Vistrail is the base class for storing versioned pipelines.
+
+    Because of the automatic loading from the db layer, the fields in
+    the class will seem mysterious.
+
+    self.currentVersion: version of the schema being used for this vistrail
+    (Do not confuse with the currently selected version on the controller)
+
+    self.actions: list of core/vistrail/action/Action objects
+
+    self.actionMap: dictionary from version number to action object.
+
+    self.tagMap: dictionary from version number to tag object.
+
+
+    Simple use cases:
+
+    To get a version number given a tag name, use
+    get_tag_by_name(tag_name).id
+
+    """
 	
     def __init__(self, locator=None):
 	DBVistrail.__init__(self)
@@ -84,6 +105,7 @@ class Vistrail(DBVistrail):
     def _get_tagMap(self):
         return self.db_tags_id_index
     tagMap = property(_get_tagMap)
+
     def get_tag_by_name(self, name):
         return self.db_get_tag_by_name(name)
     def has_tag_with_name(self, name):
@@ -968,6 +990,12 @@ class TestVistrail(unittest.TestCase):
         vistrail.addTag('first action', action1.id)
         vistrail.addTag('second action', action2.id)
         return vistrail
+
+    def test_get_tag_by_name(self):
+        v = self.create_vistrail()
+        self.failUnlessRaises(KeyError, lambda: v.get_tag_by_name('not here'))
+        v.get_tag_by_name('first action')
+        v.get_tag_by_name('second action')
 
     def test_copy(self):
         v1 = self.create_vistrail()

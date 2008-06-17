@@ -91,7 +91,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self._package_menu_items = {}
 
     def create_first_vistrail(self):
-        self.newVistrailAction.trigger()
+        self.newVistrail()
         self.viewManager.set_first_view(self.viewManager.currentView())
 
     def sizeHint(self):
@@ -675,13 +675,6 @@ class QBuilderWindow(QtGui.QMainWindow):
         else:
             self.redoAction.setEnabled(False)
             self.viewToolBar.redoAction().setEnabled(False)
-        
-        #copy and paste
-        if versionId > 0:
-            clipboard = QtGui.QApplication.clipboard()
-            self.pasteAction.setEnabled(not clipboard.text().isEmpty())
-        else:
-            self.pasteAction.setEnabled(False)
         
 
     def execStateChange(self):

@@ -164,7 +164,21 @@ def profile(func):
     given method using cProfile. You need to get the decorated method
     programmatically later to get to the profiler stats. It will be
     available as the attribute 'profiler_object' on the decorated
-    result."""
+    result.
+
+    From there, you probably want to do something like this:
+
+    >>> po = ...... .profiler_object
+    >>> po.dump_stats('/tmp/some_temporary_file')
+    >>> import pstats
+    >>> ps = pstats.Stats('/tmp/some_temporary_file')
+    >>> ps.sort_stats('time') # or cumtime, or calls, or others - see doc
+    >>> ps.print_stats()
+
+    """
+
+    # Notice that on ubuntu you will need
+    # sudo apt-get install python-profiler
 
     try:
         import cProfile as prof

@@ -63,11 +63,11 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
         self.setZValue(0)
         self.linkPen = CurrentTheme.LINK_PEN
-        self.startVersion = -1
-        self.endVersion = -1
+        # self.startVersion = -1
+        # self.endVersion = -1
         self.ghosted = False
         
-        # save centers
+        # cache link endpoints to improve performance on scene updates
         self.c1 = None
         self.c2 = None
         self.compact = None
@@ -89,8 +89,8 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
         Setup a line connecting v1 and v2 items
         
         """
-        self.startVersion = min(v1.id, v2.id)
-        self.endVersion = max(v1.id, v2.id)
+        # self.startVersion = min(v1.id, v2.id)
+        # self.endVersion = max(v1.id, v2.id)
         c1 = v1.sceneBoundingRect().center()
         c2 = v2.sceneBoundingRect().center()
 
@@ -110,7 +110,7 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
 
         # Compute the line of the link and its normal line throught
         # the midpoint
-        mainLine = QtCore.QLineF(c1.x(), c1.y(), c2.x(), c2.y())
+        mainLine = QtCore.QLineF(c1, c2)
         normalLine = mainLine.normalVector()        
         normalLine.setLength(CurrentTheme.LINK_SEGMENT_LENGTH)
         dis = (mainLine.pointAt(0.5)-mainLine.p1()+
