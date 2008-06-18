@@ -571,6 +571,9 @@ class Vistrail(DBVistrail):
          version number 2
 
         """
+        if (v1<=0 or v2<=0):
+            return 0
+        
         t1 = set()
         t1.add(v1)
         t = self.actionMap[v1].parent
