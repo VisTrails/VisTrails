@@ -508,7 +508,8 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         Handle general key-bindings, e.g. 'R' for Reset
         """
         # Reset the view when 'R' is pressed
-        if event.key()==QtCore.Qt.Key_R:
+        if event.key()==QtCore.Qt.Key_R \
+                and event.modifiers() in [QtCore.Qt.ControlModifier]:
             self.scene().fitToView(self)
         else:
             QtGui.QGraphicsView.keyPressEvent(self, event)
