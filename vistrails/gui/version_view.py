@@ -26,6 +26,7 @@ functionalities are implemented at somewhere else,
 e.g. core.vistrails
 
 QGraphicsLinkItem
+QGraphicsVersionTextItem
 QGraphicsVersionItem
 QVersionTreeScene
 QVersionTreeView
@@ -192,6 +193,90 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
                     return QtCore.QVariant(False)
         return QtGui.QGraphicsPolygonItem.itemChange(self, change, value)
 
+
+##############################################################################
+# QGraphicsVerstionTextItem
+
+class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
+    """
+    QGraphicsVersionTextItem is an editable text item that appears on top of
+    a QGraphicsVersionItem to allow the tag to be changed
+
+    """
+    def __init__(self, parent=None, scene=None):
+        """ QGraphicsVersionTextItem(parent: QGraphicsVersionItem, 
+        scene: QGraphicsScene) -> QGraphicsVersionTextItem
+
+        Create the shape, intialize its drawing style
+
+        """
+        QtGui.QGraphicsTextItem.__init__(self, parent, scene)
+        self.parent = parent
+        self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.setFont(CurrentTheme.VERSION_FONT)
+        self.setTextWidth(CurrentTheme.VERSION_LABEL_MARGIN[0])
+        self.centerX = 0.0
+        self.centerY = 0.0
+        self.label = ''
+
+    def changed(self, x, y, label):
+        """ changed(x: float, y: float, label: str) -> None
+        Change the position and text label from outside the editor
+
+        """
+        self.centerX = x
+        self.centerY = y
+        self.label = label
+        self.reset()
+
+    def reset(self):
+        """ reset() -> None
+        Resets the text label, width, and positions to the stored values
+
+        """
+        self.setPlainText(self.label)
+        if (len(str(self.label)) > 0):
+            self.setTextWidth(-1)
+        else:
+            self.setTextWidth(CurrentTheme.VERSION_LABEL_MARGIN[0])
+        self.updatePos()
+
+    def updatePos(self):
+        """ updatePos() -> None
+        Center the text, by default it uses the upper left corner
+        
+        """
+        self.setPos(self.centerX-self.boundingRect().width()/2.0,
+                    self.centerY-self.boundingRect().height()/2.0)
+
+    def keyPressEvent(self, event):
+        """ keyPressEvent(event: QEvent) -> None
+        Enter and Return keys signal a change in the label.  Other keys
+        update the position and size of the parent ellipse during key entry.
+
+        """
+        if event.key() in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
+            if not self.scene().controller.updateCurrentTag(str(self.toPlainText())):
+                self.reset()
+            self.hide()
+            return
+        qt_super(QGraphicsVersionTextItem, self).keyPressEvent(event)
+        if (len(str(self.toPlainText())) > 0):
+            self.setTextWidth(-1)
+        self.updatePos()
+        self.parent.updateWidthFromLabel()
+
+    def focusOutEvent(self, event):
+        """ focusOutEvent(event: QEvent) -> None
+        Update the tag if the text has changed
+
+        """
+        qt_super(QGraphicsVersionTextItem, self).focusOutEvent(event)
+        if QtCore.QString.compare(self.label, self.toPlainText()) != 0:
+            if not self.scene().controller.updateCurrentTag(str(self.toPlainText())):
+                self.reset()
+      
+
 ##############################################################################
 # QGraphicsVersionItem
 
@@ -221,6 +306,10 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         self.ghosted = False
         self.createActions()
         
+        # Editable text item that remains hidden unless the version is selected
+        self.text = QGraphicsVersionTextItem(self)
+        self.text.hide()
+
         # Need a timer to start a drag to avoid stalls on QGraphicsView
         self.dragTimer = QtCore.QTimer()
         self.dragTimer.setSingleShot(True)
@@ -260,6 +349,20 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             (h, s, v, a) = brush.color().getHsvF()
             newHsv = (h, s*sat, v+(1.0-v)*(1-sat), a)
             self.versionBrush = QtGui.QBrush(QtGui.QColor.fromHsvF(*newHsv))
+    
+    def updateWidthFromLabel(self):
+        """ updateWidthFromLabel() -> None
+        Change the width of the ellipse based on a temporary change in the label
+
+        """
+        prevWidth = self.rect().width()
+        width = self.text.boundingRect().width() + \
+            CurrentTheme.VERSION_LABEL_MARGIN[0] - 4
+        r = self.rect()
+        r.setX(r.x()+(prevWidth-width)/2.0)
+        r.setWidth(width)
+        self.setRect(r)
+        self.update()
 
     def setupVersion(self, node, action, tag):
         """ setupPort(node: DotNode,
@@ -289,8 +392,8 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             label = tag.name
         self.id = node.id
         self.label = label
+        self.text.changed(node.p.x, node.p.y, label)
         self.setRect(rect)
-
 
     def boundingRect(self):
         """ boundingRect() -> QRectF
@@ -310,18 +413,23 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             painter.setPen(self.versionPen)
         painter.setBrush(self.versionBrush)
         painter.drawEllipse(self.rect())
-        if self.isSelected() and not self.ghosted:
-            painter.setPen(CurrentTheme.VERSION_LABEL_SELECTED_PEN)
-        else:
-            painter.setPen(self.versionLabelPen)
-        painter.setFont(CurrentTheme.VERSION_FONT)
-        painter.drawText(self.rect(), QtCore.Qt.AlignCenter, self.label)
+
+        # Only draw text if editable text item is not present
+        if not self.text.isVisible():
+            if self.isSelected() and not self.ghosted:
+                painter.setPen(CurrentTheme.VERSION_LABEL_SELECTED_PEN)
+            else:
+                painter.setPen(self.versionLabelPen)
+            painter.setFont(CurrentTheme.VERSION_FONT)
+            painter.drawText(self.rect(), QtCore.Qt.AlignCenter, self.label)
 
     def itemChange(self, change, value):
         """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
         # Do not allow links to be selected with version
         
         """
+        if (change==QtGui.QGraphicsItem.ItemSelectedChange and not value.toBool()):
+            self.text.hide()
         if ((change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool()) or
             (change==QtGui.QGraphicsItem.ItemSelectedChange and
              ((not value.toBool()) and
@@ -431,6 +539,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         """
         self.dragging = False
         qt_super(QGraphicsVersionItem, self).mouseReleaseEvent(event)
+        self.text.show()
 
     def dragEnterEvent(self, event):
         """ dragEnterEvent(event: QDragEnterEvent) -> None
@@ -715,22 +824,26 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
 
 
     def keyPressEvent(self, event):
-        """ keyPressEvent(event: QKeyEvent) -> None
-        Capture 'Del', 'Backspace' for pruning versions.
-        
-        """        
-        selectedItems = self.selectedItems()
-        if (self.controller and len(selectedItems)>0 and
-            event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
-            versions = [item.id for item in selectedItems]
-            res = gui.utils.show_question("VisTrails",
-                                          "Are you sure that you want to "
-                                          "prune the selected version(s)?",
-                                          [gui.utils.YES_BUTTON,
-                                           gui.utils.NO_BUTTON],
-                                          gui.utils.NO_BUTTON)
-            if res == gui.utils.YES_BUTTON:
-                self.controller.pruneVersions(versions)
+         """ keyPressEvent(event: QKeyEvent) -> None
+         Capture 'Del', 'Backspace' for pruning versions when not editing a tag
+       
+         """        
+         selectedItems = self.selectedItems()
+         versions = [item.id for item in selectedItems 
+                     if type(item)==QGraphicsVersionItem
+                     and not item.text.hasFocus()] 
+         if (self.controller and len(versions)>0 and
+             event.key() in [QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Delete]):
+             versions = [item.id for item in selectedItems]
+             res = gui.utils.show_question("VisTrails",
+                                           "Are you sure that you want to "
+                                           "prune the selected version(s)?",
+                                           [gui.utils.YES_BUTTON,
+                                            gui.utils.NO_BUTTON],
+                                           gui.utils.NO_BUTTON)
+             if res == gui.utils.YES_BUTTON:
+                 self.controller.pruneVersions(versions)
+         qt_super(QVersionTreeScene, self).keyPressEvent(event)
 
     def mouseReleaseEvent(self, event):
         """ mouseReleaseEvent(event: QMouseEvent) -> None

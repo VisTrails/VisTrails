@@ -959,8 +959,8 @@ class VistrailController(QtCore.QObject):
             self.vistrail.update_object(module, db_name=tag)
         
     def updateCurrentTag(self,tag):
-        """ updateCurrentTag(tag: str) -> None
-        Update the current vistrail tag
+        """ updateCurrentTag(tag: str) -> Bool
+        Update the current vistrail tag and return success predicate
         
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
@@ -974,12 +974,13 @@ class VistrailController(QtCore.QObject):
             show_warning('Name Exists',
                          "There is already another version named '%s'.\n"
                          "Please enter a different one." % tag)
-            return
+            return False
 
         self.setChanged(True)
 
         self.invalidate_version_tree(False)
-        
+        return True
+
     def perform_param_changes(self, actions):
         new_timestep = -1
         for action in actions:

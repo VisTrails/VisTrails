@@ -39,6 +39,9 @@ class DefaultTheme(object):
     ######################
     #### MEASUREMENTS ####
 
+    # Padded space of Version shape and its label
+    VERSION_LABEL_MARGIN = (60, 35)
+
     # Padded space of Module shape into its label
     MODULE_LABEL_MARGIN = (20, 20, 20, 15)
     
@@ -51,7 +54,7 @@ class DefaultTheme(object):
     # The space added to the end of port shapes before it reaches the
     # margin of the module
     MODULE_PORT_PADDED_SPACE = 20
-    
+
     # Width and Height of Port shape
     PORT_WIDTH = 10
     PORT_HEIGHT = 10
