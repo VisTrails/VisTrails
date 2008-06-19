@@ -101,9 +101,13 @@ class VistrailController(QtCore.QObject):
         self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
         self.timer.start(1000 * 60 * 2) # Save every two minutes
 
-    def invalidate_version_tree(self):
+    def invalidate_version_tree(self, reset_version_view=True):
+        self.resetVersionView = reset_version_view
         #FIXME: in the future, rename the signal
-        self.emit(QtCore.SIGNAL('vistrailChanged()'))
+        try:
+            self.emit(QtCore.SIGNAL('vistrailChanged()'))
+        finally:
+            self.resetVersionView = True
 
     def enable_autosave(self):
         self._auto_save = True
@@ -170,10 +174,10 @@ class VistrailController(QtCore.QObject):
         
         if quiet is None:
             if not self.quiet:
-                self.invalidate_version_tree()
+                self.invalidate_version_tree(False)
         else:
             if not quiet:
-                self.invalidate_version_tree()
+                self.invalidate_version_tree(False)
         return action.db_id
 
     def add_module(self, identifier, name, x, y, namespace=''):
@@ -573,7 +577,7 @@ class VistrailController(QtCore.QObject):
                 changed = True
         self.quiet = old_quiet
         if changed:
-            self.invalidate_version_tree()
+            self.invalidate_version_tree(False)
 
     def executeCurrentWorkflow(self):
         """ executeCurrentWorkflow() -> None
@@ -690,7 +694,7 @@ class VistrailController(QtCore.QObject):
             self.searchStr = text
             if self.search:
                 self.search.run(self.vistrail, '')
-            self.invalidate_version_tree()
+            self.invalidate_version_tree(False)
             self.emit(QtCore.SIGNAL('searchChanged'))
 
     def setRefine(self, refine):
@@ -702,7 +706,7 @@ class VistrailController(QtCore.QObject):
             self.refine = refine
             if self.refine:
                 self.selectLatestVersion()
-            self.invalidate_version_tree()
+            self.invalidate_version_tree(True)
 
     def setFullTree(self, full):
         """ setFullTree(full: bool) -> None        
@@ -710,8 +714,9 @@ class VistrailController(QtCore.QObject):
         terse tree
         
         """
-        self.fullTree = full
-        self.invalidate_version_tree()
+        if full != self.fullTree:
+            self.fullTree = full
+            self.invalidate_version_tree(True)
 
     def refineGraph(self):
         """ refineGraph(controller: VistrailController) -> (Graph, Graph)        
@@ -891,9 +896,7 @@ class VistrailController(QtCore.QObject):
                 break
         if prev!=None:
             self.changeSelectedVersion(prev)
-            self.resetVersionView = False
-            self.invalidate_version_tree()
-            self.resetVersionView = True
+            self.invalidate_version_tree(False)
 
     def pruneVersions(self, versions):
         """ pruneVersions(versions: list of version numbers) -> None
@@ -922,7 +925,7 @@ class VistrailController(QtCore.QObject):
                 self.vistrail.pruneVersion(highest)
         if changed:
             self.setChanged(True)
-        self.invalidate_version_tree()
+        self.invalidate_version_tree(False)
 
     def selectLatestVersion(self):
         """ selectLatestVersion() -> None
@@ -975,9 +978,7 @@ class VistrailController(QtCore.QObject):
 
         self.setChanged(True)
 
-        self.resetVersionView = False
-        self.invalidate_version_tree()
-        self.resetVersionView = True
+        self.invalidate_version_tree(False)
         
     def perform_param_changes(self, actions):
         new_timestep = -1
@@ -996,7 +997,7 @@ class VistrailController(QtCore.QObject):
         
         if new_timestep != -1:
             self.setChanged(True)
-            self.invalidate_version_tree()
+            self.invalidate_version_tree(False)
         return new_timestep
 
     def performBulkActions(self, actions):
@@ -1015,7 +1016,7 @@ class VistrailController(QtCore.QObject):
 
         if newTimestep != -1 and not self.quiet:
             self.setChanged(True)
-            self.invalidate_version_tree()
+            self.invalidate_version_tree(False)
         
         return newTimestep
 
@@ -1721,7 +1722,7 @@ class VistrailController(QtCore.QObject):
                 new_version = new_vistrail.db_currentVersion
                 self.setVistrail(new_vistrail, locator)
                 self.changeSelectedVersion(new_version)
-                self.invalidate_version_tree()
+                self.invalidate_version_tree(False)
             self.setChanged(False)
 
     def write_workflow(self, locator):
@@ -1851,7 +1852,7 @@ class VistrailController(QtCore.QObject):
                                                  a, b, c)
         self.setChanged(True)
         if invalidate:
-            self.invalidate_version_tree()
+            self.invalidate_version_tree(False)
 
 ################################################################################
 # Testing

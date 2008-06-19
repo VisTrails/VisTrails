@@ -466,7 +466,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         controller = self.scene().controller
         for item in selectedItems:
             controller.perform_analogy(analogy_name, item.id, invalidate=False)
-        controller.invalidate_version_tree()
+        controller.invalidate_version_tree(False)
 
     def contextMenuEvent(self, event):
         """contextMenuEvent(event: QGraphicsSceneContextMenuEvent) -> None

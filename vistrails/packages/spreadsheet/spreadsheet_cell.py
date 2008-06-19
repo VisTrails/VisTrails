@@ -898,7 +898,7 @@ class QCellManipulator(QtGui.QFrame):
                                                            self.cellInfo[2],
                                                            'Apply Analogy')
                     controller.setChanged(True)
-                    controller.invalidate_version_tree()
+                    controller.invalidate_version_tree(False)
                     
 
         else:
@@ -954,7 +954,7 @@ class QCellManipulator(QtGui.QFrame):
                 if view:
                     controller = view.controller
                     controller.changeSelectedVersion(info['version'])
-                    controller.invalidate_version_tree()
+                    controller.invalidate_version_tree(False)
 
 ################################################################################
 

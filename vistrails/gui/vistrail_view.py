@@ -345,7 +345,7 @@ class QVistrailView(QDockContainer):
     ##########################################################################
     # Undo/redo
 
-    def set_selection(self, old_action, new_action, optype):
+    def set_pipeline_selection(self, old_action, new_action, optype):
         # Sets up the right selection based on the the old and new
         # actions coming from undo/redo.
         pScene = self.pipelineTab.pipelineView.scene()
@@ -422,7 +422,7 @@ class QVistrailView(QDockContainer):
         self.controller.showPreviousVersion()
         new_action = action_map.get(self.controller.currentVersion, None)
 
-        self.set_selection(old_action, new_action, 'undo')
+        self.set_pipeline_selection(old_action, new_action, 'undo')
         return self.controller.currentVersion
         
     def redo(self):
@@ -435,11 +435,9 @@ class QVistrailView(QDockContainer):
         next_version = self.redo_stack[-1]
         self.redo_stack = self.redo_stack[:-1]
         self.controller.changeSelectedVersion(next_version)
-        self.controller.resetVersionView = False
-        self.controller.invalidate_version_tree()
-        self.controller.resetVersionView = True
+        self.controller.invalidate_version_tree(False)
         new_action = action_map[self.controller.currentVersion]
-        self.set_selection(old_action, new_action, 'redo')
+        self.set_pipeline_selection(old_action, new_action, 'redo')
         return next_version
 
     def can_redo(self):

@@ -43,7 +43,7 @@ class Queue(object):
         """
         l = self.__end - self.__begin
         if l < 0:
-            return self.__capacity - l
+            return self.__capacity + l
         else:
             return l
         
@@ -67,12 +67,15 @@ class Queue(object):
         Push obj onto the back queue and return nothing
 
         """
+        # olen = len(self)
         if (self.__end + 1) % self.__capacity == self.__begin:
             self.__rebuffer(self.__capacity * 2)
         self.__buffer[self.__end] = obj
         self.__end += 1
         if self.__end == self.__capacity:
             self.__end = 0
+        # nlen = len(self)
+        # assert nlen == olen + 1
 
     class EmptyQueue(Exception):
         pass
@@ -82,6 +85,7 @@ class Queue(object):
         Pop the front element of the queue and return an element type
 
         """
+        # olen = len(self)
         if len(self) == 0:
             raise self.EmptyQueue()
         r = self.__buffer[self.__begin]
@@ -91,7 +95,12 @@ class Queue(object):
             self.__begin = 0
         if self.__capacity > 8 and (self.__capacity / len(self)) >= 4:
             self.__rebuffer(self.__capacity / 2)
+        # nlen = len(self)
+        # assert olen == nlen + 1
         return r
+
+    def capacity(self):
+        return self.__capacity
 
     def __rebuffer(self, newcapacity):
         """ __rebuffer(newcapacity: int) -> none
@@ -144,38 +153,58 @@ class TestQueue(unittest.TestCase):
     def test_expand_basic(self):
         """Test if the queue is expanding its capacity right with push()"""
         q = Queue()
-        for i in xrange(12):
+        for i in xrange(512):
+            assert len(q) == i
             q.push(i)
-        self.assertEquals(len(q), 12)
-        for i in xrange(12):
+            assert len(q) == i+1
+        self.assertEquals(len(q), 512)
+        for i in xrange(512):
+            assert len(q) == 512 - i
             self.assertEquals(q.pop(), i)
+            assert len(q) == 511 - i
             
     def test_expand_contract(self):
         """Test if the queue is expanding and contracting with push()/pop()"""
-        pushed = 0
-        popped = 0
-        q = Queue()
-        for t in xrange(100):
-            for i in xrange(100):
-                # Test expand with high probability
-                a = random.choice([0,0,0,0,0,1])
-                if (a == 0) or (len(q) == 0):
-                    q.push(pushed)
-                    pushed += 1
-                else:
-                    v = q.pop()
-                    self.assertEquals(v, popped)
-                    popped += 1
-            for i in xrange(100):
-                # Test contract with high probability
-                a = random.choice([1,1,1,1,1,0])
-                if (a == 0) or (len(q) == 0):
-                    q.push(pushed)
-                    pushed += 1
-                else:
-                    v = q.pop()
-                    self.assertEquals(v, popped)
-                    popped += 1
+        def run_it():
+            pushed = 0
+            popped = 0
+            q = Queue()
+            for t in xrange(100):
+                for i in xrange(100):
+                    # Test expand with high probability
+                    a = random.choice([0,0,0,0,0,1])
+                    if (a == 0) or (len(q) == 0):
+                        olen = len(q)
+                        q.push(pushed)
+                        nlen = len(q)
+                        assert nlen == olen+1, "push invariant"
+                        pushed += 1
+                    else:
+                        olen = len(q)
+                        v = q.pop()
+                        nlen = len(q)
+                        assert olen == nlen+1, "pop invariant"
+                        self.assertEquals(v, popped)
+                        popped += 1
+                for i in xrange(100):
+                    # Test contract with high probability
+                    a = random.choice([1,1,1,1,1,0])
+                    if (a == 0) or (len(q) == 0):
+                        olen = len(q)
+                        q.push(pushed)
+                        nlen = len(q)
+                        assert nlen == olen+1, "push invariant"
+                        pushed += 1
+                    else:
+                        olen = len(q)
+                        v = q.pop()
+                        nlen = len(q)
+                        assert olen == nlen+1, "pop invariant"
+                        self.assertEquals(v, popped)
+                        popped += 1
+        # run test 100 times
+        for i in xrange(1):
+            run_it()
 
     def test_pop(self):
         x = Queue()

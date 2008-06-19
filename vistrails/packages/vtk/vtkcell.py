@@ -1121,9 +1121,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                                 controller.perform_action(action)
                                 
                         controller.selectLatestVersion()
-                        self.resetVersionView = False
-                        controller.invalidate_version_tree()
-                        self.resetVersionView = True
+                        controller.invalidate_version_tree(False)
 
                 
 class QVTKWidgetToolBar(QCellToolBar):
