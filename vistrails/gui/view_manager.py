@@ -548,6 +548,15 @@ class QViewManager(QtGui.QTabWidget):
             vistrailView = self.widget(viewIndex)
             vistrailView.setPropertiesMode(on)
 
+    def setPropertiesOverlayMode(self, on):
+        """ setPropertiesOverlayMode(on: Bool) -> None
+        Turn the properties overlay panel on/off for all views
+        
+        """
+        for viewIndex in xrange(self.count()):
+            vistrailView = self.widget(viewIndex)
+            vistrailView.setPropertiesOverlayMode(on)
+
     def ensureVistrail(self, locator):
         """ ensureVistrail(locator: VistrailLocator) -> QVistrailView        
         This will first find among the opened vistrails to see if

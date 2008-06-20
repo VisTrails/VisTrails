@@ -24,6 +24,7 @@ name
 
 QVersionProp
 QVersionNotes
+QVersionPropOverlay
 """
 
 from PyQt4 import QtCore, QtGui
@@ -274,3 +275,134 @@ class QVersionNotes(QtGui.QTextEdit):
             cursor.removeSelectedText()
             cursor = QtGui.QTextCursor(doc)
             cursor.deleteChar()
+
+
+################################################################################
+class QVersionPropOverlay(QtGui.QFrame):
+    """
+    QVersionPropOverlay is a transparent widget that sits on top of the version
+    view.  It displays properties of a version: tag, user, date, and notes.
+
+    """
+    def __init__(self, parent=None):
+        """ QVersionPropOverlay(parent: QWidget) -> QVersionPropOverlay
+        Setup layout
+
+        """
+        QtGui.QFrame.__init__(self, parent)
+        
+        self.palette = QtGui.QPalette()
+        self.palette.setColor(QtGui.QPalette.Base, QtGui.QColor(0,0,0,0))
+        self.setPalette(self.palette)
+        self.setAutoFillBackground(True)
+        self.setFrameStyle(QtGui.QFrame.NoFrame)
+        self.setFrameShadow(QtGui.QFrame.Plain)
+        self.layout = QtGui.QGridLayout()
+        self.layout.setVerticalSpacing(1)
+
+        self.tag_label = QtGui.QLabel()
+        self.tag_label.palette().setBrush(QtGui.QPalette.Text,
+                                          CurrentTheme.VERSION_PROPERTIES_PEN)
+        self.tag_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
+        self.tag_label.setText(QtCore.QString("Tag:"))
+
+        self.tag = QtGui.QLabel()
+        self.tag.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
+
+        self.user_label = QtGui.QLabel()
+        self.user_label.palette().setBrush(QtGui.QPalette.Text,
+                                           CurrentTheme.VERSION_PROPERTIES_PEN)
+        self.user_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
+        self.user_label.setText(QtCore.QString("User:"))
+
+        self.user = QtGui.QLabel()
+        self.user.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
+
+        self.date_label = QtGui.QLabel()
+        self.date_label.palette().setBrush(QtGui.QPalette.Text,
+                                           CurrentTheme.VERSION_PROPERTIES_PEN)
+        self.date_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
+        self.date_label.setText(QtCore.QString("Date:"))
+        
+        self.date = QtGui.QLabel()
+        self.date.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
+
+        self.notes_label = QtGui.QLabel()
+        self.notes_label.palette().setBrush(QtGui.QPalette.Text,
+                                           CurrentTheme.VERSION_PROPERTIES_PEN)
+        self.notes_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
+        self.notes_label.setText(QtCore.QString("Notes:"))
+
+        self.notes = QtGui.QLabel()
+        self.notes.setTextFormat(QtCore.Qt.PlainText)
+        self.notes.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
+        
+        self.layout.addWidget(self.tag_label, 0, 0)
+        self.layout.addWidget(self.tag, 0, 1)
+        self.layout.addWidget(self.user_label, 1, 0)
+        self.layout.addWidget(self.user, 1, 1)
+        self.layout.addWidget(self.date_label, 2, 0)
+        self.layout.addWidget(self.date, 2, 1)
+        self.layout.addWidget(self.notes_label, 3, 0)
+        self.layout.addWidget(self.notes, 3, 1)
+        
+        self.layout.setColumnMinimumWidth(0,35)
+        self.layout.setColumnMinimumWidth(1,150)
+        self.layout.setContentsMargins(2,2,2,2)
+        self.layout.setColumnStretch(1,1)
+        self.setLayout(self.layout)
+        self.updateGeometry()
+        self.controller = None
+
+    def updateGeometry(self):
+        """ updateGeometry() -> None
+        Keep in upper left of screen
+
+        """
+        parentGeometry = self.parent().geometry()
+        self.pos_x = 4
+        self.pos_y = 4
+        self.move(self.pos_x, self.pos_y)
+
+    def updateController(self, controller):
+        """ updateController(controller: VistrailController) -> None
+        Assign the controller to the properties
+        
+        """
+        self.controller = controller
+
+    def updateVersion(self, versionNumber):
+        """ updateVersion(versionNumber: int) -> None
+        Update the text items
+        
+        """
+        if self.controller:
+            if self.controller.vistrail.actionMap.has_key(versionNumber):
+                action = self.controller.vistrail.actionMap[versionNumber]
+                name = self.controller.vistrail.getVersionName(versionNumber)
+                self.tag.setText(self.truncate(name))
+                self.user.setText(self.truncate(action.user))
+                self.date.setText(self.truncate(action.date))
+                if action.notes:
+                    self.notes.setText(self.truncate(action.notes))
+                else:
+                    self.notes.setText('')
+            else:
+                self.tag.setText('')
+                self.user.setText('')
+                self.date.setText('')
+                self.notes.setText('')
+
+    def truncate(self, str):
+        """ truncate(str: str) -> QString
+        Remove html tags and shorten string to fit in smaller space
+        
+        """
+        s = QtCore.QString(str)
+        s.replace(QtCore.QRegExp("<[^>]*>"), "")
+        if (s.size() > 24):
+            s.truncate(22)
+            s.append("...")
+        return s
+
+        

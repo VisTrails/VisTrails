@@ -299,6 +299,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.propertiesViewAction.setCheckable(True)
         self.propertiesViewAction.setChecked(True)
 
+        self.propertiesOverlayAction = QtGui.QAction('Properties Overlay', self)
+        self.propertiesOverlayAction.setCheckable(True)
+        self.propertiesOverlayAction.setChecked(False)
+
         self.helpAction = QtGui.QAction(self.tr('About VisTrails...'), self)
 
         a = QtGui.QAction(self.tr('Execute Current Workflow\tCtrl+Enter'),
@@ -373,6 +377,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.viewMenu.addAction(self.methodsViewAction)
         self.viewMenu.addAction(self.setMethodsViewAction)
         self.viewMenu.addAction(self.propertiesViewAction)
+        self.viewMenu.addAction(self.propertiesOverlayAction)
 
         self.runMenu = self.menuBar().addMenu('&Run')
         self.runMenu.addAction(self.executeCurrentWorkflowAction)
@@ -491,6 +496,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.propertiesViewAction,
                      QtCore.SIGNAL('triggered(bool)'),
                      self.viewManager.setPropertiesMode)
+
+        self.connect(self.propertiesOverlayAction,
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.viewManager.setPropertiesOverlayMode)
 
         self.connect(self.vistrailActionGroup,
                      QtCore.SIGNAL('triggered(QAction *)'),

@@ -217,6 +217,16 @@ class QVistrailView(QDockContainer):
         else:
             self.versionTab.versionProp.toolWindow().hide()
 
+    def setPropertiesOverlayMode(self, on):
+        """ setPropertiesMode(on: bool) -> None
+        Set the properties overlay state for the view
+
+        """
+        if on:
+            self.versionTab.versionView.versionProp.show()
+        else:
+            self.versionTab.versionView.versionProp.hide()
+
     def viewModeChanged(self, index):
         """ viewModeChanged(index: int) -> None        
         Slot for switching different views when the tab's current

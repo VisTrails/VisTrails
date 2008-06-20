@@ -40,6 +40,7 @@ from gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface,
                                QGraphicsRubberBandItem)
+from gui.version_prop import QVersionPropOverlay
 from gui.theme import CurrentTheme
 from gui.vis_diff import QVisualDiff
 from gui.qt import qt_super
@@ -870,6 +871,8 @@ class QVersionTreeView(QInteractiveGraphicsView):
         QInteractiveGraphicsView.__init__(self, parent)
         self.setWindowTitle('Version Tree')
         self.setScene(QVersionTreeScene(self))
+        self.versionProp = QVersionPropOverlay(self)
+        self.versionProp.hide()
 
 ################################################################################
 

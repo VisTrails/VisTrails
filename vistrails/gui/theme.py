@@ -264,6 +264,12 @@ class DefaultTheme(object):
         # Font for version text
         self.VERSION_FONT = QtGui.QFont("Arial", 15, QtGui.QFont.Bold)
         self.VERSION_FONT_METRIC = QtGui.QFontMetrics(self.VERSION_FONT)
+        self.VERSION_PROPERTIES_FONT = QtGui.QFont("Arial", 12)
+        self.VERSION_PROPERTIES_FONT_METRIC = \
+            QtGui.QFontMetrics(self.VERSION_PROPERTIES_FONT)
+        self.VERSION_PROPERTIES_PEN =  QtGui.QBrush(
+            QtGui.QColor(20, 100, 20, 255))
+            
 
         # Font showing on the Parameter Inspector window of Visual Diff
         self.VISUAL_DIFF_PARAMETER_FONT = QtGui.QFont('Arial', 10)

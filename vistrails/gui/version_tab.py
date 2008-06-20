@@ -91,6 +91,7 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
             self.controller.resetPipelineView = byClick
             self.controller.changeSelectedVersion(versionId)
             self.versionProp.updateVersion(versionId)
+            self.versionView.versionProp.updateVersion(versionId)
             self.emit(QtCore.SIGNAL('versionSelectionChange'),versionId)
             
     def twoVersionsSelected(self, id1, id2):
@@ -119,6 +120,7 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
             if controller:
                 self.vistrailChanged()
                 self.versionProp.updateController(controller)
+                self.versionView.versionProp.updateController(controller)
 
     def vistrailChanged(self):
         """ vistrailChanged() -> None        
@@ -130,6 +132,7 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
             self.versionView.scene().fitToAllViews()
         if self.controller:
             self.versionProp.updateVersion(self.controller.currentVersion)
+            self.versionView.versionProp.updateVersion(self.controller.currentVersion)
         self.emit(QtCore.SIGNAL("vistrailChanged()"))
 
     def add_bookmark(self, id, name):
