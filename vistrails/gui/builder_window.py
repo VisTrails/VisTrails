@@ -775,17 +775,25 @@ class QBuilderWindow(QtGui.QMainWindow):
         if locator:
             self.open_vistrail_without_prompt(locator)
 
-    def open_vistrail_without_prompt(self, locator):
+    def open_vistrail_without_prompt(self, locator, version=None):
         """open_vistrail_without_prompt(locator_class) -> None
         Open vistrail depending on the locator class given.
         """
-        self.viewManager.open_vistrail(locator)
-        self.closeVistrailAction.setEnabled(True)
-        self.saveFileAsAction.setEnabled(True)
-        self.exportFileAction.setEnabled(True)
-        self.vistrailMenu.menuAction().setEnabled(True)
-        self.viewToolBar.changeView(1)
-
+        if not locator.is_valid():
+                ok = locator.update_from_gui()
+        else:
+            ok = True
+        if ok:
+            self.viewManager.open_vistrail(locator, version)
+            self.closeVistrailAction.setEnabled(True)
+            self.saveFileAsAction.setEnabled(True)
+            self.exportFileAction.setEnabled(True)
+            self.vistrailMenu.menuAction().setEnabled(True)
+            if version:
+                self.viewToolBar.changeView(0)
+            else:
+                self.viewToolBar.changeView(1)
+        
     def open_vistrail_default(self):
         """ open_vistrail_default() -> None
         Opens a vistrail from the file/db

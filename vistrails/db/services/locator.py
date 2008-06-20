@@ -26,6 +26,8 @@ import core.system
 from db.services import io
 import urllib
 from db import VistrailsDBException
+from core.system import get_elementtree_library
+ElementTree = get_elementtree_library()
 
 class BaseLocator(object):
 
@@ -144,9 +146,40 @@ class XMLFileLocator(BaseLocator):
         else:
             return None
 
+    #ElementTree port
+    def to_xml(self, node=None):
+        """to_xml(node: ElementTree.Element) -> ElementTree.Element
+        Convert this object to an XML representation.
+        """
+        if node is None:
+            node = ElementTree.Element('locator')
+
+        node.set('type', 'file')
+        childnode = ElementTree.SubElement(node,'name')
+        childnode.text = str(self._name)
+        return node
+
+    @staticmethod
+    def from_xml(node):
+        """from_xml(node:ElementTree.Element) -> XMLFileLocator or None
+        Parse an XML object representing a locator and returns a
+        XMLFileLocator object."""
+        if node.tag != 'locator':
+            return None
+
+        #read attributes
+        data = node.get('type', '')
+        type = str(data)
+        if type == 'file':
+            for child in node.getchildren():
+                if child.tag == 'name':
+                    filename = str(child.text).strip(" \n\t")
+                    return XMLFileLocator(filename)
+        return None
+
     def __str__(self):
         return '<%s vistrail_name=" %s/>' % (self.__class__.__name__, self._name)
-    
+
     ##########################################################################
 
     def _iter_temporaries(self, f):
@@ -264,6 +297,26 @@ class ZIPFileLocator(XMLFileLocator):
             return None
         else:
             return None
+        
+    #ElementTree port    
+    @staticmethod
+    def from_xml(node):
+        """from_xml(node:ElementTree.Element) -> ZIPFileLocator or None
+        Parse an XML object representing a locator and returns a
+        ZIPFileLocator object."""
+        if node.tag != 'locator':
+            return None
+
+        #read attributes
+        data = node.get('type', '')
+        type = str(data)
+        if type == 'file':
+            for child in node.getchildren():
+                if child.tag == 'name':
+                    filename = str(child.text).strip(" \n\t")
+                    return ZIPFileLocator(filename)
+            return None
+        return None
 
 class DBLocator(BaseLocator):
     
@@ -367,9 +420,9 @@ class DBLocator(BaseLocator):
         locator.setAttribute('host', str(self._host))
         locator.setAttribute('port', str(self._port))
         locator.setAttribute('db', str(self._db))
-        locator.setAttribute('vt_id', str(self._vt_id))
+        locator.setAttribute('vt_id', str(self._obj_id))
         node = dom.createElement('name')
-        filename = dom.createTextNode(str(self._vt_name))
+        filename = dom.createTextNode(str(self._name))
         node.appendChild(filename)
         locator.appendChild(node)
         element.appendChild(locator)
@@ -386,8 +439,8 @@ class DBLocator(BaseLocator):
             port = int(element.getAttribute('port'))
             database = str(element.getAttribute('db'))
             vt_id = str(element.getAttribute('vt_id'))
-            user = None
-            passwd = None
+            user = ""
+            passwd = ""
             for n in element.childNodes:
                 if n.localName == "name":
                     name = str(n.firstChild.nodeValue).strip(" \n\t")
@@ -397,12 +450,89 @@ class DBLocator(BaseLocator):
             return None
         else:
             return None
+        
+    #ElementTree port
+    def to_xml(self, node=None):
+        """to_xml(node: ElementTree.Element) -> ElementTree.Element
+        Convert this object to an XML representation.
+        """
+        if node is None:
+            node = ElementTree.Element('locator')
+
+        node.set('type', 'db')
+        node.set('host', str(self._host))
+        node.set('port', str(self._port))
+        node.set('db', str(self._db))
+        node.set('vt_id', str(self._obj_id))
+    
+        childnode = ElementTree.SubElement(node,'name')
+        childnode.text = str(self._name)
+        return node
+
+    @staticmethod
+    def from_xml(node):
+        """from_xml(node:ElementTree.Element) -> XMLFileLocator or None
+        Parse an XML object representing a locator and returns a
+        DBLocator object."""
+        
+        def convert_from_str(value,type):
+            def bool_conv(x):
+                s = str(x).upper()
+                if s == 'TRUE':
+                    return True
+                if s == 'FALSE':
+                    return False
+
+            if value is not None:
+                if type == 'str':
+                    return str(value)
+                elif value.strip() != '':
+                    if type == 'long':
+                        return long(value)
+                    elif type == 'float':
+                       return float(value)
+                    elif type == 'int':
+                        return int(value)
+                    elif type == 'bool':
+                        return bool_conv(value)
+                    elif type == 'date':
+                        return date(*strptime(value, '%Y-%m-%d')[0:3])
+                    elif type == 'datetime':
+                        return datetime(*strptime(value, '%Y-%m-%d %H:%M:%S')[0:6])
+            return None
+    
+        if node.tag != 'locator':
+            return None
+
+        #read attributes
+        data = node.get('type', '')
+        type = convert_from_str(data, 'str')
+        
+        if type == 'db':
+            data = node.get('host', None)
+            host = convert_from_str(data, 'str')
+            data = node.get('port', None)
+            port = convert_from_str(data,'int')
+            data = node.get('db', None)
+            database = convert_from_str(data,'str')
+            data = node.get('vt_id')
+            vt_id = convert_from_str(data, 'str')
+            user = ""
+            passwd = ""
+            
+            for child in node.getchildren():
+                if child.tag == 'name':
+                    filename = str(child.text).strip(" \n\t")
+                    return DBLocator(host, port, database,
+                                     user, passwd, name, vt_id, None)
+            return None
+        return None
 
     def __str__(self):
-        return '<DBLocator host="%s" port="%s" database="%s" vistrail_id="%s"\
+        return '<DBLocator host="%s" port="%s" database="%s" vistrail_id="%s" \
 vistrail_name="%s"/>' % ( self._host, self._port, self._db,
-                          self._vt_id, self._vt_name)
-    
+                          self._obj_id, self._name)
+
     ###########################################################################
     # Operators
 

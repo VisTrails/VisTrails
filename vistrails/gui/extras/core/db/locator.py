@@ -21,8 +21,10 @@
 ############################################################################
 
 from gui.application import VistrailsApplication
-from gui.open_db_window import QOpenDBWindow
-from core.db.locator import DBLocator, FileLocator
+from gui.open_db_window import QOpenDBWindow, QConnectionDBSetupWindow
+from core.db.locator import DBLocator, FileLocator, untitled_locator
+from db import VistrailsDBException
+import db
 from PyQt4 import QtGui, QtCore
 import core.system
 import os
@@ -60,6 +62,59 @@ def get_save_db_locator_from_gui(parent, obj_type, locator=None):
                      config.get('id', None))
 
 ##############################################################################
+
+def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
+                               database):
+    def show_dialog(parent, id, name, host, port, user,
+                    passwd, databaseb, create):
+        dialog = QConnectionDBSetupWindow(parent, id, name, host, port, user,
+                                          passwd, database, create)
+        config = None
+        if dialog.exec_() == QtGui.QDialog.Accepted:
+            config = {'host': str(dialog.hostEdt.text()),
+                      'port': int(dialog.portEdt.value()),
+                      'user': str(dialog.userEdt.text()),
+                      'passwd': str(dialog.passwdEdt.text()),
+                      'db': str(dialog.databaseEdt.text())
+                      }
+            try:
+                db.services.io.test_db_connection(config)
+                config['succeeded'] = True
+                config['name'] = str(dialog.nameEdt.text())
+                config['id'] = dialog.id
+            except VistrailsDBException, e:
+                QtGui.QMessageBox.critical(None,
+                                           'Vistrails',
+                                           str(e))
+                config['succeeded'] = False
+        return config
+    #check if the information is already there
+    dbwindow = QOpenDBWindow.getInstance()
+        
+    config = dbwindow.connectionList.findConnectionInfo(host,port,database)
+
+    if config:
+        testconfig = dict(config)
+        del testconfig['id']
+        del testconfig['name']
+        try:
+            db.services.io.test_db_connection(testconfig)
+            config['succeeded'] = True
+        except VistrailsDBException, e:
+            config = show_dialog(parent, config['id'],
+                                 config['name'], host, port, config['user'],
+                                 passwd, database, create = False)
+            
+    elif config is None:
+        config = show_dialog(parent, -1,"",
+                             host, port, user, passwd,
+                             database, create = True)
+        if config['succeeded'] == True:
+            #add to connection list
+            dbwindow.connectionList.setConnectionInfo(**config)
+    return config
+
+##############################################################################
 # File dialogs
 
 suffix_map = {'vistrail': ['vt', 'xml'],
@@ -86,12 +141,6 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
     # Ignore current locator for now
     # In the future, use locator to guide GUI for better starting directory
 
-# DAK -- don't understand this so replacing with suffix map
-#     filetypes = "*%s "%VistrailsApplication.configuration.defaultFileType
-#     supported_files = [".vt", ".xml"]
-#     for e in supported_files:
-#         if filetypes.find(str(e)+" ") == -1:
-#             filetypes += "*%s " % e
     suffixes = "*." + " *.".join(suffix_map[obj_type])
     fileName = QtGui.QFileDialog.getSaveFileName(
         parent,

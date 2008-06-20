@@ -159,12 +159,17 @@ class ExtConnectionList(XMLWrapper):
     """Class to store and manage a list of connections.
 
     """
+    _instance = None
     def __init__(self, filename=''):
         """ __init__() -> ExtConnectionList """
-        self.__connections = {}
-        self.changed = False
-        self.current_id = 1
-        self.filename = filename
+        if not ExtConnectionList._instance:
+            self.__connections = {}
+            self.changed = False
+            self.current_id = 1
+            self.filename = filename
+            ExtConnectionList._instance = self
+        else:
+            return ExtConnectionList._instance
 
     def load_connections(self):
         """load_connections()-> None
@@ -201,6 +206,17 @@ class ExtConnectionList(XMLWrapper):
         Returns True if connection with id exists """
         return self.__connections.has_key(id)
 
+    def find_db_connection(self, host, port, db):
+        """find_db_connection(host: str, port: int, db: str) -> id
+        Returns the id of the first connection that matches the provided
+        parameters. It will return -1 if not found
+
+        """
+        for conn in self.__connections.itervalues():
+            if conn.host == host and conn.port == port and conn.database == db:
+                return conn.id
+        return -1
+    
     def set_connection(self, id, conn):
         """set_connection(id: int, conn: ExtConnection)- > None
         Updates the connection with id to be conn
@@ -232,6 +248,7 @@ class ExtConnectionList(XMLWrapper):
     def items(self):
         """ items() -> - Returns the connections """
         return self.__connections.items()
+
     def parse(self, filename):
         """parse(filename: str) -> None  
         Loads a list of connections from a XML file, appending it to
@@ -267,6 +284,7 @@ class ExtConnectionList(XMLWrapper):
     def get_fresh_id(self):
         """get_fresh_id() -> int - Returns an unused id. """
         return self.current_id
+
        
 ###############################################################################
 

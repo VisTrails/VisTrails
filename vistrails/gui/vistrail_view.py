@@ -149,14 +149,24 @@ class QVistrailView(QDockContainer):
         self.setPIPMode(True)
         self.setQueryMode(False)
 
-    def setOpenView(self):
+    def setOpenView(self, version=None):
         """setOpenView() -> None
         Sets up the correct view for an opened
         vistrail, that is, select latest version and focus on version view.
         
         """
-        self.controller.selectLatestVersion()
-        self.versionTab.versionSelected(self.controller.currentVersion, False)
+        if version:
+                if type(version) == str:
+                    try:
+                        version = \
+                         self.controller.vistrail.get_tag_by_name(version).time
+                    except:
+                        #version does not exist
+                        print "warning: version %s does not exist. "
+        if not version:
+            self.controller.selectLatestVersion()
+            version = self.controller.currentVersion
+        self.versionTab.versionSelected(version, False)
         self.setPIPMode(True)
         self.setQueryMode(False)
        

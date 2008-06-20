@@ -29,20 +29,41 @@ classes:
  - BookmarkController 
 """
 import os.path
+import core.debug
 from core.ensemble_pipelines import EnsemblePipelines
 from core.interpreter.default import get_default_interpreter
 from core.param_explore import InterpolateDiscreteParam, ParameterExploration
-from core.utils import VistrailsInternalError, DummyView
+from core.utils import VistrailsInternalError, DummyView, enum
 from core.utils.uxml import named_elements, XMLWrapper
-from core.db.locator import XMLFileLocator
+from core.db.locator import FileLocator, _DBLocator as DBLocator
+
 
 ################################################################################
-
+#Exceptions
+class BookmarkError(Exception):
+    """BookmarkError is raised when there's something wrong with a bookmark.
+    For example, a file not found, or an inexistent connection to db """
+    dispatchError = {0 : 'No location information for this bookmark',
+                     1 : 'Vistrails file %s not found',
+                     2 : 'Version %s not found in %s',
+                     3 : 'Vistrails %s not found on DB',
+                     4 : 'DB Connection not found' }
+    def __init__(self, error_code, info=None):
+        self.code = error_code
+        self.info = info
+        
+    def __str__(self):
+        if self.info:
+            return BookmarkError.dispatchError[self.code] % info
+        else:
+            return BookmarkError.dispatchError[self.code]
+        
+################################################################################
 class Bookmark(object):
     """Stores a Vistrail Bookmark"""
     def __init__(self, parent='', id=-1, locator=None, pipeline=0, name='', 
                  type=''):
-        """__init__(parent: int, id: int, vistrailsFile: str,
+        """__init__(parent: int, id: int, locator: Locator,
                     pipeline: int, name: str, type: str) -> Bookmark
         It creates a vistrail bookmark."""
         self.id = id
@@ -51,11 +72,10 @@ class Bookmark(object):
         self.pipeline = pipeline
         self.name = name
         self.type = type
-        if locator and locator.is_valid():
-            self.error = 0
+        if locator:
+            self.error = None
         else:
-            self.error = 1 #error = 1: file not found
-                           #error = 2: version not found
+            self.error = BookmarkError(error_code=0)
 
     def serialize(self, dom, element):
         """serialize(dom, element) -> None
@@ -68,32 +88,44 @@ class Bookmark(object):
         bmark.setAttribute('type', str(self.type))
         if self.type == 'item':
             bmark.setAttribute('pipeline', str(self.pipeline))
-            node = dom.createElement('')
-            assert isinstance(self.locator, XMLFileLocator)
-            filename = dom.createTextNode(str(self.locator.name))
-            node.appendChild(filename)
-            bmark.appendChild(node)           
+            self.locator.serialize(dom, bmark)
         element.appendChild(bmark)
 
     def __str__(self):
         """ __str__() -> str - Writes itself as a string """
-        assert isinstance(self.locator, XMLFileLocator)
-        return """<<id= '%s' name='%s' type='%s' parent='%s' 
-        filename='%s' pipeline='%s' error='%s'>>""" %  (
+        return """<bookmark id= '%s' name='%s' type='%s' parent='%s' 
+pipeline='%s' locator=%s error='%s'>""" %  (
             self.id,
             self.name,
             self.type,
             self.parent,
-            self.locator.name,
             self.pipeline,
+            self.locator,
             self.error)
 
+    def get_locator_error(self):
+        """get_locator_error -> BookmarkError
+        Inspects locator and returns an error object if it is the case.
+
+        """
+        if self.locator:
+            if self.locator.is_valid():
+                return None
+            else:
+                if isinstance(self.locator, FileLocator()):
+                    filename = self.locator.name
+                    return BookmarkError(1,self.locator.name)
+                elif isinstance(self.locator, DBLocator):
+                    return BookmarkError(error_code=4)
+        else:
+            return BookmarkError(error_code=0)
+        
     @staticmethod
     def parse(element):
         """ parse(element) -> Bookmark
         Parse an XML object representing a bookmark and returns a Bookmark
         object. 
-        It checks if the vistrails file exists.
+        It checks if the vistrails file/connection exists.
         
         """
         bookmark = Bookmark()
@@ -103,13 +135,14 @@ class Bookmark(object):
         bookmark.type = element.getAttribute('type')
         if bookmark.type == "item":
             for n in element.childNodes:
-                if n.localName == "filename":
-                    locator = XMLFileLocator(str(n.firstChild.nodeValue).strip(" \n\t"))
-                    bookmark.locator = locator
-                    if locator.is_valid():
-                        bookmark.error = 0
+                if n.localName == "locator":
+                    if str(n.getAttribute('type')) == 'file':
+                        bookmark.locator = FileLocator.parse(n)
+                    elif str(n.getAttribute('type')) == 'db':
+                        bookmark.locator = DBLocator.parse(n)
                     else:
-                        bookmark.error = 1
+                        bookmark.locator = None
+                    bookmark.error = bookmark.get_locator_error()
                     break
             bookmark.pipeline = int(element.getAttribute('pipeline'))
         return bookmark
@@ -215,8 +248,13 @@ class BookmarkCollection(XMLWrapper):
         """
         self.open_file(filename)
         root = self.dom.documentElement
-        for element in named_elements(root, 'bookmark'):    
-            self.add_bookmark(Bookmark.parse(element))
+        version = None
+        version = root.getAttribute('version')
+        if version == '1.0':
+            for element in named_elements(root, 'bookmark'):    
+                self.add_bookmark(Bookmark.parse(element))
+        else:
+            core.debug.warning("Old bookmarks file found. File will be reset.")
         self.refresh_current_id()
         self.changed = False
         self.updateGUI = True
@@ -228,7 +266,7 @@ class BookmarkCollection(XMLWrapper):
         """
         dom = self.create_document('bookmarks')
         root = dom.documentElement
-        
+        root.setAttribute("version","1.0")
         for bookmark in self.bookmark_map.values():
             bookmark.serialize(dom, root)
 
@@ -287,32 +325,39 @@ class BookmarkController(object):
         self.collection = BookmarkCollection()
         self.filename = ''
         self.pipelines = {}
+        self.controllers = {}
         self.active_pipelines = []
         self.ensemble = EnsemblePipelines()
 
-    def load_bookmarks(self):
-        """load_bookmarks() -> None
-        Load Bookmark collection and instantiate all pipelines
+#     def load_bookmarks(self):
+#         """load_bookmarks() -> None
+#         Load Bookmark collection and instantiate all pipelines
+
+#         """
+
+#         if os.path.exists(self.filename):
+#             self.collection.parse(self.filename)
+#             self.load_all_pipelines()
+            
+    def prepare_bookmarks(self):
+        """prepare_bookmarks() -> None
+        Load Bookmark collection without instantiating all pipelines
 
         """
-
         if os.path.exists(self.filename):
             self.collection.parse(self.filename)
-            self.load_all_pipelines()
-    
-    def add_bookmark(self, parent, vistrailsFile, pipeline, name=''):
-        """add_bookmark(parent: int, vistrailsFile: str, pipeline: int,
+            
+    def add_bookmark(self, parent, locator, pipeline, name=''):
+        """add_bookmark(parent: int, locator: Locator, pipeline: int,
                        name: str) -> None
         creates a bookmark with the given information and adds it to the 
         collection
 
         """
         id = self.collection.get_fresh_id()
-        bookmark = Bookmark(parent, id, vistrailsFile,pipeline,name,"item")
+        bookmark = Bookmark(parent, id, locator, pipeline, name,"item")
         self.collection.add_bookmark(bookmark)
         self.collection.serialize(self.filename)
-        if not bookmark.error:
-            self.load_pipeline(id)
 
     def remove_bookmark(self, id):
         """remove_bookmark(id: int) -> None 
@@ -360,32 +405,46 @@ class BookmarkController(object):
             self.ensemble.add_pipeline(id, self.pipelines[id])
             self.ensemble.assemble_aliases()
         else:
-            bookmark.error = 2
+            bookmark.error = BookmarkError(2,
+                                           (bookmark.pipeline,
+                                            bookmark.locator))
 
     def load_all_pipelines(self):
         """load_all_pipelines() -> None
-        Load all bookmarks' pipelines and sets an ensemble
+        Loads all bookmarks' pipelines and sets an ensemble
 
         """
         self.pipelines = {}
+        self.controllers = {}
         vistrails = {}
         for id, bookmark in self.collection.bookmark_map.iteritems():
-            if bookmark.locator.is_valid():
-                assert isinstance(bookmark.locator, XMLFileLocator)
-                if vistrails.has_key(bookmark.locator.name):
-                    v = vistrails[bookmark.locator.name]
+            if bookmark.locator and bookmark.locator.is_valid():
+                if vistrails.has_key(bookmark.locator):
+                    v = vistrails[bookmark.locator]
                 else:
                     v = bookmark.locator.load()
-                    vistrails[bookmark.locator.name] = v
+                    vistrails[bookmark.locator] = v
                     
                 if v.hasVersion(bookmark.pipeline):
                     self.pipelines[id] = v.getPipeline(bookmark.pipeline)
-                    bookmark.error = 0
+                    bookmark.error = None
                 else:
-                    bookmark.error = 2
+                    bookmark.error = BookmarkError(2,
+                                                   (bookmark.pipeline,
+                                                    bookmark.locator.name))
+                    
+            elif bookmark.locator:
+                if isinstance(bookmark.locator, DBLocator):
+                    if not bookmark.locator.connection_id:
+                        bookmark.error = BookmarkError(error_code = 4)
+                    else:
+                        bookmark.error = BookmarkError(3,
+                                                       (bookmark.locator.name,))
+                elif isinstance(bookmark.locator, FileLocator()):
+                    bookmark.error = BookmarkError(1,
+                                                   (bookmark.locator.name,))
             else:
-                bookmark.error = 1
-
+                bookmark.error = BookmarkError(error_code = 0)
         self.ensemble = EnsemblePipelines(self.pipelines)
         self.ensemble.assemble_aliases()
 
@@ -540,40 +599,40 @@ class BookmarkController(object):
 
 ###############################################################################
 
-# import unittest
-# import core.system
-# import os
-# class TestBookmarkCollection(unittest.TestCase):
-#     def test1(self):
-#         """ Exercising writing and reading a file """
-#         collection = BookmarkCollection()
-#         bookmark = Bookmark()
-#         bookmark.id = 1
-#         bookmark.parent = ''
-#         bookmark.name = 'contour 4'
-#         bookmark.type = 'item'
-#         bookmark.locator = XMLFileLocator('brain_vistrail.xml')
-#         bookmark.pipeline = 126
+import unittest
+import core.system
+import os
+class TestBookmarkCollection(unittest.TestCase):
+    def test1(self):
+        """ Exercising writing and reading a file """
+        collection = BookmarkCollection()
+        bookmark = Bookmark()
+        bookmark.id = 1
+        bookmark.parent = ''
+        bookmark.name = 'contour 4'
+        bookmark.type = 'item'
+        bookmark.locator = FileLocator('brain_vistrail.xml')
+        bookmark.pipeline = 126
         
-#         collection.add_bookmark(bookmark)
+        collection.add_bookmark(bookmark)
 
-#         #writing
-#         collection.serialize('bookmarks.xml')
+        #writing
+        collection.serialize('bookmarks.xml')
 
-#         #reading it again
-#         collection.clear()
-#         collection.parse('bookmarks.xml')
-#         newbookmark = collection.bookmarks.as_list()[1]
-#         assert bookmark == newbookmark
+        #reading it again
+        collection.clear()
+        collection.parse('bookmarks.xml')
+        newbookmark = collection.bookmarks.as_list()[1]
+        assert bookmark == newbookmark
     
-#         #remove created file
-#         os. unlink('bookmarks.xml')
+        #remove created file
+        os.unlink('bookmarks.xml')
 
-#     def test_empty_bookmark(self):
-#         """ Exercises doing things on an empty bookmark. """
-#         collection = BookmarkCollection()
-#         collection.parse(core.system.vistrails_root_directory() +
-#                          'tests/resources/empty_bookmarks.xml')
+    def test_empty_bookmark(self):
+        """ Exercises doing things on an empty bookmark. """
+        collection = BookmarkCollection()
+        collection.parse(os.path.join(core.system.vistrails_root_directory(),
+                         'tests/resources/empty_bookmarks.xml'))
 
-# if __name__ == '__main__':
-#     unittest.main()
+if __name__ == '__main__':
+    unittest.main()

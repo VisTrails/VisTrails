@@ -28,54 +28,56 @@ from core.vistrail.vistrail import Vistrail
 
 ################################################################################
     
-def run_and_get_results(locator, workflow, parameters=''):
-    """run_and_get_results(locator: VistrailLocator, workflow: int or
-    str) Run the workflow 'workflow' for the given locator, and
-    returns an interpreterresult object. workflow can be a tag name or
-    a version.
+def run_and_get_results(w_list, parameters=''):
+    """run_and_get_results(w_list: list of (locator, version), parameters: str)
+    Run all workflows in w_list, and returns an interpreter result object.
+    version can be a tag name or a version id.
     
     """
     elements = parameters.split(",")
     aliases = {}
-    v = locator.load()
-    
-    if type(workflow) == type("str"):
-        version = v.get_tag_by_name(workflow).id
-    elif type(workflow) == type(1):
-        version = workflow
-    else:
-        msg = "Invalid version tag or number: %s" % workflow
-        raise VistrailsInternalError(msg)
+    result = []
+    for locator, workflow in w_list:
+        v = locator.load()
+        if type(workflow) == type("str"):
+            version = v.get_tag_by_name(workflow).time
+        elif type(workflow) == type(1):
+            version = workflow
+        else:
+            msg = "Invalid version tag or number: %s" % workflow
+            raise VistrailsInternalError(msg)
 
-    pip = v.getPipeline(workflow)
-    for e in elements:
-        pos = e.find("=")
-        if pos != -1:
-            key = e[:pos].strip()
-            value = e[pos+1:].strip()
+        pip = v.getPipeline(workflow)
+        for e in elements:
+            pos = e.find("=")
+            if pos != -1:
+                key = e[:pos].strip()
+                value = e[pos+1:].strip()
             
-            if pip.has_alias(key):
-                (vttype, pId,_,_) = pip.aliases[key]
-                parameter = pip.db_get_object(vttype,pId)
-                ptype = parameter.type
-                aliases[key] = (ptype,expression.parse_expression(value))
-    view = DummyView()
-    interpreter = core.interpreter.default.get_default_interpreter()
-    
-    return interpreter.execute(None, pip, locator, version, view, aliases)
-    
-def run(locator, workflow, parameters=''):
-    """run(locator: VistrailLocator, workflow: int or str) -> boolean
-    Run the workflow 'workflow' for the given locator.  Returns False
-    in case of error. workflow can be a tag name or a version.
+                if pip.has_alias(key):
+                    (vttype, pId,_,_) = pip.aliases[key]
+                    parameter = pip.db_get_object(vttype,pId)
+                    ptype = parameter.type
+                    aliases[key] = (ptype,expression.parse_expression(value))
+        view = DummyView()
+        interpreter = core.interpreter.default.get_default_interpreter()
 
+        run = interpreter.execute(None, pip, locator, version, view, aliases)
+        result.append(run)
+    return result
+    
+def run(w_list, parameters=''):
+    """run(w_list: list of (locator, version), parameters: str) -> boolean
+    Run all workflows in w_list, version can be a tag name or a version id.
+    Returns False in case of error. 
     """
-    result = run_and_get_results(locator, workflow, parameters)
-    (objs, errors, executed) = (result.objects,
-                                result.errors, result.executed)
-    for i in objs.iterkeys():
-        if errors.has_key(i):
-            return False
+    results = run_and_get_results(w_list, parameters)
+    for result in results:
+        (objs, errors, executed) = (result.objects,
+                                    result.errors, result.executed)
+        for i in objs.iterkeys():
+            if errors.has_key(i):
+                return False
     return True
 
 def cleanup():
@@ -111,7 +113,7 @@ class TestConsoleMode(unittest.TestCase):
     def test1(self):
         locator = XMLFileLocator(core.system.vistrails_root_directory() +
                                  '/tests/resources/dummy.xml')
-        result = run(locator, "int chain")
+        result = run([(locator, "int chain")])
         self.assertEquals(result, True)
 
     def test_tuple(self):
@@ -138,28 +140,28 @@ class TestConsoleMode(unittest.TestCase):
     def test_python_source(self):
         locator = XMLFileLocator(core.system.vistrails_root_directory() +
                                  '/tests/resources/pythonsource.xml')
-        result = run(locator,"testPortsAndFail")
+        result = run([(locator,"testPortsAndFail")])
         self.assertEquals(result, True)
 
     def test_python_source_2(self):
         locator = XMLFileLocator(core.system.vistrails_root_directory() +
                                  '/tests/resources/pythonsource.xml')
-        result = run_and_get_results(locator, "test_simple_success")
+        result = run_and_get_results([(locator, "test_simple_success")])[0]
         self.assertEquals(len(result.executed), 1)
 
     def test_dynamic_module_error(self):
         locator = XMLFileLocator(core.system.vistrails_root_directory() + 
                                  '/tests/resources/dynamic_module_error.xml')
-        result = run(locator, "test")
+        result = run([(locator, "test")])
         self.assertEquals(result, False)
 
     def test_change_parameter(self):
         locator = XMLFileLocator(core.system.vistrails_root_directory() + 
                                  '/tests/resources/test_change_vistrail.xml')
-        result = run(locator, "v1")
+        result = run([(locator, "v1")])
         self.assertEquals(result, True)
 
-        result = run(locator, "v2")
+        result = run([(locator, "v2")])
         self.assertEquals(result, True)
 
     def test_ticket_73(self):

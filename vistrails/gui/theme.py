@@ -540,7 +540,11 @@ class MacTheme(DefaultTheme):
              core.system.vistrails_root_directory() +
             '/gui/resources/images/vistrails_icon.png')
 
-
+        # Toolbar icon for close button on the vistrail tabbar
+        self.VIEW_MANAGER_CLOSE_ICON = QtGui.QIcon(
+            core.system.vistrails_root_directory() +
+            '/gui/resources/images/mac/closetab.png')
+        
 class ThemeHolder(object):
     """
     ThemeHolder is a class holding a theme and exposed that theme

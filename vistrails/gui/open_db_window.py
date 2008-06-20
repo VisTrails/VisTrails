@@ -284,6 +284,16 @@ Would you like to create one?"
         self.openButton.setEnabled(False)
         
     @staticmethod
+    def getInstance():
+        """getInstance() -> QOpenDBWindow
+        Returns the current instance of the QOpenDBWindow
+
+        """
+        if QOpenDBWindow._instance is None:
+            QOpenDBWindow._instance = QOpenDBWindow()
+        return QOpenDBWindow._instance
+    
+    @staticmethod
     def getOpenDBObject(obj_type):
         """getOpenDBObject(obj_type : str) -> (dict,int)
         Creates a dialog for opening a vistrails object from the database. 
@@ -422,6 +432,17 @@ class QDBConnectionList(QtGui.QListWidget):
             config = None
         return config
 
+    def findConnectionInfo(self, host, port, db):
+        """findConnection(host:str, port: int, db: str) -> dict
+        Returns complete info of a connection with the given parameters
+
+        """
+        id = self.__list.find_db_connection(host,port,db)
+        if id != -1:
+            return self.getConnectionInfo(id)
+        else:
+            return None
+        
     def removeConnection(self):
         """removeConnection() -> None
         Removes the selected connection

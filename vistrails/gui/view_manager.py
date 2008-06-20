@@ -273,7 +273,7 @@ class QViewManager(QtGui.QTabWidget):
             # we don't want to ever close it again.
             self._first_view = None
 
-    def setVistrailView(self, vistrail,locator):
+    def setVistrailView(self, vistrail,locator, version=None):
         """setVistrailView(vistrai: Vistrail, locator: VistrailLocator)
                           -> QVistrailView
         Sets a new vistrail view for the vistrail object
@@ -283,20 +283,20 @@ class QViewManager(QtGui.QTabWidget):
         self.addVistrailView(vistrailView)
         self.setCurrentWidget(vistrailView)
         vistrailView.controller.inspectAndImportModules()        
-        vistrailView.setOpenView()
+        vistrailView.setOpenView(version)
         self.versionSelectionChange(1)
         vistrailView.versionTab.vistrailChanged()
         
         return vistrailView
 
-    def open_vistrail(self, locator):
+    def open_vistrail(self, locator, version=None):
         self.close_first_vistrail_if_necessary()
         view = self.ensureVistrail(locator)
         if view:
             return view
         try:
             vistrail = locator.load(Vistrail)
-            result = self.setVistrailView(vistrail, locator)
+            result = self.setVistrailView(vistrail, locator, version)
             if locator.has_temporaries():
                 result.controller.setChanged(True)
             return result
@@ -481,8 +481,12 @@ class QViewManager(QtGui.QTabWidget):
         self.activeIndex = index
         self.emit(QtCore.SIGNAL('currentVistrailChanged'),
                   self.currentWidget())
-        self.emit(QtCore.SIGNAL('versionSelectionChange'), 
-                  self.currentWidget().controller.currentVersion)
+        if index >= 0:
+            self.emit(QtCore.SIGNAL('versionSelectionChange'), 
+                      self.currentWidget().controller.currentVersion)
+        else:
+            self.emit(QtCore.SIGNAL('versionSelectionChange'), 
+                      -1)
         
     def eventFilter(self, object, event):
         """ eventFilter(object: QVistrailView, event: QEvent) -> None

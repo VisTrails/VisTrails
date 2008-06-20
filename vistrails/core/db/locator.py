@@ -22,10 +22,11 @@
 
 import os.path
 from core.configuration import get_vistrails_configuration
-from core.system import vistrails_default_file_type
+from core.system import vistrails_default_file_type, get_elementtree_library
 from db.services.locator import XMLFileLocator as _XMLFileLocator, \
     DBLocator as _DBLocator, ZIPFileLocator as _ZIPFileLocator
 import core.configuration
+ElementTree = get_elementtree_library()
 
 class CoreLocator(object):
 
@@ -40,6 +41,9 @@ class CoreLocator(object):
         pass # Opens a dialog that the user will be able to use to
              # show the right values, and returns a locator suitable
              # for saving a file
+
+    def update_from_gui(self, klass=None):
+        pass
 
 class XMLFileLocator(_XMLFileLocator, CoreLocator):
 
@@ -89,6 +93,13 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
         return db_gui.get_save_file_locator_from_gui(parent_widget, obj_type,
                                                          locator)
 
+    def update_from_gui(self, klass=None):
+        from core.vistrail.vistrail import Vistrail
+        if klass is None:
+            klass = Vistrail
+        import gui.extras.core.db.locator as db_gui
+        return db_gui.get_load_file_locator_from_gui(parent_widget, klass.vtType)
+
 class DBLocator(_DBLocator, CoreLocator):
 
     def __init__(self, host, port, database, user, passwd, name=None,
@@ -118,6 +129,28 @@ class DBLocator(_DBLocator, CoreLocator):
         klass.convert(obj)
         obj.locator = self
         return obj
+
+    def update_from_gui(self, klass=None):
+        from core.vistrail.vistrail import Vistrail
+        if klass is None:
+            klass = Vistrail
+        import gui.extras.core.db.locator as db_gui
+        config = db_gui.get_db_connection_from_gui(None,klass.vtType,"",
+                                                   self._host,
+                                                   self._port,
+                                                   self._user,
+                                                   self._passwd,
+                                                   self._db
+                                                   )
+        if config and config['succeeded'] == True:
+            self._host = config['host']
+            self._port = config['port']
+            self._db = config['db']
+            self._user = config['user']
+            self._passwd = config['passwd']
+            return True
+        
+        return False
 
     ##########################################################################
 
@@ -234,7 +267,22 @@ class FileLocator(CoreLocator):
             return None
         else:
             return None
-
+    
+    #ElementTree port
+    @staticmethod
+    def from_xml(node):
+        """from_xml(node:ElementTree.Element) -> XMLFileLocator or None
+        Parse an XML object representing a locator and returns a
+        XMLFileLocator or a ZIPFileLocator object."""
+        if node.tag != 'locator':
+            return None
+        type_ = node.get('type', '')
+        if str(type_) == 'file':
+            for child in node.getchildren():
+                if child.tag == 'name':
+                    filename = str(child.text).strip(" \n\t")
+                    return FileLocator(filename)
+        return None
 def untitled_locator():
     basename = 'untitled' + vistrails_default_file_type()
     config = get_vistrails_configuration()

@@ -71,15 +71,20 @@ def enum(className, enumValues, doc = None):
 
     def __ne__(self, other):
         return not (self == other)
-        
+
+    def from_str(v):
+        return the_enum(the_enum.st.index(v))
+
     the_enum = type(className, (object, ),
                    {'__init__': __init__,
                     'str': staticmethod(str),
+                    'from_str': staticmethod(from_str),
                     '__str__': __str__,
                     '__repr__': __repr__,
                     'st': enumValues,
                     '__className': className,
                     '__eq__': __eq__,
+                    '__ne__': __ne__,
                     '__doc__': doc})
     for (v, x) in izip(enumValues, xrange(len(enumValues))):
         setattr(the_enum, v, the_enum(x))

@@ -30,7 +30,7 @@ from core import command_line
 from core import debug
 from core import system
 from core import keychain
-from core.db.locator import FileLocator
+from core.db.locator import FileLocator, DBLocator
 from core.modules.module_registry import registry
 from core.utils import InstanceObject
 from core.utils.uxml import (named_elements,
@@ -88,6 +88,20 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         # Setup configuration to default or saved preferences
         self.vistrailsStartup = core.startup.VistrailsStartup(self.configuration)
         self.temp_configuration = copy.copy(self.configuration)
+
+        
+        # now we want to open vistrails and point to a specific version
+        # we will store the version in temp options as it doesn't
+        # need to be persistent. We will do the same to database
+        # information passed in the command line
+        self.temp_options = InstanceObject(host=None,
+                                           port=None,
+                                           db=None,
+                                           user=None,
+                                           vt_id=None,
+                                           parameters=None
+                                           ) 
+
         
         # Command line options override configuration
         self.readOptions()
@@ -142,41 +156,92 @@ after self.init()"""
         """
         self.destroy()
 
+    def _parse_vtinfo(self, info, use_filename=True):
+        name = None
+        version = None
+        if use_filename and os.path.isfile(info):
+            name = info
+        else:
+            data = info.split(":")
+            if len(data) == 2:
+                if use_filename and os.path.isfile(str(data[0])):
+                        name = str(data[0])
+                elif not use_filename:
+                    name = str(data[0])
+                # will try to convert version to int
+                # if it fails, it's a tag name
+                try:
+                    version = int(data[1])
+                except ValueError:
+                    version = str(data[1])
+            elif len(data) == 1:
+                if use_filename and os.path.isfile(str(data[0])):
+                    name = str(data[0])
+                elif not use_filename:
+                    name = str(data[0])
+        return (name, version)
+        
     def interactiveMode(self):
         """ interactiveMode() -> None
         Instantiate the GUI for interactive mode
         
-        """
+        """     
         self.builderWindow.create_first_vistrail()
         self.builderWindow.modulePalette.treeWidget.updateFromModuleRegistry()
         self.builderWindow.modulePalette.connect_registry_signals()
         if self.temp_configuration.check('showSplash'):
             self.splashScreen.finish(self.builderWindow)
+        usedb = False
+        if self.temp_db_options.host:
+           usedb = True
         if self.input:
+            #check if versions are embedded in the filename
             for filename in self.input:
-                locator = FileLocator(os.path.abspath(filename))
-                self.builderWindow.open_vistrail_without_prompt(locator)
-        self.builderWindow.activateWindow()
+                f_name, version = self._parse_vtinfo(filename, not usedb)
+                if not usedb:
+                    locator = FileLocator(os.path.abspath(f_name))
+                else:
+                    locator = DBLocator(host=self.temp_db_options.host,
+                                        port=self.temp_db_options.port,
+                                        database=self.temp_db_options.db,
+                                        user='',
+                                        passwd='',
+                                        obj_id=f_name,
+                                        obj_type=None,
+                                        connection_id=None)
+                self.builderWindow.open_vistrail_without_prompt(locator, version)
+                self.builderWindow.activateWindow()
 
     def noninteractiveMode(self):
         """ noninteractiveMode() -> None
         Run the console in non-interactive mode
         
         """
+        usedb = False
+        if self.temp_db_options.host:
+           usedb = True
         if self.input:
-            if not self.nonInteractiveOpts.workflow:
-                debug.DebugPrint.critical('need workflow tag or id to \
-run in batch mode.')
-                sys.exit(1)
-            if len(self.input) > 1:
-                print "Only one vistrail can be specified for non-interactive mode"
+            w_list = []
+            for filename in self.input:
+                f_name, version = self._parse_vtinfo(filename, not usedb)
+                if f_name and version:
+                    if not usedb:
+                        locator = FileLocator(os.path.abspath(f_name))
+                    else:
+                        locator = DBLocator(host=self.temp_db_options.host,
+                                            port=self.temp_db_options.port,
+                                            database=self.temp_db_options.db,
+                                            user=self.temp_db_options.user,
+                                            passwd='',
+                                            obj_id=f_name,
+                                            obj_type=None,
+                                            connection_id=None)
+                    w_list.append((locator, version))
             import core.console_mode
-            if self.nonInteractiveOpts.parameters == None:
-                self.nonInteractiveOpts.parameters = ''
-            locator = FileLocator(self.input[0])
-            r = core.console_mode.run(locator,
-                                      self.nonInteractiveOpts.workflow,
-                                      self.nonInteractiveOpts.parameters)
+            if self.temp_db_options.parameters == None:
+                self.temp_db_options.parameters = ''
+            r = core.console_mode.run(w_list,
+                                      self.temp_db_options.parameters)
             return r
         else:
             debug.DebugPrint.critical("no input vistrails provided")
@@ -257,7 +322,7 @@ run in batch mode.')
             default = None,
             help="Maximize VisTrails windows at startup")
         add("-w", "--workflow", action="store", dest="workflow",
-            help="set the workflow to be run (non-interactive mode only)")
+            help="set the workflow to be selected")
         add("-b", "--noninteractive", action="store_true",
             default = None,
             help="run in non-interactive mode")
@@ -269,6 +334,14 @@ run in batch mode.')
             help="debug Qt Signals")
         add("-a", "--parameters", action="store", dest="parameters",
             help="workflow parameter settings (non-interactive mode only)")
+        add("-t", "--host", action="store", dest="host",
+            help="hostname or ip address of database server")
+        add("-r", "--port", action="store", type="int", default=3306,
+            dest="port", help="database port")
+        add("-f", "--db", action="store", dest="db",
+            help="database name")
+        add("-u", "--user", action="store", dest="user",
+            help="database username")
         command_line.CommandLineParser.parse_options()
 
     def printVersion(self):
@@ -307,11 +380,15 @@ run in batch mode.')
         if get('verbose')!=None:
             self.temp_configuration.verbosenessLevel = get('verbose')
         if get('noninteractive')!=None:
-            self.temp_configuration.interactiveMode = not bool(get('noninteractive'))
-        
-        if not self.temp_configuration.interactiveMode:
-            self.nonInteractiveOpts = InstanceObject(workflow=get('workflow'),
-                                                     parameters=get('parameters'))
+            self.temp_configuration.interactiveMode = \
+                                                  not bool(get('noninteractive'))
+            
+        self.temp_db_options = InstanceObject(host=get('host'),
+                                                 port=get('port'),
+                                                 db=get('db'),
+                                                 user=get('user'),
+                                                 parameters=get('parameters')
+                                                 )
         if get('nologger')!=None:
             self.temp_configuration.nologger = bool(get('nologger'))
         self.input = command_line.CommandLineParser().positional_arguments()
