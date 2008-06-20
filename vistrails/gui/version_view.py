@@ -540,7 +540,8 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         """
         self.dragging = False
         qt_super(QGraphicsVersionItem, self).mouseReleaseEvent(event)
-        self.text.show()
+        if self.id != 0:
+            self.text.show()
 
     def dragEnterEvent(self, event):
         """ dragEnterEvent(event: QDragEnterEvent) -> None
