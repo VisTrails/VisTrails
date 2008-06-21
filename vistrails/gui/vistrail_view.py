@@ -139,7 +139,7 @@ class QVistrailView(QDockContainer):
         prop.versionNotes.commit_changes()
 
     def setup_view(self, version=None):
-        """setup_view() -> None
+        """setup_view(version = None:int) -> None
 
         Sets up the correct view for a fresh vistrail.
 
@@ -152,15 +152,7 @@ class QVistrailView(QDockContainer):
         FIXME: this means that the different calls are being handled
         somewhere else in the code. Figure this out."""
 
-        if version:
-            if type(version) == str:
-                    try:
-                        version = \
-                         self.controller.vistrail.get_tag_by_name(version).time
-                    except:
-                        #version does not exist
-                        print "warning: version %s does not exist. "
-        if not version:
+        if version is None:
             self.controller.selectLatestVersion()
             version = self.controller.currentVersion
         self.versionTab.versionSelected(version, False)

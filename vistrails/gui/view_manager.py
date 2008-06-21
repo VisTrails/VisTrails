@@ -288,12 +288,20 @@ class QViewManager(QtGui.QTabWidget):
         return vistrailView
 
     def open_vistrail(self, locator, version=None):
+        """open_vistrail(locator: Locator, version = None: int or str)
+
+        opens a new vistrail from the given locator, selecting the
+        given version.
+
+        """
         self.close_first_vistrail_if_necessary()
         view = self.ensureVistrail(locator)
         if view:
             return view
         try:
             vistrail = locator.load(Vistrail)
+            if type(version) == str:
+                version = vistrail.get_version_number(version)
             result = self.set_vistrail_view(vistrail, locator, version)
             return result
         except ModuleRegistry.MissingModulePackage, e:
