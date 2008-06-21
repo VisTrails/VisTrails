@@ -169,6 +169,20 @@ class Vistrail(DBVistrail):
         """
         return self.get_tag_by_name(version).time
     
+    def get_latest_version(self):
+        """get_latest_version() -> Integer
+        Returns the latest version id for the vistrail.
+
+        FIXME: Running time O(|versions|)
+
+        FIXME: Check if pruning is handled correctly here.
+
+        """
+        try:
+            return max(v.id for v in self.actions if not v.prune)
+        except:
+            return 0
+                   
     def oldGetPipeline(self, version):
         return Pipeline(self.actionChain(version))
 
@@ -205,9 +219,7 @@ class Vistrail(DBVistrail):
         Returns a pipeline given a version number.
 
         """
-#        return Pipeline(self.actionChain(version))
         workflow = core.db.io.get_workflow(self, version)
-#        workflow = core.db.io.expand_workflow(self, version)
         workflow.set_abstraction_map(self.abstractionMap)
         return workflow
 
@@ -731,7 +743,6 @@ class Vistrail(DBVistrail):
         if self.has_tag_with_name(version_name):
             DebugPrint.log("Tag already exists")
             raise TagExists()
-#         self.tagMap[version_name] = version_number
         tag = Tag(id=long(version_number),
                   name=version_name,
                   )

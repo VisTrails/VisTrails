@@ -376,6 +376,14 @@ class Graph(object):
         data.clear()
         return result
 
+    class VertexHasNoParentError(Exception):
+        def __init__(self, v):
+            Exception.__init__(self, v)
+            self._v = v
+        def __str__(self):
+            return ("called parent() on vertex '%s', which has no parent nodes"
+                    % self._v)
+
     def parent(self, v):
         """ parent(v: id type) -> id type
         Find the parent of vertex v and return an id
@@ -383,14 +391,16 @@ class Graph(object):
         Keyword arguments:
         v -- 'immutable' vertex id
 
+        raises VertexHasNoParentError is vertex has no parent
+
+        raises KeyError is vertex is not on graph
+
         """
-        try:
-            l=self.inverse_adjacency_list[v]
-        except KeyError:
-            return -1
+        l=self.inverse_adjacency_list[v]
         if len(l):
             (froom, a) = l[-1]
-        else: froom=0
+        else:
+            raise self.VertexHasNoParentError(v)
         return froom
     
     def vertices_topological_sort(self,vertex_set=None):
@@ -887,6 +897,13 @@ class TestGraph(unittest.TestCase):
                     lambda (a, b): a < b)
          assert all(izip(dec[:-1], dec[1:]),
                     lambda (a, b): a > b)
+
+     def test_parent_source(self):
+         g = self.make_linear(10)
+         self.assertRaises(g.VertexHasNoParentError,
+                           lambda: g.parent(0))
+         for i in xrange(1, 10):
+             assert g.parent(i) == i-1
 
 if __name__ == '__main__':
     unittest.main()

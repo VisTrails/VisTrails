@@ -68,12 +68,31 @@ class VistrailController(QtCore.QObject):
     VistrailController is the class handling all action control in
     VisTrails. It updates pipeline, vistrail and emit signals to
     update the view
+
+    Signals emitted:
+
+    vistrailChanged(): emitted when the version tree needs to be
+    recreated (for example, a node was added/deleted or the layout
+    changed).
+
+    flushMoveActions(): emitted as a request to commit move actions to
+    the vistrail, typically prior to adding other actions to the
+    vistrail.
+
+    versionWasChanged(): emitted when the current version (the one
+    being displayed by the pipeline view) has changed.
+
+    searchChanged(): emitted when the search statement from the
+    version view has changed.
+
+    stateChanged(): stateChanged is called when a vistrail goes from
+    unsaved to saved or vice-versa.
     
     """
 
     def __init__(self, vis=None, auto_save=True, name=''):
         """ VistrailController(vis: Vistrail, name: str) -> VistrailController
-        Create a controller from vis
+        Create a controller for a vistrail.
 
         """
         QtCore.QObject.__init__(self)
@@ -89,8 +108,11 @@ class VistrailController(QtCore.QObject):
         self.resetPipelineView = False
         self.resetVersionView = True
         self.quiet = False
+        # if self.search is True, vistrail is currently being searched
         self.search = None
         self.searchStr = None
+        # If self.refine is true, search mismatches are hidden instead
+        # of ghosted
         self.refine = False
         self.changed = False
         self.fullTree = False
@@ -108,6 +130,9 @@ class VistrailController(QtCore.QObject):
             self.emit(QtCore.SIGNAL('vistrailChanged()'))
         finally:
             self.resetVersionView = True
+
+    ##########################################################################
+    # Autosave
 
     def enable_autosave(self):
         self._auto_save = True
@@ -154,13 +179,17 @@ class VistrailController(QtCore.QObject):
             self.setFileName('')
         if locator and locator.has_temporaries():
             self.setChanged(True)
-            
+        self.recompute_terse_graph()
+
+    ##########################################################################
+    # Actions, etc
+    
     def perform_action(self, action, quiet=None):
         """ performAction(action: Action, quiet=None) -> timestep
-        Add version to vistrail, updates the current pipeline, and the
-        rest of the UI know a new pipeline is selected.
 
-        quiet and self.quiet controlds invalidation of version
+        performs given action on current pipeline.
+
+        quiet and self.quiet control invalidation of version
         tree. If quiet is set to any value, it overrides the field
         value self.quiet.
 
@@ -170,7 +199,6 @@ class VistrailController(QtCore.QObject):
         """
         self.currentPipeline.perform_action(action)
         self.currentVersion = action.db_id
-        self.setChanged(True)
         
         if quiet is None:
             if not self.quiet:
@@ -179,6 +207,23 @@ class VistrailController(QtCore.QObject):
             if not quiet:
                 self.invalidate_version_tree(False)
         return action.db_id
+
+    def add_new_action(self, action):
+        """add_new_action(action) -> None
+
+        Call this function to add a new action to the vistrail being
+        controlled by the vistrailcontroller.
+
+        FIXME: In the future, this function should watch the vistrail
+        and get notified of the change.
+
+        """
+        
+        self.vistrail.add_action(action, self.currentVersion)
+        self.setChanged(True)
+        self.recompute_terse_graph()
+
+    ##########################################################################
 
     def add_module(self, identifier, name, x, y, namespace=''):
         """ addModule(identifier, name: str, x: int, y: int, namespace='') -> version id
@@ -201,9 +246,8 @@ class VistrailController(QtCore.QObject):
                             namespace=namespace,
                             )
             action = core.db.action.create_action([('add', module)])
-            self.vistrail.add_action(action, self.currentVersion)
+            self.add_new_action(action)
             self.perform_action(action)
-
             # FIXME we shouldn't have to return a module
             # we don't do it for any other type
             # doesn't match documentation either
@@ -245,7 +289,7 @@ class VistrailController(QtCore.QObject):
             action_list.append(('delete',
                                 self.currentPipeline.modules[m_id]))
         action = core.db.action.create_action(action_list)
-        self.vistrail.add_action(action, self.currentVersion)
+        self.add_new_action(action)
         return self.perform_action(action)
 
     def moveModuleList(self, move_list):
@@ -270,7 +314,7 @@ class VistrailController(QtCore.QObject):
                 # probably should be an error
                 action_list.append(('add', location, module.vtType, module.id))
         action = core.db.action.create_action(action_list)
-        self.vistrail.add_action(action, self.currentVersion)
+        self.add_new_action(action)
         return self.perform_action(action)
             
     def add_connection(self, connection):
@@ -285,7 +329,7 @@ class VistrailController(QtCore.QObject):
             port_id = self.vistrail.idScope.getNewId(Port.vtType)
             port.id = port_id
         action = core.db.action.create_action([('add', connection)])
-        self.vistrail.add_action(action, self.currentVersion)
+        self.add_new_action(action)
         result = self.perform_action(action)
         self.currentPipeline.ensure_connection_specs([connection.id])
         return result
@@ -309,7 +353,7 @@ class VistrailController(QtCore.QObject):
             action_list.append(('delete', 
                                 self.currentPipeline.connections[c_id]))
         action = core.db.action.create_action(action_list)
-        self.vistrail.add_action(action, self.currentVersion)
+        self.add_new_action(action)
         return self.perform_action(action)
 
     def deleteMethod(self, function_pos, module_id):
@@ -323,7 +367,7 @@ class VistrailController(QtCore.QObject):
         function = module.functions[function_pos]
         action = core.db.action.create_action([('delete', function,
                                                     module.vtType, module.id)])
-        self.vistrail.add_action(action, self.currentVersion)
+        self.add_new_action(action)
         return self.perform_action(action)
 
     def addMethod(self, module_id, function):
@@ -349,7 +393,7 @@ class VistrailController(QtCore.QObject):
             param.pos = i
         action = core.db.action.create_action([('add', function,
                                                     Module.vtType, module.id)])
-        self.vistrail.add_action(action, self.currentVersion)
+        self.add_new_action(action)
         return self.perform_action(action)
         
     def replace_method(self, module, function_pos, param_list):
@@ -380,7 +424,7 @@ class VistrailController(QtCore.QObject):
                                 function.vtType, function.real_id))
         if must_change:
             action = core.db.action.create_action(action_list)
-            self.vistrail.add_action(action, self.currentVersion)
+            self.add_new_action(action)
             return self.perform_action(action)
         else:
             return None
@@ -396,7 +440,7 @@ class VistrailController(QtCore.QObject):
         annotation = module.get_annotation_by_key(key)
         action = core.db.action.create_action([('delete', annotation,
                                                 module.vtType, module.id)])
-        self.vistrail.add_action(action, self.currentVersion)
+        self.add_new_action(action)
         return self.perform_action(action)
 
     def addAnnotation(self, pair, module_id):
@@ -428,7 +472,7 @@ class VistrailController(QtCore.QObject):
             action = core.db.action.create_action([('add', annotation,
                                                         module.vtType, 
                                                         module.id)])
-        self.vistrail.add_action(action, self.currentVersion)
+        self.add_new_action(action)
         
         return self.perform_action(action)
 
@@ -469,7 +513,7 @@ class VistrailController(QtCore.QObject):
         action = core.db.action.create_action([('add', port_spec,
                                                 module.vtType, module.id)])
         
-        self.vistrail.add_action(action, self.currentVersion)
+        self.add_new_action(action)
         return self.perform_action(action)
 
     def deleteModulePort(self, module_id, port_tuple):
@@ -492,7 +536,7 @@ class VistrailController(QtCore.QObject):
                 action_list.append(('delete', function, 
                                     module.vtType, module.id))
         action = core.db.action.create_action(action_list)
-        self.vistrail.add_action(action, self.currentVersion)
+        self.add_new_action(action)
         return self.perform_action(action)
 
     def updateNotes(self,notes):
@@ -718,13 +762,9 @@ class VistrailController(QtCore.QObject):
             self.fullTree = full
             self.invalidate_version_tree(True)
 
-    def refineGraph(self):
-        """ refineGraph(controller: VistrailController) -> (Graph, Graph)        
-        Refine the graph of the current vistrail based the search
-        status of the controller. It also return the full graph as a
-        reference
+    def recompute_terse_graph(self):
+
         
-        """
         # get full version tree (including pruned nodes)
         # this tree is kept updated all the time. This
         # data is read only and should not be updated!
@@ -791,110 +831,36 @@ class VistrailController(QtCore.QObject):
                 child = childs[i]
                 x.append((child,parentToChilds))
 
-        return (tersedVersionTree, self.vistrail.tree.getVersionTree())
+        self._current_terse_graph = tersedVersionTree
+        self._current_full_graph = self.vistrail.tree.getVersionTree()
 
-    # FIXME: remove this function (left here only for transition)
-    def refineGraphOld(self):
+    def refineGraph(self):
         """ refineGraph(controller: VistrailController) -> (Graph, Graph)        
         Refine the graph of the current vistrail based the search
         status of the controller. It also return the full graph as a
         reference
         
         """
-        if self.fullTree:
-            terse = copy.copy(self.vistrail.getVersionGraph())
-        else:
-            terse = copy.copy(self.vistrail.getTerseGraph())
-        full = self.vistrail.getVersionGraph()
-        if (not self.refine) or (not self.search):
-            return self.ensureCurrentVersion(terse, full)
-        am = self.vistrail.actionMap
-        
-        x=[0]
-        while len(x):
-            current=x.pop()
-            efrom = []
-            eto = []
-            for f in terse.edges_from(current):
-                efrom.append(f)
-            for t in terse.edges_to(current):
-                eto.append(t)
-            for (e1,e2) in efrom:
-                x.append(e1)
-            if (current !=0 and
-                not self.search.match(self.vistrail, am[current]) and
-                terse.vertices.__contains__(current)):
-                to_me = eto[0][0]
-                if terse.vertices.__contains__(to_me):
-                    terse.delete_edge(to_me, current, None)
-                for from_me in efrom:
-                    f_me = from_me[0]
-                    if terse.vertices.__contains__(f_me):
-                        annotated = -1
-                        if full.parent(f_me)==to_me:
-                            annotated=0
-                        terse.delete_edge(current, f_me, None)
-                        terse.add_edge(to_me, f_me, annotated)
-                terse.delete_vertex(current)
-        self.vistrail.setCurrentGraph(terse)
-        return self.ensureCurrentVersion(terse, full)
-
-
-    # FIXME: remove this function (left here only for transition)
-    def ensureCurrentVersion(self, terse, full):
-        """ ensureCurrentVersion(terse: Graph, full: Graph) -> (terse, full)
-        Make sure the current version is in the terse graph
-        
-        """
-        prev = self.currentVersion
-        if prev>=0 and (not terse.vertices.has_key(prev)):
-            if not full.vertices.has_key(prev):
-                self.changeSelectedVersion(-1)
-                return (terse, full)
-            terse = copy.copy(terse)
-            # Up-Stream
-            parent = prev
-            while parent!=-1:
-                parent = full.parent(parent)
-                if terse.vertices.has_key(parent):
-                    terse.add_edge(parent, prev)
-                    break
-
-            # Down-Stream
-            child = prev
-            while True:
-                edges = full.edges_from(child)
-                assert len(edges)<=1
-                if len(edges)==0:
-                    break
-                child = edges[0][0]
-                if terse.vertices.has_key(child):
-                    terse.add_edge(prev, child)
-                    terse.delete_edge(parent, child)
-                    break
-        return (terse, full)
+        return (self._current_terse_graph, self._current_full_graph)
 
     def showPreviousVersion(self):
         """ showPreviousVersion() -> None
         Go back one from the current version and display it
+
         
         """
+        # NOTE cscheid: Slight change in the logic under refined views:
+        # before r1185, undo would back up more than one action in the
+        # presence of non-matching refined nodes. That seems wrong. Undo
+        # should always move one step only.         
+
         full = self.vistrail.getVersionGraph()
         prev = None
-        v = self.currentVersion
-        am = self.vistrail.actionMap
-        while True:
-            parent = full.parent(v)
-            if parent==-1:
-                prev = 0
-                break
-            if (self.refine and self.search and
-                (not self.search.match(self.vistrail, am[parent]))):
-                v = prev
-            else:
-                prev = parent
-                break
-        if prev!=None:
+        try:
+            prev = full.parent(self.currentVersion)
+        except full.CalledParentOnSourceVertex:
+            prev = 0
+        if self.currentVersion <> prev:
             self.changeSelectedVersion(prev)
             self.invalidate_version_tree(False)
 
@@ -952,7 +918,6 @@ class VistrailController(QtCore.QObject):
         
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
-        
         if module.vtType == 'module':
             self.vistrail.update_object(module, db_tag=tag)
         elif module.vtType == 'abstractionRef':
@@ -964,7 +929,6 @@ class VistrailController(QtCore.QObject):
         
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
-
         try:
             if self.vistrail.hasTag(self.currentVersion):
                 self.vistrail.changeTag(tag, self.currentVersion)
@@ -975,14 +939,20 @@ class VistrailController(QtCore.QObject):
                          "There is already another version named '%s'.\n"
                          "Please enter a different one." % tag)
             return False
-
         self.setChanged(True)
-
         self.invalidate_version_tree(False)
         return True
 
     def perform_param_changes(self, actions):
-        new_timestep = -1
+        """perform_param_changes(actions) -> None
+
+        Performs a series of parameter change actions to the current version.
+
+        FIXME: this function seems to be called from a single place in
+        the spreadsheet cell code. Do we need it?
+        """
+        if len(actions) == 0:
+            return
         for action in actions:
             for operation in action.operations:
                 if operation.vtType == 'add' or operation.vtType == 'change':
@@ -991,35 +961,13 @@ class VistrailController(QtCore.QObject):
                         new_id = self.vistrail.idScope.getNewId(data.vtType)
                         data.real_id = new_id
                         operation.new_obj_id = new_id
-            self.vistrail.add_action(action, self.currentVersion)
-            self.currentPipeline.perform_action(action)
-            self.currentVersion = action.db_id
-            new_timestep = self.currentVersion
-        
-        if new_timestep != -1:
-            self.setChanged(True)
-            self.invalidate_version_tree(False)
-        return new_timestep
+            self.add_new_action(action)
+            self.perform_action(action, quiet=True)
+        self.setChanged(True)
+        self.invalidate_version_tree(False)
 
-    def performBulkActions(self, actions):
-        """performBulkAction(actions: [Action]) -> timestep        
-        Add version to vistrail, updates the current pipeline, and the
-        rest of the UI know a new pipeline is selected only after all
-        actions are performed
-        
-        """
-        newTimestep = -1
-        for action in actions:
-            self.vistrail.add_action(action, self.currentVersion)
-            self.currentPipeline.perform_action(action)
-            newTimestep = action.db_id
-            self.currentVersion = action.db_id
-
-        if newTimestep != -1 and not self.quiet:
-            self.setChanged(True)
-            self.invalidate_version_tree(False)
-        
-        return newTimestep
+    ################################################################################
+    # Clipboard, copy/paste
 
     def copyModulesAndConnections(self, module_ids, connection_ids):
         """copyModulesAndConnections(module_ids: [long],
@@ -1095,10 +1043,13 @@ class VistrailController(QtCore.QObject):
                            for op in action.operations
                            if op.what == 'connection']
                 
-            self.vistrail.add_action(action, self.currentVersion)
+            self.add_new_action(action)
             self.perform_action(action)
             self.currentPipeline.ensure_connection_specs(connections)
         return modules
+
+    ##########################################################################
+    # Grouping/abstraction
 
     def create_group(self, module_ids, connection_ids, name):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
@@ -1322,7 +1273,7 @@ class VistrailController(QtCore.QObject):
         action = core.db.action.create_action(add_action_list + del_action_list)
         for op in action.db_operations:
             print op.vtType, op.what, op.old_obj_id, op.new_obj_id
-        self.vistrail.add_action(action, self.currentVersion)
+        self.add_new_action(action)
         self.perform_action(action)
 
         # FIXME we shouldn't have to return a module
@@ -1445,7 +1396,7 @@ class VistrailController(QtCore.QObject):
         action = core.db.action.create_action(add_action_list + del_action_list)
         for op in action.db_operations:
             print op.vtType, op.what, op.old_obj_id, op.new_obj_id
-        self.vistrail.add_action(action, self.currentVersion)
+        self.add_new_action(action)
         self.perform_action(action)
 
     def create_abstraction(self, module_ids, connection_ids, name):
@@ -1609,6 +1560,7 @@ class VistrailController(QtCore.QObject):
 
         abstraction.add_action(action, 0)
         self.vistrail.add_abstraction(abstraction)
+        self.setChanged(True)
 
         # now add module encoding abstraction reference to vistrail
         loc_id = self.vistrail.idScope.getNewId(Location.vtType)
@@ -1648,9 +1600,9 @@ class VistrailController(QtCore.QObject):
                 new_connection.destination = changed_port
             add_action_list.append(('add', new_connection))
         action = core.db.action.create_action(add_action_list + del_action_list)
-#         for op in action.db_operations:
-#             print op.vtType, op.what, op.old_obj_id, op.new_obj_id
-        self.vistrail.add_action(action, self.currentVersion)
+        # for op in action.db_operations:
+        #      print op.vtType, op.what, op.old_obj_id, op.new_obj_id
+        self.add_new_action(action)
         self.perform_action(action)
         self.currentPipeline.set_abstraction_map(self.vistrail.abstractionMap)
 

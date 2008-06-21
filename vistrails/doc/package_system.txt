@@ -1,3 +1,5 @@
+FIXME this is old and does not reflect namespaces
+
 on port specs, a name is now of the form
 
 package_identifier:module_name
@@ -85,4 +87,13 @@ Thanks!
 --------------------------------------------------------------------------------
 
 Required changes for the new packaging system:
+
+--------------------------------------------------------------------------------
+
+If a package wants to be notified of a missing module, it should
+simply implement a function called "handle_missing_module" that takes
+the name and the namespace of a module that's missing. This function
+should then add the right module (or modules) to the registry. This
+allows configuring some packages (like webservices) to be much less
+annoying.
 

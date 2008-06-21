@@ -66,8 +66,8 @@ class QViewManager(QtGui.QTabWidget):
         
         self._views = {}
 
-    def addVistrailView(self, view):
-        """ addVistrailView(view: QVistrailView) -> None
+    def add_vistrail_view(self, view):
+        """ add_vistrail_view(view: QVistrailView) -> None
         Add a vistrail view to the tab, and connect to the right signals
         
         """
@@ -249,16 +249,10 @@ class QViewManager(QtGui.QTabWidget):
         if untitled_locator().has_temporaries():
             locator = copy.copy(untitled_locator())
             vistrail = locator.load()
-            vistrailView = self.setVistrailView(vistrail, locator)
-            vistrailView.controller.setChanged(True)
-            return
-        vistrailView = QVistrailView()
-        vistrailView.setVistrail(Vistrail(), None)
-        self.addVistrailView(vistrailView)
-        self.setCurrentWidget(vistrailView)
-        vistrailView.setInitialView()
-        self.versionSelectionChange(0)
-        vistrailView.versionTab.vistrailChanged()
+        else:
+            locator = None
+            vistrail = Vistrail()
+        self.set_vistrail_view(vistrail, locator)
 
     def close_first_vistrail_if_necessary(self):
         # Close first vistrail of no change was made
@@ -273,20 +267,24 @@ class QViewManager(QtGui.QTabWidget):
             # we don't want to ever close it again.
             self._first_view = None
 
-    def setVistrailView(self, vistrail,locator, version=None):
-        """setVistrailView(vistrai: Vistrail, locator: VistrailLocator)
+    def set_vistrail_view(self, vistrail,locator, version=None):
+        """set_vistrail_view(vistrail: Vistrail,
+                             locator: VistrailLocator,
+                             version=None)
                           -> QVistrailView
-        Sets a new vistrail view for the vistrail object
+        Sets a new vistrail view for the vistrail object for the given version
+        if version is None, use the latest version
         """
         vistrailView = QVistrailView()
         vistrailView.setVistrail(vistrail, locator)
-        self.addVistrailView(vistrailView)
+        self.add_vistrail_view(vistrailView)
         self.setCurrentWidget(vistrailView)
-        vistrailView.controller.inspectAndImportModules()        
-        vistrailView.setOpenView(version)
-        self.versionSelectionChange(1)
+        vistrailView.controller.inspectAndImportModules()
+        if version is None:
+            version = vistrail.get_latest_version()
+        vistrailView.setup_view(version)
+        self.versionSelectionChange(version)
         vistrailView.versionTab.vistrailChanged()
-        
         return vistrailView
 
     def open_vistrail(self, locator, version=None):
@@ -296,9 +294,7 @@ class QViewManager(QtGui.QTabWidget):
             return view
         try:
             vistrail = locator.load(Vistrail)
-            result = self.setVistrailView(vistrail, locator, version)
-            if locator.has_temporaries():
-                result.controller.setChanged(True)
+            result = self.set_vistrail_view(vistrail, locator, version)
             return result
         except ModuleRegistry.MissingModulePackage, e:
             QtGui.QMessageBox.critical(self,

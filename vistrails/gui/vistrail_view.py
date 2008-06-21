@@ -138,25 +138,22 @@ class QVistrailView(QDockContainer):
         prop = self.versionTab.versionProp
         prop.versionNotes.commit_changes()
 
-    def setInitialView(self):
-        """setInitialView() -> None
-        Sets up the correct initial view for a new vistrail, that is, 
-        select empty version and focus on pipeline view.
-        
-        """
-        self.controller.changeSelectedVersion(0)
-        self.versionTab.versionSelected(0, False)
-        self.setPIPMode(True)
-        self.setQueryMode(False)
+    def setup_view(self, version=None):
+        """setup_view() -> None
 
-    def setOpenView(self, version=None):
-        """setOpenView() -> None
-        Sets up the correct view for an opened
-        vistrail, that is, select latest version and focus on version view.
-        
-        """
+        Sets up the correct view for a fresh vistrail.
+
+        Previously, there was a method setInitialView and another
+        setOpenView.
+
+        They were supposed to do different things but the code was
+        essentially identical.
+
+        FIXME: this means that the different calls are being handled
+        somewhere else in the code. Figure this out."""
+
         if version:
-                if type(version) == str:
+            if type(version) == str:
                     try:
                         version = \
                          self.controller.vistrail.get_tag_by_name(version).time
@@ -257,7 +254,10 @@ class QVistrailView(QDockContainer):
 
     def stateChanged(self):
         """ stateChanged() -> None
-        Need to update the window and tab title
+
+        Handles 'stateChanged' signal from VistrailController
+        
+        Update the window and tab title
         
         """
         title = self.controller.name
