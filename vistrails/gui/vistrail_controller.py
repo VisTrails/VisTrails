@@ -862,6 +862,7 @@ class VistrailController(QtCore.QObject):
             prev = 0
         if self.currentVersion <> prev:
             self.changeSelectedVersion(prev)
+            self.recompute_terse_graph()
             self.invalidate_version_tree(False)
 
     def pruneVersions(self, versions):

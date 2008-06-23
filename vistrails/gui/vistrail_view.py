@@ -447,6 +447,7 @@ class QVistrailView(QDockContainer):
         next_version = self.redo_stack[-1]
         self.redo_stack = self.redo_stack[:-1]
         self.controller.changeSelectedVersion(next_version)
+        self.controller.recompute_terse_graph()
         self.controller.invalidate_version_tree(False)
         new_action = action_map[self.controller.currentVersion]
         self.set_pipeline_selection(old_action, new_action, 'redo')
