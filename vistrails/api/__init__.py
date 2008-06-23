@@ -29,7 +29,7 @@ def switch_to_pipeline_view():
     Changes current viewing mode to pipeline view in the builder window.
 
     """
-    _app.builderWindow.viewToolBar.changeView(0)
+    _app.builderWindow.viewModeChanged(0)
 
 def switch_to_history_view():
     """switch_to_history_view():
@@ -37,7 +37,7 @@ def switch_to_history_view():
     Changes current viewing mode to history view in the builder window.
 
     """
-    _app.builderWindow.viewToolBar.changeView(1)
+    _app.builderWindow.viewModeChanged(1)
 
 def switch_to_query_view():
     """switch_to_query_view():
@@ -45,7 +45,7 @@ def switch_to_query_view():
     Changes current viewing mode to query view in the builder window.
 
     """
-    _app.builderWindow.viewToolBar.changeView(2)
+    _app.builderWindow.viewModeChanged(2)
 
 ################################################################################
 # Access to current state
