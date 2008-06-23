@@ -36,7 +36,7 @@ from gui.preferences import QPreferencesDialog
 from gui.shell import QShellDialog
 from gui.theme import CurrentTheme
 from gui.view_manager import QViewManager
-from gui.vistrail_toolbar import QVistrailViewToolBar
+from gui.vistrail_toolbar import QVistrailViewToolBar, QVistrailInteractionToolBar
 from gui.preferences import QPreferencesDialog
 from gui.vis_diff import QVisualDiff
 from gui.utils import build_custom_window
@@ -236,14 +236,16 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.quitVistrailsAction.setShortcut('Ctrl+Q')
         self.quitVistrailsAction.setStatusTip('Exit Vistrails')
 
-        self.undoAction = QtGui.QAction('Undo', self)
+        self.undoAction = QtGui.QAction(CurrentTheme.UNDO_ICON,
+                                        'Undo', self)
         self.undoAction.setEnabled(False)
-        self.undoAction.setStatusTip('Go back to the previous version')
+        self.undoAction.setStatusTip('Undo the previous action')
         self.undoAction.setShortcut('Ctrl+Z')
 
-        self.redoAction = QtGui.QAction('Redo', self)
+        self.redoAction = QtGui.QAction(CurrentTheme.REDO_ICON,
+                                        'Redo', self)
         self.redoAction.setEnabled(False)
-        self.redoAction.setStatusTip('Redo an undone version')
+        self.redoAction.setStatusTip('Redo an undone action')
         self.redoAction.setShortcut('Ctrl+Y')
 
         self.copyAction = QtGui.QAction('Copy\tCtrl+C', self)
@@ -410,9 +412,14 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.toolBar.addAction(self.openFileAction)
         self.toolBar.addAction(self.saveFileAction)
         self.toolBar.addSeparator()
+        self.toolBar.addAction(self.undoAction)
+        self.toolBar.addAction(self.redoAction)
 
         self.viewToolBar = QVistrailViewToolBar(self)
         self.addToolBar(self.viewToolBar)
+
+        self.interactionToolBar = QVistrailInteractionToolBar(self)
+        self.addToolBar(self.interactionToolBar)
 
     def connectSignals(self):
         """ connectSignals() -> None
@@ -513,32 +520,6 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.connect(shortcut,
                          QtCore.SIGNAL('activated()'),
                          self.execute_current_pipeline)
-
-
-        # Make sure we can change view when requested
-        self.connect(self.viewToolBar,
-                     QtCore.SIGNAL('viewModeChanged(int)'),
-                     self.viewModeChanged)
-
-        # Change cursor action
-        self.connect(self.viewToolBar,
-                     QtCore.SIGNAL('cursorChanged(int)'),
-                     self.viewManager.changeCursor)
-
-        # Execute action
-        self.connect(self.viewToolBar.executeAction(),
-                     QtCore.SIGNAL('triggered(bool)'),
-                     self.execute)
-
-        # Undo action
-        self.connect(self.viewToolBar.undoAction(),
-                     QtCore.SIGNAL('triggered(bool)'),
-                     self.viewManager.undo)
-
-        # Redo action
-        self.connect(self.viewToolBar.redoAction(),
-                     QtCore.SIGNAL('triggered(bool)'),
-                     self.viewManager.redo)
 
         self.connect_package_manager_signals()
 
@@ -675,15 +656,12 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         """
         self.undoAction.setEnabled(versionId>0)
-        self.viewToolBar.undoAction().setEnabled(versionId>0)
         self.selectAllAction.setEnabled(self.viewManager.canSelectAll())
         currentView = self.viewManager.currentWidget()
         if currentView:
             self.redoAction.setEnabled(currentView.can_redo())
-            self.viewToolBar.redoAction().setEnabled(currentView.can_redo())
         else:
             self.redoAction.setEnabled(False)
-            self.viewToolBar.redoAction().setEnabled(False)
         
 
     def execStateChange(self):
@@ -694,16 +672,17 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         currentView = self.viewManager.currentWidget()
         if currentView:
-            # Update toolbar
+            # Update toolbars
             if self.viewIndex == 2:
-                self.viewToolBar.executeAction().setEnabled(
-                    currentView.execQueryEnabled)
+                self.emit(QtCore.SIGNAL("executeEnabledChanged(bool)"),
+                          currentView.execQueryEnabled) 
             elif self.viewIndex == 3:
-                self.viewToolBar.executeAction().setEnabled(
-                    currentView.execExploreEnabled)
-            else:
-                self.viewToolBar.executeAction().setEnabled(
-                    currentView.execPipelineEnabled)
+                self.emit(QtCore.SIGNAL("executeEnabledChanged(bool)"),
+                          currentView.execExploreEnabled)
+            else: 
+                self.emit(QtCore.SIGNAL("executeEnabledChanged(bool)"),
+                          currentView.execPipelineEnabled)
+
             # Update menu
             self.executeCurrentWorkflowAction.setEnabled(
                 currentView.execPipelineEnabled)
@@ -711,7 +690,8 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.executeQueryAction.setEnabled(currentView.execQueryEnabled)
             self.executeExplorationAction.setEnabled(currentView.execExploreEnabled)
         else:
-            self.viewToolBar.executeAction().setEnabled(False)
+            self.emit(QtCore.SIGNAL("executeEnabledChanged(bool)"),
+                      False)
             self.executeCurrentWorkflowAction.setEnabled(False)
             self.executeDiffAction.setEnabled(False)
             self.executeQueryAction.setEnabled(False)
@@ -773,7 +753,8 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         """
         self.viewManager.newVistrail()
-        self.viewToolBar.changeView(0)
+        self.emit(QtCore.SIGNAL("changeViewState(int)"), 0)
+        self.viewModeChanged(0)
 
     def open_vistrail(self, locator_class):
         """ open_vistrail(locator_class) -> None
@@ -799,9 +780,11 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.exportFileAction.setEnabled(True)
             self.vistrailMenu.menuAction().setEnabled(True)
             if version:
-                self.viewToolBar.changeView(0)
+                self.emit(QtCore.SIGNAL("changeViewState(int)"), 0)
+                self.viewModeChanged(0)
             else:
-                self.viewToolBar.changeView(1)
+                self.emit(QtCore.SIGNAL("changeViewState(int)"), 1)
+                self.viewModeChanged(1)
         
     def open_vistrail_default(self):
         """ open_vistrail_default() -> None
@@ -1050,14 +1033,14 @@ class QBuilderWindow(QtGui.QMainWindow):
                                   self)
             visDiff.show()
 
-    def execute(self):
-        """ execute() -> None
+    def execute(self, index):
+        """ execute(index: int) -> None
         Execute something depending on the view
 
         """
-        if self.viewToolBar.currentViewIndex == 2:
+        if index == 2:
             self.queryVistrail()
-        elif self.viewToolBar.currentViewIndex == 3:
+        elif index == 3:
             self.execute_current_exploration()
         else:
             self.execute_current_pipeline()
@@ -1068,7 +1051,8 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         """
         if self.viewIndex > 1:
-            self.viewToolBar.changeView(1)
+            self.emit(QtCore.SIGNAL("changeViewState(int)"), 1)
+            self.viewModeChanged(1)
         self.viewManager.queryVistrail()
 
     def flush_cache(self):
@@ -1083,11 +1067,13 @@ class QBuilderWindow(QtGui.QMainWindow):
             return
         self._executing = True
         try:
-            self.viewToolBar.executeAction().setEnabled(False)
+            self.emit(QtCore.SIGNAL("executeEnabledChanged(bool)"),
+                      False)
             self.viewManager.executeCurrentExploration()
         finally:
             self._executing = False
-            self.viewToolBar.executeAction().setEnabled(True)
+            self.emit(QtCore.SIGNAL("executeEnabledChanged(bool)"),
+                      True)
 
     def execute_current_pipeline(self):
         """execute_current_pipeline() -> None
@@ -1098,8 +1084,10 @@ class QBuilderWindow(QtGui.QMainWindow):
             return
         self._executing = True
         try:
-            self.viewToolBar.executeAction().setEnabled(False)
+            self.emit(QtCore.SIGNAL("executeEnabledChanged(bool)"),
+                      False)
             self.viewManager.executeCurrentPipeline()
         finally:
             self._executing = False
-            self.viewToolBar.executeAction().setEnabled(True)
+            self.emit(QtCore.SIGNAL("executeEnabledChanged(bool)"),
+                      True)

@@ -24,6 +24,7 @@
 QVistrailViewPaddedTabBar
 QVistrailViewTabBar
 QVistrailViewToolBar
+QVistrailInteractionToolBar
 """
 
 from PyQt4 import QtCore, QtGui
@@ -50,18 +51,21 @@ class QVistrailViewToolBar(QtGui.QToolBar):
 
         self.addAction(self.executeAction())
         self.addSeparator()
-        self.addAction(self.undoAction())
-        self.addAction(self.redoAction())
-        self.addSeparator()
         self.addAction(self.pipelineViewAction())
         self.addAction(self.historyViewAction())
         self.addAction(self.queryViewAction())
         self.addAction(self.exploreViewAction())
-        self.addSeparator()
-        self.addAction(self.selectCursorAction())
-        self.addAction(self.panCursorAction())
-        self.addAction(self.zoomCursorAction())
         
+        self.connect(self.executeAction(),
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.execute)
+        self.connect(self.parent(),
+                     QtCore.SIGNAL('changeViewState(int)'),
+                     self.changeViewState)
+        self.connect(self.parent(),
+                     QtCore.SIGNAL('executeEnabledChanged(bool)'),
+                     self.executeEnabledChanged)
+
         self.currentViewIndex = 0
 
     def executeAction(self):
@@ -82,35 +86,177 @@ class QVistrailViewToolBar(QtGui.QToolBar):
             self._executeAction.setEnabled(False)
         return self._executeAction
 
-    def undoAction(self):
-        """ undoAction() -> QAction
-        Undo last action
+    def viewActionGroup(self):
+        """ viewActionGroup() -> None        
+        A group for all view actions in order to have only one
+        selected at a time
+        
         """
-        if not hasattr(self, '_undoAction'):
-            self._undoAction = QtGui.QAction(
-                CurrentTheme.UNDO_ICON,
-                'Undo',
-                self)
-            self._undoAction.setToolTip('Undo the previous action (Ctrl+Z)')
-            self._undoAction.setStatusTip(
-                self._undoAction.toolTip())
-            self._undoAction.setEnabled(False)
-        return self._undoAction
+        if not hasattr(self, '_viewActionGroup'):
+            self._viewActionGroup = QtGui.QActionGroup(self)
+        return self._viewActionGroup
+
+    def pipelineViewAction(self):
+        """ pipelineViewAction() -> QAction
+         Returns the action for using the pipeline view
+        
+        """
+        if not hasattr(self, '_pipelineViewAction'):
+            self._pipelineViewAction = QtGui.QAction(
+                CurrentTheme.PIPELINE_ICON,
+                'Pipeline',
+                self.viewActionGroup())
+            self._pipelineViewAction.setCheckable(True)
+            self._pipelineViewAction.setToolTip('Edit the pipeline')
+            self._pipelineViewAction.setStatusTip(
+                self._pipelineViewAction.toolTip())
+            self.connect(self._pipelineViewAction,
+                         QtCore.SIGNAL('triggered(bool)'),
+                         self.viewChanged)
+        return self._pipelineViewAction
+
+    def historyViewAction(self):
+        """ historyViewAction() -> QAction
+         Returns the action for using the history view
+        
+        """
+        if not hasattr(self, '_historyViewAction'):
+            self._historyViewAction = QtGui.QAction(
+                CurrentTheme.HISTORY_ICON,
+                'History',
+                self.viewActionGroup())
+            self._historyViewAction.setCheckable(True)
+            self._historyViewAction.setToolTip('View the history')
+            self._historyViewAction.setStatusTip(
+                self._historyViewAction.toolTip())
+            self.connect(self._historyViewAction,
+                         QtCore.SIGNAL('triggered(bool)'),
+                         self.viewChanged)
+        return self._historyViewAction
+
+    def queryViewAction(self):
+        """ queryViewAction() -> QAction
+         Returns the action for using the query view
+        
+        """
+        if not hasattr(self, '_queryViewAction'):
+            self._queryViewAction = QtGui.QAction(
+                CurrentTheme.QUERY_ICON,
+                'Query',
+                self.viewActionGroup())
+            self._queryViewAction.setCheckable(True)
+            self._queryViewAction.setToolTip('Edit a visual query')
+            self._queryViewAction.setStatusTip(
+                self._queryViewAction.toolTip())
+            self.connect(self._queryViewAction,
+                         QtCore.SIGNAL('triggered(bool)'),
+                         self.viewChanged)
+        return self._queryViewAction
+
+    def exploreViewAction(self):
+        """ exploreViewAction() -> QAction
+         Returns the action for using the explore view
+        
+        """
+        if not hasattr(self, '_exploreViewAction'):
+            self._exploreViewAction = QtGui.QAction(
+                CurrentTheme.EXPLORE_ICON,
+                'Exploration',
+                self.viewActionGroup())
+            self._exploreViewAction.setCheckable(True)
+            self._exploreViewAction.setToolTip('Edit a parameter exploration')
+            self._exploreViewAction.setStatusTip(
+                self._exploreViewAction.toolTip())
+            self.connect(self._exploreViewAction,
+                         QtCore.SIGNAL('triggered(bool)'),
+                         self.viewChanged)
+        return self._exploreViewAction
+
+    def changeViewState(self, viewIndex):
+        """ changeViewState(viewIndex: int) -> None
+        Change the active view action
+        
+        """
+        if viewIndex == 0:
+            self.pipelineViewAction().setChecked(True)
+        elif viewIndex == 1:
+            self.historyViewAction().setChecked(True)
+        elif viewIndex == 2:
+            self.queryViewAction().setChecked(True)
+        else:
+            self.exploreViewAction().setChecked(True)
+        self.currentViewIndex = viewIndex
+        self.changeExecuteButtonState(self.currentViewIndex)
+
+    def viewChanged(self, checked=True):
+        """ viewChanged(checked: bool) -> None
+        The view has changed, emit a signal
+
+        """
+        if self.pipelineViewAction().isChecked():
+            self.currentViewIndex = 0
+        elif self.historyViewAction().isChecked():
+            self.currentViewIndex = 1
+        elif self.queryViewAction().isChecked():
+            self.currentViewIndex = 2
+        else:
+            self.currentViewIndex = 3
+
+        self.changeExecuteButtonState(self.currentViewIndex)
+        self.parent().viewModeChanged(self.currentViewIndex)
+
+    def changeExecuteButtonState(self, index):
+        """ changeExecuteButtonState(index: int) -> None
+        Change icon, tooltip, and enabled state for different view modes
+
+        """
+        if index == 3: # parameter explore
+            self.executeAction().setIcon(
+                CurrentTheme.EXECUTE_EXPLORE_ICON)
+            self.executeAction().setToolTip('Execute the parameter'
+                                            'exploration')
+        elif index == 2: # query
+            self.executeAction().setIcon(
+                CurrentTheme.VISUAL_QUERY_ICON)
+            self.executeAction().setToolTip('Execute a visual query')
+        else:
+            self.executeAction().setIcon(
+                CurrentTheme.EXECUTE_PIPELINE_ICON)
+            self.executeAction().setToolTip('Execute the current '
+                                            'pipeline')
+
+    def execute(self):
+        """ execute() -> None
+        Execute action was triggered
+
+        """
+        self.parent().execute(self.currentViewIndex)
+
+    def executeEnabledChanged(self, on):
+        """ executeEnabledChanged(on: bool) -> None
+
+        """
+        self.executeAction().setEnabled(on)
+
+
+################################################################################
+
+class QVistrailInteractionToolBar(QtGui.QToolBar):
+    """
+    QVistrailInteractionToolBar is a special toolbar for interaction. It
+    contains buttons for select, pan, and zoom.
     
-    def redoAction(self):
-        """ redoAction() -> QAction
-        Redo last undo
+    """
+    def __init__(self, view=None):
+        """ QVistrailInteractionToolBar(view: QVistrailView) -> QVistrailInteractionToolBar
+        Construct default buttons and tabbar for the toolbar
         """
-        if not hasattr(self, '_redoAction'):
-            self._redoAction = QtGui.QAction(
-                CurrentTheme.REDO_ICON,
-                'Redo',
-                self)
-            self._redoAction.setToolTip('Redo the undone action (Ctrl+Y)')
-            self._redoAction.setStatusTip(
-                self._redoAction.toolTip())
-            self._redoAction.setEnabled(False)
-        return self._redoAction
+        QtGui.QToolBar.__init__(self, view)
+        self.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
+
+        self.addAction(self.selectCursorAction())
+        self.addAction(self.panCursorAction())
+        self.addAction(self.zoomCursorAction())
 
     def cursorMenu(self):
         """ cursorMenu() -> None        
@@ -208,125 +354,6 @@ class QVistrailViewToolBar(QtGui.QToolBar):
                          self.cursorToggled)
         return self._zoomCursorAction
 
-    def viewActionGroup(self):
-        """ viewActionGroup() -> None        
-        A group for all view actions in order to have only one
-        selected at a time
-        
-        """
-        if not hasattr(self, '_viewActionGroup'):
-            self._viewActionGroup = QtGui.QActionGroup(self)
-        return self._viewActionGroup
-
-    def pipelineViewAction(self):
-        """ pipelineViewAction() -> QAction
-         Returns the action for using the pipeline view
-        
-        """
-        if not hasattr(self, '_pipelineViewAction'):
-            self._pipelineViewAction = QtGui.QAction(
-                CurrentTheme.PIPELINE_ICON,
-                'Pipeline',
-                self.viewActionGroup())
-            self._pipelineViewAction.setCheckable(True)
-            self._pipelineViewAction.setToolTip('Edit the pipeline')
-            self._pipelineViewAction.setStatusTip(
-                self._pipelineViewAction.toolTip())
-            self.connect(self._pipelineViewAction,
-                         QtCore.SIGNAL('triggered(bool)'),
-                         self.viewChanged)
-        return self._pipelineViewAction
-
-    def historyViewAction(self):
-        """ historyViewAction() -> QAction
-         Returns the action for using the history view
-        
-        """
-        if not hasattr(self, '_historyViewAction'):
-            self._historyViewAction = QtGui.QAction(
-                CurrentTheme.HISTORY_ICON,
-                'History',
-                self.viewActionGroup())
-            self._historyViewAction.setCheckable(True)
-            self._historyViewAction.setToolTip('View the history')
-            self._historyViewAction.setStatusTip(
-                self._historyViewAction.toolTip())
-            self.connect(self._historyViewAction,
-                         QtCore.SIGNAL('triggered(bool)'),
-                         self.viewChanged)
-        return self._historyViewAction
-
-    def queryViewAction(self):
-        """ queryViewAction() -> QAction
-         Returns the action for using the query view
-        
-        """
-        if not hasattr(self, '_queryViewAction'):
-            self._queryViewAction = QtGui.QAction(
-                CurrentTheme.QUERY_ICON,
-                'Query',
-                self.viewActionGroup())
-            self._queryViewAction.setCheckable(True)
-            self._queryViewAction.setToolTip('Edit a visual query')
-            self._queryViewAction.setStatusTip(
-                self._queryViewAction.toolTip())
-            self.connect(self._queryViewAction,
-                         QtCore.SIGNAL('triggered(bool)'),
-                         self.viewChanged)
-        return self._queryViewAction
-
-    def exploreViewAction(self):
-        """ exploreViewAction() -> QAction
-         Returns the action for using the explore view
-        
-        """
-        if not hasattr(self, '_exploreViewAction'):
-            self._exploreViewAction = QtGui.QAction(
-                CurrentTheme.EXPLORE_ICON,
-                'Exploration',
-                self.viewActionGroup())
-            self._exploreViewAction.setCheckable(True)
-            self._exploreViewAction.setToolTip('Edit a parameter exploration')
-            self._exploreViewAction.setStatusTip(
-                self._exploreViewAction.toolTip())
-            self.connect(self._exploreViewAction,
-                         QtCore.SIGNAL('triggered(bool)'),
-                         self.viewChanged)
-        return self._exploreViewAction
-
-    def changeView(self, viewIndex):
-        """ changeView(viewIndex: int) -> None
-        Change the active view action
-        
-        """
-        if viewIndex == 0:
-            self.pipelineViewAction().setChecked(True)
-        elif viewIndex == 1:
-            self.historyViewAction().setChecked(True)
-        elif viewIndex == 2:
-            self.queryViewAction().setChecked(True)
-        else:
-            self.exploreViewAction().setChecked(True)
-        self.viewChanged()
-
-    def viewChanged(self, checked=True):
-        """ viewChanged(checked: bool) -> None
-        The view has changed, emit a signal
-
-        """
-        if self.pipelineViewAction().isChecked():
-            self.currentViewIndex = 0
-        elif self.historyViewAction().isChecked():
-            self.currentViewIndex = 1
-        elif self.queryViewAction().isChecked():
-            self.currentViewIndex = 2
-        else:
-            self.currentViewIndex = 3
-
-        self.changeExecuteButtonState(self.currentViewIndex)
-        self.emit(QtCore.SIGNAL('viewModeChanged(int)'), 
-                  self.currentViewIndex)
-
     def cursorToggled(self, checked=True):
         """ cursorToggled(checked: bool) -> None        
         Slot to handle cursor actions toggled. This will in turn emit
@@ -346,25 +373,5 @@ class QVistrailViewToolBar(QtGui.QToolBar):
             action = self.zoomCursorAction()
         if action:
             self.assignCursorMenuAction(action)
-        self.emit(QtCore.SIGNAL('cursorChanged(int)'), cursorMode)
+        self.parent().viewManager.changeCursor(cursorMode)
 
-
-    def changeExecuteButtonState(self, index):
-        """ changeExecuteButtonState(index: int) -> None
-        Change icon, tooltip, and enabled state for different view modes
-
-        """
-        if index == 3: # parameter explore
-            self.executeAction().setIcon(
-                CurrentTheme.EXECUTE_EXPLORE_ICON)
-            self.executeAction().setToolTip('Execute the parameter'
-                                            'exploration')
-        elif index == 2: # query
-            self.executeAction().setIcon(
-                CurrentTheme.VISUAL_QUERY_ICON)
-            self.executeAction().setToolTip('Execute a visual query')
-        else:
-            self.executeAction().setIcon(
-                CurrentTheme.EXECUTE_PIPELINE_ICON)
-            self.executeAction().setToolTip('Execute the current '
-                                            'pipeline')
