@@ -65,6 +65,19 @@ class QViewManager(QtGui.QTabWidget):
                      self.closeVistrail)
         
         self._views = {}
+        self.single_document_mode = False
+        
+    def set_single_document_mode(self, on):
+        """ set_single_document_mode(on: bool) -> None
+        Toggle single document interface
+        
+        """
+        self.single_document_mode = on
+        if self.single_document_mode:
+            self.tabBar().hide()
+        else:
+            self.tabBar().show()
+        
 
     def add_vistrail_view(self, view):
         """ add_vistrail_view(view: QVistrailView) -> None
@@ -246,6 +259,8 @@ class QViewManager(QtGui.QTabWidget):
         Create a new vistrail with no name
         
         """
+        if self.single_document_mode and self.currentView():
+            self.closeVistrail()
         if untitled_locator().has_temporaries():
             locator = copy.copy(untitled_locator())
             vistrail = locator.load()
@@ -295,6 +310,8 @@ class QViewManager(QtGui.QTabWidget):
 
         """
         self.close_first_vistrail_if_necessary()
+        if self.single_document_mode and self.currentView():
+            self.closeVistrail()
         view = self.ensureVistrail(locator)
         if view:
             return view
