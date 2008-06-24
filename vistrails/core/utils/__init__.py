@@ -158,7 +158,9 @@ def memo_method(method):
     return decorated
 
 ##############################################################################
+# Profiling, utilities
 
+_profiled_list = []
 def profile(func):
     """profile is a method decorator that profiles the calls of a
     given method using cProfile. You need to get the decorated method
@@ -190,7 +192,16 @@ def profile(func):
         return pobject.runcall(func, *args, **kwargs)
 
     method.profiler_object = pobject
+    _profiled_list.append((func.__name__, method))
     return method
+
+def get_profiled_methods():
+    return _profiled_list
+
+def save_profile_to_disk(callable_, filename):
+    callable_.profiler_object.dump_stats(filename)
+
+##############################################################################
 
 def debug(func):
     """debug is a method decorator that invokes the python integrated

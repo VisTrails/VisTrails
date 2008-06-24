@@ -619,23 +619,10 @@ class Vistrail(DBVistrail):
         return timestep	
 
     def general_action_chain(self, v1, v2):
-        """general_action_chain(v1, v2): Returns a chain of actions
-        to turn pipeline v1 into v2."""
-        if v1 == v2:
-            return []
-        a = v1
-        b = v2
-        c = self.getFirstCommonVersion(a, b)
-        if a == c:
-            a_to_c = []
-        else:
-            c_to_a = self.actionChain(a, c)
-            a_to_c = [a._inverse for a in reversed(c_to_a)]
-        if b == c:
-            c_to_b = []
-        else:
-            c_to_b = self.actionChain(b, c)
-        return a_to_c + c_to_b
+        """general_action_chain(v1, v2): Returns an action that turns
+        pipeline v1 into v2."""
+
+        return core.db.io.getPathAsAction(self, v1, v2)
 		    
     def actionChain(self, t, start=0):
         """ actionChain(t:int, start=0) -> [Action]  

@@ -218,9 +218,9 @@ class VistrailController(QtCore.QObject):
         and get notified of the change.
 
         """
-        
         self.vistrail.add_action(action, self.currentVersion)
         self.setChanged(True)
+        self.currentVersion = action.db_id
         self.recompute_terse_graph()
 
     ##########################################################################
@@ -640,15 +640,26 @@ class VistrailController(QtCore.QObject):
         notification signal
         
         """
+
+        def switch_version():
+            # FIXME This should find paths for the pipeline
+            if not self.currentPipeline:
+                result = self.vistrail.getPipeline(new_version)
+            else:
+                result = copy.copy(self.currentPipeline)
+                result.perform_action(self.vistrail.general_action_chain(self.currentVersion,
+                                                                         new_version))
+            result.ensure_connection_specs()
+            result.ensure_modules_are_on_registry()
+            return result
+        
         # We assign to temporaries to avoid partial state changes
         # being hosed by an exception
         if new_version == -1:
             new_pipeline = None
         else:
             try:
-                new_pipeline = self.vistrail.getPipeline(new_version)
-                new_pipeline.ensure_connection_specs()
-                new_pipeline.ensure_modules_are_on_registry()
+                new_pipeline = switch_version()
             except ModuleRegistry.MissingModulePackage, e:
                 from gui.application import VistrailsApplication
                 # if package is present, then we first let the package know
@@ -763,8 +774,6 @@ class VistrailController(QtCore.QObject):
             self.invalidate_version_tree(True)
 
     def recompute_terse_graph(self):
-
-        
         # get full version tree (including pruned nodes)
         # this tree is kept updated all the time. This
         # data is read only and should not be updated!
@@ -847,7 +856,6 @@ class VistrailController(QtCore.QObject):
         """ showPreviousVersion() -> None
         Go back one from the current version and display it
 
-        
         """
         # NOTE cscheid: Slight change in the logic under refined views:
         # before r1185, undo would back up more than one action in the
