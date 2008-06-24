@@ -200,6 +200,8 @@ after self.init()"""
                 f_name, version = self._parse_vtinfo(filename, not usedb)
                 if not usedb:
                     locator = FileLocator(os.path.abspath(f_name))
+                    if hasattr(locator,'_vnode'):
+                        version = locator._vnode
                 else:
                     locator = DBLocator(host=self.temp_db_options.host,
                                         port=self.temp_db_options.port,
@@ -321,8 +323,6 @@ after self.init()"""
         add("-x", "--maximized", action="store_true",
             default = None,
             help="Maximize VisTrails windows at startup")
-        add("-w", "--workflow", action="store", dest="workflow",
-            help="set the workflow to be selected")
         add("-b", "--noninteractive", action="store_true",
             default = None,
             help="run in non-interactive mode")

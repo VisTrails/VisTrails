@@ -323,7 +323,8 @@ class DBLocator(BaseLocator):
     connections = {}
 
     def __init__(self, host, port, database, user, passwd, name=None,
-                 obj_id=None, obj_type=None, connection_id=None):
+                 obj_id=None, obj_type=None, connection_id=None,
+                 version_node=None):
         self._host = host
         self._port = port
         self._db = database
@@ -333,6 +334,7 @@ class DBLocator(BaseLocator):
         self._obj_id = obj_id
         self._obj_type = obj_type
         self._conn_id = connection_id
+        self._vnode = version_node
 
     def _get_host(self):
         return self._host
@@ -471,7 +473,7 @@ class DBLocator(BaseLocator):
 
     @staticmethod
     def from_xml(node):
-        """from_xml(node:ElementTree.Element) -> XMLFileLocator or None
+        """from_xml(node:ElementTree.Element) -> DBLocator or None
         Parse an XML object representing a locator and returns a
         DBLocator object."""
         
@@ -522,7 +524,7 @@ class DBLocator(BaseLocator):
             
             for child in node.getchildren():
                 if child.tag == 'name':
-                    filename = str(child.text).strip(" \n\t")
+                    name = str(child.text).strip(" \n\t")
                     return DBLocator(host, port, database,
                                      user, passwd, name, vt_id, None)
             return None

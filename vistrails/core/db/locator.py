@@ -151,6 +151,45 @@ class DBLocator(_DBLocator, CoreLocator):
             return True
         
         return False
+    
+    @staticmethod
+    def from_link_file(filename):
+        """from_link_file(filename: str) -> DBLocator
+        This will parse a '.vtl' file and  will create a DBLocator. .vtl files
+        are vistrail link files and they are used to point vistrails to open
+        vistrails from the database on the web. """
+        def convert_from_str(value,type):
+            if value is not None:
+                if type == 'str':
+                    return str(value)
+                elif value.strip() != '':
+                    if type == 'long':
+                        return long(value)
+                    elif type == 'float':
+                       return float(value)
+                    elif type == 'int':
+                        return int(value)
+            return None
+        tree = ElementTree.parse(filename)
+        node = tree.getroot()
+        if node.tag != 'vtlink':
+            return None
+        #read attributes
+        data = node.get('host', None)
+        host = convert_from_str(data, 'str')
+        data = node.get('port', None)
+        port = convert_from_str(data,'int')
+        data = node.get('database', None)
+        database = convert_from_str(data,'str')
+        data = node.get('vtid')
+        vt_id = convert_from_str(data, 'str')
+        data = node.get('version')
+        version = convert_from_str(data, 'str')
+        user = ""
+        passwd = ""
+            
+        return DBLocator(host, port, database,
+                         user, passwd, None, vt_id, None, version)
 
     ##########################################################################
 
@@ -232,6 +271,8 @@ class FileLocator(CoreLocator):
             filename = args[0]
             if filename.endswith('.vt'):
                 return ZIPFileLocator(filename)
+            elif filename.endswith('.vtl'):
+                return DBLocator.from_link_file(filename)
             else:
                 return XMLFileLocator(filename)
         else:
@@ -283,6 +324,7 @@ class FileLocator(CoreLocator):
                     filename = str(child.text).strip(" \n\t")
                     return FileLocator(filename)
         return None
+        
 def untitled_locator():
     basename = 'untitled' + vistrails_default_file_type()
     config = get_vistrails_configuration()
