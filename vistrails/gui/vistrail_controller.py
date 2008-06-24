@@ -783,43 +783,28 @@ class VistrailController(QtCore.QObject):
         x = [(0,None)]
         from core.data_structures.graph import Graph
         tersedVersionTree = Graph()
-        while len(x):
-            (current,parent)=x.pop()
 
-            # print "processing %d"  % (current)
-            
+        # cache actionMap and tagMap because they're properties, sort of slow
+        am = self.vistrail.actionMap
+        tm = self.vistrail.tagMap
+        
+        while 1:
+            try:
+                (current,parent)=x.pop()
+            except IndexError:
+                break
             # is root
             isRoot = (current == 0)
 
             # mount childs list
-            childs = []
-            for (to,froom) in fullVersionTree.edges_from(current):
+            children = [to for (to, froom) in fullVersionTree.edges_from(current)
+                        if (to in am) and not am[to].prune]
 
-                # if it is not a pruned child add it 
-                # to be childs list
-                if self.vistrail.actionMap.has_key(to) and not self.vistrail.actionMap[to].prune:
-                    # print "add child %5d -> %5d" % (current, to)
-                    childs.append(to)
-
-            # some properties of the current node
-            hasTag = not isRoot and self.vistrail.tagMap.has_key(current)
-            oneChild = len(childs) == 1
-            isCurrentVersion = (current == self.currentVersion)
-            
-            # include this node in the tersed tree?
-            include = False
-            if self.fullTree:
-                include = True
-            elif isRoot:
-                include = True
-            elif hasTag:
-                include = True
-            elif not oneChild:
-                include = True # include leaves and branch nodes
-            elif isCurrentVersion:
-                include = True
-
-            if include:
+            if (self.fullTree or 
+                isRoot or 
+                (not isRoot and (current in tm)) or # hasTag:
+                (len(children) > 1) or # not oneChild:
+                (current == self.currentVersion)): # isCurrentVersion
                 # yes it will!
 
                 # add vertex...
@@ -831,14 +816,13 @@ class VistrailController(QtCore.QObject):
 
             # update the parent info that will 
             # be used by the childs of this node
-            parentToChilds = parent
-            if include:
-                parentToChilds = current
+                parentToChildren = current
+            else:
+                parentToChildren = parent
+                
 
-            # add childs to the processing list
-            for i in xrange(len(childs)-1,-1,-1): #child in childs:
-                child = childs[i]
-                x.append((child,parentToChilds))
+            for child in reversed(children):
+                x.append((child, parentToChildren))
 
         self._current_terse_graph = tersedVersionTree
         self._current_full_graph = self.vistrail.tree.getVersionTree()

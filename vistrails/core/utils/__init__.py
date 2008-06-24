@@ -168,7 +168,11 @@ def profile(func):
     available as the attribute 'profiler_object' on the decorated
     result.
 
-    From there, you probably want to do something like this:
+    From there, you can simply call save_all_profiles(), and that will
+    take the list of all profiled methods and save them to different
+    files.
+
+    If you like manual labor, you probably want to do something like this:
 
     >>> po = ...... .profiler_object
     >>> po.dump_stats('/tmp/some_temporary_file')
@@ -200,6 +204,15 @@ def get_profiled_methods():
 
 def save_profile_to_disk(callable_, filename):
     callable_.profiler_object.dump_stats(filename)
+
+def save_all_profiles():
+    # This is internal because core.system imports core.utils... :/
+    import core.system
+    td = core.system.temporary_directory()
+    for (name, method) in get_profiled_methods():
+        fout = td + name + '.pyp'
+        print fout
+        method.profiler_object.dump_stats(fout)
 
 ##############################################################################
 
