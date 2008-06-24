@@ -54,7 +54,13 @@ from xml.dom.minidom import getDOMImplementation, parseString
 import math
 import copy
 
-################################################################################
+##############################################################################
+# 2008-06-24 cscheid
+#
+#   - Profiling has shown that calling setPen and setBrush takes a longer
+#   time than we expected. Watch out for that in the future.
+
+##############################################################################
 # QGraphicsPortItem
 
 class QGraphicsPortItem(QtGui.QGraphicsRectItem):
@@ -93,13 +99,14 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         Set this link to be ghosted or not
         
         """
-        self.ghosted = ghosted
-        if ghosted:
-            self.setPen(CurrentTheme.GHOSTED_PORT_PEN)
-            self.setBrush(CurrentTheme.GHOSTED_PORT_BRUSH)
-        else:
-            self.setPen(CurrentTheme.PORT_PEN)
-            self.setBrush(CurrentTheme.PORT_BRUSH)
+        if self.ghosted <> ghosted:
+            self.ghosted = ghosted
+            if ghosted:
+                self.setPen(CurrentTheme.GHOSTED_PORT_PEN)
+                self.setBrush(CurrentTheme.GHOSTED_PORT_BRUSH)
+            else:
+                self.setPen(CurrentTheme.PORT_PEN)
+                self.setBrush(CurrentTheme.PORT_BRUSH)
 
     def paintEllipse(self, painter, option, widget=None):
         """ paintEllipse(painter: QPainter, option: QStyleOptionGraphicsItem,
@@ -279,17 +286,18 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         self.createActions()
 
     def setGhosted(self, ghosted):
-        """ setGhosted(ghosted: True) -> None
+        """ setGhosted(ghosted: Bool) -> None
         Set this link to be ghosted or not
         
         """
-        self.ghosted = ghosted
-        if ghosted:
-            self.setPen(CurrentTheme.GHOSTED_CONFIGURE_PEN)
-            self.setBrush(CurrentTheme.GHOSTED_CONFIGURE_BRUSH)
-        else:
-            self.setPen(CurrentTheme.CONFIGURE_PEN)
-            self.setBrush(CurrentTheme.CONFIGURE_BRUSH)
+        if ghosted <> self.ghosted:
+            self.ghosted = ghosted
+            if ghosted:
+                self.setPen(CurrentTheme.GHOSTED_CONFIGURE_PEN)
+                self.setBrush(CurrentTheme.GHOSTED_CONFIGURE_BRUSH)
+            else:
+                self.setPen(CurrentTheme.CONFIGURE_PEN)
+                self.setBrush(CurrentTheme.CONFIGURE_BRUSH)
 
     def mousePressEvent(self, event):
         """ mousePressEvent(event: QMouseEvent) -> None
@@ -741,20 +749,21 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         Set this link to be ghosted or not
         
         """
-        self.ghosted = ghosted
-        if ghosted:
-            self.modulePen = CurrentTheme.GHOSTED_MODULE_PEN
-            self.moduleBrush = CurrentTheme.GHOSTED_MODULE_BRUSH
-            self.labelPen = CurrentTheme.GHOSTED_MODULE_LABEL_PEN
-        else:
-            self.modulePen = CurrentTheme.MODULE_PEN
-            self.moduleBrush = CurrentTheme.MODULE_BRUSH
-            self.labelPen = CurrentTheme.MODULE_LABEL_PEN
+        if self.ghosted <> ghosted:
+            self.ghosted = ghosted
+            if ghosted:
+                self.modulePen = CurrentTheme.GHOSTED_MODULE_PEN
+                self.moduleBrush = CurrentTheme.GHOSTED_MODULE_BRUSH
+                self.labelPen = CurrentTheme.GHOSTED_MODULE_LABEL_PEN
+            else:
+                self.modulePen = CurrentTheme.MODULE_PEN
+                self.moduleBrush = CurrentTheme.MODULE_BRUSH
+                self.labelPen = CurrentTheme.MODULE_LABEL_PEN
 
-        for port in self.inputPorts.itervalues():
-            port.setGhosted(ghosted)
-        for port in self.outputPorts.itervalues():
-            port.setGhosted(ghosted)
+            for port in self.inputPorts.itervalues():
+                port.setGhosted(ghosted)
+            for port in self.outputPorts.itervalues():
+                port.setGhosted(ghosted)
             
     def paint(self, painter, option, widget=None):
         """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
