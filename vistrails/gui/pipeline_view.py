@@ -1421,10 +1421,6 @@ mutual connections."""
             self.clear()
             self.controller.changeSelectedVersion(0)
 
-            
-        # Update bounding rects and fit to all view
-        self.updateSceneBoundingRect()        
-
         if needReset and len(self.items())>0:
             self.fitToAllViews()
 

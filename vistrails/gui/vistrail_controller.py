@@ -25,6 +25,7 @@ import core.db.action
 import core.db.locator
 import core.modules.module_registry
 import core.modules.vistrails_module
+from core.data_structures.graph import Graph
 from core.data_structures.point import Point
 from core.utils import VistrailsInternalError, ModuleAlreadyExists
 from core.log.controller import LogController, DummyLogController
@@ -103,6 +104,7 @@ class VistrailController(QtCore.QObject):
         self.log = Log()
         self.currentVersion = -1
         self.currentPipeline = None
+        # FIXME: self.currentPipelineView currently stores the SCENE, not the VIEW
         self.currentPipelineView = None
         self.vistrailView = None
         self.resetPipelineView = False
@@ -641,26 +643,49 @@ class VistrailController(QtCore.QObject):
         
         """
 
+        # This is tricky code, so watch carefully before you change
+        # it.  The biggest problem is that we want to perform state
+        # changes only after all exceptions have been handled, but
+        # creating a pipeline every time is too slow. The solution
+        # then is to mutate currentPipeline, and in case exceptions
+        # are thrown, we roll back by rebuilding the pipeline from
+        # scratch as the first thing on the exception handler, so to
+        # the rest of the exception handling code, things look
+        # stateless.
+
         def switch_version():
             # FIXME This should find paths for the pipeline
             if not self.currentPipeline:
                 result = self.vistrail.getPipeline(new_version)
             else:
-                result = copy.copy(self.currentPipeline)
-                result.perform_action(self.vistrail.general_action_chain(self.currentVersion,
-                                                                         new_version))
+                action = self.vistrail.general_action_chain(self.currentVersion,
+                                                            new_version)
+                self.currentPipeline.perform_action(action)
+                result = self.currentPipeline
             result.ensure_connection_specs()
             result.ensure_modules_are_on_registry()
             return result
         
         # We assign to temporaries to avoid partial state changes
         # being hosed by an exception
+        
         if new_version == -1:
             new_pipeline = None
         else:
             try:
                 new_pipeline = switch_version()
             except ModuleRegistry.MissingModulePackage, e:
+                # we need to rollback the current pipeline. This is
+                # sort of slow, but we're going to present a dialog to
+                # the user anyway, so we can get away with this
+                
+                # currentVersion might be -1 and so currentPipeline
+                # will be None. We can't call getPipeline with -1
+                if self.currentVersion != -1:
+                    self.currentPipeline = self.vistrail.getPipeline(self.currentVersion)
+                else:
+                    assert self.currentPipeline is None
+                
                 from gui.application import VistrailsApplication
                 # if package is present, then we first let the package know
                 # that the module is missing - this might trigger
@@ -781,7 +806,6 @@ class VistrailController(QtCore.QObject):
 
         # create tersed tree
         x = [(0,None)]
-        from core.data_structures.graph import Graph
         tersedVersionTree = Graph()
 
         # cache actionMap and tagMap because they're properties, sort of slow
@@ -793,17 +817,15 @@ class VistrailController(QtCore.QObject):
                 (current,parent)=x.pop()
             except IndexError:
                 break
-            # is root
-            isRoot = (current == 0)
 
             # mount childs list
-            children = [to for (to, froom) in fullVersionTree.edges_from(current)
+            children = [to for (to, _) in fullVersionTree.adjacency_list[current]
                         if (to in am) and not am[to].prune]
 
             if (self.fullTree or 
-                isRoot or 
-                (not isRoot and (current in tm)) or # hasTag:
-                (len(children) > 1) or # not oneChild:
+                (current == 0) or  # is root
+                (current in tm) or # hasTag:
+                (len(children) <> 1) or # not oneChild:
                 (current == self.currentVersion)): # isCurrentVersion
                 # yes it will!
 
@@ -811,7 +833,7 @@ class VistrailController(QtCore.QObject):
                 tersedVersionTree.add_vertex(current)
                 
                 # ...and the parent
-                if parent != None:
+                if parent is not None:
                     tersedVersionTree.add_edge(parent,current,0)
 
             # update the parent info that will 
@@ -819,7 +841,6 @@ class VistrailController(QtCore.QObject):
                 parentToChildren = current
             else:
                 parentToChildren = parent
-                
 
             for child in reversed(children):
                 x.append((child, parentToChildren))
@@ -846,15 +867,44 @@ class VistrailController(QtCore.QObject):
         # presence of non-matching refined nodes. That seems wrong. Undo
         # should always move one step only.         
 
-        full = self.vistrail.getVersionGraph()
         prev = None
         try:
-            prev = full.parent(self.currentVersion)
+            prev = self._current_full_graph.parent(self.currentVersion)
         except full.CalledParentOnSourceVertex:
             prev = 0
         if self.currentVersion <> prev:
+            
+            # Instead of recomputing the terse graph, simply update it
+
+            # There are two variables in play:
+            # a) whether or not the parent's node is currently on the
+            # terse tree (it will certainly be after the undo)
+            # b) whether or not the current node will be visible (it
+            # certainly is now, since it's the current one)
+
+            parent_node_in_tree = prev in self._current_terse_graph.vertices
+            
+            current = self.currentVersion
+            tree = self.vistrail.tree.getVersionTree()
+            assert current <> 0
+            # same logic as recompute_terse_graph except for current
+            children_count = len([x for (x, _) in tree.adjacency_list[current]
+                                  if (x in self.vistrail.actionMap and
+                                      not self.vistrail.actionMap[x].prune)])
+            current_node_will_be_visible = \
+                (self.fullTree or
+                 (self.currentVersion in self.vistrail.tagMap) or
+                 children_count <> 1)
+
             self.changeSelectedVersion(prev)
-            self.recompute_terse_graph()
+            # case 1:
+            if not parent_node_in_tree and not current_node_will_be_visible:
+                # we're going from one boring node to another,
+                # so just rename the node on the terse graph
+                self._current_terse_graph.rename_vertex(current, prev)
+            else:
+                # bail, for now
+                self.recompute_terse_graph()
             self.invalidate_version_tree(False)
 
     def pruneVersions(self, versions):

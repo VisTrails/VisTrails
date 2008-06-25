@@ -30,6 +30,7 @@ import traceback
 import xml.dom.minidom
 
 from db.domain import DBVistrail
+from db import VistrailsDBException
 from core.data_structures.graph import Graph
 from core.data_structures.bijectivedict import Bidict
 from core.debug import DebugPrint
@@ -928,6 +929,27 @@ class Vistrail(DBVistrail):
         
 ##############################################################################
 
+class ExplicitExpandedVersionTree(object):
+    """
+    Keep explicit expanded and tersed version 
+    trees.
+    """
+    def __init__(self, vistrail):
+        self.vistrail = vistrail
+        self.expandedVersionTree = Graph()
+        self.expandedVersionTree.add_vertex(0)
+        self.tersedVersionTree = Graph()
+
+    def addVersion(self, id, prevId):
+        # print "add version %d child of %d" % (id, prevId)
+        self.expandedVersionTree.add_vertex(id)
+        self.expandedVersionTree.add_edge(prevId,id,0)
+    
+    def getVersionTree(self):
+        return self.expandedVersionTree
+        
+##############################################################################
+
 class VersionAlreadyTagged(Exception):
     def __str__(self):
         return "Version is already tagged"
@@ -1060,6 +1082,14 @@ class TestVistrail(unittest.TestCase):
                            '/tests/resources/dummy.xml').load()
         assert v.actionChain(17, 17) == []
 
+    def test_get_version_negative_one(self):
+        """Tests getting the 'no version' vistrail. This should raise
+        VistrailsDBException.
+
+        """
+        v = Vistrail()
+        self.assertRaises(VistrailsDBException, lambda: v.getPipeline(-1))
+
     def test_inverse(self):
         """Test if inverses and general_action_chain are working by
         doing a lot of action-based transformations on a pipeline and
@@ -1139,27 +1169,6 @@ class TestVistrail(unittest.TestCase):
 #         version = v.get_version_number('WindowedSync (lambda-mu) Error')
 #         sub = p.graph.subgraph([43, 45])
 #         v.create_abstraction(version, sub, "FOOBAR")
-
-
-class ExplicitExpandedVersionTree:
-    """
-    Keep explicit expanded and tersed version 
-    trees.
-    """
-    def __init__(self, vistrail):
-        self.vistrail = vistrail
-        self.expandedVersionTree = Graph()
-        self.expandedVersionTree.add_vertex(0)
-        self.tersedVersionTree = Graph()
-
-    def addVersion(self, id, prevId):
-        # print "add version %d child of %d" % (id, prevId)
-        self.expandedVersionTree.add_vertex(id)
-        self.expandedVersionTree.add_edge(prevId,id,0)
-    
-    def getVersionTree(self):
-        return self.expandedVersionTree
-
 
 if __name__ == '__main__':
     unittest.main()

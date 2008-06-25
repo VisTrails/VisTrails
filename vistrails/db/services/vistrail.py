@@ -63,6 +63,8 @@ def materializeWorkflow(vistrail, version):
         return workflow
     elif version == 0:
         return DBWorkflow()
+    else:
+        raise VistrailsDBException("invalid workflow version %s" % version)
 
 def expandGroups(vistrail, workflow, module_remap=None):
     workflow.__class__ = DBWorkflow

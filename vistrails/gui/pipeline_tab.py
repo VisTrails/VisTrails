@@ -175,8 +175,6 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         
         """
         self.updatePipeline(self.controller.currentPipeline)
-        if self.controller.resetPipelineView:
-            self.pipelineView.scene().fitToAllViews()
             
     def flushMoveActions(self):
         """ flushMoveActions() -> None

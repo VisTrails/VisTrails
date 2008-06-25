@@ -139,22 +139,29 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
             view.resetCachedContent()
 
 
-    def fitToView(self, view):
-        """ fitToView(view: QGraphicsView) -> None
-        Adjust view to fit and center the whole scene
+    def fitToView(self, view, recompute_bounding_rect=False):
+        """ fitToView(view: QGraphicsView,
+                      recompute_bounding_rect=False) -> None
+        Adjust view to fit and center the whole scene. If recompute_bounding_rect is
+        False, does not recompute bounds, and instead uses previous one.
         
         """
-        self.updateSceneBoundingRect()
+        if recompute_bounding_rect:
+            self.updateSceneBoundingRect()
         view.centerOn(self.sceneBoundingRect.center())
         view.fitInView(self.sceneBoundingRect, QtCore.Qt.KeepAspectRatio)
             
-    def fitToAllViews(self):
-        """ fitToAllViews() -> None
+    def fitToAllViews(self, recompute_bounding_rect=False):
+        """ fitToAllViews(recompute_bounding_rect=False) -> None
         Adjust all views using this scene to fit and center the whole scene
+
+        if recompute_bounding_rect is False, uses previous bounding rect.
         
         """
+        if recompute_bounding_rect:
+            self.updateSceneBoundingRect()
         for view in self.views():
-            self.fitToView(view)
+            self.fitToView(view, False)
 
     def clearItems(self):
         """ clearShapes() -> None
@@ -198,6 +205,9 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         
         """
         QtGui.QGraphicsView.__init__(self, parent)
+        # FIXME: 
+        # Workaround for Qt/PyQt weirdness on Ubuntu 7.04 as of 2008/05/21
+        # If scroll bar is not visible, panning does not work.
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setInteractive(True)
@@ -510,7 +520,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         # Reset the view when 'R' is pressed
         if event.key()==QtCore.Qt.Key_R \
                 and event.modifiers() in [QtCore.Qt.ControlModifier]:
-            self.scene().fitToView(self)
+            self.scene().fitToView(self, True)
         else:
             QtGui.QGraphicsView.keyPressEvent(self, event)
             # super(QInteractiveGraphicsView, self).keyPressEvent(event)
@@ -676,7 +686,7 @@ class QPIPGraphicsView(QtGui.QWidget):
         """
         if self.firstShow:
             self.firstShow = False
-            self.graphicsView.scene().fitToView(self.graphicsView)
+            self.graphicsView.scene().fitToView(self.graphicsView, True)
         return QtGui.QWidget.showEvent(self, event)        
         # super(QPIPGraphicsView, self).showEvent(event)
 

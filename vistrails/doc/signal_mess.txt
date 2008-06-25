@@ -1,10 +1,5 @@
 This is my attempt to tame the current signal mess on VisTrails.
 
-QVersionTab.versionSelected::versionSelectionChange ->
-  caught by QViewManager on versionSelectionChange, who reemits versionSelectionChange -.
-  caught by QBuilderWindow on versionSelectionChange
-
-
 --------------------------------------------------------------------------------
 
 vistrailChanged is emitted by QViewManager.vistrailChanged
@@ -43,3 +38,12 @@ QVersionTab::versionSelectionChange is caught by QVistrailView.versionSelectionC
 QVersionTab::versionSelectionChange is caught by QViewManager.versionSelectionChange
 
 QViewManager::versionSelectionChange is caught by QBuilderWindow.versionSelectionChange
+
+--------------------------------------------------------------------------------
+
+versionWasChanged is emitted by VistrailController.changeSelectedVersion
+		     	     	VistrailController.resendVersionWasChanged
+				VistrailController.setVersion
+
+VistrailController::versionWasChanged is caught by QPipelineTab.versionChanged
+

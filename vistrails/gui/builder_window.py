@@ -904,7 +904,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.vistrailActionGroup.addAction(view.viewAction)
         self.vistrailMenu.addAction(view.viewAction)
         view.versionTab.versionView.scene().fitToView(
-            view.versionTab.versionView)
+            view.versionTab.versionView, True)
 
     def vistrailViewRemoved(self, view):
         """ vistrailViewRemoved(view: QVistrailView) -> None

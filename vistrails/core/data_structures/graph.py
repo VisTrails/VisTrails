@@ -32,6 +32,9 @@ from core.data_structures.stack import Stack
 ################################################################################
 # Graph
 
+class GraphException(Exception):
+    pass
+
 class Graph(object):
     """Graph holds a graph with possible multiple edges. The
     datastructures are all dictionary-based, so datatypes more general than ints
@@ -132,10 +135,37 @@ class Graph(object):
         for (dest, edge_id) in self.adjacency_list[id]:
             t = (id, edge_id)
             self.inverse_adjacency_list[dest].remove(t)
-        self.adjacency_list.pop(id)
-        self.inverse_adjacency_list.pop(id)
-        self.vertices.pop(id)
-        
+        del self.adjacency_list[id]
+        del self.inverse_adjacency_list[id]
+        del self.vertices[id]
+
+    class RenameVertexError(GraphException):
+        pass
+    
+    def rename_vertex(self, old_vertex, new_vertex):
+        """ rename_vertex(old_vertex, new_vertex) -> None
+
+        renames old_vertex to new_vertex in the graph, updating the edges
+        appropriately. Should not be used to merge vertices, will raise
+        exception if new_vertex exists in graph.
+
+        """
+        if not (old_vertex in self.vertices):
+            raise self.RenameVertexError("vertex '%s' does not exist" % old_vertex) 
+        if new_vertex in self.vertices:
+            raise self.RenameVertexError("vertex '%s' already exists" % new_vertex)
+        self.add_vertex(new_vertex)
+
+        # the slice ([:]) is important for copying, since change_edge
+        # mutates the list we'll be traversing
+        for (v_from, e_id) in self.inverse_adjacency_list[old_vertex][:]:
+            self.change_edge(v_from, old_vertex, new_vertex, e_id, e_id)
+
+        self.adjacency_list[new_vertex] = self.adjacency_list[old_vertex]
+        del self.adjacency_list[old_vertex]
+        del self.vertices[old_vertex]
+
+       
     def change_edge(self, old_froom, old_to, new_to, old_id=None, new_id=None):
         """ change_edge(old_froom: id, old_to: id, new_to: id, 
                         old_id: id, new_id: id) -> None
@@ -271,7 +301,7 @@ class Graph(object):
                     visited.add(to)
         return parent
 
-    class GraphContainsCycles(Exception):
+    class GraphContainsCycles(GraphException):
         def __init__(self, v1, v2):
             self.back_edge = (v1, v2)
         def __str__(self):
@@ -376,7 +406,7 @@ class Graph(object):
         data.clear()
         return result
 
-    class VertexHasNoParentError(Exception):
+    class VertexHasNoParentError(GraphException):
         def __init__(self, v):
             Exception.__init__(self, v)
             self._v = v
@@ -904,6 +934,19 @@ class TestGraph(unittest.TestCase):
                            lambda: g.parent(0))
          for i in xrange(1, 10):
              assert g.parent(i) == i-1
+
+     def test_rename_vertex(self):
+         g = self.make_linear(10)
+         self.assertRaises(g.RenameVertexError,
+                           lambda: g.rename_vertex(0, 1))
+         assert g.get_edge(0, 1) is not None
+         assert g.get_edge(0, 11) is None
+         g.rename_vertex(1, 11)
+         assert g.get_edge(0, 1) is None
+         assert g.get_edge(0, 11) is not None
+         g.rename_vertex(11, 1)
+         assert g.get_edge(0, 1) is not None
+         assert g.get_edge(0, 11) is None
 
 if __name__ == '__main__':
     unittest.main()

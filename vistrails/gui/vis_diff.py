@@ -635,4 +635,4 @@ class QVisualDiff(QtGui.QMainWindow):
        
 
         scene.updateSceneBoundingRect()
-        scene.fitToView(self.pipelineView)
+        scene.fitToView(self.pipelineView, True)

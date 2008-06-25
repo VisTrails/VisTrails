@@ -225,10 +225,11 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         Change the position and text label from outside the editor
 
         """
-        self.centerX = x
-        self.centerY = y
-        self.label = label
-        self.reset()
+        if self.centerX <> x or self.centerY <> y or self.label <> label:
+            self.centerX = x
+            self.centerY = y
+            self.label = label
+            self.reset()
 
     def reset(self):
         """ reset() -> None

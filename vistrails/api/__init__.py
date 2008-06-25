@@ -66,6 +66,17 @@ def get_current_vistrail():
     """
     return get_current_controller().vistrail
 
+def get_current_vistrail_view():
+    """get_current_vistrail():
+
+    Returns the currently selected vistrail.
+
+    """
+    return get_current_controller().vistrailView
+    
+
+##############################################################################
+
 def select_version(version):
     """select_version(int or str):
 
@@ -82,6 +93,12 @@ def select_version(version):
         version = vistrail.get_tag_by_name(version).id
     ctrl.changeSelectedVersion(version)
     ctrl.invalidate_version_tree(False)
+
+def undo():
+    get_current_vistrail_view().undo()
+
+def redo():
+    get_current_vistrail_view().redo()
 
 # def get_available_versions():
 #     """get_available_version(): ([int], {int: str})

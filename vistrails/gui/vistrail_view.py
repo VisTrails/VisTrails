@@ -31,7 +31,7 @@ from gui.pipeline_tab import QPipelineTab
 from gui.query_tab import QQueryTab
 from gui.version_tab import QVersionTab
 from gui.vistrail_controller import VistrailController
-from core.utils import any
+from core.utils import any, profile
 from core.system import vistrails_default_file_type
 ################################################################################
 
@@ -426,6 +426,7 @@ class QVistrailView(QDockContainer):
         # FIXME: Add tests and handlers for change parameter
         
 
+    @profile
     def undo(self):
         """Performs one undo step, moving up the version tree."""
         action_map = self.controller.vistrail.actionMap
@@ -437,6 +438,7 @@ class QVistrailView(QDockContainer):
         self.set_pipeline_selection(old_action, new_action, 'undo')
         return self.controller.currentVersion
         
+    @profile
     def redo(self):
         """Performs one redo step if possible, moving down the version tree."""
         action_map = self.controller.vistrail.actionMap
@@ -457,6 +459,10 @@ class QVistrailView(QDockContainer):
         return len(self.redo_stack) <> 0
 
 ################################################################################
+
+# FIXME: There is a bug on VisTrails that shows up if you load terminator.vt,
+# open the image slices HW, undo about 300 times and then try to redo.
+# This should be a test here, as soon as we have an api for that.
 
 if __name__=="__main__":
     # Initialize the Vistrails Application and Theme

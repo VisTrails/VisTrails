@@ -90,6 +90,8 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         if self.controller:
             self.controller.resetPipelineView = byClick
             self.controller.changeSelectedVersion(versionId)
+            if byClick:
+                self.controller.currentPipelineView.fitToAllViews(True)
             self.versionProp.updateVersion(versionId)
             self.versionView.versionProp.updateVersion(versionId)
             self.emit(QtCore.SIGNAL('versionSelectionChange'),versionId)
@@ -123,7 +125,7 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
                 self.versionView.versionProp.updateController(controller)
 
     def vistrailChanged(self):
-        """ vistrailChanged() -> None        
+        """ vistrailChanged() -> None
         An action was performed on the current vistrail
         
         """

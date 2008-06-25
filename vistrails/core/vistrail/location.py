@@ -90,7 +90,7 @@ class Location(DBLocation, Point):
         """
         if type(other) != type(self):
             return False
-        return (self - other).length() < self.eq_delta
+        return (self.db_x - other.db_x) ** 2 + (self.db_y - other.db_y) ** 2 < 1e-8
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -101,21 +101,21 @@ class Location(DBLocation, Point):
         and return a Location
         
         """
-        return Location(x=-self.x,y=-self.y)
+        return Location(x=-self.db_x,y=-self.db_y)
 
     def __add__(self, other):
         """ __add__(other: Location) -> Location
         Returns a point p such that: self + other == p, and return a Location
         
         """
-        return Location(x=(self.x + other.x), y=(self.y + other.y))
+        return Location(x=(self.db_x + other.db_x), y=(self.db_y + other.db_y))
 
     def __sub__(self, other):
         """ __sub__(other: Location) -> Location
         Returns a point p such that: self - other == p, and return a Location
 
         """
-        return Location(x=(self.x - other.x), y=(self.y - other.y))
+        return Location(x=(self.db_x - other.db_x), y=(self.db_y - other.db_y))
 
     def __mul__(self, other):
         """ __mul__(other: float) -> Location
@@ -123,7 +123,7 @@ class Location(DBLocation, Point):
         return a Location
 
         """
-        return Location(x=(self.x * other), y=(self.y * other))
+        return Location(x=(self.db_x * other), y=(self.db_y * other))
 
     def __rmul__(self, other):
         """ __rmul__(other: float) -> Location
@@ -131,16 +131,21 @@ class Location(DBLocation, Point):
         return a Location
 
         """
-        return Location(x=(self.x * other), y=(self.y * other))
+        return Location(x=(self.db_x * other), y=(self.db_y * other))
     
 ################################################################################
 # Testing
 
 import unittest
 import copy
+import random
 from db.domain import IdScope
 
 class TestLocation(unittest.TestCase):
+
+    @staticmethod
+    def assert_double_equals(a, b, eps = 0.00001):
+        assert abs(a-b) < eps
 
     def create_location(self, id_scope=IdScope()):
         location = Location(id=id_scope.getNewId(Location.vtType),
@@ -166,3 +171,27 @@ class TestLocation(unittest.TestCase):
         loc2 = core.db.io.unserialize(xml_str, Location)
         self.assertEquals(loc1, loc2)
         self.assertEquals(loc1.id, loc2.id)
+
+    def test_add_length(self):
+        """Uses triangle inequality to exercise add and length"""
+        for i in xrange(100):
+            x = Location(x=random.uniform(-1.0, 1.0), y=random.uniform(-1.0, 1.0))
+            y = Location(x=random.uniform(-1.0, 1.0), y=random.uniform(-1.0, 1.0))
+            assert (x+y).length() <= x.length() + y.length()
+
+    def test_mul_length(self):
+        """Uses vector space properties to exercise mul, rmul and length"""
+        for i in xrange(100):
+            x = Location(x=random.uniform(-1.0, 1.0), y=random.uniform(-1.0, 1.0))
+            s = random.uniform(0.0, 10.0)
+            self.assert_double_equals(s * x.length(), (s * x).length())
+            self.assert_double_equals(s * x.length(), (x * s).length())
+
+    def test_comparison_operators(self):
+        """ Test comparison operators """
+        a = Location(x=0, y=1)
+        b = Location(x=0, y=1)
+        assert a == b
+        assert a != None
+        b = Location(x=0, y=0.1)
+        assert a != b

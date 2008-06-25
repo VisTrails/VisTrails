@@ -76,7 +76,7 @@ class Point(object):
             print "Type mismatch"
             return
         l = (self - other).length()
-        if l < self.eq_delta:
+        if l >= self.eq_delta:
             print "Points are too far away:"
             print self
             print other
@@ -127,7 +127,7 @@ class Point(object):
         """
         if type(self) != type(other):
             return False
-        return (self - other).length() < self.eq_delta
+        return (self.x - other.x) ** 2 + (self.y - other.y) ** 2 < 1e-8
         
     def __ne__(self, other):
         """__ne__(other: Point) -> boolean 
