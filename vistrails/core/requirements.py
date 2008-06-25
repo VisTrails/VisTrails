@@ -67,7 +67,7 @@ def check_pyqt4():
     # checks for the presence of pyqt4, which is more important than the rest,
     # since using pyqt requires a qapplication.
     try:
-        require_python_module('PyQt4')
+        require_python_module('PyQt4.QtGui')
         require_python_module('PyQt4.QtOpenGL')
     except MissingRequirement:
         r = core.bundles.installbundle.install({'linux-ubuntu': ['python-qt4',
