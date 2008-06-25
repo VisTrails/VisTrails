@@ -42,4 +42,4 @@ if __name__ == '__main__':
     if len(QtGui.QApplication.topLevelWidgets()):
         v = app.exec_()
         gui.application.stop_application()
-    os._exit(v)
+    sys.exit(v)
