@@ -426,19 +426,16 @@ class QVistrailView(QDockContainer):
         # FIXME: Add tests and handlers for change parameter
         
 
-    @profile
     def undo(self):
         """Performs one undo step, moving up the version tree."""
         action_map = self.controller.vistrail.actionMap
         old_action = action_map.get(self.controller.currentVersion, None)
         self.redo_stack.append(self.controller.currentVersion) 
-        self.controller.showPreviousVersion()
+        self.controller.show_parent_version()
         new_action = action_map.get(self.controller.currentVersion, None)
-
         self.set_pipeline_selection(old_action, new_action, 'undo')
         return self.controller.currentVersion
         
-    @profile
     def redo(self):
         """Performs one redo step if possible, moving down the version tree."""
         action_map = self.controller.vistrail.actionMap
@@ -448,9 +445,7 @@ class QVistrailView(QDockContainer):
             return
         next_version = self.redo_stack[-1]
         self.redo_stack = self.redo_stack[:-1]
-        self.controller.changeSelectedVersion(next_version)
-        self.controller.recompute_terse_graph()
-        self.controller.invalidate_version_tree(False)
+        self.controller.show_child_version(next_version)
         new_action = action_map[self.controller.currentVersion]
         self.set_pipeline_selection(old_action, new_action, 'redo')
         return next_version

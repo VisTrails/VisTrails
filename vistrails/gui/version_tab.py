@@ -114,11 +114,17 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
                 self.disconnect(oldController,
                                 QtCore.SIGNAL('vistrailChanged()'),
                                 self.vistrailChanged)
+                self.disconnect(controller,
+                                QtCore.SIGNAL('invalidate_single_node_in_version_tree'),
+                                self.single_node_changed)
             self.controller = controller
             self.versionView.scene().controller = controller
             self.connect(controller,
                          QtCore.SIGNAL('vistrailChanged()'),
                          self.vistrailChanged)
+            self.connect(controller,
+                         QtCore.SIGNAL('invalidate_single_node_in_version_tree'),
+                         self.single_node_changed)
             if controller:
                 self.vistrailChanged()
                 self.versionProp.updateController(controller)
@@ -130,6 +136,22 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         
         """
         self.versionView.scene().setupScene(self.controller)
+        if self.controller and self.controller.resetVersionView:
+            self.versionView.scene().fitToAllViews()
+        if self.controller:
+            self.versionProp.updateVersion(self.controller.currentVersion)
+            self.versionView.versionProp.updateVersion(self.controller.currentVersion)
+        self.emit(QtCore.SIGNAL("vistrailChanged()"))
+
+    def single_node_changed(self, old_version, new_version):
+        """ single_node_changed(old_version, new_version)
+        Handle single node change on version tree by not recomputing
+        entire scene.
+
+        """
+        self.versionView.scene().update_scene_single_node_change(self.controller,
+                                                                 old_version,
+                                                                 new_version)
         if self.controller and self.controller.resetVersionView:
             self.versionView.scene().fitToAllViews()
         if self.controller:

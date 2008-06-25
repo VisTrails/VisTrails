@@ -80,11 +80,12 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
         Set this link to be ghosted or not
         
         """
-        self.ghosted = ghosted
-        if ghosted:
-            self.linkPen = CurrentTheme.GHOSTED_LINK_PEN
-        else:
-            self.linkPen = CurrentTheme.LINK_PEN
+        if self.ghosted <> ghosted:
+            self.ghosted = ghosted
+            if ghosted:
+                self.linkPen = CurrentTheme.GHOSTED_LINK_PEN
+            else:
+                self.linkPen = CurrentTheme.LINK_PEN
 
     def setupLink(self, v1, v2, compact=True):
         """ setupLink(v1, v2: QGraphicsVersionItem, compact: bool) -> None
@@ -307,6 +308,13 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         self.dragging = False
         self.ghosted = False
         self.createActions()
+
+        # self.rank is a positive number that determines the
+        # saturation of the node. Two version nodes might have the
+        # same rank if they were created by different users
+        # self.max_rank is the maximum rank for that version class
+        self.rank = -1
+        self.max_rank = -1
         
         # Editable text item that remains hidden unless the version is selected
         self.text = QGraphicsVersionTextItem(self)
@@ -326,16 +334,41 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         Set this version to be ghosted or not
         
         """
-        self.ghosted = ghosted
-        if ghosted:
-            self.versionPen = CurrentTheme.GHOSTED_VERSION_PEN
-            self.versionLabelPen = CurrentTheme.GHOSTED_VERSION_LABEL_PEN
-            self.versionBrush = CurrentTheme.GHOSTED_VERSION_USER_BRUSH
-        else:
-            self.versionPen = CurrentTheme.VERSION_PEN
-            self.versionLabelPen = CurrentTheme.VERSION_LABEL_PEN
-            self.versionBrush = CurrentTheme.VERSION_USER_BRUSH
+        if self.ghosted <> ghosted:
+            self.ghosted = ghosted
+            if ghosted:
+                self.versionPen = CurrentTheme.GHOSTED_VERSION_PEN
+                self.versionLabelPen = CurrentTheme.GHOSTED_VERSION_LABEL_PEN
+                self.versionBrush = CurrentTheme.GHOSTED_VERSION_USER_BRUSH
+            else:
+                self.versionPen = CurrentTheme.VERSION_PEN
+                self.versionLabelPen = CurrentTheme.VERSION_LABEL_PEN
+                self.versionBrush = CurrentTheme.VERSION_USER_BRUSH
 
+    def update_color(self, isThisUs, new_rank, new_max_rank):
+        """ update_color(isThisUs: bool,
+                         new_rank, new_max_rank: int) -> None
+
+        If necessary, update the colors of this version node based on
+        who owns the node and new ranks
+
+        NOTE: if username changes during execution, this might break.
+        """
+        if new_rank == self.rank and new_max_rank == self.max_rank:
+            # nothing changed
+            return
+        self.rank = new_rank
+        self.max_rank = new_max_rank
+        if not self.ghosted:
+            if isThisUs:
+                brush = CurrentTheme.VERSION_USER_BRUSH
+            else:
+                brush = CurrentTheme.VERSION_OTHER_BRUSH
+            sat = float(new_rank+1) / new_max_rank
+            (h, s, v, a) = brush.color().getHsvF()
+            newHsv = (h, s*sat, v+(1.0-v)*(1-sat), a)
+            self.versionBrush = QtGui.QBrush(QtGui.QColor.fromHsvF(*newHsv))
+                
     def setSaturation(self, isThisUser, sat):
         """ setSaturation(isThisUser: bool, sat: float) -> None        
         Set the color of this version depending on whose is the user
@@ -673,37 +706,40 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.versions = {}
         self.clearItems()
 
-    def adjustVersionColors(self, controller):
-        """ adjustVersionColors(controller: VistrailController) -> None
+    def adjust_version_colors(self, controller):
+        """ adjust_version_colors(controller: VistrailController) -> None
         Based on the controller to set version colors
         
         """
         currentUser = controller.vistrail.getUser()
-        thisNodes = {}
-        otherNodes = {}
+        ranks = {}
+        ourMaxRank = 0
+        otherMaxRank = 0
+        am = controller.vistrail.actionMap
         for nodeId in sorted(self.versions.keys()):
             if nodeId!=0:
-                nodeUser = controller.vistrail.actionMap[nodeId].user
+                nodeUser = am[nodeId].user
                 if nodeUser==currentUser:
-                    thisNodes[nodeId] = len(thisNodes)
+                    ranks[nodeId] = ourMaxRank
+                    ourMaxRank += 1
                 else:
-                    otherNodes[nodeId] = len(otherNodes)
-        thisNorm = float(len(thisNodes))
-        otherNorm = float(len(otherNodes))
-    
-        for (nodeId, item) in self.versions.items():
-            ghosted = False
+                    ranks[nodeId] = otherMaxRank
+                    otherMaxRank += 1
+        for (nodeId, item) in self.versions.iteritems():
+            if nodeId == 0:
+                item.setGhosted(True)
+                continue
+            nodeUser = am[nodeId].user
             if controller.search and nodeId!=0:
-                action = controller.vistrail.actionMap[nodeId]
                 ghosted = not controller.search.match(controller.vistrail, 
-                                                      action)
-            item.setGhosted(nodeId==0 or ghosted)
-            if thisNodes.has_key(nodeId):
-                item.setSaturation(True,
-                                   float(thisNodes[nodeId]+1)/thisNorm)
-            elif otherNodes.has_key(nodeId):
-                item.setSaturation(False,
-                                   float(otherNodes[nodeId]+1)/otherNorm)
+                                                      am[nodeId])
+            else:
+                ghosted = False
+            item.setGhosted(ghosted)
+            max_rank = ourMaxRank if nodeUser==currentUser else otherMaxRank
+            item.update_color(nodeUser==currentUser,
+                              ranks[nodeId],
+                              max_rank)
 
     def has_edge(self, graph, frm, to):
         """ FIXME: this should go to the graph classget_edge(frm, to) -> edge_id
@@ -714,8 +750,49 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         return False
 
 
+    def update_scene_single_node_change(self, controller, old_version, new_version):
+        """ update_scene_single_node_change(controller: VistrailController,
+        old_version, new_version: int) -> None
+
+        Faster alternative to setup_scene when a single version is
+        changed. When this is called, we know that both old_version
+        and new_version don't have tags associated, so no layout
+        changes happen
+    
+        """
+        # self.setupScene(controller)
+
+        # we need to call this every time because version ranks might
+        # change
+        self.adjust_version_colors(controller)
+
+        # update version item
+        v = self.versions[old_version]
+        self.versions[new_version] = v
+        del self.versions[old_version]
+        v.id = new_version
+
+        # update link items
+        dst = controller._current_terse_graph.edges_from(new_version)
+        for eto, _ in dst:
+            edge = self.edges[(old_version, eto)]
+            edge.setupLink(self.versions[new_version],
+                           self.versions[eto],
+                           self.fullGraph.parent(eto) == new_version)
+            self.edges[(new_version, eto)] = edge
+            del self.edges[(old_version, eto)]
+
+        src = controller._current_terse_graph.edges_to(new_version)
+        for efrom, _ in src:
+            edge = self.edges[(efrom, old_version)]
+            edge.setupLink(self.versions[efrom],
+                           self.versions[new_version],
+                           self.fullGraph.parent(new_version) == efrom)
+            self.edges[(efrom, new_version)] = edge
+            del self.edges[(efrom, old_version)]
+
     def setupScene(self, controller):
-        """ setupScene(vistrail: VistrailController) -> None
+        """ setupScene(controller: VistrailController) -> None
         Construct the scene to view a version tree
         
         """
@@ -778,14 +855,16 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         tCreate = time.clock()
 
         # loop on the nodes of the tree
+        tm = controller.vistrail.tagMap
+        am = controller.vistrail.actionMap
         for node in layout.nodes.itervalues():
 
             # version id
             v = node.id
 
             # version tag
-            tag = controller.vistrail.tagMap.get(v, None)
-            action = controller.vistrail.actionMap.get(v, None)
+            tag = tm.get(v, None)
+            action = am.get(v, None)
 
             # if the version gui object already exists...
             if self.versions.has_key(v):
@@ -798,7 +877,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             self.versions[v].setSelected(v == controller.currentVersion)
 
         # adjust the colors
-        self.adjustVersionColors(controller)
+        self.adjust_version_colors(controller)
 
         # Add or update links
         for source in tree.vertices.iterkeys():

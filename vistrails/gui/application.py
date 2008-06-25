@@ -298,9 +298,6 @@ after self.init()"""
             help="Set startup file (default is ~/.vistrails/startup.py)")
         add("-?", action="help",
             help="show this help message and exit")
-        add("-p", "--prompt", action="store_true",
-            default=None, dest="prompt",
-            help="start a python prompt inside VisTrails")
         add("-v", "--version", action="callback",
             callback=lambda option, opt, value, parser: self.printVersion(),
             help="print version information and quit")
@@ -358,8 +355,6 @@ after self.init()"""
         
         """
         get = command_line.CommandLineParser().get_option
-        if get('prompt')!=None:
-            self.temp_configuration.pythonPrompt = bool(get('prompt'))
         if get('nosplash')!=None:
             self.temp_configuration.showSplash = bool(get('nosplash'))
         if get('debugsignals')!=None:
@@ -415,8 +410,6 @@ after self.init()"""
            # gui.bookmark_window.initBookmarks(system.default_bookmarks_file())    
             
         #initBookmarks()
-        if self.temp_configuration.check('pythonPrompt'):
-            debug.startVisTrailsREPL(locals())
         self.showSplash = self.configuration.showSplash
 
     def finishSession(self):

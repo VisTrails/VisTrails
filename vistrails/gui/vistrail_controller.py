@@ -125,6 +125,19 @@ class VistrailController(QtCore.QObject):
         self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
         self.timer.start(1000 * 60 * 2) # Save every two minutes
 
+    ##########################################################################
+    # Signal vistrail relayout / redraw
+
+    def replace_unnamed_node_in_version_tree(self, old_version, new_version):
+        """method analogous to invalidate_version_tree but when only
+        a single unnamed node and links need to be updated. Much faster."""
+        self.resetVersionView = False
+        try:
+            self.emit(QtCore.SIGNAL('invalidate_single_node_in_version_tree'),
+                                    old_version, new_version)
+        finally:
+            self.resetVersionView = True
+
     def invalidate_version_tree(self, reset_version_view=True):
         self.resetVersionView = reset_version_view
         #FIXME: in the future, rename the signal
@@ -857,32 +870,24 @@ class VistrailController(QtCore.QObject):
         """
         return (self._current_terse_graph, self._current_full_graph)
 
-    def showPreviousVersion(self):
-        """ showPreviousVersion() -> None
-        Go back one from the current version and display it
+    ##########################################################################
+    # undo/redo navigation
 
-        """
-        # NOTE cscheid: Slight change in the logic under refined views:
-        # before r1185, undo would back up more than one action in the
-        # presence of non-matching refined nodes. That seems wrong. Undo
-        # should always move one step only.         
-
-        prev = None
-        try:
-            prev = self._current_full_graph.parent(self.currentVersion)
-        except full.CalledParentOnSourceVertex:
-            prev = 0
-        if self.currentVersion <> prev:
-            
+    def _change_version_short_hop(self, new_version):
+        """_change_version_short_hop is used internally to
+        change versions when we're moving exactly one action up or down.
+        This allows a few optimizations that improve interactivity."""
+        
+        if self.currentVersion <> new_version:
             # Instead of recomputing the terse graph, simply update it
 
             # There are two variables in play:
-            # a) whether or not the parent's node is currently on the
-            # terse tree (it will certainly be after the undo)
+            # a) whether or not the destination node is currently on the
+            # terse tree (it will certainly be after the move)
             # b) whether or not the current node will be visible (it
             # certainly is now, since it's the current one)
 
-            parent_node_in_tree = prev in self._current_terse_graph.vertices
+            dest_node_in_terse_tree = new_version in self._current_terse_graph.vertices
             
             current = self.currentVersion
             tree = self.vistrail.tree.getVersionTree()
@@ -896,16 +901,46 @@ class VistrailController(QtCore.QObject):
                  (self.currentVersion in self.vistrail.tagMap) or
                  children_count <> 1)
 
-            self.changeSelectedVersion(prev)
+            self.changeSelectedVersion(new_version)
             # case 1:
-            if not parent_node_in_tree and not current_node_will_be_visible:
+            if not dest_node_in_terse_tree and not current_node_will_be_visible:
                 # we're going from one boring node to another,
                 # so just rename the node on the terse graph
-                self._current_terse_graph.rename_vertex(current, prev)
+                self._current_terse_graph.rename_vertex(current, new_version)
+                self.replace_unnamed_node_in_version_tree(current, new_version)
             else:
                 # bail, for now
                 self.recompute_terse_graph()
-            self.invalidate_version_tree(False)
+                self.invalidate_version_tree(False)
+        
+
+    def show_parent_version(self):
+        """ show_parent_version() -> None
+        Go back one from the current version and display it
+
+        """
+        # NOTE cscheid: Slight change in the logic under refined views:
+        # before r1185, undo would back up more than one action in the
+        # presence of non-matching refined nodes. That seems wrong. Undo
+        # should always move one step only.         
+
+        prev = None
+        try:
+            prev = self._current_full_graph.parent(self.currentVersion)
+        except full.CalledParentOnSourceVertex:
+            prev = 0
+
+        self._change_version_short_hop(prev)
+
+    def show_child_version(self, which_child):
+        """ show_child_version(which_child: int) -> None
+        Go forward one version and display it. This is used in redo.
+
+        ONLY CALL THIS FUNCTION IF which_child IS A CHILD OF self.currentVersion
+
+        """
+        self._change_version_short_hop(which_child)
+        
 
     def pruneVersions(self, versions):
         """ pruneVersions(versions: list of version numbers) -> None

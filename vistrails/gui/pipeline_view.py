@@ -1317,16 +1317,32 @@ mutual connections."""
             
         self.modules[m_id]._old_connection_ids = None
 
-    def moduleTextHasChanged(self, m1, m2):
-        if m1.tag != m2.tag:
+    def module_text_has_changed(self, m1, m2):
+        # 2008-06-25 cscheid
+        # This is a hot-path for QPipelineView.setupScene, so we cut some corners
+        # 
+        # if m1.tag != m2.tag:
+        #     return True
+        # if m1.has_annotation_with_key('__desc__')!=m2.has_annotation_with_key('__desc__'):
+        #     return True        
+        # if (m1.has_annotation_with_key('__desc__') and
+        #     m1.get_annotation_by_key('__desc__').value.strip()!=
+        #     m2.get_annotation_by_key('__desc__').value.strip()):
+        #     return True            
+        # return False
+        if m1.__dict__['_DBModule__db_tag'] != m2.__dict__['_DBModule__db_tag']:
             return True
-        if m1.has_annotation_with_key('__desc__')!=m2.has_annotation_with_key('__desc__'):
+        m1_has = '__desc__' in m1.db_annotations_key_index
+        if (m1_has !=
+            '__desc__' in m2.db_annotations_key_index):
             return True        
-        if (m1.has_annotation_with_key('__desc__') and
-            m1.get_annotation_by_key('__desc__').value.strip()!=
-            m2.get_annotation_by_key('__desc__').value.strip()):
+        if (m1_has and
+            # m2_has, since m1_has and previous condition
+            m1.db_annotations_key_index['__desc__'].value.strip()!=
+            m2.db_annotations_key_index['__desc__'].value.strip()):
             return True            
         return False
+        
         
     def setupScene(self, pipeline):
         """ setupScene(pipeline: Pipeline) -> None
@@ -1362,7 +1378,7 @@ mutual connections."""
                         pipeline.modules[m_id].center):
                         self.recreate_module(pipeline, m_id)
                         moved.add(m_id)
-                    elif self.moduleTextHasChanged(self.modules[m_id].module,
+                    elif self.module_text_has_changed(self.modules[m_id].module,
                                                    pipeline.modules[m_id]):
                         self.recreate_module(pipeline, m_id)                    
                     self.modules[m_id].module = pipeline.modules[m_id]
@@ -1450,9 +1466,10 @@ mutual connections."""
                 event.accept()
 
     def unselect_all(self):
-        selected = self.selectedItems()[:]
-        for item in selected:
-            item.setSelected(False)
+        self.clearSelection()
+#         selected = self.selectedItems()[:]
+#         for item in selected:
+#             item.setSelected(False)
         self.pipeline_tab.moduleSelected(-1)
 
     def add_module_event(self, event, data):
