@@ -488,7 +488,7 @@ def getSharedRoot(vistrail, versions):
         if current.count(maxId) == len(current):
             return maxId
         else:
-            newId = vistrail.db_get_action(maxId).db_prevId
+            newId = vistrail.db_get_action_by_id(maxId).db_prevId
             for i, v in enumerate(current):
                 if v == maxId:
                     current[i] = newId
