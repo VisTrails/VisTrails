@@ -103,9 +103,10 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
 class DBLocator(_DBLocator, CoreLocator):
 
     def __init__(self, host, port, database, user, passwd, name=None,
-                 obj_id=None, obj_type=None, connection_id=None):
+                 obj_id=None, obj_type=None, connection_id=None,
+                 version_node=None):
         _DBLocator.__init__(self, host, port, database, user, passwd, name,
-                            obj_id, obj_type, connection_id)
+                            obj_id, obj_type, connection_id,version_node)
 
     def load(self, klass=None):
         from core.vistrail.vistrail import Vistrail
@@ -189,7 +190,7 @@ class DBLocator(_DBLocator, CoreLocator):
         passwd = ""
             
         return DBLocator(host, port, database,
-                         user, passwd, None, vt_id, None, version)
+                         user, passwd, None, vt_id, None, None, version)
 
     ##########################################################################
 
