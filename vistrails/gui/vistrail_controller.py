@@ -907,7 +907,6 @@ class VistrailController(QtCore.QObject):
             
             current = self.currentVersion
             tree = self.vistrail.tree.getVersionTree()
-            assert current <> 0
             # same logic as recompute_terse_graph except for current
             children_count = len([x for (x, _) in tree.adjacency_list[current]
                                   if (x in self.vistrail.actionMap and
