@@ -29,6 +29,14 @@ from core.utils.color import ColorByName, ColorManipulator
 import core.system
 ################################################################################
 
+def _create_configure_shape(w, h):
+    poly = QtGui.QPolygon(3)
+    poly.setPoint(0, 0, 0)
+    poly.setPoint(1, 0, h)
+    poly.setPoint(2, w, h/2)
+    return QtGui.QPolygonF(poly)
+    
+
 class DefaultTheme(object):
     """
     This is the default theme which contains color, images,
@@ -36,69 +44,74 @@ class DefaultTheme(object):
     this class and change appropriate values
     
     """
-    ######################
-    #### MEASUREMENTS ####
-
-    # Padded space of Version shape and its label
-    VERSION_LABEL_MARGIN = (60, 35)
-
-    # Padded space of Module shape into its label
-    MODULE_LABEL_MARGIN = (20, 20, 20, 15)
-    
-    # Margin of Module shape into its ports
-    MODULE_PORT_MARGIN = (4, 4, 4, 4)
-    
-    # Space between ports inside a module
-    MODULE_PORT_SPACE = 4
-    
-    # The space added to the end of port shapes before it reaches the
-    # margin of the module
-    MODULE_PORT_PADDED_SPACE = 20
-
-    # Width and Height of Port shape
-    PORT_WIDTH = 10
-    PORT_HEIGHT = 10
-    PORT_RECT = QtCore.QRectF(0, 0, PORT_WIDTH, PORT_HEIGHT)
-
-    # Width and Height of Configure button shape
-    CONFIGURE_WIDTH = 6
-    CONFIGURE_HEIGHT = 10
-
-    # The number of control points when drawing connection curve
-    CONNECTION_CONTROL_POINTS = 20
-
-    # Control the size and gap for the 3 little segments when
-    # draw connections between versions
-    LINK_SEGMENT_LENGTH = 15
-    LINK_SEGMENT_GAP = 5
-
-    # The size of the frame containing the PIP graphics view
-    PIP_IN_FRAME_WIDTH = 5
-    PIP_OUT_FRAME_WIDTH = 1
-
-    # The size of the frame containing the PIP graphics view
-    PIP_DEFAULT_SIZE = (128, 128)
-
-    # The default minimum size of the graphics views
-    BOUNDING_RECT_MINIMUM = 512
-
-    # Default Paramter Inspector Window dimension
-    VISUAL_DIFF_PARAMETER_WINDOW_SIZE = (348,256)
-
-    # Default legend size (small rectangular shape)
-    VISUAL_DIFF_LEGEND_SIZE = (16, 16)
-
-    # Virtual Cell Label default  size
-    VIRTUAL_CELL_LABEL_SIZE = (40, 40)
-
-    # Query Preview Size
-    QUERY_PREVIEW_SIZE = (256, 256)
     
     def __init__(self):
         """ DefaultTheme() -> DefaultTheme
         This is for initializing all Qt objects
         
         """
+        ######################
+        #### MEASUREMENTS ####
+
+        # Padded space of Version shape and its label
+        self.VERSION_LABEL_MARGIN = (60, 35)
+
+        # Padded space of Module shape into its label
+        self.MODULE_LABEL_MARGIN = (20, 20, 20, 15)
+
+        # Margin of Module shape into its ports
+        self.MODULE_PORT_MARGIN = (4, 4, 4, 4)
+
+        # Space between ports inside a module
+        self.MODULE_PORT_SPACE = 4
+
+        # The space added to the end of port shapes before it reaches the
+        # margin of the module
+        self.MODULE_PORT_PADDED_SPACE = 20
+
+        # Width and Height of Port shape
+        self.PORT_WIDTH = 10
+        self.PORT_HEIGHT = 10
+        self.PORT_RECT = QtCore.QRectF(0, 0, self.PORT_WIDTH, self.PORT_HEIGHT)
+
+        # Width and Height of Configure button shape
+        self.CONFIGURE_WIDTH = 6
+        self.CONFIGURE_HEIGHT = 10
+
+        self.CONFIGURE_SHAPE = _create_configure_shape(self.CONFIGURE_WIDTH,
+                                                       self.CONFIGURE_HEIGHT)
+
+        # The number of control points when drawing connection curve
+        self.CONNECTION_CONTROL_POINTS = 20
+
+        # Control the size and gap for the 3 little segments when
+        # draw connections between versions
+        self.LINK_SEGMENT_LENGTH = 15
+        self.LINK_SEGMENT_GAP = 5
+
+        # The size of the frame containing the PIP graphics view
+        self.PIP_IN_FRAME_WIDTH = 5
+        self.PIP_OUT_FRAME_WIDTH = 1
+
+        # The size of the frame containing the PIP graphics view
+        self.PIP_DEFAULT_SIZE = (128, 128)
+
+        # The default minimum size of the graphics views
+        self.BOUNDING_RECT_MINIMUM = 512
+
+        # Default Paramter Inspector Window dimension
+        self.VISUAL_DIFF_PARAMETER_WINDOW_SIZE = (348,256)
+
+        # Default legend size (small rectangular shape)
+        self.VISUAL_DIFF_LEGEND_SIZE = (16, 16)
+
+        # Virtual Cell Label default  size
+        self.VIRTUAL_CELL_LABEL_SIZE = (40, 40)
+
+        # Query Preview Size
+        self.QUERY_PREVIEW_SIZE = (256, 256)
+
+
         #### BRUSH & PEN ####
         # Background brush of the pipeline view
         self.PIPELINE_VIEW_BACKGROUND_BRUSH = QtGui.QBrush(
@@ -562,19 +575,14 @@ class ThemeHolder(object):
         object.__init__(self)
         self.theme = None
 
-    def __getattr__(self, attr):
-        """ __getattr__(attr: str) -> value
-        Look-up attr in self.theme instead of itself
-        
-        """
-        return getattr(self.theme,attr)
-
     def setTheme(self, theme):
         """ setTheme(theme: subclass of DefaultTheme) -> None
         Set the current theme to theme
         
         """
-        self.theme = theme
+        # This way, the lookups into the theme are much faster, since
+        # there's no function calls involved
+        self.__dict__.update(theme.__dict__)
 
 def get_current_theme():
     """get_current_theme() -> subclass of DefaultTheme

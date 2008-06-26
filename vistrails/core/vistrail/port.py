@@ -75,8 +75,6 @@ class Port(DBPort):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBPort.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Port
-#         cp._name = self._name
-
         cp.optional = self.optional
         cp.sort_key = self.sort_key
         cp.spec = copy.copy(self.spec)
@@ -148,6 +146,15 @@ class Port(DBPort):
         self._spec = spec
         if self._spec is not None:
             self.db_spec = self._spec.create_sigstring()
+            d = {PortEndPoint.Invalid: "Invalid",
+                 PortEndPoint.Source: "Output",
+                 PortEndPoint.Destination: "Input"}
+            self.__tooltip = "%s port %s\n%s" % (d[self.endPoint], 
+                                                 self.name,
+                                                 self.spec.create_sigstring(short=True))
+        else:
+            self.__tooltip = ""
+
     spec = property(_get_spec, _set_spec)
 
     def _get_sig(self):
@@ -172,12 +179,7 @@ class Port(DBPort):
         Generates an appropriate tooltip for the port. 
         
         """
-        d = {PortEndPoint.Invalid: "Invalid",
-             PortEndPoint.Source: "Output",
-             PortEndPoint.Destination: "Input"}
-        return "%s port %s\n%s" % (d[self.endPoint], 
-                                   self.name,
-                                   self.spec.create_sigstring(short=True))
+        return self.__tooltip
 
     ##########################################################################
     # Debugging

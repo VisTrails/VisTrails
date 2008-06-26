@@ -94,7 +94,7 @@ class DBWorkflow(_DBWorkflow):
             obj_type = 'module'
         else:
             obj_type = object.vtType
-	funname = 'db_add_%s' % obj_type
+	funname = 'db_add_' + obj_type
 	obj_copy = copy.copy(object)
 	getattr(parent_obj, funname)(obj_copy)
 	self.add_to_index(obj_copy)
@@ -135,12 +135,12 @@ class DBWorkflow(_DBWorkflow):
                     raise Exception(msg)
         if obj_type == 'abstractionRef' or obj_type == 'group':
             obj_type = 'module'
-	funname = 'db_get_%s' % obj_type
+	funname = 'db_get_' + obj_type
         if hasattr(parent_obj, funname):
             object = getattr(parent_obj, funname)(obj_id)
         else:
-            attr_name = 'db_%s' % obj_type
+            attr_name = 'db_' + obj_type
             object = getattr(parent_obj, attr_name)
-	funname = 'db_delete_%s' % obj_type
+	funname = 'db_delete_' + obj_type
 	getattr(parent_obj, funname)(object)
 	self.delete_from_index(object)

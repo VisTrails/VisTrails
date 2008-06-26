@@ -69,8 +69,8 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
     of QGraphicsModuleItem, it can either be rectangle or rounded
     
     """
-    def __init__(self, parent=None, scene=None, optional=False):
-        """ QGraphicsPortItem(parent: QGraphicsItem, scene: QGraphicsScene,
+    def __init__(self, parent=None, optional=False):
+        """ QGraphicsPortItem(parent: QGraphicsItem,
                               optional: bool)
                               -> QGraphicsPortItem
         Create the shape, initialize its pen and brush accordingly
@@ -78,7 +78,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         """
         # local lookups are faster than global lookups..
         t = CurrentTheme
-        QtGui.QGraphicsRectItem.__init__(self, parent, scene)
+        QtGui.QGraphicsRectItem.__init__(self, t.PORT_RECT, parent)
         self.setZValue(1)
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
         self.setPen(t.PORT_PEN)
@@ -87,7 +87,6 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
             self.paint = self.paintRect
         else:
             self.paint = self.paintEllipse
-        self.setRect(t.PORT_RECT)
         self.controller = None
         self.port = None
         self.dragging = False
@@ -274,12 +273,13 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         self.setZValue(1)
         self.setPen(CurrentTheme.CONFIGURE_PEN)
         self.setBrush(CurrentTheme.CONFIGURE_BRUSH)
-        poly = QtGui.QPolygon(3)
-        poly.setPoint(0, 0, 0)
-        poly.setPoint(1, 0, CurrentTheme.CONFIGURE_HEIGHT)
-        poly.setPoint(2, CurrentTheme.CONFIGURE_WIDTH,
-                      CurrentTheme.CONFIGURE_HEIGHT/2)
-        self.setPolygon(QtGui.QPolygonF(poly))
+        self.setPolygon(CurrentTheme.CONFIGURE_SHAPE)
+#         poly = QtGui.QPolygon(3)
+#         poly.setPoint(0, 0, 0)
+#         poly.setPoint(1, 0, CurrentTheme.CONFIGURE_HEIGHT)
+#         poly.setPoint(2, CurrentTheme.CONFIGURE_WIDTH,
+#                       CurrentTheme.CONFIGURE_HEIGHT/2)
+#         self.setPolygon(QtGui.QPolygonF(poly))
         self.ghosted = False
         self.controller = None
         self.moduleId = None
@@ -378,7 +378,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
 # QGraphicsConnectionItem
 
 # set this to True to have old sine-wave connections
-__old_connection = True
+__old_connection = False
 if __old_connection:
     class QGraphicsConnectionItem(QGraphicsItemInterface,
                                   QtGui.QGraphicsPolygonItem):
@@ -950,7 +950,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         Create a item from the port spec
         
         """
-        portShape = QGraphicsPortItem(self, self.scene(), port.optional)
+        portShape = QGraphicsPortItem(self, port.optional)
         portShape.controller = self.controller
         portShape.setGhosted(self.ghosted)
         portShape.setupPort(port)
@@ -982,7 +982,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         return None
 
     def getInputPortPosition(self, port):
-        """ getInputPortPosition(port: Port} -> QRectF
+        """ getInputPortPosition(port: Port) -> QRectF
         Just an overload function of getPortPosition to get from input ports
         
         """

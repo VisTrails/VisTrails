@@ -282,34 +282,31 @@ class Pipeline(DBWorkflow):
 
     def perform_operation(self, op):
         # print "doing %s %s" % (op.vtType, op.what)
-        if op.what == 'abstractionRef' or op.what == 'group':
+        if op.db_what == 'abstractionRef' or op.db_what == 'group':
             what = 'module'
         else:
-            what = op.what
+            what = op.db_what
         funname = '%s_%s' % (op.vtType, what)
-        if hasattr(self, funname):
+
+        try:
+            f = getattr(self, funname)
             if op.vtType == 'add':
-                getattr(self, funname)(op.data, 
-                                       op.parentObjId, op.parentObjType)
+                f(op.data, op.parentObjId, op.parentObjType)
             elif op.vtType == 'delete':
-                getattr(self, funname)(op.objectId, 
-                                       op.parentObjId, op.parentObjType)
+                f(op.objectId, op.parentObjId, op.parentObjType)
             elif op.vtType == 'change':
-                getattr(self, funname)(op.oldObjId, op.data,
-                                       op.parentObjId, op.parentObjType)
-        else:
+                f(op.oldObjId, op.data, op.parentObjId, op.parentObjType)
+        except AttributeError:
             db_funname = 'db_%s_object' % op.vtType
-            if hasattr(self, db_funname):
+            try:
+                f = getattr(self, db_funname)
                 if op.vtType == 'add':
-                    getattr(self, db_funname)(op.data, 
-                                              op.parentObjType, op.parentObjId)
+                    f(op.data, op.parentObjType, op.parentObjId)
                 elif op.vtType == 'delete':
-                    getattr(self, db_funname)(op.objectId, op.what,
-                                              op.parentObjType, op.parentObjId)
+                    f(op.objectId, op.what, op.parentObjType, op.parentObjId)
                 elif op.vtType == 'change':
-                    getattr(self, db_funname)(op.oldObjId, op.data,
-                                              op.parentObjType, op.parentObjId)
-            else:
+                    f(op.oldObjId, op.data, op.parentObjType, op.parentObjId)
+            except AttributeError:
                 msg = "Pipeline cannot execute '%s' operation" % op.vtType
                 raise VistrailsInternalError(msg)
 
@@ -342,11 +339,9 @@ class Pipeline(DBWorkflow):
             raise VistrailsInternalError("id missing in modules")
 
         # we're hiding the necessary operations by doing this!
-        adj = copy.copy(self.graph.adjacency_list[id])
-        inv_adj = copy.copy(self.graph.inverse_adjacency_list[id])
-        for (_, conn_id) in adj:
+        for (_, conn_id) in self.graph.adjacency_list[id][:]:
             self.delete_connection(conn_id)
-        for (_, conn_id) in inv_adj:
+        for (_, conn_id) in self.graph.inverse_adjacency_list[id][:]:
             self.delete_connection(conn_id)
 
         # self.modules.pop(id)

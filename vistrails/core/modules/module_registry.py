@@ -1187,7 +1187,7 @@ class ModuleRegistry(QtCore.QObject):
         must have exact name as well as position
         
         """
-        if sub.endPoint != super.endPoint:
+        if sub.db_type != super.db_type:
             return False
         if sub.name != super.name:
             return False

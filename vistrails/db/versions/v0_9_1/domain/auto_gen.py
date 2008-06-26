@@ -40,16 +40,15 @@ class DBPortSpec(object):
         return DBPortSpec.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBPortSpec()
-        cp.db_id = self.db_id
-        cp.db_name = self.db_name
-        cp.db_type = self.db_type
-        cp.db_spec = self.db_spec
+        cp = DBPortSpec(self.__db_id,
+                        self.__db_name,
+                        self.__db_type,
+                        self.__db_spec)
         
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -175,14 +174,13 @@ class DBModule(object):
         return DBModule.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBModule()
-        cp.db_id = self.db_id
-        cp.db_cache = self.db_cache
-        cp.db_name = self.db_name
-        cp.db_namespace = self.db_namespace
-        cp.db_package = self.db_package
-        cp.db_version = self.db_version
-        cp.db_tag = self.db_tag
+        cp = DBModule(self.__db_id,
+                      self.__db_cache,
+                      self.__db_name,
+                      self.__db_namespace,
+                      self.__db_package,
+                      self.__db_version,
+                      self.__db_tag)
         if self.db_location is not None:
             cp.db_location = self.db_location.do_copy(new_ids, id_scope, id_remap)
         if self.db_functions is None:
@@ -201,7 +199,7 @@ class DBModule(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -422,7 +420,7 @@ class DBModule(object):
     def db_get_function_by_id(self, key):
         return self.db_functions_id_index[key]
     def db_has_function_with_id(self, key):
-        return self.db_functions_id_index.has_key(key)
+        return key in self.db_functions_id_index
     
     def __get_db_annotations(self):
         return self.__db_annotations
@@ -467,11 +465,11 @@ class DBModule(object):
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
     def db_has_annotation_with_id(self, key):
-        return self.db_annotations_id_index.has_key(key)
+        return key in self.db_annotations_id_index
     def db_get_annotation_by_key(self, key):
         return self.db_annotations_key_index[key]
     def db_has_annotation_with_key(self, key):
-        return self.db_annotations_key_index.has_key(key)
+        return key in self.db_annotations_key_index
     
     def __get_db_portSpecs(self):
         return self.__db_portSpecs
@@ -516,11 +514,11 @@ class DBModule(object):
     def db_get_portSpec_by_id(self, key):
         return self.db_portSpecs_id_index[key]
     def db_has_portSpec_with_id(self, key):
-        return self.db_portSpecs_id_index.has_key(key)
+        return key in self.db_portSpecs_id_index
     def db_get_portSpec_by_name(self, key):
         return self.db_portSpecs_name_index[key]
     def db_has_portSpec_with_name(self, key):
-        return self.db_portSpecs_name_index.has_key(key)
+        return key in self.db_portSpecs_name_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -539,19 +537,18 @@ class DBTag(object):
         return DBTag.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBTag()
-        cp.db_id = self.db_id
-        cp.db_name = self.db_name
+        cp = DBTag(self.__db_id,
+                   self.__db_name)
         
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_id') and id_remap.has_key(('action', self.db_id)):
+            if hasattr(self, 'db_id') and ('action', self.db_id) in id_remap:
                 cp.db_id = id_remap[('action', self.db_id)]
         
         # recreate indices and set flags
@@ -617,23 +614,22 @@ class DBPort(object):
         return DBPort.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBPort()
-        cp.db_id = self.db_id
-        cp.db_type = self.db_type
-        cp.db_moduleId = self.db_moduleId
-        cp.db_moduleName = self.db_moduleName
-        cp.db_name = self.db_name
-        cp.db_spec = self.db_spec
+        cp = DBPort(self.__db_id,
+                    self.__db_type,
+                    self.__db_moduleId,
+                    self.__db_moduleName,
+                    self.__db_name,
+                    self.__db_spec)
         
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_moduleId') and id_remap.has_key(('module', self.db_moduleId)):
+            if hasattr(self, 'db_moduleId') and ('module', self.db_moduleId) in id_remap:
                 cp.db_moduleId = id_remap[('module', self.db_moduleId)]
         
         # recreate indices and set flags
@@ -774,16 +770,14 @@ class DBGroup(object):
         return DBGroup.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBGroup()
-        cp.db_id = self.db_id
-        if self.db_workflow is not None:
-            cp.db_workflow = self.db_workflow.do_copy(new_ids, id_scope, id_remap)
-        cp.db_cache = self.db_cache
-        cp.db_name = self.db_name
-        cp.db_namespace = self.db_namespace
-        cp.db_package = self.db_package
-        cp.db_version = self.db_version
-        cp.db_tag = self.db_tag
+        cp = DBGroup(self.__db_id,
+                     self.__db_workflow and self.db_workflow.do_copy(new_ids, id_scope, id_remap),
+                     self.__db_cache,
+                     self.__db_name,
+                     self.__db_namespace,
+                     self.__db_package,
+                     self.__db_version,
+                     self.__db_tag)
         if self.db_location is not None:
             cp.db_location = self.db_location.do_copy(new_ids, id_scope, id_remap)
         if self.db_functions is None:
@@ -798,7 +792,7 @@ class DBGroup(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -1023,7 +1017,7 @@ class DBGroup(object):
     def db_get_function_by_id(self, key):
         return self.db_functions_id_index[key]
     def db_has_function_with_id(self, key):
-        return self.db_functions_id_index.has_key(key)
+        return key in self.db_functions_id_index
     
     def __get_db_annotations(self):
         return self.__db_annotations
@@ -1068,11 +1062,11 @@ class DBGroup(object):
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
     def db_has_annotation_with_id(self, key):
-        return self.db_annotations_id_index.has_key(key)
+        return key in self.db_annotations_id_index
     def db_get_annotation_by_key(self, key):
         return self.db_annotations_key_index[key]
     def db_has_annotation_with_key(self, key):
-        return self.db_annotations_key_index.has_key(key)
+        return key in self.db_annotations_key_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -1111,12 +1105,11 @@ class DBLog(object):
         return DBLog.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBLog()
-        cp.db_id = self.db_id
-        cp.db_entity_type = self.db_entity_type
-        cp.db_version = self.db_version
-        cp.db_name = self.db_name
-        cp.db_last_modified = self.db_last_modified
+        cp = DBLog(self.__db_id,
+                   self.__db_entity_type,
+                   self.__db_version,
+                   self.__db_name,
+                   self.__db_last_modified)
         if self.db_workflow_execs is None:
             cp.db_workflow_execs = []
         else:
@@ -1125,17 +1118,17 @@ class DBLog(object):
             cp.db_machines = []
         else:
             cp.db_machines = [v.do_copy(new_ids, id_scope, id_remap) for v in self.db_machines]
-        cp.db_vistrail_id = self.db_vistrail_id
+        cp.__db_vistrail_id = self.__db_vistrail_id
         
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_vistrail_id') and id_remap.has_key(('vistrail', self.db_vistrail_id)):
+            if hasattr(self, 'db_vistrail_id') and ('vistrail', self.db_vistrail_id) in id_remap:
                 cp.db_vistrail_id = id_remap[('vistrail', self.db_vistrail_id)]
         
         # recreate indices and set flags
@@ -1288,7 +1281,7 @@ class DBLog(object):
     def db_get_workflow_exec_by_id(self, key):
         return self.db_workflow_execs_id_index[key]
     def db_has_workflow_exec_with_id(self, key):
-        return self.db_workflow_execs_id_index.has_key(key)
+        return key in self.db_workflow_execs_id_index
     
     def __get_db_machines(self):
         return self.__db_machines
@@ -1330,7 +1323,7 @@ class DBLog(object):
     def db_get_machine_by_id(self, key):
         return self.db_machines_id_index[key]
     def db_has_machine_with_id(self, key):
-        return self.db_machines_id_index.has_key(key)
+        return key in self.db_machines_id_index
     
     def __get_db_vistrail_id(self):
         return self.__db_vistrail_id
@@ -1366,23 +1359,21 @@ class DBMachine(object):
         return DBMachine.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBMachine()
-        cp.db_id = self.db_id
-        cp.db_name = self.db_name
-        cp.db_os = self.db_os
-        cp.db_architecture = self.db_architecture
-        cp.db_processor = self.db_processor
-        cp.db_ram = self.db_ram
-        
+        cp = DBMachine(self.__db_id,
+                       self.__db_name,
+                       self.__db_os,
+                       self.__db_architecture,
+                       self.__db_processor,
+                       self.__db_ram)
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_vistrailId') and id_remap.has_key(('vistrail', self.db_vistrailId)):
+            if hasattr(self, 'db_vistrailId') and ('vistrail', self.db_vistrailId) in id_remap:
                 cp.db_vistrailId = id_remap[('vistrail', self.db_vistrailId)]
         
         # recreate indices and set flags
@@ -1501,26 +1492,24 @@ class DBAdd(object):
         return DBAdd.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBAdd()
-        if self.db_data is not None:
-            cp.db_data = self.db_data.do_copy(new_ids, id_scope, id_remap)
-        cp.db_id = self.db_id
-        cp.db_what = self.db_what
-        cp.db_objectId = self.db_objectId
-        cp.db_parentObjId = self.db_parentObjId
-        cp.db_parentObjType = self.db_parentObjType
+        cp = DBAdd(self.__db_data and self.__db_data.do_copy(new_ids, id_scope, id_remap),
+                   self.__db_id,
+                   self.__db_what,
+                   self.__db_objectId,
+                   self.__db_parentObjId,
+                   self.__db_parentObjType)
         
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_objectId') and id_remap.has_key((self.db_what, self.db_objectId)):
+            if hasattr(self, 'db_objectId') and (self.db_what, self.db_objectId) in id_remap:
                 cp.db_objectId = id_remap[(self.db_what, self.db_objectId)]
-            if hasattr(self, 'db_parentObjId') and id_remap.has_key((self.db_parentObjType, self.db_parentObjId)):
+            if hasattr(self, 'db_parentObjId') and (self.db_parentObjType, self.db_parentObjId) in id_remap:
                 cp.db_parentObjId = id_remap[(self.db_parentObjType, self.db_parentObjId)]
         
         # recreate indices and set flags
@@ -1646,15 +1635,14 @@ class DBOther(object):
         return DBOther.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBOther()
-        cp.db_id = self.db_id
-        cp.db_key = self.db_key
-        cp.db_value = self.db_value
+        cp = DBOther(self.__db_id,
+                     self.__db_key,
+                     self.__db_value)
         
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -1733,15 +1721,14 @@ class DBLocation(object):
         return DBLocation.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBLocation()
-        cp.db_id = self.db_id
-        cp.db_x = self.db_x
-        cp.db_y = self.db_y
+        cp = DBLocation(self.__db_id,
+                        self.__db_x,
+                        self.__db_y)
         
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -1823,18 +1810,17 @@ class DBParameter(object):
         return DBParameter.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBParameter()
-        cp.db_id = self.db_id
-        cp.db_pos = self.db_pos
-        cp.db_name = self.db_name
-        cp.db_type = self.db_type
-        cp.db_val = self.db_val
-        cp.db_alias = self.db_alias
+        cp = DBParameter(self.__db_id,
+                         self.__db_pos,
+                         self.__db_name,
+                         self.__db_type,
+                         self.__db_val,
+                         self.__db_alias)
         
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -1960,10 +1946,9 @@ class DBFunction(object):
         return DBFunction.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBFunction()
-        cp.db_id = self.db_id
-        cp.db_pos = self.db_pos
-        cp.db_name = self.db_name
+        cp = DBFunction(self.__db_id,
+                        self.__db_pos,
+                        self.__db_name)
         if self.db_parameters is None:
             cp.db_parameters = []
         else:
@@ -1972,7 +1957,7 @@ class DBFunction(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -2081,14 +2066,17 @@ class DBFunction(object):
                 break
         del self.db_parameters_id_index[parameter.db_id]
     def db_get_parameter(self, key):
-        for i in xrange(len(self.__db_parameters)):
-            if self.__db_parameters[i].db_id == key:
-                return self.__db_parameters[i]
+        try:
+            return self.db_parameters_id_index[key]
+        except KeyError:
+            for i in xrange(len(self.__db_parameters)):
+                if self.__db_parameters[i].db_id == key:
+                    return self.__db_parameters[i]
         return None
     def db_get_parameter_by_id(self, key):
         return self.db_parameters_id_index[key]
     def db_has_parameter_with_id(self, key):
-        return self.db_parameters_id_index.has_key(key)
+        return key in self.db_parameters_id_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -2127,11 +2115,10 @@ class DBAbstraction(object):
         return DBAbstraction.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBAbstraction()
-        cp.db_id = self.db_id
-        cp.db_entity_type = self.db_entity_type
-        cp.db_name = self.db_name
-        cp.db_last_modified = self.db_last_modified
+        cp = DBAbstraction(self.__db_id,
+                           self.__db_entity_type,
+                           self.__db_name,
+                           self.__db_last_modified)
         if self.db_actions is None:
             cp.db_actions = []
         else:
@@ -2144,7 +2131,7 @@ class DBAbstraction(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -2288,7 +2275,7 @@ class DBAbstraction(object):
     def db_get_action_by_id(self, key):
         return self.db_actions_id_index[key]
     def db_has_action_with_id(self, key):
-        return self.db_actions_id_index.has_key(key)
+        return key in self.db_actions_id_index
     
     def __get_db_tags(self):
         return self.__db_tags
@@ -2333,11 +2320,11 @@ class DBAbstraction(object):
     def db_get_tag_by_id(self, key):
         return self.db_tags_id_index[key]
     def db_has_tag_with_id(self, key):
-        return self.db_tags_id_index.has_key(key)
+        return key in self.db_tags_id_index
     def db_get_tag_by_name(self, key):
         return self.db_tags_name_index[key]
     def db_has_tag_with_name(self, key):
-        return self.db_tags_name_index.has_key(key)
+        return key in self.db_tags_name_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -2349,12 +2336,14 @@ class DBWorkflow(object):
     def __init__(self, modules=None, id=None, entity_type=None, name=None, version=None, last_modified=None, connections=None, annotations=None, abstractions=None, others=None, vistrail_id=None):
         self.db_deleted_modules = []
         self.db_modules_id_index = {}
+        self.db_modules_inverted_id_index = {}
         if modules is None:
             self.__db_modules = []
         else:
             self.__db_modules = modules
-            for v in self.__db_modules:
+            for i, v in enumerate(self.__db_modules):
                 self.db_modules_id_index[v.db_id] = v
+                self.db_modules_inverted_id_index[v.db_id] = i
         self.__db_id = id
         self.__db_entity_type = entity_type
         self.__db_name = name
@@ -2362,12 +2351,14 @@ class DBWorkflow(object):
         self.__db_last_modified = last_modified
         self.db_deleted_connections = []
         self.db_connections_id_index = {}
+        self.db_connections_inverted_id_index = {}
         if connections is None:
             self.__db_connections = []
         else:
             self.__db_connections = connections
-            for v in self.__db_connections:
+            for i, v in enumerate(self.__db_connections):
                 self.db_connections_id_index[v.db_id] = v
+                self.db_connections_inverted_id_index[v.db_id] = i
         self.db_deleted_annotations = []
         self.db_annotations_id_index = {}
         if annotations is None:
@@ -2405,11 +2396,11 @@ class DBWorkflow(object):
             cp.db_modules = []
         else:
             cp.db_modules = [v.do_copy(new_ids, id_scope, id_remap) for v in self.db_modules]
-        cp.db_id = self.db_id
-        cp.db_entity_type = self.db_entity_type
-        cp.db_name = self.db_name
-        cp.db_version = self.db_version
-        cp.db_last_modified = self.db_last_modified
+        cp.__db_id = self.__db_id
+        cp.__db_entity_type = self.__db_entity_type
+        cp.__db_name = self.__db_name
+        cp.__db_version = self.__db_version
+        cp.__db_last_modified = self.__db_last_modified
         if self.db_connections is None:
             cp.db_connections = []
         else:
@@ -2431,19 +2422,21 @@ class DBWorkflow(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_vistrail_id') and id_remap.has_key(('vistrail', self.db_vistrail_id)):
+            if hasattr(self, 'db_vistrail_id') and ('vistrail', self.db_vistrail_id) in id_remap:
                 cp.db_vistrail_id = id_remap[('vistrail', self.db_vistrail_id)]
         
         # recreate indices and set flags
-        for v in cp.__db_modules:
+        for i, v in enumerate(cp.__db_modules):
             cp.db_modules_id_index[v.db_id] = v
-        for v in cp.__db_connections:
+            cp.db_modules_inverted_id_index[v.db_id] = i
+        for i, v in enumerate(cp.__db_connections):
             cp.db_connections_id_index[v.db_id] = v
+            cp.db_connections_inverted_id_index[v.db_id] = i
         for v in cp.__db_annotations:
             cp.db_annotations_id_index[v.db_id] = v
         for v in cp.__db_abstractions:
@@ -2530,43 +2523,59 @@ class DBWorkflow(object):
         return self.__db_modules
     def __set_db_modules(self, modules):
         self.__db_modules = modules
+        # FIXME INDICES?
         self.is_dirty = True
     db_modules = property(__get_db_modules, __set_db_modules)
     def db_get_modules(self):
         return self.__db_modules
     def db_add_module(self, module):
         self.is_dirty = True
+        self.db_modules_inverted_id_index[module.db_id] = len(self.__db_modules)
         self.__db_modules.append(module)
         self.db_modules_id_index[module.db_id] = module
     def db_change_module(self, module):
         self.is_dirty = True
-        found = False
-        for i in xrange(len(self.__db_modules)):
-            if self.__db_modules[i].db_id == module.db_id:
-                self.__db_modules[i] = module
-                found = True
-                break
-        if not found:
-            self.__db_modules.append(module)
+        try:
+            i = self.db_modules_inverted_id_index[module.db_id]
+        except KeyError:
+            found = False
+            for i in xrange(len(self.__db_modules)):
+                if self.__db_modules[i].db_id == module.db_id:
+                    found = True
+                    break
+            if not found:
+                self.db_add_module(module)
+                return
+        self.__db_modules[i] = module
         self.db_modules_id_index[module.db_id] = module
     def db_delete_module(self, module):
         self.is_dirty = True
-        for i in xrange(len(self.__db_modules)):
-            if self.__db_modules[i].db_id == module.db_id:
-                if not self.__db_modules[i].is_new:
-                    self.db_deleted_modules.append(self.__db_modules[i])
-                del self.__db_modules[i]
-                break
+        try:
+            i = self.db_modules_inverted_id_index[module.db_id]
+        except KeyError:
+            for i in xrange(len(self.__db_modules)):
+                if self.__db_modules[i].db_id == module.db_id:
+                    break
+        if not self.__db_modules[i].is_new:
+            self.db_deleted_modules.append(self.__db_modules[i])
+        # update inverted index because things got pulled back on the __db_modules list
+        for m in self.__db_modules[i+1:]:
+            self.db_modules_inverted_id_index[m.db_id] -= 1
+        del self.__db_modules[i]
         del self.db_modules_id_index[module.db_id]
+        del self.db_modules_inverted_id_index[module.db_id]
     def db_get_module(self, key):
-        for i in xrange(len(self.__db_modules)):
-            if self.__db_modules[i].db_id == key:
-                return self.__db_modules[i]
+        try:
+            return self.db_modules_id_index[key]
+        except KeyError:
+            for module in self.__db_modules:
+                if module.db_id == key:
+                    return module
         return None
     def db_get_module_by_id(self, key):
         return self.db_modules_id_index[key]
     def db_has_module_with_id(self, key):
-        return self.db_modules_id_index.has_key(key)
+        return key in self.db_modules_id_index
     
     def __get_db_id(self):
         return self.__db_id
@@ -2637,43 +2646,61 @@ class DBWorkflow(object):
         return self.__db_connections
     def __set_db_connections(self, connections):
         self.__db_connections = connections
+        # FIXME INDICES?
         self.is_dirty = True
     db_connections = property(__get_db_connections, __set_db_connections)
     def db_get_connections(self):
         return self.__db_connections
     def db_add_connection(self, connection):
         self.is_dirty = True
+        self.db_connections_inverted_id_index[connection.db_id] = len(self.__db_connections)
         self.__db_connections.append(connection)
         self.db_connections_id_index[connection.db_id] = connection
     def db_change_connection(self, connection):
         self.is_dirty = True
-        found = False
-        for i in xrange(len(self.__db_connections)):
-            if self.__db_connections[i].db_id == connection.db_id:
-                self.__db_connections[i] = connection
-                found = True
-                break
-        if not found:
-            self.__db_connections.append(connection)
+        try:
+            i = self.db_connections_inverted_id_index[connection.db_id]
+        except KeyError:
+            found = False
+            for i in xrange(len(self.__db_connections)):
+                if self.__db_connections[i].db_id == connection.db_id:
+                    self.__db_connections[i] = connection
+                    found = True
+                    break
+            if not found:
+                self.db_add_connection(connection)
+                return
+        self.__db_connections[i] = connection
         self.db_connections_id_index[connection.db_id] = connection
     def db_delete_connection(self, connection):
         self.is_dirty = True
-        for i in xrange(len(self.__db_connections)):
-            if self.__db_connections[i].db_id == connection.db_id:
-                if not self.__db_connections[i].is_new:
-                    self.db_deleted_connections.append(self.__db_connections[i])
-                del self.__db_connections[i]
-                break
+        try:
+            i = self.db_connections_inverted_id_index[connection.db_id]
+        except KeyError:
+            for i in xrange(len(self.__db_connections)):
+                if self.__db_connections[i].db_id == connection.db_id:
+                    break
+        if not self.__db_connections[i].is_new:
+            self.db_deleted_connections.append(self.__db_connections[i])
+        # update inverted index because things got pulled back on the __db_connections list
+        for conn in self.__db_connections[i+1:]:
+            self.db_connections_inverted_id_index[conn.db_id] -= 1
+        del self.__db_connections[i]
         del self.db_connections_id_index[connection.db_id]
+        del self.db_connections_inverted_id_index[connection.db_id]
+        
     def db_get_connection(self, key):
-        for i in xrange(len(self.__db_connections)):
-            if self.__db_connections[i].db_id == key:
-                return self.__db_connections[i]
+        try:
+            return self.db_connections_id_index[key]
+        except KeyError:
+            for connection in self.__db_connections:
+                if connection.db_id == key:
+                    return connection
         return None
     def db_get_connection_by_id(self, key):
         return self.db_connections_id_index[key]
     def db_has_connection_with_id(self, key):
-        return self.db_connections_id_index.has_key(key)
+        return key in self.db_connections_id_index
     
     def __get_db_annotations(self):
         return self.__db_annotations
@@ -2715,7 +2742,7 @@ class DBWorkflow(object):
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
     def db_has_annotation_with_id(self, key):
-        return self.db_annotations_id_index.has_key(key)
+        return key in self.db_annotations_id_index
     
     def __get_db_abstractions(self):
         return self.__db_abstractions
@@ -2757,7 +2784,7 @@ class DBWorkflow(object):
     def db_get_abstraction_by_id(self, key):
         return self.db_abstractions_id_index[key]
     def db_has_abstraction_with_id(self, key):
-        return self.db_abstractions_id_index.has_key(key)
+        return key in self.db_abstractions_id_index
     
     def __get_db_others(self):
         return self.__db_others
@@ -2799,7 +2826,7 @@ class DBWorkflow(object):
     def db_get_other_by_id(self, key):
         return self.db_others_id_index[key]
     def db_has_other_with_id(self, key):
-        return self.db_others_id_index.has_key(key)
+        return key in self.db_others_id_index
     
     def __get_db_vistrail_id(self):
         return self.__db_vistrail_id
@@ -2855,10 +2882,10 @@ class DBAbstractionRef(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBAbstractionRef()
-        cp.db_id = self.db_id
-        cp.db_name = self.db_name
-        cp.db_cache = self.db_cache
-        cp.db_abstraction_id = self.db_abstraction_id
+        cp.__db_id = self.__db_id
+        cp.__db_name = self.__db_name
+        cp.__db_cache = self.__db_cache
+        cp.__db_abstraction_id = self.__db_abstraction_id
         cp.db_version = self.db_version
         if self.db_location is not None:
             cp.db_location = self.db_location.do_copy(new_ids, id_scope, id_remap)
@@ -2874,12 +2901,12 @@ class DBAbstractionRef(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_abstraction_id') and id_remap.has_key(('abstraction', self.db_abstraction_id)):
+            if hasattr(self, 'db_abstraction_id') and ('abstraction', self.db_abstraction_id) in id_remap:
                 cp.db_abstraction_id = id_remap[('abstraction', self.db_abstraction_id)]
         
         # recreate indices and set flags
@@ -3056,7 +3083,7 @@ class DBAbstractionRef(object):
     def db_get_function_by_id(self, key):
         return self.db_functions_id_index[key]
     def db_has_function_with_id(self, key):
-        return self.db_functions_id_index.has_key(key)
+        return key in self.db_functions_id_index
     
     def __get_db_annotations(self):
         return self.__db_annotations
@@ -3101,11 +3128,11 @@ class DBAbstractionRef(object):
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
     def db_has_annotation_with_id(self, key):
-        return self.db_annotations_id_index.has_key(key)
+        return key in self.db_annotations_id_index
     def db_get_annotation_by_key(self, key):
         return self.db_annotations_key_index[key]
     def db_has_annotation_with_key(self, key):
-        return self.db_annotations_key_index.has_key(key)
+        return key in self.db_annotations_key_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -3126,14 +3153,14 @@ class DBAnnotation(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBAnnotation()
-        cp.db_id = self.db_id
-        cp.db_key = self.db_key
-        cp.db_value = self.db_value
+        cp.__db_id = self.__db_id
+        cp.__db_key = self.__db_key
+        cp.__db_value = self.__db_value
         
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -3220,26 +3247,26 @@ class DBChange(object):
         cp = DBChange()
         if self.db_data is not None:
             cp.db_data = self.db_data.do_copy(new_ids, id_scope, id_remap)
-        cp.db_id = self.db_id
-        cp.db_what = self.db_what
-        cp.db_oldObjId = self.db_oldObjId
-        cp.db_newObjId = self.db_newObjId
-        cp.db_parentObjId = self.db_parentObjId
-        cp.db_parentObjType = self.db_parentObjType
+        cp.__db_id = self.__db_id
+        cp.__db_what = self.__db_what
+        cp.__db_oldObjId = self.__db_oldObjId
+        cp.__db_newObjId = self.__db_newObjId
+        cp.__db_parentObjId = self.__db_parentObjId
+        cp.__db_parentObjType = self.__db_parentObjType
         
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_oldObjId') and id_remap.has_key((self.db_what, self.db_oldObjId)):
+            if hasattr(self, 'db_oldObjId') and (self.db_what, self.db_oldObjId) in id_remap:
                 cp.db_oldObjId = id_remap[(self.db_what, self.db_oldObjId)]
-            if hasattr(self, 'db_newObjId') and id_remap.has_key((self.db_what, self.db_newObjId)):
+            if hasattr(self, 'db_newObjId') and (self.db_what, self.db_newObjId) in id_remap:
                 cp.db_newObjId = id_remap[(self.db_what, self.db_newObjId)]
-            if hasattr(self, 'db_parentObjId') and id_remap.has_key((self.db_parentObjType, self.db_parentObjId)):
+            if hasattr(self, 'db_parentObjId') and (self.db_parentObjType, self.db_parentObjId) in id_remap:
                 cp.db_parentObjId = id_remap[(self.db_parentObjType, self.db_parentObjId)]
         
         # recreate indices and set flags
@@ -3394,16 +3421,16 @@ class DBWorkflowExec(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBWorkflowExec()
-        cp.db_id = self.db_id
-        cp.db_user = self.db_user
-        cp.db_ip = self.db_ip
-        cp.db_vt_version = self.db_vt_version
-        cp.db_ts_start = self.db_ts_start
-        cp.db_ts_end = self.db_ts_end
-        cp.db_parent_id = self.db_parent_id
-        cp.db_parent_type = self.db_parent_type
-        cp.db_parent_version = self.db_parent_version
-        cp.db_name = self.db_name
+        cp.__db_id = self.__db_id
+        cp.__db_user = self.__db_user
+        cp.__db_ip = self.__db_ip
+        cp.__db_vt_version = self.__db_vt_version
+        cp.__db_ts_start = self.__db_ts_start
+        cp.__db_ts_end = self.__db_ts_end
+        cp.__db_parent_id = self.__db_parent_id
+        cp.__db_parent_type = self.__db_parent_type
+        cp.__db_parent_version = self.__db_parent_version
+        cp.__db_name = self.__db_name
         if self.db_module_execs is None:
             cp.db_module_execs = []
         else:
@@ -3412,7 +3439,7 @@ class DBWorkflowExec(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -3619,7 +3646,7 @@ class DBWorkflowExec(object):
     def db_get_module_exec_by_id(self, key):
         return self.db_module_execs_id_index[key]
     def db_has_module_exec_with_id(self, key):
-        return self.db_module_execs_id_index.has_key(key)
+        return key in self.db_module_execs_id_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -3648,7 +3675,7 @@ class DBConnection(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBConnection()
-        cp.db_id = self.db_id
+        cp.__db_id = self.__db_id
         if self.db_ports is None:
             cp.db_ports = []
         else:
@@ -3657,7 +3684,7 @@ class DBConnection(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -3744,18 +3771,21 @@ class DBConnection(object):
         del self.db_ports_id_index[port.db_id]
         del self.db_ports_type_index[port.db_type]
     def db_get_port(self, key):
-        for i in xrange(len(self.__db_ports)):
-            if self.__db_ports[i].db_id == key:
-                return self.__db_ports[i]
+        try:
+            return self.db_ports_id_index[key]
+        except KeyError:
+            for i in xrange(len(self.__db_ports)):
+                if self.__db_ports[i].db_id == key:
+                    return self.__db_ports[i]
         return None
     def db_get_port_by_id(self, key):
         return self.db_ports_id_index[key]
     def db_has_port_with_id(self, key):
-        return self.db_ports_id_index.has_key(key)
+        return key in self.db_ports_id_index
     def db_get_port_by_type(self, key):
         return self.db_ports_type_index[key]
     def db_has_port_with_type(self, key):
-        return self.db_ports_type_index.has_key(key)
+        return key in self.db_ports_type_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -3801,12 +3831,12 @@ class DBAction(object):
             cp.db_operations = []
         else:
             cp.db_operations = [v.do_copy(new_ids, id_scope, id_remap) for v in self.db_operations]
-        cp.db_id = self.db_id
-        cp.db_prevId = self.db_prevId
-        cp.db_date = self.db_date
-        cp.db_session = self.db_session
-        cp.db_user = self.db_user
-        cp.db_prune = self.db_prune
+        cp.__db_id = self.__db_id
+        cp.__db_prevId = self.__db_prevId
+        cp.__db_date = self.__db_date
+        cp.__db_session = self.__db_session
+        cp.__db_user = self.__db_user
+        cp.__db_prune = self.__db_prune
         if self.db_annotations is None:
             cp.db_annotations = []
         else:
@@ -3815,7 +3845,7 @@ class DBAction(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -3907,7 +3937,7 @@ class DBAction(object):
     def db_get_operation_by_id(self, key):
         return self.db_operations_id_index[key]
     def db_has_operation_with_id(self, key):
-        return self.db_operations_id_index.has_key(key)
+        return key in self.db_operations_id_index
     
     def __get_db_id(self):
         return self.__db_id
@@ -4030,11 +4060,11 @@ class DBAction(object):
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
     def db_has_annotation_with_id(self, key):
-        return self.db_annotations_id_index.has_key(key)
+        return key in self.db_annotations_id_index
     def db_get_annotation_by_key(self, key):
         return self.db_annotations_key_index[key]
     def db_has_annotation_with_key(self, key):
-        return self.db_annotations_key_index.has_key(key)
+        return key in self.db_annotations_key_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -4057,23 +4087,23 @@ class DBDelete(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBDelete()
-        cp.db_id = self.db_id
-        cp.db_what = self.db_what
-        cp.db_objectId = self.db_objectId
-        cp.db_parentObjId = self.db_parentObjId
-        cp.db_parentObjType = self.db_parentObjType
+        cp.__db_id = self.__db_id
+        cp.__db_what = self.__db_what
+        cp.__db_objectId = self.__db_objectId
+        cp.__db_parentObjId = self.__db_parentObjId
+        cp.__db_parentObjType = self.__db_parentObjType
         
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_objectId') and id_remap.has_key((self.db_what, self.db_objectId)):
+            if hasattr(self, 'db_objectId') and (self.db_what, self.db_objectId) in id_remap:
                 cp.db_objectId = id_remap[(self.db_what, self.db_objectId)]
-            if hasattr(self, 'db_parentObjId') and id_remap.has_key((self.db_parentObjType, self.db_parentObjId)):
+            if hasattr(self, 'db_parentObjId') and (self.db_parentObjType, self.db_parentObjId) in id_remap:
                 cp.db_parentObjId = id_remap[(self.db_parentObjType, self.db_parentObjId)]
         
         # recreate indices and set flags
@@ -4207,14 +4237,14 @@ class DBVistrail(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBVistrail()
-        cp.db_id = self.db_id
-        cp.db_entity_type = self.db_entity_type
-        cp.db_version = self.db_version
-        cp.db_name = self.db_name
-        cp.db_last_modified = self.db_last_modified
-        cp.db_dbHost = self.db_dbHost
-        cp.db_dbPort = self.db_dbPort
-        cp.db_dbName = self.db_dbName
+        cp.__db_id = self.__db_id
+        cp.__db_entity_type = self.__db_entity_type
+        cp.__db_version = self.__db_version
+        cp.__db_name = self.__db_name
+        cp.__db_last_modified = self.__db_last_modified
+        cp.__db_dbHost = self.__db_dbHost
+        cp.__db_dbPort = self.__db_dbPort
+        cp.__db_dbName = self.__db_dbName
         if self.db_actions is None:
             cp.db_actions = []
         else:
@@ -4231,7 +4261,7 @@ class DBVistrail(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
@@ -4441,7 +4471,7 @@ class DBVistrail(object):
     def db_get_action_by_id(self, key):
         return self.db_actions_id_index[key]
     def db_has_action_with_id(self, key):
-        return self.db_actions_id_index.has_key(key)
+        return key in self.db_actions_id_index
     
     def __get_db_tags(self):
         return self.__db_tags
@@ -4486,11 +4516,11 @@ class DBVistrail(object):
     def db_get_tag_by_id(self, key):
         return self.db_tags_id_index[key]
     def db_has_tag_with_id(self, key):
-        return self.db_tags_id_index.has_key(key)
+        return key in self.db_tags_id_index
     def db_get_tag_by_name(self, key):
         return self.db_tags_name_index[key]
     def db_has_tag_with_name(self, key):
-        return self.db_tags_name_index.has_key(key)
+        return key in self.db_tags_name_index
     
     def __get_db_abstractions(self):
         return self.__db_abstractions
@@ -4532,7 +4562,7 @@ class DBVistrail(object):
     def db_get_abstraction_by_id(self, key):
         return self.db_abstractions_id_index[key]
     def db_has_abstraction_with_id(self, key):
-        return self.db_abstractions_id_index.has_key(key)
+        return key in self.db_abstractions_id_index
     
     def getPrimaryKey(self):
         return self.__db_id
@@ -4568,16 +4598,16 @@ class DBModuleExec(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBModuleExec()
-        cp.db_id = self.db_id
-        cp.db_ts_start = self.db_ts_start
-        cp.db_ts_end = self.db_ts_end
-        cp.db_cached = self.db_cached
-        cp.db_module_id = self.db_module_id
-        cp.db_module_name = self.db_module_name
-        cp.db_completed = self.db_completed
-        cp.db_abstraction_id = self.db_abstraction_id
-        cp.db_abstraction_version = self.db_abstraction_version
-        cp.db_machine_id = self.db_machine_id
+        cp.__db_id = self.__db_id
+        cp.__db_ts_start = self.__db_ts_start
+        cp.__db_ts_end = self.__db_ts_end
+        cp.__db_cached = self.__db_cached
+        cp.__db_module_id = self.__db_module_id
+        cp.__db_module_name = self.__db_module_name
+        cp.__db_completed = self.__db_completed
+        cp.__db_abstraction_id = self.__db_abstraction_id
+        cp.__db_abstraction_version = self.__db_abstraction_version
+        cp.__db_machine_id = self.__db_machine_id
         if self.db_annotations is None:
             cp.db_annotations = []
         else:
@@ -4586,14 +4616,14 @@ class DBModuleExec(object):
         # set new ids
         if new_ids:
             new_id = id_scope.getNewId(self.vtType)
-            if id_scope.remap.has_key(self.vtType):
+            if self.vtType in id_scope.remap:
                 id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
             else:
                 id_remap[(self.vtType, self.db_id)] = new_id
             cp.db_id = new_id
-            if hasattr(self, 'db_module_id') and id_remap.has_key(('module', self.db_module_id)):
+            if hasattr(self, 'db_module_id') and ('module', self.db_module_id) in id_remap:
                 cp.db_module_id = id_remap[('module', self.db_module_id)]
-            if hasattr(self, 'db_machine_id') and id_remap.has_key(('machine', self.db_machine_id)):
+            if hasattr(self, 'db_machine_id') and ('machine', self.db_machine_id) in id_remap:
                 cp.db_machine_id = id_remap[('machine', self.db_machine_id)]
         
         # recreate indices and set flags
@@ -4797,7 +4827,7 @@ class DBModuleExec(object):
     def db_get_annotation_by_id(self, key):
         return self.db_annotations_id_index[key]
     def db_has_annotation_with_id(self, key):
-        return self.db_annotations_id_index.has_key(key)
+        return key in self.db_annotations_id_index
     
     def getPrimaryKey(self):
         return self.__db_id

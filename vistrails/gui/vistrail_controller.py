@@ -55,6 +55,7 @@ from core.vistrail.vistrail import TagExists
 from core.interpreter.default import get_default_interpreter
 from core.inspector import PipelineInspector
 from db.domain import IdScope
+from db.services.vistrail import getSharedRoot
 from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 # Broken right now
 # from core.modules.sub_module import addSubModule, DupplicateSubModule
@@ -666,15 +667,30 @@ class VistrailController(QtCore.QObject):
         # the rest of the exception handling code, things look
         # stateless.
 
+        def get_cost(descendant, ancestor):
+            cost = 0
+            am = self.vistrail.actionMap
+            while descendant <> ancestor:
+                descendant = am[descendant].parent
+                cost += 1
+            return cost
+        
         def switch_version():
-            # FIXME This should find paths for the pipeline
+            
             if not self.currentPipeline:
                 result = self.vistrail.getPipeline(new_version)
             else:
-                action = self.vistrail.general_action_chain(self.currentVersion,
-                                                            new_version)
-                self.currentPipeline.perform_action(action)
-                result = self.currentPipeline
+                shared_parent = getSharedRoot(self.vistrail, [self.currentVersion,
+                                                              new_version])
+                cost_zero_to_common = get_cost(shared_parent, 0)
+                cost_common_to_old = get_cost(self.currentVersion, shared_parent)
+                if cost_common_to_old > cost_zero_to_common:
+                    result = self.vistrail.getPipeline(new_version)
+                else:
+                    action = self.vistrail.general_action_chain(self.currentVersion,
+                                                                new_version)
+                    self.currentPipeline.perform_action(action)
+                    result = self.currentPipeline
             result.ensure_connection_specs()
             result.ensure_modules_are_on_registry()
             return result
