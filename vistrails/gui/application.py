@@ -304,15 +304,15 @@ after self.init()"""
         add("-V", "--verbose", action="store", type="int", default=None,
             dest="verbose", help="set verboseness level (0--2, "
             "default=0, higher means more verbose)")
-        add("-n", "--nosplash", action="store_true",
+        add("-n", "--nosplash", action="store_false",
             default = None,
             help="don't display splash on startup")
         add("-c", "--cache", action="store", type="int", default=None,
             dest="cache", help="enable/disable caching")
         add("-m", "--movies", action="store", type="int", default=None,
-            dest="movies", help="""set automatic movie creation on spreadsheet "
+            dest="movies", help="set automatic movie creation on spreadsheet "
             "(0 or 1, default=1. Set this to zero to work around vtk bug with "
-            "offscreen renderer and opengl texture3d mappers)""")
+            "offscreen renderer and opengl texture3d mappers)")
         add("-s", "--multiheads", action="store_true",
             default = None,
             help="display the builder and spreadsheet on different screens "
