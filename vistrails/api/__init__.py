@@ -72,7 +72,7 @@ def get_current_vistrail_view():
     Returns the currently selected vistrail.
 
     """
-    return get_current_controller().vistrailView
+    return get_current_controller().vistrail_view
     
 
 ##############################################################################
@@ -91,7 +91,7 @@ def select_version(version, ctrl=None):
     vistrail = ctrl.vistrail
     if type(version) == str:
         version = vistrail.get_tag_by_name(version).id
-    ctrl.changeSelectedVersion(version)
+    ctrl.change_selected_version(version)
     ctrl.invalidate_version_tree(False)
 
 def undo():

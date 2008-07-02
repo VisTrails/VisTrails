@@ -99,33 +99,34 @@ class VistrailController(QtCore.QObject):
         """
         QtCore.QObject.__init__(self)
         self.name = ''
-        self.fileName = None
-        self.setFileName(name)
+        self.file_name = None
+        self.set_file_name(name)
         self.vistrail = vis
         self.log = Log()
-        self.currentVersion = -1
-        self.currentPipeline = None
-        # FIXME: self.currentPipelineView currently stores the SCENE, not the VIEW
-        self.currentPipelineView = None
-        self.vistrailView = None
-        self.resetPipelineView = False
-        self.resetVersionView = True
+        self.current_version = -1
+        self.current_pipeline = None
+        # FIXME: self.current_pipeline_view currently stores the SCENE, not the VIEW
+        self.current_pipeline_view = None
+        self.vistrail_view = None
+        self.reset_pipeline_view = False
+        self.reset_version_view = True
         self.quiet = False
         # if self.search is True, vistrail is currently being searched
         self.search = None
-        self.searchStr = None
-        # If self.refine is true, search mismatches are hidden instead
+        self.search_str = None
+        # If self.refine is True, search mismatches are hidden instead
         # of ghosted
         self.refine = False
         self.changed = False
-        self.fullTree = False
+        self.full_tree = False
         self.analogy = {}
-        self._auto_save = auto_save
         self.locator = None
+        # if self._auto_save is True, an auto_saving timer will save a temporary
+        # file every 2 minutes
+        self._auto_save = auto_save
         self.timer = QtCore.QTimer(self)
         self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
         self.timer.start(1000 * 60 * 2) # Save every two minutes
-
         # if _cache_pipelines is True, cache pipelines to speed up
         # version switching
         self._cache_pipelines = True
@@ -137,20 +138,20 @@ class VistrailController(QtCore.QObject):
     def replace_unnamed_node_in_version_tree(self, old_version, new_version):
         """method analogous to invalidate_version_tree but when only
         a single unnamed node and links need to be updated. Much faster."""
-        self.resetVersionView = False
+        self.reset_version_view = False
         try:
-            self.emit(QtCore.SIGNAL('invalidate_single_node_in_version_tree'),
+            self.emit(QtCore.SIGNAL('invalidateSingleNodeInVersionTree'),
                                     old_version, new_version)
         finally:
-            self.resetVersionView = True
+            self.reset_version_view = True
 
     def invalidate_version_tree(self, reset_version_view=True):
-        self.resetVersionView = reset_version_view
+        self.reset_version_view = reset_version_view
         #FIXME: in the future, rename the signal
         try:
             self.emit(QtCore.SIGNAL('vistrailChanged()'))
         finally:
-            self.resetVersionView = True
+            self.reset_version_view = True
 
     ##########################################################################
     # Autosave
@@ -183,23 +184,23 @@ class VistrailController(QtCore.QObject):
         self.disconnect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
         self.timer.stop()
 
-    def setVistrail(self, vistrail, locator):
-        """ setVistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
+    def set_vistrail(self, vistrail, locator):
+        """ set_vistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
         Start controlling a vistrail
         
         """
         self.vistrail = vistrail
-        self.currentVersion = -1
-        self.currentPipeline = None
+        self.current_version = -1
+        self.current_pipeline = None
         if self.locator != locator and self.locator is not None:
             self.locator.clean_temporaries()
         self.locator = locator
         if locator != None:
-            self.setFileName(locator.name)
+            self.set_file_name(locator.name)
         else:
-            self.setFileName('')
+            self.set_file_name('')
         if locator and locator.has_temporaries():
-            self.setChanged(True)
+            self.set_changed(True)
         self.recompute_terse_graph()
 
     ##########################################################################
@@ -218,8 +219,8 @@ class VistrailController(QtCore.QObject):
         updated.)
         
         """
-        self.currentPipeline.perform_action(action)
-        self.currentVersion = action.db_id
+        self.current_pipeline.perform_action(action)
+        self.current_version = action.db_id
         
         if quiet is None:
             if not self.quiet:
@@ -239,10 +240,10 @@ class VistrailController(QtCore.QObject):
         and get notified of the change.
 
         """
-        self.vistrail.add_action(action, self.currentVersion)
-        self.setChanged(True)
+        self.vistrail.add_action(action, self.current_version)
+        self.set_changed(True)
         self.emit(QtCore.SIGNAL("new_action"), action)
-        self.currentVersion = action.db_id
+        self.current_version = action.db_id
         self.recompute_terse_graph()
 
     ##########################################################################
@@ -254,7 +255,7 @@ class VistrailController(QtCore.QObject):
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
-        if self.currentPipeline:
+        if self.current_pipeline:
             loc_id = self.vistrail.idScope.getNewId(Location.vtType)
             location = Location(id=loc_id,
                                 x=x, 
@@ -287,42 +288,42 @@ class VistrailController(QtCore.QObject):
                 connection_ids[id] = 1
         return connection_ids.keys()
 
-    def deleteModule(self, module_id):
-        """ deleteModule(module_id: int) -> version id
+    def delete_module(self, module_id):
+        """ delete_module(module_id: int) -> version id
         Delete a module from the current pipeline
         
         """
-        return self.deleteModuleList([module_id])
+        return self.delete_module_list([module_id])
 
-    def deleteModuleList(self, module_ids):
-        """ deleteModule(module_ids: [int]) -> [version id]
+    def delete_module_list(self, module_ids):
+        """ delete_module_list(module_ids: [int]) -> [version id]
         Delete multiple modules from the current pipeline
         
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
-        graph = self.currentPipeline.graph
+        graph = self.current_pipeline.graph
         connect_ids = self.get_module_connection_ids(module_ids, graph)
         action_list = []
         for c_id in connect_ids:
             action_list.append(('delete', 
-                                self.currentPipeline.connections[c_id]))
+                                self.current_pipeline.connections[c_id]))
         for m_id in module_ids:
             action_list.append(('delete',
-                                self.currentPipeline.modules[m_id]))
+                                self.current_pipeline.modules[m_id]))
         action = core.db.action.create_action(action_list)
         self.add_new_action(action)
         return self.perform_action(action)
 
-    def moveModuleList(self, move_list):
-        """ moveModuleList(move_list: [(id,x,y)]) -> [version id]        
+    def move_module_list(self, move_list):
+        """ move_module_list(move_list: [(id,x,y)]) -> [version id]        
         Move all modules to a new location. No flushMoveActions is
         allowed to to emit to avoid recursive actions
         
         """
         action_list = []
         for (id, x, y) in move_list:
-            module = self.currentPipeline.get_module_by_id(id)
+            module = self.current_pipeline.get_module_by_id(id)
             loc_id = self.vistrail.idScope.getNewId(Location.vtType)
             location = Location(id=loc_id,
                                 x=x, 
@@ -353,18 +354,18 @@ class VistrailController(QtCore.QObject):
         action = core.db.action.create_action([('add', connection)])
         self.add_new_action(action)
         result = self.perform_action(action)
-        self.currentPipeline.ensure_connection_specs([connection.id])
+        self.current_pipeline.ensure_connection_specs([connection.id])
         return result
     
-    def deleteConnection(self, id):
-        """ deleteConnection(id: int) -> version id
+    def delete_connection(self, id):
+        """ delete_connection(id: int) -> version id
         Delete a connection with id 'id'
         
         """
-        return self.deleteConnectionList([id])
+        return self.delete_connection_list([id])
 
-    def deleteConnectionList(self, connect_ids):
-        """ deleteConnections(connect_ids: list) -> version id
+    def delete_connection_list(self, connect_ids):
+        """ delete_connection_list(connect_ids: list) -> version id
         Delete a list of connections
         
         """
@@ -373,33 +374,33 @@ class VistrailController(QtCore.QObject):
         action_list = []
         for c_id in connect_ids:
             action_list.append(('delete', 
-                                self.currentPipeline.connections[c_id]))
+                                self.current_pipeline.connections[c_id]))
         action = core.db.action.create_action(action_list)
         self.add_new_action(action)
         return self.perform_action(action)
 
-    def deleteMethod(self, function_pos, module_id):
-        """ deleteMethod(function_pos: int, module_id: int) -> version id
+    def delete_method(self, function_pos, module_id):
+        """ delete_method(function_pos: int, module_id: int) -> version id
         Delete a method with function_pos from module module_id
 
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
-        module = self.currentPipeline.get_module_by_id(module_id)
+        module = self.current_pipeline.get_module_by_id(module_id)
         function = module.functions[function_pos]
         action = core.db.action.create_action([('delete', function,
                                                     module.vtType, module.id)])
         self.add_new_action(action)
         return self.perform_action(action)
 
-    def addMethod(self, module_id, function):
-        """ addMethod(module_id: int, function: ModuleFunction) -> version_id
+    def add_method(self, module_id, function):
+        """ add_method(module_id: int, function: ModuleFunction) -> version_id
         Add a new method into the module's function list
         
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
-        module = self.currentPipeline.get_module_by_id(module_id)
+        module = self.current_pipeline.get_module_by_id(module_id)
         function_id = self.vistrail.idScope.getNewId(ModuleFunction.vtType)
         function.real_id = function_id
         
@@ -451,22 +452,22 @@ class VistrailController(QtCore.QObject):
         else:
             return None
 
-    def deleteAnnotation(self, key, module_id):
-        """ deleteAnnotation(key: str, module_id: long) -> version_id
+    def delete_annotation(self, key, module_id):
+        """ delete_annotation(key: str, module_id: long) -> version_id
         Deletes an annotation from a module
         
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
-        module = self.currentPipeline.get_module_by_id(module_id)
+        module = self.current_pipeline.get_module_by_id(module_id)
         annotation = module.get_annotation_by_key(key)
         action = core.db.action.create_action([('delete', annotation,
                                                 module.vtType, module.id)])
         self.add_new_action(action)
         return self.perform_action(action)
 
-    def addAnnotation(self, pair, module_id):
-        """ addAnnotation(pair: (str, str), moduleId: int)        
+    def add_annotation(self, pair, module_id):
+        """ add_annotation(pair: (str, str), moduleId: int)        
         Add/Update a key/value pair annotation into the module of
         moduleId
         
@@ -478,7 +479,7 @@ class VistrailController(QtCore.QObject):
         if pair[0].strip()=='':
             return
 
-        module = self.currentPipeline.get_module_by_id(module_id)
+        module = self.current_pipeline.get_module_by_id(module_id)
         a_id = self.vistrail.idScope.getNewId(Annotation.vtType)
         annotation = Annotation(id=a_id,
                                 key=pair[0], 
@@ -498,8 +499,8 @@ class VistrailController(QtCore.QObject):
         
         return self.perform_action(action)
 
-    def hasModulePort(self, module_id, port_tuple):
-        """ hasModulePort(module_id: int, port_tuple: (str, str)): bool
+    def has_module_port(self, module_id, port_tuple):
+        """ has_module_port(module_id: int, port_tuple: (str, str)): bool
         Parameters
         ----------
         
@@ -510,12 +511,12 @@ class VistrailController(QtCore.QObject):
 
         """
         (type, name) = port_tuple
-        module = self.currentPipeline.get_module_by_id(module_id)
+        module = self.current_pipeline.get_module_by_id(module_id)
         return len([x for x in module.db_portSpecs
                     if x.name == name and x.type == type]) > 0
 
-    def addModulePort(self, module_id, port_tuple):
-        """ addModulePort(module_id: int, port_tuple: (str, str, list)
+    def add_module_port(self, module_id, port_tuple):
+        """ add_module_port(module_id: int, port_tuple: (str, str, list)
         Parameters
         ----------
         
@@ -525,7 +526,7 @@ class VistrailController(QtCore.QObject):
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
         
-        module = self.currentPipeline.get_module_by_id(module_id)
+        module = self.current_pipeline.get_module_by_id(module_id)
         p_id = self.vistrail.idScope.getNewId(PortSpec.vtType)
         port_spec = PortSpec(id=p_id,
                              type=port_tuple[0],
@@ -538,7 +539,7 @@ class VistrailController(QtCore.QObject):
         self.add_new_action(action)
         return self.perform_action(action)
 
-    def deleteModulePort(self, module_id, port_tuple):
+    def delete_module_port(self, module_id, port_tuple):
         """
         Parameters
         ----------
@@ -550,7 +551,7 @@ class VistrailController(QtCore.QObject):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
         spec_id = -1
-        module = self.currentPipeline.get_module_by_id(module_id)
+        module = self.current_pipeline.get_module_by_id(module_id)
         port_spec = module.get_portSpec_by_name((port_tuple[1], port_tuple[0]))
         action_list = [('delete', port_spec, module.vtType, module.id)]
         for function in module.functions:
@@ -561,7 +562,7 @@ class VistrailController(QtCore.QObject):
         self.add_new_action(action)
         return self.perform_action(action)
 
-    def updateNotes(self,notes):
+    def update_notes(self, notes):
         """
         Parameters
         ----------
@@ -571,8 +572,8 @@ class VistrailController(QtCore.QObject):
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
         
-        if self.vistrail.change_notes(str(notes),self.currentVersion):
-            self.setChanged(True)
+        if self.vistrail.change_notes(str(notes),self.current_version):
+            self.set_changed(True)
 
     def add_parameter_changes_from_execution(self, pipeline, version,
                                              parameter_changes):
@@ -615,15 +616,15 @@ class VistrailController(QtCore.QObject):
             if f_index == -1:
                 new_method = ModuleFunction(name=function_name,
                                             parameters=params)
-                self.addMethod(m_id, new_method)
+                self.add_method(m_id, new_method)
             else:
                 params = add_aliases(m_id, f_index, params)
                 self.replace_method(pipeline.modules[m_id],
                                     f_index,
                                     params)
 
-    def executeWorkflowList(self, vistrails):
-        if self.currentPipeline:
+    def execute_workflow_list(self, vistrails):
+        if self.current_pipeline:
             locator = self.get_locator()
             if locator:
                 locator.clean_temporaries()
@@ -645,19 +646,19 @@ class VistrailController(QtCore.QObject):
         if changed:
             self.invalidate_version_tree(False)
 
-    def executeCurrentWorkflow(self):
-        """ executeCurrentWorkflow() -> None
+    def execute_current_workflow(self):
+        """ execute_current_workflow() -> None
         Execute the current workflow (if exists)
         
         """
-        if self.currentPipeline:
-            self.executeWorkflowList([(self.locator,
-                                       self.currentVersion,
-                                       self.currentPipeline,
-                                       self.currentPipelineView)])
+        if self.current_pipeline:
+            self.execute_workflow_list([(self.locator,
+                                         self.current_version,
+                                         self.current_pipeline,
+                                         self.current_pipeline_view)])
 
-    def changeSelectedVersion(self, new_version):
-        """ changeSelectedVersion(new_version: int) -> None        
+    def change_selected_version(self, new_version):
+        """ change_selected_version(new_version: int) -> None        
         Change the current vistrail version into new_version and emit a
         notification signal
         
@@ -682,7 +683,7 @@ class VistrailController(QtCore.QObject):
             return cost
         
         def switch_version():
-            if not self.currentPipeline:
+            if not self.current_pipeline:
                 result = self.vistrail.getPipeline(new_version)
             # now we reuse some existing pipeline, even if it's the
             # empty one for version zero
@@ -691,10 +692,10 @@ class VistrailController(QtCore.QObject):
             # the current pipeline.
 
             # Fast check: do we have to change anything?
-            elif new_version == self.currentVersion:
+            elif new_version == self.current_version:
                 # we don't even need to check connection specs or
                 # registry
-                return self.currentPipeline
+                return self.current_pipeline
             # Fast check: if target is cached, copy it and we're done.
             elif new_version in self._pipelines:
                 result = copy.copy(self._pipelines[new_version])
@@ -708,9 +709,9 @@ class VistrailController(QtCore.QObject):
 
                 # Now we have to decide between the closest pipeline
                 # to new_version and the current pipeline
-                shared_parent = getSharedRoot(self.vistrail, [self.currentVersion,
+                shared_parent = getSharedRoot(self.vistrail, [self.current_version,
                                                               new_version])
-                cost_common_to_old = get_cost(self.currentVersion, shared_parent)
+                cost_common_to_old = get_cost(self.current_version, shared_parent)
                 cost_common_to_new_version = get_cost(new_version, shared_parent)
 
                 # FIXME I'm assuming copying the pipeline has zero cost.
@@ -726,10 +727,10 @@ class VistrailController(QtCore.QObject):
                         result.perform_action_chain(chain)
                     
                 else:
-                    action = self.vistrail.general_action_chain(self.currentVersion,
+                    action = self.vistrail.general_action_chain(self.current_version,
                                                                 new_version)
-                    self.currentPipeline.perform_action(action)
-                    result = self.currentPipeline
+                    self.current_pipeline.perform_action(action)
+                    result = self.current_pipeline
                 if self._cache_pipelines and long(new_version) in self.vistrail.tagMap:
                     # stash a copy for future use
                     self._pipelines[new_version] = copy.copy(result)
@@ -752,10 +753,10 @@ class VistrailController(QtCore.QObject):
                 
                 # currentVersion might be -1 and so currentPipeline
                 # will be None. We can't call getPipeline with -1
-                if self.currentVersion != -1:
-                    self.currentPipeline = self.vistrail.getPipeline(self.currentVersion)
+                if self.current_version != -1:
+                    self.current_pipeline = self.vistrail.getPipeline(self.current_version)
                 else:
-                    assert self.currentPipeline is None
+                    assert self.current_pipeline is None
                 
                 from gui.application import VistrailsApplication
                 # if package is present, then we first let the package know
@@ -780,7 +781,7 @@ class VistrailController(QtCore.QObject):
                         # module, so we retry changing the version by
                         # recursing, since other packages/modules
                         # might still be needed.
-                        return self.changeSelectedVersion(new_version)
+                        return self.change_selected_version(new_version)
                 except pm.MissingPackage:
                     pass
 
@@ -811,7 +812,7 @@ class VistrailController(QtCore.QObject):
                     # there's a new package in the system, so we retry
                     # changing the version by recursing, since other
                     # packages/modules might still be needed.
-                    return self.changeSelectedVersion(new_version)
+                    return self.change_selected_version(new_version)
                 else:
                     QtGui.QMessageBox.critical(VistrailsApplication.builderWindow,
                                                'Unavailable package',
@@ -822,51 +823,43 @@ class VistrailController(QtCore.QObject):
 
         # If execution arrives here, we handled all exceptions, so
         # assign values
-        self.currentPipeline = new_pipeline
-        self.currentVersion = new_version
+        self.current_pipeline = new_pipeline
+        self.current_version = new_version
         self.emit(QtCore.SIGNAL('versionWasChanged'), new_version)
 
-    def resendVersionWasChanged(self):
-        """ resendVersionWasChanged() -> None
-        Resubmit the notification signal of the current vistrail version
-        
-        """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
-        self.resetPipelineView = False
-        self.emit(QtCore.SIGNAL('versionWasChanged'), self.currentVersion)
-
-    def setSearch(self, search, text=''):
-        """ setSearch(search: SearchStmt, text: str) -> None
+    def set_search(self, search, text=''):
+        """ set_search(search: SearchStmt, text: str) -> None
         Change the currrent version tree search statement
         
         """
-        if self.search != search or self.searchStr != text:
+        if self.search != search or self.search_str != text:
             self.search = search
-            self.searchStr = text
+            self.search_str = text
             if self.search:
                 self.search.run(self.vistrail, '')
             self.invalidate_version_tree(False)
             self.emit(QtCore.SIGNAL('searchChanged'))
 
-    def setRefine(self, refine):
-        """ setRefine(refine: bool) -> None
+    def set_refine(self, refine):
+        """ set_refine(refine: bool) -> None
         Set the refine state to True or False
         
         """
         if self.refine!=refine:
             self.refine = refine
             if self.refine:
-                self.selectLatestVersion()
+                # FIXME should this be here?
+                self.select_latest_version()
             self.invalidate_version_tree(True)
 
-    def setFullTree(self, full):
-        """ setFullTree(full: bool) -> None        
+    def set_full_tree(self, full):
+        """ set_full_tree(full: bool) -> None        
         Set if Vistrails should show a complete version tree or just a
         terse tree
         
         """
-        if full != self.fullTree:
-            self.fullTree = full
+        if full != self.full_tree:
+            self.full_tree = full
             self.invalidate_version_tree(True)
 
     def recompute_terse_graph(self):
@@ -893,11 +886,11 @@ class VistrailController(QtCore.QObject):
             children = [to for (to, _) in fullVersionTree.adjacency_list[current]
                         if (to in am) and not am[to].prune]
 
-            if (self.fullTree or 
+            if (self.full_tree or 
                 (current == 0) or  # is root
                 (current in tm) or # hasTag:
                 (len(children) <> 1) or # not oneChild:
-                (current == self.currentVersion)): # isCurrentVersion
+                (current == self.current_version)): # isCurrentVersion
                 # yes it will!
 
                 # add vertex...
@@ -919,8 +912,8 @@ class VistrailController(QtCore.QObject):
         self._current_terse_graph = tersedVersionTree
         self._current_full_graph = self.vistrail.tree.getVersionTree()
 
-    def refineGraph(self):
-        """ refineGraph(controller: VistrailController) -> (Graph, Graph)        
+    def refine_graph(self):
+        """ refine_graph(controller: VistrailController) -> (Graph, Graph)        
         Refine the graph of the current vistrail based the search
         status of the controller. It also return the full graph as a
         reference
@@ -936,7 +929,7 @@ class VistrailController(QtCore.QObject):
         change versions when we're moving exactly one action up or down.
         This allows a few optimizations that improve interactivity."""
         
-        if self.currentVersion <> new_version:
+        if self.current_version <> new_version:
             # Instead of recomputing the terse graph, simply update it
 
             # There are two variables in play:
@@ -947,18 +940,18 @@ class VistrailController(QtCore.QObject):
 
             dest_node_in_terse_tree = new_version in self._current_terse_graph.vertices
             
-            current = self.currentVersion
+            current = self.current_version
             tree = self.vistrail.tree.getVersionTree()
             # same logic as recompute_terse_graph except for current
             children_count = len([x for (x, _) in tree.adjacency_list[current]
                                   if (x in self.vistrail.actionMap and
                                       not self.vistrail.actionMap[x].prune)])
             current_node_will_be_visible = \
-                (self.fullTree or
-                 (self.currentVersion in self.vistrail.tagMap) or
+                (self.full_tree or
+                 (self.current_version in self.vistrail.tagMap) or
                  children_count <> 1)
 
-            self.changeSelectedVersion(new_version)
+            self.change_selected_version(new_version)
             # case 1:
             if not dest_node_in_terse_tree and not current_node_will_be_visible:
                 # we're going from one boring node to another,
@@ -983,7 +976,7 @@ class VistrailController(QtCore.QObject):
 
         prev = None
         try:
-            prev = self._current_full_graph.parent(self.currentVersion)
+            prev = self._current_full_graph.parent(self.current_version)
         except full.CalledParentOnSourceVertex:
             prev = 0
 
@@ -993,21 +986,21 @@ class VistrailController(QtCore.QObject):
         """ show_child_version(which_child: int) -> None
         Go forward one version and display it. This is used in redo.
 
-        ONLY CALL THIS FUNCTION IF which_child IS A CHILD OF self.currentVersion
+        ONLY CALL THIS FUNCTION IF which_child IS A CHILD OF self.current_version
 
         """
         self._change_version_short_hop(which_child)
         
 
-    def pruneVersions(self, versions):
-        """ pruneVersions(versions: list of version numbers) -> None
+    def prune_versions(self, versions):
+        """ prune_versions(versions: list of version numbers) -> None
         Prune all versions in 'versions' out of the view
         
         """
         # We need to go up-stream to the highest invisible node
         current = self.vistrail.currentGraph
         if not current:
-            (current, full) = self.refineGraph()
+            (current, full) = self.refine_graph()
         else:
             full = self.vistrail.getVersionGraph()
         changed = False
@@ -1025,19 +1018,19 @@ class VistrailController(QtCore.QObject):
                     changed = True
                 self.vistrail.pruneVersion(highest)
         if changed:
-            self.setChanged(True)
+            self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False)
 
-    def selectLatestVersion(self):
-        """ selectLatestVersion() -> None
+    def select_latest_version(self):
+        """ select_latest_version() -> None
         Try to select the latest visible version on the tree
         
         """
         current = self.vistrail.currentGraph
         if not current:
-            (current, full) = self.refineGraph()        
-        self.changeSelectedVersion(max(current.iter_vertices()))
+            (current, full) = self.refine_graph()        
+        self.change_selected_version(max(current.iter_vertices()))
 
     def setSavedQueries(self, queries):
         """ setSavedQueries(queries: list of (str, str, str)) -> None
@@ -1045,7 +1038,7 @@ class VistrailController(QtCore.QObject):
         
         """
         self.vistrail.setSavedQueries(queries)
-        self.setChanged(True)
+        self.set_changed(True)
         
 
     def update_module_tag(self, module, tag):
@@ -1059,23 +1052,23 @@ class VistrailController(QtCore.QObject):
         elif module.vtType == 'abstractionRef':
             self.vistrail.update_object(module, db_name=tag)
         
-    def updateCurrentTag(self,tag):
-        """ updateCurrentTag(tag: str) -> Bool
+    def update_current_tag(self,tag):
+        """ update_current_tag(tag: str) -> Bool
         Update the current vistrail tag and return success predicate
         
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
         try:
-            if self.vistrail.hasTag(self.currentVersion):
-                self.vistrail.changeTag(tag, self.currentVersion)
+            if self.vistrail.hasTag(self.current_version):
+                self.vistrail.changeTag(tag, self.current_version)
             else:
-                self.vistrail.addTag(tag, self.currentVersion)
+                self.vistrail.addTag(tag, self.current_version)
         except TagExists:
             show_warning('Name Exists',
                          "There is already another version named '%s'.\n"
                          "Please enter a different one." % tag)
             return False
-        self.setChanged(True)
+        self.set_changed(True)
         self.invalidate_version_tree(False)
         return True
 
@@ -1099,14 +1092,14 @@ class VistrailController(QtCore.QObject):
                         operation.new_obj_id = new_id
             self.add_new_action(action)
             self.perform_action(action, quiet=True)
-        self.setChanged(True)
+        self.set_changed(True)
         self.invalidate_version_tree(False)
 
     ################################################################################
     # Clipboard, copy/paste
 
-    def copyModulesAndConnections(self, module_ids, connection_ids):
-        """copyModulesAndConnections(module_ids: [long],
+    def copy_modules_and_connections(self, module_ids, connection_ids):
+        """copy_modules_and_connections(module_ids: [long],
                                      connection_ids: [long]) -> str
         Serializes a list of modules and connections
         """
@@ -1115,18 +1108,18 @@ class VistrailController(QtCore.QObject):
         pipeline = Pipeline()
         pipeline.set_abstraction_map(self.vistrail.abstractionMap)
         for module_id in module_ids:
-            module = self.currentPipeline.modules[module_id]
+            module = self.current_pipeline.modules[module_id]
             if module.vtType == AbstractionModule.vtType:
                 abstraction = pipeline.abstraction_map[module.abstraction_id]
                 pipeline.add_abstraction(abstraction)
             pipeline.add_module(module)
         for connection_id in connection_ids:
-            connection = self.currentPipeline.connections[connection_id]
+            connection = self.current_pipeline.connections[connection_id]
             pipeline.add_connection(connection)
         return core.db.io.serialize(pipeline)
         
-    def pasteModulesAndConnections(self, str):
-        """ pasteModulesAndConnections(str) -> [id list]
+    def paste_modules_and_connections(self, str):
+        """ paste_modules_and_connections(str) -> [id list]
         Paste a list of modules and connections into the current pipeline.
 
         Returns the list of module ids of added modules
@@ -1181,7 +1174,7 @@ class VistrailController(QtCore.QObject):
                 
             self.add_new_action(action)
             self.perform_action(action)
-            self.currentPipeline.ensure_connection_specs(connections)
+            self.current_pipeline.ensure_connection_specs(connections)
         return modules
 
     ##########################################################################
@@ -1206,7 +1199,7 @@ class VistrailController(QtCore.QObject):
 
         del_action_list = []
         for module_id in module_ids:
-            module = self.currentPipeline.modules[module_id]
+            module = self.current_pipeline.modules[module_id]
             del_action_list.append(('delete', module))
             avg_x += module.location.x
             avg_y += module.location.y
@@ -1226,7 +1219,7 @@ class VistrailController(QtCore.QObject):
         out_names = {}
         name_remap = {}
         for connection_id in connection_ids:
-            connection = self.currentPipeline.connections[connection_id]
+            connection = self.current_pipeline.connections[connection_id]
             all_inside = True
             all_outside = True
             for port in connection.ports:
@@ -1308,8 +1301,8 @@ class VistrailController(QtCore.QObject):
                                                   parameters=[param])
 
                         functions = [function_1, function_2, function_3]
-#                         if port.endPoint == PortEndPoint.Source:
-#                             functions.append(function_3)
+                        # if port.endPoint == PortEndPoint.Source:
+                        #     functions.append(function_3)
 
                         # FIXME package name should not be hard-coded
                         new_id = id_scope.getNewId(Module.vtType)
@@ -1350,12 +1343,12 @@ class VistrailController(QtCore.QObject):
                 del_action_list.append(('delete', connection))                
             # else a change port -- done later
 
-#         action = core.db.action.create_action(action_list)
-#         action.date = self.vistrail.getDate()
-#         action.user = self.vistrail.getUser()
+        # action = core.db.action.create_action(action_list)
+        # action.date = self.vistrail.getDate()
+        # action.user = self.vistrail.getUser()
 
-#         abstraction.add_action(action, 0)
-#         self.vistrail.add_abstraction(abstraction)
+        # abstraction.add_action(action, 0)
+        # self.vistrail.add_abstraction(abstraction)
 
         # now group to vistrail
         loc_id = self.vistrail.idScope.getNewId(Location.vtType)
@@ -1370,14 +1363,14 @@ class VistrailController(QtCore.QObject):
                       location=location, 
                       pipeline=pipeline)
 
-#         module_id = self.vistrail.idScope.getNewId(AbstractionModule.vtType)
-#         module = AbstractionModule(id=module_id,
-#                                    abstraction_id=abstraction.id,
-#                                    version=1,
-#                                    name=name, 
-#                                    location=location,
-#                                    cache=0,
-#                                    )
+        # module_id = self.vistrail.idScope.getNewId(AbstractionModule.vtType)
+        # module = AbstractionModule(id=module_id,
+        #                            abstraction_id=abstraction.id,
+        #                            version=1,
+        #                            name=name, 
+        #                            location=location,
+        #                            cache=0,
+        #                            )
         # need to delete connections before modules
         del_action_list.reverse()
         add_action_list = []
@@ -1400,12 +1393,12 @@ class VistrailController(QtCore.QObject):
             else:
                 new_connection.destination = changed_port
             add_action_list.append(('add', new_connection))
-#         print 'add_actions:'
-#         for a in add_action_list:
-#             print a
-#         print 'del actions:'
-#         for a in del_action_list:
-#             print a
+        # print 'add_actions:'
+        # for a in add_action_list:
+        #     print a
+        # print 'del actions:'
+        # for a in del_action_list:
+        #     print a
         action = core.db.action.create_action(add_action_list + del_action_list)
         for op in action.db_operations:
             print op.vtType, op.what, op.old_obj_id, op.new_obj_id
@@ -1423,7 +1416,7 @@ class VistrailController(QtCore.QObject):
 
     def ungroup(self, module_id):
 
-        group = self.currentPipeline.modules[module_id]
+        group = self.current_pipeline.modules[module_id]
         if group.vtType != Group.vtType:
             return
         pipeline = group.pipeline
@@ -1492,7 +1485,7 @@ class VistrailController(QtCore.QObject):
                 add_action_list.append(('add', new_connection))
                 
         
-        for connection in self.currentPipeline.connection_list:
+        for connection in self.current_pipeline.connection_list:
             source = connection.source
             dest = connection.dest
             rewire = False
@@ -1556,7 +1549,7 @@ class VistrailController(QtCore.QObject):
         action_list = []
         del_action_list = []
         for module_id in module_ids:
-            module = self.currentPipeline.modules[module_id]
+            module = self.current_pipeline.modules[module_id]
             del_action_list.append(('delete', module))
             avg_x += module.location.x
             avg_y += module.location.y
@@ -1568,7 +1561,7 @@ class VistrailController(QtCore.QObject):
         out_names = {}
         name_remap = {}
         for connection_id in connection_ids:
-            connection = self.currentPipeline.connections[connection_id]
+            connection = self.current_pipeline.connections[connection_id]
             all_inside = True
             all_outside = True
             for port in connection.ports:
@@ -1696,7 +1689,7 @@ class VistrailController(QtCore.QObject):
 
         abstraction.add_action(action, 0)
         self.vistrail.add_abstraction(abstraction)
-        self.setChanged(True)
+        self.set_changed(True)
 
         # now add module encoding abstraction reference to vistrail
         loc_id = self.vistrail.idScope.getNewId(Location.vtType)
@@ -1740,27 +1733,15 @@ class VistrailController(QtCore.QObject):
         #      print op.vtType, op.what, op.old_obj_id, op.new_obj_id
         self.add_new_action(action)
         self.perform_action(action)
-        self.currentPipeline.set_abstraction_map(self.vistrail.abstractionMap)
+        self.current_pipeline.set_abstraction_map(self.vistrail.abstractionMap)
 
         # FIXME we shouldn't have to return a module
         # we don't do it for any other type
         # doesn't match documentation either
         return module
 
-    def setVersion(self, newVersion):
-        """ setVersion(newVersion: int) -> None
-        Change the controller to newVersion
-
-        """
-        if not self.vistrail.hasVersion(newVersion):
-            raise VistrailsInternalError("Can't change VistrailController "
-                                         "to a non-existant version")
-        self.currentVersion = newVersion
-
-        self.emit(QtCore.SIGNAL("versionWasChanged"), newVersion)
-
-    def setChanged(self, changed):
-        """ setChanged(changed: bool) -> None
+    def set_changed(self, changed):
+        """ set_changed(changed: bool) -> None
         Set the current state of changed and emit signal accordingly
         
         """
@@ -1769,24 +1750,25 @@ class VistrailController(QtCore.QObject):
         # FIXME: emit different signal in the future
         self.emit(QtCore.SIGNAL('stateChanged'))
 
-    def setFileName(self, fileName):
-        """ setFileName(fileName: str) -> None
+    def set_file_name(self, file_name):
+        """ set_file_name(file_name: str) -> None
         Change the controller file name
         
         """
-        if fileName == None:
-            fileName = ''
-        if self.fileName!=fileName:
-            self.fileName = fileName
-            self.name = os.path.split(fileName)[1]
+        if file_name == None:
+            file_name = ''
+        if self.file_name!=file_name:
+            self.file_name = file_name
+            self.name = os.path.split(file_name)[1]
             if self.name=='':
                 self.name = 'untitled%s'%vistrails_default_file_type()
             self.emit(QtCore.SIGNAL('stateChanged'))
 
-    def checkAlias(self, name):
-        """checkAlias(alias) -> Boolean 
+    def check_alias(self, name):
+        """check_alias(alias) -> Boolean 
         Returns True if current pipeline has an alias named name """
-        return self.currentPipeline.has_alias(name)
+        # FIXME Why isn't this call on the pipeline?
+        return self.current_pipeline.has_alias(name)
 
     def write_temporary(self):
         if self.vistrail and self.changed:
@@ -1798,41 +1780,41 @@ class VistrailController(QtCore.QObject):
         if self.vistrail and (self.changed or self.locator != locator):
             # FIXME hack to use db_currentVersion for convenience
             # it's not an actual field
-            self.vistrail.db_currentVersion = self.currentVersion
+            self.vistrail.db_currentVersion = self.current_version
             if self.locator != locator:
                 old_locator = self.get_locator()
                 self.locator = locator
                 new_vistrail = self.locator.save_as(self.vistrail)
-                self.setFileName(locator.name)
+                self.set_file_name(locator.name)
                 if old_locator:
                     old_locator.clean_temporaries()
             else:
                 new_vistrail = self.locator.save(self.vistrail)
             if id(self.vistrail) != id(new_vistrail):
                 new_version = new_vistrail.db_currentVersion
-                self.setVistrail(new_vistrail, locator)
-                self.changeSelectedVersion(new_version)
+                self.set_vistrail(new_vistrail, locator)
+                self.change_selected_version(new_version)
                 self.invalidate_version_tree(False)
-            self.setChanged(False)
+            self.set_changed(False)
 
     def write_workflow(self, locator):
-        if self.currentPipeline:
+        if self.current_pipeline:
             pipeline = Pipeline()
             pipeline.set_abstraction_map(self.vistrail.abstractionMap)
-            for module in self.currentPipeline.modules.itervalues():
+            for module in self.current_pipeline.modules.itervalues():
                 if module.vtType == AbstractionModule.vtType:
                     abstraction = \
                         pipeline.abstraction_map[module.abstraction_id]
                     pipeline.add_abstraction(abstraction)
                 pipeline.add_module(module)
-            for connection in self.currentPipeline.connections.itervalues():
+            for connection in self.current_pipeline.connections.itervalues():
                 pipeline.add_connection(connection)            
             locator.save_as(pipeline)
 
     def write_expanded_workflow(self, locator):
-        if self.currentPipeline:
+        if self.current_pipeline:
             (workflow, _) = core.db.io.expand_workflow(self.vistrail, 
-                                                       self.currentPipeline)
+                                                       self.current_pipeline)
             locator.save_as(workflow)
         
     
@@ -1840,8 +1822,8 @@ class VistrailController(QtCore.QObject):
         if self.log:
             locator.save_as(self.log)
 
-    def queryByExample(self, pipeline):
-        """ queryByExample(pipeline: Pipeline) -> None
+    def query_by_example(self, pipeline):
+        """ query_by_example(pipeline: Pipeline) -> None
         Perform visual query on the current vistrail
         
         """
@@ -1850,7 +1832,7 @@ class VistrailController(QtCore.QObject):
         else:
             search = VisualQuery(pipeline)
 
-        self.setSearch(search, '') # pipeline.dump_to_string())
+        self.set_search(search, '') # pipeline.dump_to_string())
 
     def addSubModule(self, moduleName, packageName, vistrail,
                      fileName, version, inspector):
@@ -1864,19 +1846,19 @@ class VistrailController(QtCore.QObject):
         
         """
         raise VistrailsInternalError("Currently broken")
-#         try:
-#             return addSubModule(moduleName, packageName, vistrail, fileName,
-#                                 version, inspector)
-#         except ModuleAlreadyExists:
-#             show_warning('Module Exists',
-#                          "Failed to registered '%s' as a module "
-#                          "because there is already another module with "
-#                          "the same name. Please change the version name "
-#                          "and manually add it later." % moduleName)
-#         except DupplicateSubModule:
-#             show_warning('Module Exists',
-#                          "Failed to registered '%s' as a module "
-#                          "because it is already registered." % moduleName)
+        # try:
+        #     return addSubModule(moduleName, packageName, vistrail, fileName,
+        #                         version, inspector)
+        # except ModuleAlreadyExists:
+        #     show_warning('Module Exists',
+        #                  "Failed to registered '%s' as a module "
+        #                  "because there is already another module with "
+        #                  "the same name. Please change the version name "
+        #                  "and manually add it later." % moduleName)
+        # except DupplicateSubModule:
+        #     show_warning('Module Exists',
+        #                  "Failed to registered '%s' as a module "
+        #                  "because it is already registered." % moduleName)
 
     def inspectAndImportModules(self):
         """ inspectAndImportModules() -> None        
@@ -1886,33 +1868,33 @@ class VistrailController(QtCore.QObject):
 
         # Currently broken
         pass
-#         importModule = False
-#         inspector = PipelineInspector()
-#         for version in sorted(self.vistrail.inverseTagMap.keys()):
-#             tag = self.vistrail.inverseTagMap[version]
-#             if tag!='':
-#                 pipeline = self.vistrail.getPipeline(version)
-#                 inspector.inspect(pipeline)
-#                 if inspector.is_sub_module():
-#                     if importModule==False:
-#                         res = show_question('Import Modules',
-#                                             "'%s' contains importable modules. "
-#                                             "Do you want to import all of them?"
-#                                             % self.name,
-#                                             [YES_BUTTON, NO_BUTTON], YES_BUTTON)
-#                         if res==YES_BUTTON:
-#                             importModule = True
-#                         else:
-#                             return
-#                     if importModule:
-#                         self.addSubModule(tag, self.name, self.vistrail,
-#                                           self.fileName, version,
-#                                           inspector)
+        # importModule = False
+        # inspector = PipelineInspector()
+        # for version in sorted(self.vistrail.inverseTagMap.keys()):
+        #     tag = self.vistrail.inverseTagMap[version]
+        #     if tag!='':
+        #         pipeline = self.vistrail.getPipeline(version)
+        #         inspector.inspect(pipeline)
+        #         if inspector.is_sub_module():
+        #             if importModule==False:
+        #                 res = show_question('Import Modules',
+        #                                     "'%s' contains importable modules. "
+        #                                     "Do you want to import all of them?"
+        #                                     % self.name,
+        #                                     [YES_BUTTON, NO_BUTTON], YES_BUTTON)
+        #                 if res==YES_BUTTON:
+        #                     importModule = True
+        #                 else:
+        #                     return
+        #             if importModule:
+        #                 self.addSubModule(tag, self.name, self.vistrail,
+        #                                   self.fileName, version,
+        #                                   inspector)
 
-#     def create_abstraction(self, subgraph):
-#         self.vistrail.create_abstraction(self.currentVersion,
-#                                          subgraph,
-#                                          'FOOBAR')
+    # def create_abstraction(self, subgraph):
+    #     self.vistrail.create_abstraction(self.current_version,
+    #                                      subgraph,
+    #                                      'FOOBAR')
 
     ##########################################################################
     # analogies
@@ -1940,7 +1922,7 @@ class VistrailController(QtCore.QObject):
         c = analogy_target
         core.analogy.perform_analogy_on_vistrail(self.vistrail,
                                                  a, b, c)
-        self.setChanged(True)
+        self.set_changed(True)
         if invalidate:
             self.invalidate_version_tree(False)
 
@@ -1959,95 +1941,95 @@ class TestVistrailController(unittest.TestCase):
 
         controller = VistrailController(v, False)
         pipeline = v.getPipeline(9L)
-        controller.currentPipeline = pipeline
-        controller.currentVersion = 9L
+        controller.current_pipeline = pipeline
+        controller.current_version = 9L
         
         module_ids = [1, 2, 3]
         connection_ids = [1, 2, 3]
         
         controller.create_abstraction(module_ids, connection_ids, 'FloatList')
         
-#         from core.vistrail.module import Module
-#         from core.vistrail.module_function import ModuleFunction
-#         from core.vistrail.module_param import ModuleParam
-#         from core.vistrail.abstraction_module import AbstractionModule
-#         from core.vistrial.operation import AddOp, ChangeOp, DeleteOp
-#         from db.domain import IdScope
+        # from core.vistrail.module import Module
+        # from core.vistrail.module_function import ModuleFunction
+        # from core.vistrail.module_param import ModuleParam
+        # from core.vistrail.abstraction_module import AbstractionModule
+        # from core.vistrial.operation import AddOp, ChangeOp, DeleteOp
+        # from db.domain import IdScope
         
-#         id_scope = IdScope(remap={AddOp.vtType: 'operation',
-#                                   ChangeOp.vtType: 'operation',
-#                                   DeleteOp.vtType: 'operation',
-#                                   AbstractionModule.vtType: Module.vtType})
+        # id_scope = IdScope(remap={AddOp.vtType: 'operation',
+        #                           ChangeOp.vtType: 'operation',
+        #                           DeleteOp.vtType: 'operation',
+        #                           AbstractionModule.vtType: Module.vtType})
 
-#         p1 = ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
-#                          type='Float',
-#                          val='1.123')
-#         f1 = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
-#                             name='value',
-#                             parameters=[p1])
-#         m1 = Module(id=id_scope.getNewId(Module.vtType),
-#                     name='Float',
-#                     package='edu.utah.sci.vistrails.basic',
-#                     functions=[f1])
+        # p1 = ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
+        #                  type='Float',
+        #                  val='1.123')
+        # f1 = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
+        #                     name='value',
+        #                     parameters=[p1])
+        # m1 = Module(id=id_scope.getNewId(Module.vtType),
+        #             name='Float',
+        #             package='edu.utah.sci.vistrails.basic',
+        #             functions=[f1])
 
-#         p2 = ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
-#                          type='Float',
-#                          val='4.456')
-#         f2 = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
-#                             name='value',
-#                             parameters=[p2])
-#         m2 = Module(id=id_scope.getNewId(Module.vtType),
-#                     name='Float',
-#                     package='edu.utah.sci.vistrails.basic',
-#                     functions=[f2])
+        # p2 = ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
+        #                  type='Float',
+        #                  val='4.456')
+        # f2 = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
+        #                     name='value',
+        #                     parameters=[p2])
+        # m2 = Module(id=id_scope.getNewId(Module.vtType),
+        #             name='Float',
+        #             package='edu.utah.sci.vistrails.basic',
+        #             functions=[f2])
 
-#         m3 = Module(id=id_scope.getNewId(Module.vtType),
-#                     name='List',
-#                     package='edu.utah.sci.vistrails.basic',
-#                     functions=[])
-                    
-#         m4 = Module(id=id_scope.getNewId(Module.vtType),
-#                     name='List',
-#                     package='edu.utah.sci.vistrails.basic',
-#                     functions=[])
-        
-#         s1 = Port(id=id_scope.getNewId(Port.vtType),
-#                   type='source',
-#                   moduleId=m1.id,
-#                   moduleName='Float',
-#                   name='self')
-#         d1 = Port(id=id_scope.getNewId(Port.vtType),
-#                   type='destination',
-#                   moduleId=m3.id,
-#                   moduleName='List',
-#                   name='self')
-#         c1 = Connection(id=id_scope.getNewId(Connection.vtType),
-#                         ports=[s1, d1])
+        # m3 = Module(id=id_scope.getNewId(Module.vtType),
+        #             name='List',
+        #             package='edu.utah.sci.vistrails.basic',
+        #             functions=[])
 
-#         s2 = Port(id=id_scope.getNewId(Port.vtType),
-#                   type='source',
-#                   moduleId=m2.id,
-#                   moduleName='Float',
-#                   name='self')
-#         d2 = Port(id=id_scope.getNewId(Port.vtType),
-#                   type='destination',
-#                   moduleId=m4.id,
-#                   moduleName='List',
-#                   name='self')
-#         c2 = Connection(id=id_scope.getNewId(Connection.vtType),
-#                         ports=[s2, d2])
-                
-#         s3 = Port(id=id_scope.getNewId(Port.vtType),
-#                   type='source',
-#                   moduleId=m3.id,
-#                   moduleName='List',
-#                   name='self')
-#         d3 = Port(id=id_scope.getNewId(Port.vtType),
-#                   type='destination',
-#                   moduleId=m4.id,
-#                   moduleName='List',
-#                   name='self')
-#         c3 = Connection(id=id_scope.getNewId(Connection.vtType),
-#                         ports=[s3, d3])
+        # m4 = Module(id=id_scope.getNewId(Module.vtType),
+        #             name='List',
+        #             package='edu.utah.sci.vistrails.basic',
+        #             functions=[])
+
+        # s1 = Port(id=id_scope.getNewId(Port.vtType),
+        #           type='source',
+        #           moduleId=m1.id,
+        #           moduleName='Float',
+        #           name='self')
+        # d1 = Port(id=id_scope.getNewId(Port.vtType),
+        #           type='destination',
+        #           moduleId=m3.id,
+        #           moduleName='List',
+        #           name='self')
+        # c1 = Connection(id=id_scope.getNewId(Connection.vtType),
+        #                 ports=[s1, d1])
+
+        # s2 = Port(id=id_scope.getNewId(Port.vtType),
+        #           type='source',
+        #           moduleId=m2.id,
+        #           moduleName='Float',
+        #           name='self')
+        # d2 = Port(id=id_scope.getNewId(Port.vtType),
+        #           type='destination',
+        #           moduleId=m4.id,
+        #           moduleName='List',
+        #           name='self')
+        # c2 = Connection(id=id_scope.getNewId(Connection.vtType),
+        #                 ports=[s2, d2])
+
+        # s3 = Port(id=id_scope.getNewId(Port.vtType),
+        #           type='source',
+        #           moduleId=m3.id,
+        #           moduleName='List',
+        #           name='self')
+        # d3 = Port(id=id_scope.getNewId(Port.vtType),
+        #           type='destination',
+        #           moduleId=m4.id,
+        #           moduleName='List',
+        #           name='self')
+        # c3 = Connection(id=id_scope.getNewId(Connection.vtType),
+        #                 ports=[s3, d3])
 
         

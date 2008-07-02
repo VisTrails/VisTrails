@@ -97,8 +97,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         Setup the pipeline to display and control a specific pipeline
         
         """
-        if not self.pipelineView.scene().noUpdate:
-            self.pipelineView.scene().setupScene(pipeline)
+        self.pipelineView.scene().setupScene(pipeline)
 
     def updateWindowTitle(self, topLevel):
         """ updateWindowTitle(topLevel: bool) -> None
@@ -118,7 +117,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         
         """
         if self.pipelineView.scene().controller:
-            pipeline = self.pipelineView.scene().controller.currentPipeline
+            pipeline = self.pipelineView.scene().controller.current_pipeline
         else:
             pipeline = None
         if pipeline and pipeline.modules.has_key(moduleId):
@@ -155,7 +154,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
                 self.disconnect(oldController,
                                 QtCore.SIGNAL('flushMoveActions()'),
                                 self.flushMoveActions)
-                oldController.currentPipelineView = None
+                oldController.current_pipeline_view = None
             self.controller = controller
             self.pipelineView.scene().controller = controller
             self.connect(controller,
@@ -166,7 +165,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
                          self.flushMoveActions)
             self.methodPalette.controller = controller
             self.moduleMethods.controller = controller
-            controller.currentPipelineView = self.pipelineView.scene()
+            controller.current_pipeline_view = self.pipelineView.scene()
 
     def versionChanged(self, newVersion):
         """ versionChanged(newVersion: int) -> None        
@@ -174,7 +173,7 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         controller
         
         """
-        self.updatePipeline(self.controller.currentPipeline)
+        self.updatePipeline(self.controller.current_pipeline)
             
     def flushMoveActions(self):
         """ flushMoveActions() -> None
@@ -184,13 +183,13 @@ class QPipelineTab(QDockContainer, QToolWindowInterface):
         controller = self.pipelineView.scene().controller
         moves = []
         for (mId, item) in self.pipelineView.scene().modules.iteritems():
-            module = controller.currentPipeline.modules[mId]
+            module = controller.current_pipeline.modules[mId]
             (dx,dy) = (item.scenePos().x(), -item.scenePos().y())
             if (dx != module.center.x or dy != module.center.y):
                 moves.append((mId, dx, dy))
         if len(moves)>0:
             controller.quiet = True
-            controller.moveModuleList(moves)
+            controller.move_module_list(moves)
             controller.quiet = False
 
     def resetQuery(self):

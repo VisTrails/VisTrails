@@ -158,7 +158,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
                                         self.port)
             conn.sourceId = snapModuleId
             conn.destinationId = self.parentItem().id
-        conn.id = self.controller.currentPipeline.fresh_connection_id()
+        conn.id = self.controller.current_pipeline.fresh_connection_id()
         self.controller.add_connection(conn)
         self.scene().addConnection(conn)
         self.scene().removeItem(self.connection)
@@ -166,8 +166,8 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         self.connection = None
         self.scene().reset_module_colors()
         # controller changed pipeline: update ids on scene
-        self.scene()._old_connection_ids = set(self.controller.currentPipeline.connections)
-        self.scene()._old_module_ids = set(self.controller.currentPipeline.modules)
+        self.scene()._old_connection_ids = set(self.controller.current_pipeline.connections)
+        self.scene()._old_module_ids = set(self.controller.current_pipeline.modules)
         
     def mouseReleaseEvent(self, event):
         """ mouseReleaseEvent(event: QMouseEvent) -> None
@@ -193,7 +193,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
             if not self.connection:
                 self.connection = QtGui.QGraphicsLineItem(None, self.scene())
                 self.connection.setPen(CurrentTheme.CONNECTION_SELECTED_PEN)
-                modules = self.controller.currentPipeline.modules
+                modules = self.controller.current_pipeline.modules
                 max_module_id = max([x for
                                      x in modules.iterkeys()])
                 self.connection.setZValue(max_module_id + 1)
@@ -1019,7 +1019,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         return pos
 
     def dependingConnectionItems(self):
-        pip = self.controller.currentPipeline
+        pip = self.controller.current_pipeline
         sc = self.scene()
         result = []
         try:
@@ -1200,7 +1200,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         """
         moduleItem = QGraphicsModuleItem(None)
         if self.controller and self.controller.search:
-            moduleQuery = (self.controller.currentVersion, module)
+            moduleQuery = (self.controller.current_version, module)
             matched = self.controller.search.matchModule(*moduleQuery)
             moduleItem.setGhosted(not matched)
         moduleItem.controller = self.controller
@@ -1241,7 +1241,7 @@ mutual connections."""
         modules = [x.id
                    for x in items
                    if type(x) == QGraphicsModuleItem]
-        return self.controller.currentPipeline.graph.subgraph(modules)
+        return self.controller.current_pipeline.graph.subgraph(modules)
 
 #     def create_abstraction(self):
 #         subgraph = self.selected_subgraph()
@@ -1404,7 +1404,7 @@ mutual connections."""
                         selected_modules.append(m_id)
                     if self.controller and self.controller.search:
                         q_module = pipeline.modules[m_id]
-                        moduleQuery = (self.controller.currentVersion, q_module)
+                        moduleQuery = (self.controller.current_version, q_module)
                         matched = \
                             self.controller.search.matchModule(*moduleQuery)
                         self.modules[m_id].setGhosted(not matched)
@@ -1448,7 +1448,7 @@ mutual connections."""
                                        self.tr("Missing package/module"),
                                        self.tr("Package '%s' is missing (or module '%s' is not present in that package)" % (e._identifier, e._name)))
             self.clear()
-            self.controller.changeSelectedVersion(0)
+            self.controller.change_selected_version(0)
 
         if needReset and len(self.items())>0:
             self.fitToAllViews()
@@ -1485,7 +1485,7 @@ mutual connections."""
     def add_module_event(self, event, data):
         """Adds a new module from a drop event"""
         item = data.items[0]
-        self.controller.resetPipelineView = False
+        self.controller.reset_pipeline_view = False
         self.noUpdate = True
         module = self.controller.add_module(
             item.descriptor.identifier,
@@ -1501,8 +1501,8 @@ mutual connections."""
         graphics_item.setSelected(True)
 
         # controller changed pipeline: update ids
-        self._old_connection_ids = set(self.controller.currentPipeline.connections)
-        self._old_module_ids = set(self.controller.currentPipeline.modules)
+        self._old_connection_ids = set(self.controller.current_pipeline.connections)
+        self._old_module_ids = set(self.controller.current_pipeline.modules)
 
         # We are assuming the first view is the real pipeline view                
         self.views()[0].setFocus()
@@ -1521,8 +1521,8 @@ mutual connections."""
             if hasattr(data, 'items'):
                 event.accept()
                 assert len(data.items) == 1
-                if self.controller.currentVersion==-1:
-                    self.controller.changeSelectedVersion(0)
+                if self.controller.current_version==-1:
+                    self.controller.change_selected_version(0)
                 self.add_module_event(event, data)
 
     def delete_selected_items(self):
@@ -1549,7 +1549,7 @@ mutual connections."""
                     if conn.connection.destination:
                         mid = conn.connection.destination.moduleId
                         m = self.modules[mid]
-                self.controller.deleteModuleList(idList)
+                self.controller.delete_module_list(idList)
                 self.removeItems(connections)
                 for (mId, item) in self.modules.items():
                     if item in selectedItems:
@@ -1568,14 +1568,14 @@ mutual connections."""
             else:
                 self.removeItems([it for it in selectedItems
                                   if isinstance(it, QGraphicsConnectionItem)])
-                self.controller.resetPipelineView = False
+                self.controller.reset_pipeline_view = False
                 idList = [conn.id for conn in selectedItems]
                 self._old_connection_ids.difference_update(set(idList))
                 for cId in idList:
                     del self.connections[cId]
-                self.controller.deleteConnectionList(idList)
+                self.controller.delete_connection_list(idList)
                 self.reset_module_colors()
-                self.controller.resetPipelineView = True
+                self.controller.reset_pipeline_view = True
                 # Current pipeline changed, so we need to change the
                 # _old_connection_ids. However, the difference_update
                 # above takes care of connection ids, so we don't need
@@ -1650,19 +1650,17 @@ mutual connections."""
     def group(self):
         items = self.get_selected_item_ids(True)
         if items is not None:
-            self.controller.create_group(items[0], items[1], 
-                                               'Group')
             self.clear()
-            self.controller.resendVersionWasChanged()
-            self.reset_module_colors()
+            self.controller.create_group(items[0], items[1], 
+                                         'Group')
+            self.setupScene(self.controller.current_pipeline)
 
     def ungroup(self):
         items = self.get_selected_item_ids(True)
         if items is not None:
-            self.controller.ungroup_set(items[0])
             self.clear()
-            self.controller.resendVersionWasChanged()
-            self.reset_module_colors()
+            self.controller.ungroup_set(items[0])
+            self.setupScene(self.controller.current_pipeline)
         
     def copySelection(self):
         """ copySelection() -> None
@@ -1672,7 +1670,7 @@ mutual connections."""
         items = self.get_selected_item_ids(False)
         if items is not None:
             cb = QtGui.QApplication.clipboard()
-            text = self.controller.copyModulesAndConnections(items[0],items[1])
+            text = self.controller.copy_modules_and_connections(items[0],items[1])
             cb.setText(text)
             
     def pasteFromClipboard(self):
@@ -1681,31 +1679,18 @@ mutual connections."""
         
         """
         if self.controller:
-            if self.controller.currentVersion == -1:
-                self.controller.changeSelectedVersion(0)
+            if self.controller.current_version == -1:
+                self.controller.change_selected_version(0)
             cb = QtGui.QApplication.clipboard()        
             text = str(cb.text())
             if text=='': return
-            ids = self.controller.pasteModulesAndConnections(text)
-            self.setupScene(self.controller.currentPipeline)
+            ids = self.controller.paste_modules_and_connections(text)
+            self.setupScene(self.controller.current_pipeline)
             self.reset_module_colors()
             if len(ids) > 0:
                 self.unselect_all()
             for moduleId in ids:
                 self.modules[moduleId].setSelected(True)
-
-#             dom = parseString(str(cb.text()))
-#             root = dom.documentElement
-#             modules = []
-#             connections = []
-#             for xmlmodule in named_elements(root, 'module'):
-#                 module = Module.loadFromXML(xmlmodule)
-#                 modules.append(module)
-	
-#             for xmlconnection in named_elements(root, 'connect'):
-#                 conn = Connection.loadFromXML(xmlconnection)
-#                 connections.append(conn)
-#             self.controller.pasteModulesAndConnections(modules, connections)
             
     def eventFilter(self, object, e):
         """ eventFilter(object: QObject, e: QEvent) -> None        
@@ -1747,7 +1732,7 @@ mutual connections."""
         Open the modal configuration window for module with given id
         """
         if self.controller:
-            module = self.controller.currentPipeline.modules[id]
+            module = self.controller.current_pipeline.modules[id]
             getter = registry.get_configuration_widget
             widgetType = getter(module.package, module.name, module.namespace)
             if not widgetType:
@@ -1765,14 +1750,14 @@ mutual connections."""
             widget.exec_()
             self.reset_module_colors()
             self.pipeline_tab.flushMoveActions()
-            self.recreate_module(self.controller.currentPipeline, id)
+            self.recreate_module(self.controller.current_pipeline, id)
 
     def open_documentation_window(self, id):
         """ open_documentation_window(int) -> None
         Opens the modal module documentation window for module with given id
         """
         if self.controller:
-            module = self.controller.currentPipeline.modules[id]
+            module = self.controller.current_pipeline.modules[id]
             descriptor = registry.get_descriptor_by_name(module.package,
                                                          module.name,
                                                          module.namespace)
@@ -1785,7 +1770,7 @@ mutual connections."""
         Opens the modal annotations window for module with given id
         """
         if self.controller:
-            module = self.controller.currentPipeline.modules[id]
+            module = self.controller.current_pipeline.modules[id]
             widget = QModuleAnnotation(module, self.controller, None)
             widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
             widget.exec_()
@@ -1795,7 +1780,7 @@ mutual connections."""
         Opens the modal module label window for setting module label
         """
         if self.controller:
-            module = self.controller.currentPipeline.modules[id]
+            module = self.controller.current_pipeline.modules[id]
             if module.has_annotation_with_key('__desc__'):
                 currentLabel = module.get_annotation_by_key('__desc__').value.strip()
             else:
@@ -1807,11 +1792,11 @@ mutual connections."""
             if ok:
                 if text.isEmpty():
                     if module.has_annotation_with_key('__desc__'):
-                        self.controller.deleteAnnotation('__desc__', id)
-                        self.recreate_module(self.controller.currentPipeline, id)
+                        self.controller.delete_annotation('__desc__', id)
+                        self.recreate_module(self.controller.current_pipeline, id)
                 else:
-                    self.controller.addAnnotation(('__desc__', str(text)), id)
-                    self.recreate_module(self.controller.currentPipeline, id)
+                    self.controller.add_annotation(('__desc__', str(text)), id)
+                    self.recreate_module(self.controller.current_pipeline, id)
 
     ##########################################################################
     # Execution reporting API
@@ -1906,7 +1891,7 @@ class QPipelineView(QInteractiveGraphicsView):
     def setQueryEnabled(self, on):
         QInteractiveGraphicsView.setQueryEnabled(self, on)
         if not self.scene().noUpdate and self.scene().controller:
-            self.scene().setupScene(self.scene().controller.currentPipeline)
+            self.scene().setupScene(self.scene().controller.current_pipeline)
 
 ################################################################################
 # Testing

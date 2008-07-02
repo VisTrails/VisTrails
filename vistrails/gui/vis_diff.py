@@ -478,26 +478,26 @@ class QVisualDiff(QtGui.QMainWindow):
         # modules and connections of the diff, and know how to copy stuff
         class DummyController(object):
             def __init__(self, pip):
-                self.currentPipeline = pip
+                self.current_pipeline = pip
                 self.search = None
-            def copyModulesAndConnections(self, module_ids, connection_ids):
-                """copyModulesAndConnections(module_ids: [long],
+            def copy_modules_and_connections(self, module_ids, connection_ids):
+                """copy_modules_and_connections(module_ids: [long],
                                              connection_ids: [long]) -> str
                 Serializes a list of modules and connections
                 """
 
                 pipeline = Pipeline()
                 pipeline.set_abstraction_map( \
-                    self.currentPipeline.abstraction_map)
+                    self.current_pipeline.abstraction_map)
                 for module_id in module_ids:
-                    module = self.currentPipeline.modules[module_id]
+                    module = self.current_pipeline.modules[module_id]
                     if module.vtType == AbstractionModule.vtType:
                         abstraction = \
                             pipeline.abstraction_map[module.abstraction_id]
                         pipeline.add_abstraction(abstraction)
                     pipeline.add_module(module)
                 for connection_id in connection_ids:
-                    connection = self.currentPipeline.connections[connection_id]
+                    connection = self.current_pipeline.connections[connection_id]
                     pipeline.add_connection(connection)
                 return core.db.io.serialize(pipeline)
                 

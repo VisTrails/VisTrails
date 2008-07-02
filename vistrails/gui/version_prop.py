@@ -164,7 +164,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         
         """
         if self.controller:
-            self.controller.updateCurrentTag(str(self.tagEdit.text()))
+            self.controller.update_current_tag(str(self.tagEdit.text()))
 
     def tagChanged(self, text):
         """ tagChanged(text: QString) -> None
@@ -187,7 +187,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
 
         """
         if self.controller:
-            self.controller.setSearch(None)
+            self.controller.set_search(None)
             self.emit(QtCore.SIGNAL('textQueryChange(bool)'), False)
     
     def executeSearch(self, text):
@@ -207,7 +207,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
                                           QtGui.QMessageBox.NoButton,
                                           QtGui.QMessageBox.NoButton)
                 search = None
-            self.controller.setSearch(search, s)
+            self.controller.set_search(search, s)
             self.emit(QtCore.SIGNAL('textQueryChange(bool)'), s!='')
 
     def refineMode(self, on):
@@ -216,7 +216,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         
         """
         if self.controller:
-            self.controller.setRefine(on)
+            self.controller.set_refine(on)
 
 class QVersionNotes(QtGui.QTextEdit):
     """
@@ -255,7 +255,7 @@ class QVersionNotes(QtGui.QTextEdit):
 
     def commit_changes(self):
         if self.controller and self.document().isModified():
-            self.controller.updateNotes(str(self.toHtml()))
+            self.controller.update_notes(str(self.toHtml()))
 
     def focusOutEvent(self, event):
         """ focusOutEvent(event: QFocusEvent) -> None

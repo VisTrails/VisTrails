@@ -107,10 +107,10 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         Update the tab when it is shown
         
         """
-        if self.currentVersion!=self.controller.currentVersion:
-            self.currentVersion = self.controller.currentVersion
+        if self.currentVersion!=self.controller.current_version:
+            self.currentVersion = self.controller.current_version
             # Update the virtual cell
-            pipeline = self.controller.currentPipeline
+            pipeline = self.controller.current_pipeline
             self.virtualCell.updateVirtualCell(pipeline)
 
             # Now we need to inspect the parameter list
@@ -129,10 +129,10 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         
         """
         actions = self.peWidget.table.collectParameterActions()
-        if self.controller.currentPipeline and actions:
+        if self.controller.current_pipeline and actions:
             explorer = ActionBasedParameterExploration()
             (pipelines, performedActions) = explorer.explore(
-                self.controller.currentPipeline, actions)
+                self.controller.current_pipeline, actions)
             
             dim = [max(1, len(a)) for a in actions]
             if (registry.has_module('edu.utah.sci.vistrails.spreadsheet', 'CellLocation') and
@@ -176,8 +176,8 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                     None,
                     modifiedPipelines[pi],
                     self.controller.locator,
-                    self.controller.currentVersion,
-                    self.controller.currentPipelineView,
+                    self.controller.current_version,
+                    self.controller.current_pipelineView,
                     moduleExecutedHook=[moduleExecuted],
                     reason='Parameter Exploration',
                     actions=performedActions[pi])

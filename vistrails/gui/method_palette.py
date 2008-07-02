@@ -111,7 +111,7 @@ class QMethodTreeWidget(QSearchTreeWidget):
                                                              module.namespace)
             except registry.MissingModulePackage, e:
                 # FIXME handle this the same way as
-                # vistrail_controller:changeSelectedVersion
+                # vistrail_controller:change_selected_version
                 raise
             moduleHierarchy = registry.get_module_hierarchy(descriptor)
             for baseModule in moduleHierarchy:

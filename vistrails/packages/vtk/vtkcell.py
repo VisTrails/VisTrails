@@ -970,9 +970,9 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                     view = viewManager.ensureVistrail(info['locator'])
                     if view:
                         controller = view.controller
-                        controller.changeSelectedVersion(info['version'])
+                        controller.change_selected_version(info['version'])
                         
-                        pipeline = controller.currentPipeline
+                        pipeline = controller.current_pipeline
                         
                         cellWidget = self.toolBar.getSnappedWidget()
                         renderers = cellWidget.getRendererList()
@@ -1054,7 +1054,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                                 action = db.services.action.create_action([('add', 
                                                                             camera)])
                                 Action.convert(action)
-                                controller.vistrail.add_action(action, controller.currentVersion)
+                                controller.vistrail.add_action(action, controller.current_version)
                                 controller.perform_action(action)
 
                                 port_id = controller.vistrail.idScope.getNewId(Port.vtType)
@@ -1079,7 +1079,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                                 action = db.services.action.create_action([('add', 
                                                                            conn)])
                                 Action.convert(action)
-                                controller.vistrail.add_action(action, controller.currentVersion)
+                                controller.vistrail.add_action(action, controller.current_version)
                                 controller.perform_action(action)
                             else:
                                 # Replace the current camera
@@ -1117,10 +1117,10 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                                         action_list.append(('add', f,
                                                             module.Module.vtType, camera.id))
                                 action = db.services.action.create_action(action_list)
-                                controller.vistrail.add_action(action, controller.currentVersion)
+                                controller.vistrail.add_action(action, controller.current_version)
                                 controller.perform_action(action)
                                 
-                        controller.selectLatestVersion()
+                        controller.select_latest_version()
                         controller.invalidate_version_tree(False)
 
                 

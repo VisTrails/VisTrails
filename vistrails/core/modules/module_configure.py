@@ -431,16 +431,16 @@ class PythonSourceConfigurationWidget(StandardModuleConfigurationWidget):
         oldRegistry = self.module.registry
         newPorts = self.newInputOutputPorts()
         (deletePorts, addPorts) = self.registryChanges(oldRegistry, newPorts)
-        for (cid, c) in controller.currentPipeline.connections.items():
+        for (cid, c) in controller.current_pipeline.connections.items():
             if ((c.sourceId==self.module.id and
                  any([c.source.name==p[1] for p in deletePorts])) or
                 (c.destinationId==self.module.id and
                  any([c.destination.name==p[1] for p in deletePorts]))):
-                controller.deleteConnection(cid)
+                controller.delete_connection(cid)
         for p in deletePorts:
-            controller.deleteModulePort(self.module.id, p)
+            controller.delete_module_port(self.module.id, p)
         for p in addPorts:
-            controller.addModulePort(self.module.id, p)
+            controller.add_module_port(self.module.id, p)
         if self.codeEditor.document().isModified():
             code = urllib.quote(str(self.codeEditor.toPlainText()))
             fid = self.findSourceFunction()
@@ -457,7 +457,7 @@ class PythonSourceConfigurationWidget(StandardModuleConfigurationWidget):
                                     name='<no description>',
                                     pos=0)
                 f.addParameter(param)
-                controller.addMethod(self.module.id, f)
+                controller.add_method(self.module.id, f)
             else:
                 # do change parameter
                 paramList = [(code, 'String', None, 

@@ -259,7 +259,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
 
         """
         if event.key() in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
-            if not self.scene().controller.updateCurrentTag(str(self.toPlainText())):
+            if not self.scene().controller.update_current_tag(str(self.toPlainText())):
                 self.reset()
             self.hide()
             return
@@ -276,7 +276,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         """
         qt_super(QGraphicsVersionTextItem, self).focusOutEvent(event)
         if QtCore.QString.compare(self.label, self.toPlainText()) != 0:
-            if not self.scene().controller.updateCurrentTag(str(self.toPlainText())):
+            if not self.scene().controller.update_current_tag(str(self.toPlainText())):
                 self.reset()
       
 
@@ -805,7 +805,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.controller = controller
 
         # Call dotty to perform graph layout
-        (tree, self.fullGraph) = controller.refineGraph()
+        (tree, self.fullGraph) = controller.refine_graph()
 
         tClearRefine = time.clock() - tClearRefine
 
@@ -871,7 +871,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 self.addVersion(node, action, tag)
 
             # set as selected
-            self.versions[v].setSelected(v == controller.currentVersion)
+            self.versions[v].setSelected(v == controller.current_version)
 
         # adjust the colors
         self.adjust_version_colors(controller)
@@ -921,7 +921,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                                             gui.utils.NO_BUTTON],
                                            gui.utils.NO_BUTTON)
              if res == gui.utils.YES_BUTTON:
-                 self.controller.pruneVersions(versions)
+                 self.controller.prune_versions(versions)
          qt_super(QVersionTreeScene, self).keyPressEvent(event)
 
     def mouseReleaseEvent(self, event):

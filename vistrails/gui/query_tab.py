@@ -66,9 +66,9 @@ class QQueryTab(QPipelineTab):
         self.moduleMethods.vWidget.formType = QFunctionQueryForm
         
         controller = QueryVistrailController(auto_save=False)
-        controller.setVistrail(Vistrail(), None)
+        controller.set_vistrail(Vistrail(), None)
         self.setController(controller)
-        controller.changeSelectedVersion(0)
+        controller.change_selected_version(0)
         self.connect(controller,
                      QtCore.SIGNAL('vistrailChanged()'),
                      self.vistrailChanged)
@@ -78,9 +78,9 @@ class QQueryTab(QPipelineTab):
         Update the pipeline when the vistrail version has changed
         
         """
-        self.controller.currentPipeline.ensure_connection_specs()
+        self.controller.current_pipeline.ensure_connection_specs()
         self.emit(QtCore.SIGNAL("queryPipelineChange"),
-                  len(self.controller.currentPipeline.modules)>0)
+                  len(self.controller.current_pipeline.modules)>0)
         
 ################################################################################
 
@@ -119,7 +119,7 @@ class QFunctionQueryForm(QMethodInputForm):
         methodBox = self.parent().parent().parent()
         if methodBox.controller:
             paramList = []
-            pipeline = methodBox.controller.currentPipeline
+            pipeline = methodBox.controller.current_pipeline
             f = pipeline.modules[methodBox.module.id].functions[self.fId]
             p = f.params
             for i in xrange(len(self.fields)):

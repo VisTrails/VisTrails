@@ -81,7 +81,7 @@ class QVistrailView(QDockContainer):
 
         # Initialize the vistrail controller
         self.controller = VistrailController()
-        self.controller.vistrailView = self
+        self.controller.vistrail_view = self
         self.connect(self.controller,
                      QtCore.SIGNAL('stateChanged'),
                      self.stateChanged)
@@ -157,8 +157,8 @@ class QVistrailView(QDockContainer):
         somewhere else in the code. Figure this out."""
 
         if version is None:
-            self.controller.selectLatestVersion()
-            version = self.controller.currentVersion
+            self.controller.select_latest_version()
+            version = self.controller.current_version
         self.versionSelected(version, False)
         self.setPIPMode(True)
         self.setQueryMode(False)
@@ -236,14 +236,14 @@ class QVistrailView(QDockContainer):
         """
         return QtCore.QSize(1024, 768)
 
-    def setVistrail(self, vistrail, locator=None):
-        """ setVistrail(vistrail: Vistrail, locator: BaseLocator) -> None
+    def set_vistrail(self, vistrail, locator=None):
+        """ set_vistrail(vistrail: Vistrail, locator: BaseLocator) -> None
         Assign a vistrail to this view, and start interacting with it
         
         """
         self.vistrail = vistrail
         self.locator = locator
-        self.controller.setVistrail(vistrail, locator)
+        self.controller.set_vistrail(vistrail, locator)
         self.versionTab.setController(self.controller)
         self.pipelineTab.setController(self.controller)
         self.peTab.setController(self.controller)
@@ -294,12 +294,12 @@ class QVistrailView(QDockContainer):
         
         """
         if on:
-            queryPipeline = self.queryTab.controller.currentPipeline
+            queryPipeline = self.queryTab.controller.current_pipeline
             if queryPipeline:
-                self.controller.queryByExample(queryPipeline)
+                self.controller.query_by_example(queryPipeline)
                 self.setQueryMode(True)
         else:
-            self.controller.setSearch(None)
+            self.controller.set_search(None)
             self.setQueryMode(False)
 
     def createPopupMenu(self):
@@ -325,11 +325,11 @@ class QVistrailView(QDockContainer):
         
         """
         if self.controller:
-            self.controller.resetPipelineView = byClick
-            self.controller.changeSelectedVersion(versionId)
+            self.controller.reset_pipeline_view = byClick
+            self.controller.change_selected_version(versionId)
             self.controller.invalidate_version_tree(False)
             if byClick:
-                self.controller.currentPipelineView.fitToAllViews(True)
+                self.controller.current_pipeline_view.fitToAllViews(True)
             self.versionTab.versionProp.updateVersion(versionId)
             self.versionTab.versionView.versionProp.updateVersion(versionId)
             self.redo_stack = []
@@ -442,24 +442,24 @@ class QVistrailView(QDockContainer):
     def undo(self):
         """Performs one undo step, moving up the version tree."""
         action_map = self.controller.vistrail.actionMap
-        old_action = action_map.get(self.controller.currentVersion, None)
-        self.redo_stack.append(self.controller.currentVersion) 
+        old_action = action_map.get(self.controller.current_version, None)
+        self.redo_stack.append(self.controller.current_version) 
         self.controller.show_parent_version()
-        new_action = action_map.get(self.controller.currentVersion, None)
+        new_action = action_map.get(self.controller.current_version, None)
         self.set_pipeline_selection(old_action, new_action, 'undo')
-        return self.controller.currentVersion
+        return self.controller.current_version
         
     def redo(self):
         """Performs one redo step if possible, moving down the version tree."""
         action_map = self.controller.vistrail.actionMap
-        old_action = action_map.get(self.controller.currentVersion, None)
+        old_action = action_map.get(self.controller.current_version, None)
         if not self.can_redo():
             critical("Redo on an empty redo stack. Ignoring.")
             return
         next_version = self.redo_stack[-1]
         self.redo_stack = self.redo_stack[:-1]
         self.controller.show_child_version(next_version)
-        new_action = action_map[self.controller.currentVersion]
+        new_action = action_map[self.controller.current_version]
         self.set_pipeline_selection(old_action, new_action, 'redo')
         return next_version
 

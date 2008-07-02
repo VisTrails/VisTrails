@@ -199,5 +199,5 @@ def getCurrentVersion():
     if builderWindow!=None:
         current_view = builderWindow.viewManager.currentWidget()
         if current_view!=None:
-            return current_view.controller.currentVersion
+            return current_view.controller.current_version
     return -1

@@ -202,41 +202,41 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
         (deletePorts, addPorts) = self.registryChanges(old_registry, newPorts)
 
         # Remove any connections or functions related to delete ports
-        for (cid, c) in self.controller.currentPipeline.connections.items():
+        for (cid, c) in self.controller.current_pipeline.connections.items():
             if ((c.sourceId==self.module.id and
                  any([c.source.name==p[1] for p in deletePorts])) or
                 (c.destinationId==self.module.id and
                  any([c.destination.name==p[1] for p in deletePorts]))):
-                self.controller.deleteConnection(cid)
+                self.controller.delete_connection(cid)
         for p in deletePorts:
-            module = self.controller.currentPipeline.modules[self.module.id]
+            module = self.controller.current_pipeline.modules[self.module.id]
             ids = []
             for fid in range(module.getNumFunctions()):
                 if module.functions[fid].name==p[1]:
                     ids.append(fid)
             for i in ids:
-                self.controller.deleteMethod(i, self.module.id)
+                self.controller.delete_method(i, self.module.id)
         for p in deletePorts:
-            self.controller.deleteModulePort(self.module.id, p)
+            self.controller.delete_module_port(self.module.id, p)
 
         # Add all addPorts
         for p in addPorts:
-            self.controller.addModulePort(self.module.id, p)
+            self.controller.add_module_port(self.module.id, p)
 
         # If output spec change, remove all connections
         spec = [p[2][1:-1] for p in newPorts]
         if len(deletePorts)+len(addPorts)>0:
-            for (cid, c) in self.controller.currentPipeline.connections.items():
+            for (cid, c) in self.controller.current_pipeline.connections.items():
                 if (c.sourceId==self.module.id and c.source.name=='value'):
-                    self.controller.deleteConnection(cid)
+                    self.controller.delete_connection(cid)
 
         tpl = ('output', 'value')
-        if self.controller.hasModulePort(self.module.id, tpl):
+        if self.controller.has_module_port(self.module.id, tpl):
             # Remove the current output port and add a new one                    
-            self.controller.deleteModulePort(self.module.id, tpl)
+            self.controller.delete_module_port(self.module.id, tpl)
         spec = '('+','.join(spec)+')'
-        self.controller.addModulePort(self.module.id,
-                                      ('output', 'value', spec))
+        self.controller.add_module_port(self.module.id,
+                                        ('output', 'value', spec))
 
     def lcs(self, l1, l2):
         """ lcs(l1: list, l2: list) -> (keep, delete, add list)        

@@ -212,8 +212,8 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
                 self.table.removeRow(row)
                 if self.table.controller and self.table.module:
                     self.table.lockUpdate()
-                    self.table.controller.deleteAnnotation(key,
-                                                           self.table.module.id)
+                    self.table.controller.delete_annotation(key,
+                                                            self.table.module.id)
                     self.table.unlockUpdate()
                 return
             if text!='' and text!=key:
@@ -239,8 +239,8 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
             if text!=value:
                 if self.table.controller and self.table.module:
                     self.table.lockUpdate()
-                    self.table.controller.addAnnotation((key, text),
-                                                        self.table.module.id)
+                    self.table.controller.add_annotation((key, text),
+                                                         self.table.module.id)
                     self.table.unlockUpdate()
             if row == self.table.rowCount()-1:
                 self.table.addRow()
@@ -250,9 +250,9 @@ class QKeyValueDelegate(QtGui.QItemDelegate):
             self.table.lockUpdate()
             self.table.controller.previousModuleIds = [moduleId]
             if key!=text and key!='':
-                self.table.controller.deleteAnnotation(key, moduleId)
-            self.table.controller.addAnnotation((text, value),
-                                                moduleId)
+                self.table.controller.delete_annotation(key, moduleId)
+            self.table.controller.add_annotation((text, value),
+                                                 moduleId)
             self.table.unlockUpdate()
         
         model.setData(index, QtCore.QVariant(text))        

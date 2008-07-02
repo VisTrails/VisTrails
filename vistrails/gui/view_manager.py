@@ -228,8 +228,8 @@ class QViewManager(QtGui.QTabWidget):
         
         """
         vistrailView = self.currentWidget()
-        if vistrailView and vistrailView.controller.currentPipeline:
-            return len(vistrailView.controller.currentPipeline.modules)>0
+        if vistrailView and vistrailView.controller.current_pipeline:
+            return len(vistrailView.controller.current_pipeline.modules)>0
         return False
 
     def redo(self):
@@ -291,7 +291,7 @@ class QViewManager(QtGui.QTabWidget):
         if version is None, use the latest version
         """
         vistrailView = QVistrailView()
-        vistrailView.setVistrail(vistrail, locator)
+        vistrailView.set_vistrail(vistrail, locator)
         self.add_vistrail_view(vistrailView)
         self.setCurrentWidget(vistrailView)
         vistrailView.controller.inspectAndImportModules()
@@ -504,7 +504,7 @@ class QViewManager(QtGui.QTabWidget):
                   self.currentWidget())
         if index >= 0:
             self.emit(QtCore.SIGNAL('versionSelectionChange'), 
-                      self.currentWidget().controller.currentVersion)
+                      self.currentWidget().controller.current_version)
         else:
             self.emit(QtCore.SIGNAL('versionSelectionChange'), 
                       -1)
@@ -632,7 +632,7 @@ class QViewManager(QtGui.QTabWidget):
         
         """
         self.currentView().setFocus(QtCore.Qt.MouseFocusReason)
-        self.currentView().controller.executeCurrentWorkflow()
+        self.currentView().controller.execute_current_workflow()
 
     def executeCurrentExploration(self):
         """ executeCurrentExploration() -> None

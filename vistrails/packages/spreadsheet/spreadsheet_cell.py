@@ -897,7 +897,7 @@ class QCellManipulator(QtGui.QFrame):
                                                            self.cellInfo[1],
                                                            self.cellInfo[2],
                                                            'Apply Analogy')
-                    controller.setChanged(True)
+                    controller.set_changed(True)
                     controller.invalidate_version_tree(False)
                     
 
@@ -933,7 +933,7 @@ class QCellManipulator(QtGui.QFrame):
                 view = viewManager.ensureVistrail(info['locator'])
                 if view:
                     controller = view.controller
-                    controller.changeSelectedVersion(info['version'])
+                    controller.change_selected_version(info['version'])
                     controller.perform_param_changes(info['actions'])
                     # controller.performBulkActions(info['actions'])
 
@@ -953,7 +953,7 @@ class QCellManipulator(QtGui.QFrame):
                 view = viewManager.ensureVistrail(info['locator'])
                 if view:
                     controller = view.controller
-                    controller.changeSelectedVersion(info['version'])
+                    controller.change_selected_version(info['version'])
                     controller.invalidate_version_tree(False)
 
 ################################################################################

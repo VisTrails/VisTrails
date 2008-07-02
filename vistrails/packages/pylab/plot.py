@@ -172,7 +172,7 @@ class _MplPlotConfigurationWidget(StandardModuleConfigurationWidget):
                                     name='<no description>',
                                     pos=0)
                 f.addParameter(param)
-                controller.addMethod(self.module.id, f)
+                controller.add_method(self.module.id, f)
             else:
                 # do change parameter
                 paramList = [(code, 'String',  None, 

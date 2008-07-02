@@ -103,7 +103,7 @@ class QMethodDropBox(QtGui.QScrollArea):
                         self.scrollContentsBy(0, self.viewport().height())
                         self.lockUpdate()
                         if self.controller:
-                            self.controller.addMethod(self.module.id, function)
+                            self.controller.add_method(self.module.id, function)
                         self.unlockUpdate()
                 self.emit(QtCore.SIGNAL("paramsAreaChanged"))
 
@@ -245,14 +245,14 @@ class QMethodInputForm(QtGui.QGroupBox):
                                                 paramList)
             methodBox.unlockUpdate()
 
-    def checkAlias(self, name):
-        """ checkAlias(name: str) -> Boolean
+    def check_alias(self, name):
+        """ check_alias(name: str) -> Boolean
         Returns True if the current pipeline already has the alias name
 
         """
         methodBox = self.parent().parent().parent()
         if methodBox.controller:
-            return methodBox.controller.checkAlias(name)
+            return methodBox.controller.check_alias(name)
         return False
 
     def updateFunction(self, function):
@@ -304,8 +304,8 @@ class QMethodInputForm(QtGui.QGroupBox):
                 self.parent().layout().itemAt(i).widget().fId = i
             methodBox.lockUpdate()
             if methodBox.controller:
-                methodBox.controller.deleteMethod(self.fId,
-                                                  methodBox.module.id)            
+                methodBox.controller.delete_method(self.fId,
+                                                   methodBox.module.id)            
             methodBox.unlockUpdate()
             methodBox.emit(QtCore.SIGNAL("paramsAreaChanged"))
         else:
@@ -369,7 +369,7 @@ class QHoverAliasLabel(QtGui.QLabel):
                                                     'Enter the parameter alias',
                                                     QtGui.QLineEdit.Normal,
                                                     self.alias)
-            while ok and self.parent().checkAlias(str(text)):
+            while ok and self.parent().check_alias(str(text)):
                 msg =" This alias is already being used.\
  Please enter a different parameter alias "
                 (text, ok) = QtGui.QInputDialog.getText(self,
@@ -378,7 +378,7 @@ class QHoverAliasLabel(QtGui.QLabel):
                                                         QtGui.QLineEdit.Normal,
                                                         text)
             if ok and str(text)!=self.alias:
-                if not self.parent().checkAlias(str(text)):
+                if not self.parent().check_alias(str(text)):
                     self.alias = str(text).strip()
                     self.updateText()
                     self.parent().updateMethod()

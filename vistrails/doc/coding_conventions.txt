@@ -79,6 +79,20 @@ Short version:
         Read http://www.python.org/dev/peps/pep-0008/
 
 
+    Capitalization:
+
+        class names are CamelCase, while methods and members
+        are_separated_by_underscores. This is not always possible,
+        especially when subclassing from Qt. Everywhere else, this
+        convention should be used. Qt signals are lowerCamelCase, to
+        be consistent with Qt.
+
+	Class members that are Qt objects themselves are probably OK
+	being camelCase, but everything that's possibly public-access
+	(through an API, for example), should be
+	separated_by_underscores.
+
+
 
 Docstrings
 ----------

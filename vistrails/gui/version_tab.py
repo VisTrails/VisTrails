@@ -97,7 +97,7 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
                                 QtCore.SIGNAL('vistrailChanged()'),
                                 self.vistrailChanged)
                 self.disconnect(controller,
-                                QtCore.SIGNAL('invalidate_single_node_in_version_tree'),
+                                QtCore.SIGNAL('invalidateSingleNodeInVersionTree'),
                                 self.single_node_changed)
             self.controller = controller
             self.versionView.scene().controller = controller
@@ -105,7 +105,7 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
                          QtCore.SIGNAL('vistrailChanged()'),
                          self.vistrailChanged)
             self.connect(controller,
-                         QtCore.SIGNAL('invalidate_single_node_in_version_tree'),
+                         QtCore.SIGNAL('invalidateSingleNodeInVersionTree'),
                          self.single_node_changed)
             if controller:
                 self.vistrailChanged()
@@ -118,11 +118,11 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         
         """
         self.versionView.scene().setupScene(self.controller)
-        if self.controller and self.controller.resetVersionView:
+        if self.controller and self.controller.reset_version_view:
             self.versionView.scene().fitToAllViews()
         if self.controller:
-            self.versionProp.updateVersion(self.controller.currentVersion)
-            self.versionView.versionProp.updateVersion(self.controller.currentVersion)
+            self.versionProp.updateVersion(self.controller.current_version)
+            self.versionView.versionProp.updateVersion(self.controller.current_version)
         self.emit(QtCore.SIGNAL("vistrailChanged()"))
 
     def single_node_changed(self, old_version, new_version):
@@ -134,11 +134,11 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         self.versionView.scene().update_scene_single_node_change(self.controller,
                                                                  old_version,
                                                                  new_version)
-        if self.controller and self.controller.resetVersionView:
+        if self.controller and self.controller.reset_version_view:
             self.versionView.scene().fitToAllViews()
         if self.controller:
-            self.versionProp.updateVersion(self.controller.currentVersion)
-            self.versionView.versionProp.updateVersion(self.controller.currentVersion)
+            self.versionProp.updateVersion(self.controller.current_version)
+            self.versionView.versionProp.updateVersion(self.controller.current_version)
         self.emit(QtCore.SIGNAL("vistrailChanged()"))
 
     def add_bookmark(self, id, name):
@@ -147,7 +147,7 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         BookmarksManager
 
         """
-        vistrailsFile = self.controller.fileName
+        vistrailsFile = self.controller.file_name
         BookmarksManager.add_bookmark('',vistrailsFile,id,name)
 
     def resetQuery(self):

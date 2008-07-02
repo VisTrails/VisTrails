@@ -662,7 +662,6 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.redoAction.setEnabled(currentView.can_redo())
         else:
             self.redoAction.setEnabled(False)
-        
 
     def execStateChange(self):
         """ execStateChange() -> None

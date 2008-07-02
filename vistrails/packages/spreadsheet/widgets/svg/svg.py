@@ -97,6 +97,9 @@ class SVGSplitter(Module):
             fileValue = None
         if fileValue:
             batchDisplayEvent = BatchDisplayCellEvent()
+            # FIXME: Will this work? there should be no
+            # self.currentVersion in the module (there is a
+            # self.version)
             batchDisplayEvent.vistrail = (self.vistrailName,
                                           self.currentVersion)
             f = open(fileValue.name, 'r')            
