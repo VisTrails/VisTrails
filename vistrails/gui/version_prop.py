@@ -25,6 +25,8 @@ name
 QVersionProp
 QVersionNotes
 QVersionPropOverlay
+QExpandButton
+QNotesDialog
 """
 
 from PyQt4 import QtCore, QtGui
@@ -231,6 +233,10 @@ class QVersionNotes(QtGui.QTextEdit):
         QtGui.QTextEdit.__init__(self, parent)
         self.controller = None
         self.versionNumber = -1
+        # Reset text to black, for some reason it is grey by default on the mac
+        self.palette().setBrush(QtGui.QPalette.Text,
+                                QtGui.QBrush(QtGui.QColor(0,0,0,255)))
+        
 
     def updateVersion(self, versionNumber):
         """ updateVersion(versionNumber: int) -> None
@@ -337,6 +343,14 @@ class QVersionPropOverlay(QtGui.QFrame):
         self.notes.setTextFormat(QtCore.Qt.PlainText)
         self.notes.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
         
+        self.notes_button = QExpandButton()
+        self.notes_button.hide()
+
+        self.notes_layout = QtGui.QHBoxLayout()
+        self.notes_layout.addWidget(self.notes)
+        self.notes_layout.addWidget(self.notes_button)
+        self.notes_layout.addStretch()
+
         self.layout.addWidget(self.tag_label, 0, 0)
         self.layout.addWidget(self.tag, 0, 1)
         self.layout.addWidget(self.user_label, 1, 0)
@@ -344,15 +358,22 @@ class QVersionPropOverlay(QtGui.QFrame):
         self.layout.addWidget(self.date_label, 2, 0)
         self.layout.addWidget(self.date, 2, 1)
         self.layout.addWidget(self.notes_label, 3, 0)
-        self.layout.addWidget(self.notes, 3, 1)
-        
+        self.layout.addLayout(self.notes_layout, 3, 1)
+
         self.layout.setColumnMinimumWidth(0,35)
-        self.layout.setColumnMinimumWidth(1,150)
+        self.layout.setColumnMinimumWidth(1,200)
         self.layout.setContentsMargins(2,2,2,2)
         self.layout.setColumnStretch(1,1)
         self.setLayout(self.layout)
         self.updateGeometry()
         self.controller = None
+        
+        self.notes_dialog = QNotesDialog(self)
+        self.notes_dialog.hide()
+
+        QtCore.QObject.connect(self.notes_button,
+                               QtCore.SIGNAL("pressed()"),
+                               self.openNotes)
 
     def updateGeometry(self):
         """ updateGeometry() -> None
@@ -370,39 +391,172 @@ class QVersionPropOverlay(QtGui.QFrame):
         
         """
         self.controller = controller
+        self.notes_dialog.updateController(controller)
 
     def updateVersion(self, versionNumber):
         """ updateVersion(versionNumber: int) -> None
         Update the text items
         
         """
+        self.notes_dialog.updateVersion(versionNumber)
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
                 action = self.controller.vistrail.actionMap[versionNumber]
                 name = self.controller.vistrail.getVersionName(versionNumber)
-                self.tag.setText(self.truncate(name))
-                self.user.setText(self.truncate(action.user))
-                self.date.setText(self.truncate(action.date))
+                self.tag.setText(self.truncate(QtCore.QString(name)))
+                self.user.setText(self.truncate(QtCore.QString(action.user)))
+                self.date.setText(self.truncate(QtCore.QString(action.date)))
                 if action.notes:
-                    self.notes.setText(self.truncate(action.notes))
+                    s = self.convertHtmlToText(QtCore.QString(action.notes))
+                    self.notes.setText(self.truncate(s))
                 else:
                     self.notes.setText('')
+                self.notes_button.show()
             else:
                 self.tag.setText('')
                 self.user.setText('')
                 self.date.setText('')
                 self.notes.setText('')
+                self.notes_button.hide()
 
-    def truncate(self, str):
-        """ truncate(str: str) -> QString
-        Remove html tags and shorten string to fit in smaller space
+    def convertHtmlToText(self, str):
+        """ convertHtmlToText(str: QString) -> QString
+        Remove HTML tags and newlines
         
         """
-        s = QtCore.QString(str)
-        s.replace(QtCore.QRegExp("<[^>]*>"), "")
-        if (s.size() > 24):
-            s.truncate(22)
-            s.append("...")
-        return s
+        # Some text we want to ignore lives outside brackets in the header
+        str.replace(QtCore.QRegExp("<head>.*</head>"), "")
+        # Remove all other tags
+        str.replace(QtCore.QRegExp("<[^>]*>"), "")
+        # Remove newlines
+        str.replace(QtCore.QRegExp("\n"), " ")
+        return str
 
+    def truncate(self, str):
+        """ truncate(str: QString) -> QString
+        Shorten string to fit in smaller space
+        
+        """
+        if (str.size() > 24):
+            str.truncate(22)
+            str.append("...")
+        return str
+
+    def openNotes(self):
+        """ openNotes() -> None
+
+        Show notes dialog
+        """
+        self.notes_dialog.show()
+        self.notes_dialog.activateWindow()
+
+
+################################################################################
+class QExpandButton(QtGui.QLabel):
+    """
+    A transparent button type with a + draw in 
+    """
+    def __init__(self, parent=None):
+        """
+        QExpandButton(parent: QWidget) -> QExpandButton
+        """
+        QtGui.QLabel.__init__(self, parent)
+        
+        self.drawButton(0)
+        self.setToolTip('Expand')
+        self.setScaledContents(False)
+        self.setFrameShape(QtGui.QFrame.NoFrame)
+
+    def sizeHint(self):
+        """ sizeHint() -> QSize
+        
+        """
+        return QtCore.QSize(10,10)
+        
+
+    def mousePressEvent(self, e):
+        """ mousePressEvent(e: QMouseEvent) -> None
+        Capture mouse press event on the frame to move the widget
+        
+        """
+        if e.buttons() & QtCore.Qt.LeftButton:
+            self.drawButton(1)
+    
+    def mouseReleaseEvent(self, e):
+        self.drawButton(0)
+        self.emit(QtCore.SIGNAL('pressed()'))
+
+    def drawButton(self, down):
+        """ drawButton(down: bool) -> None
+        Custom draw function
+        
+        """
+        self.picture = QtGui.QPicture()
+        painter = QtGui.QPainter()
+        painter.begin(self.picture)
+        painter.setRenderHints(QtGui.QPainter.Antialiasing, False)
+        pen = QtGui.QPen(QtCore.Qt.SolidLine)
+        pen.setWidth(1)
+        pen.setCapStyle(QtCore.Qt.RoundCap)
+        brush = QtGui.QBrush(QtCore.Qt.NoBrush)
+        if (down):
+            pen.setColor(QtGui.QColor(150,150,150,150))
+        else:
+            pen.setColor(QtGui.QColor(0,0,0,255))
+
+        painter.setPen(pen)
+        painter.setBrush(brush)
+        painter.drawRect(0,0,8,8)
+        painter.drawLine(QtCore.QLine(4,2,4,6))
+        painter.drawLine(QtCore.QLine(2,4,6,4))
+        painter.end()
+        self.setPicture(self.picture)
+
+################################################################################
+class QNotesDialog(QtGui.QDialog):
+    """
+    A small non-modal dialog with text entry to modify and view notes
+
+    """
+    def __init__(self, parent=None):
+        """
+        QNotesDialog(parent: QWidget) -> QNotesDialog
+
+        """
+        QtGui.QDialog.__init__(self, parent)
+        
+        self.setModal(False)
+        self.notes = QVersionNotes(self)
+        layout = QtGui.QVBoxLayout(self)
+        layout.addWidget(self.notes)
+        layout.setMargin(0)
+        self.setLayout(layout)
+        self.layout().addWidget(self.notes)
+        self.controller = None
+
+    def updateController(self, controller):
+        """ updateController(controller: VistrailController) -> None
+
+        """
+        self.controller = controller
+        self.notes.controller = controller
+
+    def updateVersion(self, versionNumber):
+        """ updateVersion(versionNumber: int) -> None
+
+        """
+        self.notes.updateVersion(versionNumber)
+        if self.controller:
+            if self.controller.vistrail.actionMap.has_key(versionNumber):
+                name = self.controller.vistrail.getVersionName(versionNumber)
+                title = QtCore.QString("Notes: "+name)
+                self.setWindowTitle(title)
+            else:
+                self.setWindowTitle("Notes")
+
+    def sizeHint(self):
+        """ sizeHint() -> QSize
+        
+        """
+        return QtCore.QSize(250,200)
         

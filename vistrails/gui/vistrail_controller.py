@@ -574,6 +574,7 @@ class VistrailController(QtCore.QObject):
         
         if self.vistrail.change_notes(str(notes),self.current_version):
             self.set_changed(True)
+            self.invalidate_version_tree(True)
 
     def add_parameter_changes_from_execution(self, pipeline, version,
                                              parameter_changes):
