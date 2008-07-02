@@ -34,14 +34,14 @@ QPipelineView
 """
 
 from PyQt4 import QtCore, QtGui
-from core.utils import VistrailsInternalError
+from core.utils import VistrailsInternalError, profile
 from core.utils.uxml import named_elements
 from core.modules.module_configure import DefaultModuleConfigurationWidget
 from core.modules.module_registry import registry
 from core.vistrail.connection import Connection
 from core.vistrail.module import Module
 from core.vistrail.pipeline import Pipeline
-from core.vistrail.port import PortEndPoint
+from core.vistrail.port import PortEndPoint, Port
 from core.vistrail.vistrail import Vistrail
 from gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
@@ -826,6 +826,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.id = module.id
         self.setZValue(float(self.id))
         self.module = module
+        self.center = copy.copy(module.center)
         if module.has_annotation_with_key('__desc__'):
             self.label = module.get_annotation_by_key('__desc__').value.strip()
             self.description = module.label
@@ -849,10 +850,11 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         visibleOptionalPorts = []
         inputPorts = []
         self.optionalInputPorts = []
+        d = PortEndPoint.Destination
         for p in module.destinationPorts():
             if not p.optional:
                 inputPorts.append(p)
-            elif (PortEndPoint.Destination, p.__dict__['_DBPort__db_name']) in module.portVisible:
+            elif (d, p.__dict__['_DBPort__db_name']) in module.portVisible:
                 visibleOptionalPorts.append(p)
             else:
                 self.optionalInputPorts.append(p)
@@ -861,10 +863,11 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         visibleOptionalPorts = []
         outputPorts = []
         self.optionalOutputPorts = []
+        s = PortEndPoint.Source
         for p in module.sourcePorts():
             if not p.optional:
                 outputPorts.append(p)
-            elif (PortEndPoint.Source, p.__dict__['_DBPort__db_name']) in module.portVisible:
+            elif (s, p.__dict__['_DBPort__db_name']) in module.portVisible:
                 visibleOptionalPorts.append(p)
             else:
                 self.optionalOutputPorts.append(p)
@@ -1335,14 +1338,13 @@ mutual connections."""
         m1_has = '__desc__' in m1.db_annotations_key_index
         if (m1_has !=
             '__desc__' in m2.db_annotations_key_index):
-            return True        
+            return True
         if (m1_has and
             # m2_has, since m1_has and previous condition
             m1.db_annotations_key_index['__desc__'].value.strip()!=
             m2.db_annotations_key_index['__desc__'].value.strip()):
             return True            
         return False
-        
         
     def setupScene(self, pipeline):
         """ setupScene(pipeline: Pipeline) -> None
@@ -1374,7 +1376,7 @@ mutual connections."""
                 moved = set()
                 # Update common modules
                 for m_id in common_modules:
-                    if (self.modules[m_id].module.center !=
+                    if (self.modules[m_id].center !=
                         pipeline.modules[m_id].center):
                         self.recreate_module(pipeline, m_id)
                         moved.add(m_id)
@@ -1387,6 +1389,17 @@ mutual connections."""
                         self.recreate_module(pipeline, m_id)
                         moved.add(m_id)
                         m._moved = False
+                    # Check for changed ports
+                    cip = sorted([x.key_no_id() for x in self.modules[m_id].inputPorts])
+                    cop = sorted([x.key_no_id() for x in self.modules[m_id].outputPorts])
+                    new_ip = sorted([x.key_no_id() for x in pipeline.modules[m_id].destinationPorts()
+                                     if (not x.optional or
+                                         (PortEndPoint.Destination, x.name) in pipeline.modules[m_id].portVisible)])
+                    new_op = sorted([x.key_no_id() for x in pipeline.modules[m_id].sourcePorts()
+                                     if (not x.optional or
+                                         (PortEndPoint.Source, x.name) in pipeline.modules[m_id].portVisible)])
+                    if cip <> new_ip or cop <> new_op:
+                        self.recreate_module(pipeline, m_id)
                     if self.modules[m_id].isSelected:
                         selected_modules.append(m_id)
                     if self.controller and self.controller.search:
@@ -1467,9 +1480,6 @@ mutual connections."""
 
     def unselect_all(self):
         self.clearSelection()
-#         selected = self.selectedItems()[:]
-#         for item in selected:
-#             item.setSelected(False)
         self.pipeline_tab.moduleSelected(-1)
 
     def add_module_event(self, event, data):
@@ -1899,26 +1909,26 @@ class QPipelineView(QInteractiveGraphicsView):
             self.scene().setupScene(self.scene().controller.currentPipeline)
 
 ################################################################################
+# Testing
 
-# if __name__=="__main__":
-    
-#     # Initialize the Vistrails Application and Theme
-#     import sys
-#     from gui import qt, theme
-#     from gui import vis_application
-#     vis_application.start_application()
-#     app = vis_application.VistrailsApplication
+import unittest
+import api
 
-#     # Get the pipeline
-#     from core.xml_parser import XMLParser    
-#     parser = XMLParser()
-#     parser.openVistrail('d:/hvo/vgc/src/vistrails/trunk/examples/vtk.xml')
-#     vistrail = parser.getVistrail()
-#     version = vistrail.get_tag_by_name('Single Renderer').id
-#     pipeline = vistrail.getPipeline(version)
+class TestPipelineView(unittest.TestCase):
 
-#     # Now visually test QPipelineView
-#     pv = QPipelineView(None)
-#     pv.scene().setupScene(pipeline)
-#     pv.show()
-#     sys.exit(app.exec_())
+    def test_quick_change_version_with_ports(self):
+        import core.system
+        filename = (core.system.vistrails_root_directory() + 
+                    '/tests/resources/triangle_count.vt')
+        view = api.open_vistrail_from_file(filename)
+        api.select_version(-1, view.controller)
+        api.select_version('count + area', view.controller)
+        api.select_version('writing to file', view.controller)
+
+    def test_switch_mode(self):
+        api.switch_to_pipeline_view()
+        api.switch_to_history_view()
+        api.switch_to_query_view()
+        api.switch_to_pipeline_view()
+        api.switch_to_history_view()
+        api.switch_to_query_view()
