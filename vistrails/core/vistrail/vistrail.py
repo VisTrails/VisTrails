@@ -184,9 +184,6 @@ class Vistrail(DBVistrail):
         except:
             return 0
                    
-    def oldGetPipeline(self, version):
-        return Pipeline(self.actionChain(version))
-
     def getPipeline(self, version):
         """getPipeline(number or tagname) -> Pipeline
         Return a pipeline object given a version number or a version name. 

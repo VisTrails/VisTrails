@@ -198,6 +198,9 @@ class Package(object):
             pass
         else:
             callable_()
+        # Save configuration
+        if self.configuration:
+            self.set_persistent_configuration()
         self._initialized = False
 
     def dependencies(self):

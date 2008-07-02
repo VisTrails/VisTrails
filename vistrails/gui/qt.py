@@ -100,25 +100,17 @@ to create QObjects."""
 global _appHolder
 _appHolder = None
 
-def createBogusQtApp():
-    """createBogusQtApp creates a bogus Qt App so that we can use QObjects."""
-    class BogusApplication(QtCore.QCoreApplication):
-        def __init__(self):
-            QtCore.QCoreApplication.__init__(self, ["bogus"])
-            allowQObjects()
-    global _appHolder
-    if not _appHolder:
-        _appHolder = BogusApplication()
-    return _appHolder
-
 def createBogusQtGuiApp(argv=["bogus"]):    
-    """createBogusQtGuiApp is similar to createBogusQtApp but return a
-    GUI application instead"""    
+    """createBogusQtGuiApp creates a bogus QtApplication so we can
+    create qobjects during test runs.
+    """    
     class BogusApplication(QtGui.QApplication):
         def __init__(self):
             QtGui.QApplication.__init__(self, argv)
             allowQObjects()
     global _appHolder
+    if QtGui.qApp:
+        _appHolder = QtGui.qApp
     if not _appHolder:
         _appHolder = BogusApplication()
     return _appHolder

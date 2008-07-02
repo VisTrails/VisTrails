@@ -240,6 +240,17 @@ class Port(DBPort):
                 self.optional == other.optional and
                 self.sort_key == other.sort_key)
 
+    def key_no_id(self):
+        """key_no_id(): tuple. returns a tuple that identifies
+        the port without caring about ids. Used for sorting
+        port lists."""
+        return (self.endPoint,
+                self.moduleName,
+                self.name,
+                self.specStr,
+                self.optional,
+                self.sort_key)
+
 ###############################################################################
 
 import unittest

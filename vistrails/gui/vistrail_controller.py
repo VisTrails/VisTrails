@@ -126,6 +126,11 @@ class VistrailController(QtCore.QObject):
         self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
         self.timer.start(1000 * 60 * 2) # Save every two minutes
 
+        # if _cache_pipelines is True, cache pipelines to speed up
+        # version switching
+        self._cache_pipelines = True
+        self._pipelines = {0: Pipeline()}
+
     ##########################################################################
     # Signal vistrail relayout / redraw
 
@@ -236,6 +241,7 @@ class VistrailController(QtCore.QObject):
         """
         self.vistrail.add_action(action, self.currentVersion)
         self.setChanged(True)
+        self.emit(QtCore.SIGNAL("new_action"), action)
         self.currentVersion = action.db_id
         self.recompute_terse_graph()
 
@@ -676,21 +682,57 @@ class VistrailController(QtCore.QObject):
             return cost
         
         def switch_version():
-            
             if not self.currentPipeline:
                 result = self.vistrail.getPipeline(new_version)
+            # now we reuse some existing pipeline, even if it's the
+            # empty one for version zero
+            #
+            # The available pipelines are in self._pipelines, plus
+            # the current pipeline.
+
+            # Fast check: do we have to change anything?
+            elif new_version == self.currentVersion:
+                # we don't even need to check connection specs or
+                # registry
+                return self.currentPipeline
+            # Fast check: if target is cached, copy it and we're done.
+            elif new_version in self._pipelines:
+                result = copy.copy(self._pipelines[new_version])
             else:
+                # Find the closest upstream pipeline to the current one
+                cv = self._current_full_graph.inverse_immutable().closest_vertex
+                closest = cv(new_version,
+                             self._pipelines)
+
+                cost_closest_to_new_version = get_cost(new_version, closest)
+
+                # Now we have to decide between the closest pipeline
+                # to new_version and the current pipeline
                 shared_parent = getSharedRoot(self.vistrail, [self.currentVersion,
                                                               new_version])
-                cost_zero_to_common = get_cost(shared_parent, 0)
                 cost_common_to_old = get_cost(self.currentVersion, shared_parent)
-                if cost_common_to_old > cost_zero_to_common:
-                    result = self.vistrail.getPipeline(new_version)
+                cost_common_to_new_version = get_cost(new_version, shared_parent)
+
+                # FIXME I'm assuming copying the pipeline has zero cost.
+                # Formulate a better cost model
+                if (cost_common_to_old + cost_common_to_new_version >
+                    cost_closest_to_new_version):
+                    if new_version == 0:
+                        result = self.vistrail.getPipeline(new_version)
+                    else:
+                            
+                        result = copy.copy(self._pipelines[closest])
+                        chain = self.vistrail.actionChain(new_version, closest)
+                        result.perform_action_chain(chain)
+                    
                 else:
                     action = self.vistrail.general_action_chain(self.currentVersion,
                                                                 new_version)
                     self.currentPipeline.perform_action(action)
                     result = self.currentPipeline
+                if self._cache_pipelines and long(new_version) in self.vistrail.tagMap:
+                    # stash a copy for future use
+                    self._pipelines[new_version] = copy.copy(result)
             result.ensure_connection_specs()
             result.ensure_modules_are_on_registry()
             return result
@@ -984,6 +1026,7 @@ class VistrailController(QtCore.QObject):
                 self.vistrail.pruneVersion(highest)
         if changed:
             self.setChanged(True)
+        self.recompute_terse_graph()
         self.invalidate_version_tree(False)
 
     def selectLatestVersion(self):
@@ -1723,7 +1766,8 @@ class VistrailController(QtCore.QObject):
         """
         if changed!=self.changed:
             self.changed = changed
-            self.emit(QtCore.SIGNAL('stateChanged'))
+        # FIXME: emit different signal in the future
+        self.emit(QtCore.SIGNAL('stateChanged'))
 
     def setFileName(self, fileName):
         """ setFileName(fileName: str) -> None

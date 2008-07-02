@@ -92,7 +92,7 @@ class QViewManager(QtGui.QTabWidget):
         self.connect(view.pipelineTab,
                      QtCore.SIGNAL('moduleSelectionChange'),
                      self.moduleSelectionChange)
-        self.connect(view.versionTab,
+        self.connect(view,
                      QtCore.SIGNAL('versionSelectionChange'),
                      self.versionSelectionChange)
         self.connect(view,
@@ -127,7 +127,7 @@ class QViewManager(QtGui.QTabWidget):
             self.disconnect(view.pipelineTab,
                             QtCore.SIGNAL('moduleSelectionChange'),
                             self.moduleSelectionChange)
-            self.disconnect(view.versionTab,
+            self.disconnect(view,
                             QtCore.SIGNAL('versionSelectionChange'),
                             self.versionSelectionChange)
             self.disconnect(view.versionTab,

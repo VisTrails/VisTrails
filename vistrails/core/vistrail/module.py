@@ -295,10 +295,11 @@ class Module(DBModule):
 
     def __str__(self):
         """__str__() -> str Returns a string representation of itself. """
-        return ("(Module '%s' id=%s functions:%s)@%X" %
+        return ("(Module '%s' id=%s functions:%s port_specs:%s)@%X" %
                 (self.name,
                  self.id,
                  [str(f) for f in self.functions],
+                 [str(port_spec) for port_spec in self.db_portSpecs],
                  id(self)))
 
     def __eq__(self, other):

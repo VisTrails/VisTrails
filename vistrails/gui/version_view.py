@@ -491,8 +491,6 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
                     if type(item)==QGraphicsRubberBandItem:
                         selectByClick = True
                         break
-#             self.scene().emit(QtCore.SIGNAL('versionSelected(int,bool)'),
-#                               selectedId, selectByClick)
             # Update the selected items list to include only versions and 
             # check if two versions selected
             selectedVersions = [item for item in 
@@ -534,7 +532,6 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             self.scene().emit(QtCore.SIGNAL('versionSelected(int, bool)'),
                               self.id, True)
         return QtGui.QGraphicsEllipseItem.mousePressEvent(self, event)
-        # super(QGraphicsVersionItem, self).mousePressEvent(event)
         
     def mouseMoveEvent(self, event):
         """ mouseMoveEvent(event: QMouseEvent) -> None        
@@ -956,26 +953,3 @@ class QVersionTreeView(QInteractiveGraphicsView):
         self.versionProp.hide()
 
 ################################################################################
-
-
-# if __name__=="__main__":
-    
-#     # Initialize the Vistrails Application and Theme
-#     import sys
-#     from gui import qt, theme
-#     import vis_application
-#     vis_application.start_application()
-#     app = vis_application.VistrailsApplication
-#     theme.initializeCurrentTheme()
-
-#     # Get the vistrail
-#     from core.xml_parser import XMLParser
-#     parser = XMLParser()
-#     parser.openVistrail('d:/hvo/vgc/src/vistrails/trunk/examples/lung.xml')
-#     vistrail = parser.getVistrail()
-    
-#     # Now visually test QVersionTreeView
-#     vt = QVersionTreeView(None)
-#     vt.scene().setupScene(vistrail)
-#     vt.show()
-#     sys.exit(vis_application.VistrailsApplication.exec_())

@@ -391,6 +391,3 @@ class TestModuleParam(unittest.TestCase):
     def test_str(self):
         p = ModuleParam(type='Float', val='1.5')
         str(p)
-
-if __name__ == '__main__':
-    unittest.main()

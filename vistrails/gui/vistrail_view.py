@@ -85,6 +85,13 @@ class QVistrailView(QDockContainer):
         self.connect(self.controller,
                      QtCore.SIGNAL('stateChanged'),
                      self.stateChanged)
+        self.connect(self.controller,
+                     QtCore.SIGNAL('new_action'),
+                     self.new_action)
+
+        self.connect(self.versionTab.versionView.scene(),
+                     QtCore.SIGNAL('versionSelected(int,bool)'),
+                     self.versionSelected)
 
         self.connect(self.versionTab,
                      QtCore.SIGNAL('twoVersionsSelected(int,int)'),
@@ -92,9 +99,6 @@ class QVistrailView(QDockContainer):
         self.connect(self.queryTab,
                      QtCore.SIGNAL('queryPipelineChange'),
                      self.queryPipelineChange)
-        self.connect(self.versionTab,
-                     QtCore.SIGNAL('versionSelectionChange'),
-                     self.versionSelectionChange)
         self.connect(self.peTab,
                      QtCore.SIGNAL('exploreChange(bool)'),
                      self.exploreChange)
@@ -155,7 +159,7 @@ class QVistrailView(QDockContainer):
         if version is None:
             self.controller.selectLatestVersion()
             version = self.controller.currentVersion
-        self.versionTab.versionSelected(version, False)
+        self.versionSelected(version, False)
         self.setPIPMode(True)
         self.setQueryMode(False)
        
@@ -258,7 +262,6 @@ class QVistrailView(QDockContainer):
         if self.controller.changed:
             title += '*'
         self.setWindowTitle(title)
-        self.redo_stack = []
 
     def emitDockBackSignal(self):
         """ emitDockBackSignal() -> None
@@ -315,6 +318,27 @@ class QVistrailView(QDockContainer):
         """
         self.peTab.performParameterExploration()
 
+    def versionSelected(self, versionId, byClick):
+        """ versionSelected(versionId: int, byClick: bool) -> None
+        A version has been selected/unselected, update the controller
+        and the pipeline view
+        
+        """
+        if self.controller:
+            self.controller.resetPipelineView = byClick
+            self.controller.changeSelectedVersion(versionId)
+            self.controller.invalidate_version_tree(False)
+            if byClick:
+                self.controller.currentPipelineView.fitToAllViews(True)
+            self.versionTab.versionProp.updateVersion(versionId)
+            self.versionTab.versionView.versionProp.updateVersion(versionId)
+            self.redo_stack = []
+            self.emit(QtCore.SIGNAL('versionSelectionChange'),versionId)
+            self.execPipelineEnabled = versionId>-1
+            self.execDiffEnabled = False
+            self.execExploreChange = False
+            self.emit(QtCore.SIGNAL('execStateChange()'))
+
     def twoVersionsSelected(self, id1, id2):
         """ twoVersionsSelected(id1: Int, id2: Int) -> None
         Just echo the signal from the view
@@ -342,17 +366,6 @@ class QVistrailView(QDockContainer):
         """
         self.execExploreEnabled = notEmpty
         self.emit(QtCore.SIGNAL('execStateChange()'))
-
-    def versionSelectionChange(self, versionId):
-        """ versionSelectionChange(versionId: int) -> None
-        Update the status of tool bar buttons if there is a version selected
-        
-        """
-        self.execPipelineEnabled = versionId>-1
-        self.execDiffEnabled = False
-        self.execExploreChange = False
-        self.emit(QtCore.SIGNAL('execStateChange()'))
-
 
     ##########################################################################
     # Undo/redo
@@ -452,6 +465,14 @@ class QVistrailView(QDockContainer):
 
     def can_redo(self):
         return len(self.redo_stack) <> 0
+
+    def new_action(self, action):
+        """new_action
+
+        Handler for VistrailController.new_action
+
+        """
+        self.redo_stack = []
 
 ################################################################################
 

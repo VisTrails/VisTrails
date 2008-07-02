@@ -207,7 +207,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         return self.editingModeActionVar
 
     def modeChanged(self, action):
-        """ modeChanged(actoin: QAction) -> None        
+        """ modeChanged(action: QAction) -> None        
         Handle the new mode (interactive or editing) based on the
         triggered action
         

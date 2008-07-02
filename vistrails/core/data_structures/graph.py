@@ -67,20 +67,6 @@ class Graph(object):
 
     ##########################################################################
     # Accessors
-
-    def add_vertex(self, id):
-        """ add_vertex(id: id type) -> None
-        Add a vertex to the graph if it is not already in the graph
-        and return nothing
-
-        Keyword arguments:
-        id -- vertex id
-        
-        """
-        if not self.vertices.has_key(id):
-            self.vertices[id] = None
-            self.adjacency_list[id] = []
-            self.inverse_adjacency_list[id] = []
             
     def inverse(self):
         """inverse() -> Graph
@@ -105,112 +91,23 @@ class Graph(object):
         result.inverse_adjacency_list = self.adjacency_list
         return result
 
-    def add_edge(self, froom, to, id=None):
-        """ add_edge(froom: id type, to: id type, id: id type) -> None
-        Add an edge from vertex 'froom' to vertex 'to' and return nothing
+    def undirected_immutable(self):
+        """undirected_immutable() -> Graph
 
-        Keyword arguments:
-        froom -- 'immutable' origin vertex id
-        to    -- 'immutable' destination vertex id
-        id    -- 'immutable' edge id (default None)
-          
+        Creates an undirected version of self. Notice that this
+        version should not be mutated because there is sharing in the
+        adjacency lists and the vertex map.
+
+        Additionally, if self wasn't acyclic, then
+        undirected_immutable() won't be simple.
         """
-        self.add_vertex(froom)
-        self.add_vertex(to)
-        self.adjacency_list[froom].append((to, id))
-        self.inverse_adjacency_list[to].append((froom, id))
-        
-    def delete_vertex(self, id):
-        """ delete_vertex(id: id type) -> None
-        Remove a vertex from graph and return nothing
-
-        Keyword arguments:
-        -- id : 'immutable' vertex id
-          
-        """
-        
-        for (origin, edge_id) in self.inverse_adjacency_list[id]:
-            t = (id, edge_id)
-            self.adjacency_list[origin].remove(t)
-        for (dest, edge_id) in self.adjacency_list[id]:
-            t = (id, edge_id)
-            self.inverse_adjacency_list[dest].remove(t)
-        del self.adjacency_list[id]
-        del self.inverse_adjacency_list[id]
-        del self.vertices[id]
-
-    class RenameVertexError(GraphException):
-        pass
-    
-    def rename_vertex(self, old_vertex, new_vertex):
-        """ rename_vertex(old_vertex, new_vertex) -> None
-
-        renames old_vertex to new_vertex in the graph, updating the edges
-        appropriately. Should not be used to merge vertices, will raise
-        exception if new_vertex exists in graph.
-
-        """
-        if not (old_vertex in self.vertices):
-            raise self.RenameVertexError("vertex '%s' does not exist" % old_vertex) 
-        if new_vertex in self.vertices:
-            raise self.RenameVertexError("vertex '%s' already exists" % new_vertex)
-        self.add_vertex(new_vertex)
-
-        # the slice ([:]) is important for copying, since change_edge
-        # mutates the list we'll be traversing
-        for (v_from, e_id) in self.inverse_adjacency_list[old_vertex][:]:
-            self.change_edge(v_from, old_vertex, new_vertex, e_id, e_id)
-
-        self.adjacency_list[new_vertex] = self.adjacency_list[old_vertex]
-        del self.adjacency_list[old_vertex]
-        del self.vertices[old_vertex]
-
-       
-    def change_edge(self, old_froom, old_to, new_to, old_id=None, new_id=None):
-        """ change_edge(old_froom: id, old_to: id, new_to: id, 
-                        old_id: id, new_id: id) -> None
-        Changes the destination of an edge in a graph **in place**
-        
-        Keyword arguments:
-        old_froom -- 'immutable' origin vertex id
-        old_to    -- 'immutable' destination vertex id
-        new_to    -- 'immutable' destination vertex id
-        old_id    -- 'immutable' edge id (default None)
-        new_id    -- 'immutable' edge id (default None)
-        """
-        
-        if old_id == None:
-            efroom = self.adjacency_list[old_froom]
-            for i, edge in enumerate(efroom):
-                if edge[0] == old_to:
-                    old_id = edge[1]
-                    forward_idx = i
-                    break
-        else:
-            forward_idx = self.adjacency_list[old_froom].index((old_to, old_id))
-
-        self.adjacency_list[old_froom][forward_idx] = ((new_to, new_id))
-        self.inverse_adjacency_list[old_to].remove((old_froom, old_id))
-        self.inverse_adjacency_list[new_to].append((old_froom, new_id))
-
-    def delete_edge(self, froom, to, id=None):
-        """ delete_edge(froom: id type, to: id type, id: id type) -> None
-        Remove an edge from graph and return nothing
-
-        Keyword arguments:
-        froom -- 'immutable' origin vertex id
-        to    -- 'immutable' destination vertex id
-        id    -- 'immutable' edge id
-          
-        """
-        if id == None:
-            efroom = self.adjacency_list[froom]
-            for edge in efroom:
-                if edge[0] == to:
-                    id = edge[1]
-                    break
-        self.adjacency_list[froom].remove((to, id))
-        self.inverse_adjacency_list[to].remove((froom, id))
+        result = Graph()
+        result.vertices = self.vertices
+        result.adjacency_list = dict((k, (self.adjacency_list[k] +
+                                          self.inverse_adjacency_list[k]))
+                                     for k in self.vertices)
+        result.inverse_adjacency_list = result.adjacency_list
+        return result
         
     def out_degree(self, froom):
         """ out_degree(froom: id type) -> int
@@ -275,9 +172,170 @@ class Graph(object):
             if t == to:
                 return e_id
 
+    def has_edge(self, frm, to):
+        """ has_edge(frm, to) -> bool
+
+        True if there exists an edge (frm, to)"""
+
+        for (t, _) in self.edges_from(frm):
+            if t == to:
+                return True
+        return False
+
+    ##########################################################################
+    # Mutate graph
+
+    def add_vertex(self, id):
+        """ add_vertex(id: id type) -> None
+        Add a vertex to the graph if it is not already in the graph
+        and return nothing
+
+        Keyword arguments:
+        id -- vertex id
+        
+        """
+        if not self.vertices.has_key(id):
+            self.vertices[id] = None
+            self.adjacency_list[id] = []
+            self.inverse_adjacency_list[id] = []
+
+    def add_edge(self, froom, to, id=None):
+        """ add_edge(froom: id type, to: id type, id: id type) -> None
+        Add an edge from vertex 'froom' to vertex 'to' and return nothing
+
+        Keyword arguments:
+        froom -- 'immutable' origin vertex id
+        to    -- 'immutable' destination vertex id
+        id    -- 'immutable' edge id (default None)
+          
+        """
+        self.add_vertex(froom)
+        self.add_vertex(to)
+        self.adjacency_list[froom].append((to, id))
+        self.inverse_adjacency_list[to].append((froom, id))
+        
+    def delete_vertex(self, id):
+        """ delete_vertex(id: id type) -> None
+        Remove a vertex from graph and return nothing
+
+        Keyword arguments:
+        -- id : 'immutable' vertex id
+          
+        """
+        
+        for (origin, edge_id) in self.inverse_adjacency_list[id]:
+            t = (id, edge_id)
+            self.adjacency_list[origin].remove(t)
+        for (dest, edge_id) in self.adjacency_list[id]:
+            t = (id, edge_id)
+            self.inverse_adjacency_list[dest].remove(t)
+        del self.adjacency_list[id]
+        del self.inverse_adjacency_list[id]
+        del self.vertices[id]
+
+    class RenameVertexError(GraphException):
+        pass
+    
+    def rename_vertex(self, old_vertex, new_vertex):
+        """ rename_vertex(old_vertex, new_vertex) -> None
+
+        renames old_vertex to new_vertex in the graph, updating the edges
+        appropriately. Should not be used to merge vertices, will raise
+        exception if new_vertex exists in graph.
+
+        """
+        if not (old_vertex in self.vertices):
+            raise self.RenameVertexError("vertex '%s' does not exist" % old_vertex) 
+        if new_vertex in self.vertices:
+            raise self.RenameVertexError("vertex '%s' already exists" % new_vertex)
+        self.add_vertex(new_vertex)
+
+        # the slice ([:]) is important for copying, since change_edge
+        # mutates the list we'll be traversing
+        for (v_from, e_id) in self.inverse_adjacency_list[old_vertex][:]:
+            self.change_edge(v_from, old_vertex, new_vertex, e_id, e_id)
+
+        self.adjacency_list[new_vertex] = self.adjacency_list[old_vertex]
+        del self.adjacency_list[old_vertex]
+        del self.vertices[old_vertex]
+       
+    def change_edge(self, old_froom, old_to, new_to, old_id=None, new_id=None):
+        """ change_edge(old_froom: id, old_to: id, new_to: id, 
+                        old_id: id, new_id: id) -> None
+        Changes the destination of an edge in a graph **in place**
+        
+        Keyword arguments:
+        old_froom -- 'immutable' origin vertex id
+        old_to    -- 'immutable' destination vertex id
+        new_to    -- 'immutable' destination vertex id
+        old_id    -- 'immutable' edge id (default None)
+        new_id    -- 'immutable' edge id (default None)
+        """
+        
+        if old_id == None:
+            efroom = self.adjacency_list[old_froom]
+            for i, edge in enumerate(efroom):
+                if edge[0] == old_to:
+                    old_id = edge[1]
+                    forward_idx = i
+                    break
+        else:
+            forward_idx = self.adjacency_list[old_froom].index((old_to, old_id))
+
+        self.adjacency_list[old_froom][forward_idx] = ((new_to, new_id))
+        self.inverse_adjacency_list[old_to].remove((old_froom, old_id))
+        self.inverse_adjacency_list[new_to].append((old_froom, new_id))
+
+    def delete_edge(self, froom, to, id=None):
+        """ delete_edge(froom: id type, to: id type, id: id type) -> None
+        Remove an edge from graph and return nothing
+
+        Keyword arguments:
+        froom -- 'immutable' origin vertex id
+        to    -- 'immutable' destination vertex id
+        id    -- 'immutable' edge id
+          
+        """
+        if id is None:
+            efroom = self.adjacency_list[froom]
+            for edge in efroom:
+                if edge[0] == to:
+                    id = edge[1]
+                    break
+        if id is None:
+            raise GraphException("delete_edge didn't find edge (%s,%s)"%
+                                 (froom, to))
+        self.adjacency_list[froom].remove((to, id))
+        self.inverse_adjacency_list[to].remove((froom, id))
+
     ##########################################################################
     # Graph algorithms
 
+    def closest_vertex(self, frm, target_list):
+        """ closest_vertex(frm, target_list) -> id Uses bfs-like
+        algorithm to find closest vertex to frm in target_list
+
+        """
+        if frm in target_list:
+            return frm
+        target_list = set(target_list)
+        visited = set([frm])
+        parent = {}
+        q = Queue()
+        q.push(frm)
+        while 1:
+            try:
+                current = q.pop()
+            except q.EmptyQueue:
+                raise GraphException("no vertices reachable: %s %s" % (frm, list(target_list)))
+            efrom = self.edges_from(current)
+            for (to, eid) in efrom:
+                if to in target_list:
+                    return to
+                if to not in visited:
+                    parent[to] = current
+                    q.push(to)
+                    visited.add(to)
 
     def bfs(self, frm):
         """ bfs(frm:id type) -> dict(id type)
@@ -291,8 +349,11 @@ class Graph(object):
         parent = {}
         q = Queue()
         q.push(frm)
-        while len(q):
-            current = q.pop()
+        while 1:
+            try:
+                current = q.pop()
+            except q.EmptyQueue:
+                break
             efrom = self.edges_from(current)
             for (to, eid) in efrom:
                 if to not in visited:
@@ -948,5 +1009,46 @@ class TestGraph(unittest.TestCase):
          assert g.get_edge(0, 1) is not None
          assert g.get_edge(0, 11) is None
 
+     def test_delete_get_edge(self):
+         g = self.make_linear(10)
+         self.assertRaises(GraphException, lambda: g.delete_edge(7, 9))
+         assert g.has_edge(7, 8)
+         g.delete_edge(7, 8)
+         assert not g.has_edge(7, 8)
+
+     def test_bfs(self):
+         g = self.make_linear(5)
+         lst = g.bfs(0).items()
+         lst.sort()
+         assert lst == [(1, 0), (2, 1), (3, 2), (4, 3)]
+         lst = g.bfs(2).items()
+         lst.sort()
+         assert lst == [(3, 2), (4, 3)]
+
+     def test_undirected(self):
+         g = self.make_linear(5).undirected_immutable()
+         lst = g.bfs(0).items()
+         lst.sort()
+         assert lst == [(1, 0), (2, 1), (3, 2), (4, 3)]
+         lst = g.bfs(2).items()
+         lst.sort()
+         assert lst == [(0, 1), (1, 2), (3, 2), (4, 3)]
+
+     def test_closest_vertex(self):
+         g = self.make_linear(10)
+         g.delete_edge(7, 8)
+         g = g.undirected_immutable()
+         self.assertRaises(GraphException, lambda: g.closest_vertex(1, [9]))
+         assert g.closest_vertex(3, [2, 6, 7]) == 2
+         assert g.closest_vertex(3, [2, 3, 6, 7]) == 3
+         # Test using dictionary as target_list
+
+         d1 = {2:True, 6:True, 7:False}
+         d2 = {2:True, 6:True, 7:False, 3:False}
+         d3 = {9:True}
+         self.assertRaises(GraphException, lambda: g.closest_vertex(1, d3))
+         assert g.closest_vertex(3, d1) == 2
+         assert g.closest_vertex(3, d2) == 3
+         
 if __name__ == '__main__':
     unittest.main()

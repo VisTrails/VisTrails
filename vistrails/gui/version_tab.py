@@ -58,9 +58,6 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
                      QtCore.SIGNAL('topLevelChanged(bool)'),
                      self.updateWindowTitle)
         self.connect(self.versionView.scene(),
-                     QtCore.SIGNAL('versionSelected(int,bool)'),
-                     self.versionSelected)
-        self.connect(self.versionView.scene(),
                      QtCore.SIGNAL('twoVersionsSelected(int,int)'),
                      self.twoVersionsSelected)
         self.connect(self.versionView.scene(),
@@ -81,21 +78,6 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
         else:
             self.setWindowTitle('Pipeline')
 
-    def versionSelected(self, versionId, byClick):
-        """ versionSelected(versionId: int, byClick: bool) -> None
-        A version has been selected/unselected, update the controller
-        and the pipeline view
-        
-        """
-        if self.controller:
-            self.controller.resetPipelineView = byClick
-            self.controller.changeSelectedVersion(versionId)
-            if byClick:
-                self.controller.currentPipelineView.fitToAllViews(True)
-            self.versionProp.updateVersion(versionId)
-            self.versionView.versionProp.updateVersion(versionId)
-            self.emit(QtCore.SIGNAL('versionSelectionChange'),versionId)
-            
     def twoVersionsSelected(self, id1, id2):
         """ twoVersionsSelected(id1: Int, id2: Int) -> None
         Two versions are selected in the version tree, emit a signal

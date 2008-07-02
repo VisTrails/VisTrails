@@ -127,10 +127,12 @@ class AddOp(DBAdd):
         object. 
 
         """
-        rep = "<add id=%s what=%s objectId=%s parentObjId=%s" + \
-            " parentObjType=%s>" + str(self.data) + "</add>"
-        return rep % (str(self.id), str(self.what), str(self.objectId),
-                      str(self.parentObjId), str(self.parentObjType))
+        
+        rep = ("<add id=%s what=%s objectId=%s parentObjId=%s" + \
+               " parentObjType=%s>") % (str(self.id), str(self.what), str(self.objectId),
+                                        str(self.parentObjId), str(self.parentObjType))
+        rep += str(self.data) + "</add>"
+        return rep
 
     # FIXME expand this
     def __eq__(self, other):
@@ -340,6 +342,7 @@ class TestOperation(unittest.TestCase):
         from core.vistrail.module import Module
         from core.vistrail.module_function import ModuleFunction
         from core.vistrail.module_param import ModuleParam
+        from core.vistrail.annotation import Annotation
         
         if id_scope is None:
             id_scope = IdScope(remap={AddOp.vtType: 'operation',
@@ -363,14 +366,24 @@ class TestOperation(unittest.TestCase):
                              parentObjType=Module.vtType,
                              data=function)
         param = ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
-                            type='Integer',
-                            val='1')
+                            type='Float',
+                            val='1.0')
+        
         delete_op = DeleteOp(id=id_scope.getNewId(DeleteOp.vtType),
                              what=ModuleParam.vtType,
                              objectId=param.real_id,
                              parentObjId=function.real_id,
                              parentObjType=ModuleFunction.vtType)
-        return [add_op, change_op, delete_op]
+
+        annotation = Annotation(id=id_scope.getNewId(Annotation.vtType),
+                                key='foo',
+                                value='bar')
+        add_annotation = AddOp(id=id_scope.getNewId(AddOp.vtType),
+                               what=Annotation.vtType,
+                               objectId=m.id,
+                               data=annotation)
+        
+        return [add_op, change_op, delete_op, add_annotation]
 
     def test_copy(self):       
         id_scope = IdScope(remap={AddOp.vtType: 'operation',

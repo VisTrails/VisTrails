@@ -267,7 +267,7 @@ class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
         
         """
         model = index.model()
-        if model.parent(index).isValid()==False:
+        if not model.parent(index).isValid():
             buttonOption = QtGui.QStyleOptionButton()            
             buttonOption.state = option.state
             if self.isMac:

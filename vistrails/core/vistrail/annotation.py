@@ -107,8 +107,8 @@ class TestAnnotation(unittest.TestCase):
         if id_scope is None:
             id_scope = IdScope()
         annotation = Annotation(id=id_scope.getNewId(Annotation.vtType),
-                                key='akey',
-                                value='some value')
+                                key='akey %s',
+                                value='some value %s')
         return annotation
 
     def test_copy(self):
@@ -130,3 +130,7 @@ class TestAnnotation(unittest.TestCase):
         a2 = core.db.io.unserialize(xml_str, Annotation)
         self.assertEquals(a1, a2)
         self.assertEquals(a1.id, a2.id)
+
+    def test_str(self):
+        a1 = self.create_annotation()
+        str(a1)

@@ -77,17 +77,17 @@ def get_current_vistrail_view():
 
 ##############################################################################
 
-def select_version(version):
-    """select_version(int or str):
+def select_version(version, ctrl=None):
+    """select_version(int or str, ctrl=None):
 
-    Given an integer, selects a version with the given number in the
-    currently selected vistrail.
+    Given an integer, selects a version with the given number from the
+    given vistrail (or the current one if no controller is given).
 
-    Given a string, selects a version with that tag in the currently
-    selected vistrail.
+    Given a string, selects a version with that tag.
 
     """
-    ctrl = get_current_controller()
+    if ctrl is None:
+        ctrl = get_current_controller()
     vistrail = ctrl.vistrail
     if type(version) == str:
         version = vistrail.get_tag_by_name(version).id
@@ -100,16 +100,29 @@ def undo():
 def redo():
     get_current_vistrail_view().redo()
 
-# def get_available_versions():
-#     """get_available_version(): ([int], {int: str})
+def get_available_versions():
+    """get_available_version(): ([int], {int: str})
 
-#     From the currently selected vistrail, return all available
-#     versions and the existing tags.
+    From the currently selected vistrail, return all available
+    versions and the existing tags.
 
-#     """
-#     ctrl = get_current_controller()
-#     vistrail = ctrl.vistrail
+    """
+    ctrl = get_current_controller()
+    vistrail = ctrl.vistrail
+    return (vistrail.actionMap.keys(),
+            dict([(t.time, t.name) for t in vistrail.tagMap.values()]))
+
+def open_vistrail_from_file(filename):
+    from core.db.locator import FileLocator
+
+    f = FileLocator(filename)
     
+    manager = _app.builderWindow.viewManager
+    view = manager.open_vistrail(f)
+    return view
+
+def close_vistrail(view):
+    _app.builderWindow.viewManager.closeVistrail(view, quiet=True)
     
 
 # def get_open_vistrails():
@@ -120,16 +133,9 @@ def redo():
 ##############################################################################
 # Testing
 
-import unittest
-import copy
-import random
+# import unittest
+# import copy
+# import random
 
-class TestAPI(unittest.TestCase):
-
-    def test_switch_mode(self):
-        switch_to_pipeline_view()
-        switch_to_history_view()
-        switch_to_query_view()
-        switch_to_pipeline_view()
-        switch_to_history_view()
-        switch_to_query_view()
+# class TestAPI(unittest.TestCase):
+#     pass
