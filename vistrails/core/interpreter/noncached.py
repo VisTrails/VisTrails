@@ -30,6 +30,7 @@ import copy
 import core.interpreter.base
 import core.interpreter.utils
 import core.vistrail.pipeline
+import atexit
 
 ################################################################################
 
@@ -44,7 +45,11 @@ class Interpreter(core.interpreter.cached.CachedInterpreter):
     @staticmethod
     def get():
         if not Interpreter.__instance:
-            Interpreter.__instance = Interpreter()
+            instance = Interpreter()
+            Interpreter.__instance = instance
+            def cleanup():
+                instance._file_pool.cleanup()
+            atexit.register(cleanup)
         return Interpreter.__instance
         
 

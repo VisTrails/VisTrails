@@ -154,3 +154,4 @@ for (p, subdirs, files) in os.walk(root_directory):
 unittest.TextTestRunner().run(main_test_suite)
 
 gui.application.VistrailsApplication.finishSession()
+gui.application.stop_application()
