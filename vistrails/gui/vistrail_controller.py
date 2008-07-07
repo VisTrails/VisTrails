@@ -248,8 +248,8 @@ class VistrailController(QtCore.QObject):
 
     ##########################################################################
 
-    def add_module(self, identifier, name, x, y, namespace=''):
-        """ addModule(identifier, name: str, x: int, y: int, namespace='') -> version id
+    def add_module(self, x, y, identifier, name, namespace=''):
+        """ addModule(x: int, y: int, identifier, name: str, namespace='') -> version id
         Add a new module into the current pipeline
         
         """
@@ -1931,8 +1931,14 @@ class VistrailController(QtCore.QObject):
 # Testing
 
 import unittest
+import gui.utils
+import api
 
-class TestVistrailController(unittest.TestCase):
+class TestVistrailController(gui.utils.TestVisTrailsGUI):
+
+    # def test_add_module(self):
+    #     v = api.new_vistrail()
+       
 
     def test_abstraction_create(self):
         from core.db.locator import XMLFileLocator

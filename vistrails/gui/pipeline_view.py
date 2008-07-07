@@ -1488,10 +1488,10 @@ mutual connections."""
         self.controller.reset_pipeline_view = False
         self.noUpdate = True
         module = self.controller.add_module(
-            item.descriptor.identifier,
-            item.descriptor.name,
             event.scenePos().x(),
             -event.scenePos().y(),
+            item.descriptor.identifier,
+            item.descriptor.name,
             item.descriptor.namespace)
         self.reset_module_colors()
         graphics_item = self.addModule(module)

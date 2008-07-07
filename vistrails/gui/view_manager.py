@@ -254,20 +254,20 @@ class QViewManager(QtGui.QTabWidget):
         new_version = vistrailView.undo()
         self.emit(QtCore.SIGNAL('versionSelectionChange'), new_version)
 
-    def newVistrail(self):
+    def newVistrail(self, recover_files=True):
         """ newVistrail() -> None
         Create a new vistrail with no name
         
         """
         if self.single_document_mode and self.currentView():
             self.closeVistrail()
-        if untitled_locator().has_temporaries():
+        if recover_files and untitled_locator().has_temporaries():
             locator = copy.copy(untitled_locator())
             vistrail = locator.load()
         else:
             locator = None
             vistrail = Vistrail()
-        self.set_vistrail_view(vistrail, locator)
+        return self.set_vistrail_view(vistrail, locator)
 
     def close_first_vistrail_if_necessary(self):
         # Close first vistrail of no change was made

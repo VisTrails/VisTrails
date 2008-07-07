@@ -723,6 +723,11 @@ class QBuilderWindow(QtGui.QMainWindow):
         if vistrailView:
             self.setWindowTitle('VisTrails Builder - ' +
                                 vistrailView.windowTitle())
+            self.saveFileAction.setEnabled(True)
+            self.closeVistrailAction.setEnabled(True)
+            self.saveFileAsAction.setEnabled(True)
+            self.exportFileAction.setEnabled(True)
+            self.vistrailMenu.menuAction().setEnabled(True)
         else:
             self.setWindowTitle('VisTrails Builder')
             self.saveFileAction.setEnabled(False)
@@ -1090,3 +1095,14 @@ class QBuilderWindow(QtGui.QMainWindow):
             self._executing = False
             self.emit(QtCore.SIGNAL("executeEnabledChanged(bool)"),
                       True)
+
+################################################################################
+
+
+# import unittest
+# import api
+
+# class TestBuilderWindow(unittest.TestCase):
+
+#     def test_close_actions_enabled(self):
+        

@@ -23,6 +23,17 @@
 from gui.application import VistrailsApplication
 _app = VistrailsApplication
 
+##############################################################################
+# Exceptions
+
+class NoVistrail(Exception):
+    pass
+
+class NoGUI(Exception):
+    pass
+
+##############################################################################
+
 def switch_to_pipeline_view():
     """switch_to_pipeline_view():
 
@@ -50,13 +61,31 @@ def switch_to_query_view():
 ################################################################################
 # Access to current state
 
+def get_builder_window():
+    """get_builder_window():
+
+    returns the main VisTrails GUI window
+
+    raises NoGUI.
+
+    """
+    try:
+        return _app.builderWindow
+    except AttributeError:
+        raise NoGUI
+    
 def get_current_controller():
     """get_current_controller():
 
     returns the VistrailController of the currently selected vistrail.
 
+    raises NoVistrail and NoGUI.
+
     """
-    return _app.builderWindow.viewManager.currentWidget().controller    
+    try:
+        return get_builder_window().viewManager.currentWidget().controller
+    except AttributeError:
+        raise NoVistrail
 
 def get_current_vistrail():
     """get_current_vistrail():
@@ -69,12 +98,22 @@ def get_current_vistrail():
 def get_current_vistrail_view():
     """get_current_vistrail():
 
-    Returns the currently selected vistrail.
+    Returns the currently selected vistrail view.
 
     """
     return get_current_controller().vistrail_view
-    
 
+def close_current_vistrail(quiet=False):
+    get_builder_window().viewManager.closeVistrail(get_current_vistrail_view())
+
+##############################################################################
+# Do things
+
+def add_module(x, y, identifier, name, namespace, controller=None):
+    if controller is None:
+        controller = get_current_controller()
+    controller.add_module(x, y, identifier, name, namespace)
+    
 ##############################################################################
 
 def select_version(version, ctrl=None):
@@ -117,25 +156,51 @@ def open_vistrail_from_file(filename):
 
     f = FileLocator(filename)
     
-    manager = _app.builderWindow.viewManager
+    manager = get_builder_window().viewManager
     view = manager.open_vistrail(f)
     return view
 
-def close_vistrail(view):
-    _app.builderWindow.viewManager.closeVistrail(view, quiet=True)
-    
+def close_vistrail(view, quiet=True):
+    get_builder_window().viewManager.closeVistrail(view, quiet=quiet)
 
-# def get_open_vistrails():
-#     """get_open_vistrails():
+def new_vistrail():
+    # Returns VistrailView - remember to be consistent about it..
+    result = _app.builderWindow.viewManager.newVistrail(False)
+    return result
 
-#     Returns list of (locator)"""
+##############################################################################
 
 ##############################################################################
 # Testing
 
-# import unittest
-# import copy
-# import random
+import unittest
+import copy
+import random
+import gui.utils
 
-# class TestAPI(unittest.TestCase):
-#     pass
+class TestAPI(gui.utils.TestVisTrailsGUI):
+
+    def test_close_current_vistrail_no_vistrail(self):
+        self.assertRaises(NoVistrail, lambda: get_current_vistrail_view())
+
+    def test_new_vistrail_no_save(self):
+        v = new_vistrail()
+        import gui.vistrail_view
+        assert isinstance(v, gui.vistrail_view.QVistrailView)
+        assert not v.controller.changed
+        close_vistrail(v)
+
+    def test_new_vistrail_button_states(self):
+        assert _app.builderWindow.newVistrailAction.isEnabled()
+        assert not _app.builderWindow.closeVistrailAction.isEnabled()
+        assert not _app.builderWindow.saveFileAction.isEnabled()
+        assert not _app.builderWindow.saveFileAsAction.isEnabled()
+        new_vistrail()
+        assert _app.builderWindow.newVistrailAction.isEnabled()
+        assert _app.builderWindow.closeVistrailAction.isEnabled()
+        assert _app.builderWindow.saveFileAction.isEnabled()
+        assert _app.builderWindow.saveFileAsAction.isEnabled()
+
+    
+    
+    

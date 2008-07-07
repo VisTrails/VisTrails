@@ -201,3 +201,27 @@ def getCurrentVersion():
         if current_view!=None:
             return current_view.controller.current_version
     return -1
+
+################################################################################
+# VisTrails GUI unit test class - setUp and teardown ensure no
+# vistrails are open
+
+import unittest
+
+class TestVisTrailsGUI(unittest.TestCase):
+
+    def _close_all(self):
+        import api
+        # Close all open vistrails
+        try:
+            while 1:
+                v = api.get_current_vistrail_view()
+                api.close_vistrail(v)
+        except api.NoVistrail:
+            pass
+
+    def setUp(self):
+        self._close_all()
+
+    def tearDown(self):
+        self._close_all()
