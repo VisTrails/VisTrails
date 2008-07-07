@@ -229,6 +229,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                          QtCore.QVariant(1))
         self.defaultCursorState = 0
         self.setCursorState(self.defaultCursorState)
+        self.canSelectBackground = True
 
     def modifiersPressed(self, modifiers):
         """ modifiersPressed(modifiers: QtCore.Qt.KeyboardModifiers) -> None
@@ -423,7 +424,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.lastPos = None
         self.validateCursorState(e.modifiers())
         self.setUpdatesEnabled(True)
-        QtGui.QGraphicsView.mouseReleaseEvent(self, e)        
+        QtGui.QGraphicsView.mouseReleaseEvent(self, e)
         # super(QInteractiveGraphicsView, self).mouseReleaseEvent(e)
 
     def selectModules(self):
@@ -431,8 +432,12 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         Select all modules inside the self.selectionBox
         
         """
+        br = self.selectionBox.sceneBoundingRect()
+        if not self.canSelectBackground:
+            if len(self.scene().items(br))==self.selectionBox.isVisible():
+                return
         path = QtGui.QPainterPath()
-        path.addRect(self.selectionBox.sceneBoundingRect())
+        path.addRect(br)
         self.scene().setSelectionArea(path)
         
     def updateMatrix(self):
