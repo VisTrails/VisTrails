@@ -427,6 +427,15 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         QtGui.QGraphicsView.mouseReleaseEvent(self, e)
         # super(QInteractiveGraphicsView, self).mouseReleaseEvent(e)
 
+    def mouseDoubleClickEvent(self, e):
+        """ mouseDoubleClickEvent(self, e: QMouseEvent) -> None
+        Try to avoid unselect if double-click on the background        
+        """
+        if not self.canSelectBackground:
+            return
+        else:
+            qt_super(QInteractiveGraphicsView, self).mouseDoubleClickEvent(e)
+
     def selectModules(self):
         """ selectModules() -> None
         Select all modules inside the self.selectionBox
@@ -434,7 +443,8 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         """
         br = self.selectionBox.sceneBoundingRect()
         if not self.canSelectBackground:
-            if len(self.scene().items(br))==self.selectionBox.isVisible():
+            items = self.scene().items(br) 
+            if len(items)==0 or items==[self.selectionBox]:
                 return
         path = QtGui.QPainterPath()
         path.addRect(br)
