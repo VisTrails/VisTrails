@@ -1322,18 +1322,13 @@ mutual connections."""
 
     def module_text_has_changed(self, m1, m2):
         # 2008-06-25 cscheid
-        # This is a hot-path for QPipelineView.setupScene, so we cut some corners
-        # 
-        # if m1.tag != m2.tag:
-        #     return True
-        # if m1.has_annotation_with_key('__desc__')!=m2.has_annotation_with_key('__desc__'):
-        #     return True        
-        # if (m1.has_annotation_with_key('__desc__') and
-        #     m1.get_annotation_by_key('__desc__').value.strip()!=
-        #     m2.get_annotation_by_key('__desc__').value.strip()):
-        #     return True            
-        # return False
-        if m1.__dict__['_DBModule__db_tag'] != m2.__dict__['_DBModule__db_tag']:
+        # This is a hot-path for QPipelineView.setupScene, so we cut
+        # some corners
+        #
+        # 2008-07-08 cscheid
+        # Can't use direct __dict__ lookup because both groups and
+        # modules end up here.
+        if m1.db_tag != m2.db_tag: 
             return True
         m1_has = '__desc__' in m1.db_annotations_key_index
         if (m1_has !=
