@@ -532,7 +532,6 @@ class QNotesDialog(QtGui.QDialog):
 
         """
         QtGui.QDialog.__init__(self, parent)
-        
         self.setModal(False)
         self.notes = QVersionNotes(self)
         self.notes.update_on_focus_out = False
@@ -549,11 +548,11 @@ class QNotesDialog(QtGui.QDialog):
         self.cancel_button = QtGui.QPushButton('Cancel', self)
         self.cancel_button.setDefault(False)
         self.cancel_button.setAutoDefault(False)
-        self.buttonLayout = QtGui.QHBoxLayout(self)
+        self.buttonLayout = QtGui.QHBoxLayout()
+        layout.addLayout(self.buttonLayout)
         self.buttonLayout.addWidget(self.apply_button)
         self.buttonLayout.addWidget(self.ok_button)
         self.buttonLayout.addWidget(self.cancel_button)
-        layout.addLayout(self.buttonLayout)
 
         self.setLayout(layout)
         self.controller = None
