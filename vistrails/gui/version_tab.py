@@ -96,9 +96,12 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
                 self.disconnect(oldController,
                                 QtCore.SIGNAL('vistrailChanged()'),
                                 self.vistrailChanged)
-                self.disconnect(controller,
+                self.disconnect(oldController,
                                 QtCore.SIGNAL('invalidateSingleNodeInVersionTree'),
                                 self.single_node_changed)
+                self.disconnect(oldController,
+                                QtCore.SIGNAL('notesChanged()'),
+                                self.notesChanged)
             self.controller = controller
             self.versionView.scene().controller = controller
             self.connect(controller,
@@ -107,6 +110,9 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
             self.connect(controller,
                          QtCore.SIGNAL('invalidateSingleNodeInVersionTree'),
                          self.single_node_changed)
+            self.connect(controller,
+                         QtCore.SIGNAL("notesChanged()"),
+                         self.notesChanged)
             if controller:
                 self.vistrailChanged()
                 self.versionProp.updateController(controller)
@@ -140,6 +146,14 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
             self.versionProp.updateVersion(self.controller.current_version)
             self.versionView.versionProp.updateVersion(self.controller.current_version)
         self.emit(QtCore.SIGNAL("vistrailChanged()"))
+
+    def notesChanged(self):
+        """ notesChanged() -> None
+        The notes for the current vistrail version changed
+
+        """
+        if self.controller:
+            self.versionView.versionProp.updateVersion(self.controller.current_version)
 
     def add_bookmark(self, id, name):
         """add_bookmark(id: int, label:name) -> None

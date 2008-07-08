@@ -488,6 +488,7 @@ class QSearchBox(QtGui.QWidget):
         validator = QtGui.QRegExpValidator(regexp, self)
         self.searchEdit.setValidator(validator)
         self.searchEdit.addItem('Clear Searches')
+        self.setFocusProxy(self.searchEdit)
         #TODO: Add separator!
         self.searchEdit.clearEditText()
         hLayout.addWidget(self.searchEdit)

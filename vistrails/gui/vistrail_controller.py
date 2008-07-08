@@ -90,6 +90,9 @@ class VistrailController(QtCore.QObject):
     stateChanged(): stateChanged is called when a vistrail goes from
     unsaved to saved or vice-versa.
     
+    notesChanged(): notesChanged is called when the version notes have
+    been updated
+
     """
 
     def __init__(self, vis=None, auto_save=True, name=''):
@@ -574,7 +577,7 @@ class VistrailController(QtCore.QObject):
         
         if self.vistrail.change_notes(str(notes),self.current_version):
             self.set_changed(True)
-            self.invalidate_version_tree(True)
+            self.emit(QtCore.SIGNAL('notesChanged()'))
 
     def add_parameter_changes_from_execution(self, pipeline, version,
                                              parameter_changes):

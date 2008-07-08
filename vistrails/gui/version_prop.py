@@ -233,6 +233,7 @@ class QVersionNotes(QtGui.QTextEdit):
         QtGui.QTextEdit.__init__(self, parent)
         self.controller = None
         self.versionNumber = -1
+        self.update_on_focus_out = True
         # Reset text to black, for some reason it is grey by default on the mac
         self.palette().setBrush(QtGui.QPalette.Text,
                                 QtGui.QBrush(QtGui.QColor(0,0,0,255)))
@@ -263,12 +264,19 @@ class QVersionNotes(QtGui.QTextEdit):
         if self.controller and self.document().isModified():
             self.controller.update_notes(str(self.toHtml()))
 
+    def reset_changes(self):
+        """ reset_changes() -> None
+
+        """
+        self.updateVersion(self.versionNumber)
+
     def focusOutEvent(self, event):
         """ focusOutEvent(event: QFocusEvent) -> None
         Update the version notes if the text has been modified
         
         """
-        self.commit_changes()
+        if self.update_on_focus_out:
+            self.commit_changes()
         QtGui.QTextEdit.focusOutEvent(self,event)
 
     def trim_first_paragraph(self):
@@ -463,7 +471,7 @@ class QExpandButton(QtGui.QLabel):
         QtGui.QLabel.__init__(self, parent)
         
         self.drawButton(0)
-        self.setToolTip('Expand')
+        self.setToolTip('Edit Notes')
         self.setScaledContents(False)
         self.setFrameShape(QtGui.QFrame.NoFrame)
 
@@ -527,12 +535,59 @@ class QNotesDialog(QtGui.QDialog):
         
         self.setModal(False)
         self.notes = QVersionNotes(self)
+        self.notes.update_on_focus_out = False
         layout = QtGui.QVBoxLayout(self)
         layout.addWidget(self.notes)
         layout.setMargin(0)
+
+        self.apply_button = QtGui.QPushButton('Apply', self)
+        self.apply_button.setDefault(False)
+        self.apply_button.setAutoDefault(False)
+        self.ok_button = QtGui.QPushButton('Ok', self)
+        self.ok_button.setDefault(False)
+        self.ok_button.setAutoDefault(False)
+        self.cancel_button = QtGui.QPushButton('Cancel', self)
+        self.cancel_button.setDefault(False)
+        self.cancel_button.setAutoDefault(False)
+        self.buttonLayout = QtGui.QHBoxLayout(self)
+        self.buttonLayout.addWidget(self.apply_button)
+        self.buttonLayout.addWidget(self.ok_button)
+        self.buttonLayout.addWidget(self.cancel_button)
+        layout.addLayout(self.buttonLayout)
+
         self.setLayout(layout)
-        self.layout().addWidget(self.notes)
         self.controller = None
+
+        QtCore.QObject.connect(self.apply_button,
+                               QtCore.SIGNAL("released()"),
+                               self.apply_pressed)
+
+        QtCore.QObject.connect(self.ok_button,
+                               QtCore.SIGNAL("released()"),
+                               self.ok_pressed)
+
+        QtCore.QObject.connect(self.cancel_button,
+                               QtCore.SIGNAL("released()"),
+                               self.cancel_pressed)
+    def apply_pressed(self):
+        """ apply_pressed() -> None
+
+        """
+        self.notes.commit_changes()
+
+    def ok_pressed(self):
+        """ ok_pressed() -> None
+        
+        """
+        self.notes.commit_changes()
+        self.close()
+
+    def cancel_pressed(self):
+        """ cancel_pressed() -> None
+        
+        """
+        self.notes.reset_changes()
+        self.close()
 
     def updateController(self, controller):
         """ updateController(controller: VistrailController) -> None
