@@ -96,5 +96,5 @@ def new_constant(name, namespace, identifier, widget_type=StandardConstantWidget
                                     'translate_to_python': conversion})
     m.name = name
     m.isEnumeration = True
-    reg.add_module(m,namespace=namespace)
+    reg.add_module(m,namespace=namespace,package=identifier)
     return m

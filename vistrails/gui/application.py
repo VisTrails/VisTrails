@@ -212,7 +212,7 @@ after self.init()"""
                                         obj_type=None,
                                         connection_id=None)
                 self.builderWindow.open_vistrail_without_prompt(locator, version)
-                self.builderWindow.activateWindow()
+        self.builderWindow.activateWindow()
 
     def noninteractiveMode(self):
         """ noninteractiveMode() -> None
