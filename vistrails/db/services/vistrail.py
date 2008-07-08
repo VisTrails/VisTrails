@@ -330,10 +330,13 @@ def find_data(what, id, op_dict):
     return None
 
 def invertOperations(op_dict, adds, deletes):
+    # 2008-07-08 cscheid
+    # Copying is slow, so I'm just passing around the reference into
+    # the dbadds and deletes. This might be dangerous.
     inverse_ops = []       
     deletes.reverse()
     for op in deletes:
-        data = copy.copy(find_data(op.db_what, getOldObjId(op), op_dict))
+        data = find_data(op.db_what, getOldObjId(op), op_dict)
         inv_op = DBAdd(id=-1,
                        what=op.db_what,
                        objectId=getOldObjId(op),
@@ -354,6 +357,9 @@ def invertOperations(op_dict, adds, deletes):
     return inverse_ops
 
 def normalOperations(adds, deletes):
+    # 2008-07-08 cscheid
+    # Copying is slow, so I'm just passing around the reference into
+    # the dbadds and deletes. This might be dangerous.
     new_ops = []
     for op in deletes:
         new_op = DBDelete(id=-1,
@@ -369,7 +375,7 @@ def normalOperations(adds, deletes):
                        objectId=getNewObjId(op),
                        parentObjId=op.db_parentObjId,
                        parentObjType=op.db_parentObjType,
-                       data=copy.copy(op.db_data))
+                       data=op.db_data)
         new_ops.append(new_op)
     return new_ops        
 
