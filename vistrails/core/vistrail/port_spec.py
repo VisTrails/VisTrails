@@ -47,29 +47,10 @@ class PortSpec(DBPortSpec):
     ##########################################################################
     # Properties
 
-    def _get_id(self):
-        return self.db_id
-    def _set_id(self, id):
-        self.db_id = id
-    id = property(_get_id, _set_id)
-
-    def _get_name(self):
-        return self.db_name
-    def _set_name(self, name):
-        self.db_name = name
-    name = property(_get_name, _set_name)
-
-    def _get_type(self):
-        return self.db_type
-    def _set_type(self, type):
-        self.db_type = type
-    type = property(_get_type, _set_type)
-
-    def _get_spec(self):
-        return self.db_spec
-    def _set_spec(self, spec):
-        self.db_spec = spec
-    spec = property(_get_spec, _set_spec)
+    id = DBPortSpec.db_id
+    name = DBPortSpec.db_name
+    type = DBPortSpec.db_type
+    spec = DBPortSpec.db_spec
 
     ##########################################################################
     # Operators

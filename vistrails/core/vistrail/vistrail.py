@@ -87,22 +87,18 @@ class Vistrail(DBVistrail):
         # version tree always updated
         self.tree = ExplicitExpandedVersionTree(self)
 
-    def _get_id(self):
-        return self.db_id
-    def _set_id(self, id):
-        self.db_id = id
-    id = property(_get_id, _set_id)
+    ##########################################################################
+    # Properties
+
+    id = DBVistrail.db_id
+    actions = DBVistrail.db_actions # This is now read-write
+    tags = DBVistrail.db_tags # This is now read-write
+    abstractions = DBVistrail.db_abstractions # This is now read-write
         
-    def _get_actions(self):
-        return self.db_actions
-    actions = property(_get_actions)
     def _get_actionMap(self):
         return self.db_actions_id_index
     actionMap = property(_get_actionMap)
 
-    def _get_tags(self):
-        return self.db_tags
-    tags = property(_get_tags)
     def _get_tagMap(self):
         return self.db_tags_id_index
     tagMap = property(_get_tagMap)
@@ -112,9 +108,6 @@ class Vistrail(DBVistrail):
     def has_tag_with_name(self, name):
         return self.db_has_tag_with_name(name)
     
-    def _get_abstractions(self):
-        return self.db_abstractions
-    abstractions = property(_get_abstractions)
     def _get_abstractionMap(self):
         return self.db_abstractions_id_index
     abstractionMap = property(_get_abstractionMap)
@@ -151,9 +144,9 @@ class Vistrail(DBVistrail):
         if it doesn't. 
         
         """
-        if self.tagMap.has_key(version):
+        try:
             return self.tagMap[version].name
-        else:
+        except KeyError:
             return ""
 
     def get_version_count(self):
@@ -690,14 +683,14 @@ class Vistrail(DBVistrail):
         Returns True if version with given timestamp exists
 
         """
-        return self.actionMap.has_key(version)
+        return version in self.actionMap
     
     def addVersion(self, action):
         """ addVersion(action: Action) -> None 
         Adds new version to vistrail
           
         """
-        if self.actionMap.has_key(action.timestep):
+        if action.timestep in self.actionMap:
             raise VistrailsInternalError("existing timestep")
         self.db_add_action(action)
         self.changed = True
@@ -711,7 +704,7 @@ class Vistrail(DBVistrail):
        
         """
         if type(tag) == type(0) or type(tag) == type(0L):
-            return self.tagMap.has_key(tag)
+            return tag in self.tagMap
         elif type(tag) == type('str'):
             return self.has_tag_with_name(tag)
         
@@ -722,7 +715,7 @@ class Vistrail(DBVistrail):
         """
         if version_name == '':
             return None
-        if self.tagMap.has_key(version_number):
+        if version_number in self.tagMap:
             DebugPrint.log("Version is already tagged")
             raise VersionAlreadyTagged()
         if self.has_tag_with_name(version_name):
@@ -741,7 +734,7 @@ class Vistrail(DBVistrail):
         untagged.
                   
         """
-        if not self.tagMap.has_key(version_number):
+        if not version_number in self.tagMap:
             DebugPrint.log("Version is not tagged")
             raise VersionNotTagged()
         if self.tagMap[version_number].name == version_name:
@@ -763,7 +756,7 @@ class Vistrail(DBVistrail):
                   
         """
     
-        if self.actionMap.has_key(version_number):
+        if version_number in self.actionMap:
             action = self.actionMap[version_number]
             if action.has_annotation_with_key('notes'):
                 old_annotation = action.get_annotation_by_key('notes')
@@ -796,7 +789,7 @@ class Vistrail(DBVistrail):
             # on the graph because it might have been previously
             # pruned. Remember that pruning is only marked for the
             # topmost invisible action.
-            if (result.vertices.has_key(action.parent) and
+            if action.parent in (result.vertices and
                 action.prune != 1):
                 result.add_edge(action.parent,
                                 action.timestep,
@@ -869,7 +862,7 @@ class Vistrail(DBVistrail):
         """
         if version!=0: # not root
             def delete_tag(version):
-                if self.tagMap.has_key(version):
+                if version in self.tagMap:
                     self.db_delete_tag(self.tagMap[version])
             current_graph = self.getVersionGraph()
             current_graph.dfs(vertex_set=[version], enter_vertex=delete_tag)

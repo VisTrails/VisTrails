@@ -57,19 +57,15 @@ class Action(DBAction):
     ##########################################################################
     # Properties
 
-    def _get_timestep(self):
-	return self.db_id
-    def _set_timestep(self, timestep):
-	self.db_id = timestep
-    timestep = property(_get_timestep, _set_timestep)
-    id = property(_get_timestep, _set_timestep)
-
-    def _get_parent(self):
-	return self.db_prevId
-    def _set_parent(self, parent):
-        self.db_prevId = parent
-    parent = property(_get_parent, _set_parent)
-    prevId = property(_get_parent, _set_parent)
+    id = DBAction.db_id
+    timestep = DBAction.db_id
+    parent = DBAction.db_prevId
+    prevId = DBAction.db_prevId
+    session = DBAction.db_session
+    user = DBAction.db_user
+    prune = DBAction.db_prune
+    annotations = DBAction.db_annotations
+    operations = DBAction.db_operations
 
     def _get_date(self):
 	if self.db_date is not None:
@@ -84,29 +80,6 @@ class Action(DBAction):
 	    self.db_date = newDate
     date = property(_get_date, _set_date)
 
-    def _get_session(self):
-        return self.db_session
-    def _set_session(self, session):
-        self.db_session = session
-    session = property(_get_session, _set_session)
-
-    def _get_user(self):
-        return self.db_user
-    def _set_user(self, user):
-        self.db_user = user
-    user = property(_get_user, _set_user)
-
-    def _get_prune(self):
-        return self.db_prune
-    def _set_prune(self, prune):
-        self.db_prune = prune
-    prune = property(_get_prune, _set_prune)
-    
-    def _get_annotations(self):
-        return self.db_annotations
-    def _set_annotations(self, annotations):
-        self.db_annotations = annotations
-    annotations = property(_get_annotations, _set_annotations)
     def has_annotation_with_key(self, key):
         return self.db_has_annotation_with_key(key)
     def get_annotation_by_key(self, key):
@@ -122,11 +95,6 @@ class Action(DBAction):
         return None
     notes = property(_get_notes)
 
-    def _get_operations(self):
-        return self.db_operations
-    def _set_operations(self, operations):
-        self.db_operations = operations
-    operations = property(_get_operations, _set_operations)
     def add_operation(self, operation):
         self.db_operations.db_add_operation(operation)
 

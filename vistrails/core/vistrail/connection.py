@@ -164,29 +164,9 @@ class Connection(DBConnection):
     ##########################################################################
     # Properties
 
-    def _get_id(self):
-        """ _get_id() -> int
-        Returns this connection id. Do not use this function, 
-        use id property: c.id 
-
-        """
-        return self.db_id
-
-    def _set_id(self, i):
-        """ _set_id(i : int) -> None 
-        Sets this connection id. It updates both connection ids of 
-        self.__source and self.__dest. Do not use this function, use id 
-        property: c.id = i
-
-        """
-        self.db_id = i
-    id = property(_get_id, _set_id)
-
-    def _get_ports(self):
-        return self.db_ports
-    def _set_ports(self, ports):
-        self.db_ports = ports
-    ports = property(_get_ports, _set_ports)
+    id = DBConnection.db_id
+    ports = DBConnection.db_ports
+    
     def add_port(self, port):
         self.db_add_port(port)
 

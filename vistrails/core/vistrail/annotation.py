@@ -47,23 +47,9 @@ class Annotation(DBAnnotation):
     ##########################################################################
     # Properties
 
-    def _get_id(self):
-        return self.db_id
-    def _set_id(self, id):
-        self.db_id = id
-    id = property(_get_id, _set_id)
-
-    def _get_key(self):
-        return self.db_key
-    def _set_key(self, key):
-        self.db_key = key
-    key = property(_get_key, _set_key)
-
-    def _get_value(self):
-        return self.db_value
-    def _set_value(self, value):
-        self.db_value = value
-    value = property(_get_value, _set_value)
+    id = DBAnnotation.db_id
+    key = DBAnnotation.db_key
+    value = DBAnnotation.db_value
 
     ##########################################################################
     # Operators

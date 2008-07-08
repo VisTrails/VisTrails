@@ -41,23 +41,32 @@ class IdScope:
         return str(self.ids)
 
     def getNewId(self, objType):
-        if self.remap.has_key(objType):
+        try:
             objType = self.remap[objType]
-        if self.ids.has_key(objType):
+        except KeyError:
+            pass
+        try:
             id = self.ids[objType]
             self.ids[objType] += 1
             return id
-        else:
+        except KeyError:
             self.ids[objType] = self.beginId + 1
             return self.beginId
 
     def updateBeginId(self, objType, beginId):
-        if self.remap.has_key(objType):
-            objType = self.remap[objType]        
-        if not self.ids.has_key(objType) or self.ids[objType] <= beginId:
+        try:
+            objType = self.remap[objType]
+        except KeyError:
+            pass
+        try:
+            if self.ids[objType] <= beginId:
+                self.ids[objType] = beginId
+        except KeyError:
             self.ids[objType] = beginId
         
     def setBeginId(self, objType, beginId):
-        if self.remap.has_key(objType):
+        try:
             objType = self.remap[objType]
+        except KeyError:
+            pass
         self.ids[objType] = beginId

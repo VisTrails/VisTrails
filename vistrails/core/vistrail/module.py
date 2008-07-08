@@ -97,19 +97,18 @@ class Module(DBModule):
         _module.portVisible = Set()
 
     ##########################################################################
-        
-    def _get_id(self):
-	return self.db_id
-    def _set_id(self, id):
-        self.db_id = id
-    id = property(_get_id, _set_id)
 
-    def _get_cache(self):
-        return self.db_cache
-    def _set_cache(self, cache):
-        self.db_cache = cache
-
-    cache = property(_get_cache, _set_cache)
+    id = DBModule.db_id
+    cache = DBModule.db_cache
+    annotations = DBModule.db_annotations
+    location = DBModule.db_location
+    center = DBModule.db_location
+    name = DBModule.db_name
+    label = DBModule.db_name
+    namespace = DBModule.db_namespace
+    package = DBModule.db_package
+    tag = DBModule.db_tag
+    version = DBModule.db_version
 
     # type check this (list, hash)
     def _get_functions(self):
@@ -122,12 +121,6 @@ class Module(DBModule):
     def add_function(self, function):
         self.db_add_function(function)
 
-    # type check this (list, hash)
-    def _get_annotations(self):
-        return self.db_annotations
-    def _set_annotations(self, annotations):
-        self.db_annotations = annotations
-    annotations = property(_get_annotations, _set_annotations)
     def add_annotation(self, annotation):
         self.db_add_annotation(annotation)
     def delete_annotation(self, annotation):
@@ -136,44 +129,6 @@ class Module(DBModule):
         return self.db_has_annotation_with_key(key)
     def get_annotation_by_key(self, key):
         return self.db_get_annotation_by_key(key)        
-
-    def _get_location(self):
-        return self.db_location
-    def _set_location(self, location):
-        self.db_location = location
-    location = property(_get_location, _set_location)
-    center = property(_get_location, _set_location)
-
-    def _get_name(self):
-        return self.db_name
-    def _set_name(self, name):
-        self.db_name = name
-    name = property(_get_name, _set_name)
-    label = property(_get_name, _set_name)
-
-    def _get_namespace(self):
-        return self.db_namespace
-    def _set_namespace(self, namespace):
-        self.db_namespace = namespace
-    namespace = property(_get_namespace, _set_namespace)
-
-    def _get_package(self):
-        return self.db_package
-    def _set_package(self, package):
-        self.db_package = package
-    package = property(_get_package, _set_package)
-
-    def _get_tag(self):
-        return self.db_tag
-    def _set_tag(self, tag):
-        self.db_tag = tag
-    tag = property(_get_tag, _set_tag)
-
-    def _get_version(self):
-        return self.db_version
-    def _set_version(self, version):
-        self.db_version = version
-    version = property(_get_version, _set_version)
 
     def _get_port_specs(self):
         return self.db_portSpecs_id_index
@@ -239,7 +194,7 @@ class Module(DBModule):
         self.registry.add_port(module, endpoint, port)        
 
     def delete_port_from_registry(self, id):
-        if not self.port_specs.has_key(id):
+        if not id in self.port_specs:
             raise VistrailsInternalError("id missing in port_specs")
         portSpec = self.port_specs[id]
         portSpecs = portSpec.spec[1:-1].split(',')

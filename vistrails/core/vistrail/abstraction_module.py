@@ -79,44 +79,19 @@ class AbstractionModule(DBAbstractionRef):
     ##########################################################################
     # Properties
 
-    def _get_id(self):
-        return self.db_id
-    def _set_id(self, id):
-        self.db_id = id
-    id = property(_get_id, _set_id)
-
-    def _get_cache(self):
-        return self.db_cache
-    def _set_cache(self, cache):
-        self.db_cache = cache
-    cache = property(_get_cache, _set_cache)
-
-    def _get_abstraction_id(self):
-        return self.db_abstraction_id
-    def _set_abstraction_id(self, id):
-        self.db_abstraction_id = id
-    abstraction_id = property(_get_abstraction_id, _set_abstraction_id)
-
-    def _get_location(self):
-        return self.db_location
-    def _set_location(self, location):
-        self.db_location = location
-    location = property(_get_location, _set_location)
-    center = property(_get_location, _set_location)
-
-    def _get_version(self):
-        return self.db_version
-    def _set_version(self, version):
-        self.db_version = version
-    version = property(_get_version, _set_version)
-
-    def _get_tag(self):
-        return self.db_name
-    def _set_tag(self, tag):
-        self.db_name = tag
-    tag = property(_get_tag, _set_tag)
-    label = property(_get_tag, _set_tag)
-
+    id = DBAbstractionRef.db_id
+    cache = DBAbstractionRef.db_cache
+    abstraction_id = DBAbstractionRef.db_abstraction_id
+    location = DBAbstractionRef.db_location
+    center = DBAbstractionRef.db_location
+    version = DBAbstractionRef.db_version
+    tag = DBAbstractionRef.db_name
+    label = DBAbstractionRef.db_name
+    name = 'Abstraction'
+    package = 'edu.utah.sci.vistrails.basic'
+    namespace = None
+    annotations = DBAbstractionRef.db_annotations
+    
     def _get_functions(self):
         self.db_functions.sort(key=lambda x: x.db_pos)
         return self.db_functions
@@ -134,36 +109,12 @@ class AbstractionModule(DBAbstractionRef):
         return workflow
     pipeline = property(_get_pipeline)
 
-    def _get_name(self):
-        # this references core.modules.sub_module.Abstraction
-        return 'Abstraction'
-    def _set_name(self, name):
-        # print "doesn't make sense for abstraction module"
-        pass
-    name = property(_get_name, _set_name)
-
-    def _get_package(self):
-        return 'edu.utah.sci.vistrails.basic'
-    def _set_package(self, package):
-        # print "doesn't make sense for abstraction module"
-        pass
-    package = property(_get_package, _set_package)
-
-    def _get_namespace(self):
-        return None
-    namespace = property(_get_namespace)
-
     def _get_registry(self):
         if not self._registry:
             self.make_registry()
         return self._registry
     registry = property(_get_registry)
 
-    def _get_annotations(self):
-        return self.db_annotations
-    def _set_annotations(self, annotations):
-        self.db_annotations = annotations
-    annotations = property(_get_annotations, _set_annotations)
     def add_annotation(self, annotation):
         self.db_add_annotation(annotation)
     def delete_annotation(self, annotation):

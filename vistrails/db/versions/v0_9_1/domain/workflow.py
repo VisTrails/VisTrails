@@ -70,7 +70,7 @@ class DBWorkflow(_DBWorkflow):
             print '%s: %s' % (k, v)
 
     def db_has_object(self, type, id):
-        return self.objects.has_key((type, id))
+        return (type, id) in self.objects
 
     def db_get_object(self, type, id):
         return self.objects[(type, id)]
@@ -84,9 +84,9 @@ class DBWorkflow(_DBWorkflow):
                 if parent_obj_type == 'abstractionRef' or \
                         parent_obj_type == 'group':
                     parent_obj_type = 'module'
-                if self.objects.has_key((parent_obj_type, parent_obj_id)):
+                try:
                     parent_obj = self.objects[(parent_obj_type, parent_obj_id)]
-                else:
+                except KeyError:
                     msg = "Cannot find object of type '%s' with id '%s'" % \
                         (parent_obj_type, parent_obj_id)
                     raise Exception(msg)
@@ -108,9 +108,9 @@ class DBWorkflow(_DBWorkflow):
                 if parent_obj_type == 'abstractionRef' or \
                         parent_obj_type == 'group':
                     parent_obj_type = 'module'
-                if self.objects.has_key((parent_obj_type, parent_obj_id)):
+                try:
                     parent_obj = self.objects[(parent_obj_type, parent_obj_id)]
-                else:
+                except KeyError:
                     msg = "Cannot find object of type '%s' with id '%s'" % \
                         (parent_obj_type, parent_obj_id)
                     raise Exception(msg)
@@ -127,9 +127,9 @@ class DBWorkflow(_DBWorkflow):
                 if parent_obj_type == 'abstractionRef' or \
                         parent_obj_type == 'group':
                     parent_obj_type = 'module'
-                if self.objects.has_key((parent_obj_type, parent_obj_id)):
+                try:
                     parent_obj = self.objects[(parent_obj_type, parent_obj_id)]
-                else:
+                except KeyError:
                     msg = "Cannot find object of type '%s' with id '%s'" % \
                         (parent_obj_type, parent_obj_id)
                     raise Exception(msg)

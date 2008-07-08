@@ -78,20 +78,12 @@ class ModuleFunction(DBFunction):
 
     ##########################################################################
     # Properties
-        
-    # id isn't really the id, it's a relative position
-    def _get_id(self):
-        return self.db_pos
-    def _set_id(self, id):
-        self.db_pos = id
-    id = property(_get_id, _set_id)
-    pos = property(_get_id, _set_id)
-    
-    def _get_real_id(self):
-        return self.db_id
-    def _set_real_id(self, id):
-        self.db_id = id
-    real_id = property(_get_real_id, _set_real_id)
+
+    id = DBFunction.db_pos
+    pos = DBFunction.db_pos
+    real_id = DBFunction.db_id
+    name = DBFunction.db_name
+   
 
     def _get_params(self):
         self.db_parameters.sort(key=lambda x: x.db_pos)
@@ -103,12 +95,6 @@ class ModuleFunction(DBFunction):
     # they get resorted
     params = property(_get_params, _set_params)
     parameters = property(_get_params, _set_params)
-
-    def _get_name(self):
-        return self.db_name
-    def _set_name(self, name):
-        self.db_name = name
-    name = property(_get_name, _set_name)
 
     def addParameter(self, param):
         self.db_add_parameter(param)

@@ -106,25 +106,13 @@ class ModuleParam(DBParameter):
 
     ##########################################################################
 
-    # id isn't really the id, it's a relative position
-    def _get_id(self):
-        return self.db_pos
-    def _set_id(self, id):
-        self.db_pos = id
-    id = property(_get_id, _set_id)
-    pos = property(_get_id, _set_id)
-
-    def _get_real_id(self):
-        return self.db_id
-    def _set_real_id(self, id):
-        self.db_id = id
-    real_id = property(_get_real_id, _set_real_id)
-
-    def _get_name(self):
-        return self.db_name
-    def _set_name(self, name):
-        self.db_name = name
-    name = property(_get_name, _set_name)
+    id = DBParameter.db_pos
+    pos = DBParameter.db_pos
+    real_id = DBParameter.db_id
+    name = DBParameter.db_name
+    typeStr = DBParameter.db_type
+    strValue = DBParameter.db_val
+    alias = DBParameter.db_alias
 
     def parse_db_type(self):
         if self.db_type and self.db_type.find(':') != -1:
@@ -178,24 +166,6 @@ class ModuleParam(DBParameter):
         self._identifier = identifier
         self.update_db_type()
     identifier = property(_get_identifier, _set_identifier)
-
-    def _get_typeStr(self):
-        return self.db_type
-    def _set_typeStr(self, typeStr):
-        self.db_type = typeStr
-    typeStr = property(_get_typeStr, _set_typeStr)
-    
-    def _get_strValue(self):
-        return self.db_val
-    def _set_strValue(self, value):
-        self.db_val = value
-    strValue = property(_get_strValue, _set_strValue)
-    
-    def _get_alias(self):
-        return self.db_alias
-    def _set_alias(self, alias):
-        self.db_alias = alias
-    alias = property(_get_alias, _set_alias)
         
     def serialize(self, dom, element):
         """ serialize(dom, element) -> None 

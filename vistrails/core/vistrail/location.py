@@ -51,24 +51,10 @@ class Location(DBLocation, Point):
     ##########################################################################
     # Properties
 
-    def _get_id(self):
-        return self.db_id
-    def _set_id(self, id):
-        self.db_id = id
-    id = property(_get_id, _set_id)
-
-    def _get_x(self):
-        return self.db_x
-    def _set_x(self, x):
-        self.db_x = x
-    x = property(_get_x, _set_x)
-
-    def _get_y(self):
-        return self.db_y
-    def _set_y(self, y):
-        self.db_y = y
-    y = property(_get_y, _set_y)
-
+    id = DBLocation.db_id
+    x = DBLocation.db_x
+    y = DBLocation.db_y
+    
     ##########################################################################
     # Operators
     

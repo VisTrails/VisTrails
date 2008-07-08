@@ -694,7 +694,6 @@ class VistrailController(QtCore.QObject):
             #
             # The available pipelines are in self._pipelines, plus
             # the current pipeline.
-
             # Fast check: do we have to change anything?
             elif new_version == self.current_version:
                 # we don't even need to check connection specs or
@@ -708,16 +707,13 @@ class VistrailController(QtCore.QObject):
                 cv = self._current_full_graph.inverse_immutable().closest_vertex
                 closest = cv(new_version,
                              self._pipelines)
-
                 cost_closest_to_new_version = get_cost(new_version, closest)
-
                 # Now we have to decide between the closest pipeline
                 # to new_version and the current pipeline
                 shared_parent = getSharedRoot(self.vistrail, [self.current_version,
                                                               new_version])
                 cost_common_to_old = get_cost(self.current_version, shared_parent)
                 cost_common_to_new_version = get_cost(new_version, shared_parent)
-
                 # FIXME I'm assuming copying the pipeline has zero cost.
                 # Formulate a better cost model
                 if (cost_common_to_old + cost_common_to_new_version >
@@ -725,11 +721,9 @@ class VistrailController(QtCore.QObject):
                     if new_version == 0:
                         result = self.vistrail.getPipeline(new_version)
                     else:
-                            
                         result = copy.copy(self._pipelines[closest])
-                        chain = self.vistrail.actionChain(new_version, closest)
-                        result.perform_action_chain(chain)
-                    
+                        action = self.vistrail.general_action_chain(closest, new_version)
+                        result.perform_action(action)
                 else:
                     action = self.vistrail.general_action_chain(self.current_version,
                                                                 new_version)
@@ -824,7 +818,6 @@ class VistrailController(QtCore.QObject):
                                                'list of available packages. \n'
                                                'Please install it first.' % e._identifier)
                     return
-
         # If execution arrives here, we handled all exceptions, so
         # assign values
         self.current_pipeline = new_pipeline
@@ -1015,7 +1008,7 @@ class VistrailController(QtCore.QObject):
                     p = full.parent(highest)
                     if p==-1:
                         break
-                    if current.vertices.has_key(p):
+                    if p in current.vertices:
                         break
                     highest = p
                 if highest!=0:
@@ -1227,7 +1220,7 @@ class VistrailController(QtCore.QObject):
             all_inside = True
             all_outside = True
             for port in connection.ports:
-                if not id_remap.has_key((Module.vtType, port.moduleId)):
+                if not (Module.vtType, port.moduleId) in id_remap:
                     all_inside = False
                 else:
                     all_outside = False
@@ -1237,8 +1230,7 @@ class VistrailController(QtCore.QObject):
             new_ports = []
             if not all_inside and not all_outside:
                 for port in connection.ports:
-                    if not id_remap.has_key((Module.vtType, port.moduleId)):
-
+                    if not (Module.vtType, port.moduleId) in id_remap:
                         loc_id = id_scope.getNewId(Location.vtType)
                         # FIXME get better location
                         # should use location of current attached module
@@ -1258,7 +1250,7 @@ class VistrailController(QtCore.QObject):
                             port_specStr = connection.source.specStr
                             base_name = connection.source.name
                             names = out_names
-                        if names.has_key(base_name):
+                        if base_name in names:
                             port_name = base_name + '_' + str(names[base_name])
                             names[base_name] += 1
                         else:
@@ -1569,7 +1561,7 @@ class VistrailController(QtCore.QObject):
             all_inside = True
             all_outside = True
             for port in connection.ports:
-                if not id_remap.has_key((Module.vtType, port.moduleId)):
+                if not (Module.vtType, port.moduleId) in id_remap:
                     all_inside = False
                 else:
                     all_outside = False
@@ -1579,7 +1571,7 @@ class VistrailController(QtCore.QObject):
             new_ports = []
             if not all_inside and not all_outside:
                 for port in connection.ports:
-                    if not id_remap.has_key((Module.vtType, port.moduleId)):
+                    if not (Module.vtType, port.moduleId) in id_remap:
 
                         loc_id = abstraction.idScope.getNewId(Location.vtType)
                         # FIXME get better location
@@ -1600,7 +1592,7 @@ class VistrailController(QtCore.QObject):
                             port_specStr = connection.source.specStr
                             base_name = connection.source.name
                             names = out_names
-                        if names.has_key(base_name):
+                        if base_name in names:
                             port_name = base_name + '_' + str(names[base_name])
                             names[base_name] += 1
                         else:

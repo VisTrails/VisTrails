@@ -161,13 +161,13 @@ def expandGroups(vistrail, workflow, module_remap=None):
         dest = connection.db_ports_type_index['destination']
         new_source = None
         new_dest = None
-        if delete_modules.has_key(source.db_moduleId):
+        if source.db_moduleId in delete_modules:
             a_connection = out_conns[(source.db_moduleId,
                                       source.db_name, source.db_spec)]
             a_source = a_connection.db_ports_type_index['source']
             new_source = a_source.do_copy()
             new_source.db_id = get_tmp_id(DBPort.vtType)
-        if delete_modules.has_key(dest.db_moduleId):
+        if dest.db_moduleId in delete_modules:
             a_connection = in_conns[(dest.db_moduleId,
                                      dest.db_name, dest.db_spec)]
             a_dest = a_connection.db_ports_type_index['destination']
@@ -300,17 +300,20 @@ def synchronize(old_vistrail, new_vistrail):
         if tag.is_new:
             new_tag = tag.do_copy(False)
             # remap id
-            if id_remap.has_key((DBAction.vtType, new_tag.db_id)):
+            try:
                 new_tag.db_id = id_remap[(DBAction.vtType, new_tag.db_id)]
-            if old_vistrail.db_tags_name_index.has_key(new_tag.db_name):
+            except KeyError:
+                pass
+            try:
+                old_tag = old_vistrail.db_tags_name_index[new_tag.db_name]
+            except KeyError:
                 # FIXME conflict!
                 print "tag conflict--name already used"
-                old_tag = old_vistrail.db_tags_name_index[new_tag.db_name]
                 old_vistrail.db_delete_tag(old_tag)
-            if old_vistrail.db_tags_id_index.has_key(new_tag.db_id):
-                # FIXME conflict!
-                print 'possible tag conflict -- WILL NOT GET HERE!'
+            try:
                 old_tag = old_vistrail.db_tags_id_index[new_tag.db_id]
+            except KeyError:
+                print 'possible tag conflict -- WILL NOT GET HERE!'
                 old_vistrail.db_delete_tag(old_tag)
             old_vistrail.db_add_tag(new_tag)
 
@@ -322,12 +325,11 @@ def synchronize(old_vistrail, new_vistrail):
 # Analogy methods
 
 def find_data(what, id, op_dict):
-    if op_dict.has_key((what, id)):
+    try:
         return op_dict[(what, id)].db_data
-    else:
+    except KeyError:
         msg = 'cannot find data (%s, %s)'  % (what, id)
         raise Exception(msg)
-    return None
 
 def invertOperations(op_dict, adds, deletes):
     # 2008-07-08 cscheid
@@ -388,13 +390,17 @@ def simplifyOps(ops):
         if op.vtType == 'add':
             addDict[(op.db_what, op.db_objectId)] = op
         elif op.vtType == 'delete':
-            if addDict.has_key((op.db_what, op.db_objectId)):
+            try:
                 del addDict[(op.db_what, op.db_objectId)]
-            else:
+            except KeyError:
                 deleteDict[(op.db_what, op.db_objectId)] = op
         elif op.vtType == 'change':
-            if addDict.has_key((op.db_what, op.db_oldObjId)):
-                old_old_id = getOldObjId(addDict[(op.db_what, op.db_oldObjId)])
+            try:
+                k = addDict[(op.db_what, op.db_oldObjId)]
+            except KeyError:
+                addDict[(op.db_what, op.db_newObjId)] = op
+            else:
+                old_old_id = getOldObjId(k)
                 del addDict[(op.db_what, op.db_oldObjId)]
                 addDict[(op.db_what, op.db_newObjId)] = \
                     DBChange(id=opCount,
@@ -404,8 +410,6 @@ def simplifyOps(ops):
                              parentObjId=op.db_parentObjId,
                              parentObjType=op.db_parentObjType,
                              )
-            else:
-                addDict[(op.db_what, op.db_newObjId)] = op
         opCount -= 1
 
     deletes = deleteDict.values()

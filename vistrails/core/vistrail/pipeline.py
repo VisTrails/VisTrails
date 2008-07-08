@@ -162,17 +162,8 @@ class Pipeline(DBWorkflow):
     ##########################################################################
     # Properties
 
-    def _get_id(self):
-        return self.db_id
-    def _set_id(self,id):
-        self.db_id = id
-    id = property(_get_id, _set_id)
-
-    def _get_name(self):
-        return self.db_name
-    def _set_name(self, name):
-        self.db_name = name
-    name = property(_get_name, _set_name)
+    id = DBWorkflow.db_id
+    name = DBWorkflow.db_name
 
     def _get_modules(self):
         return self.db_modules_id_index
@@ -269,6 +260,9 @@ class Pipeline(DBWorkflow):
         return result
     
     def perform_action_chain(self, actionChain):
+        # BEWARE: if actionChain is long, you're probably better off
+        # going through general_action_chain, because it optimizes
+        # away unnecessary operations.
         for action in actionChain: 
             self.perform_action(action)
 
@@ -507,9 +501,11 @@ class Pipeline(DBWorkflow):
     def remove_alias(self, type, oId, parentType, parentId):
         """remove_alias(name: str, type:?, oId: int)-> None
         Remove alias identified by oId """
-        if self.aliases.inverse.has_key((type,oId, parentType, parentId)):
+        try:
             oldname = self.aliases.inverse[(type,oId, parentType, parentId)]
             del self.aliases[oldname]
+        except KeyError:
+            pass
 
     def change_alias(self, name, type, oId, parentType, parentId):
         """change_alias(name: str, type:str oId:int, parentType:str,
@@ -529,23 +525,27 @@ class Pipeline(DBWorkflow):
         returns the strValue of the parameter with alias name
 
         """
-        result = ""
-        if self.aliases.has_key(name):
+        try:
             what, oId, parentType, parentId = self.aliases[name]
+        except KeyError:
+            return ''
+        else:
             if what == 'parameter':
                 parameter = self.db_get_object(what, oId)
-                result = parameter.strValue
+                return parameter.strValue
             else:
                 raise VistrailsInternalError("only parameters are supported")
-        return result
 
     def set_alias_str_value(self, name, value):
         """ set_alias_str_value(name: str, value: str) -> None
         sets the strValue of the parameter with alias name 
         
         """
-        if self.aliases.has_key(name):
+        try:
             what, oId, parentType, parentId = self.aliases[name]
+        except KeyError:
+            pass
+        else:
             if what == 'parameter':
                 #FIXME: check if a change parameter action needs to be generated
                 parameter = self.db_get_object(what, oId)
@@ -593,21 +593,21 @@ class Pipeline(DBWorkflow):
         Checks whether given module exists.
 
         """
-        return self.modules.has_key(id)
+        return id in self.modules
     
     def has_connection_with_id(self, id):
         """has_connection_with_id(id: int) -> boolean 
         Checks whether given connection exists.
 
         """
-        return self.connections.has_key(id)
+        return id in self.connections
 
     def has_alias(self, name):
         """has_alias(name: str) -> boolean 
         Checks whether given alias exists.
 
         """
-        return self.aliases.has_key(name)
+        return name in self.aliases
 
     def out_degree(self, id):
         """out_degree(id: int) -> int - Returns the out-degree of a module. """
@@ -621,12 +621,14 @@ class Pipeline(DBWorkflow):
     def module_signature(self, module_id):
         """module_signature(module_id): string
         Returns the signature for the module with given module_id."""
-        if not self._module_signatures.has_key(module_id):
+        try:
+            return self._module_signatures[module_id]
+        except KeyError:
             m = self.modules[module_id]
             sig = registry.module_signature(self, m)
             self._module_signatures[module_id] = sig
-        return self._module_signatures[module_id]
-
+            return sig
+    
     def module_id_from_signature(self, signature):
         """module_id_from_signature(sig): int
         Returns the module_id that corresponds to the given signature.
@@ -634,14 +636,16 @@ class Pipeline(DBWorkflow):
         return self._module_signatures.inverse[signature]
 
     def has_module_signature(self, signature):
-        return self._module_signatures.inverse.has_key(signature)
+        return signature in self._module_signatures.inverse
 
     # Subpipelines
 
     def subpipeline_signature(self, module_id):
         """subpipeline_signature(module_id): string
         Returns the signature for the subpipeline whose sink id is module_id."""
-        if not self._subpipeline_signatures.has_key(module_id):
+        try:
+            return self._subpipeline_signatures[module_id]
+        except KeyError:
             upstream_sigs = [(self.subpipeline_signature(m) +
                               Hasher.connection_signature(
                                   self.connections[edge_id]))
@@ -651,7 +655,7 @@ class Pipeline(DBWorkflow):
             sig = Hasher.subpipeline_signature(module_sig,
                                                upstream_sigs)
             self._subpipeline_signatures[module_id] = sig
-        return self._subpipeline_signatures[module_id]
+            return sig
 
     def subpipeline_id_from_signature(self, signature):
         """subpipeline_id_from_signature(sig): int
@@ -660,27 +664,29 @@ class Pipeline(DBWorkflow):
         return self._subpipeline_signatures.inverse[signature]
 
     def has_subpipeline_signature(self, signature):
-        return self._subpipeline_signatures.inverse.has_key(signature)
+        return signature in self._subpipeline_signatures.inverse
 
     # Connections
 
     def connection_signature(self, connection_id):
         """connection_signature(id): string
         Returns the signature for the connection with given id."""
-        if not self._connection_signatures.has_key(connection_id):
+        try:
+            return self._connection_signatures[connection_id]
+        except KeyError:
             c = self.connections[connection_id]
             source_sig = self.subpipeline_signature(c.sourceId)
             dest_sig = self.subpipeline_signature(c.destinationId)
             sig = Hasher.connection_subpipeline_signature(c, source_sig,
                                                           dest_sig)
             self._connection_signatures[connection_id] = sig
-        return self._connection_signatures[connection_id]
+            return sig
 
     def connection_id_from_signature(self, signature):
         return self._connection_signatures.inverse[signature]
 
     def has_connection_signature(self, signature):
-        return self._connection_signatures.inverse.has_key(signature)
+        return signature in self._connection_signatures.inverse
 
     def refresh_signatures(self):
         self._connection_signatures = {}
@@ -861,7 +867,7 @@ class Pipeline(DBWorkflow):
             print "Type mismatch"
             return
         for m_id, m in self.modules.iteritems():
-            if not other.modules.has_key(m_id):
+            if not m_id in other.modules:
                 print "Module",m_id,"missing"
                 return
             if m != other.modules[m_id]:
@@ -869,7 +875,7 @@ class Pipeline(DBWorkflow):
                 m.show_comparison(other.modules[m_id])
                 return
         for c_id, c in self.connections.iteritems():
-            if not other.connections.has_key(c_id):
+            if not c_id in other.connections:
                 print "Connection",c_id,"missing"
                 return
             if c != other.connections[c_id]:

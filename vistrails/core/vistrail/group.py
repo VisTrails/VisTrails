@@ -93,6 +93,19 @@ class Group(DBGroup, Module):
     ##########################################################################
     # Properties
 
+    # We need to repeat these here because Module uses DBModule. ...
+    id = DBGroup.db_id
+    cache = DBGroup.db_cache
+    annotations = DBGroup.db_annotations
+    location = DBGroup.db_location
+    center = DBGroup.db_location
+    name = DBGroup.db_name
+    label = DBGroup.db_name
+    namespace = DBGroup.db_namespace
+    package = DBGroup.db_package
+    tag = DBGroup.db_tag
+    version = DBGroup.db_version
+
     def summon(self):
         # define this so that pipeline is copied over...
         pass
@@ -100,13 +113,11 @@ class Group(DBGroup, Module):
     def is_group(self):
         return True
 
-    def _get_pipeline(self):
-        return self.db_workflow
-    pipeline = property(_get_pipeline)
-
+    pipeline = DBGroup.db_workflow
+    
     def _get_registry(self):
         if not self._registry:
-            print 'making registry'
+            # print 'making registry'
             self.make_registry()
         return self._registry
     registry = property(_get_registry)

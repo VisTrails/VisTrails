@@ -194,7 +194,7 @@ class Graph(object):
         id -- vertex id
         
         """
-        if not self.vertices.has_key(id):
+        if not id in self.vertices:
             self.vertices[id] = None
             self.adjacency_list[id] = []
             self.inverse_adjacency_list[id] = []
@@ -892,15 +892,15 @@ class TestGraph(unittest.TestCase):
          """Test subgraph routines."""
          g = self.make_complete(5)
          sub = g.subgraph([0,1])
-         assert sub.vertices.has_key(0)
-         assert sub.vertices.has_key(1)
+         assert 0 in sub.vertices
+         assert 1 in sub.vertices
          assert (1,1) in sub.adjacency_list[0]
          assert (0,1) in sub.inverse_adjacency_list[1]
 
          g = self.make_linear(3)
          sub = g.subgraph([0, 2])
-         assert sub.vertices.has_key(0)
-         assert sub.vertices.has_key(2)
+         assert 0 in sub.vertices
+         assert 2 in sub.vertices
          assert sub.adjacency_list[0] == []
          assert sub.adjacency_list[2] == []
          

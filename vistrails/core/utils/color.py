@@ -255,7 +255,7 @@ class ColorByName(object):
         included
         
         """
-        if ColorByName.colors.has_key(name):
+        if name in ColorByName.colors:
             return ColorByName.colors[name] + [1.0]
         else:
             return [0.0, 0.0, 0.0, 1.0]
@@ -266,7 +266,7 @@ class ColorByName(object):
         Similar to get() but color ranges are from 0 to 255
         
         """
-        if ColorByName.colors.has_key(name):
+        if name in ColorByName.colors:
             return [int(ColorByName.colors[name][0]*255),
                     int(ColorByName.colors[name][1]*255),
                     int(ColorByName.colors[name][2]*255),
@@ -281,7 +281,7 @@ class ColorByName(object):
         or black if name not found. Alpha channel is not included
         
         """
-        if ColorByName.colors.has_key(name):
+        if name in ColorByName.colors:
             return ColorByName.colors[name]+[] # to make copy
         else:
             return [0.0, 0.0, 0.0]
@@ -292,7 +292,7 @@ class ColorByName(object):
         Similar to get_no_alpha() but color ranges are from 0 to 255
         
         """
-        if ColorByName.colors.has_key(name):
+        if name in ColorByName.colors:
             return [int(ColorByName.colors[name][0]*255),
                     int(ColorByName.colors[name][1]*255),
                     int(ColorByName.colors[name][2]*255)]

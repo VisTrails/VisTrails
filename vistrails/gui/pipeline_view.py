@@ -1633,9 +1633,9 @@ mutual connections."""
             if type(item)==QGraphicsModuleItem:
                 for (connItem, start) in item.dependingConnectionItems():
                     conn = connItem.connection
-                    if not connection_ids.has_key(conn.id):
-                        source_exists = module_ids.has_key(conn.sourceId)
-                        dest_exists = module_ids.has_key(conn.destinationId)
+                    if not conn.id in connection_ids:
+                        source_exists = conn.sourceId in module_ids
+                        dest_exists = conn.destinationId in module_ids
                         if source_exists and dest_exists:
                             connection_ids[conn.id] = 1
                         elif dangling and (source_exists or dest_exists):

@@ -91,46 +91,30 @@ class Port(DBPort):
         _port._spec = None
 
     ##########################################################################
-
-    def _get_id(self):
-        return self.db_id
-    def _set_id(self, id):
-        self.db_id = id
-    id = property(_get_id, _set_id)
-
+    # Properties
+    
+    id = DBPort.db_id
+    moduleId = DBPort.db_moduleId
+    moduleName = DBPort.db_moduleName
+    name = DBPort.db_name
+    type = DBPort.db_type
+    
     def _get_endPoint(self):
 	map = {'source': PortEndPoint.Source,
 	       'destination': PortEndPoint.Destination}
 	endPoint = self.db_type
-	if map.has_key(endPoint):
-	    return map[endPoint]
-	return PortEndPoint.Invalid
+        try:
+            return map[endPoint]
+        except KeyError:
+            return PortEndPoint.Invalid
     def _set_endPoint(self, endPoint):
 	map = {PortEndPoint.Source: 'source',
 	       PortEndPoint.Destination: 'destination'}
-	if map.has_key(endPoint):
+        try:
             self.db_type = map[endPoint]
-	else:
+        except KeyError:
             self.db_type = ''
     endPoint = property(_get_endPoint, _set_endPoint)
-
-    def _get_moduleId(self):
-        return self.db_moduleId
-    def _set_moduleId(self, moduleId):
-        self.db_moduleId = moduleId
-    moduleId = property(_get_moduleId, _set_moduleId)
-
-    def _get_moduleName(self):
-        return self.db_moduleName
-    def _set_moduleName(self, moduleName):
-        self.db_moduleName = moduleName
-    moduleName = property(_get_moduleName, _set_moduleName)
-
-    def _get_name(self):
-        return self.db_name
-    def _set_name(self, name):
-        self.db_name = name
-    name = property(_get_name, _set_name)
 
     def _get_specStr(self):
         if self.db_spec is None:
@@ -160,19 +144,6 @@ class Port(DBPort):
     def _get_sig(self):
         return self.name + self.specStr
     sig = property(_get_sig)
-
-    def _get_type(self):
-        return self.db_type
-    def _set_type(self, type):
-        self.db_type = type
-    type = property(_get_type, _set_type)
-
-#     def _get_type(self):
-#  	return self._type
-#     def _set_type(self, type):
-#  	self._type = type
-#     type = property(_get_type, _set_type)
-
 
     def toolTip(self):
         """ toolTip() -> str

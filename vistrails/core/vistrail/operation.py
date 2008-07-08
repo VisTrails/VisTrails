@@ -81,43 +81,12 @@ class AddOp(DBAdd):
     ##########################################################################
     # Properties
 
-    def _get_id(self):
-        return self.db_id
-    def _set_id(self, id):
-        self.db_id = id
-    id = property(_get_id, _set_id)
-
-    def _get_what(self):
-        return self.db_what
-    def _set_what(self, what):
-        self.db_what = what
-    what = property(_get_what, _set_what)
-
-    def _get_objectId(self):
-        return self.db_objectId
-    def _set_objectId(self, objectId):
-        self.db_objectId = objectId
-    objectId = property(_get_objectId, _set_objectId)
-    old_obj_id = property(_get_objectId, _set_objectId)
-    new_obj_id = property(_get_objectId, _set_objectId)
-    
-    def _get_parentObjId(self):
-        return self.db_parentObjId
-    def _set_parentObjId(self, parentObjId):
-        self.db_parentObjId = parentObjId
-    parentObjId = property(_get_parentObjId, _set_parentObjId)
-    
-    def _get_parentObjType(self):
-        return self.db_parentObjType
-    def _set_parentObjType(self, parentObjType):
-        self.db_parentObjType = parentObjType
-    parentObjType = property(_get_parentObjType, _set_parentObjType)
-    
-    def _get_data(self):
-        return self.db_data
-    def _set_data(self, data):
-        self.db_data = data
-    data = property(_get_data, _set_data)
+    id = DBAdd.db_id
+    what = DBAdd.db_what
+    objectId = DBAdd.db_objectId
+    parentObjId = DBAdd.db_parentObjId
+    parentObjType = DBAdd.db_parentObjType
+    data = DBAdd.db_data
 
     ##########################################################################
     # Operators
@@ -174,50 +143,60 @@ class ChangeOp(DBChange):
 
     ##########################################################################
     # Properties
-
-    def _get_id(self):
-        return self.db_id
-    def _set_id(self, id):
-        self.db_id = id
-    id = property(_get_id, _set_id)
-
-    def _get_what(self):
-        return self.db_what
-    def _set_what(self, what):
-        self.db_what = what
-    what = property(_get_what, _set_what)
-
-    def _get_oldObjId(self):
-        return self.db_oldObjId
-    def _set_oldObjId(self, oldObjId):
-        self.db_oldObjId = oldObjId
-    oldObjId = property(_get_oldObjId, _set_oldObjId)
-    old_obj_id = property(_get_oldObjId, _set_oldObjId)
-
-    def _get_newObjId(self):
-        return self.db_newObjId
-    def _set_newObjId(self, newObjId):
-        self.db_newObjId = newObjId
-    newObjId = property(_get_newObjId, _set_newObjId)
-    new_obj_id = property(_get_newObjId, _set_newObjId)
     
-    def _get_parentObjId(self):
-        return self.db_parentObjId
-    def _set_parentObjId(self, parentObjId):
-        self.db_parentObjId = parentObjId
-    parentObjId = property(_get_parentObjId, _set_parentObjId)
-    
-    def _get_parentObjType(self):
-        return self.db_parentObjType
-    def _set_parentObjType(self, parentObjType):
-        self.db_parentObjType = parentObjType
-    parentObjType = property(_get_parentObjType, _set_parentObjType)
-    
-    def _get_data(self):
-        return self.db_data
-    def _set_data(self, data):
-        self.db_data = data
-    data = property(_get_data, _set_data)
+    id = DBChange.db_id
+    what = DBChange.db_what
+    oldObjId = DBChange.db_oldObjId
+    old_obj_id = DBChange.db_oldObjId
+    newObjId = DBChange.db_newObjId
+    new_obj_id = DBChange.db_newObjId
+    parentObjId = DBChange.db_parentObjId
+    parentObjType = DBChange.db_parentObjType
+    data = DBChange.db_data
+
+    # def _get_id(self):
+    #     return self.db_id
+    # def _set_id(self, id):
+    #     self.db_id = id
+    # id = property(_get_id, _set_id)
+
+    # def _get_what(self):
+    #     return self.db_what
+    # def _set_what(self, what):
+    #     self.db_what = what
+    # what = property(_get_what, _set_what)
+
+    # def _get_oldObjId(self):
+    #     return self.db_oldObjId
+    # def _set_oldObjId(self, oldObjId):
+    #     self.db_oldObjId = oldObjId
+    # oldObjId = property(_get_oldObjId, _set_oldObjId)
+    # old_obj_id = property(_get_oldObjId, _set_oldObjId)
+
+    # def _get_newObjId(self):
+    #     return self.db_newObjId
+    # def _set_newObjId(self, newObjId):
+    #     self.db_newObjId = newObjId
+    # newObjId = property(_get_newObjId, _set_newObjId)
+    # new_obj_id = property(_get_newObjId, _set_newObjId)
+
+    # def _get_parentObjId(self):
+    #     return self.db_parentObjId
+    # def _set_parentObjId(self, parentObjId):
+    #     self.db_parentObjId = parentObjId
+    # parentObjId = property(_get_parentObjId, _set_parentObjId)
+
+    # def _get_parentObjType(self):
+    #     return self.db_parentObjType
+    # def _set_parentObjType(self, parentObjType):
+    #     self.db_parentObjType = parentObjType
+    # parentObjType = property(_get_parentObjType, _set_parentObjType)
+
+    # def _get_data(self):
+    #     return self.db_data
+    # def _set_data(self, data):
+    #     self.db_data = data
+    # data = property(_get_data, _set_data)
 
     ##########################################################################
     # Operators
@@ -270,37 +249,45 @@ class DeleteOp(DBDelete):
     ##########################################################################
     # Properties
 
-    def _get_id(self):
-        return self.db_id
-    def _set_id(self, id):
-        self.db_id = id
-    id = property(_get_id, _set_id)
+    id = DBDelete.db_id
+    what = DBDelete.db_what
+    objectId = DBDelete.db_objectId
+    old_obj_id = DBDelete.db_objectId
+    new_obj_id = DBDelete.db_objectId
+    parentObjId = DBDelete.db_parentObjId
+    parentObjType = DBDelete.db_parentObjType
 
-    def _get_what(self):
-        return self.db_what
-    def _set_what(self, what):
-        self.db_what = what
-    what = property(_get_what, _set_what)
+    # def _get_id(self):
+    #     return self.db_id
+    # def _set_id(self, id):
+    #     self.db_id = id
+    # id = property(_get_id, _set_id)
 
-    def _get_objectId(self):
-        return self.db_objectId
-    def _set_objectId(self, objectId):
-        self.db_objectId = objectId
-    objectId = property(_get_objectId, _set_objectId)
-    old_obj_id = property(_get_objectId, _set_objectId)
-    new_obj_id = property(_get_objectId, _set_objectId)
+    # def _get_what(self):
+    #     return self.db_what
+    # def _set_what(self, what):
+    #     self.db_what = what
+    # what = property(_get_what, _set_what)
+
+    # def _get_objectId(self):
+    #     return self.db_objectId
+    # def _set_objectId(self, objectId):
+    #     self.db_objectId = objectId
+    # objectId = property(_get_objectId, _set_objectId)
+    # old_obj_id = property(_get_objectId, _set_objectId)
+    # new_obj_id = property(_get_objectId, _set_objectId)
+
+    # def _get_parentObjId(self):
+    #     return self.db_parentObjId
+    # def _set_parentObjId(self, parentObjId):
+    #     self.db_parentObjId = parentObjId
+    # parentObjId = property(_get_parentObjId, _set_parentObjId)
     
-    def _get_parentObjId(self):
-        return self.db_parentObjId
-    def _set_parentObjId(self, parentObjId):
-        self.db_parentObjId = parentObjId
-    parentObjId = property(_get_parentObjId, _set_parentObjId)
-    
-    def _get_parentObjType(self):
-        return self.db_parentObjType
-    def _set_parentObjType(self, parentObjType):
-        self.db_parentObjType = parentObjType
-    parentObjType = property(_get_parentObjType, _set_parentObjType)
+    # def _get_parentObjType(self):
+    #     return self.db_parentObjType
+    # def _set_parentObjType(self, parentObjType):
+    #     self.db_parentObjType = parentObjType
+    # parentObjType = property(_get_parentObjType, _set_parentObjType)
 
     ##########################################################################
     # Operators

@@ -45,18 +45,9 @@ class Tag(DBTag):
     ##########################################################################
     # Properties
 
-    def _get_id(self):
-        return self.db_id
-    def _set_id(self, id):
-        self.db_id = id
-    id = property(_get_id, _set_id)
-    time = property(_get_id, _set_id)
-
-    def _get_name(self):
-        return self.db_name
-    def _set_name(self, name):
-        self.db_name = name
-    name = property(_get_name, _set_name)
+    id = DBTag.db_id
+    time = DBTag.db_id
+    name = DBTag.db_name
 
     ##########################################################################
     # Operators
