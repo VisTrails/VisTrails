@@ -212,6 +212,10 @@ after self.init()"""
                                         obj_type=None,
                                         connection_id=None)
                 self.builderWindow.open_vistrail_without_prompt(locator, version)
+
+        # in some systems (Linux and Tiger) we need to make both calls
+        # so builderWindow is activated
+        self.builderWindow.raise_()
         self.builderWindow.activateWindow()
 
     def noninteractiveMode(self):
