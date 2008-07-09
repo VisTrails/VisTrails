@@ -96,8 +96,8 @@ class ShortTimeFourierTransform(DSPModule, Module):
     If a window is not specified, a Hamming window of the specified
     size is used. """
     def get_signal(self, sigs, window, offset, size):
-        win = scipy.zeros(sigs.shape[0]).ravel()
-        win[offset:offset+size] = window.ravel()
+        win = scipy.zeros(sigs.shape[0])
+        win[offset:offset+size] = window
         part = sigs * win
         return part
 
@@ -108,8 +108,8 @@ class ShortTimeFourierTransform(DSPModule, Module):
         out_vol = None
 
         if self.hasInputFromPort("Window"):
-            window = self.getInputFromPort("Window")
-            win_size = window.get_shape()[0]
+            window = self.getInputFromPort("Window").get_array()
+            win_size = window.shape[0]
         else:
             win_size = self.getInputFromPort("Window Size")
             window = scipy.signal.hamming(win_size)
@@ -127,14 +127,12 @@ class ShortTimeFourierTransform(DSPModule, Module):
 
         for i in xrange(num_sigs):
             offset = 0
-            signal = sigs.get_row_range(i,i).ravel()
-
+            signal = sigs.get_array()[i]
             #  We need to do the first window here so that we
             #  can have something to call vstack on.
             sig = self.get_signal(signal, window, offset, win_size)
             im_array = fftpack.fft(sig)
             offset += stride
-            
             while 1:
                 try:
                     sig = self.get_signal(signal, window, offset, win_size)
@@ -148,7 +146,6 @@ class ShortTimeFourierTransform(DSPModule, Module):
             (slices, freqs) = im_array.shape
             ar = im_array[0:,0:sr*2]
             ar = ar[0:,::-1]
-
             if out_vol == None:
                 out_vol = ar
                 ovshape = out_vol.shape
@@ -172,3 +169,4 @@ class ShortTimeFourierTransform(DSPModule, Module):
         reg.add_input_port(cls, "Window Size", (basic.Integer, 'Window Size'))
         reg.add_input_port(cls, "Stride", (basic.Integer, 'Stride'))
         reg.add_output_port(cls, "FFT Output", (NDArray, 'FFT Output'))
+

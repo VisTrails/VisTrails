@@ -144,6 +144,18 @@ def initialize(*args, **keywords):
                   FFTN,
                   ShortTimeFourierTransform]
 
+    #########################################################################################
+    #  Scipy DSP - Stockwell Transforms.
+    try:
+        import smt
+        from Stockwell import *
+        dspclasses.append(StockwellTransform)
+        dspclasses.append(MultiTaperStockwellTransform)
+        
+    except:
+        # It's ok to do nothing here as we don't really want to fail.
+        pass
+        
     for cls in dspclasses:
         cls.register(reg, basic)
 
@@ -173,6 +185,7 @@ def initialize(*args, **keywords):
 
     for cls in ensembles:
         cls.register(reg, basic)
+
 
 def package_dependencies():
     import core.packagemanager

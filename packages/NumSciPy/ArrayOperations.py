@@ -24,7 +24,7 @@ class ArrayReshape(ArrayOperationModule, Module):
         except:
             raise ModuleError("Could not assign new shape.  Be sure the number of elements remains constant")
         
-        self.setResult("Array Output", a)
+        self.setResult("Array Output", a.copy())
 
     @classmethod
     def register(cls, reg, basic):
@@ -101,7 +101,7 @@ class ArraySort(ArrayOperationModule, Module):
 
         b = a.sort_array(axis=self.axis, kind=self.kind, order=self.order)
         out = NDArray()
-        out.set_array(b)
+        out.set_array(b.copy())
         self.setResult("Sorted Array", out)
 
     @classmethod
@@ -170,7 +170,7 @@ class ArrayResize(ArrayOperationModule, Module):
             t = tuple(newdims)
             b = a.resize(t)
             out = NDArray()
-            out.set_array(b)
+            out.set_array(b.copy())
         except:
             raise ModuleError("Could not assign new shape.")
         
@@ -233,7 +233,7 @@ class ArrayRavel(ArrayOperationModule, Module):
     def compute(self):
         a = self.getInputFromPort("Array")
         b = NDArray()
-        b.set_array(a.ravel())
+        b.set_array(a.ravel().copy())
         self.setResult("Array Output", b)
 
     @classmethod
@@ -413,7 +413,7 @@ class ArraySwapAxes(ArrayOperationModule, Module):
         a1 = self.getInputFromPort("Axis1")
         a2 = self.getInputFromPort("Axis2")
         out = NDArray()
-        out.set_array(a.swap_axes(a1, a2))
+        out.set_array(a.swap_axes(a1, a2).copy())
         self.setResult("Output Array", out)
 
     @classmethod
@@ -429,7 +429,7 @@ class ArraySqueeze(ArrayOperationModule, Module):
     def compute(self):
         a = self.getInputFromPort("Array")
         out = NDArray()
-        out.set_array(a.squeeze())
+        out.set_array(a.squeeze().copy())
         self.setResult("Output Array", out)
 
     @classmethod

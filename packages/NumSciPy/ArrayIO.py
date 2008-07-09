@@ -32,7 +32,6 @@ class NrrdHelper(object):
         
     def read_raw(self, fn, sizes, dtype, little_end=True):
         try:
-#            fn = "/scratch/eranders/data/joao/foot/" + fn
             fid = open(fn, 'rb')
             print 'fid open'
             dt = self.num_bytes(dtype)
@@ -42,12 +41,13 @@ class NrrdHelper(object):
                 num_el *= sizes[i]
 
             if little_end:
-                data = scipy.io.fread(fid, num_el, dt, 'd')
+                data = scipy.io.fread(fid, num_el, dt, 'f')
             else:
-                data = scipy.io.fread(fid, num_el, dt, 'd', byteswap=1)
+                data = scipy.io.fread(fid, num_el, dt, 'f', byteswap=1)
             fid.close()
-            print 'fid closed'
-            data.shape = sizes
+            l = list(sizes)
+            l.reverse()
+            data.shape = tuple(l)
             return data
         except:
             raise ModuleError("Could not read .raw file!")
