@@ -163,7 +163,7 @@ after self.init()"""
             name = info
         else:
             data = info.split(":")
-            if len(data) == 2:
+            if len(data) >= 2:
                 if use_filename and os.path.isfile(str(data[0])):
                         name = str(data[0])
                 elif not use_filename:
@@ -171,9 +171,12 @@ after self.init()"""
                 # will try to convert version to int
                 # if it fails, it's a tag name
                 try:
-                    version = int(data[1])
+                    #maybe a tag name contains ':' in ist name
+                    #so we need to bring it back together
+                    rest = ":".join(data[1:])
+                    version = int(rest)
                 except ValueError:
-                    version = str(data[1])
+                    version = str(rest)
             elif len(data) == 1:
                 if use_filename and os.path.isfile(str(data[0])):
                     name = str(data[0])
@@ -327,6 +330,10 @@ after self.init()"""
         add("-b", "--noninteractive", action="store_true",
             default = None,
             help="run in non-interactive mode")
+        add("-e", "--dumpcells", action="store", dest="dumpcells",
+            default = None,
+            help="when running in non-interactive mode, directory to dump "
+            "spreadsheet cells before exiting")
         add("-l", "--nologger", action="store_true",
             default = None,
             help="disable the logging")
@@ -381,6 +388,8 @@ after self.init()"""
         if get('noninteractive')!=None:
             self.temp_configuration.interactiveMode = \
                                                   not bool(get('noninteractive'))
+            if get('dumpcells')!=None:
+                self.temp_configuration.spreadsheetDumpCells = get('dumpcells')
             
         self.temp_db_options = InstanceObject(host=get('host'),
                                                  port=get('port'),

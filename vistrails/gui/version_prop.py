@@ -110,6 +110,10 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         vLayout.addWidget(self.versionNotes)
         self.versionNotes.setEnabled(False)
 
+        self.versionWiki = QVersionWiki()
+        vLayout.addWidget(self.versionWiki)
+        self.versionWiki.setVisible(False)
+        
         self.connect(self.tagEdit, QtCore.SIGNAL('editingFinished()'),
                      self.tagFinished)
         self.connect(self.tagEdit, QtCore.SIGNAL('textChanged(QString)'),
@@ -134,6 +138,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         """
         self.controller = controller
         self.versionNotes.controller = controller
+        self.versionWiki.controller = controller
 
     def updateVersion(self, versionNumber):
         """ updateVersion(versionNumber: int) -> None
@@ -142,6 +147,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         """
         self.versionNumber = versionNumber
         self.versionNotes.updateVersion(versionNumber)
+        self.versionWiki.updateVersion(versionNumber)
         
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
@@ -151,6 +157,8 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
                 self.userEdit.setText(action.user)
                 self.dateEdit.setText(action.date)
                 self.tagEdit.setEnabled(True)
+                self.versionWiki.setVisible(self.versionWiki.check_version() and
+                                            versionNumber > 0)
                 return
             else:
                 self.tagEdit.setEnabled(False)
@@ -614,3 +622,70 @@ class QNotesDialog(QtGui.QDialog):
         """
         return QtCore.QSize(250,200)
         
+################################################################################
+class QVersionWiki(QtGui.QWidget):
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        lfont = QtGui.QFont("Lucida Grande", 11)
+        label1 = QtGui.QLabel("Embed:")
+        label1.setFont(lfont)
+        self.controller = None
+        self.tag = '<vistrail host="%s" db="%s" vtid="%s" version="%s" />'
+        self.wikiedt = QtGui.QLineEdit(self)
+        self.wikiedt.setReadOnly(True)
+        self.copylabel = QtGui.QLabel('<a href="copy">Copy to Clipboard</a>')
+        self.copylabel.setFont(lfont)
+        layout = QtGui.QGridLayout()
+        layout.addWidget(label1,0,0)
+        layout.addWidget(self.copylabel,0,1,QtCore.Qt.AlignRight)
+        layout.addWidget(self.wikiedt,1,0,1,-1)
+        self.setLayout(layout)
+
+        self.connect(self.copylabel,
+                     QtCore.SIGNAL("linkActivated(const QString &)"),
+                     self.copy_to_clipboard)
+
+    def check_version(self):
+        """check_version() -> bool
+        Only vistrails on a database are allowed to embed a tag"""
+        result = False
+        if self.controller:
+            if self.controller.locator:
+                if hasattr(self.controller.locator,'host'):
+                    result = True
+        return result
+
+    def check_controller_status(self):
+        """check_controller_status() -> bool
+        this checks if the controller has saved the latest changes """
+        result = False
+        if self.controller:
+            result = not self.controller.changed
+        return result
+    
+    def updateVersion(self, versionNumber):
+        ok = (self.check_version() and self.check_controller_status() and
+              versionNumber > 0)
+        self.wikiedt.setEnabled(ok)
+        self.copylabel.setEnabled(ok)
+        self.wikiedt.setText('')
+        if self.controller and versionNumber > 0:
+            if self.controller.locator and not self.controller.changed:
+                loc = self.controller.locator
+                try:
+                    tag = self.tag % (loc.host,
+                                      loc.db,
+                                      loc.obj_id,
+                                      versionNumber)
+                    self.wikiedt.setText(tag)
+                    return
+                except:
+                    self.wikiedt.setText('')
+            elif self.controller.changed:
+                self.wikiedt.setText('Please, save your vistrails first')
+            else:
+                self.wikiedt.setText('')
+
+    def copy_to_clipboard(self):
+        clipboard = QtGui.QApplication.clipboard()
+        clipboard.setText(self.wikiedt.text())

@@ -262,6 +262,10 @@ class QVistrailView(QDockContainer):
         if self.controller.changed:
             title += '*'
         self.setWindowTitle(title)
+        # propagate the state change to the version prop
+        # maybe in the future we should propagate as a signal
+        versionId = self.controller.current_version
+        self.versionTab.versionProp.updateVersion(versionId)
 
     def emitDockBackSignal(self):
         """ emitDockBackSignal() -> None

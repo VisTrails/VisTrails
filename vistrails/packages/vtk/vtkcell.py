@@ -912,6 +912,12 @@ class QVTKWidget(QCellWidget):
         pixmap.loadFromData(ba, 'PNG')
         return pixmap
 
+    def dumpToFile(self, filename):
+        """dumpToFile() -> None
+        Dumps itself as an image to a file, calling saveToPNG
+        """
+        self.saveToPNG(filename)
+
 class QVTKWidgetCapture(QtGui.QAction):
     """
     QVTKWidgetCapture is the action to capture the vtk rendering
@@ -1079,7 +1085,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                                 action = db.services.action.create_action([('add', 
                                                                            conn)])
                                 Action.convert(action)
-                                controller.vistrail.add_action(action, controller.current_version)
+                                controller.add_new_action(action)
                                 controller.perform_action(action)
                             else:
                                 # Replace the current camera
@@ -1117,7 +1123,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                                         action_list.append(('add', f,
                                                             module.Module.vtType, camera.id))
                                 action = db.services.action.create_action(action_list)
-                                controller.vistrail.add_action(action, controller.current_version)
+                                controller.add_new_action(action)
                                 controller.perform_action(action)
                                 
                         controller.select_latest_version()

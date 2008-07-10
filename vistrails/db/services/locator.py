@@ -344,6 +344,10 @@ class DBLocator(BaseLocator):
         return self._port
     port = property(_get_port)
 
+    def _get_db(self):
+        return self._db
+    db = property(_get_db)
+    
     def _get_obj_id(self):
         return self._obj_id
     obj_id = property(_get_obj_id)

@@ -43,7 +43,7 @@ class MplFigureCell(SpreadsheetCell):
         """
         if self.hasInputFromPort('FigureManager'):
             mfm = self.getInputFromPort('FigureManager')
-            self.display(MplFigureCellWidget, (mfm.figManager, ))
+            self.displayAndWait(MplFigureCellWidget, (mfm.figManager, ))
 
 class MplFigureCellWidget(QCellWidget):
     """
@@ -116,3 +116,15 @@ class MplFigureCellWidget(QCellWidget):
             
             self.figManager.window.deleteLater()
         QCellWidget.deleteLater(self)
+
+    def grabWindowPixmap(self):
+        """ grabWindowPixmap() -> QPixmap
+        Widget special grabbing function
+ 	       
+        """
+        return QtGui.QPixmap.grabWidget(self.figManager.canvas)
+
+    def dumpToFile(self, filename):
+        #resizing to default size so the image is not clipped
+        self.figManager.canvas.figure.set_size_inches(8.0,6.0)
+        self.figManager.canvas.print_figure(filename)

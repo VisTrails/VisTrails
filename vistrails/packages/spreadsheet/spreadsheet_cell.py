@@ -195,6 +195,12 @@ class QCellWidget(QtGui.QWidget):
         """
         return QtGui.QPixmap.grabWidget(self)
 
+    def dumpToFile(self, filename):
+        """ dumpToFile() -> None
+        Dumps itself as an image to a file, calling grabWindowPixmap """
+        pixmap = self.grabWindowPixmap()
+        pixmap.save(filename,"PNG")
+
 ################################################################################
 
 class QCellToolBar(QtGui.QToolBar):

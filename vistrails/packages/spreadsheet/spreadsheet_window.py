@@ -24,6 +24,7 @@
 #   SpreadsheetWindow
 ################################################################################
 import sys
+import os.path
 from PyQt4 import QtCore, QtGui
 from spreadsheet_base import StandardSheetReference
 from spreadsheet_event import BatchDisplayCellEventType, DisplayCellEventType, \
@@ -223,7 +224,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         if hasattr(self.visApp, 'configuration'):
             ### Multiheads
             desktop = QtGui.QApplication.desktop()
-            if self.visApp.configuration.multiHeads and desktop.numScreens()>1:
+            if self.visApp.temp_configuration.multiHeads and desktop.numScreens()>1:
                 builderScreen = desktop.screenNumber(self.visApp.builderWindow)
                 r = desktop.availableGeometry(builderScreen)
                 self.visApp.builderWindow.ensurePolished()
@@ -241,7 +242,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                         self.move(r.center()-self.rect().center()-frameDiff)
                         break
             ### Maximize
-            if self.visApp.configuration.maximizeWindows:
+            if self.visApp.temp_configuration.maximizeWindows:
                 self.showMaximized()
             else:
                 self.show()
@@ -371,9 +372,17 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                                       (e.vistrail, pid, cid))
             sheet.setCellByType(row, col, e.cellType, e.inputPorts)
             QtCore.QCoreApplication.processEvents()
+            cell = sheet.getCell(row, col) 
             if self.editingModeAction().isChecked():
                 sheet.setCellEditingMode(row, col, True)
-            return sheet.getCell(row, col)
+        
+            if self.visApp.temp_configuration.check('spreadsheetDumpCells'):
+                dumppath = self.visApp.temp_configuration.spreadsheetDumpCells
+                filename = os.path.join(dumppath,"%s_%s.png"%(
+                    e.vistrail['moduleId'],
+                    pid))
+                cell.dumpToFile(filename)
+            return cell 
 
     def batchDisplayCellEvent(self, batchEvent):
         """ batchDisplayCellEvent(batchEvent: BatchDisplayCellEvent) -> None

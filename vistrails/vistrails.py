@@ -39,7 +39,8 @@ if __name__ == '__main__':
         import traceback
         traceback.print_exc()
         sys.exit(255)
-    if len(QtGui.QApplication.topLevelWidgets()):
+    if (app.temp_configuration.interactiveMode or
+        app.temp_configuration.spreadsheetDumpCells is None): 
         v = app.exec_()
-        gui.application.stop_application()
+    gui.application.stop_application()
     sys.exit(v)
