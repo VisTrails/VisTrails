@@ -42,12 +42,12 @@ def getCurrentOperationDict(actions, currentOperations=None):
             operationvtType = operation.vtType
             d = operation.__dict__
             if operationvtType == 'add':
-                currentOperations[(d['_DBAdd__db_what'], 
-                                   d['_DBAdd__db_objectId'])] = \
+                currentOperations[(d['_db_what'], 
+                                   d['_db_objectId'])] = \
                                    operation
             elif operationvtType == 'delete':
-                what = d['_DBDelete__db_what']
-                objectId = d['_DBDelete__db_objectId']
+                what = d['_db_what']
+                objectId = d['_db_objectId']
                 t = (what, objectId)
                 try:
                     del currentOperations[t]
@@ -55,8 +55,8 @@ def getCurrentOperationDict(actions, currentOperations=None):
                     msg = "Illegal delete operation"
                     raise Exception(msg)
             elif operationvtType == 'change':
-                what = d['_DBChange__db_what']
-                objectId = d['_DBChange__db_oldObjId']
+                what = d['_db_what']
+                objectId = d['_db_oldObjId']
                 t = (what, objectId)
                 try:
                     del currentOperations[t]
@@ -64,7 +64,7 @@ def getCurrentOperationDict(actions, currentOperations=None):
                     msg = "Illegal change operation"
                     raise Exception(msg)
                 currentOperations[(what,
-                                   d['_DBChange__db_newObjId'])] = operation
+                                   d['_db_newObjId'])] = operation
             else:
                 msg = "Unrecognized operation '%s'" % operation.vtType
                 raise Exception(msg)

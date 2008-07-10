@@ -69,7 +69,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
     of QGraphicsModuleItem, it can either be rectangle or rounded
     
     """
-    def __init__(self, parent=None, optional=False):
+    def __init__(self, x, y, ghosted, parent=None, optional=False):
         """ QGraphicsPortItem(parent: QGraphicsItem,
                               optional: bool)
                               -> QGraphicsPortItem
@@ -78,11 +78,9 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         """
         # local lookups are faster than global lookups..
         t = CurrentTheme
-        QtGui.QGraphicsRectItem.__init__(self, t.PORT_RECT, parent)
+        QtGui.QGraphicsRectItem.__init__(self, t.PORT_RECT.translated(x, y), parent)
         self.setZValue(1)
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
-        self.setPen(t.PORT_PEN)
-        self.setBrush(t.PORT_BRUSH)
         if not optional:
             self.paint = self.paintRect
         else:
@@ -91,7 +89,8 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         self.port = None
         self.dragging = False
         self.connection = None
-        self.ghosted = False
+        self.ghosted = None
+        self.setGhosted(ghosted)
 
     def setGhosted(self, ghosted):
         """ setGhosted(ghosted: True) -> None
@@ -124,14 +123,6 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         
         """
         QtGui.QGraphicsRectItem.paint(self, painter, option, widget)
-
-    def setupPort(self, port):
-        """ setupPort(port: Port) -> None
-        Update the port tooltip, signatures, etc.
-        
-        """
-        self.port = port
-        self.setToolTip(port.toolTip())
 
     def mousePressEvent(self, event):
         """ mousePressEvent(event: QMouseEvent) -> None
@@ -845,29 +836,30 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
 
         # Check to see which ports will be shown on the screen
         # setupModule is in a hotpath, performance-wise, which is the
-        # reason for the strange .__dict__[] lookup calls - we're
+        # reason for the strange ._db_name lookup - we're
         # avoiding property calls
-        visibleOptionalPorts = []
         inputPorts = []
+        visibleOptionalPorts = []
         self.optionalInputPorts = []
         d = PortEndPoint.Destination
+        
         for p in module.destinationPorts():
             if not p.optional:
                 inputPorts.append(p)
-            elif (d, p.__dict__['_DBPort__db_name']) in module.portVisible:
+            elif (d, p._db_name) in module.portVisible:
                 visibleOptionalPorts.append(p)
             else:
                 self.optionalInputPorts.append(p)
         inputPorts += visibleOptionalPorts
 
-        visibleOptionalPorts = []
         outputPorts = []
+        visibleOptionalPorts = []
         self.optionalOutputPorts = []
         s = PortEndPoint.Source
         for p in module.sourcePorts():
             if not p.optional:
                 outputPorts.append(p)
-            elif (s, p.__dict__['_DBPort__db_name']) in module.portVisible:
+            elif (s, p._db_name) in module.portVisible:
                 visibleOptionalPorts.append(p)
             else:
                 self.optionalOutputPorts.append(p)
@@ -953,11 +945,10 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         Create a item from the port spec
         
         """
-        portShape = QGraphicsPortItem(self, port.optional)
+        portShape = QGraphicsPortItem(x, y, self.ghosted, self, port.optional)
         portShape.controller = self.controller
-        portShape.setGhosted(self.ghosted)
-        portShape.setupPort(port)
-        portShape.translate(x, y)
+        portShape.port = port
+        portShape.setToolTip(port.toolTip())
         return portShape
 
     def createConfigureItem(self, x, y):
@@ -1340,7 +1331,7 @@ mutual connections."""
             m2.db_annotations_key_index['__desc__'].value.strip()):
             return True            
         return False
-        
+
     def setupScene(self, pipeline):
         """ setupScene(pipeline: Pipeline) -> None
         Construct the scene to view a pipeline

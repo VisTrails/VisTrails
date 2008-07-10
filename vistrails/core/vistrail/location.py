@@ -77,12 +77,8 @@ class Location(DBLocation, Point):
         if type(other) != type(self):
             return False
         # Skip property lookup for performance
-        dself = self.__dict__
-        dother = other.__dict__
-        xloc = '_DBLocation__db_x'
-        yloc = '_DBLocation__db_y'
-        return ((dself[xloc] - dother[xloc]) ** 2 +
-                (dself[yloc] - dother[yloc])) ** 2 < 1e-8
+        return ((self._db_x - other._db_x) ** 2 +
+                (self._db_y - other._db_y)) ** 2 < 1e-8
 
     def __ne__(self, other):
         return not self.__eq__(other)

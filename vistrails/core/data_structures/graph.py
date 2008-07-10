@@ -514,7 +514,6 @@ class Graph(object):
         Returns true if contracting the subgraph to a single vertex
         doesn't create cycles. This is equivalent to checking whether
         a pipeline subgraph forms a legal abstraction."""
-
         x = copy.copy(self)
         conns_to_subgraph = self.connections_to_subgraph(subgraph)
         conns_from_subgraph = self.connections_from_subgraph(subgraph)
@@ -657,9 +656,9 @@ class Graph(object):
 
         """
         cp = Graph()
-        cp.vertices = copy.deepcopy(self.vertices)
-        cp.adjacency_list = copy.deepcopy(self.adjacency_list)
-        cp.inverse_adjacency_list = copy.deepcopy(self.inverse_adjacency_list)
+        cp.vertices = copy.copy(self.vertices)
+        cp.adjacency_list = dict((k, v[:]) for (k,v) in self.adjacency_list.iteritems())
+        cp.inverse_adjacency_list = dict((k, v[:]) for (k,v) in self.inverse_adjacency_list.iteritems())
         return cp
 
     ##########################################################################
@@ -1049,6 +1048,21 @@ class TestGraph(unittest.TestCase):
          self.assertRaises(GraphException, lambda: g.closest_vertex(1, d3))
          assert g.closest_vertex(3, d1) == 2
          assert g.closest_vertex(3, d2) == 3
+
+     def test_copy_not_share(self):
+         g = self.make_linear(10)
+         g2 = copy.copy(g)
+         for v in g.vertices:
+             assert id(g.adjacency_list[v]) <> id(g2.adjacency_list[v])
+             assert id(g.inverse_adjacency_list[v]) <> id(g2.inverse_adjacency_list[v])
+
+     def test_copy_works(self):
+         g = self.make_linear(10)
+         g2 = copy.copy(g)
+         for v in g.vertices:
+             assert v in g2.vertices
+             assert g2.adjacency_list[v] == g.adjacency_list[v]
+             assert g2.inverse_adjacency_list[v] == g.inverse_adjacency_list[v]
          
 if __name__ == '__main__':
     unittest.main()

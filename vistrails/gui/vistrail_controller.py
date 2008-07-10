@@ -731,6 +731,7 @@ class VistrailController(QtCore.QObject):
                     result = self.current_pipeline
                 if self._cache_pipelines and long(new_version) in self.vistrail.tagMap:
                     # stash a copy for future use
+                    result.ensure_connection_specs()
                     self._pipelines[new_version] = copy.copy(result)
             result.ensure_connection_specs()
             result.ensure_modules_are_on_registry()

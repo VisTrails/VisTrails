@@ -765,8 +765,8 @@ class Pipeline(DBWorkflow):
             def do_it(ports):
                 # Following line is weird because we're in a hot-path
                 port_list.extend([p for p in ports
-                                  if (p.__dict__['_DBPort__db_name'] ==
-                                      port.__dict__['_DBPort__db_name'])])
+                                  if (p._db_name ==
+                                      port._db_name)])
 
             do_it(reg.module_source_ports(False,
                                           module.package,
@@ -802,8 +802,8 @@ class Pipeline(DBWorkflow):
             def do_it(ports):
                 # Following line is weird because we're in a hot-path
                 port_list.extend([p for p in ports
-                                  if (p.__dict__['_DBPort__db_name'] ==
-                                      port.__dict__['_DBPort__db_name'])])
+                                  if (p._db_name ==
+                                      port._db_name)])
 
             do_it(reg.module_destination_ports(False, module.package, module.name, module.namespace))
             if len(port_list) == 0:

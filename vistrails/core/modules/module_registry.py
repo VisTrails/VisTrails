@@ -76,23 +76,22 @@ class PortSpec(object):
             if type(sig_item) == __builtin__.type:
                 return (sig_item, '<no description>')
             elif type(sig_item) == __builtin__.tuple:
-                assert len(sig_item) == 2
-                assert type(sig_item[0]) == __builtin__.type
-                assert type(sig_item[1]) == __builtin__.str
+                # assert len(sig_item) == 2
+                # assert type(sig_item[0]) == __builtin__.type
+                # assert type(sig_item[1]) == __builtin__.str
                 return sig_item
             elif type(sig_item) == __builtin__.list:
                 return (registry.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
                                                         'List').module,
                         '<no description>')
 
-        def _add_entry(sig_item):
-            self._entries.append(canonicalize(sig_item))
+        # def _add_entry(sig_item):
 
         if type(signature) != __builtin__.list:
-            _add_entry(signature)
+            self._entries.append(canonicalize(signature))
         else:
-            for item in signature:
-                _add_entry(item)
+            self._entries.extend(canonicalize(item) for item in signature)
+
 
     def __eq__(self, other):
         if type(self) != type(other):
@@ -179,20 +178,23 @@ class PortSpec(object):
         spec. They should only be used for human-readable purposes.
 
         """
-        def getter(klass):
-            descriptor = get_descriptor(klass)
-            if short:
-                return descriptor.name
-            if descriptor.namespace:
-                namespace_str = ":" + descriptor.namespace
-            else:
-                namespace_str = ""
-            return (descriptor.identifier +
-                    ":" +
-                    descriptor.name +
-                    namespace_str)
-        return  "(" + ",".join([getter(v[0])
-                                for v in self._entries]) + ")"
+        d = get_descriptor
+        if short:
+            return "(" + ",".join(d(klass).name
+                                  for (klass, _) in self._entries) + ")"
+        else:
+            lst = []
+            a = lst.append
+            for (klass, _) in self._entries:
+                descriptor = d(klass)
+                if descriptor.namespace:
+                    a(descriptor.identifier + ":" +
+                      descriptor.name + ":" +
+                      descriptor.namespace)
+                else:
+                    a(descriptor.identifier + ":" +
+                      descriptor.name)
+            return "(" + ",".join(lst) + ")"
 
     @staticmethod
     def from_sigstring(sig):
@@ -659,7 +661,7 @@ class ModuleRegistry(QtCore.QObject):
     # so we can go from one to the next.
 
     def get_descriptor_from_module(self, module):
-        assert issubclass(module, core.modules.vistrails_module.Module)
+        # assert issubclass(module, core.modules.vistrails_module.Module)
         k = self._module_key_map[module]
         n = self._key_tree_map[k]
         return n.descriptor
@@ -771,16 +773,19 @@ class ModuleRegistry(QtCore.QObject):
             key = (identifier, name, namespace)
         else:
             key = (identifier, name)
-        if identifier not in self.package_modules:
-            msg = ("Cannot find package %s: it is missing" % identifier)
-            core.debug.critical(msg)
-            raise self.MissingModulePackage(identifier, name, namespace)
-        if not self._key_tree_map.has_key(key):
-            msg = ("Package %s does not contain module %s" %
-                   (identifier, key))
-            core.debug.critical(msg)
-            raise self.MissingModulePackage(identifier, name, namespace)
-        return self._key_tree_map[key].descriptor
+            
+        try:
+            return self._key_tree_map[key].descriptor
+        except KeyError:
+            if identifier not in self.package_modules:
+                msg = ("Cannot find package %s: it is missing" % identifier)
+                # core.debug.critical(msg)
+                raise self.MissingModulePackage(identifier, name, namespace)
+            if not self._key_tree_map.has_key(key):
+                msg = ("Package %s does not contain module %s" %
+                       (identifier, key))
+                # core.debug.critical(msg)
+                raise self.MissingModulePackage(identifier, name, namespace)
 
     def get_descriptor(self, module):
         """get_descriptor(module: class) -> ModuleDescriptor
@@ -789,9 +794,9 @@ class ModuleRegistry(QtCore.QObject):
         class that subclasses from modules.vistrails_module.Module)
 
         """
-        assert type(module) == type
-        assert issubclass(module, core.modules.vistrails_module.Module)
-        assert self._module_key_map.has_key(module)
+        # assert type(module) == type
+        # assert issubclass(module, core.modules.vistrails_module.Module)
+        # assert self._module_key_map.has_key(module)
         k = self._module_key_map[module]
         return self.get_descriptor_by_name(*k)
 

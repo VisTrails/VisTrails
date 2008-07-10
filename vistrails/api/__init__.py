@@ -79,7 +79,7 @@ def get_current_controller():
 
     returns the VistrailController of the currently selected vistrail.
 
-    raises NoVistrail and NoGUI.
+    raises NoVistrail.
 
     """
     try:
@@ -113,6 +113,7 @@ def add_module(x, y, identifier, name, namespace, controller=None):
     if controller is None:
         controller = get_current_controller()
     controller.add_module(x, y, identifier, name, namespace)
+    controller.current_pipeline_view.setupScene(controller.current_pipeline)
     
 ##############################################################################
 
@@ -167,8 +168,6 @@ def new_vistrail():
     # Returns VistrailView - remember to be consistent about it..
     result = _app.builderWindow.viewManager.newVistrail(False)
     return result
-
-##############################################################################
 
 ##############################################################################
 # Testing

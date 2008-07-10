@@ -126,14 +126,15 @@ class Port(DBPort):
 
     def _get_spec(self):
         return self._spec
+    
+    _port_to_string_map = {PortEndPoint.Invalid: "Invalid",
+          PortEndPoint.Source: "Output",
+          PortEndPoint.Destination: "Input"}
     def _set_spec(self, spec):
         self._spec = spec
         if self._spec is not None:
             self.db_spec = self._spec.create_sigstring()
-            d = {PortEndPoint.Invalid: "Invalid",
-                 PortEndPoint.Source: "Output",
-                 PortEndPoint.Destination: "Input"}
-            self.__tooltip = "%s port %s\n%s" % (d[self.endPoint], 
+            self.__tooltip = "%s port %s\n%s" % (self._port_to_string_map[self.endPoint], 
                                                  self.name,
                                                  self.spec.create_sigstring(short=True))
         else:
