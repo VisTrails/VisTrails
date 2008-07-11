@@ -341,6 +341,8 @@ class QCellToolBarRemoveCell(QtGui.QAction):
         if (r==QtGui.QMessageBox.Yes):
             self.toolBar.sheet.setCellWidget(self.toolBar.row, self.toolBar.col,
                                              None)
+            self.toolBar.sheet.setCellPipelineInfo(self.toolBar.row,
+                                                   self.toolBar.col, None)
 
 class QCellToolBarCaptureToHistory(QtGui.QAction):
     """
