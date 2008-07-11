@@ -839,7 +839,10 @@ class VistrailController(QtCore.QObject):
                 # need to recompute the graph because the refined items might
                 # have changed since last time
                 self.recompute_terse_graph()
-            self.invalidate_version_tree(False)
+                self.invalidate_version_tree(True)
+            else:
+                self.invalidate_version_tree(False)
+            
             self.emit(QtCore.SIGNAL('searchChanged'))
 
     def set_refine(self, refine):

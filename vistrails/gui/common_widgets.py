@@ -427,6 +427,24 @@ class MultiLineWidget(StandardConstantWidget):
                      self.setText(fileName)
                      return
          QtGui.QLineEdit.keyPressEvent(self,event)
+
+class QSearchEditBox(QtGui.QComboBox):
+    def __init__(self, parent=None):
+        QtGui.QComboBox.__init__(self, parent)
+        self.setEditable(True)
+        self.setInsertPolicy(QtGui.QComboBox.InsertAtTop)
+        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
+                           QtGui.QSizePolicy.Fixed)
+        regexp = QtCore.QRegExp("\S.*")
+        self.setDuplicatesEnabled(False)
+        validator = QtGui.QRegExpValidator(regexp, self)
+        self.setValidator(validator)
+
+    def keyPressEvent(self, e):
+        if e.key() in (QtCore.Qt.Key_Return,QtCore.Qt.Key_Enter):
+            if not self.currentText():
+                self.emit(QtCore.SIGNAL('resetText'))
+        QtGui.QComboBox.keyPressEvent(self, e)
         
 class QSearchBox(QtGui.QWidget):
     """ 
@@ -479,15 +497,7 @@ class QSearchBox(QtGui.QWidget):
             self.searchLabel.setMargin(4)
             hLayout.addWidget(self.searchLabel)
         
-        self.searchEdit = QtGui.QComboBox()
-        self.searchEdit.setEditable(True)
-        self.searchEdit.setInsertPolicy(QtGui.QComboBox.InsertAtTop)
-        self.searchEdit.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                                      QtGui.QSizePolicy.Fixed)
-        regexp = QtCore.QRegExp("\S.*")
-        validator = QtGui.QRegExpValidator(regexp, self)
-        self.searchEdit.setValidator(validator)
-        self.searchEdit.addItem('Clear Searches')
+        self.searchEdit = QSearchEditBox(self)
         self.setFocusProxy(self.searchEdit)
         #TODO: Add separator!
         self.searchEdit.clearEditText()
@@ -505,8 +515,10 @@ class QSearchBox(QtGui.QWidget):
                      self.resetSearch)
         self.connect(self.searchEdit, QtCore.SIGNAL('editTextChanged(QString)'),
                      self.executeIncrementalSearch)
-        self.connect(self.searchEdit, QtCore.SIGNAL('activated(int)'),
+        self.connect(self.searchEdit, QtCore.SIGNAL('activated(const QString &)'),
                      self.executeSearch)
+        self.connect(self.searchEdit, QtCore.SIGNAL('resetText'),
+                     self.resetSearch)
 
     def resetSearch(self):
         """
@@ -551,19 +563,13 @@ class QSearchBox(QtGui.QWidget):
         self.resetButton.setEnabled(str(text)!='')
         self.emit(QtCore.SIGNAL('executeIncrementalSearch(QString)'), text)
 
-    def executeSearch(self, index):
+    def executeSearch(self, text):
         """
-        executeSearch(index: int) -> None
+        executeSearch(text: QString) -> None
         The text is finished changing or a different item was selected.
 
         """
-        count = self.searchEdit.count()
-        if index == count-1:
-            for i in xrange(count-1):
-                self.searchEdit.removeItem(0)
-            self.resetSearch()
-        else:
-            self.resetButton.setEnabled(True)
-            self.emit(QtCore.SIGNAL('executeSearch(QString)'), 
-                      self.searchEdit.currentText())
+        self.resetButton.setEnabled(True)
+        self.emit(QtCore.SIGNAL('executeSearch(QString)'), 
+                  text)
 

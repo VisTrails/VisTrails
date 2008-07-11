@@ -957,11 +957,4 @@ class QVersionTreeView(QInteractiveGraphicsView):
         self.versionProp = QVersionPropOverlay(self)
         self.versionProp.hide()
 
-    def resetView(self, recompute_bounding_rect=False):
-        """ resetView(recompute_bounding_rect=False) -> None
-        It is the same is calling Ctrl+R to reset the camera
-        
-        """
-        self.scene().fitToView(self, recompute_bounding_rect)
-
 ################################################################################
