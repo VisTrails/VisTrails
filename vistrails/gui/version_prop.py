@@ -191,14 +191,16 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         self.tagEdit.setText('')
         self.tagFinished()
         
-    def resetSearch(self):
+    def resetSearch(self, emit_signal=True):
         """
         resetSearch() -> None
 
         """
-        if self.controller:
+        if self.controller and emit_signal:
             self.controller.set_search(None)
             self.emit(QtCore.SIGNAL('textQueryChange(bool)'), False)
+        else:
+            self.searchBox.clearSearch()
     
     def executeSearch(self, text):
         """

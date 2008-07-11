@@ -180,6 +180,10 @@ class QVistrailView(QDockContainer):
         self.versionTab.versionView.setQueryEnabled(on)
         self.queryTab.pipelineView.setQueryEnabled(on)
 
+        #repositioning the tree, so it is always visible when searching
+        # although I'm not sure if this is the right place (Emanuele)
+        self.versionTab.versionView.resetView(True)
+
     def setMethodsMode(self, on):
         """ setMethodsMode(on: bool) -> None
         Set the methods panel state for the view

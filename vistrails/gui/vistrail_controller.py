@@ -835,6 +835,10 @@ class VistrailController(QtCore.QObject):
             self.search_str = text
             if self.search:
                 self.search.run(self.vistrail, '')
+            if self.refine:
+                # need to recompute the graph because the refined items might
+                # have changed since last time
+                self.recompute_terse_graph()
             self.invalidate_version_tree(False)
             self.emit(QtCore.SIGNAL('searchChanged'))
 
@@ -845,9 +849,9 @@ class VistrailController(QtCore.QObject):
         """
         if self.refine!=refine:
             self.refine = refine
-            if self.refine:
-                # FIXME should this be here?
-                self.select_latest_version()
+            # need to recompute the graph because the refined items might
+            # have changed since last time
+            self.recompute_terse_graph()
             self.invalidate_version_tree(True)
 
     def set_full_tree(self, full):
@@ -890,17 +894,26 @@ class VistrailController(QtCore.QObject):
                 (len(children) <> 1) or # not oneChild:
                 (current == self.current_version)): # isCurrentVersion
                 # yes it will!
-
-                # add vertex...
-                tersedVersionTree.add_vertex(current)
+                # this needs to be here because if we are refining
+                # version view receives the graph without the non
+                # matching elements
+                if( (not self.refine) or
+                    (self.refine and not self.search) or
+                    (current == 0) or
+                    (self.refine and self.search and 
+                     self.search.match(self.vistrail,am[current]))):
+                    # add vertex...
+                    tersedVersionTree.add_vertex(current)
                 
-                # ...and the parent
-                if parent is not None:
-                    tersedVersionTree.add_edge(parent,current,0)
+                    # ...and the parent
+                    if parent is not None:
+                        tersedVersionTree.add_edge(parent,current,0)
 
-            # update the parent info that will 
-            # be used by the childs of this node
-                parentToChildren = current
+                    # update the parent info that will 
+                    # be used by the childs of this node
+                    parentToChildren = current
+                else:
+                    parentToChildren = parent
             else:
                 parentToChildren = parent
 

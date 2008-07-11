@@ -345,7 +345,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
                 self.versionLabelPen = CurrentTheme.VERSION_LABEL_PEN
                 self.versionBrush = CurrentTheme.VERSION_USER_BRUSH
 
-    def update_color(self, isThisUs, new_rank, new_max_rank):
+    def update_color(self, isThisUs, new_rank, new_max_rank, new_ghosted):
         """ update_color(isThisUs: bool,
                          new_rank, new_max_rank: int) -> None
 
@@ -354,9 +354,11 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
 
         NOTE: if username changes during execution, this might break.
         """
-        if new_rank == self.rank and new_max_rank == self.max_rank:
+        if (new_rank == self.rank and new_max_rank == self.max_rank and
+            new_ghosted == self.ghosted):
             # nothing changed
             return
+        self.setGhosted(new_ghosted)
         self.rank = new_rank
         self.max_rank = new_max_rank
         if not self.ghosted:
@@ -732,11 +734,14 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                                                       am[nodeId])
             else:
                 ghosted = False
-            item.setGhosted(ghosted)
+                
+            #item.setGhosted(ghosted) # we won't set it now so we can check if
+                                      # the state changed in update_color
+            
             max_rank = ourMaxRank if nodeUser==currentUser else otherMaxRank
             item.update_color(nodeUser==currentUser,
                               ranks[nodeId],
-                              max_rank)
+                              max_rank, ghosted)
 
     def has_edge(self, graph, frm, to):
         """ FIXME: this should go to the graph classget_edge(frm, to) -> edge_id
@@ -933,7 +938,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             self.emit(QtCore.SIGNAL('versionSelected(int, bool)'),
                       -1, True)
         qt_super(QVersionTreeScene, self).mouseReleaseEvent(event)
-
+        
 class QVersionTreeView(QInteractiveGraphicsView):
     """
     QVersionTreeView inherits from QInteractiveGraphicsView that will
@@ -951,5 +956,12 @@ class QVersionTreeView(QInteractiveGraphicsView):
         self.setScene(QVersionTreeScene(self))
         self.versionProp = QVersionPropOverlay(self)
         self.versionProp.hide()
+
+    def resetView(self, recompute_bounding_rect=False):
+        """ resetView(recompute_bounding_rect=False) -> None
+        It is the same is calling Ctrl+R to reset the camera
+        
+        """
+        self.scene().fitToView(self, recompute_bounding_rect)
 
 ################################################################################

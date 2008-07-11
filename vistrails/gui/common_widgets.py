@@ -516,7 +516,17 @@ class QSearchBox(QtGui.QWidget):
         """
         self.searchEdit.clearEditText()
         self.resetButton.setEnabled(False)
-        self.emit(QtCore.SIGNAL('resetSearch()')) 
+        self.emit(QtCore.SIGNAL('resetSearch()'))
+
+    def clearSearch(self):
+        """ clearSearch() -> None
+        Clear the edit text without emitting resetSearch() signal
+        This is for when the search is rest from the version view and
+        the signal are already taken care of
+
+        """
+        self.searchEdit.clearEditText()
+        self.resetButton.setEnabled(False)
 
     def searchMode(self):
         """

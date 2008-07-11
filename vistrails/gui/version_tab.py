@@ -170,3 +170,5 @@ class QVersionTab(QDockContainer, QToolWindowInterface):
 
         """
         self.emit(QtCore.SIGNAL('resetQuery()'))
+        self.versionProp.resetSearch(emit_signal=False)
+        
