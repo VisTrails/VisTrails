@@ -1422,7 +1422,6 @@ mutual connections."""
                     if (srcModule.module.id in moved) or (dstModule.module.id in moved):
                         srcPoint = srcModule.getOutputPortPosition(connection.source)
                         dstPoint = dstModule.getInputPortPosition(connection.destination)
-                        pip_c.setupConnection(dstPoint, srcPoint)
 
                 self._old_module_ids = new_modules
                 self._old_connection_ids = new_connections
@@ -1885,8 +1884,9 @@ class QPipelineView(QInteractiveGraphicsView):
 
 import unittest
 import api
+import gui.utils
 
-class TestPipelineView(unittest.TestCase):
+class TestPipelineView(gui.utils.TestVisTrailsGUI):
 
     def test_quick_change_version_with_ports(self):
         import core.system
@@ -1896,6 +1896,14 @@ class TestPipelineView(unittest.TestCase):
         api.select_version(-1, view.controller)
         api.select_version('count + area', view.controller)
         api.select_version('writing to file', view.controller)
+
+    def test_change_version_with_common_connections(self):
+        import core.system
+        filename = (core.system.vistrails_root_directory() + 
+                    '/tests/resources/terminator.vt')
+        view = api.open_vistrail_from_file(filename)
+        api.select_version('Image Slices HW', view.controller)
+        api.select_version('Combined Rendering HW', view.controller)
 
     def test_switch_mode(self):
         api.switch_to_pipeline_view()
