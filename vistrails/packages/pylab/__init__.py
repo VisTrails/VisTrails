@@ -114,12 +114,12 @@ def initialize(*args, **keywords):
 #     reg.add_input_port(MplPlot, 'source', String, True)
     reg.add_output_port(MplPlot, 'source', String)
     
+    reg.add_module(MplFigureManager)
+
     reg.add_module(MplFigure)
     reg.add_input_port(MplFigure, 'Script', String)
     reg.add_output_port(MplFigure, 'FigureManager', MplFigureManager)
     reg.add_output_port(MplFigure, 'File', File)
-    
-    reg.registry.add_module(MplFigureManager)
     
     # Register a figure cell type if the spreadsheet is up
     if reg.registry.has_module('edu.utah.sci.vistrails.spreadsheet',

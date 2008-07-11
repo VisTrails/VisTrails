@@ -71,7 +71,7 @@ class PortSpec(object):
 
         # multiple parameters, where each parameter can be either of the above:
         # add_input_port(_, _, [Float, (Integer, 'count')])
-        
+
         def canonicalize(sig_item):
             if type(sig_item) == __builtin__.type:
                 return (sig_item, '<no description>')
@@ -86,12 +86,14 @@ class PortSpec(object):
                         '<no description>')
 
         # def _add_entry(sig_item):
-
         if type(signature) != __builtin__.list:
             self._entries.append(canonicalize(signature))
         else:
             self._entries.extend(canonicalize(item) for item in signature)
 
+        (short, long) = self.create_both_sigstrings()
+        self._short_sigstring = short
+        self._long_sigstring = short
 
     def __eq__(self, other):
         if type(self) != type(other):
@@ -168,8 +170,25 @@ class PortSpec(object):
         else:
             raise VistrailsInternalError("Was expecting a valid endpoint")
 
+    def create_both_sigstrings(self):
+        """create_both_sigstrings() -> (string, string)
+
+        Returns both long and short portspec sigstrings."""
+
+        d = get_descriptor
+        lst1 = []
+        a1 = lst1.append
+        lst2 = []
+        a2 = lst2.append
+        for (klass, _) in self._entries:
+            descriptor = d(klass)
+            a1(descriptor.sigstring)
+            a2(descriptor.name)
+        return ("(" + ",".join(lst1) + ")",
+                "(" + ",".join(lst2) + ")")
+
     def create_sigstring(self, short=False):
-        """create_sig(self, short=False) -> string
+        """create_sigstring(short=False) -> string
 
         Returns a string with the signature of the portspec.
 
@@ -178,23 +197,10 @@ class PortSpec(object):
         spec. They should only be used for human-readable purposes.
 
         """
-        d = get_descriptor
         if short:
-            return "(" + ",".join(d(klass).name
-                                  for (klass, _) in self._entries) + ")"
+            return self._short_sigstring
         else:
-            lst = []
-            a = lst.append
-            for (klass, _) in self._entries:
-                descriptor = d(klass)
-                if descriptor.namespace:
-                    a(descriptor.identifier + ":" +
-                      descriptor.name + ":" +
-                      descriptor.namespace)
-                else:
-                    a(descriptor.identifier + ":" +
-                      descriptor.name)
-            return "(" + ",".join(lst) + ")"
+            return self._long_sigstring
 
     @staticmethod
     def from_sigstring(sig):
@@ -296,6 +302,11 @@ class ModuleDescriptor(object):
         self._input_port_cache = {}
         self._output_port_cache = {}
         self._port_caches = (self._input_port_cache, self._output_port_cache)
+
+        if namespace:
+            self.sigstring = identifier + ":" + name + ":" + namespace
+        else:
+            self.sigstring = identifier + ":" + name
 
     def assign(self, other):
         """assign(ModuleDescriptor) -> None. Assigns values from other

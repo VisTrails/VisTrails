@@ -42,25 +42,24 @@ class DBWorkflow(_DBWorkflow):
         cp = _DBWorkflow.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = DBWorkflow
         # need to go through and reset the index to the copied objects
-        cp.objects = {}
-        for (child, _, _) in cp.db_children():
-            cp.add_to_index(child)
+        cp.build_index()
         cp.tmp_id = copy.copy(self.tmp_id)
         return cp        
 
+    _vtTypeMap = {'abstractionRef': 'module', 'group': 'module'}
+
+    def build_index(self):
+        g = self._vtTypeMap.get
+        self.objects = dict(((g(o.vtType, o.vtType), o._db_id), o)
+                            for (o,_,_) in self.db_children())
+
     def add_to_index(self, object):
-        if object.vtType == 'abstractionRef' or object.vtType == 'group':
-            obj_type = 'module'
-        else:
-            obj_type = object.vtType
+        obj_type = self._vtTypeMap.get(object.vtType, object.vtType)
         self.objects[(obj_type, object.getPrimaryKey())] = object
 
     def delete_from_index(self, object):
-        if object.vtType == 'abstractionRef' or object.vtType == 'group':
-            obj_type = 'module'
-        else:
-            obj_type = object.vtType
-	del self.objects[(obj_type, object.getPrimaryKey())]
+        obj_type = self._vtTypeMap.get(object.vtType, object.vtType)
+        del self.objects[(obj_type, object.getPrimaryKey())]
 
     def capitalizeOne(self, str):
 	return str[0].upper() + str[1:]

@@ -204,8 +204,7 @@ class DBModule(object):
             cp._db_id = new_id
         
         # recreate indices and set flags
-        for v in cp._db_functions:
-            cp.db_functions_id_index[v._db_id] = v
+        cp.db_functions_id_index = dict((v._db_id, v) for v in cp._db_functions)
         for v in cp._db_annotations:
             cp.db_annotations_id_index[v._db_id] = v
             cp.db_annotations_key_index[v._db_key] = v
@@ -786,8 +785,7 @@ class DBGroup(object):
             cp._db_id = new_id
         
         # recreate indices and set flags
-        for v in cp._db_functions:
-            cp.db_functions_id_index[v._db_id] = v
+        cp.db_functions_id_index = dict((v._db_id, v) for v in cp._db_functions)
         for v in cp._db_annotations:
             cp.db_annotations_id_index[v._db_id] = v
             cp.db_annotations_key_index[v._db_key] = v
@@ -1911,13 +1909,14 @@ class DBFunction(object):
         self._db_pos = pos
         self._db_name = name
         self.db_deleted_parameters = []
-        self.db_parameters_id_index = {}
         if parameters is None:
             self._db_parameters = []
+            self.db_parameters_id_index = {}
         else:
             self._db_parameters = parameters
-            for v in self._db_parameters:
-                self.db_parameters_id_index[v._db_id] = v
+            self.db_parameters_id_index = dict((v._db_id, v)
+                                               for v in
+                                               self._db_parameters)
         self.is_dirty = True
         self.is_new = True
     
@@ -1943,8 +1942,9 @@ class DBFunction(object):
             cp._db_id = new_id
         
         # recreate indices and set flags
-        for v in cp._db_parameters:
-            cp.db_parameters_id_index[v._db_id] = v
+        cp.db_parameters_id_index = dict((v._db_id, v)
+                                         for v in
+                                         cp._db_parameters)
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp

@@ -743,15 +743,6 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                               ranks[nodeId],
                               max_rank, ghosted)
 
-    def has_edge(self, graph, frm, to):
-        """ FIXME: this should go to the graph classget_edge(frm, to) -> edge_id
-        Returns the id from the edge from->to."""
-        for (t, e_id) in graph.edges_from(frm):
-            if t == to:
-                return True
-        return False
-
-
     def update_scene_single_node_change(self, controller, old_version, new_version):
         """ update_scene_single_node_change(controller: VistrailController,
         old_version, new_version: int) -> None
@@ -818,24 +809,17 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         # O(n  * (hashmap query key time)) on 
         # where n is the number of current 
         # nodes in the scene
-        removeNodeSet = set()
-        for id in self.versions.iterkeys():
-            if not tree.vertices.has_key(id):
-                removeNodeSet.add(id)
+        removeNodeSet = set(i for i in self.versions
+                            if not i in tree.vertices)
 
         # compute edges to be removed
         # O(n * (hashmap query key time)) 
         # where n is the number of current 
         # edges in the scene
-        removeEdgeSet = set()
-        for e in self.edges.iterkeys():
-            (source,target) = e
-            if source in removeNodeSet:
-                removeEdgeSet.add(e)
-            elif target in removeNodeSet:
-                removeEdgeSet.add(e)
-            elif not self.has_edge(tree,source,target):
-                removeEdgeSet.add(e)
+        removeEdgeSet = set((s, t) for (s, t) in self.edges
+                            if (s in removeNodeSet or
+                                t in removeNodeSet or
+                                not tree.has_edge(s, t)))
 
         # remove gui edges from scene
         for (v1, v2) in removeEdgeSet:
@@ -844,7 +828,6 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         # remove gui nodes from scene
         for v in removeNodeSet:
             self.removeVersion(v)
-
 
         # layout the tree
         # remove nodes from the scene

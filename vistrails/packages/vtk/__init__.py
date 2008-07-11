@@ -33,7 +33,7 @@ from core.bundles import py_import
 vtk = py_import('vtk', {'linux-ubuntu': 'python-vtk',
                         'linux-fedora': 'vtk-python'})
 
-from core.utils import all, any, VistrailsInternalError
+from core.utils import all, any, VistrailsInternalError, InstanceObject
 from core.debug import log
 from core.modules.basic_modules import Integer, Float, String, File, \
      Variant, Color
@@ -309,7 +309,7 @@ disallowed_set_get_ports = set(['ReferenceCount',
                                 'ProgressText',
                                 'InputArrayToProcess',
                                 ])
-def addSetGetPorts(module, get_set_dict):
+def addSetGetPorts(module, get_set_dict, delayed):
     """ addSetGetPorts(module: Module, get_set_dict: dict) -> None
     Convert all Setxxx methods of module into input ports and all Getxxx
     methods of module into output ports
@@ -362,7 +362,17 @@ def addSetGetPorts(module, get_set_dict):
                                (File, 'input file'), False)
             # Wrap SetRenderWindow for exporters
             elif name == 'RenderWindow':
-                add_input_port(module, 'SetVTKCell', VTKCell, False)
+                # cscheid 2008-07-11 This is messy: VTKCell isn't
+                # registered yet, so we can't use it as a port
+                # However, we can't register VTKCell before these either,
+                # because VTKCell requires vtkRenderer. The "right" way would
+                # be to add all modules first, then all ports. However, that would
+                # be too slow.
+                # Workaround: delay the addition of the port by storing
+                # the information in a list
+                if registry.has_module('edu.utah.sci.vistrails.spreadsheet',
+                                       'SpreadsheetCell'):
+                    delayed.add_input_port.append((module, 'SetVTKCell', VTKCell, False))
             # Wrap color methods for VisTrails GUI facilities
             elif name == 'DiffuseColor':
                 add_input_port(module, 'SetDiffuseColorWidget',
@@ -566,9 +576,15 @@ def addGetPorts(module, get_list):
                     n = name
                 add_output_port(module, n, class_, True)
     
-def addPorts(module):
-    """ addPorts(module: VTK module inherited from Module) -> None
+def addPorts(module, delayed):
+    """ addPorts(module: VTK module inherited from Module,
+                 delayed: object with add_input_port slot
+    ) -> None
+    
     Search all metamethods of module and add appropriate ports
+
+    ports that cannot be added immediately should be appended to
+    the delayed object that is passed. see the SetRenderWindow cases.
 
     """
     klass = get_description_class(module.vtkClass)
@@ -576,7 +592,7 @@ def addPorts(module):
     parser.parse(klass)
     addAlgorithmPorts(module)
     addGetPorts(module, parser.get_get_methods())
-    addSetGetPorts(module, parser.get_get_set_methods())
+    addSetGetPorts(module, parser.get_get_set_methods(), delayed)
     addTogglePorts(module, parser.get_toggle_methods())
     addStatePorts(module, parser.get_state_methods())
     addOtherPorts(module, parser.get_other_methods())
@@ -600,14 +616,14 @@ def addPorts(module):
     elif klass==vtk.vtkCell:
         add_input_port(module, 'SetPointIds', typeMap('vtkIdList'))
 
-def setAllPorts(treeNode):
+def setAllPorts(treeNode, delayed):
     """ setAllPorts(treeNode: TreeNode) -> None
     Traverse treeNode and all of its children/grand-children to add all ports
 
     """
-    addPorts(treeNode.descriptor.module)
+    addPorts(treeNode.descriptor.module, delayed)
     for child in treeNode.children:
-        setAllPorts(child)
+        setAllPorts(child, delayed)
 
 def class_dict(base_module, node):
     """class_dict(base_module, node) -> dict
@@ -917,13 +933,15 @@ def initialize():
     # Transfer Function constant
     tf_widget.initialize()
 
+    delayed = InstanceObject(add_input_port=[])
     # Add VTK modules
     add_module(vtkBaseModule)
     createAllModules(inheritanceGraph)
     setAllPorts(registry.get_tree_node_from_name(identifier,
-                                                 'vtkObjectBase'))
+                                                 'vtkObjectBase'),
+                delayed)
 
-    # Register the VTKCell type if the spreadsheet is up
+    # Register the VTKCell and VTKHandler type if the spreadsheet is up
     if registry.has_module('edu.utah.sci.vistrails.spreadsheet',
                            'SpreadsheetCell'):
         import vtkhandler
@@ -934,6 +952,10 @@ def initialize():
     # register offscreen rendering module
     offscreen.register_self()
 
+    # Now add all "delayed" ports - see comment on addSetGetPorts
+    for args in delayed.add_input_port:
+        
+        add_input_port(*args)
 
     # register Transfer Function adjustment
     # This can't be reordered -- TransferFunction needs to go before

@@ -69,6 +69,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
     of QGraphicsModuleItem, it can either be rectangle or rounded
     
     """
+    _rect = CurrentTheme.PORT_RECT
     def __init__(self, x, y, ghosted, parent=None, optional=False):
         """ QGraphicsPortItem(parent: QGraphicsItem,
                               optional: bool)
@@ -77,8 +78,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         
         """
         # local lookups are faster than global lookups..
-        t = CurrentTheme
-        QtGui.QGraphicsRectItem.__init__(self, t.PORT_RECT.translated(x, y), parent)
+        QtGui.QGraphicsRectItem.__init__(self, self._rect.translated(x, y), parent)
         self.setZValue(1)
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
         if not optional:
@@ -238,7 +238,7 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
     def itemChange(self, change, value):
         """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
         Do not allow port to be selected
-        
+
         """
         if change==QtGui.QGraphicsItem.ItemSelectedChange and value.toBool():
             return QtCore.QVariant(False)
@@ -254,23 +254,19 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
     of QGraphicsModuleItem
     
     """
+    _pen = CurrentTheme.CONFIGURE_PEN
+    _brush = CurrentTheme.CONFIGURE_BRUSH
+    _shape = CurrentTheme.CONFIGURE_SHAPE
     def __init__(self, parent=None, scene=None):
         """ QGraphicsConfigureItem(parent: QGraphicsItem, scene: QGraphicsScene)
                               -> QGraphicsConfigureItem
         Create the shape, initialize its pen and brush accordingly
         
         """
-        QtGui.QGraphicsPolygonItem.__init__(self, parent, scene)
+        QtGui.QGraphicsPolygonItem.__init__(self, self._shape, parent, scene)
         self.setZValue(1)
-        self.setPen(CurrentTheme.CONFIGURE_PEN)
-        self.setBrush(CurrentTheme.CONFIGURE_BRUSH)
-        self.setPolygon(CurrentTheme.CONFIGURE_SHAPE)
-#         poly = QtGui.QPolygon(3)
-#         poly.setPoint(0, 0, 0)
-#         poly.setPoint(1, 0, CurrentTheme.CONFIGURE_HEIGHT)
-#         poly.setPoint(2, CurrentTheme.CONFIGURE_WIDTH,
-#                       CurrentTheme.CONFIGURE_HEIGHT/2)
-#         self.setPolygon(QtGui.QPolygonF(poly))
+        self.setPen(self._pen)
+        self.setBrush(self._brush)
         self.ghosted = False
         self.controller = None
         self.moduleId = None
@@ -502,31 +498,8 @@ else:
         QGraphicsConnectionItem is a connection shape connecting two port items
 
         """
-        def __init__(self, parent=None, scene=None):
-            """ QGraphicsConnectionItem(parent: QGraphicsItem,
-                                        scene: QGraphicsScene)
-                                        -> QGraphicsConnectionItem
-            Create the shape, initialize its pen and brush accordingly
 
-            """
-            QtGui.QGraphicsPolygonItem.__init__(self, parent, scene)
-            self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
-            self.setZValue(2)
-            self.connectionPen = CurrentTheme.CONNECTION_PEN
-            self.startPos = QtCore.QPointF()
-            self.endPos = QtCore.QPointF()
-            self.connectingModules = (None, None)
-            self.id = -1
-            self.ghosted = False
-            self.connection = None
-            # Keep a flag for changing selection state during module selection
-            self.useSelectionRules = True
-
-        def setupConnection(self, startPos, endPos):
-            """ setupConnection(startPos: QPointF, endPos: QPointF) -> None
-            Setup curve ends and store info
-
-            """
+        def create_path(self, startPos, endPos):
             self.startPos = startPos
             self.endPos = endPos
 
@@ -587,8 +560,35 @@ else:
 
             path = QtGui.QPainterPath(self.startPos)
             path.cubicTo(self._control_1, self._control_2, self.endPos)
+            return path
+            
+        def __init__(self,
+                     srcPoint, dstPoint,
+                     srcModule, dstModule,
+                     connection,
+                     parent=None):
+            """ QGraphicsConnectionItem(
+            srcPoint, dstPoint: QPointF
+            srcModule, dstModule: QGraphicsModuleItem
+            connection
+            parent: QGraphicsItem)
+                                        -> QGraphicsConnectionItem
+            Create the shape, initialize its pen and brush accordingly
 
-            self.setPath(path)
+            """
+            path = self.create_path(srcPoint, dstPoint)
+            QtGui.QGraphicsPolygonItem.__init__(self, path, parent)
+            self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+            # Bump it slightly higher than the highest module
+            self.setZValue(max(srcModule.id,
+                               dstModule.id) + 0.1)
+            self.connectionPen = CurrentTheme.CONNECTION_PEN
+            self.connectingModules = (srcModule, dstModule)
+            self.ghosted = False
+            self.connection = connection
+            self.id = connection.id
+            # Keep a flag for changing selection state during module selection
+            self.useSelectionRules = True
 
         def setGhosted(self, ghosted):
             """ setGhosted(ghosted: True) -> None
@@ -818,7 +818,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.setZValue(float(self.id))
         self.module = module
         self.center = copy.copy(module.center)
-        if module.has_annotation_with_key('__desc__'):
+        if '__desc__' in module._db_annotations:
             self.label = module.get_annotation_by_key('__desc__').value.strip()
             self.description = module.label
         else:
@@ -966,7 +966,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
     def getPortPosition(self, port, portDict):
         """ getPortPosition(port: Port,
                             portDict: {Port:QGraphicsPortItem})
-                            -> QRectF
+                            -> QPointF
         Return the scene position of a port matched 'port' in portDict
         
         """
@@ -976,7 +976,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         return None
 
     def getInputPortPosition(self, port):
-        """ getInputPortPosition(port: Port) -> QRectF
+        """ getInputPortPosition(port: Port) -> QPointF
         Just an overload function of getPortPosition to get from input ports
         
         """
@@ -1018,14 +1018,14 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 result.append((sc.connections[edge_id], False))
         except KeyError:
             # On module about to be deleted, the
-            # qmodulegraphicsitemexists, but the pipeline is gone
+            # qmodulegraphicsitem exists, but the pipeline is gone
             pass
         try:
             for (_, edge_id) in pip.graph.edges_to(self.module.id):
                 result.append((sc.connections[edge_id], True))
         except KeyError:
             # On module about to be deleted, the
-            # qmodulegraphicsitemexists, but the pipeline is gone
+            # qmodulegraphicsitem exists, but the pipeline is gone
             pass
         return result
 
@@ -1212,14 +1212,11 @@ class QPipelineScene(QInteractiveGraphicsScene):
         dstModule = self.modules[connection.destination.moduleId]
         srcPoint = srcModule.getOutputPortPosition(connection.source)
         dstPoint = dstModule.getInputPortPosition(connection.destination)
-        connectionItem = QGraphicsConnectionItem(None)
-        connectionItem.setupConnection(dstPoint, srcPoint)
+        connectionItem = QGraphicsConnectionItem(srcPoint, dstPoint,
+                                                 srcModule, dstModule,
+                                                 connection)
         connectionItem.id = connection.id
-        # Bump it slightly higher than the highest module
-        connectionItem.setZValue(max(srcModule.id,
-                                     dstModule.id) + 0.1)
         connectionItem.connection = connection
-        connectionItem.connectingModules = (srcModule, dstModule)
         self.addItem(connectionItem)
         self.connections[connection.id] = connectionItem
         self._old_connection_ids.add(connection.id)
@@ -1362,40 +1359,44 @@ mutual connections."""
                 moved = set()
                 # Update common modules
                 for m_id in common_modules:
-                    if (self.modules[m_id].center !=
-                        pipeline.modules[m_id].center):
+                    tm_item = self.modules[m_id]
+                    tm = tm_item.module
+                    nm = pipeline.modules[m_id]
+                    if tm_item.center != nm.center:
                         self.recreate_module(pipeline, m_id)
                         moved.add(m_id)
-                    elif self.module_text_has_changed(self.modules[m_id].module,
-                                                   pipeline.modules[m_id]):
+                    elif self.module_text_has_changed(tm, nm):
                         self.recreate_module(pipeline, m_id)                    
-                    self.modules[m_id].module = pipeline.modules[m_id]
+                    tm_item.module = nm
                     m = self.modules[m_id]
                     if m._moved:
                         self.recreate_module(pipeline, m_id)
                         moved.add(m_id)
                         m._moved = False
                     # Check for changed ports
-                    cip = sorted([x.key_no_id() for x in self.modules[m_id].inputPorts])
-                    cop = sorted([x.key_no_id() for x in self.modules[m_id].outputPorts])
-                    new_ip = sorted([x.key_no_id() for x in pipeline.modules[m_id].destinationPorts()
+                    # _db_name because this shows up in the profile.
+                    cip = sorted([x.key_no_id() for x in tm_item.inputPorts])
+                    cop = sorted([x.key_no_id() for x in tm_item.outputPorts])
+                    d = PortEndPoint.Destination
+                    s = PortEndPoint.Source
+                    pv = nm.portVisible
+                    new_ip = sorted([x.key_no_id() for x in nm.destinationPorts()
                                      if (not x.optional or
-                                         (PortEndPoint.Destination, x.name) in pipeline.modules[m_id].portVisible)])
-                    new_op = sorted([x.key_no_id() for x in pipeline.modules[m_id].sourcePorts()
+                                         (d, x._db_name) in pv)])
+                    new_op = sorted([x.key_no_id() for x in nm.sourcePorts()
                                      if (not x.optional or
-                                         (PortEndPoint.Source, x.name) in pipeline.modules[m_id].portVisible)])
+                                         (s, x._db_name) in pv)])
                     if cip <> new_ip or cop <> new_op:
                         self.recreate_module(pipeline, m_id)
-                    if self.modules[m_id].isSelected:
+                    if tm_item.isSelected:
                         selected_modules.append(m_id)
                     if self.controller and self.controller.search:
-                        q_module = pipeline.modules[m_id]
-                        moduleQuery = (self.controller.current_version, q_module)
+                        moduleQuery = (self.controller.current_version, nm)
                         matched = \
                             self.controller.search.matchModule(*moduleQuery)
-                        self.modules[m_id].setGhosted(not matched)
+                        tm_item.setGhosted(not matched)
                     else:
-                        self.modules[m_id].setGhosted(False)
+                        tm_item.setGhosted(False)
 
                 new_connections = set(pipeline.connections)
                 connections_to_be_added = new_connections - self._old_connection_ids
