@@ -131,7 +131,6 @@ class QParameterTreeWidget(QSearchTreeWidget):
                     if moduleItem==None:
                         if inspector.annotated_modules.has_key(mId):
                             annotatedId = inspector.annotated_modules[mId]
-                            print annotatedId
                             moduleItem = QParameterTreeWidgetItem(annotatedId,
                                                                   self, mLabel)
                         else:
