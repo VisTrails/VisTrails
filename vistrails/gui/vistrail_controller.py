@@ -1927,17 +1927,21 @@ class VistrailController(QtCore.QObject):
                                          analogy_name)
         del self.analogy[analogy_name]
 
-    def perform_analogy(self, analogy_name, analogy_target, invalidate=True):
+    def perform_analogy(self, analogy_name, analogy_target):
         if analogy_name not in self.analogy:
             raise VistrailsInternalError("missing analogy '%s'" %
                                          analogy_name)
         (a, b) = self.analogy[analogy_name]
         c = analogy_target
-        core.analogy.perform_analogy_on_vistrail(self.vistrail,
-                                                 a, b, c)
-        self.set_changed(True)
-        if invalidate:
-            self.invalidate_version_tree(False)
+        action = core.analogy.perform_analogy_on_vistrail(self.vistrail,
+                                                          a, b, c)
+        self.add_new_action(action)
+        self.perform_action(action)
+        
+        # this is not necessary anymore
+        #self.set_changed(True)
+        #if invalidate:
+            #self.invalidate_version_tree(False)
 
 ################################################################################
 # Testing

@@ -40,11 +40,11 @@ _debug = True
 def perform_analogy_on_vistrail(vistrail,
                                 version_a, version_b,
                                 version_c, alpha=0.85):
-    """perform_analogy(controller, version_a, version_b, version_c,
-                       alpha=0.15): version_d
-    Adds a new version d to the controller such that the difference
-    between a and b is the same as between c and d, and returns the
-    number of this version."""
+    """perform_analogy(vistrail, version_a, version_b, version_c,
+                       alpha=0.15): action
+    Creates a new action version_d to the vistrail such that the difference
+    between a and b is the same as between c and d, and returns this
+    action."""
 
     ############################################################################
     # STEP 1: find mapping from a to c
@@ -123,7 +123,7 @@ def perform_analogy_on_vistrail(vistrail,
 
     for operation in baAction.operations:
         print "ba_op0:", operation.id,  operation.vtType, operation.what, 
-        print operation.old_obj_id, "to", operation.parentObjType,
+        print operation.objectId, "to", operation.parentObjType,
         print operation.parentObjId
 
     ############################################################################
@@ -152,9 +152,9 @@ def perform_analogy_on_vistrail(vistrail,
             else:
                 ops.append(op)
         elif op.vtType == 'add' or op.vtType == 'change':
-            old_id = op.new_obj_id
+            old_id = op.objectId
             new_id = vistrail.idScope.getNewId(op.what)
-            op.new_obj_id = new_id
+            op.objectId = new_id
             op.data.db_id = new_id
             id_remap[(op.what, old_id)] = new_id
             if op.what == 'module':
@@ -251,7 +251,7 @@ def perform_analogy_on_vistrail(vistrail,
 
     for operation in baAction.operations:
         print "ba_op1:", operation.id, operation.vtType, operation.what, 
-        print operation.old_obj_id, "to", operation.parentObjType,
+        print operation.objectId, "to", operation.parentObjType,
         print operation.parentObjId
 
     baAction.prevId = version_c
@@ -259,8 +259,8 @@ def perform_analogy_on_vistrail(vistrail,
     print "got here"
     for operation in baAction.operations:
         print "ba_op2:", operation.id, operation.vtType, operation.what, 
-        print operation.old_obj_id, "to", operation.parentObjType,
+        print operation.objectId, "to", operation.parentObjType,
         print operation.parentObjId
-        
-    vistrail.add_action(baAction, version_c)
-    return baAction.id
+    # this will be taken care by the controller
+    #vistrail.add_action(baAction, version_c)
+    return baAction

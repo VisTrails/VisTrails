@@ -899,15 +899,12 @@ class QCellManipulator(QtGui.QFrame):
             if action=='apply_analogy':
                 p1Info = cellInfo[0].getPipelineInfo(cellInfo[1], cellInfo[2])
                 analogy = analogy_api.SpreadsheetAnalogy()
-                (newPipeline, controller) = analogy.applyAnalogy(p1Info)
+                newPipeline = analogy.applyAnalogy(p1Info)
                 if newPipeline:
                     self.cellInfo[0].executePipelineToCell(newPipeline,
                                                            self.cellInfo[1],
                                                            self.cellInfo[2],
                                                            'Apply Analogy')
-                    controller.set_changed(True)
-                    controller.invalidate_version_tree(False)
-                    
 
         else:
             event.ignore()
