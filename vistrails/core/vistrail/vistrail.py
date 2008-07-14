@@ -1046,13 +1046,12 @@ class TestVistrail(unittest.TestCase):
         if p1 == 0 or p2 == 0:
             self.fail("vistrails tree is not single rooted.")
 
-    # FIXME this dies because diff isn't fixed (moving to db.services.vistrail)
     def test2(self):
         import core.vistrail
         from core.db.locator import XMLFileLocator
         import core.system
         v = XMLFileLocator(core.system.vistrails_root_directory() +
-                            '/tests/resources/dummy.xml').load()
+                           '/tests/resources/dummy.xml').load()
         #testing diff
         v1 = 17
         v2 = 27
@@ -1093,65 +1092,34 @@ class TestVistrail(unittest.TestCase):
         checking against another way of getting the same one."""
         def check_pipelines(p, p2):
             if p != p2:
-                print "FAILED"
-                for m_id, m in p.modules.iteritems():
-                    if m_id not in p2.modules:
-                        print "Missing module %d in p2" % m_id
-                    if m != p2.modules[m_id]:
-                        print "Module mismatch ", m_id, m, p2.modules[m_id]
-                for m_id, m in p2.modules.iteritems():
-                    if m_id not in p.modules:
-                        print "Missing module %d in p" % m_id
-                    if m != p.modules[m_id]:
-                        print "Module mismatch ", m_id, m, p.modules[m_id]
-                for c_id, c in p.connections.iteritems():
-                    if c_id not in p2.connections:
-                        print "Missing connection %d in p2" % c_id
-                    if c != p2.connections[c_id]:
-                        print "Connection mismatch ", c_id, c, p2.connections[c_id]
-                for c_id, c in p2.connections.iteritems():
-                    if c_id not in p.connections:
-                        print "Missing connection %d in p" % c_id
-                    if c != p.connections[c_id]:
-                        print "Connection mismatch ", c_id, c, p.connections[c_id]
-                print p.modules
-                print p.connections
-                print p2.modules
-                print p2.connections
+                p.show_comparison(p2)
                 return False
             return True
         from core.db.locator import XMLFileLocator
+        from core.db.locator import FileLocator
         import core.system
         import sys
 
-        def do_test(filename):
-            v = XMLFileLocator(core.system.vistrails_root_directory() +
+        def do_test(filename, locator_class):
+            v = locator_class(core.system.vistrails_root_directory() +
                                filename).load()
             version_ids = v.actionMap.keys()
             old_v = random.choice(version_ids)
             p = v.getPipeline(old_v)
-            for i in xrange(100):
-                if i % 10 == 0:
-                    sys.stderr.write('o')
+            for i in xrange(10):
                 new_v = random.choice(version_ids)
                 p2 = v.getPipeline(new_v)
-                for a in v.general_action_chain(old_v, new_v):
-                    try:
-                        a.perform(p)
-                    except:
-                        print "Failed"
-                        print a._natural_direction
-                        print a, type(a)
-                        print p, p.graph
-                        raise
+                a = v.general_action_chain(old_v, new_v)
+                p.perform_action(a)
                 if not check_pipelines(p, p2):
                     print i
+                    
                 assert p == p2
                 old_v = new_v
                 sys.stderr.flush()
 
-        #do_test('/tests/resources/v1.xml')
-        #do_test('/tests/resources/vtk.xml')
+        do_test('/tests/resources/dummy.xml', XMLFileLocator)
+        do_test('/tests/resources/terminator.vt', FileLocator)
 
 #     def test_abstraction(self):
 #         import core.vistrail

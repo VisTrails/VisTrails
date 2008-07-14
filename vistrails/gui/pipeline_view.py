@@ -69,7 +69,6 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
     of QGraphicsModuleItem, it can either be rectangle or rounded
     
     """
-    _rect = CurrentTheme.PORT_RECT
     def __init__(self, x, y, ghosted, parent=None, optional=False):
         """ QGraphicsPortItem(parent: QGraphicsItem,
                               optional: bool)
@@ -78,7 +77,8 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         
         """
         # local lookups are faster than global lookups..
-        QtGui.QGraphicsRectItem.__init__(self, self._rect.translated(x, y), parent)
+        _rect = CurrentTheme.PORT_RECT
+        QtGui.QGraphicsRectItem.__init__(self, _rect.translated(x, y), parent)
         self.setZValue(1)
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
         if not optional:
@@ -254,19 +254,19 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
     of QGraphicsModuleItem
     
     """
-    _pen = CurrentTheme.CONFIGURE_PEN
-    _brush = CurrentTheme.CONFIGURE_BRUSH
-    _shape = CurrentTheme.CONFIGURE_SHAPE
     def __init__(self, parent=None, scene=None):
         """ QGraphicsConfigureItem(parent: QGraphicsItem, scene: QGraphicsScene)
                               -> QGraphicsConfigureItem
         Create the shape, initialize its pen and brush accordingly
         
         """
-        QtGui.QGraphicsPolygonItem.__init__(self, self._shape, parent, scene)
+        _pen = CurrentTheme.CONFIGURE_PEN
+        _brush = CurrentTheme.CONFIGURE_BRUSH
+        _shape = CurrentTheme.CONFIGURE_SHAPE
+        QtGui.QGraphicsPolygonItem.__init__(self, _shape, parent, scene)
         self.setZValue(1)
-        self.setPen(self._pen)
-        self.setBrush(self._brush)
+        self.setPen(_pen)
+        self.setBrush(_brush)
         self.ghosted = False
         self.controller = None
         self.moduleId = None

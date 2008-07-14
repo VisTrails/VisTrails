@@ -87,7 +87,14 @@ class Pipeline(DBWorkflow):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBWorkflow.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Pipeline
-        cp.graph = copy.copy(self.graph)
+        if id_remap:
+            vertex_map = dict((old, new) for ((type, old), new) in id_remap.iteritems()
+                              if type == 'module')
+            edge_map = dict((old, new) for ((type, old), new) in id_remap.iteritems()
+                              if type == 'connection')
+            cp.graph = Graph.map_vertices(self.graph, vertex_map, edge_map)
+        else:
+            cp.graph = copy.copy(self.graph)
         cp.aliases = Bidict([(k,copy.copy(v))
                            for (k,v)
                            in self.aliases.iteritems()])
@@ -864,25 +871,38 @@ class Pipeline(DBWorkflow):
 
     def show_comparison(self, other):
         if type(other) != type(self):
-            print "Type mismatch"
+            print "type mismatch"
+            return
+        if len(self.module_list) != len(other.module_list):
+            print "module lists of different sizes"
+            return
+        if len(self.connection_list) != len(other.connection_list):
+            print "Connection lists of different sizes"
             return
         for m_id, m in self.modules.iteritems():
             if not m_id in other.modules:
-                print "Module",m_id,"missing"
+                print "module %d in self but not in other" % m_id
                 return
-            if m != other.modules[m_id]:
-                print "Module",m_id,"mismatch"
-                m.show_comparison(other.modules[m_id])
+            if m <> other.modules[m_id]:
+                print "module %s in self doesn't match module %s in other" % (m,  other.modules[m_id])
                 return
+        for m_id, m in other.modules.iteritems():
+            if not m_id in self.modules:
+                print "module %d in other but not in self" % m_id
+                return
+            # no need to check equality since this was already done before
         for c_id, c in self.connections.iteritems():
             if not c_id in other.connections:
-                print "Connection",c_id,"missing"
+                print "connection %d in self but not in other" % c_id
                 return
-            if c != other.connections[c_id]:
-                print "Connection",c_id,"mismatch"
-                c.show_comparison(other.connections[c_id])
+            if c <> other.connections[c_id]:
+                print "connection %s in self doesn't match connection %s in other" % (c,  other.connections[c_id])
                 return
-        print "pipelines are equal"
+        for c_id, c, in other.connections.iteritems():
+            if not c_id in self.connections:
+                print "connection %d in other but not in self" % c_id
+                return
+            # no need to check equality since this was already done before
         assert self == other
 
     ##########################################################################
@@ -891,6 +911,25 @@ class Pipeline(DBWorkflow):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+# There's a bug in this code that's not easily worked around: if
+# modules are in different order in the list, there's no easy way to
+# check for equality. The solution is to move to a check that
+# takes module and connection ids into account.
+#     def __eq__(self, other):
+#         if type(other) != type(self):
+#             return False
+#         if len(self.module_list) != len(other.module_list):
+#             return False
+#         if len(self.connection_list) != len(other.connection_list):
+#             return False
+#         for f, g in zip(self.module_list, other.module_list):
+#             if f != g:
+#                 return False
+#         for f, g in zip(self.connection_list, other.connection_list):
+#             if f != g:
+#                 return False
+#         return True
+
     def __eq__(self, other):
         if type(other) != type(self):
             return False
@@ -898,12 +937,24 @@ class Pipeline(DBWorkflow):
             return False
         if len(self.connection_list) != len(other.connection_list):
             return False
-        for f, g in zip(self.module_list, other.module_list):
-            if f != g:
+        for m_id, m in self.modules.iteritems():
+            if not m_id in other.modules:
                 return False
-        for f, g in zip(self.connection_list, other.connection_list):
-            if f != g:
+            if m <> other.modules[m_id]:
                 return False
+        for m_id, m in other.modules.iteritems():
+            if not m_id in self.modules:
+                return False
+            # no need to check equality since this was already done before
+        for c_id, c in self.connections.iteritems():
+            if not c_id in other.connections:
+                return False
+            if c <> other.connections[c_id]:
+                return False
+        for c_id, c, in other.connections.iteritems():
+            if not c_id in self.connections:
+                return False
+            # no need to check equality since this was already done before
         return True
 
     def __str__(self):
@@ -1116,7 +1167,7 @@ class TestPipeline(unittest.TestCase):
         self.assertEquals(p1, p2)
         self.assertEquals(p1.id, p2.id)
         p3 = p1.do_copy(True, id_scope, {})
-        self.assertEquals(p1, p3)
+        self.assertNotEquals(p1, p3)
         self.assertNotEquals(p1.id, p3.id)
 
     def test_copy2(self):
@@ -1130,7 +1181,7 @@ class TestPipeline(unittest.TestCase):
         self.assertEquals(p1, p2)
         self.assertEquals(p1.id, p2.id)
         p3 = p1.do_copy(True, id_scope, {})
-        self.assertEquals(p1, p3)
+        self.assertNotEquals(p1, p3)
         self.assertNotEquals(p1.id, p3.id)
 
     def test_serialization(self):
@@ -1272,6 +1323,27 @@ class TestPipeline(unittest.TestCase):
                             id=3,
                             functions=p1_functions))
         str(p1)
+
+    def test_pipeline_equality_module_list_out_of_order(self):
+        p1 = Pipeline()
+        p1.add_module(Module(name='Foo',
+                             package='bar',
+                             id=0,
+                             functions=[]))
+        p1.add_module(Module(name='Foo2',
+                             package='bar',
+                             id=1,
+                             functions=[]))
+        p2 = Pipeline()
+        p2.add_module(Module(name='Foo2',
+                             package='bar',
+                             id=1,
+                             functions=[]))
+        p2.add_module(Module(name='Foo',
+                             package='bar',
+                             id=0,
+                             functions=[]))
+        assert p1 == p2
 
 #     def test_subpipeline(self):
 #         p = self.create_default_pipeline()

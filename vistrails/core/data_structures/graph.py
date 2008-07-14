@@ -65,6 +65,29 @@ class Graph(object):
         self.adjacency_list = {}
         self.inverse_adjacency_list = {}
 
+    @staticmethod
+    def map_vertices(graph, vertex_map=None, edge_map=None):
+        """ map_verices(graph: Graph, vertex_map: dict): Graph
+
+        Creates a new graph that is a mapping of vertex ids through
+        vertex_map.
+
+        """
+        result = Graph()
+        if vertex_map is None:
+            vertex_map = dict((v, v) for v in self.vertices)
+        if edge_map is None:
+            edge_map = {}
+            for vfrom, lto in graph.adjacency_list.iteritems():
+                for (vto, eid) in lto:
+                    edge_map[eid] = eid
+        result.vertices = dict((vertex_map[v], True) for v in graph.vertices)
+        for (vto, lto) in graph.adjacency_list.iteritems():
+            result.adjacency_list[vto] = [(vertex_map[to], edge_map[eid]) for (to, eid) in lto]
+        for (vto, lto) in graph.inverse_adjacency_list.iteritems():
+            result.inverse_adjacency_list[vto] = [(vertex_map[to], edge_map[eid]) for (to, eid) in lto]
+        return result
+
     ##########################################################################
     # Accessors
             
@@ -661,6 +684,23 @@ class Graph(object):
         cp.inverse_adjacency_list = dict((k, v[:]) for (k,v) in self.inverse_adjacency_list.iteritems())
         return cp
 
+    def __eq__(self, other):
+        # Does not test isomorphism - vertices must be consistently labeled
+        # might be slow - don't use in tight code
+        if type(self) <> type(other):
+            return False
+        for v in self.vertices:
+            if not v in other.vertices:
+                return False
+        for vfrom, elist in self.adjacency_list.iteritems():
+            for vto, eid in elist:
+                if not other.get_edge(vfrom, vto) == eid:
+                    return False
+        return True
+
+    def __ne__(self, other):
+        return not (self == other)
+
     ##########################################################################
     # Etc
 
@@ -1063,6 +1103,20 @@ class TestGraph(unittest.TestCase):
              assert v in g2.vertices
              assert g2.adjacency_list[v] == g.adjacency_list[v]
              assert g2.inverse_adjacency_list[v] == g.inverse_adjacency_list[v]
+
+     def test_equals(self):
+         g = self.make_linear(5)
+         assert copy.copy(g) == g
+         g2 = copy.copy(g)
+         g2.add_vertex(10)
+         assert g2 <> g
+
+     def test_map_vertices(self):
+         g = self.make_linear(5)
+         m = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4}
+         assert g == Graph.map_vertices(g, m)
+         m = {0: 5, 1: 6, 2: 7, 3: 8, 4: 9}
+         assert g <> Graph.map_vertices(g, m)
          
 if __name__ == '__main__':
     unittest.main()
