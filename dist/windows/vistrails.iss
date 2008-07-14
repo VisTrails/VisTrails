@@ -21,7 +21,7 @@
 ;############################################################################
 [Setup]
 AppName=VisTrails
-AppVerName=VisTrails 1.1
+AppVerName=VisTrails 1.1.1
 WizardImageFile=resources\images\vistrails_icon.bmp
 WizardImageStretch=false
 WizardImageBackColor=$9d5942
@@ -53,13 +53,19 @@ Source: C:\Python25\tcl\*; DestDir: {app}\vistrails\Python25\tcl; Flags: recurse
 Source: C:\Python25\Tools\*; DestDir: {app}\vistrails\Python25\Tools; Flags: recursesubdirs
 Source: C:\src\VTKbuild\Wrapping\Python\vtk\*; DestDir: {app}\vistrails\vtk; Flags: recursesubdirs
 Source: ..\..\examples\brain_vistrail.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\chebi_webservice.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\chembiogrid_webservice.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\DataTransformation_webservice.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\EMBOSS_webservices.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\gridfieldexample.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\bathymetry.vt; DestDir: {app}\examples; Components: examples
 ;Source: ..\..\examples\croos2.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\gridfieldexample.xml; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\head.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\KEGG_SearchEntities_webservice.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\KEGG_webservices.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\lung.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\noaa_webservices.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\offscreen.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\plot.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\spx.vt; DestDir: {app}\examples; Components: examples
@@ -69,6 +75,7 @@ Source: ..\..\examples\vtk_book_3rd_p189.vt; DestDir: {app}\examples; Components
 Source: ..\..\examples\vtk_book_3rd_p193.vt; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\vtk_examples\*; DestDir: {app}\examples\vtk_examples; Components: examples; Flags: recursesubdirs
 Source: ..\..\examples\vtk_http.vt; DestDir: {app}\examples; Components: examples
+Source: ..\..\examples\XSLTSample.xsl; DestDir: {app}\examples; Components: examples
 Source: ..\..\examples\data\torus.vtk; DestDir: {app}\examples\data; Components: examples
 Source: ..\..\examples\data\carotid.vtk; DestDir: {app}\examples\data; Components: examples
 Source: ..\..\examples\data\gktbhFA.vtk; DestDir: {app}\examples\data; Components: examples
@@ -82,7 +89,7 @@ Source: Input\unzip.exe; DestDir: {app}\vistrails
 Source: Input\zip.exe; DestDir: {app}\vistrails
 Source: Input\runvistrails.py; DestDir: {app}
 Source: Input\*.dll; DestDir: {app}\vistrails
-Source: C:\Qt\4.2.3\bin\*.dll; DestDir: {app}\vistrails
+Source: C:\Qt\4.4.0\bin\*.dll; DestDir: {app}\vistrails
 Source: C:\WINDOWS\system32\python25.dll; DestDir: {app}\vistrails
 Source: C:\WINDOWS\system32\python25.dll; DestDir: {app}\vistrails\Python25
 Source: C:\src\VTKbuild\bin\release\*.dll; DestDir: {app}\vistrails
