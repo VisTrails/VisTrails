@@ -824,11 +824,16 @@ def class_dict(base_module, node):
                     compute_SetPointIds)
     return class_dict_
 
+disallowed_modules = set([
+        'vtkGeoAlignedImageCache',
+        'vtkGeoTerrainCache',
+        ])
 def createModule(baseModule, node):
     """ createModule(baseModule: a Module subclass, node: TreeNode) -> None
     Construct a module inherits baseModule with specification from node
     
     """
+    if node.name in disallowed_modules: return
     def obsolete_class_list():
         lst = []
         items = ['vtkInteractorStyleTrackball',
