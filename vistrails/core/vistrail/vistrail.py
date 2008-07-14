@@ -789,7 +789,7 @@ class Vistrail(DBVistrail):
             # on the graph because it might have been previously
             # pruned. Remember that pruning is only marked for the
             # topmost invisible action.
-            if action.parent in (result.vertices and
+            if (action.parent in result.vertices and
                 action.prune != 1):
                 result.add_edge(action.parent,
                                 action.timestep,
@@ -1079,6 +1079,13 @@ class TestVistrail(unittest.TestCase):
         """
         v = Vistrail()
         self.assertRaises(VistrailsDBException, lambda: v.getPipeline(-1))
+
+    def test_version_graph(self):
+        from core.db.locator import XMLFileLocator
+        import core.system
+        v = XMLFileLocator(core.system.vistrails_root_directory() +
+                           '/tests/resources/dummy.xml').load()
+        v.getVersionGraph()
 
     def test_inverse(self):
         """Test if inverses and general_action_chain are working by
