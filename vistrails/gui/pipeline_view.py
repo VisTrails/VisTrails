@@ -1924,3 +1924,18 @@ class TestPipelineView(gui.utils.TestVisTrailsGUI):
         api.switch_to_pipeline_view()
         api.switch_to_history_view()
         api.switch_to_query_view()
+
+    def test_group(self):
+        api.new_vistrail()
+        m1 = api.add_module(0, 0,    'edu.utah.sci.vistrails.basic', 'File', '')
+        m2 = api.add_module(0, -100, 'edu.utah.sci.vistrails.basic', 'File', '')
+        m3 = api.add_module(0, -100, 'edu.utah.sci.vistrails.basic', 'File', '')
+        r = api.get_module_registry()
+        src = r.module_source_ports(True, 'edu.utah.sci.vistrails.basic', 'File', '')[1]
+        assert src.name == 'value_as_string'
+        dst = r.module_destination_ports(True, 'edu.utah.sci.vistrails.basic', 'File', '')[1]
+        assert dst.name == 'name'
+        api.add_connection(m1.id, src, m2.id, dst)
+        api.add_connection(m2.id, src, m3.id, dst)
+        api.create_group([0, 1, 2], [0, 1])
+

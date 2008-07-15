@@ -106,15 +106,42 @@ def get_current_vistrail_view():
 def close_current_vistrail(quiet=False):
     get_builder_window().viewManager.closeVistrail(get_current_vistrail_view())
 
+def get_module_registry():
+    import core.modules.module_registry
+    return core.modules.module_registry.registry
+
 ##############################################################################
 # Do things
 
 def add_module(x, y, identifier, name, namespace, controller=None):
     if controller is None:
         controller = get_current_controller()
-    controller.add_module(x, y, identifier, name, namespace)
+    result = controller.add_module(x, y, identifier, name, namespace)
     controller.current_pipeline_view.setupScene(controller.current_pipeline)
+    return result
     
+def add_connection(output_id, output_port, input_id, input_port, 
+                   controller=None):
+    from core.vistrail.connection import Connection
+    # FIXME add_module and add_connection should be analogous
+    # add_connection currently works completely differently
+    if controller is None:
+        controller = get_current_controller()
+    connection = Connection.fromPorts(output_port,
+                                      input_port)
+    connection.sourceId = output_id
+    connection.destinationId = input_id
+    connection.id = controller.current_pipeline.fresh_connection_id()
+    result = controller.add_connection(connection)
+    controller.current_pipeline_view.setupScene(controller.current_pipeline)
+    return result
+
+def create_group(module_ids, connection_ids, controller=None):
+    if controller is None:
+        controller = get_current_controller()
+    controller.create_group(module_ids, connection_ids, 'Group')
+    controller.current_pipeline_view.setupScene(controller.current_pipeline)
+
 ##############################################################################
 
 def select_version(version, ctrl=None):

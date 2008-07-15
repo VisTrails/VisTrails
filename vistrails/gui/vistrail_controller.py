@@ -252,34 +252,31 @@ class VistrailController(QtCore.QObject):
     ##########################################################################
 
     def add_module(self, x, y, identifier, name, namespace=''):
-        """ addModule(x: int, y: int, identifier, name: str, namespace='') -> version id
+        """ addModule(x: int, y: int, identifier, name: str, namespace='') -> Module
         Add a new module into the current pipeline
         
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
-        if self.current_pipeline:
-            loc_id = self.vistrail.idScope.getNewId(Location.vtType)
-            location = Location(id=loc_id,
-                                x=x, 
-                                y=y,
-                                )
-            module_id = self.vistrail.idScope.getNewId(Module.vtType)
-            module = Module(id=module_id,
-                            name=name,
-                            package=identifier,
-                            location=location,
-                            namespace=namespace,
+        if not self.current_pipeline:
+            raise Exception("No version is selected")
+        
+        loc_id = self.vistrail.idScope.getNewId(Location.vtType)
+        location = Location(id=loc_id,
+                            x=x, 
+                            y=y,
                             )
-            action = core.db.action.create_action([('add', module)])
-            self.add_new_action(action)
-            self.perform_action(action)
-            # FIXME we shouldn't have to return a module
-            # we don't do it for any other type
-            # doesn't match documentation either
-            return module
-        else:
-            return None
+        module_id = self.vistrail.idScope.getNewId(Module.vtType)
+        module = Module(id=module_id,
+                        name=name,
+                        package=identifier,
+                        location=location,
+                        namespace=namespace,
+                        )
+        action = core.db.action.create_action([('add', module)])
+        self.add_new_action(action)
+        self.perform_action(action)
+        return module
             
     def get_module_connection_ids(self, module_ids, graph):
         # FIXME should probably use a Set here
