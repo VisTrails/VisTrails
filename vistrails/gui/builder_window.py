@@ -61,7 +61,8 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         """
         QtGui.QMainWindow.__init__(self, parent)
-        self.setWindowTitle('VisTrails Builder')
+        self.title = 'VisTrails Builder'
+        self.setWindowTitle(self.title)
         self.setStatusBar(QtGui.QStatusBar(self))
         self.setDockNestingEnabled(True)
 
@@ -164,7 +165,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.newVistrailAction = QtGui.QAction(CurrentTheme.NEW_VISTRAIL_ICON,
                                                '&New', self)
         self.newVistrailAction.setShortcut('Ctrl+N')
-        self.newVistrailAction.setStatusTip('Create a new Vistrail')
+        self.newVistrailAction.setStatusTip('Create a new vistrail')
 
         self.openFileAction = QtGui.QAction(CurrentTheme.OPEN_VISTRAIL_ICON,
                                             '&Open', self)
@@ -330,6 +331,9 @@ class QBuilderWindow(QtGui.QMainWindow):
             QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.ControlModifier +
                                                QtCore.Qt.Key_Enter), self)
             ]
+        
+        self.vistrailActionGroup = QtGui.QActionGroup(self)
+
 
 
     def createMenu(self):
@@ -391,7 +395,6 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         self.vistrailMenu = self.menuBar().addMenu('Vis&trail')
         self.vistrailMenu.menuAction().setEnabled(False)
-        self.vistrailActionGroup = QtGui.QActionGroup(self)
 
         self.packagesMenu = self.menuBar().addMenu('Packages')
         self.packagesMenu.menuAction().setEnabled(False)
@@ -721,7 +724,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         self.execStateChange()
         if vistrailView:
-            self.setWindowTitle('VisTrails Builder - ' +
+            self.setWindowTitle(self.title + ' - ' +
                                 vistrailView.windowTitle())
             self.saveFileAction.setEnabled(True)
             self.closeVistrailAction.setEnabled(True)
@@ -729,7 +732,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.exportFileAction.setEnabled(True)
             self.vistrailMenu.menuAction().setEnabled(True)
         else:
-            self.setWindowTitle('VisTrails Builder')
+            self.setWindowTitle(self.title)
             self.saveFileAction.setEnabled(False)
             self.closeVistrailAction.setEnabled(False)
             self.saveFileAsAction.setEnabled(False)
