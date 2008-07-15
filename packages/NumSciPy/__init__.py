@@ -29,6 +29,7 @@ def initialize(*args, **keywords):
     #  Numpy Registry
     reg.add_module(NDArray, name="Numpy Array", namespace=NDArray.my_namespace)
     reg.add_output_port(NDArray, "self", (NDArray, 'self'))
+    reg.add_module(Matrix, name="Scipy Matrix", namespace=Matrix.my_namespace)
     
     #########################################################################################
     #  Array Access registry
@@ -121,7 +122,6 @@ def initialize(*args, **keywords):
         
     #########################################################################################
     #  Scipy Registry
-    reg.add_module(Matrix, name="Scipy Matrix", namespace=Matrix.my_namespace)
     
     matrixclasses = [MatrixMultiply,
                      MatrixConjugate,
@@ -148,9 +148,9 @@ def initialize(*args, **keywords):
     #  Scipy DSP - Stockwell Transforms.
     try:
         import smt
-        from Stockwell import *
-        dspclasses.append(StockwellTransform)
-        dspclasses.append(MultiTaperStockwellTransform)
+        import Stockwell
+        dspclasses.append(Stockwell.StockwellTransform)
+        dspclasses.append(Stockwell.MultiTaperStockwellTransform)
         
     except:
         # It's ok to do nothing here as we don't really want to fail.
