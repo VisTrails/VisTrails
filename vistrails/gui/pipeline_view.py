@@ -373,24 +373,32 @@ if __old_connection:
         QGraphicsConnectionItem is a connection shape connecting two port items
 
         """
-        def __init__(self, parent=None, scene=None):
-            """ QGraphicsConnectionItem(parent: QGraphicsItem,
-                                        scene: QGraphicsScene)
+        def __init__(self, srcPoint, dstPoint, srcModule, dstModule,
+                     connection, parent=None):
+            """ QGraphicsConnectionItem(srcPoint, dstPoint: QPointF
+            srcModule, dstModule: QGraphicsModuleItem
+            connection
+            parent: QGraphicsItem)
                                         -> QGraphicsConnectionItem
             Create the shape, initialize its pen and brush accordingly
 
             """
-            QtGui.QGraphicsPolygonItem.__init__(self, parent, scene)
-            self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
-            self.setZValue(2)
-            self.connectionPen = CurrentTheme.CONNECTION_PEN
+            QtGui.QGraphicsPolygonItem.__init__(self, parent)
             self.startPos = QtCore.QPointF()
             self.endPos = QtCore.QPointF()
             self.visualPolygon = QtGui.QPolygonF()
-            self.connectingModules = (None, None)
-            self.id = -1
+            self.setupConnection(srcPoint, dstPoint)
+            self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
+            # Bump it slightly higher than the highest module
+            self.setZValue(max(srcModule.id,
+                               dstModule.id) + 0.1)
+            self.connectionPen = CurrentTheme.CONNECTION_PEN
+            
+            self.connectingModules = (srcModule, dstModule)
+            self.id = connection.id
             self.ghosted = False
-            self.connection = None
+            self.connection = connection
+            # Keep a flag for changing selection state during module selection
             self.useSelectionRules = True
 
         def setupConnection(self, startPos, endPos):
@@ -555,8 +563,8 @@ else:
                     v = w * positive_d + (1.0 - w) * m
 
             displacement = QtCore.QPointF(0.0, v)
-            self._control_1 = startPos - displacement
-            self._control_2 = endPos + displacement
+            self._control_1 = startPos + displacement
+            self._control_2 = endPos - displacement
 
             path = QtGui.QPainterPath(self.startPos)
             path.cubicTo(self._control_1, self._control_2, self.endPos)
@@ -613,6 +621,10 @@ else:
                 painter.setPen(self.connectionPen)
             painter.drawPath(self.path())
 
+        def setupConnection(self, startPos, endPos):
+            path = self.create_path(startPos, endPos)
+            self.setPath(path)
+            
         def itemChange(self, change, value):
             """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
             If modules are selected, only allow connections between 
@@ -1053,8 +1065,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 # perform the change on the other one
 
                 (srcModule, dstModule) = connectionItem.connectingModules
-                start_s = dstModule.isSelected()
-                end_s = srcModule.isSelected()
+                start_s = srcModule.isSelected()
+                end_s = dstModule.isSelected()
 
                 if start_s and end_s and s:
                     continue
