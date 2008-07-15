@@ -84,6 +84,7 @@ parser = VTKMethodParser()
 
 
 typeMapDict = {'int': Integer,
+               'long': Integer,
                'float': Float,
                'char*': String,
                'char *': String,
