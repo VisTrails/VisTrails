@@ -91,9 +91,9 @@ class PortSpec(object):
         else:
             self._entries.extend(canonicalize(item) for item in signature)
 
-        (short, long) = self.create_both_sigstrings()
+        (long_, short) = self.create_both_sigstrings()
         self._short_sigstring = short
-        self._long_sigstring = short
+        self._long_sigstring = long_
 
     def __eq__(self, other):
         if type(self) != type(other):
@@ -228,6 +228,8 @@ class PortSpec(object):
     def __copy__(self):
         result = PortSpec([])
         result._entries = copy.copy(self._entries)
+        result._short_sigstring = self._short_sigstring
+        result._long_sigstring = self._long_sigstring
         return result
 
 ###############################################################################

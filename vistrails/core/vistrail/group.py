@@ -139,6 +139,7 @@ class Group(DBGroup, Module):
                 print '  port_name:', port_name
             if function.name == 'spec':
                 port_spec = function.params[0].strValue
+                #print '  port_spec:',  port_spec
         port = Port(id=-1,
                     name=port_name,
                     type=port_type)
