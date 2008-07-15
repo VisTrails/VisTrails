@@ -1534,8 +1534,9 @@ class VistrailController(QtCore.QObject):
                           
         del_action_list.append(('delete', group))
         action = core.db.action.create_action(add_action_list + del_action_list)
-        for op in action.db_operations:
-            print op.vtType, op.what, op.old_obj_id, op.new_obj_id
+        # Commenting out this as old_obj_id does not exist anymore
+        #for op in action.db_operations:
+        #    print op.vtType, op.what, op.old_obj_id, op.new_obj_id
         self.add_new_action(action)
         self.perform_action(action)
 
