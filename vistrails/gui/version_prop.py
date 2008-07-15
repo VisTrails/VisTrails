@@ -308,13 +308,20 @@ class QVersionPropOverlay(QtGui.QFrame):
     view.  It displays properties of a version: tag, user, date, and notes.
 
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, mouseWidget=None):
         """ QVersionPropOverlay(parent: QWidget) -> QVersionPropOverlay
         Setup layout
 
         """
         QtGui.QFrame.__init__(self, parent)
-        
+        self.propagatingEvent = set([
+            QtCore.QEvent.MouseButtonDblClick,
+            QtCore.QEvent.MouseButtonPress,
+            QtCore.QEvent.MouseButtonRelease,
+            QtCore.QEvent.MouseMove,
+            QtCore.QEvent.Wheel,
+            ])
+        self.propagatingWidget = mouseWidget
         self.palette = QtGui.QPalette()
         self.palette.setColor(QtGui.QPalette.Base, QtGui.QColor(0,0,0,0))
         self.setPalette(self.palette)
@@ -468,6 +475,13 @@ class QVersionPropOverlay(QtGui.QFrame):
         self.notes_dialog.show()
         self.notes_dialog.activateWindow()
 
+    def event(self, e):
+        """ Propagate all mouse events to the right widget """
+        if self.propagatingWidget!=None:
+            if e.type() in self.propagatingEvent:
+                QtCore.QCoreApplication.sendEvent(self.propagatingWidget, e)
+                return False
+        return QtGui.QFrame.event(self, e)
 
 ################################################################################
 class QExpandButton(QtGui.QLabel):

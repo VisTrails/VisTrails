@@ -936,7 +936,7 @@ class QVersionTreeView(QInteractiveGraphicsView):
         QInteractiveGraphicsView.__init__(self, parent)
         self.setWindowTitle('Version Tree')
         self.setScene(QVersionTreeScene(self))
-        self.versionProp = QVersionPropOverlay(self)
+        self.versionProp = QVersionPropOverlay(self, self.viewport())
         self.versionProp.hide()
-
+        
 ################################################################################
