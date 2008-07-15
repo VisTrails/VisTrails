@@ -830,7 +830,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.setZValue(float(self.id))
         self.module = module
         self.center = copy.copy(module.center)
-        if '__desc__' in module._db_annotations:
+        if '__desc__' in module.db_annotations_key_index:
             self.label = module.get_annotation_by_key('__desc__').value.strip()
             self.description = module.label
         else:
