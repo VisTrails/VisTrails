@@ -110,15 +110,15 @@ class SpreadsheetAnalogyObject(object):
 
         perform = core.analogy.perform_analogy_on_vistrail
 
-
         controller = get_controller_by_locator(p3_locator)
         vt = controller.vistrail
         action = perform( vt, p1_number, p2_number, p3_number, 0.15)
         
-        new_version = controller.current_version
-        new_pipeline = vt.getPipeline(new_version)
         controller.add_new_action(action)
         controller.perform_action(action)
+        
+        new_version = controller.current_version
+        new_pipeline = vt.getPipeline(new_version)
         return (p3_locator, new_version, [], new_pipeline)
 
     def __call__(self):
