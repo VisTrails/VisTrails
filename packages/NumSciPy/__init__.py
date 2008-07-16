@@ -3,21 +3,21 @@ import core.modules.module_registry
 from core.modules.vistrails_module import Module, ModuleError
 
 # Numpy package imports
-from Array import *
-from ArrayAccess import *
-from ArrayOperations import *
-from ArrayConvert import *
-from ArrayIO import *
-from Imaging import *
+import Array
+import ArrayAccess
+import ArrayOperations
+import ArrayConvert
+import ArrayIO
+import Imaging
 
 # Scipy package imports
-from Matrix import *
-from MatrixUtilities import *
-from DSP import *
-from Filters import *
-from EnsembleOrdering import *
+import Matrix
+import MatrixUtilities
+import DSP
+import Filters
+import EnsembleOrdering
 
-version = '0.1.3'
+version = '0.1.5'
 name = 'Num-SciPy'
 identifier = 'edu.utah.sci.vistrails.numpyscipy'
 
@@ -27,30 +27,32 @@ def initialize(*args, **keywords):
 
     #########################################################################################
     #  Numpy Registry
-    reg.add_module(NDArray, name="Numpy Array", namespace=NDArray.my_namespace)
-    reg.add_output_port(NDArray, "self", (NDArray, 'self'))
+    reg.add_module(Array.NDArray, name="Numpy Array", namespace=Array.NDArray.my_namespace)
+    reg.add_output_port(Array.NDArray, "self", (Array.NDArray, 'self'))
+    reg.add_module(Matrix.Matrix, name="Scipy Matrix", namespace=Matrix.Matrix.my_namespace)
+    
     
     #########################################################################################
     #  Array Access registry
-    accessclass = [GetShape,
-                   GetReals,
-                   GetImaginaries,
-                   GetMax,
-                   GetMean,
-                   GetMin,
-                   GetDiagonal,
-                   GetArrayAsType,
-                   GetConjugate,
-                   GetFlattenedArray,
-                   GetField,
-                   ToScalar,
-                   GetMemoryFootprint,
-                   GetArrayRank,
-                   GetNonZeroEntries,
-                   GetArraySize,
-                   GetTranspose,
-                   GetRowRange,
-                   GetColumnRange]
+    accessclass = [ArrayAccess.GetShape,
+                   ArrayAccess.GetReals,
+                   ArrayAccess.GetImaginaries,
+                   ArrayAccess.GetMax,
+                   ArrayAccess.GetMean,
+                   ArrayAccess.GetMin,
+                   ArrayAccess.GetDiagonal,
+                   ArrayAccess.GetArrayAsType,
+                   ArrayAccess.GetConjugate,
+                   ArrayAccess.GetFlattenedArray,
+                   ArrayAccess.GetField,
+                   ArrayAccess.ToScalar,
+                   ArrayAccess.GetMemoryFootprint,
+                   ArrayAccess.GetArrayRank,
+                   ArrayAccess.GetNonZeroEntries,
+                   ArrayAccess.GetArraySize,
+                   ArrayAccess.GetTranspose,
+                   ArrayAccess.GetRowRange,
+                   ArrayAccess.GetColumnRange]
 
     for cls in accessclass:
         cls.register(reg, basic)
@@ -58,27 +60,27 @@ def initialize(*args, **keywords):
 
     #########################################################################################
     #  Array Operations registry
-    opclasses = [ArrayReshape,
-                 ArrayCumulativeSum,
-                 ArraySort,
-                 ArrayCumulativeProduct,
-                 ArrayFill,
-                 ArrayResize,
-                 ArrayExtractRegion,
-                 ArrayRavel,
-                 ArrayRound,
-                 ArrayGetSigma,
-                 ArraySum,
-                 ArrayElementMultiply,
-                 ArraySetElement,
-                 ArrayVariance,
-                 ArrayTrace,
-                 ArraySwapAxes,
-                 ArraySqueeze,
-                 ArrayScalarMultiply,
-                 ArrayAdd,
-                 ArrayScalarAdd,
-                 ArrayLog10]
+    opclasses = [ArrayOperations.ArrayReshape,
+                 ArrayOperations.ArrayCumulativeSum,
+                 ArrayOperations.ArraySort,
+                 ArrayOperations.ArrayCumulativeProduct,
+                 ArrayOperations.ArrayFill,
+                 ArrayOperations.ArrayResize,
+                 ArrayOperations.ArrayExtractRegion,
+                 ArrayOperations.ArrayRavel,
+                 ArrayOperations.ArrayRound,
+                 ArrayOperations.ArrayGetSigma,
+                 ArrayOperations.ArraySum,
+                 ArrayOperations.ArrayElementMultiply,
+                 ArrayOperations.ArraySetElement,
+                 ArrayOperations.ArrayVariance,
+                 ArrayOperations.ArrayTrace,
+                 ArrayOperations.ArraySwapAxes,
+                 ArrayOperations.ArraySqueeze,
+                 ArrayOperations.ArrayScalarMultiply,
+                 ArrayOperations.ArrayAdd,
+                 ArrayOperations.ArrayScalarAdd,
+                 ArrayOperations.ArrayLog10]
 
     for cls in opclasses:
         cls.register(reg, basic)
@@ -86,23 +88,23 @@ def initialize(*args, **keywords):
 
     #########################################################################################
     #  Array Convert registry
-    convertclasses = [ArrayDumpToFile,
-                      ArrayDumpToString,
-                      ArrayToFile,
-                      ArrayToString,
-                      ArrayToMatrix,
-                      ArrayToVTKImageData]
+    convertclasses = [ArrayConvert.ArrayDumpToFile,
+                      ArrayConvert.ArrayDumpToString,
+                      ArrayConvert.ArrayToFile,
+                      ArrayConvert.ArrayToString,
+                      ArrayConvert.ArrayToMatrix,
+                      ArrayConvert.ArrayToVTKImageData]
     
     for cls in convertclasses:
         cls.register(reg, basic)
 
     #########################################################################################
     #  Array IO registry
-    ioclasses = [ReadRAW,
-                 ReadNHDR]
+    ioclasses = [ArrayIO.ReadRAW,
+                 ArrayIO.ReadNHDR]
     try:
         import pylab
-        ioclasses.append(ReadPNG)
+        ioclasses.append(ArrayIO.ReadPNG)
     except:
         pass
     
@@ -111,69 +113,74 @@ def initialize(*args, **keywords):
 
     #########################################################################################
     #  Array Imaging registry
-    imclasses = [ExtractRGBAChannel,
-                 GaussianGradientMagnitude,
-                 JointHistogram,
-                 GaussianSmooth,
-                 MedianFilter,
-                 ImageDifference,
-                 ImageNormalize]
+    imclasses = [Imaging.ExtractRGBAChannel,
+                 Imaging.GaussianGradientMagnitude,
+                 Imaging.JointHistogram,
+                 Imaging.GaussianSmooth,
+                 Imaging.MedianFilter,
+                 Imaging.ImageDifference,
+                 Imaging.ImageNormalize]
 
     for cls in imclasses:
         cls.register(reg, basic)
         
     #########################################################################################
     #  Scipy Registry
-    reg.add_module(Matrix, name="Scipy Matrix", namespace=Matrix.my_namespace)
-    
-    matrixclasses = [MatrixMultiply,
-                     MatrixConjugate,
-                     MatrixToArray]
+    matrixclasses = [Matrix.MatrixMultiply,
+                     Matrix.MatrixConjugate,
+                     Matrix.MatrixToArray]
 
     for cls in matrixclasses:
         cls.register(reg,basic)
 
     #########################################################################################
     #  Scipy Matrix Utilities Registry
-    matrixutils = [MatlabReader,
-                   MatlabWriter]
+    matrixutils = [MatrixUtilities.MatlabReader,
+                   MatrixUtilities.MatlabWriter]
 
     for cls in matrixutils:
         cls.register(reg, basic)
 
     #########################################################################################
     #  Scipy DSP Registry
-    dspclasses = [FFT,
-                  FFTN,
-                  ShortTimeFourierTransform,
-                  StockwellTransform]
+    dspclasses = [DSP.FFT,
+                  DSP.FFTN,
+                  DSP.ShortTimeFourierTransform]
+               
+    try:
+        import smt
+        import Stockwell
+        dspclasses.append(Stockwell.StockwellTransform)
+        dspclasses.append(Stockwell.MultiTaperStockwellTransform)
+    except:
+        pass
 
     for cls in dspclasses:
         cls.register(reg, basic)
 
     #########################################################################################
     #  Scipy Windows Registry
-    winclasses = [HanningWindow,
-                  TriangularWindow,
-                  BlackmanWindow,
-                  BlackmanHarrisWindow,
-                  ParzenWindow,
-                  HammingWindow,
-                  KaiserWindow,
-                  BartlettHannWindow,
-                  GaussianWindow,
-                  BoxcarWindow,
-                  BohmanWindow,
-                  BartlettWindow,
-                  NuttallBlackmanHarrisWindow]    
+    winclasses = [Filters.HanningWindow,
+                  Filters.TriangularWindow,
+                  Filters.BlackmanWindow,
+                  Filters.BlackmanHarrisWindow,
+                  Filters.ParzenWindow,
+                  Filters.HammingWindow,
+                  Filters.KaiserWindow,
+                  Filters.BartlettHannWindow,
+                  Filters.GaussianWindow,
+                  Filters.BoxcarWindow,
+                  Filters.BohmanWindow,
+                  Filters.BartlettWindow,
+                  Filters.NuttallBlackmanHarrisWindow]    
 
     for cls in winclasses:
         cls.register(reg, basic)
 
     #########################################################################################
     #  Scipy Signal Ensembles Registry
-    ensembles = [OrderByIndexes,
-                 OrderByCorrelation]
+    ensembles = [EnsembleOrdering.OrderByIndexes,
+                 EnsembleOrdering.OrderByCorrelation]
 
     for cls in ensembles:
         cls.register(reg, basic)
