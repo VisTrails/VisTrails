@@ -29,7 +29,6 @@ def initialize(*args, **keywords):
     #  Numpy Registry
     reg.add_module(NDArray, name="Numpy Array", namespace=NDArray.my_namespace)
     reg.add_output_port(NDArray, "self", (NDArray, 'self'))
-    reg.add_module(Matrix, name="Scipy Matrix", namespace=Matrix.my_namespace)
     
     #########################################################################################
     #  Array Access registry
@@ -76,7 +75,10 @@ def initialize(*args, **keywords):
                  ArrayTrace,
                  ArraySwapAxes,
                  ArraySqueeze,
-                 ArrayScalarMultiply]
+                 ArrayScalarMultiply,
+                 ArrayAdd,
+                 ArrayScalarAdd,
+                 ArrayLog10]
 
     for cls in opclasses:
         cls.register(reg, basic)
@@ -122,6 +124,7 @@ def initialize(*args, **keywords):
         
     #########################################################################################
     #  Scipy Registry
+    reg.add_module(Matrix, name="Scipy Matrix", namespace=Matrix.my_namespace)
     
     matrixclasses = [MatrixMultiply,
                      MatrixConjugate,
@@ -142,20 +145,9 @@ def initialize(*args, **keywords):
     #  Scipy DSP Registry
     dspclasses = [FFT,
                   FFTN,
-                  ShortTimeFourierTransform]
+                  ShortTimeFourierTransform,
+                  StockwellTransform]
 
-    #########################################################################################
-    #  Scipy DSP - Stockwell Transforms.
-    try:
-        import smt
-        import Stockwell
-        dspclasses.append(Stockwell.StockwellTransform)
-        dspclasses.append(Stockwell.MultiTaperStockwellTransform)
-        
-    except:
-        # It's ok to do nothing here as we don't really want to fail.
-        pass
-        
     for cls in dspclasses:
         cls.register(reg, basic)
 
@@ -185,7 +177,6 @@ def initialize(*args, **keywords):
 
     for cls in ensembles:
         cls.register(reg, basic)
-
 
 def package_dependencies():
     import core.packagemanager

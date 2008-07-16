@@ -429,7 +429,7 @@ class ArraySqueeze(ArrayOperationModule, Module):
     def compute(self):
         a = self.getInputFromPort("Array")
         out = NDArray()
-        out.set_array(a.squeeze().copy())
+        out.set_array(a.get_array().squeeze().copy())
         self.setResult("Output Array", out)
 
     @classmethod
@@ -437,3 +437,55 @@ class ArraySqueeze(ArrayOperationModule, Module):
         reg.add_module(cls, namespace=cls.my_namespace)
         reg.add_input_port(cls, "Array", (NDArray, 'Input Array'))
         reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
+
+class ArrayAdd(ArrayOperationModule, Module):
+    """ Add two arrays of the same size and shape """
+    def compute(self):
+        a1 = self.getInputFromPort("Array One").get_array()
+        a2 = self.getInputFromPort("Array Two").get_array()
+
+        if a1.shape != a2.shape:
+            raise ModuleError("Cannot add arrays with different shapes")
+
+        out = NDArray()
+        out.set_array(a1 + a2)
+        self.setResult("Output Array", out)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Array One", (NDArray, 'Input Array 1'))
+        reg.add_input_port(cls, "Array Two", (NDArray, 'Input Array 2'))
+        reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
+
+class ArrayScalarAdd(ArrayOperationModule, Module):
+    """ Add two arrays of the same size and shape """
+    def compute(self):
+        a1 = self.getInputFromPort("Array One").get_array()
+        s = self.getInputFromPort("Scalar")
+
+        out = NDArray()
+        out.set_array(a1 + s)
+        self.setResult("Output Array", out)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Array One", (NDArray, 'Input Array 1'))
+        reg.add_input_port(cls, "Scalar", (basic.Float, 'Scalar'))
+        reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
+
+class ArrayLog10(ArrayOperationModule, Module):
+    """ Take the base-10 log of each element in the input array """
+    def compute(self):
+        a = self.getInputFromPort("Array").get_array()
+        out = NDArray()
+        out.set_array(numpy.log10(a))
+        self.setResult("Output Array", out)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Array", (NDArray, 'Input Array'))
+        reg.add_output_port(cls, "Output Array", (NDArray, 'Output Array'))
+    
