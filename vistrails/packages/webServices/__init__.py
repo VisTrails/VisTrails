@@ -30,7 +30,6 @@ from core.requirements import MissingRequirement
 
 import sys
 import os.path
-from os.path import join
 import types
 import httplib
 import urllib
@@ -945,18 +944,19 @@ be loaded again: %s"% w
         directoryname = directoryname.replace("%","_")
         directoryname = directoryname.replace("+","_")
 
-        package_directory = core.system.default_dot_vistrails() + \
-                            "/webServices/"
+        package_directory = os.path.join(core.system.default_dot_vistrails(),
+                                         "webServices")
         sys.path.append(package_directory)
-        package_subdirectory = package_directory + directoryname
+        package_subdirectory = os.path.join(package_directory,
+                                            directoryname)
         
         wsm = WriteServiceModule(wsdl)
         client_mod = wsm.getClientModuleName()
         types_mod = wsm.getTypesModuleName()
-        client_file = join(package_subdirectory, '%s.py' %client_mod)
-        types_file = join(package_subdirectory, '%s.py' %types_mod)
+        client_file = os.path.join(package_subdirectory, '%s.py' %client_mod)
+        types_file = os.path.join(package_subdirectory, '%s.py' %types_mod)
         filename = '__init__'
-        init_file = join(package_subdirectory, '%s.py' %filename)
+        init_file = os.path.join(package_subdirectory, '%s.py' %filename)
         conn = httplib.HTTPConnection(host)
         filename = '/' + '/'.join(s[3:])
         request = conn.request("GET", filename)
@@ -988,11 +988,12 @@ be loaded again: %s"% w
                   )
             ServiceHeaderContainer.imports.append (\
             'from %(module)s import %(metaclass)s' %kwargs
-            ) 
+            )
+            
             fd = open(client_file, 'w+')
             wsm.writeClient(fd)
             fd.close()
-
+            
             fd = open(types_file, 'w+' )
             wsm.writeTypes(fd)
             fd.close()
@@ -1150,18 +1151,18 @@ be loaded again: %s"% w
         webServicesmodulesDict[dictkey] = complexsdict        
     #Write modules.conf file that will contain the types and methods
     #dictionary of the web services.
-    namefile = core.system.default_dot_vistrails() + "/webServices/modules.conf"
-   
+    namefile = os.path.join(core.system.default_dot_vistrails(),
+                            'webServices',
+                            'modules.conf')    
     try:
         ouf = open(namefile, 'w')
         cPickle.dump(webServicesmodulesDict,ouf)
         ouf.close()
-    except:
-        print "Error generating web services configuration file"
-        raise()
+    except Exception, e:
+        msg = "Error generating web services configuration file %s"%str(e)
+        raise Exception(msg)
 
     return(result,not_loaded)
-    
         
 def verify_wsdl(wsdlList):
     """verify_wsdl(wsdlList: list of urls) -> (list,list,list)
@@ -1193,7 +1194,6 @@ def verify_wsdl(wsdlList):
             msg = "Couldn't load wsdl from the web: %s."%str(e)
             error_list.append((w,msg))
             continue
-            
         directoryname = urllib.quote_plus(w)
         directoryname = directoryname.replace(".","_")
         directoryname = directoryname.replace("%","_")
@@ -1202,7 +1202,7 @@ def verify_wsdl(wsdlList):
                                "/webServices/" + directoryname
         wsm = WriteServiceModule(wsdl)
         client_mod = wsm.getClientModuleName()
-        client_file = join(package_subdirectory, '%s.py' %client_mod)
+        client_file = os.path.join(package_subdirectory, '%s.py' %client_mod)
         conn = httplib.HTTPConnection(host)
         filename = '/' + '/'.join(s[3:])
         request = conn.request("GET", filename)
@@ -1238,7 +1238,8 @@ def initialize(*args, **keywords):
 
     #Create a directory for the webServices package
     global package_directory
-    package_directory = core.system.default_dot_vistrails() + "/webServices"
+    package_directory = os.path.join(core.system.default_dot_vistrails(),
+                                     "webServices")
     if not os.path.isdir(package_directory):
         try:
             print "Creating package directory..."
@@ -1248,8 +1249,9 @@ def initialize(*args, **keywords):
             print "'%s' does not exist and parent directory is writable"
             sys.exit(1)
 
-    pathfile = core.system.default_dot_vistrails() + \
-               "/webServices/modules.conf"
+    pathfile = os.path.join(core.system.default_dot_vistrails(),
+                            "webServices",
+                            "modules.conf")
     outdated_list = []
     updated_list = []
     error_list = []
@@ -1268,16 +1270,16 @@ def initialize(*args, **keywords):
         # otherwise the information of the modules will be obtained from
         # the modules.conf files that contains serialized data of the methods
         # and the complex types of the web services
-
-    try: 
-        inf = open(pathfile)
-        webServicesmodulesDict = cPickle.load(inf)
-        inf.close()
-    except:
-        print "Error loading configuration file"
-        raise()
+    if os.path.isfile(pathfile):
+        try: 
+            inf = open(pathfile)
+            webServicesmodulesDict = cPickle.load(inf)
+            inf.close()
+        except Exception, e:
+            msg = "Error loading configuration file"
+            raise Exception(msg)
     
-    #print wsdlList, outdated_list, updated_list
+    print wsdlList, outdated_list, updated_list
     (res, not_loaded) = load_wsdl_no_config(updated_list)
     if not res:
         #there was a problem when trying to load the stubs
@@ -1311,8 +1313,9 @@ def handle_missing_module(m_name, m_namespace):
         updated_list = []
         error_list = []
         print "Downloading %s and adding to the Module list..."%wsdl
-        pathfile = core.system.default_dot_vistrails() + \
-                   "/webServices/modules.conf"
+        pathfile = os.path.join(core.system.default_dot_vistrails(),
+                                "webServices",
+                                "modules.conf")
         if os.path.isfile(pathfile):
             #Verify if there is a need to update the modules configuration
             #file (modules.conf)
@@ -1329,13 +1332,14 @@ def handle_missing_module(m_name, m_namespace):
         # the modules.conf files that contains serialized data of the methods
         # and the complex types of the web services
         # print outdated_list, updated_list, error_list
-        try: 
-            inf = open(pathfile)
-            webServicesmodulesDict = cPickle.load(inf)
-            inf.close()
-        except:
-            print "Error loading configuration file"
-            return False
+        if os.path.isfile(pathfile):
+            try: 
+                inf = open(pathfile)
+                webServicesmodulesDict = cPickle.load(inf)
+                inf.close()
+            except:
+                print "Error loading configuration file"
+                return False
         try:
             (res,not_loaded) = load_wsdl_no_config(updated_list)
             #print "done loading_no_config"
@@ -1355,6 +1359,13 @@ def handle_missing_module(m_name, m_namespace):
                 configuration.wsdlList = swsdlList
                 print "done."
                 return True
+            else:
+                msg = """ There were problems loading the webservice.
+The following could not be loaded:\n"""
+                error_list.extend(not_loaded)
+                for (w,e) in error_list:
+                    msg += "Url: '%s', error: '%s'\n"%(w,e)
+                    pm.show_error_message(pm.get_package_by_identifier(identifier),msg)
         except Exception, e:
             print e
             import traceback
