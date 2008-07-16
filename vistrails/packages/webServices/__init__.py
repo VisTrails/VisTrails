@@ -802,28 +802,40 @@ wsdlTypesDict = { 'string' : core.modules.basic_modules.String,
 
 ################################################################################
 def load_wsdl_no_config(wsdlList):
-    global complexsdict
+    """load_wsdl_no_config(wsdlList: list of urls) -> (bool, errors)
+    This loads the wsdl list without creating config files.
+    Returns a tuple with two values. The first is a boolean that is True
+    in case of success. The second is a list with problematic urls.
     
+    """
+    global complexsdict
+    result = True
+    not_loaded = []
     for w in wsdlList:
-        #Validation if the user introduces a blank space in the list of web services
+        # Validation if the user introduces a blank space in the list of web
+        # services
         if w == '':
             continue
-        complexsdict = {} #Dictionary that contains the methods or the types of a web service
+        complexsdict = {} #Dictionary that contains the methods or the
+                          #types of a web service
         w = w.strip()
         numtimes = 0
         for element in wsdlList:
             if w == element.strip():
                 numtimes = numtimes + 1
         if numtimes > 1:
-            pm.show_error_message(pm.get_package_by_identifier(identifier),
-                                  "The following web service is repeated in the list: %s"%w)
+            # as this is not a big problem, let's just print on the console
+            print "Warning: Web service '%s' is repeated in the list and won't \
+be loaded again." % w
+            # this is not a problem, we will just ignore it
             continue
         try:
             s = w.split('/')
             host = s[2]
         except:
-            pm.show_error_message(pm.get_package_by_identifier(identifier),
-                                  "Malformed URL: %s" % w)
+            msg = "Malformed URL."
+            not_loaded.append((w,msg))
+            result = False
             continue
         location = w
         try:
@@ -831,9 +843,10 @@ def load_wsdl_no_config(wsdlList):
             wsdl = reader.loadFromURL(location)
             
         except Exception, e:
-            pm.show_error_message(pm.get_package_by_identifier(identifier),
-                                  "Problem loading web service: %s"%w)
-            print e
+            # we will not show this every time. Just in the end
+            # so we can show a single message for everybody
+            not_loaded.append((w,str(e)))
+            result = False
             continue
 
         #create a directory for each webservice if it does not exist
@@ -855,31 +868,37 @@ def load_wsdl_no_config(wsdlList):
             modclient = getattr(importpackage,client_mod)
             server = ServiceProxy(w, pyclass=True, tracefile=sys.stdout)
         except Exception, e:
-            pm.show_error_message(pm.get_package_by_identifier(identifier),
-                                  "Syntax problem in wsdl of web service: %s"%w)
-            msg =  "Problem importing the stub generated files in web " + \
-                  "service: ", w
-            print msg
-            print e
+            msg =  "Couldn't load generated stub file: %s"%str(e)
+            not_loaded.append((w,msg))
+            result = False
             continue
-
+        
         addTypesModules(w,modclient,server)
         addPortsToTypes(w)
         addMethodsModules(w,modclient,server)
         addPortsToMethods(w)
+    return (result, not_loaded)
 
 def load_wsdl_with_config(wsdlList):
+    """load_wsdl_with_config(wsdlList: list of urls) -> (bool,list)
+    This loads the wsdl list creating config files.
+    Returns a tuple with two values. The first is a boolean that is True
+    in case of success. The second is a list with problematic urls"""
+    
     global schema
     global webServicesmodulesDict
     global complexsdict
     reg = core.modules.module_registry
     basic = core.modules.basic_modules
+    not_loaded = []
+    result = True
     for w in wsdlList:
         #Validation if the user introduces a blank space in the list of
         #web services
         if w == '':
             continue
-        complexsdict = {} #This dictionary stores the complex types for a webservice w
+        complexsdict = {} #This dictionary stores the complex types for
+                          #a webservice w
         w = w.strip()
         #Check to see if the element is not repeated in the web services list
         numtimes = 0
@@ -887,8 +906,8 @@ def load_wsdl_with_config(wsdlList):
             if w == element.strip():
                 numtimes = numtimes + 1
         if numtimes > 1:
-            pm.show_error_message(pm.get_package_by_identifier(identifier),
-                                  "The following web service is repeated in the list: %s"%w)
+            print "The following web service is repeated in the list and won't \
+be loaded again: %s"% w
             continue
           
         #Create the stub files for the webservices that have been
@@ -897,27 +916,35 @@ def load_wsdl_with_config(wsdlList):
             s = w.split('/')
             host = s[2]
         except:
-            pm.show_error_message(pm.get_package_by_identifier(identifier),
-                                  "Malformed URL: %s" % w)
+            msg = "Malformed URL."
+            not_loaded.append((w,msg))
+            result = False
             continue
         location = w
-        ok = False
-        while not ok:
+        ok = 0 # Trying to load a few times
+               # a couple of times, because sometimes we have timeout
+        msg = ''
+        while ok < 3:
             try:
                 reader = WSDLTools.WSDLReader()
                 wsdl = reader.loadFromURL(location)
-                ok = True
+                ok = 4
+                failed = False
             except Exception, e:
-                pm.show_error_message(pm.get_package_by_identifier(identifier),
-                                  "Problem loading web service: %s"%w)
-                print e
-            continue
+                ok += 1
+                failed = True
+                msg = str(e)
 
+        if failed:
+            not_loaded.append((w,msg))
+            result = False
+            continue
         #create a directory for each webservice if it does not exist
         directoryname = urllib.quote_plus(w)
         directoryname = directoryname.replace(".","_")
         directoryname = directoryname.replace("%","_")
         directoryname = directoryname.replace("+","_")
+
         package_directory = core.system.default_dot_vistrails() + \
                             "/webServices/"
         sys.path.append(package_directory)
@@ -936,12 +963,18 @@ def load_wsdl_with_config(wsdlList):
         response = conn.getresponse()
         if not os.path.isdir(package_subdirectory):
             try:
-                print "Creating package subdirectory..."
+                print "Creating package subdirectory...",
                 os.mkdir(package_subdirectory)
+                print "done."
             except:
-                print "Could not create package subdirectory. Make sure"
-                print "'%s' does not exist and parent directory is writable"
-                sys.exit(1)
+                msg = "\nCould not create package subdirectory. Make sure \
+'%s' does not exist and parent directory is writable." % package_subdirectory
+                print "Skipping '%s'" % w
+                # We don't need to exit here. Continuing try to load
+                # the other files
+                not_loaded.append((w,msg))
+                result = False
+                continue
                 
         #generate the stub files
         try:
@@ -968,17 +1001,20 @@ def load_wsdl_with_config(wsdlList):
             content = 'import ' + client_mod
             fd.write(content)
             fd.close()
-        except:
-            pm.show_error_message(pm.get_package_by_identifier(identifier),"Syntax problem in wsdl of web service: %s"%w)
+        except Exception, e:
+            msg = "Couldn't generate stub file: %s"% str(e)
+            not_loaded.append((w,msg))
+            result = False
             continue
         #import the stub generated files
         try:
             importpackage = __import__(directoryname)
             modclient = getattr(importpackage,client_mod)
             server = ServiceProxy(w, pyclass=True, tracefile=sys.stdout)
-        except:
-            pm.show_error_message(pm.get_package_by_identifier(identifier),"Syntax problem in wsdl of web service: %s"%w)
-            print "Problem importing the stub generated files in web service: ", w
+        except Exception, e:
+            msg = "Problem importing the generated stub files: %s",str(e)
+            not_loaded.append((w,msg))
+            result = False
             continue
 
         #Set up the dictionary with all the complex types modules and their ports.
@@ -1122,10 +1158,22 @@ def load_wsdl_with_config(wsdlList):
         ouf.close()
     except:
         print "Error generating web services configuration file"
-        sys.exit(1)
+        raise()
+
+    return(result,not_loaded)
+    
         
 def verify_wsdl(wsdlList):
-    createconfigfile = False
+    """verify_wsdl(wsdlList: list of urls) -> (list,list,list)
+
+    This checks for the wsdls that need to be updated or the files need to be
+    generated and splits them in 3 lists: files that are outdated, updated and
+    ones that an error was generated.
+    
+    """
+    outdated_list = []
+    updated_list = []
+    error_list = []
     for w in wsdlList:
         if w == '':
             continue
@@ -1133,16 +1181,19 @@ def verify_wsdl(wsdlList):
             s = w.split('/')
             host = s[2]
         except:
-            pm.show_error_message(pm.get_package_by_identifier(identifier),
-                                  "Malformed URL: %s" % w)
+            msg = "Malformed URL."
+            error_list.append((w,msg))
             continue
         location = w
         reader = WSDLTools.WSDLReader()
         load = reader.loadFromURL
         try:
             wsdl = load(location)
-        except:
+        except Exception, e:
+            msg = "Couldn't load wsdl from the web: %s."%str(e)
+            error_list.append((w,msg))
             continue
+            
         directoryname = urllib.quote_plus(w)
         directoryname = directoryname.replace(".","_")
         directoryname = directoryname.replace("%","_")
@@ -1167,9 +1218,10 @@ def verify_wsdl(wsdlList):
                 print "File doesn't exist"
                 isoutdated = True
         if isoutdated or remoteHeader == None:
-            createconfigfile = True
-            break
-    return createconfigfile
+            outdated_list.append(w)
+        else:
+            updated_list.append(w)
+    return (outdated_list,updated_list, error_list)
             
 def initialize(*args, **keywords):
     import core.packagemanager
@@ -1196,16 +1248,19 @@ def initialize(*args, **keywords):
             print "'%s' does not exist and parent directory is writable"
             sys.exit(1)
 
-    createconfigfile = False
     pathfile = core.system.default_dot_vistrails() + \
                "/webServices/modules.conf"
+    outdated_list = []
+    updated_list = []
+    error_list = []
     if os.path.isfile(pathfile):
         #Verify if there is a need to update the modules configuration
         #file (modules.conf)
-        createconfigfile = verify_wsdl(wsdlList)
+         (outdated_list, updated_list, error_list) = verify_wsdl(wsdlList)
+             
     else:
         #If the modules configuration file doesn't exist, create it
-        createconfigfile = True 
+        outdated_list = wsdlList 
 
         #If the stub files are not updated or there is not information in
         # the header about the modification date of the web service, the
@@ -1214,20 +1269,31 @@ def initialize(*args, **keywords):
         # the modules.conf files that contains serialized data of the methods
         # and the complex types of the web services
 
-    if not createconfigfile:
-        namefile = core.system.default_dot_vistrails() + \
-        "/webServices/modules.conf"
-        try: 
-            inf = open(namefile)
-            webServicesmodulesDict = cPickle.load(inf)
-            inf.close()
-        except:
-            print "Error loading configuration file"
-            sys.exit(1)   
-        load_wsdl_no_config(wsdlList)
-    else:
-        load_wsdl_with_config(wsdlList)
-        
+    try: 
+        inf = open(pathfile)
+        webServicesmodulesDict = cPickle.load(inf)
+        inf.close()
+    except:
+        print "Error loading configuration file"
+        raise()
+    
+    #print wsdlList, outdated_list, updated_list
+    (res, not_loaded) = load_wsdl_no_config(updated_list)
+    if not res:
+        #there was a problem when trying to load the stubs
+        # let's try creating them again
+        for (w,e) in not_loaded:
+            outdated_list.append(w)
+        print "There were problems loading the webservices %s" % not_loaded
+        print "We will try to load them again..."
+    (res, not_loaded) = load_wsdl_with_config(outdated_list)
+    if not res or len(error_list) > 0:
+        msg = """ There were problems loading the webservices.
+The following could not be loaded:\n"""
+        error_list.extend(not_loaded)
+        for (w,e) in error_list:
+            msg += "Url: '%s', error: '%s'\n"%(w,e)
+        pm.show_error_message(pm.get_package_by_identifier(identifier),msg)
 
 def handle_missing_module(m_name, m_namespace):
     global webServicesmodulesDict
@@ -1241,52 +1307,58 @@ def handle_missing_module(m_name, m_namespace):
 
     wsdl = get_wsdl_from_namespace(m_namespace)
     if wsdl:
-        print "Downloading %s and adding to the Module list"%wsdl
+        outdated_list = []
+        updated_list = []
+        error_list = []
+        print "Downloading %s and adding to the Module list..."%wsdl
         pathfile = core.system.default_dot_vistrails() + \
                    "/webServices/modules.conf"
         if os.path.isfile(pathfile):
             #Verify if there is a need to update the modules configuration
             #file (modules.conf)
-            createconfigfile = verify_wsdl([wsdl])
+            (outdated_list, updated_list, error_list) = verify_wsdl([wsdl])
             #print "verified: createconfig file is %s"%createconfigfile
         else:
             #If the modules configuration file doesn't exist, create it
-            createconfigfile = True 
-
+            outdated_list = [wsdl]
+        
         #If the stub files are not updated or there is not information in
         # the header about the modification date of the web service, the
         # stubs files and a modules configuration file will be created
         # otherwise the information of the modules will be obtained from
         # the modules.conf files that contains serialized data of the methods
         # and the complex types of the web services
-    
-        if not createconfigfile:
-            namefile = core.system.default_dot_vistrails() + \
-                       "/webServices/modules.conf"
-            try: 
-                inf = open(namefile)
-                webServicesmodulesDict = cPickle.load(inf)
-                inf.close()
-            except:
-                print "Error loading configuration file"
-                sys.exit(1)
-            load_wsdl_no_config([wsdl])
+        # print outdated_list, updated_list, error_list
+        try: 
+            inf = open(pathfile)
+            webServicesmodulesDict = cPickle.load(inf)
+            inf.close()
+        except:
+            print "Error loading configuration file"
+            return False
+        try:
+            (res,not_loaded) = load_wsdl_no_config(updated_list)
             #print "done loading_no_config"
-        else:
-            load_wsdl_with_config([wsdl])
+            if not res:
+                outdated_list.extend([wsdl])
+        
+            (res, not_loaded) = load_wsdl_with_config(outdated_list)
             #print "done loading_with_config"
-        
-        #add new url to config file
-        
-        wsdlList = []
-        if configuration.check('wsdlList'):
-            wsdlList = configuration.wsdlList.split(";")
-        if wsdl not in wsdlList:
-            wsdlList.append(wsdl)    
-        swsdlList = ";".join(wsdlList)
-        configuration.wsdlList = swsdlList
-        print "done."
-        return True
+            if res:
+                #add new url to package config file
+                wsdlList = []
+                if configuration.check('wsdlList'):
+                    wsdlList = configuration.wsdlList.split(";")
+                if wsdl not in wsdlList:
+                    wsdlList.append(wsdl)    
+                swsdlList = ";".join(wsdlList)
+                configuration.wsdlList = swsdlList
+                print "done."
+                return True
+        except Exception, e:
+            print e
+            import traceback
+            traceback.format_exc()
     print "An error occurred. Could not add missing wsdl."
     return False
 

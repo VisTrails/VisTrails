@@ -186,6 +186,10 @@ class DBLocator(_DBLocator, CoreLocator):
         vt_id = convert_from_str(data, 'str')
         data = node.get('version')
         version = convert_from_str(data, 'str')
+        try:
+            version = int(version)
+        except:
+            pass
         user = ""
         passwd = ""
             

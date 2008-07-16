@@ -1217,10 +1217,16 @@ class ModuleRegistry(QtCore.QObject):
         
         """
         variantType = core.modules.basic_modules.Variant
-        subTypes = sub.spec.types()
+        # sometimes sub.spec is coming None
+        # I don't know if this is expected, so I will put a test here
+        subTypes = []
+        if sub.spec:
+            subTypes = sub.spec.types()
         if subTypes==[variantType]:
             return True
-        superTypes = super.spec.types()
+        superTypes = []
+        if super.spec:
+            superTypes = super.spec.types()
         if superTypes==[variantType]:
             return True
 
