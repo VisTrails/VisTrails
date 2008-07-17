@@ -439,6 +439,11 @@ class QSearchEditBox(QtGui.QComboBox):
         self.setDuplicatesEnabled(False)
         validator = QtGui.QRegExpValidator(regexp, self)
         self.setValidator(validator)
+        self.addItem('Clear Recent Searches')
+        item = self.model().item(0, 0)
+        font = QtGui.QFont(item.font())
+        font.setItalic(True)
+        item.setFont(font)
 
     def keyPressEvent(self, e):
         if e.key() in (QtCore.Qt.Key_Return,QtCore.Qt.Key_Enter):
@@ -515,7 +520,7 @@ class QSearchBox(QtGui.QWidget):
                      self.resetSearch)
         self.connect(self.searchEdit, QtCore.SIGNAL('editTextChanged(QString)'),
                      self.executeIncrementalSearch)
-        self.connect(self.searchEdit, QtCore.SIGNAL('activated(const QString &)'),
+        self.connect(self.searchEdit, QtCore.SIGNAL('activated(int)'),
                      self.executeSearch)
         self.connect(self.searchEdit, QtCore.SIGNAL('resetText'),
                      self.resetSearch)
@@ -563,13 +568,19 @@ class QSearchBox(QtGui.QWidget):
         self.resetButton.setEnabled(str(text)!='')
         self.emit(QtCore.SIGNAL('executeIncrementalSearch(QString)'), text)
 
-    def executeSearch(self, text):
+    def executeSearch(self, index):
         """
-        executeSearch(text: QString) -> None
+        executeSearch(index: int) -> None
         The text is finished changing or a different item was selected.
 
         """
-        self.resetButton.setEnabled(True)
-        self.emit(QtCore.SIGNAL('executeSearch(QString)'), 
-                  text)
+        count = self.searchEdit.count() 
+        if index == count-1: 
+            for i in xrange(count-1): 
+                self.searchEdit.removeItem(0) 
+            self.resetSearch() 
+        else: 
+            self.resetButton.setEnabled(True) 
+            self.emit(QtCore.SIGNAL('executeSearch(QString)'),  
+                      self.searchEdit.currentText())
 
