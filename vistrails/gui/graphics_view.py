@@ -230,6 +230,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.defaultCursorState = 0
         self.setCursorState(self.defaultCursorState)
         self.canSelectBackground = True
+        self.canSelectRectangle = True
 
     def modifiersPressed(self, modifiers):
         """ modifiersPressed(modifiers: QtCore.Qt.KeyboardModifiers) -> None
@@ -344,7 +345,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                     rect = QtCore.QRectF(self.startSelectingPos,
                                          QtCore.QSizeF(0,0))
                     self.selectionBox.setRect(rect)
-                    self.selectionBox.setVisible(True)
+                    self.selectionBox.setVisible(self.canSelectRectangle)
             else:
                 QtGui.QGraphicsView.mousePressEvent(self, e)
                 # super(QInteractiveGraphicsView, self).mousePressEvent(e)
@@ -441,7 +442,11 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         Select all modules inside the self.selectionBox
         
         """
-        br = self.selectionBox.sceneBoundingRect()
+        if self.canSelectRectangle:
+            br = self.selectionBox.sceneBoundingRect()
+        else:
+            br = QtCore.QRectF(self.startSelectingPos,
+                              self.startSelectingPos)
         if not self.canSelectBackground:
             items = self.scene().items(br) 
             if len(items)==0 or items==[self.selectionBox]:
