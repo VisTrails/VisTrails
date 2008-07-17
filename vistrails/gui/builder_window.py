@@ -896,8 +896,11 @@ class QBuilderWindow(QtGui.QMainWindow):
         Quit Vistrail, return False if not succeeded
 
         """
-        if self.viewManager.closeAllVistrails():
+        if self.viewManager.closeAllVistrails():            
             QtCore.QCoreApplication.quit()
+            # In case the quit() failed (when Qt doesn't have the main
+            # event loop), we have to return True still
+            return True
         return False
 
     def vistrailViewAdded(self, view):
