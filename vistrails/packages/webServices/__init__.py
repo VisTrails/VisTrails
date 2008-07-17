@@ -849,14 +849,14 @@ be loaded again." % w
             continue
 
         #create a directory for each webservice if it does not exist
-        package_directory = core.system.default_dot_vistrails() + \
-                            "/webServices/"
+        package_directory = os.path.join(core.system.default_dot_vistrails(),
+                                        "webServices")
         sys.path.append(package_directory)
         directoryname = urllib.quote_plus(w)
         directoryname = directoryname.replace(".","_")
         directoryname = directoryname.replace("%","_")
         directoryname = directoryname.replace("+","_")
-        package_subdirectory = package_directory + directoryname
+        package_subdirectory = os.path.join(package_directory, directoryname)
         wsm = WriteServiceModule(wsdl)
         client_mod = wsm.getClientModuleName()
         types_mod = wsm.getTypesModuleName()
@@ -1198,8 +1198,9 @@ def verify_wsdl(wsdlList):
         directoryname = directoryname.replace(".","_")
         directoryname = directoryname.replace("%","_")
         directoryname = directoryname.replace("+","_")
-        package_subdirectory = core.system.default_dot_vistrails() + \
-                               "/webServices/" + directoryname
+        package_subdirectory = os.path.join(core.system.default_dot_vistrails(),
+                                            "webServices",
+                                            directoryname)
         wsm = WriteServiceModule(wsdl)
         client_mod = wsm.getClientModuleName()
         client_file = os.path.join(package_subdirectory, '%s.py' %client_mod)
@@ -1279,7 +1280,7 @@ def initialize(*args, **keywords):
             msg = "Error loading configuration file"
             raise Exception(msg)
     
-    print wsdlList, outdated_list, updated_list
+    #print wsdlList, outdated_list, updated_list
     (res, not_loaded) = load_wsdl_no_config(updated_list)
     if not res:
         #there was a problem when trying to load the stubs
