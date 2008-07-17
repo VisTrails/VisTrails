@@ -43,6 +43,8 @@ class Action(DBAction):
             self.user = ''
         if self.prune is None:
             self.prune = 0
+        if self.expand is None:
+            self.expand = 0
 #         if kwargs.has_key('notes'):
 #             self.notes = kwargs['notes']
 
@@ -64,6 +66,7 @@ class Action(DBAction):
     session = DBAction.db_session
     user = DBAction.db_user
     prune = DBAction.db_prune
+    expand = 0
     annotations = DBAction.db_annotations
     operations = DBAction.db_operations
 

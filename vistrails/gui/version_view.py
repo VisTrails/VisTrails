@@ -47,6 +47,7 @@ from gui.qt import qt_super
 import gui.utils
 import math
 
+
 ################################################################################
 # QGraphicsLinkItem
 
@@ -65,15 +66,31 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
         self.setZValue(0)
         self.linkPen = CurrentTheme.LINK_PEN
-        # self.startVersion = -1
-        # self.endVersion = -1
         self.ghosted = False
         
         # cache link endpoints to improve performance on scene updates
         self.c1 = None
         self.c2 = None
-        self.compact = None
+        self.expand = None
+        self.collapse = None
 
+    def mousePressEvent(self, event):
+        """ mousePressEvent(event: QMouseEvent) -> None
+
+        """
+        qt_super(QGraphicsLinkItem, self).mousePressEvent(event)
+        self.setSelected(True)
+
+    def mouseReleaseEvent(self, event):
+        """ mouseReleaseEvent(event: QMouseEvent) -> None
+        
+        """
+        qt_super(QGraphicsLinkItem, self).mouseReleaseEvent(event)
+        if self.expand:
+            self.scene().controller.expand_versions(self.startVersion, self.endVersion)
+        elif self.collapse:
+            self.scene().controller.collapse_versions(self.endVersion)
+        self.setSelected(False)
 
     def setGhosted(self, ghosted):
         """ setGhosted(ghosted: True) -> None
@@ -87,29 +104,33 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
             else:
                 self.linkPen = CurrentTheme.LINK_PEN
 
-    def setupLink(self, v1, v2, compact=True):
+    def setupLink(self, v1, v2, expand=False, collapse=False):
         """ setupLink(v1, v2: QGraphicsVersionItem, compact: bool) -> None
         Setup a line connecting v1 and v2 items
         
         """
-        # self.startVersion = min(v1.id, v2.id)
-        # self.endVersion = max(v1.id, v2.id)
+        self.startVersion = min(v1.id, v2.id)
+        self.endVersion = max(v1.id, v2.id)
+        
         c1 = v1.sceneBoundingRect().center()
         c2 = v2.sceneBoundingRect().center()
 
         # check if it is the same geometry 
         # improves performance on updates
-        if self.c1 != None and self.c2 != None and self.compact != None:
+        if self.c1 != None and self.c2 != None and \
+                self.expand != None and self.collapse !=None:
             isTheSame = self.c1 == c1 and \
                 self.c2 == c2 and \
-                self.compact == compact
+                self.expand == expand and \
+                self.collapse == collapse
             if isTheSame:
                 return
         
         # update current state
         self.c1 = c1
         self.c2 = c2
-        self.compact = compact
+        self.collapse = collapse
+        self.expand = expand
 
         # Compute the line of the link and its normal line throught
         # the midpoint
@@ -122,7 +143,7 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
 
         # Generate 2 segments along the main line and 3 segments along
         # the normal line
-        if compact:
+        if not self.collapse and not self.expand:
             self.lines = [mainLine]
             poly = QtGui.QPolygonF()
             poly.append(self.lines[0].p1())
@@ -131,44 +152,68 @@ class QGraphicsLinkItem(QGraphicsItemInterface, QtGui.QGraphicsPolygonItem):
             self.setPolygon(poly)
         else:
             self.lines = []
+            
+            normalLine = mainLine.normalVector()        
+            normalLine.setLength(CurrentTheme.LINK_SEGMENT_SQUARE_LENGTH)
+            dis = (mainLine.pointAt(0.5)-mainLine.p1()+
+                   normalLine.p1()-normalLine.pointAt(0.5))
+            normalLine.translate(dis.x(), dis.y())
+            
             gapLine = QtCore.QLineF(mainLine)
-            gapLine.setLength(CurrentTheme.LINK_SEGMENT_GAP)
+            gapLine.setLength(CurrentTheme.LINK_SEGMENT_SQUARE_LENGTH/2)
             gapVector = gapLine.p2()-gapLine.p1()
-
-            # Fist segment along the main line
+            
+            # First segment along the main line
             line = QtCore.QLineF(mainLine)
-            line.setLength(line.length()/2-CurrentTheme.LINK_SEGMENT_GAP*2)
+            line.setLength(line.length()/2-CurrentTheme.LINK_SEGMENT_SQUARE_LENGTH/2)
             self.lines.append(QtCore.QLineF(line))
-
+            
             # Second segment along the main line
-            line.translate(line.p2()-line.p1()+gapVector*4)
+            line.translate(line.p2()-line.p1()+gapVector*2)
             self.lines.append(QtCore.QLineF(line))
-
+            
             # First normal segment in front
-            line = QtCore.QLineF(normalLine)
-            line.translate(gapVector*(-1.0))
+            line_t = QtCore.QLineF(normalLine)
+            line_t.translate(gapVector*(-1.0))
+            self.lines.append(QtCore.QLineF(line_t))
+        
+            # Second normal segment in back
+            line_b = QtCore.QLineF(normalLine)
+            line_b.translate(gapVector)
+            self.lines.append(QtCore.QLineF(line_b))
+        
+            # Left box
+            line = QtCore.QLineF(line_t.p1(),line_b.p1())
+            self.lines.append(QtCore.QLineF(line))
+        
+            # Right box
+            line = QtCore.QLineF(line_t.p2(),line_b.p2())
             self.lines.append(QtCore.QLineF(line))
 
-            # Middle normal segment
-            self.lines.append(QtCore.QLineF(normalLine))
-
-            # Third normal segment in back
-            line = QtCore.QLineF(normalLine)
-            line.translate(gapVector)
-            self.lines.append(QtCore.QLineF(line))
-
+            # Horizontal plus
+            line_h = QtCore.QLineF(normalLine.pointAt(0.2),normalLine.pointAt(0.8))
+            self.lines.append(QtCore.QLineF(line_h))
+            
+            if self.expand:
+                # Vertical plus
+                line = QtCore.QLineF(mainLine)
+                line.translate((line.p2()-line.p1())/2-gapVector)
+                line.setLength(CurrentTheme.LINK_SEGMENT_SQUARE_LENGTH)
+                line_v = QtCore.QLineF(line.pointAt(0.2), line.pointAt(0.8))
+                self.lines.append(QtCore.QLineF(line_v))
+        
             # Create the poly line for selection and redraw
             poly = QtGui.QPolygonF()
             poly.append(self.lines[0].p1())
             poly.append(self.lines[2].p1())
-            poly.append(self.lines[4].p1())
+            poly.append(self.lines[3].p1())
             poly.append(self.lines[1].p2())
-            poly.append(self.lines[4].p2())
+            poly.append(self.lines[3].p2())
             poly.append(self.lines[2].p2())
             poly.append(self.lines[0].p1())
             self.setPolygon(poly)
 
-        self.setGhosted(v1.ghosted or v2.ghosted)
+        self.setGhosted(v1.ghosted and v2.ghosted)
 
     def paint(self, painter, option, widget=None):
         """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
@@ -677,13 +722,13 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.removeItem(versionShape)
         self.versions.pop(v)
 
-    def addLink(self, guiSource, guiTarget, compact):
+    def addLink(self, guiSource, guiTarget, expand, collapse):
         """ addLink(v1, v2: QGraphicsVersionItem) -> None
         Add a link to the scene
         
         """
         linkShape = QGraphicsLinkItem()
-        linkShape.setupLink(guiSource, guiTarget, compact)
+        linkShape.setupLink(guiSource, guiTarget, expand, collapse)
         self.addItem(linkShape)
         self.edges[(guiSource.id, guiTarget.id)] = linkShape
         
@@ -764,13 +809,16 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         del self.versions[old_version]
         v.id = new_version
 
+        tm = controller.vistrail.tagMap
+ 
         # update link items
         dst = controller._current_terse_graph.edges_from(new_version)
         for eto, _ in dst:
             edge = self.edges[(old_version, eto)]
             edge.setupLink(self.versions[new_version],
                            self.versions[eto],
-                           self.fullGraph.parent(eto) == new_version)
+                           self.fullGraph.parent(eto) != new_version,
+                           False) # We shouldn't ever need a collapse here
             self.edges[(new_version, eto)] = edge
             del self.edges[(old_version, eto)]
 
@@ -779,7 +827,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             edge = self.edges[(efrom, old_version)]
             edge.setupLink(self.versions[efrom],
                            self.versions[new_version],
-                           self.fullGraph.parent(new_version) == efrom)
+                           self.fullGraph.parent(new_version) != efrom,
+                           False) # We shouldn't ever need a collapse here
             self.edges[(efrom, new_version)] = edge
             del self.edges[(efrom, old_version)]
 
@@ -869,14 +918,29 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             for (target, aux) in eFrom:
                 guiSource = self.versions[source]
                 guiTarget = self.versions[target]
+                sourceChildren = [to for (to, _) in 
+                                  self.fullGraph.adjacency_list[source]
+                                  if (to in am) and not am[to].prune]
+                targetChildren = [to for (to, _) in
+                                  self.fullGraph.adjacency_list[target]
+                                  if (to in am) and not am[to].prune]
+                expand = self.fullGraph.parent(target)!=source
+                collapse = (self.fullGraph.parent(target)==source and # No in betweens
+                            len(targetChildren) == 1 and # target is not a leaf or branch
+                            target != controller.current_version and # target is not selected
+                            target not in tm and # target has no tag
+                            (source in tm or # source has a tag
+                             source == 0 or # source is root node
+                             len(sourceChildren) > 1 or # source is branching node 
+                             source == controller.current_version)) # source is selected
                 if self.edges.has_key((source,target)):
                     linkShape = self.edges[(source,target)]
                     linkShape.setupLink(guiSource, guiTarget,
-                       (self.fullGraph.parent(target)==source))
+                                        expand, collapse)
                 else:
                     #print "add link %d %d" % (source, target)
                     self.addLink(guiSource, guiTarget, 
-                       (self.fullGraph.parent(target)==source))
+                                 expand, collapse)
 
         tCreate = time.clock() - tCreate
 

@@ -870,6 +870,22 @@ class Vistrail(DBVistrail):
 
             # self.prunedVersions.add(version)
 
+    def expandVersion(self, version):
+        """ expandVersion(version: int) -> None
+        Set the expand flag for the version
+        
+        """
+        if version!=0: # not root
+            self.actionMap[version].expand = 1
+
+    def collapseVersion(self, version):
+        """ collapseVersion(version: int) -> None
+        Reset the expand flag for the version
+        
+        """
+        if version!=0:
+            self.actionMap[version].expand = 0
+
     def setSavedQueries(self, savedQueries):
         """ setSavedQueries(savedQueries: list of (str, str, str)) -> None
         Set the saved queries of this vistrail

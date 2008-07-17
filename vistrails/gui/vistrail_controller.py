@@ -892,7 +892,8 @@ class VistrailController(QtCore.QObject):
                 (current == 0) or  # is root
                 (current in tm) or # hasTag:
                 (len(children) <> 1) or # not oneChild:
-                (current == self.current_version)): # isCurrentVersion
+                (current == self.current_version) or # isCurrentVersion
+                (am[current].expand)): # forced expansion
                 # yes it will!
                 # this needs to be here because if we are refining
                 # version view receives the graph without the non
@@ -1030,6 +1031,72 @@ class VistrailController(QtCore.QObject):
                 self.vistrail.pruneVersion(highest)
         if changed:
             self.set_changed(True)
+        self.recompute_terse_graph()
+        self.invalidate_version_tree(False)
+
+    def expand_versions(self, v1, v2):
+        """ expand_versions(v1: int, v2: int) -> None
+        Expand all versions between v1 and v2
+        
+        """
+        full = self.vistrail.getVersionGraph()
+        changed = False
+        p = full.parent(v2)
+        while p>v1:
+            self.vistrail.expandVersion(p)
+            changed = True
+            p = full.parent(p)
+        if changed:
+            self.set_changed(True)
+        self.recompute_terse_graph()
+        self.invalidate_version_tree(False)
+
+    def collapse_versions(self, v):
+        """ collapse_versions(v: int) -> None
+        Collapse all expanded versions including and under version v
+        
+        """
+        full = self.vistrail.getVersionGraph()
+        x = [v]
+
+        am = self.vistrail.actionMap
+        tm = self.vistrail.tagMap
+
+        changed = False
+
+        while 1:
+            try:
+                current=x.pop()
+            except IndexError:
+                break
+
+            children = [to for (to, _) in full.adjacency_list[current]
+                        if (to in am) and not am[to].prune]
+            if len(children) > 1:
+                break;
+
+            self.vistrail.collapseVersion(current)
+            changed = True
+
+            for child in children:
+                if (not child in tm and  # has no Tag
+                    child != self.current_version): # not selected
+                    x.append(child)
+
+        if changed:
+            self.set_changed(True)
+        self.recompute_terse_graph()
+        self.invalidate_version_tree(False) 
+
+    def collapse_all_versions(self):
+        """ collapse_all_versions() -> None
+        Collapse all expanded versions
+
+        """
+        am = self.vistrail.actionMap
+        for a in am.iterkeys():
+            self.vistrail.collapseVersion(a)
+        self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False)
 

@@ -88,6 +88,7 @@ class DefaultTheme(object):
         # draw connections between versions
         self.LINK_SEGMENT_LENGTH = 15
         self.LINK_SEGMENT_GAP = 5
+        self.LINK_SEGMENT_SQUARE_LENGTH = 12
 
         # The size of the frame containing the PIP graphics view
         self.PIP_IN_FRAME_WIDTH = 5
