@@ -52,6 +52,7 @@ from core.vistrail.pipeline import Pipeline
 from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.vistrail import TagExists
+from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from core.interpreter.default import get_default_interpreter
 from core.inspector import PipelineInspector
 from db.domain import IdScope
@@ -62,6 +63,7 @@ from gui.utils import show_warning, show_question, YES_BUTTON, NO_BUTTON
 import core.analogy
 import copy
 import os.path
+import math
 
 ################################################################################
 
@@ -135,6 +137,12 @@ class VistrailController(QtCore.QObject):
         self._cache_pipelines = True
         self._pipelines = {0: Pipeline()}
 
+        self._current_terse_graph = None
+        self._current_full_graph = None
+        self._previous_graph_layout = None
+        self._current_graph_layout = VistrailsTreeLayoutLW()
+        self.animate_layout = False
+
     ##########################################################################
     # Signal vistrail relayout / redraw
 
@@ -148,8 +156,12 @@ class VistrailController(QtCore.QObject):
         finally:
             self.reset_version_view = True
 
-    def invalidate_version_tree(self, reset_version_view=True):
+    def invalidate_version_tree(self, reset_version_view=True, animate_layout=False):
+        """ invalidate_version_tree(reset_version_tree: bool, animate_layout: bool) -> None
+        
+        """
         self.reset_version_view = reset_version_view
+        self.animate_layout = animate_layout
         #FIXME: in the future, rename the signal
         try:
             self.emit(QtCore.SIGNAL('vistrailChanged()'))
@@ -923,15 +935,83 @@ class VistrailController(QtCore.QObject):
 
         self._current_terse_graph = tersedVersionTree
         self._current_full_graph = self.vistrail.tree.getVersionTree()
+        self._previous_graph_layout = copy.deepcopy(self._current_graph_layout)
+        self._current_graph_layout.layout_from(self.vistrail, 
+                                               self._current_terse_graph)
 
-    def refine_graph(self):
-        """ refine_graph(controller: VistrailController) -> (Graph, Graph)        
+    def refine_graph(self, step=1.0):
+        """ refine_graph(step: float in [0,1]) -> (Graph, Graph)        
         Refine the graph of the current vistrail based the search
         status of the controller. It also return the full graph as a
         reference
         
         """
-        return (self._current_terse_graph, self._current_full_graph)
+        if not self.animate_layout:
+            return (self._current_terse_graph, self._current_full_graph,
+                    self._current_graph_layout)
+
+        graph_layout = copy.deepcopy(self._current_graph_layout)
+        terse_graph = copy.deepcopy(self._current_terse_graph)
+        am = self.vistrail.actionMap
+        step = 1.0/(1.0+math.exp(-(step*12-6))) # use a logistic sigmoid function
+        
+        # Adding nodes to tree
+        for (c_id, c_node) in self._current_graph_layout.nodes.iteritems():
+            if self._previous_graph_layout.nodes.has_key(c_id):
+                p_node = self._previous_graph_layout.nodes[c_id]
+            else: 
+                p_id = c_id
+                # Find closest child of contained in both graphs
+                while not self._previous_graph_layout.nodes.has_key(p_id):
+                    # Should always have exactly one child
+                    p_id = [to for (to, _) in self._current_full_graph.adjacency_list[p_id]
+                            if (to in am) and not am[to].prune][0]
+                p_node = self._previous_graph_layout.nodes[p_id]
+
+            # Interpolate position
+            x = p_node.p.x - c_node.p.x
+            y = p_node.p.y - c_node.p.y
+            graph_layout.move_node(c_id, x*(1.0-step), y*(1.0-step))
+            
+        # Removing nodes from tree
+        for (p_id, p_node) in self._previous_graph_layout.nodes.iteritems():
+            if not self._current_graph_layout.nodes.has_key(p_id):
+                # Find closest parent contained in both graphs
+                shared_parent = p_id
+                while shared_parent > 0 and not self._current_graph_layout.nodes.has_key(shared_parent):
+                    shared_parent = self._current_full_graph.parent(shared_parent)
+
+                # Find closest child contained in both graphs
+                c_id = p_id
+                while not self._current_graph_layout.nodes.has_key(c_id):
+                    # Should always have exactly one child
+                    c_id = [to for (to, _) in self._current_full_graph.adjacency_list[c_id]
+                        if (to in am) and not am[to].prune][0]
+
+                # Don't show edge that skips the disappearing nodes
+                if terse_graph.has_edge(shared_parent, c_id):
+                    terse_graph.delete_edge(shared_parent, c_id)
+
+                # Add the disappearing node to the graph and layout
+                c_node = copy.deepcopy(self._current_graph_layout.nodes[c_id])
+                c_node.id = p_id
+                graph_layout.add_node(p_id, c_node)
+                terse_graph.add_vertex(p_id)
+                p_parent = self._current_full_graph.parent(p_id)
+                if not terse_graph.has_edge(p_id, p_parent):
+                    terse_graph.add_edge(p_parent, p_id)
+                p_child = [to for (to, _) in self._current_full_graph.adjacency_list[p_id]
+                           if (to in am) and not am[to].prune][0]
+                if not terse_graph.has_edge(p_id, p_child):
+                    terse_graph.add_edge(p_id, p_child)
+
+                # Interpolate position
+                x = p_node.p.x - c_node.p.x
+                y = p_node.p.y - c_node.p.y
+                graph_layout.move_node(p_id, x*(1.0-step), y*(1.0-step))
+
+        return (terse_graph, self._current_full_graph,
+                graph_layout)
 
     ##########################################################################
     # undo/redo navigation
@@ -1049,7 +1129,7 @@ class VistrailController(QtCore.QObject):
         if changed:
             self.set_changed(True)
         self.recompute_terse_graph()
-        self.invalidate_version_tree(False)
+        self.invalidate_version_tree(False, True)
 
     def collapse_versions(self, v):
         """ collapse_versions(v: int) -> None
@@ -1086,7 +1166,7 @@ class VistrailController(QtCore.QObject):
         if changed:
             self.set_changed(True)
         self.recompute_terse_graph()
-        self.invalidate_version_tree(False) 
+        self.invalidate_version_tree(False, True) 
 
     def collapse_all_versions(self):
         """ collapse_all_versions() -> None
@@ -1098,7 +1178,7 @@ class VistrailController(QtCore.QObject):
             self.vistrail.collapseVersion(a)
         self.set_changed(True)
         self.recompute_terse_graph()
-        self.invalidate_version_tree(False)
+        self.invalidate_version_tree(False, True)
 
     def select_latest_version(self):
         """ select_latest_version() -> None

@@ -45,6 +45,13 @@ class NodeVistrailsTreeLayoutLW(object):
         self.width = 0.0
         self.id = 0
 
+    def move(self, x, y):
+        """ move(x: float, y: float) -> None
+
+        """
+        self.p.x = self.p.x + x
+        self.p.y = self.p.y + y
+
 class VistrailsTreeLayoutLW(object):
     """
     DotLayout is the graph outputed from Dotty which will be used and
@@ -164,3 +171,15 @@ class VistrailsTreeLayoutLW(object):
         self.scale = 0.0
         self.width = width
         self.height = height
+
+    def move_node(self, id, x, y):
+        """ move_node(id: int, x: float, y: float) -> None
+
+        """
+        self.nodes[id].move(x,y)
+
+    def add_node(self, id, node):
+        """ add_node(id: int, node: NodeVistrailsTreeLayoutLW) -> None
+        
+        """
+        self.nodes[id] = node

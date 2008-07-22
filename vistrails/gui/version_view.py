@@ -702,7 +702,10 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.edges = {}     # (sourceVersion, targetVersion) -> edge gui object
         self.controller = None
         self.fullGraph = None
-        
+        self.timer = QtCore.QBasicTimer()
+        self.animation_step = 1
+        self.num_animation_steps = 10
+   
     def addVersion(self, node, action, tag):
         """ addModule(node, action: DBAction, tag: DBTag) -> None
         Add a module to the scene.
@@ -837,7 +840,6 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         Construct the scene to view a version tree
         
         """
-
         import time
         t = time.clock()
 
@@ -848,8 +850,10 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         
         self.controller = controller
 
-        # Call dotty to perform graph layout
-        (tree, self.fullGraph) = controller.refine_graph()
+        # perform graph layout
+        (tree, self.fullGraph, layout) = \
+            controller.refine_graph(float(self.animation_step)/
+                                    float(self.num_animation_steps))
 
         tClearRefine = time.clock() - tClearRefine
 
@@ -876,14 +880,6 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         # remove gui nodes from scene
         for v in removeNodeSet:
             self.removeVersion(v)
-
-        # layout the tree
-        # remove nodes from the scene
-        tLayout = time.clock()
-        #layout = DotLayout()
-        layout = VistrailsTreeLayoutLW()
-        layout.layout_from(controller.vistrail, tree)
-        tLayout = time.clock() - tLayout
 
         tCreate = time.clock()
 
@@ -946,12 +942,30 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
 
         # Update bounding rects and fit to all view
         tUpdate = time.clock()
-        self.updateSceneBoundingRect()
+        if not self.controller.animate_layout:
+            self.updateSceneBoundingRect()
+        elif not self.timer.isActive():
+            self.timer.start(0, self)
         tUpdate = time.clock() - tUpdate
 
         t = time.clock() - t
-        # print "time in msec to setupScene total: %f  refine %f  layout %f  create %f" % (t, tClearRefine, tLayout, tCreate)
+        # print "time in msec to setupScene total: %f  refine %f  layout %f  create %f" % (t, tClearRefine, tCreate)
 
+    def timerEvent(self, event):
+        """ timerEvent(event: QTimerEvent) -> None
+        
+        Start up a timer for animating tree drawing events
+        """
+        if event.timerId() == self.timer.timerId():
+            self.animation_step += 1
+            if self.animation_step == self.num_animation_steps:
+                self.animation_step = 1
+                self.timer.stop()
+                self.controller.animate_layout = False
+            self.setupScene(self.controller)
+            self.update()
+        else:
+            qt_super(QVersionTreeScene, self).timerEvent(event)
 
     def keyPressEvent(self, event):
          """ keyPressEvent(event: QKeyEvent) -> None
