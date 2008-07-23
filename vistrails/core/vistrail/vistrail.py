@@ -772,6 +772,72 @@ class Vistrail(DBVistrail):
             return True
         return False
         
+    def get_description(self, version_number):
+        """ get_description(version_number: int) -> str
+        Compute the description of a version
+        
+        """
+        description = ""
+        if version_number in self.actionMap:
+            action = self.actionMap[version_number]
+            ops = action.operations
+            added_modules = 0
+            added_connections = 0
+            moved_modules = 0
+            deleted_modules = 0
+            deleted_connections = 0
+            for op in ops:
+                if op.vtType == 'add':
+                    if op.what == 'module':
+                        added_modules+=1
+                    elif op.what == 'connection':
+                        added_connections+=1
+                elif op.vtType == 'change':
+                    moved_modules+=1
+                elif op.vtType == 'delete':
+                    if op.what == 'module':
+                        deleted_modules+=1
+                    elif op.what == 'connection':
+                        deleted_connections+=1
+                else:
+                    raise Exception("Unknown operation type '%s'" % op.vtType)
+
+            if added_modules or added_connections:
+                if added_modules and not added_connections:
+                    description = "Added module"
+                    if added_modules > 1:
+                        description += "s"
+                elif added_connections and not added_modules:
+                    description = "Added connection"
+                else:
+                    description = "Added module"
+                    if added_modules > 1:
+                        description += "s"
+                    description += " and connection"
+                    if added_connections > 1:
+                        description += "s"
+            elif moved_modules:
+                description = "Moved module"
+                if moved_modules > 1:
+                    description += "s"
+            elif deleted_modules or deleted_connections:
+                if deleted_modules and not deleted_connections:
+                    description = "Deleted module"
+                    if deleted_modules > 1:
+                        description += "s"
+                elif deleted_connections and not deleted_modules:
+                    description = "Deleted connection"
+                    if deleted_connections > 1:
+                        description += "s"
+                else:
+                    description = "Deleted module"
+                    if deleted_modules > 1:
+                        description += "s"
+                    description += " and connection"
+                    if deleted_connections:
+                        description += "s"
+        return description
+
     # FIXME: remove this function (left here only for transition)
     def getVersionGraph(self):
         """getVersionGraph() -> Graph 

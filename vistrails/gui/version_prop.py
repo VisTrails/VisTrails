@@ -340,6 +340,15 @@ class QVersionPropOverlay(QtGui.QFrame):
         self.tag = QtGui.QLabel()
         self.tag.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
 
+        self.description_label = QtGui.QLabel()
+        self.description_label.palette().setBrush(QtGui.QPalette.Text,
+                                                  CurrentTheme.VERSION_PROPERTIES_PEN)
+        self.description_label.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
+        self.description_label.setText(QtCore.QString("Action:"))
+
+        self.description = QtGui.QLabel()
+        self.description.setFont(CurrentTheme.VERSION_PROPERTIES_FONT)
+
         self.user_label = QtGui.QLabel()
         self.user_label.palette().setBrush(QtGui.QPalette.Text,
                                            CurrentTheme.VERSION_PROPERTIES_PEN)
@@ -378,12 +387,14 @@ class QVersionPropOverlay(QtGui.QFrame):
 
         self.layout.addWidget(self.tag_label, 0, 0)
         self.layout.addWidget(self.tag, 0, 1)
-        self.layout.addWidget(self.user_label, 1, 0)
-        self.layout.addWidget(self.user, 1, 1)
-        self.layout.addWidget(self.date_label, 2, 0)
-        self.layout.addWidget(self.date, 2, 1)
-        self.layout.addWidget(self.notes_label, 3, 0)
-        self.layout.addLayout(self.notes_layout, 3, 1)
+        self.layout.addWidget(self.description_label, 1, 0)
+        self.layout.addWidget(self.description, 1, 1)
+        self.layout.addWidget(self.user_label, 2, 0)
+        self.layout.addWidget(self.user, 2, 1)
+        self.layout.addWidget(self.date_label, 3, 0)
+        self.layout.addWidget(self.date, 3, 1)
+        self.layout.addWidget(self.notes_label, 4, 0)
+        self.layout.addLayout(self.notes_layout, 4, 1)
 
         self.layout.setColumnMinimumWidth(0,35)
         self.layout.setColumnMinimumWidth(1,200)
@@ -428,7 +439,9 @@ class QVersionPropOverlay(QtGui.QFrame):
             if self.controller.vistrail.actionMap.has_key(versionNumber):
                 action = self.controller.vistrail.actionMap[versionNumber]
                 name = self.controller.vistrail.getVersionName(versionNumber)
+                description = self.controller.vistrail.get_description(versionNumber)
                 self.tag.setText(self.truncate(QtCore.QString(name)))
+                self.description.setText(self.truncate(QtCore.QString(description)))
                 self.user.setText(self.truncate(QtCore.QString(action.user)))
                 self.date.setText(self.truncate(QtCore.QString(action.date)))
                 if action.notes:
@@ -439,6 +452,7 @@ class QVersionPropOverlay(QtGui.QFrame):
                 self.notes_button.show()
             else:
                 self.tag.setText('')
+                self.description.setText('')
                 self.user.setText('')
                 self.date.setText('')
                 self.notes.setText('')
