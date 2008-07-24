@@ -27,6 +27,7 @@ QViewManager
 
 from PyQt4 import QtCore, QtGui
 from gui.theme import CurrentTheme
+from gui.utils import getBuilderWindow
 from gui.vistrail_view import QVistrailView
 from core import system
 from core.db.locator import FileLocator, untitled_locator
@@ -442,7 +443,7 @@ class QViewManager(QtGui.QTabWidget):
         if not vistrailView:
             vistrailView = self.currentWidget()
         vistrailView.flush_changes()
-            
+
         if vistrailView:
             if not quiet and vistrailView.controller.changed:
                 text = vistrailView.controller.name
@@ -452,7 +453,7 @@ class QViewManager(QtGui.QTabWidget):
                         QtCore.Qt.escape(text) +
                         ' contains unsaved changes.\n Do you want to '
                         'save changes before closing it?')
-                res = QtGui.QMessageBox.information(None,
+                res = QtGui.QMessageBox.information(getBuilderWindow(),
                                                     'Vistrails',
                                                     text, 
                                                     '&Save', 
