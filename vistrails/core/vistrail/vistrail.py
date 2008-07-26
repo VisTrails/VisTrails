@@ -678,6 +678,19 @@ class Vistrail(DBVistrail):
 
         self.db_add_abstraction(abstraction)
 
+    def getLastActions(self, n):
+        """ getLastActions(n: int) -> list of ids
+        Returns the last n actions performed
+        """
+        last_n = []
+        num_actions = len(self.actionMap)
+        if num_actions < n:
+            n = num_actions
+        if n > 0:
+            sorted_keys = sorted(self.actionMap.keys())
+            last_n = sorted_keys[num_actions-n:num_actions-1]
+        return last_n
+
     def hasVersion(self, version):
         """hasVersion(version:int) -> boolean
         Returns True if version with given timestamp exists
@@ -782,60 +795,65 @@ class Vistrail(DBVistrail):
             action = self.actionMap[version_number]
             ops = action.operations
             added_modules = 0
+            added_functions = 0
             added_connections = 0
             moved_modules = 0
+            changed_parameters = 0
             deleted_modules = 0
             deleted_connections = 0
+            deleted_parameters = 0
             for op in ops:
                 if op.vtType == 'add':
                     if op.what == 'module':
                         added_modules+=1
                     elif op.what == 'connection':
                         added_connections+=1
+                    elif op.what == 'function':
+                        added_functions+=1
                 elif op.vtType == 'change':
-                    moved_modules+=1
+                    if op.what == 'parameter':
+                        changed_parameters+=1
+                    elif op.what == 'location':
+                        moved_modules+=1
                 elif op.vtType == 'delete':
                     if op.what == 'module':
                         deleted_modules+=1
                     elif op.what == 'connection':
                         deleted_connections+=1
+                    elif op.what == 'parameter':
+                        deleted_parameters+=1
                 else:
                     raise Exception("Unknown operation type '%s'" % op.vtType)
 
-            if added_modules or added_connections:
-                if added_modules and not added_connections:
-                    description = "Added module"
-                    if added_modules > 1:
-                        description += "s"
-                elif added_connections and not added_modules:
-                    description = "Added connection"
-                else:
-                    description = "Added module"
-                    if added_modules > 1:
-                        description += "s"
-                    description += " and connection"
-                    if added_connections > 1:
-                        description += "s"
+            if added_modules:
+                description = "Added module"
+                if added_modules > 1:
+                    description += "s"
+            elif added_connections:
+                description = "Added connection"
+            elif added_functions:
+                description = "Added function"
             elif moved_modules:
                 description = "Moved module"
                 if moved_modules > 1:
                     description += "s"
-            elif deleted_modules or deleted_connections:
-                if deleted_modules and not deleted_connections:
-                    description = "Deleted module"
-                    if deleted_modules > 1:
-                        description += "s"
-                elif deleted_connections and not deleted_modules:
-                    description = "Deleted connection"
-                    if deleted_connections > 1:
-                        description += "s"
-                else:
-                    description = "Deleted module"
-                    if deleted_modules > 1:
-                        description += "s"
-                    description += " and connection"
-                    if deleted_connections:
-                        description += "s"
+            elif changed_parameters:
+                description = "Changed parameter"
+                if changed_parameters > 1:
+                    description += "s"
+            elif deleted_modules:
+                description = "Deleted module"
+                if deleted_modules > 1:
+                    description += "s"
+            elif deleted_connections:
+                description = "Deleted connection"
+                if deleted_connections > 1:
+                    description += "s"
+            elif deleted_parameters:
+                description = "Deleted parameter"
+                if deleted_parameters > 1:
+                    description += "s"
+                
         return description
 
     # FIXME: remove this function (left here only for transition)

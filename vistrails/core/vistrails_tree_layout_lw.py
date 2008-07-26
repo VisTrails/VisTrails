@@ -97,10 +97,12 @@ class VistrailsTreeLayoutLW(object):
                 # print "arc %d -> %d" % (id, first)                
                 edges.append((id,first))
                 if id not in X:
-                    nodes.append((id," "))
+#                    nodes.append((id," "))
+                    nodes.append((id, vistrail.get_description(id)))
                     X.add(id)
                 if first not in X:
-                    nodes.append((first," "))
+#                    nodes.append((first," "))
+                    nodes.append((first, vistrail.get_description(first)))
                     X.add(first)
 
         # get widths and heights for the nodes

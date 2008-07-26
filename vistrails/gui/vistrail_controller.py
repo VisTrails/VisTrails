@@ -889,7 +889,8 @@ class VistrailController(QtCore.QObject):
         # cache actionMap and tagMap because they're properties, sort of slow
         am = self.vistrail.actionMap
         tm = self.vistrail.tagMap
-        
+        last_n = self.vistrail.getLastActions(5)
+
         while 1:
             try:
                 (current,parent)=x.pop()
@@ -905,7 +906,8 @@ class VistrailController(QtCore.QObject):
                 (current in tm) or # hasTag:
                 (len(children) <> 1) or # not oneChild:
                 (current == self.current_version) or # isCurrentVersion
-                (am[current].expand)): # forced expansion
+                (am[current].expand) or  # forced expansion
+                (current in last_n)): # show latest
                 # yes it will!
                 # this needs to be here because if we are refining
                 # version view receives the graph without the non

@@ -278,6 +278,10 @@ class DefaultTheme(object):
         # Font for version text
         self.VERSION_FONT = QtGui.QFont("Arial", 15, QtGui.QFont.Bold)
         self.VERSION_FONT_METRIC = QtGui.QFontMetrics(self.VERSION_FONT)
+        self.VERSION_DESCRIPTION_FONT = QtGui.QFont("Arial", 15, QtGui.QFont.Normal, 
+                                                    True)
+        self.VERSION_DESCRIPTION_FONT_METRIC = \
+            QtGui.QFontMetrics(self.VERSION_DESCRIPTION_FONT)
         self.VERSION_PROPERTIES_FONT = QtGui.QFont("Arial", 12)
         self.VERSION_PROPERTIES_FONT_METRIC = \
             QtGui.QFontMetrics(self.VERSION_PROPERTIES_FONT)

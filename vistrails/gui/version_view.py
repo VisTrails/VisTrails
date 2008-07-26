@@ -265,8 +265,9 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         self.centerX = 0.0
         self.centerY = 0.0
         self.label = ''
+        self.isTag = True
 
-    def changed(self, x, y, label):
+    def changed(self, x, y, label, tag=True):
         """ changed(x: float, y: float, label: str) -> None
         Change the position and text label from outside the editor
 
@@ -275,6 +276,11 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
             self.centerX = x
             self.centerY = y
             self.label = label
+            self.isTag = tag
+            if self.isTag:
+                self.setFont(CurrentTheme.VERSION_FONT)
+            else:
+                self.setFont(CurrentTheme.VERSION_DESCRIPTION_FONT)
             self.reset()
 
     def reset(self):
@@ -287,6 +293,11 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
             self.setTextWidth(-1)
         else:
             self.setTextWidth(CurrentTheme.VERSION_LABEL_MARGIN[0])
+            
+        if self.isTag:
+            self.setFont(CurrentTheme.VERSION_FONT)
+        else:
+            self.setFont(CurrentTheme.VERSION_DESCRIPTION_FONT)  
         self.updatePos()
 
     def updatePos(self):
@@ -304,7 +315,8 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
 
         """
         if event.key() in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
-            if not self.scene().controller.update_current_tag(str(self.toPlainText())):
+            if (self.label == str(self.toPlainText()) or
+                not self.scene().controller.update_current_tag(str(self.toPlainText()))):
                 self.reset()
             self.hide()
             return
@@ -321,7 +333,8 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         """
         qt_super(QGraphicsVersionTextItem, self).focusOutEvent(event)
         if QtCore.QString.compare(self.label, self.toPlainText()) != 0:
-            if not self.scene().controller.update_current_tag(str(self.toPlainText())):
+            if (self.label == str(self.toPlainText()) or 
+                not self.scene().controller.update_current_tag(str(self.toPlainText()))):
                 self.reset()
       
 
@@ -350,6 +363,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         self.setFlags(QtGui.QGraphicsItem.ItemIsSelectable)
         self.id = -1
         self.label = ''
+        self.descriptionLabel = ''
         self.dragging = False
         self.ghosted = False
         self.createActions()
@@ -446,7 +460,7 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
         self.setRect(r)
         self.update()
 
-    def setupVersion(self, node, action, tag):
+    def setupVersion(self, node, action, tag, description):
         """ setupPort(node: DotNode,
                       action: DBAction,
                       tag: DBTag) -> None
@@ -468,13 +482,24 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
                              node.p.y-node.height/2.0,
                              node.width,
                              node.height)
+        validLabel = True
         if tag is None:
             label = ''
+            validLabel=False
         else:
             label = tag.name
+
         self.id = node.id
         self.label = label
-        self.text.changed(node.p.x, node.p.y, label)
+        if description is None:
+            self.descriptionLabel = ''
+        else:
+            self.descriptionLabel = description
+        if validLabel:
+            textToDraw=self.label
+        else:
+            textToDraw=self.descriptionLabel
+        self.text.changed(node.p.x, node.p.y, textToDraw, validLabel)
         self.setRect(rect)
 
     def boundingRect(self):
@@ -495,15 +520,21 @@ class QGraphicsVersionItem(QGraphicsItemInterface, QtGui.QGraphicsEllipseItem):
             painter.setPen(self.versionPen)
         painter.setBrush(self.versionBrush)
         painter.drawEllipse(self.rect())
-
+        
         # Only draw text if editable text item is not present
         if not self.text.isVisible():
             if self.isSelected() and not self.ghosted:
                 painter.setPen(CurrentTheme.VERSION_LABEL_SELECTED_PEN)
             else:
                 painter.setPen(self.versionLabelPen)
-            painter.setFont(CurrentTheme.VERSION_FONT)
-            painter.drawText(self.rect(), QtCore.Qt.AlignCenter, self.label)
+
+            if self.label == '' and self.descriptionLabel != '':
+                # Draw description text if available
+                painter.setFont(CurrentTheme.VERSION_DESCRIPTION_FONT)
+                painter.drawText(self.rect(), QtCore.Qt.AlignCenter, self.descriptionLabel)
+            else:
+                painter.setFont(CurrentTheme.VERSION_FONT)
+                painter.drawText(self.rect(), QtCore.Qt.AlignCenter, self.label)
 
     def itemChange(self, change, value):
         """ itemChange(change: GraphicsItemChange, value: QVariant) -> QVariant
@@ -706,13 +737,13 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.animation_step = 1
         self.num_animation_steps = 10
    
-    def addVersion(self, node, action, tag):
+    def addVersion(self, node, action, tag, description):
         """ addModule(node, action: DBAction, tag: DBTag) -> None
         Add a module to the scene.
         
         """
         versionShape = QGraphicsVersionItem(None)
-        versionShape.setupVersion(node, action, tag)
+        versionShape.setupVersion(node, action, tag, description)
         self.addItem(versionShape)
         self.versions[node.id] = versionShape
 
@@ -886,6 +917,8 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         # loop on the nodes of the tree
         tm = controller.vistrail.tagMap
         am = controller.vistrail.actionMap
+        last_n = controller.vistrail.getLastActions(5)
+
         for node in layout.nodes.itervalues():
 
             # version id
@@ -894,13 +927,14 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
             # version tag
             tag = tm.get(v, None)
             action = am.get(v, None)
+            description = controller.vistrail.get_description(v)
 
             # if the version gui object already exists...
             if self.versions.has_key(v):
                 versionShape = self.versions[v]
-                versionShape.setupVersion(node, action, tag)
+                versionShape.setupVersion(node, action, tag, description)
             else:
-                self.addVersion(node, action, tag)
+                self.addVersion(node, action, tag, description)
 
             # set as selected
             self.versions[v].setSelected(v == controller.current_version)
@@ -925,6 +959,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                             len(targetChildren) == 1 and # target is not a leaf or branch
                             target != controller.current_version and # target is not selected
                             target not in tm and # target has no tag
+                            target not in last_n and # not one of the last n modules
                             (source in tm or # source has a tag
                              source == 0 or # source is root node
                              len(sourceChildren) > 1 or # source is branching node 
