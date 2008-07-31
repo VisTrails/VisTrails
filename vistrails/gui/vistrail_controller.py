@@ -1094,7 +1094,7 @@ class VistrailController(QtCore.QObject):
         # We need to go up-stream to the highest invisible node
         current = self.vistrail.currentGraph
         if not current:
-            (current, full) = self.refine_graph()
+            (current, full, layout) = self.refine_graph()
         else:
             full = self.vistrail.getVersionGraph()
         changed = False
@@ -1116,6 +1116,51 @@ class VistrailController(QtCore.QObject):
         self.recompute_terse_graph()
         self.invalidate_version_tree(False)
 
+    def hide_versions_below(self, v):
+        """ hide_versions_below(v: int) -> None
+        Hide all versions including and below v
+        
+        """
+        full = self.vistrail.getVersionGraph()
+        x = [v]
+
+        am = self.vistrail.actionMap
+        tm = self.vistrail.tagMap
+
+        changed = False
+
+        while 1:
+            try:
+                current=x.pop()
+            except IndexError:
+                break
+
+            children = [to for (to, _) in full.adjacency_list[current]
+                        if (to in am) and not am[to].prune]
+            self.vistrail.hideVersion(current)
+            changed = True
+
+            for child in children:
+                x.append(child)
+
+        if changed:
+            self.set_changed(True)
+        self.recompute_terse_graph()
+        self.invalidate_version_tree(False, False) 
+
+    def show_all_versions(self):
+        """ show_all_versions() -> None
+        Unprune (graft?) all pruned versions
+
+        """
+        full = self.vistrail.getVersionGraph()
+        am = self.vistrail.actionMap
+        for a in am.iterkeys():
+            self.vistrail.showVersion(a)
+        self.set_changed(True)
+        self.recompute_terse_graph()
+        self.invalidate_version_tree(False, False)
+
     def expand_versions(self, v1, v2):
         """ expand_versions(v1: int, v2: int) -> None
         Expand all versions between v1 and v2
@@ -1135,7 +1180,7 @@ class VistrailController(QtCore.QObject):
 
     def collapse_versions(self, v):
         """ collapse_versions(v: int) -> None
-        Collapse all expanded versions including and under version v
+        Collapse all versions including and under version v until the next tag or branch
         
         """
         full = self.vistrail.getVersionGraph()
@@ -1156,7 +1201,6 @@ class VistrailController(QtCore.QObject):
                         if (to in am) and not am[to].prune]
             if len(children) > 1:
                 break;
-
             self.vistrail.collapseVersion(current)
             changed = True
 
@@ -1164,6 +1208,41 @@ class VistrailController(QtCore.QObject):
                 if (not child in tm and  # has no Tag
                     child != self.current_version): # not selected
                     x.append(child)
+
+        if changed:
+            self.set_changed(True)
+        self.recompute_terse_graph()
+        self.invalidate_version_tree(False, True) 
+
+    def expand_or_collapse_all_versions_below(self, v, expand=True):
+        """ expand_or_collapse_all_versions_below(v: int) -> None
+        Expand/Collapse all versions including and under version v
+        
+        """
+        full = self.vistrail.getVersionGraph()
+        x = [v]
+        
+        am = self.vistrail.actionMap
+        tm = self.vistrail.tagMap
+
+        changed = False
+
+        while 1:
+            try:
+                current=x.pop()
+            except IndexError:
+                break
+
+            children = [to for (to, _) in full.adjacency_list[current]
+                        if (to in am) and not am[to].prune]
+            if expand:
+                self.vistrail.expandVersion(current)
+            else:
+                self.vistrail.collapseVersion(current)
+            changed = True
+
+            for child in children:
+                x.append(child)
 
         if changed:
             self.set_changed(True)
@@ -1189,7 +1268,7 @@ class VistrailController(QtCore.QObject):
         """
         current = self.vistrail.currentGraph
         if not current:
-            (current, full) = self.refine_graph()        
+            (current, full, layout) = self.refine_graph()        
         self.change_selected_version(max(current.iter_vertices()))
 
     def setSavedQueries(self, queries):

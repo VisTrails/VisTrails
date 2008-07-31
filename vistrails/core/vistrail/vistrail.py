@@ -953,6 +953,21 @@ class Vistrail(DBVistrail):
             self.actionMap[version].prune = 1
 
             # self.prunedVersions.add(version)
+    def hideVersion(self, version):
+        """ hideVersion(version: int) -> None
+        Set the prune flag for the version
+
+        """
+        if version != 0:
+            self.actionMap[version].prune = 1
+
+    def showVersion(self, version):
+        """ showVersion(version: int) -> None
+        Set the prune flag for the version
+
+        """
+        if version != 0:
+            self.actionMap[version].prune = 0
 
     def expandVersion(self, version):
         """ expandVersion(version: int) -> None
