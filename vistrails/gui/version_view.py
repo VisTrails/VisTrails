@@ -917,7 +917,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         # loop on the nodes of the tree
         tm = controller.vistrail.tagMap
         am = controller.vistrail.actionMap
-        last_n = controller.vistrail.getLastActions(5)
+        last_n = controller.vistrail.getLastActions(controller.num_versions_always_shown)
 
         for node in layout.nodes.itervalues():
 

@@ -142,6 +142,7 @@ class VistrailController(QtCore.QObject):
         self._previous_graph_layout = None
         self._current_graph_layout = VistrailsTreeLayoutLW()
         self.animate_layout = False
+        self.num_versions_always_shown = 5
 
     ##########################################################################
     # Signal vistrail relayout / redraw
@@ -889,7 +890,7 @@ class VistrailController(QtCore.QObject):
         # cache actionMap and tagMap because they're properties, sort of slow
         am = self.vistrail.actionMap
         tm = self.vistrail.tagMap
-        last_n = self.vistrail.getLastActions(5)
+        last_n = self.vistrail.getLastActions(self.num_versions_always_shown)
 
         while 1:
             try:
@@ -1260,6 +1261,16 @@ class VistrailController(QtCore.QObject):
         self.set_changed(True)
         self.recompute_terse_graph()
         self.invalidate_version_tree(False, True)
+
+    def set_num_versions_always_shown(self, num):
+        """ set_num_versions_always_shown(num: int) -> None
+
+        """
+        if num <> self.num_versions_always_shown:
+            self.num_versions_always_shown = num
+            self.set_changed(True)
+            self.recompute_terse_graph()
+            self.invalidate_version_tree(False)
 
     def select_latest_version(self):
         """ select_latest_version() -> None
