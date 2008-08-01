@@ -266,6 +266,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         self.centerY = 0.0
         self.label = ''
         self.isTag = True
+        self.updatingTag = False
 
     def changed(self, x, y, label, tag=True):
         """ changed(x: float, y: float, label: str) -> None
@@ -299,6 +300,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
         else:
             self.setFont(CurrentTheme.VERSION_DESCRIPTION_FONT)  
         self.updatePos()
+        self.parent.updateWidthFromLabel()
 
     def updatePos(self):
         """ updatePos() -> None
@@ -315,9 +317,12 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
 
         """
         if event.key() in [QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return]:
+            self.updatingTag = True
             if (self.label == str(self.toPlainText()) or
                 not self.scene().controller.update_current_tag(str(self.toPlainText()))):
                 self.reset()
+            self.updatingTag = False
+            event.ignore()
             self.hide()
             return
         qt_super(QGraphicsVersionTextItem, self).keyPressEvent(event)
@@ -332,10 +337,12 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
 
         """
         qt_super(QGraphicsVersionTextItem, self).focusOutEvent(event)
-        if QtCore.QString.compare(self.label, self.toPlainText()) != 0:
+        if not self.updatingTag and QtCore.QString.compare(self.label, self.toPlainText()) != 0:
+            self.updatingTag = True
             if (self.label == str(self.toPlainText()) or 
                 not self.scene().controller.update_current_tag(str(self.toPlainText()))):
                 self.reset()
+            self.updatingTag = False
       
 
 ##############################################################################

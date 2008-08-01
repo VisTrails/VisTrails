@@ -1319,6 +1319,7 @@ class VistrailController(QtCore.QObject):
                          "Please enter a different one." % tag)
             return False
         self.set_changed(True)
+        self.recompute_terse_graph()
         self.invalidate_version_tree(False)
         return True
 
