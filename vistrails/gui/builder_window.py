@@ -756,12 +756,15 @@ class QBuilderWindow(QtGui.QMainWindow):
 
     def newVistrail(self):
         """ newVistrail() -> None
-        Start a new vistrail
+        Start a new vistrail, unless user cancels during interaction.
+
+        FIXME: There should be a separation between the interactive
+        and non-interactive parts.
 
         """
-        self.viewManager.newVistrail()
-        self.emit(QtCore.SIGNAL("changeViewState(int)"), 0)
-        self.viewModeChanged(0)
+        if self.viewManager.newVistrail():
+            self.emit(QtCore.SIGNAL("changeViewState(int)"), 0)
+            self.viewModeChanged(0)
 
     def open_vistrail(self, locator_class):
         """ open_vistrail(locator_class) -> None

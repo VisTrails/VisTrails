@@ -256,12 +256,16 @@ class QViewManager(QtGui.QTabWidget):
         self.emit(QtCore.SIGNAL('versionSelectionChange'), new_version)
 
     def newVistrail(self, recover_files=True):
-        """ newVistrail() -> None
-        Create a new vistrail with no name
+        """ newVistrail() -> (None or QVistrailView)
+        Create a new vistrail with no name. If user cancels process,
+        returns None.
+
+        FIXME: We should do the interactive parts separately.
         
         """
         if self.single_document_mode and self.currentView():
-            self.closeVistrail()
+            if not self.closeVistrail():
+                return None
         if recover_files and untitled_locator().has_temporaries():
             locator = copy.copy(untitled_locator())
             vistrail = locator.load()
