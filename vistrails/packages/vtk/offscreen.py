@@ -23,16 +23,19 @@
 import vtk
 from core.modules.module_registry import registry
 from core.modules.vistrails_module import Module
-from core.modules.basic_modules import File
+from core.modules.basic_modules import File, Integer
 
 class VTKRenderOffscreen(Module):
 
     def compute(self):
         r = self.getInputFromPort("renderer").vtkInstance
         window = vtk.vtkRenderWindow()
+        w = self.forceGetInputFromPort("width", 512)
+        h = self.forceGetInputFromPort("height", 512)
+        window.OffScreenRenderingOn()
+        window.SetSize(w, h)
         # r.ResetCamera()
         window.AddRenderer(r)
-        window.OffScreenRenderingOn()
         window.Start()
         window.Render()
         win2image = vtk.vtkWindowToImageFilter()
@@ -52,5 +55,7 @@ def register_self():
         'vtkRenderer').module
     registry.add_module(VTKRenderOffscreen)
     registry.add_input_port(VTKRenderOffscreen, 'renderer', r)
+    registry.add_input_port(VTKRenderOffscreen, 'width', Integer)
+    registry.add_input_port(VTKRenderOffscreen, 'height', Integer)
     registry.add_output_port(VTKRenderOffscreen, 'image', File)
 
