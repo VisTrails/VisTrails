@@ -26,11 +26,22 @@
 
 \NeedsTeXFormat{LaTeX2e}[1994/12/01]
 \ProvidesPackage{vistrails}[2008/08/06 v0.1 VisTrails in LaTeX]
+
+%% keyval package allows us to define arguments in a command as key-value pairs,
+%%  which is more convenient
+
 \RequirePackage{graphicx,keyval}
+
+%% This is to hide the border of the included image
 \RequirePackage[pdfborder={0 0 0}]{hyperref}
 
+%% we will generate a file for pasing to python
 \newwrite\pythonincludein
-\newcommand{\vistrailspath}{/usr/local/bin/vistrails/vistrails.py}
+
+%% by default we will run vistrails on the web server
+\newcommand{\vistrailspath}{http://www.vistrails.org/extensions/run_vistrails.php}
+
+%% this is for allowing line breaks, empty values in vistrails command's options
 \def\vistrails{\kernel@ifnextchar [{\@vistrails}{\@vistrails[]}}
 
 \def\@vistrails[#1]#2{%
@@ -43,10 +54,12 @@
 \immediate\input\jobname.cmdline.out
 }
 
+%% key-value pairs for the command's options
 \define@key{vt}{host}[vistrails.sci.utah.edu]{\immediate\write\pythonincludein{host=\string#1}}
 \define@key{vt}{db}[vistrails]{\immediate\write\pythonincludein{db=\string#1}}
 \define@key{vt}{vtid}{\immediate\write\pythonincludein{vtid=\string#1}}
 \define@key{vt}{version}{\immediate\write\pythonincludein{version=\string#1}}
+\define@key{vt}{port}[3306]{\immediate\write\pythonincludein{port=\string#1}}
 \define@key{vt}{buildalways}[true]{\immediate\write\pythonincludein{buildalways=\string#1}}
 
 

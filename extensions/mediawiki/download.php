@@ -21,17 +21,24 @@
 //
 ////////////////////////////////////////////////////////////////////////////
 if ($_GET["getvt"]) {
+	$port = '3306';
+	$host = 'vistrails.sci.utah.edu';
 	$dbname = $_GET["db"];
 	$vtid = $_GET["getvt"];
 	$version = $_GET["version"];
-	
-	$filename = md5($dbname . '_' .$vtid . '_' . $version);
+	if(array_key_exists('port', $_GET))
+		$port = $_GET['port'];
+	if(array_key_exists('host', $_GET))
+		$host = $_GET['host'];
+	$filename = md5($host . '_'. $dbname .'_' . $port .'_' .$vtid . '_' . $version);
 	$filename = $filename . ".vtl";
 	
 	//change the address below to appropriate folder 
 	//(with read+write access to apache user) if required
 	$fileHandle = fopen("/server/wiki/vistrails/main/images/vistrails/". $filename, 'w') or die("can't open file");
-	$text = "<vtlink database=\"" . $dbname . "\" host=\"vistrails.sci.utah.edu\" port=\"3306\" vtid=\"" . $vtid . "\" version=\"" . $version . "\" />";
+	$text = "<vtlink database=\"" . $dbname . "\" host=\"". $host .
+	        "\" port=\"". $port . "\" vtid=\"" . $vtid . "\" version=\"" .
+			$version . "\" />";
 
 	fputs($fileHandle, $text);
 	fclose($fileHandle);

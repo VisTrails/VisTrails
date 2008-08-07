@@ -10,6 +10,10 @@ add the following lines to the beginning of the latex file:
 
 \usepackage{vistrails}
 
+By default, vistrails will be executed at www.vistrails.org and the images
+downloaded to your hard drive. If you want to run a local copy of vistrails,
+add the following to your tex file:
+
 \renewcommand{\vistrailspath}{/path/to/vistrails.py}
 
 Then include the following command where you would like to include 
@@ -21,9 +25,11 @@ version=<version_number>,
 vtid=<vistrails_id>,
 buildalways]{width=0.45\linewidth}
 
-The buildalways option is optional and if provided it will always call 
+The buildalways and port options are optional. 
+The default value for port is 3306. 
+If buildalways is provided it will always call 
 vistrails, even if it was already called once for the same combination
-of host, db, version and vt_id.
+of host, db, version, port and vt_id.
 
 The options inside { }  are the options you would give to 
 \includegraphics{} command

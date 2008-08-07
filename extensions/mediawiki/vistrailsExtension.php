@@ -37,21 +37,23 @@ function registerVistrailTag() {
 function printVistrailTag($input,$params, &$parser) {
 	$parser->disableCache();
 	$path =  "vistrails.py";
-	$serverPath = "";
+	$host = "";
 	$dbname = "";
 	$username = "vtserver";
 	$vtid = "";
 	$version = "";
-
+	$port = "3306";
 	foreach ($params as $key=>$value) {
 		if($key == "vtid")
 			$vtid = "".$value;
 		if($key == "version")
 			$version = $value;
 		if($key == "host")
-			$serverPath = $value;
+			$host = $value;
 		if($key == "db")
-			$dbname = $value;	
+			$dbname = $value;
+		if($key == "port")
+			$port = $value;
 	}    
    	
 	chdir('/server/wiki/vistrails/main/vistrails/trunk/vistrails');
@@ -59,18 +61,21 @@ function printVistrailTag($input,$params, &$parser) {
 	//echo exec("echo $DISPLAY");
 	$setVariables = 'export PATH=$PATH:/usr/bin/X11;export HOME=/var/lib/wwwrun; export TEMP=/tmp; export DISPLAY=localhost:1.0; export LD_LIBRARY_PATH=/usr/local/lib;';
 	$destdir = '/server/wiki/vistrails/main/images/vistrails/';
-	$destversion = $dbname . '_' .$vtid . '_' . $version;
+	$destversion = $host . '_'. $dbname .'_' . $port . '_' .$vtid . '_' . $version;
 	$destversion = md5($destversion);
 	$destdir = $destdir . $destversion;
 	//echo $destdir;
 	if(!file_exists($destdir)) {
 	    mkdir($destdir,0770);
-	    $mainCommand = 'python ' . $path . ' -b -e '. $destdir.' -t ' . $serverPath . ' -f ' . $dbname . ' -u ' . $username . ' "' . $vtid .':' . $version .'"';
+	    $mainCommand = 'python ' . $path . ' -b -e '. $destdir.' -t ' .
+		               $host . ' -r ' . $port . ' -f ' . $dbname . ' -u ' .
+					   $username . ' "' . $vtid .':' . $version .'"';
 	    //echo $mainCommand."\n";
 	    $result = exec($setVariables.$mainCommand . ' 2>&1', $output, $result);
 	    //echo $result."\n";
 	}
-	$linkParams = "getvt=" . $vtid . "&version=" . $version . "&db=" .$dbname;
+	$linkParams = "getvt=" . $vtid . "&version=" . $version . "&db=" .$dbname .
+				   "&host=" . $host . "&port=" . $port;
 	$files = scandir($destdir);
 	$res = '<a href="http://www.vistrails.org/extensions/download.php?' . $linkParams . '">';
 	foreach($files as $filename) {

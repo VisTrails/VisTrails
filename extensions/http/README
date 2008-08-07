@@ -1,0 +1,11 @@
+This folder contains files for adding vistrails to a regular web server.
+
+Just copy run_vistrails.py to the folder where your web server files are 
+located.
+
+Update the file according to your needs (set vistrails path and image directory.
+
+More information is documented in the file itself.
+
+
+
