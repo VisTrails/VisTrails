@@ -1,0 +1,52 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% Copyright (C) 2006-2008 University of Utah. All rights reserved.
+%%
+%% This file is part of VisTrails.
+%%
+%% This file may be used under the terms of the GNU General Public
+%% License version 2.0 as published by the Free Software Foundation
+%% and appearing in the file LICENSE.GPL included in the packaging of
+%% this file.  Please review the following to ensure GNU General Public
+%% Licensing requirements will be met:
+%% http://www.opensource.org/licenses/gpl-license.php
+%%
+%% If you are unsure which license is appropriate for your use (for
+%% instance, you are interested in developing a commercial derivative
+%% of VisTrails), please contact us at vistrails@sci.utah.edu.
+%%
+%% This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+%% WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Note: shell-escape needs to be activated for this to work.
+%% This can either be done by passing -shell-escape as an option to
+%% latex or by adding/changing "shell_escape = t" in your texmf.cnf .
+
+\NeedsTeXFormat{LaTeX2e}[1994/12/01]
+\ProvidesPackage{vistrails}[2008/08/06 v0.1 VisTrails in LaTeX]
+\RequirePackage{graphicx,keyval}
+\RequirePackage[pdfborder={0 0 0}]{hyperref}
+
+\newwrite\pythonincludein
+\newcommand{\vistrailspath}{/usr/local/bin/vistrails/vistrails.py}
+\def\vistrails{\kernel@ifnextchar [{\@vistrails}{\@vistrails[]}}
+
+\def\@vistrails[#1]#2{%
+\immediate\openout\pythonincludein=\jobname.cmdline
+\immediate\write\pythonincludein{path=\vistrailspath}
+\setkeys{vt}{#1}
+\immediate\write\pythonincludein{other=\string#2}
+\immediate\closeout\pythonincludein
+\immediate\write18{python includevistrail.py \jobname.cmdline > \jobname.cmdline.out 2> \jobname.cmdline.err}
+\immediate\input\jobname.cmdline.out
+}
+
+\define@key{vt}{host}[vistrails.sci.utah.edu]{\immediate\write\pythonincludein{host=\string#1}}
+\define@key{vt}{db}[vistrails]{\immediate\write\pythonincludein{db=\string#1}}
+\define@key{vt}{vtid}{\immediate\write\pythonincludein{vtid=\string#1}}
+\define@key{vt}{version}{\immediate\write\pythonincludein{version=\string#1}}
+\define@key{vt}{buildalways}[true]{\immediate\write\pythonincludein{buildalways=\string#1}}
+
+

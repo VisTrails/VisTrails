@@ -1,0 +1,13 @@
+This folder contains files for adding vistrails to mediawiki.
+
+Just copy download.php and vistrailsExtension.php to the wiki/extensions/
+folder.
+
+Update the files according to your needs.
+
+An example of usage is in 
+
+http://www.vistrails.org/index.php/Viswiki
+
+
+
