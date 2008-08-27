@@ -108,7 +108,9 @@ class VistrailController(QtCore.QObject):
         self.set_file_name(name)
         self.vistrail = vis
         self.log = Log()
-        self.current_version = -1
+        self.current_session = -1
+        if vis is not None:
+            self.current_session = vis.idScope.getNewId('session')
         self.current_pipeline = None
         # FIXME: self.current_pipeline_view currently stores the SCENE, not the VIEW
         self.current_pipeline_view = None
@@ -206,6 +208,8 @@ class VistrailController(QtCore.QObject):
         
         """
         self.vistrail = vistrail
+        if self.vistrail is not None:
+            self.current_session = self.vistrail.idScope.getNewId("session")
         self.current_version = -1
         self.current_pipeline = None
         if self.locator != locator and self.locator is not None:
@@ -256,7 +260,8 @@ class VistrailController(QtCore.QObject):
         and get notified of the change.
 
         """
-        self.vistrail.add_action(action, self.current_version)
+        self.vistrail.add_action(action, self.current_version, 
+                                 self.current_session)
         self.set_changed(True)
         self.emit(QtCore.SIGNAL("new_action"), action)
         self.current_version = action.db_id
@@ -1415,6 +1420,7 @@ class VistrailController(QtCore.QObject):
             action = core.db.action.create_paste_action(pipeline, 
                                                         self.vistrail.idScope,
                                                         id_remap)
+
             modules = [op.objectId
                        for op in action.operations
                        if (op.what == 'module' or 
@@ -1424,6 +1430,7 @@ class VistrailController(QtCore.QObject):
                            if op.what == 'connection']
                 
             self.add_new_action(action)
+            self.vistrail.change_description("Paste", action.id)
             self.perform_action(action)
             self.current_pipeline.ensure_connection_specs(connections)
         return modules

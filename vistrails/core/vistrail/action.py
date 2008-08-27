@@ -57,6 +57,12 @@ class Action(DBAction):
         return cp
     
     ##########################################################################
+    # Constants
+
+    ANNOTATION_NOTES = '__notes__'
+    ANNOTATION_DESCRIPTION = '__description__'
+
+    ##########################################################################
     # Properties
 
     id = DBAction.db_id
@@ -93,10 +99,17 @@ class Action(DBAction):
         self.db_delete_annotation(annotation)
 
     def _get_notes(self):
-        if self.db_has_annotation_with_key('notes'):
-            return self.db_get_annotation_by_key('notes').value
+        if self.db_has_annotation_with_key(self.ANNOTATION_NOTES):
+            return self.db_get_annotation_by_key(self.ANNOTATION_NOTES).value
         return None
     notes = property(_get_notes)
+
+    def _get_description(self):
+        if self.db_has_annotation_with_key(self.ANNOTATION_DESCRIPTION):
+            return \
+                self.db_get_annotation_by_key(self.ANNOTATION_DESCRIPTION).value
+        return None
+    description = property(_get_description)
 
     def add_operation(self, operation):
         self.db_operations.db_add_operation(operation)

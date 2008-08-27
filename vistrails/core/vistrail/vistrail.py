@@ -642,7 +642,7 @@ class Vistrail(DBVistrail):
     def update_object(self, obj, **kwargs):
         self.db_update_object(obj, **kwargs)
 
-    def add_action(self, action, parent):
+    def add_action(self, action, parent, session=None):
         # FIXME: this should go to core.db.io
         Action.convert(action)
         if action.id < 0:
@@ -650,6 +650,8 @@ class Vistrail(DBVistrail):
         action.prevId = parent
         action.date = self.getDate()
         action.user = self.getUser()
+        if session is not None:
+            action.session = str(session)
         for op in action.operations:
             if op.id < 0:
                 op.id = self.idScope.getNewId('operation')
@@ -763,28 +765,48 @@ class Vistrail(DBVistrail):
             self.db_add_tag(tag)
         self.changed = True
 
-    def change_notes(self, notes, version_number):
-        """ change_notes(notes:str, version_number) -> None 
-        Changes the notes of a version
+    def change_annotation(self, key, value, version_number):
+        """ change_annotation(key:str, value:str, version_number:long) -> None 
+        Changes the annotation of (key, value) for version version_number
                   
         """
-    
+        
         if version_number in self.actionMap:
             action = self.actionMap[version_number]
-            if action.has_annotation_with_key('notes'):
-                old_annotation = action.get_annotation_by_key('notes')
-                if old_annotation.value == notes:
+            if action.has_annotation_with_key(key):
+                old_annotation = action.get_annotation_by_key(key)
+                if old_annotation.value == value:
                     return False
                 action.delete_annotation(old_annotation)
-            annotation = Annotation(id=self.idScope.getNewId(Annotation.vtType),
-                                   key='notes',
-                                   value=notes)
-            if notes.strip() != '':
+            if value.strip() != '':
+                annotation = \
+                    Annotation(id=self.idScope.getNewId(Annotation.vtType),
+                               key=key,
+                               value=value,
+                               )
                 action.add_annotation(annotation)
             self.changed = True
             return True
         return False
+
+    def change_notes(self, notes, version_number):
+        """ change_notes(notes:str, version_number:int) -> None 
+        Changes the notes of a version
+                  
+        """
+    
+        return self.change_annotation(Action.ANNOTATION_NOTES, 
+                                 notes, version_number)
         
+    def change_description(self, description, version_number): 
+        """ change_description(description:str, version_number:int) -> None 
+        Changes the description of a version
+                  
+        """
+       
+        return self.change_annotation(Action.ANNOTATION_DESCRIPTION, 
+                                 description, version_number)
+
     def get_description(self, version_number):
         """ get_description(version_number: int) -> str
         Compute the description of a version
@@ -793,6 +815,9 @@ class Vistrail(DBVistrail):
         description = ""
         if version_number in self.actionMap:
             action = self.actionMap[version_number]
+            # if a description has been manually set, return that value
+            if action.description is not None:
+                return action.description
             ops = action.operations
             added_modules = 0
             added_functions = 0

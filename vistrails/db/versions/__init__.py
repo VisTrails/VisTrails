@@ -24,7 +24,7 @@ import os
 from core.system import vistrails_root_directory
 from db import VistrailsDBException
 
-currentVersion = '0.9.1'
+currentVersion = '0.9.2'
 
 def getVersionDAO(version=None):
     if version is None:
@@ -51,6 +51,7 @@ def translateVistrail(vistrail, version=None):
         '0.8.0': '0.8.1',
         '0.8.1': '0.9.0',
         '0.9.0': '0.9.1',
+        '0.9.1': '0.9.2',
         }
 
     def get_translate_module(start_version):
