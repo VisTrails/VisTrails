@@ -230,7 +230,7 @@ class DBModule(object):
                 self.db_delete_function(child)
             for child in self._db_annotations[:]:
                 self.db_delete_annotation(child)
-            for child in self._db_portSpecs:
+            for child in self._db_portSpecs[:]:
                 self.db_delete_portSpec(child)
             self._db_location = None
         children.append((self, parent[0], parent[1]))
