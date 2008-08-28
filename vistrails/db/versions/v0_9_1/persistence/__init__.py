@@ -55,12 +55,15 @@ class DAOList(dict):
         vistrail = self.read_xml_object(vtType, tree.getroot())
         return vistrail
 
-    def save_to_xml(self, obj, filename, tags):
-        """save_to_xml(obj : object, filename: str, tags: dict) -> None
+    def save_to_xml(self, obj, filename, tags, version=None):
+        """save_to_xml(obj : object, filename: str, tags: dict,
+                       version: str) -> None
     
         """
         root = self.write_xml_object(obj)
-        root.set('version', my_version)
+        if version is None:
+            version = my_version
+        root.set('version', version)
         for k, v in tags.iteritems():
             root.set(k, v)
         tree = ElementTree.ElementTree(root)

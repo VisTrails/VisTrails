@@ -339,7 +339,7 @@ def save_vistrail_to_xml(vistrail, filename):
     tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
             'xsi:schemaLocation': 'http://www.vistrails.org/vistrail.xsd'
             }
-    daoList.save_to_xml(vistrail, filename, tags)
+    daoList.save_to_xml(vistrail, filename, tags, currentVersion)
     return vistrail
 
 def save_vistrail_to_zip_xml(vistrail, filename):
@@ -447,7 +447,7 @@ def save_workflow_to_xml(workflow, filename):
     tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
             'xsi:schemaLocation': 'http://www.vistrails.org/workflow.xsd'
             }
-    daoList.save_to_xml(workflow, filename, tags)
+    daoList.save_to_xml(workflow, filename, tags, currentVersion)
     return workflow
 
 def save_workflow_to_db(workflow, db_connection, do_copy=False):
@@ -489,7 +489,7 @@ def save_log_to_xml(log, filename):
     tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
             'xsi:schemaLocation': 'http://www.vistrails.org/log.xsd'
             }
-    daoList.save_to_xml(log, filename, tags)
+    daoList.save_to_xml(log, filename, tags, currentVersion)
     return log
 
 def save_log_to_db(log, db_connection, do_copy=False):
