@@ -21,7 +21,8 @@
 ############################################################################
 
 import os.path
-from core.configuration import get_vistrails_configuration
+from core.configuration import get_vistrails_configuration, \
+    get_vistrails_temp_configuration
 from core.system import vistrails_default_file_type, get_elementtree_library
 from db.services.locator import XMLFileLocator as _XMLFileLocator, \
     DBLocator as _DBLocator, ZIPFileLocator as _ZIPFileLocator
@@ -104,9 +105,11 @@ class DBLocator(_DBLocator, CoreLocator):
 
     def __init__(self, host, port, database, user, passwd, name=None,
                  obj_id=None, obj_type=None, connection_id=None,
-                 version_node=None):
+                 version_node=None, version_tag=None):
+        print "here", host, port, database, user, passwd, name, obj_id, obj_type,connection_id, version_node, version_tag
         _DBLocator.__init__(self, host, port, database, user, passwd, name,
-                            obj_id, obj_type, connection_id,version_node)
+                            obj_id, obj_type, connection_id, version_node,
+                            version_tag)
 
     def load(self, klass=None):
         from core.vistrail.vistrail import Vistrail
@@ -160,6 +163,13 @@ class DBLocator(_DBLocator, CoreLocator):
         are vistrail link files and they are used to point vistrails to open
         vistrails from the database on the web. """
         def convert_from_str(value,type):
+            def bool_conv(x):
+                s = str(x).upper()
+                if s == 'TRUE':
+                    return True
+                if s == 'FALSE':
+                    return False
+            
             if value is not None:
                 if type == 'str':
                     return str(value)
@@ -170,6 +180,8 @@ class DBLocator(_DBLocator, CoreLocator):
                        return float(value)
                     elif type == 'int':
                         return int(value)
+                    elif type == 'bool':
+                        return bool_conv(value)
             return None
         tree = ElementTree.parse(filename)
         node = tree.getroot()
@@ -186,15 +198,33 @@ class DBLocator(_DBLocator, CoreLocator):
         vt_id = convert_from_str(data, 'str')
         data = node.get('version')
         version = convert_from_str(data, 'str')
+        data = node.get('tag')
+        tag = convert_from_str(data, 'str')
+        data = node.get('execute')
+        execute = convert_from_str(data, 'bool')
+        data = node.get('showSpreadsheetOnly')
+        showSpreadsheetOnly = convert_from_str(data, 'bool')
+        #asking to show only the spreadsheet force the workflow to be executed
+        if showSpreadsheetOnly:
+            execute = True
         try:
             version = int(version)
         except:
+            tag = version
             pass
+        if tag is None:
+            tag = '';
+        ## execute and showSpreadsheetOnly should be written to the current
+        ## configuration
+        config = get_vistrails_temp_configuration()
+        config.executeWorkflows = execute
+        config.showSpreadsheetOnly = showSpreadsheetOnly
+        
         user = ""
         passwd = ""
             
         return DBLocator(host, port, database,
-                         user, passwd, None, vt_id, None, None, version)
+                         user, passwd, None, vt_id, None, None, version, tag)
 
     ##########################################################################
 

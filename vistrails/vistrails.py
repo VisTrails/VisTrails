@@ -40,7 +40,7 @@ if __name__ == '__main__':
         traceback.print_exc()
         sys.exit(255)
     if (app.temp_configuration.interactiveMode or
-        app.temp_configuration.spreadsheetDumpCells is None): 
+        not app.temp_configuration.check('spreadsheetDumpCells')): 
         v = app.exec_()
     gui.application.stop_application()
     sys.exit(v)

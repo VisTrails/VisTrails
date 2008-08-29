@@ -324,7 +324,7 @@ class DBLocator(BaseLocator):
 
     def __init__(self, host, port, database, user, passwd, name=None,
                  obj_id=None, obj_type=None, connection_id=None,
-                 version_node=None):
+                 version_node=None, version_tag=None):
         self._host = host
         self._port = port
         self._db = database
@@ -335,6 +335,7 @@ class DBLocator(BaseLocator):
         self._obj_type = obj_type
         self._conn_id = connection_id
         self._vnode = version_node
+        self._vtag = version_tag
 
     def _get_host(self):
         return self._host

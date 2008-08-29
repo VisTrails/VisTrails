@@ -203,8 +203,17 @@ after self.init()"""
                 f_name, version = self._parse_vtinfo(filename, not usedb)
                 if not usedb:
                     locator = FileLocator(os.path.abspath(f_name))
-                    if hasattr(locator,'_vnode'):
+                    #_vnode and _vtag will be set when a .vtl file is open and
+                    # instead of a FileLocator, a DBLocator is created instead
+                    if hasattr(locator, '_vnode'):
                         version = locator._vnode
+                        print locator._vnode
+                    if hasattr(locator,'_vtag'):
+                        # if a tag is set, it should be used instead of the
+                        # version number
+                        if locator._vtag != '':
+                            version = locator._vtag
+                            print locator._vtag
                 else:
                     locator = DBLocator(host=self.temp_db_options.host,
                                         port=self.temp_db_options.port,
@@ -214,12 +223,18 @@ after self.init()"""
                                         obj_id=f_name,
                                         obj_type=None,
                                         connection_id=None)
-                self.builderWindow.open_vistrail_without_prompt(locator, version)
+                execute = self.temp_configuration.executeWorkflows
+                self.builderWindow.open_vistrail_without_prompt(locator,
+                                                                version,
+                                                                execute)
 
-        # in some systems (Linux and Tiger) we need to make both calls
-        # so builderWindow is activated
-        self.builderWindow.raise_()
-        self.builderWindow.activateWindow()
+        if not self.temp_configuration.showSpreadsheetOnly:
+            # in some systems (Linux and Tiger) we need to make both calls
+            # so builderWindow is activated
+            self.builderWindow.raise_()
+            self.builderWindow.activateWindow()
+        else:
+            self.builderWindow.hide()
 
     def noninteractiveMode(self):
         """ noninteractiveMode() -> None
@@ -350,6 +365,13 @@ after self.init()"""
             help="database name")
         add("-u", "--user", action="store", dest="user",
             help="database username")
+        add("-i", "--showspreadsheetonly", action="store_true",
+            default = None,
+            help="only the spreadsheet will be shown. This implies -w was given.\
+The builder window can be accessed by a spreadsheet menu option.")
+        add("-w", "--executeworkflows", action="store_true",
+            default = None,
+            help="The workflows will be executed")
         command_line.CommandLineParser.parse_options()
 
     def printVersion(self):
@@ -388,8 +410,18 @@ after self.init()"""
         if get('noninteractive')!=None:
             self.temp_configuration.interactiveMode = \
                                                   not bool(get('noninteractive'))
-            if get('dumpcells')!=None:
+            if get('dumpcells') != None:
                 self.temp_configuration.spreadsheetDumpCells = get('dumpcells')
+        if get('executeworkflows') != None:
+            self.temp_configuration.executeWorkflows = \
+                                            bool(get('executeworkflows'))
+        if get('showspreadsheetonly') != None:
+            self.temp_configuration.showSpreadsheetOnly = \
+                                            bool(get('showspreadsheetonly'))
+            # asking to show only the spreadsheet will force the workflows to
+            # be executed
+            if self.temp_configuration.showSpreadsheetOnly:
+                self.temp_configuration.executeWorkflows = True
             
         self.temp_db_options = InstanceObject(host=get('host'),
                                                  port=get('port'),

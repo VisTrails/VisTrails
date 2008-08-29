@@ -775,9 +775,13 @@ class QBuilderWindow(QtGui.QMainWindow):
         if locator:
             self.open_vistrail_without_prompt(locator)
 
-    def open_vistrail_without_prompt(self, locator, version=None):
-        """open_vistrail_without_prompt(locator_class) -> None
+    def open_vistrail_without_prompt(self, locator, version=None,
+                                     execute_workflow=False):
+        """open_vistrail_without_prompt(locator_class, version: int or str,
+                                        execute_workflow: bool) -> None
         Open vistrail depending on the locator class given.
+        If a version is given, the workflow is shown on the Pipeline View.
+        I execute_workflow is True the workflow will be executed.
         """
         if not locator.is_valid():
                 ok = locator.update_from_gui()
@@ -795,6 +799,9 @@ class QBuilderWindow(QtGui.QMainWindow):
             else:
                 self.emit(QtCore.SIGNAL("changeViewState(int)"), 1)
                 self.viewModeChanged(1)
+            if execute_workflow:
+                self.execute_current_pipeline()
+                
         
     def open_vistrail_default(self):
         """ open_vistrail_default() -> None

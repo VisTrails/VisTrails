@@ -62,9 +62,12 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.setCentralWidget(self.stackedCentralWidget)
         self.setStatusBar(QtGui.QStatusBar(self))
         self.modeActionGroup = QtGui.QActionGroup(self)
-        self.setupMenu()
+        
         self.visApp = QtCore.QCoreApplication.instance()
         self.visApp.installEventFilter(self)
+        
+        self.setupMenu()
+        
         self.connect(self.tabController,
                      QtCore.SIGNAL('needChangeTitle'),
                      self.setWindowTitle)
@@ -98,6 +101,9 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.fitToWindowAction())
         self.viewMenu.addAction(self.fullScreenAction())
+        self.windowMenu = QtGui.QMenu('&Window', self.menuBar())
+        self.menuBar().addAction(self.windowMenu.menuAction())
+        self.windowMenu.addAction(self.showBuilderWindowAction())
 
         self.connect(self.modeActionGroup,
                      QtCore.SIGNAL('triggered(QAction*)'),
@@ -189,7 +195,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                                                        'interact with '
                                                        'the cell contents')
         return self.interactiveModeActionVar
-    
+
     def editingModeAction(self):
         """ editingModeAction() -> QAction
         Return the editing mode action, this is the mode where users can
@@ -207,6 +213,30 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                                                    'the builder')
         return self.editingModeActionVar
 
+    def showBuilderWindowAction(self):
+        """ showBuilderWindowAction() -> QAction
+        Return the show builder action, this is used to show the builder window
+        when only the spreadsheet window is visible.
+        
+        """
+        if not hasattr(self, 'showBuilderWindowActionVar'):
+            self.showBuilderWindowActionVar = \
+                                        QtGui.QAction('&Show Builder Window',
+                                                      self)
+            self.showBuilderWindowActionVar.setShortcut('Ctrl+Shift+B')
+            self.showBuilderWindowActionVar.setStatusTip('Show the '
+                                                         'Builder Window')
+            if hasattr(self.visApp, 'builderWindow'):
+                self.showBuilderWindowActionVar.setEnabled(True)
+            else:
+                self.showBuilderWindowActionVar.setEnabled(False)
+                
+            self.connect(self.showBuilderWindowActionVar,
+                         QtCore.SIGNAL('triggered()'),
+                         self.showBuilderWindowActionTriggered)
+            
+        return self.showBuilderWindowActionVar
+    
     def modeChanged(self, action):
         """ modeChanged(action: QAction) -> None        
         Handle the new mode (interactive or editing) based on the
@@ -246,6 +276,11 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                 self.showMaximized()
             else:
                 self.show()
+            ### When the builder is hidden, the spreadsheet window does not have
+            ### focus. We have to force it to have the focus
+            if self.visApp.temp_configuration.showSpreadsheetOnly:
+                self.show()
+                self.raise_()                
         else:
             self.show()
 
@@ -262,8 +297,12 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         
         """
         if hasattr(self.visApp, 'builderWindow'):
-            e.ignore()
-            self.hide()
+            if self.visApp.builderWindow.isVisible():
+                e.ignore()
+                self.hide()
+            else:
+                #if the window is not visible, we need to quit the application
+                QtCore.QCoreApplication.quit()
         else:
             QtGui.QMainWindow.closeEvent(self, e)
 
@@ -407,3 +446,8 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                     widget = currentTab.getCell(r, c)
                     if widget:
                         widget.repaint()
+    
+    def showBuilderWindowActionTriggered(self):
+        """showBuilderWindowActionTriggered() -> None
+        This will show the builder window """
+        self.visApp.builderWindow.show()

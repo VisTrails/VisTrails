@@ -25,6 +25,7 @@ without exposing Qt codes """
 
 from PyQt4 import QtGui, QtCore
 from gui.theme import CurrentTheme
+import gui.theme
 from core.system import systemType
 ################################################################################
 
@@ -201,6 +202,9 @@ def getCurrentVersion():
         if current_view!=None:
             return current_view.controller.current_version
     return -1
+
+def initTheme():
+    return gui.theme.initializeCurrentTheme()
 
 ################################################################################
 # VisTrails GUI unit test class - setUp and teardown ensure no

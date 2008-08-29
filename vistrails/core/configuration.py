@@ -190,6 +190,8 @@ def default():
         'userPackageDirectory': (None, str),
         'verbosenessLevel': (None, int),
         'spreadsheetDumpCells': (None, str),
+        'executeWorkflows': False,
+        'showSpreadsheetOnly': False,
         }
     specific_dir = add_specific_config(base_dir)
     return ConfigurationObject(**specific_dir)
@@ -253,5 +255,19 @@ def get_vistrails_configuration():
     if hasattr(QtCore.QCoreApplication.instance(),
                'configuration'):
         return QtCore.QCoreApplication.instance().configuration
+    else:
+        return None
+
+def get_vistrails_temp_configuration():
+    """get_vistrails_temp_configuration() -> ConfigurationObject or None
+    Returns the temp configuration of the application. It returns None if
+    configuration was not found (when running as a bogus application
+    for example. The temp configuration is the one that is used just for the
+    current session and is not persistent.
+    
+    """
+    if hasattr(QtCore.QCoreApplication.instance(),
+               'configuration'):
+        return QtCore.QCoreApplication.instance().temp_configuration
     else:
         return None

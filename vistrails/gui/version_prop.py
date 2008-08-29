@@ -110,9 +110,9 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         vLayout.addWidget(self.versionNotes)
         self.versionNotes.setEnabled(False)
 
-        self.versionWiki = QVersionWiki()
-        vLayout.addWidget(self.versionWiki)
-        self.versionWiki.setVisible(False)
+        self.versionEmbed = QVersionEmbed()
+        vLayout.addWidget(self.versionEmbed)
+        self.versionEmbed.setVisible(False)
         
         self.connect(self.tagEdit, QtCore.SIGNAL('editingFinished()'),
                      self.tagFinished)
@@ -138,7 +138,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         """
         self.controller = controller
         self.versionNotes.controller = controller
-        self.versionWiki.controller = controller
+        self.versionEmbed.controller = controller
 
     def updateVersion(self, versionNumber):
         """ updateVersion(versionNumber: int) -> None
@@ -147,7 +147,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
         """
         self.versionNumber = versionNumber
         self.versionNotes.updateVersion(versionNumber)
-        self.versionWiki.updateVersion(versionNumber)
+        self.versionEmbed.updateVersion(versionNumber)
         
         if self.controller:
             if self.controller.vistrail.actionMap.has_key(versionNumber):
@@ -157,7 +157,7 @@ class QVersionProp(QtGui.QWidget, QToolWindowInterface):
                 self.userEdit.setText(action.user)
                 self.dateEdit.setText(action.date)
                 self.tagEdit.setEnabled(True)
-                self.versionWiki.setVisible(self.versionWiki.check_version() and
+                self.versionEmbed.setVisible(self.versionEmbed.check_version() and
                                             versionNumber > 0)
                 return
             else:
@@ -653,24 +653,41 @@ class QNotesDialog(QtGui.QDialog):
         return QtCore.QSize(250,200)
         
 ################################################################################
-class QVersionWiki(QtGui.QWidget):
+class QVersionEmbed(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
+        self.versionNumber = None
         lfont = QtGui.QFont("Lucida Grande", 11)
-        label1 = QtGui.QLabel("Embed:")
+        label1 = QtGui.QLabel("Embed as:")
         label1.setFont(lfont)
+        self.cbtype = QtGui.QComboBox()
+        self.cbtype.setFont(lfont)
+        self.cbtype.setEditable(False)
+        items = QtCore.QStringList()
+        items << "Wiki" << "Latex";  
+        self.cbtype.addItems(items)
+    
         self.controller = None
-        self.tag = '<vistrail host="%s" db="%s" vtid="%s" version="%s" />'
-        self.wikiedt = QtGui.QLineEdit(self)
-        self.wikiedt.setReadOnly(True)
+        self.wikitag = '<vistrail host="%s" db="%s" vtid="%s" version="%s" \
+tag="%s" showspreadsheetonly="True"/>'
+        self.latextag = '\\vistrails[host=%s,\ndb=%s,\nvtid=%s,\nversion=%s,\
+\ntag=%s,\nshowspreadsheetonly]{}'
+        self.embededt = QtGui.QLineEdit(self)
+        self.embededt.setReadOnly(True)
         self.copylabel = QtGui.QLabel('<a href="copy">Copy to Clipboard</a>')
         self.copylabel.setFont(lfont)
         layout = QtGui.QGridLayout()
         layout.addWidget(label1,0,0)
-        layout.addWidget(self.copylabel,0,1,QtCore.Qt.AlignRight)
-        layout.addWidget(self.wikiedt,1,0,1,-1)
+        layout.addWidget(self.cbtype,0,1)
+        layout.addWidget(self.copylabel,0,2,QtCore.Qt.AlignRight)
+        layout.addWidget(self.embededt,1,0,2,-1)
         self.setLayout(layout)
-
+        
+        #connect signals
+        self.connect(self.cbtype,
+                     QtCore.SIGNAL("currentIndexChanged(const QString &)"),
+                     self.change_embed_type)
+        
         self.connect(self.copylabel,
                      QtCore.SIGNAL("linkActivated(const QString &)"),
                      self.copy_to_clipboard)
@@ -693,29 +710,45 @@ class QVersionWiki(QtGui.QWidget):
             result = not self.controller.changed
         return result
     
-    def updateVersion(self, versionNumber):
+    def updateEmbedText(self):
         ok = (self.check_version() and self.check_controller_status() and
-              versionNumber > 0)
-        self.wikiedt.setEnabled(ok)
+              self.versionNumber > 0)
+        self.embededt.setEnabled(ok)
         self.copylabel.setEnabled(ok)
-        self.wikiedt.setText('')
-        if self.controller and versionNumber > 0:
+        self.embededt.setText('')
+        if self.controller and self.versionNumber > 0:
             if self.controller.locator and not self.controller.changed:
                 loc = self.controller.locator
                 try:
-                    tag = self.tag % (loc.host,
-                                      loc.db,
-                                      loc.obj_id,
-                                      versionNumber)
-                    self.wikiedt.setText(tag)
+                    if self.cbtype.currentText() == "Wiki":
+                        tag = self.wikitag
+                    elif self.cbtype.currentText() == "Latex":
+                        tag = self.latextag
+                    versiontag = \
+                        self.controller.vistrail.getVersionName(self.versionNumber)
+                        
+                    tag = tag % (loc.host,
+                                 loc.db,
+                                 loc.obj_id,
+                                 self.versionNumber,
+                                 versiontag)
+                    
+                    self.embededt.setText(tag)
                     return
-                except:
-                    self.wikiedt.setText('')
+                except Exception, e:
+                    self.embededt.setText('')
             elif self.controller.changed:
-                self.wikiedt.setText('Please, save your vistrails first')
+                self.embededt.setText('Please, save your vistrails first')
             else:
-                self.wikiedt.setText('')
+                self.embededt.setText('')
+                
+    def updateVersion(self, versionNumber):
+        self.versionNumber = versionNumber
+        self.updateEmbedText()
 
     def copy_to_clipboard(self):
         clipboard = QtGui.QApplication.clipboard()
-        clipboard.setText(self.wikiedt.text())
+        clipboard.setText(self.embededt.text())
+    
+    def change_embed_type(self, text):
+        self.updateEmbedText()    
