@@ -20,4 +20,9 @@
 ##
 ############################################################################
 
-from db.versions.v0_9_3.persistence import *
+from auto_gen import *
+from workflow import DBWorkflow
+from vistrail import DBVistrail
+from abstraction import DBAbstraction
+from log import DBLog
+from id_scope import IdScope

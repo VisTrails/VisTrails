@@ -20,4 +20,23 @@
 ##
 ############################################################################
 
-from db.versions.v0_9_3.persistence import *
+import copy
+from auto_gen import DBAbstraction as _DBAbstraction
+from auto_gen import DBAbstractionRef, DBModule
+from id_scope import IdScope
+
+class DBAbstraction(_DBAbstraction):
+    def __init__(self, *args, **kwargs):
+	_DBAbstraction.__init__(self, *args, **kwargs)
+        self.idScope = IdScope(remap={DBAbstractionRef.vtType: DBModule.vtType})
+        self.idScope.setBeginId('action', 1)
+
+    def __copy__(self):
+        return DBAbstraction.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = _DBAbstraction.do_copy(self, new_ids, id_scope, id_remap)
+        cp.__class__ = DBAbstraction
+        # need to go through and reset the index to the copied objects
+        cp.idScope = copy.copy(self.idScope)
+        return cp

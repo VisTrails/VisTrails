@@ -49,77 +49,24 @@ class WorkflowExec(DBWorkflowExec):
     ##########################################################################
     # Properties
 
-    def _get_id(self):
-        return self.db_id
-    def _set_id(self, id):
-        self.db_id = id
-    id = property(_get_id, _set_id)
-
-    def _get_user(self):
-        return self.db_user
-    def _set_user(self, user):
-        self.db_user = user
-    user = property(_get_user, _set_user)
-
-    def _get_ip(self):
-        return self.db_ip
-    def _set_ip(self, ip):
-        self.db_ip = ip
-    ip = property(_get_ip, _set_ip)
-
-    def _get_session(self):
-        return self.db_session
-    def _set_session(self, session):
-        self.db_session = session
-    session = property(_get_session, _set_session)
-    
-    def _get_vt_version(self):
-        return self.db_vt_version
-    def _set_vt_version(self, version):
-        self.db_vt_version = version
-    vt_version = property(_get_vt_version, _set_vt_version)
-
-    def _get_ts_start(self):
-        return self.db_ts_start
-    def _set_ts_start(self, ts_start):
-        self.db_ts_start = ts_start
-    ts_start = property(_get_ts_start, _set_ts_start)
-
-    def _get_ts_end(self):
-        return self.db_ts_end
-    def _set_ts_end(self, ts_end):
-        self.db_ts_end = ts_end
-    ts_end = property(_get_ts_end, _set_ts_end)
+    id = DBWorkflowExec.db_id
+    user = DBWorkflowExec.db_user
+    ip = DBWorkflowExec.db_ip
+    session = DBWorkflowExec.db_session
+    vt_version = DBWorkflowExec.db_vt_version
+    ts_start = DBWorkflowExec.db_ts_start
+    ts_end = DBWorkflowExec.db_ts_end
+    parent_type = DBWorkflowExec.db_parent_type
+    parent_id = DBWorkflowExec.db_parent_id
+    parent_version = DBWorkflowExec.db_parent_version
+    name = DBWorkflowExec.db_name
+    completed = DBWorkflowExec.db_completed
 
     def _get_duration(self):
         if self.db_ts_end is not None:
             return self.db_ts_end - self.db_ts_start
         return None
     duration = property(_get_duration)
-
-    def _get_parent_type(self):
-        return self.db_parent_type
-    def _set_parent_type(self, parent_type):
-        self.db_parent_type = parent_type
-    parent_type = property(_get_parent_type, _set_parent_type)
-
-    def _get_parent_id(self):
-        return self.db_parent_id
-    def _set_parent_id(self, parent_id):
-        self.db_parent_id = parent_id
-    parent_id = property(_get_parent_id, _set_parent_id)
-
-    def _get_parent_version(self):
-        return self.db_parent_version
-    def _set_parent_version(self, parent_version):
-        self.db_parent_version = parent_version
-    parent_version = property(_get_parent_version, _set_parent_version)
-
-    def _get_name(self):
-        return self.db_name
-    def _set_name(self, name):
-        self.db_name = name
-    name = property(_get_name, _set_name)
 
     def _get_module_execs(self):
         return self.db_module_execs

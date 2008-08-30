@@ -20,4 +20,6 @@
 ##
 ############################################################################
 
-from db.versions.v0_9_3.persistence import *
+-- genereated automatically by generate.py
+
+DROP TABLE IF EXISTS port_spec, module, tag, port, group_tbl, log_tbl, machine, add_tbl, other, location, parameter, function, abstraction, workflow, abstraction_ref, annotation, change_tbl, workflow_exec, connection_tbl, action, delete_tbl, vistrail, module_exec

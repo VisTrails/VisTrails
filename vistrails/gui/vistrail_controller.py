@@ -111,6 +111,8 @@ class VistrailController(QtCore.QObject):
         self.current_session = -1
         if vis is not None:
             self.current_session = vis.idScope.getNewId('session')
+            vis.current_session = self.current_session
+            vis.log = self.log
         self.current_pipeline = None
         # FIXME: self.current_pipeline_view currently stores the SCENE, not the VIEW
         self.current_pipeline_view = None
@@ -210,6 +212,8 @@ class VistrailController(QtCore.QObject):
         self.vistrail = vistrail
         if self.vistrail is not None:
             self.current_session = self.vistrail.idScope.getNewId("session")
+            self.vistrail.current_session = self.current_session
+            self.vistrail.log = self.log
         self.current_version = -1
         self.current_pipeline = None
         if self.locator != locator and self.locator is not None:

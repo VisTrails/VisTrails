@@ -278,27 +278,39 @@ def open_vistrail_from_xml(filename):
         raise VistrailsDBException(msg)
     return vistrail
 
-def open_vistrail_from_zip_xml(filename):
-    """open_vistrail_from_zip_xml(filename) -> Vistrail
-    Open a vistrail from a zip compressed format.
-    It expects that the file inside archive has name vistrail
-
-    """
-    name_in_archive = 'vistrail'
+def unzip_file(filename, name_in_archive):
+    # name_in_archive = 'vistrail'
     (file_, xmlfname) = tempfile.mkstemp(suffix='.xml')
     core.requirements.require_executable('unzip')
     os.close(file_)
     output = []
     cmdline = ['unzip', '-p', filename, name_in_archive, '>', xmlfname]
     result = execute_cmdline(cmdline,output)
-    
-    #print result, output    
+
+    # print result, output    
     if result == 0 or len(output) == 0:
-        vistrail = open_vistrail_from_xml(xmlfname)
-        os.unlink(xmlfname)
-        return vistrail
+        return xmlfname
+    return None
+
+def open_vistrail_from_zip_xml(filename):
+    """open_vistrail_from_zip_xml(filename) -> Vistrail
+    Open a vistrail from a zip compressed format.
+    It expects that the file inside archive has name vistrail
+
+    """
+
+    vt_xml_fname = unzip_file(filename, 'vistrail')
+    if vt_xml_fname:            
+        vistrail = open_vistrail_from_xml(vt_xml_fname)
+        os.unlink(vt_xml_fname)
     else:
-        raise Exception(" ".join(output))
+        # raise Exception(" ".join(output))
+        raise Exception("Cannot find vistrail in file '%s'" % filename)
+    log_xml_fname = unzip_file(filename, 'log')
+    if log_xml_fname:
+        vistrail.log_filename = log_xml_fname
+
+    return vistrail
             
 def open_vistrail_from_db(db_connection, id, lock=False):
     """open_vistrail_from_db(db_connection, id : long, lock: bool) 
@@ -348,19 +360,49 @@ def save_vistrail_to_zip_xml(vistrail, filename):
     It raise an Exception if there was an error
     
     """
-    
+
     (file_, xmlfname) = tempfile.mkstemp(suffix='.xml')
     os.close(file_)
-    name_in_archive = os.path.join(os.path.dirname(xmlfname),'vistrail')
     save_vistrail_to_xml(vistrail,xmlfname)
+    vt_fname = os.path.join(os.path.dirname(xmlfname), 'vistrail')
+    os.rename(xmlfname, vt_fname)
+    zip_fnames = [vt_fname, ]
+
+    if vistrail.log is not None and len(vistrail.log.workflow_execs) > 0:
+        if vistrail.log_filename is None:
+            (log_file, log_filename) = tempfile.mkstemp(suffix='.xml')
+            os.close(log_file)
+            log_file = open(log_filename, "wb")
+        else:
+            log_filename = vistrail.log_filename
+            log_file = open(log_filename, 'ab')
+
+        print "+++ ", log_filename
+        print "*** ", log_file
+        if not hasattr(log_file, "write"):
+            print "no!!!"
+        
+        # append log to log_file
+        for workflow_exec in vistrail.log.workflow_execs:
+            daoList = getVersionDAO(currentVersion)
+            daoList.save_to_xml(workflow_exec, log_file, {}, currentVersion)
+        log_file.close()
+
+        log_fname = os.path.join(os.path.dirname(log_filename), 'log')
+        os.rename(log_filename, log_fname)
+        zip_fnames.append(log_fname)
+
+#     name_in_archive = os.path.join(os.path.dirname(xmlfname),'vistrail')
+#     os.rename(xmlfname,name_in_archive)
+
     core.requirements.require_executable('zip')
-    os.rename(xmlfname,name_in_archive)
     output = []
-    cmdline = ['zip', '-r', '-j', '-q', filename, name_in_archive]
+    cmdline = ['zip', '-r', '-j', '-q', filename] + zip_fnames
     result = execute_cmdline(cmdline,output)
     
     #print result, output
-    os.unlink(name_in_archive)
+    for fname in zip_fnames:
+        os.unlink(fname)
     if result != 0 and len(output) != 0:
         for line in output:
             if line.find('deflated') == -1:

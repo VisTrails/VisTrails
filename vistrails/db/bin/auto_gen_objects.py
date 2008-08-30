@@ -95,7 +95,7 @@ class Field:
 	return 'db_get_%s' % Field.getRegularName(self)
 
     def getPrivateName(self):
-	return '__%s' % Field.getFieldName(self)
+	return '_%s' % Field.getFieldName(self)
 
     def getMapping(self):
 	try:

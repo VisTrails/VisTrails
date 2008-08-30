@@ -651,7 +651,7 @@ class Vistrail(DBVistrail):
         action.date = self.getDate()
         action.user = self.getUser()
         if session is not None:
-            action.session = str(session)
+            action.session = session
         for op in action.operations:
             if op.id < 0:
                 op.id = self.idScope.getNewId('operation')

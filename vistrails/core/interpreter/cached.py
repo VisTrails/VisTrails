@@ -173,7 +173,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             else:
                 view.set_module_error(i, error)
             
-            logger.finish_module_execution(obj)
+            logger.finish_module_execution(obj, error)
 
         # views and loggers work on local ids
         def annotate(obj, d):
@@ -393,7 +393,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                                        currentVersion,
                                        view, aliases,
                                        **kwargs)
-        logger.finish_workflow_execution()
+        logger.finish_workflow_execution(result.errors)
 
         return result
 

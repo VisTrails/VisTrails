@@ -74,6 +74,10 @@ class LogController(object):
             parent_id = pipeline.id
 
         wf_exec_id = self.log.id_scope.getNewId(WorkflowExec.vtType)
+        if vistrail is not None:
+            session = vistrail.current_session
+        else:
+            session = None
         self.workflow_exec = WorkflowExec(id=wf_exec_id,
                                           user=core.system.current_user(),
                                           ip=core.system.current_ip(),
@@ -82,12 +86,17 @@ class LogController(object):
                                           ts_start=core.system.current_time(),
                                           parent_type=parent_type,
                                           parent_id=parent_id,
-                                          parent_version=currentVersion)
+                                          parent_version=currentVersion,
+                                          completed=0,
+                                          session=session)
         self.log.add_workflow_exec(self.workflow_exec)
 
-    def finish_workflow_execution(self):
-        import core.db.io
+    def finish_workflow_execution(self, errors):
         self.workflow_exec.ts_end = core.system.current_time()
+        if len(errors) > 0:
+            self.workflow_exec.completed = -1
+        else:
+            self.workflow_exec.completed = 1
 
     def start_module_execution(self, module, module_id, module_name, 
                                abstraction_id=None, abstraction_version=None, 
@@ -105,9 +114,13 @@ class LogController(object):
         module.module_exec = module_exec
         self.workflow_exec.add_module_exec(module_exec)
 
-    def finish_module_execution(self, module):
+    def finish_module_execution(self, module, error=''):
         module.module_exec.ts_end = core.system.current_time()
-        module.module_exec.completed = 1
+        if not error:
+            module.module_exec.completed = 1
+        else:
+            module.module_exec.completed = -1
+            module.module_exec.error = error
         del module.module_exec
 
     def insert_module_annotations(self, module, a_dict):
