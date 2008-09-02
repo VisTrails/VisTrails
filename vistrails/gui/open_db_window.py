@@ -33,10 +33,10 @@ from PyQt4 import QtCore, QtGui
 from db import VistrailsDBException
 import db.services.io
 from core.external_connection import ExtConnectionList, DBConnection
+from core.db.locator import DBLocator
 from core.system import default_connections_file
 from gui.theme import CurrentTheme
 from gui.utils import show_warning, show_question, NO_BUTTON, YES_BUTTON
-import gui.application
 
 class QOpenDBWindow(QtGui.QDialog):
     """
@@ -344,7 +344,7 @@ class QDBConnectionList(QtGui.QListWidget):
     """
     def __init__(self, parent=None):
         QtGui.QListWidget.__init__(self,parent)
-        self.__list = ExtConnectionList(default_connections_file())
+        self.__list = ExtConnectionList.getInstance(default_connections_file())
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.setIconSize(QtCore.QSize(32,32))
         self.loadConnections()
@@ -419,7 +419,7 @@ class QDBConnectionList(QtGui.QListWidget):
         Returns info of ExtConnection """
         conn = self.__list.get_connection(id)
         key = str(conn.id) + "." + conn.name + "." + conn.host
-        passwd = gui.application.VistrailsApplication.keyChain.get_key(key)
+        passwd = DBLocator.keyChain.get_key(key)
         if conn != None:
             config = {'id': conn.id,
                       'name': conn.name,
@@ -490,7 +490,7 @@ class QDBConnectionList(QtGui.QListWidget):
             self.__list.add_connection(conn)
         self.updateGUI()
         key = str(conn.id) + "." + conn.name + "." + conn.host
-        gui.application.VistrailsApplication.keyChain.set_key(key,passwd)
+        DBLocator.keyChain.set_key(key,passwd)
         return conn.id
             
     def setCurrentId(self, id):

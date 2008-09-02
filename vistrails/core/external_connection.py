@@ -160,6 +160,15 @@ class ExtConnectionList(XMLWrapper):
 
     """
     _instance = None
+    class ExtConnectionListSingleton(object):
+        def __call__(self, *args, **kw):
+            if ExtConnectionList._instance is None:
+                obj = ExtConnectionList(*args, **kw)
+                ExtConnectionList._instance = obj
+            return ExtConnectionList._instance
+    
+    getInstance = ExtConnectionListSingleton()
+    
     def __init__(self, filename=''):
         """ __init__() -> ExtConnectionList """
         if not ExtConnectionList._instance:
@@ -169,7 +178,8 @@ class ExtConnectionList(XMLWrapper):
             self.filename = filename
             ExtConnectionList._instance = self
         else:
-            return ExtConnectionList._instance
+            raise RuntimeError, 'Only one instance of ExtConnectionList is \
+allowed!'
 
     def load_connections(self):
         """load_connections()-> None

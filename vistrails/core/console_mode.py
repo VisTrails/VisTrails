@@ -41,7 +41,7 @@ def run_and_get_results(w_list, parameters=''):
         v = locator.load()
         if type(workflow) == type("str"):
             version = v.get_tag_by_name(workflow).time
-        elif type(workflow) == type(1):
+        elif type(workflow) in [ type(1), long]:
             version = workflow
         else:
             msg = "Invalid version tag or number: %s" % workflow

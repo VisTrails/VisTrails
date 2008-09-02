@@ -23,9 +23,12 @@
 import os.path
 from core.configuration import get_vistrails_configuration, \
     get_vistrails_temp_configuration
-from core.system import vistrails_default_file_type, get_elementtree_library
+from core.system import vistrails_default_file_type, get_elementtree_library, \
+                        default_connections_file
+from core.external_connection import ExtConnectionList, DBConnection
 from db.services.locator import XMLFileLocator as _XMLFileLocator, \
     DBLocator as _DBLocator, ZIPFileLocator as _ZIPFileLocator
+from PyQt4 import QtCore
 import core.configuration
 ElementTree = get_elementtree_library()
 
@@ -102,14 +105,26 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
         return db_gui.get_load_file_locator_from_gui(parent_widget, klass.vtType)
 
 class DBLocator(_DBLocator, CoreLocator):
-
+    
+    __list = ExtConnectionList.getInstance(default_connections_file())
+    
+    class getKeyChain(object):
+        def set_key(self, key, passwd):
+            QtCore.QCoreApplication.instance().keyChain.set_key(key,passwd)
+        
+        def get_key(self, key):
+            return QtCore.QCoreApplication.instance().keyChain.get_key(key)
+    
+    keyChain = getKeyChain()
+    
     def __init__(self, host, port, database, user, passwd, name=None,
                  obj_id=None, obj_type=None, connection_id=None,
                  version_node=None, version_tag=None):
-        print "here", host, port, database, user, passwd, name, obj_id, obj_type,connection_id, version_node, version_tag
+        
         _DBLocator.__init__(self, host, port, database, user, passwd, name,
                             obj_id, obj_type, connection_id, version_node,
                             version_tag)
+        self.ext_connection_id = -1
 
     def load(self, klass=None):
         from core.vistrail.vistrail import Vistrail
@@ -138,23 +153,96 @@ class DBLocator(_DBLocator, CoreLocator):
         from core.vistrail.vistrail import Vistrail
         if klass is None:
             klass = Vistrail
-        import gui.extras.core.db.locator as db_gui
-        config = db_gui.get_db_connection_from_gui(None,klass.vtType,"",
-                                                   self._host,
-                                                   self._port,
-                                                   self._user,
-                                                   self._passwd,
-                                                   self._db
-                                                   )
+        config = self.find_connection_info(self._host, self._port, self._db) 
+        if config is None:
+            import gui.extras.core.db.locator as db_gui
+            config = db_gui.get_db_connection_from_gui(None,klass.vtType,"",
+                                                       self._host,
+                                                       self._port,
+                                                       self._user,
+                                                       self._passwd,
+                                                       self._db
+                                                       )
         if config and config['succeeded'] == True:
             self._host = config['host']
             self._port = config['port']
             self._db = config['db']
             self._user = config['user']
             self._passwd = config['passwd']
+            self.ext_connection_id = self.set_connection_info(**config)
             return True
         
         return False
+    
+    def find_connection_info(self, host, port, db):
+        """find_connection_info(host:str, port: int, db: str) -> dict
+        Returns complete info of a connection with the given parameters
+
+        """
+        id = self.__list.find_db_connection(host,port,db)
+        if id != -1:
+            return self.get_connection_info(id)
+        else:
+            return None
+    
+    def get_connection_info(self, id):
+        """get_connection_info(id: int) -> dict
+        Returns info of ExtConnection """
+        conn = self.__list.get_connection(id)
+        if conn != None:
+            key = str(conn.id) + "." + conn.name + "." + conn.host
+            passwd = DBLocator.keyChain.get_key(key)
+            config = {'id': conn.id,
+                      'name': conn.name,
+                      'host': conn.host,
+                      'port': conn.port,
+                      'user': conn.user,
+                      'passwd': passwd,
+                      'db': conn.database,
+                      'succeeded': True}
+        else:
+            config = None
+        return config
+    
+    def set_connection_info(self, *args, **kwargs):
+        """set_connection_info(id: int, name: str, host: str, port:int,
+                     user:str, passwd:str, db:str) -> None
+        If the connection exists it will update it, else it will add it
+
+        """
+        if kwargs.has_key("id"):
+            id = kwargs["id"]
+        if kwargs.has_key("name"):
+            name = kwargs["name"]
+        if kwargs.has_key("host"):
+            host = kwargs["host"]
+        if kwargs.has_key("port"):
+            port = kwargs["port"]
+        if kwargs.has_key("user"):
+            user = kwargs["user"]
+        if kwargs.has_key("passwd"):
+            passwd = kwargs["passwd"]
+        if kwargs.has_key("db"):
+            db = kwargs["db"]
+
+        conn = DBConnection(id=id,
+                            name=name,
+                            host=host,
+                            port=port,
+                            user=user,
+                            passwd='',
+                            database=db,
+                            dbtype='MySQL')
+        
+        if self.__list.has_connection(id):    
+            self.__list.set_connection(id,conn)
+        else:
+            if conn.id == -1:
+                conn.id = self.__list.get_fresh_id()
+            self.__list.add_connection(conn)
+        key = str(conn.id) + "." + conn.name + "." + conn.host
+        DBLocator.keyChain.set_key(key,passwd)
+        return conn.id
     
     @staticmethod
     def from_link_file(filename):

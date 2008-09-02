@@ -22,6 +22,7 @@
 """Very thin convenience wrapper around optparse.OptionParser."""
 
 import optparse
+import sys
 
 class CommandLineParserSingleton(object):
     """CommandLineParser is a very thin wrapper around
@@ -35,14 +36,14 @@ class CommandLineParserSingleton(object):
         self.options_were_read = False
         self.args = []
 
-    def init_options(self):
-        """self.init_options() -> None. Initialize option dictionary,
+    def init_options(self,args=sys.argv[1:]):
+        """self.init_options(args: [string]) -> None. Initialize option dictionary,
         by parsing command line arguments according to the options set
         by previous add_option calls.
 
         Few programs should call this. Call self.parse_options() unless
         you know what you're doing."""
-        (self.options, self.args) = self.parser.parse_args()
+        (self.options, self.args) = self.parser.parse_args(args)
         self.options_were_read = True
 
     def add_option(self, *args, **kwargs):
@@ -58,11 +59,11 @@ class CommandLineParserSingleton(object):
         self.parse_options()
         return getattr(self.options, key)
 
-    def parse_options(self):
+    def parse_options(self,args=sys.argv[1:]):
         """self.parse_options() -> None. Parse command line arguments,
         according to the options set by previous add_option calls."""
         if not self.options_were_read:
-            self.init_options()
+            self.init_options(args)
 
     def get_arg(self,number):
         """self.get_arg(number) -> value. Returns the value corresponding

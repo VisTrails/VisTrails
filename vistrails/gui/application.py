@@ -25,7 +25,7 @@ initializations to the theme, packages and the builder...
 """
 
 
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui, QtCore, QtNetwork
 from core import command_line
 from core import debug
 from core import system
@@ -60,15 +60,34 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         Return self for calling method
         
         """
-        if not self._initialized:
+        if not self._initialized and not self._is_running:
             self.init()
         return self
 
     def __init__(self):
         QtGui.QApplication.__init__(self, sys.argv)
-        if QtCore.QT_VERSION < 0x40200: # 0x40200 = 4.2.0
+        
+        if QtCore.QT_VERSION < 0x40400: # 0x40400 = 4.4.0
             raise core.requirements.MissingRequirement("Qt version >= 4.2")
         self._initialized = False
+        # code for single instance of the application
+        # based on the C++ solution availabe at
+        # http://wiki.qtcentre.org/index.php?title=SingleApplication
+        self.timeout = 5000
+        self._unique_key = "vistrails-single-instance-check"
+        self.shared_memory = QtCore.QSharedMemory(self._unique_key)
+        if self.shared_memory.attach():
+            self._is_running = True
+        else:
+            self._is_running = False
+            if not self.shared_memory.create(1):
+                print "Unable to create single instance of vistrails application"
+                return
+            self.local_server = QtNetwork.QLocalServer(self)
+            self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
+                         self.message_received)
+            self.local_server.listen(self._unique_key)
+            #print "Listening on ", self.local_server.serverName()
         qt.allowQObjects()
 
     def init(self, optionsDict=None):
@@ -94,7 +113,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         # we will store the version in temp options as it doesn't
         # need to be persistent. We will do the same to database
         # information passed in the command line
-        self.temp_options = InstanceObject(host=None,
+        self.temp_db_options = InstanceObject(host=None,
                                            port=None,
                                            db=None,
                                            user=None,
@@ -183,17 +202,8 @@ after self.init()"""
                 elif not use_filename:
                     name = str(data[0])
         return (name, version)
-        
-    def interactiveMode(self):
-        """ interactiveMode() -> None
-        Instantiate the GUI for interactive mode
-        
-        """     
-        self.builderWindow.create_first_vistrail()
-        self.builderWindow.modulePalette.treeWidget.updateFromModuleRegistry()
-        self.builderWindow.modulePalette.connect_registry_signals()
-        if self.temp_configuration.check('showSplash'):
-            self.splashScreen.finish(self.builderWindow)
+    
+    def process_interactive_input(self):
         usedb = False
         if self.temp_db_options.host:
            usedb = True
@@ -207,13 +217,11 @@ after self.init()"""
                     # instead of a FileLocator, a DBLocator is created instead
                     if hasattr(locator, '_vnode'):
                         version = locator._vnode
-                        print locator._vnode
                     if hasattr(locator,'_vtag'):
                         # if a tag is set, it should be used instead of the
                         # version number
                         if locator._vtag != '':
                             version = locator._vtag
-                            print locator._vtag
                 else:
                     locator = DBLocator(host=self.temp_db_options.host,
                                         port=self.temp_db_options.port,
@@ -227,6 +235,18 @@ after self.init()"""
                 self.builderWindow.open_vistrail_without_prompt(locator,
                                                                 version,
                                                                 execute)
+    def interactiveMode(self):
+        """ interactiveMode() -> None
+        Instantiate the GUI for interactive mode
+        
+        """     
+        self.builderWindow.create_first_vistrail()
+        self.builderWindow.modulePalette.treeWidget.updateFromModuleRegistry()
+        self.builderWindow.modulePalette.connect_registry_signals()
+        if self.temp_configuration.check('showSplash'):
+            self.splashScreen.finish(self.builderWindow)
+        
+        self.process_interactive_input()
 
         if not self.temp_configuration.showSpreadsheetOnly:
             # in some systems (Linux and Tiger) we need to make both calls
@@ -458,6 +478,8 @@ The builder window can be accessed by a spreadsheet menu option.")
         self.showSplash = self.configuration.showSplash
 
     def finishSession(self):
+        self.shared_memory.detach()
+        self.local_server.close()
         core.interpreter.cached.CachedInterpreter.cleanup()
    
     def eventFilter(self, o, event):
@@ -487,8 +509,52 @@ The builder window can be accessed by a spreadsheet menu option.")
         self.configuration.write_to_dom(dom, doc)
         self.vistrailsStartup.write_startup_dom(dom)
         dom.unlink()
+    
+    def is_running(self):
+        return self._is_running
 
-
+    def message_received(self):
+        local_socket = self.local_server.nextPendingConnection()
+        if not local_socket.waitForReadyRead(self.timeout):
+            print local_socket.errorString().toLatin1()
+            return
+        byte_array = local_socket.readAll()
+        self.parse_input_args_from_other_instance(str(byte_array))
+        local_socket.disconnectFromServer()
+    
+    def send_message(self, message):
+        if not self._is_running:
+            return False
+        local_socket = QtNetwork.QLocalSocket(self)
+        local_socket.connectToServer(self._unique_key)
+        if not local_socket.waitForConnected(self.timeout):
+            print "Failed: ", local_socket.errorString().toLatin1()
+            return False
+        self.shared_memory.lock()
+        local_socket.write(message)
+        self.shared_memory.unlock()
+        if not local_socket.waitForBytesWritten(self.timeout):
+            print "Writing failed: " 
+            print local_socket.errorString().toLatin1()
+            return False
+        local_socket.disconnectFromServer()
+        return True
+    
+    def parse_input_args_from_other_instance(self, msg):
+        import re
+        options_re = re.compile(r"(\[('([^'])*', ?)*'([^']*)'\])|(\[\s?\])")
+        if options_re.match(msg):
+            #it's safe to eval as a list
+            args = eval(msg)
+            if type(args) == type([]):
+                command_line.CommandLineParser.init_options(args)
+                self.readOptions()
+                self.process_interactive_input()
+            else:
+                print "Invalid string: %s"%msg
+        else:
+            print "Invalid input: %s"%msg
+        
 # The initialization must be explicitly signalled. Otherwise, any
 # modules importing vis_application will try to initialize the entire
 # app.
@@ -499,6 +565,12 @@ def start_application(optionsDict=None):
         print "Application already started."""
         return
     VistrailsApplication = VistrailsApplicationSingleton()
+    if VistrailsApplication.is_running():
+        print "Found another instance of VisTrails running"
+        msg = str(sys.argv[1:])
+        print "Sending parameters to main instance ", msg
+        VistrailsApplication.send_message(msg)
+        sys.exit(0)
     try:
         core.requirements.check_all_vistrails_requirements()
     except core.requirements.MissingRequirement, e:
