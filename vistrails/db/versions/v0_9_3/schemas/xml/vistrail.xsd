@@ -27,14 +27,12 @@
       <xs:sequence>
         <xs:element ref="action" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="tag" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="annotation" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="abstraction" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
       <xs:attribute name="id" type="xs:int"/>
       <xs:attribute name="version" type="xs:string"/>
       <xs:attribute name="name" type="xs:string"/>
-      <xs:attribute name="dbHost" type="xs:string"/>
-      <xs:attribute name="dbPort" type="xs:int"/>
-      <xs:attribute name="dbName" type="xs:string"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="action">
@@ -61,6 +59,13 @@
       <xs:attribute name="name" type="xs:string"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="annotation">
+    <xs:complexType>
+      <xs:attribute name="id" type="xs:int"/>
+      <xs:attribute name="key" type="xs:string"/>
+      <xs:attribute name="value" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="abstraction">
     <xs:complexType>
       <xs:sequence>
@@ -69,13 +74,6 @@
       </xs:sequence>
       <xs:attribute name="id" type="xs:int"/>
       <xs:attribute name="name" type="xs:string"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="annotation">
-    <xs:complexType>
-      <xs:attribute name="id" type="xs:int"/>
-      <xs:attribute name="key" type="xs:string"/>
-      <xs:attribute name="value" type="xs:string"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="add">
@@ -92,6 +90,7 @@
         <xs:element ref="abstractionRef" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="group" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="other" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="plugin_data" minOccurs="0" maxOccurs="1"/>
       </xs:choice>
       <xs:attribute name="id" type="xs:int"/>
       <xs:attribute name="what" type="xs:string"/>
@@ -123,6 +122,7 @@
         <xs:element ref="abstractionRef" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="group" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="other" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="plugin_data" minOccurs="0" maxOccurs="1"/>
       </xs:choice>
       <xs:attribute name="id" type="xs:int"/>
       <xs:attribute name="what" type="xs:string"/>
@@ -242,12 +242,19 @@
       <xs:attribute name="key" type="xs:string"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="plugin_data">
+    <xs:complexType>
+      <xs:attribute name="id" type="xs:int"/>
+      <xs:attribute name="data" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="workflow">
     <xs:complexType>
       <xs:sequence>
         <xs:element ref="connection" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="annotation" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="abstraction" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="plugin_data" minOccurs="0" maxOccurs="unbounded"/>
         <xs:element ref="other" minOccurs="0" maxOccurs="unbounded"/>
         <xs:choice>
           <xs:element ref="module" minOccurs="0" maxOccurs="1"/>

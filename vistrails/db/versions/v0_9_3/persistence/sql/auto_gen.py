@@ -1262,6 +1262,103 @@ class DBParameterSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+class DBPluginDataSQLDAOBase(SQLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def get_sql_columns(self, db, global_props,lock=False):
+        columns = ['id', 'data', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        table = 'plugin_data'
+        whereMap = global_props
+        orderBy = 'id'
+
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        data = self.executeSQL(db, dbCommand, True)
+        res = {}
+        for row in data:
+            id = self.convertFromDB(row[0], 'long', 'int')
+            data = self.convertFromDB(row[1], 'str', 'varchar(8191)')
+            parentType = self.convertFromDB(row[2], 'str', 'char(16)')
+            entity_id = self.convertFromDB(row[3], 'long', 'int')
+            entity_type = self.convertFromDB(row[4], 'str', 'char(16)')
+            parent = self.convertFromDB(row[5], 'long', 'long')
+            
+            plugin_data = DBPluginData(data=data,
+                                       id=id)
+            plugin_data.db_parentType = parentType
+            plugin_data.db_entity_id = entity_id
+            plugin_data.db_entity_type = entity_type
+            plugin_data.db_parent = parent
+            plugin_data.is_dirty = False
+            res[('plugin_data', id)] = plugin_data
+
+        return res
+
+    def from_sql_fast(self, obj, all_objects):
+        if obj.db_parentType == 'workflow':
+            p = all_objects[('workflow', obj.db_parent)]
+            p.db_add_plugin_data(obj)
+        elif obj.db_parentType == 'add':
+            p = all_objects[('add', obj.db_parent)]
+            p.db_add_data(obj)
+        elif obj.db_parentType == 'change':
+            p = all_objects[('change', obj.db_parent)]
+            p.db_add_data(obj)
+        
+    def set_sql_columns(self, db, obj, global_props, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return
+        columns = ['id', 'data', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        table = 'plugin_data'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        columnMap = {}
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            columnMap['id'] = \
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_data') and obj.db_data is not None:
+            columnMap['data'] = \
+                self.convertToDB(obj.db_data, 'str', 'varchar(8191)')
+        if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
+            columnMap['parent_type'] = \
+                self.convertToDB(obj.db_parentType, 'str', 'char(16)')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
+            columnMap['entity_type'] = \
+                self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+        if hasattr(obj, 'db_parent') and obj.db_parent is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_parent, 'long', 'long')
+        columnMap.update(global_props)
+
+        if obj.is_new or do_copy:
+            dbCommand = self.createSQLInsert(table, columnMap)
+        else:
+            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
+        lastId = self.executeSQL(db, dbCommand, False)
+        
+    def to_sql_fast(self, obj, do_copy=True):
+        pass
+        
+    def delete_sql_column(self, db, obj, global_props):
+        table = 'plugin_data'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
+
 class DBFunctionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -1583,6 +1680,9 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
+        for child in obj.db_plugin_datas:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
         for child in obj.db_others:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
@@ -1762,7 +1862,10 @@ class DBAnnotationSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        if obj.db_parentType == 'workflow':
+        if obj.db_parentType == 'vistrail':
+            p = all_objects[('vistrail', obj.db_parent)]
+            p.db_add_annotation(obj)
+        elif obj.db_parentType == 'workflow':
             p = all_objects[('workflow', obj.db_parent)]
             p.db_add_annotation(obj)
         elif obj.db_parentType == 'module':
@@ -2495,6 +2598,9 @@ class DBVistrailSQLDAOBase(SQLDAO):
         for child in obj.db_tags:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
+        for child in obj.db_annotations:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
         
     def delete_sql_column(self, db, obj, global_props):
         table = 'vistrail'
@@ -2670,6 +2776,8 @@ class SQLDAOListBase(dict):
             self['location'] = DBLocationSQLDAOBase(self)
         if 'parameter' not in self:
             self['parameter'] = DBParameterSQLDAOBase(self)
+        if 'plugin_data' not in self:
+            self['plugin_data'] = DBPluginDataSQLDAOBase(self)
         if 'function' not in self:
             self['function'] = DBFunctionSQLDAOBase(self)
         if 'abstraction' not in self:

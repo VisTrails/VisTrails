@@ -1905,6 +1905,75 @@ class DBParameter(object):
     def getPrimaryKey(self):
         return self._db_id
 
+class DBPluginData(object):
+
+    vtType = 'plugin_data'
+
+    def __init__(self, id=None, data=None):
+        self._db_id = id
+        self._db_data = data
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBPluginData.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBPluginData(id=self._db_id,
+                          data=self._db_data)
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+        
+        # recreate indices and set flags
+        cp.is_dirty = self.is_dirty
+        cp.is_new = self.is_new
+        return cp
+
+    def db_children(self, parent=(None,None), orphan=False):
+        return [(self, parent[0], parent[1])]
+    def db_deleted_children(self, remove=False):
+        children = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        return False
+    def __get_db_id(self):
+        return self._db_id
+    def __set_db_id(self, id):
+        self._db_id = id
+        self.is_dirty = True
+    db_id = property(__get_db_id, __set_db_id)
+    def db_add_id(self, id):
+        self._db_id = id
+    def db_change_id(self, id):
+        self._db_id = id
+    def db_delete_id(self, id):
+        self._db_id = None
+    
+    def __get_db_data(self):
+        return self._db_data
+    def __set_db_data(self, data):
+        self._db_data = data
+        self.is_dirty = True
+    db_data = property(__get_db_data, __set_db_data)
+    def db_add_data(self, data):
+        self._db_data = data
+    def db_change_data(self, data):
+        self._db_data = data
+    def db_delete_data(self, data):
+        self._db_data = None
+    
+    def getPrimaryKey(self):
+        return self._db_id
+
 class DBFunction(object):
 
     vtType = 'function'
@@ -2309,7 +2378,7 @@ class DBWorkflow(object):
 
     vtType = 'workflow'
 
-    def __init__(self, modules=None, id=None, entity_type=None, name=None, version=None, last_modified=None, connections=None, annotations=None, abstractions=None, others=None, vistrail_id=None):
+    def __init__(self, modules=None, id=None, entity_type=None, name=None, version=None, last_modified=None, connections=None, annotations=None, abstractions=None, plugin_datas=None, others=None, vistrail_id=None):
         self.db_deleted_modules = []
         self.db_modules_id_index = {}
         if modules is None:
@@ -2347,6 +2416,14 @@ class DBWorkflow(object):
             self._db_abstractions = abstractions
             for v in self._db_abstractions:
                 self.db_abstractions_id_index[v.db_id] = v
+        self.db_deleted_plugin_datas = []
+        self.db_plugin_datas_id_index = {}
+        if plugin_datas is None:
+            self._db_plugin_datas = []
+        else:
+            self._db_plugin_datas = plugin_datas
+            for v in self._db_plugin_datas:
+                self.db_plugin_datas_id_index[v.db_id] = v
         self.db_deleted_others = []
         self.db_others_id_index = {}
         if others is None:
@@ -2385,6 +2462,10 @@ class DBWorkflow(object):
             cp._db_abstractions = []
         else:
             cp._db_abstractions = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_abstractions]
+        if self._db_plugin_datas is None:
+            cp._db_plugin_datas = []
+        else:
+            cp._db_plugin_datas = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_plugin_datas]
         if self._db_others is None:
             cp._db_others = []
         else:
@@ -2406,6 +2487,7 @@ class DBWorkflow(object):
         cp.db_connections_id_index = dict((v.db_id, v) for v in cp._db_connections)
         cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
         cp.db_abstractions_id_index = dict((v.db_id, v) for v in cp._db_abstractions)
+        cp.db_plugin_datas_id_index = dict((v.db_id, v) for v in cp._db_plugin_datas)
         cp.db_others_id_index = dict((v.db_id, v) for v in cp._db_others)
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
@@ -2435,6 +2517,13 @@ class DBWorkflow(object):
         for child in to_del:
             self.db_delete_abstraction(child)
         to_del = []
+        for child in self.db_plugin_datas:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_plugin_data(child)
+        to_del = []
         for child in self.db_others:
             children.extend(child.db_children((self.vtType, self.db_id), orphan))
             if orphan:
@@ -2455,12 +2544,14 @@ class DBWorkflow(object):
         children.extend(self.db_deleted_connections)
         children.extend(self.db_deleted_annotations)
         children.extend(self.db_deleted_abstractions)
+        children.extend(self.db_deleted_plugin_datas)
         children.extend(self.db_deleted_others)
         children.extend(self.db_deleted_modules)
         if remove:
             self.db_deleted_connections = []
             self.db_deleted_annotations = []
             self.db_deleted_abstractions = []
+            self.db_deleted_plugin_datas = []
             self.db_deleted_others = []
             self.db_deleted_modules = []
         return children
@@ -2474,6 +2565,9 @@ class DBWorkflow(object):
             if child.has_changes():
                 return True
         for child in self._db_abstractions:
+            if child.has_changes():
+                return True
+        for child in self._db_plugin_datas:
             if child.has_changes():
                 return True
         for child in self._db_others:
@@ -2715,6 +2809,48 @@ class DBWorkflow(object):
         return self.db_abstractions_id_index[key]
     def db_has_abstraction_with_id(self, key):
         return key in self.db_abstractions_id_index
+    
+    def __get_db_plugin_datas(self):
+        return self._db_plugin_datas
+    def __set_db_plugin_datas(self, plugin_datas):
+        self._db_plugin_datas = plugin_datas
+        self.is_dirty = True
+    db_plugin_datas = property(__get_db_plugin_datas, __set_db_plugin_datas)
+    def db_get_plugin_datas(self):
+        return self._db_plugin_datas
+    def db_add_plugin_data(self, plugin_data):
+        self.is_dirty = True
+        self._db_plugin_datas.append(plugin_data)
+        self.db_plugin_datas_id_index[plugin_data.db_id] = plugin_data
+    def db_change_plugin_data(self, plugin_data):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_plugin_datas)):
+            if self._db_plugin_datas[i].db_id == plugin_data.db_id:
+                self._db_plugin_datas[i] = plugin_data
+                found = True
+                break
+        if not found:
+            self._db_plugin_datas.append(plugin_data)
+        self.db_plugin_datas_id_index[plugin_data.db_id] = plugin_data
+    def db_delete_plugin_data(self, plugin_data):
+        self.is_dirty = True
+        for i in xrange(len(self._db_plugin_datas)):
+            if self._db_plugin_datas[i].db_id == plugin_data.db_id:
+                if not self._db_plugin_datas[i].is_new:
+                    self.db_deleted_plugin_datas.append(self._db_plugin_datas[i])
+                del self._db_plugin_datas[i]
+                break
+        del self.db_plugin_datas_id_index[plugin_data.db_id]
+    def db_get_plugin_data(self, key):
+        for i in xrange(len(self._db_plugin_datas)):
+            if self._db_plugin_datas[i].db_id == key:
+                return self._db_plugin_datas[i]
+        return None
+    def db_get_plugin_data_by_id(self, key):
+        return self.db_plugin_datas_id_index[key]
+    def db_has_plugin_data_with_id(self, key):
+        return key in self.db_plugin_datas_id_index
     
     def __get_db_others(self):
         return self._db_others
@@ -4134,15 +4270,12 @@ class DBVistrail(object):
 
     vtType = 'vistrail'
 
-    def __init__(self, id=None, entity_type=None, version=None, name=None, last_modified=None, dbHost=None, dbPort=None, dbName=None, actions=None, tags=None, abstractions=None):
+    def __init__(self, id=None, entity_type=None, version=None, name=None, last_modified=None, actions=None, tags=None, annotations=None, abstractions=None):
         self._db_id = id
         self._db_entity_type = entity_type
         self._db_version = version
         self._db_name = name
         self._db_last_modified = last_modified
-        self._db_dbHost = dbHost
-        self._db_dbPort = dbPort
-        self._db_dbName = dbName
         self.db_deleted_actions = []
         self.db_actions_id_index = {}
         if actions is None:
@@ -4161,6 +4294,16 @@ class DBVistrail(object):
             for v in self._db_tags:
                 self.db_tags_id_index[v.db_id] = v
                 self.db_tags_name_index[v.db_name] = v
+        self.db_deleted_annotations = []
+        self.db_annotations_id_index = {}
+        self.db_annotations_key_index = {}
+        if annotations is None:
+            self._db_annotations = []
+        else:
+            self._db_annotations = annotations
+            for v in self._db_annotations:
+                self.db_annotations_id_index[v.db_id] = v
+                self.db_annotations_key_index[v.db_key] = v
         self.db_deleted_abstractions = []
         self.db_abstractions_id_index = {}
         if abstractions is None:
@@ -4180,10 +4323,7 @@ class DBVistrail(object):
                         entity_type=self._db_entity_type,
                         version=self._db_version,
                         name=self._db_name,
-                        last_modified=self._db_last_modified,
-                        dbHost=self._db_dbHost,
-                        dbPort=self._db_dbPort,
-                        dbName=self._db_dbName)
+                        last_modified=self._db_last_modified)
         if self._db_actions is None:
             cp._db_actions = []
         else:
@@ -4192,6 +4332,10 @@ class DBVistrail(object):
             cp._db_tags = []
         else:
             cp._db_tags = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_tags]
+        if self._db_annotations is None:
+            cp._db_annotations = []
+        else:
+            cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
         if self._db_abstractions is None:
             cp._db_abstractions = []
         else:
@@ -4210,6 +4354,8 @@ class DBVistrail(object):
         cp.db_actions_id_index = dict((v.db_id, v) for v in cp._db_actions)
         cp.db_tags_id_index = dict((v.db_id, v) for v in cp._db_tags)
         cp.db_tags_name_index = dict((v.db_name, v) for v in cp._db_tags)
+        cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
+        cp.db_annotations_key_index = dict((v.db_key, v) for v in cp._db_annotations)
         cp.db_abstractions_id_index = dict((v.db_id, v) for v in cp._db_abstractions)
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
@@ -4232,6 +4378,13 @@ class DBVistrail(object):
         for child in to_del:
             self.db_delete_tag(child)
         to_del = []
+        for child in self.db_annotations:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_annotation(child)
+        to_del = []
         for child in self.db_abstractions:
             children.extend(child.db_children((self.vtType, self.db_id), orphan))
             if orphan:
@@ -4244,10 +4397,12 @@ class DBVistrail(object):
         children = []
         children.extend(self.db_deleted_actions)
         children.extend(self.db_deleted_tags)
+        children.extend(self.db_deleted_annotations)
         children.extend(self.db_deleted_abstractions)
         if remove:
             self.db_deleted_actions = []
             self.db_deleted_tags = []
+            self.db_deleted_annotations = []
             self.db_deleted_abstractions = []
         return children
     def has_changes(self):
@@ -4257,6 +4412,9 @@ class DBVistrail(object):
             if child.has_changes():
                 return True
         for child in self._db_tags:
+            if child.has_changes():
+                return True
+        for child in self._db_annotations:
             if child.has_changes():
                 return True
         for child in self._db_abstractions:
@@ -4327,45 +4485,6 @@ class DBVistrail(object):
         self._db_last_modified = last_modified
     def db_delete_last_modified(self, last_modified):
         self._db_last_modified = None
-    
-    def __get_db_dbHost(self):
-        return self._db_dbHost
-    def __set_db_dbHost(self, dbHost):
-        self._db_dbHost = dbHost
-        self.is_dirty = True
-    db_dbHost = property(__get_db_dbHost, __set_db_dbHost)
-    def db_add_dbHost(self, dbHost):
-        self._db_dbHost = dbHost
-    def db_change_dbHost(self, dbHost):
-        self._db_dbHost = dbHost
-    def db_delete_dbHost(self, dbHost):
-        self._db_dbHost = None
-    
-    def __get_db_dbPort(self):
-        return self._db_dbPort
-    def __set_db_dbPort(self, dbPort):
-        self._db_dbPort = dbPort
-        self.is_dirty = True
-    db_dbPort = property(__get_db_dbPort, __set_db_dbPort)
-    def db_add_dbPort(self, dbPort):
-        self._db_dbPort = dbPort
-    def db_change_dbPort(self, dbPort):
-        self._db_dbPort = dbPort
-    def db_delete_dbPort(self, dbPort):
-        self._db_dbPort = None
-    
-    def __get_db_dbName(self):
-        return self._db_dbName
-    def __set_db_dbName(self, dbName):
-        self._db_dbName = dbName
-        self.is_dirty = True
-    db_dbName = property(__get_db_dbName, __set_db_dbName)
-    def db_add_dbName(self, dbName):
-        self._db_dbName = dbName
-    def db_change_dbName(self, dbName):
-        self._db_dbName = dbName
-    def db_delete_dbName(self, dbName):
-        self._db_dbName = None
     
     def __get_db_actions(self):
         return self._db_actions
@@ -4457,6 +4576,55 @@ class DBVistrail(object):
         return self.db_tags_name_index[key]
     def db_has_tag_with_name(self, key):
         return key in self.db_tags_name_index
+    
+    def __get_db_annotations(self):
+        return self._db_annotations
+    def __set_db_annotations(self, annotations):
+        self._db_annotations = annotations
+        self.is_dirty = True
+    db_annotations = property(__get_db_annotations, __set_db_annotations)
+    def db_get_annotations(self):
+        return self._db_annotations
+    def db_add_annotation(self, annotation):
+        self.is_dirty = True
+        self._db_annotations.append(annotation)
+        self.db_annotations_id_index[annotation.db_id] = annotation
+        self.db_annotations_key_index[annotation.db_key] = annotation
+    def db_change_annotation(self, annotation):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == annotation.db_id:
+                self._db_annotations[i] = annotation
+                found = True
+                break
+        if not found:
+            self._db_annotations.append(annotation)
+        self.db_annotations_id_index[annotation.db_id] = annotation
+        self.db_annotations_key_index[annotation.db_key] = annotation
+    def db_delete_annotation(self, annotation):
+        self.is_dirty = True
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == annotation.db_id:
+                if not self._db_annotations[i].is_new:
+                    self.db_deleted_annotations.append(self._db_annotations[i])
+                del self._db_annotations[i]
+                break
+        del self.db_annotations_id_index[annotation.db_id]
+        del self.db_annotations_key_index[annotation.db_key]
+    def db_get_annotation(self, key):
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == key:
+                return self._db_annotations[i]
+        return None
+    def db_get_annotation_by_id(self, key):
+        return self.db_annotations_id_index[key]
+    def db_has_annotation_with_id(self, key):
+        return key in self.db_annotations_id_index
+    def db_get_annotation_by_key(self, key):
+        return self.db_annotations_key_index[key]
+    def db_has_annotation_with_key(self, key):
+        return key in self.db_annotations_key_index
     
     def __get_db_abstractions(self):
         return self._db_abstractions

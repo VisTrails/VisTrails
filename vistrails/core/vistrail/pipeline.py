@@ -37,6 +37,7 @@ from core.vistrail.group import Group
 from core.vistrail.module import Module
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
+from core.vistrail.plugin_data import PluginData
 from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.port_spec import PortSpec
 from db.domain import DBWorkflow
@@ -137,6 +138,8 @@ class Pipeline(DBWorkflow):
                 _connection.db_id)
         for _abstraction in _workflow.db_abstractions:
             Abstraction.convert(_abstraction)
+        for _plugin_data in _workflow.db_plugin_datas:
+            PluginData.convert(_plugin_data)
         #there should be another way to do this
         for _obj in _workflow.objects.itervalues():
             if _obj.vtType == 'function':
@@ -171,6 +174,7 @@ class Pipeline(DBWorkflow):
 
     id = DBWorkflow.db_id
     name = DBWorkflow.db_name
+    plugin_datas = DBWorkflow.db_plugin_datas
 
     def _get_modules(self):
         return self.db_modules_id_index

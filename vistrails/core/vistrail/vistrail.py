@@ -46,6 +46,7 @@ from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
 from core.vistrail.operation import AddOp, ChangeOp, DeleteOp
 from core.vistrail.pipeline import Pipeline
+from core.vistrail.plugin_data import PluginData
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.tag import Tag
 ################################################################################
@@ -94,7 +95,8 @@ class Vistrail(DBVistrail):
     actions = DBVistrail.db_actions # This is now read-write
     tags = DBVistrail.db_tags # This is now read-write
     abstractions = DBVistrail.db_abstractions # This is now read-write
-        
+    annotations = DBVistrail.db_annotations
+    
     def _get_actionMap(self):
         return self.db_actions_id_index
     actionMap = property(_get_actionMap)
@@ -127,6 +129,8 @@ class Vistrail(DBVistrail):
             Tag.convert(tag)
         for abstraction in _vistrail.abstractions:
             Abstraction.convert(abstraction)
+        for annotation in _vistrail.annotations:
+            Annotation.convert(annotation)
 	_vistrail.changed = False
 
         # brute force creation of Vistrail object
@@ -137,6 +141,37 @@ class Vistrail(DBVistrail):
 	for action in _vistrail.actions:
 	    _vistrail.tree.addVersion(action.id, action.prevId)
 
+    def get_annotation(self, key):
+        if self.db_has_annotation_with_key(key):
+            return self.db_get_annotation_by_key(key)
+        return None
+    
+    def set_annotation(self, key, value):
+        if self.db_has_annotation_with_key(key):
+            old_annotation = self.db_get_annotation_by_key(key)
+            if old_annotation.value == value:
+                return False
+            self.db_delete_annotation(old_annotation)
+        annotation = Annotation(id=self.idScope.getNewId(Annotation.vtType),
+                                key=key,
+                                value=value,
+                                )
+        self.db_add_annotation(annotation)
+        return True
+
+    def _get_plugin_info(self):
+        annotation = self.get_annotation("__plugin_info__")
+        return annotation.value if annotation is not None else ""
+    def _set_plugin_info(self, value):
+        return self.set_annotation("__plugin_info__", value)
+    plugin_info = property(_get_plugin_info, _set_plugin_info)
+
+    def _get_database_info(self):
+        annotation = self.get_annotation("__database_info__")
+        return annotation.value if annotation is not None else ""
+    def _set_database_info(self, value):
+        return self.set_annotation("__database_info__", value)
+    database_info = property(_get_database_info, _set_database_info)
 
     def getVersionName(self, version):
         """ getVersionName(version) -> str 
@@ -1225,6 +1260,41 @@ class TestVistrail(unittest.TestCase):
         v = XMLFileLocator(core.system.vistrails_root_directory() +
                            '/tests/resources/dummy.xml').load()
         v.getVersionGraph()
+
+    def test_plugin_info(self):
+        import core.db.io
+        plugin_info_str = "this is a test of plugin_info"
+        v1 = self.create_vistrail()
+        v1.plugin_info = plugin_info_str
+        xml_str = core.db.io.serialize(v1)
+        v2 = core.db.io.unserialize(xml_str, Vistrail)
+        assert plugin_info_str == v2.plugin_info
+
+    def test_database_info(self):
+        import core.db.io
+        database_info_str = "db.hostname.edu:3306:TABLE_NAME"
+        v1 = self.create_vistrail()
+        v1.database_info = database_info_str
+        xml_str = core.db.io.serialize(v1)
+        v2 = core.db.io.unserialize(xml_str, Vistrail)
+        assert database_info_str == v2.database_info
+
+    def test_plugin_data(self):
+        import core.db.io
+        v1 = self.create_vistrail()
+        plugin_data_str = "testing plugin_data"
+        p = PluginData(id=v1.idScope.getNewId(PluginData.vtType),
+                       data=plugin_data_str)
+        add_op = AddOp(id=v1.idScope.getNewId(AddOp.vtType),
+                       what=PluginData.vtType,
+                       objectId=p.id,
+                       data=p)
+        action = Action(id=v1.idScope.getNewId(Action.vtType),
+                        operations=[add_op])
+        v1.add_action(action, 0)
+        workflow = v1.getPipeline(action.id)
+        p2 = workflow.plugin_datas[0]
+        assert plugin_data_str == p2.data
 
     def test_inverse(self):
         """Test if inverses and general_action_chain are working by

@@ -149,6 +149,15 @@ CREATE TABLE parameter(
     parent_id int
 ) engine=InnoDB;
 
+CREATE TABLE plugin_data(
+    id int,
+    data varchar(8191),
+    parent_type char(16),
+    entity_id int,
+    entity_type char(16),
+    parent_id int
+) engine=InnoDB;
+
 CREATE TABLE function(
     id int,
     pos int,

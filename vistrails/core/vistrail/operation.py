@@ -22,7 +22,8 @@
 
 from db.domain import DBAdd, DBChange, DBDelete
 from db.domain import DBAnnotation, DBAbstractionRef, DBConnection, DBGroup, \
-    DBLocation, DBModule, DBFunction, DBParameter, DBPort, DBPortSpec, DBTag
+    DBLocation, DBModule, DBFunction, DBPluginData, DBParameter, DBPort, \
+    DBPortSpec, DBTag
 
 from core.vistrail.annotation import Annotation
 from core.vistrail.abstraction_module import AbstractionModule
@@ -32,6 +33,7 @@ from core.vistrail.location import Location
 from core.vistrail.module import Module
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
+from core.vistrail.plugin_data import PluginData
 from core.vistrail.port import Port
 from core.vistrail.port_spec import PortSpec
 from core.vistrail.tag import Tag
@@ -46,6 +48,7 @@ def convert_data(_data):
         DBFunction.vtType: ModuleFunction,
         DBGroup.vtType: Group,
         DBParameter.vtType: ModuleParam,
+        DBPluginData.vtType: PluginData,
         DBPort.vtType: Port,
         DBPortSpec.vtType: PortSpec,
         DBTag.vtType: Tag,

@@ -528,6 +528,9 @@ class DBAddXMLDAOBase(XMLDAO):
             elif child.tag == 'other':
                 _data = self.getDao('other').fromXML(child)
                 data = _data
+            elif child.tag == 'plugin_data':
+                _data = self.getDao('plugin_data').fromXML(child)
+                data = _data
             elif child.text.strip() == '':
                 pass
             else:
@@ -589,6 +592,9 @@ class DBAddXMLDAOBase(XMLDAO):
             elif data.vtType == 'other':
                 childNode = ElementTree.SubElement(node, 'other')
                 self.getDao('other').toXML(data, childNode)
+            elif data.vtType == 'plugin_data':
+                childNode = ElementTree.SubElement(node, 'plugin_data')
+                self.getDao('plugin_data').toXML(data, childNode)
         
         return node
 
@@ -723,6 +729,39 @@ class DBParameterXMLDAOBase(XMLDAO):
         node.set('type',self.convertToStr(parameter.db_type, 'str'))
         node.set('val',self.convertToStr(parameter.db_val, 'str'))
         node.set('alias',self.convertToStr(parameter.db_alias, 'str'))
+        
+        return node
+
+class DBPluginDataXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag != 'plugin_data':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'long')
+        data = node.get('data', None)
+        data = self.convertFromStr(data, 'str')
+        
+        obj = DBPluginData(id=id,
+                           data=data)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, plugin_data, node=None):
+        if node is None:
+            node = ElementTree.Element('plugin_data')
+        
+        # set attributes
+        node.set('id',self.convertToStr(plugin_data.db_id, 'long'))
+        node.set('data',self.convertToStr(plugin_data.db_data, 'str'))
         
         return node
 
@@ -868,6 +907,7 @@ class DBWorkflowXMLDAOBase(XMLDAO):
         connections = []
         annotations = []
         abstractions = []
+        plugin_datas = []
         others = []
         modules = []
         
@@ -882,6 +922,9 @@ class DBWorkflowXMLDAOBase(XMLDAO):
             elif child.tag == 'abstraction':
                 _data = self.getDao('abstraction').fromXML(child)
                 abstractions.append(_data)
+            elif child.tag == 'plugin_data':
+                _data = self.getDao('plugin_data').fromXML(child)
+                plugin_datas.append(_data)
             elif child.tag == 'other':
                 _data = self.getDao('other').fromXML(child)
                 others.append(_data)
@@ -906,6 +949,7 @@ class DBWorkflowXMLDAOBase(XMLDAO):
                          connections=connections,
                          annotations=annotations,
                          abstractions=abstractions,
+                         plugin_datas=plugin_datas,
                          others=others,
                          vistrail_id=vistrail_id)
         obj.is_dirty = False
@@ -934,6 +978,10 @@ class DBWorkflowXMLDAOBase(XMLDAO):
         for abstraction in abstractions:
             childNode = ElementTree.SubElement(node, 'abstraction')
             self.getDao('abstraction').toXML(abstraction, childNode)
+        plugin_datas = workflow.db_plugin_datas
+        for plugin_data in plugin_datas:
+            childNode = ElementTree.SubElement(node, 'plugin_data')
+            self.getDao('plugin_data').toXML(plugin_data, childNode)
         others = workflow.db_others
         for other in others:
             childNode = ElementTree.SubElement(node, 'other')
@@ -1134,6 +1182,9 @@ class DBChangeXMLDAOBase(XMLDAO):
             elif child.tag == 'other':
                 _data = self.getDao('other').fromXML(child)
                 data = _data
+            elif child.tag == 'plugin_data':
+                _data = self.getDao('plugin_data').fromXML(child)
+                data = _data
             elif child.text.strip() == '':
                 pass
             else:
@@ -1197,6 +1248,9 @@ class DBChangeXMLDAOBase(XMLDAO):
             elif data.vtType == 'other':
                 childNode = ElementTree.SubElement(node, 'other')
                 self.getDao('other').toXML(data, childNode)
+            elif data.vtType == 'plugin_data':
+                childNode = ElementTree.SubElement(node, 'plugin_data')
+                self.getDao('plugin_data').toXML(data, childNode)
         
         return node
 
@@ -1494,15 +1548,10 @@ class DBVistrailXMLDAOBase(XMLDAO):
         version = self.convertFromStr(data, 'str')
         data = node.get('name', None)
         name = self.convertFromStr(data, 'str')
-        data = node.get('dbHost', None)
-        dbHost = self.convertFromStr(data, 'str')
-        data = node.get('dbPort', None)
-        dbPort = self.convertFromStr(data, 'int')
-        data = node.get('dbName', None)
-        dbName = self.convertFromStr(data, 'str')
         
         actions = []
         tags = []
+        annotations = []
         abstractions = []
         
         # read children
@@ -1513,6 +1562,9 @@ class DBVistrailXMLDAOBase(XMLDAO):
             elif child.tag == 'tag':
                 _data = self.getDao('tag').fromXML(child)
                 tags.append(_data)
+            elif child.tag == 'annotation':
+                _data = self.getDao('annotation').fromXML(child)
+                annotations.append(_data)
             elif child.tag == 'abstraction':
                 _data = self.getDao('abstraction').fromXML(child)
                 abstractions.append(_data)
@@ -1524,11 +1576,9 @@ class DBVistrailXMLDAOBase(XMLDAO):
         obj = DBVistrail(id=id,
                          version=version,
                          name=name,
-                         dbHost=dbHost,
-                         dbPort=dbPort,
-                         dbName=dbName,
                          actions=actions,
                          tags=tags,
+                         annotations=annotations,
                          abstractions=abstractions)
         obj.is_dirty = False
         return obj
@@ -1541,9 +1591,6 @@ class DBVistrailXMLDAOBase(XMLDAO):
         node.set('id',self.convertToStr(vistrail.db_id, 'long'))
         node.set('version',self.convertToStr(vistrail.db_version, 'str'))
         node.set('name',self.convertToStr(vistrail.db_name, 'str'))
-        node.set('dbHost',self.convertToStr(vistrail.db_dbHost, 'str'))
-        node.set('dbPort',self.convertToStr(vistrail.db_dbPort, 'int'))
-        node.set('dbName',self.convertToStr(vistrail.db_dbName, 'str'))
         
         # set elements
         actions = vistrail.db_actions
@@ -1554,6 +1601,10 @@ class DBVistrailXMLDAOBase(XMLDAO):
         for tag in tags:
             childNode = ElementTree.SubElement(node, 'tag')
             self.getDao('tag').toXML(tag, childNode)
+        annotations = vistrail.db_annotations
+        for annotation in annotations:
+            childNode = ElementTree.SubElement(node, 'annotation')
+            self.getDao('annotation').toXML(annotation, childNode)
         abstractions = vistrail.db_abstractions
         for abstraction in abstractions:
             childNode = ElementTree.SubElement(node, 'abstraction')
@@ -1679,6 +1730,8 @@ class XMLDAOListBase(dict):
             self['location'] = DBLocationXMLDAOBase(self)
         if 'parameter' not in self:
             self['parameter'] = DBParameterXMLDAOBase(self)
+        if 'plugin_data' not in self:
+            self['plugin_data'] = DBPluginDataXMLDAOBase(self)
         if 'function' not in self:
             self['function'] = DBFunctionXMLDAOBase(self)
         if 'abstraction' not in self:
