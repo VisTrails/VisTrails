@@ -100,8 +100,8 @@ def get_workflow_diff_with_connections(vt, v1, v2):
     return (v1, v2, pairs, v1Only, v2Only, paramChanges,
             cPairs, c1Only, c2Only)
 
-def getPathAsAction(vt, v1, v2):
-    a = db.services.vistrail.getPathAsAction(vt, v1, v2)
+def getPathAsAction(vt, v1, v2, do_copy=False):
+    a = db.services.vistrail.getPathAsAction(vt, v1, v2, do_copy)
     Action.convert(a)
     return a
 

@@ -333,14 +333,13 @@ def find_data(what, id, op_dict):
         msg = 'cannot find data (%s, %s)'  % (what, id)
         raise Exception(msg)
 
-def invertOperations(op_dict, adds, deletes):
-    # 2008-07-08 cscheid
-    # Copying is slow, so I'm just passing around the reference into
-    # the dbadds and deletes. This might be dangerous.
+def invertOperations(op_dict, adds, deletes, do_copy=False):
     inverse_ops = []       
     deletes.reverse()
     for op in deletes:
         data = find_data(op.db_what, getOldObjId(op), op_dict)
+        if do_copy:
+            data = copy.copy(data)
         inv_op = DBAdd(id=-1,
                        what=op.db_what,
                        objectId=getOldObjId(op),
@@ -360,10 +359,7 @@ def invertOperations(op_dict, adds, deletes):
         inverse_ops.append(inv_op)
     return inverse_ops
 
-def normalOperations(adds, deletes):
-    # 2008-07-08 cscheid
-    # Copying is slow, so I'm just passing around the reference into
-    # the dbadds and deletes. This might be dangerous.
+def normalOperations(adds, deletes, do_copy=False):
     new_ops = []
     for op in deletes:
         new_op = DBDelete(id=-1,
@@ -374,12 +370,15 @@ def normalOperations(adds, deletes):
                           )
         new_ops.append(new_op)
     for op in adds:
+        data = op.db_data
+        if do_copy:
+            data = copy.copy(op.db_data)
         new_op = DBAdd(id=-1,
                        what=op.db_what,
                        objectId=getNewObjId(op),
                        parentObjId=op.db_parentObjId,
                        parentObjType=op.db_parentObjType,
-                       data=op.db_data)
+                       data=data)
         new_ops.append(new_op)
     return new_ops        
 
@@ -420,7 +419,7 @@ def simplifyOps(ops):
     adds.sort(key=lambda x: -x.db_id) # faster than sort(lambda x, y: -cmp(x.db_id, y.db_id))
     return deletes + adds
 
-def getPathAsAction(vistrail, v1, v2):
+def getPathAsAction(vistrail, v1, v2, do_copy=False):
     sharedRoot = getSharedRoot(vistrail, [v1, v2])
     sharedActionChain = getActionChain(vistrail, sharedRoot)
     sharedOperationDict = getCurrentOperationDict(sharedActionChain)
@@ -436,14 +435,15 @@ def getPathAsAction(vistrail, v1, v2):
     v1Adds.sort(key=lambda x: x.db_id) # faster than sort(lambda x, y: cmp(x.db_id, y.db_id))
     v1Deletes = v1DeleteDict.values()
     v1Deletes.sort(key=lambda x: x.db_id) # faster than sort(lambda x, y: cmp(x.db_id, y.db_id))
-    v1InverseOps = invertOperations(sharedOperationDict, v1Adds, v1Deletes)
+    v1InverseOps = \
+        invertOperations(sharedOperationDict, v1Adds, v1Deletes, do_copy)
     
     # need to normalize ops of the other (v2)
     v2Adds = v2AddDict.values()
     v2Adds.sort(key=lambda x: x.db_id) # faster than sort(lambda x, y: cmp(x.db_id, y.db_id))
     v2Deletes = v2DeleteDict.values()
     v2Deletes.sort(key=lambda x: x.db_id) # faster than sort(lambda x, y: cmp(x.db_id, y.db_id))
-    v2Ops = normalOperations(v2Adds, v2Deletes)
+    v2Ops = normalOperations(v2Adds, v2Deletes, do_copy)
 
     allOps = v1InverseOps + v2Ops
     simplifiedOps = simplifyOps(allOps)

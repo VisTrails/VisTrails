@@ -87,6 +87,8 @@ class AddOp(DBAdd):
     id = DBAdd.db_id
     what = DBAdd.db_what
     objectId = DBAdd.db_objectId
+    old_obj_id = DBAdd.db_objectId
+    new_obj_id = DBAdd.db_objectId
     parentObjId = DBAdd.db_parentObjId
     parentObjType = DBAdd.db_parentObjType
     data = DBAdd.db_data
