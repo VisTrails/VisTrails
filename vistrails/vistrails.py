@@ -33,8 +33,12 @@ if __name__ == '__main__':
         v = gui.application.start_application()
         app = gui.application.VistrailsApplication()
     except SystemExit, e:
+        if gui.application.VistrailsApplication:
+            gui.application.VistrailsApplication.finishSession()
         sys.exit(e)
     except Exception, e:
+        if gui.application.VistrailsApplication:
+            gui.application.VistrailsApplication.finishSession()
         print "Uncaught exception on initialization: %s" % e
         import traceback
         traceback.print_exc()
@@ -42,5 +46,6 @@ if __name__ == '__main__':
     if (app.temp_configuration.interactiveMode or
         not app.temp_configuration.check('spreadsheetDumpCells')): 
         v = app.exec_()
+
     gui.application.stop_application()
     sys.exit(v)

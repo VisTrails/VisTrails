@@ -76,6 +76,7 @@ class VistrailsApplicationSingleton(QtGui.QApplication):
         self.timeout = 5000
         self._unique_key = "vistrails-single-instance-check"
         self.shared_memory = QtCore.QSharedMemory(self._unique_key)
+        self.local_server = None
         if self.shared_memory.attach():
             self._is_running = True
         else:
@@ -479,7 +480,8 @@ The builder window can be accessed by a spreadsheet menu option.")
 
     def finishSession(self):
         self.shared_memory.detach()
-        self.local_server.close()
+        if self.local_server:
+            self.local_server.close()
         core.interpreter.cached.CachedInterpreter.cleanup()
    
     def eventFilter(self, o, event):
