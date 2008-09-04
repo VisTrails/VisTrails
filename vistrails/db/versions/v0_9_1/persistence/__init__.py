@@ -23,8 +23,6 @@
 from xml.auto_gen import XMLDAOListBase
 from sql.auto_gen import SQLDAOListBase
 from core.system import get_elementtree_library
-from core.configuration import get_vistrails_configuration
-from core import debug
 ElementTree = get_elementtree_library()
 
 from db import VistrailsDBException
@@ -78,5 +76,6 @@ class DAOList(dict):
             root = ElementTree.fromstring(str)
             return self.read_xml_object(obj_type, root)
         except SyntaxError, e:
-            debug.log("Invalid VisTrails serialized object %s"% str)
+            msg = "Invalid VisTrails serialized object %s" % str
+            raise VistrailsDBException(msg)
             return None
