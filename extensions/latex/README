@@ -23,13 +23,21 @@ the vistrails images:
 db=vistrails,
 version=<version_number>,
 vtid=<vistrails_id>,
-buildalways]{width=0.45\linewidth}
+tag=<tag>
+port=3306,
+buildalways,
+execute,
+showspreadsheetonly]{width=0.45\linewidth}
 
-The buildalways and port options are optional. 
+The tag, port, buildalways, execute and showspreadsheetonly options are optional. 
 The default value for port is 3306. 
 If buildalways is provided it will always call 
 vistrails, even if it was already called once for the same combination
 of host, db, version, port and vt_id.
+If tag is provided, version can be ommitted and buildalways is implicit.
+execute and showspreasheetonly will affect the link on the generated pdf. If
+execute is provided the workflow will be execute when open, and
+showspreadsheetonly will show initially only the spreadsheet.
 
 The options inside { }  are the options you would give to 
 \includegraphics{} command

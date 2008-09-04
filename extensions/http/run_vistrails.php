@@ -42,6 +42,8 @@ $dbname = 'vistrails';
 $vtid = '';
 $version = '';
 $username = "vtserver";
+$version_tag = '';
+$force_build = False;
 
 //Get the variables from the url
 if(array_key_exists('host', $_GET))
@@ -54,7 +56,13 @@ if(array_key_exists('vt',$_GET))
 	$vtid = $_GET['vt'];
 if(array_key_exists('version',$_GET))
 	$version = $_GET['version'];
-
+if(array_key_exists('tag',$_GET)){
+	$version_tag = $_GET['tag'];
+	if ($version_tag != ''){
+		$version = $version_tag;
+		$force_build = True;
+	}
+}
 //Check if vtid and version were provided
 if($vtid != '' and $version != ''){
 	chdir($PATH_TO_VISTRAILS);
@@ -67,8 +75,9 @@ if($vtid != '' and $version != ''){
 	$destdir = $destdir . $destversion;
 	//echo $destdir;
 	$result = '';
-	if(!file_exists($destdir)) {
-	    mkdir($destdir,0770);
+	if((!file_exists($destdir)) or $force_build) {
+		if (!file_exists($destdir))
+			mkdir($destdir,0770);
 	    $mainCommand = 'python vistrails.py -b -e '. $destdir.' -t ' . $host .
 		' -r ' . $port . ' -f ' . $dbname . ' -u ' . $username . ' "' . $vtid .
 		':' . $version .'"';
@@ -83,8 +92,8 @@ if($vtid != '' and $version != ''){
 		foreach($files as $filename) {
 			if($filename != '.' and $filename != '..'){
 				list($width, $height, $type, $attr) = getimagesize($destdir.'/'.$filename);
-					$res = $res . '<img src="/images/vistrails/'. $destversion.'/'.$filename.
-					        "\" alt=\"vt_id:$vtid version:$version\" width=\"$width\"/>";
+				$res = $res . '<img src="/images/vistrails/'. $destversion.'/'.$filename.
+					   "\" alt=\"vt_id:$vtid version:$version\" width=\"$width\"/>";
 			}
 		}	
 		echo $res;

@@ -43,17 +43,32 @@ function printVistrailTag($input,$params, &$parser) {
 	$vtid = "";
 	$version = "";
 	$port = "3306";
+    $version_tag = "";
+    $execute = "False";
+    $showspreadsheetonly = "False";
+    $force_build = False;
 	foreach ($params as $key=>$value) {
 		if($key == "vtid")
-			$vtid = "".$value;
+            $vtid = "".$value;
 		if($key == "version")
-			$version = $value;
+            $version = $value;
 		if($key == "host")
-			$host = $value;
+            $host = $value;
 		if($key == "db")
-			$dbname = $value;
+            $dbname = $value;
 		if($key == "port")
-			$port = $value;
+            $port = $value;
+        if($key == "tag"){
+            $version_tag = $value;
+            if($version_tag != '')
+               $version = $version_tag;
+               $force_build = True;
+        }
+        if ($key == "execute")
+            $execute = $value;
+        if ($key == "showspreadsheetonly")
+            $showspreadsheetonly = $value;
+
 	}    
    	
 	chdir('/server/wiki/vistrails/main/vistrails/trunk/vistrails');
@@ -65,8 +80,9 @@ function printVistrailTag($input,$params, &$parser) {
 	$destversion = md5($destversion);
 	$destdir = $destdir . $destversion;
 	//echo $destdir;
-	if(!file_exists($destdir)) {
-	    mkdir($destdir,0770);
+	if((!file_exists($destdir)) or $force_build) {
+        if(!file_exists($destdir))
+            mkdir($destdir,0770);
 	    $mainCommand = 'python ' . $path . ' -b -e '. $destdir.' -t ' .
 		               $host . ' -r ' . $port . ' -f ' . $dbname . ' -u ' .
 					   $username . ' "' . $vtid .':' . $version .'"';
@@ -75,7 +91,9 @@ function printVistrailTag($input,$params, &$parser) {
 	    //echo $result."\n";
 	}
 	$linkParams = "getvt=" . $vtid . "&version=" . $version . "&db=" .$dbname .
-				   "&host=" . $host . "&port=" . $port;
+				  "&host=" . $host . "&port=" . $port . "&tag=" .
+                  $version_tag . "&execute=" . $execute . 
+                  "&showspreadsheetonly=" . $showspreadsheetonly;
 	$files = scandir($destdir);
 	$res = '<a href="http://www.vistrails.org/extensions/download.php?' . $linkParams . '">';
 	foreach($files as $filename) {

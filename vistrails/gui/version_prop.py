@@ -670,7 +670,7 @@ class QVersionEmbed(QtGui.QWidget):
         self.controller = None
         self.wikitag = '<vistrail host="%s" db="%s" vtid="%s" version="%s" \
 tag="%s" showspreadsheetonly="True"/>'
-        self.latextag = '\\vistrails[host=%s,\ndb=%s,\nvtid=%s,\nversion=%s,\
+        self.latextag = '\\vistrail[host=%s,\ndb=%s,\nvtid=%s,\nversion=%s,\
 \ntag=%s,\nshowspreadsheetonly]{}'
         self.embededt = QtGui.QLineEdit(self)
         self.embededt.setReadOnly(True)

@@ -61,19 +61,25 @@ vistrails.log' % (path_to_vistrails,
 
 ###############################################################################
 
-def generate_latex(host, db_name, vt_id, version, port, path_to_figures,
-                   graphics_options):
+def generate_latex(host, db_name, vt_id, version, port, tag, execute,
+                   showspreadsheetonly, path_to_figures, graphics_options):
     """generate_latex(host: str, db_name:str, vt_id: str, version: str,
-                      port:str, path_to_figures: str, graphics_options: str)
-                           -> str
+                      port:str, tag: str, execute: bool,
+                      showspreadsheetonly: bool, path_to_figures: str,
+                      graphics_options: str)  -> str
         This generates a piece of latex code containing the \href command and
         a \includegraphics command for each image generated.
     """
-    url_params = "getvt=%s&version=%s&db=%s&host=%s&port=%s" % (vt_id,
-                                                                version,
-                                                                db_name,
-                                                                host,
-                                                                port)
+    url_params = "getvt=%s&version=%s&db=%s&host=%s&port=%s&tag=%s&\
+execute=%s&showspreadsheetonly=%s" % (vt_id,
+                                      urllib2.quote(version),
+                                      db_name,
+                                      host,
+                                      port,
+                                      urllib2.quote(tag),
+                                      execute,
+                                      showspreadsheetonly)
+    url_params = url_params.replace("%","\%")
     url = "http://www.vistrails.org/extensions/download.php?%s"% url_params
     href = "\href{%s}{" % url
     for root, dirs, file_names in os.walk(path_to_figures):
@@ -82,8 +88,8 @@ def generate_latex(host, db_name, vt_id, version, port, path_to_figures,
     s = ''
     
     for f in file_names:
+        filename = os.path.join(path_to_figures,f).replace("%","\%")
         if graphics_options:
-            filename = os.path.join(path_to_figures,f)
             s += "\includegraphics[%s]{%s}\n" % (graphics_options, filename)
         else:
             s += "\includegraphics{%s}\n" % filename
@@ -103,7 +109,8 @@ def generate_latex_error(error_msg):
 ###############################################################################
 
 def run_vistrails_locally(path_to_vistrails, host, db_name, vt_id,
-                          version, port, path_to_figures, build_always=False):
+                          version, port, path_to_figures, build_always=False,
+                          tag='', execute=False, showspreadsheetonly=False):
     """run_vistrails_locally(path_to_vistrails: str, host: str,
                              db_name: str, vt_id: str, version: str, port: str,
                              path_to_figures: str) -> tuple(bool, str)
@@ -129,16 +136,20 @@ def run_vistrails_locally(path_to_vistrails, host, db_name, vt_id,
                 msg = "See vistrails.log for more information."
                 return (False, generate_latex_error(msg))
 
-    return (True, generate_latex(host, db_name, vt_id, version, port,
+    return (True, generate_latex(host, db_name, vt_id, version, port, tag,
+                                 execute, showspreadsheetonly,
                                  path_to_figures, graphics_options))
 
 ###############################################################################
 
 def run_vistrails_remotely(path_to_vistrails, host, db_name, vt_id,
-                           version, port, path_to_figures, build_always=False):
+                           version, port, path_to_figures, build_always=False,
+                           tag='', execute=False, showspreadsheetonly=False):
     """run_vistrails_remotely(path_to_vistrails: str, host: str,
                               db_name: str, vt_id: str, version: str, port: str,
-                              path_to_figures: str) -> tuple(bool, str)
+                              path_to_figures: str, build_always: bool,
+                              tag:str, execute: bool, showspreadsheetonly: bool)
+                                   -> tuple(bool, str)
         Run vistrails and returns a tuple containing a boolean saying if it was
         successful or not and the latex code.
     """
@@ -182,7 +193,7 @@ def run_vistrails_remotely(path_to_vistrails, host, db_name, vt_id,
             request = "?host=%s&db=%s&vt=%s&version=%s&port=%s" % (host,
                                                                    db_name,
                                                                    vt_id,
-                                                                   version,
+                                                                   urllib2.quote(version),
                                                                    port)
             url = path_to_vistrails + request
             try:
@@ -206,7 +217,9 @@ def run_vistrails_remotely(path_to_vistrails, host, db_name, vt_id,
                             failed = True
                     if not failed:
                         return (True, generate_latex(host, db_name, vt_id,
-                                                     version, port,
+                                                     version, port, tag,
+                                                     execute,
+                                                     showspreadsheetonly,
                                                      path_to_figures,
                                                      graphics_options))
                     else:
@@ -222,8 +235,8 @@ def run_vistrails_remotely(path_to_vistrails, host, db_name, vt_id,
             return (False, generate_latex_error(msg))
     else:
         return (True, generate_latex(host, db_name, vt_id,
-                                     version, path_to_figures,
-                                     graphics_options))
+                                     version, tag, execute, showspreadsheetonly,
+                                     path_to_figures, graphics_options))
     
     
 ###############################################################################
@@ -261,6 +274,9 @@ graphics_options = None
 build_always = False
 run_locally = True
 port = '3306'
+version_tag = ''
+showspreadsheetonly = False
+execute = False
 
 for line in lines:
     args = line.split("=")
@@ -280,23 +296,37 @@ for line in lines:
         port = args[1].strip(" \n")
     elif args[0] == "buildalways":
         build_always = bool_conv(args[1].strip(" \n"))
+    elif args[0] == "tag":
+        version_tag = args[1].strip(" \n")
+        if version_tag != "":
+            version = version_tag
+            build_always = True
+    elif args[0] == "execute":
+        execute = bool_conv(args[1].strip(" \n"))
+    elif args[0] == "showspreadsheetonly":
+        showspreadsheetonly = bool_conv(args[1].strip(" \n"))
+        if showspreadsheetonly:
+            execute = True
     elif args[0] == "other":
         graphics_options = args[1].strip(" \n")
         
 path_to_figures = os.path.join("vistrails_images",
                                "%s_%s_%s_%s_%s" % (host, db_name, port,
-                                                   vt_id, version))
+                                                   vt_id,
+                                                   urllib2.quote(version)))
 
 run_locally = check_path(path_to_vistrails)
 
 if run_locally:
     result, latex = run_vistrails_locally(path_to_vistrails, host, db_name,
                                           vt_id, version, port, path_to_figures,
-                                          build_always)
+                                          build_always, version_tag, execute,
+                                          showspreadsheetonly)
 else:
     result, latex = run_vistrails_remotely(path_to_vistrails, host, db_name,
                                           vt_id, version, port, path_to_figures,
-                                          build_always)
+                                          build_always, version_tag, execute,
+                                          showspreadsheetonly)
 print latex
 if result == True:
     sys.exit(0)

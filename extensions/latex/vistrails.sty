@@ -42,13 +42,17 @@
 \newcommand{\vistrailspath}{http://www.vistrails.org/extensions/run_vistrails.php}
 
 %% this is for allowing line breaks, empty values in vistrails command's options
-\def\vistrails{\kernel@ifnextchar [{\@vistrails}{\@vistrails[]}}
+\def\vistrail{\kernel@ifnextchar [{\@vistrail}{\@vistrail[]}}
 
-\def\@vistrails[#1]#2{%
+\def\@vistrail[#1]#2{%
 \immediate\openout\pythonincludein=\jobname.cmdline
 \immediate\write\pythonincludein{path=\vistrailspath}
 \setkeys{vt}{#1}
-\immediate\write\pythonincludein{other=\string#2}
+\ifx\@empty#2\@empty
+    \immediate\write\pythonincludein{other=}
+\else
+    \immediate\write\pythonincludein{other=\string#2}
+\fi
 \immediate\closeout\pythonincludein
 \immediate\write18{python includevistrail.py \jobname.cmdline > \jobname.cmdline.out 2> \jobname.cmdline.err}
 \immediate\input\jobname.cmdline.out
@@ -59,7 +63,10 @@
 \define@key{vt}{db}[vistrails]{\immediate\write\pythonincludein{db=\string#1}}
 \define@key{vt}{vtid}{\immediate\write\pythonincludein{vtid=\string#1}}
 \define@key{vt}{version}{\immediate\write\pythonincludein{version=\string#1}}
+\define@key{vt}{tag}[]{\immediate\write\pythonincludein{tag=\string#1}}
 \define@key{vt}{port}[3306]{\immediate\write\pythonincludein{port=\string#1}}
 \define@key{vt}{buildalways}[true]{\immediate\write\pythonincludein{buildalways=\string#1}}
+\define@key{vt}{execute}[true]{\immediate\write\pythonincludein{execute=\string#1}}
+\define@key{vt}{showspreadsheetonly}[true]{\immediate\write\pythonincludein{showspreadsheetonly=\string#1}}
 
 

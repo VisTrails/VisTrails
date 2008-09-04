@@ -26,10 +26,19 @@ if ($_GET["getvt"]) {
 	$dbname = $_GET["db"];
 	$vtid = $_GET["getvt"];
 	$version = $_GET["version"];
+    $version_tag = '';
+    $execute = "False";
+    $showspreadsheetonly = "False";
 	if(array_key_exists('port', $_GET))
 		$port = $_GET['port'];
 	if(array_key_exists('host', $_GET))
 		$host = $_GET['host'];
+    if(array_key_exists('tag', $_GET))
+        $version_tag = $_GET['tag'];
+    if(array_key_exists('execute', $_GET))
+        $execute = $_GET['execute'];
+    if(array_key_exists('showspreadsheetonly', $_GET))
+        $showspreadsheetonly = $_GET['showspreadsheetonly'];
 	$filename = md5($host . '_'. $dbname .'_' . $port .'_' .$vtid . '_' . $version);
 	$filename = $filename . ".vtl";
 	
@@ -38,7 +47,9 @@ if ($_GET["getvt"]) {
 	$fileHandle = fopen("/server/wiki/vistrails/main/images/vistrails/". $filename, 'w') or die("can't open file");
 	$text = "<vtlink database=\"" . $dbname . "\" host=\"". $host .
 	        "\" port=\"". $port . "\" vtid=\"" . $vtid . "\" version=\"" .
-			$version . "\" />";
+			$version . "\" tag=\"" . $version_tag . "\" execute=\"".
+            $execute . "\" showSpreadsheetOnly=\"". $showspreadsheetonly .
+            "\" />";
 
 	fputs($fileHandle, $text);
 	fclose($fileHandle);
