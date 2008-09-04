@@ -387,6 +387,75 @@ class AutoGen:
         self.printLine('cp.is_new = self.is_new\n')
         self.printLine('return cp\n\n')
 
+        # create static update_version
+        self.unindentLine('@staticmethod\n')
+        self.printLine('def update_version(old_obj, trans_dict, new_obj=None):\n')
+        self.indentLine('if new_obj is None:\n')
+        self.indentLine('new_obj = %s()\n' % object.getClassName())
+        self.unindentLine('class_dict = {}\n')
+        self.printLine('if new_obj.__class__.__name__ in trans_dict:\n')
+        self.indentLine('class_dict = ' + \
+                            'trans_dict[new_obj.__class__.__name__]\n')
+
+        for field in self.getPythonFields(object):
+            self.unindentLine("if '%s' in class_dict:\n" % \
+                                  field.getRegularName())
+            self.indentLine("res = class_dict['%s'](old_obj, trans_dict)\n" % \
+                                field.getRegularName())
+            if field.isPlural():
+                self.printLine('for obj in res:\n')
+                self.indentLine('new_obj.%s(obj)\n' % field.getAppender())
+                self.unindent()
+            else:
+                self.printLine('new_obj.%s = res\n' % field.getFieldName())
+            self.unindentLine("elif hasattr(old_obj, '%s'):\n" % \
+                                  field.getFieldName())
+            if field.isReference():
+                refObj = self.getReferencedObject(field.getReference())
+                if field.isPlural():
+                    if field.getPythonType() == 'hash':
+                        self.indentLine('for obj in old_obj' + \
+                                            '.%s.itervalues():\n' % \
+                                            field.getFieldName())
+                        self.indent()
+                    else:
+                        self.indentLine('for obj in old_obj.%s:\n' % \
+                                            field.getFieldName())
+                        self.indent()
+                else:
+                    self.indentLine('obj = old_obj.%s\n' % \
+                                        field.getFieldName())
+                if field.isChoice():
+                    cond = 'if'
+                    for prop in field.properties:
+                        if prop.isReference():
+                            propRefObj = \
+                                self.getReferencedObject(prop.getSingleName())
+                        else:
+                            raise Exception("Should not get here")
+                        self.printLine("%s obj.vtType == '%s':\n" % \
+                                           (cond, propRefObj.getRegularName()))
+                        self.indentLine('new_obj.%s(%s.update_version' % \
+                                            (field.getAppender(),
+                                             propRefObj.getClassName()) + \
+                                            '(obj, trans_dict))\n')
+                        self.unindent()
+                        cond = 'elif'
+                else:
+                    self.printLine('new_obj.%s(%s.update_version' % \
+                                       (field.getAppender(),
+                                        refObj.getClassName()) + \
+                                       '(obj, trans_dict))\n')
+                if field.isPlural():
+                    self.unindent()
+            else:
+                self.indentLine('new_obj.%s = old_obj.%s\n' % \
+                                    (field.getFieldName(), 
+                                     field.getFieldName()))
+
+        self.unindentLine('return new_obj\n\n')
+
+
         # create child methods
         self.unindentLine('def %s(self, parent=(None,None), orphan=False):\n' \
                               % object.getChildren())

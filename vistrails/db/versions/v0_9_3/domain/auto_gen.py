@@ -59,6 +59,35 @@ class DBPortSpec(object):
         cp.is_new = self.is_new
         return cp
 
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBPortSpec()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name'):
+            new_obj.db_name = old_obj.db_name
+        if 'type' in class_dict:
+            res = class_dict['type'](old_obj, trans_dict)
+            new_obj.db_type = res
+        elif hasattr(old_obj, 'db_type'):
+            new_obj.db_type = old_obj.db_type
+        if 'spec' in class_dict:
+            res = class_dict['spec'](old_obj, trans_dict)
+            new_obj.db_spec = res
+        elif hasattr(old_obj, 'db_spec'):
+            new_obj.db_spec = old_obj.db_spec
+        return new_obj
+
     def db_children(self, parent=(None,None), orphan=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
@@ -212,6 +241,77 @@ class DBModule(object):
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBModule()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'cache' in class_dict:
+            res = class_dict['cache'](old_obj, trans_dict)
+            new_obj.db_cache = res
+        elif hasattr(old_obj, 'db_cache'):
+            new_obj.db_cache = old_obj.db_cache
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name'):
+            new_obj.db_name = old_obj.db_name
+        if 'namespace' in class_dict:
+            res = class_dict['namespace'](old_obj, trans_dict)
+            new_obj.db_namespace = res
+        elif hasattr(old_obj, 'db_namespace'):
+            new_obj.db_namespace = old_obj.db_namespace
+        if 'package' in class_dict:
+            res = class_dict['package'](old_obj, trans_dict)
+            new_obj.db_package = res
+        elif hasattr(old_obj, 'db_package'):
+            new_obj.db_package = old_obj.db_package
+        if 'version' in class_dict:
+            res = class_dict['version'](old_obj, trans_dict)
+            new_obj.db_version = res
+        elif hasattr(old_obj, 'db_version'):
+            new_obj.db_version = old_obj.db_version
+        if 'tag' in class_dict:
+            res = class_dict['tag'](old_obj, trans_dict)
+            new_obj.db_tag = res
+        elif hasattr(old_obj, 'db_tag'):
+            new_obj.db_tag = old_obj.db_tag
+        if 'location' in class_dict:
+            res = class_dict['location'](old_obj, trans_dict)
+            new_obj.db_location = res
+        elif hasattr(old_obj, 'db_location'):
+            obj = old_obj.db_location
+            new_obj.db_add_location(DBLocation.update_version(obj, trans_dict))
+        if 'functions' in class_dict:
+            res = class_dict['functions'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_function(obj)
+        elif hasattr(old_obj, 'db_functions'):
+            for obj in old_obj.db_functions:
+                new_obj.db_add_function(DBFunction.update_version(obj, trans_dict))
+        if 'annotations' in class_dict:
+            res = class_dict['annotations'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_annotation(obj)
+        elif hasattr(old_obj, 'db_annotations'):
+            for obj in old_obj.db_annotations:
+                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        if 'portSpecs' in class_dict:
+            res = class_dict['portSpecs'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_portSpec(obj)
+        elif hasattr(old_obj, 'db_portSpecs'):
+            for obj in old_obj.db_portSpecs:
+                new_obj.db_add_portSpec(DBPortSpec.update_version(obj, trans_dict))
+        return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
         children = []
@@ -551,6 +651,25 @@ class DBTag(object):
         cp.is_new = self.is_new
         return cp
 
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBTag()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name'):
+            new_obj.db_name = old_obj.db_name
+        return new_obj
+
     def db_children(self, parent=(None,None), orphan=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
@@ -629,6 +748,45 @@ class DBPort(object):
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBPort()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'type' in class_dict:
+            res = class_dict['type'](old_obj, trans_dict)
+            new_obj.db_type = res
+        elif hasattr(old_obj, 'db_type'):
+            new_obj.db_type = old_obj.db_type
+        if 'moduleId' in class_dict:
+            res = class_dict['moduleId'](old_obj, trans_dict)
+            new_obj.db_moduleId = res
+        elif hasattr(old_obj, 'db_moduleId'):
+            new_obj.db_moduleId = old_obj.db_moduleId
+        if 'moduleName' in class_dict:
+            res = class_dict['moduleName'](old_obj, trans_dict)
+            new_obj.db_moduleName = res
+        elif hasattr(old_obj, 'db_moduleName'):
+            new_obj.db_moduleName = old_obj.db_moduleName
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name'):
+            new_obj.db_name = old_obj.db_name
+        if 'spec' in class_dict:
+            res = class_dict['spec'](old_obj, trans_dict)
+            new_obj.db_spec = res
+        elif hasattr(old_obj, 'db_spec'):
+            new_obj.db_spec = old_obj.db_spec
+        return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
         return [(self, parent[0], parent[1])]
@@ -797,6 +955,76 @@ class DBGroup(object):
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBGroup()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'workflow' in class_dict:
+            res = class_dict['workflow'](old_obj, trans_dict)
+            new_obj.db_workflow = res
+        elif hasattr(old_obj, 'db_workflow'):
+            obj = old_obj.db_workflow
+            new_obj.db_add_workflow(DBWorkflow.update_version(obj, trans_dict))
+        if 'cache' in class_dict:
+            res = class_dict['cache'](old_obj, trans_dict)
+            new_obj.db_cache = res
+        elif hasattr(old_obj, 'db_cache'):
+            new_obj.db_cache = old_obj.db_cache
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name'):
+            new_obj.db_name = old_obj.db_name
+        if 'namespace' in class_dict:
+            res = class_dict['namespace'](old_obj, trans_dict)
+            new_obj.db_namespace = res
+        elif hasattr(old_obj, 'db_namespace'):
+            new_obj.db_namespace = old_obj.db_namespace
+        if 'package' in class_dict:
+            res = class_dict['package'](old_obj, trans_dict)
+            new_obj.db_package = res
+        elif hasattr(old_obj, 'db_package'):
+            new_obj.db_package = old_obj.db_package
+        if 'version' in class_dict:
+            res = class_dict['version'](old_obj, trans_dict)
+            new_obj.db_version = res
+        elif hasattr(old_obj, 'db_version'):
+            new_obj.db_version = old_obj.db_version
+        if 'tag' in class_dict:
+            res = class_dict['tag'](old_obj, trans_dict)
+            new_obj.db_tag = res
+        elif hasattr(old_obj, 'db_tag'):
+            new_obj.db_tag = old_obj.db_tag
+        if 'location' in class_dict:
+            res = class_dict['location'](old_obj, trans_dict)
+            new_obj.db_location = res
+        elif hasattr(old_obj, 'db_location'):
+            obj = old_obj.db_location
+            new_obj.db_add_location(DBLocation.update_version(obj, trans_dict))
+        if 'functions' in class_dict:
+            res = class_dict['functions'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_function(obj)
+        elif hasattr(old_obj, 'db_functions'):
+            for obj in old_obj.db_functions:
+                new_obj.db_add_function(DBFunction.update_version(obj, trans_dict))
+        if 'annotations' in class_dict:
+            res = class_dict['annotations'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_annotation(obj)
+        elif hasattr(old_obj, 'db_annotations'):
+            for obj in old_obj.db_annotations:
+                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
         children = []
@@ -1128,6 +1356,59 @@ class DBLog(object):
         cp.is_new = self.is_new
         return cp
 
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBLog()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'entity_type' in class_dict:
+            res = class_dict['entity_type'](old_obj, trans_dict)
+            new_obj.db_entity_type = res
+        elif hasattr(old_obj, 'db_entity_type'):
+            new_obj.db_entity_type = old_obj.db_entity_type
+        if 'version' in class_dict:
+            res = class_dict['version'](old_obj, trans_dict)
+            new_obj.db_version = res
+        elif hasattr(old_obj, 'db_version'):
+            new_obj.db_version = old_obj.db_version
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name'):
+            new_obj.db_name = old_obj.db_name
+        if 'last_modified' in class_dict:
+            res = class_dict['last_modified'](old_obj, trans_dict)
+            new_obj.db_last_modified = res
+        elif hasattr(old_obj, 'db_last_modified'):
+            new_obj.db_last_modified = old_obj.db_last_modified
+        if 'workflow_execs' in class_dict:
+            res = class_dict['workflow_execs'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_workflow_exec(obj)
+        elif hasattr(old_obj, 'db_workflow_execs'):
+            for obj in old_obj.db_workflow_execs:
+                new_obj.db_add_workflow_exec(DBWorkflowExec.update_version(obj, trans_dict))
+        if 'machines' in class_dict:
+            res = class_dict['machines'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_machine(obj)
+        elif hasattr(old_obj, 'db_machines'):
+            for obj in old_obj.db_machines:
+                new_obj.db_add_machine(DBMachine.update_version(obj, trans_dict))
+        if 'vistrail_id' in class_dict:
+            res = class_dict['vistrail_id'](old_obj, trans_dict)
+            new_obj.db_vistrail_id = res
+        elif hasattr(old_obj, 'db_vistrail_id'):
+            new_obj.db_vistrail_id = old_obj.db_vistrail_id
+        return new_obj
+
     def db_children(self, parent=(None,None), orphan=False):
         children = []
         to_del = []
@@ -1370,6 +1651,45 @@ class DBMachine(object):
         cp.is_new = self.is_new
         return cp
 
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBMachine()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name'):
+            new_obj.db_name = old_obj.db_name
+        if 'os' in class_dict:
+            res = class_dict['os'](old_obj, trans_dict)
+            new_obj.db_os = res
+        elif hasattr(old_obj, 'db_os'):
+            new_obj.db_os = old_obj.db_os
+        if 'architecture' in class_dict:
+            res = class_dict['architecture'](old_obj, trans_dict)
+            new_obj.db_architecture = res
+        elif hasattr(old_obj, 'db_architecture'):
+            new_obj.db_architecture = old_obj.db_architecture
+        if 'processor' in class_dict:
+            res = class_dict['processor'](old_obj, trans_dict)
+            new_obj.db_processor = res
+        elif hasattr(old_obj, 'db_processor'):
+            new_obj.db_processor = old_obj.db_processor
+        if 'ram' in class_dict:
+            res = class_dict['ram'](old_obj, trans_dict)
+            new_obj.db_ram = res
+        elif hasattr(old_obj, 'db_ram'):
+            new_obj.db_ram = old_obj.db_ram
+        return new_obj
+
     def db_children(self, parent=(None,None), orphan=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
@@ -1504,6 +1824,69 @@ class DBAdd(object):
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBAdd()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'data' in class_dict:
+            res = class_dict['data'](old_obj, trans_dict)
+            new_obj.db_data = res
+        elif hasattr(old_obj, 'db_data'):
+            obj = old_obj.db_data
+            if obj.vtType == 'module':
+                new_obj.db_add_data(DBModule.update_version(obj, trans_dict))
+            elif obj.vtType == 'location':
+                new_obj.db_add_data(DBLocation.update_version(obj, trans_dict))
+            elif obj.vtType == 'annotation':
+                new_obj.db_add_data(DBAnnotation.update_version(obj, trans_dict))
+            elif obj.vtType == 'function':
+                new_obj.db_add_data(DBFunction.update_version(obj, trans_dict))
+            elif obj.vtType == 'connection':
+                new_obj.db_add_data(DBConnection.update_version(obj, trans_dict))
+            elif obj.vtType == 'port':
+                new_obj.db_add_data(DBPort.update_version(obj, trans_dict))
+            elif obj.vtType == 'parameter':
+                new_obj.db_add_data(DBParameter.update_version(obj, trans_dict))
+            elif obj.vtType == 'portSpec':
+                new_obj.db_add_data(DBPortSpec.update_version(obj, trans_dict))
+            elif obj.vtType == 'abstractionRef':
+                new_obj.db_add_data(DBAbstractionRef.update_version(obj, trans_dict))
+            elif obj.vtType == 'group':
+                new_obj.db_add_data(DBGroup.update_version(obj, trans_dict))
+            elif obj.vtType == 'other':
+                new_obj.db_add_data(DBOther.update_version(obj, trans_dict))
+            elif obj.vtType == 'plugin_data':
+                new_obj.db_add_data(DBPluginData.update_version(obj, trans_dict))
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'what' in class_dict:
+            res = class_dict['what'](old_obj, trans_dict)
+            new_obj.db_what = res
+        elif hasattr(old_obj, 'db_what'):
+            new_obj.db_what = old_obj.db_what
+        if 'objectId' in class_dict:
+            res = class_dict['objectId'](old_obj, trans_dict)
+            new_obj.db_objectId = res
+        elif hasattr(old_obj, 'db_objectId'):
+            new_obj.db_objectId = old_obj.db_objectId
+        if 'parentObjId' in class_dict:
+            res = class_dict['parentObjId'](old_obj, trans_dict)
+            new_obj.db_parentObjId = res
+        elif hasattr(old_obj, 'db_parentObjId'):
+            new_obj.db_parentObjId = old_obj.db_parentObjId
+        if 'parentObjType' in class_dict:
+            res = class_dict['parentObjType'](old_obj, trans_dict)
+            new_obj.db_parentObjType = res
+        elif hasattr(old_obj, 'db_parentObjType'):
+            new_obj.db_parentObjType = old_obj.db_parentObjType
+        return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
         children = []
@@ -1641,6 +2024,30 @@ class DBOther(object):
         cp.is_new = self.is_new
         return cp
 
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBOther()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'key' in class_dict:
+            res = class_dict['key'](old_obj, trans_dict)
+            new_obj.db_key = res
+        elif hasattr(old_obj, 'db_key'):
+            new_obj.db_key = old_obj.db_key
+        if 'value' in class_dict:
+            res = class_dict['value'](old_obj, trans_dict)
+            new_obj.db_value = res
+        elif hasattr(old_obj, 'db_value'):
+            new_obj.db_value = old_obj.db_value
+        return new_obj
+
     def db_children(self, parent=(None,None), orphan=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
@@ -1724,6 +2131,30 @@ class DBLocation(object):
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBLocation()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'x' in class_dict:
+            res = class_dict['x'](old_obj, trans_dict)
+            new_obj.db_x = res
+        elif hasattr(old_obj, 'db_x'):
+            new_obj.db_x = old_obj.db_x
+        if 'y' in class_dict:
+            res = class_dict['y'](old_obj, trans_dict)
+            new_obj.db_y = res
+        elif hasattr(old_obj, 'db_y'):
+            new_obj.db_y = old_obj.db_y
+        return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
         return [(self, parent[0], parent[1])]
@@ -1814,6 +2245,45 @@ class DBParameter(object):
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBParameter()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'pos' in class_dict:
+            res = class_dict['pos'](old_obj, trans_dict)
+            new_obj.db_pos = res
+        elif hasattr(old_obj, 'db_pos'):
+            new_obj.db_pos = old_obj.db_pos
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name'):
+            new_obj.db_name = old_obj.db_name
+        if 'type' in class_dict:
+            res = class_dict['type'](old_obj, trans_dict)
+            new_obj.db_type = res
+        elif hasattr(old_obj, 'db_type'):
+            new_obj.db_type = old_obj.db_type
+        if 'val' in class_dict:
+            res = class_dict['val'](old_obj, trans_dict)
+            new_obj.db_val = res
+        elif hasattr(old_obj, 'db_val'):
+            new_obj.db_val = old_obj.db_val
+        if 'alias' in class_dict:
+            res = class_dict['alias'](old_obj, trans_dict)
+            new_obj.db_alias = res
+        elif hasattr(old_obj, 'db_alias'):
+            new_obj.db_alias = old_obj.db_alias
+        return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
         return [(self, parent[0], parent[1])]
@@ -1936,6 +2406,25 @@ class DBPluginData(object):
         cp.is_new = self.is_new
         return cp
 
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBPluginData()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'data' in class_dict:
+            res = class_dict['data'](old_obj, trans_dict)
+            new_obj.db_data = res
+        elif hasattr(old_obj, 'db_data'):
+            new_obj.db_data = old_obj.db_data
+        return new_obj
+
     def db_children(self, parent=(None,None), orphan=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
@@ -2019,6 +2508,37 @@ class DBFunction(object):
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBFunction()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'pos' in class_dict:
+            res = class_dict['pos'](old_obj, trans_dict)
+            new_obj.db_pos = res
+        elif hasattr(old_obj, 'db_pos'):
+            new_obj.db_pos = old_obj.db_pos
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name'):
+            new_obj.db_name = old_obj.db_name
+        if 'parameters' in class_dict:
+            res = class_dict['parameters'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_parameter(obj)
+        elif hasattr(old_obj, 'db_parameters'):
+            for obj in old_obj.db_parameters:
+                new_obj.db_add_parameter(DBParameter.update_version(obj, trans_dict))
+        return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
         children = []
@@ -2191,6 +2711,49 @@ class DBAbstraction(object):
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBAbstraction()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'entity_type' in class_dict:
+            res = class_dict['entity_type'](old_obj, trans_dict)
+            new_obj.db_entity_type = res
+        elif hasattr(old_obj, 'db_entity_type'):
+            new_obj.db_entity_type = old_obj.db_entity_type
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name'):
+            new_obj.db_name = old_obj.db_name
+        if 'last_modified' in class_dict:
+            res = class_dict['last_modified'](old_obj, trans_dict)
+            new_obj.db_last_modified = res
+        elif hasattr(old_obj, 'db_last_modified'):
+            new_obj.db_last_modified = old_obj.db_last_modified
+        if 'actions' in class_dict:
+            res = class_dict['actions'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_action(obj)
+        elif hasattr(old_obj, 'db_actions'):
+            for obj in old_obj.db_actions:
+                new_obj.db_add_action(DBAction.update_version(obj, trans_dict))
+        if 'tags' in class_dict:
+            res = class_dict['tags'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_tag(obj)
+        elif hasattr(old_obj, 'db_tags'):
+            for obj in old_obj.db_tags:
+                new_obj.db_add_tag(DBTag.update_version(obj, trans_dict))
+        return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
         children = []
@@ -2492,6 +3055,92 @@ class DBWorkflow(object):
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBWorkflow()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'modules' in class_dict:
+            res = class_dict['modules'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_module(obj)
+        elif hasattr(old_obj, 'db_modules'):
+            for obj in old_obj.db_modules:
+                if obj.vtType == 'module':
+                    new_obj.db_add_module(DBModule.update_version(obj, trans_dict))
+                elif obj.vtType == 'abstractionRef':
+                    new_obj.db_add_module(DBAbstractionRef.update_version(obj, trans_dict))
+                elif obj.vtType == 'group':
+                    new_obj.db_add_module(DBGroup.update_version(obj, trans_dict))
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'entity_type' in class_dict:
+            res = class_dict['entity_type'](old_obj, trans_dict)
+            new_obj.db_entity_type = res
+        elif hasattr(old_obj, 'db_entity_type'):
+            new_obj.db_entity_type = old_obj.db_entity_type
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name'):
+            new_obj.db_name = old_obj.db_name
+        if 'version' in class_dict:
+            res = class_dict['version'](old_obj, trans_dict)
+            new_obj.db_version = res
+        elif hasattr(old_obj, 'db_version'):
+            new_obj.db_version = old_obj.db_version
+        if 'last_modified' in class_dict:
+            res = class_dict['last_modified'](old_obj, trans_dict)
+            new_obj.db_last_modified = res
+        elif hasattr(old_obj, 'db_last_modified'):
+            new_obj.db_last_modified = old_obj.db_last_modified
+        if 'connections' in class_dict:
+            res = class_dict['connections'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_connection(obj)
+        elif hasattr(old_obj, 'db_connections'):
+            for obj in old_obj.db_connections:
+                new_obj.db_add_connection(DBConnection.update_version(obj, trans_dict))
+        if 'annotations' in class_dict:
+            res = class_dict['annotations'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_annotation(obj)
+        elif hasattr(old_obj, 'db_annotations'):
+            for obj in old_obj.db_annotations:
+                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        if 'abstractions' in class_dict:
+            res = class_dict['abstractions'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_abstraction(obj)
+        elif hasattr(old_obj, 'db_abstractions'):
+            for obj in old_obj.db_abstractions:
+                new_obj.db_add_abstraction(DBAbstraction.update_version(obj, trans_dict))
+        if 'plugin_datas' in class_dict:
+            res = class_dict['plugin_datas'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_plugin_data(obj)
+        elif hasattr(old_obj, 'db_plugin_datas'):
+            for obj in old_obj.db_plugin_datas:
+                new_obj.db_add_plugin_data(DBPluginData.update_version(obj, trans_dict))
+        if 'others' in class_dict:
+            res = class_dict['others'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_other(obj)
+        elif hasattr(old_obj, 'db_others'):
+            for obj in old_obj.db_others:
+                new_obj.db_add_other(DBOther.update_version(obj, trans_dict))
+        if 'vistrail_id' in class_dict:
+            res = class_dict['vistrail_id'](old_obj, trans_dict)
+            new_obj.db_vistrail_id = res
+        elif hasattr(old_obj, 'db_vistrail_id'):
+            new_obj.db_vistrail_id = old_obj.db_vistrail_id
+        return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
         children = []
@@ -2982,6 +3631,60 @@ class DBAbstractionRef(object):
         cp.is_new = self.is_new
         return cp
 
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBAbstractionRef()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name'):
+            new_obj.db_name = old_obj.db_name
+        if 'cache' in class_dict:
+            res = class_dict['cache'](old_obj, trans_dict)
+            new_obj.db_cache = res
+        elif hasattr(old_obj, 'db_cache'):
+            new_obj.db_cache = old_obj.db_cache
+        if 'abstraction_id' in class_dict:
+            res = class_dict['abstraction_id'](old_obj, trans_dict)
+            new_obj.db_abstraction_id = res
+        elif hasattr(old_obj, 'db_abstraction_id'):
+            new_obj.db_abstraction_id = old_obj.db_abstraction_id
+        if 'version' in class_dict:
+            res = class_dict['version'](old_obj, trans_dict)
+            new_obj.db_version = res
+        elif hasattr(old_obj, 'db_version'):
+            new_obj.db_version = old_obj.db_version
+        if 'location' in class_dict:
+            res = class_dict['location'](old_obj, trans_dict)
+            new_obj.db_location = res
+        elif hasattr(old_obj, 'db_location'):
+            obj = old_obj.db_location
+            new_obj.db_add_location(DBLocation.update_version(obj, trans_dict))
+        if 'functions' in class_dict:
+            res = class_dict['functions'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_function(obj)
+        elif hasattr(old_obj, 'db_functions'):
+            for obj in old_obj.db_functions:
+                new_obj.db_add_function(DBFunction.update_version(obj, trans_dict))
+        if 'annotations' in class_dict:
+            res = class_dict['annotations'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_annotation(obj)
+        elif hasattr(old_obj, 'db_annotations'):
+            for obj in old_obj.db_annotations:
+                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        return new_obj
+
     def db_children(self, parent=(None,None), orphan=False):
         children = []
         if self._db_location is not None:
@@ -3233,6 +3936,30 @@ class DBAnnotation(object):
         cp.is_new = self.is_new
         return cp
 
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBAnnotation()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'key' in class_dict:
+            res = class_dict['key'](old_obj, trans_dict)
+            new_obj.db_key = res
+        elif hasattr(old_obj, 'db_key'):
+            new_obj.db_key = old_obj.db_key
+        if 'value' in class_dict:
+            res = class_dict['value'](old_obj, trans_dict)
+            new_obj.db_value = res
+        elif hasattr(old_obj, 'db_value'):
+            new_obj.db_value = old_obj.db_value
+        return new_obj
+
     def db_children(self, parent=(None,None), orphan=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
@@ -3332,6 +4059,74 @@ class DBChange(object):
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBChange()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'data' in class_dict:
+            res = class_dict['data'](old_obj, trans_dict)
+            new_obj.db_data = res
+        elif hasattr(old_obj, 'db_data'):
+            obj = old_obj.db_data
+            if obj.vtType == 'module':
+                new_obj.db_add_data(DBModule.update_version(obj, trans_dict))
+            elif obj.vtType == 'location':
+                new_obj.db_add_data(DBLocation.update_version(obj, trans_dict))
+            elif obj.vtType == 'annotation':
+                new_obj.db_add_data(DBAnnotation.update_version(obj, trans_dict))
+            elif obj.vtType == 'function':
+                new_obj.db_add_data(DBFunction.update_version(obj, trans_dict))
+            elif obj.vtType == 'connection':
+                new_obj.db_add_data(DBConnection.update_version(obj, trans_dict))
+            elif obj.vtType == 'port':
+                new_obj.db_add_data(DBPort.update_version(obj, trans_dict))
+            elif obj.vtType == 'parameter':
+                new_obj.db_add_data(DBParameter.update_version(obj, trans_dict))
+            elif obj.vtType == 'portSpec':
+                new_obj.db_add_data(DBPortSpec.update_version(obj, trans_dict))
+            elif obj.vtType == 'abstractionRef':
+                new_obj.db_add_data(DBAbstractionRef.update_version(obj, trans_dict))
+            elif obj.vtType == 'group':
+                new_obj.db_add_data(DBGroup.update_version(obj, trans_dict))
+            elif obj.vtType == 'other':
+                new_obj.db_add_data(DBOther.update_version(obj, trans_dict))
+            elif obj.vtType == 'plugin_data':
+                new_obj.db_add_data(DBPluginData.update_version(obj, trans_dict))
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'what' in class_dict:
+            res = class_dict['what'](old_obj, trans_dict)
+            new_obj.db_what = res
+        elif hasattr(old_obj, 'db_what'):
+            new_obj.db_what = old_obj.db_what
+        if 'oldObjId' in class_dict:
+            res = class_dict['oldObjId'](old_obj, trans_dict)
+            new_obj.db_oldObjId = res
+        elif hasattr(old_obj, 'db_oldObjId'):
+            new_obj.db_oldObjId = old_obj.db_oldObjId
+        if 'newObjId' in class_dict:
+            res = class_dict['newObjId'](old_obj, trans_dict)
+            new_obj.db_newObjId = res
+        elif hasattr(old_obj, 'db_newObjId'):
+            new_obj.db_newObjId = old_obj.db_newObjId
+        if 'parentObjId' in class_dict:
+            res = class_dict['parentObjId'](old_obj, trans_dict)
+            new_obj.db_parentObjId = res
+        elif hasattr(old_obj, 'db_parentObjId'):
+            new_obj.db_parentObjId = old_obj.db_parentObjId
+        if 'parentObjType' in class_dict:
+            res = class_dict['parentObjType'](old_obj, trans_dict)
+            new_obj.db_parentObjType = res
+        elif hasattr(old_obj, 'db_parentObjType'):
+            new_obj.db_parentObjType = old_obj.db_parentObjType
+        return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
         children = []
@@ -3512,6 +4307,82 @@ class DBWorkflowExec(object):
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBWorkflowExec()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'user' in class_dict:
+            res = class_dict['user'](old_obj, trans_dict)
+            new_obj.db_user = res
+        elif hasattr(old_obj, 'db_user'):
+            new_obj.db_user = old_obj.db_user
+        if 'ip' in class_dict:
+            res = class_dict['ip'](old_obj, trans_dict)
+            new_obj.db_ip = res
+        elif hasattr(old_obj, 'db_ip'):
+            new_obj.db_ip = old_obj.db_ip
+        if 'session' in class_dict:
+            res = class_dict['session'](old_obj, trans_dict)
+            new_obj.db_session = res
+        elif hasattr(old_obj, 'db_session'):
+            new_obj.db_session = old_obj.db_session
+        if 'vt_version' in class_dict:
+            res = class_dict['vt_version'](old_obj, trans_dict)
+            new_obj.db_vt_version = res
+        elif hasattr(old_obj, 'db_vt_version'):
+            new_obj.db_vt_version = old_obj.db_vt_version
+        if 'ts_start' in class_dict:
+            res = class_dict['ts_start'](old_obj, trans_dict)
+            new_obj.db_ts_start = res
+        elif hasattr(old_obj, 'db_ts_start'):
+            new_obj.db_ts_start = old_obj.db_ts_start
+        if 'ts_end' in class_dict:
+            res = class_dict['ts_end'](old_obj, trans_dict)
+            new_obj.db_ts_end = res
+        elif hasattr(old_obj, 'db_ts_end'):
+            new_obj.db_ts_end = old_obj.db_ts_end
+        if 'parent_id' in class_dict:
+            res = class_dict['parent_id'](old_obj, trans_dict)
+            new_obj.db_parent_id = res
+        elif hasattr(old_obj, 'db_parent_id'):
+            new_obj.db_parent_id = old_obj.db_parent_id
+        if 'parent_type' in class_dict:
+            res = class_dict['parent_type'](old_obj, trans_dict)
+            new_obj.db_parent_type = res
+        elif hasattr(old_obj, 'db_parent_type'):
+            new_obj.db_parent_type = old_obj.db_parent_type
+        if 'parent_version' in class_dict:
+            res = class_dict['parent_version'](old_obj, trans_dict)
+            new_obj.db_parent_version = res
+        elif hasattr(old_obj, 'db_parent_version'):
+            new_obj.db_parent_version = old_obj.db_parent_version
+        if 'completed' in class_dict:
+            res = class_dict['completed'](old_obj, trans_dict)
+            new_obj.db_completed = res
+        elif hasattr(old_obj, 'db_completed'):
+            new_obj.db_completed = old_obj.db_completed
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name'):
+            new_obj.db_name = old_obj.db_name
+        if 'module_execs' in class_dict:
+            res = class_dict['module_execs'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_module_exec(obj)
+        elif hasattr(old_obj, 'db_module_execs'):
+            for obj in old_obj.db_module_execs:
+                new_obj.db_add_module_exec(DBModuleExec.update_version(obj, trans_dict))
+        return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
         children = []
@@ -3783,6 +4654,27 @@ class DBConnection(object):
         cp.is_new = self.is_new
         return cp
 
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBConnection()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'ports' in class_dict:
+            res = class_dict['ports'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_port(obj)
+        elif hasattr(old_obj, 'db_ports'):
+            for obj in old_obj.db_ports:
+                new_obj.db_add_port(DBPort.update_version(obj, trans_dict))
+        return new_obj
+
     def db_children(self, parent=(None,None), orphan=False):
         children = []
         to_del = []
@@ -3939,6 +4831,64 @@ class DBAction(object):
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBAction()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'operations' in class_dict:
+            res = class_dict['operations'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_operation(obj)
+        elif hasattr(old_obj, 'db_operations'):
+            for obj in old_obj.db_operations:
+                if obj.vtType == 'add':
+                    new_obj.db_add_operation(DBAdd.update_version(obj, trans_dict))
+                elif obj.vtType == 'delete':
+                    new_obj.db_add_operation(DBDelete.update_version(obj, trans_dict))
+                elif obj.vtType == 'change':
+                    new_obj.db_add_operation(DBChange.update_version(obj, trans_dict))
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'prevId' in class_dict:
+            res = class_dict['prevId'](old_obj, trans_dict)
+            new_obj.db_prevId = res
+        elif hasattr(old_obj, 'db_prevId'):
+            new_obj.db_prevId = old_obj.db_prevId
+        if 'date' in class_dict:
+            res = class_dict['date'](old_obj, trans_dict)
+            new_obj.db_date = res
+        elif hasattr(old_obj, 'db_date'):
+            new_obj.db_date = old_obj.db_date
+        if 'session' in class_dict:
+            res = class_dict['session'](old_obj, trans_dict)
+            new_obj.db_session = res
+        elif hasattr(old_obj, 'db_session'):
+            new_obj.db_session = old_obj.db_session
+        if 'user' in class_dict:
+            res = class_dict['user'](old_obj, trans_dict)
+            new_obj.db_user = res
+        elif hasattr(old_obj, 'db_user'):
+            new_obj.db_user = old_obj.db_user
+        if 'prune' in class_dict:
+            res = class_dict['prune'](old_obj, trans_dict)
+            new_obj.db_prune = res
+        elif hasattr(old_obj, 'db_prune'):
+            new_obj.db_prune = old_obj.db_prune
+        if 'annotations' in class_dict:
+            res = class_dict['annotations'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_annotation(obj)
+        elif hasattr(old_obj, 'db_annotations'):
+            for obj in old_obj.db_annotations:
+                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
         children = []
@@ -4189,6 +5139,40 @@ class DBDelete(object):
         cp.is_new = self.is_new
         return cp
 
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBDelete()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'what' in class_dict:
+            res = class_dict['what'](old_obj, trans_dict)
+            new_obj.db_what = res
+        elif hasattr(old_obj, 'db_what'):
+            new_obj.db_what = old_obj.db_what
+        if 'objectId' in class_dict:
+            res = class_dict['objectId'](old_obj, trans_dict)
+            new_obj.db_objectId = res
+        elif hasattr(old_obj, 'db_objectId'):
+            new_obj.db_objectId = old_obj.db_objectId
+        if 'parentObjId' in class_dict:
+            res = class_dict['parentObjId'](old_obj, trans_dict)
+            new_obj.db_parentObjId = res
+        elif hasattr(old_obj, 'db_parentObjId'):
+            new_obj.db_parentObjId = old_obj.db_parentObjId
+        if 'parentObjType' in class_dict:
+            res = class_dict['parentObjType'](old_obj, trans_dict)
+            new_obj.db_parentObjType = res
+        elif hasattr(old_obj, 'db_parentObjType'):
+            new_obj.db_parentObjType = old_obj.db_parentObjType
+        return new_obj
+
     def db_children(self, parent=(None,None), orphan=False):
         return [(self, parent[0], parent[1])]
     def db_deleted_children(self, remove=False):
@@ -4360,6 +5344,68 @@ class DBVistrail(object):
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBVistrail()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'entity_type' in class_dict:
+            res = class_dict['entity_type'](old_obj, trans_dict)
+            new_obj.db_entity_type = res
+        elif hasattr(old_obj, 'db_entity_type'):
+            new_obj.db_entity_type = old_obj.db_entity_type
+        if 'version' in class_dict:
+            res = class_dict['version'](old_obj, trans_dict)
+            new_obj.db_version = res
+        elif hasattr(old_obj, 'db_version'):
+            new_obj.db_version = old_obj.db_version
+        if 'name' in class_dict:
+            res = class_dict['name'](old_obj, trans_dict)
+            new_obj.db_name = res
+        elif hasattr(old_obj, 'db_name'):
+            new_obj.db_name = old_obj.db_name
+        if 'last_modified' in class_dict:
+            res = class_dict['last_modified'](old_obj, trans_dict)
+            new_obj.db_last_modified = res
+        elif hasattr(old_obj, 'db_last_modified'):
+            new_obj.db_last_modified = old_obj.db_last_modified
+        if 'actions' in class_dict:
+            res = class_dict['actions'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_action(obj)
+        elif hasattr(old_obj, 'db_actions'):
+            for obj in old_obj.db_actions:
+                new_obj.db_add_action(DBAction.update_version(obj, trans_dict))
+        if 'tags' in class_dict:
+            res = class_dict['tags'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_tag(obj)
+        elif hasattr(old_obj, 'db_tags'):
+            for obj in old_obj.db_tags:
+                new_obj.db_add_tag(DBTag.update_version(obj, trans_dict))
+        if 'annotations' in class_dict:
+            res = class_dict['annotations'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_annotation(obj)
+        elif hasattr(old_obj, 'db_annotations'):
+            for obj in old_obj.db_annotations:
+                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        if 'abstractions' in class_dict:
+            res = class_dict['abstractions'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_abstraction(obj)
+        elif hasattr(old_obj, 'db_abstractions'):
+            for obj in old_obj.db_abstractions:
+                new_obj.db_add_abstraction(DBAbstraction.update_version(obj, trans_dict))
+        return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
         children = []
@@ -4736,6 +5782,77 @@ class DBModuleExec(object):
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBModuleExec()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id'):
+            new_obj.db_id = old_obj.db_id
+        if 'ts_start' in class_dict:
+            res = class_dict['ts_start'](old_obj, trans_dict)
+            new_obj.db_ts_start = res
+        elif hasattr(old_obj, 'db_ts_start'):
+            new_obj.db_ts_start = old_obj.db_ts_start
+        if 'ts_end' in class_dict:
+            res = class_dict['ts_end'](old_obj, trans_dict)
+            new_obj.db_ts_end = res
+        elif hasattr(old_obj, 'db_ts_end'):
+            new_obj.db_ts_end = old_obj.db_ts_end
+        if 'cached' in class_dict:
+            res = class_dict['cached'](old_obj, trans_dict)
+            new_obj.db_cached = res
+        elif hasattr(old_obj, 'db_cached'):
+            new_obj.db_cached = old_obj.db_cached
+        if 'module_id' in class_dict:
+            res = class_dict['module_id'](old_obj, trans_dict)
+            new_obj.db_module_id = res
+        elif hasattr(old_obj, 'db_module_id'):
+            new_obj.db_module_id = old_obj.db_module_id
+        if 'module_name' in class_dict:
+            res = class_dict['module_name'](old_obj, trans_dict)
+            new_obj.db_module_name = res
+        elif hasattr(old_obj, 'db_module_name'):
+            new_obj.db_module_name = old_obj.db_module_name
+        if 'completed' in class_dict:
+            res = class_dict['completed'](old_obj, trans_dict)
+            new_obj.db_completed = res
+        elif hasattr(old_obj, 'db_completed'):
+            new_obj.db_completed = old_obj.db_completed
+        if 'error' in class_dict:
+            res = class_dict['error'](old_obj, trans_dict)
+            new_obj.db_error = res
+        elif hasattr(old_obj, 'db_error'):
+            new_obj.db_error = old_obj.db_error
+        if 'abstraction_id' in class_dict:
+            res = class_dict['abstraction_id'](old_obj, trans_dict)
+            new_obj.db_abstraction_id = res
+        elif hasattr(old_obj, 'db_abstraction_id'):
+            new_obj.db_abstraction_id = old_obj.db_abstraction_id
+        if 'abstraction_version' in class_dict:
+            res = class_dict['abstraction_version'](old_obj, trans_dict)
+            new_obj.db_abstraction_version = res
+        elif hasattr(old_obj, 'db_abstraction_version'):
+            new_obj.db_abstraction_version = old_obj.db_abstraction_version
+        if 'machine_id' in class_dict:
+            res = class_dict['machine_id'](old_obj, trans_dict)
+            new_obj.db_machine_id = res
+        elif hasattr(old_obj, 'db_machine_id'):
+            new_obj.db_machine_id = old_obj.db_machine_id
+        if 'annotations' in class_dict:
+            res = class_dict['annotations'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_annotation(obj)
+        elif hasattr(old_obj, 'db_annotations'):
+            for obj in old_obj.db_annotations:
+                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
         children = []
