@@ -179,4 +179,13 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
     core.system.set_vistrails_file_directory(dirName)
     return FileLocator(f)
    
-       
+def get_autosave_prompt(parent):
+    """ get_autosave_prompt(parent: QWidget) -> bool
+    
+    """
+    result = QtGui.QMessageBox.question(parent, 
+                                        QtCore.QString("AutoSave"),
+                                        QtCore.QString("Autosave data has been found.\nDo you want to open autosave data?"),
+                                        QtGui.QMessageBox.Open,
+                                        QtGui.QMessageBox.Ignore)
+    return result == QtGui.QMessageBox.Open

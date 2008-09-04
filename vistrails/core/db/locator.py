@@ -33,6 +33,11 @@ import core.configuration
 ElementTree = get_elementtree_library()
 
 class CoreLocator(object):
+    @staticmethod
+    def prompt_autosave(parent_widget):
+        pass # Opens a dialog that prompts the user if they want to
+             # use temporaries
+
 
     @staticmethod
     def load_from_gui(parent_widget, obj_type):
@@ -86,6 +91,11 @@ class XMLFileLocator(_XMLFileLocator, CoreLocator):
 
     ##########################################################################
 
+    @staticmethod
+    def prompt_autosave(parent_widget):
+        import gui.extras.core.db.locator as db_gui
+        return db_gui.get_autosave_prompt(parent_widget)
+        
     @staticmethod
     def load_from_gui(parent_widget, obj_type):
         import gui.extras.core.db.locator as db_gui
@@ -328,7 +338,11 @@ class DBLocator(_DBLocator, CoreLocator):
                 self._obj_type == other._obj_type)
 
     ##########################################################################
-        
+
+    @staticmethod
+    def prompt_autosave(parent_widget):
+        return True
+
     @staticmethod
     def load_from_gui(parent_widget, obj_type):
         import gui.extras.core.db.locator as db_gui
@@ -378,6 +392,11 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
     ##########################################################################
 
     @staticmethod
+    def prompt_autosave(parent_widget):
+        import gui.extras.core.db.locator as db_gui
+        return db_gui.get_autosave_prompt(parent_widget)
+
+    @staticmethod
     def load_from_gui(parent_widget, obj_type):
         import gui.extras.core.db.locator as db_gui
         return db_gui.get_load_file_locator_from_gui(parent_widget, obj_type)
@@ -404,6 +423,11 @@ class FileLocator(CoreLocator):
                 return ZIPFileLocator
             else:
                 return XMLFileLocator
+
+    @staticmethod
+    def prompt_autosave(parent_widget):
+        import gui.extras.core.db.locator as db_gui
+        return db_gui.get_autosave_prompt(parent_widget)
     
     @staticmethod
     def load_from_gui(parent_widget, obj_type):

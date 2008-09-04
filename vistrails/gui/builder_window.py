@@ -25,7 +25,7 @@ QBuilderWindow
 """
 from PyQt4 import QtCore, QtGui
 from core import system
-from core.db.locator import DBLocator, FileLocator, XMLFileLocator
+from core.db.locator import DBLocator, FileLocator, XMLFileLocator, untitled_locator
 from core.packagemanager import get_package_manager
 from core.vistrail.vistrail import Vistrail
 from gui.application import VistrailsApplication
@@ -92,7 +92,17 @@ class QBuilderWindow(QtGui.QMainWindow):
         self._package_menu_items = {}
 
     def create_first_vistrail(self):
-        self.newVistrail()
+        """ create_first_vistrail() -> None
+        Create untitled vistrail in interactive mode
+        """
+        # FIXME: when interactive and non-interactive modes are separated,
+        # this autosave code can move to the viewManager
+        if not self.dbDefault and untitled_locator().has_temporaries():
+            if not FileLocator().prompt_autosave(self):
+                untitled_locator().clean_temporaries()
+        if self.viewManager.newVistrail(True):
+            self.emit(QtCore.SIGNAL("changeViewState(int)"), 0)
+            self.viewModeChanged(0)
         self.viewManager.set_first_view(self.viewManager.currentView())
 
     def sizeHint(self):
@@ -762,7 +772,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         and non-interactive parts.
 
         """
-        if self.viewManager.newVistrail():
+        if self.viewManager.newVistrail(False):
             self.emit(QtCore.SIGNAL("changeViewState(int)"), 0)
             self.viewModeChanged(0)
 
@@ -773,6 +783,9 @@ class QBuilderWindow(QtGui.QMainWindow):
         """
         locator = locator_class.load_from_gui(self, Vistrail.vtType)
         if locator:
+            if locator.has_temporaries():
+                if not locator_class.prompt_autosave(self):
+                    locator.clean_temporaries()
             self.open_vistrail_without_prompt(locator)
 
     def open_vistrail_without_prompt(self, locator, version=None,

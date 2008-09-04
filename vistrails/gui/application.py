@@ -241,11 +241,11 @@ after self.init()"""
         Instantiate the GUI for interactive mode
         
         """     
+        if self.temp_configuration.check('showSplash'):
+            self.splashScreen.finish(self.builderWindow)
         self.builderWindow.create_first_vistrail()
         self.builderWindow.modulePalette.treeWidget.updateFromModuleRegistry()
         self.builderWindow.modulePalette.connect_registry_signals()
-        if self.temp_configuration.check('showSplash'):
-            self.splashScreen.finish(self.builderWindow)
         
         self.process_interactive_input()
 
