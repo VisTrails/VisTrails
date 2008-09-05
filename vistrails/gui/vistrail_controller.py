@@ -2186,6 +2186,9 @@ class VistrailController(QtCore.QObject):
         action = core.analogy.perform_analogy_on_vistrail(self.vistrail,
                                                           a, b, c)
         self.add_new_action(action)
+        self.vistrail.change_description("Analogy", action.id)
+        self.vistrail.change_analogy_info("(%s -> %s)(%s)" % (a, b, c), 
+                                          action.id)
         self.perform_action(action)
         
         # this is not necessary anymore

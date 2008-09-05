@@ -840,7 +840,16 @@ class Vistrail(DBVistrail):
         """
        
         return self.change_annotation(Action.ANNOTATION_DESCRIPTION, 
-                                 description, version_number)
+                                      description, version_number)
+
+    def change_analogy_info(self, analogy_info, version_number):
+        """ change_analogy_info(analogy_info:str, version_number:int) -> None 
+        Changes the analogy information of a version
+                  
+        """
+
+        return self.change_annotation(Action.ANNOTATION_ANALOGY_INFO,
+                                      analogy_info, version_number)
 
     def get_description(self, version_number):
         """ get_description(version_number: int) -> str

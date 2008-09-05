@@ -61,6 +61,7 @@ class Action(DBAction):
 
     ANNOTATION_NOTES = '__notes__'
     ANNOTATION_DESCRIPTION = '__description__'
+    ANNOTATION_ANALOGY_INFO = '__analogy_info__'
 
     ##########################################################################
     # Properties
@@ -110,6 +111,13 @@ class Action(DBAction):
                 self.db_get_annotation_by_key(self.ANNOTATION_DESCRIPTION).value
         return None
     description = property(_get_description)
+
+    def _get_analogy_info(self):
+        if self.db_has_annotation_with_key(self.ANNOTATION_ANALOGY_INFO):
+            ann = self.db_get_annotation_by_key(self.ANNOTATION_ANALOGY_INFO)
+            return ann.value
+        return None
+    analogy_info = property(_get_analogy_info)
 
     def add_operation(self, operation):
         self.db_operations.db_add_operation(operation)
