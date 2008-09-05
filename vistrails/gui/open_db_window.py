@@ -36,7 +36,8 @@ from core.external_connection import ExtConnectionList, DBConnection
 from core.db.locator import DBLocator
 from core.system import default_connections_file
 from gui.theme import CurrentTheme
-from gui.utils import show_warning, show_question, NO_BUTTON, YES_BUTTON
+from gui.utils import show_info, show_warning, show_question, \
+NO_BUTTON, YES_BUTTON
 
 class QOpenDBWindow(QtGui.QDialog):
     """
@@ -726,7 +727,7 @@ class QConnectionDBSetupWindow(QtGui.QDialog):
                   'db': str(self.databaseEdt.text())}
         try:
             db.services.io.test_db_connection(config)
-            gui.utils.show_info('Vistrails',"Connection succeeded!")
+            show_info('Vistrails',"Connection succeeded!")
             
         except Exception, e:
             QtGui.QMessageBox.critical(None,

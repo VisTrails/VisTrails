@@ -53,11 +53,11 @@ class DebugPrintSingleton(QtCore.QObject):
         
     """
     (Critical, Warning, Log) = (logging.CRITICAL,
-				logging.WARNING,
-				logging.INFO) #python logging levels
+                                logging.WARNING,
+                                logging.INFO) #python logging levels
     #Singleton technique
     def __call__(self):
-	return self
+        return self
 
     def make_logger_235(self, f):
         """self.make_logger_235(file) -> logger. Creates a logging object to
@@ -76,10 +76,12 @@ class DebugPrintSingleton(QtCore.QObject):
         be used within the DebugPrint class that sends the debugging
         output to file."""
         #setting basic configuration
-        logging.basicConfig(level=logging.CRITICAL,
+        logging.basicConfig(level=logging.DEBUG,
                             format='VisTrails %(levelname)s: %(message)s',
                             stream=f)
-        return logging.getLogger("VisLog")
+        logger = logging.getLogger("VisLog")
+        logger.setLevel(logging.CRITICAL)
+        return logger
 
     if system.python_version() >= (2,4,0,'',0):
         make_logger = make_logger_240
@@ -104,7 +106,7 @@ class DebugPrintSingleton(QtCore.QObject):
         verboseness.  level must be one of (DebugPrint.Critical,
         DebugPrint.Warning, DebugPrint.Log)."""
         self.level = logging.CRITICAL
-	self.logger.setLevel(level)
+        self.logger.setLevel(level)
         
     def message(self, caller, msg):
         """self.message(caller, msg) -> str. Returns a string with a
@@ -121,20 +123,20 @@ class DebugPrintSingleton(QtCore.QObject):
     def log(self,msg):
         """self.log(str) -> None. Send information message (low
         importance) to log with appropriate call site information."""
-	caller = inspect.currentframe().f_back # who called us?
-	self.logger.info(self.message(caller, msg))
+        caller = inspect.currentframe().f_back # who called us?
+        self.logger.info(self.message(caller, msg))
         
     def warning(self,msg):
         """self.warning(str) -> None. Send warning message (medium
         importance) to log with appropriate call site information."""
-	caller = inspect.currentframe().f_back # who called us?
-	self.logger.warning(self.message(caller, msg))
+        caller = inspect.currentframe().f_back # who called us?
+        self.logger.warning(self.message(caller, msg))
         
     def critical(self,msg):
         """self.critical(str) -> None. Send critical message (high
         importance) to log with appropriate call site information."""
-	caller = inspect.currentframe().f_back # who called us?
-	self.logger.critical(self.message(caller, msg))
+        caller = inspect.currentframe().f_back # who called us?
+        self.logger.critical(self.message(caller, msg))
 
     def watch_signal(self, obj, sig):
         """self.watch_signal(QObject, QSignal) -> None. Connects a debugging

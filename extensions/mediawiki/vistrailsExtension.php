@@ -28,21 +28,37 @@ $wgExtensionCredits['parserhook'][] = array(
 	'url' => 'http://vistrails.sci.utah.edu/',
 );
 
- 
+// This is where vistrails XML-RPC is running
+$USE_VISTRAILS_XML_RPC_SERVER = True;
+$VT_HOST = "localhost";
+$VT_PORT = 8080;
+
+// Change this to point to the folder where vistrails.py is 
+// You won't need this if $USE_VISTRAILS_XML_RPC_SERVER is set to True
+$PATH_TO_VISTRAILS = '/vistrails/v1.2/vistrails';
+
+// Change this to point to the folder where the images should be generated
+$PATH_TO_IMAGES = '/images/vistrails/';
+
+// Change this to the web accessible path to the folder where the images were generated
+$WEB_PATH_TO_IMAGES = '/images/';
+
+$resp_result = '';
 function registerVistrailTag() {
 	global $wgParser;
 	$wgParser->setHook('vistrail', 'printVistrailTag');
 }
  
 function printVistrailTag($input,$params, &$parser) {
+	global $PATH_TO_IMAGES, $WEB_PATH_TO_IMAGES, $VT_HOST, $VT_PORT,
+           $USE_VISTRAILS_XML_RPC_SERVER, $PATH_TO_VISTRAILS;
 	$parser->disableCache();
-	$path =  "vistrails.py";
 	$host = "";
 	$dbname = "";
 	$username = "vtserver";
 	$vtid = "";
 	$version = "";
-	$port = "3306";
+	$port = '3306';
     $version_tag = "";
     $execute = "False";
     $showspreadsheetonly = "False";
@@ -60,51 +76,130 @@ function printVistrailTag($input,$params, &$parser) {
             $port = $value;
         if($key == "tag"){
             $version_tag = $value;
-            if($version_tag != '')
-               $version = $version_tag;
-               $force_build = True;
+            if($version_tag != ''){
+                $request = xmlrpc_encode_request('get_tag_version',
+                                                 array($host, $port,
+													   $dbname, $vtid,
+													   $version_tag));
+                $response = do_call($VT_HOST,$VT_PORT,$request);
+                $version = get_result_from_response($response);
+                //echo $version;
+            }
         }
         if ($key == "execute")
             $execute = $value;
         if ($key == "showspreadsheetonly")
             $showspreadsheetonly = $value;
-
+        if ($key == "buildalways")
+            $force_build = (bool) $value;
 	}    
-   	
-	chdir('/server/wiki/vistrails/main/vistrails/trunk/vistrails');
-	//$curdir =  exec("pwd")."\n";
-	//echo exec("echo $DISPLAY");
-	$setVariables = 'export PATH=$PATH:/usr/bin/X11;export HOME=/var/lib/wwwrun; export TEMP=/tmp; export DISPLAY=localhost:1.0; export LD_LIBRARY_PATH=/usr/local/lib;';
-	$destdir = '/server/wiki/vistrails/main/images/vistrails/';
+   
+	$destdir = $PATH_TO_IMAGES;
 	$destversion = $host . '_'. $dbname .'_' . $port . '_' .$vtid . '_' . $version;
 	$destversion = md5($destversion);
 	$destdir = $destdir . $destversion;
 	//echo $destdir;
+    $result = '';
 	if((!file_exists($destdir)) or $force_build) {
-        if(!file_exists($destdir))
+        if(!file_exists($destdir)){
             mkdir($destdir,0770);
-	    $mainCommand = 'python ' . $path . ' -b -e '. $destdir.' -t ' .
+            chmod($destdir, 0770);
+        }
+        if(!$USE_VISTRAILS_XML_RPC_SERVER){
+            chdir($PATH_TO_VISTRAILS);
+            //$curdir =  exec("pwd")."\n";
+            //echo exec("echo $DISPLAY");
+            $setVariables = 'export PATH=$PATH:/usr/bin/X11;export HOME=/var/lib/wwwrun; export TEMP=/tmp; export DISPLAY=localhost:1.0; export LD_LIBRARY_PATH=/usr/local/lib;';
+
+            $mainCommand = 'python vistrails.py -b -e '. $destdir.' -t ' .
 		               $host . ' -r ' . $port . ' -f ' . $dbname . ' -u ' .
 					   $username . ' "' . $vtid .':' . $version .'"';
-	    //echo $mainCommand."\n";
-	    $result = exec($setVariables.$mainCommand . ' 2>&1', $output, $result);
-	    //echo $result."\n";
+            //echo $mainCommand."\n";
+            $result = exec($setVariables.$mainCommand . ' 2>&1', $output, $result);
+            //echo $result."\n";
+        }
+        else{
+            $request = xmlrpc_encode_request('run_from_db',
+											 array($host, $port, $dbname, $vtid,
+												   $destdir, $version));
+			$response = do_call($VT_HOST,$VT_PORT,$request);
+			$result = get_result_from_response($response);
+			//echo $result;
+        }
 	}
 	$linkParams = "getvt=" . $vtid . "&version=" . $version . "&db=" .$dbname .
 				  "&host=" . $host . "&port=" . $port . "&tag=" .
                   $version_tag . "&execute=" . $execute . 
                   "&showspreadsheetonly=" . $showspreadsheetonly;
 	$files = scandir($destdir);
-	$res = '<a href="http://www.vistrails.org/extensions/download.php?' . $linkParams . '">';
-	foreach($files as $filename) {
-	    if($filename != '.' and $filename != '..'){
-		list($width, $height, $type, $attr) = getimagesize($destdir.'/'.$filename);
-		if ($width > 350)
-		   $width = 350;
-	        $res = $res . '<img src="/images/vistrails/'. $destversion.'/'.$filename. "\" alt=\"vt_id:$vtid version:$version\" width=\"$width\"/>";
-	    }
+    $n = sizeof($files);
+    if($n > 2){
+        $res = '<a href="http://www.vistrails.org/extensions/download.php?' . $linkParams . '">';
+        foreach($files as $filename) {
+            if($filename != '.' and $filename != '..'){
+                list($width, $height, $type, $attr) = getimagesize($destdir.'/'.$filename);
+                if ($width > 350)
+                   $width = 350;
+                $res = $res . '<img src="'.$WEB_PATH_TO_IMAGES . $destversion.'/'.
+                       $filename.
+                       "\" alt=\"vt_id:$vtid version:$version\" width=\"$width\"/>";
+            }
+        }
+        $res = $res . '</a>';
+    }
+    else{
+        $res = "ERROR: Vistrails didn't produce any image.\n" .
+               "This is the output: \n" . $result;
 	}
-	$res = $res . '</a>';
 	return($res);
+}
+
+//The next 3 functions are xml-parsing related
+function contents($parser, $data){
+    global $resp_result;
+	$resp_result = $resp_result . $data;
+}
+
+function  start_tag($parser, $data){
+         //do nothing
+} 
+
+function end_tag($parser, $data){
+		//do nothing
+}
+
+function get_result_from_response($response) {
+	global $resp_result;
+	$resp_result = '';
+	$xml_parser = xml_parser_create();
+	xml_set_element_handler($xml_parser, "start_tag", "end_tag");
+	xml_set_character_data_handler($xml_parser, "contents");
+	if(!(xml_parse($xml_parser, $response, True))){
+		die("Error on line " . xml_get_current_line_number($xml_parser));	
+	}
+	xml_parser_free($xml_parser);
+	return trim($resp_result);
+}
+
+function do_call($host, $port, $request) {
+ 
+    $url = "http://$host:$port/";
+    $header[] = "Content-type: text/xml";
+    $header[] = "Content-length: ".strlen($request);
+   
+    $ch = curl_init();  
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
+   
+    $data = curl_exec($ch);      
+    if (curl_errno($ch)) {
+        print curl_error($ch);
+    } else {
+        curl_close($ch);
+        return $data;
+    }
 }
 ?>

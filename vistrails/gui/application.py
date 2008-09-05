@@ -47,289 +47,10 @@ import sys
 import copy
 
 ################################################################################
-
-class VistrailsApplicationSingleton(QtGui.QApplication):
-    """
-    VistrailsApplicationSingleton is the singleton of the application,
-    there will be only one instance of the application during VisTrails
-    
-    """
-    
-    def __call__(self):
-        """ __call__() -> VistrailsApplicationSingleton
-        Return self for calling method
-        
-        """
-        if not self._initialized and not self._is_running:
-            self.init()
-        return self
-
+class VistrailsApplicationInterface(object):
     def __init__(self):
-        QtGui.QApplication.__init__(self, sys.argv)
-        
-        if QtCore.QT_VERSION < 0x40400: # 0x40400 = 4.4.0
-            raise core.requirements.MissingRequirement("Qt version >= 4.2")
         self._initialized = False
-        # code for single instance of the application
-        # based on the C++ solution availabe at
-        # http://wiki.qtcentre.org/index.php?title=SingleApplication
-        self.timeout = 5000
-        self._unique_key = "vistrails-single-instance-check"
-        self.shared_memory = QtCore.QSharedMemory(self._unique_key)
-        self.local_server = None
-        if self.shared_memory.attach():
-            self._is_running = True
-        else:
-            self._is_running = False
-            if not self.shared_memory.create(1):
-                print "Unable to create single instance of vistrails application"
-                return
-            self.local_server = QtNetwork.QLocalServer(self)
-            self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
-                         self.message_received)
-            self.local_server.listen(self._unique_key)
-            #print "Listening on ", self.local_server.serverName()
-        qt.allowQObjects()
-
-    def init(self, optionsDict=None):
-        """ VistrailsApplicationSingleton(optionDict: dict)
-                                          -> VistrailsApplicationSingleton
-        Create the application with a dict of settings
-        
-        """
-        gui.theme.initializeCurrentTheme()
-        self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
-        self.configuration = core.configuration.default()
-        core.interpreter.default.connect_to_configuration(self.configuration)
-        
-        self.keyChain = keychain.KeyChain()
-        self.setupOptions()
-
-        # Setup configuration to default or saved preferences
-        self.vistrailsStartup = core.startup.VistrailsStartup(self.configuration)
-        self.temp_configuration = copy.copy(self.configuration)
-
-        
-        # now we want to open vistrails and point to a specific version
-        # we will store the version in temp options as it doesn't
-        # need to be persistent. We will do the same to database
-        # information passed in the command line
-        self.temp_db_options = InstanceObject(host=None,
-                                           port=None,
-                                           db=None,
-                                           user=None,
-                                           vt_id=None,
-                                           parameters=None
-                                           ) 
-
-        
-        # Command line options override configuration
-        self.readOptions()
-        if optionsDict:
-            for (k, v) in optionsDict.iteritems():
-                setattr(self.temp_configuration, k, v)
-
-        interactive = self.temp_configuration.check('interactiveMode')
-        if interactive:
-            self.setIcon()
-            self.createWindows()
-            self.processEvents()
-            
-        self.vistrailsStartup.init()
-        # ugly workaround for configuration initialization order issue
-        # If we go through the configuration too late,
-        # The window does not get maximized. If we do it too early,
-        # there are no created windows during spreadsheet initialization.
-        if interactive:
-            if  self.temp_configuration.check('maximizeWindows'):
-                self.builderWindow.showMaximized()
-            if self.temp_configuration.check('dbDefault'):
-                self.builderWindow.setDBDefault(True)
-        self.runInitialization()
-        self._python_environment = self.vistrailsStartup.get_python_environment()
-        self._initialized = True
-        
-        if interactive:
-            self.interactiveMode()
-        else:
-            return self.noninteractiveMode()
-        return True
-
-    def get_python_environment(self):
-        """get_python_environment(): returns an environment that
-includes local definitions from startup.py. Should only be called
-after self.init()"""
-        return self._python_environment
-
-    def destroy(self):
-        """ destroy() -> None
-        Finalize all packages to, such as, get rid of temp files
-        
-        """
-        if hasattr(self, 'vistrailsStartup'):
-            self.vistrailsStartup.destroy()
-
-    def __del__(self):
-        """ __del__() -> None
-        Make sure to finalize in the destructor
-        
-        """
-        self.destroy()
-
-    def _parse_vtinfo(self, info, use_filename=True):
-        name = None
-        version = None
-        if use_filename and os.path.isfile(info):
-            name = info
-        else:
-            data = info.split(":")
-            if len(data) >= 2:
-                if use_filename and os.path.isfile(str(data[0])):
-                        name = str(data[0])
-                elif not use_filename:
-                    name = str(data[0])
-                # will try to convert version to int
-                # if it fails, it's a tag name
-                try:
-                    #maybe a tag name contains ':' in ist name
-                    #so we need to bring it back together
-                    rest = ":".join(data[1:])
-                    version = int(rest)
-                except ValueError:
-                    version = str(rest)
-            elif len(data) == 1:
-                if use_filename and os.path.isfile(str(data[0])):
-                    name = str(data[0])
-                elif not use_filename:
-                    name = str(data[0])
-        return (name, version)
     
-    def process_interactive_input(self):
-        usedb = False
-        if self.temp_db_options.host:
-           usedb = True
-        if self.input:
-            #check if versions are embedded in the filename
-            for filename in self.input:
-                f_name, version = self._parse_vtinfo(filename, not usedb)
-                if not usedb:
-                    locator = FileLocator(os.path.abspath(f_name))
-                    #_vnode and _vtag will be set when a .vtl file is open and
-                    # instead of a FileLocator, a DBLocator is created instead
-                    if hasattr(locator, '_vnode'):
-                        version = locator._vnode
-                    if hasattr(locator,'_vtag'):
-                        # if a tag is set, it should be used instead of the
-                        # version number
-                        if locator._vtag != '':
-                            version = locator._vtag
-                else:
-                    locator = DBLocator(host=self.temp_db_options.host,
-                                        port=self.temp_db_options.port,
-                                        database=self.temp_db_options.db,
-                                        user='',
-                                        passwd='',
-                                        obj_id=f_name,
-                                        obj_type=None,
-                                        connection_id=None)
-                execute = self.temp_configuration.executeWorkflows
-                self.builderWindow.open_vistrail_without_prompt(locator,
-                                                                version,
-                                                                execute)
-    def interactiveMode(self):
-        """ interactiveMode() -> None
-        Instantiate the GUI for interactive mode
-        
-        """     
-        if self.temp_configuration.check('showSplash'):
-            self.splashScreen.finish(self.builderWindow)
-        self.builderWindow.create_first_vistrail()
-        self.builderWindow.modulePalette.treeWidget.updateFromModuleRegistry()
-        self.builderWindow.modulePalette.connect_registry_signals()
-        
-        self.process_interactive_input()
-
-        if not self.temp_configuration.showSpreadsheetOnly:
-            # in some systems (Linux and Tiger) we need to make both calls
-            # so builderWindow is activated
-            self.builderWindow.raise_()
-            self.builderWindow.activateWindow()
-        else:
-            self.builderWindow.hide()
-
-    def noninteractiveMode(self):
-        """ noninteractiveMode() -> None
-        Run the console in non-interactive mode
-        
-        """
-        usedb = False
-        if self.temp_db_options.host:
-           usedb = True
-        if self.input:
-            w_list = []
-            for filename in self.input:
-                f_name, version = self._parse_vtinfo(filename, not usedb)
-                if f_name and version:
-                    if not usedb:
-                        locator = FileLocator(os.path.abspath(f_name))
-                    else:
-                        locator = DBLocator(host=self.temp_db_options.host,
-                                            port=self.temp_db_options.port,
-                                            database=self.temp_db_options.db,
-                                            user=self.temp_db_options.user,
-                                            passwd='',
-                                            obj_id=f_name,
-                                            obj_type=None,
-                                            connection_id=None)
-                    w_list.append((locator, version))
-            import core.console_mode
-            if self.temp_db_options.parameters == None:
-                self.temp_db_options.parameters = ''
-            r = core.console_mode.run(w_list,
-                                      self.temp_db_options.parameters)
-            return r
-        else:
-            debug.DebugPrint.critical("no input vistrails provided")
-            return False
-
-    def setIcon(self):
-        """ setIcon() -> None
-        Setup Vistrail Icon
-        """
-        self.setWindowIcon(gui.theme.CurrentTheme.APPLICATION_ICON)
-        
-    def setupSplashScreen(self):
-        """ setupSplashScreen() -> None
-        Create the splash-screen at startup
-        
-        """
-        if self.temp_configuration.check('showSplash'):
-            splashPath = (system.vistrails_root_directory() +
-                          "/gui/resources/images/vistrails_splash.png")
-            pixmap = QtGui.QPixmap(splashPath)
-            self.splashScreen = QtGui.QSplashScreen(pixmap, QtCore.Qt.WindowStaysOnTopHint)
-            self.splashScreen.show()
-
-    def createWindows(self):
-        """ createWindows() -> None
-        Create and configure all GUI widgets including the builder
-        
-        """
-        self.setupSplashScreen()
-        metalstyle = self.configuration.check('useMacBrushedMetalStyle')
-        if metalstyle:
-            #to make all widgets to have the mac's nice looking
-            self.installEventFilter(self)
-
-        # This is so that we don't import too many things before we
-        # have to. Otherwise, requirements are checked too late.
-        from gui.builder_window import QBuilderWindow
-
-        self.builderWindow = QBuilderWindow()
-        self.builderWindow.show()
-        self.visDiffParent = QtGui.QWidget(None, QtCore.Qt.ToolTip)
-        self.visDiffParent.resize(0,0)
-        
     def setupOptions(self):
         """ setupOptions() -> None
         Check and store all command-line arguments
@@ -453,6 +174,317 @@ The builder window can be accessed by a spreadsheet menu option.")
         if get('nologger')!=None:
             self.temp_configuration.nologger = bool(get('nologger'))
         self.input = command_line.CommandLineParser().positional_arguments()
+    
+    def init(self, optionsDict=None):
+        """ VistrailsApplicationSingleton(optionDict: dict)
+                                          -> VistrailsApplicationSingleton
+        Create the application with a dict of settings
+        
+        """
+        gui.theme.initializeCurrentTheme()
+        self.connect(self, QtCore.SIGNAL("aboutToQuit()"), self.finishSession)
+        self.configuration = core.configuration.default()
+        core.interpreter.default.connect_to_configuration(self.configuration)
+        
+        self.keyChain = keychain.KeyChain()
+        self.setupOptions()
+
+        # Setup configuration to default or saved preferences
+        self.vistrailsStartup = core.startup.VistrailsStartup(self.configuration)
+        self.temp_configuration = copy.copy(self.configuration)
+
+        
+        # now we want to open vistrails and point to a specific version
+        # we will store the version in temp options as it doesn't
+        # need to be persistent. We will do the same to database
+        # information passed in the command line
+        self.temp_db_options = InstanceObject(host=None,
+                                           port=None,
+                                           db=None,
+                                           user=None,
+                                           vt_id=None,
+                                           parameters=None
+                                           ) 
+
+        
+        # Command line options override configuration
+        self.readOptions()
+        if optionsDict:
+            for (k, v) in optionsDict.iteritems():
+                setattr(self.temp_configuration, k, v)
+                
+    def get_python_environment(self):
+        """get_python_environment(): returns an environment that
+includes local definitions from startup.py. Should only be called
+after self.init()"""
+        return self._python_environment
+
+    def destroy(self):
+        """ destroy() -> None
+        Finalize all packages to, such as, get rid of temp files
+        
+        """
+        if hasattr(self, 'vistrailsStartup'):
+            self.vistrailsStartup.destroy()
+
+    def __del__(self):
+        """ __del__() -> None
+        Make sure to finalize in the destructor
+        
+        """
+        self.destroy()
+    
+    def _parse_vtinfo(self, info, use_filename=True):
+        name = None
+        version = None
+        if use_filename and os.path.isfile(info):
+            name = info
+        else:
+            data = info.split(":")
+            if len(data) >= 2:
+                if use_filename and os.path.isfile(str(data[0])):
+                        name = str(data[0])
+                elif not use_filename:
+                    name = str(data[0])
+                # will try to convert version to int
+                # if it fails, it's a tag name
+                try:
+                    #maybe a tag name contains ':' in ist name
+                    #so we need to bring it back together
+                    rest = ":".join(data[1:])
+                    version = int(rest)
+                except ValueError:
+                    version = str(rest)
+            elif len(data) == 1:
+                if use_filename and os.path.isfile(str(data[0])):
+                    name = str(data[0])
+                elif not use_filename:
+                    name = str(data[0])
+        return (name, version)
+    
+    def process_interactive_input(self):
+        usedb = False
+        if self.temp_db_options.host:
+           usedb = True
+        if self.input:
+            #check if versions are embedded in the filename
+            for filename in self.input:
+                f_name, version = self._parse_vtinfo(filename, not usedb)
+                if not usedb:
+                    locator = FileLocator(os.path.abspath(f_name))
+                    #_vnode and _vtag will be set when a .vtl file is open and
+                    # instead of a FileLocator, a DBLocator is created instead
+                    if hasattr(locator, '_vnode'):
+                        version = locator._vnode
+                    if hasattr(locator,'_vtag'):
+                        # if a tag is set, it should be used instead of the
+                        # version number
+                        if locator._vtag != '':
+                            version = locator._vtag
+                else:
+                    locator = DBLocator(host=self.temp_db_options.host,
+                                        port=self.temp_db_options.port,
+                                        database=self.temp_db_options.db,
+                                        user='',
+                                        passwd='',
+                                        obj_id=f_name,
+                                        obj_type=None,
+                                        connection_id=None)
+                execute = self.temp_configuration.executeWorkflows
+                self.builderWindow.open_vistrail_without_prompt(locator,
+                                                                version,
+                                                                execute)
+                
+    def finishSession(self):
+        core.interpreter.cached.CachedInterpreter.cleanup()
+        
+    def save_configuration(self):
+        """ save_configuration() -> None
+        Save the current vistrail configuration to the startup.xml file.
+        This is required to capture changes to the configuration that we 
+        make programmatically during the session, ie., browsed directories or
+        window sizes.
+
+        """
+        dom = self.vistrailsStartup.startup_dom()
+        doc = dom.documentElement
+        configuration_element = enter_named_element(doc, 'configuration')
+        doc.removeChild(configuration_element)
+        self.configuration.write_to_dom(dom, doc)
+        self.vistrailsStartup.write_startup_dom(dom)
+        dom.unlink()
+        
+class VistrailsApplicationSingleton(VistrailsApplicationInterface,
+                                    QtGui.QApplication):
+    """
+    VistrailsApplicationSingleton is the singleton of the application,
+    there will be only one instance of the application during VisTrails
+    
+    """
+    
+    def __call__(self):
+        """ __call__() -> VistrailsApplicationSingleton
+        Return self for calling method
+        
+        """
+        if not self._initialized and not self._is_running:
+            self.init()
+        return self
+
+    def __init__(self):
+        QtGui.QApplication.__init__(self, sys.argv)
+        VistrailsApplicationInterface.__init__(self)
+        if QtCore.QT_VERSION < 0x40400: # 0x40400 = 4.4.0
+            raise core.requirements.MissingRequirement("Qt version >= 4.4")
+        
+        # code for single instance of the application
+        # based on the C++ solution availabe at
+        # http://wiki.qtcentre.org/index.php?title=SingleApplication
+        self.timeout = 5000
+        self._unique_key = "vistrails-single-instance-check"
+        self.shared_memory = QtCore.QSharedMemory(self._unique_key)
+        self.local_server = None
+        if self.shared_memory.attach():
+            self._is_running = True
+        else:
+            self._is_running = False
+            if not self.shared_memory.create(1):
+                print "Unable to create single instance of vistrails application"
+                return
+            self.local_server = QtNetwork.QLocalServer(self)
+            self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
+                         self.message_received)
+            self.local_server.listen(self._unique_key)
+            #print "Listening on ", self.local_server.serverName()
+        qt.allowQObjects()
+
+    def init(self, optionsDict=None):
+        """ VistrailsApplicationSingleton(optionDict: dict)
+                                          -> VistrailsApplicationSingleton
+        Create the application with a dict of settings
+        
+        """
+        VistrailsApplicationInterface.init(self,optionsDict)
+
+        interactive = self.temp_configuration.check('interactiveMode')
+        if interactive:
+            self.setIcon()
+            self.createWindows()
+            self.processEvents()
+            
+        self.vistrailsStartup.init()
+        # ugly workaround for configuration initialization order issue
+        # If we go through the configuration too late,
+        # The window does not get maximized. If we do it too early,
+        # there are no created windows during spreadsheet initialization.
+        if interactive:
+            if  self.temp_configuration.check('maximizeWindows'):
+                self.builderWindow.showMaximized()
+            if self.temp_configuration.check('dbDefault'):
+                self.builderWindow.setDBDefault(True)
+        self.runInitialization()
+        self._python_environment = self.vistrailsStartup.get_python_environment()
+        self._initialized = True
+        
+        if interactive:
+            self.interactiveMode()
+        else:
+            return self.noninteractiveMode()
+        return True
+
+    def interactiveMode(self):
+        """ interactiveMode() -> None
+        Instantiate the GUI for interactive mode
+        
+        """     
+        if self.temp_configuration.check('showSplash'):
+            self.splashScreen.finish(self.builderWindow)
+        self.builderWindow.create_first_vistrail()
+        self.builderWindow.modulePalette.treeWidget.updateFromModuleRegistry()
+        self.builderWindow.modulePalette.connect_registry_signals()
+        
+        self.process_interactive_input()
+
+        if not self.temp_configuration.showSpreadsheetOnly:
+            # in some systems (Linux and Tiger) we need to make both calls
+            # so builderWindow is activated
+            self.builderWindow.raise_()
+            self.builderWindow.activateWindow()
+        else:
+            self.builderWindow.hide()
+
+    def noninteractiveMode(self):
+        """ noninteractiveMode() -> None
+        Run the console in non-interactive mode
+        
+        """
+        usedb = False
+        if self.temp_db_options.host:
+           usedb = True
+        if self.input:
+            w_list = []
+            for filename in self.input:
+                f_name, version = self._parse_vtinfo(filename, not usedb)
+                if f_name and version:
+                    if not usedb:
+                        locator = FileLocator(os.path.abspath(f_name))
+                    else:
+                        locator = DBLocator(host=self.temp_db_options.host,
+                                            port=self.temp_db_options.port,
+                                            database=self.temp_db_options.db,
+                                            user=self.temp_db_options.user,
+                                            passwd='',
+                                            obj_id=f_name,
+                                            obj_type=None,
+                                            connection_id=None)
+                    w_list.append((locator, version))
+            import core.console_mode
+            if self.temp_db_options.parameters == None:
+                self.temp_db_options.parameters = ''
+            r = core.console_mode.run(w_list,
+                                      self.temp_db_options.parameters)
+            return r
+        else:
+            debug.DebugPrint.critical("no input vistrails provided")
+            return False
+
+    def setIcon(self):
+        """ setIcon() -> None
+        Setup Vistrail Icon
+        """
+        self.setWindowIcon(gui.theme.CurrentTheme.APPLICATION_ICON)
+        
+    def setupSplashScreen(self):
+        """ setupSplashScreen() -> None
+        Create the splash-screen at startup
+        
+        """
+        if self.temp_configuration.check('showSplash'):
+            splashPath = (system.vistrails_root_directory() +
+                          "/gui/resources/images/vistrails_splash.png")
+            pixmap = QtGui.QPixmap(splashPath)
+            self.splashScreen = QtGui.QSplashScreen(pixmap, QtCore.Qt.WindowStaysOnTopHint)
+            self.splashScreen.show()
+
+    def createWindows(self):
+        """ createWindows() -> None
+        Create and configure all GUI widgets including the builder
+        
+        """
+        self.setupSplashScreen()
+        metalstyle = self.configuration.check('useMacBrushedMetalStyle')
+        if metalstyle:
+            #to make all widgets to have the mac's nice looking
+            self.installEventFilter(self)
+
+        # This is so that we don't import too many things before we
+        # have to. Otherwise, requirements are checked too late.
+        from gui.builder_window import QBuilderWindow
+
+        self.builderWindow = QBuilderWindow()
+        self.builderWindow.show()
+        self.visDiffParent = QtGui.QWidget(None, QtCore.Qt.ToolTip)
+        self.visDiffParent.resize(0,0)
         
     def runInitialization(self):
         """ runInitialization() -> None
@@ -482,7 +514,7 @@ The builder window can be accessed by a spreadsheet menu option.")
         self.shared_memory.detach()
         if self.local_server:
             self.local_server.close()
-        core.interpreter.cached.CachedInterpreter.cleanup()
+        VistrailsApplicationInterface.finishSession(self)
    
     def eventFilter(self, o, event):
         """eventFilter(obj,event)-> boolean
@@ -495,22 +527,6 @@ The builder window can be accessed by a spreadsheet menu option.")
            type(o) != QtGui.QSplashScreen):
             o.setAttribute(QtCore.Qt.WA_MacMetalStyle)
         return QtGui.QApplication.eventFilter(self,o,event)
-
-    def save_configuration(self):
-        """ save_configuration() -> None
-        Save the current vistrail configuration to the startup.xml file.
-        This is required to capture changes to the configuration that we 
-        make programmatically during the session, ie., browsed directories or
-        window sizes.
-
-        """
-        dom = self.vistrailsStartup.startup_dom()
-        doc = dom.documentElement
-        configuration_element = enter_named_element(doc, 'configuration')
-        doc.removeChild(configuration_element)
-        self.configuration.write_to_dom(dom, doc)
-        self.vistrailsStartup.write_startup_dom(dom)
-        dom.unlink()
     
     def is_running(self):
         return self._is_running
