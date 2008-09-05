@@ -508,7 +508,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
            # gui.bookmark_window.initBookmarks(system.default_bookmarks_file())    
             
         #initBookmarks()
-        self.showSplash = self.configuration.showSplash
+        self.showSplash = self.temp_configuration.showSplash
 
     def finishSession(self):
         self.shared_memory.detach()
@@ -526,6 +526,9 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
            issubclass(type(o),QtGui.QWidget) and
            type(o) != QtGui.QSplashScreen):
             o.setAttribute(QtCore.Qt.WA_MacMetalStyle)
+        elif event.type() == QtCore.QEvent.FileOpen:
+            self.input = [str(event.file())]
+            self.process_interactive_input()
         return QtGui.QApplication.eventFilter(self,o,event)
     
     def is_running(self):
