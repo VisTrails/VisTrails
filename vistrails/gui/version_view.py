@@ -323,6 +323,7 @@ class QGraphicsVersionTextItem(QGraphicsItemInterface, QtGui.QGraphicsTextItem):
                 self.reset()
             self.updatingTag = False
             event.ignore()
+            self.clearFocus()
             self.hide()
             return
         qt_super(QGraphicsVersionTextItem, self).keyPressEvent(event)
@@ -1058,5 +1059,23 @@ class QVersionTreeView(QInteractiveGraphicsView):
         self.setScene(QVersionTreeScene(self))
         self.versionProp = QVersionPropOverlay(self, self.viewport())
         self.versionProp.hide()
-        
+
+    def selectModules(self):
+        """ selectModules() -> None
+        Overrides parent class to disable text items if you click on background
+
+        """
+        if self.canSelectRectangle:
+            br = self.selectionBox.sceneBoundingRect()
+        else:
+            br = QtCore.QRectF(self.startSelectingPos,
+                              self.startSelectingPos)
+        items = self.scene().items(br)
+        if len(items)==0 or items==[self.selectionBox]:
+            for item in self.scene().selectedItems():
+                if type(item) == gui.version_view.QGraphicsVersionItem:
+                    item.text.clearFocus()
+                    item.text.hide()
+        qt_super(QVersionTreeView, self).selectModules()
+                
 ################################################################################
