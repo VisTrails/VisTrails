@@ -410,10 +410,11 @@ class NotesSearchStmt(SearchStmt):
 
 class NameSearchStmt(SearchStmt):
     def match(self, vistrail, action):
-        if not vistrail.tagMap.has_key(action.timestep):
-            return False
-        m = self.content.match(vistrail.tagMap[action.timestep].name)
-        t = self.text
+        m = 0
+        if vistrail.tagMap.has_key(action.timestep):
+            m = self.content.match(vistrail.tagMap[action.timestep].name)
+        if bool(m) == False:
+            m = self.content.match(vistrail.get_description(action.timestep))
         return bool(m)
 
 class AndSearchStmt(SearchStmt):
