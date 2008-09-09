@@ -376,11 +376,6 @@ def save_vistrail_to_zip_xml(vistrail, filename):
         else:
             log_filename = vistrail.log_filename
             log_file = open(log_filename, 'ab')
-
-        print "+++ ", log_filename
-        print "*** ", log_file
-        if not hasattr(log_file, "write"):
-            print "no!!!"
         
         # append log to log_file
         for workflow_exec in vistrail.log.workflow_execs:
