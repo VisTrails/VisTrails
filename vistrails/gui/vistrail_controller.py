@@ -926,7 +926,8 @@ class VistrailController(QtCore.QObject):
                     (self.refine and not self.search) or
                     (current == 0) or
                     (self.refine and self.search and 
-                     self.search.match(self.vistrail,am[current]))):
+                     self.search.match(self.vistrail,am[current]) or
+                     current == self.current_version)):
                     # add vertex...
                     tersedVersionTree.add_vertex(current)
                 
