@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2008 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -250,7 +250,7 @@ class QParameterExplorationTable(QPromptWidget):
                 pEditor = self.layout().itemAt(i).widget()
                 if pEditor and type(pEditor)==QParameterSetEditor:
                     for param in pEditor.info[1]:
-                        if not pipeline.db_has_object(param[3], param[2]):
+                        if not pipeline.db_has_object(param.type, param.id):
                             pEditor.removeSelf()
         else:
             self.clear()
