@@ -316,6 +316,26 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.propertiesOverlayAction.setCheckable(True)
         self.propertiesOverlayAction.setChecked(False)
 
+        self.expandBranchAction = QtGui.QAction('Expand Branch', self)
+        self.expandBranchAction.setEnabled(True)
+        self.expandBranchAction.setStatusTip('Expand all versions in the tree below the current version')
+
+        self.collapseBranchAction = QtGui.QAction('Collapse Branch', self)
+        self.collapseBranchAction.setEnabled(True)
+        self.collapseBranchAction.setStatusTip('Collapse all expanded versions in the tree below the current version')
+
+        self.collapseAllAction = QtGui.QAction('Collapse All', self)
+        self.collapseAllAction.setEnabled(True)
+        self.collapseAllAction.setStatusTip('Collapse all expanded branches of the tree')
+
+        self.hideBranchAction = QtGui.QAction('Hide Branch', self)
+        self.hideBranchAction.setEnabled(True)
+        self.hideBranchAction.setStatusTip('Hide all versions in the tree including and below the current version')
+
+        self.showAllAction = QtGui.QAction('Show All', self)
+        self.showAllAction.setEnabled(True)
+        self.showAllAction.setStatusTip('Show all hidden versions')
+            
         self.helpAction = QtGui.QAction(self.tr('About VisTrails...'), self)
 
         a = QtGui.QAction(self.tr('Execute Current Workflow\tCtrl+Enter'),
@@ -386,6 +406,13 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         self.viewMenu = self.menuBar().addMenu('&View')
         self.viewMenu.addAction(self.shellAction)
+        self.viewMenu.addSeparator()
+        self.viewMenu.addAction(self.expandBranchAction)
+        self.viewMenu.addAction(self.collapseBranchAction)
+        self.viewMenu.addAction(self.collapseAllAction)
+        #self.viewMenu.addSeparator()
+        self.viewMenu.addAction(self.hideBranchAction)
+        self.viewMenu.addAction(self.showAllAction)
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.pipViewAction)
         self.viewMenu.addAction(
@@ -486,6 +513,11 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.exportWorkflowAction, self.export_workflow_default),
             (self.saveVersionTreeToPDFAction, self.save_tree_to_pdf),
             (self.saveWorkflowToPDFAction, self.save_workflow_to_pdf),
+            (self.expandBranchAction, self.expandBranch),
+            (self.collapseBranchAction, self.collapseBranch),
+            (self.collapseAllAction, self.collapseAll),
+            (self.hideBranchAction, self.hideBranch),
+            (self.showAllAction, self.showAll),
             (self.helpAction, self.showAboutMessage),
             (self.editPreferencesAction, self.showPreferences),
             (self.executeCurrentWorkflowAction,
@@ -1066,6 +1098,46 @@ class QBuilderWindow(QtGui.QMainWindow):
                                   self)
             visDiff.show()
 
+    def expandBranch(self):
+        """ expandBranch() -> None
+        Expand branch of tree
+
+        """
+        controller = self.viewManager.currentWidget().controller
+        controller.expand_or_collapse_all_versions_below(controller.current_version, True)
+
+    def collapseBranch(self):
+        """ collapseBranch() -> None
+        Collapse branch of tree
+
+        """
+        controller = self.viewManager.currentWidget().controller
+        controller.expand_or_collapse_all_versions_below(controller.current_version, False)
+
+    def collapseAll(self):
+        """ collapseAll() -> None
+        Collapse all branches of tree
+
+        """
+        controller = self.viewManager.currentWidget().controller
+        controller.collapse_all_versions()
+
+    def hideBranch(self):
+        """ hideBranch() -> None
+        Hide node and all children
+
+        """
+        controller = self.viewManager.currentWidget().controller
+        controller.hide_versions_below(controller.current_version)
+
+    def showAll(self):
+        """ showAll() -> None
+        Show all hidden nodes
+
+        """
+        controller = self.viewManager.currentWidget().controller
+        controller.show_all_versions()
+        
     def execute(self, index):
         """ execute(index: int) -> None
         Execute something depending on the view

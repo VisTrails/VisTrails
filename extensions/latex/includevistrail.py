@@ -235,7 +235,8 @@ def run_vistrails_remotely(path_to_vistrails, host, db_name, vt_id,
             return (False, generate_latex_error(msg))
     else:
         return (True, generate_latex(host, db_name, vt_id,
-                                     version, tag, execute, showspreadsheetonly,
+                                     version, port, tag, execute,
+                                     showspreadsheetonly,
                                      path_to_figures, graphics_options))
     
     
@@ -298,9 +299,6 @@ for line in lines:
         build_always = bool_conv(args[1].strip(" \n"))
     elif args[0] == "tag":
         version_tag = args[1].strip(" \n")
-        if version_tag != "":
-            version = version_tag
-            build_always = True
     elif args[0] == "execute":
         execute = bool_conv(args[1].strip(" \n"))
     elif args[0] == "showspreadsheetonly":

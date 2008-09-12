@@ -322,7 +322,8 @@ class DBLocator(_DBLocator, CoreLocator):
         passwd = ""
             
         return DBLocator(host, port, database,
-                         user, passwd, None, vt_id, None, None, version, tag)
+                         user, passwd, None, vt_id, 'vistrail',
+                         None, version, tag)
 
     ##########################################################################
 
