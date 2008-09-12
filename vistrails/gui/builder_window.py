@@ -1125,6 +1125,46 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.emit(QtCore.SIGNAL("executeEnabledChanged(bool)"),
                       True)
 
+    def interactiveExportCurrentPipeline(self):
+        """ interactiveExportPipeline()
+        Hide the builder window and show the spreadsheet window with
+        only cells belonging to the pipeline specified by locator:version
+        
+        """
+        from packages.spreadsheet.spreadsheet_controller import spreadsheetController
+        spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
+        
+        from core.inspector import PipelineInspector
+        currentView = self.viewManager.currentWidget()
+        controller = currentView.controller
+        inspector = PipelineInspector()
+        pipeline = controller.current_pipeline
+        inspector.inspect_spreadsheet_cells(pipeline)
+        inspector.inspect_ambiguous_modules(pipeline)
+        vCol = 0
+        cells = {}
+        for mId in inspector.spreadsheet_cells:
+            name = pipeline.modules[mId].name
+            if inspector.annotated_modules.has_key(mId):
+                idx = inspector.annotated_modules[mId]
+            else:
+                idx = -1                
+            cells[(name, idx)] = (0, vCol)
+            vCol += 1
+            
+        self.hide()
+        spreadsheetWindow.prepareReviewingMode(vCol)
+        from gui.paramexplore.virtual_cell import _positionPipelines
+        [newPipeline] = _positionPipelines('Pipeline Review',
+                                           1, 1, 1, [pipeline],
+                                           (1, vCol, cells), pipeline)
+        controller.execute_workflow_list([(controller.locator,
+                                           controller.current_version,
+                                           newPipeline,
+                                           controller.current_pipeline_view)])
+        
+        spreadsheetWindow.startReviewingMode()
+
 ################################################################################
 
 

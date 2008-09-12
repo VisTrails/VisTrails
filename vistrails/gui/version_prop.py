@@ -664,7 +664,7 @@ class QVersionEmbed(QtGui.QWidget):
         self.cbtype.setFont(lfont)
         self.cbtype.setEditable(False)
         items = QtCore.QStringList()
-        items << "Wiki" << "Latex";  
+        items << "Wiki" << "Latex" << "Shared Memory";
         self.cbtype.addItems(items)
     
         self.controller = None
@@ -672,15 +672,19 @@ class QVersionEmbed(QtGui.QWidget):
 tag="%s" showspreadsheetonly="True"/>'
         self.latextag = '\\vistrail[host=%s,\ndb=%s,\nvtid=%s,\nversion=%s,\
 \ntag=%s,\nshowspreadsheetonly]{}'
+        self.pptag = 'Image(s) from (%s,%s,%s,%s,%s)'
         self.embededt = QtGui.QLineEdit(self)
         self.embededt.setReadOnly(True)
-        self.copylabel = QtGui.QLabel('<a href="copy">Copy to Clipboard</a>')
+        self.exportHtml = '<a href="export">Export...</a>'
+        self.copyHtml = '<a href="copy">Copy to Clipboard</a>'
+        self.copylabel = QtGui.QLabel(self.copyHtml)
         self.copylabel.setFont(lfont)
         layout = QtGui.QGridLayout()
         layout.addWidget(label1,0,0)
         layout.addWidget(self.cbtype,0,1)
         layout.addWidget(self.copylabel,0,2,QtCore.Qt.AlignRight)
         layout.addWidget(self.embededt,1,0,2,-1)
+        layout.setColumnStretch(2, 1)
         self.setLayout(layout)
         
         #connect signals
@@ -690,7 +694,7 @@ tag="%s" showspreadsheetonly="True"/>'
         
         self.connect(self.copylabel,
                      QtCore.SIGNAL("linkActivated(const QString &)"),
-                     self.copy_to_clipboard)
+                     self.linkActivated)
 
     def check_version(self):
         """check_version() -> bool
@@ -724,6 +728,8 @@ tag="%s" showspreadsheetonly="True"/>'
                         tag = self.wikitag
                     elif self.cbtype.currentText() == "Latex":
                         tag = self.latextag
+                    elif self.cbtype.currentText() == "Shared Memory":
+                        tag = self.pptag
                     versiontag = \
                         self.controller.vistrail.getVersionName(self.versionNumber)
                         
@@ -746,9 +752,17 @@ tag="%s" showspreadsheetonly="True"/>'
         self.versionNumber = versionNumber
         self.updateEmbedText()
 
-    def copy_to_clipboard(self):
-        clipboard = QtGui.QApplication.clipboard()
-        clipboard.setText(self.embededt.text())
+    def linkActivated(self, link):
+        if link=='copy':
+            clipboard = QtGui.QApplication.clipboard()
+            clipboard.setText(self.embededt.text())
+        elif link=='export':
+            app = QtCore.QCoreApplication.instance()
+            app.builderWindow.interactiveExportCurrentPipeline()
     
     def change_embed_type(self, text):
+        if text!='Shared Memory':
+            self.copylabel.setText(self.copyHtml)
+        else:
+            self.copylabel.setText(self.exportHtml)
         self.updateEmbedText()    

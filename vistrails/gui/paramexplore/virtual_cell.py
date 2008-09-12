@@ -44,6 +44,216 @@ import string
 
 ################################################################################
 
+def decodeConfiguration(pipeline, cells):
+    """ decodeConfiguration(pipeline: Pipeline,
+        cells: configuration) -> decoded cells
+    Convert cells of type [{(type,id): (row, column)}) to
+    (mId, row, col) in a particular pipeline
+
+    """
+    decodedCells = []
+    inspector = PipelineInspector()
+    inspector.inspect_spreadsheet_cells(pipeline)
+    inspector.inspect_ambiguous_modules(pipeline)
+    for mId in inspector.spreadsheet_cells:
+        name = pipeline.modules[mId].name
+        if inspector.annotated_modules.has_key(mId):
+            idx = inspector.annotated_modules[mId]
+        else:
+            idx = -1
+        (vRow, vCol) = cells[(name, idx)]
+        decodedCells.append((mId, vRow, vCol))
+    return decodedCells
+
+def _positionPipelines(sheetPrefix, sheetCount, rowCount, colCount,
+                       pipelines, config, originalPipeline):
+    """ _positionPipelines(sheetPrefix: str, sheetCount: int, rowCount: int,
+                           colCount: int, pipelines: list of Pipeline)
+                           -> list of Pipelines
+    Apply the virtual cell location to a list of pipelines in a
+    parameter exploration given that pipelines has multiple chunk
+    of sheetCount x rowCount x colCount cells
+
+    """
+    (vRCount, vCCount, cells) = config
+    modifiedPipelines = []
+    for pId in xrange(len(pipelines)):
+        pipeline = copy.copy(pipelines[pId])
+        col = pId % colCount
+        row = (pId / colCount) % rowCount
+        sheet = (pId / (colCount*rowCount)) % sheetCount
+
+        decodedCells = decodeConfiguration(pipeline, cells)
+
+        for (mId, vRow, vCol) in decodedCells:
+            # Walk through all connection and remove all
+            # CellLocation connected to this spreadsheet cell
+            #  delConn = DeleteConnectionAction()
+            action_list = []
+            for (cId,c) in originalPipeline.connections.iteritems():
+                if (c.destinationId==mId and 
+                    pipeline.modules[c.sourceId].name=="CellLocation"):
+                    action_list.append(('delete', c))
+                    # delConn.addId(cId)
+            # delConn.perform(pipeline)
+            action = db.services.action.create_action(action_list)
+            # FIXME: this should go to dbservice
+            Action.convert(action)
+            pipeline.perform_action(action)
+
+            # Add a sheet reference with a specific name
+            param_id = -pipeline.tmp_id.getNewId(ModuleParam.vtType)
+            sheetNameParam = ModuleParam(id=param_id,
+                                         pos=0,
+                                         name="",
+                                         val="%s %d" % (sheetPrefix, sheet),
+                                         type="String",
+                                         alias="",
+                                         )
+            function_id = -pipeline.tmp_id.getNewId(ModuleFunction.vtType)
+            sheetNameFunction = ModuleFunction(id=function_id,
+                                               pos=0,
+                                               name="SheetName",
+                                               parameters=[sheetNameParam],
+                                               )
+            param_id = -pipeline.tmp_id.getNewId(ModuleParam.vtType)
+            minRowParam = ModuleParam(id=param_id,
+                                      pos=0,
+                                      name="",
+                                      val=str(rowCount*vRCount),
+                                      type="Integer",
+                                      alias="",
+                                      )
+            function_id = -pipeline.tmp_id.getNewId(ModuleFunction.vtType)
+            minRowFunction = ModuleFunction(id=function_id,
+                                            pos=1,
+                                            name="MinRowCount",
+                                            parameters=[minRowParam],
+                                            )
+            param_id = -pipeline.tmp_id.getNewId(ModuleParam.vtType)
+            minColParam = ModuleParam(id=param_id,
+                                      pos=0,
+                                      name="",
+                                      val=str(colCount*vCCount),
+                                      type="Integer",
+                                      alias="",
+                                      )
+            function_id = -pipeline.tmp_id.getNewId(ModuleFunction.vtType)
+            minColFunction = ModuleFunction(id=function_id,
+                                            pos=2,
+                                            name="MinColumnCount",
+                                            parameters=[minColParam],
+                                            )
+            module_id = -pipeline.tmp_id.getNewId(module.Module.vtType)
+            sheetReference = module.Module(id=module_id,
+                                           name="SheetReference",
+                                           package="edu.utah.sci.vistrails.spreadsheet",
+                                           functions=[sheetNameFunction,
+                                                      minRowFunction,
+                                                      minColFunction])
+            action = db.services.action.create_action([('add', 
+                                                       sheetReference)])
+            # FIXME: this should go to dbservice
+            Action.convert(action)
+            pipeline.perform_action(action)
+
+            # Add a cell location module with a specific row and column
+            param_id = -pipeline.tmp_id.getNewId(ModuleParam.vtType)
+            rowParam = ModuleParam(id=param_id,
+                                   pos=0,
+                                   name="",
+                                   val=str(row*vRCount+vRow+1),
+                                   type="Integer",
+                                   alias="",
+                                   )
+            function_id = -pipeline.tmp_id.getNewId(ModuleFunction.vtType)
+            rowFunction = ModuleFunction(id=function_id,
+                                         pos=0,
+                                         name="Row",
+                                         parameters=[rowParam],
+                                         )
+            param_id = -pipeline.tmp_id.getNewId(ModuleParam.vtType)
+            colParam = ModuleParam(id=param_id,
+                                   pos=0,
+                                   name="",
+                                   val=str(col*vCCount+vCol+1),
+                                   type="Integer",
+                                   alias="",
+                                   )
+            function_id = -pipeline.tmp_id.getNewId(ModuleFunction.vtType)
+            colFunction = ModuleFunction(id=function_id,
+                                         pos=1,
+                                         name="Column",
+                                         parameters=[colParam],
+                                         )
+            module_id = -pipeline.tmp_id.getNewId(module.Module.vtType)
+            cellLocation = module.Module(id=module_id,
+                                         name="CellLocation",
+                                         package="edu.utah.sci.vistrails.spreadsheet",
+                                         functions=[rowFunction,
+                                                    colFunction])
+            action = db.services.action.create_action([('add', 
+                                                       cellLocation)])
+            # FIXME: this should go to dbservice
+            Action.convert(action)
+            pipeline.perform_action(action)
+
+            # Then connect the SheetReference to the CellLocation
+            port_id = -pipeline.tmp_id.getNewId(Port.vtType)
+            source = Port(id=port_id,
+                          type='source',
+                          moduleId=sheetReference.id,
+                          moduleName=sheetReference.name)
+            source.name = "self"
+            source.spec = copy.copy(registry.get_output_port_spec(sheetReference,
+                                                                  "self"))
+            port_id = -pipeline.tmp_id.getNewId(Port.vtType)
+            destination = Port(id=port_id,
+                               type='destination',
+                               moduleId=cellLocation.id,
+                               moduleName=cellLocation.name)
+            destination.name = "SheetReference"
+            destination.spec = copy.copy(registry.get_input_port_spec(cellLocation,
+                                                                      "SheetReference"))
+            c_id = -pipeline.tmp_id.getNewId(connection.Connection.vtType)
+            conn = connection.Connection(id=c_id,
+                                         ports=[source, destination])
+            action = db.services.action.create_action([('add', 
+                                                       conn)])
+            # FIXME: this should go to dbservice
+            Action.convert(action)
+            pipeline.perform_action(action)
+
+            # Then connect the CellLocation to the spreadsheet cell
+            port_id = -pipeline.tmp_id.getNewId(Port.vtType)
+            source = Port(id=port_id,
+                          type='source',
+                          moduleId=cellLocation.id,
+                          moduleName=cellLocation.name)
+            source.name = "self"
+            source.spec = registry.get_output_port_spec(cellLocation, "self")
+            port_id = -pipeline.tmp_id.getNewId(Port.vtType)
+            cell_module = pipeline.get_module_by_id(mId)
+            destination = Port(id=port_id,
+                               type='destination',
+                               moduleId=mId,
+                               moduleName=pipeline.modules[mId].name)
+            destination.name = "Location"
+            destination.spec = registry.get_input_port_spec(cell_module,
+                                                            "Location")
+            c_id = -pipeline.tmp_id.getNewId(connection.Connection.vtType)
+            conn = connection.Connection(id=c_id,
+                                         ports=[source, destination])
+            action = db.services.action.create_action([('add', 
+                                                       conn)])
+            # FIXME: this should go to dbservice
+            Action.convert(action)
+            pipeline.perform_action(action)
+        modifiedPipelines.append(pipeline)
+
+    return modifiedPipelines
+
+
 class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
     """
     QVirtualCellWindow contains a caption, a virtual cell
@@ -121,27 +331,6 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         """
         return self.config.getConfiguration()
                 
-    def decodeConfiguration(self, pipeline, cells):
-        """ decodeConfiguration(pipeline: Pipeline,
-                                cells: configuration) -> decoded cells
-        Convert cells of type [{(type,id): (row, column)}) to
-        (mId, row, col) in a particular pipeline
-        
-        """
-        decodedCells = []
-        inspector = PipelineInspector()
-        inspector.inspect_spreadsheet_cells(pipeline)
-        inspector.inspect_ambiguous_modules(pipeline)
-        for mId in inspector.spreadsheet_cells:
-            name = pipeline.modules[mId].name
-            if inspector.annotated_modules.has_key(mId):
-                idx = inspector.annotated_modules[mId]
-            else:
-                idx = -1
-            (vRow, vCol) = cells[(name, idx)]
-            decodedCells.append((mId, vRow, vCol))
-        return decodedCells
-
     def positionPipelines(self, sheetPrefix, sheetCount, rowCount, colCount,
                           pipelines):
         """ positionPipelines(sheetPrefix: str, sheetCount: int, rowCount: int,
@@ -152,252 +341,8 @@ class QVirtualCellWindow(QtGui.QFrame, QToolWindowInterface):
         of sheetCount x rowCount x colCount cells
         
         """
-        (vRCount, vCCount, cells) = self.getConfiguration()
-        modifiedPipelines = []
-        for pId in xrange(len(pipelines)):
-            pipeline = copy.copy(pipelines[pId])
-            col = pId % colCount
-            row = (pId / colCount) % rowCount
-            sheet = (pId / (colCount*rowCount)) % sheetCount
-            
-            decodedCells = self.decodeConfiguration(pipeline, cells)
-
-            for (mId, vRow, vCol) in decodedCells:
-                # Walk through all connection and remove all
-                # CellLocation connected to this spreadsheet cell
-                #  delConn = DeleteConnectionAction()
-                action_list = []
-                for (cId,c) in self.pipeline.connections.iteritems():
-                    if (c.destinationId==mId and 
-                        pipeline.modules[c.sourceId].name=="CellLocation"):
-                        action_list.append(('delete', c))
-                        # delConn.addId(cId)
-                # delConn.perform(pipeline)
-                action = db.services.action.create_action(action_list)
-                # FIXME: this should go to dbservice
-                Action.convert(action)
-                pipeline.perform_action(action)
-                
-                # Add a sheet reference with a specific name
-                param_id = -pipeline.tmp_id.getNewId(ModuleParam.vtType)
-                sheetNameParam = ModuleParam(id=param_id,
-                                             pos=0,
-                                             name="",
-                                             val="%s %d" % (sheetPrefix, sheet),
-                                             type="String",
-                                             alias="",
-                                             )
-                function_id = -pipeline.tmp_id.getNewId(ModuleFunction.vtType)
-                sheetNameFunction = ModuleFunction(id=function_id,
-                                                   pos=0,
-                                                   name="SheetName",
-                                                   parameters=[sheetNameParam],
-                                                   )
-                param_id = -pipeline.tmp_id.getNewId(ModuleParam.vtType)
-                minRowParam = ModuleParam(id=param_id,
-                                          pos=0,
-                                          name="",
-                                          val=str(rowCount*vRCount),
-                                          type="Integer",
-                                          alias="",
-                                          )
-                function_id = -pipeline.tmp_id.getNewId(ModuleFunction.vtType)
-                minRowFunction = ModuleFunction(id=function_id,
-                                                pos=1,
-                                                name="MinRowCount",
-                                                parameters=[minRowParam],
-                                                )
-                param_id = -pipeline.tmp_id.getNewId(ModuleParam.vtType)
-                minColParam = ModuleParam(id=param_id,
-                                          pos=0,
-                                          name="",
-                                          val=str(colCount*vCCount),
-                                          type="Integer",
-                                          alias="",
-                                          )
-                function_id = -pipeline.tmp_id.getNewId(ModuleFunction.vtType)
-                minColFunction = ModuleFunction(id=function_id,
-                                                pos=2,
-                                                name="MinColumnCount",
-                                                parameters=[minColParam],
-                                                )
-                module_id = -pipeline.tmp_id.getNewId(module.Module.vtType)
-                sheetReference = module.Module(id=module_id,
-                                               name="SheetReference",
-                                               package="edu.utah.sci.vistrails.spreadsheet",
-                                               functions=[sheetNameFunction,
-                                                          minRowFunction,
-                                                          minColFunction])
-                action = db.services.action.create_action([('add', 
-                                                           sheetReference)])
-                # FIXME: this should go to dbservice
-                Action.convert(action)
-                pipeline.perform_action(action)
-
-#                 sheetReference.id = pipeline.fresh_module_id()
-#                 sheetReference.name = "SheetReference"
-#                 addModule = AddModuleAction()
-#                 addModule.module = sheetReference
-#                 addModule.perform(pipeline)
-#
-#                 addParam = ChangeParameterAction()
-#                 addParam.addParameter(sheetReference.id, 0, 0,
-#                                       "SheetName", "",
-#                                       '%s %d' % (sheetPrefix, sheet),
-#                                       "String", "" )
-#                 addParam.addParameter(sheetReference.id, 1, 0,
-#                                       "MinRowCount", "",
-#                                       str(rowCount*vRCount), "Integer", "" )
-#                 addParam.addParameter(sheetReference.id, 2, 0,
-#                                       "MinColumnCount", "",
-#                                       str(colCount*vCCount), "Integer", "" )
-#                 addParam.perform(pipeline)
-
-                # Add a cell location module with a specific row and column
-                param_id = -pipeline.tmp_id.getNewId(ModuleParam.vtType)
-                rowParam = ModuleParam(id=param_id,
-                                       pos=0,
-                                       name="",
-                                       val=str(row*vRCount+vRow+1),
-                                       type="Integer",
-                                       alias="",
-                                       )
-                function_id = -pipeline.tmp_id.getNewId(ModuleFunction.vtType)
-                rowFunction = ModuleFunction(id=function_id,
-                                             pos=0,
-                                             name="Row",
-                                             parameters=[rowParam],
-                                             )
-                param_id = -pipeline.tmp_id.getNewId(ModuleParam.vtType)
-                colParam = ModuleParam(id=param_id,
-                                       pos=0,
-                                       name="",
-                                       val=str(col*vCCount+vCol+1),
-                                       type="Integer",
-                                       alias="",
-                                       )
-                function_id = -pipeline.tmp_id.getNewId(ModuleFunction.vtType)
-                colFunction = ModuleFunction(id=function_id,
-                                             pos=1,
-                                             name="Column",
-                                             parameters=[colParam],
-                                             )
-                module_id = -pipeline.tmp_id.getNewId(module.Module.vtType)
-                cellLocation = module.Module(id=module_id,
-                                             name="CellLocation",
-                                             package="edu.utah.sci.vistrails.spreadsheet",
-                                             functions=[rowFunction,
-                                                        colFunction])
-                action = db.services.action.create_action([('add', 
-                                                           cellLocation)])
-                # FIXME: this should go to dbservice
-                Action.convert(action)
-                pipeline.perform_action(action)
-                
-#                 cellLocation.id = pipeline.fresh_module_id()
-#                 cellLocation.name = "CellLocation"
-#                 addModule = AddModuleAction()
-#                 addModule.module = cellLocation
-#                 addModule.perform(pipeline)
-#                
-#                 addParam = ChangeParameterAction()                
-#                 addParam.addParameter(cellLocation.id, 0, 0,
-#                                       "Row", "", str(row*vRCount+vRow+1),
-#                                       "Integer", "" )
-#                 addParam.addParameter(cellLocation.id, 1, 0,
-#                                       "Column", "", str(col*vCCount+vCol+1),
-#                                       "Integer", "" )
-#                 addParam.perform(pipeline)
-                
-                # Then connect the SheetReference to the CellLocation
-                port_id = -pipeline.tmp_id.getNewId(Port.vtType)
-                source = Port(id=port_id,
-                              type='source',
-                              moduleId=sheetReference.id,
-                              moduleName=sheetReference.name)
-                source.name = "self"
-                source.spec = copy.copy(registry.get_output_port_spec(sheetReference,
-                                                                      "self"))
-                port_id = -pipeline.tmp_id.getNewId(Port.vtType)
-                destination = Port(id=port_id,
-                                   type='destination',
-                                   moduleId=cellLocation.id,
-                                   moduleName=cellLocation.name)
-                destination.name = "SheetReference"
-                destination.spec = copy.copy(registry.get_input_port_spec(cellLocation,
-                                                                          "SheetReference"))
-                c_id = -pipeline.tmp_id.getNewId(connection.Connection.vtType)
-                conn = connection.Connection(id=c_id,
-                                             ports=[source, destination])
-                action = db.services.action.create_action([('add', 
-                                                           conn)])
-                # FIXME: this should go to dbservice
-                Action.convert(action)
-                pipeline.perform_action(action)
-                              
-#                 conn = connection.Connection()
-#                 conn.id = pipeline.fresh_connection_id()
-#                 conn.source.moduleId = sheetReference.id
-#                 conn.source.moduleName = sheetReference.name
-#                 conn.source.name = "self"
-#                 conn.source.spec = registry.getOutputPortSpec(
-#                     sheetReference, "self")
-#                 conn.connectionId = conn.id
-#                 conn.destination.moduleId = cellLocation.id
-#                 conn.destination.moduleName = cellLocation.name
-#                 conn.destination.name = "SheetReference"
-#                 conn.destination.spec = registry.getInputPortSpec(
-#                     cellLocation, "SheetReference")
-#                 addConnection = AddConnectionAction()
-#                 addConnection.connection = conn
-#                 addConnection.perform(pipeline)
-                
-                # Then connect the CellLocation to the spreadsheet cell
-                port_id = -pipeline.tmp_id.getNewId(Port.vtType)
-                source = Port(id=port_id,
-                              type='source',
-                              moduleId=cellLocation.id,
-                              moduleName=cellLocation.name)
-                source.name = "self"
-                source.spec = registry.get_output_port_spec(cellLocation, "self")
-                port_id = -pipeline.tmp_id.getNewId(Port.vtType)
-                cell_module = pipeline.get_module_by_id(mId)
-                destination = Port(id=port_id,
-                                   type='destination',
-                                   moduleId=mId,
-                                   moduleName=pipeline.modules[mId].name)
-                destination.name = "Location"
-                destination.spec = registry.get_input_port_spec(cell_module,
-                                                                "Location")
-                c_id = -pipeline.tmp_id.getNewId(connection.Connection.vtType)
-                conn = connection.Connection(id=c_id,
-                                             ports=[source, destination])
-                action = db.services.action.create_action([('add', 
-                                                           conn)])
-                # FIXME: this should go to dbservice
-                Action.convert(action)
-                pipeline.perform_action(action)
-
-#                 conn = connection.Connection()
-#                 conn.id = pipeline.fresh_connection_id()
-#                 conn.source.moduleId = cellLocation.id
-#                 conn.source.moduleName = cellLocation.name
-#                 conn.source.name = "self"
-#                 conn.source.spec = registry.getOutputPortSpec(
-#                     cellLocation, "self")
-#                 conn.connectionId = conn.id
-#                 conn.destination.moduleId = mId
-#                 conn.destination.moduleName = pipeline.modules[mId].name
-#                 conn.destination.name = "Location"
-#                 conn.destination.spec = registry.getInputPortSpec(
-#                     cellLocation, "Location")
-#                 addConnection = AddConnectionAction()
-#                 addConnection.connection = conn
-#                 addConnection.perform(pipeline)
-
-            modifiedPipelines.append(pipeline)
-
-        return modifiedPipelines
+        return _positionPipelines(sheetPrefix, sheetCount, rowCount, colCount, pipelines,
+                                  self.getConfiguration(), self.pipeline)
 
 class QVirtualCellConfiguration(QtGui.QWidget):
     """

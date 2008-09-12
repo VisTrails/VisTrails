@@ -960,6 +960,8 @@ class QCellManipulator(QtGui.QFrame):
                     controller = view.controller
                     controller.change_selected_version(info['version'])
                     controller.invalidate_version_tree(False)
+                    builderWindow.show()
+                    builderWindow.raise_()
 
 ################################################################################
 

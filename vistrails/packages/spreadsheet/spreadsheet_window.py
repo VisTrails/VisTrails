@@ -23,8 +23,6 @@
 # This file implements the main spreadsheet window:
 #   SpreadsheetWindow
 ################################################################################
-import sys
-import os.path
 from PyQt4 import QtCore, QtGui
 from spreadsheet_base import StandardSheetReference
 from spreadsheet_event import BatchDisplayCellEventType, DisplayCellEventType, \
@@ -34,6 +32,10 @@ from spreadsheet_sheet import StandardWidgetSheet
 from spreadsheet_cell import QCellContainer
 from core.modules import module_utils
 from core.utils import trace_method
+import ctypes
+import os.path
+import sys
+import tempfile
 
 ################################################################################
 class SpreadsheetWindow(QtGui.QMainWindow):
@@ -342,7 +344,11 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             if (e.key() in [QtCore.Qt.Key_PageUp,QtCore.Qt.Key_Left]):
                 self.tabController.showPrevTab()
                 return True
-                            
+            if (e.key()==QtCore.Qt.Key_Escape or
+                (e.key()==QtCore.Qt.Key_F and e.modifiers()&QtCore.Qt.ControlModifier)):
+                self.fullScreenAction().trigger()
+                return True
+
         # Perform single-click event on the spread sheet
         if (not self.tabController.editingMode and
             eType==QtCore.QEvent.MouseButtonPress):
@@ -414,7 +420,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             cell = sheet.getCell(row, col) 
             if self.editingModeAction().isChecked():
                 sheet.setCellEditingMode(row, col, True)
-        
+
             if self.visApp.temp_configuration.check('spreadsheetDumpCells'):
                 dumppath = self.visApp.temp_configuration.spreadsheetDumpCells
                 filename = os.path.join(dumppath,"%s_%s.png"%(
@@ -451,3 +457,78 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         """showBuilderWindowActionTriggered() -> None
         This will show the builder window """
         self.visApp.builderWindow.show()
+
+    def prepareReviewingMode(self, vCol):
+        """ Trim down most of the spreadsheet window """
+        self.menuBar().hide()
+        self.statusBar().hide()
+        self.tabController.tabBar().hide()
+        self.tabController.clearTabs()
+        self.setWindowFlags(QtCore.Qt.Tool | QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowTitle('Pipeline Review')
+        self.resize(560*vCol, 512)
+        self.show()
+
+    def startReviewingMode(self):
+        """ startReviewingMode()
+        Reorganize the spreadsheet to contain only cells executed from locator:version
+        
+        """
+        currentTab = self.tabController.currentWidget()
+        if currentTab:
+            currentTab.toolBar.hide()
+            buttonLayout = QtGui.QHBoxLayout()
+            buttons = [QtGui.QPushButton('&Accept'),
+                       QtGui.QPushButton('&Discard')]
+            buttonLayout.addStretch()
+            buttonLayout.addWidget(buttons[0])
+            buttonLayout.addWidget(buttons[1])
+            buttonLayout.addStretch()
+            currentTab.layout().addLayout(buttonLayout)
+            self.connect(buttons[0], QtCore.SIGNAL('clicked()'),
+                         self.acceptReview)
+            self.connect(buttons[1], QtCore.SIGNAL('clicked()'),
+                         self.discardReview)
+
+    def discardReview(self):
+        """ Just quit the program """
+        QtCore.QCoreApplication.quit()
+
+    def acceptReview(self):
+        """ Copy image of all cells to the clipboard and then exit """
+        currentTab = self.tabController.currentWidget()
+        height = 0
+        width = 0
+        pixmaps = []
+        version = -1
+        if currentTab:
+            (rCount, cCount) = currentTab.getDimension()
+            for r in xrange(rCount):
+                for c in xrange(cCount):
+                    widget = currentTab.getCell(r, c)
+                    if widget:
+                        version = currentTab.getCellPipelineInfo(r, c)[0]['version']
+                        pix = widget.grabWindowPixmap()
+                        pixmaps.append(pix)
+                        width += pix.width()
+                        height = max(height, pix.height())
+        finalImage = QtGui.QImage(width, height, QtGui.QImage.Format_ARGB32)
+        painter = QtGui.QPainter(finalImage)
+        x = 0
+        for pix in pixmaps:
+            painter.drawPixmap(x, 0, pix)
+            x += pix.width()
+        painter.end()
+        filename = tempfile.gettempdir() + '/' + 'vtexport.png'
+        finalImage.save(filename, 'PNG')
+        sm = QtCore.QSharedMemory('VisTrailsPipelineImage')
+        sm.create(32768)
+        sm.attach()
+        sm.lock()
+        pfn = ctypes.c_char_p(filename)
+        ctypes.memmove(int(sm.data()), pfn, len(filename))
+        pfn = ctypes.c_char_p(str(version))
+        ctypes.memmove(int(sm.data())+256, pfn, len(str(version)))
+        sm.unlock()
+        sm.detach()
+        QtCore.QCoreApplication.quit()

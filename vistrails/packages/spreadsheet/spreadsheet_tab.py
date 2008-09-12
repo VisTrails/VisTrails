@@ -35,9 +35,9 @@ from spreadsheet_sheet import StandardWidgetSheet
 from spreadsheet_cell import QCellPresenter, QCellContainer, QCellToolBar
 from spreadsheet_execute import assignPipelineCellLocations, \
      executePipelineWithProgress
-import spreadsheet_rc
-
 from spreadsheet_config import configuration
+from core.inspector import PipelineInspector
+import spreadsheet_rc
 
 ################################################################################
 
@@ -69,7 +69,7 @@ class SizeSpinBox(QtGui.QSpinBox):
 class StandardWidgetToolBar(QtGui.QToolBar):
     """
     StandardWidgetToolBar: The default toolbar for each sheet
-    ontainer. By default, only FitToWindow and Table resizing are
+    container. By default, only FitToWindow and Table resizing are
     included
     
     """
@@ -130,6 +130,7 @@ class StandardWidgetToolBar(QtGui.QToolBar):
             if cellToolBar:
                 self.currentToolBarAction = self.addWidget(cellToolBar)
                 self.currentToolBarAction.setVisible(True)
+                self.currentToolBarAction.setEnabled(True)
             else:
                 self.currentToolBarAction = None
 
@@ -445,7 +446,7 @@ class StandardWidgetSheetTabInterface(object):
         """
         sheetName = str(self.tabWidget.tabText(self.tabWidget.indexOf(self)))
         return assignPipelineCellLocations(inPipeline, sheetName,
-                                             row, col, cellIds)
+                                           row, col, cellIds)
 
     def getPipelineInfo(self, row, col):
         """ getPipelineInfo(row: int, col: int) -> tuple
@@ -475,10 +476,6 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
                                 
         """
         QtGui.QWidget.__init__(self, None)
-#         import core.packagemanager
-#         pm = core.packagemanager.get_package_manager()
-        
-#         config = pm.get_package_configuration('spreadsheet')
         if not row:
             row = configuration.rowCount
         if not col:
@@ -495,6 +492,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         self.vLayout.addWidget(self.sheet, 1)
         self.setLayout(self.vLayout)
         self.pipelineInfo = {}
+        self.setAcceptDrops(True)
 
     def rowSpinBoxChanged(self):
         """ rowSpinBoxChanged() -> None
@@ -562,7 +560,7 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         status of show and the global position of the cursor
         
         """
-        localPos = self.sheet.viewport().mapFromGlobal(QtGui.QCursor.pos())        
+        localPos = self.sheet.viewport().mapFromGlobal(QtGui.QCursor.pos())
         row = self.sheet.rowAt(localPos.y())
         col = self.sheet.columnAt(localPos.x())
         rect = self.sheet.getCellRect(row, col)
@@ -586,6 +584,55 @@ class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
         
         """
         self.sheet.setCellByWidget(row, col, cellWidget)
+
+    def dragEnterEvent(self, event):
+        """ dragEnterEvent(event: QDragEnterEvent) -> None
+        Set to accept drops from the version tree
+        
+        """
+        mimeData = event.mimeData()
+        if hasattr(mimeData, 'versionId'):
+            event.accept()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        """ dragEnterEvent(event: QDragEnterEvent) -> None
+        Set to accept drops while moving from the version tree
+        
+        """
+        mimeData = event.mimeData()
+        if (hasattr(mimeData, 'versionId') and
+            hasattr(mimeData, 'controller')):
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        """ Execute the pipeline at the particular location """
+        mimeData = event.mimeData()        
+        if (hasattr(mimeData, 'versionId') and
+            hasattr(mimeData, 'controller')):
+            event.accept()
+            versionId = mimeData.versionId
+            controller = mimeData.controller
+            pipeline = controller.vistrail.getPipeline(versionId)
+
+            inspector = PipelineInspector()
+            inspector.inspect_spreadsheet_cells(pipeline)
+            inspector.inspect_ambiguous_modules(pipeline)
+            if len(inspector.spreadsheet_cells)==1:
+                localPos = self.sheet.viewport().mapFromGlobal(QtGui.QCursor.pos())
+                row = self.sheet.rowAt(localPos.y())
+                col = self.sheet.columnAt(localPos.x())
+                if (row!=-1 and col!=-1):
+                    pipeline = self.setPipelineToLocateAt(row, col, pipeline)
+            executePipelineWithProgress(pipeline, 'Execute Cell',
+                                        vistrailLocator=controller.locator,
+                                        currentVersion=versionId,
+                                        reason='Drop Version')
+        else:
+            event.ignore()
 
 class StandardWidgetTabBarEditor(QtGui.QLineEdit):    
     """
@@ -849,11 +896,12 @@ class StandardTabDockWidget(QtGui.QDockWidget):
         Initialize the dock widget to override the floating button
         
         """
-        QtGui.QDockWidget.__init__(self, title, tabBar,
+        QtGui.QDockWidget.__init__(self, title, None,
                                    QtCore.Qt.FramelessWindowHint)
         self.tabBar = tabBar
         self.tabController = tabController
-        self.setFeatures(QtGui.QDockWidget.DockWidgetMovable|
+        self.setFeatures(QtGui.QDockWidget.DockWidgetClosable |
+                         QtGui.QDockWidget.DockWidgetMovable |
                          QtGui.QDockWidget.DockWidgetFloatable)
         self.setFloating(True)
         self.floatingButton = self.findFloatingButton()
@@ -895,60 +943,108 @@ class StandardTabDockWidget(QtGui.QDockWidget):
                 return False
         return QtGui.QDockWidget.eventFilter(self, q, e)
 
+    def isTabControllerUnderMouse(self, tb):        
+        """ Check if any of common parent of the tab controller and tb
+        is under the mouse """
+        tbp = []
+        while tb!=None:
+            tbp.append(tb)
+            tb = tb.parent()
+        tc = self.tabController
+        while tc!=None:
+            if tc in tbp:
+                return True
+            tc = tc.parent()
+        return False
+
     def event(self, e):
         """ event(e: QEvent) -> depends on event type
         Handle movement of the dock widget to snap to the tab controller
         
         """
-        if e.type()==QtCore.QEvent.MouseButtonPress:
-            # Click on the title bar
-            if e.y()<self.widget().y() and e.buttons()&QtCore.Qt.LeftButton:
-                self.startDragPos = QtCore.QPoint(e.globalPos().x(),
-                                                  e.globalPos().y())
+        # MOUSE PRESS (QtCore.QEvent.NonClientAreaMouseButtonPress=174)
+        if e.type() in [QtCore.QEvent.MouseButtonPress,174]:
+            if e.type()==174:
+                gp = QtGui.QCursor.pos()
+                ontitle = True
+            else:
+                gp = e.globalPos()
+                ontitle = e.y()<self.widget().y() and e.buttons()&QtCore.Qt.LeftButton
+            if ontitle:
+                self.startDragPos = QtCore.QPoint(gp)
+                self.grabMouse()
+            return True
+
         elif e.type()==QtCore.QEvent.MouseMove:
-            if not (e.buttons()&QtCore.Qt.LeftButton):
+            if not (e.buttons() & QtCore.Qt.LeftButton):
                 self.windowRubberBand.hide()
                 self.setMouseTracking(False)
                 return QtGui.QDockWidget.event(self, e)
+            gp = e.globalPos()
             if (not self.startDragging and
                 self.startDragPos and
-                (self.startDragPos-e.globalPos()).manhattanLength()>=4):
+                (self.startDragPos-gp).manhattanLength()>=4):
                 self.startDragging = True
                 self.windowRubberBand.setGeometry(self.geometry())
-                self.startDragPos = self.pos()-e.globalPos()
+                self.startDragPos = self.pos()-gp
                 self.windowRubberBand.show()
                 self.setMouseTracking(True)
             if self.startDragging:
-                tb = QtGui.QApplication.widgetAt(e.globalPos())
+                tb = QtGui.QApplication.widgetAt(gp)
                 if tb==self.tabBar:
-                    idx = tb.slotIndex(e.globalPos())
+                    idx = tb.slotIndex(gp)
                     if idx>=0:
                         self.windowRubberBand.setGeometry(tb.slotGeometry(idx))
+                elif (tb!=None and self.tabController.count()==0 and
+                      self.isTabControllerUnderMouse(tb)):
+                    r = self.tabController.frameGeometry()
+                    r.moveTo(self.tabController.mapToGlobal(r.topLeft()))
+                    self.windowRubberBand.setGeometry(r)
                 else:
-                    rect = QtCore.QRect(self.startDragPos+e.globalPos(),
-                                        self.size())
+                    rect = QtCore.QRect(self.startDragPos+gp, self.size())
                     self.windowRubberBand.setGeometry(rect)
-        elif e.type()==QtCore.QEvent.MouseButtonRelease and self.startDragging:
-            self.setMouseTracking(False)
-            self.windowRubberBand.hide()
-            self.startDragPos = None
-            self.startDragging = False
-            tb = QtGui.QApplication.widgetAt(e.globalPos())
-            if tb==self.tabBar:
-                idx = tb.slotIndex(e.globalPos())
-                if idx>=0:
+            return True
+
+        # MOUSE RELEASE (QtCore.QEvent.NonClientAreaMouseRelease=175)
+        elif e.type()==QtCore.QEvent.MouseButtonRelease:
+            if self.startDragging:
+                if e.type()==173:
+                    gp = QtGui.QCursor.pos()
+                else:
+                    gp = e.globalPos()
+                self.setMouseTracking(False)
+                self.windowRubberBand.hide()
+                self.startDragPos = None
+                self.startDragging = False
+                tb = QtGui.QApplication.widgetAt(gp)
+                if tb==self.tabBar:
+                    idx = tb.slotIndex(gp)
+                    if idx>=0:
+                        self.hide()
+                        self.tabController.mergeTab(self, idx)
+                elif (tb!=None and self.tabController.count()==0 and
+                      self.isTabControllerUnderMouse(tb)):
                     self.hide()
-                    self.tabController.mergeTab(self, idx)
-                    return False
-            else:
-                self.move(self.windowRubberBand.pos())
-        elif (e.type()==QtCore.QEvent.MouseButtonDblClick and
-              e.button()&QtCore.Qt.LeftButton):
-            self.hide()
-            self.tabController.mergeTab(self, self.tabController.count())
-            return False
+                    self.tabController.mergeTab(self, 0)
+                else:
+                    self.move(self.windowRubberBand.pos())
+            self.releaseMouse()
+            self.setFocus(QtCore.Qt.MouseFocusReason)
+            return True
+
+        # MOUSE DOUBLE CLICK (QtCore.QEvent.NonClientAreaMouseButtonDblClick=176)
+        elif e.type() in [QtCore.QEvent.MouseButtonDblClick, 176]:
+            if (e.type()==176) or (e.buttons()&QtCore.Qt.LeftButton):
+                self.hide()
+                self.tabController.mergeTab(self, self.tabController.count())
+                return True
             
         return QtGui.QDockWidget.event(self, e)
+
+    def closeEvent(self, event):
+        """ On close event dock the sheet back to the spreadsheet window """
+        self.tabController.mergeTab(self, self.tabController.count())
+        event.accept()
 
 spreadsheetRegistry.registerSheet('StandardWidgetSheetTab',
                                   StandardWidgetSheetTab)

@@ -114,6 +114,9 @@ The builder window can be accessed by a spreadsheet menu option.")
         add("-w", "--executeworkflows", action="store_true",
             default = None,
             help="The workflows will be executed")
+        add("-R", "--reviewmode", action="store_true",
+            default = None,
+            help="Show the spreadsheet in the reviewing mode")
         command_line.CommandLineParser.parse_options()
 
     def printVersion(self):
@@ -162,7 +165,10 @@ The builder window can be accessed by a spreadsheet menu option.")
                                             bool(get('showspreadsheetonly'))
             # asking to show only the spreadsheet will force the workflows to
             # be executed
-            if self.temp_configuration.showSpreadsheetOnly:
+            if get('reviewmode') != None:
+                self.temp_configuration.reviewMode = bool(get('reviewmode'))
+
+            if self.temp_configuration.showSpreadsheetOnly and not self.temp_configuration.reviewMode:
                 self.temp_configuration.executeWorkflows = True
             
         self.temp_db_options = InstanceObject(host=get('host'),
@@ -294,6 +300,8 @@ after self.init()"""
                 self.builderWindow.open_vistrail_without_prompt(locator,
                                                                 version,
                                                                 execute)
+                if self.temp_configuration.reviewMode:
+                    self.builderWindow.interactiveExportCurrentPipeline()
                 
     def finishSession(self):
         core.interpreter.cached.CachedInterpreter.cleanup()
@@ -482,13 +490,15 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         from gui.builder_window import QBuilderWindow
 
         self.builderWindow = QBuilderWindow()
-        self.builderWindow.show()
+        if not self.temp_configuration.showSpreadsheetOnly:
+            self.builderWindow.show()
         self.visDiffParent = QtGui.QWidget(None, QtCore.Qt.ToolTip)
         self.visDiffParent.resize(0,0)
         
     def runInitialization(self):
         """ runInitialization() -> None
         Run init script on the user folder
+
         
         """
         def initBookmarks():

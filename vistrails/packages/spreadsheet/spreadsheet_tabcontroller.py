@@ -248,9 +248,9 @@ class StandardWidgetTabController(QtGui.QTabWidget):
         """tabInserted(index: int) -> None
         event handler to get when sheets are removed """
         if self.count() == 0:
-                self.deleteSheetAction().setEnabled(False)
-                self.saveAction().setEnabled(False)
-                self.saveAsAction().setEnabled(False)
+            self.deleteSheetAction().setEnabled(False)
+            self.saveAction().setEnabled(False)
+            self.saveAsAction().setEnabled(False)
 
     def removeSheetReference(self, sheet):
         """ removeSheetReference(sheet: StandardWidgetSheetTab) -> None
@@ -473,6 +473,7 @@ class StandardWidgetTabController(QtGui.QTabWidget):
             action.setData(QtCore.QVariant(idx))
             if t==self.operatingWidget.currentWidget():
                 action.setIcon(QtGui.QIcon(':/images/ok.png'))
+        menu.addAction(self.parent().parent().fullScreenAction())
         return menu
 
     def showPopupMenu(self):

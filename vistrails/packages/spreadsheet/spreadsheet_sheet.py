@@ -162,6 +162,7 @@ class StandardWidgetItemDelegate(QtGui.QItemDelegate):
             painter.setPen(QtGui.QPen(QtGui.QBrush(
                 QtGui.QColor(0.8549*255, 0.6971*255, 0.2255*255)), self.padding))
             r = self.table.visualRect(index)
+            painter.setClipRegion(QtGui.QRegion(r))
             r.adjust(self.padding/2,self.padding/2,-self.padding/2,-self.padding/2)
             painter.drawRoundRect(r, self.padding, self.padding)
             painter.restore()
