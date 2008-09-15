@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2008 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -195,6 +195,10 @@ The builder window can be accessed by a spreadsheet menu option.")
         self.keyChain = keychain.KeyChain()
         self.setupOptions()
 
+        # Starting in version 1.2.1 logging is enabled by default.
+        # Users have to explicitly disable it through the command-line
+        self.configuration.nologger = False
+        
         # Setup configuration to default or saved preferences
         self.vistrailsStartup = core.startup.VistrailsStartup(self.configuration)
         self.temp_configuration = copy.copy(self.configuration)
@@ -211,10 +215,10 @@ The builder window can be accessed by a spreadsheet menu option.")
                                            vt_id=None,
                                            parameters=None
                                            ) 
-
         
         # Command line options override configuration
         self.readOptions()
+        
         if optionsDict:
             for (k, v) in optionsDict.iteritems():
                 setattr(self.temp_configuration, k, v)
@@ -342,28 +346,29 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
     def __init__(self):
         QtGui.QApplication.__init__(self, sys.argv)
         VistrailsApplicationInterface.__init__(self)
-        if QtCore.QT_VERSION < 0x40400: # 0x40400 = 4.4.0
-            raise core.requirements.MissingRequirement("Qt version >= 4.4")
-        
+        if QtCore.QT_VERSION < 0x40200: # 0x40200 = 4.2.0
+            raise core.requirements.MissingRequirement("Qt version >= 4.2")
+        self._is_running = False
         # code for single instance of the application
         # based on the C++ solution availabe at
         # http://wiki.qtcentre.org/index.php?title=SingleApplication
-        self.timeout = 5000
-        self._unique_key = "vistrails-single-instance-check"
-        self.shared_memory = QtCore.QSharedMemory(self._unique_key)
-        self.local_server = None
-        if self.shared_memory.attach():
-            self._is_running = True
-        else:
-            self._is_running = False
-            if not self.shared_memory.create(1):
-                print "Unable to create single instance of vistrails application"
-                return
-            self.local_server = QtNetwork.QLocalServer(self)
-            self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
-                         self.message_received)
-            self.local_server.listen(self._unique_key)
-            #print "Listening on ", self.local_server.serverName()
+        if QtCore.QT_VERSION >= 0x40400:
+            self.timeout = 5000
+            self._unique_key = "vistrails-single-instance-check"
+            self.shared_memory = QtCore.QSharedMemory(self._unique_key)
+            self.local_server = None
+            if self.shared_memory.attach():
+                self._is_running = True
+            else:
+                self._is_running = False
+                if not self.shared_memory.create(1):
+                    print "Unable to create single instance of vistrails application"
+                    return
+                self.local_server = QtNetwork.QLocalServer(self)
+                self.connect(self.local_server, QtCore.SIGNAL("newConnection()"),
+                             self.message_received)
+                self.local_server.listen(self._unique_key)
+                #print "Listening on ", self.local_server.serverName()
         qt.allowQObjects()
 
     def init(self, optionsDict=None):
@@ -498,7 +503,6 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
     def runInitialization(self):
         """ runInitialization() -> None
         Run init script on the user folder
-
         
         """
         def initBookmarks():
@@ -521,9 +525,10 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         self.showSplash = self.temp_configuration.showSplash
 
     def finishSession(self):
-        self.shared_memory.detach()
-        if self.local_server:
-            self.local_server.close()
+        if QtCore.QT_VERSION >= 0x40400:
+            self.shared_memory.detach()
+            if self.local_server:
+                self.local_server.close()
         VistrailsApplicationInterface.finishSession(self)
    
     def eventFilter(self, o, event):
@@ -545,31 +550,34 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         return self._is_running
 
     def message_received(self):
-        local_socket = self.local_server.nextPendingConnection()
-        if not local_socket.waitForReadyRead(self.timeout):
-            print local_socket.errorString().toLatin1()
-            return
-        byte_array = local_socket.readAll()
-        self.parse_input_args_from_other_instance(str(byte_array))
-        local_socket.disconnectFromServer()
+        if QtCore.QT_VERSION >= 0x40400:
+            local_socket = self.local_server.nextPendingConnection()
+            if not local_socket.waitForReadyRead(self.timeout):
+                print local_socket.errorString().toLatin1()
+                return
+            byte_array = local_socket.readAll()
+            self.temp_db_options = None 
+            self.parse_input_args_from_other_instance(str(byte_array))
+            local_socket.disconnectFromServer()
     
     def send_message(self, message):
-        if not self._is_running:
-            return False
-        local_socket = QtNetwork.QLocalSocket(self)
-        local_socket.connectToServer(self._unique_key)
-        if not local_socket.waitForConnected(self.timeout):
-            print "Failed: ", local_socket.errorString().toLatin1()
-            return False
-        self.shared_memory.lock()
-        local_socket.write(message)
-        self.shared_memory.unlock()
-        if not local_socket.waitForBytesWritten(self.timeout):
-            print "Writing failed: " 
-            print local_socket.errorString().toLatin1()
-            return False
-        local_socket.disconnectFromServer()
-        return True
+        if QtCore.QT_VERSION >= 0x40400:
+            if not self._is_running:
+                return False
+            local_socket = QtNetwork.QLocalSocket(self)
+            local_socket.connectToServer(self._unique_key)
+            if not local_socket.waitForConnected(self.timeout):
+                print "Failed: ", local_socket.errorString().toLatin1()
+                return False
+            self.shared_memory.lock()
+            local_socket.write(message)
+            self.shared_memory.unlock()
+            if not local_socket.waitForBytesWritten(self.timeout):
+                print "Writing failed: " 
+                print local_socket.errorString().toLatin1()
+                return False
+            local_socket.disconnectFromServer()
+            return True
     
     def parse_input_args_from_other_instance(self, msg):
         import re
@@ -581,6 +589,11 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 command_line.CommandLineParser.init_options(args)
                 self.readOptions()
                 self.process_interactive_input()
+                if not self.temp_configuration.showSpreadsheetOnly:
+                    # in some systems (Linux and Tiger) we need to make both calls
+                    # so builderWindow is activated
+                    self.builderWindow.raise_()
+                    self.builderWindow.activateWindow()
             else:
                 print "Invalid string: %s"%msg
         else:
