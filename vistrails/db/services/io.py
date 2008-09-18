@@ -112,6 +112,7 @@ def get_db_object_list(config, obj_type):
         rows = c.fetchall()
         result = rows
         c.close()
+        close_db_connection(db)
         
     except MySQLdb.Error, e:
         msg = "Couldn't get list of vistrails objects from db (%d : %s)" % \

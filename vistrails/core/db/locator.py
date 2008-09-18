@@ -293,7 +293,7 @@ class DBLocator(_DBLocator, CoreLocator):
         data = node.get('database', None)
         database = convert_from_str(data,'str')
         data = node.get('vtid')
-        vt_id = convert_from_str(data, 'str')
+        vt_id = convert_from_str(data, 'int')
         data = node.get('version')
         version = convert_from_str(data, 'str')
         data = node.get('tag')
