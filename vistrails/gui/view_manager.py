@@ -365,7 +365,13 @@ class QViewManager(QtGui.QTabWidget):
             # if couldn't get one, ignore the request
             if not locator:
                 return False
-            vistrailView.controller.write_vistrail(locator)
+            try:
+                vistrailView.controller.write_vistrail(locator)
+            except Exception, e:
+                QtGui.QMessageBox.critical(None,
+                                           'Vistrails',
+                                           str(e))
+                return False
             return True
    
     def save_workflow(self, locator_class, force_choose_locator=True):
