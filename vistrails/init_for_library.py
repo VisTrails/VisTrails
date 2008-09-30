@@ -80,14 +80,21 @@ import core.external_connection
 import core.interpreter.default
 import core.interpreter.cached
 import core.keychain
+import core.modules.module_utils
 import core.startup
 import core.system
 import core.utils
 import core.utils.color
 import core.utils.enum
 import core.utils.uxml
+import core.vistrails_tree_layout_lw
+import core.vistrail.vistrail
 import gui.common_widgets
 import gui.graphics_view
+import gui.pipeline_view
+import gui.qt
 import gui.theme
 import gui.utils
-import gui.qt
+import gui.version_view
+import gui.vistrail_controller
+
