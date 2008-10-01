@@ -304,7 +304,9 @@ import os
 class TestConnectionList(unittest.TestCase):
     def test1(self):
         """ Exercising writing and reading a file """
-        conns = ExtConnectionList('connections.xml')
+        conns = ExtConnectionList.getInstance()
+        conns.filename = 'connections.xml'
+        conns.clear()
         conn = DBConnection()
         conn.id = 1
         conn.name = 'test'
@@ -324,7 +326,6 @@ class TestConnectionList(unittest.TestCase):
         self.assertEquals(conns.count(),1)
         newconn = conns.get_connection(1)
         assert conn == newconn
-    
         #remove created file
         os.unlink('connections.xml')
 
