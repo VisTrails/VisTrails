@@ -191,7 +191,10 @@ class Module(DBModule):
         port = Port()
         port.name = port_spec.name
         port.spec = core.modules.module_registry.PortSpec(signature)
-        self.registry.add_port(module, endpoint, port)        
+        try:
+            self.registry.add_port(module, endpoint, port)
+        except core.modules.module_registry.OverloadedPort:
+            print "Ignoring overloaded Module %s id %s adding %s " % (self.name, self.id, port.name)
 
     def delete_port_from_registry(self, id):
         if not id in self.port_specs:

@@ -39,6 +39,15 @@ import weakref
 
 ##############################################################################
 
+# this is used by add_port to signal a repeated port. Should never
+# happen, but it does. Probably means a bug on the dynamic modules
+# such as MplPlot and Tuple.  Of course, that also means that we
+# should be robust in the presence of these errors, since user-defined
+# modules could exhibit this bug
+
+class OverloadedPort(Exception):
+    pass
+
 # This is used by add_module to make sure the fringe specifications
 # make sense
 def _check_fringe(fringe):
@@ -398,7 +407,7 @@ class ModuleDescriptor(object):
         # fields get the data
         if port.has_key(name):
             msg = "%s: port overloading is no longer supported" % name
-            raise VistrailsInternalError(msg)
+            raise OverloadedPort(msg)
         spec = PortSpec(signature)
         port[name] = spec
         self.port_order[name] = len(port)
