@@ -31,7 +31,6 @@ from core.utils import VistrailsInternalError
 from core.utils import expression, append_to_dict_of_lists
 from core.utils.uxml import named_elements
 from core.vistrail.abstraction import Abstraction
-from core.vistrail.abstraction_module import AbstractionModule
 from core.vistrail.connection import Connection
 from core.vistrail.group import Group
 from core.vistrail.module import Module
@@ -70,8 +69,8 @@ class Pipeline(DBWorkflow):
         for module in self.module_list:
             if module.vtType == Module.vtType:
                 Module.convert(module)
-            elif module.vtType == AbstractionModule.vtType:
-                AbstractionModule.convert(module)
+            elif module.vtType == Abstraction.vtType:
+                Abstraction.convert(module)
             elif module.vtType == Group.vtType:
                 Group.convert(module)
             self.graph.add_vertex(module.id)
@@ -79,7 +78,6 @@ class Pipeline(DBWorkflow):
             self.graph.add_edge(connection.source.moduleId,
                                 connection.destination.moduleId,
                                 connection.id)
-        self.abstraction_map = {}
             
     def __copy__(self):
         """ __copy__() -> Pipeline - Returns a clone of itself """ 
@@ -108,7 +106,6 @@ class Pipeline(DBWorkflow):
         cp._module_signatures = Bidict([(k,copy.copy(v))
                                         for (k,v)
                                         in self._module_signatures.iteritems()])
-        cp.abstraction_map = self.abstraction_map
         return cp
 
     @staticmethod
@@ -125,8 +122,8 @@ class Pipeline(DBWorkflow):
 	for _module in _workflow.db_modules:
             if _module.vtType == Module.vtType:
                 Module.convert(_module)
-            elif _module.vtType == AbstractionModule.vtType:
-                AbstractionModule.convert(_module)
+            elif _module.vtType == Abstraction.vtType:
+                Abstraction.convert(_module)
             elif _module.vtType == Group.vtType:
                 Group.convert(_module)
             _workflow.graph.add_vertex(_module.id)
@@ -136,8 +133,6 @@ class Pipeline(DBWorkflow):
                 _connection.source.moduleId,
                 _connection.destination.moduleId,
                 _connection.db_id)
-        for _abstraction in _workflow.db_abstractions:
-            Abstraction.convert(_abstraction)
         for _plugin_data in _workflow.db_plugin_datas:
             PluginData.convert(_plugin_data)
         #there should be another way to do this
@@ -149,7 +144,6 @@ class Pipeline(DBWorkflow):
                                            _par.real_id,
                                            _obj.vtType,
                                            _obj.real_id)
-        _workflow.abstraction_map = {}
 
     ##########################################################################
 
@@ -189,20 +183,6 @@ class Pipeline(DBWorkflow):
     def _get_connection_list(self):
         return self.db_connections
     connection_list = property(_get_connection_list)
-
-    def set_abstraction_map(self, map):
-        self.abstraction_map = map
-        for module in self.module_list:
-            if module.vtType == AbstractionModule.vtType:
-                module.abstraction = self.abstraction_map[module.abstraction_id]
-
-    # ONLY FOR COPY/PASTE...
-    def add_abstraction(self, abstraction):
-        """only used for copy/paste--abstractions live on the vistrail"""
-        self.db_add_abstraction(abstraction)
-    def get_abstractions(self):
-        """only used for copy/paste--abstractions live on the vistrail"""
-        return self.db_abstractions
 
     def clear(self):
         """clear() -> None. Erases pipeline contents."""
@@ -287,7 +267,7 @@ class Pipeline(DBWorkflow):
 
     def perform_operation(self, op):
         # print "doing %s %s" % (op.vtType, op.what)
-        if op.db_what == 'abstractionRef' or op.db_what == 'group':
+        if op.db_what == 'abstraction' or op.db_what == 'group':
             what = 'module'
         else:
             what = op.db_what
@@ -323,8 +303,8 @@ class Pipeline(DBWorkflow):
         if self.has_module_with_id(m.id):
             raise VistrailsInternalError("duplicate module id")
 #         self.modules[m.id] = copy.copy(m)
-        if m.vtType == AbstractionModule.vtType:
-            m.abstraction = self.abstraction_map[m.abstraction_id]
+#         if m.vtType == Abstraction.vtType:
+#             m.abstraction = self.abstraction_map[m.abstraction_id]
         self.db_add_object(m)
         self.graph.add_vertex(m.id)
 
@@ -570,7 +550,7 @@ class Pipeline(DBWorkflow):
         
         """
         result = self.modules[id]
-        if result.vtType != AbstractionModule.vtType and \
+        if result.vtType != Abstraction.vtType and \
                 result.vtType != Group.vtType and result.package is None:
             DebugPrint.critical('module %d is missing package' % id)
             descriptor = registry.get_descriptor_from_name_only(result.name)
@@ -779,10 +759,22 @@ class Pipeline(DBWorkflow):
                                   if (p._db_name ==
                                       port._db_name)])
 
-            do_it(reg.module_source_ports(False,
-                                          module.package,
-                                          module.name,
-                                          module.namespace))
+            if module.vtType == Abstraction.vtType and \
+                    module.package == 'local.abstractions':
+                try:
+                    do_it(reg.module_source_ports(False,
+                                                  module.package,
+                                                  module.name,
+                                                  module.namespace))
+                except reg.MissingModulePackage:
+                    do_it(reg.module_source_ports(False,
+                                                  module.package,
+                                                  module.name))
+            else:
+                do_it(reg.module_source_ports(False,
+                                              module.package,
+                                              module.name,
+                                              module.namespace))
             if len(port_list) == 0:
                 # The port might still be in the original registry
                 do_it(registry.module_source_ports(False, module.package,
@@ -816,7 +808,22 @@ class Pipeline(DBWorkflow):
                                   if (p._db_name ==
                                       port._db_name)])
 
-            do_it(reg.module_destination_ports(False, module.package, module.name, module.namespace))
+            if module.vtType == Abstraction.vtType and \
+                    module.package == 'local.abstractions':
+                try:
+                    do_it(reg.module_destination_ports(False,
+                                                  module.package,
+                                                  module.name,
+                                                  module.namespace))
+                except reg.MissingModulePackage:
+                    do_it(reg.module_destination_ports(False,
+                                                  module.package,
+                                                  module.name))
+            else:
+                do_it(reg.module_destination_ports(False, 
+                                                   module.package, 
+                                                   module.name, 
+                                                   module.namespace))
             if len(port_list) == 0:
                 # The port might still be in the original registry
                 do_it(registry.module_destination_ports(False, module.package,
@@ -866,9 +873,21 @@ class Pipeline(DBWorkflow):
         if module_ids == None:
             module_ids = self.modules.iterkeys()
         for mid in module_ids:
-            registry.get_descriptor_by_name(self.modules[mid].package,
-                                            self.modules[mid].name,
-                                            self.modules[mid].namespace)
+            if self.modules[mid].vtType == Abstraction.vtType and \
+                    self.modules[mid].package == 'local.abstractions':
+                try:
+                    registry.get_descriptor_by_name(self.modules[mid].package,
+                                                    self.modules[mid].name,
+                                                    self.modules[mid].namespace)
+                except registry.MissingModulePackage:
+                    self.modules[mid].namespace = None
+                    registry.get_descriptor_by_name(self.modules[mid].package,
+                                                    self.modules[mid].name)
+            else:
+                registry.get_descriptor_by_name(self.modules[mid].package,
+                                                self.modules[mid].name,
+                                                self.modules[mid].namespace)
+                
 
     ##########################################################################
     # Debugging
@@ -971,7 +990,7 @@ class Pipeline(DBWorkflow):
 ################################################################################
 
 import unittest
-from core.vistrail.abstraction_module import AbstractionModule
+from core.vistrail.abstraction import Abstraction
 from core.vistrail.connection import Connection
 from core.vistrail.location import Location
 from core.vistrail.module import Module
@@ -1080,7 +1099,7 @@ class TestPipeline(unittest.TestCase):
 
     def create_pipeline2(self, id_scope=None):
         if id_scope is None:
-            id_scope = IdScope(remap={AbstractionModule.vtType: Module.vtType})
+            id_scope = IdScope(remap={Abstraction.vtType: Module.vtType})
 
         param1 = ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
                              type='Int',
@@ -1105,11 +1124,10 @@ class TestPipeline(unittest.TestCase):
                     name='String',
                     location=loc1,
                     functions=[func1])
-        m2 = AbstractionModule(id=id_scope.getNewId(AbstractionModule.vtType),
-                               abstraction_id=1,
-                               version=13,
-                               location=loc2,
-                               functions=[func2])
+        m2 = Abstraction(id=id_scope.getNewId(Abstraction.vtType),
+                         internal_version=13,
+                         location=loc2,
+                         functions=[func2])
         source = Port(id=id_scope.getNewId(Port.vtType),
                       type='source', 
                       moduleId=m1.id, 
@@ -1119,7 +1137,7 @@ class TestPipeline(unittest.TestCase):
         destination = Port(id=id_scope.getNewId(Port.vtType),
                            type='destination',
                            moduleId=m2.id,
-                           moduleName='AbstractionModule',
+                           moduleName='Abstraction',
                            name='self',
                            spec='')
         c1 = Connection(id=id_scope.getNewId(Connection.vtType),
@@ -1178,7 +1196,7 @@ class TestPipeline(unittest.TestCase):
         import core.db.io
 
         # nedd to id modules and abstraction_modules with same counter
-        id_scope = IdScope(remap={AbstractionModule.vtType: Module.vtType})
+        id_scope = IdScope(remap={Abstraction.vtType: Module.vtType})
         
         p1 = self.create_pipeline2(id_scope)
         p2 = copy.copy(p1)

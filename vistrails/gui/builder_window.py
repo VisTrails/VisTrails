@@ -281,7 +281,17 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.ungroupAction.setStatusTip('Ungroup the '
                                       'selected groups in '
                                       'the current pipeline view')
-
+        self.makeAbstractionAction = QtGui.QAction('Make Abstraction', self)
+        self.makeAbstractionAction.setStatusTip('Create an abstraction '
+                                                'from the selected modules')
+        self.convertToAbstractionAction = \
+            QtGui.QAction('Convert to Abstraction', self)
+        self.convertToAbstractionAction.setStatusTip('Convert selected group'
+                                                     'to an abstraction')
+        self.importAbstractionAction = QtGui.QAction('Import Abstraction', self)
+        self.importAbstractionAction.setStatusTip('Import abstraction from '
+                                                  'a vistrail to local '
+                                                  'abstractions')
         self.selectAllAction = QtGui.QAction('Select All\tCtrl+A', self)
         self.selectAllAction.setEnabled(False)
         self.selectAllAction.setStatusTip('Select all modules in '
@@ -401,6 +411,9 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editMenu.addSeparator()
         self.editMenu.addAction(self.groupAction)
         self.editMenu.addAction(self.ungroupAction)
+        self.editMenu.addAction(self.makeAbstractionAction)
+        self.editMenu.addAction(self.convertToAbstractionAction)
+        self.editMenu.addAction(self.importAbstractionAction)
         self.editMenu.addSeparator()        
         self.editMenu.addAction(self.editPreferencesAction)
 
@@ -500,6 +513,11 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.selectAllAction, self.viewManager.selectAllModules),
             (self.groupAction, self.viewManager.group),
             (self.ungroupAction, self.viewManager.ungroup),
+            (self.makeAbstractionAction, 
+             self.viewManager.makeAbstraction),
+            (self.convertToAbstractionAction,
+             self.viewManager.convertToAbstraction),
+            (self.importAbstractionAction, self.viewManager.importAbstraction),
             (self.newVistrailAction, self.newVistrail),
             (self.openFileAction, self.open_vistrail_default),
             (self.importFileAction, self.import_vistrail_default),

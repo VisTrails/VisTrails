@@ -40,11 +40,12 @@ def main(out_fname, in_fnames):
     by renumbering their ids
 
     """
-    vistrail = io.open_vistrail_from_zip_xml(in_fnames[0])
+    # FIXME this breaks when you use abstractions!
+    (objs, vt_save_dir) = io.open_vistrail_from_zip_xml(in_fnames[0])
     for in_fname in in_fnames[1:]:
-        next_vistrail = io.open_vistrail_from_zip_xml(in_fname)
-        merge_vistrails(vistrail, next_vistrail)
-    io.save_vistrail_to_zip_xml(vistrail, out_fname)
+        (new_objs, new__save_dir) = io.open_vistrail_from_zip_xml(in_fname)
+        merge_vistrails(objs[0][1], new_objs[0][1])
+    io.save_vistrail_to_zip_xml(objs, out_fname)
     
 if __name__ == '__main__':
     if len(sys.argv) < 3:

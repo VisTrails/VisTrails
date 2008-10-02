@@ -23,7 +23,7 @@
 operation """
 from PyQt4 import QtCore, QtGui
 from core.utils.color import ColorByName
-from core.vistrail.abstraction_module import AbstractionModule
+from core.vistrail.abstraction import Abstraction
 from core.vistrail.pipeline import Pipeline
 from gui.pipeline_view import QPipelineView
 from gui.theme import CurrentTheme
@@ -467,7 +467,7 @@ class QVisualDiff(QtGui.QMainWindow):
         p2.ensure_connection_specs()
         p_both = Pipeline()
         # the abstraction map is the same for both p1 and p2
-        p_both.set_abstraction_map(p1.abstraction_map)
+        # p_both.set_abstraction_map(p1.abstraction_map)
         
         scene = self.pipelineView.scene()
         scene.clearItems()
@@ -487,14 +487,14 @@ class QVisualDiff(QtGui.QMainWindow):
                 """
 
                 pipeline = Pipeline()
-                pipeline.set_abstraction_map( \
-                    self.current_pipeline.abstraction_map)
+#                 pipeline.set_abstraction_map( \
+#                     self.current_pipeline.abstraction_map)
                 for module_id in module_ids:
                     module = self.current_pipeline.modules[module_id]
-                    if module.vtType == AbstractionModule.vtType:
-                        abstraction = \
-                            pipeline.abstraction_map[module.abstraction_id]
-                        pipeline.add_abstraction(abstraction)
+#                     if module.vtType == Abstraction.vtType:
+#                         abstraction = \
+#                             pipeline.abstraction_map[module.abstraction_id]
+#                         pipeline.add_abstraction(abstraction)
                     pipeline.add_module(module)
                 for connection_id in connection_ids:
                     connection = self.current_pipeline.connections[connection_id]

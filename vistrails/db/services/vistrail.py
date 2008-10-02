@@ -20,7 +20,7 @@
 ##
 ############################################################################
 
-from db.domain import DBWorkflow, DBAdd, DBDelete, DBAction, DBAbstractionRef, \
+from db.domain import DBWorkflow, DBAdd, DBDelete, DBAction, DBAbstraction, \
     DBModule, DBConnection, DBPort, DBFunction, DBParameter, DBGroup
 from db.services.action_chain import getActionChain, getCurrentOperationDict, \
     getCurrentOperations
@@ -49,8 +49,8 @@ def update_id_scope(vistrail):
 #         print '%s %s' % (key[0], key[1])
         for annotation in action.db_annotations:
             vistrail.idScope.updateBeginId('annotation', annotation.db_id+1)
-    for abstraction in vistrail.db_abstractions:
-        vistrail.idScope.updateBeginId('abstraction', abstraction.db_id+1)
+#     for abstraction in vistrail.db_abstractions:
+#         vistrail.idScope.updateBeginId('abstraction', abstraction.db_id+1)
 
 def materializeWorkflow(vistrail, version):
     # construct path up through tree and perform each action
@@ -815,7 +815,8 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
     sharedConnectionIds = []
     sharedFunctionIds = {}
     for op in sharedOps:
-        if op.what == 'module' or op.what == 'abstractionRef':
+        if op.what == 'module' or op.what == 'abstraction' or \
+                op.what == 'group':
             sharedModuleIds.append(getNewObjId(op))
         elif op.what == 'connection':
             sharedConnectionIds.append(getNewObjId(op))
@@ -829,14 +830,18 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
         moduleDeleteIds = []
         connectionDeleteIds = []
         for op in vDeletes:
-            if op.what == 'module' or op.what == 'abstractionRef':
+            if op.what == 'module' or op.what == 'abstraction' or \
+                    op.what == 'group':
                 moduleDeleteIds.append(getOldObjId(op))
                 if getOldObjId(op) in sharedModuleIds:
                     sharedModuleIds.remove(getOldObjId(op))
                 if paramChgModules.has_key(getOldObjId(op)):
                     del paramChgModules[getOldObjId(op)]
-            elif op.what == 'function' and op.db_parentObjType == 'module' \
-                    and op.db_parentObjId in sharedModuleIds:
+            elif op.what == 'function' and \
+                    (op.db_parentObjType == 'module' or 
+                     op.db_parentObjType == 'abstraction' or 
+                     op.db_parentObjType == 'group') and \
+                     op.db_parentObjId in sharedModuleIds:
                 # have a function change
                 paramChgModules[op.db_parentObjId] = None
                 sharedModuleIds.remove(op.db_parentObjId)
@@ -855,11 +860,13 @@ def getWorkflowDiff(vistrail, v1, v2, heuristic_match=True):
         moduleAddIds = []
         connectionAddIds = []
         for op in vAdds:
-            if op.what == 'module' or op.what == 'abstractionRef':
+            if op.what == 'module' or op.what == 'abstraction' or \
+                    op.what == 'group':
                 moduleAddIds.append(getNewObjId(op))
             elif (op.what == 'function' and
                   (op.db_parentObjType == 'module' or
-                   op.db_parentObjType == 'abstractionRef') and
+                   op.db_parentObjType == 'abstraction' or
+                   op.db_parentObjType == 'group') and
                   op.db_parentObjId in sharedModuleIds):
                 # have a function change
                 paramChgModules[op.db_parentObjId] = None

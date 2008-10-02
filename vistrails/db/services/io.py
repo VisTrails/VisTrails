@@ -29,6 +29,7 @@ ElementTree = get_elementtree_library()
 import sys
 import os
 import os.path
+import shutil
 import tempfile
 
 from db import VistrailsDBException
@@ -221,21 +222,35 @@ def save_to_xml(obj, filename):
     elif obj.vtType == DBLog.vtType:
         return save_log_to_xml(obj, filename)
 
+def append_to_xml(obj, filename):
+    if obj.vtType == DBLog.vtType:
+        return append_log_to_xml(obj, filename)
+    else:
+        raise VistrailsDBException("cannot append object of type '%s'" % \
+                                       obj.vtType)
+
 def open_from_zip_xml(filename, type):
     if type == DBVistrail.vtType:
         return open_vistrail_from_zip_xml(filename)
-    elif type == DBWorkflow.vtType:
-        return open_workflow_from_zip_xml(filename)
-    elif type == DBLog.vtType:
-        return open_log_from_zip_xml(filename)
+    else:
+        raise VistrailsDBException("cannot open object of type '%s' from zip" %\
+                                       type)
+#     elif type == DBWorkflow.vtType:
+#         return open_workflow_from_zip_xml(filename)
+#     elif type == DBLog.vtType:
+#         return open_log_from_zip_xml(filename)
 
-def save_to_zip_xml(obj, filename):
-    if obj.vtType == DBVistrail.vtType:
-        return save_vistrail_to_zip_xml(obj, filename)
-    elif obj.vtType == DBWorkflow.vtType:
-        return save_workflow_to_zip_xml(obj, filename)
-    elif obj.vtType == DBLog.vtType:
-        return save_log_to_zip_xml(obj, filename)
+def save_to_zip_xml(objs, filename, tmp_dir=None):
+    obj_type = objs[0][0]
+    if obj_type == DBVistrail.vtType:
+        return save_vistrail_to_zip_xml(objs, filename, tmp_dir)
+    else:
+        raise VistrailsDBException("cannot save object of type '%s' to zip" % \
+                                       obj_type)
+#     elif obj_type == DBWorkflow.vtType:
+#         return save_workflow_to_zip_xml(objs, filename, tmp_dir)
+#     elif obj_type == DBLog.vtType:
+#         return save_log_to_zip_xml(objs, filename, tmp_dir)
 
 def open_from_db(db_connection, type, obj_id):
     if type == DBVistrail.vtType:
@@ -252,6 +267,30 @@ def save_to_db(obj, db_connection, do_copy=False):
         return save_workflow_to_db(obj, db_connection, do_copy)
     elif obj.vtType == DBLog.vtType:
         return save_log_to_db(obj, db_connection, do_copy)
+
+def close_zip_xml(temp_dir):
+    """close_zip_xml(temp_dir: string) -> None
+    Removes any temporary files for a vistrails file
+
+    temp_dir: directory storing any persistent files
+    """
+    if temp_dir is None:
+        return
+    if not os.path.isdir(temp_dir):
+        if os.path.isfile(temp_dir):
+            os.remove(temp_dir)
+
+        # cleanup has already happened
+        return
+    try:
+        for root, dirs, files in os.walk(temp_dir, topdown=False):
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
+        os.rmdir(temp_dir)
+    except OSError, e:
+        raise VistrailsDBException("Can't remove %s: %s" % (temp_dir, str(e)))
 
 def serialize(object):
     daoList = getVersionDAO(currentVersion)
@@ -279,20 +318,6 @@ def open_vistrail_from_xml(filename):
         raise VistrailsDBException(msg)
     return vistrail
 
-def unzip_file(filename, name_in_archive):
-    # name_in_archive = 'vistrail'
-    (file_, xmlfname) = tempfile.mkstemp(suffix='.xml')
-    core.requirements.require_executable('unzip')
-    os.close(file_)
-    output = []
-    cmdline = ['unzip', '-p', filename, name_in_archive, '>', xmlfname]
-    result = execute_cmdline(cmdline,output)
-
-    # print result, output    
-    if result == 0 or len(output) == 0:
-        return xmlfname
-    return None
-
 def open_vistrail_from_zip_xml(filename):
     """open_vistrail_from_zip_xml(filename) -> Vistrail
     Open a vistrail from a zip compressed format.
@@ -300,18 +325,46 @@ def open_vistrail_from_zip_xml(filename):
 
     """
 
-    vt_xml_fname = unzip_file(filename, 'vistrail')
-    if vt_xml_fname:            
-        vistrail = open_vistrail_from_xml(vt_xml_fname)
-        os.unlink(vt_xml_fname)
-    else:
-        # raise Exception(" ".join(output))
-        raise Exception("Cannot find vistrail in file '%s'" % filename)
-    log_xml_fname = unzip_file(filename, 'log')
-    if log_xml_fname:
-        vistrail.log_filename = log_xml_fname
+    core.requirements.require_executable('unzip')
 
-    return vistrail
+    vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
+    output = []
+    cmdline = ['unzip', '-d', vt_save_dir, filename]
+    result = execute_cmdline(cmdline, output)
+    
+    if result != 0 and len(output) != 0:
+        raise VistrailsDBException("Unzip of '%s' failed" % filename)
+
+    vistrail = None
+    log = None
+    abstraction_files = []
+    unknown_files = []
+    try:
+        for root, dirs, files in os.walk(vt_save_dir):
+            for fname in files:
+                if fname == 'vistrail' and root == vt_save_dir:
+                    vistrail = open_vistrail_from_xml(os.path.join(root, fname))
+                elif fname == 'log' and root == vt_save_dir:
+                    log = open_log_from_xml(os.path.join(root, fname))
+                    objs.append(DBLog.vtType, log)
+                elif fname.startswith('abstraction_'):
+                    abstraction_file = os.path.join(root, fname)
+                    abstraction_files.append(abstraction_file)
+                else:
+                    unknown_files.append(os.path.join(root, fname))
+    except OSError, e:
+        raise VistrailsDBException("Error when reading vt file")
+    if len(unknown_files) > 0:
+        raise VistrailsDBException("Unknown files in vt file: %s" % \
+                                       unknown_files)
+    if vistrail is None:
+        raise VistrailsDBException("vt file does not contain vistrail")
+    
+    objs = [(DBVistrail.vtType, vistrail)]
+    for abstraction_file in abstraction_files:
+        objs.append(('__file__', abstraction_file))
+
+    return (objs, vt_save_dir)
             
 def open_vistrail_from_db(db_connection, id, lock=False):
     """open_vistrail_from_db(db_connection, id : long, lock: bool) 
@@ -355,55 +408,70 @@ def save_vistrail_to_xml(vistrail, filename):
     daoList.save_to_xml(vistrail, filename, tags, currentVersion)
     return vistrail
 
-def save_vistrail_to_zip_xml(vistrail, filename):
-    """save_vistrail_to_zip_xml(vistrail: Vistrail, filename:str)-> None
+def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None):
+    """save_vistrail_to_zip_xml(objs: (string, object, fname), filename:str,
+                                vt_save_dir: str) -> None
+    string: either the object's vtType or 'file' (we are copying a file)
+    object: a DB* object or filename
+    fname: the filename of the object in the zip file
+    filename: filename to save to
+    temp_dir: directory storing any previous files
+
     Generate a zip compressed version of vistrail.
     It raise an Exception if there was an error
     
     """
 
-    (file_, xmlfname) = tempfile.mkstemp(suffix='.xml')
-    os.close(file_)
-    save_vistrail_to_xml(vistrail,xmlfname)
-    vt_fname = os.path.join(os.path.dirname(xmlfname), 'vistrail')
-    os.rename(xmlfname, vt_fname)
-    zip_fnames = [vt_fname, ]
-
-    if vistrail.log is not None and len(vistrail.log.workflow_execs) > 0:
-        if vistrail.log_filename is None:
-            (log_file, log_filename) = tempfile.mkstemp(suffix='.xml')
-            os.close(log_file)
-            log_file = open(log_filename, "wb")
-        else:
-            log_filename = vistrail.log_filename
-            log_file = open(log_filename, 'ab')
-        
-        # append log to log_file
-        for workflow_exec in vistrail.log.workflow_execs:
-            daoList = getVersionDAO(currentVersion)
-            daoList.save_to_xml(workflow_exec, log_file, {}, currentVersion)
-        log_file.close()
-
-        log_fname = os.path.join(os.path.dirname(log_filename), 'log')
-        os.rename(log_filename, log_fname)
-        zip_fnames.append(log_fname)
-
-#     name_in_archive = os.path.join(os.path.dirname(xmlfname),'vistrail')
-#     os.rename(xmlfname,name_in_archive)
-
     core.requirements.require_executable('zip')
+
+    vistrail = objs[0]
+    if vistrail[1].vtType != DBVistrail.vtType or \
+            vistrail[0] != DBVistrail.vtType:
+        raise VistrailsDBException('save_vistrail_to_zip_xml failed, object '
+                                   'is not a vistrail')
+    if not vt_save_dir:
+        vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
+    # saving zip files flat so we'll do without this dir for now
+    # abstraction_dir = os.path.join(vt_save_dir, 'abstractions')
+
+    for (obj_type, obj) in objs:
+        if obj_type == '__file__':
+            if type(obj) == type(""):
+                obj_fname = 'abstraction_' + os.path.basename(obj)
+                # xml_fname = os.path.join(abstraction_dir, obj_fname)
+                xml_fname = os.path.join(vt_save_dir, obj_fname)
+                # if not os.path.exists(abstraction_dir):
+                #     os.mkdir(abstraction_dir)
+                # print 'copying %s -> %s' % (obj, xml_fname)
+                shutil.copyfile(obj, xml_fname)
+            else:
+                raise VistrailsDBException('save_vistrail_to_zip_xml failed, '
+                                           '__file__ must have a filename '
+                                           'as obj')
+        elif obj_type == DBLog.vtType:
+            xml_fname = os.path.join(vt_save_dir, 'log')
+            if not os.path.exists(xml_fname):
+                save_log_to_xml(obj, xml_fname)
+            else:
+                append_log_to_xml(obj, xml_fname)
+        elif obj_type == DBVistrail.vtType:
+            xml_fname = os.path.join(vt_save_dir, 'vistrail')
+            save_to_xml(obj, xml_fname)
+        else:
+            raise VistrailsDBException('save_vistrail_to_zip_xml failed, '
+                                       "type '%s' unrecognized" % obj_type)
+        
+
     output = []
-    cmdline = ['zip', '-r', '-j', '-q', filename] + zip_fnames
+    cmdline = ['zip', '-r', '-j', '-q', filename, vt_save_dir]
     result = execute_cmdline(cmdline,output)
     
     #print result, output
-    for fname in zip_fnames:
-        os.unlink(fname)
     if result != 0 and len(output) != 0:
         for line in output:
             if line.find('deflated') == -1:
                 raise Exception(" ".join(output))
-    return vistrail
+    return (objs, vt_save_dir)
             
 def save_vistrail_to_db(vistrail, db_connection, do_copy=False):
     vistrail.db_version = currentVersion
@@ -455,6 +523,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False):
     for abstraction in vistrail.db_abstractions:
         vistrail.db_abstractions_id_index[abstraction.db_id] = abstraction
     return vistrail
+
 
 ##############################################################################
 # Workflow I/O
@@ -523,11 +592,16 @@ def open_log_from_db(db_connection, id, lock=False):
     return log
 
 def save_log_to_xml(log, filename):
+#     tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+#             'xsi:schemaLocation': 'http://www.vistrails.org/log.xsd'
+#             }
+#     daoList.save_to_xml(log, filename, tags, currentVersion)
+
     daoList = getVersionDAO(currentVersion)
-    tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-            'xsi:schemaLocation': 'http://www.vistrails.org/log.xsd'
-            }
-    daoList.save_to_xml(log, filename, tags, currentVersion)
+    log_file = open(filename, 'wb')
+    for workflow_exec in log.workflow_execs:
+        daoList.save_to_xml(workflow_exec, log_file, {}, currentVersion)
+    log_file.close()
     return log
 
 def save_log_to_db(log, db_connection, do_copy=False):
@@ -538,6 +612,15 @@ def save_log_to_db(log, db_connection, do_copy=False):
         log.db_id = None
     write_sql_objects(db_connection, [log], do_copy)
     db_connection.commit()
+    return log
+
+def append_log_to_xml(log, filename):
+    daoList = getVersionDAO(currentVersion)
+    log_file = open(filename, 'ab')
+
+    for workflow_exec in log.workflow_execs:
+        daoList.save_to_xml(workflow_exec, log_file, {}, currentVersion)
+    log_file.close()
     return log
 
 ##############################################################################
@@ -736,22 +819,24 @@ class TestDBIO(unittest.TestCase):
     def test3(self):
         """test importing a vt file"""
 
-        vistrail = open_vistrail_from_zip_xml( \
+        # FIXME include abstractions
+        (objs, vt_save_dir) = open_vistrail_from_zip_xml( \
             os.path.join(core.system.vistrails_root_directory(),
                          'tests/resources/dummy_new.vt'))
-        assert vistrail is not None
+        assert objs[0][1] is not None
 
     def test4(self):
         """ test saving a vt file """
 
+        # FIXME include abstractions
         filename = os.path.join(core.system.vistrails_root_directory(),
                                 'tests/resources/dummy_new_temp.vt')
     
-        vistrail = open_vistrail_from_zip_xml( \
+        (objs, vt_save_dir) = open_vistrail_from_zip_xml( \
             os.path.join(core.system.vistrails_root_directory(),
                          'tests/resources/dummy_new.vt'))
         try:
-            save_vistrail_to_zip_xml(vistrail, filename)
+            save_vistrail_to_zip_xml(objs, filename, vt_save_dir)
             if os.path.isfile(filename):
                 os.unlink(filename)
         except Exception, e:

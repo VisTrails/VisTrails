@@ -166,6 +166,7 @@ def default():
     """
 
     base_dir = {
+        'abstractionsDirectory': (None, str),
         'autosave': True,
         'dataDirectory': (None, str),
         'dbDefault': False,

@@ -62,7 +62,12 @@ def run_and_get_results(w_list, parameters=''):
         view = DummyView()
         interpreter = core.interpreter.default.get_default_interpreter()
 
-        run = interpreter.execute(None, pip, locator, version, view, aliases)
+        kwargs = {'locator': locator, 
+                  'current_version': version,
+                  'view': view,
+                  'aliases': aliases,
+                  }
+        run = interpreter.execute(pip, **kwargs)
         result.append(run)
     return result
     
@@ -135,7 +140,11 @@ class TestConsoleMode(unittest.TestCase):
                            functions=[ModuleFunction(name='input',
                                                      parameters=params)],
                            ))
-        interpreter.execute(None, p, 'foo', 1, v, None)
+        kwargs = {'locator': XMLFileLocator('foo'),
+                  'current_version': 1L,
+                  'view': v,
+                  }
+        interpreter.execute(p, **kwargs)
 
     def test_python_source(self):
         locator = XMLFileLocator(core.system.vistrails_root_directory() +

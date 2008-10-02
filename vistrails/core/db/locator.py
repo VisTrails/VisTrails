@@ -359,29 +359,54 @@ class ZIPFileLocator(_ZIPFileLocator, CoreLocator):
 
     def __init__(self, filename):
         _ZIPFileLocator.__init__(self, filename)
+
+    def get_convert_klass(self, vt_type):
+        from core.vistrail.vistrail import Vistrail
+        from core.log.log import Log
+        from core.vistrail.pipeline import Pipeline
         
+        klass_map = {Vistrail.vtType: Vistrail,
+                     Log.vtType: Log,
+                     Pipeline.vtType: Pipeline,
+                     '__file__': None}
+        return klass_map[vt_type]
+
     def load(self, klass=None):
         from core.vistrail.vistrail import Vistrail
+
         if klass is None:
             klass = Vistrail
-        obj = _ZIPFileLocator.load(self, klass.vtType)
-        klass.convert(obj)
-        obj.locator = self
-        return obj
+        objs = _ZIPFileLocator.load(self, klass.vtType)
+        # FIXME need to do some smarter conversions here
+        for obj in objs:
+            klass = self.get_convert_klass(obj[0])
+            if klass is None:
+                continue
+            klass.convert(obj[1])
+            obj[1].locator = self
+        return objs
 
-    def save(self, obj):
-        klass = obj.__class__
-        obj = _ZIPFileLocator.save(self, obj, False)
-        klass.convert(obj)
-        obj.locator = self
-        return obj
+    def save(self, objs):
+        objs = _ZIPFileLocator.save(self, objs, False)
+        # FIXME need to do some smarter conversions here
+        for obj in objs:
+            klass = self.get_convert_klass(obj[0])
+            if klass is None:
+                continue
+            klass.convert(obj[1])
+            obj[1].locator = self
+        return objs
 
-    def save_as(self, obj):
-        klass = obj.__class__
-        obj = _ZIPFileLocator.save(self, obj, True)
-        klass.convert(obj)
-        obj.locator = self
-        return obj
+    def save_as(self, objs):
+        objs = _ZIPFileLocator.save(self, objs, True)
+        # FIXME need to do some smarter conversions here
+        for obj in objs:
+            klass = self.get_convert_klass(obj[0])
+            if klass is None:
+                continue
+            klass.convert(obj[1])
+            obj[1].locator = self
+        return objs
 
     ##########################################################################
 

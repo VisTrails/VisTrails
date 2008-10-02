@@ -22,6 +22,7 @@
 
 import copy
 from core.data_structures.bijectivedict import Bidict
+from core.utils import VistrailsInternalError
 
 class NeedsInputPort(Exception):
     def __init__(self, obj, port):
@@ -152,7 +153,6 @@ Designing New Modules
     def __init__(self):
         self.inputPorts = {}
         self.outputPorts = {}
-        self.outputRequestTable = {}
         self.upToDate = False
         self.setResult("self", self) # every object can return itself
         self.logging = _dummy_logging
@@ -185,7 +185,6 @@ deletion."""
                 connector.clear()
         self.inputPorts = {}
         self.outputPorts = {}
-        self.outputRequestTable = {}
         self.logging = _dummy_logging
         self.is_method = Bidict()
         self._latest_method_order = 0
@@ -251,24 +250,14 @@ Makes sure input port 'name' is filled."""
     def compute(self):
         pass
 
-    def addRequestPort(self, port, f):
-        self.outputRequestTable[port] = f
-
-    def requestOutputFromPort(self, port):
-        if not self.outputRequestTable.has_key(port):
-            raise ModuleError(self, ("On-demand request port %s not present in table" %
-                                     port))
-        else:
-            v = self.outputRequestTable[port]()
-            return v
-
     def setResult(self, port, value):
         self.outputPorts[port] = value
 
     def get_output(self, port):
-        if self.outputPorts.has_key(port) or not self.outputPorts[port]:
-            return self.outputPorts[port]
-        return self.requestOutputFromPort(port)
+        # if self.outputPorts.has_key(port) or not self.outputPorts[port]: 
+        if port not in self.outputPorts:
+            raise ModuleError(self, "output port '%s' not found" % port)
+        return self.outputPorts[port]
 
     def getInputConnector(self, inputPort):
         if not self.inputPorts.has_key(inputPort):
@@ -411,7 +400,7 @@ def new_module(baseModule, name, dict={}, docstring=None):
     if docstring:
         d['__doc__'] = docstring
     return type(name, superclasses, d)
-
+    
 # This is the gist of how type() works. The example is run from a python
 # toplevel
 

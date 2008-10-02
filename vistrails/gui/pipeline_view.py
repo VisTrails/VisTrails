@@ -1485,12 +1485,18 @@ mutual connections."""
         item = data.items[0]
         self.controller.reset_pipeline_view = False
         self.noUpdate = True
+        base_descriptor = item.descriptor.base_descriptor
+        internal_version = -1L
+        if base_descriptor.name == 'Abstraction' and \
+                base_descriptor.identifier == 'edu.utah.sci.vistrails.basic':
+            internal_version = item.descriptor.module.internal_version
         module = self.controller.add_module(
             event.scenePos().x(),
             -event.scenePos().y(),
             item.descriptor.identifier,
             item.descriptor.name,
-            item.descriptor.namespace)
+            item.descriptor.namespace,
+            internal_version)
         self.reset_module_colors()
         graphics_item = self.addModule(module)
         graphics_item.update()
@@ -1648,18 +1654,36 @@ mutual connections."""
     def group(self):
         items = self.get_selected_item_ids(True)
         if items is not None:
-            self.clear()
-            self.controller.create_group(items[0], items[1], 
-                                         'Group')
+            # self.clear()
+            self.controller.create_group(items[0], items[1])
             self.setupScene(self.controller.current_pipeline)
 
     def ungroup(self):
         items = self.get_selected_item_ids(True)
         if items is not None:
-            self.clear()
+            # self.clear()
             self.controller.ungroup_set(items[0])
             self.setupScene(self.controller.current_pipeline)
         
+    def makeAbstraction(self):
+        items = self.get_selected_item_ids(True)
+        if items is not None:
+            # self.clear()
+            self.controller.create_abstraction_with_prompt(items[0], items[1])
+            self.setupScene(self.controller.current_pipeline)
+
+    def convertToAbstraction(self):
+        items = self.get_selected_item_ids(False)
+        if items is not None:
+            # self.clear()
+            self.controller.create_abstractions_from_groups(items[0])
+            self.setupScene(self.controller.current_pipeline)
+
+    def importAbstraction(self):
+        items = self.get_selected_item_ids(False)
+        if items is not None:
+            self.controller.import_abstractions(items[0])
+
     def copySelection(self):
         """ copySelection() -> None
         Copy the current selected modules into clipboard

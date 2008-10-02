@@ -83,9 +83,6 @@ class Constant(Module):
     """
     def __init__(self):
         Module.__init__(self)
-        self.default_value = None
-        self.addRequestPort("value_as_string", self.valueAsString)
-        self.python_type = None
         
     def compute(self):
         """Constant.compute() only checks validity (and presence) of
@@ -95,14 +92,16 @@ class Constant(Module):
         if not b:
             raise ModuleError(self, "Internal Error: Constant failed validation")
         self.setResult("value", v)
+        self.setResult("value_as_string", self.translate_to_string(v))
 
     def setValue(self, v):
         self.setResult("value", self.translate_to_python(v))
         self.upToDate = True
 
-    def valueAsString(self):
-        return str(self.value)
-    
+    @staticmethod
+    def translate_to_string(v):
+        return str(v)
+
     @staticmethod
     def get_widget_class():
         return StandardConstantWidget
@@ -112,7 +111,7 @@ _reg.add_module(Constant)
 def new_constant(name, conversion, default_value,
                  validation,
                  widget_type=StandardConstantWidget):
-    """new_constant(name: str, conversion: callable, python_type: type,
+    """new_constant(name: str, conversion: callable,
                     default_value: python_type,
                     validation: callable
                     widget_type: QWidget type) -> Module
@@ -181,24 +180,25 @@ class File(Constant):
 
     def __init__(self):
         Constant.__init__(self)
-        self.default_value = ""
+        self.name = ""
+        File.default_value = self
 
     @staticmethod
     def translate_to_python(x):
         result = File()
         result.name = x
         result.setResult("value", result)
-        result.upToDate = True
         return result
 
-    def translate_to_string(self):
-        return str(self.name)
+    @staticmethod
+    def translate_to_string(x):
+        return str(x.name)
     
     def compute(self):
         n = None
         if self.hasInputFromPort("value"):
             n = self.getInputFromPort("value").name
-        if not n:
+        if n is None:
             self.checkInputPort("name")
             n = self.getInputFromPort("name")
 
@@ -209,18 +209,20 @@ class File(Constant):
         if not os.path.isfile(n):
             raise ModuleError(self, "File '%s' not existent" % n)
         self.setResult("local_filename", self.name)
+        self.setResult("self", self)
         self.setResult("value", self)
+        self.setResult("value_as_string", self.translate_to_string(self))
 
     @staticmethod
     def get_widget_class():
         return FileChooserWidget
 
 _reg.add_module(File)
-_reg.add_input_port(File, "value", File, True)
-_reg.add_output_port(File, "value", File, True)
-_reg.add_input_port(File, "name", String)
-_reg.add_output_port(File, "self", File)
-_reg.add_input_port(File, "create_file", Boolean)
+_reg.add_input_port(File, "value", File)
+_reg.add_output_port(File, "value", File)
+_reg.add_input_port(File, "name", String, True)
+_reg.add_output_port(File, "self", File, True)
+_reg.add_input_port(File, "create_file", Boolean, True)
 _reg.add_output_port(File, "local_filename", String, True)
 
 ##############################################################################
@@ -257,27 +259,27 @@ _reg.add_input_port(FileSink,  "overrideFile", Boolean)
 ##############################################################################
 
 class Color(Constant):
+    # We set the value of a color object to be an InstanceObject that
+    # contains a tuple because a tuple would be interpreted as a
+    # type(tuple) which messes with the interpreter
+
     def __init__(self):
         Constant.__init__(self)
-        self.default_value = InstanceObject(tuple=(1,1,1))
+    
+    default_value = InstanceObject(tuple=(1,1,1))
         
-    def compute(self):
-        if self.hasInputFromPort("value"):
-            self.value = self.getInputFromPort("value").value
-            
-        self.setResult("value", self)
-
     @staticmethod
     def translate_to_python(x):
         return InstanceObject(
-            tuple=tuple([float(a) for a in x[1:-1].split(',')]))
+            tuple=tuple([float(a) for a in x.split(',')]))
 
-    def translate_to_string(self):
-        return str(self.value)
+    @staticmethod
+    def translate_to_string(v):
+        return str(v.tuple)[1:-1]
 
     @staticmethod
     def validate(x):
-        return type(x) == str
+        return type(x) == InstanceObject and hasattr(x, 'tuple')
 
     @staticmethod
     def to_string(r, g, b):
@@ -287,8 +289,6 @@ class Color(Constant):
     def get_widget_class():
         return ColorWidget
         
-    default_value="1,1,1"
-
 class BaseColorInterpolator(object):
 
     def __init__(self, ifunc, begin, end, size):

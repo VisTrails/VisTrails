@@ -167,6 +167,37 @@ by startup.py. This should only be called after init()."""
                 debug.critical(msg)
                 sys.exit(1)
                        
+        def create_abstractions_dir():
+            debug.critical('Will try to create abstractions directory')
+            userpackages_dir = os.path.join(self.configuration.dotVistrails,
+                                           'userpackages')
+            abstractions_dir = os.path.join(userpackages_dir, 'abstractions')
+
+            if not os.path.isdir(abstractions_dir):
+                try:
+                    os.mkdir(abstractions_dir)
+                except:
+                    msg = ("Failed to create abstractions directory: '%s'.  "
+                           "This could be an indication of a permissions "
+                           "problem.  Make sure directory '%s' is writable." % \
+                               (abstractions_dir, userpackages_dir))
+                    debug.critical(msg)
+                    sys.exit(1)
+            try:
+                root_dir = core.system.vistrails_root_directory()
+                default_file = os.path.join(root_dir,'core','resources',
+                                            'abstractions_init')
+                user_file = os.path.join(abstractions_dir, '__init__.py')
+                print 'copying', default_file, '->', abstractions_dir
+                shutil.copyfile(default_file, user_file)
+                debug.log('Succeeded!')
+            except Exception, e:
+                print e
+                debug.critical("Failed to copy default file to abstractions "
+                               "package.  This could be an indication of a "
+                               "permissions problem. Make sure directory "
+                               "'%s' is writable" % abstractions_dir)
+                sys.exit(1)
 
         def install_default_startup():
             debug.critical('Will try to create default startup script')
@@ -268,8 +299,11 @@ by startup.py. This should only be called after init()."""
                                             'userpackages')
                 startup = os.path.join(self.configuration.dotVistrails,
                                        'startup.py')
+                abstractions = os.path.join(userpackages, 'abstractions')
                 if not os.path.isdir(userpackages):
                     create_user_packages_dir()
+                if not os.path.isdir(abstractions):
+                    create_abstractions_dir()
                 try:
                     
                     dotVistrails = file(startup)
@@ -343,6 +377,10 @@ by startup.py. This should only be called after init()."""
             s = os.path.join(core.system.default_dot_vistrails(),
                              'userpackages')
             self.configuration.userPackageDirectory = s
+        if not self.configuration.has('abstractionsDirectory'):
+            s = os.path.join(self.configuration.userPackageDirectory,
+                             'abstractions')
+            self.configuration.abstractionsDirectory = s            
 
     def setupBaseModules(self):
         """ setupBaseModules() -> None        

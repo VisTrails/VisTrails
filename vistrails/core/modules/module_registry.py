@@ -302,6 +302,7 @@ class ModuleDescriptor(object):
         self.input_ports_optional = {}
         self.output_ports_optional = {}
         self.port_order = {}
+        self.abstraction_refs = 1
 
         self._is_abstract = False
         self._configuration_widget = None
@@ -835,6 +836,7 @@ class ModuleRegistry(QtCore.QObject):
               type(module[0]) == type and
               type(module[1]) == dict):
             self.add_module(module[0], **module[1])
+            module = module[0]
         else:
             raise TypeError("Expected module or (module, kwargs)")
         if hasattr(module, '_input_ports'):

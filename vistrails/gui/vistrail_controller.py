@@ -21,6 +21,7 @@
 ############################################################################
 from PyQt4 import QtCore, QtGui
 from core.common import *
+from core.configuration import get_vistrails_configuration
 import core.db.action
 import core.db.locator
 import core.modules.module_registry
@@ -33,14 +34,14 @@ from core.log.log import Log
 from core.modules import module_registry
 from core.modules.module_registry import ModuleRegistry
 from core.modules.basic_modules import Variant
-from core.modules.sub_module import InputPort, OutputPort
+from core.modules.sub_module import InputPort, OutputPort, new_abstraction, \
+    read_vistrail
 from core.packagemanager import get_package_manager
 from core.vistrail.action import Action
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
 from core.system import vistrails_default_file_type
 from core.vistrail.abstraction import Abstraction
-from core.vistrail.abstraction_module import AbstractionModule
 from core.vistrail.annotation import Annotation
 from core.vistrail.connection import Connection
 from core.vistrail.group import Group
@@ -51,7 +52,7 @@ from core.vistrail.module_param import ModuleParam
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.port_spec import PortSpec
-from core.vistrail.vistrail import TagExists
+from core.vistrail.vistrail import Vistrail, TagExists
 from core.vistrails_tree_layout_lw import VistrailsTreeLayoutLW
 from core.interpreter.default import get_default_interpreter
 from core.inspector import PipelineInspector
@@ -64,6 +65,7 @@ import core.analogy
 import copy
 import os.path
 import math
+import uuid
 
 ################################################################################
 
@@ -204,7 +206,7 @@ class VistrailController(QtCore.QObject):
         self.disconnect(self.timer, QtCore.SIGNAL("timeout()"), self.write_temporary)
         self.timer.stop()
 
-    def set_vistrail(self, vistrail, locator):
+    def set_vistrail(self, vistrail, locator, abstractions=None):
         """ set_vistrail(vistrail: Vistrail, locator: VistrailLocator) -> None
         Start controlling a vistrail
         
@@ -214,6 +216,9 @@ class VistrailController(QtCore.QObject):
             self.current_session = self.vistrail.idScope.getNewId("session")
             self.vistrail.current_session = self.current_session
             self.vistrail.log = self.log
+        if abstractions is not None:
+            for abstraction_file in abstractions:
+                self.load_abstraction(abstraction_file)
         self.current_version = -1
         self.current_pipeline = None
         if self.locator != locator and self.locator is not None:
@@ -226,6 +231,24 @@ class VistrailController(QtCore.QObject):
         if locator and locator.has_temporaries():
             self.set_changed(True)
         self.recompute_terse_graph()
+
+    def close_vistrail(self, locator):
+        def process_abstractions(controller, vistrail):
+            abstractions = []
+            for action in vistrail.actions:
+                for operation in action.operations:
+                    if operation.vtType == 'add' or \
+                            operation.vtType == 'change':
+                        if operation.data.vtType == Abstraction.vtType:
+                            abstraction = operation.data
+                            if abstraction.package == 'local.abstractions' and \
+                                    abstraction.namespace is not None:
+                                controller.unload_abstraction( \
+                                    abstraction.name,
+                                    abstraction.namespace)
+        process_abstractions(self, self.vistrail)
+        if locator is not None:
+            locator.close()
 
     ##########################################################################
     # Actions, etc
@@ -273,8 +296,10 @@ class VistrailController(QtCore.QObject):
 
     ##########################################################################
 
-    def add_module(self, x, y, identifier, name, namespace=''):
-        """ addModule(x: int, y: int, identifier, name: str, namespace='') -> Module
+    def add_module(self, x, y, identifier, name, namespace='', 
+                   internal_version=-1):
+        """ addModule(x: int, y: int, identifier, name: str, namespace='') 
+               -> Module
         Add a new module into the current pipeline
         
         """
@@ -288,13 +313,23 @@ class VistrailController(QtCore.QObject):
                             x=x, 
                             y=y,
                             )
-        module_id = self.vistrail.idScope.getNewId(Module.vtType)
-        module = Module(id=module_id,
-                        name=name,
-                        package=identifier,
-                        location=location,
-                        namespace=namespace,
-                        )
+        if internal_version > -1:
+            abstraction_id = self.vistrail.idScope.getNewId(Abstraction.vtType)
+            module = Abstraction(id=abstraction_id,
+                                 name=name,
+                                 package=identifier,
+                                 location=location,
+                                 namespace=namespace,
+                                 internal_version=internal_version,
+                                 )
+        else:
+            module_id = self.vistrail.idScope.getNewId(Module.vtType)
+            module = Module(id=module_id,
+                            name=name,
+                            package=identifier,
+                            location=location,
+                            namespace=namespace,
+                            )
         action = core.db.action.create_action([('add', module)])
         self.add_new_action(action)
         self.perform_action(action)
@@ -658,8 +693,13 @@ class VistrailController(QtCore.QObject):
         self.quiet = True
         for vis in vistrails:
             (locator, version, pipeline, view) = vis
-            result = interpreter.execute(self, pipeline, locator, version, view,
-                                         logger=self.get_logger())
+            kwargs = {'locator': locator,
+                      'current_version': version,
+                      'view': view,
+                      'logger': self.get_logger(),
+                      'controller': self,
+                      }
+            result = interpreter.execute(pipeline, **kwargs)
             if result.parameter_changes:
                 l = result.parameter_changes
                 self.add_parameter_changes_from_execution(pipeline,
@@ -1309,7 +1349,7 @@ class VistrailController(QtCore.QObject):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
         if module.vtType == 'module':
             self.vistrail.update_object(module, db_tag=tag)
-        elif module.vtType == 'abstractionRef':
+        elif module.vtType == 'abstraction':
             self.vistrail.update_object(module, db_name=tag)
         
     def update_current_tag(self,tag):
@@ -1367,12 +1407,8 @@ class VistrailController(QtCore.QObject):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
         pipeline = Pipeline()
-        pipeline.set_abstraction_map(self.vistrail.abstractionMap)
         for module_id in module_ids:
             module = self.current_pipeline.modules[module_id]
-            if module.vtType == AbstractionModule.vtType:
-                abstraction = pipeline.abstraction_map[module.abstraction_id]
-                pipeline.add_abstraction(abstraction)
             pipeline.add_module(module)
         for connection_id in connection_ids:
             connection = self.current_pipeline.connections[connection_id]
@@ -1392,36 +1428,7 @@ class VistrailController(QtCore.QObject):
         modules = []
         connections = []
         if pipeline:
-            def compare_abstractions(a1, a2):
-                if a1.name != a2.name:
-                    return False
-                if len(a1.action_list) != len(a2.action_list):
-                    return False
-                if a1.action_list[0].user != a2.action_list[0].user:
-                    return False
-                if a1.action_list[0].date != a2.action_list[0].date:
-                    return False
-                return True
-
             id_remap = {}
-            for new_abstraction in pipeline.get_abstractions():
-                # don't want to duplicate an existing abstraction...
-                # FIXME going to use a heuristic for this
-                new_id = -1
-                
-                for abstraction in self.vistrail.abstractions:
-                    if compare_abstractions(new_abstraction, abstraction):
-                        new_id = abstraction.id
-                        break
-
-                # force a new id if new_id is -1
-                if new_id == -1:
-                    new_id = \
-                        self.vistrail.idScope.getNewId(Abstraction.vtType)
-                    new_abstraction.id = new_id
-                    self.vistrail.add_abstraction(new_abstraction)
-                id_remap[('abstraction', new_abstraction.id)] = new_id
-
             action = core.db.action.create_paste_action(pipeline, 
                                                         self.vistrail.idScope,
                                                         id_remap)
@@ -1429,7 +1436,8 @@ class VistrailController(QtCore.QObject):
             modules = [op.objectId
                        for op in action.operations
                        if (op.what == 'module' or 
-                           op.what == 'abstractionRef')]
+                           op.what == 'abstraction' or
+                           op.what == 'group')]
             connections = [op.objectId
                            for op in action.operations
                            if op.what == 'connection']
@@ -1443,15 +1451,14 @@ class VistrailController(QtCore.QObject):
     ##########################################################################
     # Grouping/abstraction
 
-    def create_group(self, module_ids, connection_ids, name):
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
-
-        id_remap = {}
+    def create_subpipeline(self, module_ids, connection_ids, id_remap,
+                           id_scope=None):
+        if not id_scope:
+            id_scope = IdScope(1, {Group.vtType: Module.vtType,
+                                   Abstraction.vtType: Module.vtType})
+        
         pipeline = Pipeline()
-
-        # get rid of id so that sql saves correctly
-        pipeline.id = None
-        id_scope = IdScope(1, {Group.vtType: Module.vtType})
+        pipeline.id = None # get rid of id so that sql saves correctly
 
         avg_x = 0.0
         avg_y = 0.0
@@ -1470,13 +1477,12 @@ class VistrailController(QtCore.QObject):
             new_module = module.do_copy(True, id_scope, tmp_remap)
 
             # hack to make sure that we don't adds ids from group.pipeline
-            if module.vtType == Group.vtType:
+            if module.vtType == Group.vtType or \
+                    module.vtType == Abstraction.vtType:
                 id_remap[(Module.vtType, module_id)] = new_module.id
             else:
                 id_remap.update(tmp_remap)
             pipeline.add_module(new_module)
-
-        print '**** id_remap:', id_remap
 
         in_names = {}
         out_names = {}
@@ -1524,40 +1530,34 @@ class VistrailController(QtCore.QObject):
                             names[base_name] = 2
                         name_remap[connection.id] = port_name
 
-                        param_id = \
-                            id_scope.getNewId(ModuleParam.vtType)
+                        param_id = id_scope.getNewId(ModuleParam.vtType)
                         param = ModuleParam(id=param_id,
                                             pos=0,
                                             type='String',
                                             val=port_name)
-                        function_id = \
-                            id_scope.getNewId(ModuleFunction.vtType)
+                        function_id = id_scope.getNewId(ModuleFunction.vtType)
                         function_1 = ModuleFunction(id=function_id,
                                                   name='name',
                                                   parameters=[param])
 
-                        param_id = \
-                            id_scope.getNewId(ModuleParam.vtType)
+                        param_id = id_scope.getNewId(ModuleParam.vtType)
                         param = ModuleParam(id=param_id,
                                             pos=0,
                                             type='String',
                                             val=port_specStr)
 
-                        function_id = \
-                            id_scope.getNewId(ModuleFunction.vtType)
+                        function_id = id_scope.getNewId(ModuleFunction.vtType)
                         function_2 = ModuleFunction(id=function_id,
                                                   name='spec',
                                                   parameters=[param])
 
-                        param_id = \
-                            id_scope.getNewId(ModuleParam.vtType)
+                        param_id = id_scope.getNewId(ModuleParam.vtType)
                         param = ModuleParam(id=param_id,
                                             pos=0,
                                             type='String',
                                             val=base_name)
 
-                        function_id = \
-                            id_scope.getNewId(ModuleFunction.vtType)
+                        function_id = id_scope.getNewId(ModuleFunction.vtType)
                         function_3 = ModuleFunction(id=function_id,
                                                   name='old_name',
                                                   parameters=[param])
@@ -1574,8 +1574,10 @@ class VistrailController(QtCore.QObject):
                                         location=location,
                                         functions=functions
                                         )
+
+#                         module = self.create_submodule(port, name_remap, 
+#                                                        in_names, out_names)  
                         pipeline.add_module(module, id_remap)
-                        # action_list.append(('add', module))
                         spec_str = '(edu.sci.utah.vistrails.basic:%s)' % \
                             port_type
                         port_id = id_scope.getNewId(Port.vtType)
@@ -1604,48 +1606,20 @@ class VistrailController(QtCore.QObject):
                 # connection inside abstraction
                 del_action_list.append(('delete', connection))                
             # else a change port -- done later
+        return (pipeline, del_action_list, changed_ports, name_remap,
+                (avg_x/len(module_ids), avg_y/len(module_ids)))
 
-        # action = core.db.action.create_action(action_list)
-        # action.date = self.vistrail.getDate()
-        # action.user = self.vistrail.getUser()
-
-        # abstraction.add_action(action, 0)
-        # self.vistrail.add_abstraction(abstraction)
-
-        # now group to vistrail
-        loc_id = self.vistrail.idScope.getNewId(Location.vtType)
-        location = Location(id=loc_id,
-                            x=avg_x/len(module_ids), 
-                            y=avg_y/len(module_ids),
-                            )
-        group_id = self.vistrail.idScope.getNewId(Group.vtType)
-        group = Group(id=group_id, 
-                      name=name, 
-                      package='edu.utah.sci.vistrails.basic', 
-                      location=location, 
-                      pipeline=pipeline)
-
-        # module_id = self.vistrail.idScope.getNewId(AbstractionModule.vtType)
-        # module = AbstractionModule(id=module_id,
-        #                            abstraction_id=abstraction.id,
-        #                            version=1,
-        #                            name=name, 
-        #                            location=location,
-        #                            cache=0,
-        #                            )
-        # need to delete connections before modules
-        del_action_list.reverse()
+    def update_connections_to_subpipeline(self, changed_ports, module_id,
+                                          module_name, id_remap, name_remap):
         add_action_list = []
-        add_action_list.append(('add', group))
-        
         for (old_port, connection) in changed_ports:
             new_connection = connection.do_copy(True, self.vistrail.idScope, 
                                                 id_remap)
             port_id = self.vistrail.idScope.getNewId(Port.vtType)
             changed_port = Port(id=port_id,
                                 type=old_port.type,
-                                moduleId=group.id,
-                                moduleName=group.name,
+                                moduleId=module_id,
+                                moduleName=module_name,
                                 name=name_remap[connection.id])
             changed_port.specStr = old_port.specStr
             changed_port.spec = old_port.spec
@@ -1655,6 +1629,38 @@ class VistrailController(QtCore.QObject):
             else:
                 new_connection.destination = changed_port
             add_action_list.append(('add', new_connection))
+        return add_action_list
+
+    def create_group(self, module_ids, connection_ids):
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+
+        id_remap = {}
+        (pipeline, del_action_list, changed_ports, name_remap, loc) = \
+            self.create_subpipeline(module_ids, connection_ids, id_remap)
+
+        # now group to vistrail
+        loc_id = self.vistrail.idScope.getNewId(Location.vtType)
+        location = Location(id=loc_id,
+                            x=loc[0],
+                            y=loc[1],
+                            )
+        group_id = self.vistrail.idScope.getNewId(Group.vtType)
+        group = Group(id=group_id, 
+                      name='Group', 
+                      package='edu.utah.sci.vistrails.basic', 
+                      location=location, 
+                      pipeline=pipeline)
+
+        del_action_list.reverse()
+        add_action_list = []
+        add_action_list.append(('add', group))
+        
+        more_actions = self.update_connections_to_subpipeline(changed_ports,
+                                                              group.id,
+                                                              group.name,
+                                                              id_remap,
+                                                              name_remap)
+        add_action_list.extend(more_actions)
         # print 'add_actions:'
         # for a in add_action_list:
         #     print a
@@ -1673,6 +1679,61 @@ class VistrailController(QtCore.QObject):
         # doesn't match documentation either
         return group
 
+    def create_abstraction_with_prompt(self, module_ids, connection_ids, 
+                                       name=""):
+        name = self.get_abstraction_name(name)
+        if name is None:
+            return
+        return self.create_abstraction(module_ids, connection_ids, name)
+
+    def create_abstraction(self, module_ids, connection_ids, name):
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+
+        if self.abstraction_exists(name):
+            raise VistrailsInternalError("Abstraction '%s' already exists" % \
+                                             name)
+        id_remap = {}
+        (pipeline, del_action_list, changed_ports, name_remap, loc) = \
+            self.create_subpipeline(module_ids, connection_ids, id_remap)
+        
+        # save vistrail
+        abs_vistrail = self.create_vistrail_from_pipeline(pipeline)
+        abs_vistrail.name = name
+        abs_vistrail.change_description("Copied from pipeline", 1L)
+        abs_fname = self.save_abstraction(abs_vistrail)
+
+        # need to late enable stuff on the 'local.abstractions' package
+        self.add_abstraction(abs_vistrail, abs_fname, name)
+
+        # now group to vistrail
+        loc_id = self.vistrail.idScope.getNewId(Location.vtType)
+        location = Location(id=loc_id,
+                            x=loc[0],
+                            y=loc[1],
+                            )
+        abstraction_id = self.vistrail.idScope.getNewId(Abstraction.vtType)
+        abstraction = Abstraction(id=abstraction_id,
+                                  name=name, 
+                                  package='local.abstractions',
+                                  internal_version=1L,
+                                  location=location,
+                                  )
+            
+        del_action_list.reverse()
+        add_action_list = [('add', abstraction)]
+        more_actions = self.update_connections_to_subpipeline(changed_ports,
+                                                              abstraction.id,
+                                                              abstraction.name,
+                                                              id_remap,
+                                                              name_remap)
+        add_action_list.extend(more_actions)
+#         for action in add_action_list:
+#             print action
+        action = core.db.action.create_action(add_action_list + del_action_list)
+        self.add_new_action(action)
+        self.perform_action(action)
+        return abstraction
+
     def ungroup_set(self, module_ids):
         for m_id in module_ids:
             self.ungroup(m_id)
@@ -1680,9 +1741,14 @@ class VistrailController(QtCore.QObject):
     def ungroup(self, module_id):
 
         group = self.current_pipeline.modules[module_id]
-        if group.vtType != Group.vtType:
+        if group.vtType == Group.vtType:
+            pipeline = group.pipeline
+        elif group.vtType == Abstraction.vtType:
+            pipeline = group.summon().pipeline
+        else:
+            print 'not a group or abstraction?'
             return
-        pipeline = group.pipeline
+      
         pipeline.ensure_connection_specs()
 
         id_remap = {}
@@ -1787,222 +1853,214 @@ class VistrailController(QtCore.QObject):
         del_action_list.append(('delete', group))
         action = core.db.action.create_action(add_action_list + del_action_list)
         # Commenting out this as old_obj_id does not exist anymore
-        #for op in action.db_operations:
-        #    print op.vtType, op.what, op.old_obj_id, op.new_obj_id
+#         for op in action.db_operations:
+#             print op.vtType, op.what, op.old_obj_id, op.new_obj_id
         self.add_new_action(action)
         self.perform_action(action)
 
-    def create_abstraction(self, module_ids, connection_ids, name):
-        """ create_abstraction (module_ids : list[long], 
-                                connection_ids : list[long],
-                                name : str) -> AbstractionModule
+    def abstraction_exists(self, name, namespace=None):
+        reg = core.modules.module_registry.registry
+        return reg.has_descriptor_with_name('local.abstractions', name,
+                                            namespace)
+#         conf = get_vistrails_configuration()
+#         if conf.check('userPackageDirectory'):
+#             abstraction_dir = os.path.join(conf.userPackageDirectory,
+#                                            'abstractions')
+#             if not os.path.exists(abstraction_dir):
+#                 raise VistrailsInternalError("Cannot find %s" % \
+#                                                  abstraction_dir)
+#             vt_fname = os.path.join(abstraction_dir, fname + '.vt')
+#             if os.path.exists(vt_fname):
+#                 return True
+#         else:
+#             raise VistrailsInternalError("Cannot find userPackageDirectory")
+#         return False
 
-        """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+    def save_abstraction(self, vistrail, name=None):
+        #FIXME use a core call to save this instead of db.services.io?
+        import db.services.io
+            
+        if name is None:
+            name = vistrail.name
+        if self.abstraction_exists(name):
+            raise VistrailsInternalError("Abstraction with name '%s' already "
+                                         "exists" % name)
+        if vistrail.get_annotation('__abstraction_uuid__') is None:            
+            abstraction_uuid = uuid.uuid1()
+            vistrail.set_annotation('__abstraction_uuid__', abstraction_uuid)
 
-        abstraction = Abstraction(id=-1, name=name)
+        conf = get_vistrails_configuration()
+        if conf.check('userPackageDirectory'):
+            abstraction_dir = os.path.join(conf.userPackageDirectory,
+                                           'abstractions')
+            if not os.path.exists(abstraction_dir):
+                raise VistrailsInternalError("Cannot find %s" % \
+                                                 abstraction_dir)
+            vt_fname = os.path.join(abstraction_dir, name + '.xml')
+            if os.path.exists(vt_fname):
+                raise VistrailsInternalError("'%s' already exists" % \
+                                                 vt_fname)
+            db.services.io.save_vistrail_to_xml(vistrail, vt_fname)
+            return vt_fname
+        return None
 
+    def get_abstraction_descriptor(self, name, namespace=None):
+        reg = core.modules.module_registry.registry
+        return reg.get_descriptor_by_name('local.abstractions', name, namespace)
+
+    def load_abstraction(self, abs_fname, abs_name=None):
+        if abs_name is None:
+            abs_name = os.path.basename(abs_fname)[12:-4]
+        abs_vistrail = read_vistrail(abs_fname)
+        abstraction_uuid = \
+            abs_vistrail.get_annotation('__abstraction_uuid__').value
+        if self.abstraction_exists(abs_name):
+            descriptor = self.get_abstraction_descriptor(abs_name)
+            if descriptor.module.uuid == abstraction_uuid:
+                return
+        if self.abstraction_exists(abs_name, abstraction_uuid):
+            descriptor = \
+                self.get_abstraction_descriptor(abs_name, abstraction_uuid)
+            descriptor.abstraction_refs += 1
+            # print 'load ref_count:', descriptor.abstraction_refs
+            return
+            
+        self.add_abstraction(abs_vistrail, abs_fname, abs_name, 
+                             abstraction_uuid)
+            
+    def unload_abstraction(self, name, namespace):
+        if self.abstraction_exists(name, namespace):
+            descriptor = self.get_abstraction_descriptor(name, namespace)
+            descriptor.abstraction_refs -= 1
+            # print 'unload ref_count:', descriptor.abstraction_refs
+            if descriptor.abstraction_refs < 1:
+                # unload abstraction
+                print "deleting module:", name, namespace
+                reg = core.modules.module_registry.registry
+                reg.delete_module('local.abstractions', name, namespace)
+
+    def add_abstraction(self, abs_vistrail, abs_fname, name, 
+                        namespace=None): 
+        reg = core.modules.module_registry.registry
+        abstraction = new_abstraction(name, abs_vistrail, reg, abs_fname)
+        reg.auto_add_module((abstraction, {'package': 'local.abstractions',
+                                           'namespace': namespace,
+                                           }))
+
+    def import_abstractions(self, abstraction_ids):
+        for abstraction_id in abstraction_ids:
+            abstraction = self.current_pipeline.modules[abstraction_id]
+            self.import_abstraction(abstraction.name, abstraction.namespace)
+        
+    def import_abstraction(self, name, namespace):
+        # copy from a local namespace to local.abstractions
+        reg = core.modules.module_registry.registry
+        if namespace is None:
+            # can't import an abstraction that already lives in 
+            # local.abstractions
+            return
+        new_name = self.get_abstraction_name(name)
+        if new_name is None:
+            return
+        if not self.abstraction_exists(name, namespace):
+            raise VistrailsInternalError("Abstraction %s|%s not on registry" %\
+                                             (name, namespace))
+        descriptor = self.get_abstraction_descriptor(name, namespace)
+        abs_fname = descriptor.module.vt_fname
+        abs_vistrail = descriptor.module.vistrail
+        abs_fname = self.save_abstraction(abs_vistrail, new_name)
+        self.add_abstraction(abs_vistrail, abs_fname, new_name)
+        
+    def get_abstraction_name(self, name=""):
+        name = self.do_abstraction_prompt(name)
+        if name is None:
+            return None
+        while name == "" or self.abstraction_exists(name):
+            name = self.do_abstraction_prompt(name, True)
+            if name is None:
+                return None
+        return name
+
+    def do_abstraction_prompt(self, name="", exists=False):
+        if exists:
+            prompt = "'%s' already exists.  Enter a new abstraction name" % \
+                name
+        else:
+            prompt = 'Enter abstraction name'
+            
+        (text, ok) = QtGui.QInputDialog.getText(None, 
+                                                'Set Abstraction Name',
+                                                prompt,
+                                                QtGui.QLineEdit.Normal,
+                                                name)
+        if ok and not text.isEmpty():
+            return str(text).strip().rstrip()
+        if not ok:
+            return None
+        return ""
+
+    def create_vistrail_from_pipeline(self, pipeline):
+        abs_vistrail = Vistrail()
+        
         id_remap = {}
-        avg_x = 0.0
-        avg_y = 0.0
+        action = core.db.action.create_paste_action(pipeline, 
+                                                    abs_vistrail.idScope,
+                                                    id_remap)
+        abs_vistrail.add_action(action, 0L, 0)
+        return abs_vistrail
+
+    def create_abstractions_from_groups(self, group_ids):
+        for group_id in group_ids:
+            self.create_abstraction_from_group(group_id)
+
+    def create_abstraction_from_group(self, group_id, name=""):
+        name = self.get_abstraction_name(name)
+        if name is None:
+            return
+        group = self.current_pipeline.modules[group_id]
+        abs_vistrail = self.create_vistrail_from_pipeline(group.pipeline)
+        abs_vistrail.name = name
+        abs_vistrail.change_description("Created from group", 1L)
+        abs_fname = self.save_abstraction(abs_vistrail)
+
+        # need to late enable stuff on the 'local.abstractions' package
+        self.add_abstraction(abs_vistrail, abs_fname, name)
         
-        abs_modules = []
-        abs_connections = []
-        changed_ports = []
+        a_remap = {}
+        new_location = group.location.do_copy(True, self.vistrail.idScope,
+                                              a_remap)
 
-        action_list = []
-        del_action_list = []
-        for module_id in module_ids:
-            module = self.current_pipeline.modules[module_id]
-            del_action_list.append(('delete', module))
-            avg_x += module.location.x
-            avg_y += module.location.y
-            new_module  = module.do_copy(True, abstraction.idScope, 
-                                         id_remap)
-            action_list.append(('add', new_module))
+        abstraction_id = self.vistrail.idScope.getNewId(Abstraction.vtType)
+        abstraction = Abstraction(id=abstraction_id,
+                                  name=name, 
+                                  package='local.abstractions',
+                                  internal_version=1L,
+                                  location=new_location,
+                                  )
 
-        in_names = {}
-        out_names = {}
-        name_remap = {}
-        for connection_id in connection_ids:
-            connection = self.current_pipeline.connections[connection_id]
-            all_inside = True
-            all_outside = True
-            for port in connection.ports:
-                if not (Module.vtType, port.moduleId) in id_remap:
-                    all_inside = False
-                else:
-                    all_outside = False
-
-            # if a connection has an "external" connection, we need to
-            # create an input port or output port module
+        action_list = [('add', abstraction)]
+        a_remap = {(Module.vtType, group_id): abstraction_id}
+        graph = self.current_pipeline.graph
+        connect_ids = self.get_module_connection_ids([group_id], graph)
+        for c_id in connect_ids:
+            connection = self.current_pipeline.connections[c_id]
+            action_list.append(('delete', connection))
             new_ports = []
-            if not all_inside and not all_outside:
-                for port in connection.ports:
-                    if not (Module.vtType, port.moduleId) in id_remap:
-
-                        loc_id = abstraction.idScope.getNewId(Location.vtType)
-                        # FIXME get better location
-                        # should use location of current attached module
-                        location = Location(id=loc_id,
-                                            x=0.0,
-                                            y=0.0,
-                                            )
-                        if port.endPoint == PortEndPoint.Source:
-                            port_klass = Variant
-                            port_type = InputPort.__name__
-                            port_specStr = connection.destination.specStr
-                            base_name = connection.destination.name
-                            names = in_names
-                        elif port.endPoint == PortEndPoint.Destination:
-                            port_klass = core.modules.vistrails_module.Module
-                            port_type = OutputPort.__name__
-                            port_specStr = connection.source.specStr
-                            base_name = connection.source.name
-                            names = out_names
-                        if base_name in names:
-                            port_name = base_name + '_' + str(names[base_name])
-                            names[base_name] += 1
-                        else:
-                            port_name = base_name
-                            names[base_name] = 2
-                        name_remap[connection.id] = port_name
-
-                        param_id = \
-                            abstraction.idScope.getNewId(ModuleParam.vtType)
-                        param = ModuleParam(id=param_id,
-                                            pos=0,
-                                            type='String',
-                                            val=port_name)
-                        function_id = \
-                            abstraction.idScope.getNewId(ModuleFunction.vtType)
-                        function_1 = ModuleFunction(id=function_id,
-                                                  name='name',
-                                                  parameters=[param])
-
-                        param_id = \
-                            abstraction.idScope.getNewId(ModuleParam.vtType)
-                        param = ModuleParam(id=param_id,
-                                            pos=0,
-                                            type='String',
-                                            val=port_specStr)
-
-                        function_id = \
-                            abstraction.idScope.getNewId(ModuleFunction.vtType)
-                        function_2 = ModuleFunction(id=function_id,
-                                                  name='spec',
-                                                  parameters=[param])
-
-                        param_id = \
-                            abstraction.idScope.getNewId(ModuleParam.vtType)
-                        param = ModuleParam(id=param_id,
-                                            pos=0,
-                                            type='String',
-                                            val=base_name)
-
-                        function_id = \
-                            abstraction.idScope.getNewId(ModuleFunction.vtType)
-                        function_3 = ModuleFunction(id=function_id,
-                                                  name='old_name',
-                                                  parameters=[param])
-
-                        functions = [function_1, function_2]
-                        if port.endPoint == PortEndPoint.Source:
-                            functions.append(function_3)
-
-                        new_id = abstraction.idScope.getNewId(Module.vtType)
-                        # FIXME package name should not be hard-coded
-                        module = Module(id=new_id,
-                                        name=port_type,
-                                        package='edu.utah.sci.vistrails.basic',
-                                        location=location,
-                                        functions=functions
-                                        )
-                        action_list.append(('add', module))
-                        spec_str = '(edu.sci.utah.vistrails.basic:%s)' % \
-                            port_type
-                        port_id = abstraction.idScope.getNewId(Port.vtType)
-                        new_port = Port(id=port_id,
-                                        type=port.type,
-                                        moduleId=module.id,
-                                        moduleName=port_type,
-                                        name='InternalPipe')
-                        new_port.spec = \
-                            core.modules.module_registry.PortSpec(port_klass)
-                        new_ports.append(new_port)  
-                    else:
-                        changed_ports.append((port, connection))
-            new_connection = connection.do_copy(True, abstraction.idScope,
-                                                id_remap)
-            for port in new_ports:
-                if port.endPoint == PortEndPoint.Source:
-                    new_connection.source = port
-                elif port.endPoint == PortEndPoint.Destination:
-                    new_connection.destination = port
-            action_list.append(('add', new_connection))
-
-            # assume that we don't have len(new_ports) >= 2
-            if len(new_ports) <= 1:
-                # connection inside abstraction
-                del_action_list.append(('delete', connection))                
-            # else a change port -- done later
-
+            for port in connection.ports:
+                port = port.do_copy(True, self.vistrail.idScope, 
+                                    a_remap)
+#                 if port.moduleId == group_id:
+#                     port.moduleId = abstraction.id
+                new_ports.append(port)
+            connection_id = self.vistrail.idScope.getNewId(Connection.vtType)
+            action_list.append(('add', Connection(id=connection_id,
+                                                  ports=new_ports)))
+        action_list.append(('delete', group))
+            
         action = core.db.action.create_action(action_list)
-        action.date = self.vistrail.getDate()
-        action.user = self.vistrail.getUser()
-
-        abstraction.add_action(action, 0)
-        self.vistrail.add_abstraction(abstraction)
-        self.set_changed(True)
-
-        # now add module encoding abstraction reference to vistrail
-        loc_id = self.vistrail.idScope.getNewId(Location.vtType)
-        location = Location(id=loc_id,
-                            x=avg_x/len(module_ids), 
-                            y=avg_y/len(module_ids),
-                            )
-        module_id = self.vistrail.idScope.getNewId(AbstractionModule.vtType)
-        module = AbstractionModule(id=module_id,
-                                   abstraction_id=abstraction.id,
-                                   version=1,
-                                   name=name, 
-                                   location=location,
-                                   cache=0,
-                                   )
-        # need to delete connections before modules
-        del_action_list.reverse()
-        add_action_list = []
-        add_action_list.append(('add', module))
-        
-        for (old_port, connection) in changed_ports:
-            other_remap = {}
-            new_connection = connection.do_copy(True, self.vistrail.idScope,
-                                                other_remap)
-            port_id = self.vistrail.idScope.getNewId(Port.vtType)
-            changed_port = Port(id=port_id,
-                                type=old_port.type,
-                                moduleId=module.id,
-                                moduleName=module.name,
-                                name=name_remap[connection.id])
-            changed_port.specStr = old_port.specStr
-            changed_port.spec = old_port.spec
-
-            if old_port.type == 'source':
-                new_connection.source = changed_port
-            else:
-                new_connection.destination = changed_port
-            add_action_list.append(('add', new_connection))
-        action = core.db.action.create_action(add_action_list + del_action_list)
-        # for op in action.db_operations:
-        #      print op.vtType, op.what, op.old_obj_id, op.new_obj_id
         self.add_new_action(action)
         self.perform_action(action)
-        self.current_pipeline.set_abstraction_map(self.vistrail.abstractionMap)
-
-        # FIXME we shouldn't have to return a module
-        # we don't do it for any other type
-        # doesn't match documentation either
-        return module
+        return abstraction
 
     def set_changed(self, changed):
         """ set_changed(changed: bool) -> None
@@ -2041,19 +2099,47 @@ class VistrailController(QtCore.QObject):
                 locator.save_temporary(self.vistrail)
 
     def write_vistrail(self, locator):
+        def process_abstractions(vistrail):
+            reg = core.modules.module_registry.registry
+            abstractions = []
+            for action in vistrail.actions:
+                for operation in action.operations:
+                    if operation.vtType == 'add' or \
+                            operation.vtType == 'change':
+                        if operation.data.vtType == Abstraction.vtType:
+                            abstraction = operation.data
+                            if abstraction.package == 'local.abstractions':
+                                getter = reg.get_descriptor_by_name
+                                descriptor = getter(abstraction.package,
+                                                    abstraction.name)
+                                abstraction.namespace = \
+                                    descriptor.module.uuid
+                                abs_fname = descriptor.module.vt_fname
+                                abstractions.append(abs_fname)
+            return abstractions
+
         if self.vistrail and (self.changed or self.locator != locator):
+            # FIXME make all locators work with lists of objects
+            objs = [(Vistrail.vtType, self.vistrail)]
+            abstractions = process_abstractions(self.vistrail)
+            for abs_fname in abstractions:
+                objs.append(('__file__', abs_fname))
             # FIXME hack to use db_currentVersion for convenience
             # it's not an actual field
             self.vistrail.db_currentVersion = self.current_version
             if self.locator != locator:
                 old_locator = self.get_locator()
                 self.locator = locator
-                new_vistrail = self.locator.save_as(self.vistrail)
+                # new_vistrail = self.locator.save_as(self.vistrail)
+                objs = self.locator.save_as(objs)
+                new_vistrail = objs[0][1]
                 self.set_file_name(locator.name)
                 if old_locator:
                     old_locator.clean_temporaries()
             else:
-                new_vistrail = self.locator.save(self.vistrail)
+                # new_vistrail = self.locator.save(self.vistrail)
+                objs = self.locator.save(objs)
+                new_vistrail = objs[0][1]
             if id(self.vistrail) != id(new_vistrail):
                 new_version = new_vistrail.db_currentVersion
                 self.set_vistrail(new_vistrail, locator)
@@ -2203,6 +2289,7 @@ class VistrailController(QtCore.QObject):
 import unittest
 import gui.utils
 import api
+import os
 
 class TestVistrailController(gui.utils.TestVisTrailsGUI):
 
@@ -2213,6 +2300,7 @@ class TestVistrailController(gui.utils.TestVisTrailsGUI):
     def test_abstraction_create(self):
         from core.db.locator import XMLFileLocator
         import core.db.io
+        from core.configuration import get_vistrails_configuration
         v = XMLFileLocator(core.system.vistrails_root_directory() +
                            '/tests/resources/test_abstraction.xml').load()
 
@@ -2224,89 +2312,11 @@ class TestVistrailController(gui.utils.TestVisTrailsGUI):
         module_ids = [1, 2, 3]
         connection_ids = [1, 2, 3]
         
-        controller.create_abstraction(module_ids, connection_ids, 'FloatList')
-        
-        # from core.vistrail.module import Module
-        # from core.vistrail.module_function import ModuleFunction
-        # from core.vistrail.module_param import ModuleParam
-        # from core.vistrail.abstraction_module import AbstractionModule
-        # from core.vistrial.operation import AddOp, ChangeOp, DeleteOp
-        # from db.domain import IdScope
-        
-        # id_scope = IdScope(remap={AddOp.vtType: 'operation',
-        #                           ChangeOp.vtType: 'operation',
-        #                           DeleteOp.vtType: 'operation',
-        #                           AbstractionModule.vtType: Module.vtType})
-
-        # p1 = ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
-        #                  type='Float',
-        #                  val='1.123')
-        # f1 = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
-        #                     name='value',
-        #                     parameters=[p1])
-        # m1 = Module(id=id_scope.getNewId(Module.vtType),
-        #             name='Float',
-        #             package='edu.utah.sci.vistrails.basic',
-        #             functions=[f1])
-
-        # p2 = ModuleParam(id=id_scope.getNewId(ModuleParam.vtType),
-        #                  type='Float',
-        #                  val='4.456')
-        # f2 = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
-        #                     name='value',
-        #                     parameters=[p2])
-        # m2 = Module(id=id_scope.getNewId(Module.vtType),
-        #             name='Float',
-        #             package='edu.utah.sci.vistrails.basic',
-        #             functions=[f2])
-
-        # m3 = Module(id=id_scope.getNewId(Module.vtType),
-        #             name='List',
-        #             package='edu.utah.sci.vistrails.basic',
-        #             functions=[])
-
-        # m4 = Module(id=id_scope.getNewId(Module.vtType),
-        #             name='List',
-        #             package='edu.utah.sci.vistrails.basic',
-        #             functions=[])
-
-        # s1 = Port(id=id_scope.getNewId(Port.vtType),
-        #           type='source',
-        #           moduleId=m1.id,
-        #           moduleName='Float',
-        #           name='self')
-        # d1 = Port(id=id_scope.getNewId(Port.vtType),
-        #           type='destination',
-        #           moduleId=m3.id,
-        #           moduleName='List',
-        #           name='self')
-        # c1 = Connection(id=id_scope.getNewId(Connection.vtType),
-        #                 ports=[s1, d1])
-
-        # s2 = Port(id=id_scope.getNewId(Port.vtType),
-        #           type='source',
-        #           moduleId=m2.id,
-        #           moduleName='Float',
-        #           name='self')
-        # d2 = Port(id=id_scope.getNewId(Port.vtType),
-        #           type='destination',
-        #           moduleId=m4.id,
-        #           moduleName='List',
-        #           name='self')
-        # c2 = Connection(id=id_scope.getNewId(Connection.vtType),
-        #                 ports=[s2, d2])
-
-        # s3 = Port(id=id_scope.getNewId(Port.vtType),
-        #           type='source',
-        #           moduleId=m3.id,
-        #           moduleName='List',
-        #           name='self')
-        # d3 = Port(id=id_scope.getNewId(Port.vtType),
-        #           type='destination',
-        #           moduleId=m4.id,
-        #           moduleName='List',
-        #           name='self')
-        # c3 = Connection(id=id_scope.getNewId(Connection.vtType),
-        #                 ports=[s3, d3])
+        controller.create_abstraction(module_ids, connection_ids, 
+                                      '__TestFloatList')
+        config = get_vistrails_configuration()
+        os.remove(os.path.join(config.abstractionsDirectory, 
+                               '__TestFloatList.xml'))
+ 
 
         

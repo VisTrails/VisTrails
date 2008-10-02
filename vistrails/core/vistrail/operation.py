@@ -21,12 +21,12 @@
 ############################################################################
 
 from db.domain import DBAdd, DBChange, DBDelete
-from db.domain import DBAnnotation, DBAbstractionRef, DBConnection, DBGroup, \
+from db.domain import DBAnnotation, DBAbstraction, DBConnection, DBGroup, \
     DBLocation, DBModule, DBFunction, DBPluginData, DBParameter, DBPort, \
     DBPortSpec, DBTag
 
 from core.vistrail.annotation import Annotation
-from core.vistrail.abstraction_module import AbstractionModule
+from core.vistrail.abstraction import Abstraction
 from core.vistrail.connection import Connection
 from core.vistrail.group import Group
 from core.vistrail.location import Location
@@ -41,7 +41,7 @@ from core.vistrail.tag import Tag
 def convert_data(_data):
     map = {
         DBAnnotation.vtType: Annotation,
-        DBAbstractionRef.vtType: AbstractionModule,
+        DBAbstraction.vtType: Abstraction,
         DBConnection.vtType: Connection,
         DBLocation.vtType: Location,
         DBModule.vtType: Module,

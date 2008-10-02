@@ -183,6 +183,7 @@ class TestHTTPFile(unittest.TestCase):
         self.assertEquals(foo.filename, '/~cscheid/stuff/vtkdata-5.0.2.zip')
 
     def testIncorrectURL(self):
+        from core.db.locator import XMLFileLocator
         import core.vistrail
         from core.vistrail.module import Module
         from core.vistrail.module_function import ModuleFunction
@@ -201,10 +202,15 @@ class TestHTTPFile(unittest.TestCase):
                            functions=[m_function],
                            ))
         interpreter = core.interpreter.default.get_default_interpreter()
-        interpreter.execute(None, p, 'foo', 1, self.DummyView(), None)
+        kwargs = {'locator': XMLFileLocator('foo'),
+                  'current_version': 1L,
+                  'view': self.DummyView(),
+                  }
+        interpreter.execute(p, **kwargs)
 
     def testIncorrectURL_2(self):
         import core.vistrail
+        from core.db.locator import XMLFileLocator
         from core.vistrail.module import Module
         from core.vistrail.module_function import ModuleFunction
         from core.vistrail.module_param import ModuleParam
@@ -222,8 +228,11 @@ class TestHTTPFile(unittest.TestCase):
                            functions=[m_function],
                            ))
         interpreter = core.interpreter.default.get_default_interpreter()
-        interpreter.execute(None, p, 'foo', 1, self.DummyView(), None)
-
+        kwargs = {'locator': XMLFileLocator('foo'),
+                  'current_version': 1L,
+                  'view': self.DummyView(),
+                  }
+        interpreter.execute(p, **kwargs)
 
 if __name__ == '__main__':
     unittest.main()

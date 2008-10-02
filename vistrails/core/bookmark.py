@@ -490,11 +490,11 @@ class BookmarkController(object):
         interpreter = get_default_interpreter()
         for vis in vistrails:
             (locator, version, pipeline, view) = vis
-            (objs, errors, executed) = interpreter.execute(None,
-                                                           pipeline, 
-                                                           locator, 
-                                                           version, 
-                                                           view)
+            kwargs = {'locator': locator, 
+                      'current_version': version,
+                      'view': view,
+                      }
+            res = interpreter.execute(pipeline, **kwargs)
 
     def parameter_exploration(self, ids, specs):
         """parameter_exploration(ids: list, specs: list) -> None

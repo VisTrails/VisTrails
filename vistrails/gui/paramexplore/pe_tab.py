@@ -172,15 +172,14 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
                     if not progress.wasCanceled():
                         progress.setValue(progress.value()+1)
                         QtCore.QCoreApplication.processEvents()
-                interpreter.execute(
-                    None,
-                    modifiedPipelines[pi],
-                    self.controller.locator,
-                    self.controller.current_version,
-                    self.controller.current_pipeline_view,
-                    moduleExecutedHook=[moduleExecuted],
-                    reason='Parameter Exploration',
-                    actions=performedActions[pi])
+                kwargs = {'locator': self.controller.locator,
+                          'current_version': self.controller.current_version,
+                          'view': self.controller.current_pipeline_view,
+                          'module_executed_hook': [moduleExecuted],
+                          'reason': 'Parameter Exploration',
+                          'actions': performedActions[pi],
+                          }
+                interpreter.execute(modifiedPipelines[pi], **kwargs)
             progress.setValue(totalProgress)
 
     def exploreChange(self, notEmpty):

@@ -20,26 +20,47 @@
 ##
 ############################################################################
 
-from core.vistrail.action import Action
-from core.vistrail.tag import Tag
+import copy
+
+from core.modules.module_registry import registry, ModuleRegistry
+from core.vistrail.annotation import Annotation
+from core.vistrail.location import Location
+from core.vistrail.module import Module
+from core.vistrail.module_function import ModuleFunction
 from db.domain import DBAbstraction
 
-class Abstraction(DBAbstraction):
+class Abstraction(DBAbstraction, Module):
 
     ##########################################################################
     # Constructors and copy
 
     def __init__(self, *args, **kwargs):
         DBAbstraction.__init__(self, *args, **kwargs)
+        if self.cache is None:
+            self.cache = 1
         if self.id is None:
             self.id = -1
-        
+        if self.location is None:
+            self.location = Location(x=-1.0, y=-1.0)
+        if self.name is None:
+            self.name = ''
+        if self.package is None:
+            self.package = ''
+        if self.version is None:
+            self.version = ''
+        self.portVisible = set()
+        self.registry = None
+
     def __copy__(self):
         return Abstraction.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBAbstraction.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Abstraction
+        cp.registry = None
+#         for port_spec in cp.db_portSpecs:
+#             cp.add_port_to_registry(port_spec)
+        cp.portVisible = copy.copy(self.portVisible)
         return cp
 
     @staticmethod
@@ -47,45 +68,48 @@ class Abstraction(DBAbstraction):
         if _abstraction.__class__ == Abstraction:
             return
         _abstraction.__class__ = Abstraction
-        for _action in _abstraction.action_list:
-            Action.convert(_action)
-        for _tag in _abstraction.tag_list:
-            Tag.convert(_tag)
+        _abstraction.registry = None
+        _abstraction.portVisible = set()
+        if _abstraction.db_location:
+            Location.convert(_abstraction.db_location)
+	for _function in _abstraction.db_functions:
+	    ModuleFunction.convert(_function)
+        for _annotation in _abstraction.db_get_annotations():
+            Annotation.convert(_annotation)
+
 
     ##########################################################################
     # Properties
     
+    # We need to repeat these here because Module uses DBModule. ...
     id = DBAbstraction.db_id
+    cache = DBAbstraction.db_cache
+    annotations = DBAbstraction.db_annotations
+    location = DBAbstraction.db_location
+    center = DBAbstraction.db_location
     name = DBAbstraction.db_name
-
-    def _get_actions(self):
-        return self.db_actions_id_index
-    actions = property(_get_actions)
-    def _get_action_list(self):
-        return self.db_actions
-    action_list = property(_get_action_list)
-    
-    def _get_tags(self):
-        return self.db_tags_id_index
-    tags = property(_get_tags)
-    def _get_tag_list(self):
-        return self.db_tags
-    tag_list = property(_get_tag_list)
+    label = DBAbstraction.db_name
+    namespace = DBAbstraction.db_namespace
+    package = DBAbstraction.db_package
+    tag = DBAbstraction.db_tag
+    version = DBAbstraction.db_version
+    internal_version = DBAbstraction.db_internal_version
 
     ##########################################################################
 
-    def add_action(self, action, parent):
-        Action.convert(action)
-        if action.id < 0:
-            action.id = self.idScope.getNewId(action.vtType)
-        action.prevId = parent
-        for op in action.operations:
-            if op.id < 0:
-                op.id = self.idScope.getNewId('operation')
-        self.add_version(action)                
-
-    def add_version(self, action):
-        self.db_add_action(action)
+    def summon(self):
+        get = registry.get_descriptor_by_name
+        try:
+            descriptor = get(self.package, self.name, self.namespace)
+        except registry.MissingModulePackage:
+            descriptor = get(self.package, self.name)
+        result = descriptor.module()
+        if self.cache != 1:
+            result.is_cacheable = lambda *args: False
+        if hasattr(result, 'srcPortsOrder'):
+            result.srcPortsOrder = [p.name for p in self.destinationPorts()]
+        result.registry = self.registry or registry
+        return result
 
     ##########################################################################
     # Operators
@@ -95,13 +119,15 @@ class Abstraction(DBAbstraction):
         object. 
 
         """
-        rep = '<abstraction id="%s" name="%s">' + \
-            '<actions>%s</actions>' + \
-            '<tags>%s</tags>' + \
-            '</abstraction>'
-        return  rep % (str(self.id), str(self.name), 
-                       [str(a) for a in self.action_list],
-                       [str(t) for t in self.tag_list])
+#        rep = '<abstraction id="%s" name="%s">' + \
+#             '<actions>%s</actions>' + \
+#             '<tags>%s</tags>' + \
+#             '</abstraction>'
+#         return  rep % (str(self.id), str(self.name), 
+#                        [str(a) for a in self.action_list],
+#                        [str(t) for t in self.tag_list])
+        rep = '<abstraction id="%s" name="%s"/>'
+        return rep % (str(self.id), str(self.name))
 
     def __eq__(self, other):
         """ __eq__(other: Abstraction) -> boolean
@@ -111,16 +137,6 @@ class Abstraction(DBAbstraction):
         """
         if type(self) != type(other):
             return False
-        if len(self.tag_list) != len(other.tag_list):
-            return False
-        if len(self.action_list) != len(other.action_list):
-            return False
-        for f,g in zip(self.tag_list, other.tag_list):
-            if f != g:
-                return False
-        for f,g in zip(self.action_list, other.action_list):
-            if f != g:
-                return False
         return True
 
     def __ne__(self, other):
@@ -132,64 +148,64 @@ class Abstraction(DBAbstraction):
 import unittest
 
 class TestAbstraction(unittest.TestCase):
-    
-    def create_abstraction(self, id_scope=None):
-        from core.vistrail.action import Action
-        from core.vistrail.module import Module
-        from core.vistrail.module_function import ModuleFunction
-        from core.vistrail.module_param import ModuleParam
-        from core.vistrail.operation import AddOp
-        from core.vistrail.tag import Tag
-        from db.domain import IdScope
-        from datetime import datetime
+    pass
+#     def create_abstraction(self, id_scope=None):
+#         from core.vistrail.action import Action
+#         from core.vistrail.module import Module
+#         from core.vistrail.module_function import ModuleFunction
+#         from core.vistrail.module_param import ModuleParam
+#         from core.vistrail.operation import AddOp
+#         from core.vistrail.tag import Tag
+#         from db.domain import IdScope
+#         from datetime import datetime
         
-        if id_scope is None:
-            id_scope = IdScope()
-        function = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
-                                  name='value')
-        m = Module(id=id_scope.getNewId(Module.vtType),
-                   name='Float',
-                   package='edu.utah.sci.vistrails.basic',
-                   functions=[function])
+#         if id_scope is None:
+#             id_scope = IdScope()
+#         function = ModuleFunction(id=id_scope.getNewId(ModuleFunction.vtType),
+#                                   name='value')
+#         m = Module(id=id_scope.getNewId(Module.vtType),
+#                    name='Float',
+#                    package='edu.utah.sci.vistrails.basic',
+#                    functions=[function])
 
-        add_op = AddOp(id=id_scope.getNewId('operation'),
-                       what='module',
-                       objectId=m.id,
-                       data=m)
-        add_op2 = AddOp(id=id_scope.getNewId('operation'),
-                       what='function',
-                       objectId=function.id,
-                       data=function)
-        action = Action(id=id_scope.getNewId(Action.vtType),
-                        prevId=0,
-                        date=datetime(2007,11, 18),
-                        operations=[add_op, add_op2])
-        tag = Tag(id=id_scope.getNewId(Tag.vtType),
-                  name='a tag')
-        abstraction = Abstraction(id=id_scope.getNewId(Abstraction.vtType),
-                                  name='blah',
-                                  actions=[action],
-                                  tags=[tag])
-        return abstraction
+#         add_op = AddOp(id=id_scope.getNewId('operation'),
+#                        what='module',
+#                        objectId=m.id,
+#                        data=m)
+#         add_op2 = AddOp(id=id_scope.getNewId('operation'),
+#                        what='function',
+#                        objectId=function.id,
+#                        data=function)
+#         action = Action(id=id_scope.getNewId(Action.vtType),
+#                         prevId=0,
+#                         date=datetime(2007,11, 18),
+#                         operations=[add_op, add_op2])
+#         tag = Tag(id=id_scope.getNewId(Tag.vtType),
+#                   name='a tag')
+#         abstraction = Abstraction(id=id_scope.getNewId(Abstraction.vtType),
+#                                   name='blah',
+#                                   actions=[action],
+#                                   tags=[tag])
+#         return abstraction
 
-    def test_copy(self):
-        import copy
-        from db.domain import IdScope
+#     def test_copy(self):
+#         import copy
+#         from db.domain import IdScope
 
-        id_scope = IdScope()
+#         id_scope = IdScope()
 
-        a1 = self.create_abstraction(id_scope)
-        a2 = copy.copy(a1)
-        self.assertEquals(a1, a2)
-        self.assertEquals(a1.id, a2.id)
-        a3 = a1.do_copy(True, id_scope, {})
-        self.assertEquals(a1, a3)
-        self.assertNotEquals(a1.id, a3.id)
+#         a1 = self.create_abstraction(id_scope)
+#         a2 = copy.copy(a1)
+#         self.assertEquals(a1, a2)
+#         self.assertEquals(a1.id, a2.id)
+#         a3 = a1.do_copy(True, id_scope, {})
+#         self.assertEquals(a1, a3)
+#         self.assertNotEquals(a1.id, a3.id)
 
-    def test_serialization(self):
-        import core.db.io 
-        a1 = self.create_abstraction()
-        xml_str = core.db.io.serialize(a1)
-        a2 = core.db.io.unserialize(xml_str, Abstraction)
-        self.assertEquals(a1, a2)
-        self.assertEquals(a1.id, a2.id)
+#     def test_serialization(self):
+#         import core.db.io 
+#         a1 = self.create_abstraction()
+#         xml_str = core.db.io.serialize(a1)
+#         a2 = core.db.io.unserialize(xml_str, Abstraction)
+#         self.assertEquals(a1, a2)
+#         self.assertEquals(a1.id, a2.id)

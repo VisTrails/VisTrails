@@ -200,6 +200,21 @@ class QViewManager(QtGui.QTabWidget):
         if vistrailView:
             vistrailView.pipelineTab.pipelineView.scene().ungroup()
 
+    def makeAbstraction(self):
+        vistrailView = self.currentWidget()
+        if vistrailView:
+            vistrailView.pipelineTab.pipelineView.scene().makeAbstraction()
+    
+    def convertToAbstraction(self):
+        vistrailView = self.currentWidget()
+        if vistrailView:
+            vistrailView.pipelineTab.pipelineView.scene().convertToAbstraction()
+
+    def importAbstraction(self):
+        vistrailView = self.currentWidget()
+        if vistrailView:
+            vistrailView.pipelineTab.pipelineView.scene().importAbstraction()
+            
     def currentView(self):
         """currentView() -> VistrailView. Returns the current vistrail view."""
         return self.currentWidget()
@@ -268,11 +283,9 @@ class QViewManager(QtGui.QTabWidget):
                 return None
         if recover_files and untitled_locator().has_temporaries():
             locator = copy.copy(untitled_locator())
-            vistrail = locator.load()
         else:
             locator = None
-            vistrail = Vistrail()
-        return self.set_vistrail_view(vistrail, locator)
+        return self.set_vistrail_view(locator)
 
     def close_first_vistrail_if_necessary(self):
         # Close first vistrail of no change was made
@@ -287,21 +300,47 @@ class QViewManager(QtGui.QTabWidget):
             # we don't want to ever close it again.
             self._first_view = None
 
-    def set_vistrail_view(self, vistrail,locator, version=None):
-        """set_vistrail_view(vistrail: Vistrail,
-                             locator: VistrailLocator,
+    def set_vistrail_view(self, locator, version=None):
+        """set_vistrail_view(locator: VistrailLocator,
                              version=None)
                           -> QVistrailView
         Sets a new vistrail view for the vistrail object for the given version
         if version is None, use the latest version
         """
+        abstraction_files = []
+        try:
+            if locator is None:
+                vistrail = Vistrail()
+            else:
+                res = locator.load()
+                if type(res) == type([]):
+                    vistrail = res[0][1]
+                    for (_, abstraction_file) in res[1:]:
+                        abstraction_files.append(abstraction_file)
+                else:
+                    vistrail = res
+            if type(version) == type(""):
+                version = vstrail.get_version_number(version)
+            elif version is None:
+                version = vistrail.get_latest_version()
+
+        except ModuleRegistry.MissingModulePackage, e:
+            msg = ('Cannot find module "%s" in \n' 
+                   'package "%s". Make sure package is \n' 
+                   'enabled in the Preferences dialog.' % \
+                       (e._name, e._identifier))
+            QtGui.QMessageBox.critical(self, 'Missing package', msg)
+        except Exception, e:
+            QtGui.QMessageBox.critical(None,
+                                       'Vistrails',
+                                       str(e))
+            raise
+
         vistrailView = QVistrailView()
-        vistrailView.set_vistrail(vistrail, locator)
+        vistrailView.set_vistrail(vistrail, locator, abstraction_files)
         self.add_vistrail_view(vistrailView)
         self.setCurrentWidget(vistrailView)
         vistrailView.controller.inspectAndImportModules()
-        if version is None:
-            version = vistrail.get_latest_version()
         vistrailView.setup_view(version)
         self.versionSelectionChange(version)
         vistrailView.versionTab.vistrailChanged()
@@ -320,11 +359,8 @@ class QViewManager(QtGui.QTabWidget):
         view = self.ensureVistrail(locator)
         if view:
             return view
-        try:
-            vistrail = locator.load(Vistrail)
-            if type(version) == str:
-                version = vistrail.get_version_number(version)
-            result = self.set_vistrail_view(vistrail, locator, version)
+        try:            
+            result = self.set_vistrail_view(locator, version)
             return result
         except ModuleRegistry.MissingModulePackage, e:
             QtGui.QMessageBox.critical(self,
@@ -372,7 +408,7 @@ class QViewManager(QtGui.QTabWidget):
                                            'Vistrails',
                                            str(e))
                 return False
-            return True
+            return locator
    
     def save_workflow(self, locator_class, force_choose_locator=True):
         vistrailView = self.currentWidget()
@@ -473,15 +509,19 @@ class QViewManager(QtGui.QTabWidget):
                                                     2)
             else:
                 res = 1
+            locator = vistrailView.controller.locator
             if res == 0:
-                locator = vistrailView.controller.locator
                 if locator is None:
                     class_ = FileLocator()
                 else:
                     class_ = type(locator)
-                return self.save_vistrail(class_)
+                locator = self.save_vistrail(class_)
+                if not locator:
+                    return False
             elif res == 2:
                 return False
+ 
+            vistrailView.controller.close_vistrail(locator)
             self.removeVistrailView(vistrailView)
             if self.count()==0:
                 self.emit(QtCore.SIGNAL('currentVistrailChanged'), None)

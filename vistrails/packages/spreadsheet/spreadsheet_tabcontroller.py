@@ -693,8 +693,11 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                 QtCore.QCoreApplication.processEvents()
                 if progress.wasCanceled():
                     break
-                execution.execute(None, pipeline, locator,
-                                  version, DummyView(), None)
+                kwargs = {'locator': locator,
+                          'current_version': version,
+                          'view': DummyView(),
+                          }
+                execution.execute(pipeline, **kwargs)
             else:
                 raise Exception("Couldn't load spreadsheet")
             lidx += 1

@@ -25,7 +25,7 @@
 
 import copy
 from itertools import izip
-from sets import Set
+
 from db.domain import DBModule
 from core.data_structures.point import Point
 from core.vistrail.annotation import Annotation
@@ -63,7 +63,7 @@ class Module(DBModule):
             self.package = ''
         if self.version is None:
             self.version = ''
-        self.portVisible = Set()
+        self.portVisible = set()
         self.registry = None
 
     def __copy__(self):
@@ -94,7 +94,7 @@ class Module(DBModule):
         for _annotation in _module.db_get_annotations():
             Annotation.convert(_annotation)
 
-        _module.portVisible = Set()
+        _module.portVisible = set()
 
     ##########################################################################
 

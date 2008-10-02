@@ -94,7 +94,6 @@ class Vistrail(DBVistrail):
     id = DBVistrail.db_id
     actions = DBVistrail.db_actions # This is now read-write
     tags = DBVistrail.db_tags # This is now read-write
-    abstractions = DBVistrail.db_abstractions # This is now read-write
     annotations = DBVistrail.db_annotations
     
     def _get_actionMap(self):
@@ -110,9 +109,6 @@ class Vistrail(DBVistrail):
     def has_tag_with_name(self, name):
         return self.db_has_tag_with_name(name)
     
-    def _get_abstractionMap(self):
-        return self.db_abstractions_id_index
-    abstractionMap = property(_get_abstractionMap)
 
     @staticmethod
     def convert(_vistrail):
@@ -127,8 +123,6 @@ class Vistrail(DBVistrail):
 	    Action.convert(action)
 	for tag in _vistrail.tags:
             Tag.convert(tag)
-        for abstraction in _vistrail.abstractions:
-            Abstraction.convert(abstraction)
         for annotation in _vistrail.annotations:
             Annotation.convert(annotation)
 	_vistrail.changed = False
@@ -246,7 +240,6 @@ class Vistrail(DBVistrail):
 
         """
         workflow = core.db.io.get_workflow(self, version)
-        workflow.set_abstraction_map(self.abstractionMap)
         return workflow
 
 
@@ -694,26 +687,26 @@ class Vistrail(DBVistrail):
                     self.db_add_object(op.db_data)
         self.addVersion(action)                
 
-    def add_abstraction(self, abstraction):
-        Abstraction.convert(abstraction)
-        if abstraction.id < 0:
-            abstraction.id = self.idScope.getNewId(abstraction.vtType)
-            action_remap = {}
-            for action in abstraction.actions.itervalues():
-                if action.id < 0:
-                    new_id = abstraction.idScope.getNewId(action.vtType)
-                    action_remap[action.id] = new_id
-                    action.id = new_id
-                action.date = self.getDate()
-                action.user = self.getUser()
-                for op in action.operations:
-                    if op.id < 0:
-                        op.id = self.idScope.getNewId('operation')
-            for action in abstraction.actions.itervalues():
-                if action.prevId < 0:
-                    action.prevId = action_remap[action.prevId]
+#     def add_abstraction(self, abstraction):
+#         Abstraction.convert(abstraction)
+#         if abstraction.id < 0:
+#             abstraction.id = self.idScope.getNewId(abstraction.vtType)
+#             action_remap = {}
+#             for action in abstraction.actions.itervalues():
+#                 if action.id < 0:
+#                     new_id = abstraction.idScope.getNewId(action.vtType)
+#                     action_remap[action.id] = new_id
+#                     action.id = new_id
+#                 action.date = self.getDate()
+#                 action.user = self.getUser()
+#                 for op in action.operations:
+#                     if op.id < 0:
+#                         op.id = self.idScope.getNewId('operation')
+#             for action in abstraction.actions.itervalues():
+#                 if action.prevId < 0:
+#                     action.prevId = action_remap[action.prevId]
 
-        self.db_add_abstraction(abstraction)
+#         self.db_add_abstraction(abstraction)
 
     def getLastActions(self, n):
         """ getLastActions(n: int) -> list of ids
@@ -1322,6 +1315,8 @@ class TestVistrail(unittest.TestCase):
         def do_test(filename, locator_class):
             v = locator_class(core.system.vistrails_root_directory() +
                                filename).load()
+            if type(v) == type([]):
+                v = v[0][1]
             version_ids = v.actionMap.keys()
             old_v = random.choice(version_ids)
             p = v.getPipeline(old_v)

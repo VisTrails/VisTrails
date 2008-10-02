@@ -139,7 +139,7 @@ def add_connection(output_id, output_port, input_id, input_port,
 def create_group(module_ids, connection_ids, controller=None):
     if controller is None:
         controller = get_current_controller()
-    controller.create_group(module_ids, connection_ids, 'Group')
+    controller.create_group(module_ids, connection_ids)
     controller.current_pipeline_view.setupScene(controller.current_pipeline)
 
 ##############################################################################

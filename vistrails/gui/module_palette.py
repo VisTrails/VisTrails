@@ -94,6 +94,7 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
 
         moduleName = descriptor.name
         identifier = descriptor.identifier
+        namespace = descriptor.namespace
 
         items = [x
                  for x in
@@ -111,6 +112,13 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         item = items[0]
         parent = item.parent()
         parent.takeChild(parent.indexOfChild(item))
+
+        #FIXME this will only take care of one layer of namespaces
+        if parent.childCount() <= 0:
+            grandparent = parent.parent()
+            if namespace in grandparent._namespace_items:
+                grandparent.takeChild(grandparent.indexOfChild(parent))
+                del grandparent._namespace_items[namespace]
 
     def deletedPackage(self, package):
         """ deletedPackage(package):

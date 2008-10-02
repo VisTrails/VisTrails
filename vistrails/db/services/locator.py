@@ -40,6 +40,9 @@ class BaseLocator(object):
     def save_as(self, obj):
         return self.save(obj) # calls save by default
 
+    def close(self):
+        pass # closes locator
+
     def is_valid(self):
         pass # Returns true if locator refers to a valid object
 
@@ -254,22 +257,34 @@ class ZIPFileLocator(XMLFileLocator):
     still in xml"""
     def __init__(self, filename):
         XMLFileLocator.__init__(self, filename)
+        self.tmp_dir = None
 
     def load(self, type):
         fname = self._find_latest_temporary()
         if fname:
             obj = io.open_from_xml(fname, type)
         else:
-            obj = io.open_from_zip_xml(self._name, type)
-        obj.locator = self
-        return obj
+            (objs, tmp_dir) = io.open_from_zip_xml(self._name, type)
+            self.tmp_dir = tmp_dir
+        for obj in objs:
+            if obj[0] != '__file__':
+                obj[1].locator = self
+        return objs
 
-    def save(self, obj, do_copy=True):
-        obj = io.save_to_zip_xml(obj, self._name)
-        obj.locator = self
+    def save(self, objs, do_copy=True):
+        (objs, tmp_dir) = io.save_to_zip_xml(objs, self._name, self.tmp_dir)
+        self.tmp_dir = tmp_dir
+        for obj in objs:
+            if obj[0] != '__file__':
+                obj[1].locator = self
         # Only remove the temporaries if save succeeded!
         self.clean_temporaries()
-        return obj
+        return objs
+
+    def close(self):
+        if self.tmp_dir is not None:
+            io.close_zip_xml(self.tmp_dir)
+            self.tmp_dir = None
 
     ###########################################################################
     # Operators

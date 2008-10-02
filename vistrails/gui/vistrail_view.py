@@ -236,14 +236,14 @@ class QVistrailView(QDockContainer):
         """
         return QtCore.QSize(1024, 768)
 
-    def set_vistrail(self, vistrail, locator=None):
+    def set_vistrail(self, vistrail, locator=None, abstractions=None):
         """ set_vistrail(vistrail: Vistrail, locator: BaseLocator) -> None
         Assign a vistrail to this view, and start interacting with it
         
         """
         self.vistrail = vistrail
         self.locator = locator
-        self.controller.set_vistrail(vistrail, locator)
+        self.controller.set_vistrail(vistrail, locator, abstractions)
         self.versionTab.setController(self.controller)
         self.pipelineTab.setController(self.controller)
         self.peTab.setController(self.controller)

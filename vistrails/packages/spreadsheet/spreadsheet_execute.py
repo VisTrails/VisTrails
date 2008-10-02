@@ -258,12 +258,11 @@ def executePipelineWithProgress(pipeline,
         else:
             withoutCancel = False
     interpreter = get_default_interpreter()
-    if kwargs.has_key('moduleExecutedHook'):
-        kwargs['moduleExecutedHook'].append(moduleExecuted)
+    if kwargs.has_key('module_executed_hook'):
+        kwargs['module_executed_hook'].append(moduleExecuted)
     else:
-        kwargs['moduleExecutedHook'] = [moduleExecuted]
-    kwargs['pipeline'] = pipeline
+        kwargs['module_executed_hook'] = [moduleExecuted]
     kwargs['view'] = DummyView()
-    interpreter.execute(None, **kwargs)
+    interpreter.execute(pipeline, **kwargs)
     progress.setValue(totalProgress)
     return withoutCancel

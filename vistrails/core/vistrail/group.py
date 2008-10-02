@@ -22,7 +22,6 @@
 
 import copy
 from itertools import izip
-from sets import Set
 
 from core.vistrail.annotation import Annotation
 from core.vistrail.location import Location
@@ -57,7 +56,7 @@ class Group(DBGroup, Module):
             self.package = ''
         if self.version is None:
             self.version = ''
-        self.portVisible = Set()
+        self.portVisible = set()
         self._registry = None
 
     def __copy__(self):
@@ -78,7 +77,7 @@ class Group(DBGroup, Module):
             return
         _group.__class__ = Group
         _group._registry = None
-        _group.portVisible = Set()
+        _group.portVisible = set()
         if _group.db_location:
             Location.convert(_group.db_location)
         if _group.db_workflow:
@@ -99,16 +98,32 @@ class Group(DBGroup, Module):
     annotations = DBGroup.db_annotations
     location = DBGroup.db_location
     center = DBGroup.db_location
-    name = DBGroup.db_name
-    label = DBGroup.db_name
-    namespace = DBGroup.db_namespace
-    package = DBGroup.db_package
     tag = DBGroup.db_tag
     version = DBGroup.db_version
+    # name = DBGroup.db_name
+    # label = DBGroup.db_name
+    # namespace = DBGroup.db_namespace
+    # package = DBGroup.db_package
+
+    name = 'Group'
+    label = 'Group'
+    package = 'edu.utah.sci.vistrails.basic'
+    namespace = None
 
     def summon(self):
-        # define this so that pipeline is copied over...
-        pass
+        get = registry.get_descriptor_by_name
+        result = get(self.package, self.name).module()
+        result.pipeline = self.pipeline
+        if not self._registry:
+            self.make_registry()
+        result.input_remap = self._input_remap
+        result.output_remap = self._output_remap
+        if self.cache != 1:
+            result.is_cacheable = lambda *args: False
+        if hasattr(result, 'srcPortsOrder'):
+            result.srcPortsOrder = [p.name for p in self.destinationPorts()]
+        result.registry = self.registry or registry
+        return result
 
     def is_group(self):
         return True
@@ -136,10 +151,10 @@ class Group(DBGroup, Module):
         for function in module.functions:
             if function.name == 'name':
                 port_name = function.params[0].strValue
-                print '  port_name:', port_name
+                # print '  port_name:', port_name
             if function.name == 'spec':
                 port_spec = function.params[0].strValue
-                #print '  port_spec:',  port_spec
+                # print '  port_spec:',  port_spec
         port = Port(id=-1,
                     name=port_name,
                     type=port_type)
@@ -153,20 +168,24 @@ class Group(DBGroup, Module):
 
     def make_registry(self):
         reg_module = \
-            registry.get_descriptor_by_name('edu.utah.sci.vistrails.basic', 
-                                            self.name).module
+            registry.get_descriptor_by_name(self.package, self.name).module
         self._registry = ModuleRegistry()
+        self._input_remap = {}
+        self._output_remap = {}
         self._registry.add_hierarchy(registry, self)
         for module in self.pipeline.module_list:
-            print 'module:', module.name
-            if module.name == 'OutputPort':
+            # print 'module:', module.name
+            if module.name == 'OutputPort' and \
+                    module.package == 'edu.utah.sci.vistrails.basic':
                 port = self.make_port_from_module(module, 'source')
                 self._registry.add_port(reg_module, PortEndPoint.Source, port)
-            elif module.name == 'InputPort':
+                self._output_remap[port.name] = module
+            elif module.name == 'InputPort' and \
+                    module.package == 'edu.utah.sci.vistrails.basic':
                 port = self.make_port_from_module(module, 'destination')
                 self._registry.add_port(reg_module, PortEndPoint.Destination, 
                                         port)
-
+                self._input_remap[port.name] = module
     def sourcePorts(self):
         return self.registry.module_source_ports(False, self.package,
                                                  self.name, self.namespace)
