@@ -1,6 +1,11 @@
 """Teem package for VisTrails.
 """
 
+##############################################################################
+# Changes
+#
+# 20081002: Added UnuSlice
+
 import core.modules
 import core.modules.module_registry
 import core.modules.basic_modules as basic
@@ -15,7 +20,7 @@ _teemLimnTestPath = None
 _teemTenTestPath = None
 
 identifier = 'edu.utah.sci.cscheid.teem'
-version = '0.1'
+version = '0.2'
 name = 'teem'
 
 ###############################################################################
@@ -667,6 +672,33 @@ class Tend_glyph(Teem):
     _output_ports = [
         ("output_file", [(basic.File, 'output EPS file')])
         ]
+
+class UnuSlice(Unu):
+
+    def do_input(self):
+        r = []
+        self.checkInputPort('in_file')
+        self.checkInputPort('axis')
+        self.checkInputPort('position')
+        r += ['-i', self.getInputFromPort('in_file').name]
+        r += ['-a', str(self.getInputFromPort('axis'))]
+        r += ['-p', str(self.getInputFromPort('position'))]
+        return r
+
+    def compute(self):
+        cmdline = ['unu slice']
+        cmdline += self.do_input()
+        (ocmd, output_file) = self.do_output()
+        cmdline += ocmd
+        self.setResult('output_file', output_file)
+        self.run_teem(*cmdline)
+
+    _input_ports = [
+        ('in_file', basic.File),
+        ('axis', basic.Integer),
+        ('position', basic.Integer),
+        ]
+
     
 ###############################################################################
 
@@ -817,6 +849,7 @@ _modules = [Teem, Emap, Soid, Miter, OverRGB,
             Unu1op,
             Unu2op,
             Unu3op,
+            UnuSlice,
             Teem_TT,
             Tend_norm,
             Tend_glyph]
