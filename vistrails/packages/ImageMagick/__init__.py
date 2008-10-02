@@ -26,11 +26,21 @@ operations exposed by the ImageMagick package.
 
 """
 
+##############################################################################
+# Changes
+#
+# 20081002:
+#    Added CombineRGBA to create image from channels.
+#    Moved quiet to configuration
+#    Fixed bug with GaussianBlur
+
+
 import core.modules
 import core.modules.module_registry
 import core.modules.basic_modules
 from core.modules.vistrails_module import Module, ModuleError, new_module, \
      IncompleteImplementation
+import core.configuration
 import core.requirements
 import core.system
 from core.system import list2cmdline
@@ -41,7 +51,8 @@ import popen2
 
 identifier = 'edu.utah.sci.vistrails.imagemagick'
 name = 'ImageMagick'
-version = '0.9.0'
+version = '0.9.1'
+configuration = core.configuration.ConfigurationObject(quiet=False)
 
 ################################################################################
 
@@ -74,14 +85,14 @@ package that deal with operations on images. Convert is a bit of a misnomer sinc
 the 'convert' tool does more than simply file format conversion. Each subclass
 has a descriptive name of the operation it implements."""
 
-    __quiet = True
-
     def create_output_file(self):
         """Creates a File with the output format given by the
 outputFormat port."""
         if self.hasInputFromPort('outputFormat'):
             s = '.' + self.getInputFromPort('outputFormat')
             return self.interpreter.filePool.create_file(suffix=s)
+        else:
+            return self.interpreter.filePool.create_file(suffix='.png')
 
     def geometry_description(self):
         """returns a string with the description of the geometry as
@@ -101,7 +112,7 @@ indicated by the appropriate ports (geometry or width and height)"""
 arguments to the program."""
         cmd = ['convert'] + list(args)
         cmdline = list2cmdline(cmd)
-        if not self.__quiet:
+        if not configuration.quiet:
             print cmdline
         r = os.system(cmdline)
         if r != 0:
@@ -112,7 +123,34 @@ arguments to the program."""
         i = self.input_file_description()
         self.run(i, o.name)
         self.setResult("output", o)
-        
+
+
+class CombineRGBA(Module):
+
+    def create_output_file(self):
+        """Creates a File with the output format given by the
+outputFormat port."""
+        if self.hasInputFromPort('outputFormat'):
+            s = '.' + self.getInputFromPort('outputFormat')
+            return self.interpreter.filePool.create_file(suffix=s)
+        else:
+            return self.interpreter.filePool.create_file(suffix='.png')
+
+    def compute(self):
+        o = self.create_output_file()
+        r = self.getInputFromPort("r")
+        g = self.getInputFromPort("g")
+        b = self.getInputFromPort("b")
+        a = self.getInputFromPort("a")
+        cmd = ['convert', '-channel', 'RGBA', '-combine',
+               r.name, g.name, b.name, a.name, o.name]
+        if not configuration.quiet:
+            print cmd
+        cmdline = list2cmdline(cmd)
+        result = os.system(cmdline)
+        if result != 0:
+            raise ModuleError(self, "system call failed: '%s'" % cmdline)
+        self.setResult("output", o)
 
 class Negate(Convert):
     """Negate returns the two's complement negation of the image."""
@@ -146,7 +184,8 @@ and standard deviation."""
         (radius, sigma) = self.getInputFromPort('radiusSigma')
         o = self.create_output_file()
         self.run(self.input_file_description(),
-                 "-blur %sx%s" % (radius, sigma),
+                 "-blur",
+                 "%sx%s" % (radius, sigma),
                  o.name)
         self.setResult("output", o)
 
@@ -192,7 +231,7 @@ dynamically create a VisTrails module."""
         o = self.create_output_file()
         optionValue = self.getInputFromPort(portName)
         i = self.input_file_description()
-        self.run(i, optionName, optionValue, o.name)
+        self.run(i, optionName, str(optionValue), o.name)
         self.setResult("output", o)
 
     return {'compute': compute}
@@ -265,3 +304,14 @@ def initialize():
     reg.add_input_port(GaussianBlur, "radiusSigma", [(basic.Float, 'radius'), (basic.Float, 'sigma')])
 
     reg.add_module(Scale)
+
+    reg.add_module(CombineRGBA)
+    reg.add_input_port(CombineRGBA, "r", basic.File)
+    reg.add_input_port(CombineRGBA, "g", basic.File)
+    reg.add_input_port(CombineRGBA, "b", basic.File)
+    reg.add_input_port(CombineRGBA, "a", basic.File)
+    reg.add_input_port(CombineRGBA, "outputFormat", basic.String)
+    reg.add_output_port(CombineRGBA, "output", basic.File)
+
+################################################################################
+
