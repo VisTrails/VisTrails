@@ -63,6 +63,8 @@ class QToolWindow(QtGui.QDockWidget):
         """
         if event.type()==QtCore.QEvent.WindowTitleChange:
             self.setWindowTitle(object.windowTitle())
+        elif event.type()==QtCore.QEvent.Close:
+            object.removeEventFilter(self)
         return QtGui.QDockWidget.eventFilter(self, object, event)
         # return super(QToolWindow, self).eventFilter(object, event)
 

@@ -211,7 +211,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setInteractive(True)
-        self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
+#        self.setCacheMode(QtGui.QGraphicsView.CacheBackground)
         self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter)
         self.setRenderHints(QtGui.QPainter.Antialiasing |
                             QtGui.QPainter.SmoothPixmapTransform)
@@ -401,7 +401,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
             elif buttons == QtCore.Qt.MidButton:
                 globalPos = QtGui.QCursor.pos()
                 
-               # Just need to pan the scroll bar
+                # Just need to pan the scroll bar
                 self.horizontalScrollBar().setValue(self.startScroll[0] -
                                                     globalPos.x() +
                                                     self.lastPos.x())
@@ -410,6 +410,7 @@ class QInteractiveGraphicsView(QtGui.QGraphicsView):
                                                   self.lastPos.y())
         else:
             self.validateCursorState(e.modifiers())
+            QtGui.QGraphicsView.mouseMoveEvent(self, e)
         self.setUpdatesEnabled(True)
 
     def mouseReleaseEvent(self, e):
