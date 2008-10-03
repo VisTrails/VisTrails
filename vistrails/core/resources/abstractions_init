@@ -1,0 +1,95 @@
+import os
+import re
+from itertools import chain
+
+from core.configuration import get_vistrails_configuration
+from core.modules.vistrails_module import Module, ModuleError
+from core.modules.sub_module import read_vistrail, new_abstraction, \
+    get_abstraction_dependencies
+import core.modules.module_registry
+
+name = 'My Abstractions'
+version = '0.1.0'
+identifier = 'local.abstractions'
+
+vistrails = {}
+
+def initialize(*args, **kwargs):
+    import core.packagemanager
+    manager = core.packagemanager.get_package_manager()
+
+    reg = core.modules.module_registry.registry
+#     conf = get_vistrails_configuration()
+#     if conf.check("userPackageDirectory"):
+#         if conf.check('userPackageDirectory'):
+#             abstraction_dir = os.path.join(conf.userPackageDirectory,
+#                                            'abstractions')
+
+#     abs_fnames = []
+#     p = re.compile(r".*\.vt")
+#     for abstraction in os.listdir(abstraction_dir):
+#         if p.match(abstraction):
+#             abs_fnames.append(os.path.join(abstraction_dir, abstraction))
+    abs_vistrails = vistrails
+    last_count = len(vistrails) + 1
+
+    cannot_load = {}
+    while len(abs_vistrails) > 0 and len(abs_vistrails) < last_count:
+        new_vistrails = {}
+        for (abs_name, (abs_vistrail, abs_fname)) in abs_vistrails.iteritems():
+            packages = get_abstraction_dependencies(abs_vistrail)
+            add_abstraction = True
+            packages.discard('edu.utah.sci.vistrails.basic')
+            packages.discard(identifier)
+            for package in packages:
+                if not manager.has_package(package):
+                    add_abstraction = False
+                    break
+            if add_abstraction:
+                print 'adding', abs_name
+                abstraction = new_abstraction(abs_name, abs_vistrail, reg, 
+                                              abs_fname)
+                if abstraction is not None:
+                    reg.auto_add_module(abstraction)
+                else:
+                    new_vistrails[abs_name] = (abs_vistrail, abs_fname)
+            else:
+                cannot_load[abs_name] = abs_vistrail
+        last_count = len(abs_vistrails)
+        abs_vistrails = new_vistrails
+
+    for abs_name in chain(cannot_load, abs_vistrails):
+        print "Cannot load abstraction '%s'" % abs_name
+
+def package_dependencies():
+    import core.packagemanager
+    manager = core.packagemanager.get_package_manager()
+
+    reg = core.modules.module_registry.registry
+    conf = get_vistrails_configuration()
+    if conf.check("userPackageDirectory"):
+        if conf.check('userPackageDirectory'):
+            abstraction_dir = os.path.join(conf.userPackageDirectory,
+                                           'abstractions')
+    p = re.compile(r".*\.xml")
+    all_packages = set()
+    for abstraction in os.listdir(abstraction_dir):
+        if p.match(abstraction):
+            abs_fname = os.path.join(abstraction_dir, abstraction)
+            vistrail = read_vistrail(abs_fname)
+            packages = get_abstraction_dependencies(vistrail)
+            add_abstraction = True
+            packages.discard('edu.utah.sci.vistrails.basic')
+            packages.discard(identifier)
+            for package in packages:
+                if not manager.has_package(package):
+                    add_abstraction = False
+                    break
+            if add_abstraction:
+                # print 'adding', abstraction[:-4]
+                all_packages.update(packages)
+                vistrails[abstraction[:-4]] = (vistrail, abs_fname)
+            else:
+                print "Abstraction '%s' missing packages it depends on"
+    # print 'all_packages:', all_packages
+    return list(all_packages)
