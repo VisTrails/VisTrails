@@ -66,6 +66,15 @@ class Package(object):
                      self.exception,
                      self.traceback))
 
+    class MissingDependency(Exception):
+        def __init__(self, package, dependencies):
+            self.package = package
+            self.dependencies = dependencies
+        def __str__(self):
+            return ("Package '%s' has unmet dependencies: %s" %
+                    (self.package.name,
+                     self.dependencies))
+
     def __init__(self, codepath, load_configuration=True):
         self._codepath = codepath
         self._load_configuration = load_configuration
@@ -589,9 +598,8 @@ Returns true if given package identifier is present."""
                             for identifier in deps
                             if identifier not in self._dependency_graph.vertices]
         if len(missing_packages):
-            raise ImportError("Package '%s' has unmet dependencies: %s" %
-                              (package.name,
-                               missing_packages))
+            raise Package.MissingDependency(package,
+                                            missing_packages)
 
         for dep_name in deps:
             if (dep_name not in
@@ -644,7 +652,9 @@ creating a class that behaves similarly)."""
             try:
                 package.load(package_dictionary.get(package.codepath, None))
             except Package.LoadFailed, e:
-                print "FAILED TO LOAD, let's disable it"
+                debug.DebugPrint.critical("Will disable package %s" % package.name)
+                debug.DebugPrint.critical(str(e))
+                # print "FAILED TO LOAD, let's disable it"
                 # We disable the package manually to skip over things
                 # we know will not be necessary - the only thing needed is
                 # the reference in the package list
@@ -659,10 +669,23 @@ creating a class that behaves similarly)."""
 
         for pkg in failed:
             del self._package_list[pkg.codepath]
+        failed = []
 
         # determine dependencies
         for package in self._package_list.itervalues():
-            self.add_dependencies(package)
+            try:
+                self.add_dependencies(package)
+            except Package.MissingDependency, e:
+                debug.DebugPrint.critical("Will disable package %s" % package.name)
+                debug.DebugPrint.critical(str(e))
+                # print "DEPENDENCIES FAILED TO LOAD, let's disable this"
+                package.remove_own_dom_element()
+                self._dependency_graph.delete_vertex(package.identifier)
+                del self._identifier_map[package.identifier]
+                failed.append(package)
+
+        for pkg in failed:
+            del self._package_list[pkg.codepath]
 
         # perform actual initialization
         try:
