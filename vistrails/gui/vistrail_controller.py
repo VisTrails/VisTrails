@@ -1407,16 +1407,28 @@ class VistrailController(QtCore.QObject):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
         pipeline = Pipeline()
+        sum_x = 0.0
+        sum_y = 0.0
         for module_id in module_ids:
             module = self.current_pipeline.modules[module_id]
+            sum_x += module.location.x
+            sum_y += module.location.y
+        center_x = sum_x / len(module_ids)
+        center_y = sum_y / len(module_ids)
+        for module_id in module_ids:
+            module = self.current_pipeline.modules[module_id]
+            module = module.do_copy()
+            module.location.x -= center_x
+            module.location.y -= center_y
             pipeline.add_module(module)
         for connection_id in connection_ids:
             connection = self.current_pipeline.connections[connection_id]
             pipeline.add_connection(connection)
         return core.db.io.serialize(pipeline)
         
-    def paste_modules_and_connections(self, str):
-        """ paste_modules_and_connections(str) -> [id list]
+    def paste_modules_and_connections(self, str, center):
+        """ paste_modules_and_connections(str,
+                                          center: (float, float)) -> [id list]
         Paste a list of modules and connections into the current pipeline.
 
         Returns the list of module ids of added modules
@@ -1428,6 +1440,9 @@ class VistrailController(QtCore.QObject):
         modules = []
         connections = []
         if pipeline:
+            for module in pipeline.module_list:
+                module.location.x += center[0]
+                module.location.y += center[1]
             id_remap = {}
             action = core.db.action.create_paste_action(pipeline, 
                                                         self.vistrail.idScope,
@@ -1460,8 +1475,8 @@ class VistrailController(QtCore.QObject):
         pipeline = Pipeline()
         pipeline.id = None # get rid of id so that sql saves correctly
 
-        avg_x = 0.0
-        avg_y = 0.0
+        sum_x = 0.0
+        sum_y = 0.0
         
         abs_modules = []
         abs_connections = []
@@ -1471,8 +1486,8 @@ class VistrailController(QtCore.QObject):
         for module_id in module_ids:
             module = self.current_pipeline.modules[module_id]
             del_action_list.append(('delete', module))
-            avg_x += module.location.x
-            avg_y += module.location.y
+            sum_x += module.location.x
+            sum_y += module.location.y
             tmp_remap = {}
             new_module = module.do_copy(True, id_scope, tmp_remap)
 
@@ -1483,6 +1498,13 @@ class VistrailController(QtCore.QObject):
             else:
                 id_remap.update(tmp_remap)
             pipeline.add_module(new_module)
+
+        # set
+        avg_x = sum_x / len(module_ids)
+        avg_y = sum_y / len(module_ids)
+        for module in pipeline.module_list:
+            module.location.x -= avg_x
+            module.location.y -= avg_y
 
         in_names = {}
         out_names = {}
@@ -1607,7 +1629,7 @@ class VistrailController(QtCore.QObject):
                 del_action_list.append(('delete', connection))                
             # else a change port -- done later
         return (pipeline, del_action_list, changed_ports, name_remap,
-                (avg_x/len(module_ids), avg_y/len(module_ids)))
+                (avg_x, avg_y))
 
     def update_connections_to_subpipeline(self, changed_ports, module_id,
                                           module_name, id_remap, name_remap):
@@ -1739,6 +1761,7 @@ class VistrailController(QtCore.QObject):
             self.ungroup(m_id)
 
     def ungroup(self, module_id):
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
 
         group = self.current_pipeline.modules[module_id]
         if group.vtType == Group.vtType:
@@ -1759,6 +1782,8 @@ class VistrailController(QtCore.QObject):
                     module.name != OutputPort.__name__:
                 new_module = module.do_copy(True, self.vistrail.idScope, 
                                             id_remap)
+                new_module.location.x += group.location.x
+                new_module.location.y += group.location.y
                 add_action_list.append(('add', new_module))
 
         in_conns = {}

@@ -1487,7 +1487,8 @@ mutual connections."""
         self.noUpdate = True
         base_descriptor = item.descriptor.base_descriptor
         internal_version = -1L
-        if base_descriptor.name == 'Abstraction' and \
+        if base_descriptor is not None and \
+                base_descriptor.name == 'Abstraction' and \
                 base_descriptor.identifier == 'edu.utah.sci.vistrails.basic':
             internal_version = item.descriptor.module.internal_version
         module = self.controller.add_module(
@@ -1598,9 +1599,6 @@ mutual connections."""
         elif (event.key()==QtCore.Qt.Key_C and
               event.modifiers()==QtCore.Qt.ControlModifier):
             self.copySelection()
-        elif (event.key()==QtCore.Qt.Key_V and
-              event.modifiers()==QtCore.Qt.ControlModifier):
-            self.pasteFromClipboard()
         elif (event.key()==QtCore.Qt.Key_A and
               event.modifiers()==QtCore.Qt.ControlModifier):
             self.selectAll()
@@ -1695,8 +1693,8 @@ mutual connections."""
             text = self.controller.copy_modules_and_connections(items[0],items[1])
             cb.setText(text)
             
-    def pasteFromClipboard(self):
-        """ pasteFromClipboard() -> None
+    def pasteFromClipboard(self, center):
+        """ pasteFromClipboard(center: (float, float)) -> None
         Paste modules/connections from the clipboard into this pipeline view
         
         """
@@ -1706,7 +1704,7 @@ mutual connections."""
             cb = QtGui.QApplication.clipboard()        
             text = str(cb.text())
             if text=='': return
-            ids = self.controller.paste_modules_and_connections(text)
+            ids = self.controller.paste_modules_and_connections(text, center)
             self.setupScene(self.controller.current_pipeline)
             self.reset_module_colors()
             if len(ids) > 0:
@@ -1909,6 +1907,17 @@ class QPipelineView(QInteractiveGraphicsView):
         QInteractiveGraphicsView.__init__(self, parent)
         self.setWindowTitle('Pipeline')
         self.setScene(QPipelineScene(self))
+
+    def keyPressEvent(self, event):
+        if (event.key()==QtCore.Qt.Key_V and
+              event.modifiers()==QtCore.Qt.ControlModifier):
+            self.pasteFromClipboard()
+        else:
+            QInteractiveGraphicsView.keyPressEvent(self, event)
+
+    def pasteFromClipboard(self):
+        center = self.mapToScene(self.width()/2.0, self.height()/2.0)
+        self.scene().pasteFromClipboard((center.x(), -center.y()))
 
     def setQueryEnabled(self, on):
         QInteractiveGraphicsView.setQueryEnabled(self, on)

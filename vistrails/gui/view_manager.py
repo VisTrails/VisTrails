@@ -226,7 +226,7 @@ class QViewManager(QtGui.QTabWidget):
         """        
         vistrailView = self.currentWidget()
         if vistrailView:
-            vistrailView.pipelineTab.pipelineView.scene().pasteFromClipboard()
+            vistrailView.pipelineTab.pipelineView.pasteFromClipboard()
 
     def selectAllModules(self):
         """ selectAllModules() -> None

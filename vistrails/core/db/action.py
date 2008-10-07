@@ -40,9 +40,6 @@ def create_paste_action(pipeline, id_scope, id_remap=None):
     if id_remap is None:
         id_remap = {}
     for module in pipeline.modules.itervalues():
-        module.location = Location(id=id_scope.getNewId(Location.vtType),
-                                   x=module.location.x + 10.0,
-                                   y=module.location.y + 10.0)
         module = module.do_copy(True, id_scope, id_remap)
         action_list.append(('add', module))
     for connection in pipeline.connections.itervalues():
