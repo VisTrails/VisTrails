@@ -109,6 +109,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         reason = fetch('reason', None)
         actions = fetch('actions', None)
         done_summon_hooks = fetch('done_summon_hooks', [])
+        module_executed_hook = fetch('module_executed_hook', [])
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
@@ -137,7 +138,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
         ### BEGIN METHOD ###
 
-        # self.resolve_aliases(pipeline, aliases)
+        self.resolve_aliases(pipeline, aliases)
 
         (tmp_to_persistent_module_map,
          conn_map,
@@ -429,6 +430,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         reason = fetch('reason', None)
         actions = fetch('actions', None)
         done_summon_hooks = fetch('done_summon_hooks', [])
+        module_executed_hook = fetch('module_executed_hook', [])
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '

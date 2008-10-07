@@ -34,13 +34,15 @@ def run_and_get_results(w_list, parameters=''):
     version can be a tag name or a version id.
     
     """
-    elements = parameters.split(",")
+    elements = parameters.split("&")
     aliases = {}
     result = []
     for locator, workflow in w_list:
         v = locator.load()
+        if type(v) == type([]):
+            v = v[0][1]
         if type(workflow) == type("str"):
-            version = v.get_tag_by_name(workflow).time
+            version = v.get_version_number(workflow)
         elif type(workflow) in [ type(1), long]:
             version = workflow
         else:
@@ -55,10 +57,8 @@ def run_and_get_results(w_list, parameters=''):
                 value = e[pos+1:].strip()
             
                 if pip.has_alias(key):
-                    (vttype, pId,_,_) = pip.aliases[key]
-                    parameter = pip.db_get_object(vttype,pId)
-                    ptype = parameter.type
-                    aliases[key] = (ptype,expression.parse_expression(value))
+                    aliases[key] = value
+                    
         view = DummyView()
         interpreter = core.interpreter.default.get_default_interpreter()
 

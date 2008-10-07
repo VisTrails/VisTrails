@@ -269,7 +269,7 @@ def get_vistrails_temp_configuration():
     
     """
     if hasattr(QtCore.QCoreApplication.instance(),
-               'configuration'):
+               'temp_configuration'):
         return QtCore.QCoreApplication.instance().temp_configuration
     else:
         return None

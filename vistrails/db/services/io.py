@@ -329,7 +329,7 @@ def open_vistrail_from_zip_xml(filename):
 
     vt_save_dir = tempfile.mkdtemp(prefix='vt_save')
     output = []
-    cmdline = ['unzip', '-d', vt_save_dir, filename]
+    cmdline = ['unzip', '-q','-o','-d', vt_save_dir, filename]
     result = execute_cmdline(cmdline, output)
     
     if result != 0 and len(output) != 0:

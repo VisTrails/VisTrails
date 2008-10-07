@@ -320,7 +320,7 @@ class QViewManager(QtGui.QTabWidget):
                 else:
                     vistrail = res
             if type(version) == type(""):
-                version = vstrail.get_version_number(version)
+                version = vistrail.get_version_number(version)
             elif version is None:
                 version = vistrail.get_latest_version()
 

@@ -76,20 +76,20 @@ class BaseInterpreter(object):
                     result += self.get_name_dependencies(e)
         return result
 
-    def build_alias_dictionary(self, pipeline):
-        aliases = {}
-        for mid in pipeline.modules:
-            for f in pipeline.modules[mid].functions:
-                fsig = f.getSignature()
-                for pidx in xrange(len(f.params)):
-                    palias = f.params[pidx].alias
-                    if palias and palias!='':
-                        for f1 in reversed(pipeline.modules[mid].functions):
-                            if f1.getSignature()==fsig:
-                                p = f1.params[pidx]
-                                aliases[palias] = (p.type, expression.parse_expression(str(p.strValue)))
-                                break
-        return aliases
+#    def build_alias_dictionary(self, pipeline):
+#        aliases = {}
+#        for mid in pipeline.modules:
+#            for f in pipeline.modules[mid].functions:
+#                fsig = f.getSignature()
+#                for pidx in xrange(len(f.params)):
+#                    palias = f.params[pidx].alias
+#                    if palias and palias!='':
+#                        for f1 in reversed(pipeline.modules[mid].functions):
+#                            if f1.getSignature()==fsig:
+#                                p = f1.params[pidx]
+#                                aliases[palias] = (p.type, expression.parse_expression(str(p.strValue)))
+#                                break
+#        return aliases
 
     def compute_evaluation_order(self, aliases):
         # Build the dependencies graph
@@ -144,32 +144,36 @@ class BaseInterpreter(object):
 
     def resolve_aliases(self, pipeline,
                         customAliases=None):
-        # Compute the 'locals' dictionary by evaluating named expressions
-        aliases = self.build_alias_dictionary(pipeline)
+        # We don't build the alias dictionary anymore because as we don't 
+        # perform expression evaluation anymore, the values won't change.
+        # We only care for custom aliases because they might have a value 
+        # different from what it's stored.
+        
+        aliases = {}
         if customAliases:
             #customAliases can be only a subset of the aliases
             #so we need to build the Alias Dictionary always
             for k,v in customAliases.iteritems():
                 aliases[k] = v
-        
-        ordered = self.compute_evaluation_order(aliases)
-        casting = {'int': int, 'float': float, 'double': float, 'string': str,
-                   'Integer': int, 'Float': float, 'String': str}
-        for alias in reversed(ordered):
-            (atype,(base,exps)) = aliases[alias]
-            value = self.evaluate_exp(atype,base,exps,aliases)
-            aliases[alias] = casting[atype](value)
-
-        for mid in pipeline.modules:
-            for f in pipeline.modules[mid].functions:
-                for p in f.params:
-                    if p.alias and p.alias!='':
-                        p.evaluatedStrValue = str(aliases[p.alias])
-                    else:
-                        (base,exps) = expression.parse_expression(
-                            str(p.strValue))
-                        p.evaluatedStrValue = str(
-                            self.evaluate_exp(p.type,base,exps,aliases))
+         # no support for expression evaluation. The code that does that is
+         # ugly and dangerous.
+#        ordered = self.compute_evaluation_order(aliases)
+#        casting = {'int': int, 'float': float, 'double': float, 'string': str,
+#                   'Integer': int, 'Float': float, 'String': str}
+#        for alias in reversed(ordered):
+#            (atype,base) = aliases[alias]
+#            #no expression evaluation anymore
+#            aliases[alias] = base
+#            #value = self.evaluate_exp(atype,base,exps,aliases)
+#            #aliases[alias] = value
+        for alias in aliases:
+            try:
+                info = pipeline.aliases[alias]
+                param = pipeline.db_get_object(info[0],info[1])
+                param.strValue = str(aliases[alias])
+            except KeyError:
+                pass
+                    
         return aliases
     
 
