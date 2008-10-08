@@ -345,8 +345,11 @@ def open_vistrail_from_zip_xml(filename):
                 if fname == 'vistrail' and root == vt_save_dir:
                     vistrail = open_vistrail_from_xml(os.path.join(root, fname))
                 elif fname == 'log' and root == vt_save_dir:
-                    log = open_log_from_xml(os.path.join(root, fname))
-                    objs.append(DBLog.vtType, log)
+                    # FIXME read log to get execution info
+                    # right now, just ignore the file
+                    log = None 
+                    # log = open_log_from_xml(os.path.join(root, fname))
+                    # objs.append(DBLog.vtType, log)
                 elif fname.startswith('abstraction_'):
                     abstraction_file = os.path.join(root, fname)
                     abstraction_files.append(abstraction_file)
@@ -361,6 +364,8 @@ def open_vistrail_from_zip_xml(filename):
         raise VistrailsDBException("vt file does not contain vistrail")
     
     objs = [(DBVistrail.vtType, vistrail)]
+    if log is not None:
+        objs.append((DBLog.vtType, log))
     for abstraction_file in abstraction_files:
         objs.append(('__file__', abstraction_file))
 

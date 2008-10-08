@@ -2146,6 +2146,8 @@ class VistrailController(QtCore.QObject):
         if self.vistrail and (self.changed or self.locator != locator):
             # FIXME make all locators work with lists of objects
             objs = [(Vistrail.vtType, self.vistrail)]
+            if self.log and len(self.log.workflow_execs) > 0:
+                objs.append((Log.vtType, self.log))
             abstractions = process_abstractions(self.vistrail)
             for abs_fname in abstractions:
                 objs.append(('__file__', abs_fname))
