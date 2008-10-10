@@ -89,9 +89,14 @@ import core.utils
 import core.utils.color
 import core.utils.enum
 import core.utils.uxml
+import core.vistrail.connection
+import core.vistrail.module
 import core.vistrail.module_function
+import core.vistrail.pipeline
+import core.vistrail.port
 import core.vistrail.vistrail
 import core.vistrails_tree_layout_lw
+import db.services.io
 import gui.common_widgets
 import gui.graphics_view
 import gui.method_palette
