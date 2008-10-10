@@ -116,7 +116,7 @@ class vtkInteractionHandler(NotCacheable, Module):
         """ compute() -> None
         Actually compute nothing
         """        
-        self.observer = self.getInputFromPort('Observer')
+        self.observer = self.forceGetInputFromPort('Observer')
         self.handler = self.forceGetInputFromPort('Handler', '')
         self.shareddata = self.forceGetInputListFromPort('SharedData')
         if len(self.shareddata)==1:
@@ -257,7 +257,6 @@ class HandlerConfigurationWidget(StandardModuleConfigurationWidget):
         if self.codeEditor.document().isModified():
             code = urllib.quote(str(self.codeEditor.toPlainText()))
             fid = self.findHandlerFunction()
-
             # FIXME make sure that this makes sense
             if fid==-1:
                 # do add function
