@@ -116,6 +116,10 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         #FIXME this will only take care of one layer of namespaces
         if parent.childCount() <= 0:
             grandparent = parent.parent()
+            try:
+                nsitems = grandparent._namespace_items
+            except AttributeError:
+                return
             if namespace in grandparent._namespace_items:
                 grandparent.takeChild(grandparent.indexOfChild(parent))
                 del grandparent._namespace_items[namespace]

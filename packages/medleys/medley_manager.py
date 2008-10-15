@@ -79,7 +79,7 @@ class MedleyManagerSingleton(QtCore.QObject):
             if current_vistrail_view:
                 controller = current_vistrail_view.pipelineTab.controller
                 if controller:
-                    pipeline = controller.currentPipeline
+                    pipeline = controller.current_pipeline
                     if pipeline.module_count() > 0:
                         self.emit(QtCore.SIGNAL('create_workflow_view_from_builder'), 
                                   pipeline)

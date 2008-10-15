@@ -48,8 +48,12 @@ class Package(object):
             self.exception = exception
             self.traceback = traceback
         def __str__(self):
+            try:
+                name = self.package.name
+            except AttributeError:
+                name = 'codepath <%s>' % self.package.codepath
             return ("Package '%s' failed to initialize, raising '%s: %s'. Traceback:\n%s" %
-                    (self.package.name,
+                    (name,
                      self.exception.__class__.__name__,
                      self.exception,
                      self.traceback))
@@ -107,7 +111,7 @@ class Package(object):
                                        self._codepath)
                 self._package_type = self.Base
             except ImportError, e:
-                errors.append(e)
+                errors.append((e, traceback.format_exc()))
                 return False
             return True
 
@@ -121,10 +125,11 @@ class Package(object):
             dbg = debug.DebugPrint
             dbg.critical("Could not enable package %s" % self._codepath)
             for e in errors:
-                dbg.critical("Exceptions raised:")
-                dbg.critical(str(e))
-            raise ImportError("Package %s not present "
-                              "(or one of its imports failed)" % self._codepath)
+                dbg.critical("Exceptions/tracebacks raised:")
+                dbg.critical(str(e[0]))
+                dbg.critical(str(e[1]))
+            raise self.InitializationFailed(self,
+                                            e[-1][0], e[-1][1])
 
         # Sometimes we don't want to change startup.xml, for example
         # when peeking at a package that's on the available package list
@@ -230,16 +235,16 @@ class Package(object):
         return self._initialized
 
     def _get_name(self):
-        try:
-            return self._module.name
-        except AttributeError, e:
-            try:
-                v = self._module.__file__
-            except AttributeError:
-                v = self._module
-            msg = ("Package %s is missing attribute 'name'" % v)
-            debug.DebugPrint.critical(msg)
-            raise e
+        return self._module.name
+        # try:
+        # except AttributeError, e:
+        #     try:
+        #         v = self._module.__file__
+        #     except AttributeError:
+        #         v = self._module
+        #     msg = ("Package %s is missing attribute 'name'" % v)
+        #     debug.DebugPrint.critical(msg)
+        #     raise e
 
     # name is the human-readable package name
     name = property(_get_name)
@@ -616,10 +621,22 @@ Returns true if given package identifier is present."""
                                          package_codepath)
         self.add_package(package_codepath)
         pkg = self.get_package_by_codepath(package_codepath)
-        pkg.load()
+        try:
+            pkg.load()
+        except Exception, e:
+            # invert self.add_package
+            del self._package_list[package_codepath]
+            raise
         self._dependency_graph.add_vertex(pkg.identifier)
         self._identifier_map[pkg.identifier] = pkg
-        self.add_dependencies(pkg)
+        try:
+            self.add_dependencies(pkg)
+        except Exception, e:
+            del self._identifier_map[pkg.identifier]
+            self._dependency_graph.delete_vertex(pkg.identifier)
+            # invert self.add_package
+            del self._package_list[package_codepath]
+            raise
         pkg.check_requirements()
         pkg.initialize()
         self.add_menu_items(pkg)
@@ -653,6 +670,15 @@ creating a class that behaves similarly)."""
                 package.load(package_dictionary.get(package.codepath, None))
             except Package.LoadFailed, e:
                 debug.DebugPrint.critical("Will disable package %s" % package.name)
+                debug.DebugPrint.critical(str(e))
+                # print "FAILED TO LOAD, let's disable it"
+                # We disable the package manually to skip over things
+                # we know will not be necessary - the only thing needed is
+                # the reference in the package list
+                package.remove_own_dom_element()
+                failed.append(package)
+            except Package.InitializationFailed, e:
+                debug.DebugPrint.critical("Will disable package <codepath %s>" % package.codepath)
                 debug.DebugPrint.critical(str(e))
                 # print "FAILED TO LOAD, let's disable it"
                 # We disable the package manually to skip over things

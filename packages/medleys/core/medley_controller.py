@@ -152,7 +152,7 @@ class WorkflowViewCollectionController(object):
                         try:
                             v = bookmark.locator.load()
                             c = VistrailController(v,False)
-                            c.setVistrail(v,bookmark.locator)
+                            c.set_vistrail(v,bookmark.locator)
                             self.controllers[locstr] = c
                         except Exception, e:
                             bookmark.error = BookmarkError(3,(name,))

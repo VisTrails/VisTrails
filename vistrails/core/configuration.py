@@ -194,6 +194,7 @@ def default():
         'executeWorkflows': False,
         'showSpreadsheetOnly': False,
         'reviewMode': False,
+        'repositoryLocalPath': (None, str),
         }
     specific_dir = add_specific_config(base_dir)
     return ConfigurationObject(**specific_dir)

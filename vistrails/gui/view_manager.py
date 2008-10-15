@@ -340,7 +340,6 @@ class QViewManager(QtGui.QTabWidget):
         vistrailView.set_vistrail(vistrail, locator, abstraction_files)
         self.add_vistrail_view(vistrailView)
         self.setCurrentWidget(vistrailView)
-        vistrailView.controller.inspectAndImportModules()
         vistrailView.setup_view(version)
         self.versionSelectionChange(version)
         vistrailView.versionTab.vistrailChanged()
