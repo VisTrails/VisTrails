@@ -2217,12 +2217,12 @@ class VistrailController(QtCore.QObject):
     def write_workflow(self, locator):
         if self.current_pipeline:
             pipeline = Pipeline()
-            pipeline.set_abstraction_map(self.vistrail.abstractionMap)
+            # pipeline.set_abstraction_map(self.vistrail.abstractionMap)
             for module in self.current_pipeline.modules.itervalues():
-                if module.vtType == AbstractionModule.vtType:
-                    abstraction = \
-                        pipeline.abstraction_map[module.abstraction_id]
-                    pipeline.add_abstraction(abstraction)
+                # if module.vtType == AbstractionModule.vtType:
+                #     abstraction = \
+                #         pipeline.abstraction_map[module.abstraction_id]
+                #     pipeline.add_abstraction(abstraction)
                 pipeline.add_module(module)
             for connection in self.current_pipeline.connections.itervalues():
                 pipeline.add_connection(connection)            
