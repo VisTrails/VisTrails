@@ -115,19 +115,24 @@ class DefaultTheme(object):
 
         #### BRUSH & PEN ####
         # Background brush of the pipeline view
-        self.PIPELINE_VIEW_BACKGROUND_BRUSH = QtGui.QBrush(
-            QtGui.QImage(core.system.vistrails_root_directory() +
-                         '/gui/resources/images/pipeline_bg.png'))
-            #QtGui.QColor("white"))
-        # Background brush of the version tree
-        self.VERSION_TREE_BACKGROUND_BRUSH = QtGui.QBrush(
-            QtGui.QImage(core.system.vistrails_root_directory() +
-                         '/gui/resources/images/version_bg.png'))
-        
+        # self.PIPELINE_VIEW_BACKGROUND_BRUSH = QtGui.QBrush(
+        #     QtGui.QImage(core.system.vistrails_root_directory() +
+        #                  '/gui/resources/images/pipeline_bg.png'))
+        #     #QtGui.QColor("white"))
+        # # Background brush of the version tree
+        # self.VERSION_TREE_BACKGROUND_BRUSH = QtGui.QBrush(
+        #     QtGui.QImage(core.system.vistrails_root_directory() +
+        #                  '/gui/resources/images/version_bg.png'))
         # Background brush of the query pipeline view
+        # self.QUERY_BACKGROUND_BRUSH = QtGui.QBrush(
+        #     QtGui.QImage(core.system.vistrails_root_directory() +
+        #                  '/gui/resources/images/query_bg.png'))
+        self.PIPELINE_VIEW_BACKGROUND_BRUSH = QtGui.QBrush(
+            QtGui.QColor(128, 128, 128))
+        self.VERSION_TREE_BACKGROUND_BRUSH = QtGui.QBrush(
+            QtGui.QColor(240, 240, 240))
         self.QUERY_BACKGROUND_BRUSH = QtGui.QBrush(
-            QtGui.QImage(core.system.vistrails_root_directory() +
-                         '/gui/resources/images/query_bg.png'))
+            QtGui.QColor(119, 143, 159))
 
         # Pen to draw a module shape at regular state
         self.MODULE_PEN = QtGui.QPen(QtGui.QBrush(
