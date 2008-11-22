@@ -27,7 +27,7 @@ from core.vistrail.annotation import Annotation
 from core.vistrail.location import Location
 from core.vistrail.module import Module
 from core.vistrail.module_function import ModuleFunction
-from core.vistrail.port import Port, PortEndPoint
+from core.vistrail.port_spec import PortSpec, PortEndPoint
 from db.domain import DBGroup
 
 from core.utils import NoSummon, VistrailsInternalError, report_stack
@@ -120,8 +120,10 @@ class Group(DBGroup, Module):
         result.output_remap = self._output_remap
         if self.cache != 1:
             result.is_cacheable = lambda *args: False
-        if hasattr(result, 'srcPortsOrder'):
-            result.srcPortsOrder = [p.name for p in self.destinationPorts()]
+        if hasattr(result, 'input_ports_order'):
+            result.input_ports_order = [p.name for p in self.destinationPorts()]
+        if hasattr(result, 'output_ports_order'):
+            result.output_ports_order = [p.name for p in self.sourcePorts()]
         result.registry = self.registry or registry
         return result
 
@@ -147,24 +149,18 @@ class Group(DBGroup, Module):
         return None
 
     @staticmethod
-    def make_port_from_module(module, port_type):
+    def get_port_spec_info(module):
+        # FIXME check old registry here?
+        port_name = None
+        sigstring = None
         for function in module.functions:
             if function.name == 'name':
                 port_name = function.params[0].strValue
                 # print '  port_name:', port_name
             if function.name == 'spec':
-                port_spec = function.params[0].strValue
+                sigstring = function.params[0].strValue
                 # print '  port_spec:',  port_spec
-        port = Port(id=-1,
-                    name=port_name,
-                    type=port_type)
-        portSpecs = port_spec[1:-1].split(',')
-        signature = []
-        for s in portSpecs:
-            spec = s.split(':', 2)
-            signature.append(registry.get_descriptor_by_name(*spec).module)
-        port.spec = core.modules.module_registry.PortSpec(signature)
-        return port
+        return (port_name, sigstring)
 
     def make_registry(self):
         reg_module = \
@@ -177,15 +173,16 @@ class Group(DBGroup, Module):
             # print 'module:', module.name
             if module.name == 'OutputPort' and \
                     module.package == 'edu.utah.sci.vistrails.basic':
-                port = self.make_port_from_module(module, 'source')
-                self._registry.add_port(reg_module, PortEndPoint.Source, port)
-                self._output_remap[port.name] = module
+                (port_name, sigstring) = self.get_port_spec_info(module)
+                self._registry.add_port(reg_module, port_name, 'output', None,
+                                        sigstring)
+                self._output_remap[port_name] = module
             elif module.name == 'InputPort' and \
                     module.package == 'edu.utah.sci.vistrails.basic':
-                port = self.make_port_from_module(module, 'destination')
-                self._registry.add_port(reg_module, PortEndPoint.Destination, 
-                                        port)
-                self._input_remap[port.name] = module
+                (port_name, sigstring) = self.get_port_spec_info(module)
+                self._registry.add_port(reg_module, port_name, 'input', None,
+                                        sigstring)
+                self._input_remap[port_name] = module
     def sourcePorts(self):
         return self.registry.module_source_ports(False, self.package,
                                                  self.name, self.namespace)

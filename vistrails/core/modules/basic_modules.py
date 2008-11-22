@@ -28,7 +28,9 @@ from core.modules import port_configure
 from core.modules import vistrails_module
 from core.modules.vistrails_module import Module, new_module, \
      NotCacheable, ModuleError
-from core.modules.tuple_configuration import TupleConfigurationWidget
+from core.modules.python_source_configure import PythonSourceConfigurationWidget
+from core.modules.tuple_configuration import TupleConfigurationWidget, \
+    UntupleConfigurationWidget
 from core.modules.constant_configuration import StandardConstantWidget, \
      FileChooserWidget, ColorWidget, ColorChooserButton, BooleanWidget
 from core.utils import InstanceObject
@@ -39,6 +41,7 @@ from PyQt4 import QtGui
 
 import core.packagemanager
 import core.system
+from itertools import izip
 import os
 import zipfile
 import urllib
@@ -412,11 +415,13 @@ class Tuple(Module):
 
     def __init__(self):
         Module.__init__(self)
-        self.srcPortsOrder = []
+        self.input_ports_order = []
+        self.values = tuple()
 
     def compute(self):
         values = tuple([self.getInputFromPort(p)
-                        for p in self.srcPortsOrder])
+                        for p in self.input_ports_order])
+        self.values = values
         self.setResult("value", values)
         
 _reg.add_module(Tuple, configureWidgetType=TupleConfigurationWidget)
@@ -430,6 +435,26 @@ class TestTuple(Module):
 _reg.add_module(TestTuple)
 _reg.add_input_port(TestTuple, 'tuple', [Integer, String])
 
+class Untuple(Module):
+    """Untuple takes a tuple and returns the individual values.  It
+    reverses the actions of Tuple.
+
+    """
+    def __init__(self):
+        Module.__init__(self)
+        self.output_ports_order = []
+
+    def compute(self):
+        if self.hasInputFromPort("tuple"):
+            tuple = self.getInputFromPort("tuple")
+            values = tuple.values
+        else:
+            values = self.getInputFromPort("value")
+        for p, value in izip(self.output_ports_order, values):
+            self.setResult(p, value)
+
+_reg.add_module(Untuple, configureWidgetType=UntupleConfigurationWidget)
+_reg.add_input_port(Untuple, 'tuple', Tuple)
 
 ##############################################################################
 
@@ -555,7 +580,7 @@ class PythonSource(NotCacheable, Module):
         self.run_code(s, use_input=True, use_output=True)
 
 _reg.add_module(PythonSource,
-                configureWidgetType=module_configure.PythonSourceConfigurationWidget)
+                configureWidgetType=PythonSourceConfigurationWidget)
 _reg.add_input_port(PythonSource, 'source', String, True)
 
 ##############################################################################
@@ -640,7 +665,7 @@ class SmartSource(NotCacheable, Module):
         self.run_code(s, use_input=True, use_output=True)
 
 _reg.add_module(SmartSource,
-                configureWidgetType=module_configure.PythonSourceConfigurationWidget)
+                configureWidgetType=PythonSourceConfigurationWidget)
 _reg.add_input_port(SmartSource, 'source', String, True)
 
 

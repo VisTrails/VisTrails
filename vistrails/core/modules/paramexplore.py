@@ -29,7 +29,7 @@ from PyQt4 import QtCore, QtGui
 from gui.common_widgets import QStringEdit
 from core.modules.module_registry import registry
 from gui.theme import CurrentTheme
-from core.modules.module_configure import PythonEditor
+from core.modules.python_source_configure import PythonEditor
 from gui.utils import show_warning
 from core.utils import all
 

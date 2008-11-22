@@ -120,19 +120,12 @@ def add_module(x, y, identifier, name, namespace, controller=None):
     controller.current_pipeline_view.setupScene(controller.current_pipeline)
     return result
     
-def add_connection(output_id, output_port, input_id, input_port, 
+def add_connection(output_id, output_port_spec, input_id, input_port_spec, 
                    controller=None):
-    from core.vistrail.connection import Connection
-    # FIXME add_module and add_connection should be analogous
-    # add_connection currently works completely differently
     if controller is None:
         controller = get_current_controller()
-    connection = Connection.fromPorts(output_port,
-                                      input_port)
-    connection.sourceId = output_id
-    connection.destinationId = input_id
-    connection.id = controller.current_pipeline.fresh_connection_id()
-    result = controller.add_connection(connection)
+    result = controller.add_connection(output_id, output_port_spec,
+                                       input_id, input_port_spec)
     controller.current_pipeline_view.setupScene(controller.current_pipeline)
     return result
 

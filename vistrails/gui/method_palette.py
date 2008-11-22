@@ -114,30 +114,32 @@ class QMethodTreeWidget(QSearchTreeWidget):
                 # vistrail_controller:change_selected_version
                 raise
             moduleHierarchy = registry.get_module_hierarchy(descriptor)
-            for baseModule in moduleHierarchy:
-                baseName = registry.get_descriptor(baseModule).name
-                base_package = registry.get_descriptor(baseModule).identifier
+            for descriptor in moduleHierarchy:
+                baseName = descriptor.name
+                base_package = descriptor.identifier
                 # Create the base widget item
                 baseItem = QMethodTreeWidgetItem(None,
-                                                 None,
                                                  None,
                                                  self,
                                                  (QtCore.QStringList()
                                                   <<  baseName
                                                   << ''))
-                methods = registry.method_ports(baseModule)
+                method_specs = registry.method_ports(descriptor)
+
                 # Also check the local registry
-                if module.registry and module.registry.has_module(base_package,
-                                                                  baseName):
-                    methods += module.registry.method_ports(baseModule)
-                for method in methods:
-                    sig = method.spec.create_sigstring(short=True)
+                local_reg = module.registry
+                key = (descriptor.identifier, descriptor.name, 
+                       descriptor.namespace)
+                if local_reg and local_reg.has_module(*key):
+                    local_descriptor = local_reg.get_descriptor_by_name(*key)
+                    method_specs += local_reg.method_ports(local_descriptor)
+                for method_spec in method_specs:
+                    sig = method_spec.short_sigstring
                     QMethodTreeWidgetItem(module,
-                                          method,
-                                          method.spec,
+                                          method_spec,
                                           baseItem,
                                           (QtCore.QStringList()
-                                           << method.name
+                                           << method_spec.name
                                            << sig))
             self.expandAll()
             self.resizeColumnToContents(0)
@@ -153,10 +155,9 @@ class QMethodTreeWidgetItem(QtGui.QTreeWidgetItem):
     QMethodTreeWidgetItem represents method on QMethodTreeWidget
     
     """
-    def __init__(self, module, port, spec, parent, labelList):
+    def __init__(self, module, spec, parent, labelList):
         """ QMethodTreeWidgetItem(module: Module
-                                  port: Port,
-                                  spec: tuple,
+                                  spec: PortSpec,
                                   parent: QTreeWidgetItem
                                   labelList: QStringList)
                                   -> QMethodTreeWidgetItem                               
@@ -165,7 +166,6 @@ class QMethodTreeWidgetItem(QtGui.QTreeWidgetItem):
 
         """
         self.module = module
-        self.port = port
         self.spec = spec
         QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
 
@@ -187,6 +187,6 @@ class QMethodTreeWidgetItem(QtGui.QTreeWidgetItem):
                                                      self.module.namespace)
         widget = QPortDocumentation(descriptor,
                                     PortEndPoint.Destination,
-                                    self.port.name)
+                                    self.spec.name)
         widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         widget.exec_()

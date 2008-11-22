@@ -396,22 +396,36 @@ class VistrailController(QtCore.QObject):
         self.add_new_action(action)
         return self.perform_action(action)
             
-    def add_connection(self, connection):
-        """ add_connection(connection: Connection) -> version id
-        Add a new connection 'connection' into Vistrail
+    def add_connection(self, output_id, output_port_spec, 
+                       input_id, input_port_spec):
+        """ add_connection(output_id: long,
+                           output_port_spec: PortSpec,
+                           input_id: long,
+                           input_port_spec: PortSpec) -> version id
+        Add a new connection into Vistrail
         
         """
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        output_port_id = self.vistrail.idScope.getNewId(Port.vtType)
+        output_m_name = self.current_pipeline.modules[output_id].name
+        output_port = Port(id=output_port_id,
+                           spec=output_port_spec,
+                           moduleId=output_id,
+                           moduleName=output_m_name)
+        input_port_id = self.vistrail.idScope.getNewId(Port.vtType)
+        input_m_name = self.current_pipeline.modules[input_id].name
+        input_port = Port(id=input_port_id,
+                           spec=input_port_spec,
+                           moduleId=input_id,
+                           moduleName=input_m_name)
         conn_id = self.vistrail.idScope.getNewId(Connection.vtType)
-        connection.id = conn_id
-        for port in connection.ports:
-            port_id = self.vistrail.idScope.getNewId(Port.vtType)
-            port.id = port_id
+        connection = Connection(id=conn_id,
+                                ports=[input_port, output_port])
         action = core.db.action.create_action([('add', connection)])
         self.add_new_action(action)
         result = self.perform_action(action)
         self.current_pipeline.ensure_connection_specs([connection.id])
-        return result
+        return connection
     
     def delete_connection(self, id):
         """ delete_connection(id: int) -> version id
@@ -554,6 +568,137 @@ class VistrailController(QtCore.QObject):
         self.add_new_action(action)
         return self.perform_action(action)
 
+    def create_port_spec_ops(self, module_id, deleted_ports, added_ports):
+#         for p in deleted_ports:
+#             print 'deleting', p
+#         for p in added_ports:
+#             print 'adding', p
+        op_list = []
+        module = self.current_pipeline.modules[module_id]
+        # Remove any connections related to deleted ports
+        for c in self.current_pipeline.connections.itervalues():
+            if ((c.sourceId == module_id and
+                 any(c.source.name == p[1] for p in deleted_ports)) or
+                (c.destinationId == module_id and
+                 any(c.destination.name == p[1] for p in deleted_ports))):
+                op_list.append(('delete', c))
+
+        # Remove any functions related to deleted ports
+        for p in deleted_ports:
+            for function in module.functions:
+                if function.name == p[1]:
+                    op_list.append(('delete', function, 
+                                    Module.vtType, module_id))
+
+        # Remove all deleted ports
+        deleted_port_info = []
+        for p in deleted_ports:
+            port_info = (p[1], p[0])
+            if module.has_portSpec_with_name(port_info):
+                port_spec = module.get_portSpec_by_name(port_info)
+                op_list.append(('delete', port_spec, Module.vtType, module_id))
+                deleted_port_info.append(port_info)
+
+        # Add all added ports
+        for p in added_ports:
+            port_info = (p[1], p[0])
+            if module.has_portSpec_with_name(port_info) and \
+                    port_info not in deleted_port_info:
+                msg = "Cannot add duplicate %s port '%s'" % (p[0], p[1])
+                raise VistrailsInternalError(msg)
+            p_id = self.vistrail.idScope.getNewId(PortSpec.vtType)
+            port_spec = PortSpec(id=p_id,
+                                 type=p[0],
+                                 name=p[1],
+                                 sigstring=p[2],
+                                 )
+            op_list.append(('add', port_spec, Module.vtType, module_id))
+
+        return op_list
+
+    def create_function_ops(self, module_id, functions):
+        reg = core.modules.module_registry.registry
+        op_list = []
+        module = self.current_pipeline.modules[module_id]
+        desc = reg.get_descriptor_by_name(module.package, module.name,
+                                          module.namespace)
+
+        def create_param(port_spec, pos, value):
+            param_id = self.vistrail.idScope.getNewId(ModuleParam.vtType)
+            descriptor = reg.get_descriptor(port_spec.signature[pos][0])
+            param_type = descriptor.sigstring
+            # FIXME add/remove description
+            # FIXME make ModuleParam constructor accept port_spec
+            new_param = ModuleParam(id=param_id,
+                                    pos=pos,
+                                    name='<no description>',
+                                    alias='',
+                                    val=value,
+                                    type=param_type,
+                                    )
+            return new_param
+        # end create_param
+
+        for f in functions:
+            # f = (function_name, function_id, [param_values], should_replace)
+            # function_port = desc.get_port(f[0], 1)
+            port_spec = desc.get_port_spec(f[0], 'input')
+
+            if f[1] < 0:
+                old_id = -1
+                for i, old_function in enumerate(module.functions):
+                    if old_function.name == f[0] and f[3]:
+                        op_list.append(('delete', old_function,
+                                        module.vtType, module_id))
+                    else:
+                        old_id = i
+            else:
+                old_id = f[1]
+
+            if old_id >= 0:
+                function = module.functions[f[1]]
+                for i, new_param_value in enumerate(f[2]):
+                    old_param = function.params[i]
+                    if old_param.strValue != new_param_value:
+                        new_param = create_param(port_spec, i, new_param_value)
+                        op_list.append(('change', old_param, new_param,
+                                        function.vtType, function.real_id))
+            else:
+                f_id = self.vistrail.idScope.getNewId(ModuleFunction.vtType)
+                new_function = ModuleFunction(id=f_id,
+                                              pos=module.getNumFunctions(),
+                                              name=f[0],
+                                              )
+                op_list.append(('add', new_function,
+                                module.vtType, module_id))
+                for i, new_param_value in enumerate(f[2]):
+                    new_param = create_param(port_spec, i, new_param_value)
+                    op_list.append(('add', new_param, 
+                                    new_function.vtType, new_function.real_id))
+        return op_list
+
+    def update_functions(self, module_id, functions):
+        op_list = self.create_function_ops(module_id, functions)
+        action = core.db.action.create_action(op_list)
+        self.add_new_action(action)
+        return self.perform_action(action)
+
+    def update_ports_and_functions(self, module_id, deleted_ports, added_ports,
+                                   functions):
+        op_list = self.create_port_spec_ops(module_id, deleted_ports, 
+                                            added_ports)
+        op_list.extend(self.create_function_ops(module_id, functions))
+        action = core.db.action.create_action(op_list)
+        self.add_new_action(action)
+        return self.perform_action(action)
+
+    def update_ports(self, module_id, deleted_ports, added_ports):
+        op_list = self.create_port_spec_ops(module_id, deleted_ports, 
+                                            added_ports)
+        action = core.db.action.create_action(op_list)
+        self.add_new_action(action)
+        return self.perform_action(action)
+        
     def has_module_port(self, module_id, port_tuple):
         """ has_module_port(module_id: int, port_tuple: (str, str)): bool
         Parameters
@@ -586,7 +731,7 @@ class VistrailController(QtCore.QObject):
         port_spec = PortSpec(id=p_id,
                              type=port_tuple[0],
                              name=port_tuple[1],
-                             spec=port_tuple[2],
+                             sigstring=port_tuple[2],
                              )
         action = core.db.action.create_action([('add', port_spec,
                                                 module.vtType, module.id)])
@@ -1573,15 +1718,17 @@ class VistrailController(QtCore.QObject):
                                             y=0.0,
                                             )
                         if port.endPoint == PortEndPoint.Source:
-                            port_klass = Variant
+                            port_sigstring = \
+                                "(edu.utah.sci.vistrails.basic:Variant)"
                             port_type = InputPort.__name__
-                            port_specStr = connection.destination.specStr
+                            port_sig = connection.destination.signature
                             base_name = connection.destination.name
                             names = in_names
                         elif port.endPoint == PortEndPoint.Destination:
-                            port_klass = core.modules.vistrails_module.Module
+                            port_sigstring = \
+                                "(edu.utah.sci.vistrails.basic:Module)"
                             port_type = OutputPort.__name__
-                            port_specStr = connection.source.specStr
+                            port_sig = connection.source.signature
                             base_name = connection.source.name
                             names = out_names
                         if base_name in names:
@@ -1606,7 +1753,7 @@ class VistrailController(QtCore.QObject):
                         param = ModuleParam(id=param_id,
                                             pos=0,
                                             type='String',
-                                            val=port_specStr)
+                                            val=port_sig)
 
                         function_id = id_scope.getNewId(ModuleFunction.vtType)
                         function_2 = ModuleFunction(id=function_id,
@@ -1640,17 +1787,21 @@ class VistrailController(QtCore.QObject):
 #                         module = self.create_submodule(port, name_remap, 
 #                                                        in_names, out_names)  
                         pipeline.add_module(module, id_remap)
-                        spec_str = '(edu.sci.utah.vistrails.basic:%s)' % \
-                            port_type
+
+                        reg = core.modules.module_registry.registry
+                        spec_type = PortSpec.port_type_map.inverse[port.type]
+                        port_spec = reg.get_port_spec(module.package, 
+                                                      module.name, 
+                                                      module.namespace, 
+                                                      'InternalPipe', 
+                                                      spec_type)
+
                         port_id = id_scope.getNewId(Port.vtType)
                         new_port = Port(id=port_id,
-                                        type=port.type,
+                                        spec=port_spec,
                                         moduleId=module.id,
-                                        moduleName=port_type,
-                                        name='InternalPipe')
-                        new_port.spec = \
-                            core.modules.module_registry.PortSpec(port_klass)
-                        new_ports.append(new_port)  
+                                        moduleName=port_type)
+                        new_ports.append(new_port)
                     else:
                         changed_ports.append((port, connection))
             new_connection = connection.do_copy(True, id_scope, id_remap)
@@ -1677,14 +1828,12 @@ class VistrailController(QtCore.QObject):
         for (old_port, connection) in changed_ports:
             new_connection = connection.do_copy(True, self.vistrail.idScope, 
                                                 id_remap)
+            # FIXME using old_port.spec!
             port_id = self.vistrail.idScope.getNewId(Port.vtType)
             changed_port = Port(id=port_id,
-                                type=old_port.type,
+                                spec=old_port.spec,
                                 moduleId=module_id,
-                                moduleName=module_name,
-                                name=name_remap[connection.id])
-            changed_port.specStr = old_port.specStr
-            changed_port.spec = old_port.spec
+                                moduleName=module_name)
 
             if old_port.type == 'source':
                 new_connection.source = changed_port
@@ -1888,7 +2037,7 @@ class VistrailController(QtCore.QObject):
                     # need to rewire
                     rewire = True
                     if port.endPoint == PortEndPoint.Source:
-                        key = (source.name, source.specStr)
+                        key = (source.name, source.signature)
                         if key not in out_conns:
                             print "ERROR: key not in out_conns"
                         old_connection = out_conns[key]
@@ -1898,7 +2047,7 @@ class VistrailController(QtCore.QObject):
                         d_map = {}
                         dest = dest.do_copy(True, self.vistrail.idScope, d_map)
                     elif port.endPoint == PortEndPoint.Destination:
-                        key = (dest.name, dest.specStr)
+                        key = (dest.name, dest.signature)
                         if key not in in_conns:
                             print "ERROR: key not in in_conns"
                         old_connection = in_conns[key]
@@ -1986,7 +2135,7 @@ class VistrailController(QtCore.QObject):
         if self.abstraction_exists(abs_name, abstraction_uuid):
             descriptor = \
                 self.get_abstraction_descriptor(abs_name, abstraction_uuid)
-            descriptor.abstraction_refs += 1
+            descriptor._abstraction_refs += 1
             # print 'load ref_count:', descriptor.abstraction_refs
             return
             
@@ -1996,9 +2145,9 @@ class VistrailController(QtCore.QObject):
     def unload_abstraction(self, name, namespace):
         if self.abstraction_exists(name, namespace):
             descriptor = self.get_abstraction_descriptor(name, namespace)
-            descriptor.abstraction_refs -= 1
+            descriptor._abstraction_refs -= 1
             # print 'unload ref_count:', descriptor.abstraction_refs
-            if descriptor.abstraction_refs < 1:
+            if descriptor._abstraction_refs < 1:
                 # unload abstraction
                 print "deleting module:", name, namespace
                 reg = core.modules.module_registry.registry
@@ -2239,6 +2388,9 @@ class VistrailController(QtCore.QObject):
         if self.log:
             locator.save_as(self.log)
 
+    def write_registry(self, locator):
+        locator.save_as(core.modules.module_registry.registry)
+
     def query_by_example(self, pipeline):
         """ query_by_example(pipeline: Pipeline) -> None
         Perform visual query on the current vistrail
@@ -2277,12 +2429,16 @@ class VistrailController(QtCore.QObject):
         c = analogy_target
         action = core.analogy.perform_analogy_on_vistrail(self.vistrail,
                                                           a, b, c)
+#         id_remap = {}
+#         action = action.do_copy(True, self.vistrail.idScope, id_remap)
         self.add_new_action(action)
         self.vistrail.change_description("Analogy", action.id)
         self.vistrail.change_analogy_info("(%s -> %s)(%s)" % (a, b, c), 
                                           action.id)
         self.perform_action(action)
         
+        self.current_pipeline_view.setupScene(self.current_pipeline)
+
         # this is not necessary anymore
         #self.set_changed(True)
         #if invalidate:

@@ -26,8 +26,9 @@ widget
 from PyQt4 import QtCore, QtGui
 from core.modules.basic_modules import PythonSource
 from core.modules.vistrails_module import Module, NotCacheable, ModuleError
-from core.modules.module_configure import StandardModuleConfigurationWidget, \
-     PythonSourceConfigurationWidget, PythonEditor
+from core.modules.module_configure import StandardModuleConfigurationWidget
+from core.modules.python_source_configure import \
+    PythonSourceConfigurationWidget, PythonEditor
 import urllib
 
 ############################################################################
@@ -70,126 +71,3 @@ class MplPlotConfigurationWidget(PythonSourceConfigurationWidget):
         PythonSourceConfigurationWidget.__init__(self, module,
                                                  controller, parent)
         self.setWindowTitle('MplPlot Script Editor')
-    
-
-class _MplPlotConfigurationWidget(StandardModuleConfigurationWidget):
-    """
-    MplPlotConfigurationWidget is simialr to PythonSource
-    configuration widget except that it doesn't allow add/remove
-    ports. In this configuration widget, the user will enter their
-    Matplotlib script to pass down to MplFigure module
-    
-    """
-    def __init__(self, module, controller, parent=None):
-        """ MplPlotConfigurationWidget(module: Module,
-                                       controller: VistrailController,
-                                       parent: QWidget)
-                                       -> MplPlotConfigurationWidget                                       
-        Setup the dialog to have a single python source editor and 2
-        buttons
-        
-        """
-        StandardModuleConfigurationWidget.__init__(self, module,
-                                                   controller, parent)
-        self.setWindowTitle('MplPlot Script Editor')
-        self.setLayout(QtGui.QVBoxLayout())
-        self.layout().setMargin(0)
-        self.layout().setSpacing(0)
-        self.createEditor()
-        self.createButtonLayout()        
-    
-    def findSourceFunction(self):
-        """ findSourceFunction() -> int
-        Return the function id associated with input port 'source'
-        
-        """
-        fid = -1
-        for i in xrange(self.module.getNumFunctions()):
-            if self.module.functions[i].name=='source':
-                fid = i
-                break
-        return fid
-
-    def createEditor(self):
-        """ createEditor() -> None
-        Add a python editor into the widget layout
-        
-        """
-        self.codeEditor = PythonEditor(self)
-        fid = self.findSourceFunction()
-        if fid!=-1:
-            f = self.module.functions[fid]
-            self.codeEditor.setPlainText(urllib.unquote(f.params[0].strValue))
-        self.codeEditor.document().setModified(False)
-        self.layout().addWidget(self.codeEditor, 1)
-        
-    def createButtonLayout(self):
-        """ createButtonLayout() -> None
-        Construct Ok & Cancel button
-        
-        """
-        self.buttonLayout = QtGui.QHBoxLayout()
-        self.buttonLayout.setMargin(5)
-        self.okButton = QtGui.QPushButton('&OK', self)
-        self.okButton.setAutoDefault(False)
-        self.okButton.setFixedWidth(100)
-        self.buttonLayout.addWidget(self.okButton)
-        self.cancelButton = QtGui.QPushButton('&Cancel', self)
-        self.cancelButton.setAutoDefault(False)
-        self.cancelButton.setShortcut('Esc')
-        self.cancelButton.setFixedWidth(100)
-        self.buttonLayout.addWidget(self.cancelButton)
-        self.layout().addLayout(self.buttonLayout)
-        self.connect(self.okButton, QtCore.SIGNAL('clicked(bool)'), self.okTriggered)
-        self.connect(self.cancelButton, QtCore.SIGNAL('clicked(bool)'), self.close)
-
-    def sizeHint(self):
-        """ sizeHint() -> QSize
-        Return the recommendation size of this widget
-        
-        """
-        return QtCore.QSize(512, 512)
-
-    def updateController(self, controller):
-        """ updateController() -> None        
-        Based on the input of the python editor, update the vistrail
-        controller appropriately
-        
-        """
-        if self.codeEditor.document().isModified():
-            code = urllib.quote(str(self.codeEditor.toPlainText()))
-            fid = self.findSourceFunction()
-
-            # FIXME make sure that this makes sense
-            if fid==-1:
-                # do add function
-                fid = self.module.getNumFunctions()
-                f = ModuleFunction(pos=fid,
-                                   name='source')
-                param = ModuleParam(type='String',
-                                    strValue=code,
-                                    alias='',
-                                    name='<no description>',
-                                    pos=0)
-                f.addParameter(param)
-                controller.add_method(self.module.id, f)
-            else:
-                # do change parameter
-                paramList = [(code, 'String',  None, 
-                              'edu.utah.sci.vistrails.basic', '')]
-                controller.replace_method(self.module, fid, paramList)
-
-#             if fid==-1:
-#                 fid = self.module.getNumFunctions()
-#             action = ChangeParameterAction()
-#             action.addParameter(self.module.id, fid, 0, 'source',
-#                                 '<no description>',code,'String', '')
-#             controller.performAction(action)
-
-    def okTriggered(self, checked = False):
-        """ okTriggered(checked: bool) -> None
-        Update vistrail controller (if neccesssary) then close the widget
-        
-        """
-        self.updateController(self.controller)
-        self.close()

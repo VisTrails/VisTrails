@@ -57,8 +57,8 @@ class Connection(DBConnection):
     # Constructors and copy
     
     @staticmethod
-    def fromPorts(source, dest):
-        """fromPorts(source: Port, dest: Port) -> Connection
+    def from_port_specs(source, dest):
+        """from_port_specs(source: PortSpec, dest: PortSpec) -> Connection
         Static method that creates a Connection given source and 
         destination ports.
 
@@ -321,19 +321,18 @@ class TestConnection(unittest.TestCase):
 
     def create_connection(self, id_scope=IdScope()):
         from core.vistrail.port import Port
-
         source = Port(id=id_scope.getNewId(Port.vtType),
                       type='source', 
                       moduleId=21L, 
                       moduleName='String', 
-                      name='self',
-                      spec='edu.sci.utah.vistrails.basic:String')
+                      name='value',
+                      signature='(edu.utah.sci.vistrails.basic:String)')
         destination = Port(id=id_scope.getNewId(Port.vtType),
                            type='destination',
                            moduleId=20L,
                            moduleName='Float',
-                           name='self',
-                           spec='edu.sci.utah.vistrails.basic:Float')
+                           name='value',
+                           signature='(edu.utah.sci.vistrails.basic:Float)')
         connection = Connection(id=id_scope.getNewId(Connection.vtType),
                                 ports=[source, destination])
         return connection

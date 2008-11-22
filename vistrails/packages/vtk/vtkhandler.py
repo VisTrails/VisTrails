@@ -24,8 +24,8 @@ from PyQt4 import QtCore, QtGui
 from core.modules.basic_modules import String
 from core.modules.vistrails_module import Module, NotCacheable
 from core.modules.module_registry import registry
-from core.modules.module_configure import StandardModuleConfigurationWidget, \
-     PythonEditor
+from core.modules.module_configure import StandardModuleConfigurationWidget
+from core.modules.python_source_configure import PythonEditor
 from core.vistrail.module_function import ModuleFunction, ModuleParam
 import urllib
 
@@ -256,32 +256,9 @@ class HandlerConfigurationWidget(StandardModuleConfigurationWidget):
         """
         if self.codeEditor.document().isModified():
             code = urllib.quote(str(self.codeEditor.toPlainText()))
-            fid = self.findHandlerFunction()
-            # FIXME make sure that this makes sense
-            if fid==-1:
-                # do add function
-                fid = self.module.getNumFunctions()
-                f = ModuleFunction(pos=fid,
-                                   name='Handler')
-                param = ModuleParam(type='String',
-                                    val=code,
-                                    alias='',
-                                    name='<no description>',
-                                    pos=0)
-                f.addParameter(param)
-                controller.add_method(self.module.id, f)
-            else:
-                # do change parameter
-                paramList = [(code, 'String',  None, 
-                              'edu.utah.sci.vistrails.basic', '')]
-                controller.replace_method(self.module, fid, paramList)
-
-#             if fid==-1:
-#                 fid = self.module.getNumFunctions()
-#             action = ChangeParameterAction()
-#             action.addParameter(self.module.id, fid, 0, 'Handler',
-#                                 '<no description>',code,'String', '')
-#             controller.performAction(action)
+            functions = [('Handler', self.findHandlerFunction(), [code], 
+                          True)]
+            self.controller.update_functions(self.module.id, functions)
 
     def okTriggered(self, checked = False):
         """ okTriggered(checked: bool) -> None

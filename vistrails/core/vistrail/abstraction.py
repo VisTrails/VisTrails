@@ -106,8 +106,10 @@ class Abstraction(DBAbstraction, Module):
         result = descriptor.module()
         if self.cache != 1:
             result.is_cacheable = lambda *args: False
-        if hasattr(result, 'srcPortsOrder'):
-            result.srcPortsOrder = [p.name for p in self.destinationPorts()]
+        if hasattr(result, 'input_ports_order'):
+            result.input_ports_order = [p.name for p in self.destinationPorts()]
+        if hasattr(result, 'output_ports_order'):
+            result.output_ports_order = [p.name for p in self.sourcePorts()]
         result.registry = self.registry or registry
         return result
 

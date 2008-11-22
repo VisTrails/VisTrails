@@ -26,6 +26,7 @@ from core.cache.hasher import Hasher
 from core.data_structures.bijectivedict import Bidict
 from core.data_structures.graph import Graph
 from core.debug import DebugPrint
+from core.modules.module_descriptor import ModuleDescriptor
 from core.modules.module_registry import registry, ModuleRegistry
 from core.utils import VistrailsInternalError
 from core.utils import expression, append_to_dict_of_lists
@@ -749,112 +750,143 @@ class Pipeline(DBWorkflow):
         Computes the specs for the connections in connection_ids. If
         connection_ids is None, computes it for every connection in the pipeline.
         """
-        def source_spec(port):
-            module = self.get_module_by_id(port.moduleId)
-            reg = module.registry or registry
-            port_list = []
-            def do_it(ports):
-                # Following line is weird because we're in a hot-path
-                port_list.extend([p for p in ports
-                                  if (p._db_name ==
-                                      port._db_name)])
+#         def source_spec(port):
+#             module = self.get_module_by_id(port.moduleId)
+#             reg = module.registry or registry
+#             port_list = []
+#             def do_it(ports):
+#                 # Following line is weird because we're in a hot-path
+#                 port_list.extend([p for p in ports
+#                                   if (p._db_name ==
+#                                       port._db_name)])
 
-            if module.vtType == Abstraction.vtType and \
-                    module.package == 'local.abstractions':
-                try:
-                    do_it(reg.module_source_ports(False,
-                                                  module.package,
-                                                  module.name,
-                                                  module.namespace))
-                except reg.MissingModulePackage:
-                    do_it(reg.module_source_ports(False,
-                                                  module.package,
-                                                  module.name))
-            else:
-                do_it(reg.module_source_ports(False,
-                                              module.package,
-                                              module.name,
-                                              module.namespace))
-            if len(port_list) == 0:
-                # The port might still be in the original registry
-                do_it(registry.module_source_ports(False, module.package,
-                                                   module.name,
-                                                   module.namespace))
-            if len(port_list) == 0:
-                print "Failed", module.package, module.name, module.namespace, port.name
-                assert False
+#             if module.vtType == Abstraction.vtType and \
+#                     module.package == 'local.abstractions':
+#                 try:
+#                     do_it(reg.module_source_ports(False,
+#                                                   module.package,
+#                                                   module.name,
+#                                                   module.namespace))
+#                 except reg.MissingModulePackage:
+#                     do_it(reg.module_source_ports(False,
+#                                                   module.package,
+#                                                   module.name))
+#             else:
+#                 do_it(reg.module_source_ports(False,
+#                                               module.package,
+#                                               module.name,
+#                                               module.namespace))
+#             if len(port_list) == 0:
+#                 # The port might still be in the original registry
+#                 do_it(registry.module_source_ports(False, module.package,
+#                                                    module.name,
+#                                                    module.namespace))
+#             if len(port_list) == 0:
+#                 print "Failed", module.package, module.name, module.namespace, port.name
+#                 assert False
             
-            # if port_list has more than one element, then it's an
-            # overloaded port. Source (output) port overloads must all
-            # be contravariant. This means that the spec of the
-            # new port must be a subtype of the spec of the
-            # original port. This induces a total ordering on the types,
-            # which we use to sort the possible ports, and get the
-            # most strict one.
+#             # if port_list has more than one element, then it's an
+#             # overloaded port. Source (output) port overloads must all
+#             # be contravariant. This means that the spec of the
+#             # new port must be a subtype of the spec of the
+#             # original port. This induces a total ordering on the types,
+#             # which we use to sort the possible ports, and get the
+#             # most strict one.
             
-            port_list.sort(lambda p1, p2:
-                           (p1 != p2 and
-                            issubclass(p1.spec.signature[0][0],
-                                       p2.spec.signature[0][0])))
-            return copy.copy(port_list[0].spec)
+#             port_list.sort(lambda p1, p2:
+#                            (p1 != p2 and
+#                             issubclass(p1.spec.signature[0][0],
+#                                        p2.spec.signature[0][0])))
+#             return copy.copy(port_list[0].spec)
 
-        def destination_spec(port):
+#         def destination_spec(port):
+#             module = self.get_module_by_id(port.moduleId)
+#             reg = module.registry or registry
+#             port_list = []
+#             def do_it(ports):
+#                 # Following line is weird because we're in a hot-path
+#                 port_list.extend([p for p in ports
+#                                   if (p._db_name ==
+#                                       port._db_name)])
+
+#             if module.vtType == Abstraction.vtType and \
+#                     module.package == 'local.abstractions':
+#                 try:
+#                     do_it(reg.module_destination_ports(False,
+#                                                   module.package,
+#                                                   module.name,
+#                                                   module.namespace))
+#                 except reg.MissingModulePackage:
+#                     do_it(reg.module_destination_ports(False,
+#                                                   module.package,
+#                                                   module.name))
+#             else:
+#                 do_it(reg.module_destination_ports(False, 
+#                                                    module.package, 
+#                                                    module.name, 
+#                                                    module.namespace))
+#             if len(port_list) == 0:
+#                 # The port might still be in the original registry
+#                 do_it(registry.module_destination_ports(False, module.package,
+#                                                         module.name,
+#                                                         module.namespace))
+#             if len(port_list) == 0:
+#                 print "Failed", module.package, module.name, module.namespace, port.name
+#                 assert False
+
+#             # if port_list has more than one element, then it's an
+#             # overloaded port. Destination (input) port overloads must
+#             # all be covariant. This means that the spec of the new
+#             # port must be a supertype of the spec of the original
+#             # port. This induces a total ordering on the types, which
+#             # we use to sort the possible ports, and get the most
+#             # general one.
+
+#             port_list.sort(lambda p1, p2:
+#                            (p1 != p2 and
+#                             issubclass(p1.spec.signature[0][0],
+#                                        p2.spec.signature[0][0])))
+#             return copy.copy(port_list[-1].spec)
+
+        def find_spec(port):
             module = self.get_module_by_id(port.moduleId)
-            reg = module.registry or registry
-            port_list = []
-            def do_it(ports):
-                # Following line is weird because we're in a hot-path
-                port_list.extend([p for p in ports
-                                  if (p._db_name ==
-                                      port._db_name)])
-
-            if module.vtType == Abstraction.vtType and \
-                    module.package == 'local.abstractions':
-                try:
-                    do_it(reg.module_destination_ports(False,
-                                                  module.package,
-                                                  module.name,
-                                                  module.namespace))
-                except reg.MissingModulePackage:
-                    do_it(reg.module_destination_ports(False,
-                                                  module.package,
-                                                  module.name))
+            port_type_map = PortSpec.port_type_map
+            if module.registry is not None:
+                regs = [module.registry, registry]
             else:
-                do_it(reg.module_destination_ports(False, 
-                                                   module.package, 
-                                                   module.name, 
-                                                   module.namespace))
-            if len(port_list) == 0:
-                # The port might still be in the original registry
-                do_it(registry.module_destination_ports(False, module.package,
-                                                        module.name,
-                                                        module.namespace))
-            if len(port_list) == 0:
-                print "Failed", module.package, module.name, module.namespace, port.name
-                assert False
-
-            # if port_list has more than one element, then it's an
-            # overloaded port. Destination (input) port overloads must
-            # all be covariant. This means that the spec of the new
-            # port must be a supertype of the spec of the original
-            # port. This induces a total ordering on the types, which
-            # we use to sort the possible ports, and get the most
-            # general one.
-
-            port_list.sort(lambda p1, p2:
-                           (p1 != p2 and
-                            issubclass(p1.spec.signature[0][0],
-                                       p2.spec.signature[0][0])))
-            return copy.copy(port_list[-1].spec)
+                regs = [registry]
+            spec = None
+            for reg in regs:
+                try:
+                    spec = reg.get_port_spec(module.package, module.name, 
+                                             module.namespace, port.name, 
+                                             port_type_map.inverse[port.type])
+                    if spec is not None:
+                        break
+                except reg.MissingModulePackage:
+                    pass
+                except ModuleDescriptor.MissingPort:
+                    pass
+            if spec is None:
+                for p in module.sourcePorts():
+                    print '(source)', p
+                for p in module.destinationPorts():
+                    print '(dest)', p
+                raise VistrailsInternalError("Failed to find spec for %s port "
+                                             "'%s' in module '%s:%s:%s'" % \
+                                                 (port.type, port.name,
+                                                  module.package, module.name,
+                                                  module.namespace))
+            return spec
 
         if connection_ids is None:
             connection_ids = self.connections.iterkeys()
         for conn_id in connection_ids:
             conn = self.connections[conn_id]
             if not conn.source.spec:
-                conn.source.spec = source_spec(conn.source)
+                conn.source.spec = find_spec(conn.source)
             if not conn.destination.spec:
-                conn.destination.spec = destination_spec(conn.destination)
+                conn.destination.spec = find_spec(conn.destination)
 
     def ensure_modules_are_on_registry(self, module_ids=None):
         """ensure_modules_are_on_registry(module_ids: optional list of module ids) -> None
@@ -1132,14 +1164,14 @@ class TestPipeline(unittest.TestCase):
                       type='source', 
                       moduleId=m1.id, 
                       moduleName='String', 
-                      name='self',
-                      spec='edu.sci.utah.vistrails.basic:String')
+                      name='value',
+                      signature='(edu.utah.sci.vistrails.basic:String)')
         destination = Port(id=id_scope.getNewId(Port.vtType),
                            type='destination',
                            moduleId=m2.id,
                            moduleName='Abstraction',
                            name='self',
-                           spec='')
+                           signature='()')
         c1 = Connection(id=id_scope.getNewId(Connection.vtType),
                         ports=[source, destination])
         pipeline = Pipeline(id=id_scope.getNewId(Pipeline.vtType),

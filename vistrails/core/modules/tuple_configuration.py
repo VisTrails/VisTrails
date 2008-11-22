@@ -27,19 +27,121 @@ is also a QWidget.
 
 """
 from PyQt4 import QtCore, QtGui
-from core.modules.module_configure import StandardModuleConfigurationWidget, \
-     PortTable
+from core.modules.module_configure import StandardModuleConfigurationWidget
 from core.modules.module_registry import registry
-from core.utils import any
-import copy
 
 ############################################################################
-class TupleConfigurationWidget(StandardModuleConfigurationWidget):
+
+class PortTable(QtGui.QTableWidget):
+    def __init__(self, parent=None):
+        QtGui.QTableWidget.__init__(self,1,2,parent)
+        self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
+        self.horizontalHeader().setMovable(False)
+        self.horizontalHeader().setStretchLastSection(True)
+        self.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
+        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.delegate = PortTableItemDelegate(self)
+        self.setItemDelegate(self.delegate)
+        self.setFrameStyle(QtGui.QFrame.NoFrame)
+        self.connect(self.model(),
+                     QtCore.SIGNAL('dataChanged(QModelIndex,QModelIndex)'),
+                     self.handleDataChanged)
+
+    def sizeHint(self):
+        return QtCore.QSize()
+
+    def fixGeometry(self):
+        rect = self.visualRect(self.model().index(self.rowCount()-1,
+                                                  self.columnCount()-1))
+        self.setFixedHeight(self.horizontalHeader().height()+
+                            rect.y()+rect.height()+1)
+
+    def handleDataChanged(self, topLeft, bottomRight):
+        if topLeft.column()==0:
+            text = str(self.model().data(topLeft, QtCore.Qt.DisplayRole).toString())
+            changedGeometry = False
+            if text!='' and topLeft.row()==self.rowCount()-1:
+                self.setRowCount(self.rowCount()+1)
+                changedGeometry = True
+            if text=='' and topLeft.row()<self.rowCount()-1:
+                self.removeRow(topLeft.row())
+                changedGeometry = True
+            if changedGeometry:
+                self.fixGeometry()
+
+    def initializePorts(self, port_specs):
+        self.disconnect(self.model(),
+                        QtCore.SIGNAL('dataChanged(QModelIndex,QModelIndex)'),
+                        self.handleDataChanged)
+        for p in port_specs:
+            model = self.model()
+            sigstring = p.sigstring[1:-1]
+            short_name = sigstring.split(':')[1]
+            model.setData(model.index(self.rowCount()-1, 1),
+                          QtCore.QVariant(sigstring),
+                          QtCore.Qt.UserRole)
+            model.setData(model.index(self.rowCount()-1, 1),
+                          QtCore.QVariant(short_name),
+                          QtCore.Qt.DisplayRole)
+            model.setData(model.index(self.rowCount()-1, 0),
+                          QtCore.QVariant(p.name),
+                          QtCore.Qt.DisplayRole)
+            self.setRowCount(self.rowCount()+1)
+        self.fixGeometry()
+        self.connect(self.model(),
+                     QtCore.SIGNAL('dataChanged(QModelIndex,QModelIndex)'),
+                     self.handleDataChanged)
+            
+    def getPorts(self):
+        ports = []
+        for i in xrange(self.rowCount()):
+            model = self.model()
+            name = str(model.data(model.index(i, 0), 
+                                  QtCore.Qt.DisplayRole).toString())
+            sigstring = str(model.data(model.index(i, 1), 
+                                       QtCore.Qt.UserRole).toString())
+            if name != '' and sigstring != '':
+                ports.append((name, '(' + sigstring + ')'))
+        return ports
+
+class PortTableItemDelegate(QtGui.QItemDelegate):
+
+    def createEditor(self, parent, option, index):
+        if index.column()==1: #Port type
+            combo = QtGui.QComboBox(parent)
+            combo.setEditable(False)
+            for k in sorted(registry._module_key_map.itervalues()):
+                descriptor = registry.descriptors[k]
+                combo.addItem(descriptor.name, 
+                              QtCore.QVariant(descriptor.sigstring))
+            return combo
+        else:
+            return QtGui.QItemDelegate.createEditor(self, parent, option, index)
+
+    def setEditorData(self, editor, index):
+        if index.column()==1:
+            data = index.model().data(index, QtCore.Qt.UserRole)
+            editor.setCurrentIndex(editor.findData(data))
+        else:
+            QtGui.QItemDelegate.setEditorData(self, editor, index)
+
+    def setModelData(self, editor, model, index):
+        if index.column()==1:
+            model.setData(index, editor.itemData(editor.currentIndex()), 
+                          QtCore.Qt.UserRole)
+            model.setData(index, QtCore.QVariant(editor.currentText()), 
+                          QtCore.Qt.DisplayRole)
+        else:
+            QtGui.QItemDelegate.setModelData(self, editor, model, index)
+
+############################################################################
+
+class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
     """
-    TupleConfigurationWidget is the configuration widget for Tuple
-    module, we want to build an interface for specifying a number of
-    input ports and the type of each port. Then compose a tuple of
-    those input as a result.
+    PortTableConfigurationWidget is the configuration widget for a
+    tuple-like module, we want to build an interface for specifying a
+    number of input (output) ports and the type of each port. Then
+    compose (decompose) a tuple of those input as a result.
 
     When subclassing StandardModuleConfigurationWidget, there are
     only two things we need to care about:
@@ -68,10 +170,10 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
     
     """
     def __init__(self, module, controller, parent=None):
-        """ MplPlotConfigurationWidget(module: Module,
-                                       controller: VistrailController,
-                                       parent: QWidget)
-                                       -> MplPlotConfigurationWidget                                       
+        """ PortTableConfigurationWidget(module: Module,
+                                         controller: VistrailController,
+                                         parent: QWidget)
+                                         -> PortTableConfigurationWidget                                       
         Let StandardModuleConfigurationWidget constructor store the
         controller/module object from the builder and set up the
         configuration widget.        
@@ -85,39 +187,14 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
         """
         StandardModuleConfigurationWidget.__init__(self, module,
                                                    controller, parent)
+        self.doLayout()
 
-        # Give it a nice window title
-        self.setWindowTitle('Tuple Configuration')
+    def doLayout(self):
+        raise VistrailsInternalError("Must implement doLayout in subclass")
 
-        # Add an empty vertical layout
-        centralLayout = QtGui.QVBoxLayout()
-        centralLayout.setMargin(0)
-        centralLayout.setSpacing(0)
-        self.setLayout(centralLayout)
-        
-        # Then add a PortTable to our configuration widget
-        self.portTable = PortTable(self)
-        self.portTable.setHorizontalHeaderLabels(
-            QtCore.QStringList() << 'Input Port Name' << 'Type')
-        
-        # We know that the Tuple module initially doesn't have any
-        # input port, we just use the local registry to see what ports
-        # it has at the time of configuration.
-        if self.module.registry:
-            iPorts = self.module.registry.destination_ports_from_descriptor(self.module_descriptor)
-            self.portTable.initializePorts(iPorts)
-        else:
-            self.portTable.fixGeometry()
-        centralLayout.addWidget(self.portTable)
-
-        # We need a padded widget to take all vertical white space away
-        paddedWidget = QtGui.QWidget(self)
-        paddedWidget.setSizePolicy(QtGui.QSizePolicy.Ignored,
-                                   QtGui.QSizePolicy.Expanding)
-        centralLayout.addWidget(paddedWidget, 1)
-
-        # Then we definitely need an Ok & Cancel button
-        self.createButtons()
+    def updateVistrail(self):
+        msg = "Must implement updateVistrail in subclass"
+        raise VistrailsInternalError(msg)
 
     def createButtons(self):
         """ createButtons() -> None
@@ -154,127 +231,240 @@ class TupleConfigurationWidget(StandardModuleConfigurationWidget):
         
         """
         self.updateVistrail()
+        self.emit(QtCore.SIGNAL('doneConfigure()'))
         self.close()
 
-    def newInputPorts(self):
-        """ newInputPorts() -> [port]        
-        Return the set of ports specify in the port table
-        
-        """
-        ports = []
-        for i in range(self.portTable.rowCount()):
-            model = self.portTable.model()
-            name = str(model.data(model.index(i, 0),
-                                  QtCore.Qt.DisplayRole).toString())
-            typeName = str(model.data(model.index(i, 1),
-                                      QtCore.Qt.DisplayRole).toString())
-            if name!='' and typeName!='':
-                ports.append(('input', name, '('+typeName+')'))
-        return ports
-
-    def specsFromPorts(self, portType, ports):
-        return [(portType,
-                 p.name,
-                 '('+registry.get_descriptor(p.spec.signature[0][0]).name+')')
-                for p in ports[0][1]]
-
-    def registryChanges(self, oldRegistry, newPorts):
-        if oldRegistry:
-            oldIn = self.specsFromPorts('input',
-                                        oldRegistry.all_destination_ports(self.module_descriptor))
-            oldOut = self.specsFromPorts('output',
-                                         oldRegistry.all_source_ports(self.module_descriptor))
+    def getRegistryPorts(self, registry, type):
+        if not registry:
+            return []
+        if type == 'input':
+            getter = registry.destination_ports_from_descriptor
+        elif type == 'output':
+            getter = registry.source_ports_from_descriptor
         else:
-            oldIn = []
-            oldOut = []
-        deletePorts = [p for p in oldIn if not p in newPorts]
-        deletePorts += [p for p in oldOut if not p in newPorts]
-        addPorts = [p for p in newPorts if ((not p in oldIn) and (not p in oldOut))]
-        return (deletePorts, addPorts)
+            raise VistrailsInternalError("Unrecognized port type '%s'", type)
+        return [(p.name, p.sigstring) for p in getter(self.module_descriptor)]
+        
+    def registryChanges(self, old_ports, new_ports):
+        deleted_ports = [p for p in old_ports if p not in new_ports]
+        added_ports = [p for p in new_ports if p not in old_ports]
+        return (deleted_ports, added_ports)
+
+#     def specsFromPorts(self, portType, ports):
+#         return [(portType,
+#                  p.name,
+#                  '('+registry.get_descriptor(p.spec.signature[0][0]).name+')')
+#                 for p in ports[0][1]]
+
+#     def registryChanges(self, oldRegistry, newPorts):
+#         if oldRegistry:
+#             oldIn = self.specsFromPorts('input',
+#                                         oldRegistry.all_destination_ports(self.module_descriptor))
+#             oldOut = self.specsFromPorts('output',
+#                                          oldRegistry.all_source_ports(self.module_descriptor))
+#         else:
+#             oldIn = []
+#             oldOut = []
+#         deletePorts = [p for p in oldIn if not p in newPorts]
+#         deletePorts += [p for p in oldOut if not p in newPorts]
+#         addPorts = [p for p in newPorts if ((not p in oldIn) and (not p in oldOut))]
+#         return (deletePorts, addPorts)
     
+    def getPortDiff(self, p_type, port_table):
+        old_ports = self.getRegistryPorts(self.module.registry, p_type)
+        new_ports = port_table.getPorts()
+        (deleted_ports, added_ports) = \
+            self.registryChanges(old_ports, new_ports)
+        deleted_ports = [(p_type,) + p for p in deleted_ports]
+        added_ports = [(p_type,) + p for p in added_ports]
+        return (deleted_ports, added_ports)
+
+    
+class TupleConfigurationWidget(PortTableConfigurationWidget):
+    def __init__(self, module, controller, parent=None):
+        """ TupleConfigurationWidget(module: Module,
+                                     controller: VistrailController,
+                                     parent: QWidget)
+                                     -> TupleConfigurationWidget
+
+        Let StandardModuleConfigurationWidget constructor store the
+        controller/module object from the builder and set up the
+        configuration widget.        
+        After StandardModuleConfigurationWidget constructor, all of
+        these will be available:
+        self.module : the Module object int the pipeline        
+        self.module_descriptor: the descriptor for the type registered in 
+           the registry, i.e. Tuple
+        self.controller: the current vistrail controller
+                                       
+        """
+        PortTableConfigurationWidget.__init__(self, module,
+                                              controller, parent)
+
+
+    def doLayout(self):
+        # Give it a nice window title
+        self.setWindowTitle('Tuple Configuration')
+
+        # Add an empty vertical layout
+        centralLayout = QtGui.QVBoxLayout()
+        centralLayout.setMargin(0)
+        centralLayout.setSpacing(0)
+        self.setLayout(centralLayout)
+        
+        # Then add a PortTable to our configuration widget
+        self.portTable = PortTable(self)
+        self.portTable.setHorizontalHeaderLabels(
+            QtCore.QStringList() << 'Input Port Name' << 'Type')
+        
+        # We know that the Tuple module initially doesn't have any
+        # input port, we just use the local registry to see what ports
+        # it has at the time of configuration.
+        if self.module.registry:
+            getter = self.module.registry.destination_ports_from_descriptor
+            iPorts = getter(self.module_descriptor)
+            self.portTable.initializePorts(iPorts)
+        else:
+            self.portTable.fixGeometry()
+        centralLayout.addWidget(self.portTable)
+
+        # We need a padded widget to take all vertical white space away
+        paddedWidget = QtGui.QWidget(self)
+        paddedWidget.setSizePolicy(QtGui.QSizePolicy.Ignored,
+                                   QtGui.QSizePolicy.Expanding)
+        centralLayout.addWidget(paddedWidget, 1)
+
+        # Then we definitely need an Ok & Cancel button
+        self.createButtons()
+
     def updateVistrail(self):
         """ updateVistrail() -> None
         Update Vistrail to contain changes in the port table
         
         """
-        old_registry = self.module.registry
-        newPorts = self.newInputPorts()
-        (deletePorts, addPorts) = self.registryChanges(old_registry, newPorts)
+        (deleted_ports, added_ports) = self.getPortDiff('input', self.portTable)
+        if len(deleted_ports) + len(added_ports) == 0:
+            # nothing changed
+            return
+        current_ports = self.portTable.getPorts()
+        # note that the sigstring for deletion doesn't matter
+        deleted_ports.append(('output', 'value', '()'))
+        if len(current_ports) > 0:
+            spec = "(" + ','.join(p[1][1:-1] for p in current_ports) + ")"
+            added_ports.append(('output', 'value', spec))
+        self.controller.update_ports(self.module.id, deleted_ports, added_ports)
 
-        # Remove any connections or functions related to delete ports
-        for (cid, c) in self.controller.current_pipeline.connections.items():
-            if ((c.sourceId==self.module.id and
-                 any([c.source.name==p[1] for p in deletePorts])) or
-                (c.destinationId==self.module.id and
-                 any([c.destination.name==p[1] for p in deletePorts]))):
-                self.controller.delete_connection(cid)
-        for p in deletePorts:
-            module = self.controller.current_pipeline.modules[self.module.id]
-            ids = []
-            for fid in range(module.getNumFunctions()):
-                if module.functions[fid].name==p[1]:
-                    ids.append(fid)
-            for i in ids:
-                self.controller.delete_method(i, self.module.id)
-        for p in deletePorts:
-            self.controller.delete_module_port(self.module.id, p)
+class UntupleConfigurationWidget(PortTableConfigurationWidget):
+    def __init__(self, module, controller, parent=None):
+        """ UntupleConfigurationWidget(module: Module,
+                                     controller: VistrailController,
+                                     parent: QWidget)
+                                     -> UntupleConfigurationWidget                                       
+        Let StandardModuleConfigurationWidget constructor store the
+        controller/module object from the builder and set up the
+        configuration widget.        
+        After StandardModuleConfigurationWidget constructor, all of
+        these will be available:
+        self.module : the Module object int the pipeline        
+        self.module_descriptor: the descriptor for the type registered in the registry,
+                          i.e. Tuple
+        self.controller: the current vistrail controller
+                                       
+        """
+        PortTableConfigurationWidget.__init__(self, module,
+                                              controller, parent)
 
-        # Add all addPorts
-        for p in addPorts:
-            self.controller.add_module_port(self.module.id, p)
 
-        # If output spec change, remove all connections
-        spec = [p[2][1:-1] for p in newPorts]
-        if len(deletePorts)+len(addPorts)>0:
-            for (cid, c) in self.controller.current_pipeline.connections.items():
-                if (c.sourceId==self.module.id and c.source.name=='value'):
-                    self.controller.delete_connection(cid)
+    def doLayout(self):
+        # Give it a nice window title
+        self.setWindowTitle('Untuple Configuration')
 
-        tpl = ('output', 'value')
-        if self.controller.has_module_port(self.module.id, tpl):
-            # Remove the current output port and add a new one                    
-            self.controller.delete_module_port(self.module.id, tpl)
-        spec = '('+','.join(spec)+')'
-        self.controller.add_module_port(self.module.id,
-                                        ('output', 'value', spec))
+        # Add an empty vertical layout
+        centralLayout = QtGui.QVBoxLayout()
+        centralLayout.setMargin(0)
+        centralLayout.setSpacing(0)
+        self.setLayout(centralLayout)
+        
+        # Then add a PortTable to our configuration widget
+        self.portTable = PortTable(self)
+        self.portTable.setHorizontalHeaderLabels(
+            QtCore.QStringList() << 'Output Port Name' << 'Type')
+        
+        # We know that the Tuple module initially doesn't have any
+        # input port, we just use the local registry to see what ports
+        # it has at the time of configuration.
+        if self.module.registry:
+            getter = self.module.registry.source_ports_from_descriptor
+            oPorts = getter(self.module_descriptor)
+            self.portTable.initializePorts(oPorts)
+        else:
+            self.portTable.fixGeometry()
+        centralLayout.addWidget(self.portTable)
 
-    def lcs(self, l1, l2):
-        """ lcs(l1: list, l2: list) -> (keep, delete, add list)        
-        Given 2 lists, we want to find our which part of l1 is the
-        same as l2 and which should be deleted or added. This is very
-        small in our case, we just use memoization.
+        # We need a padded widget to take all vertical white space away
+        paddedWidget = QtGui.QWidget(self)
+        paddedWidget.setSizePolicy(QtGui.QSizePolicy.Ignored,
+                                   QtGui.QSizePolicy.Expanding)
+        centralLayout.addWidget(paddedWidget, 1)
+
+        # Then we definitely need an Ok & Cancel button
+        self.createButtons()
+
+    def updateVistrail(self):
+        """ updateVistrail() -> None
+        Update Vistrail to contain changes in the port table
         
         """
-        res = {}
-        def rec(i1, i2):
-            if (i1<0 or i2<0):
-                return 0
-            cached = res.get(i1*len(l2)+i2, -1)
-            if cached!=-1:
-                return cached
-            if l1[i1]==l2[i2]:
-                r = rec(i1-1, i2-1) + 1
-            else:
-                r = max(rec(i1, i2-1), rec(i1-1, i2))
-            res[i1*len(l2)+i2] = r
-            return r
-        same = []
-        delete = copy.copy(l1)
-        add = copy.copy(l2)
-        def trace(i1, i2):
-            if i1>=0 and i2>=0:
-                if l1[i1]==l2[i2]:
-                    same.append(l1[i1])
-                    del delete[i1]
-                    del add[i2]
-                    trace(i1-1, i2-1)
-                else:
-                    if rec(i1, i2)==rec(i1, i2-1):
-                        trace(i1, i2-1)
-                    else:
-                        trace(i1-1, i2)
-        rec(len(l1)-1, len(l2)-1)
-        trace(len(l1)-1, len(l2)-1)
-        same.reverse()
-        return (same, delete, add)
-    
+
+        (deleted_ports, added_ports) = self.getPortDiff('output', 
+                                                        self.portTable)
+        if len(deleted_ports) + len(added_ports) == 0:
+            # nothing changed
+            return
+        current_ports = self.portTable.getPorts()
+        # note that the sigstring for deletion doesn't matter
+        deleted_ports.append(('input', 'value', '()'))
+        if len(current_ports) > 0:
+            spec = "(" + ','.join(p[1][1:-1] for p in current_ports) + ")"
+            added_ports.append(('input', 'value', spec))
+        self.controller.update_ports(self.module.id, deleted_ports, added_ports)
+
+#     def lcs(self, l1, l2):
+#         """ lcs(l1: list, l2: list) -> (keep, delete, add list)        
+#         Given 2 lists, we want to find our which part of l1 is the
+#         same as l2 and which should be deleted or added. This is very
+#         small in our case, we just use memoization.
+        
+#         """
+#         res = {}
+#         def rec(i1, i2):
+#             if (i1<0 or i2<0):
+#                 return 0
+#             cached = res.get(i1*len(l2)+i2, -1)
+#             if cached!=-1:
+#                 return cached
+#             if l1[i1]==l2[i2]:
+#                 r = rec(i1-1, i2-1) + 1
+#             else:
+#                 r = max(rec(i1, i2-1), rec(i1-1, i2))
+#             res[i1*len(l2)+i2] = r
+#             return r
+#         same = []
+#         delete = copy.copy(l1)
+#         add = copy.copy(l2)
+#         def trace(i1, i2):
+#             if i1>=0 and i2>=0:
+#                 if l1[i1]==l2[i2]:
+#                     same.append(l1[i1])
+#                     del delete[i1]
+#                     del add[i2]
+#                     trace(i1-1, i2-1)
+#                 else:
+#                     if rec(i1, i2)==rec(i1, i2-1):
+#                         trace(i1, i2-1)
+#                     else:
+#                         trace(i1-1, i2)
+#         rec(len(l1)-1, len(l2)-1)
+#         trace(len(l1)-1, len(l2)-1)
+#         same.reverse()
+#         return (same, delete, add)

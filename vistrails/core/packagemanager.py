@@ -1,4 +1,4 @@
-############################################################################
+###########################################################################
 ##
 ## Copyright (C) 2006-2007 University of Utah. All rights reserved.
 ##
@@ -25,408 +25,16 @@ with handling packages, from setting paths to adding new packages
 to checking dependencies to initializing them."""
 
 from core import debug
-from core.modules.module_registry import registry
-from core.utils import VistrailsInternalError, InstanceObject
-from core.utils.uxml import (named_elements,
-                             elements_filter, enter_named_element)
-from core.configuration import ConfigurationObject, get_vistrails_configuration
-import copy
+from core.configuration import ConfigurationObject
 import core.data_structures.graph
+from core.modules.module_registry import registry
+from core.modules.package import Package
+from core.utils import VistrailsInternalError, InstanceObject
 import os
 import sys
-import traceback
 from PyQt4 import QtCore
 ##############################################################################
 
-class Package(object):
-
-    Base, User, Other = 0, 1, 2
-
-    class InitializationFailed(Exception):
-        def __init__(self, package, exception, traceback):
-            self.package = package
-            self.exception = exception
-            self.traceback = traceback
-        def __str__(self):
-            try:
-                name = self.package.name
-            except AttributeError:
-                name = 'codepath <%s>' % self.package.codepath
-            return ("Package '%s' failed to initialize, raising '%s: %s'. Traceback:\n%s" %
-                    (name,
-                     self.exception.__class__.__name__,
-                     self.exception,
-                     self.traceback))
-
-    class LoadFailed(Exception):
-        def __init__(self, package, exception, traceback):
-            self.package = package
-            self.exception = exception
-            self.traceback = traceback
-        def __str__(self):
-            return ("Package '%s' failed to load, raising '%s: %s'. Traceback:\n%s" %
-                    (self.package._codepath,
-                     self.exception.__class__.__name__,
-                     self.exception,
-                     self.traceback))
-
-    class MissingDependency(Exception):
-        def __init__(self, package, dependencies):
-            self.package = package
-            self.dependencies = dependencies
-        def __str__(self):
-            return ("Package '%s' has unmet dependencies: %s" %
-                    (self.package.name,
-                     self.dependencies))
-
-    def __init__(self, codepath, load_configuration=True):
-        self._codepath = codepath
-        self._load_configuration = load_configuration
-        self._module = None
-        self._initialized = False
-
-    def load(self, module=None):
-        """load(module=None). Loads package's module. If module is not None,
-        then uses that as the module instead of 'import'ing it.
-
-        If package is already initialized, this is a NOP.
-
-        """
-
-        errors = []
-        def module_import(name):
-            return
-
-        if self._initialized:
-            return
-        if module is not None:
-            self._module = module
-            self._package_type = self.Other
-            return
-        def import_from(prefix):
-            try:
-                self._module = getattr(__import__(prefix+self._codepath,
-                                                  globals(),
-                                                  locals(), []),
-                                       self._codepath)
-                self._package_type = self.Base
-            except ImportError, e:
-                errors.append((e, traceback.format_exc()))
-                return False
-            return True
-
-        try:
-            r = (not import_from('packages.') and
-                 not import_from('userpackages.'))
-        except Exception, e:
-            raise self.LoadFailed(self, e, traceback.format_exc())
-            
-        if r:
-            dbg = debug.DebugPrint
-            dbg.critical("Could not enable package %s" % self._codepath)
-            for e in errors:
-                dbg.critical("Exceptions/tracebacks raised:")
-                dbg.critical(str(e[0]))
-                dbg.critical(str(e[1]))
-            raise self.InitializationFailed(self,
-                                            e[-1][0], e[-1][1])
-
-        # Sometimes we don't want to change startup.xml, for example
-        # when peeking at a package that's on the available package list
-        # on edit -> preferences. That's what the _load_configuration field
-        # is for
-        if self._load_configuration:
-            if hasattr(self._module, 'configuration'):
-                # hold a copy of the initial configuration so it can be reset
-                self._initial_configuration = copy.copy(self._module.configuration)
-            self.load_persistent_configuration()
-            self.create_startup_package_node()
-
-    def initialize(self):
-        if self._initialized:
-            return
-        print "Initializing", self._codepath
-        registry.set_current_package_name(self._get_identifier())
-        try:
-            self._module.initialize()
-            # Perform auto-initialization
-            if hasattr(self._module, '_modules'):
-                for module in self._module._modules:
-                    registry.auto_add_module(module)
-        except Exception, e:
-            raise self.InitializationFailed(self, e, traceback.format_exc())
-
-        # The package might have decided to rename itself, let's store that
-        registry.set_current_package_name(None)
-        self._initialized = True
-
-    def report_missing_module(self, module_name, module_namespace):
-        """report_missing_module(name, namespace):
-
-        Calls the package's module handle_missing_module function, if
-        present, to allow the package to dynamically add a missing
-        module.
-        """
-        try:
-            handle = self._module.handle_missing_module
-        except AttributeError:
-            return False
-        try:
-            return handle(module_name, module_namespace)
-        except Exception, e:
-            debug.DebugPrint.critical("Call to handle_missing_module in package '%s'"
-                                      " raised exception '%s'. Assuming package could not"
-                                      " handle call" % (self.name,
-                                                        str(e)))
-        return False
-
-    def check_requirements(self):
-        try:
-            callable_ = self._module.package_requirements
-        except AttributeError:
-            return
-        else:
-            callable_()
-
-    def menu_items(self):
-        try:
-            callable_ = self._module.menu_items
-        except AttributeError:
-            return None
-        else:
-            return callable_()
-
-    def can_be_disabled(self):
-        """Returns whether has no reverse dependencies (other
-        packages that depend on it."""
-        mgr = get_package_manager()
-        return mgr.dependency_graph().in_degree(self.identifier) == 0
-
-    def finalize(self):
-        if not self._initialized:
-            return
-        print "Finalizing",self.name
-        try:
-            callable_ = self._module.finalize
-        except AttributeError:
-            pass
-        else:
-            callable_()
-        # Save configuration
-        if self.configuration:
-            self.set_persistent_configuration()
-        self._initialized = False
-
-    def dependencies(self):
-        try:
-            callable_ = self._module.package_dependencies
-        except AttributeError:
-            return []
-        else:
-            return callable_()
-
-    def reverse_dependencies(self):
-        mgr = get_package_manager()
-        lst = [x[0] for x in
-               mgr.dependency_graph().inverse_adjacency_list[self.identifier]]
-        return lst
-
-    def initialized(self):
-        return self._initialized
-
-    def _get_name(self):
-        return self._module.name
-        # try:
-        # except AttributeError, e:
-        #     try:
-        #         v = self._module.__file__
-        #     except AttributeError:
-        #         v = self._module
-        #     msg = ("Package %s is missing attribute 'name'" % v)
-        #     debug.DebugPrint.critical(msg)
-        #     raise e
-
-    # name is the human-readable package name
-    name = property(_get_name)
-
-    def _get_module(self):
-        return self._module
-
-    module = property(_get_module)
-
-    def _get_configuration(self):
-        if hasattr(self._module, 'configuration'):
-            return self._module.configuration
-        else:
-            return None
-    def _set_configuration(self, configuration):
-        if hasattr(self._module, 'configuration'):
-            self._module.configuration = configuration
-        else:
-            raise AttributeError("Can't set configuration on a module without one")
-    configuration = property(_get_configuration, _set_configuration)
-
-    def _get_description(self):
-        if hasattr(self._module, '__doc__'):
-            return self._module.__doc__ or "No description available"
-        else:
-            return "No description available"
-    description = property(_get_description)
-
-
-    def _get_version(self):
-        return self._module.version
-    version = property(_get_version)
-
-    def _get_identifier(self):
-        try:
-            return self._module.identifier
-        except AttributeError, e:
-            try:
-                v = self._module.__file__
-            except AttributeError:
-                v = self._module
-            msg = ("Package %s is missing attribute 'identifier'" % v)
-            debug.DebugPrint.critical(msg)
-            raise e
-
-    # identifier is the unique identifier across packages
-    identifier = property(_get_identifier)
-
-    # codepath is the package codepath
-    def _get_codepath(self):
-        return self._codepath
-    codepath = property(_get_codepath)
-
-
-
-    ##########################################################################
-    # Configuration
-
-    def find_disabledpackage_element(self, doc):
-        """find_disabledpackage_element(documentElement) -> Node or None
-
-        Returns the package's disabledpackage element, if
-        present. Returns None otherwise.
-
-        """
-        packages = enter_named_element(doc, 'disabledpackages')
-        assert packages
-        for package_node in named_elements(packages, 'package'):
-            if str(package_node.attributes['name'].value) == self.codepath:
-                return package_node
-        return None
-
-    def remove_own_dom_element(self):
-        """remove_own_dom_element() -> None
-
-        Opens the startup DOM, looks for the element that belongs to the package.
-        If it is there and there's a configuration, moves it to disabledpackages
-        node. This is done as part of package disable.
-
-        """
-        from PyQt4 import QtCore
-        startup = QtCore.QCoreApplication.instance().vistrailsStartup
-        dom = startup.startup_dom()
-        doc = dom.documentElement
-
-        def find_it():
-            packages = enter_named_element(doc, 'packages')
-            for package_node in named_elements(packages, 'package'):
-                if str(package_node.attributes['name'].value) == self.codepath:
-                    return package_node
-
-        package_node = find_it()
-        oldpackage_element = self.find_disabledpackage_element(doc)
-
-        assert oldpackage_element is None
-        packages = enter_named_element(doc, 'packages')
-        disabledpackages = enter_named_element(doc, 'disabledpackages')
-        packages.removeChild(package_node)
-        disabledpackages.appendChild(package_node)
-        startup.write_startup_dom(dom)
-
-    def reset_configuration(self):
-        """Reset_configuration() -> Resets configuration to original
-        package settings."""
-
-        (dom, element) = self.find_own_dom_element()
-        doc = dom.documentElement
-        configuration = enter_named_element(element, 'configuration')
-        if configuration:
-            element.removeChild(configuration)
-        self.configuration = copy.copy(self._initial_configuration)
-
-        from PyQt4 import QtCore
-        startup = QtCore.QCoreApplication.instance().vistrailsStartup
-        startup.write_startup_dom(dom)
-
-    def find_own_dom_element(self):
-        """find_own_dom_element() -> (DOM, Node)
-
-        Opens the startup DOM, looks for the element that belongs to the package,
-        and returns DOM and node. Creates a new one if element is not there.
-
-        """
-        from PyQt4 import QtCore
-        dom = QtCore.QCoreApplication.instance().vistrailsStartup.startup_dom()
-        doc = dom.documentElement
-        packages = enter_named_element(doc, 'packages')
-        for package_node in named_elements(packages, 'package'):
-            if str(package_node.attributes['name'].value) == self.codepath:
-                return (dom, package_node)
-
-        # didn't find anything, create a new node
-
-        package_node = dom.createElement("package")
-        package_node.setAttribute('name', self.codepath)
-        packages.appendChild(package_node)
-
-        from PyQt4 import QtCore
-        QtCore.QCoreApplication.instance().vistrailsStartup.write_startup_dom(dom)
-        return (dom, package_node)
-
-    def load_persistent_configuration(self):
-        (dom, element) = self.find_own_dom_element()
-
-        configuration = enter_named_element(element, 'configuration')
-        if configuration:
-            self.configuration.set_from_dom_node(configuration)
-        dom.unlink()
-
-    def set_persistent_configuration(self):
-        (dom, element) = self.find_own_dom_element()
-        child = enter_named_element(element, 'configuration')
-        if child:
-            element.removeChild(child)
-        self.configuration.write_to_dom(dom, element)
-        from PyQt4 import QtCore
-        QtCore.QCoreApplication.instance().vistrailsStartup.write_startup_dom(dom)
-        dom.unlink()
-
-    def create_startup_package_node(self):
-        (dom, element) = self.find_own_dom_element()
-        doc = dom.documentElement
-        disabledpackages = enter_named_element(doc, 'disabledpackages')
-        packages = enter_named_element(doc, 'packages')
-
-        oldpackage = self.find_disabledpackage_element(doc)
-
-        if oldpackage is not None:
-            # Must remove element from oldpackages,
-            # _and_ the element that was just created in find_own_dom_element()
-            disabledpackages.removeChild(oldpackage)
-            packages.removeChild(element)
-            packages.appendChild(oldpackage)
-            configuration = enter_named_element(oldpackage, 'configuration')
-            if configuration:
-                self.configuration.set_from_dom_node(configuration)
-            from PyQt4 import QtCore
-            QtCore.QCoreApplication.instance().vistrailsStartup.write_startup_dom(dom)
-        dom.unlink()
-
-
-##############################################################################
 
 global _package_manager
 _package_manager = None
@@ -523,7 +131,7 @@ exiting VisTrails."""
     def add_package(self, packageName):
         """Adds a new package to the manager. This does not initialize it.
 To do so, call initialize_packages()"""
-        self._package_list[packageName] = Package(packageName)
+        self._package_list[packageName] = registry.create_package(packageName)
 
     def remove_package(self, codepath):
         """remove_package(name): Removes a package from the system."""
@@ -533,7 +141,7 @@ To do so, call initialize_packages()"""
         pkg.finalize()
         self.remove_menu_items(pkg)
         del self._package_list[codepath]
-        registry.delete_package(pkg)
+        registry.remove_package(pkg)
 
     def has_package(self, identifier):
         """has_package(identifer: string) -> Boolean.
@@ -546,7 +154,7 @@ Returns true if given package identifier is present."""
         Returns a Package object for an uninstalled package. This does
         NOT install a package.
         """
-        return Package(codepath, False)
+        return registry.create_package(codepath, False)
 
     def get_package_by_codepath(self, codepath):
         """get_package_by_codepath(codepath: string) -> Package.
@@ -563,13 +171,17 @@ Returns true if given package identifier is present."""
         Returns a package with given identifier if it is enabled,
         otherwise throws exception
         """
-        # FIXME: This should really be handled better
-        if identifier == 'edu.utah.sci.vistrails.basic':
-            return InstanceObject(name='Basic Modules')
-        if identifier not in self._identifier_map:
+        if identifier not in registry.packages:
             raise self.MissingPackage(identifier)
-        else:
-            return self._identifier_map[identifier]
+        return registry.packages[identifier]
+
+#         # FIXME: This should really be handled better
+#         if identifier == 'edu.utah.sci.vistrails.basic':
+#             return InstanceObject(name='Basic Modules')
+#         if identifier not in self._identifier_map:
+#             raise self.MissingPackage(identifier)
+#         else:
+#             return self._identifier_map[identifier]
 
     def get_package_configuration(self, codepath):
         """get_package_configuration(codepath: string) ->
@@ -638,7 +250,7 @@ Returns true if given package identifier is present."""
             del self._package_list[package_codepath]
             raise
         pkg.check_requirements()
-        pkg.initialize()
+        registry.initialize_package(pkg)
         self.add_menu_items(pkg)
 
     def late_disable_package(self, package_codepath):
@@ -725,7 +337,7 @@ creating a class that behaves similarly)."""
             pkg = self._identifier_map[name]
             if not pkg.initialized():
                 pkg.check_requirements()
-                pkg.initialize()
+                registry.initialize_package(pkg)
                 self.add_menu_items(pkg)
 
     def add_menu_items(self, pkg):
@@ -822,6 +434,16 @@ creating a class that behaves similarly)."""
         dependencies, where u -> v if u depends on v.  Vertices are
         strings representing package names."""
         return self._dependency_graph
+
+    def can_be_disabled(self, identifier):
+        """Returns whether has no reverse dependencies (other
+        packages that depend on it."""
+        return self._dependency_graph.in_degree(identifier) == 0
+
+    def reverse_dependencies(self, identifier):
+        lst = [x[0] for x in
+               self._dependency_graph.inverse_adjacency_list[identifier]]
+        return lst
 
 def get_package_manager():
     global _package_manager

@@ -617,13 +617,13 @@ def addPorts(module, delayed):
     elif klass==vtk.vtkCell:
         add_input_port(module, 'SetPointIds', typeMap('vtkIdList'))
 
-def setAllPorts(treeNode, delayed):
-    """ setAllPorts(treeNode: TreeNode) -> None
-    Traverse treeNode and all of its children/grand-children to add all ports
+def setAllPorts(descriptor, delayed):
+    """ setAllPorts(descriptor: ModuleDescriptor) -> None
+    Traverse descriptor and all of its children/grand-children to add all ports
 
     """
-    addPorts(treeNode.descriptor.module, delayed)
-    for child in treeNode.children:
+    addPorts(descriptor.module, delayed)
+    for child in descriptor.children:
         setAllPorts(child, delayed)
 
 def class_dict(base_module, node):
@@ -943,8 +943,8 @@ def initialize():
     # Add VTK modules
     add_module(vtkBaseModule)
     createAllModules(inheritanceGraph)
-    setAllPorts(registry.get_tree_node_from_name(identifier,
-                                                 'vtkObjectBase'),
+    setAllPorts(registry.get_descriptor_by_name(identifier,
+                                                'vtkObjectBase'),
                 delayed)
 
     # Register the VTKCell and VTKHandler type if the spreadsheet is up

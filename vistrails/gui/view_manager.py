@@ -409,6 +409,7 @@ class QViewManager(QtGui.QTabWidget):
                 return False
             return locator
    
+    # FIXME normalize workflow/log/registry!!!
     def save_workflow(self, locator_class, force_choose_locator=True):
         vistrailView = self.currentWidget()
 
@@ -449,6 +450,27 @@ class QViewManager(QtGui.QTabWidget):
             if not locator:
                 return False
             vistrailView.controller.write_log(locator)
+            return True
+
+    def save_registry(self, locator_class, force_choose_locator=True):
+        vistrailView = self.currentWidget()
+
+        if vistrailView:
+            vistrailView.flush_changes()
+            gui_get = locator_class.save_from_gui
+            if force_choose_locator:
+                locator = gui_get(self, Log.vtType,
+                                  vistrailView.controller.locator)
+            else:
+                locator = (vistrailView.controller.locator or
+                           gui_get(self, Log.vtType,
+                                   vistrailView.controller.locator))
+            if locator == untitled_locator():
+                locator = gui_get(self, Log.vtType,
+                                  vistrailView.controller.locator)
+            if not locator:
+                return False
+            vistrailView.controller.write_registry(locator)
             return True
 
     def save_tree_to_pdf(self):

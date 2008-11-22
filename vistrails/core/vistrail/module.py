@@ -35,6 +35,7 @@ from core.vistrail.module_param import ModuleParam
 from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.port_spec import PortSpec
 from core.utils import NoSummon, VistrailsInternalError, report_stack
+from core.modules.module_descriptor import OverloadedPort
 import core.modules.module_registry
 from core.modules.module_registry import registry, ModuleRegistry
 
@@ -143,8 +144,10 @@ class Module(DBModule):
         result = get(self.package, self.name, self.namespace).module()
         if self.cache != 1:
             result.is_cacheable = lambda *args: False
-        if hasattr(result, 'srcPortsOrder'):
-            result.srcPortsOrder = [p.name for p in self.destinationPorts()]
+        if hasattr(result, 'input_ports_order'):
+            result.input_ports_order = [p.name for p in self.destinationPorts()]
+        if hasattr(result, 'output_ports_order'):
+            result.output_ports_order = [p.name for p in self.sourcePorts()]
         result.registry = self.registry or registry
         return result
 
@@ -163,7 +166,7 @@ class Module(DBModule):
         if self.registry:
             ports.extend(self.registry.module_source_ports(False, self.package, self.name, self.namespace))
         return ports
-
+    
     def destinationPorts(self):
         """destinationPorts() -> list of Port 
         Returns list of destination (input) ports module supports
@@ -175,46 +178,33 @@ class Module(DBModule):
         return ports
 
     def add_port_to_registry(self, port_spec):
-        module = \
-            registry.get_descriptor_by_name(self.package, self.name, self.namespace).module
+        # FIXME use ModuleDescriptor here now
+        module = registry.get_descriptor_by_name(self.package, self.name, 
+                                                 self.namespace).module
         if self.registry is None:
             self.registry = ModuleRegistry()
             self.registry.add_hierarchy(registry, self)
 
-        if port_spec.type == 'input':
-            endpoint = PortEndPoint.Destination
-        else:
-            endpoint = PortEndPoint.Source
-        portSpecs = port_spec.spec[1:-1].split(',')
-        signature = [registry.get_descriptor_from_name_only(spec).module
-                     for spec in portSpecs]
-        port = Port()
-        port.name = port_spec.name
-        port.spec = core.modules.module_registry.PortSpec(signature)
         try:
-            self.registry.add_port(module, endpoint, port)
-        except core.modules.module_registry.OverloadedPort:
-            print "Ignoring overloaded Module %s id %s adding %s " % (self.name, self.id, port.name)
+            self.registry.add_port_spec(module, port_spec)
+        except OverloadedPort:
+            print "Ignoring overloaded Module %s id %s adding %s " % \
+                (self.name, self.id, port_spec.name)
 
     def delete_port_from_registry(self, id):
+        # FIXME use ModuleDescriptor here now
         if not id in self.port_specs:
             raise VistrailsInternalError("id missing in port_specs")
-        portSpec = self.port_specs[id]
-        portSpecs = portSpec.spec[1:-1].split(',')
-        signature = [registry.get_descriptor_from_name_only(spec).module
-                     for spec in portSpecs]
-        port = Port(signature)
-        port.name = portSpec.name
-        port.spec = core.modules.module_registry.PortSpec(signature)
-
+        port_spec = self.port_specs[id]
         module = \
-            registry.get_descriptor_by_name(self.package, self.name, self.namespace).module
+            registry.get_descriptor_by_name(self.package, self.name, 
+                                            self.namespace).module
         assert isinstance(self.registry, ModuleRegistry)
 
-        if portSpec.type == 'input':
-            self.registry.delete_input_port(module, port.name)
+        if port_spec.type == 'input':
+            self.registry.delete_input_port(module, port_spec.name)
         else:
-            self.registry.delete_output_port(module, port.name)
+            self.registry.delete_output_port(module, port_spec.name)
 
     ##########################################################################
     # Debugging

@@ -21,20 +21,14 @@
 ############################################################################
 """ This module contains class definitions for:
     * Port
-    * PortEndPoint
 
  """
 from db.domain import DBPort
-from core.utils import enum
 from core.utils import VistrailsInternalError, all
+from core.vistrail.port_spec import PortSpec, PortEndPoint
 import core.modules.vistrails_module
 import __builtin__
 import copy
-
-################################################################################
-
-PortEndPoint = enum('PortEndPoint',
-                    ['Invalid', 'Source', 'Destination'])
 
 ################################################################################
 
@@ -44,40 +38,66 @@ class Port(DBPort):
     self.spec: list of list of (module, str) 
     
     """
-
+    
     ##########################################################################
     # Constructor and copy
     
     def __init__(self, *args, **kwargs):
-        if 'optional' in kwargs:
-            self.optional = kwargs['optional']
-            del kwargs['optional']
-        else:
-            self.optional = False
-	DBPort.__init__(self, *args, **kwargs)
-        if self.db_id is None:
-            self.db_id = -1
-        if self.db_moduleId is None:
-            self.db_moduleId = 0
-        if self.db_moduleName is None:
-            self.db_moduleName = ""
-        if self.db_name is None:
-            self.db_name = ""
-        if self.db_spec is None:
-            self.db_spec = ""
+        """The preferred way to create a port is to pass a PortSpec with
+        new information.  The construcotr pulls name, type, and signature 
+        info from the PortSpec.
         
-        self.sort_key = -1
-        self._spec = None
+        Example: Port(id=<id>, spec=<port_spec>, moduleId=<id>, 
+                      moduleName=<name>)
 
+        You can also pass the name, type, and signature, separately.
+        
+        Example: Port(id=<id>, name=<name>, type=[source|destination],
+                      signature=<sig>, moduleId=<id>, moduleName=<name>)
+
+        """
+
+        self._spec = None
+        if 'spec' in kwargs:
+            self.spec = kwargs['spec']
+            del kwargs['spec']
+            if 'name' not in kwargs:
+                kwargs['name'] = self.spec.name
+            if 'type' not in kwargs:
+                if self.spec.type in PortSpec.port_type_map:
+                    kwargs['type'] = PortSpec.port_type_map[self.spec.type]
+            if 'signature' not in kwargs:
+                kwargs['signature'] = self.spec.sigstring
+        else:
+            self.spec = None
+        if 'id' not in kwargs:
+            kwargs['id'] = -1
+        if 'moduleId' not in kwargs:
+            kwargs['moduleId'] = 0
+        if 'moduleName' not in kwargs:
+            kwargs['moduleName'] = ""
+        if 'name' not in kwargs:
+            kwargs['name'] = ""
+        if 'signature' not in kwargs:
+            kwargs['signature'] = ""
+
+	DBPort.__init__(self, *args, **kwargs)
+
+        self.find_port_types()
+#             # if there is no spec, create it
+#             spec_type = PortSpec.port_type_map.inverse[self.type]
+#             self._spec = PortSpec(name=self.name, 
+#                                   type=spec_type,
+#                                   sigstring=self.signature)
+        
     def __copy__(self):
         return Port.do_copy(self)
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBPort.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Port
-        cp.optional = self.optional
-        cp.sort_key = self.sort_key
-        cp.spec = copy.copy(self.spec)
+        cp._types = copy.copy(self._types)
+        cp._spec = copy.copy(self._spec)
         return cp
 
     @staticmethod
@@ -85,10 +105,19 @@ class Port(DBPort):
         if _port.__class__ == Port:
             return
         _port.__class__ = Port
-
-        _port.optional = False
-        _port.sort_key = -1
         _port._spec = None
+        _port.find_port_types()
+
+    def find_port_types(self):
+        from core.modules.module_registry import registry
+        self._types = []
+        if self.signature:
+            signature_str = self.signature[1:-1].strip()
+            if signature_str != "":
+                for type_str in signature_str.split(','):
+                    desc = \
+                        registry.get_descriptor_by_name(*(type_str.split(':')))
+                    self._types.append(desc.module)
 
     ##########################################################################
     # Properties
@@ -98,62 +127,43 @@ class Port(DBPort):
     moduleName = DBPort.db_moduleName
     name = DBPort.db_name
     type = DBPort.db_type
-    
+
     def _get_endPoint(self):
-	map = {'source': PortEndPoint.Source,
-	       'destination': PortEndPoint.Destination}
-	endPoint = self.db_type
-        try:
-            return map[endPoint]
-        except KeyError:
-            return PortEndPoint.Invalid
+        if self.db_type in PortSpec.end_point_map:
+            return PortSpec.end_point_map[self.db_type]
+        return PortEndPoint.Invalid
     def _set_endPoint(self, endPoint):
-	map = {PortEndPoint.Source: 'source',
-	       PortEndPoint.Destination: 'destination'}
-        try:
-            self.db_type = map[endPoint]
-        except KeyError:
-            self.db_type = ''
+        if endPoint in PortSpec.end_point_map.inverse:
+            self.db_type = PortSpec.end_point_map.inverse[endPoint]
+        else:
+            self.db_type = 'invalid'
     endPoint = property(_get_endPoint, _set_endPoint)
 
-    def _get_specStr(self):
-        if self.db_spec is None:
-            self.db_spec = self._spec.create_sigstring()
-        return self.db_spec
-    def _set_specStr(self, specStr):
-        self.db_spec = specStr
-    specStr = property(_get_specStr, _set_specStr)
-
+    def _get_signature(self):
+        if not self.db_signature and self.spec is not None:
+            self.db_signature = self.spec.sigstring
+        return self.db_signature
+    def _set_signature(self, signature):
+        self.db_signature = signature
+    signature = property(_get_signature, _set_signature)
+    
     def _get_spec(self):
         return self._spec
-    
-    _port_to_string_map = {PortEndPoint.Invalid: "Invalid",
-          PortEndPoint.Source: "Output",
-          PortEndPoint.Destination: "Input"}
     def _set_spec(self, spec):
         self._spec = spec
         if self._spec is not None:
-            self.db_spec = self._spec._long_sigstring
-            self.__tooltip = (self._port_to_string_map[self.endPoint] +
-                              " port " +
-                              self.name +
-                              "\n" +
-                              self._spec._short_sigstring)
+            self.signature = self._spec.sigstring
         else:
-            self.__tooltip = ""
-
+            self.signature = ""
     spec = property(_get_spec, _set_spec)
 
+    # FIXME get rid of this one?
     def _get_sig(self):
-        return self.name + self.specStr
+        return self.name + self.signature
     sig = property(_get_sig)
 
-    def toolTip(self):
-        """ toolTip() -> str
-        Generates an appropriate tooltip for the port. 
-        
-        """
-        return self.__tooltip
+    def types(self):
+        return self._types
 
     ##########################################################################
     # Debugging
@@ -169,10 +179,6 @@ class Port(DBPort):
             print "name mismatch"
         elif self.spec != other.spec:
             print "spec mismatch"
-        elif self.optional != self.optional:
-            print "optional mismatch"
-        elif self.sort_key != self.sort_key:
-            print "sort_key mismatch"
         else:
             print "no difference found"
             assert self == other
@@ -191,9 +197,7 @@ class Port(DBPort):
 #                self.moduleId == other.moduleId and
                 self.moduleName == other.moduleName and
                 self.name == other.name and
-                self.specStr == other.specStr and
-                self.optional == other.optional and
-                self.sort_key == other.sort_key)
+                self.signature == other.signature)
     
     def __str__(self):
         """ __str__() -> str 
@@ -210,20 +214,7 @@ class Port(DBPort):
         return (self.endPoint == other.endPoint and
                 self.moduleName == other.moduleName and
                 self.name == other.name and
-                self.specStr == other.specStr and
-                self.optional == other.optional and
-                self.sort_key == other.sort_key)
-
-    def key_no_id(self):
-        """key_no_id(): tuple. returns a tuple that identifies
-        the port without caring about ids. Used for sorting
-        port lists."""
-        return (self.endPoint,
-                self.moduleName,
-                self.name,
-                self.specStr,
-                self.optional,
-                self.sort_key)
+                self.signature == other.signature)
 
 ###############################################################################
 
@@ -243,8 +234,8 @@ class TestPort(unittest.TestCase):
                     type='source',
                     moduleId=12L, 
                     moduleName='String', 
-                    name='self',
-                    spec='edu.utah.sci.vistrails.basic:String')
+                    name='value',
+                    signature='(edu.utah.sci.vistrails.basic:String)')
         return port
 
     def test_copy(self):

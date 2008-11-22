@@ -217,38 +217,38 @@ class QModuleTreeWidget(QSearchTreeWidget):
         """
         parentItems = {}
         
-        def createModuleItem(module):
-            """ createModuleItem(registry: ModuleRegistry,
-                                 parentItem: QModuleTreeWidgetItem,
-                                 module: Tree) -> QModuleTreeWidgetItem
+        def createModuleItem(descriptor):
+            """ createModuleItem(descriptor: ModuleDescriptor)
+                     -> QModuleTreeWidgetItem
             Traverse a module to create items recursively. Then return
             its module item
             
             """
-            desc = module.descriptor
-            labels = QtCore.QStringList(module.descriptor.name)
-            packageName = module.descriptor.module_package()
-            parentItem = parentItems[packageName]
-            if desc.namespace:
-                parentItem = _ensure_namespace(desc, parentItem)
-            if not desc.module_abstract():
-                moduleItem = QModuleTreeWidgetItem(module.descriptor,
+            labels = QtCore.QStringList(descriptor.name)
+            # packageName = descriptor.module_package()
+            parentItem = parentItems[descriptor.identifier]
+            if descriptor.namespace:
+                parentItem = _ensure_namespace(descriptor, parentItem)
+            if not descriptor.module_abstract():
+                moduleItem = QModuleTreeWidgetItem(descriptor,
                                                    parentItem,
                                                    labels)
-            for child in module.children:
+            for child in descriptor.children:
                 createModuleItem(child)
 
-        pm = get_package_manager()
-        for packageName in registry.package_modules.iterkeys():
-            name = pm.get_package_by_identifier(packageName).name
+        # pm = get_package_manager()
+        # for packageName in registry.packages.iterkeys():
+        for package in registry.package_list:
+            # name = pm.get_package_by_identifier(packageName).name
+            name = package.name
             item = QModuleTreeWidgetItem(None,
                                          self,
                                          QtCore.QStringList(name))
             item._namespace_items = {}
             item.setFlags(item.flags() & ~QtCore.Qt.ItemIsDragEnabled)
-            parentItems[packageName] = item
-        module = registry.class_tree()
-        createModuleItem(module)
+            parentItems[package.identifier] = item
+        descriptor = registry.root_descriptor
+        createModuleItem(descriptor)
         self.sortItems(0, QtCore.Qt.AscendingOrder)
         self.expandAll()
 

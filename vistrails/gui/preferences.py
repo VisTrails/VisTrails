@@ -311,7 +311,8 @@ class QPackagesWidget(QtGui.QWidget):
     def set_buttons_to_enabled_package(self):
         self._enable_button.setEnabled(False)
         assert self._current_package
-        can_disable = self._current_package.can_be_disabled()
+        pm = get_package_manager()
+        can_disable = pm.can_be_disabled(self._current_package.identifier)
         self._disable_button.setEnabled(can_disable)
         if not can_disable:
             msg = ("Module has reverse dependencies that must\n"+
@@ -347,8 +348,10 @@ class QPackagesWidget(QtGui.QWidget):
             self._name_label.setText(p.name)
             deps = ', '.join(p.dependencies()) or 'No package dependencies.'
             try:
-                reverse_deps = (', '.join(p.reverse_dependencies()) or
-                                'No reverse dependencies.')
+                pm = get_package_manager()
+                reverse_deps = \
+                    (', '.join(pm.reverse_dependencies(p.identifier)) or
+                     'No reverse dependencies.')
             except KeyError:
                 reverse_deps = ("Reverse dependencies only " +
                                 "available for enabled packages.")

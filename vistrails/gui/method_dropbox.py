@@ -92,8 +92,8 @@ class QMethodDropBox(QtGui.QScrollArea):
             if hasattr(data, 'items'):
                 event.accept()
                 for item in data.items:
-                    if item.port:
-                        function = item.spec.create_module_function(item.port)
+                    if item.spec:
+                        function = item.spec.create_module_function()
                         # FIXME need to get the position,
                         # but not sure if this is correct
                         function.id = item.module.getNumFunctions()

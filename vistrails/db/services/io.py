@@ -33,7 +33,8 @@ import shutil
 import tempfile
 
 from db import VistrailsDBException
-from db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup
+from db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
+    DBRegistry
 import db.services.abstraction
 import db.services.log
 import db.services.workflow
@@ -221,6 +222,8 @@ def save_to_xml(obj, filename):
         return save_workflow_to_xml(obj, filename)
     elif obj.vtType == DBLog.vtType:
         return save_log_to_xml(obj, filename)
+    elif obj.vtType == DBRegistry.vtType:
+        return save_registry_to_xml(obj, filename)
 
 def append_to_xml(obj, filename):
     if obj.vtType == DBLog.vtType:
@@ -627,6 +630,17 @@ def append_log_to_xml(log, filename):
         daoList.save_to_xml(workflow_exec, log_file, {}, currentVersion)
     log_file.close()
     return log
+
+##############################################################################
+# Registry I/O
+
+def save_registry_to_xml(registry, filename):
+    daoList = getVersionDAO(currentVersion)
+    tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+            'xsi:schemaLocation': 'http://www.vistrails.org/registry.xsd'
+            }
+    daoList.save_to_xml(registry, filename, tags, currentVersion)
+    return registry
 
 ##############################################################################
 # Abstraction I/O

@@ -19,34 +19,30 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
-from PyQt4 import QtCore
 
+from PyQt4 import QtCore
 import __builtin__
+from itertools import izip
 import copy
+import os
+import traceback
+
 from core.data_structures.graph import Graph
 import core.debug
 import core.modules
 import core.modules.vistrails_module
+from core.modules.module_descriptor import ModuleDescriptor
+from core.modules.package import Package
 from core.utils import VistrailsInternalError, memo_method, all, \
      InvalidModuleClass, ModuleAlreadyExists, append_to_dict_of_lists, \
      all, profile
+from core.system import vistrails_root_directory, vistrails_version
 from core.vistrail.port import Port, PortEndPoint
-from core.vistrail.module_function import ModuleFunction
-from core.vistrail.module_param import ModuleParam
+from core.vistrail.port_spec import PortSpec
 import core.cache.hasher
-from itertools import izip
-import weakref
+from db.domain import DBRegistry
 
 ##############################################################################
-
-# this is used by add_port to signal a repeated port. Should never
-# happen, but it does. Probably means a bug on the dynamic modules
-# such as MplPlot and Tuple.  Of course, that also means that we
-# should be robust in the presence of these errors, since user-defined
-# modules could exhibit this bug
-
-class OverloadedPort(Exception):
-    pass
 
 # This is used by add_module to make sure the fringe specifications
 # make sense
@@ -59,469 +55,10 @@ def _check_fringe(fringe):
         assert type(v[0]) == float
         assert type(v[1]) == float
 
-##############################################################################
-# PortSpec
-
-class PortSpec(object):
-
-    def __init__(self, signature):
-        # signature is a list of either (class, str) or class
-        self._entries = []
-        self._create_entries(signature)
-
-    def _create_entries(self, signature):
-        # This is reasonably messy code. The intent is that a
-        # signature given by the user in a call like this
-        # add_input_port(module, name, signature) should be one of the
-        # following:
-
-        # type only: add_input_port(_, _, Float)
-        # type plus description: add_input_port(_, _, (Float, 'radius'))
-
-        # multiple parameters, where each parameter can be either of the above:
-        # add_input_port(_, _, [Float, (Integer, 'count')])
-
-        def canonicalize(sig_item):
-            if type(sig_item) == __builtin__.type:
-                return (sig_item, '<no description>')
-            elif type(sig_item) == __builtin__.tuple:
-                # assert len(sig_item) == 2
-                # assert type(sig_item[0]) == __builtin__.type
-                # assert type(sig_item[1]) == __builtin__.str
-                return sig_item
-            elif type(sig_item) == __builtin__.list:
-                return (registry.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
-                                                        'List').module,
-                        '<no description>')
-
-        # def _add_entry(sig_item):
-        if type(signature) != __builtin__.list:
-            self._entries.append(canonicalize(signature))
-        else:
-            self._entries.extend(canonicalize(item) for item in signature)
-
-        (long_, short) = self.create_both_sigstrings()
-        self._short_sigstring = short
-        self._long_sigstring = long_
-
-    def __eq__(self, other):
-        if type(self) != type(other):
-            return False
-        for (mine, their) in izip(self._entries, other._entries):
-            if mine != their:
-                return False
-        return True
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def types(self):
-        return [entry[0] for entry in self._entries]
-
-    def type_equals(self, other):
-        """type_equals(other: PortSpec) -> Bool
-
-        Checks equality ignoring description strings. Only cares about types.
-        Does not do subtyping or supertyping: match must be perfect.
-
-        """
-        for (mine, their) in izip(self._entries, other._entries):
-            if mine[0] != their[0]:
-                return False
-        return True
-        
-
-    def is_method(self):
-        """is_method(self) -> Bool
-
-        Return true if spec can be interpreted as a method call.
-        This is the case if the parameters are all subclasses of
-        Constant.
-
-        """
-        return all(self._entries,
-                   lambda x: issubclass(x[0],
-                                        core.modules.basic_modules.Constant))
-
-    def create_module_function(self, port):
-        """create_module_function(port) -> ModuleFunction
-
-        creates a ModuleFunction object from a port and own information.
-
-        """
-        def from_source_port():
-            f = ModuleFunction()
-            f.name = port.name
-            descriptor = get_descriptor(self._entries[0])
-            f.returnType = descriptor.name
-            return f
-
-        def from_destination_port():
-            f = ModuleFunction()
-            f.name = port.name
-            for specitem in self._entries:
-                p = ModuleParam()
-                descriptor = get_descriptor(specitem[0])
-                # p.identifier = get_descriptor(specitem[0]).identifier
-                # p.type = specitem[0].__name__
-                p.identifier = descriptor.identifier
-                p.namespace = descriptor.namespace
-                p.type = descriptor.name
-                
-                p.name = specitem[1]
-                f.addParameter(p)
-            return f
-
-        if port.endPoint == PortEndPoint.Source:
-            return from_source_port()
-        elif port.endPoint == PortEndPoint.Destination:
-            return from_destination_port()
-        else:
-            raise VistrailsInternalError("Was expecting a valid endpoint")
-
-    def create_both_sigstrings(self):
-        """create_both_sigstrings() -> (string, string)
-
-        Returns both long and short portspec sigstrings."""
-
-        d = get_descriptor
-        lst1 = []
-        a1 = lst1.append
-        lst2 = []
-        a2 = lst2.append
-        for (klass, _) in self._entries:
-            descriptor = d(klass)
-            a1(descriptor.sigstring)
-            a2(descriptor.name)
-        return ("(" + ",".join(lst1) + ")",
-                "(" + ",".join(lst2) + ")")
-
-    def create_sigstring(self, short=False):
-        """create_sigstring(short=False) -> string
-
-        Returns a string with the signature of the portspec.
-
-        if short is True, then package names are not returned. Note,
-        however, that such sigstrings can't be used to reconstruct a
-        spec. They should only be used for human-readable purposes.
-
-        """
-        if short:
-            return self._short_sigstring
-        else:
-            return self._long_sigstring
-
-    @staticmethod
-    def from_sigstring(sig):
-        """from_sig(sig: string) -> PortSpec
-
-        Returns a portspec from the given sigstring.
-
-        """
-        result = PortSpec([])
-        assert sig[0] == '(' and sig[-1] == ')'
-        vs = sig[1:-1].split(',')
-        for v in vs:
-            k = v.split(':') # this will be either package:name or package:name:namespace
-            klass = get_descriptor_by_name(*k).module
-            result._entries.append((klass, '<no description>'))
-        return result
-
-    def _get_signature(self):
-        return self._entries
-    signature = property(_get_signature)
-
-    def __str__(self):
-        return self.create_sigstring()
-
-    def __copy__(self):
-        result = PortSpec([])
-        result._entries = copy.copy(self._entries)
-        result._short_sigstring = self._short_sigstring
-        result._long_sigstring = self._long_sigstring
-        return result
-
-###############################################################################
-# ModuleDescriptor
-
-class ModuleDescriptor(object):
-    """ModuleDescriptor is a class that holds information about
-    modules in the registry. There exists exactly one ModuleDescriptor
-    for every registered VisTrails module in the system.
-
-    self.module: reference to the python class that defines the module
-    self.name: name of the module
-    self.identifier: identifier of the package that module belongs to
-    self.input_ports: dictionary of names of input ports to the types
-      consumed by the ports
-    self.output_ports: dictionary of names of output ports to the types
-      produces by the ports
-    self.input_ports_optional: dictionary of input port names that records
-      whether ports should show up by default on GUI
-    self.output_ports_optional: dictionary of output port names that records
-      whether ports should show up by default on GUI
-    self.port_order: stores a map from names to numbers to order the ports
-      in the GUI
-
-    self._is_abstract: whether module is abstract
-    self._configuration_widget: reference to the Qt class that provides a
-      custom configuration widget for the class.
-    self._left_fringe and self._right_fringe: lists of 2D points that
-      define a drawing style for modules in the GUI
-    self._module_color: color of the module in the GUI
-
-    self._widget_item: stores a reference to the ModuleTreeWidgetItem so
-      that when ports are added to modules things get correctly updated.
-
-    self._input_port_cache, self._output_port_cache,
-      self._port_caches: Dictionaries for fast port spec lookup,
-      created because port spec lookups are sometimes part of hot code
-      paths and need to go as fast as possible.
-    """
-
-    ##########################################################################
-
-    def __init__(self, tree_node, module, identifier, name=None, namespace=None):
-        self._tree_node = weakref.proxy(tree_node)
-        if not name:
-            name = module.__name__
-        self.module = module
-        self.namespace = namespace
-        candidates = ModuleRegistry.get_subclass_candidates(self.module)
-        if len(candidates) > 0:
-            base = candidates[0]
-            self.base_descriptor = registry.get_descriptor(base)
-            self._port_count = self.base_descriptor._port_count
-        else:
-            self.base_descriptor = None
-            self._port_count = 0
-        self.name = name
-        self.identifier = identifier
-        self.input_ports = {}
-        self.output_ports = {}
-        self.input_ports_optional = {}
-        self.output_ports_optional = {}
-        self.port_order = {}
-        self.abstraction_refs = 1
-
-        self._is_abstract = False
-        self._configuration_widget = None
-        self._left_fringe = None
-        self._right_fringe = None
-        self._module_color = None
-        self._hasher_callable = None
-        self._widget_item = None
-        self._input_port_cache = {}
-        self._output_port_cache = {}
-        self._port_caches = (self._input_port_cache, self._output_port_cache)
-
-        if namespace:
-            self.sigstring = identifier + ":" + name + ":" + namespace
-        else:
-            self.sigstring = identifier + ":" + name
-
-    def assign(self, other):
-        """assign(ModuleDescriptor) -> None. Assigns values from other
-        ModuleDescriptor. Should only be called from Tree's copy
-        constructor.""" 
-        self.base_descriptor = other.base_descriptor
-        self.input_ports = copy.deepcopy(other.input_ports)
-        self.port_order = copy.deepcopy(other.port_order)
-        self.output_ports = copy.deepcopy(other.output_ports)
-        self.input_ports_optional = copy.deepcopy(other.input_ports_optional)
-        self.output_ports_optional = copy.deepcopy(other.output_ports_optional)
-        
-        self._is_abstract = other._is_abstract
-        self._configuration_widget = other._configuration_widget
-        self._left_fringe = copy.copy(other._left_fringe)
-        self._right_fringe = copy.copy(other._right_fringe)
-        self._module_color = other._module_color
-        self._hasher_callable = other._hasher_callable
-        
-
-    ##########################################################################
-    # Abstract module detection support
-
-    def set_widget(self, widget_item):
-        self._widget_item = widget_item
-
-    def has_ports(self):
-        """Returns True is module has any ports (this includes
-        superclasses).  This method exists to make automatic abstract
-        module detection efficient."""
-        return self._port_count > 0
-
-    def port_count(self):
-        """Return the total number of available for the module."""
-        return self._port_count
-
-    # Signal handling
-    def new_input_port(self):
-        """Updates needed variables when new input port is added
-        to either this module or the superclass."""
-        self._port_count += 1
-        if self._widget_item:
-            self._widget_item.added_input_port()
-        for child in self._tree_node.children:
-            d = child.descriptor
-            d.new_input_port()
-        
-    def new_output_port(self):
-        """Updates needed variables when new output port is added
-        to either this module or the superclass."""
-        self._port_count += 1
-        if self._widget_item:
-            self._widget_item.added_output_port()
-        for child in self._tree_node.children:
-            d = child.descriptor
-            d.new_output_port()
-
-    ##########################################################################
-    # Spec cache interface
-
-    # port_types are ints, and not enums!
-    # 1 == Destination. enum.__eq__ is slow on the hotpath
-    # 0 == Source. enum.__eq__ is slow on the hotpath
-
-
-    def has_port(self, name, port_type):
-        return name in self._port_caches[port_type]
-
-    def get_port(self, name, port_type):
-        return self._port_caches[port_type][name]
-
-    def set_port(self, name, port_type, spec):
-        self._port_caches[port_type][name] = spec
-        
-    def reset_port(self, name, port_type):
-        try:
-            d = self._port_caches[port_type]
-            del d[name]
-        except KeyError:
-            pass
-
-    ##########################################################################
-
-    def _append_to_port_list(self, port, optionals, name, signature, optional):
-        # _append_to_port_list is the implementation of both addInputPort
-        # and addOutputPorts, which are different only in which
-        # fields get the data
-        if port.has_key(name):
-            msg = "%s: port overloading is no longer supported" % name
-            raise OverloadedPort(msg)
-        spec = PortSpec(signature)
-        port[name] = spec
-        self.port_order[name] = len(port)
-        optionals[name] = optional
-        return spec
-
-    def add_port(self, endpoint, port):
-        name = port.name
-        spec = port.spec
-        if endpoint == PortEndPoint.Destination: # input port
-            self.add_input_port(name, spec, False, None)
-        elif endpoint == PortEndPoint.Source: # output port
-            self.add_output_port(name, spec, False, None)
-        else:
-            raise VistrailsInternalError("invalid endpoint")
- 
-    def add_input_port(self, name, spec, optional):
-        result = self._append_to_port_list(self.input_ports,
-                                           self.input_ports_optional,
-                                           name, spec, optional)
-        self.new_input_port()
-        return result
-
-    def add_output_port(self, name, spec, optional):
-        result = self._append_to_port_list(self.output_ports,
-                                           self.output_ports_optional,
-                                           name, spec, optional)
-        self.new_output_port()
-        return result
-
-    def delete_port(self, endpoint, port):
-        if endpoint == PortEndPoint.Destination: # input port
-            self.delete_input_port(port.name)
-        elif endpoint == PortEndPoint.Source: # output port
-            self.delete_output_port(port.name)
-        else:
-            raise VistrailsInternalError("invalid endpoint")
-
-    def delete_input_port(self, name):
-        if self.input_ports.has_key(name):
-            del self.input_ports[name]
-            del self.input_ports_optional[name]
-            self.reset_port(name, 1)
-        else:
-            msg = 'delete_input_port called on nonexistent port "%s"' % name
-            core.debug.critical(msg)
-        if self._input_port_cache.has_key(name):
-            del self._input_port_cache[name]
-
-    def delete_output_port(self, name):
-        if self.output_ports.has_key(name):
-            del self.output_ports[name]
-            del self.output_ports_optional[name]
-            self.reset_port(name, 0)
-        else:
-            msg = 'delete_output_port called on nonexistent port "%s"' % name
-            core.debug.critical(msg)
-        if self._output_port_cache.has_key(name):
-            del self._output_port_cache[name]
-
-    def set_module_abstract(self, v):
-        self._is_abstract = v
-
-    def module_abstract(self):
-#         if not self.has_ports():
-#             return True
-        return self._is_abstract
-
-    def set_configuration_widget(self, configuration_widget_type):
-        self._configuration_widget = configuration_widget_type
-
-    def configuration_widget(self):
-        return self._configuration_widget
-
-    def set_module_color(self, color):
-        if color:
-            assert type(color) == tuple
-            assert len(color) == 3
-            for i in 0,1,2:
-                assert type(color[i]) == float
-        self._module_color = color
-
-    def module_color(self):
-        return self._module_color
-
-    def set_module_fringe(self, left_fringe, right_fringe):
-        if left_fringe is None:
-            assert right_fringe is None
-            self._left_fringe = None
-            self._right_fringe = None
-        else:
-            _check_fringe(left_fringe)
-            _check_fringe(right_fringe)
-            self._left_fringe = left_fringe
-            self._right_fringe = right_fringe
-
-    def module_fringe(self):
-        if self._left_fringe is None and self._right_fringe is None:
-            return None
-        return (self._left_fringe, self._right_fringe)
-
-    def module_package(self):
-        return self.identifier
-
-    def set_hasher_callable(self, callable_):
-        self._hasher_callable = callable_
-    def hasher_callable(self):
-        return self._hasher_callable
-
 ###############################################################################
 # ModuleRegistry
 
-class ModuleRegistry(QtCore.QObject):
+class ModuleRegistry(DBRegistry, QtCore.QObject):
     """ModuleRegistry serves as a registry of VisTrails modules.
     """
 
@@ -563,7 +100,7 @@ class ModuleRegistry(QtCore.QObject):
     ##########################################################################
     # Constructor and copy
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """ModuleRegistry is the base class for objects that store a hierarchy
         of registered VisTrails Modules. There is one global registry for the
         system, and some modules have local registries (in the case of
@@ -571,32 +108,170 @@ class ModuleRegistry(QtCore.QObject):
 
         """
         
+        if 'root_descriptor_id' not in kwargs:
+            kwargs['root_descriptor_id'] = -1
         QtCore.QObject.__init__(self)
-        self._current_package_name = 'edu.utah.sci.vistrails.basic'
-        base_node = Tree(core.modules.vistrails_module.Module,
-                         self._current_package_name)
-        self._class_tree = base_node
-        key = (self._current_package_name, "Module")
-        self._module_key_map = { core.modules.vistrails_module.Module: key }
-        self._key_tree_map = { key: base_node }
-        self.package_modules = {self._current_package_name: ["Module"]}
-        self._legacy_name_only_map = {}
-        self._monotonic = False
-        self._module_source_ports_cache = {}
-        self._module_destination_ports_cache = {}
-        self.python_source_types = {}
+        DBRegistry.__init__(self, *args, **kwargs)
+
+        self.packages = self.db_packages_identifier_index
+        self._current_package = self.create_default_package()
+        self._module_key_map = {}
+        self.descriptors = {}
+        self.descriptors_by_id = {}
+
+        for package in self.package_list:
+            for descriptor in package.descriptor_list:
+                k = (descriptor.package, descriptor.name, descriptor.namespace)
+                self.descriptors[k] = descriptor
+                self.descriptors_by_id[descriptor.id] = descriptor
+                if descriptor.module is not None:
+                    self._module_key_map[descriptor.module] = k
+        for descriptor in self.descriptors.itervalues():
+            if descriptor.base_descriptor_id in self.descriptors_by_id:
+                base_descriptor = \
+                    self.descriptors_by_id[descriptor.base_descriptor_id]
+                base_descriptor.children.append(descriptor)
+        if self.root_descriptor_id >= 0:
+            self.root_descriptor = \
+                self.descriptors_by_id[self.root_descriptor_id]                
+        else:
+            root_id = self.idScope.getNewId(ModuleDescriptor.vtType)
+            self.root_descriptor = \
+                ModuleDescriptor(id=root_id,
+                                 module=core.modules.vistrails_module.Module,
+                                 package=self._current_package.identifier,
+                                 namespace=None)
+            self.root_descriptor_id = root_id
+            self.add_descriptor(self.root_descriptor, self._current_package)
+            key = (self._current_package.identifier, "Module", None)
+            self._module_key_map[core.modules.vistrails_module.Module] = key
+
+#         key = (self._current_package_name, "Module")
+#         self._module_key_map = { core.modules.vistrails_module.Module: key }
+#         self.descriptors = { key: self.root_descriptor }
+#         self.package_modules = {self._current_package_name: ["Module"]}
+#         self._legacy_name_only_map = {}
+#         self._monotonic = False
+        # self._module_source_ports_cache = {}
+        # self._module_destination_ports_cache = {}
+        # self.python_source_types = {}
 
     def __copy__(self):
-        result = ModuleRegistry()
-        result._class_tree = copy.copy(self._class_tree)
-        result._module_key_map = copy.copy(self._module_key_map)
-        result._key_tree_map = result._class_tree.make_dictionary()
-        result._current_package_name = self._current_package_name
-        result.package_modules = copy.copy(self.package_modules)
+        ModuleRegistry.do_copy(self)
 
-        # python_source_types is aliased instead of copied. Shouldn't be an issue
-        result.python_source_types = self.python_source_types
-        return result
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBRegistry.do_copy(self, new_ids, id_scope, id_remap)
+        cp.__class__ = ModuleRegistry
+        cp._module_key_map = {}
+        cp.descriptors = {}
+        cp.descriptors_by_id = {}
+        for package in cp.package_list:
+            for descriptor in package.descriptor_list:
+                k = (descriptor.package, descriptor.name, descriptor.namespace)
+                cp.descriptors[k] = descriptor
+                cp.descriptors_by_id[descriptor.id] = descriptor
+                if descriptor.module is not None:
+                    cp._module_key_map[descriptor.module] = k
+        for descriptor in cp.descriptors.itervalues():
+            if descriptor.base_descriptor_id in cp.descriptors_by_id:
+                base_descriptor = \
+                    cp.descriptors_by_id[descriptor.base_descriptor_id]
+                base_descriptor.children.append(descriptor)
+        if cp.root_descriptor_id:
+            cp.root_descriptor = cp.descriptors_by_id[cp.root_descriptor_id]
+        cp.packages = cp.db_packages_identifier_index
+
+        cp._current_package = cp.packages[self._current_package.identifier]
+        cp._default_package = cp.packages[self._default_package.identifier]
+
+        return cp
+
+    @staticmethod
+    def convert(_reg):
+        if _reg.__class__ == ModuleRegistry:
+            return
+        _reg.__class__ = ModuleRegistry
+        _reg._module_key_map = {}
+        _reg.descriptors = {}
+        _reg.descriptors_by_id = {}
+        for package in _reg.package_list:
+            for descriptor in package.descriptor_list:
+                k = (descriptor.package, descriptor.name, descriptor.namespace)
+                _reg.descriptors[k] = descriptor
+                _reg.descriptors_by_id[descriptor.id] = descriptor
+                if descriptor.module is not None:
+                    _reg._module_key_map[descriptor.module] = k
+        for descriptor in _reg.descriptors.itervalues():
+            if descriptor.base_descriptor_id in _reg.descriptors_by_id:
+                base_descriptor = \
+                    _reg.descriptors_by_id[descriptor.base_descriptor_id]
+                base_descriptor.children.append(descriptor)
+        if _reg.root_descriptor_id:
+            _reg.root_descriptor = \
+                _reg.descriptors_by_id[_reg.root_descriptor_id]
+        _reg.packages = _reg.db_packages_identifier_index
+
+        if 'edu.utah.sci.vistrails.basic' in _reg.packages:
+            _reg._default_package = \
+                _reg.packages['edu.utah.sci.vistrails.basic']
+            _reg._current_package = _reg._default_package
+        else:
+            _reg._current_package = reg.create_default_package()
+
+#         result = ModuleRegistry()
+#         result._module_key_map = copy.copy(self._module_key_map)
+#         result.root_descriptor = copy.copy(self.root_descriptor)
+#         def make_dictionary(descriptor):
+#             # This is inefficient
+#             result = {(descriptor.identifier,
+#                        descriptor.name): descriptor}
+#             for child in descriptor.children:
+#                 result.update(make_dictionary(child))
+#             return result
+#         result.descriptors = make_dictionary(result.root_descriptor)
+#         result._current_package_name = self._current_package_name
+#         result.package_modules = copy.copy(self.package_modules)
+
+#         # python_source_types is aliased instead of copied. Shouldn't be an issue
+#         result.python_source_types = self.python_source_types
+#         return result
+
+    ##########################################################################
+    # Properties
+
+    package_list = DBRegistry.db_packages
+    root_descriptor_id = DBRegistry.db_root_descriptor_id
+
+    def add_descriptor(self, desc, package=None):
+        if package is None:
+            package = self._default_package
+        self.descriptors[(desc.package, desc.name, desc.namespace)] = desc
+        self.descriptors_by_id[desc.id] = desc
+        package.add_descriptor(desc)
+    def delete_descriptor(self, desc, package=None):
+        if package is None:
+            package = self._default_package
+        del self.descriptors[(desc.package, desc.name, desc.namespace)]
+        del self.descriptors_by_id[desc.id]
+        package.delete_descriptor(desc)
+    def add_package(self, package):
+        DBRegistry.db_add_package(self, package)
+    def delete_package(self, package):
+        DBRegistry.db_delete_package(self, package)
+
+    def create_default_package(self):
+        default_codepath = os.path.join(vistrails_root_directory(), 
+                                        "core", "modules", "basic_modules.py")
+        self._default_package = \
+            Package(id=self.idScope.getNewId(Package.vtType),
+                    codepath=default_codepath,
+                    load_configuration=False,
+                    identifier='edu.utah.sci.vistrails.basic',
+                    name='Basic Modules',
+                    version=vistrails_version(),
+                    description="Basic modules for VisTrails")
+        self.add_package(self._default_package)
+        return self._default_package
 
     ##########################################################################
     # Per-module registry functions
@@ -611,167 +286,10 @@ class ModuleRegistry(QtCore.QObject):
         # we exclude the first module in the hierarchy because it's Module
         # and we exclude 
         hierarchy = reg.get_module_hierarchy(d)
-        for m in reversed(hierarchy[:-1]):
-            k = reg._module_key_map[m]
-            if len(k) == 3:
-                (package, name, namespace) = k
-                self.add_module(m, name=name, package=package,
-                                namespace=namespace)
-            else:
-                assert len(k) == 2
-                (package, name) = k
-                self.add_module(m, name=name, package=package)
-
-    ##########################################################################
-    # Performance
-
-    def enable_monotonic(self):
-        self._monotonic = True
-
-    @staticmethod
-    def _unique_sorted_ports(ports):
-        if len(ports)==0:
-            return ports
-        ports.sort(key=lambda n1: n1.sort_key)
-        result = [ports[0]]
-        names = [p.name for p in ports]
-        for i in xrange(1,len(names)):
-            if not ports[i].name in names[:i]:
-                result.append(ports[i])
-        return result
-
-    def module_source_ports(self, sorted, identifier, module_name, namespace=None):
-        if (self._monotonic and
-            (sorted, identifier, module_name, namespace) in self._module_source_ports_cache):
-             # make sure list is fresh
-            return self._module_source_ports_cache[(sorted, identifier, module_name, namespace)][:]
-        ports = []
-        descriptor = self.get_descriptor_by_name(identifier, module_name, namespace)
-
-        for (n, registry_ports) in self.all_source_ports(descriptor, sorted=False):
-            ports.extend([copy.copy(x) for x in registry_ports])
-        if sorted:
-            ports = self._unique_sorted_ports(ports)
-        if self._monotonic:
-            self._module_source_ports_cache[(sorted, identifier, module_name, namespace)] = ports
-            return self._module_source_ports_cache[(sorted, identifier, module_name, namespace)][:]
-        else:
-            return ports[:]
-
-    def module_destination_ports(self, sorted, identifier, module_name, namespace=None):
-        if (self._monotonic and
-            (sorted, identifier, module_name, namespace) in self._module_destination_ports_cache):
-             # make sure list is fresh
-            return self._module_destination_ports_cache[(sorted, identifier, module_name, namespace)][:]
-        ports = []
-        descriptor = self.get_descriptor_by_name(identifier, module_name, namespace)
-
-        for (n, registry_ports) in self.all_destination_ports(descriptor, sorted=False):
-            ports.extend([copy.copy(x) for x in registry_ports])
-        if sorted:
-            ports = self._unique_sorted_ports(ports)
-        if self._monotonic:
-            self._module_destination_ports_cache[(sorted, identifier, module_name, namespace)] = ports
-            return self._module_destination_ports_cache[(sorted, identifier, module_name, namespace)][:]
-        else:
-            return ports[:]
-
-    ##########################################################################
-    # Convenience
-
-    # The registry keeps several mappings that can be used to go from one
-    # module representation to another. These convenience functions exist
-    # so we can go from one to the next.
-
-    def get_descriptor_from_module(self, module):
-        # assert issubclass(module, core.modules.vistrails_module.Module)
-        k = self._module_key_map[module]
-        n = self._key_tree_map[k]
-        return n.descriptor
-
-    def get_tree_node_from_name(self, identifier, name, namespace=None):
-        if namespace:
-            k = (identifier, name, namespace)
-        else:
-            k = (identifier, name)
-        return self._key_tree_map[k]
-
-    ##########################################################################
-    # Legacy
-
-    def get_descriptor_from_name_only(self, name):
-        """get_descriptor_from_name_only(name) -> descriptor
-
-        This tries to return a descriptor from a name without a
-        package. The call should only be used for converting from
-        legacy vistrails to new ones. For one, it is slow on misses. 
-
-        """
-        if name in self._legacy_name_only_map:
-            return self._legacy_name_only_map[name]
-        matches = [x for x in
-                   self._key_tree_map.iterkeys()
-                   if x[1] == name]
-        if len(matches) == 0:
-            raise self.MissingModulePackage("<unknown package>",
-                                            name,
-                                            None)
-        if len(matches) > 1:
-            raise Exception("ambiguous resolution...")
-        result = self.get_descriptor_by_name(*(matches[0]))
-        self._legacy_name_only_map[name] = result
-        return result
-
-    def create_port_from_old_spec(self, spec):
-        """create_port_from_old_spec(spec) -> (Port, PortEndPoint)"""
-        if spec.type == 'input':
-            endpoint = PortEndPoint.Destination
-        else:
-            assert spec.type == 'output'
-            endpoint = PortEndPoint.Source
-        port = Port()
-        port.name = spec.name
-        signature = [self.get_descriptor_from_name_only(specItem).module
-                     for specItem
-                     in spec.spec[1:-1].split(',')]
-        port.spec = PortSpec(signature)
-        return (port, endpoint)
-
-    ##########################################################################
-
-    def class_tree(self):
-        return self._class_tree
-
-    def module_signature(self, pipeline, module):
-        """Returns signature of a given core.vistrail.Module in the
-        given core.vistrail.Pipeline, possibly using user-defined
-        hasher.
-        """
-        descriptor = self.get_descriptor_by_name(module.package,
-                                                 module.name,
-                                                 module.namespace)
-        if not descriptor:
-            return core.cache.hasher.Hasher.module_signature(module)
-        c = descriptor.hasher_callable()
-        if c:
-            return c(pipeline, module)
-        else:
-            return core.cache.hasher.Hasher.module_signature(module)
-
-    def has_module(self, identifier, name, namespace=None):
-        """has_module(identifier, name, namespace=None) -> Boolean. True if 'name' is registered
-        as a module."""
-        if namespace:
-            k = (identifier, name, namespace)
-        else:
-            k = (identifier, name)
-        return self._key_tree_map.has_key(k)
-
-    def get_module_color(self, identifier, name, namespace=None):
-        return self.get_descriptor_by_name(identifier, name, namespace).module_color()
-
-    def get_module_fringe(self, identifier, name, namespace=None):
-        return self.get_descriptor_by_name(identifier, name, namespace).module_fringe()
+        for desc in reversed(hierarchy[:-1]):
+            if desc.module is not None:
+                self.add_module(desc.module, name=desc.name, 
+                                package=desc.package, namespace=desc.namespace)
 
     def get_module_by_name(self, identifier, name, namespace=None):
         """get_module_by_name(name: string): class
@@ -783,28 +301,31 @@ class ModuleRegistry(QtCore.QObject):
         return self.get_descriptor_by_name(identifier, name, namespace).module
 
     def has_descriptor_with_name(self, identifier, name, namespace=None):
-        if namespace:
-            k = (identifier, name, namespace)
-        else:
-            k = (identifier, name)
-        return self._key_tree_map.has_key(k)
+        if namespace is not None and namespace.strip() == "":
+            namespace = None
+        return (identifier, name, namespace) in self.descriptors
+    has_module = has_descriptor_with_name
 
     def get_descriptor_by_name(self, identifier, name, namespace=None):
         """get_descriptor_by_name(package_identifier,
-                                  module_name) -> ModuleDescriptor"""
-        if namespace:
-            key = (identifier, name, namespace)
-        else:
-            key = (identifier, name)
-            
+                                  module_name,
+                                  namespace) -> ModuleDescriptor"""
+#         if namespace:
+#             key = (identifier, name, namespace)
+#         else:
+#             key = (identifier, name)
+
+        if namespace is not None and namespace.strip() == "":
+            namespace = None
         try:
-            return self._key_tree_map[key].descriptor
+            return self.descriptors[(identifier, name, namespace)]
         except KeyError:
-            if identifier not in self.package_modules:
+            if identifier not in self.packages:
                 msg = ("Cannot find package %s: it is missing" % identifier)
                 # core.debug.critical(msg)
                 raise self.MissingModulePackage(identifier, name, namespace)
-            if not self._key_tree_map.has_key(key):
+            else:
+                key = name if namespace is None else name + ':' + namespace
                 msg = ("Package %s does not contain module %s" %
                        (identifier, key))
                 # core.debug.critical(msg)
@@ -822,6 +343,88 @@ class ModuleRegistry(QtCore.QObject):
         # assert self._module_key_map.has_key(module)
         k = self._module_key_map[module]
         return self.get_descriptor_by_name(*k)
+
+    # get_descriptor_from_module is a synonym for get_descriptor
+    get_descriptor_from_module = get_descriptor
+
+    def module_ports(self, p_type, descriptor):
+        return [(p.name, p)
+                for p in descriptor.port_specs_list
+                if p.type == p_type]
+        
+    def module_source_ports(self, do_sort, identifier, module_name, 
+                            namespace=None):
+        descriptor = self.get_descriptor_by_name(identifier, module_name, 
+                                                 namespace)
+        ports = {}
+        for desc in reversed(self.get_module_hierarchy(descriptor)):
+            ports.update(self.module_ports('output', desc))
+        all_ports = ports.values()
+        if do_sort:
+            all_ports.sort(key=lambda x: (x.sort_key, x.id))
+        return all_ports
+    def module_destination_ports(self, do_sort, identifier, module_name,
+                                 namespace=None):
+        descriptor = self.get_descriptor_by_name(identifier, module_name, 
+                                                 namespace)
+        ports = {}
+        for desc in reversed(self.get_module_hierarchy(descriptor)):
+            ports.update(self.module_ports('input', desc))
+        all_ports = ports.values()
+        if do_sort:
+            all_ports.sort(key=lambda x: (x.sort_key, x.id))
+        return all_ports
+
+    ##########################################################################
+    # Legacy
+
+    def get_descriptor_from_name_only(self, name):
+        """get_descriptor_from_name_only(name) -> descriptor
+
+        This tries to return a descriptor from a name without a
+        package. The call should only be used for converting from
+        legacy vistrails to new ones. For one, it is slow on misses. 
+
+        """
+#         if name in self._legacy_name_only_map:
+#             return self._legacy_name_only_map[name]
+        matches = [x for x in
+                   self.descriptors.iterkeys()
+                   if x[1] == name]
+        if len(matches) == 0:
+            raise self.MissingModulePackage("<unknown package>",
+                                            name,
+                                            None)
+        if len(matches) > 1:
+            raise Exception("ambiguous resolution...")
+        k = matches[0]
+        result = self.get_descriptor_by_name(*k)
+        # self._legacy_name_only_map[name] = result
+        return result
+
+    ##########################################################################
+
+    def module_signature(self, pipeline, module):
+        """Returns signature of a given core.vistrail.Module in the
+        given core.vistrail.Pipeline, possibly using user-defined
+        hasher.
+        """
+        descriptor = self.get_descriptor_by_name(module.package,
+                                                 module.name,
+                                                 module.namespace)
+        if not descriptor:
+            return core.cache.hasher.Hasher.module_signature(module)
+        c = descriptor.hasher_callable()
+        if c:
+            return c(pipeline, module)
+        else:
+            return core.cache.hasher.Hasher.module_signature(module)
+
+    def get_module_color(self, identifier, name, namespace=None):
+        return self.get_descriptor_by_name(identifier, name, namespace).module_color()
+
+    def get_module_fringe(self, identifier, name, namespace=None):
+        return self.get_descriptor_by_name(identifier, name, namespace).module_fringe()
 
     def auto_add_module(self, module):
         """auto_add_module(module or (module, kwargs)): add module and
@@ -857,8 +460,8 @@ class ModuleRegistry(QtCore.QObject):
           moduleFringe=None,
           moduleLeftFringe=None,
           moduleRightFringe=None,
-          abstract=None
-          package=None
+          abstract=None,
+          package=None,
           namespace=None
 
         Registers a new module with VisTrails. Receives the class
@@ -919,18 +522,20 @@ class ModuleRegistry(QtCore.QObject):
         moduleLeftFringe = fetch('moduleLeftFringe', None) 
         moduleRightFringe = fetch('moduleRightFringe', None)
         is_abstract = fetch('abstract', False)
-        identifier = fetch('package', self._current_package_name)
+        identifier = fetch('package', self._current_package.identifier)
         namespace = fetch('namespace', None)
 
-        if namespace:
-            key = (identifier, name, namespace)
-        else:
-            key = (identifier, name)
+        key = (identifier, name, namespace)
+#         if namespace:
+#             key = (identifier, name, namespace)
+#         else:
+#             key = (identifier, name)
         
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed to addModule: %s' % kwargs)
-        if self._key_tree_map.has_key(key):
+        if key in self.descriptors:
             raise ModuleAlreadyExists(identifier, name)
+
         # We allow multiple inheritance as long as only one of the superclasses
         # is a subclass of Module.
         candidates = self.get_subclass_candidates(module)
@@ -941,12 +546,19 @@ class ModuleRegistry(QtCore.QObject):
             raise self.MissingBaseClass(baseClass) 
         
         base_key = self._module_key_map[baseClass]
-        base_node = self._key_tree_map[base_key]
-        module_node = base_node.add_module(module, identifier, name, namespace)
-        self._module_key_map[module] = key
-        self._key_tree_map[key] = module_node
+        base_descriptor = self.descriptors[base_key]
 
-        descriptor = module_node.descriptor
+        # module_node = \
+        #     base_node.add_module(module, identifier, name, namespace)
+        descriptor_id = self.idScope.getNewId(ModuleDescriptor.vtType)
+        descriptor = ModuleDescriptor(id=descriptor_id,
+                                      module=module,
+                                      package=identifier,
+                                      base_descriptor=base_descriptor,
+                                      name=name,
+                                      namespace=namespace,
+                                      )
+
         descriptor.set_module_abstract(is_abstract)
         descriptor.set_configuration_widget(configureWidgetType)
 
@@ -963,63 +575,109 @@ class ModuleRegistry(QtCore.QObject):
             _check_fringe(moduleRightFringe)
             descriptor.set_module_fringe(moduleLeftFringe, moduleRightFringe)
 
-        if namespace:
-            append_to_dict_of_lists(self.package_modules,
-                                    identifier,
-                                    (name, namespace))
+        
+        self._module_key_map[module] = key
+
+        # add to package list, creating new package if necessary
+        if identifier not in self.packages:
+            if self._current_package.identifier == identifier:
+                package = self._current_package
+            else:
+                package_id = self.idScope.getNewId(Package.vtType)
+                package = Package(id=package_id,
+                                  codepath="",
+                                  load_configuration=False,
+                                  name="",
+                                  identifier=identifier,
+                                  )
+            self.add_package(package)
         else:
-            append_to_dict_of_lists(self.package_modules,
-                                    identifier,
-                                    name)
-
-        # Adds python_source_type registry entry, if possible
-        try:
-            append_to_dict_of_lists(self.python_source_types,
-                                    module.python_source_type,
-                                    module)
-        except AttributeError:
-            pass
-
+            package = self.packages[identifier]
+        self.add_descriptor(descriptor, package)
+                   
         self.emit(self.new_module_signal, descriptor)
-        return module_node
-
-    def add_port(self, module, endpoint, port):
-        signature = port.spec.signature
-        name = port.name
-        if endpoint == PortEndPoint.Destination: # input port
-            self.add_input_port(module, name, signature)
-        elif endpoint == PortEndPoint.Source: # output port
-            descriptor = self.get_descriptor(module)
-            self.add_output_port(module, name, signature)
-        else:
-            raise VistrailsInternalError("Invalid endpoint")
+        return descriptor
 
     def has_input_port(self, module, portName):
         descriptor = self.get_descriptor(module)
-        return descriptor.input_ports.has_key(portName)
+        # return descriptor.input_ports.has_key(portName)
+        return (portName, 'input') in descriptor.port_specs
+
 
     def has_output_port(self, module, portName):
         descriptor = self.get_descriptor(module)
-        return descriptor.output_ports.has_key(portName)
+        # return descriptor.output_ports.has_key(portName)
+        return (portName, 'output') in descriptor.port_specs
 
-    def add_input_port(self, module, portName, portSignature, optional=False):
+    def create_port_spec(self, name, type, signature=None, sigstring=None,
+                         optional=False, sort_key=-1):
+        if signature is None and sigstring is None:
+            raise VistrailsInternalError("create_port_spec: one of signature "
+                                         "and sigstring must be specified")
+        spec_id = self.idScope.getNewId(PortSpec.vtType)
+        spec = PortSpec(id=spec_id,
+                        name=name,
+                        type=type,
+                        signature=signature,
+                        sigstring=sigstring,
+                        optional=optional,
+                        sort_key=sort_key)
+        return spec
+
+    def add_port_spec(self, module, port_spec):
+        descriptor = self.get_descriptor(module)
+        descriptor.add_port_spec(port_spec)
+
+    def get_port_spec(self, package, module_name, namespace, 
+                      port_name, port_type):
+        try:
+            desc = self.get_descriptor_by_name(package, module_name, namespace)
+            for d in self.get_module_hierarchy(desc):
+                if d.has_port_spec(port_name, port_type):
+                    return d.get_port_spec(port_name, port_type)
+        except ModuleDescriptor.MissingPort:
+            print "missing port: '%s:%s|%s', '%s:%s'" % (package, module_name,
+                                                         namespace, port_name,
+                                                         port_type)
+            raise
+        except self.MissingModulePackage:
+            print "missing desc: '%s:%s|%s'" % (package, module_name, namespace)
+            raise
+        return None
+
+    def add_port(self, module, port_name, port_type, port_sig=None, 
+                 port_sigstring=None, optional=False, sort_key=-1):
+        descriptor = self.get_descriptor(module)
+        spec = self.create_port_spec(port_name, port_type, port_sig,
+                                     port_sigstring, optional, sort_key)
+        descriptor.add_port_spec(spec)
+        if port_type == 'input':
+            self.emit(self.new_input_port_signal,
+                      descriptor.identifier,
+                      descriptor.name, port_name, spec)
+        elif port_type == 'output':
+            self.emit(self.new_output_port_signal,
+                      descriptor.identifier,
+                      descriptor.name, port_name, spec)
+
+    def add_input_port(self, module, portName, portSignature, optional=False,
+                       sort_key=-1):
         """add_input_port(module: class,
         portName: string,
         portSignature: string,
-        optional=False) -> None
+        optional=False,
+        sort_key=-1) -> None
 
         Registers a new input port with VisTrails. Receives the module
         that will now have a certain port, a string representing the
         name, and a signature of the port, described in
         doc/module_registry.txt. Optionally, it receives whether the
         input port is optional."""
-        descriptor = self.get_descriptor(module)
-        spec = descriptor.add_input_port(portName, portSignature, optional)
-        self.emit(self.new_input_port_signal,
-                  descriptor.identifier,
-                  descriptor.name, portName, spec)
+        self.add_port(module, portName, 'input', portSignature, None, optional,
+                      sort_key)
 
-    def add_output_port(self, module, portName, portSignature, optional=False):
+    def add_output_port(self, module, portName, portSignature, optional=False,
+                        sort_key=-1):
         """add_output_port(module: class, portName: string, portSpec) -> None
 
         Registers a new output port with VisTrails. Receives the
@@ -1027,68 +685,72 @@ class ModuleRegistry(QtCore.QObject):
         representing the name, and a signature of the port, described
         in doc/module_registry.txt. Optionally, it receives whether
         the output port is optional."""
-        descriptor = self.get_descriptor(module)
-        spec = descriptor.add_output_port(portName, portSignature, optional)
-        self.emit(self.new_output_port_signal,
-                  descriptor.identifier,
-                  descriptor.name, portName, spec)
+        self.add_port(module, portName, 'output', portSignature, None, optional,
+                      sort_key)
+
+    def create_package(self, codepath, load_configuration=True):
+        package_id = self.idScope.getNewId(Package.vtType)
+        package = Package(id=package_id,
+                          codepath=codepath,
+                          load_configuration=load_configuration)
+        return package
+
+    def initialize_package(self, package):
+        if package.initialized():
+            return
+        print "Initializing", package.codepath
+        if package.identifier not in self.packages:
+            self.add_package(package)
+        self.set_current_package(package)
+        try:
+            package.module.initialize()
+            # Perform auto-initialization
+            if hasattr(package.module, '_modules'):
+                for module in package.module._modules:
+                    self.auto_add_module(module)
+        except Exception, e:
+            raise package.InitializationFailed(package, e, 
+                                               traceback.format_exc())
+
+        # The package might have decided to rename itself, let's store that
+        self.set_current_package(None)
+        package._initialized = True 
 
     def delete_module(self, identifier, module_name, namespace=None):
         """deleteModule(module_name): Removes a module from the registry."""
-        descriptor = self.get_descriptor_by_name(identifier, module_name, namespace)
-        if namespace:
-            key = (identifier, module_name, namespace)
-        else:
-            key = (identifier, module_name)
-        tree_node = self._key_tree_map[key]
-        assert len(tree_node.children) == 0
+        descriptor = self.get_descriptor_by_name(identifier, module_name, 
+                                                 namespace)
+#         key = (module_name, identifier, namespace)
+#         descriptor = self.descriptors[key]
+        assert len(descriptor.children) == 0
         self.emit(self.deleted_module_signal, descriptor)
-        if namespace:
-            self.package_modules[descriptor.module_package()].remove((module_name, namespace))
-        else:
-            self.package_modules[descriptor.module_package()].remove(module_name)
-        del self._key_tree_map[key]
-        del self._module_key_map[descriptor.module]
-        tree_node.parent.children.remove(tree_node)
+        package = self.packages[descriptor.identifier]
+        self.delete_descriptor(descriptor, package)
+        if descriptor.module is not None:
+            del self._module_key_map[descriptor.module]
 
-    def delete_package(self, package):
-        """delete_package(package): Removes an entire package from the registry."""
+    def remove_package(self, package):
+        """remove_package(package) -> None:
+        Removes an entire package from the registry.
 
+        """
         # graph is the class hierarchy graph for this subset
         graph = Graph()
-        modules = self.package_modules[package.identifier]
-        for module_name in modules:
-            graph.add_vertex(module_name)
-        for module_name in modules:
-            if type(module_name) == str:
-                key = (package.identifier, module_name)
-            else:
-                key = (package.identifier, module_name[0], module_name[1])
-            tree_node = self._key_tree_map[key]
-
-            # Module is the only one that has no parent,
-            # and basic package should never be deleted
-            assert tree_node.parent
-            
-            parent_name = tree_node.parent.descriptor.name
-            if parent_name in modules:
-                # it's ok to only use module names because they are supposed
-                # to be unique in a single package
-                graph.add_edge(module_name, parent_name)
+        m_package = self.packages[package.identifier]
+        for descriptor in m_package.descriptor_list:
+            graph.add_vertex(descriptor.sigstring)
+        for descriptor in m_package.descriptor_list:            
+            base_id = descriptor.base_descriptor_id
+            if base_id in m_package.descriptors_by_id:
+                base_descriptor = \
+                    m_package.descriptors_by_id[descriptor.base_descriptor_id]
+                graph.add_edge(descriptor.sigstring, base_descriptor.sigstring)
 
         top_sort = graph.vertices_topological_sort()
         # set up fast removal of model
-        for module_name in top_sort:
-            if type(module_name) == str:
-                desc = self.get_descriptor_by_name(package.identifier, module_name)
-                self.delete_module(package.identifier, module_name, desc.namespace)
-            else:
-                desc = self.get_descriptor_by_name(package.identifier,
-                                                   module_name[0],
-                                                   module_name[1])
-                self.delete_module(package.identifier, module_name[0], desc.namespace)
-        del self.package_modules[package.identifier]
-
+        for sigstring in top_sort:
+            self.delete_module(*(sigstring.split(':')))
+        self.delete_package(m_package)
         self.emit(self.deleted_package_signal, package)
 
     def delete_input_port(self, module, portName):
@@ -1101,57 +763,30 @@ class ModuleRegistry(QtCore.QObject):
         descriptor = self.get_descriptor(module)
         descriptor.delete_output_port(portName)
 
-    @staticmethod
-    def _vis_port_from_spec(name, spec, descriptor, port_type):
-        try:
-            return descriptor._port_caches[port_type][name]
-        except KeyError:
-            pass
-        if port_type == 1: # 1 == Destination. enum.__eq__ is slow on the hotpath
-            pt = 'destination'
-            opt = descriptor.input_ports_optional[name]
-        else: # 0 == Source. enum.__eq__ is slow on the hotpath
-            pt = 'source'
-            opt = descriptor.output_ports_optional[name]
-        result = Port(name=name,
-                      type=pt,
-                      optional=opt,
-                      moduleName=descriptor.name)
-        result.spec = spec
-        result.sort_key = descriptor.port_order[result.name]
-        descriptor.set_port(name, port_type, result)
-        return result        
-
     def source_ports_from_descriptor(self, descriptor, sorted=True):
-        v = descriptor.output_ports.items()
+        ports = [p[1] for p in self.module_ports('output', descriptor)]
         if sorted:
-            v.sort(key=lambda (n1, v1): n1)
-        getter = self._vis_port_from_spec
-        return [getter(name, spec, descriptor, 0)
-                for (name, spec) in v]
-
+            ports.sort(key=lambda x: x.name)
+        return ports
+    
     def destination_ports_from_descriptor(self, descriptor, sorted=True):
-        v = descriptor.input_ports.items()
+        ports = [p[1] for p in self.module_ports('input', descriptor)]
         if sorted:
-            v.sort(key=lambda (n1, v1): n1)
-        getter = self._vis_port_from_spec
-        return [getter(name, spec, descriptor, 1)
-                for (name, spec) in v]
-
+            ports.sort(key=lambda x: x.name)
+        return ports
+        
     def all_source_ports(self, descriptor, sorted=True):
         """Returns source ports for all hierarchy leading to given module"""
-        return [(klass.__name__,
-                 self.source_ports_from_descriptor(self.get_descriptor(klass),
-                                                   sorted))
-                for klass in self.get_module_hierarchy(descriptor)]
+        getter = self.source_ports_from_descriptor
+        return [(desc.name, getter(desc, sorted))
+                for desc in self.get_module_hierarchy(descriptor)]
 
     def all_destination_ports(self, descriptor, sorted=True):
         """Returns destination ports for all hierarchy leading to
         given module"""
         getter = self.destination_ports_from_descriptor
-        return [(klass.__name__, getter(self.get_descriptor(klass),
-                                        sorted))
-                for klass in self.get_module_hierarchy(descriptor)]
+        return [(desc.name, getter(desc, sorted))
+                for desc in self.get_module_hierarchy(descriptor)]
 
     def get_port_from_all_destinations(self, descriptor, name):
         """Searches for port identified by name in the destination ports
@@ -1164,49 +799,33 @@ class ModuleRegistry(QtCore.QObject):
         else:
             return None
         
-    def method_ports(self, module):
-        """method_ports(module: class) -> list of VisPort
+    def method_ports(self, module_descriptor):
+        """method_ports(module_descriptor: ModuleDescriptor) 
+              -> list of PortSpecs
 
         Returns the list of ports that can also be interpreted as
         method calls. These are the ones whose spec contains only
         subclasses of Constant."""
-        module_descriptor = self.get_descriptor(module)
-        lst = self.destination_ports_from_descriptor(module_descriptor)
-        return [copy.copy(port)
-                for port in lst
-                if port.spec.is_method()]
+        # module_descriptor = self.get_descriptor(module)
+        return [spec for spec in \
+                    self.destination_ports_from_descriptor(module_descriptor)
+                if spec.is_method()]
 
-    def user_set_methods(self, module):
-        """user_set_methods(module: class or string) -> dict(classname,
-        dict(functionName, list of ModuleFunction)).
-
-        Returns all methods that can be set by the user in a given
-        class (including parent classes)"""
-        
-        def userSetMethodsClass(klass):
-            # klass -> dict(functionName, list of ModuleMunction)
-            ports = self.method_ports(klass)
-            result = {}
-            for port in ports:
-                if not result.has_key(port.name):
-                    result[port.name] = []
-                specs = port.spec
-                fun = spec.create_module_function(port)
-                result[port.name].append(fun)
-            return result
-
-        k = self._module_key_map[module]
-        descriptor = self._key_tree_map[k].descriptor
-        hierarchy = self.get_module_hierarchy(descriptor)
-        methods = [(klass.__name__, userSetMethodsClass(klass))
-                   for klass in hierarchy]
-        return dict(methods)
+    def port_and_port_spec_match(self, port, port_spec):
+        """port_and_port_spec_match(port: Port, port_spec: PortSpec) -> bool
+        Checks if port is similar to port_spec or not.  These ports must
+        have the same name and type"""
+        if PortSpec.port_type_map.inverse[port.type] != port_spec.type:
+            return False
+        if port.name != port_spec.name:
+            return False
+        return self.are_specs_matched(port, port_spec)
 
     def ports_can_connect(self, sourceModulePort, destinationModulePort):
         """ports_can_connect(sourceModulePort,destinationModulePort) ->
         Boolean returns true if there could exist a connection
         connecting these two ports."""
-        if sourceModulePort.endPoint == destinationModulePort.endPoint:
+        if sourceModulePort.type == destinationModulePort.type:
             return False
         return self.are_specs_matched(sourceModulePort, destinationModulePort)
 
@@ -1216,7 +835,7 @@ class ModuleRegistry(QtCore.QObject):
         must have exact name as well as position
         
         """
-        if sub.db_type != super.db_type:
+        if sub.type != super.type:
             return False
         if sub.name != super.name:
             return False
@@ -1228,16 +847,16 @@ class ModuleRegistry(QtCore.QObject):
         
         """
         variantType = core.modules.basic_modules.Variant
-        # sometimes sub.spec is coming None
+        # sometimes sub is coming None
         # I don't know if this is expected, so I will put a test here
         subTypes = []
-        if sub.spec:
-            subTypes = sub.spec.types()
+        if sub:
+            subTypes = sub.types()
         if subTypes==[variantType]:
             return True
         superTypes = []
-        if super.spec:
-            superTypes = super.spec.types()
+        if super:
+            superTypes = super.types()
         if superTypes==[variantType]:
             return True
 
@@ -1257,7 +876,15 @@ class ModuleRegistry(QtCore.QObject):
         """get_module_hierarchy(descriptor) -> [klass].
         Returns the module hierarchy all the way to Module, excluding
         any mixins."""
-        return [klass
+        if descriptor.module is None:
+            descriptors = [descriptor]
+            base_id = descriptor.base_descriptor_id
+            while base_id >= 0:
+                descriptor = self.descriptors_by_id[base_id]
+                descriptors.append(descriptor)
+                base_id = descriptor.base_descriptor_id
+            return descriptors
+        return [self.get_descriptor(klass)
                 for klass in descriptor.module.mro()
                 if issubclass(klass, core.modules.vistrails_module.Module)]
         
@@ -1269,16 +896,16 @@ class ModuleRegistry(QtCore.QObject):
         FIXME: This should be renamed.
         
         """
-        descriptor = self.get_descriptor_by_name(module.package, module.name, module.namespace)
+        descriptor = self.get_descriptor_by_name(module.package, module.name, 
+                                                 module.namespace)
         if module.registry:
             reg = module.registry
         else:
             reg = self
         moduleHierarchy = reg.get_module_hierarchy(descriptor)
-        for baseModule in moduleHierarchy:
-            des = reg.get_descriptor(baseModule)
-            if des.input_ports.has_key(portName):
-                return des.input_ports[portName]
+        for des in moduleHierarchy:
+            if (portName, 'input') in des.port_specs:
+                return des.port_specs[(portName, 'input')]
         return None
 
     def get_output_port_spec(self, module, portName):
@@ -1289,16 +916,16 @@ class ModuleRegistry(QtCore.QObject):
         FIXME: This should be renamed.
         
         """
-        descriptor = self.get_descriptor_by_name(module.package, module.name, module.namespace)
+        descriptor = self.get_descriptor_by_name(module.package, module.name, 
+                                                 module.namespace)
         if module.registry:
             reg = module.registry
         else:
             reg = self
         moduleHierarchy = reg.get_module_hierarchy(descriptor)
-        for baseModule in moduleHierarchy:
-            des = reg.get_descriptor(baseModule)
-            if des.output_ports.has_key(portName):
-                return des.output_ports[portName]
+        for des in moduleHierarchy:
+            if (portName, 'output') in des.port_specs:
+                return des.port_specs[(portName, 'output')]
         return None
 
     @staticmethod
@@ -1309,14 +936,13 @@ class ModuleRegistry(QtCore.QObject):
         base classes that subclass from Module."""
         return [klass
                 for klass in module.__bases__
-                if issubclass(klass,
-                              core.modules.vistrails_module.Module)]
+                if issubclass(klass, core.modules.vistrails_module.Module)]
 
-    def set_current_package_name(self, pName):
-        """ set_current_package_name(pName: str) -> None        
-        Set the current package name for all addModule operations to
+    def set_current_package(self, package):
+        """ set_current_package(package: Package) -> None        
+        Set the current package for all addModule operations to
         name. This means that all modules added after this call will
-        be assigned to a package name: pName. Set pName to None to
+        be assigned to the specified package.  Set package to None to
         indicate that VisTrails default package should be used instead.
 
         Do not call this directly. The package manager will call this
@@ -1324,9 +950,9 @@ class ModuleRegistry(QtCore.QObject):
         package.
         
         """
-        if pName==None:
-            pName = 'edu.utah.sci.vistrails.basic'
-        self._current_package_name = pName
+        if package is None:
+            package = self._default_package
+        self._current_package = package
 
     def get_module_package(self, identifier, name, namespace):
         """ get_module_package(identifier, moduleName: str) -> str
@@ -1343,61 +969,13 @@ class ModuleRegistry(QtCore.QObject):
 
 ###############################################################################
 
-class Tree(object):
-    """Tree implements an n-ary tree of module descriptors. """
-
-    ##########################################################################
-    # Constructor and copy
-    def __init__(self, *args):
-        self.descriptor = ModuleDescriptor(self, *args)
-        self.children = []
-        self.parent = None
-
-    def __copy__(self):
-        cp = Tree(self.descriptor.module,
-                  self.descriptor.identifier,
-                  self.descriptor.name)
-        cp.descriptor.assign(self.descriptor)
-        cp.children = [copy.copy(child)
-                       for child in self.children]
-        for child in cp.children:
-            child.parent = cp
-        return cp
-
-    ##########################################################################
-
-    def add_module(self, submodule, identifier=None, name=None, namespace=None):
-        assert self.descriptor.module in submodule.__bases__
-        result = Tree(submodule, identifier, name, namespace)
-        result.parent = self
-        self.children.append(result)
-        return result
-
-    def make_dictionary(self):
-        """make_dictionary(): recreate ModuleRegistry dictionary
-        for copying module registries around
-        """
-        
-        # This is inefficient
-        result = {(self.descriptor.identifier,
-                   self.descriptor.name): self}
-        for child in self.children:
-            result.update(child.make_dictionary())
-        return result
-        
-
-###############################################################################
-
 registry = ModuleRegistry()
-
-# This allows caching of many things without screwing up per-module registries
-registry.enable_monotonic()
 
 add_module               = registry.add_module
 add_input_port           = registry.add_input_port
 has_input_port           = registry.has_input_port
 add_output_port          = registry.add_output_port
-set_current_package_name = registry.set_current_package_name
+set_current_package      = registry.set_current_package
 get_descriptor_by_name   = registry.get_descriptor_by_name
 get_module_by_name       = registry.get_module_by_name
 get_descriptor           = registry.get_descriptor
@@ -1410,10 +988,10 @@ class TestModuleRegistry(unittest.TestCase):
 
     def test_portspec_construction(self):
         from core.modules.basic_modules import Float, Integer
-        t1 = PortSpec(Float)
-        t2 = PortSpec([Float])
+        t1 = PortSpec(signature=Float)
+        t2 = PortSpec(signature=[Float])
         self.assertEquals(t1, t2)
 
-        t1 = PortSpec([Float, Integer])
-        t2 = PortSpec([Integer, Float])
+        t1 = PortSpec(signature=[Float, Integer])
+        t2 = PortSpec(signature=[Integer, Float])
         self.assertNotEquals(t1, t2)

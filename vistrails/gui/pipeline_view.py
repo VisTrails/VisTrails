@@ -41,7 +41,7 @@ from core.modules.module_registry import registry
 from core.vistrail.connection import Connection
 from core.vistrail.module import Module
 from core.vistrail.pipeline import Pipeline
-from core.vistrail.port import PortEndPoint, Port
+from core.vistrail.port import PortEndPoint
 from core.vistrail.vistrail import Vistrail
 from gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
@@ -139,18 +139,14 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
     def add_connection_event(self, event):
         """Adds a new connection from a mouseReleaseEvent"""
         snapModuleId = self.connection.snapPort.parentItem().id
-        if self.port.endPoint==PortEndPoint.Source:
-            conn = Connection.fromPorts(self.port,
-                                        self.connection.snapPort.port)
-            conn.sourceId = self.parentItem().id
-            conn.destinationId = snapModuleId
-        else:
-            conn = Connection.fromPorts(self.connection.snapPort.port,
-                                        self.port)
-            conn.sourceId = snapModuleId
-            conn.destinationId = self.parentItem().id
-        conn.id = self.controller.current_pipeline.fresh_connection_id()
-        self.controller.add_connection(conn)
+        # if self.port.endPoint==PortEndPoint.Source:
+        if self.port.type == 'output':
+            conn_info = (self.parentItem().id, self.port,
+                         snapModuleId, self.connection.snapPort.port)
+        elif self.port.type == 'input':
+            conn_info = (snapModuleId, self.connection.snapPort.port,
+                         self.parentItem().id, self.port)
+        conn = self.controller.add_connection(*conn_info)
         self.scene().addConnection(conn)
         self.scene().removeItem(self.connection)
         self.connection.snapPort.setPen(CurrentTheme.PORT_PEN)
@@ -226,11 +222,12 @@ class QGraphicsPortItem(QtGui.QGraphicsRectItem):
         find the closest matched port
         
         """
+        # FIXME don't hardcode input/output strings...
         snapModule = self.findModuleUnder(pos)
         if snapModule and snapModule!=self.parentItem():
-            if self.port.endPoint==PortEndPoint.Source:
+            if self.port.type == 'output':
                 return snapModule.getDestPort(pos, self.port)
-            else:
+            elif self.port.type == 'input':
                 return snapModule.getSourcePort(pos, self.port)
         else:
             return None
@@ -858,7 +855,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         for p in module.destinationPorts():
             if not p.optional:
                 inputPorts.append(p)
-            elif (d, p._db_name) in module.portVisible:
+            elif (d, p.name) in module.portVisible:
                 visibleOptionalPorts.append(p)
             else:
                 self.optionalInputPorts.append(p)
@@ -871,7 +868,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         for p in module.sourcePorts():
             if not p.optional:
                 outputPorts.append(p)
-            elif (s, p._db_name) in module.portVisible:
+            elif (s, p.name) in module.portVisible:
                 visibleOptionalPorts.append(p)
             else:
                 self.optionalOutputPorts.append(p)
@@ -983,7 +980,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         
         """
         for (p, item) in portDict.iteritems():
-            if registry.is_port_sub_type(port, p):
+            if registry.port_and_port_spec_match(port, p):
                 return item.sceneBoundingRect().center()
         return None
 
@@ -995,13 +992,14 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         pos = self.getPortPosition(port, self.inputPorts)
         if pos==None:
             for p in self.optionalInputPorts:
-                if registry.is_port_sub_type(port, p):
+                if registry.port_and_port_spec_match(port, p):
                     portShape = self.createPortItem(p,*self.nextInputPortPos)
-                    self.inputPorts[port] = portShape
+                    self.inputPorts[p] = portShape
                     self.nextInputPortPos[0] += (CurrentTheme.PORT_WIDTH +
                                                  CurrentTheme.MODULE_PORT_SPACE)
                     return portShape.sceneBoundingRect().center()
-            raise VistrailsInternalError("Error: did not find input port %s in %s"%(port,self.label))
+            raise VistrailsInternalError("Error: did not find input port "
+                                         "%s in %s" % (port,self.label))
         return pos
         
     def getOutputPortPosition(self, port):
@@ -1012,13 +1010,14 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         pos = self.getPortPosition(port, self.outputPorts)
         if pos==None:
             for p in self.optionalOutputPorts:
-                if registry.is_port_sub_type(port, p):
+                if registry.port_and_port_spec_match(port, p):
                     portShape = self.createPortItem(p,*self.nextOutputPortPos)
-                    self.outputPorts[port] = portShape
+                    self.outputPorts[p] = portShape
                     self.nextOutputPortPos[0] += (CurrentTheme.PORT_WIDTH +
                                                   CurrentTheme.MODULE_PORT_SPACE)
                     return portShape.sceneBoundingRect().center()
-            raise VistrailsInternalError("Error: did not find output port %s in %s"%(port,self.label))
+            raise VistrailsInternalError("Error: did not find output port "
+                                         "%s in %s" % (port,self.label))
         return pos
 
     def dependingConnectionItems(self):
@@ -1348,7 +1347,6 @@ mutual connections."""
         """
         if self.noUpdate: return
         needReset = len(self.items())==0
-
         try:
             if pipeline:
                 new_modules = set(pipeline.modules)
@@ -1964,10 +1962,14 @@ class TestPipelineView(gui.utils.TestVisTrailsGUI):
         m2 = api.add_module(0, -100, 'edu.utah.sci.vistrails.basic', 'File', '')
         m3 = api.add_module(0, -100, 'edu.utah.sci.vistrails.basic', 'File', '')
         r = api.get_module_registry()
-        src = r.module_source_ports(True, 'edu.utah.sci.vistrails.basic', 'File', '')[1]
-        assert src.name == 'value_as_string'
-        dst = r.module_destination_ports(True, 'edu.utah.sci.vistrails.basic', 'File', '')[1]
-        assert dst.name == 'name'
+        src = r.get_port_spec('edu.utah.sci.vistrails.basic', 'File', None,
+                              'value_as_string', 'output')
+        dst = r.get_port_spec('edu.utah.sci.vistrails.basic', 'File', None,
+                              'name', 'input')
+#         src = r.module_source_ports(True, 'edu.utah.sci.vistrails.basic', 'File', '')[1]
+#         assert src.name == 'value_as_string'
+#         dst = r.module_destination_ports(True, 'edu.utah.sci.vistrails.basic', 'File', '')[1]
+#         assert dst.name == 'name'
         api.add_connection(m1.id, src, m2.id, dst)
         api.add_connection(m2.id, src, m3.id, dst)
         api.create_group([0, 1, 2], [0, 1])

@@ -25,8 +25,8 @@ from itertools import imap, chain
 import core.modules.module_registry
 import core.db.io
 from core.requirements import MissingRequirement
-from core.vistrail.port import PortEndPoint
 from core.vistrail.module import Module
+from core.vistrail.port_spec import PortSpec, PortEndPoint
 import copy
 from core.vistrail.pipeline import Pipeline
 reg = core.modules.module_registry.registry
@@ -175,23 +175,31 @@ def perform_analogy_on_vistrail(vistrail,
                             m = pipeline_c.modules[port.moduleId]
                             d = reg.get_descriptor_by_name(m.package, m.name)
                             def remap():
-                                pspec = core.modules.module_registry.PortSpec.from_sigstring(port.db_spec)
+                                port_type = \
+                                    PortSpec.port_type_map.inverse[port.type]
+                                pspec = reg.get_port_spec(m.package, m.name,
+                                                          m.namespace,
+                                                          port.name, port_type)
                                 all_ports = reg.all_source_ports(d)
                                 # print "pspec", pspec
                                 # First try to find a perfect match
                                 for (klass_name, ports) in all_ports:
                                     for candidate_port in ports:
-                                        if (candidate_port.spec.type_equals(pspec) and
+                                        if (candidate_port.type_equals(pspec) and
                                             candidate_port.name == port.name):
                                             #print "found perfect match"
+                                            port.spec = candidate_port
+                                            port.find_port_types()
                                             return True
                                 # Now try to find an imperfect one
                                 for (klass_name, ports) in all_ports:
                                     for candidate_port in ports:
-                                        print candidate_port.spec
-                                        if candidate_port.spec.type_equals(pspec):
-                                            port.name = candidate_port.name
+                                        print candidate_port
+                                        if candidate_port.type_equals(pspec):
                                             #print "found imperfect match"
+                                            port.name = candidate_port.name
+                                            port.spec = candidate_port
+                                            port.find_port_types()
                                             return True
                                 return False
                             if not remap():
@@ -207,22 +215,30 @@ def perform_analogy_on_vistrail(vistrail,
                             m = pipeline_c.modules[port.moduleId]
                             d = reg.get_descriptor_by_name(m.package, m.name)
                             def remap():
-                                pspec = core.modules.module_registry.PortSpec.from_sigstring(port.db_spec)
+                                port_type = \
+                                    PortSpec.port_type_map.inverse[port.type]
+                                pspec = reg.get_port_spec(m.package, m.name,
+                                                          m.namespace,
+                                                          port.name, port_type)
 #                                 print "This is the spec", port.spec, port.db_spec
                                 all_ports = reg.all_destination_ports(d)
                                 # First try to find a perfect match
                                 for (klass_name, ports) in all_ports:
                                     for candidate_port in ports:
-                                        if (candidate_port.spec.type_equals(pspec) and
+                                        if (candidate_port.type_equals(pspec) and
                                             candidate_port.name == port.name):
                                             # print "found perfect match"
+                                            port.spec = candidate_port
+                                            port.find_port_types()
                                             return True
                                 # Now try to find an imperfect one
                                 for (klass_name, ports) in all_ports:
                                     for candidate_port in ports:
-                                        if candidate_port.spec.type_equals(pspec):
-                                            port.name = candidate_port.name
+                                        if candidate_port.type_equals(pspec):
                                             # print "found imperfect match"
+                                            port.name = candidate_port.name
+                                            port.spec = candidate_port
+                                            port.find_port_types()
                                             return True
                                 return False
                             if not remap():

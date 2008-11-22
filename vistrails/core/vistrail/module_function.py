@@ -26,7 +26,6 @@
 
 from db.domain import DBFunction
 from core.utils import enum, VistrailsInternalError, all, eprint
-from core.vistrail.port import PortEndPoint
 from core.vistrail.module_param import ModuleParam
 from itertools import izip
 import copy

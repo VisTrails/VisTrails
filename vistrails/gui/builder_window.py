@@ -231,6 +231,16 @@ class QBuilderWindow(QtGui.QMainWindow):
                                                'a database')
         self.exportWorkflowAction.setEnabled(True)
 
+        self.saveRegistryAction = QtGui.QAction('Save Registry...', self)
+        self.saveRegistryAction.setStatusTip('Save the current registry to '
+                                             'a file')
+        self.saveRegistryAction.setEnabled(True)
+
+        self.exportRegistryAction = QtGui.QAction('Export Registry...', self)
+        self.exportRegistryAction.setStatusTip('Save the current registry to '
+                                               'a database')
+        self.exportRegistryAction.setEnabled(True)
+
         self.saveVersionTreeToPDFAction = \
             QtGui.QAction('Save Version Tree as PDF...', self)
         self.saveVersionTreeToPDFAction.setStatusTip('Save the current version'
@@ -395,6 +405,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.fileMenu.addAction(self.exportLogAction)
         self.fileMenu.addAction(self.saveWorkflowAction)
         self.fileMenu.addAction(self.exportWorkflowAction)
+        self.fileMenu.addAction(self.saveRegistryAction)
+        self.fileMenu.addAction(self.exportRegistryAction)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.saveVersionTreeToPDFAction)
         self.fileMenu.addAction(self.saveWorkflowToPDFAction)
@@ -529,6 +541,8 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.exportLogAction, self.export_log_default),
             (self.saveWorkflowAction, self.save_workflow_default),
             (self.exportWorkflowAction, self.export_workflow_default),
+            (self.saveRegistryAction, self.save_registry_default),
+            (self.exportRegistryAction, self.export_registry_default),
             (self.saveVersionTreeToPDFAction, self.save_tree_to_pdf),
             (self.saveWorkflowToPDFAction, self.save_workflow_to_pdf),
             (self.expandBranchAction, self.expandBranch),
@@ -680,6 +694,10 @@ class QBuilderWindow(QtGui.QMainWindow):
                                                    'to a file')
             self.saveWorkflowAction.setStatusTip('Save the current workflow '
                                                  'to a database')
+            self.exportRegistryAction.setStatusTip('Save the current registry '
+                                                   'to a file')
+            self.saveRegistryAction.setStatusTip('Save the current registry '
+                                                 'to a database')
 
 
         else:
@@ -702,6 +720,10 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.saveWorkflowAction.setStatusTip('Save the current workflow '
                                                  'to a file')
             self.exportWorkflowAction.setStatusTip('Save the current workflow '
+                                                   'to a database')
+            self.saveRegistryAction.setStatusTip('Save the current registry '
+                                                 'to a file')
+            self.exportRegistryAction.setStatusTip('Save the current registry '
                                                    'to a database')
 
     def moduleSelectionChange(self, selection):
@@ -958,6 +980,19 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.save_workflow(False)
     def export_workflow_default(self):
         self.save_workflow(True)
+
+    def save_registry(self, invert=False, choose=True):
+        # want xor of invert and dbDefault
+        if (invert and not self.dbDefault) or (not invert and self.dbDefault):
+            self.viewManager.save_registry(DBLocator,
+                                           force_choose_locator=choose)
+        else:
+            self.viewManager.save_registry(XMLFileLocator,
+                                           force_choose_locator=choose)
+    def save_registry_default(self):
+        self.save_registry(False)
+    def export_registry_default(self):
+        self.save_registry(True)
 
     def save_tree_to_pdf(self):
         self.viewManager.save_tree_to_pdf()

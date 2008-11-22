@@ -281,10 +281,10 @@ class EigenBase(object):
                 else:
                     del d[k]
 
-        inputs = dict([(port.name, port.spec) for
+        inputs = dict([(port.name, port) for
                        port in module.destinationPorts()
                        if (not port.optional or include_optional)])
-        outputs = dict([(port.name, port.spec) for
+        outputs = dict([(port.name, port) for
                         port in module.sourcePorts()
                         if (not port.optional or include_optional)])
 

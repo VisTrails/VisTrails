@@ -30,7 +30,6 @@ import core.modules.module_registry
 from core.modules.basic_modules import File, String, Boolean
 from core.modules.vistrails_module import Module, NotCacheable, InvalidOutput
 from plot import MplPlot, MplPlotConfigurationWidget
-from core.modules.module_configure import PythonSourceConfigurationWidget
 import time
 import urllib
 
