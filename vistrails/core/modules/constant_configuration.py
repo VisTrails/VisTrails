@@ -27,7 +27,6 @@ constants.
 
 """
 from PyQt4 import QtCore, QtGui
-from core.modules.module_registry import registry
 from core.utils import any, expression
 from core import system
 ############################################################################

@@ -65,17 +65,22 @@ class VistrailsStartup(object):
         self.startupHooks = []
         self._python_environment = self.runDotVistrails()
         self.load_configuration()
-        
+        self._do_load_packages = True
+        self._package_dictionary = {}
+
     def init(self):
         """ init() -> None        
         Initialize VisTrails with optionsDict. optionsDict can be
         another VisTrails Configuration object, e.g. ConfigurationObject
         
         """
-        self.load_packages()
+        if self._do_load_packages:
+            self.load_packages()
         self.setupDefaultFolders()
-        self.setupBaseModules()
-        self.installPackages()
+        if self._do_load_packages:
+            # don't call this anymore since we do an add_package for it now
+            # self.setupBaseModules()
+            self.installPackages()
         self.runStartupHooks()
 
     ##########################################################################
@@ -104,7 +109,13 @@ class VistrailsStartup(object):
 
         Loads the appropriate packages from .vistrails/startup.xml.
         """
-        
+
+        # FIXME should this be hardcoded?
+        import core.modules.basic_modules
+        self._package_manager.add_package('basic_modules')
+        self._package_dictionary['basic_modules'] = \
+            core.modules.basic_modules
+
         def parse_package(node):
             is_value = (lambda node: node.nodeName in
                         set(['bool', 'str', 'int', 'float']))
@@ -397,7 +408,7 @@ by startup.py. This should only be called after init()."""
         Scheme through packages directory and initialize them all
         """
         # Imports standard packages directory
-        self._package_manager.initialize_packages()
+        self._package_manager.initialize_packages(self._package_dictionary)
 
     def runStartupHooks(self):
         """ runStartupHooks() -> None
@@ -418,3 +429,9 @@ by startup.py. This should only be called after init()."""
         
         """
         self._package_manager.finalize_packages()
+
+    def set_registry(self, registry_filename=None):
+        if registry_filename is not None:
+            self._do_load_packages = False
+        self._package_manager.init_registry(registry_filename)
+            

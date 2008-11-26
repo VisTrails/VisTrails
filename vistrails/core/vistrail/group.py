@@ -32,7 +32,7 @@ from db.domain import DBGroup
 
 from core.utils import NoSummon, VistrailsInternalError, report_stack
 import core.modules.module_registry
-from core.modules.module_registry import registry, ModuleRegistry
+from core.modules.module_registry import get_module_registry, ModuleRegistry
 
 class Group(DBGroup, Module):
 
@@ -111,6 +111,7 @@ class Group(DBGroup, Module):
     namespace = None
 
     def summon(self):
+        registry = get_module_registry()
         get = registry.get_descriptor_by_name
         result = get(self.package, self.name).module()
         result.pipeline = self.pipeline
@@ -163,26 +164,29 @@ class Group(DBGroup, Module):
         return (port_name, sigstring)
 
     def make_registry(self):
-        reg_module = \
-            registry.get_descriptor_by_name(self.package, self.name).module
-        self._registry = ModuleRegistry()
+        registry = get_module_registry()
         self._input_remap = {}
         self._output_remap = {}
+        self._registry = ModuleRegistry()
         self._registry.add_hierarchy(registry, self)
+        reg_desc = self._registry.get_descriptor_by_name(self.package, 
+                                                         self.name)
+
         for module in self.pipeline.module_list:
             # print 'module:', module.name
             if module.name == 'OutputPort' and \
                     module.package == 'edu.utah.sci.vistrails.basic':
                 (port_name, sigstring) = self.get_port_spec_info(module)
-                self._registry.add_port(reg_module, port_name, 'output', None,
+                self._registry.add_port(reg_desc, port_name, 'output', None,
                                         sigstring)
                 self._output_remap[port_name] = module
             elif module.name == 'InputPort' and \
                     module.package == 'edu.utah.sci.vistrails.basic':
                 (port_name, sigstring) = self.get_port_spec_info(module)
-                self._registry.add_port(reg_module, port_name, 'input', None,
+                self._registry.add_port(reg_desc, port_name, 'input', None,
                                         sigstring)
                 self._input_remap[port_name] = module
+
     def sourcePorts(self):
         return self.registry.module_source_ports(False, self.package,
                                                  self.name, self.namespace)

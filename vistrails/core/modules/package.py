@@ -23,6 +23,7 @@
 from core.utils.uxml import (named_elements, enter_named_element)
 from core import debug
 from core.configuration import ConfigurationObject
+from core.modules.module_descriptor import ModuleDescriptor
 from db.domain import DBPackage
 import copy
 import traceback
@@ -73,7 +74,7 @@ class Package(DBPackage):
     def __init__(self, *args, **kwargs):
         if 'load_configuration' in kwargs:
             arg = kwargs['load_configuration']
-            if type(arg) == type(1):
+            if type(arg) != type(1):
                 if type(arg) == type(True):
                     kwargs['load_configuration'] = 1 if arg else 0
                 else:
@@ -105,6 +106,8 @@ class Package(DBPackage):
             return
         _package.__class__ = Package
 
+        for descriptor in _package.db_module_descriptors:
+            ModuleDescriptor.convert(descriptor)
         _package.descriptors = _package.db_module_descriptors_name_index
         _package.descriptors_by_id = _package.db_module_descriptors_id_index
 

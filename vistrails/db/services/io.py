@@ -37,6 +37,7 @@ from db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
     DBRegistry
 import db.services.abstraction
 import db.services.log
+import db.services.registry
 import db.services.workflow
 import db.services.vistrail
 from db.versions import getVersionDAO, currentVersion, translateVistrail, \
@@ -214,6 +215,8 @@ def open_from_xml(filename, type):
         return open_workflow_from_xml(filename)
     elif type == DBLog.vtType:
         return open_log_from_xml(filename)
+    elif type == DBRegistry.vtType:
+        return open_registry_from_xml(filename)
 
 def save_to_xml(obj, filename):
     if obj.vtType == DBVistrail.vtType:
@@ -633,6 +636,16 @@ def append_log_to_xml(log, filename):
 
 ##############################################################################
 # Registry I/O
+
+def open_registry_from_xml(filename):
+    tree = ElementTree.parse(filename)
+    version = get_version_for_xml(tree.getroot())
+    daoList = getVersionDAO(version)
+    registry = daoList.open_from_xml(filename, DBRegistry.vtType)
+    # FIXME write translate commands
+    # registry = translateRegistry(registry, version)
+    db.services.registry.update_id_scope(registry)
+    return registry
 
 def save_registry_to_xml(registry, filename):
     daoList = getVersionDAO(currentVersion)

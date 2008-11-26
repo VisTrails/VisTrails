@@ -96,7 +96,7 @@ class Port(DBPort):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBPort.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Port
-        cp._types = copy.copy(self._types)
+        cp._descriptors = copy.copy(self._descriptors)
         cp._spec = copy.copy(self._spec)
         return cp
 
@@ -106,18 +106,28 @@ class Port(DBPort):
             return
         _port.__class__ = Port
         _port._spec = None
+        _port._descriptors = None
         _port.find_port_types()
 
     def find_port_types(self):
-        from core.modules.module_registry import registry
-        self._types = []
+        from core.modules.module_registry import get_module_registry
+        registry = get_module_registry()
+        self._descriptors = []
         if self.signature:
             signature_str = self.signature[1:-1].strip()
             if signature_str != "":
-                for type_str in signature_str.split(','):
-                    desc = \
-                        registry.get_descriptor_by_name(*(type_str.split(':')))
-                    self._types.append(desc.module)
+                try:
+                    for type_str in signature_str.split(','):
+                        desc = registry.get_descriptor_by_name( \
+                            *(type_str.split(':')))
+                        self._descriptors.append(desc)
+                except registry.MissingModulePackage, e:
+                    print ('Cannot find module "%s" in \n' 
+                           'package "%s". Make sure package is \n' 
+                           'enabled in the Preferences dialog.' % \
+                               (e._name, e._identifier))
+                    self._descriptors = []
+                    return
 
     ##########################################################################
     # Properties
@@ -162,8 +172,8 @@ class Port(DBPort):
         return self.name + self.signature
     sig = property(_get_sig)
 
-    def types(self):
-        return self._types
+    def descriptors(self):
+        return self._descriptors
 
     ##########################################################################
     # Debugging
@@ -227,7 +237,7 @@ if __name__ == '__main__':
     
 class TestPort(unittest.TestCase):
     def setUp(self):
-        self.registry = core.modules.module_registry.registry
+        self.registry = core.modules.module_registry.get_module_registry()
 
     def create_port(self, id_scope=IdScope()):
         port = Port(id=id_scope.getNewId(Port.vtType),

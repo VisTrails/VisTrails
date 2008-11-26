@@ -31,7 +31,7 @@ from PyQt4 import QtCore, QtGui
 from gui.common_widgets import (QSearchTreeWindow,
                                 QSearchTreeWidget,
                                 QToolWindowInterface)
-from core.modules.module_registry import registry
+from core.modules.module_registry import get_module_registry
 from core.vistrail.port import PortEndPoint
 from gui.port_documentation import QPortDocumentation
 ################################################################################
@@ -105,6 +105,7 @@ class QMethodTreeWidget(QSearchTreeWidget):
         self.clear()
 
         if module:
+            registry = get_module_registry()
             try:
                 descriptor = registry.get_descriptor_by_name(module.package,
                                                              module.name,
@@ -182,6 +183,7 @@ class QMethodTreeWidgetItem(QtGui.QTreeWidgetItem):
         menu.exec_(event.globalPos())
         
     def view_documentation(self):
+        registry = get_module_registry()
         descriptor = registry.get_descriptor_by_name(self.module.package,
                                                      self.module.name,
                                                      self.module.namespace)

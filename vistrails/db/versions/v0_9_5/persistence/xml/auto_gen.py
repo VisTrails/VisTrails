@@ -1341,7 +1341,7 @@ class DBPackageXMLDAOBase(XMLDAO):
         identifier = self.convertFromStr(data, 'str')
         data = node.get('codepath', None)
         codepath = self.convertFromStr(data, 'str')
-        data = node.get('load_configuration', None)
+        data = node.get('loadConfiguration', None)
         load_configuration = self.convertFromStr(data, 'int')
         data = node.get('version', None)
         version = self.convertFromStr(data, 'str')
@@ -1380,14 +1380,14 @@ class DBPackageXMLDAOBase(XMLDAO):
         node.set('name',self.convertToStr(package.db_name, 'str'))
         node.set('identifier',self.convertToStr(package.db_identifier, 'str'))
         node.set('codepath',self.convertToStr(package.db_codepath, 'str'))
-        node.set('load_configuration',self.convertToStr(package.db_load_configuration, 'int'))
+        node.set('loadConfiguration',self.convertToStr(package.db_load_configuration, 'int'))
         node.set('version',self.convertToStr(package.db_version, 'str'))
         node.set('description',self.convertToStr(package.db_description, 'str'))
         
         # set elements
         module_descriptors = package.db_module_descriptors
         for module_descriptor in module_descriptors:
-            childNode = ElementTree.SubElement(node, 'module_descriptor')
+            childNode = ElementTree.SubElement(node, 'moduleDescriptor')
             self.getDao('module_descriptor').toXML(module_descriptor, childNode)
         
         return node

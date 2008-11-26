@@ -28,7 +28,7 @@ is also a QWidget.
 """
 from PyQt4 import QtCore, QtGui
 from core.modules.module_configure import StandardModuleConfigurationWidget
-from core.modules.module_registry import registry
+from core.modules.module_registry import get_module_registry
 
 ############################################################################
 
@@ -107,9 +107,11 @@ class PortTable(QtGui.QTableWidget):
 class PortTableItemDelegate(QtGui.QItemDelegate):
 
     def createEditor(self, parent, option, index):
+        registry = get_module_registry()
         if index.column()==1: #Port type
             combo = QtGui.QComboBox(parent)
             combo.setEditable(False)
+            # FIXME just use descriptors here!!
             for k in sorted(registry._module_key_map.itervalues()):
                 descriptor = registry.descriptors[k]
                 combo.addItem(descriptor.name, 

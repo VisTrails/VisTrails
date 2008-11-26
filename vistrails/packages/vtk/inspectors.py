@@ -26,7 +26,7 @@
 from core.modules.vistrails_module import ModuleError
 from core.utils import VistrailsInternalError
 from core.modules.basic_modules import Module, Float, Integer
-from core.modules.module_registry import registry
+from core.modules.module_registry import get_module_registry
 import vtk
 from base_module import vtkBaseModule
 from hasher import vtk_hasher
@@ -35,6 +35,7 @@ class vtkBaseInspector(Module):
 
     @classmethod
     def register_self(cls, **kwargs):
+        registry = get_module_registry()
         def resolve_type(t):
             if type(t) == tuple:
                 return registry.get_descriptor_by_name(*t).module

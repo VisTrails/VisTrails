@@ -52,6 +52,12 @@ def open_workflow(filename):
 def save_workflow(workflow, filename):
     db.services.io.save_workflow_to_xml(workflow, filename)
 
+def open_registry(filename):
+    from core.modules.module_registry import ModuleRegistry
+    registry = db.services.io.open_registry_from_xml(filename)
+    ModuleRegistry.convert(registry)
+    return registry
+
 def unserialize(str, klass):
     """returns VisTrails entity given an XML serialization
 

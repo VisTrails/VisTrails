@@ -107,8 +107,8 @@ def close_current_vistrail(quiet=False):
     get_builder_window().viewManager.closeVistrail(get_current_vistrail_view())
 
 def get_module_registry():
-    import core.modules.module_registry
-    return core.modules.module_registry.registry
+    from core.modules.module_registry import get_module_registry
+    return get_module_registry()
 
 ##############################################################################
 # Do things

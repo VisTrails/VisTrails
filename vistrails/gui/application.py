@@ -31,7 +31,6 @@ from core import debug
 from core import system
 from core import keychain
 from core.db.locator import FileLocator, DBLocator
-from core.modules.module_registry import registry
 from core.utils import InstanceObject
 from core.utils.uxml import (named_elements,
                              elements_filter, enter_named_element)
@@ -117,6 +116,8 @@ The builder window can be accessed by a spreadsheet menu option.")
         add("-R", "--reviewmode", action="store_true",
             default = None,
             help="Show the spreadsheet in the reviewing mode")
+        add("-q", "--quickstart", action="store",
+            help="Start VisTrails using the specified static registry")
         command_line.CommandLineParser.parse_options()
 
     def printVersion(self):
@@ -179,6 +180,8 @@ The builder window can be accessed by a spreadsheet menu option.")
                                                  )
         if get('nologger')!=None:
             self.temp_configuration.nologger = bool(get('nologger'))
+        if get('quickstart') != None:
+            self.temp_configuration.staticRegistry = str(get('quickstart'))
         self.input = command_line.CommandLineParser().positional_arguments()
     
     def init(self, optionsDict=None):
@@ -218,10 +221,16 @@ The builder window can be accessed by a spreadsheet menu option.")
         
         # Command line options override configuration
         self.readOptions()
-        
+
         if optionsDict:
             for (k, v) in optionsDict.iteritems():
                 setattr(self.temp_configuration, k, v)
+
+        if self.temp_configuration.check('staticRegistry'):
+            reg = self.temp_configuration.staticRegistry
+        else:
+            reg = None
+        self.vistrailsStartup.set_registry(reg)
                 
     def get_python_environment(self):
         """get_python_environment(): returns an environment that

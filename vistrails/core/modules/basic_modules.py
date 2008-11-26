@@ -23,9 +23,10 @@
 pipelines."""
 
 from core.modules import module_configure
-from core.modules import module_registry
+import core.modules.module_registry
 from core.modules import port_configure
 from core.modules import vistrails_module
+from core.modules.sub_module import InputPort, OutputPort, Group, Abstraction
 from core.modules.vistrails_module import Module, new_module, \
      NotCacheable, ModuleError
 from core.modules.python_source_configure import PythonSourceConfigurationWidget
@@ -33,6 +34,7 @@ from core.modules.tuple_configuration import TupleConfigurationWidget, \
     UntupleConfigurationWidget
 from core.modules.constant_configuration import StandardConstantWidget, \
      FileChooserWidget, ColorWidget, ColorChooserButton, BooleanWidget
+from core.system import vistrails_version
 from core.utils import InstanceObject
 from core.modules.paramexplore import make_interpolator, \
      QFloatLineEdit, QIntegerLineEdit, FloatLinearInterpolator, \
@@ -46,9 +48,11 @@ import os
 import zipfile
 import urllib
 
-_reg = module_registry.registry
-
 ###############################################################################
+
+version = vistrails_version()
+name = 'Basic Modules'
+identifier = 'edu.utah.sci.vistrails.basic'
 
 class Constant(Module):
     """Base class for all Modules that represent a constant value of
@@ -109,8 +113,6 @@ class Constant(Module):
     def get_widget_class():
         return StandardConstantWidget
 
-_reg.add_module(Constant)
-
 def new_constant(name, conversion, default_value,
                  validation,
                  widget_type=StandardConstantWidget):
@@ -138,9 +140,6 @@ def new_constant(name, conversion, default_value,
                                     'translate_to_python': conversion,
                                     'get_widget_class': get_widget_class,
                                     'default_value': default_value})
-    module_registry.registry.add_module(m)
-    module_registry.registry.add_input_port(m, "value", m)
-    module_registry.registry.add_output_port(m, "value", m)
     return m
 
 def bool_conv(x):
@@ -161,10 +160,12 @@ def int_conv(x):
 Boolean = new_constant('Boolean' , staticmethod(bool_conv),
                        False, staticmethod(lambda x: type(x) == bool),
                        BooleanWidget)
-Float   = new_constant('Float'   , staticmethod(float), 0.0, staticmethod(lambda x: type(x) == float))
-Integer = new_constant('Integer' , staticmethod(int_conv), 0, staticmethod(lambda x: type(x) == int))
-String  = new_constant('String'  , staticmethod(str), "", staticmethod(lambda x: type(x) == str))
-_reg.add_output_port(Constant, "value_as_string", String)
+Float   = new_constant('Float'   , staticmethod(float), 0.0, 
+                       staticmethod(lambda x: type(x) == float))
+Integer = new_constant('Integer' , staticmethod(int_conv), 0, 
+                       staticmethod(lambda x: type(x) == int))
+String  = new_constant('String'  , staticmethod(str), "", 
+                       staticmethod(lambda x: type(x) == str))
 
 Float.parameter_exploration_widgets   = [
     make_interpolator(QFloatLineEdit,
@@ -220,14 +221,6 @@ class File(Constant):
     def get_widget_class():
         return FileChooserWidget
 
-_reg.add_module(File)
-_reg.add_input_port(File, "value", File)
-_reg.add_output_port(File, "value", File)
-_reg.add_input_port(File, "name", String, True)
-_reg.add_output_port(File, "self", File, True)
-_reg.add_input_port(File, "create_file", Boolean, True)
-_reg.add_output_port(File, "local_filename", String, True)
-
 ##############################################################################
 
 class FileSink(NotCacheable, Module):
@@ -253,11 +246,6 @@ class FileSink(NotCacheable, Module):
             else:
                 msg = "Could not create file '%s': %s" % (v2, e)
                 raise ModuleError(self, msg)
-
-_reg.add_module(FileSink)
-_reg.add_input_port(FileSink,  "file", File)
-_reg.add_input_port(FileSink,  "outputName", String)
-_reg.add_input_port(FileSink,  "overrideFile", Boolean)
 
 ##############################################################################
 
@@ -370,9 +358,6 @@ Color.parameter_exploration_widgets = [
                       HSVColorInterpolator,
                       'HSV Interpolation')]
 
-_reg.add_module(Color)
-_reg.add_input_port(Color, "value", Color)
-_reg.add_output_port(Color, "value", Color)    
 ##############################################################################
 
 # class OutputWindow(Module):
@@ -400,9 +385,6 @@ class StandardOutput(NotCacheable, Module):
         v = self.getInputFromPort("value")
         print v
 
-_reg.add_module(StandardOutput)
-_reg.add_input_port(StandardOutput, "value", Module)
-
 ##############################################################################
 
 # Tuple will be reasonably magic right now. We'll integrate it better
@@ -424,17 +406,11 @@ class Tuple(Module):
         self.values = values
         self.setResult("value", values)
         
-_reg.add_module(Tuple, configureWidgetType=TupleConfigurationWidget)
-_reg.add_output_port(Tuple, 'self', Tuple)
-
 class TestTuple(Module):
     def compute(self):
         pair = self.getInputFromPort('tuple')
         print pair
         
-_reg.add_module(TestTuple)
-_reg.add_input_port(TestTuple, 'tuple', [Integer, String])
-
 class Untuple(Module):
     """Untuple takes a tuple and returns the individual values.  It
     reverses the actions of Tuple.
@@ -452,9 +428,6 @@ class Untuple(Module):
             values = self.getInputFromPort("value")
         for p, value in izip(self.output_ports_order, values):
             self.setResult(p, value)
-
-_reg.add_module(Untuple, configureWidgetType=UntupleConfigurationWidget)
-_reg.add_input_port(Untuple, 'tuple', Tuple)
 
 ##############################################################################
 
@@ -478,12 +451,6 @@ class ConcatenateString(Module):
                 inp = self.getInputFromPort(port)
                 result += inp
         self.setResult("value", result)
-_reg.add_module(ConcatenateString)
-for i in xrange(ConcatenateString.fieldCount):
-    j = i+1
-    port = "str%s" % j
-    _reg.add_input_port(ConcatenateString, port, String)
-_reg.add_output_port(ConcatenateString, "value", String)
 
 ##############################################################################
 
@@ -508,12 +475,6 @@ class List(Module):
 
         self.setResult("value", head + tail)
 
-_reg.add_module(List)
-
-_reg.add_input_port(List, "head", Module)
-_reg.add_input_port(List, "tail", List)
-_reg.add_output_port(List, "value", List)
-
 ##############################################################################
 
 # TODO: Null should be a subclass of Constant?
@@ -522,8 +483,6 @@ class Null(Module):
     
     def compute(self):
         self.setResult("value", None)
-
-_reg.add_module(Null)
 
 ##############################################################################
 
@@ -566,7 +525,7 @@ class PythonSource(NotCacheable, Module):
         locals_.update({'fail': fail,
                         'package_manager': _m,
                         'cache_this': cache_this,
-                        'registry': _reg,
+                        'registry': core.modules.module_registry.registry,
                         'self': self})
         del locals_['source']
         exec code_str in locals_, locals_
@@ -578,10 +537,6 @@ class PythonSource(NotCacheable, Module):
     def compute(self):
         s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
         self.run_code(s, use_input=True, use_output=True)
-
-_reg.add_module(PythonSource,
-                configureWidgetType=PythonSourceConfigurationWidget)
-_reg.add_input_port(PythonSource, 'source', String, True)
 
 ##############################################################################
 
@@ -664,11 +619,6 @@ class SmartSource(NotCacheable, Module):
         s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
         self.run_code(s, use_input=True, use_output=True)
 
-_reg.add_module(SmartSource,
-                configureWidgetType=PythonSourceConfigurationWidget)
-_reg.add_input_port(SmartSource, 'source', String, True)
-
-
 ##############################################################################
 
 class _ZIPDecompressor(object):
@@ -721,11 +671,6 @@ class Unzip(Module):
         dc.extract()
         self.setResult("file", output)
 
-_reg.add_module(Unzip)
-_reg.add_input_port(Unzip, 'archive_file', File)
-_reg.add_input_port(Unzip, 'filename_in_archive', String)
-_reg.add_output_port(Unzip, 'file', File)
-
 ##############################################################################
     
 class Variant(Module):
@@ -735,5 +680,101 @@ class Variant(Module):
     
     """
     pass
+
+def init_constant(m):
+    reg = core.modules.module_registry.get_module_registry()
+
+    reg.add_module(m)
+    reg.add_input_port(m, "value", m)
+    reg.add_output_port(m, "value", m)
     
-_reg.add_module(Variant)
+def initialize(*args, **keywords):
+    reg = core.modules.module_registry.get_module_registry()
+
+    reg.add_module(Constant)
+
+    init_constant(Boolean)
+    init_constant(Float)
+    init_constant(Integer)
+    init_constant(String)
+    
+    reg.add_output_port(Constant, "value_as_string", String)
+
+    reg.add_module(File)
+    reg.add_input_port(File, "value", File)
+    reg.add_output_port(File, "value", File)
+    reg.add_input_port(File, "name", String, True)
+    reg.add_output_port(File, "self", File, True)
+    reg.add_input_port(File, "create_file", Boolean, True)
+    reg.add_output_port(File, "local_filename", String, True)
+
+    reg.add_module(FileSink)
+    reg.add_input_port(FileSink,  "file", File)
+    reg.add_input_port(FileSink,  "outputName", String)
+    reg.add_input_port(FileSink,  "overrideFile", Boolean)
+
+    reg.add_module(Color)
+    reg.add_input_port(Color, "value", Color)
+    reg.add_output_port(Color, "value", Color)    
+
+    reg.add_module(StandardOutput)
+    reg.add_input_port(StandardOutput, "value", Module)
+
+    reg.add_module(Tuple, configureWidgetType=TupleConfigurationWidget)
+    reg.add_output_port(Tuple, 'self', Tuple)
+
+    reg.add_module(TestTuple)
+    reg.add_input_port(TestTuple, 'tuple', [Integer, String])
+
+    reg.add_module(Untuple, configureWidgetType=UntupleConfigurationWidget)
+    reg.add_input_port(Untuple, 'tuple', Tuple)
+
+    reg.add_module(ConcatenateString)
+    for i in xrange(ConcatenateString.fieldCount):
+        j = i+1
+        port = "str%s" % j
+        reg.add_input_port(ConcatenateString, port, String)
+    reg.add_output_port(ConcatenateString, "value", String)
+
+    reg.add_module(List)
+
+    reg.add_input_port(List, "head", Module)
+    reg.add_input_port(List, "tail", List)
+    reg.add_output_port(List, "value", List)
+
+    reg.add_module(Null)
+
+    reg.add_module(PythonSource,
+                    configureWidgetType=PythonSourceConfigurationWidget)
+    reg.add_input_port(PythonSource, 'source', String, True)
+
+    reg.add_module(SmartSource,
+                    configureWidgetType=PythonSourceConfigurationWidget)
+    reg.add_input_port(SmartSource, 'source', String, True)
+
+    reg.add_module(Unzip)
+    reg.add_input_port(Unzip, 'archive_file', File)
+    reg.add_input_port(Unzip, 'filename_in_archive', String)
+    reg.add_output_port(Unzip, 'file', File)
+
+    reg.add_module(Variant)
+
+    # These are all from sub_module.py!
+
+    reg.add_module(InputPort)
+    reg.add_input_port(InputPort, "name", String, True)
+    reg.add_input_port(InputPort, "spec", String, True)
+    reg.add_input_port(InputPort, "old_name", String, True)
+    reg.add_input_port(InputPort, "ExternalPipe", Module, True)
+    reg.add_output_port(InputPort, "InternalPipe", Variant)
+
+    reg.add_module(OutputPort)
+    reg.add_input_port(OutputPort, "name", String, True)
+    reg.add_input_port(OutputPort, "spec", String, True)
+    reg.add_input_port(OutputPort, "InternalPipe", Module)
+    reg.add_output_port(OutputPort, "ExternalPipe", Variant, True)
+
+    reg.add_module(Group)
+
+    reg.add_module(Abstraction)
+

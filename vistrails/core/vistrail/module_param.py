@@ -192,9 +192,10 @@ class ModuleParam(DBParameter):
         Returns its strValue as a python type.
 
         """
-        from core.modules.module_registry import registry
-        module = registry.get_module_by_name(self.identifier, self.type, 
-                                             self.namespace)
+        from core.modules.module_registry import get_module_registry
+        module = get_module_registry().get_module_by_name(self.identifier, 
+                                                          self.type, 
+                                                          self.namespace)
         if self.strValue == "":
             self.strValue = module.default_value
             return module.default_value

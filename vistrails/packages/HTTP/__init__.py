@@ -136,7 +136,7 @@ class HTTPFile(HTTP):
             self.setResult("file", result)
 
 def initialize(*args, **keywords):
-    reg = core.modules.module_registry
+    reg = core.modules.module_registry.get_module_registry()
     basic = core.modules.basic_modules
 
     reg.add_module(HTTP, abstract=True)

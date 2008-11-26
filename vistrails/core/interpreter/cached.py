@@ -25,7 +25,7 @@ from core.common import *
 from core.data_structures.bijectivedict import Bidict
 import core.db.io
 from core.log.controller import DummyLogController
-from core.modules.module_utils import FilePool
+# from core.modules.module_utils import FilePool
 from core.modules.vistrails_module import ModuleConnector, ModuleError
 from core.utils import DummyView
 from core.vistrail.annotation import Annotation
@@ -46,6 +46,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         self.create()
 
     def create(self):
+        # FIXME moved here because otherwise we hit the registry too early
+        from core.modules.module_utils import FilePool
         self._file_pool = FilePool()
         self._persistent_pipeline = core.vistrail.pipeline.Pipeline()
         self._objects = {}
@@ -123,7 +125,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         
         def create_constant(param, module):
             """Creates a Constant from a parameter spec"""
-            getter = modules.module_registry.registry.get_descriptor_by_name
+            reg = modules.module_registry.get_module_registry()
+            getter = reg.get_descriptor_by_name
             desc = getter(param.identifier, param.type, param.namespace)
             constant = desc.module()
             constant.id = module.id
@@ -154,7 +157,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             obj.interpreter = self
             obj.id = persistent_id
             
-            reg = modules.module_registry.registry
+            reg = modules.module_registry.get_module_registry()
             for f in module.functions:
                 if len(f.params) == 0:
                     connector = ModuleConnector(create_null(), 'value')
@@ -232,7 +235,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             i = get_remapped_id(obj.id)
             view.set_module_computing(i)
 
-            reg = modules.module_registry.registry
+            reg = modules.module_registry.get_module_registry()
             module_name = reg.get_descriptor(obj.__class__).name
 
             logger.start_module_execution(obj, i, module_name)
@@ -245,7 +248,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         def update_cached(obj):
             i = get_remapped_id(obj.id)
 
-            reg = modules.module_registry.registry
+            reg = modules.module_registry.get_module_registry()
             module_name = reg.get_descriptor(obj.__class__).name
 
             logger.start_module_execution(obj, i, module_name, cached=1)

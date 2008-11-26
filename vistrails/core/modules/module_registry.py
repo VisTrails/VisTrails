@@ -56,11 +56,11 @@ def _check_fringe(fringe):
         assert type(v[1]) == float
 
 ###############################################################################
-# ModuleRegistry
+# ModuleRegistrySignals
 
-class ModuleRegistry(DBRegistry, QtCore.QObject):
-    """ModuleRegistry serves as a registry of VisTrails modules.
-    """
+# Refactored this because __class__ assignment fails on ModuleRegistry
+# if it inherits from QtCore.QObject
+class ModuleRegistrySignals(QtCore.QObject):
 
     # new_module_signal is emitted with descriptor of new module
     new_module_signal = QtCore.SIGNAL("new_module")
@@ -68,10 +68,54 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
     deleted_module_signal = QtCore.SIGNAL("deleted_module")
     # deleted_package_signal is emitted with package identifier
     deleted_package_signal = QtCore.SIGNAL("deleted_package")
-    # new_input_port_signal is emitted with identifier and name of module, new port and spec
+    # new_input_port_signal is emitted with identifier and name of module, 
+    # new port and spec
     new_input_port_signal = QtCore.SIGNAL("new_input_port_signal")
-    # new_output_port_signal is emitted with identifier and name of module, new port and spec
+    # new_output_port_signal is emitted with identifier and name of module,
+    # new port and spec
     new_output_port_signal = QtCore.SIGNAL("new_output_port_signal")
+
+    def __init__(self):
+        QtCore.QObject.__init__(self)
+
+    def emit_new_module(self, descriptor):
+        self.emit(self.new_module_signal, descriptor)
+    
+    def emit_deleted_module(self, descriptor):
+        self.emit(self.deleted_module_signal, descriptor)
+
+    def emit_deleted_package(self, package):
+        self.emit(self.deleted_package_signal, package)
+
+    def emit_new_input_port(self, identifier, name, port_name, spec):
+        self.emit(self.new_input_port_signal, identifier, name, port_name, spec)
+
+    def emit_new_output_port(self, identifier, name, port_name, spec):
+        self.emit(self.new_output_port_signal, identifier, name, port_name, 
+                  spec)
+
+###############################################################################
+# ModuleRegistry
+
+# !!!!!! DEPRECATED !!!!!!
+# Use get_module_registry()
+global registry, add_module, add_input_port, has_input_port, add_output_port, \
+    set_current_package, get_descriptor_by_name, get_module_by_name, \
+    get_descriptor
+registry                 = None
+add_module               = None
+add_input_port           = None
+has_input_port           = None
+add_output_port          = None
+set_current_package      = None
+get_descriptor_by_name   = None
+get_module_by_name       = None
+get_descriptor           = None
+
+
+class ModuleRegistry(DBRegistry):
+    """ModuleRegistry serves as a registry of VisTrails modules.
+    """
 
     class MissingModulePackage(Exception):
         def __init__(self, identifier, name, namespace):
@@ -108,9 +152,10 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
 
         """
         
+        self.signals = ModuleRegistrySignals()
+
         if 'root_descriptor_id' not in kwargs:
             kwargs['root_descriptor_id'] = -1
-        QtCore.QObject.__init__(self)
         DBRegistry.__init__(self, *args, **kwargs)
 
         self.packages = self.db_packages_identifier_index
@@ -167,6 +212,8 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
         cp.descriptors_by_id = {}
         for package in cp.package_list:
             for descriptor in package.descriptor_list:
+                if descriptor.namespace.strip() == "":
+                    descriptor.namespace = None
                 k = (descriptor.package, descriptor.name, descriptor.namespace)
                 cp.descriptors[k] = descriptor
                 cp.descriptors_by_id[descriptor.id] = descriptor
@@ -195,7 +242,10 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
         _reg.descriptors = {}
         _reg.descriptors_by_id = {}
         for package in _reg.package_list:
+            Package.convert(package)
             for descriptor in package.descriptor_list:
+                if descriptor.namespace.strip() == "":
+                    descriptor.namespace = None
                 k = (descriptor.package, descriptor.name, descriptor.namespace)
                 _reg.descriptors[k] = descriptor
                 _reg.descriptors_by_id[descriptor.id] = descriptor
@@ -206,10 +256,11 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
                 base_descriptor = \
                     _reg.descriptors_by_id[descriptor.base_descriptor_id]
                 base_descriptor.children.append(descriptor)
-        if _reg.root_descriptor_id:
+        if _reg.root_descriptor_id is not None:
             _reg.root_descriptor = \
                 _reg.descriptors_by_id[_reg.root_descriptor_id]
         _reg.packages = _reg.db_packages_identifier_index
+        _reg.signals = ModuleRegistrySignals()
 
         if 'edu.utah.sci.vistrails.basic' in _reg.packages:
             _reg._default_package = \
@@ -235,6 +286,24 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
 #         # python_source_types is aliased instead of copied. Shouldn't be an issue
 #         result.python_source_types = self.python_source_types
 #         return result
+
+    def set_global(self):
+        global registry, add_module, add_input_port, has_input_port, \
+            add_output_port, set_current_package, get_descriptor_by_name, \
+            get_module_by_name, get_descriptor
+
+        if registry is not None:
+            raise VistrailsInternalError("Global registry already set.")
+
+        registry                 = self
+        add_module               = self.add_module
+        add_input_port           = self.add_input_port
+        has_input_port           = self.has_input_port
+        add_output_port          = self.add_output_port
+        set_current_package      = self.set_current_package
+        get_descriptor_by_name   = self.get_descriptor_by_name
+        get_module_by_name       = self.get_module_by_name
+        get_descriptor           = self.get_descriptor
 
     ##########################################################################
     # Properties
@@ -282,14 +351,18 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
         # missing base class. We do _NOT_ add the ports, so watch out!
         
         reg = global_registry
-        d = reg.get_descriptor_by_name(module.package, module.name, module.namespace)
+        d = reg.get_descriptor_by_name(module.package, module.name, 
+                                       module.namespace)
         # we exclude the first module in the hierarchy because it's Module
-        # and we exclude 
+        # which we know exists (constructor adds)
         hierarchy = reg.get_module_hierarchy(d)
         for desc in reversed(hierarchy[:-1]):
-            if desc.module is not None:
-                self.add_module(desc.module, name=desc.name, 
-                                package=desc.package, namespace=desc.namespace)
+            old_base = desc.base_descriptor
+            base_descriptor = self.get_descriptor_by_name(old_base.package,
+                                                          old_base.name,
+                                                          old_base.namespace)
+            self.update_registry(desc.module, desc.package, desc.name, 
+                                 desc.namespace, base_descriptor)
 
     def get_module_by_name(self, identifier, name, namespace=None):
         """get_module_by_name(name: string): class
@@ -363,6 +436,7 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
         if do_sort:
             all_ports.sort(key=lambda x: (x.sort_key, x.id))
         return all_ports
+
     def module_destination_ports(self, do_sort, identifier, module_name,
                                  namespace=None):
         descriptor = self.get_descriptor_by_name(identifier, module_name, 
@@ -425,6 +499,42 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
 
     def get_module_fringe(self, identifier, name, namespace=None):
         return self.get_descriptor_by_name(identifier, name, namespace).module_fringe()
+
+    def update_registry(self, module, identifier, name, namespace, 
+                        base_descriptor):
+        if namespace is not None and namespace.strip():
+            namespace = None
+
+        # create descriptor
+        descriptor_id = self.idScope.getNewId(ModuleDescriptor.vtType)
+        descriptor = ModuleDescriptor(id=descriptor_id,
+                                      module=module,
+                                      package=identifier,
+                                      base_descriptor=base_descriptor,
+                                      name=name,
+                                      namespace=namespace,
+                                      )
+
+        # add to package list, creating new package if necessary
+        if identifier not in self.packages:
+            if self._current_package.identifier == identifier:
+                package = self._current_package
+            else:
+                package_id = self.idScope.getNewId(Package.vtType)
+                package = Package(id=package_id,
+                                  codepath="",
+                                  load_configuration=False,
+                                  name="",
+                                  identifier=identifier,
+                                  )
+            self.add_package(package)
+        else:
+            package = self.packages[identifier]
+        self.add_descriptor(descriptor, package)
+
+        if module is not None:
+            self._module_key_map[module] = (identifier, name, namespace)
+        return descriptor
 
     def auto_add_module(self, module):
         """auto_add_module(module or (module, kwargs)): add module and
@@ -550,14 +660,18 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
 
         # module_node = \
         #     base_node.add_module(module, identifier, name, namespace)
-        descriptor_id = self.idScope.getNewId(ModuleDescriptor.vtType)
-        descriptor = ModuleDescriptor(id=descriptor_id,
-                                      module=module,
-                                      package=identifier,
-                                      base_descriptor=base_descriptor,
-                                      name=name,
-                                      namespace=namespace,
-                                      )
+
+# Moved to update_registry
+#         descriptor_id = self.idScope.getNewId(ModuleDescriptor.vtType)
+#         descriptor = ModuleDescriptor(id=descriptor_id,
+#                                       module=module,
+#                                       package=identifier,
+#                                       base_descriptor=base_descriptor,
+#                                       name=name,
+#                                       namespace=namespace,
+#                                       )
+        descriptor = self.update_registry(module, identifier, name, namespace,
+                                          base_descriptor)
 
         descriptor.set_module_abstract(is_abstract)
         descriptor.set_configuration_widget(configureWidgetType)
@@ -575,27 +689,24 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
             _check_fringe(moduleRightFringe)
             descriptor.set_module_fringe(moduleLeftFringe, moduleRightFringe)
 
-        
-        self._module_key_map[module] = key
-
-        # add to package list, creating new package if necessary
-        if identifier not in self.packages:
-            if self._current_package.identifier == identifier:
-                package = self._current_package
-            else:
-                package_id = self.idScope.getNewId(Package.vtType)
-                package = Package(id=package_id,
-                                  codepath="",
-                                  load_configuration=False,
-                                  name="",
-                                  identifier=identifier,
-                                  )
-            self.add_package(package)
-        else:
-            package = self.packages[identifier]
-        self.add_descriptor(descriptor, package)
-                   
-        self.emit(self.new_module_signal, descriptor)
+# Moved to update_registry
+#         if identifier not in self.packages:
+#             if self._current_package.identifier == identifier:
+#                 package = self._current_package
+#             else:
+#                 package_id = self.idScope.getNewId(Package.vtType)
+#                 package = Package(id=package_id,
+#                                   codepath="",
+#                                   load_configuration=False,
+#                                   name="",
+#                                   identifier=identifier,
+#                                   )
+#             self.add_package(package)
+#         else:
+#             package = self.packages[identifier]
+#         self.add_descriptor(descriptor, package)
+                 
+        self.signals.emit_new_module(descriptor)
         return descriptor
 
     def has_input_port(self, module, portName):
@@ -624,8 +735,7 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
                         sort_key=sort_key)
         return spec
 
-    def add_port_spec(self, module, port_spec):
-        descriptor = self.get_descriptor(module)
+    def add_port_spec(self, descriptor, port_spec):
         descriptor.add_port_spec(port_spec)
 
     def get_port_spec(self, package, module_name, namespace, 
@@ -645,48 +755,51 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
             raise
         return None
 
-    def add_port(self, module, port_name, port_type, port_sig=None, 
+    def add_port(self, descriptor, port_name, port_type, port_sig=None, 
                  port_sigstring=None, optional=False, sort_key=-1):
-        descriptor = self.get_descriptor(module)
         spec = self.create_port_spec(port_name, port_type, port_sig,
                                      port_sigstring, optional, sort_key)
         descriptor.add_port_spec(spec)
         if port_type == 'input':
-            self.emit(self.new_input_port_signal,
-                      descriptor.identifier,
-                      descriptor.name, port_name, spec)
+            self.signals.emit_new_input_port(descriptor.identifier,
+                                             descriptor.name, port_name, spec)
         elif port_type == 'output':
-            self.emit(self.new_output_port_signal,
-                      descriptor.identifier,
-                      descriptor.name, port_name, spec)
+            self.signals.emit_new_output_port(descriptor.identifier,
+                                             descriptor.name, port_name, spec)
 
-    def add_input_port(self, module, portName, portSignature, optional=False,
-                       sort_key=-1):
+    def add_input_port(self, module, portName, portSignature, 
+                       optional=False, sort_key=-1):
         """add_input_port(module: class,
-        portName: string,
-        portSignature: string,
-        optional=False,
-        sort_key=-1) -> None
+                          portName: string,
+                          portSignature: string,
+                          optional=False,
+                          sort_key=-1) -> None
 
         Registers a new input port with VisTrails. Receives the module
         that will now have a certain port, a string representing the
         name, and a signature of the port, described in
         doc/module_registry.txt. Optionally, it receives whether the
         input port is optional."""
-        self.add_port(module, portName, 'input', portSignature, None, optional,
-                      sort_key)
+        descriptor = self.get_descriptor(module)
+        self.add_port(descriptor, portName, 'input', portSignature, None, 
+                      optional, sort_key)
 
-    def add_output_port(self, module, portName, portSignature, optional=False,
-                        sort_key=-1):
-        """add_output_port(module: class, portName: string, portSpec) -> None
+    def add_output_port(self, module, portName, portSignature, 
+                        optional=False, sort_key=-1):
+        """add_output_port(module: class,
+                           portName: string,
+                           portSignature: string,
+                           optional=False,
+                           sort_key=-1) -> None
 
         Registers a new output port with VisTrails. Receives the
         module that will now have a certain port, a string
         representing the name, and a signature of the port, described
         in doc/module_registry.txt. Optionally, it receives whether
         the output port is optional."""
-        self.add_port(module, portName, 'output', portSignature, None, optional,
-                      sort_key)
+        descriptor = self.get_descriptor(module)
+        self.add_port(descriptor, portName, 'output', portSignature, None, 
+                      optional, sort_key)
 
     def create_package(self, codepath, load_configuration=True):
         package_id = self.idScope.getNewId(Package.vtType)
@@ -723,7 +836,7 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
 #         key = (module_name, identifier, namespace)
 #         descriptor = self.descriptors[key]
         assert len(descriptor.children) == 0
-        self.emit(self.deleted_module_signal, descriptor)
+        self.signals.emit_deleted_module(descriptor)
         package = self.packages[descriptor.identifier]
         self.delete_descriptor(descriptor, package)
         if descriptor.module is not None:
@@ -751,17 +864,15 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
         for sigstring in top_sort:
             self.delete_module(*(sigstring.split(':')))
         self.delete_package(m_package)
-        self.emit(self.deleted_package_signal, package)
+        self.signals.emit_deleted_package(package)
 
-    def delete_input_port(self, module, portName):
+    def delete_input_port(self, descriptor, port_name):
         """ Just remove a name input port with all of its specs """
-        descriptor = self.get_descriptor(module)
-        descriptor.delete_input_port(portName)
+        descriptor.delete_input_port(port_name)
 
-    def delete_output_port(self, module, portName):
+    def delete_output_port(self, descriptor, port_name):
         """ Just remove a name output port with all of its specs """
-        descriptor = self.get_descriptor(module)
-        descriptor.delete_output_port(portName)
+        descriptor.delete_output_port(port_name)
 
     def source_ports_from_descriptor(self, descriptor, sorted=True):
         ports = [p[1] for p in self.module_ports('output', descriptor)]
@@ -799,6 +910,13 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
         else:
             return None
         
+    def is_method(self, port_spec):
+        constant_desc = \
+            self.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
+                                        'Constant')
+        return all(self.is_descriptor_subclass(d, constant_desc) 
+                   for d in port_spec.descriptors())
+
     def method_ports(self, module_descriptor):
         """method_ports(module_descriptor: ModuleDescriptor) 
               -> list of PortSpecs
@@ -807,9 +925,13 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
         method calls. These are the ones whose spec contains only
         subclasses of Constant."""
         # module_descriptor = self.get_descriptor(module)
+        # FIXME don't hardcode this
+
+        # do lookups of methods in the global registry!
+        global_registry = get_module_registry()
         return [spec for spec in \
                     self.destination_ports_from_descriptor(module_descriptor)
-                if spec.is_method()]
+                if global_registry.is_method(spec)]
 
     def port_and_port_spec_match(self, port, port_spec):
         """port_and_port_spec_match(port: Port, port_spec: PortSpec) -> bool
@@ -847,28 +969,29 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
         
         """
         variantType = core.modules.basic_modules.Variant
+        variant_desc = \
+            self.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
+                                        'Variant')
         # sometimes sub is coming None
         # I don't know if this is expected, so I will put a test here
-        subTypes = []
+        sub_descs = []
         if sub:
-            subTypes = sub.types()
-        if subTypes==[variantType]:
+            sub_descs = sub.descriptors()
+        if sub_descs == [variant_desc]:
             return True
-        superTypes = []
+        super_descs = []
         if super:
-            superTypes = super.types()
-        if superTypes==[variantType]:
+            super_descs = super.descriptors()
+        if super_descs == [variant_desc]:
             return True
 
-        if len(subTypes) != len(superTypes):
+        if len(sub_descs) != len(super_descs):
             return False
         
-        for (subType, superType) in izip(subTypes, superTypes):
-            if (subType==variantType or superType==variantType):
+        for (sub_desc, super_desc) in izip(sub_descs, super_descs):
+            if (sub_desc == variant_desc or super_desc == variant_desc):
                 continue
-            subModule = self.get_descriptor(subType).module
-            superModule = self.get_descriptor(superType).module
-            if not issubclass(subModule, superModule):
+            if not self.is_descriptor_subclass(sub_desc, super_desc):
                 return False
         return True
 
@@ -967,18 +1090,46 @@ class ModuleRegistry(DBRegistry, QtCore.QObject):
         return descriptor.configuration_widget()
         
 
+    def is_descriptor_subclass(self, sub, super):
+        """is_descriptor_subclass(sub : ModuleDescriptor, 
+                                  super: ModuleDescriptor) -> bool
+        
+        """
+        # use issubclass for speed if we've loaded the modules
+        if sub.module is not None and super.module is not None:
+            return issubclass(sub.module, super.module)
+        
+        # otherwise, use descriptors themselves
+        if sub == super:
+            return True
+        while sub != self.root_descriptor:
+            sub = sub.base_descriptor
+            if sub == super:
+                return True
+
+        return False
+
 ###############################################################################
 
-registry = ModuleRegistry()
+# registry                 = ModuleRegistry()
+# add_module               = registry.add_module
+# add_input_port           = registry.add_input_port
+# has_input_port           = registry.has_input_port
+# add_output_port          = registry.add_output_port
+# set_current_package      = registry.set_current_package
+# get_descriptor_by_name   = registry.get_descriptor_by_name
+# get_module_by_name       = registry.get_module_by_name
+# get_descriptor           = registry.get_descriptor
 
-add_module               = registry.add_module
-add_input_port           = registry.add_input_port
-has_input_port           = registry.has_input_port
-add_output_port          = registry.add_output_port
-set_current_package      = registry.set_current_package
-get_descriptor_by_name   = registry.get_descriptor_by_name
-get_module_by_name       = registry.get_module_by_name
-get_descriptor           = registry.get_descriptor
+def get_module_registry():
+    global registry
+    if not registry:
+        raise VistrailsInternalError("Registry not constructed yet.")
+    return registry
+
+def module_registry_loaded():
+    global registry
+    return registry is not None
 
 ##############################################################################
 

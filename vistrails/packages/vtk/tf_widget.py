@@ -25,8 +25,7 @@
 
 from PyQt4 import QtCore, QtGui
 from core.modules.constant_configuration import ConstantWidgetMixin
-from core.modules.basic_modules import new_constant, Module
-from core.modules.module_registry import registry
+from core.modules.basic_modules import new_constant, init_constant, Module
 from core.utils.color import ColorByName
 import vtk
 import math
@@ -541,14 +540,16 @@ class vtkScaledTransferFunction(Module):
             
         self.setResult('TransferFunction', new_tf)
 
+
+conversion = staticmethod(lambda x: pickle.loads(x.decode('hex')))
+validation = staticmethod(lambda x: isinstance(x, TransferFunction))
+TransferFunctionConstant = new_constant('TransferFunction',
+                                        conversion,
+                                        default_tf,
+                                        validation,
+                                        TransferFunctionWidget)
+
 ##############################################################################
 
 def initialize():
-    global TransferFunctionConstant
-    conversion = staticmethod(lambda x: pickle.loads(x.decode('hex')))
-    validation = staticmethod(lambda x: isinstance(x, TransferFunction))
-    TransferFunctionConstant = new_constant('TransferFunction',
-                                            conversion,
-                                            default_tf,
-                                            validation,
-                                            TransferFunctionWidget)
+    init_constant(TransferFunctionConstant)

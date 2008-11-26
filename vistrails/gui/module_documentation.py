@@ -26,7 +26,6 @@ QModuleDocumentation
 """
 
 from PyQt4 import QtCore, QtGui
-from core.modules.module_registry import registry
 
 ################################################################################
 

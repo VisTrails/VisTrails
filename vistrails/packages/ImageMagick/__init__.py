@@ -277,7 +277,7 @@ def initialize():
     global __version__
     __version__ = version_line[2]
 
-    reg = core.modules.module_registry
+    reg = core.modules.module_registry.get_module_registry()
     basic = core.modules.basic_modules
     reg.add_module(ImageMagick, abstract=True)
     reg.add_input_port(ImageMagick, "input", (basic.File, 'the input file'))

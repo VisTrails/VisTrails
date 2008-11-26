@@ -69,24 +69,25 @@ class PortSpec(DBPortSpec):
             self._tooltip = kwargs['tooltip']
             del kwargs['tooltip']
         else:
-            self._tooltip = ""
+            self._tooltip = None
         DBPortSpec.__init__(self, *args, **kwargs)
 
         self._entries = None
+        self._descriptors = None
+        self._short_sigstring = None
         if signature is not None:
-            self._entries = []
             self.create_entries(signature)
         if not self.sigstring and self._entries is not None:
             # create sigstring from entries
-            self.create_sigstring()
+            self.create_sigstring_and_descriptors()
         elif self._entries is None and self.sigstring:
             # create entries from sigstring
-            self._entries = []
-            self.create_entries_from_sigstring()
+            self.create_entries_and_descriptors()
         else:
             raise VistrailsInternalError("Need to specify signature or "
                                          "sigstring to create PortSpec")
-        self.create_tooltip()
+        if self._tooltip is None or self._short_sigstring is None:
+            self.create_tooltip()
 
     def __copy__(self):
         return PortSpec.do_copy(self)
@@ -94,15 +95,25 @@ class PortSpec(DBPortSpec):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBPortSpec.do_copy(self, new_ids, id_scope, id_remap)
         cp._entries = copy.copy(self._entries)
+        cp._descriptors = copy.copy(self._descriptors)
+        cp._short_sigstring = self._short_sigstring
+        cp._tooltip = self._tooltip
         cp.__class__ = PortSpec
         cp.create_tooltip()
         return cp
 
     @staticmethod
     def convert(_port_spec):
+        from core.modules.module_registry import module_registry_loaded
         _port_spec.__class__ = PortSpec
-        _port_spec._entries = []
-        _port_spec.create_entries_from_sigstring()
+        _port_spec._entries = None
+        _port_spec._descriptors = None
+        _port_spec._short_sigstring = None
+        _port_spec._tooltip = None
+        if module_registry_loaded():
+            _port_spec.create_entries_and_descriptors()
+        else:
+            _port_spec._entries = None
         _port_spec.create_tooltip()
         pass
 
@@ -124,12 +135,24 @@ class PortSpec(DBPortSpec):
     optional = DBPortSpec.db_optional
     sort_key = DBPortSpec.db_sort_key
     sigstring = DBPortSpec.db_sigstring
+    
+    def _get_short_sigstring(self):
+        if self._short_sigstring is None:
+            self.create_tooltip()
+        return self._short_sigstring
+    short_sigstring = property(_get_short_sigstring)
 
     def _get_signature(self):
-        return self._entries
+        if self._entries is None:
+            self.create_entries_and_descriptors()
+        if self._entries is not None:
+            return self._entries
+        return None
     signature = property(_get_signature)
 
     def toolTip(self):
+        if self._tooltip is None:
+            self.create_tooltip()
         return self._tooltip
 
     ##########################################################################
@@ -147,7 +170,9 @@ class PortSpec(DBPortSpec):
         # multiple parameters, where each parameter can be either of the above:
         # add_input_port(_, _, [Float, (Integer, 'count')])
 
-        from core.modules.module_registry import registry
+        from core.modules.module_registry import get_module_registry
+        registry = get_module_registry()
+        self._entries = []
         def canonicalize(sig_item):
             if type(sig_item) == __builtin__.type:
                 return (sig_item, '<no description>')
@@ -171,23 +196,95 @@ class PortSpec(DBPortSpec):
 #         self._short_sigstring = short
 #         self._long_sigstring = long_
 
-    def create_sigstring(self):
+    def create_sigstring_and_descriptors(self):
         """create_sigstring() -> None
 
         Creates string with the signature of the portspec.
 
         """
-        from core.modules.module_registry import registry
+        from core.modules.module_registry import get_module_registry, \
+            module_registry_loaded
+        if not module_registry_loaded():
+            return None
+        registry = get_module_registry()
         sig_list = []
-        short_list = []
+        self._descriptors = []
 
         for (klass, _) in self._entries:
             descriptor = registry.get_descriptor(klass)
             sig_list.append(descriptor.sigstring)
-            short_list.append(descriptor.name)
+            self._descriptors.append(descriptor)
 
         self.sigstring = "(" + ",".join(sig_list) + ")"
-        # self.short_sigstring = "(" + ",".join(short_list) + ")"
+
+    def create_descriptor_list(self):
+        from core.modules.module_registry import get_module_registry, \
+            module_registry_loaded
+        if not module_registry_loaded():
+            return None
+        registry = get_module_registry()
+        assert self.sigstring[0] == '(' and self.sigstring[-1] == ')'
+
+        recompute_sigstring = False
+        self._descriptors = []
+        if self.sigstring != '()':
+            for sig in self.sigstring[1:-1].split(','):
+                k = sig.split(':')
+                if len(k) < 2:
+                    try:
+                        d = registry.get_descriptor_from_name_only(k[0])
+                        self._descriptors.append(d)
+                        recompute_sigstring = True
+                    except Exception:
+                        raise VistrailsInternalError("Cannot determine package "
+                                                     "for module '%s'" % k[0])
+                else:
+                    d = registry.get_descriptor_by_name(*k)
+                    self._descriptors.append(d)
+        if recompute_sigstring:
+            self.sigstring = "(" + ",".join(d.sigstring 
+                                            for d in self._descriptors) + ")"
+            self.create_tooltip()
+
+    def create_entries_and_descriptors(self):
+        """create_entries_from_sigstring() -> None
+
+        Populates self._entries using self.sigstring
+        
+        """
+
+        self.create_descriptor_list()
+        self._entries = []
+        for d in self._descriptors:
+            if d.module is None:
+                self._entries = None
+                break
+            self._entries.append((d.module, '<no description>'))
+
+#         recompute_sigstring = False
+#         vs = self.sigstring[1:-1].split(',')
+#         for v in vs:
+#             k = v.split(':')
+#             if len(k) < 2:
+#                 try:
+#                     descriptor = registry.get_descriptor_from_name_only(k[0])
+#                     klass = descriptor.module
+#                     if klass is None:
+#                         self._entries = None
+#                         break
+#                     self._entries.append((klass, '<no description>'))
+#                     recompute_sigstring = True
+#                 except Exception:
+#                     raise VistrailsInternalError("Cannot determine package for"
+#                                                  "module '%s'" % k[0])
+#             else:
+#                 klass = registry.get_descriptor_by_name(*k).module
+#                 if klass is None:
+#                     self._entries = None
+#                     break
+#                 self._entries.append((klass, '<no description>'))
+#         if recompute_sigstring and self._entries is not None:
+#             self.create_sigstring()
 
     def create_tooltip(self):
         """Creates a short_sigstring that does not include package names for
@@ -195,50 +292,21 @@ class PortSpec(DBPortSpec):
         can't be used to reconstruct a spec. They should only be used
         for human-readable purposes.
         """
-        sigs = self.sigstring[1:-1].split(",")
-        if not sigs[0]:
-            self.short_sigstring = "()"
-        else:
-            self.short_sigstring = \
-                "(" + ",".join(x.split(':')[1] for x in sigs) + ")"
+        if self._descriptors is None:
+            self.create_descriptor_list()
+            if self._descriptors is None:
+                return None
+
+        self._short_sigstring = \
+            "(" + ",".join(d.name for d in self._descriptors) + ")"
         if self.type in ['input', 'output']:
             port_string = self.type.capitalize()
         else:
             port_string = 'Invalid'
         self._tooltip = "%s port %s\n%s" % (port_string,
                                             self.name,
-                                            self.short_sigstring)
+                                            self._short_sigstring)
         
-    def create_entries_from_sigstring(self):
-        """create_entries_from_sigstring() -> None
-
-        Populates self._entries using self.sigstring
-        
-        """
-        from core.modules.module_registry import registry
-        assert self.sigstring[0] == '(' and self.sigstring[-1] == ')'
-        recompute_sigstring = False
-        vs = self.sigstring[1:-1].split(',')
-        for v in vs:
-            k = v.split(':')
-            if len(k) < 2:
-                try:
-                    descriptor = registry.get_descriptor_from_name_only(k[0])
-                    klass = descriptor.module
-                    self._entries.append((klass, '<no description>'))
-                    recompute_sigstring = True
-                except Exception:
-                    raise VistrailsInternalError("Cannot determine package for"
-                                                 "module '%s'" % k[0])
-            else:
-                klass = registry.get_descriptor_by_name(*k).module
-                self._entries.append((klass, '<no description>'))
-        if recompute_sigstring:
-            self.create_sigstring()
-
-    def types(self):
-        return [entry[0] for entry in self._entries]
-
     # FIXME DAK: Can I move this?
     def create_module_function(self):
         """create_module_function() -> ModuleFunction
@@ -246,37 +314,45 @@ class PortSpec(DBPortSpec):
         creates a ModuleFunction object from self.
 
         """
-        from core.modules.module_registry import registry
         def from_source_port():
             f = ModuleFunction()
             f.name = self.name
-            descriptor = registry.get_descriptor(self._entries[0])
-            f.returnType = descriptor.name
+            if len(self._descriptors) > 0:
+                f.returnType = self._descriptors[0].name
             return f
 
         def from_destination_port():
             f = ModuleFunction()
             f.name = self.name
-            for specitem in self._entries:
+            for descriptor in self._descriptors:
                 p = ModuleParam()
-                descriptor = registry.get_descriptor(specitem[0])
-                # p.identifier = registry,get_descriptor(specitem[0]).identifier
-                # p.type = specitem[0].__name__
                 p.identifier = descriptor.identifier
                 p.namespace = descriptor.namespace
                 p.type = descriptor.name
                 
-                p.name = specitem[1]
+                p.name = '<no description>'
                 f.addParameter(p)
             return f
 
-        # FIXME change hardcoded input/output strings
         if self.type == 'output':
             return from_source_port()
         elif self.type == 'input':
             return from_destination_port()
         else:
             raise VistrailsInternalError("Was expecting a valid endpoint")
+        
+
+    def types(self):
+        if self._entries is None:
+            self.create_entries_and_descriptors()
+        if self._entries is not None:
+            return [entry[0] for entry in self._entries]
+        return None
+
+    def descriptors(self):
+        if self._descriptors is None:
+            self.create_descriptor_list()
+        return self._descriptors
 
     ##########################################################################
     # Operators
@@ -300,7 +376,13 @@ class PortSpec(DBPortSpec):
                 self.name != other.name or \
                 self.type != other.type:
             return False
-        for (mine, their) in izip(self._entries, other._entries):
+        if self._descriptors is None:
+            self.create_descriptor_list()
+        if other._descriptors is None:
+            other.create_descriptor_list()
+        if self is None and other is None:
+            return True
+        for (mine, their) in izip(self._descriptors, other._descriptors):
             if mine != their:
                 return False
         return True
@@ -315,22 +397,17 @@ class PortSpec(DBPortSpec):
         Does not do subtyping or supertyping: match must be perfect.
 
         """
-        for (mine, their) in izip(self._entries, other._entries):
-            if mine[0] != their[0]:
+        if self._descriptors is None:
+            self.create_descriptor_list()
+        if other._descriptors is None:
+            other.create_descriptor_list()
+        if self is None and other is None:
+            return True
+        for (mine, their) in izip(self._descriptors, other._descriptors):
+            if mine != their:
                 return False
         return True
         
-    def is_method(self):
-        """is_method(self) -> Bool
-
-        Return true if spec can be interpreted as a method call.
-        This is the case if the parameters are all subclasses of
-        Constant.
-
-        """
-        from core.modules.basic_modules import Constant
-        return all(issubclass(x[0], Constant) for x in self._entries)
-
     def key_no_id(self):
         """key_no_id(): tuple. returns a tuple that identifies
         the port without caring about ids. Used for sorting

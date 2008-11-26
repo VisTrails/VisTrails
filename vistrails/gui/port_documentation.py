@@ -26,7 +26,6 @@ QMethodDocumentation
 """
 
 from PyQt4 import QtCore, QtGui
-from core.modules.module_registry import registry
 from core.vistrail.port import PortEndPoint
 from core.utils import VistrailsInternalError
 

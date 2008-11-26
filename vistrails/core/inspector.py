@@ -23,7 +23,7 @@
 """Helper classes for inspecting vistrails/pipelines at runtime"""
 
 from core.vistrail.pipeline import Pipeline
-from core.modules.module_registry import registry
+from core.modules.module_registry import get_module_registry
 
 ################################################################################
 
@@ -94,6 +94,7 @@ class PipelineInspector(object):
         Inspect the pipeline input/output ports, useful for submodule
         
         """
+        registry = get_module_registry()
         self.input_ports = {}
         self.input_port_by_name = {}
         self.output_ports = {}
@@ -136,6 +137,7 @@ class PipelineInspector(object):
         Inspect the pipeline to see how many cells is needed
         
         """        
+        registry = get_module_registry()
         self.spreadsheet_cells = []
         if not pipeline: return
         # Sometimes we run without the spreadsheet!

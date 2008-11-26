@@ -25,14 +25,14 @@
 from itertools import izip
 
 from core.modules import module_registry
-from core.modules.basic_modules import String, Variant, NotCacheable
+# from core.modules.basic_modules import String, Variant, NotCacheable
 from core.modules.vistrails_module import Module, InvalidOutput, new_module
 from core.interpreter.default import noncached_interpreter
 from core.inspector import PipelineInspector
 from core.utils import ModuleAlreadyExists, DummyView, VistrailsInternalError
 import os.path
 
-_reg = module_registry.registry
+##############################################################################
 
 class InputPort(Module):
     
@@ -42,13 +42,6 @@ class InputPort(Module):
             self.setResult('InternalPipe', exPipe)
         else:
             self.setResult('InternalPipe', InvalidOutput)
-            
-_reg.add_module(InputPort)
-_reg.add_input_port(InputPort, "name", String, True)
-_reg.add_input_port(InputPort, "spec", String, True)
-_reg.add_input_port(InputPort, "old_name", String, True)
-_reg.add_input_port(InputPort, "ExternalPipe", Module, True)
-_reg.add_output_port(InputPort, "InternalPipe", Variant)
 
 ##############################################################################
     
@@ -58,12 +51,6 @@ class OutputPort(Module):
         inPipe = self.getInputFromPort('InternalPipe')
         self.setResult('ExternalPipe', inPipe)
     
-_reg.add_module(OutputPort)
-_reg.add_input_port(OutputPort, "name", String, True)
-_reg.add_input_port(OutputPort, "spec", String, True)
-_reg.add_input_port(OutputPort, "InternalPipe", Module)
-_reg.add_output_port(OutputPort, "ExternalPipe", Variant, True)
-
 ###############################################################################
 
 class Group(Module):
@@ -97,8 +84,6 @@ class Group(Module):
                 self.setResult(oport_name, oport_obj.get_output('ExternalPipe'))
         self.interpreter.finalize_pipeline(self.pipeline, *res[:-1])
 
-_reg.add_module(Group)
-
 ###############################################################################
 
 class Abstraction(Group):
@@ -106,8 +91,6 @@ class Abstraction(Group):
         Group.__init__(self)
 
     # the compute method is inherited from Group!
-
-_reg.add_module(Abstraction)
 
 def read_vistrail(vt_fname):
     import db.services.io

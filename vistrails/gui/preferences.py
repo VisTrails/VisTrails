@@ -247,6 +247,9 @@ class QPackagesWidget(QtGui.QWidget):
 
         dependency_graph = pm.dependency_graph()
         new_deps = self._current_package.dependencies()
+        # FIXME don't hardcode this
+        if self._current_package.identifier != 'edu.utah.sci.vistrails.basic':
+            new_deps.append('edu.utah.sci.vistrails.basic')
 
         unmet_dep = None
 

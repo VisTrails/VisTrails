@@ -32,7 +32,7 @@ from gui.common_widgets import (QSearchTreeWindow,
                                 QSearchTreeWidget,
                                 QToolWindowInterface)
 from gui.module_documentation import QModuleDocumentation
-from core.modules.module_registry import registry
+from core.modules.module_registry import get_module_registry
 from core.system import systemType
 from core.utils import VistrailsInternalError
 from core.packagemanager import get_package_manager
@@ -67,11 +67,12 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
 
     """
     def connect_registry_signals(self):
-        self.connect(registry, registry.new_module_signal, 
+        registry = get_module_registry()
+        self.connect(registry.signals, registry.signals.new_module_signal, 
                      self.newModule)
-        self.connect(registry, registry.deleted_module_signal,
+        self.connect(registry.signals, registry.signals.deleted_module_signal,
                      self.deletedModule)
-        self.connect(registry, registry.deleted_package_signal, 
+        self.connect(registry.signals, registry.signals.deleted_package_signal, 
                      self.deletedPackage)
         
     
@@ -238,6 +239,7 @@ class QModuleTreeWidget(QSearchTreeWidget):
 
         # pm = get_package_manager()
         # for packageName in registry.packages.iterkeys():
+        registry = get_module_registry()
         for package in registry.package_list:
             # name = pm.get_package_by_identifier(packageName).name
             name = package.name

@@ -23,7 +23,7 @@
 from core import modules
 from core.common import *
 from core.data_structures.bijectivedict import Bidict
-from core.modules.module_utils import FilePool
+# from core.modules.module_utils import FilePool
 from core.modules.vistrails_module import ModuleConnector, ModuleError
 from core.utils import DummyView
 import copy

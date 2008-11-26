@@ -37,7 +37,7 @@ from PyQt4 import QtCore, QtGui
 from core.utils import VistrailsInternalError, profile
 from core.utils.uxml import named_elements
 from core.modules.module_configure import DefaultModuleConfigurationWidget
-from core.modules.module_registry import registry
+from core.modules.module_registry import get_module_registry
 from core.vistrail.connection import Connection
 from core.vistrail.module import Module
 from core.vistrail.pipeline import Pipeline
@@ -837,7 +837,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.computeBoundingRect()
         self.resetMatrix()
         self.translate(module.center.x, -module.center.y)
-        c = registry.get_module_color(module.package, module.name, module.namespace)
+        registry = get_module_registry()
+        c = registry.get_module_color(module.package, module.name, 
+                                      module.namespace)
         if c:
             ic = [int(cl*255) for cl in c]
             b = QtGui.QBrush(QtGui.QColor(ic[0], ic[1], ic[2]))
@@ -979,6 +981,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         Return the scene position of a port matched 'port' in portDict
         
         """
+        registry = get_module_registry()
         for (p, item) in portDict.iteritems():
             if registry.port_and_port_spec_match(port, p):
                 return item.sceneBoundingRect().center()
@@ -991,6 +994,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         """
         pos = self.getPortPosition(port, self.inputPorts)
         if pos==None:
+            registry = get_module_registry()
             for p in self.optionalInputPorts:
                 if registry.port_and_port_spec_match(port, p):
                     portShape = self.createPortItem(p,*self.nextInputPortPos)
@@ -1009,6 +1013,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         """
         pos = self.getPortPosition(port, self.outputPorts)
         if pos==None:
+            registry = get_module_registry()
             for p in self.optionalOutputPorts:
                 if registry.port_and_port_spec_match(port, p):
                     portShape = self.createPortItem(p,*self.nextOutputPortPos)
@@ -1132,6 +1137,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         """
         result = None
         minDis = None
+        registry = get_module_registry()
         for (dstPort, dstItem) in self.inputPorts.items():
             if (registry.ports_can_connect(srcPort, dstPort) and
                 dstItem.isVisible()):                
@@ -1150,6 +1156,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         """
         result = None
         minDis = None
+        registry = get_module_registry()
         for (srcPort, srcItem) in self.outputPorts.items():
             if (registry.ports_can_connect(srcPort, dstPort) and
                 srcItem.isVisible()):
@@ -1347,6 +1354,7 @@ mutual connections."""
         """
         if self.noUpdate: return
         needReset = len(self.items())==0
+        registry = get_module_registry()
         try:
             if pipeline:
                 new_modules = set(pipeline.modules)
@@ -1750,6 +1758,7 @@ mutual connections."""
         Open the modal configuration window for module with given id
         """
         if self.controller:
+            registry = get_module_registry()
             module = self.controller.current_pipeline.modules[id]
             getter = registry.get_configuration_widget
             widgetType = getter(module.package, module.name, module.namespace)
@@ -1775,6 +1784,7 @@ mutual connections."""
         Opens the modal module documentation window for module with given id
         """
         if self.controller:
+            registry = get_module_registry()
             module = self.controller.current_pipeline.modules[id]
             descriptor = registry.get_descriptor_by_name(module.package,
                                                          module.name,

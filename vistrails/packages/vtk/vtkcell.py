@@ -28,7 +28,7 @@ import vtk
 from PyQt4 import QtCore, QtGui
 import sip
 from core import system
-from core.modules.module_registry import registry
+from core.modules.module_registry import get_module_registry
 from packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
 from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 import vtkcell_rc
@@ -1008,6 +1008,7 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                                 Return the SetPosition, SetFocalPoint and SetViewUp camera position
 
                                 """
+                                registry = get_module_registry()
                                 for i in range(len(function_ids)):
                                     if (function_ids[i]==-1):
                                         function_ids[i] = controller.vistrail.idScope.getNewId(ModuleFunction.vtType)
@@ -1157,6 +1158,7 @@ def registerSelf():
     Registry module with the registry
     """
     identifier = 'edu.utah.sci.vistrails.vtk'
+    registry = get_module_registry()
     registry.add_module(VTKCell)
     registry.add_input_port(VTKCell, "Location", CellLocation)
     [vR, vIH, vIS, vP] = [registry.get_descriptor_by_name(identifier, name).module

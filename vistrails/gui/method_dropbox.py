@@ -32,7 +32,8 @@ from PyQt4 import QtCore, QtGui
 from core.utils import expression
 from core.vistrail.module_function import ModuleFunction
 from core.modules import module_registry
-from core.modules.constant_configuration import FileChooserToolButton
+from core.modules.constant_configuration import StandardConstantWidget, \
+    FileChooserToolButton
 from gui.common_widgets import QPromptWidget
 from gui.method_palette import QMethodTreeWidget
 from gui.theme import CurrentTheme
@@ -260,7 +261,7 @@ class QMethodInputForm(QtGui.QGroupBox):
         Auto create widgets to describes the function 'function'
         
         """
-        reg = module_registry.registry
+        reg = module_registry.get_module_registry()
         self.setTitle(function.name)
         self.function = function
         self.widgets = []
@@ -276,7 +277,10 @@ class QMethodInputForm(QtGui.QGroupBox):
             p_module = reg.get_module_by_name(idn,
                                               p.type,
                                               p.namespace)
-            widget_type = p_module.get_widget_class()
+            if p_module is not None:
+                widget_type = p_module.get_widget_class()
+            else:
+                widget_type = StandardConstantWidget
             label = QHoverAliasLabel(p.alias, p.type)
             constant_widget = widget_type(p, self)            
             self.widgets.append(constant_widget)

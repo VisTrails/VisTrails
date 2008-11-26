@@ -27,7 +27,7 @@ from core.data_structures.bijectivedict import Bidict
 from core.data_structures.graph import Graph
 from core.debug import DebugPrint
 from core.modules.module_descriptor import ModuleDescriptor
-from core.modules.module_registry import registry, ModuleRegistry
+from core.modules.module_registry import get_module_registry
 from core.utils import VistrailsInternalError
 from core.utils import expression, append_to_dict_of_lists
 from core.utils.uxml import named_elements
@@ -43,7 +43,6 @@ from core.vistrail.port_spec import PortSpec
 from db.domain import DBWorkflow
 from types import ListType
 import core.vistrail.action
-import core.modules.module_registry
 from core.utils import profile
 
 from xml.dom.minidom import getDOMImplementation, parseString
@@ -553,6 +552,7 @@ class Pipeline(DBWorkflow):
         result = self.modules[id]
         if result.vtType != Abstraction.vtType and \
                 result.vtType != Group.vtType and result.package is None:
+            registry = get_module_registry()
             DebugPrint.critical('module %d is missing package' % id)
             descriptor = registry.get_descriptor_from_name_only(result.name)
             result.package = descriptor.identifier
@@ -616,6 +616,7 @@ class Pipeline(DBWorkflow):
         try:
             return self._module_signatures[module_id]
         except KeyError:
+            registry = get_module_registry()
             m = self.modules[module_id]
             sig = registry.module_signature(self, m)
             self._module_signatures[module_id] = sig
@@ -849,6 +850,7 @@ class Pipeline(DBWorkflow):
 #             return copy.copy(port_list[-1].spec)
 
         def find_spec(port):
+            registry = get_module_registry()
             module = self.get_module_by_id(port.moduleId)
             port_type_map = PortSpec.port_type_map
             if module.registry is not None:
@@ -902,6 +904,7 @@ class Pipeline(DBWorkflow):
         if no module_ids list is given, we assume every module in the pipeline.
         """
 
+        registry = get_module_registry()
         if module_ids == None:
             module_ids = self.modules.iterkeys()
         for mid in module_ids:

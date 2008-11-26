@@ -30,7 +30,7 @@ from PyQt4 import QtCore, QtGui
 #
 # from core.vistrail.action import AddModuleAction, AddConnectionAction, \
 #      DeleteConnectionAction, ChangeParameterAction
-from core.modules.module_registry import registry
+from core.modules.module_registry import get_module_registry
 from core.interpreter.default import get_default_interpreter
 from core.utils import DummyView
 from core.vistrail.action import Action
@@ -58,6 +58,7 @@ def assignPipelineCellLocations(inPipeline, sheetName, row, col, cellIds=[]):
     
     """
     pipeline = copy.copy(inPipeline)
+    registry = get_module_registry()
     if cellIds==[]:
         cellIds = pipeline.modules.keys()
     SpreadsheetCell = registry.get_descriptor_by_name('edu.utah.sci.vistrails.spreadsheet',

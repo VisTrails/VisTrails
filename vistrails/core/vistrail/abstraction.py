@@ -22,7 +22,7 @@
 
 import copy
 
-from core.modules.module_registry import registry, ModuleRegistry
+from core.modules.module_registry import get_module_registry
 from core.vistrail.annotation import Annotation
 from core.vistrail.location import Location
 from core.vistrail.module import Module
@@ -98,6 +98,7 @@ class Abstraction(DBAbstraction, Module):
     ##########################################################################
 
     def summon(self):
+        registry = get_module_registry()
         get = registry.get_descriptor_by_name
         try:
             descriptor = get(self.package, self.name, self.namespace)

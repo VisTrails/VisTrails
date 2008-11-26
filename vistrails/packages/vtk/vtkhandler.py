@@ -23,7 +23,7 @@
 from PyQt4 import QtCore, QtGui
 from core.modules.basic_modules import String
 from core.modules.vistrails_module import Module, NotCacheable
-from core.modules.module_registry import registry
+from core.modules.module_registry import get_module_registry
 from core.modules.module_configure import StandardModuleConfigurationWidget
 from core.modules.python_source_configure import PythonEditor
 from core.vistrail.module_function import ModuleFunction, ModuleParam
@@ -274,6 +274,7 @@ def registerSelf():
     """ registerSelf() -> None
     Registry module with the registry
     """
+    registry = get_module_registry()
     vIO = registry.get_descriptor_by_name(
         'edu.utah.sci.vistrails.vtk',
         'vtkInteractorObserver').module

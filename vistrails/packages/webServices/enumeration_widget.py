@@ -28,7 +28,7 @@ import core.modules
 from core.modules.constant_configuration import ConstantWidgetMixin
 from core.modules.basic_modules import Constant, Module
 from core.modules.constant_configuration import StandardConstantWidget
-from core.modules.module_registry import registry
+import core.modules.module_registry
 from core.modules.vistrails_module import new_module
 import packages.webServices
 
@@ -79,7 +79,7 @@ def new_constant(name, namespace, identifier, widget_type=StandardConstantWidget
     
     new_constant dynamically creates a new Module derived from Constant
     with a widget type."""
-    reg = core.modules.module_registry
+    reg = core.modules.module_registry.get_module_registry
     
     def __init__(self):
         Constant.__init__(self)

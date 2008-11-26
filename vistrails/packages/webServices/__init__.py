@@ -160,7 +160,7 @@ def webServiceTypesDict(WBobj):
                     setattr(libobj,nameattrib,visdata)
 
     def compute(self):
-        reg = core.modules.module_registry
+        reg = core.modules.module_registry.get_module_registry()
         #Check if it is an enumeration
         if WBobj.typeobj == 'Enumeration':
             nameport = str(WBobj.ports[0][0])
@@ -312,7 +312,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
     inparams and outparams. Right now, only the first outparam is used
     for setting the result. """
 
-    reg = core.modules.module_registry
+    reg = core.modules.module_registry.get_module_registry
 
     def wrapResponseobj(self,resp,visobj):
         if type(resp)==types.ListType:
@@ -630,7 +630,7 @@ def processExtension(w, server):
 def addTypesModules(w,modclient,server):
     """ Create a VisTrails module for each complex type specified in
     webservicesmodulesDict dictionary. """
-    reg = core.modules.module_registry
+    reg = core.modules.module_registry.get_module_registry()
     namespace = w + "|Types"
     complexsdict = webServicesmodulesDict[namespace]
     keys = complexsdict.keys()
@@ -654,7 +654,7 @@ def addMethodsModules(w,modclient,server):
     """ Create a VisTrails module for each complex type specified in
     webservicesmodulesDict dictionary. """
 
-    reg = core.modules.module_registry
+    reg = core.modules.module_registry.get_module_registry()
     namespace = w + "|Methods"
     complexsdict = webServicesmodulesDict[namespace]
     keys = complexsdict.keys()
@@ -675,7 +675,7 @@ def addMethodsModules(w,modclient,server):
 def addPortsToTypes(w):
     """ Add input and output ports to the VisTrails complex type modules. """
 
-    reg = core.modules.module_registry
+    reg = core.modules.module_registry.get_module_registry()
     dictkey = w + "|Types"
     complexsdict = webServicesmodulesDict[dictkey]
     keys = complexsdict.keys()
@@ -726,7 +726,7 @@ def addPortsToTypes(w):
 def addPortsToMethods(w):
     """ Add input and output ports to the VisTrails complex type modules. """
 
-    reg = core.modules.module_registry
+    reg = core.modules.module_registry.get_module_registry()
     dictkey = w + "|Methods"
     complexsdict = webServicesmodulesDict[dictkey]
     keys = complexsdict.keys()
@@ -887,7 +887,7 @@ def load_wsdl_with_config(wsdlList):
     global schema
     global webServicesmodulesDict
     global complexsdict
-    reg = core.modules.module_registry
+    reg = core.modules.module_registry.get_module_registry()
     basic = core.modules.basic_modules
     not_loaded = []
     result = True
@@ -1233,7 +1233,7 @@ def initialize(*args, **keywords):
     if configuration.check('wsdlList'):
         wsdlList = configuration.wsdlList.split(";")
 
-    reg = core.modules.module_registry
+    reg = core.modules.module_registry.get_module_registry()
     basic = core.modules.basic_modules
     reg.add_module(WebService)
 

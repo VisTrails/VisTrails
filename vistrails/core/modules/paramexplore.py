@@ -27,7 +27,7 @@ API in the classes.
 
 from PyQt4 import QtCore, QtGui
 from gui.common_widgets import QStringEdit
-from core.modules.module_registry import registry
+from core.modules.module_registry import get_module_registry
 from gui.theme import CurrentTheme
 from core.modules.python_source_configure import PythonEditor
 from gui.utils import show_warning
@@ -59,6 +59,7 @@ class QParameterEditor(QtGui.QWidget):
         hLayout.setSpacing(0)
         self.setLayout(hLayout)
 
+        registry = get_module_registry()
         module = registry.get_module_by_name(param_info.identifier,
                                              param_info.type,
                                              param_info.namespace)
@@ -311,6 +312,7 @@ class QListInterpolationEditor(QtGui.QWidget):
         """
 
         param_info = self._param_info
+        registry = get_module_registry()
         module = registry.get_module_by_name(param_info.identifier,
                                              param_info.type,
                                              param_info.namespace)
@@ -611,6 +613,7 @@ class QUserFunctionEditor(QtGui.QFrame):
         
         """
         param_info = self._param_info
+        registry = get_module_registry()
         module = registry.get_module_by_name(param_info.identifier,
                                              param_info.type,
                                              param_info.namespace)

@@ -37,9 +37,7 @@ from core.utils import all, any, VistrailsInternalError, InstanceObject
 from core.debug import log
 from core.modules.basic_modules import Integer, Float, String, File, \
      Variant, Color
-from core.modules.module_registry import (registry, add_module,
-                                          has_input_port,
-                                          add_input_port, add_output_port)
+from core.modules.module_registry import get_module_registry
 from core.modules.vistrails_module import new_module, ModuleError
 from base_module import vtkBaseModule
 from class_tree import ClassTree
@@ -109,6 +107,7 @@ def typeMap(name, package=None):
     if name in typeMapDict:
         return typeMapDict[name]
     else:
+        registry = get_module_registry()
         if not registry.has_descriptor_with_name(package, name):
             return None
         else:
@@ -296,12 +295,15 @@ def addAlgorithmPorts(module):
             except TypeError:
                 pass
             else:
+                registry = get_module_registry()
                 des = registry.get_descriptor_by_name('edu.utah.sci.vistrails.vtk',
                                                       'vtkAlgorithmOutput')
                 for i in xrange(0,instance.GetNumberOfInputPorts()):
-                    add_input_port(module, 'SetInputConnection%d'%i, des.module)
+                    registry.add_input_port(module, 'SetInputConnection%d'%i, 
+                                            des.module)
                 for i in xrange(0,instance.GetNumberOfOutputPorts()):
-                    add_output_port(module, 'GetOutputPort%d'%i, des.module)
+                    registry.add_output_port(module, 'GetOutputPort%d'%i, 
+                                    des.module)
 
 disallowed_set_get_ports = set(['ReferenceCount',
                                 'InputConnection',
@@ -322,6 +324,7 @@ def addSetGetPorts(module, get_set_dict, delayed):
     """
 
     klass = get_description_class(module.vtkClass)
+    registry = get_module_registry()
     for name in get_set_dict.iterkeys():
         if name in disallowed_set_get_ports: continue
         getterMethod = getattr(klass, 'Get%s'%name)
@@ -341,7 +344,7 @@ def addSetGetPorts(module, get_set_dict, delayed):
                 continue
             class_ = typeMap(getter[0][0])
             if is_class_allowed(class_):
-                add_output_port(module, 'Get'+name, class_, True)
+                registry.add_output_port(module, 'Get'+name, class_, True)
         if len(setterSig) > 1:
             prune_signatures(module, 'Set%s'%name, setterSig)
         for setter, order in izip(setterSig, xrange(1, len(setterSig)+1)):
@@ -350,17 +353,17 @@ def addSetGetPorts(module, get_set_dict, delayed):
             else:
                 n = 'Set' + name + '_' + str(order)
             if len(setter[1]) == 1 and is_class_allowed(typeMap(setter[1][0])):
-                add_input_port(module, n,
-                               typeMap(setter[1][0]),
-                               setter[1][0] in typeMapDict)
+                registry.add_input_port(module, n,
+                                        typeMap(setter[1][0]),
+                                        setter[1][0] in typeMapDict)
             else:
                 classes = [typeMap(i) for i in setter[1]]
                 if all(classes, is_class_allowed):
-                    add_input_port(module, n, classes, True)
+                    registry.add_input_port(module, n, classes, True)
             # Wrap SetFileNames for VisTrails file access
             if file_name_pattern.match(name):
-                add_input_port(module, 'Set' + name[:-4], 
-                               (File, 'input file'), False)
+                registry.add_input_port(module, 'Set' + name[:-4], 
+                                        (File, 'input file'), False)
             # Wrap SetRenderWindow for exporters
             elif name == 'RenderWindow':
                 # cscheid 2008-07-11 This is messy: VTKCell isn't
@@ -376,20 +379,20 @@ def addSetGetPorts(module, get_set_dict, delayed):
                     delayed.add_input_port.append((module, 'SetVTKCell', VTKCell, False))
             # Wrap color methods for VisTrails GUI facilities
             elif name == 'DiffuseColor':
-                add_input_port(module, 'SetDiffuseColorWidget',
-                               (Color, 'color'), True)
+                registry.add_input_port(module, 'SetDiffuseColorWidget',
+                                        (Color, 'color'), True)
             elif name == 'Color':
-                add_input_port(module, 'SetColorWidget', (Color, 'color'),
-                               True)
+                registry.add_input_port(module, 'SetColorWidget', 
+                                        (Color, 'color'), True)
             elif name == 'AmbientColor':
-                add_input_port(module, 'SetAmbientColorWidget',
-                               (Color, 'color'), True)
+                registry.add_input_port(module, 'SetAmbientColorWidget',
+                                        (Color, 'color'), True)
             elif name == 'SpecularColor':
-                add_input_port(module, 'SetSpecularColorWidget',
-                               (Color, 'color'), True)
+                registry.add_input_port(module, 'SetSpecularColorWidget',
+                                        (Color, 'color'), True)
             elif name == 'EdgeColor':
-                add_input_port(module, 'SetEdgeColorWidget',
-                               (Color, 'color'), True)
+                registry.add_input_port(module, 'SetEdgeColorWidget',
+                                        (Color, 'color'), True)
 
 disallowed_toggle_ports = set(['GlobalWarningDisplay',
                                'Debug',
@@ -403,11 +406,12 @@ def addTogglePorts(module, toggle_dict):
     toggle_dict --- the Toggle method signatures returned by vtk_parser
 
     """
+    registry = get_module_registry()
     for name in toggle_dict.iterkeys():
         if name in disallowed_toggle_ports:
             continue
-        add_input_port(module, name+'On', [], True)
-        add_input_port(module, name+'Off', [], True)
+        registry.add_input_port(module, name+'On', [], True)
+        registry.add_input_port(module, name+'Off', [], True)
 
 disallowed_state_ports = set(['SetInputArrayToProcess'])
 def addStatePorts(module, state_dict):
@@ -420,14 +424,15 @@ def addStatePorts(module, state_dict):
 
     """
     klass = get_description_class(module.vtkClass)
+    registry = get_module_registry()
     for name in state_dict.iterkeys():
         for mode in state_dict[name]:
             # Creates the port Set foo to bar
             field = 'Set'+name+'To'+mode[0]
             if field in disallowed_state_ports:
                 continue
-            if not has_input_port(module, field):
-                add_input_port(module, field, [], True)
+            if not registry.has_input_port(module, field):
+                registry.add_input_port(module, field, [], True)
 
         # Now create the port Set foo with parameter
         if hasattr(klass, 'Set%s'%name):
@@ -444,12 +449,12 @@ def addStatePorts(module, state_dict):
                     n = 'Set' + name + str(ix+1)
                 tm = typeMap(setter[1][0])
                 if len(setter[1]) == 1 and is_class_allowed(tm):
-                    add_input_port(module, n, tm,
-                                   setter[1][0] in typeMapDict)
+                    registry.add_input_port(module, n, tm,
+                                            setter[1][0] in typeMapDict)
                 else:
                     classes = [typeMap(i) for i in setter[1]]
                     if all(classes, is_class_allowed):
-                        add_input_port(module, n, classes, True)
+                        registry.add_input_port(module, n, classes, True)
 
 disallowed_other_ports = set(
     [
@@ -493,6 +498,7 @@ def addOtherPorts(module, other_list):
 
     """
     klass = get_description_class(module.vtkClass)
+    registry = get_module_registry()
     for name in other_list:
         if name[:3] in ['Add','Set'] or name[:6]=='Insert':
             if name in disallowed_other_ports:
@@ -521,10 +527,10 @@ def addOtherPorts(module, other_list):
                     else:
                         n = name + '_' + str(ix+1)
                     if len(types)<=1:
-                        add_input_port(module, n, types[0],
-                                       types[0] in typeMapDictValues)
+                        registry.add_input_port(module, n, types[0],
+                                                types[0] in typeMapDictValues)
                     else:
-                        add_input_port(module, n, types, True)
+                        registry.add_input_port(module, n, types, True)
         else:
             if name in disallowed_other_ports:
                 continue
@@ -546,7 +552,7 @@ def addOtherPorts(module, other_list):
                         n = name
                     else:
                         n = name + '_' + str(ix+1)
-                    add_input_port(module, n, types, True)
+                    registry.add_input_port(module, n, types, True)
 
 disallowed_get_ports = set([
     'GetClassName',
@@ -559,6 +565,7 @@ disallowed_get_ports = set([
 
 def addGetPorts(module, get_list):
     klass = get_description_class(module.vtkClass)
+    registry = get_module_registry()
     for name in get_list:
         if name in disallowed_get_ports:
             continue
@@ -575,7 +582,7 @@ def addGetPorts(module, get_list):
                     n = name + "_" + str(ix+1)
                 else:
                     n = name
-                add_output_port(module, n, class_, True)
+                registry.add_output_port(module, n, class_, True)
     
 def addPorts(module, delayed):
     """ addPorts(module: VTK module inherited from Module,
@@ -589,7 +596,8 @@ def addPorts(module, delayed):
 
     """
     klass = get_description_class(module.vtkClass)
-    add_output_port(module, 'self', module)
+    registry = get_module_registry()
+    registry.add_output_port(module, 'self', module)
     parser.parse(klass)
     addAlgorithmPorts(module)
     addGetPorts(module, parser.get_get_methods())
@@ -599,23 +607,23 @@ def addPorts(module, delayed):
     addOtherPorts(module, parser.get_other_methods())
     # CVS version of VTK doesn't support AddInputConnect(vtkAlgorithmOutput)
     if klass==vtk.vtkAlgorithm:
-        add_input_port(module, 'AddInputConnection',
-                       typeMap('vtkAlgorithmOutput'))
+        registry.add_input_port(module, 'AddInputConnection',
+                                typeMap('vtkAlgorithmOutput'))
     # vtkWriters have a custom File port
     elif klass==vtk.vtkWriter:
-        add_output_port(module, 'file', typeMap('File',
-                                                'edu.utah.sci.vistrails.basic'))
+        registry.add_output_port(module, 'file', 
+                                 typeMap('File','edu.utah.sci.vistrails.basic'))
     elif klass==vtk.vtkImageWriter:
-        add_output_port(module, 'file', typeMap('File',
-                                                'edu.utah.sci.vistrails.basic'))
+        registry.add_output_port(module, 'file', 
+                                 typeMap('File','edu.utah.sci.vistrails.basic'))
     elif klass==vtk.vtkVolumeProperty:
-        add_input_port(module, 'SetTransferFunction',
-                       typeMap('TransferFunction'))
+        registry.add_input_port(module, 'SetTransferFunction',
+                                typeMap('TransferFunction'))
     elif klass==vtk.vtkDataSet:
-        add_input_port(module, 'SetPointData', typeMap('vtkPointData'))
-        add_input_port(module, 'SetCallData', typeMap('vtkCellData'))
+        registry.add_input_port(module, 'SetPointData', typeMap('vtkPointData'))
+        registry.add_input_port(module, 'SetCallData', typeMap('vtkCellData'))
     elif klass==vtk.vtkCell:
-        add_input_port(module, 'SetPointIds', typeMap('vtkIdList'))
+        registry.add_input_port(module, 'SetPointIds', typeMap('vtkIdList'))
 
 def setAllPorts(descriptor, delayed):
     """ setAllPorts(descriptor: ModuleDescriptor) -> None
@@ -872,7 +880,9 @@ def createModule(baseModule, node):
         module.vtkClass = getattr(fix_classes, node.klass.__name__ + '_fixed')
     else:
         module.vtkClass = node.klass
-    add_module(module, abstract=is_abstract(), signatureCallable=vtk_hasher)
+    registry = get_module_registry()
+    registry.add_module(module, abstract=is_abstract(), 
+                        signatureCallable=vtk_hasher)
     for child in node.children:
         if child.name in disallowed_classes:
             continue
@@ -888,7 +898,8 @@ def createAllModules(g):
     assert base.name == 'vtkObjectBase'
     vtkObjectBase = new_module(vtkBaseModule, 'vtkObjectBase')
     vtkObjectBase.vtkClass = vtk.vtkObjectBase
-    add_module(vtkObjectBase)
+    registry = get_module_registry()
+    registry.add_module(vtkObjectBase)
     for child in base.children:
         if child.name in disallowed_classes:
             continue
@@ -903,6 +914,7 @@ def extract_vtk_instance(vistrails_obj):
     takes an instance of a VisTrails module that is a subclass
     of the vtkObjectBase module and returns the corresponding
     instance."""
+    registry = get_module_registry()
     vtkObjectBase = registry.getDescriptorByName('vtkObjectBase').module
     assert isinstance(vistrails_obj, vtkObjectBase)
     return vistrails_obj.vtkInstance
@@ -913,6 +925,7 @@ def wrap_vtk_instance(vtk_obj):
     takes a vtk instance and returns a corresponding
     wrapped instance of a VisTrails module"""
     assert isinstance(vtk_obj, vtk.vtkObjectBase)
+    registry = get_module_registry()
     m = registry.getDescriptorByName(vtk_obj.GetClassName())
     result = m.module()
     result.vtkInstance = vtk_obj
@@ -941,7 +954,8 @@ def initialize():
 
     delayed = InstanceObject(add_input_port=[])
     # Add VTK modules
-    add_module(vtkBaseModule)
+    registry = get_module_registry()
+    registry.add_module(vtkBaseModule)
     createAllModules(inheritanceGraph)
     setAllPorts(registry.get_descriptor_by_name(identifier,
                                                 'vtkObjectBase'),
@@ -961,31 +975,29 @@ def initialize():
     # Now add all "delayed" ports - see comment on addSetGetPorts
     for args in delayed.add_input_port:
         
-        add_input_port(*args)
+        registry.add_input_port(*args)
 
     # register Transfer Function adjustment
     # This can't be reordered -- TransferFunction needs to go before
     # vtkVolumeProperty, but vtkScaledTransferFunction needs
     # to go after vtkAlgorithmOutput
     
-    add_module(tf_widget.vtkScaledTransferFunction)
-    add_input_port(tf_widget.vtkScaledTransferFunction,
-                   'Input',
-                   registry.get_descriptor_by_name('edu.utah.sci.vistrails.vtk',
-                                                   'vtkAlgorithmOutput').module)
-    add_input_port(tf_widget.vtkScaledTransferFunction,
-                   'Dataset',
-                   registry.get_descriptor_by_name('edu.utah.sci.vistrails.vtk',
-                                                   'vtkDataObject').module)
-    add_input_port(tf_widget.vtkScaledTransferFunction,
-                   'Range',
-                   [Float, Float])
-    add_input_port(tf_widget.vtkScaledTransferFunction,
-                   'TransferFunction',
-                   tf_widget.TransferFunctionConstant)
-    add_output_port(tf_widget.vtkScaledTransferFunction,
-                    'TransferFunction',
-                    tf_widget.TransferFunctionConstant)
+    getter = registry.get_descriptor_by_name
+    registry.add_module(tf_widget.vtkScaledTransferFunction)
+    registry.add_input_port(tf_widget.vtkScaledTransferFunction,
+                            'Input', getter('edu.utah.sci.vistrails.vtk',
+                                            'vtkAlgorithmOutput').module)
+    registry.add_input_port(tf_widget.vtkScaledTransferFunction,
+                            'Dataset', getter ('edu.utah.sci.vistrails.vtk',
+                                               'vtkDataObject').module)
+    registry.add_input_port(tf_widget.vtkScaledTransferFunction,
+                            'Range', [Float, Float])
+    registry.add_input_port(tf_widget.vtkScaledTransferFunction,
+                            'TransferFunction',
+                            tf_widget.TransferFunctionConstant)
+    registry.add_output_port(tf_widget.vtkScaledTransferFunction,
+                             'TransferFunction',
+                             tf_widget.TransferFunctionConstant)
 
     inspectors.initialize()
 

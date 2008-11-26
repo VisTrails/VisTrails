@@ -22,7 +22,6 @@
 from core.data_structures.bijectivedict import Bidict
 from itertools import imap, chain
 import copy
-import core.modules.module_registry
 try:
     import scipy
     _analogies_available = True
@@ -32,7 +31,6 @@ except ImportError:
 import math
 from pipeline_utils import *
 
-reg = core.modules.module_registry.registry
 from core.utils import append_to_dict_of_lists
 from core.system import temporary_directory
 
@@ -272,8 +270,8 @@ class EigenBase(object):
 
         def remove_descriptions(d):
             def update_elements(spec):
-                return [v.__name__ for v
-                        in spec.types()]
+                return [v.name for v
+                        in spec.descriptors()]
             for k in d.keys():
                 v = update_elements(d[k])
                 if len(v):

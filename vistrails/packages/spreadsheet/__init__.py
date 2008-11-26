@@ -23,7 +23,8 @@
 # Spreadsheet Package for VisTrails
 ################################################################################
 from PyQt4 import QtCore, QtGui
-from core.modules import basic_modules, module_registry
+from core.modules import basic_modules
+from core.modules.module_registry import get_module_registry
 from core.modules.vistrails_module import Module
 from core.system import vistrails_root_directory
 from spreadsheet_controller import spreadsheetController
@@ -63,12 +64,13 @@ def addWidget(packagePath):
     
     """
     try:
+        registry = get_module_registry()
         widget = importReturnLast(packagePath)
         if hasattr(widget, 'widgetName'):
             widgetName = widget.widgetName()
         else:
             widgetName = packagePath
-        widget.registerWidget(module_registry, basic_modules, basicWidgets)
+        widget.registerWidget(registry, basic_modules, basicWidgets)
         spreadsheetRegistry.registerPackage(widget, packagePath)
         print '  ==> Successfully import <%s>' % widgetName
     except:

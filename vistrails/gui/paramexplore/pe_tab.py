@@ -26,7 +26,7 @@ QParameterExplorationTab
 
 from PyQt4 import QtCore, QtGui
 from core.interpreter.default import get_default_interpreter
-from core.modules.module_registry import registry
+from core.modules.module_registry import get_module_registry
 from core.param_explore import ActionBasedParameterExploration
 from gui.common_widgets import QDockContainer, QToolWindowInterface
 from gui.paramexplore.pe_table import QParameterExplorationWidget
@@ -128,6 +128,7 @@ class QParameterExplorationTab(QDockContainer, QToolWindowInterface):
         corresponding to each dimension
         
         """
+        registry = get_module_registry()
         actions = self.peWidget.table.collectParameterActions()
         if self.controller.current_pipeline and actions:
             explorer = ActionBasedParameterExploration()

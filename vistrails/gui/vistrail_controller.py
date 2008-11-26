@@ -31,7 +31,6 @@ from core.data_structures.point import Point
 from core.utils import VistrailsInternalError, ModuleAlreadyExists
 from core.log.controller import LogController, DummyLogController
 from core.log.log import Log
-from core.modules import module_registry
 from core.modules.module_registry import ModuleRegistry
 from core.modules.basic_modules import Variant
 from core.modules.sub_module import InputPort, OutputPort, new_abstraction, \
@@ -617,7 +616,7 @@ class VistrailController(QtCore.QObject):
         return op_list
 
     def create_function_ops(self, module_id, functions):
-        reg = core.modules.module_registry.registry
+        reg = core.modules.module_registry.get_module_registry()
         op_list = []
         module = self.current_pipeline.modules[module_id]
         desc = reg.get_descriptor_by_name(module.package, module.name,
@@ -1788,7 +1787,7 @@ class VistrailController(QtCore.QObject):
 #                                                        in_names, out_names)  
                         pipeline.add_module(module, id_remap)
 
-                        reg = core.modules.module_registry.registry
+                        reg = core.modules.module_registry.get_module_registry()
                         spec_type = PortSpec.port_type_map.inverse[port.type]
                         port_spec = reg.get_port_spec(module.package, 
                                                       module.name, 
@@ -2073,7 +2072,7 @@ class VistrailController(QtCore.QObject):
         self.perform_action(action)
 
     def abstraction_exists(self, name, namespace=None):
-        reg = core.modules.module_registry.registry
+        reg = core.modules.module_registry.get_module_registry()
         return reg.has_descriptor_with_name('local.abstractions', name,
                                             namespace)
 #         conf = get_vistrails_configuration()
@@ -2119,7 +2118,7 @@ class VistrailController(QtCore.QObject):
         return None
 
     def get_abstraction_descriptor(self, name, namespace=None):
-        reg = core.modules.module_registry.registry
+        reg = core.modules.module_registry.get_module_registry()
         return reg.get_descriptor_by_name('local.abstractions', name, namespace)
 
     def load_abstraction(self, abs_fname, abs_name=None):
@@ -2150,12 +2149,12 @@ class VistrailController(QtCore.QObject):
             if descriptor._abstraction_refs < 1:
                 # unload abstraction
                 print "deleting module:", name, namespace
-                reg = core.modules.module_registry.registry
+                reg = core.modules.module_registry.get_module_registry()
                 reg.delete_module('local.abstractions', name, namespace)
 
     def add_abstraction(self, abs_vistrail, abs_fname, name, 
                         namespace=None): 
-        reg = core.modules.module_registry.registry
+        reg = core.modules.module_registry.get_module_registry()
         abstraction = new_abstraction(name, abs_vistrail, reg, abs_fname)
         reg.auto_add_module((abstraction, {'package': 'local.abstractions',
                                            'namespace': namespace,
@@ -2168,7 +2167,7 @@ class VistrailController(QtCore.QObject):
         
     def import_abstraction(self, name, namespace):
         # copy from a local namespace to local.abstractions
-        reg = core.modules.module_registry.registry
+        reg = core.modules.module_registry.get_module_registry()
         if namespace is None:
             # can't import an abstraction that already lives in 
             # local.abstractions
@@ -2314,7 +2313,7 @@ class VistrailController(QtCore.QObject):
 
     def write_vistrail(self, locator):
         def process_abstractions(vistrail):
-            reg = core.modules.module_registry.registry
+            reg = core.modules.module_registry.get_module_registry()
             abstractions = []
             for action in vistrail.actions:
                 for operation in action.operations:
@@ -2389,7 +2388,7 @@ class VistrailController(QtCore.QObject):
             locator.save_as(self.log)
 
     def write_registry(self, locator):
-        locator.save_as(core.modules.module_registry.registry)
+        locator.save_as(core.modules.module_registry.get_module_registry())
 
     def query_by_example(self, pipeline):
         """ query_by_example(pipeline: Pipeline) -> None

@@ -71,7 +71,7 @@ class TestOptionalPorts(Module):
 ##############################################################################
 
 def initialize():
-    reg = core.modules.module_registry
+    reg = core.modules.module_registry.get_module_registry()
     reg.add_module(TestTupleExecution)
     reg.add_input_port(TestTupleExecution, 'input', [Float, Float])
     reg.add_output_port(TestTupleExecution, 'output', (Float, 'output'))

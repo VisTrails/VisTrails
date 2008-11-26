@@ -341,9 +341,11 @@ Makes sure input port 'name' is filled."""
         """ Create a vistrails module from the module registry.  This creates an instance of the module
         for use in creating the object output by a Module.
         """
+        # FIXME (DAK): I don't get this, shouldn't we import module_registry?
         import core.modules.vistrails_module
         try:
-            m = core.modules.module_registry.get_module_by_name(ident, name, ns)
+            reg = core.modules.module_registry.get_module_registry()
+            m = reg.get_module_by_name(ident, name, ns)
             return m()
         except:
             msg = "Cannot get module named " + str(name) + " with identifier " + str(ident) + " and namespace " + ns

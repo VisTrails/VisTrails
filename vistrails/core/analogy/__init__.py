@@ -22,14 +22,13 @@
 
 from core.data_structures.bijectivedict import Bidict
 from itertools import imap, chain
-import core.modules.module_registry
+from core.modules.module_registry import get_module_registry
 import core.db.io
 from core.requirements import MissingRequirement
 from core.vistrail.module import Module
 from core.vistrail.port_spec import PortSpec, PortEndPoint
 import copy
 from core.vistrail.pipeline import Pipeline
-reg = core.modules.module_registry.registry
 
 ##########################################################################
 
@@ -133,6 +132,7 @@ def perform_analogy_on_vistrail(vistrail,
     # need to consider modules, parent_obj_ids, ports
     # if things don't make sense, they're cut out in STEP 4, not here
 
+    reg = get_module_registry()
     ops = []
     for op in baAction.operations:
         if op.vtType == 'delete':

@@ -99,14 +99,15 @@ class ModuleDescriptor(DBModuleDescriptor):
         else:
             self.module = None
         if 'base_descriptor' in kwargs:
-            self.base_descriptor = kwargs['base_descriptor']
-            if 'base_descriptor_id' not in kwargs:
-                kwargs['base_descriptor_id'] = self.base_descriptor.id
+            if kwargs['base_descriptor'] is not None:
+                self._base_descriptor = kwargs['base_descriptor']
+                if 'base_descriptor_id' not in kwargs:
+                    kwargs['base_descriptor_id'] = self._base_descriptor.id
+                self._port_count = self._base_descriptor._port_count
+                self._base_descriptor.children.append(self)
             del kwargs['base_descriptor']
-            self._port_count = self.base_descriptor._port_count
-            self.base_descriptor.children.append(self)
         else:
-            self.base_descriptor = None
+            self._base_descriptor = None
             self._port_count = 0
         # rename identifier to package for db
         if 'identifier' in kwargs:
@@ -134,7 +135,9 @@ class ModuleDescriptor(DBModuleDescriptor):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBModuleDescriptor.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = ModuleDescriptor
-        cp.base_descriptor = self.base_descriptor
+
+        cp._base_descriptor = self._base_descriptor
+        cp.module = self.module
         cp._abstraction_refs = self._abstraction_refs
         cp._port_count = self._port_count
         cp._is_abstract = self._is_abstract
@@ -156,9 +159,13 @@ class ModuleDescriptor(DBModuleDescriptor):
             return
         _desc.__class__ = ModuleDescriptor
         
+        for port_spec in _desc.db_portSpecs:
+            PortSpec.convert(port_spec)
+
         # do more init stuff
         _desc.children = []
-        _desc.base_descriptor = None
+        _desc.module = None
+        _desc._base_descriptor = None
         _desc._port_count = 0
         _desc._abstraction_refs = 1
         _desc._is_abstract = False
@@ -181,6 +188,18 @@ class ModuleDescriptor(DBModuleDescriptor):
     base_descriptor_id = DBModuleDescriptor.db_base_descriptor_id
     port_specs_list = DBModuleDescriptor.db_portSpecs
     
+    def _get_base_descriptor(self):
+        if self._base_descriptor is None and self.base_descriptor_id >= 0:
+            from core.modules.module_registry import get_module_registry
+            reg = get_module_registry()
+            self._base_descriptor = \
+                reg.descriptors_by_id[self.base_descriptor_id]
+        return self._base_descriptor
+    def _set_base_descriptor(self, base_descriptor):
+        self._base_descriptor = base_descriptor
+        self.base_descriptor_id = base_descriptor.id
+    base_descriptor = property(_get_base_descriptor, _set_base_descriptor)
+
     def _get_sigstring(self):
         if self.db_namespace:
             return self.db_package + ':' + self.db_name + ':' + \
@@ -236,6 +255,14 @@ class ModuleDescriptor(DBModuleDescriptor):
         self._hasher_callable = callable_
     def hasher_callable(self):
         return self._hasher_callable
+
+    ##########################################################################
+    # Operators
+
+    def __eq__(self, other):
+        return (self.package == other.package and
+                self.name == other.name and
+                self.namespace == other.namespace)
  
     ##########################################################################
     # Abstract module detection support

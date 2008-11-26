@@ -107,7 +107,7 @@ class MplFigure(NotCacheable, Module):
 
 def initialize(*args, **keywords):    
 
-    reg = core.modules.module_registry
+    reg = core.modules.module_registry.get_module_registry()
     
     reg.add_module(MplPlot, configureWidgetType=MplPlotConfigurationWidget)
 #     reg.add_input_port(MplPlot, 'source', String, True)
@@ -121,11 +121,11 @@ def initialize(*args, **keywords):
     reg.add_output_port(MplFigure, 'File', File)
     
     # Register a figure cell type if the spreadsheet is up
-    if reg.registry.has_module('edu.utah.sci.vistrails.spreadsheet',
+    if reg.has_module('edu.utah.sci.vistrails.spreadsheet',
                                'SpreadsheetCell'):
         from figure_cell import MplFigureCell
-        reg.registry.add_module(MplFigureCell)
-        reg.registry.add_input_port(MplFigureCell, 'FigureManager', MplFigureManager)
+        reg.add_module(MplFigureCell)
+        reg.add_input_port(MplFigureCell, 'FigureManager', MplFigureManager)
 
 def package_dependencies():
     import core.packagemanager

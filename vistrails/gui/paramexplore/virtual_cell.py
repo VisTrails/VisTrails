@@ -24,7 +24,7 @@ Parameter Exploration Tab """
 
 from PyQt4 import QtCore, QtGui
 from core.inspector import PipelineInspector
-from core.modules.module_registry import registry
+from core.modules.module_registry import get_module_registry
 from core.vistrail.action import Action
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
@@ -75,6 +75,7 @@ def _positionPipelines(sheetPrefix, sheetCount, rowCount, colCount,
     of sheetCount x rowCount x colCount cells
 
     """
+    registry = get_module_registry()
     (vRCount, vCCount, cells) = config
     modifiedPipelines = []
     for pId in xrange(len(pipelines)):

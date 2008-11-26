@@ -22,7 +22,6 @@
 
 from PyQt4 import QtCore, QtGui
 from core.modules.module_configure import StandardModuleConfigurationWidget
-from core.modules.module_registry import registry, ModuleRegistry
 from core.modules.tuple_configuration import PortTableConfigurationWidget, \
     PortTable
 from core.vistrail.module_function import ModuleFunction

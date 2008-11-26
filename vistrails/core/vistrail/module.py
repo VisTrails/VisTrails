@@ -36,8 +36,7 @@ from core.vistrail.port import Port, PortEndPoint
 from core.vistrail.port_spec import PortSpec
 from core.utils import NoSummon, VistrailsInternalError, report_stack
 from core.modules.module_descriptor import OverloadedPort
-import core.modules.module_registry
-from core.modules.module_registry import registry, ModuleRegistry
+from core.modules.module_registry import get_module_registry, ModuleRegistry
 
 ################################################################################
 
@@ -140,7 +139,8 @@ class Module(DBModule):
         return self.db_get_portSpec_by_name(name)
 
     def summon(self):
-        get = registry.get_descriptor_by_name
+        reg = get_module_registry()
+        get = reg.get_descriptor_by_name
         result = get(self.package, self.name, self.namespace).module()
         if self.cache != 1:
             result.is_cacheable = lambda *args: False
@@ -148,7 +148,7 @@ class Module(DBModule):
             result.input_ports_order = [p.name for p in self.destinationPorts()]
         if hasattr(result, 'output_ports_order'):
             result.output_ports_order = [p.name for p in self.sourcePorts()]
-        result.registry = self.registry or registry
+        result.registry = self.registry or reg
         return result
 
     def getNumFunctions(self):
@@ -161,10 +161,13 @@ class Module(DBModule):
         Returns list of source (output) ports module supports.
 
         """
-
-        ports = registry.module_source_ports(True, self.package, self.name, self.namespace)
+        registry = get_module_registry()
+        ports = registry.module_source_ports(True, self.package, self.name, 
+                                             self.namespace)
         if self.registry:
-            ports.extend(self.registry.module_source_ports(False, self.package, self.name, self.namespace))
+            ports.extend(self.registry.module_source_ports(False, self.package,
+                                                           self.name, 
+                                                           self.namespace))
         return ports
     
     def destinationPorts(self):
@@ -172,39 +175,47 @@ class Module(DBModule):
         Returns list of destination (input) ports module supports
 
         """
-        ports = registry.module_destination_ports(True, self.package, self.name, self.namespace)
+        registry = get_module_registry()
+        ports = registry.module_destination_ports(True, self.package, 
+                                                  self.name, self.namespace)
         if self.registry:
-            ports.extend(self.registry.module_destination_ports(False, self.package, self.name, self.namespace))
+            ports.extend(self.registry.module_destination_ports(False, 
+                                                                self.package, 
+                                                                self.name, 
+                                                                self.namespace))
         return ports
 
     def add_port_to_registry(self, port_spec):
         # FIXME use ModuleDescriptor here now
-        module = registry.get_descriptor_by_name(self.package, self.name, 
-                                                 self.namespace).module
+        registry = get_module_registry()
         if self.registry is None:
             self.registry = ModuleRegistry()
             self.registry.add_hierarchy(registry, self)
+        descriptor = self.registry.get_descriptor_by_name(self.package, 
+                                                          self.name, 
+                                                          self.namespace)
 
         try:
-            self.registry.add_port_spec(module, port_spec)
+            self.registry.add_port_spec(descriptor, port_spec)
         except OverloadedPort:
             print "Ignoring overloaded Module %s id %s adding %s " % \
                 (self.name, self.id, port_spec.name)
 
     def delete_port_from_registry(self, id):
         # FIXME use ModuleDescriptor here now
+        registry = get_module_registry()
         if not id in self.port_specs:
             raise VistrailsInternalError("id missing in port_specs")
         port_spec = self.port_specs[id]
-        module = \
-            registry.get_descriptor_by_name(self.package, self.name, 
-                                            self.namespace).module
         assert isinstance(self.registry, ModuleRegistry)
+        descriptor = self.registry.get_descriptor_by_name(self.package, 
+                                                          self.name, 
+                                                          self.namespace)
 
         if port_spec.type == 'input':
-            self.registry.delete_input_port(module, port_spec.name)
+            self.registry.delete_input_port(descriptor, port_spec.name)
         else:
-            self.registry.delete_output_port(module, port_spec.name)
+            self.registry.delete_output_port(descriptor, port_spec.name)
 
     ##########################################################################
     # Debugging
@@ -356,6 +367,7 @@ class TestModule(unittest.TestCase):
         x.name = "String"
         x.package = 'edu.utah.sci.vistrails.basic'
         try:
+            registry = get_module_registry()
             c = x.summon()
             m = registry.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
                                                 'String').module

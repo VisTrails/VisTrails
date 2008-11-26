@@ -30,7 +30,7 @@ from gui.theme import CurrentTheme
 from gui.common_widgets import QPromptWidget
 from gui.paramexplore.param_view import QParameterTreeWidget
 from gui.utils import show_warning
-from core.modules.module_registry import registry
+from core.modules.module_registry import get_module_registry
 from core.modules.basic_modules import Constant
 from core.vistrail.module_param import ModuleParam
 from core.modules.paramexplore import QParameterEditor
@@ -579,6 +579,7 @@ class QParameterWidget(QtGui.QWidget):
         self.label.setFixedWidth(50)
         hLayout.addWidget(self.label)
 
+        registry = get_module_registry()
         module = registry.get_module_by_name(param.identifier,
                                              param.type,
                                              param.namespace)

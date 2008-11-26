@@ -83,8 +83,8 @@ on its inputs."""
 
 
     def mat_op(self, v1, v2):
-        reg = core.modules_module_registry
-        Matrix = reg.registry.get_descriptor_by_name(identifier, 'Matrix').module
+        reg = core.modules_module_registry.get_module_registry()
+        Matrix = reg.get_descriptor_by_name(identifier, 'Matrix').module
         result = Matrix()
         matr
         op = self.getInputFromPort("op")
@@ -114,7 +114,7 @@ def initialize(*args, **keywords):
 
     # We'll first create a local alias for the module_registry so that
     # we can refer to it in a shorter way.
-    reg = core.modules.module_registry.registry
+    reg = core.modules.module_registry.get_module_registry()
 
     # VisTrails cannot currently automatically detect your derived
     # classes, and the ports that they support as input and

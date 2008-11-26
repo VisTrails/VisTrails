@@ -72,7 +72,9 @@ def translateVistrail(_vistrail):
 
 def convert_data(child):
     # FIXME don't like using core in here...
-    from core.modules.module_registry import registry, PortSpec
+    from core.vistrail.port_spec import PortSpec
+    from core.modules.module_registry import get_module_registry
+    registry = get_module_registry()
     if child.vtType == 'module':
         descriptor = registry.get_descriptor_from_name_only(child.db_name)
         package = descriptor.identifier

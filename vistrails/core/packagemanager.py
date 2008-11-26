@@ -27,7 +27,7 @@ to checking dependencies to initializing them."""
 from core import debug
 from core.configuration import ConfigurationObject
 import core.data_structures.graph
-from core.modules.module_registry import registry
+from core.modules.module_registry import ModuleRegistry
 from core.modules.package import Package
 from core.utils import VistrailsInternalError, InstanceObject
 import os
@@ -117,6 +117,15 @@ class PackageManager(QtCore.QObject):
         self._package_list = {}
         self._identifier_map = {}
         self._dependency_graph = core.data_structures.graph.Graph()
+        self._registry = None
+
+    def init_registry(self, registry_filename=None):
+        if registry_filename is not None:
+            self._registry = core.db.io.open_registry(registry_filename)
+            self._registry.set_global()
+        else:
+            self._registry = ModuleRegistry()
+            self._registry.set_global()
 
     def finalize_packages(self):
         """Finalizes all installed packages. Call this only prior to
@@ -131,7 +140,8 @@ exiting VisTrails."""
     def add_package(self, packageName):
         """Adds a new package to the manager. This does not initialize it.
 To do so, call initialize_packages()"""
-        self._package_list[packageName] = registry.create_package(packageName)
+        self._package_list[packageName] = \
+            self._registry.create_package(packageName)
 
     def remove_package(self, codepath):
         """remove_package(name): Removes a package from the system."""
@@ -141,7 +151,7 @@ To do so, call initialize_packages()"""
         pkg.finalize()
         self.remove_menu_items(pkg)
         del self._package_list[codepath]
-        registry.remove_package(pkg)
+        self._registry.remove_package(pkg)
 
     def has_package(self, identifier):
         """has_package(identifer: string) -> Boolean.
@@ -154,7 +164,7 @@ Returns true if given package identifier is present."""
         Returns a Package object for an uninstalled package. This does
         NOT install a package.
         """
-        return registry.create_package(codepath, False)
+        return self._registry.create_package(codepath, False)
 
     def get_package_by_codepath(self, codepath):
         """get_package_by_codepath(codepath: string) -> Package.
@@ -171,9 +181,9 @@ Returns true if given package identifier is present."""
         Returns a package with given identifier if it is enabled,
         otherwise throws exception
         """
-        if identifier not in registry.packages:
+        if identifier not in self._registry.packages:
             raise self.MissingPackage(identifier)
-        return registry.packages[identifier]
+        return self._registry.packages[identifier]
 
 #         # FIXME: This should really be handled better
 #         if identifier == 'edu.utah.sci.vistrails.basic':
@@ -211,6 +221,9 @@ Returns true if given package identifier is present."""
         add_dependencies ignores it.
         """
         deps = package.dependencies()
+        # FIXME don't hardcode this
+        if package.identifier != 'edu.utah.sci.vistrails.basic':
+            deps.append('edu.utah.sci.vistrails.basic')
         missing_packages = [identifier
                             for identifier in deps
                             if identifier not in self._dependency_graph.vertices]
@@ -250,7 +263,7 @@ Returns true if given package identifier is present."""
             del self._package_list[package_codepath]
             raise
         pkg.check_requirements()
-        registry.initialize_package(pkg)
+        self._registry.initialize_package(pkg)
         self.add_menu_items(pkg)
 
     def late_disable_package(self, package_codepath):
@@ -337,7 +350,7 @@ creating a class that behaves similarly)."""
             pkg = self._identifier_map[name]
             if not pkg.initialized():
                 pkg.check_requirements()
-                registry.initialize_package(pkg)
+                self._registry.initialize_package(pkg)
                 self.add_menu_items(pkg)
 
     def add_menu_items(self, pkg):

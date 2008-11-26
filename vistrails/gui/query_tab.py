@@ -35,7 +35,7 @@ from core.vistrail.location import Location
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.vistrail import Vistrail
 import db.services.io
-from core.modules import module_registry
+from core.modules.module_registry import get_module_registry
 from gui.method_dropbox import QMethodInputForm
 from gui.pipeline_tab import QPipelineTab
 from gui.theme import CurrentTheme
@@ -161,7 +161,7 @@ class QParameterQuery(QtGui.QWidget):
         self.selector = QParameterQuerySelector(self.type)
         layout.addWidget(self.selector)        
 
-        reg = module_registry.registry
+        reg = get_module_registry()
         constant_class = reg.get_module_by_name(param.identifier,
                                                 param.type,
                                                 param.namespace)

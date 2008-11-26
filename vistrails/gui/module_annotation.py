@@ -29,7 +29,6 @@ QModuleAnnotationTable
 
 from PyQt4 import QtCore, QtGui
 from gui.common_widgets import QToolWindowInterface
-from core.modules.module_registry import registry
 
 ################################################################################
 

@@ -1418,7 +1418,7 @@
     </property>
       
     <property name="load_configuration" type="int">
-      <xml nodeType="xs:attribute" type="xs:int"/>
+      <xml name="loadConfiguration" nodeType="xs:attribute" type="xs:int"/>
       <sql type="int"/>
     </property>
 
@@ -1434,7 +1434,7 @@
 
     <property ref="true" object="module_descriptor" type="list" 
 	      mapping="one-to-many" index="name:namespace">
-      <xml nodeType="xs:element"/>
+      <xml name="moduleDescriptor" nodeType="xs:element"/>
     </property>
 
     <property ref="true" type="long" object="registry" inverse="true" 
