@@ -76,7 +76,8 @@ class PortTable(QtGui.QTableWidget):
         for p in port_specs:
             model = self.model()
             sigstring = p.sigstring[1:-1]
-            short_name = sigstring.split(':')[1]
+            siglist = sigstring.split(':')
+            short_name = "%s (%s)" % (siglist[1], siglist[0])
             model.setData(model.index(self.rowCount()-1, 1),
                           QtCore.QVariant(sigstring),
                           QtCore.Qt.UserRole)
@@ -112,10 +113,10 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
             combo = QtGui.QComboBox(parent)
             combo.setEditable(False)
             # FIXME just use descriptors here!!
-            for k in sorted(registry._module_key_map.itervalues()):
-                descriptor = registry.descriptors[k]
-                combo.addItem(descriptor.name, 
-                              QtCore.QVariant(descriptor.sigstring))
+            for k, descriptor in sorted(registry.descriptors.iteritems()):
+                if not descriptor.module_abstract():
+                    combo.addItem("%s (%s)" % (k[1], k[0]), 
+                                  QtCore.QVariant(descriptor.sigstring))
             return combo
         else:
             return QtGui.QItemDelegate.createEditor(self, parent, option, index)
@@ -225,7 +226,7 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
         Return the recommended size of the configuration window
         
         """
-        return QtCore.QSize(384, 256)
+        return QtCore.QSize(512, 256)
 
     def okTriggered(self, checked = False):
         """ okTriggered(checked: bool) -> None
