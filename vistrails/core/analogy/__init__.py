@@ -109,11 +109,25 @@ def perform_analogy_on_vistrail(vistrail,
 
     # construct total remap
     id_remap = {}
+    sum_ax = 0.0
+    sum_ay = 0.0
+    sum_cx = 0.0
+    sum_cy = 0.0
     for (a_id, c_id) in module_remap.iteritems():
         id_remap[('module', a_id)] = c_id
+        module_a = pipeline_a.modules[a_id]
+        sum_ax += module_a.location.x
+        sum_ay += module_a.location.y
+        module_c = pipeline_c.modules[c_id]
+        sum_cx += module_c.location.x
+        sum_cy += module_c.location.y
+    avg_ax = sum_ax / len(module_remap) if len(module_remap) != 0 else 0.0
+    avg_ay = sum_ay / len(module_remap) if len(module_remap) != 0 else 0.0
+    avg_cx = sum_cx / len(module_remap) if len(module_remap) != 0 else 0.0
+    avg_cy = sum_cy / len(module_remap) if len(module_remap) != 0 else 0.0
+        
     for (a_id, c_id) in connection_remap.iteritems():
         id_remap[('connection', a_id)] = c_id
-
     ############################################################################
     # STEP 2: find actions to be remapped (b-a)
 
@@ -274,6 +288,10 @@ def perform_analogy_on_vistrail(vistrail,
     core.db.io.fixActions(vistrail, version_c, [baAction])
     print "got here"
     for operation in baAction.operations:
+        if operation.what == 'location' and (operation.vtType == 'add' or
+                                             operation.vtType == 'change'):
+            operation.data.x -= avg_ax - avg_cx
+            operation.data.y -= avg_ay - avg_cy
         print "ba_op2:", operation.id, operation.vtType, operation.what, 
         print operation.old_obj_id, "to", operation.parentObjType,
         print operation.parentObjId

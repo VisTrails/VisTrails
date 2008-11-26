@@ -512,17 +512,30 @@ class QVisualDiff(QtGui.QMainWindow):
         shiftId = self.maxId1 + 1
 
         # First add all shared modules, just use v1 module id
+        sum1_x = 0.0
+        sum1_y = 0.0
+        sum2_x = 0.0
+        sum2_y = 0.0
         for (m1id, m2id) in v1Andv2:
             item = scene.addModule(p1.modules[m1id],
                                    CurrentTheme.VISUAL_DIFF_SHARED_BRUSH)
             item.controller = controller
             p_both.add_module(copy.copy(p1.modules[m1id]))
-            
+            sum1_x += p1.modules[m1id].location.x
+            sum1_y += p1.modules[m1id].location.y
+            sum2_x += p2.modules[m2id].location.x
+            sum2_y += p2.modules[m2id].location.y
+
         # Then add parameter changed version
         for ((m1id, m2id), matching) in paramChanged:
             m1 = p1.modules[m1id]
             m2 = p2.modules[m2id]
             
+            sum1_x += p1.modules[m1id].location.x
+            sum1_y += p1.modules[m1id].location.y
+            sum2_x += p2.modules[m2id].location.x
+            sum2_y += p2.modules[m2id].location.y
+
             #this is a hack for modules with a dynamic local registry.
             #The problem arises when modules have the same name but different
             #input/output ports. We just make sure that the module we add to
@@ -554,6 +567,12 @@ class QVisualDiff(QtGui.QMainWindow):
             item.controller = controller
             p_both.add_module(copy.copy(p1.modules[m1id]))
 
+        total_len = len(v1Andv2) + len(paramChanged)
+        avg1_x = sum1_x / total_len if total_len != 0 else 0.0
+        avg1_y = sum1_y / total_len if total_len != 0 else 0.0
+        avg2_x = sum2_x / total_len if total_len != 0 else 0.0
+        avg2_y = sum2_y / total_len if total_len != 0 else 0.0
+
         # Now add the ones only applicable for v1, still using v1 ids
         for m1id in v1Only:
             item = scene.addModule(p1.modules[m1id],
@@ -563,11 +582,17 @@ class QVisualDiff(QtGui.QMainWindow):
 
         # Now add the ones for v2 only but must shift the ids away from v1
         for m2id in v2Only:
-            p2.modules[m2id].id = m2id + shiftId
-            item = scene.addModule(p2.modules[m2id],
+            p2_module = copy.copy(p2.modules[m2id])
+            p2_module.id = m2id + shiftId
+            # p2.modules[m2id].id = m2id + shiftId
+            p2_module.location.x -= avg2_x - avg1_x
+            p2_module.location.y -= avg2_y - avg1_y
+            item = scene.addModule(p2_module, #p2.modules[m2id],
                                    CurrentTheme.VISUAL_DIFF_TO_VERSION_BRUSH)
             item.controller = controller
-            p_both.add_module(copy.copy(p2.modules[m2id]))
+            # p_both.add_module(copy.copy(p2.modules[m2id]))
+            p_both.add_module(p2_module)
+            
 
         # Create a mapping between share modules between v1 and v2
         v1Tov2 = {}
