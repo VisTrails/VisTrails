@@ -34,6 +34,7 @@ from core.db.locator import FileLocator, untitled_locator
 from core.log.log import Log
 import core.system
 from core.vistrail.pipeline import Pipeline
+from core.vistrail.tag import Tag
 from core.vistrail.vistrail import Vistrail
 from core.modules.module_registry import ModuleRegistry
 import copy
@@ -285,7 +286,8 @@ class QViewManager(QtGui.QTabWidget):
             locator = copy.copy(untitled_locator())
         else:
             locator = None
-        return self.set_vistrail_view(locator)
+        (vistrail, abstraction_files) = self.load_vistrail(locator)
+        return self.set_vistrail_view(vistrail, locator, abstraction_files)
 
     def close_first_vistrail_if_necessary(self):
         # Close first vistrail of no change was made
@@ -300,14 +302,9 @@ class QViewManager(QtGui.QTabWidget):
             # we don't want to ever close it again.
             self._first_view = None
 
-    def set_vistrail_view(self, locator, version=None):
-        """set_vistrail_view(locator: VistrailLocator,
-                             version=None)
-                          -> QVistrailView
-        Sets a new vistrail view for the vistrail object for the given version
-        if version is None, use the latest version
-        """
+    def load_vistrail(self, locator, version=None):
         abstraction_files = []
+        vistrail = None
         try:
             if locator is None:
                 vistrail = Vistrail()
@@ -319,10 +316,6 @@ class QViewManager(QtGui.QTabWidget):
                         abstraction_files.append(abstraction_file)
                 else:
                     vistrail = res
-            if type(version) == type(""):
-                version = vistrail.get_version_number(version)
-            elif version is None:
-                version = vistrail.get_latest_version()
 
         except ModuleRegistry.MissingModulePackage, e:
             msg = ('Cannot find module "%s" in \n' 
@@ -335,6 +328,24 @@ class QViewManager(QtGui.QTabWidget):
                                        'Vistrails',
                                        str(e))
             raise
+
+        return (vistrail, abstraction_files)
+
+    def set_vistrail_view(self, vistrail, locator, abstraction_files=None,
+                          version=None):
+        """set_vistrail_view(vistrail: Vistrail,
+                             locator: VistrailLocator,
+                             abstraction_files: list(str),
+                             version=None)
+                          -> QVistrailView
+        Sets a new vistrail view for the vistrail object for the given version
+        if version is None, use the latest version
+        """
+
+        if type(version) == type(""):
+            version = vistrail.get_version_number(version)
+        elif version is None:
+            version = vistrail.get_latest_version()
 
         vistrailView = QVistrailView()
         vistrailView.set_vistrail(vistrail, locator, abstraction_files)
@@ -358,8 +369,10 @@ class QViewManager(QtGui.QTabWidget):
         view = self.ensureVistrail(locator)
         if view:
             return view
-        try:            
-            result = self.set_vistrail_view(locator, version)
+        try:
+            (vistrail, abstraction_files) = self.load_vistrail(locator, version)
+            result = self.set_vistrail_view(vistrail, locator, 
+                                            abstraction_files, version)
             return result
         except ModuleRegistry.MissingModulePackage, e:
             QtGui.QMessageBox.critical(self,
@@ -409,6 +422,38 @@ class QViewManager(QtGui.QTabWidget):
                 return False
             return locator
    
+    def open_workflow(self, locator, version=None):
+        self.close_first_vistrail_if_necessary()
+        if self.single_document_mode and self.currentView():
+            self.closeVistrail()
+
+        vistrail = Vistrail()
+        try:
+            if locator is not None:
+                workflow = locator.load(Pipeline)
+                action_list = []
+                for module in workflow.module_list:
+                    action_list.append(('add', module))
+                for connection in workflow.connection_list:
+                    action_list.append(('add', connection))
+                action = core.db.action.create_action(action_list)
+                vistrail.add_action(action, 0L)
+                vistrail.addTag("Imported workflow", action.id)
+                # FIXME might need different locator?
+        except ModuleRegistry.MissingModulePackage, e:
+            msg = ('Cannot find module "%s" in \n' 
+                   'package "%s". Make sure package is \n' 
+                   'enabled in the Preferences dialog.' % \
+                       (e._name, e._identifier))
+            QtGui.QMessageBox.critical(self, 'Missing package', msg)
+        except Exception, e:
+            QtGui.QMessageBox.critical(None,
+                                       'Vistrails',
+                                       str(e))
+            raise
+
+        return self.set_vistrail_view(vistrail, None)
+
     # FIXME normalize workflow/log/registry!!!
     def save_workflow(self, locator_class, force_choose_locator=True):
         vistrailView = self.currentWidget()

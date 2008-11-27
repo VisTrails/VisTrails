@@ -27,6 +27,7 @@ from PyQt4 import QtCore, QtGui
 from core import system
 from core.db.locator import DBLocator, FileLocator, XMLFileLocator, untitled_locator
 from core.packagemanager import get_package_manager
+from core.vistrail.pipeline import Pipeline
 from core.vistrail.vistrail import Vistrail
 from gui.application import VistrailsApplication
 from gui.graphics_view import QInteractiveGraphicsView
@@ -221,6 +222,11 @@ class QBuilderWindow(QtGui.QMainWindow):
                                           'a database')
         self.exportLogAction.setEnabled(True)
 
+        self.importWorkflowAction = QtGui.QAction('Import Workflow...', self)
+        self.importWorkflowAction.setStatusTip('Import a workflow from an '
+                                               'xml file')
+        self.importWorkflowAction.setEnabled(True)
+
         self.saveWorkflowAction = QtGui.QAction('Save Workflow...', self)
         self.saveWorkflowAction.setStatusTip('Save the current workflow to '
                                              'a file')
@@ -403,6 +409,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.saveLogAction)
         self.fileMenu.addAction(self.exportLogAction)
+        self.fileMenu.addAction(self.importWorkflowAction)
         self.fileMenu.addAction(self.saveWorkflowAction)
         self.fileMenu.addAction(self.exportWorkflowAction)
         self.fileMenu.addAction(self.saveRegistryAction)
@@ -539,6 +546,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.closeVistrailAction, self.viewManager.closeVistrail),
             (self.saveLogAction, self.save_log_default),
             (self.exportLogAction, self.export_log_default),
+            (self.importWorkflowAction, self.import_workflow_default),
             (self.saveWorkflowAction, self.save_workflow_default),
             (self.exportWorkflowAction, self.export_workflow_default),
             (self.saveRegistryAction, self.save_registry_default),
@@ -692,6 +700,8 @@ class QBuilderWindow(QtGui.QMainWindow):
                                             'a database')
             self.exportWorkflowAction.setStatusTip('Save the current workflow '
                                                    'to a file')
+            self.importWorkflowAction.setStatusTip('Import a workflow from a '
+                                                   'database')
             self.saveWorkflowAction.setStatusTip('Save the current workflow '
                                                  'to a database')
             self.exportRegistryAction.setStatusTip('Save the current registry '
@@ -717,6 +727,8 @@ class QBuilderWindow(QtGui.QMainWindow):
                                             'a file')
             self.exportLogAction.setStatusTip('Export the execution log to '
                                               'a database')
+            self.importWorkflowAction.setStatusTip('Import a workflow from an '
+                                                   'xml file')
             self.saveWorkflowAction.setStatusTip('Save the current workflow '
                                                  'to a file')
             self.exportWorkflowAction.setStatusTip('Save the current workflow '
@@ -967,6 +979,30 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.save_log(False)
     def export_log_default(self):
         self.save_log(True)
+
+    def import_workflow(self, locator_class):
+        locator = locator_class.load_from_gui(self, Pipeline.vtType)
+        if not locator or not locator.is_valid():
+            ok = locator.update_from_gui()
+        else:
+            ok = True
+        if ok:
+            self.viewManager.open_workflow(locator)
+            self.closeVistrailAction.setEnabled(True)
+            self.saveFileAsAction.setEnabled(True)
+            self.exportFileAction.setEnabled(True)
+            self.vistrailMenu.menuAction().setEnabled(True)
+            self.emit(QtCore.SIGNAL("changeViewState(int)"), 1)
+            self.viewModeChanged(1)
+
+#     def import_workflow(self, invert=False, choose=True):
+#         if (invert and not self.dbDefault) or (not invert and self.dbDefault):
+#             self.viewManager.open_workflow(DBLocator)
+#         else:
+#             self.viewManager.open_workflow(XMLFileLocator)
+
+    def import_workflow_default(self):
+        self.import_workflow(XMLFileLocator)
 
     def save_workflow(self, invert=False, choose=True):
         # want xor of invert and dbDefault

@@ -545,7 +545,7 @@ def open_workflow_from_xml(filename):
     version = get_version_for_xml(tree.getroot())
     daoList = getVersionDAO(version)
     workflow = daoList.open_from_xml(filename, DBWorkflow.vtType)
-    workflow = translateWorkflow(workflow, version)
+    # workflow = translateWorkflow(workflow, version)
     db.services.workflow.update_id_scope(workflow)
     return workflow
 
