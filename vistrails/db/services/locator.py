@@ -63,8 +63,12 @@ class BaseLocator(object):
         pass #Parse an XML object representing a locator and returns a Locator
     
     def _get_name(self):
-        pass # Returns a name that will be displayed for the object
+        return None # Returns a name that will be displayed for the object
     name = property(_get_name)
+
+    def _get_short_name(self):
+        return None # Returns a short name that can be used for display
+    short_name = property(_get_short_name)
 
     ###########################################################################
     # Operators
@@ -111,6 +115,10 @@ class XMLFileLocator(BaseLocator):
     def _get_name(self):
         return self._name
     name = property(_get_name)
+
+    def _get_short_name(self):
+        return os.path.splitext(os.path.basename(self._name))[0]
+    short_name = property(_get_short_name)
 
     def encode_name(self, filename):
         """encode_name(filename) -> str
@@ -380,6 +388,10 @@ class DBLocator(BaseLocator):
         return self._host + ':' + str(self._port) + ':' + self._db + ':' + \
             self._name
     name = property(_get_name)
+
+    def _get_short_name(self):
+        return self._name
+    short_name = property(_get_short_name)
 
     def is_valid(self):
         if self._conn_id is not None \

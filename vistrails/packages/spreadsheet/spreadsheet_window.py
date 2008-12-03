@@ -423,9 +423,24 @@ class SpreadsheetWindow(QtGui.QMainWindow):
 
             if self.visApp.temp_configuration.check('spreadsheetDumpCells'):
                 dumppath = self.visApp.temp_configuration.spreadsheetDumpCells
-                filename = os.path.join(dumppath,"%s_%s.png"%(
-                    e.vistrail['moduleId'],
-                    pid))
+                locator = e.vistrail['locator']
+                if locator is not None:
+                    name = e.vistrail['locator'].short_name
+                else:
+                    name = 'untitled'
+                version = e.vistrail['version']
+                if version is None:
+                    version = 0L
+                base_fname = os.path.join(dumppath,"%s_%s" % \
+                                              (name, e.vistrail['version']))
+
+                # make a unique filename
+                filename = base_fname + ".png"
+                counter = 2
+                while os.path.exists(filename):
+                    filename = base_fname + "_%d.png" % counter
+                    counter += 1
+
                 cell.dumpToFile(filename)
             return cell 
 

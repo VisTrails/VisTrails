@@ -2346,15 +2346,21 @@ class VistrailController(QtCore.QObject):
                 old_locator = self.get_locator()
                 self.locator = locator
                 # new_vistrail = self.locator.save_as(self.vistrail)
-                objs = self.locator.save_as(objs)
-                new_vistrail = objs[0][1]
+                if type(self.locator) == core.db.locator.ZIPFileLocator:
+                    objs = self.locator.save_as(objs)
+                    new_vistrail = objs[0][1]
+                else:
+                    new_vistrail = self.locator.save_as(self.vistrail)
                 self.set_file_name(locator.name)
                 if old_locator:
                     old_locator.clean_temporaries()
             else:
                 # new_vistrail = self.locator.save(self.vistrail)
-                objs = self.locator.save(objs)
-                new_vistrail = objs[0][1]
+                if type(self.locator) == core.db.locator.ZIPFileLocator:
+                    objs = self.locator.save(objs)
+                    new_vistrail = objs[0][1]
+                else:
+                    new_vistrail = self.locator.save_as(self.vistrail)
             if id(self.vistrail) != id(new_vistrail):
                 new_version = new_vistrail.db_currentVersion
                 self.set_vistrail(new_vistrail, locator)
