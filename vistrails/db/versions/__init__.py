@@ -38,9 +38,9 @@ def getVersionDAO(version=None):
         raise VistrailsDBException(msg)
     return persistence.DAOList()
 
-def translateVistrail(vistrail, version=None):
+def translate_object(obj, method_name, version=None):
     if version is None:
-        version = vistrail.version
+        version = obj.version
 
     version_map = {
         '0.3.0': '0.3.1',
@@ -69,8 +69,13 @@ def translateVistrail(vistrail, version=None):
         if count > len(version_map):
             break
         translate_module = get_translate_module(version)
-        vistrail = translate_module.translateVistrail(vistrail)
-        version = vistrail.db_version
+
+        if not hasattr(translate_module, method_name):
+            raise VistrailsDBException("Cannot translate version: "
+                                       "version %s missing method '%s'" % \
+                                           (version, method_name))
+        obj = getattr(translate_module, method_name)(obj)
+        version = obj.db_version
         count += 1
 
     if version != currentVersion:
@@ -78,7 +83,19 @@ def translateVistrail(vistrail, version=None):
         msg += "only able to translate to version '%s'" % version
         raise VistrailsDBException(msg)
 
-    return vistrail
+    return obj
+
+def translate_vistrail(vistrail, version=None):
+    return translate_object(vistrail, 'translateVistrail', version)
+
+def translate_workflow(workflow, version=None):
+    return translate_object(workflow, 'translateWorkflow', version)
+
+def translate_log(log, version=None):
+    return translate_object(log, 'translateLog', version)
+
+def translate_registry(registry, version=None):
+    return translate_object(registry, 'translateRegistry', version)
 
 def get_version_name(version_no):
     return 'v' + version_no.replace('.', '_')
@@ -87,7 +104,6 @@ def getVersionSchemaDir(version=None):
     if version is None:
         version = currentVersion
     versionName = get_version_name(version)
-    schemaDir = vistrails_root_directory()
     schemaDir = os.path.join(vistrails_root_directory(), 'db', 'versions', 
                              versionName, 'schemas', 'sql')
     return schemaDir

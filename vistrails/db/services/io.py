@@ -40,8 +40,8 @@ import db.services.log
 import db.services.registry
 import db.services.workflow
 import db.services.vistrail
-from db.versions import getVersionDAO, currentVersion, translateVistrail, \
-    getVersionSchemaDir
+from db.versions import getVersionDAO, currentVersion, getVersionSchemaDir, \
+    translate_vistrail, translate_workflow, translate_log, translate_registry
 
 def open_db_connection(config):
     import MySQLdb
@@ -316,7 +316,7 @@ def open_vistrail_from_xml(filename):
     try:
         daoList = getVersionDAO(version)
         vistrail = daoList.open_from_xml(filename, DBVistrail.vtType)
-        vistrail = translateVistrail(vistrail, version)
+        vistrail = translate_vistrail(vistrail, version)
         db.services.vistrail.update_id_scope(vistrail)
     except VistrailsDBException, e:
         msg = "This vistrail was created by a newer version of VisTrails "
@@ -545,7 +545,7 @@ def open_workflow_from_xml(filename):
     version = get_version_for_xml(tree.getroot())
     daoList = getVersionDAO(version)
     workflow = daoList.open_from_xml(filename, DBWorkflow.vtType)
-    # workflow = translateWorkflow(workflow, version)
+    workflow = translate_workflow(workflow, version)
     db.services.workflow.update_id_scope(workflow)
     return workflow
 
@@ -587,7 +587,7 @@ def open_log_from_xml(filename):
     version = get_version_for_xml(tree.getroot())
     daoList = getVersionDAO(version)
     log = daoList.open_from_xml(filename, DBLog.vtType)
-    log = translateLog(log, version)
+    log = translate_log(log, version)
     db.services.log.update_id_scope(log)
     return log
 
@@ -642,8 +642,7 @@ def open_registry_from_xml(filename):
     version = get_version_for_xml(tree.getroot())
     daoList = getVersionDAO(version)
     registry = daoList.open_from_xml(filename, DBRegistry.vtType)
-    # FIXME write translate commands
-    # registry = translateRegistry(registry, version)
+    registry = translate_registry(registry, version)
     db.services.registry.update_id_scope(registry)
     return registry
 

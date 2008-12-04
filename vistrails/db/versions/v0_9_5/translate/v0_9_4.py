@@ -21,7 +21,8 @@
 ############################################################################
 
 import copy
-from db.versions.v0_9_5.domain import DBVistrail
+from db.versions.v0_9_5.domain import DBVistrail, DBWorkflow, DBLog, \
+    DBRegistry
 
 def translateVistrail(_vistrail):
     def update_signature(old_obj, translate_dict):
@@ -43,3 +44,35 @@ def translateVistrail(_vistrail):
                                          DBVistrail())
     vistrail.db_version = '0.9.5'
     return vistrail
+
+def translateWorkflow(_workflow):
+    def update_signature(old_obj, translate_dict):
+        return old_obj.db_spec
+    def update_optional(old_obj, translate_dict):
+        return 0
+    def update_sort_key(old_obj, translate_dict):
+        return -1
+    def update_sigstring(old_obj, translate_dict):
+        return old_obj.db_spec
+
+    translate_dict = {'DBPortSpec': {'sigstring': update_sigstring,
+                                     'optional': update_optional,
+                                     'sort_key': update_sort_key},
+                      'DBPort': {'signature': update_signature}}
+
+    workflow = DBWorkflow.update_version(_workflow, translate_dict,
+                                         DBWorkflow())
+    workflow.db_version = '0.9.5'
+    return workflow
+
+def translateLog(_log):
+    translate_dict = {}
+    log = DBLog.update_version(_log, translate_dict)
+    log.db_version = '0.9.5'
+    return log
+
+def translateRegistry(_registry):
+    translate_dict = {}
+    registry = DBRegistry.update_version(_registry, translate_dict)
+    registry.db_version = '0.9.5'
+    return registry
