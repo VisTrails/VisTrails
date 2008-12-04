@@ -26,7 +26,7 @@ from core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
 
 from db import VistrailsDBException
-from db.versions.v0_9_3 import version as my_version
+from db.versions.v0_9_4 import version as my_version
 
 class DAOList(dict):
     def __init__(self):

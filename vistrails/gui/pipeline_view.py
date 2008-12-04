@@ -1191,6 +1191,7 @@ class QPipelineScene(QInteractiveGraphicsScene):
         self.connections = {}
         self.noUpdate = False
         self.installEventFilter(self)
+        self.pipeline_tab = None
         self._old_module_ids = set()
         self._old_connection_ids = set()
 
@@ -1484,7 +1485,8 @@ mutual connections."""
 
     def unselect_all(self):
         self.clearSelection()
-        self.pipeline_tab.moduleSelected(-1)
+        if self.pipeline_tab:
+            self.pipeline_tab.moduleSelected(-1)
 
     def add_module_event(self, event, data):
         """Adds a new module from a drop event"""
@@ -1776,7 +1778,8 @@ mutual connections."""
             
             widget.exec_()
             self.reset_module_colors()
-            self.pipeline_tab.flushMoveActions()
+            if self.pipeline_tab:
+                self.pipeline_tab.flushMoveActions()
             self.recreate_module(self.controller.current_pipeline, id)
 
     def open_documentation_window(self, id):

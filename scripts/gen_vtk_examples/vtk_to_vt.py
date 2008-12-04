@@ -21,7 +21,7 @@
 ############################################################################
 
 import sys
-sys.path.append('/vistrails/src.trunk')
+sys.path.append('/vistrails/src/trunk/vistrails')
 import os
 os.environ['EXECUTABLEPATH'] = ""
 import copy
@@ -30,7 +30,9 @@ import re
 import urllib
 
 from db.domain import DBModule, DBConnection, DBPort, DBFunction, \
-    DBParameter, DBLocation, DBPortSpec, DBTag, DBAnnotation, DBVistrail
+    DBParameter, DBLocation, DBPortSpec, DBTag, DBAnnotation, DBVistrail, \
+    DBRegistry
+import db.services.io
 from vtk_imposter import vtk_module, vtk_function
 
 class VTK2VT(object):
@@ -39,6 +41,7 @@ class VTK2VT(object):
     basic_name = 'edu.utah.sci.vistrails.basic'
     pythoncalc_name = 'edu.utah.sci.vistrails.pythoncalc'
     http_name = 'edu.utah.sci.vistrails.http'
+    variant_sigstring ='(edu.utah.sci.vistrails.basic:Tuple)'
     unused_functions = set(['Update', 
                             'Read', 
                             'Write', 
@@ -178,6 +181,13 @@ class VTK2VT(object):
         self.max_port_id = 0
         self.max_port_spec_id = 0
         self.http_module = None
+
+        r_file = '/vistrails/registry.xml'
+        self.registry = db.services.io.open_registry_from_xml(r_file)
+        self.registry_desc_idx = {}
+        for package in self.registry.db_packages:
+            for desc in package.db_module_descriptors:
+                self.registry_desc_idx[desc.db_id] = desc
 
     def create_module(self, module):
         # print 'creating module', module._name, id(module)
@@ -503,11 +513,12 @@ class VTK2VT(object):
         self.create_module(tuple_module)
         db_tuple_module = self.modules[id(tuple_module)]
         tuple_f_pos = 0
+        final_sigs = []
         for i, arg in enumerate(function._args):
             port_spec = DBPortSpec(id=self.max_port_spec_id,
                                    name='arg' + str(i),
                                    type='input',
-                                   spec='(Variant)')
+                                   sigstring=self.variant_sigstring)
             db_tuple_module.db_add_portSpec(port_spec)
             self.max_port_spec_id += 1
             if type(arg) == vtk_module or \
@@ -515,7 +526,12 @@ class VTK2VT(object):
                 # connection
                 tuple_function = vtk_function('arg' + str(i))
                 tuple_function.parent = tuple_module
-                self.create_connection(arg, tuple_function)
+                conn = self.create_connection(arg, tuple_function)
+                port_spec.db_sigstring = \
+                    conn.db_ports_type_index['source'].db_signature
+                conn.db_ports_type_index['destination'].db_signature = \
+                    port_spec.db_sigstring
+                final_sigs.append(port_spec.db_sigstring[1:-1])
             else:
                 db_parameters = self.get_parameters([arg])
                 db_function = DBFunction(id=self.max_function_id,
@@ -526,10 +542,14 @@ class VTK2VT(object):
                 self.max_function_id += 1
                 tuple_f_pos += 1
                 db_tuple_module.db_add_function(db_function)
+                port_spec.db_sigstring = \
+                    "(" + ','.join(p.db_type for p in db_parameters) + ")"
+                final_sigs.extend(p.db_type for p in db_parameters)
+        final_sigstring = "(" + ",".join(final_sigs) + ")"
         port_spec = DBPortSpec(id=self.max_port_spec_id,
                                name='value',
                                type='output',
-                               spec='(Variant)')
+                               sigstring=final_sigstring)
         db_tuple_module.db_add_portSpec(port_spec)
         self.max_port_spec_id += 1
         tuple_output = vtk_function('value')
@@ -539,8 +559,10 @@ class VTK2VT(object):
 
     def get_parameters(self, params):
         def get_type(arg):
-            python_types = {int: 'Integer', str: 'String', float: 'Float',
-                            bool: 'Boolean'}
+            python_types = {int: 'edu.utah.sci.vistrails.basic:Integer', 
+                            str: 'edu.utah.sci.vistrails.basic:String', 
+                            float: 'edu.utah.sci.vistrails.basic:Float',
+                            bool: 'edu.utah.sci.vistrails.basic:Boolean'}
             if type(arg) not in python_types:
                 return None
             return python_types[type(arg)]
@@ -856,8 +878,9 @@ class VTK2VT(object):
                                          )
                 self.max_function_id += 1
         return db_function
-
+        
     def create_connection(self, src, dst):
+        convert_type_map = {'input': 'destination', 'output': 'source'}
         def create_port(vtk_module, type, name, other_vtk_module):
             # print >>sys.stderr, 'creating port:', vtk_module._name, name
             if id(vtk_module) not in self.modules:
@@ -866,8 +889,15 @@ class VTK2VT(object):
                 import traceback
                 traceback.print_stack()
                 return (None, None)
+
             db_module = self.modules[id(vtk_module)]
-            db_spec = "(%s:%s)" % (db_module.db_package, db_module.db_name)
+            db_package = \
+                self.registry.db_packages_identifier_index[db_module.db_package]
+            if db_module.db_namespace is None:
+                db_module.db_namespace = ''
+            d_key = (db_module.db_name, db_module.db_namespace)
+            db_module_desc = db_package.db_module_descriptors_name_index[d_key]
+
             if name in self.translate_ports:
                 if db_module.db_name in self.translate_ports[name]:
                     name = self.translate_ports[name][db_module.db_name]
@@ -878,12 +908,28 @@ class VTK2VT(object):
                 else:
                     name = self.translate_ports[name][None]
 
+            ps_key = (name, type)
+            if ps_key in db_module.db_portSpecs_name_index:
+                db_module_desc = db_module
+            while ps_key not in db_module_desc.db_portSpecs_name_index:
+                base_id = db_module_desc.db_base_descriptor_id
+                if base_id < 0:
+                    print >>sys.stderr, 'ERROR: cannot create port', \
+                        vtk_module._name, type, name
+                    import traceback
+                    traceback.print_stack()
+                    return (None, None)
+                db_module_desc = self.registry_desc_idx[base_id]
+
+            db_port_spec = db_module_desc.db_portSpecs_name_index[ps_key]
+            db_signature = db_port_spec.db_sigstring
+
             new_port = DBPort(id=self.max_port_id,
-                              type=type,
+                              type=convert_type_map[type],
                               moduleId=db_module.db_id,
                               moduleName=db_module.db_name,
                               name=name,
-                              spec=db_spec,
+                              signature=db_signature,
                               )
             self.max_port_id += 1
             return (db_module, new_port)
@@ -946,9 +992,9 @@ class VTK2VT(object):
         (src_vtk_module, src_port_name) = find_port_info(src)
         (dst_vtk_module, dst_port_name) = find_port_info(dst)
         if src_vtk_module and dst_vtk_module:
-            (src_module, src_port) = create_port(src_vtk_module, 'source',
+            (src_module, src_port) = create_port(src_vtk_module, 'output',
                                                  src_port_name, dst_vtk_module)
-            (dst_module, dst_port) = create_port(dst_vtk_module, 'destination',
+            (dst_module, dst_port) = create_port(dst_vtk_module, 'input',
                                                  dst_port_name, src_vtk_module)
 
 #         if type(src) == vtk_module:
@@ -1050,7 +1096,8 @@ class VTK2VT(object):
                                       value="This workflow was automatically generated from a modified version of the vtk python example script '%s' from the vtk 5.0.4 distribution.  In most cases, running this workflow will generate a visualization that is identical to the result from the example script." % script_name)
             action.db_add_annotation(annotation)
 
-            db.services.io.save_vistrail_to_zip_xml(vistrail, filename)
+            db.services.io.save_vistrail_to_zip_xml([(DBVistrail.vtType, 
+                                                      vistrail)], filename)
         else:
             f = None
             print >>f, db.services.io.serialize(vistrail)

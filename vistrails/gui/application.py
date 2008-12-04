@@ -113,6 +113,10 @@ The builder window can be accessed by a spreadsheet menu option.")
         add("-w", "--executeworkflows", action="store_true",
             default = None,
             help="The workflows will be executed")
+        add("-I", "--workflowinfo", action="store",
+            default = None,
+            help=("Save workflow graph and spec in specified directory "
+                  "(only valid in console mode)."))
         add("-R", "--reviewmode", action="store_true",
             default = None,
             help="Show the spreadsheet in the reviewing mode")
@@ -156,6 +160,8 @@ The builder window can be accessed by a spreadsheet menu option.")
         if get('noninteractive')!=None:
             self.temp_configuration.interactiveMode = \
                                                   not bool(get('noninteractive'))
+            if get('workflowinfo') != None:
+                self.temp_configuration.workflowInfo = str(get('workflowinfo'))
             if get('dumpcells') != None:
                 self.temp_configuration.spreadsheetDumpCells = get('dumpcells')
         if get('executeworkflows') != None:
@@ -463,8 +469,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             import core.console_mode
             if self.temp_db_options.parameters == None:
                 self.temp_db_options.parameters = ''
+            workflowInfo = None
+            if self.temp_configuration.check('workflowInfo'):
+                workflow_info = self.temp_configuration.workflowInfo
+            else:
+                workflow_info = None
             r = core.console_mode.run(w_list,
-                                      self.temp_db_options.parameters)
+                                      self.temp_db_options.parameters,
+                                      workflow_info)
             return r
         else:
             debug.DebugPrint.critical("no input vistrails provided")

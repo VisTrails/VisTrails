@@ -26,7 +26,7 @@ from core.system import get_elementtree_library
 ElementTree = get_elementtree_library()
 
 from db import VistrailsDBException
-from db.versions.v0_9_3 import version as my_version
+from db.versions.v0_9_5 import version as my_version
 
 class DAOList(dict):
     def __init__(self):
@@ -37,6 +37,21 @@ class DAOList(dict):
         return ElementTree.parse(filename)
 
     def write_xml_file(self, filename, tree):
+        def indent(elem, level=0):
+            i = "\n" + level*"  "
+            if len(elem):
+                if not elem.text or not elem.text.strip():
+                    elem.text = i + "  "
+                if not elem.tail or not elem.tail.strip():
+                    elem.tail = i
+                for elem in elem:
+                    indent(elem, level+1)
+                if not elem.tail or not elem.tail.strip():
+                    elem.tail = i
+            else:
+                if level and (not elem.tail or not elem.tail.strip()):
+                    elem.tail = i
+        indent(tree.getroot())
         tree.write(filename)
 
     def read_xml_object(self, vtType, node):

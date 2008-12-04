@@ -97,7 +97,7 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         self.sceneBoundingRect = QtCore.QRectF()
         self.multiSelecting = False
         
-    def updateSceneBoundingRect(self):
+    def updateSceneBoundingRect(self, keep_square=True):
         """ updateSceneBoundingRect() -> None        
         Compute the actual bounding rect of all shapes, then update
         the scene rect to be much wider for panning
@@ -119,12 +119,13 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
         self.sceneBoundingRect.adjust(-minWDiff/2, minHDiff/2, 
                                        minWDiff/2, -minHDiff/2)
 
-        diff = abs(self.sceneBoundingRect.width()-
-                   self.sceneBoundingRect.height())
-        if self.sceneBoundingRect.width()<self.sceneBoundingRect.height():
-            self.sceneBoundingRect.adjust(-diff/2, 0, diff/2, 0)
-        else:
-            self.sceneBoundingRect.adjust(0, -diff/2, 0, diff/2)
+        if keep_square:
+            diff = abs(self.sceneBoundingRect.width()-
+                       self.sceneBoundingRect.height())
+            if self.sceneBoundingRect.width()<self.sceneBoundingRect.height():
+                self.sceneBoundingRect.adjust(-diff/2, 0, diff/2, 0)
+            else:
+                self.sceneBoundingRect.adjust(0, -diff/2, 0, diff/2)
         panRect = self.sceneBoundingRect.adjusted(
             -self.sceneBoundingRect.width()*100,
             -self.sceneBoundingRect.height()*100,
@@ -180,14 +181,17 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
                 self.removeItem(item)
 
     def saveToPDF(self, filename):
-        self.updateSceneBoundingRect()
+        self.updateSceneBoundingRect(False)
         printer = QtGui.QPrinter()
         printer.setOutputFormat(QtGui.QPrinter.PdfFormat)
         printer.setOutputFileName(filename)
+        b_rect = self.sceneBoundingRect
+        print "%sx%s" % (b_rect.width(), b_rect.height())
+        printer.setPaperSize(QtCore.QSizeF(b_rect.width(), b_rect.height()),
+                             QtGui.QPrinter.Point)
         painter = QtGui.QPainter(printer)
         brush = self.backgroundBrush()
         self.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(255,255,255)))
-        b_rect = self.sceneBoundingRect
         self.render(painter, QtCore.QRectF(), b_rect)
         painter.end()
         self.setBackgroundBrush(brush)

@@ -20,15 +20,18 @@
 ##
 ############################################################################
 """ Module used when running  vistrails uninteractively """
+import os.path
+
 import core.interpreter.default
+import core.db.io
+from core.db.locator import XMLFileLocator
 from core.utils import (VistrailsInternalError, expression,
                         DummyView)
-from core.db.locator import XMLFileLocator
 from core.vistrail.vistrail import Vistrail
 
 ################################################################################
     
-def run_and_get_results(w_list, parameters=''):
+def run_and_get_results(w_list, parameters='', workflow_info=None):
     """run_and_get_results(w_list: list of (locator, version), parameters: str)
     Run all workflows in w_list, and returns an interpreter result object.
     version can be a tag name or a version id.
@@ -59,6 +62,19 @@ def run_and_get_results(w_list, parameters=''):
                 if pip.has_alias(key):
                     aliases[key] = value
                     
+        if workflow_info is not None:
+            from gui.pipeline_view import QPipelineView
+            pipeline_view = QPipelineView()
+            pipeline_view.scene().setupScene(pip)
+            base_fname = "%s_%s_pipeline.pdf" % (locator.short_name, version)
+            filename = os.path.join(workflow_info, base_fname)
+            pipeline_view.scene().saveToPDF(filename)
+            del pipeline_view
+
+            base_fname = "%s_%s_pipeline.xml" % (locator.short_name, version)
+            filename = os.path.join(workflow_info, base_fname)
+            core.db.io.save_workflow(pip, filename)
+
         view = DummyView()
         interpreter = core.interpreter.default.get_default_interpreter()
 
@@ -71,12 +87,12 @@ def run_and_get_results(w_list, parameters=''):
         result.append(run)
     return result
     
-def run(w_list, parameters=''):
+def run(w_list, parameters='', workflow_info=None):
     """run(w_list: list of (locator, version), parameters: str) -> boolean
     Run all workflows in w_list, version can be a tag name or a version id.
     Returns False in case of error. 
     """
-    results = run_and_get_results(w_list, parameters)
+    results = run_and_get_results(w_list, parameters, workflow_info)
     for result in results:
         (objs, errors, executed) = (result.objects,
                                     result.errors, result.executed)
