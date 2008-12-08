@@ -78,6 +78,7 @@ class Pipeline(DBWorkflow):
             self.graph.add_edge(connection.source.moduleId,
                                 connection.destination.moduleId,
                                 connection.id)
+        self.breakpoints = {}
             
     def __copy__(self):
         """ __copy__() -> Pipeline - Returns a clone of itself """ 
@@ -197,6 +198,7 @@ class Pipeline(DBWorkflow):
         self._subpipeline_signatures = Bidict()
         self._module_signatures = Bidict()
         self._connection_signatures = Bidict()
+        self.breakpoints = {}
 
     def get_tmp_id(self, type):
         """get_tmp_id(type: str) -> long
@@ -434,6 +436,12 @@ class Pipeline(DBWorkflow):
                                    connection.destinationId, 
                                    connection.id)
         self.db_delete_object(port_id, Port.vtType, parent_type, parent_id)
+
+    def update_breakpoints(self):
+        self.breakpoints = {}
+        for m in self.module_list:
+            if m.is_breakpoint:
+                self.breakpoints[m.id] = m
         
     def change_port(self, old_port_id, port, parent_id,
                     parent_type=Connection.vtType):

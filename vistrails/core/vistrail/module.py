@@ -65,6 +65,7 @@ class Module(DBModule):
             self.version = ''
         self.portVisible = set()
         self.registry = None
+        self.is_breakpoint = False
 
     def __copy__(self):
         """__copy__() -> Module - Returns a clone of itself"""
@@ -94,6 +95,7 @@ class Module(DBModule):
         for _annotation in _module.db_get_annotations():
             Annotation.convert(_annotation)
 
+        _module.is_breakpoint = False
         _module.portVisible = set()
 
     ##########################################################################
@@ -109,7 +111,8 @@ class Module(DBModule):
     package = DBModule.db_package
     tag = DBModule.db_tag
     version = DBModule.db_version
-
+    is_breakpoint = False
+    
     # type check this (list, hash)
     def _get_functions(self):
         self.db_functions.sort(key=lambda x: x.db_pos)
@@ -129,6 +132,8 @@ class Module(DBModule):
         return self.db_has_annotation_with_key(key)
     def get_annotation_by_key(self, key):
         return self.db_get_annotation_by_key(key)        
+    def toggle_breakpoint(self):
+        self.is_breakpoint = not self.is_breakpoint
 
     def _get_port_specs(self):
         return self.db_portSpecs_id_index

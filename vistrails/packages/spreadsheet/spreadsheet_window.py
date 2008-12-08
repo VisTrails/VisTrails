@@ -415,7 +415,10 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             sheet.tabWidget.setCurrentWidget(sheet)
             sheet.setCellPipelineInfo(row, col,
                                       (e.vistrail, pid, cid))
-            sheet.setCellByType(row, col, e.cellType, e.inputPorts)
+            if e.inputPorts!=None:
+                sheet.setCellByType(row, col, e.cellType, e.inputPorts)
+            else:
+                sheet.setCellByWidget(row, col, e.cellType)
             QtCore.QCoreApplication.processEvents()
             cell = sheet.getCell(row, col) 
             if self.editingModeAction().isChecked():

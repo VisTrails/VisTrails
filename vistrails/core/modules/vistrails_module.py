@@ -40,7 +40,31 @@ class IncompleteImplementation(Exception):
 class MissingModule(Exception):
     pass
 
+class ModuleBreakpoint(Exception):
+    def __init__(self, module):
+        self.module = module
 
+    def __str__(self):
+        retstr = "Encoutered breakpoint at Module %s:\n" % (self.module)
+        for k in self.module.__dict__.keys():
+            retstr += "\t%s = %s\n" % (k, self.module.__dict__[k])
+
+        inputs = self.examine_inputs()
+        retstr += "\nModule has inputs:\n"
+        
+        for i in inputs.keys():
+            retstr += "\t%s = %s\n" % (i, inputs[i])
+
+        return retstr
+
+    def examine_inputs(self):
+        in_ports = self.module.__dict__["inputPorts"]
+        inputs = {}
+        for p in in_ports:
+            inputs[p] = self.module.getInputListFromPort(p)
+
+        return inputs
+        
 class ModuleError(Exception):
 
     """Exception representing a VisTrails module runtime error. This
@@ -176,6 +200,8 @@ Designing New Modules
             'reason': 'Pipeline Execution',
             'actions': []
             }
+
+        self.is_breakpoint = False
         
     def clear(self):
         """clear(self) -> None. Removes all references, prepares for
@@ -225,6 +251,8 @@ context."""
             return
         self.logging.begin_compute(self)
         try:
+            if self.is_breakpoint:
+                raise ModuleBreakpoint(self)
             self.compute()
         except ModuleError, me:
             if hasattr(me.module, 'interpreter'):

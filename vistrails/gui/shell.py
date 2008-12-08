@@ -31,33 +31,31 @@ http://gerard.vermeulen.free.fr/html/pycute-intro.html
 """
 from PyQt4 import QtGui, QtCore
 from code import InteractiveInterpreter
+from gui.common_widgets import QToolWindowInterface, QToolWindow
 import core.system
 import copy
 import sys
 import time
 import os.path
 import gui.application
+from core.interpreter.default import get_default_interpreter
 
 ################################################################################
 
-class QShellDialog(QtGui.QDialog):
+class QShellDialog(QToolWindow, QToolWindowInterface):
+    """This class incorporates the QShell into a dockable widget for use in the
+    VisTrails environment"""
     def __init__(self, parent):
-        QtGui.QDialog.__init__(self, parent)
-        self.setWindowTitle("VisTrails Shell")
-        
-        layout = QtGui.QVBoxLayout()
-        layout.setSpacing(0)
-        layout.setMargin(0)
-        self.setLayout(layout)
+        QToolWindow.__init__(self, parent=parent)
         #locals() returns the original dictionary, not a copy as
         #the docs say
         app = gui.application.VistrailsApplication
-        self.firstLocals = copy.copy(app.get_python_environment())
+        self.firstLocals = copy.copy(locals())
         self.shell = QShell(self.firstLocals,None)
-        self.layout().addWidget(self.shell)
-        self.resize(600,400)
-        self.createMenu()
-        
+        self.setWidget(self.shell)
+        self.setWindowTitle(self.shell.windowTitle())
+        self.monitorWindowTitle(self.shell)
+        self.vistrails_interpreter = get_default_interpreter()
     
     def createMenu(self):
         """createMenu() -> None
@@ -99,7 +97,6 @@ class QShellDialog(QtGui.QDialog):
 
         """
         self.shell.show()
-        QtGui.QDialog.showEvent(self,e)
 
     def closeSession(self):
         """closeSession() -> None.
@@ -158,6 +155,7 @@ class QShell(QtGui.QTextEdit):
 
         QtGui.QTextEdit.__init__(self, parent)
         self.setReadOnly(False)
+        self.setWindowTitle("VisTrails Shell")
         
         # to exit the main interpreter by a Ctrl-D if QShell has no parent
         if parent is None:
@@ -166,6 +164,7 @@ class QShell(QtGui.QTextEdit):
             self.eofKey = None
 
         self.interpreter = None
+        self.controller = None
         # storing current state
         #this is not working on mac
         #self.prev_stdout = sys.stdout
@@ -290,6 +289,7 @@ class QShell(QtGui.QTextEdit):
         (3) the interpreter fails, finds errors and writes them to sys.stderr
         
         """
+        self.set_active_pipeline()
         should_scroll = self.scroll_bar_at_bottom()
         self.pointer = 0
         self.history.append(QtCore.QString(self.line))
@@ -324,6 +324,35 @@ class QShell(QtGui.QTextEdit):
         self.insertPlainText(text)
         self.line.insert(self.point, text)
         self.point += text.length()
+
+    def add_pipeline(self, p):
+        """
+        add_pipeline(p) -> None
+        Set the active pipeline in the command shell.  This replaces the modules
+        variable with the list of current active modules of the selected pipeline.
+        """
+        if self.controller:
+            self.interpreter.active_pipeline = self.controller.current_pipeline
+        else:
+            self.interpreter.active_pipeline = p
+        cmd = 'active_pipeline = self.shell.interpreter.active_pipeline'
+        self.interpreter.runcode(cmd)
+        cmd = 'modules = self.vistrails_interpreter.setup_pipeline(active_pipeline)[0]'
+        self.interpreter.runcode(cmd)
+
+    def add_controller(self, c):
+        """add_controller(c) -> None
+        Add a working VistrailsController to the shell.
+        """
+        self.controller = c
+        pipe = c.current_pipeline
+
+    def set_active_pipeline(self):
+        """set_active_pipeline() -> None
+        Makes sure that the pipeline being displayed is present in the shell for
+        direct inspection and manipulation
+        """
+        self.add_pipeline(None)
         
     def keyPressEvent(self, e):
         """keyPressEvent(e) -> None

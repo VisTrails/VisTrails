@@ -43,6 +43,7 @@ from core.vistrail.module import Module
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.port import PortEndPoint
 from core.vistrail.vistrail import Vistrail
+from core.interpreter.default import get_default_interpreter
 from gui.graphics_view import (QInteractiveGraphicsScene,
                                QInteractiveGraphicsView,
                                QGraphicsItemInterface)
@@ -300,6 +301,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         menu.addAction(self.annotateAct)
         menu.addAction(self.viewDocumentationAct)
         menu.addAction(self.changeModuleLabelAct)
+	menu.addAction(self.setBreakpointAct)
         menu.exec_(event.screenPos())
 
     def createActions(self):
@@ -327,6 +329,22 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.changeModuleLabelAct,
                                QtCore.SIGNAL("triggered()"),
                                self.changeModuleLabel)
+	self.setBreakpointAct = QtGui.QAction("Set Module as Breakpoint", self.scene())
+	self.setBreakpointAct.setStatusTip("Set or Remove Breakpoint")
+	QtCore.QObject.connect(self.setBreakpointAct,
+			       QtCore.SIGNAL("triggered()"),
+			       self.set_breakpoint)
+
+    def set_breakpoint(self):
+	""" set_breakpoint() -> None
+	Sets this module as a breakpoint for execution
+	"""
+	if self.moduleId >= 0:
+	    self.scene().toggle_breakpoint(self.moduleId)
+
+        debug = get_default_interpreter().debugger
+        if debug:
+            debug.update()
 
     def configure(self):
         """ configure() -> None
@@ -793,12 +811,56 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             setModulePen()
             painter.drawRect(self.paddedRect)
 
+        def drawBreakpointShape():
+            painter.setBrush(self.moduleBrush)
+
+            P = QtCore.QPointF
+            shape = QtGui.QPolygonF()
+            height = self.paddedRect.height()
+
+            # right side of shape
+            for (px, py) in [(0.0,0.0),(0.5,0.25),(0.5,0.75),(0.0,1.0)]:
+                p = P(px, -py)
+                p *= height
+                p += self.paddedRect.bottomRight()
+                shape.append(p)
+
+            # left side of shape
+            for (px, py) in reversed([(0.0,0.0),(-0.5,0.25),(-0.5,0.75),(0.0,1.0)]):
+                p = P(px, -py)
+                p *= height
+                p += self.paddedRect.bottomLeft()
+                shape.append(p)
+            # close polygon
+            shape.append(shape[0])
+
+            painter.drawPolygon(shape)
+            setModulePen()
+            painter.drawPolyline(shape)
+
+        try:
+            if self.controller:
+                bps = self.controller.breakpoints
+                if bps.has_key(self.module.id):
+                    self.module.is_breakpoint = True
+            if self.module.is_breakpoint:
+                self.setGhosted(True)
+                self.bp_shape = True
+            else:
+                self.setGhosted(False)
+                self.bp_shape = False
+        except:
+            pass
         if self.ghosted:
             self.moduleBrush = CurrentTheme.GHOSTED_MODULE_BRUSH
-        if self._module_shape:
-            drawCustomShape()
+
+        if self.bp_shape:
+            drawBreakpointShape()
         else:
-            drawStandardShape()
+            if self._module_shape:
+                drawCustomShape()
+            else:
+                drawStandardShape()
     
         setLabelPen()
         painter.setFont(self.labelFont)
@@ -1277,6 +1339,7 @@ mutual connections."""
         self._old_connection_ids = set()
         self.unselect_all()
         self.clearItems()
+        self.controller.current_pipeline.update_breakpoints()
         
     def remove_module(self, m_id):
         """remove_module(m_id): None
@@ -1287,6 +1350,7 @@ mutual connections."""
         self.removeItem(self.modules[m_id])
         del self.modules[m_id]
         self._old_module_ids.remove(m_id)
+        self.controller.current_pipeline.update_breakpoints()
 
     def remove_connection(self, c_id):
         """remove_connection(c_id): None
@@ -1326,6 +1390,7 @@ mutual connections."""
             self.modules[m_id].setSelected(True)
             
         self.modules[m_id]._old_connection_ids = None
+        self.controller.current_pipeline.update_breakpoints()
 
     def module_text_has_changed(self, m1, m2):
         # 2008-06-25 cscheid
@@ -1446,6 +1511,7 @@ mutual connections."""
                 self._old_connection_ids = new_connections
                 self.unselect_all()
                 self.reset_module_colors()
+                self.controller.current_pipeline.update_breakpoints()
         except registry.MissingModulePackage, e:
             views = self.views()
             assert len(views) > 0
@@ -1593,6 +1659,7 @@ mutual connections."""
                 # _old_connection_ids. However, the difference_update
                 # above takes care of connection ids, so we don't need
                 # to call anything.
+        self.controller.current_pipeline.update_breakpoints()
         
 
     def keyPressEvent(self, event):
@@ -1795,6 +1862,16 @@ mutual connections."""
             widget = QModuleDocumentation(descriptor, None)
             widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
             widget.exec_()
+
+    def toggle_breakpoint(self, id):
+	"""
+	toggle_breakpoint(int) -> None
+	Toggles the breakpoint attribute for the module with given id
+	"""
+	if self.controller:
+	    module = self.controller.current_pipeline.modules[id]
+	    module.toggle_breakpoint()
+            self.controller.toggle_breakpoint(id)
 
     def open_annotations_window(self, id):
         """ open_annotations_window(int) -> None

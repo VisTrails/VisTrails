@@ -35,6 +35,7 @@ from gui.module_palette import QModulePalette
 from gui.open_db_window import QOpenDBWindow
 from gui.preferences import QPreferencesDialog
 from gui.shell import QShellDialog
+from gui.debugger import QDebugger
 from gui.theme import CurrentTheme
 from gui.view_manager import QViewManager
 from gui.vistrail_toolbar import QVistrailViewToolBar, QVistrailInteractionToolBar
@@ -84,7 +85,8 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connectSignals()
 
         self.shell = None
-
+        self.debugger = None
+        
         # If this is true, we're currently executing a pipeline, so
         # We can't allow other executions.
         self._executing = False
@@ -322,6 +324,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.shellAction.setCheckable(True)
         self.shellAction.setShortcut('Ctrl+H')
 
+        self.debugAction = QtGui.QAction('VisTrails Debugger', self)
+        self.debugAction.setCheckable(True)
+        self.debugAction.setChecked(False)
+
         self.pipViewAction = QtGui.QAction('Picture-in-Picture', self)
         self.pipViewAction.setCheckable(True)
         self.pipViewAction.setChecked(True)
@@ -438,6 +444,7 @@ class QBuilderWindow(QtGui.QMainWindow):
 
         self.viewMenu = self.menuBar().addMenu('&View')
         self.viewMenu.addAction(self.shellAction)
+        self.viewMenu.addAction(self.debugAction)
         self.viewMenu.addSeparator()
         self.viewMenu.addAction(self.expandBranchAction)
         self.viewMenu.addAction(self.collapseBranchAction)
@@ -600,6 +607,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.connect(self.shellAction,
                      QtCore.SIGNAL('triggered(bool)'),
                      self.showShell)
+
+        self.connect(self.debugAction,
+                     QtCore.SIGNAL('triggered(bool)'),
+                     self.showDebugger)
 
         for shortcut in self.executeShortcuts:
             self.connect(shortcut,
@@ -838,6 +849,8 @@ class QBuilderWindow(QtGui.QMainWindow):
             if not vistrailView.viewAction.isChecked():
                 vistrailView.viewAction.setChecked(True)
 
+        self.update_shell()
+        self.update_debugger()
 
     def vistrailChanged(self):
         """ vistrailChanged() -> None
@@ -847,7 +860,9 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.saveFileAction.setEnabled(True)
         self.saveFileAsAction.setEnabled(True)
         self.exportFileAction.setEnabled(True)
-
+        self.update_shell()
+        self.update_debugger()
+        
     def newVistrail(self):
         """ newVistrail() -> None
         Start a new vistrail, unless user cancels during interaction.
@@ -1087,11 +1102,66 @@ class QBuilderWindow(QtGui.QMainWindow):
                 self.shell = QShellDialog(self)
                 self.connect(self.shell,QtCore.SIGNAL("shellHidden()"),
                              self.shellAction.toggle)
+            self.addDockWidget(QtCore.Qt.BottomDockWidgetArea,
+                               self.shell)
             self.shell.show()
+            currentView = self.viewManager.currentWidget()
+            controller = currentView.controller
+            pipeline = controller.current_pipeline
+            self.shell.shell.add_controller(controller)
+            self.shell.shell.add_pipeline(pipeline)
         else:
             if self.shell:
                 self.shell.hide()
             self.recoverPythonPrompt()
+
+    def update_shell(self):
+        try:
+            if not self.shell:
+                self.shell = QShellDialog(self)
+                self.connect(self.shell, QtCore.SIGNAL("shellHidden()"),
+                             self.shellAction.toggle)
+                self.addDockWidget(QtCore.Qt.BottomDockWidgetArea,
+                                   self.shell)
+            
+            self.shell.shell.add_controller(self.viewManager.currentWidget().controller)
+            if self.shell.isVisible():
+                self.shell.show()
+            else:
+                self.shell.hide()
+        except:
+            pass
+
+    def showDebugger(self, checked=True):
+        ctrlr = self.viewManager.currentWidget().controller
+        if checked:
+            if not self.debugger:
+                self.debugger = QDebugger(self, ctrlr)
+                self.connect(self.debugger, QtCore.SIGNAL("debuggerHidden()"),
+                             self.debugAction.toggle)
+            self.debugger.setWindowTitle("Debugger")
+            self.addDockWidget(QtCore.Qt.BottomDockWidgetArea,
+                               self.debugger)
+            self.debugger.show()
+            
+    def update_debugger(self):
+        try:
+            ctrlr = self.viewManager.currentWidget().controller
+            if not self.debugger:
+                self.debugger = QDebugger(self, ctrlr)
+                self.connect(self.debugger, QtCore.SIGNAL("debuggerHidden()"),
+                             self.debugAction.toggle)
+                self.debugger.setWindowTitle("Debugger")
+                self.addDockWidget(QtCore.Qt.BottomDockWidgetArea,
+                                   self.debugger)
+
+            self.debugger.set_controller(ctrlr)
+            if self.debugger.isVisible():
+                self.debugger.show()
+            else:
+                self.debugger.hide()
+        except:
+            pass
 
     def savePythonPrompt(self):
         """savePythonPrompt() -> None

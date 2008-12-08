@@ -43,6 +43,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
     def __init__(self):
         core.interpreter.base.BaseInterpreter.__init__(self)
+        self.debugger = None
         self.create()
 
     def create(self):
@@ -141,6 +142,9 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
         ### BEGIN METHOD ###
 
+#         if self.debugger:
+#             self.debugger.update()
+
         self.resolve_aliases(pipeline, aliases)
 
         (tmp_to_persistent_module_map,
@@ -157,6 +161,10 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             obj.interpreter = self
             obj.id = persistent_id
             
+            if controller:
+                if controller.breakpoints.has_key(i):
+                    obj.is_breakpoint = True
+                
             reg = modules.module_registry.get_module_registry()
             for f in module.functions:
                 if len(f.params) == 0:
@@ -448,6 +456,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 #             new_kwargs['module_remap'] = module_remap
 #         else:
 #             vistrail = None
+
         if controller is not None:
             vistrail = controller.vistrail
         else:

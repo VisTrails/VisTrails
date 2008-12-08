@@ -743,7 +743,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         self.fullGraph = None
         self.timer = QtCore.QBasicTimer()
         self.animation_step = 1
-        self.num_animation_steps = 10
+        self.num_animation_steps = 1
    
     def addVersion(self, node, action, tag, description):
         """ addModule(node, action: DBAction, tag: DBTag) -> None
