@@ -1018,7 +1018,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 if registry.port_and_port_spec_match(port, p):
                     portShape = self.createPortItem(p,*self.nextOutputPortPos)
                     self.outputPorts[p] = portShape
-                    self.nextOutputPortPos[0] += (CurrentTheme.PORT_WIDTH +
+                    self.nextOutputPortPos[0] -= (CurrentTheme.PORT_WIDTH +
                                                   CurrentTheme.MODULE_PORT_SPACE)
                     return portShape.sceneBoundingRect().center()
             raise VistrailsInternalError("Error: did not find output port "

@@ -41,14 +41,15 @@ import db.services.registry
 import db.services.workflow
 import db.services.vistrail
 from db.versions import getVersionDAO, currentVersion, getVersionSchemaDir, \
-    translate_vistrail, translate_workflow, translate_log, translate_registry
+    translate_object, translate_vistrail, translate_workflow, translate_log, \
+    translate_registry
 
 def open_db_connection(config):
     import MySQLdb
 
     if config is None:
         msg = "You need to provide valid config dictionary"
-        raise Exception(msg)
+        raise VistrailsDBException(msg)
     try:
         db_connection = MySQLdb.connect(**config)
         return db_connection
@@ -143,6 +144,44 @@ def get_db_object_modification_time(db_connection, obj_id, obj_type):
         raise VistrailsDBException(msg)
     return time
 
+def get_db_object_version(db_connection, obj_id, obj_type):
+    import MySQLdb
+
+    command = """
+    SELECT o.version
+    FROM %s o
+    WHERE o.id = %s
+    """
+
+    try:
+        c = db_connection.cursor()
+        c.execute(command % (translate_to_tbl_name(obj_type), obj_id))
+        version = c.fetchall()[0][0]
+        c.close()
+    except MySQLdb.Error, e:
+        msg = "Couldn't get object version from db (%d : %s)" % \
+            (e.args[0], e.args[1])
+        raise VistrailsDBException(msg)
+    return version
+
+def get_db_version(db_connection):
+    import MySQLdb
+
+    command = """
+    SELECT `version`
+    FROM `vistrails_version`
+    """
+
+    try:
+        c = db_connection.cursor()
+        c.execute(command)
+        version = c.fetchall()[0][0]
+        c.close()
+    except MySQLdb.Error, e:
+        # just return None if we hit an error
+        return None
+    return version
+
 def get_matching_abstraction_id(db_connection, abstraction):
     import MySQLdb
 
@@ -217,6 +256,9 @@ def open_from_xml(filename, type):
         return open_log_from_xml(filename)
     elif type == DBRegistry.vtType:
         return open_registry_from_xml(filename)
+    else:
+        raise VistrailsDBException("cannot open object of type "
+                                   "'%s' from xml" % type)
 
 def save_to_xml(obj, filename):
     if obj.vtType == DBVistrail.vtType:
@@ -227,6 +269,9 @@ def save_to_xml(obj, filename):
         return save_log_to_xml(obj, filename)
     elif obj.vtType == DBRegistry.vtType:
         return save_registry_to_xml(obj, filename)
+    else:
+        raise VistrailsDBException("cannot save object of type "
+                                   "'%s' to xml" % type)
 
 def append_to_xml(obj, filename):
     if obj.vtType == DBLog.vtType:
@@ -241,10 +286,6 @@ def open_from_zip_xml(filename, type):
     else:
         raise VistrailsDBException("cannot open object of type '%s' from zip" %\
                                        type)
-#     elif type == DBWorkflow.vtType:
-#         return open_workflow_from_zip_xml(filename)
-#     elif type == DBLog.vtType:
-#         return open_log_from_zip_xml(filename)
 
 def save_to_zip_xml(objs, filename, tmp_dir=None):
     obj_type = objs[0][0]
@@ -253,10 +294,6 @@ def save_to_zip_xml(objs, filename, tmp_dir=None):
     else:
         raise VistrailsDBException("cannot save object of type '%s' to zip" % \
                                        obj_type)
-#     elif obj_type == DBWorkflow.vtType:
-#         return save_workflow_to_zip_xml(objs, filename, tmp_dir)
-#     elif obj_type == DBLog.vtType:
-#         return save_log_to_zip_xml(objs, filename, tmp_dir)
 
 def open_from_db(db_connection, type, obj_id):
     if type == DBVistrail.vtType:
@@ -265,6 +302,11 @@ def open_from_db(db_connection, type, obj_id):
         return open_workflow_from_db(db_connection, obj_id)
     elif type == DBLog.vtType:
         return open_log_from_db(db_connection, obj_id)
+    elif type == DBRegistry.vtType:
+        return open_registry_from_db(db_connection, obj_id)
+    else:
+        raise VistrailsDBException("cannot open object of type '%s' from db" % \
+                                       type)
 
 def save_to_db(obj, db_connection, do_copy=False):
     if obj.vtType == DBVistrail.vtType:
@@ -273,6 +315,11 @@ def save_to_db(obj, db_connection, do_copy=False):
         return save_workflow_to_db(obj, db_connection, do_copy)
     elif obj.vtType == DBLog.vtType:
         return save_log_to_db(obj, db_connection, do_copy)
+    elif obj.vtType == DBRegistry.vtType:
+        return save_registry_to_db(obj, db_connection, do_copy)
+    else:
+        raise VistrailsDBException("cannot save object of type '%s' to db" % \
+                                       type)
 
 def close_zip_xml(temp_dir):
     """close_zip_xml(temp_dir: string) -> None
@@ -377,51 +424,43 @@ def open_vistrail_from_zip_xml(filename):
 
     return (objs, vt_save_dir)
             
-def open_vistrail_from_db(db_connection, id, lock=False):
-    """open_vistrail_from_db(db_connection, id : long, lock: bool) 
+def open_vistrail_from_db(db_connection, id, lock=False, version=None):
+    """open_vistrail_from_db(db_connection, id : long, lock: bool, 
+                             version: str) 
          -> DBVistrail 
 
     """
     if db_connection is None:
         msg = "Need to call open_db_connection() before reading"
-        raise Exception(msg)
-
-    # method because we use recursion for nested abstractions
-    def load_abstractions(vistrail, entity):
-        abstractions = {}
-        for action in entity.db_actions:
-            for operation in action.db_operations:
-                if operation.vtType == 'add' or operation.vtType == 'change':
-                    if operation.db_data.vtType == 'abstractionRef':
-                        abstractions[operation.db_data.db_abstraction_id] = 1
-        for a_id in abstractions.iterkeys():
-            abstraction = open_abstraction_from_db(db_connection, a_id)
-            db.services.abstraction.update_id_scope(abstraction)
-            vistrail.db_add_abstraction(abstraction)
-            load_abstractions(vistrail, abstraction)
-
-
-    vt = read_sql_objects(db_connection, DBVistrail.vtType, id, lock)[0]
-    # not sure where this really should be done...
-    # problem is that db reads the add ops, then change ops, then delete ops
-    # need them ordered by their id
-    for db_action in vt.db_get_actions():
+        raise VistrailsDBException(msg)
+    if version is None:
+        version = get_db_object_version(db_connection, id, DBVistrail.vtType)
+    dao_list = getVersionDAO(version)
+    vistrail = \
+        dao_list.open_from_db(db_connection, DBVistrail.vtType, id, lock)
+    for db_action in vistrail.db_get_actions():
         db_action.db_operations.sort(key=lambda x: x.db_id)
-    db.services.vistrail.update_id_scope(vt)
-    load_abstractions(vt, vt)
-    return vt
+    vistrail = translate_vistrail(vistrail, version)
+    db.services.vistrail.update_id_scope(vistrail)
+    return vistrail
 
-def save_vistrail_to_xml(vistrail, filename):
-    daoList = getVersionDAO(currentVersion)
+def save_vistrail_to_xml(vistrail, filename, version=None):
     tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
             'xsi:schemaLocation': 'http://www.vistrails.org/vistrail.xsd'
             }
+    if version is None:
+        version = currentVersion
+    if not vistrail.db_version:
+        vistrail.db_version = currentVersion
+    vistrail = translate_vistrail(vistrail, vistrail.db_version, version)
+
+    daoList = getVersionDAO(version)        
     daoList.save_to_xml(vistrail, filename, tags, currentVersion)
     return vistrail
 
-def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None):
+def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None, version=None):
     """save_vistrail_to_zip_xml(objs: (string, object, fname), filename:str,
-                                vt_save_dir: str) -> None
+                                vt_save_dir: str, version: str) -> None
     string: either the object's vtType or 'file' (we are copying a file)
     object: a DB* object or filename
     fname: the filename of the object in the zip file
@@ -462,12 +501,12 @@ def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None):
         elif obj_type == DBLog.vtType:
             xml_fname = os.path.join(vt_save_dir, 'log')
             if not os.path.exists(xml_fname):
-                save_log_to_xml(obj, xml_fname)
+                save_log_to_xml(obj, xml_fname, version)
             else:
-                append_log_to_xml(obj, xml_fname)
+                append_log_to_xml(obj, xml_fname, version)
         elif obj_type == DBVistrail.vtType:
             xml_fname = os.path.join(vt_save_dir, 'vistrail')
-            save_to_xml(obj, xml_fname)
+            save_vistrail_to_xml(obj, xml_fname, version)
         else:
             raise VistrailsDBException('save_vistrail_to_zip_xml failed, '
                                        "type '%s' unrecognized" % obj_type)
@@ -481,35 +520,21 @@ def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None):
     if result != 0 and len(output) != 0:
         for line in output:
             if line.find('deflated') == -1:
-                raise Exception(" ".join(output))
+                raise VistrailsDBException(" ".join(output))
     return (objs, vt_save_dir)
             
-def save_vistrail_to_db(vistrail, db_connection, do_copy=False):
-    vistrail.db_version = currentVersion
-    
-    # method because we use recursion for nested abstractions
-    def save_abstractions(vistrail, entity):
-        for action in entity.db_actions:
-            for operation in action.db_operations:
-                if operation.vtType == 'add' or operation.vtType == 'change':
-                    if operation.db_data.vtType == 'abstractionRef':
-                        old_id = operation.db_data.db_abstraction_id
-                        # new_id = abstraction_map[old_id]
-                        abstraction = vistrail.db_abstractions_id_index[old_id]
-                        save_abstractions(vistrail, abstraction)
-                        abstraction = \
-                            save_abstraction_to_db(abstraction, db_connection)
-                        vistrail.db_new_abstractions.append(abstraction)
-                        new_id = abstraction.db_id
-                        if new_id != old_id:
-                            operation.db_data.db_abstraction_id = new_id
-
-    # remove abstractions for db write
-    vistrail.db_new_abstractions = []
-    save_abstractions(vistrail, vistrail)
-    new_abstractions = vistrail.db_new_abstractions
-    vistrail.db_abstractions = []
-    vistrail.db_abstractions_id_index = {}
+def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
+    if db_connection is None:
+        msg = "Need to call open_db_connection() before reading"
+        raise VistrailsDBException(msg)
+    if version is None:
+        version = get_db_version(db_connection)
+        if version is None:
+            version = currentVersion
+    if not vistrail.db_version:
+        vistrail.db_version = currentVersion
+    vistrail = translate_vistrail(vistrail, vistrail.db_version, version)
+    dao_list = getVersionDAO(version)
 
     db_connection.begin()
     if not do_copy and vistrail.db_last_modified is not None:
@@ -519,22 +544,15 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False):
         if new_time > vistrail.db_last_modified:
             # need synchronization
             old_vistrail = open_vistrail_from_db(db_connection, vistrail.db_id,
-                                                 True)
+                                                 True, version)
+            old_vistrail = translate_vistrail(old_vistrail, version)
             # the "old" one is modified and changes integrated
             db.services.vistrail.synchronize(old_vistrail, vistrail)
             vistrail = old_vistrail
     vistrail.db_last_modified = get_current_time(db_connection)
-    if do_copy and vistrail.db_id is not None:
-        vistrail.db_id = None
-    write_sql_objects(db_connection, [vistrail], do_copy)
+    dao_list.save_to_db(db_connection, vistrail, do_copy)
     db_connection.commit()
-    
-    # add abstractions back
-    vistrail.db_abstractions = new_abstractions
-    for abstraction in vistrail.db_abstractions:
-        vistrail.db_abstractions_id_index[abstraction.db_id] = abstraction
     return vistrail
-
 
 ##############################################################################
 # Workflow I/O
@@ -549,32 +567,53 @@ def open_workflow_from_xml(filename):
     db.services.workflow.update_id_scope(workflow)
     return workflow
 
-def open_workflow_from_db(db_connection, id, lock=False):
-    """open_workflow_from_db(db_connection, id : long: lock: bool) 
+def open_workflow_from_db(db_connection, id, lock=False, version=None):
+    """open_workflow_from_db(db_connection, id : long: lock: bool, 
+                             version: str) 
          -> DBWorkflow 
     
     """
     if db_connection is None:
         msg = "Need to call open_db_connection() before reading"
-        raise Exception(msg)
-    wf = read_sql_objects(db_connection, DBWorkflow.vtType, id, lock)[0]
-    return wf
+        raise VistrailsDBException(msg)
+    if version is None:
+        version = get_db_object_version(db_connection, id, DBWorkflow.vtType)
+    dao_list = getVersionDAO(version)
+    workflow = \
+        dao_list.open_from_db(db_connection, DBWorkflow.vtType, id, lock)
+    workflow = translate_workflow(workflow, version)
+    return workflow
     
-def save_workflow_to_xml(workflow, filename):
-    daoList = getVersionDAO(currentVersion)
+def save_workflow_to_xml(workflow, filename, version=None):
     tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
             'xsi:schemaLocation': 'http://www.vistrails.org/workflow.xsd'
             }
+    if version is None:
+        version = currentVersion
+    if not workflow.db_version:
+        workflow.db_version = currentVersion
+    workflow = translate_workflow(workflow, workflow.db_version, version)
+
+    daoList = getVersionDAO(version)
     daoList.save_to_xml(workflow, filename, tags, currentVersion)
     return workflow
 
-def save_workflow_to_db(workflow, db_connection, do_copy=False):
+def save_workflow_to_db(workflow, db_connection, do_copy=False, version=None):
+    if db_connection is None:
+        msg = "Need to call open_db_connection() before reading"
+        raise VistrailsDBException(msg)
+    if version is None:
+        version = get_db_version(db_connection)
+        if version is None:
+            version = currentVersion
+    if not workflow.db_version:
+        workflow.db_version = currentVersion
+    workflow = translate_workflow(workflow, workflow.db_version, version)
+    dao_list = getVersionDAO(version)
+
     db_connection.begin()
-    workflow.db_version = currentVersion
     workflow.db_last_modified = get_current_time(db_connection)
-    if do_copy and workflow.db_id is not None:
-        workflow.db_id = None
-    write_sql_objects(db_connection, [workflow], do_copy)
+    dao_list.save_to_db(db_connection, workflow, do_copy)
     db_connection.commit()
     return workflow
 
@@ -591,15 +630,19 @@ def open_log_from_xml(filename):
     db.services.log.update_id_scope(log)
     return log
 
-def open_log_from_db(db_connection, id, lock=False):
-    """open_log_from_db(db_connection, id : long: lock: bool) 
+def open_log_from_db(db_connection, id, lock=False, version=None):
+    """open_log_from_db(db_connection, id : long: lock: bool, version: str) 
          -> DBLog 
     
     """
     if db_connection is None:
         msg = "Need to call open_db_connection() before reading"
-        raise Exception(msg)
-    log = read_sql_objects(db_connection, DBLog.vtType, id, lock)[0]
+        raise VistrailsDBException(msg)
+    if version is None:
+        version = get_db_object_version(db_connection, id, DBLog.vtType)
+    dao_list = getVersionDAO(version)
+    log = dao_list.open_from_db(db_connection, DBLog.vtType, id, lock)
+    log = translate_log(log, version)
     return log
 
 def save_log_to_xml(log, filename):
@@ -608,25 +651,46 @@ def save_log_to_xml(log, filename):
 #             }
 #     daoList.save_to_xml(log, filename, tags, currentVersion)
 
-    daoList = getVersionDAO(currentVersion)
+    if version is None:
+        version = currentVersion
+    if not log.db_version:
+        log.db_version = currentVersion
+    log = translate_log(log, log.db_version, version)
+
+    daoList = getVersionDAO(version)
     log_file = open(filename, 'wb')
     for workflow_exec in log.workflow_execs:
         daoList.save_to_xml(workflow_exec, log_file, {}, currentVersion)
     log_file.close()
     return log
 
-def save_log_to_db(log, db_connection, do_copy=False):
+def save_log_to_db(log, db_connection, do_copy=False, version=None):
+    if db_connection is None:
+        msg = "Need to call open_db_connection() before reading"
+        raise VistrailsDBException(msg)
+    if version is None:
+        version = get_db_version(db_connection)
+        if version is None:
+            version = currentVersion
+    if not log.db_version:
+        log.db_version = currentVersion
+    log = translate_log(log, log.db_version, version)
+    dao_list = getVersionDAO(version)
+
     db_connection.begin()
-    log.db_version = currentVersion
     log.db_last_modified = get_current_time(db_connection)
-    if do_copy and log.db_id is not None:
-        log.db_id = None
-    write_sql_objects(db_connection, [log], do_copy)
+    dao_list.save_to_db(db_connection, log, do_copy)
     db_connection.commit()
     return log
 
-def append_log_to_xml(log, filename):
-    daoList = getVersionDAO(currentVersion)
+def append_log_to_xml(log, filename, version=None):
+    if version is None:
+        version = currentVersion
+    if not log.db_version:
+        log.db_version = currentVersion
+    log = translate_log(log, log.db_version, version)
+
+    daoList = getVersionDAO(version)
     log_file = open(filename, 'ab')
 
     for workflow_exec in log.workflow_execs:
@@ -646,12 +710,54 @@ def open_registry_from_xml(filename):
     db.services.registry.update_id_scope(registry)
     return registry
 
-def save_registry_to_xml(registry, filename):
-    daoList = getVersionDAO(currentVersion)
+def open_registry_from_db(db_connection, id, lock=False, version=None):
+    """open_registry_from_db(db_connection, id : long: lock: bool, 
+                             version: str) -> DBRegistry 
+    
+    """
+    if db_connection is None:
+        msg = "Need to call open_db_connection() before reading"
+        raise VistrailsDBException(msg)
+    if version is None:
+        version = get_db_object_version(db_connection, id, DBRegistry.vtType)
+    dao_list = getVersionDAO(version)
+    registry = dao_list.open_from_db(db_connection, DBRegistry.vtType, id, lock)
+    registry = translate_registry(registry, version)
+    return registry
+
+def save_registry_to_xml(registry, filename, version=None):
     tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
             'xsi:schemaLocation': 'http://www.vistrails.org/registry.xsd'
             }
+    if version is None:
+        version = get_db_version(db_connection)
+        if version is None:
+            version = currentVersion
+    if not registry.db_version:
+        registry.db_version = currentVersion
+    registry = translate_registry(registry, registry.db_version, version)
+
+    daoList = getVersionDAO(version)
     daoList.save_to_xml(registry, filename, tags, currentVersion)
+    return registry
+
+def save_registry_to_db(registry, db_connection, do_copy=False, version=None):
+    if db_connection is None:
+        msg = "Need to call open_db_connection() before reading"
+        raise VistrailsDBException(msg)
+    if version is None:
+        version = get_db_version(db_connection)
+        if version is None:
+            version = currentVersion
+    if not registry.db_version:
+        registry.db_version = currentVersion
+    registry = translate_registry(registry, registry.db_version, version)
+    dao_list = getVersionDAO(version)
+
+    db_connection.begin()
+    registry.db_last_modified = get_current_time(db_connection)
+    dao_list.save_to_db(db_connection, registry, do_copy)
+    db_connection.commit()
     return registry
 
 ##############################################################################
@@ -664,7 +770,7 @@ def open_abstraction_from_db(db_connection, id, lock=False):
     """
     if db_connection is None:
         msg = "Need to call open_db_connection() before reading"
-        raise Exception(msg)
+        raise VistrailsDBException(msg)
     abstraction = read_sql_objects(db_connection, DBAbstraction.vtType, 
                                    id, lock)[0]
 
@@ -712,94 +818,6 @@ def save_abstraction_to_db(abstraction, db_connection, do_copy=False):
 ##############################################################################
 # I/O Utilities
 
-def read_sql_objects(db_connection, vtType, id, lock=False):
-    dao_list = getVersionDAO(currentVersion)
-
-    all_objects = {}
-    res = []
-    global_props = {'id': id}
-    # print global_props
-    res_objects = dao_list['sql'][vtType].get_sql_columns(db_connection, 
-                                                          global_props,
-                                                          lock)
-    all_objects.update(res_objects)
-    res = res_objects.values()
-    del global_props['id']
-
-    for dao in dao_list['sql'].itervalues():
-        if (dao == dao_list['sql'][DBVistrail.vtType] or
-            # dao == dao_list['sql'][DBWorkflow.vtType] or
-            dao == dao_list['sql'][DBLog.vtType] or
-            dao == dao_list['sql'][DBAbstraction.vtType]):
-            continue
-        current_objs = dao.get_sql_columns(db_connection, global_props, lock)
-        if dao == dao_list['sql'][DBWorkflow.vtType]:
-            for key, obj in current_objs.iteritems():
-                if key[0] == vtType and key[1] == id:
-                    continue
-                elif key[0] == DBWorkflow.vtType:
-                    res_objs = \
-                        read_sql_objects(db_connection, key[0], key[1], lock)
-                    res_dict = {}
-                    for res_obj in res_objs:
-                        res_dict[(res_obj.db_id, res_obj.vtType)] = res_obj
-                    all_objects.update(res_dict)
-        else:
-            all_objects.update(current_objs)
-
-    for key, obj in all_objects.iteritems():
-        if key[0] == vtType and key[1] == id:
-            continue
-        dao_list['sql'][obj.vtType].from_sql_fast(obj, all_objects)
-    for obj in all_objects.itervalues():
-        obj.is_dirty = False
-        obj.is_new = False
-    return res
-
-def write_sql_objects(db_connection, objectList, do_copy=False, 
-                      global_props=None):
-    dao_list = getVersionDAO(currentVersion)
-
-    for object in objectList:
-        children = object.db_children() # forSQL=True)
-        children.reverse()
-        if global_props is None:
-            global_props = {'entity_type': "'" + object.vtType + "'"}
-        # print 'global_props:', global_props
-
-        # assumes not deleting entire thing
-        (child, _, _) = children[0]
-        dao_list['sql'][child.vtType].set_sql_columns(db_connection, child, 
-                                                      global_props, do_copy)
-        dao_list['sql'][child.vtType].to_sql_fast(child, do_copy)
-        if not do_copy:
-            for (child, _, _) in children:
-                for obj in child.db_deleted_children(True):
-                    dao_list['sql'][obj.vtType].delete_sql_column(db_connection,
-                                                                  obj,
-                                                                  global_props)
-
-        (child, _, _) = children.pop(0)
-        child.is_dirty = False
-        child.is_new = False
-        for (child, _, _) in children:
-            # print "child:", child.vtType, child.db_id
-            dao_list['sql'][child.vtType].set_sql_columns(db_connection, child, 
-                                                          global_props, do_copy)
-            dao_list['sql'][child.vtType].to_sql_fast(child, do_copy)
-            if child.vtType == DBGroup.vtType:
-                if child.db_workflow:
-                    # print '*** entity_type:', global_props['entity_type']
-                    write_sql_objects(db_connection, [child.db_workflow],
-                                      do_copy,
-                                      {'entity_id': global_props['entity_id'],
-                                       'entity_type': \
-                                           global_props['entity_type']}
-                                      )
-                                            
-            child.is_dirty = False
-            child.is_new = False
-
 def get_version_for_xml(root):
     version = root.get('version', None)
     if version is not None:
@@ -821,7 +839,6 @@ def get_current_time(db_connection=None):
             print "Logger Error %d: %s" % (e.args[0], e.args[1])
 
     return timestamp
-
 
 ##############################################################################
 # Testing

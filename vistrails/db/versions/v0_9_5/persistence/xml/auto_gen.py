@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2008 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -1111,6 +1111,8 @@ class DBRegistryXMLDAOBase(XMLDAO):
         # read attributes
         data = node.get('id', None)
         id = self.convertFromStr(data, 'long')
+        data = node.get('version', None)
+        version = self.convertFromStr(data, 'str')
         data = node.get('rootDescriptorId', None)
         root_descriptor_id = self.convertFromStr(data, 'long')
         
@@ -1127,6 +1129,7 @@ class DBRegistryXMLDAOBase(XMLDAO):
                 print '*** ERROR *** tag = %s' % child.tag
         
         obj = DBRegistry(id=id,
+                         version=version,
                          root_descriptor_id=root_descriptor_id,
                          packages=packages)
         obj.is_dirty = False
@@ -1138,6 +1141,7 @@ class DBRegistryXMLDAOBase(XMLDAO):
         
         # set attributes
         node.set('id',self.convertToStr(registry.db_id, 'long'))
+        node.set('version',self.convertToStr(registry.db_version, 'str'))
         node.set('rootDescriptorId',self.convertToStr(registry.db_root_descriptor_id, 'long'))
         
         # set elements
@@ -1387,7 +1391,7 @@ class DBPackageXMLDAOBase(XMLDAO):
         # set elements
         module_descriptors = package.db_module_descriptors
         for module_descriptor in module_descriptors:
-            childNode = ElementTree.SubElement(node, 'moduleDescriptor')
+            childNode = ElementTree.SubElement(node, 'module_descriptor')
             self.getDao('module_descriptor').toXML(module_descriptor, childNode)
         
         return node

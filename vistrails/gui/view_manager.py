@@ -504,14 +504,14 @@ class QViewManager(QtGui.QTabWidget):
             vistrailView.flush_changes()
             gui_get = locator_class.save_from_gui
             if force_choose_locator:
-                locator = gui_get(self, Log.vtType,
+                locator = gui_get(self, Registry.vtType,
                                   vistrailView.controller.locator)
             else:
                 locator = (vistrailView.controller.locator or
-                           gui_get(self, Log.vtType,
+                           gui_get(self, Registry.vtType,
                                    vistrailView.controller.locator))
             if locator == untitled_locator():
-                locator = gui_get(self, Log.vtType,
+                locator = gui_get(self, Registry.vtType,
                                   vistrailView.controller.locator)
             if not locator:
                 return False

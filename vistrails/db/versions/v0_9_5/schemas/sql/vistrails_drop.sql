@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2008 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -19,6 +19,8 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
+
+DROP TABLE IF EXISTS `vistrails_version`;
 
 -- genereated automatically by generate.py
 

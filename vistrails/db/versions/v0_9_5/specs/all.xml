@@ -64,7 +64,7 @@
     </property>
 
     <property name="parentType" type="str" inverse="true">
-      <sql column="parent_type" type="char(16)"/>
+      <sql column="parent_type" type="char(32)"/>
     </property>
 
     <choice name="parent" type="long" discriminator="parentType" inverse="true" 
@@ -280,7 +280,7 @@
     </property>
 
     <property name="parentType" type="str" inverse="true">
-      <sql column="parent_type" type="char(16)"/>
+      <sql column="parent_type" type="char(32)"/>
     </property>
 
     <choice name="parent" type="long" discriminator="parentType" inverse="true" 
@@ -448,7 +448,7 @@
     </property>
 
     <property name="parentType" type="str" inverse="true">
-      <sql column="parent_type" type="char(16)"/>
+      <sql column="parent_type" type="char(32)"/>
     </property>
 
     <choice name="parent" type="long" discriminator="parentType" inverse="true" 
@@ -555,7 +555,7 @@
     </property>
 
     <property name="parentType" type="str" inverse="true">
-      <sql column="parent_type" type="char(16)"/>
+      <sql column="parent_type" type="char(32)"/>
     </property>
 
     <choice name="parent" type="long" discriminator="parentType" inverse="true" 
@@ -651,7 +651,7 @@
     </property>
 
     <property name="parentType" type="str" inverse="true">
-      <sql column="parent_type" type="char(16)"/>
+      <sql column="parent_type" type="char(32)"/>
     </property>
 
     <choice name="parent" type="long" discriminator="parentType" inverse="true" 
@@ -703,7 +703,7 @@
     </property>
 
     <property name="parentType" type="str" inverse="true">
-      <sql column="parent_type" type="char(16)"/>
+      <sql column="parent_type" type="char(32)"/>
     </property>
 
     <choice name="parent" type="long" discriminator="parentType" inverse="true" 
@@ -909,7 +909,7 @@
     </property>
 
     <property name="parentType" type="str" inverse="true">
-      <sql column="parent_type" type="char(16)"/>
+      <sql column="parent_type" type="char(32)"/>
     </property>
 
     <choice name="parent" type="long" discriminator="parentType" inverse="true" 
@@ -1045,7 +1045,7 @@
     </property>
 
     <property name="parentType" type="str" inverse="true">
-      <sql column="parent_type" type="char(16)"/>
+      <sql column="parent_type" type="char(32)"/>
     </property>
 
     <choice name="parent" type="long" discriminator="parentType" inverse="true" 
@@ -1112,7 +1112,7 @@
     </property>
 
     <property name="parentType" type="str" inverse="true">
-      <sql column="parent_type" type="char(16)"/>
+      <sql column="parent_type" type="char(32)"/>
     </property>
 
     <choice name="parent" type="long" discriminator="parentType" inverse="true" 
@@ -1159,7 +1159,7 @@
     </property>
 
     <property name="parentType" type="str" inverse="true">
-      <sql column="parent_type" type="char(16)"/>
+      <sql column="parent_type" type="char(32)"/>
     </property>
 
     <choice name="parent" type="long" discriminator="parentType" inverse="true" 
@@ -1225,7 +1225,7 @@
     </property>
 
     <property name="parentType" type="str" inverse="true">
-      <sql column="parent_type" type="char(16)"/>
+      <sql column="parent_type" type="char(32)"/>
     </property>
 
     <choice name="parent" type="long" discriminator="parentType" inverse="true" 
@@ -1269,7 +1269,7 @@
 
     <property name="name" type="str">
       <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(22)"/>
+      <sql type="varchar(255)"/>
     </property>
 
     <property name="type" type="str">
@@ -1289,11 +1289,11 @@
 
     <property name="sigstring" type="str">
       <xml nodeType="xs:attribute" type="xs:string"/>
-      <sql type="varchar(1024)"/>
+      <sql type="varchar(4095)"/>
     </property>
 
     <property name="parentType" type="str" inverse="true">
-      <sql column="parent_type" type="char(16)"/>
+      <sql column="parent_type" type="char(32)"/>
     </property>
 
     <choice name="parent" type="long" discriminator="parentType" inverse="true" 
@@ -1368,9 +1368,17 @@
       <sql column="parent_id" type="int"/>
     </property>
 
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
+
     <!--
     <property name="parentType" type="str" inverse="true">
-      <sql column="parent_type" type="char(16)"/>
+      <sql column="parent_type" type="char(32)"/>
     </property>
 
     <choice name="parent" type="long" discriminator="parentType" inverse="true" 
@@ -1441,6 +1449,14 @@
 	      mapping="many-to-one">
       <sql column="parent_id" type="int"/>
     </property>
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
+    </property>
   </object>
 
   <!--++++++++++++++++++++++++++-->
@@ -1456,6 +1472,15 @@
     <property name="id" type="long" primaryKey="true">
       <xml nodeType="xs:attribute" type="xs:int"/>
       <sql type="int" autoInc="true" global="true" globalName="entity_id"/>
+    </property>
+
+    <property name="entity_type" type="str">
+      <sql type="char(16)" global="true" globalName="entity_type"/>
+    </property>
+
+    <property name="version" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="char(16)"/>
     </property>
 
     <property name="root_descriptor_id" type="long" foreignKey="true" 
@@ -1632,7 +1657,7 @@
     </property>
     
     <property name="parentType" type="str" inverse="true">
-      <sql column="parent_type" type="char(16)"/>
+      <sql column="parent_type" type="char(32)"/>
     </property>
   </object>
 

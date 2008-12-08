@@ -20,7 +20,9 @@
 ##
 ############################################################################
 
+from itertools import izip
 import os
+
 from core.system import vistrails_root_directory
 from db import VistrailsDBException
 
@@ -38,9 +40,11 @@ def getVersionDAO(version=None):
         raise VistrailsDBException(msg)
     return persistence.DAOList()
 
-def translate_object(obj, method_name, version=None):
+def translate_object(obj, method_name, version=None, target_version=None):
     if version is None:
         version = obj.version
+    if target_version is None:
+        target_version = currentVersion
 
     version_map = {
         '0.3.0': '0.3.1',
@@ -57,45 +61,66 @@ def translate_object(obj, method_name, version=None):
         '0.9.4': '0.9.5',
         }
 
-    def get_translate_module(start_version):
-        end_version = version_map[start_version]
+    rev_version_map = {
+        '0.9.5': '0.9.4',
+        '0.9.4': '0.9.3',
+        }
+
+    def get_translate_module(map, start_version, end_version):
         translate_dir = 'db.versions.' + get_version_name(end_version) + \
             '.translate.' + get_version_name(start_version)
         return __import__(translate_dir, {}, {}, [''])
 
+    path = []
+    old_tuple = version.split('.')
+    new_tuple = target_version.split('.')
+    map = version_map
+    for i, j in izip(old_tuple, new_tuple):
+        if i < j:
+            # forward
+            break
+        elif i > j:
+            # reverse
+            map = rev_version_map
+            break
+
     # don't get stuck in an infinite loop
     count = 0
-    while version != currentVersion:
-        if count > len(version_map):
+    while version != target_version:
+        if count > len(map):
             break
-        translate_module = get_translate_module(version)
+        next_version = map[version]
+        translate_module = get_translate_module(map, version, next_version)
 
         if not hasattr(translate_module, method_name):
             raise VistrailsDBException("Cannot translate version: "
                                        "version %s missing method '%s'" % \
                                            (version, method_name))
         obj = getattr(translate_module, method_name)(obj)
-        version = obj.db_version
+        version = next_version
         count += 1
 
-    if version != currentVersion:
+    if version != target_version:
         msg = "An error occurred when translating,"
         msg += "only able to translate to version '%s'" % version
         raise VistrailsDBException(msg)
 
     return obj
 
-def translate_vistrail(vistrail, version=None):
-    return translate_object(vistrail, 'translateVistrail', version)
+def translate_vistrail(vistrail, version=None, target_version=None):
+    return translate_object(vistrail, 'translateVistrail', version, 
+                            target_version)
 
-def translate_workflow(workflow, version=None):
-    return translate_object(workflow, 'translateWorkflow', version)
+def translate_workflow(workflow, version=None, target_version=None):
+    return translate_object(workflow, 'translateWorkflow', version, 
+                            target_versio)
 
-def translate_log(log, version=None):
-    return translate_object(log, 'translateLog', version)
+def translate_log(log, version=None, target_version=None):
+    return translate_object(log, 'translateLog', version, target_version)
 
-def translate_registry(registry, version=None):
-    return translate_object(registry, 'translateRegistry', version)
+def translate_registry(registry, version=None, target_version=None):
+    return translate_object(registry, 'translateRegistry', version, 
+                            target_version)
 
 def get_version_name(version_no):
     return 'v' + version_no.replace('.', '_')

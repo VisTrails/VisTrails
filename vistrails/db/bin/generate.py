@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2008 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -46,7 +46,7 @@ class DAOList(dict):
 COPYRIGHT_NOTICE = \
 """############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2008 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -259,12 +259,18 @@ def main(argv=None):
 	schemaFile = os.path.join(versionDirs['sqlSchema'], 'vistrails.sql')
 	f = open(schemaFile, 'w')
         f.write(COPYRIGHT_NOTICE)
+        # write table that keeps metadata
+        f.write("CREATE TABLE `vistrails_version`(`version` char(16)) "
+                "engine=InnoDB;\n")
+        f.write("INSERT INTO `vistrails_version`(`version`) "
+                "VALUES ('%s');\n\n" % version)
 	f.write(sqlAutoGen.generateSchema())
 	f.close()
 	
 	schemaFile = os.path.join(versionDirs['sqlSchema'],'vistrails_drop.sql')
 	f = open(schemaFile, 'w')
         f.write(COPYRIGHT_NOTICE)
+        f.write("DROP TABLE IF EXISTS `vistrails_version`;\n\n")
 	f.write(sqlAutoGen.generateDeleteSchema())
 	f.close()
 

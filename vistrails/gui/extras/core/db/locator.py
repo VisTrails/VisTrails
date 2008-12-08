@@ -1,4 +1,4 @@
-############################################################################
+###########################################################################
 ##
 ## Copyright (C) 2006-2007 University of Utah. All rights reserved.
 ##
@@ -34,7 +34,7 @@ import core.configuration
 # DB dialogs
 
 def get_load_db_locator_from_gui(parent, obj_type):
-    config, obj_id = QOpenDBWindow.getOpenDBObject(obj_type)
+    config, obj_id, obj_name = QOpenDBWindow.getOpenDBObject(obj_type)
     if config == {} or obj_id == -1:
         return None
     return DBLocator(config['host'],
@@ -42,7 +42,7 @@ def get_load_db_locator_from_gui(parent, obj_type):
                      config['db'],
                      config['user'],
                      config['passwd'],
-                     None,
+                     obj_name,
                      obj_id,
                      obj_type,
                      config.get('id', None))

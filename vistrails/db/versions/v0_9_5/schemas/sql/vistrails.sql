@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2008 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -20,16 +20,19 @@
 ##
 ############################################################################
 
+CREATE TABLE `vistrails_version`(`version` char(16)) engine=InnoDB;
+INSERT INTO `vistrails_version`(`version`) VALUES ('0.9.5');
+
 -- generated automatically by auto_dao.py
 
 CREATE TABLE port_spec(
     id int,
-    name varchar(22),
+    name varchar(255),
     type varchar(255),
     optional int,
     sort_key int,
-    sigstring varchar(1024),
-    parent_type char(16),
+    sigstring varchar(4095),
+    parent_type char(32),
     entity_id int,
     entity_type char(16),
     parent_id int
@@ -43,7 +46,7 @@ CREATE TABLE module(
     package varchar(511),
     version varchar(255),
     tag varchar(255),
-    parent_type char(16),
+    parent_type char(32),
     entity_id int,
     entity_type char(16),
     parent_id int
@@ -55,7 +58,9 @@ CREATE TABLE module_descriptor(
     package varchar(255),
     namespace varchar(255),
     base_descriptor_id int,
-    parent_id int
+    parent_id int,
+    entity_id int,
+    entity_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE tag(
@@ -73,7 +78,7 @@ CREATE TABLE port(
     moduleName varchar(255),
     name varchar(255),
     signature varchar(4095),
-    parent_type char(16),
+    parent_type char(32),
     entity_id int,
     entity_type char(16),
     parent_id int
@@ -87,7 +92,7 @@ CREATE TABLE group_tbl(
     package varchar(511),
     version varchar(255),
     tag varchar(255),
-    parent_type char(16),
+    parent_type char(32),
     entity_id int,
     entity_type char(16),
     parent_id int
@@ -130,7 +135,7 @@ CREATE TABLE other(
     id int,
     okey varchar(255),
     value varchar(255),
-    parent_type char(16),
+    parent_type char(32),
     entity_id int,
     entity_type char(16),
     parent_id int
@@ -140,7 +145,7 @@ CREATE TABLE location(
     id int,
     x DECIMAL(18,12),
     y DECIMAL(18,12),
-    parent_type char(16),
+    parent_type char(32),
     entity_id int,
     entity_type char(16),
     parent_id int
@@ -153,7 +158,7 @@ CREATE TABLE parameter(
     type varchar(255),
     val varchar(8191),
     alias varchar(255),
-    parent_type char(16),
+    parent_type char(32),
     entity_id int,
     entity_type char(16),
     parent_id int
@@ -162,7 +167,7 @@ CREATE TABLE parameter(
 CREATE TABLE plugin_data(
     id int,
     data varchar(8191),
-    parent_type char(16),
+    parent_type char(32),
     entity_id int,
     entity_type char(16),
     parent_id int
@@ -172,7 +177,7 @@ CREATE TABLE function(
     id int,
     pos int,
     name varchar(255),
-    parent_type char(16),
+    parent_type char(32),
     entity_id int,
     entity_type char(16),
     parent_id int
@@ -187,7 +192,7 @@ CREATE TABLE abstraction(
     version varchar(255),
     internal_version varchar(255),
     tag varchar(255),
-    parent_type char(16),
+    parent_type char(32),
     entity_id int,
     entity_type char(16),
     parent_id int
@@ -202,11 +207,13 @@ CREATE TABLE workflow(
     last_modified datetime,
     vistrail_id int,
     parent_id int,
-    parent_type char(16)
+    parent_type char(32)
 ) engine=InnoDB;
 
 CREATE TABLE registry(
     id int not null auto_increment primary key,
+    entity_type char(16),
+    version char(16),
     root_descriptor_id int
 ) engine=InnoDB;
 
@@ -214,7 +221,7 @@ CREATE TABLE annotation(
     id int,
     akey varchar(255),
     value varchar(8191),
-    parent_type char(16),
+    parent_type char(32),
     entity_id int,
     entity_type char(16),
     parent_id int
@@ -240,7 +247,9 @@ CREATE TABLE package(
     load_configuration int,
     version varchar(255),
     description varchar(1023),
-    parent_id int
+    parent_id int,
+    entity_id int,
+    entity_type char(16)
 ) engine=InnoDB;
 
 CREATE TABLE workflow_exec(
@@ -263,7 +272,7 @@ CREATE TABLE workflow_exec(
 
 CREATE TABLE connection_tbl(
     id int,
-    parent_type char(16),
+    parent_type char(32),
     entity_id int,
     entity_type char(16),
     parent_id int

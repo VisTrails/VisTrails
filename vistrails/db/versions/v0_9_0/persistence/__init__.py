@@ -64,6 +64,12 @@ class DAOList(dict):
         tree = ElementTree.ElementTree(root)
         self.write_xml_file(filename, tree)
 
+    def open_from_db(self, db_connection, vtType, id, lock=False):
+        pass
+
+    def save_to_db(self, db_connection, obj, doCopy=False):
+        pass
+
     def serialize(self, object):
         root = self.write_xml_object(object)
         return ElementTree.tostring(root)

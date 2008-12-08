@@ -311,7 +311,8 @@ Would you like to create one?"
         
         if dlg.exec_() == QtGui.QDialog.Accepted:
             return (dlg.connectionList.getCurrentConnConfig(),
-                    dlg.objectList.currentItem().id)
+                    dlg.objectList.currentItem().id,
+                    dlg.objectList.currentItem().name)
         else:
             return({},-1)
 
@@ -605,6 +606,7 @@ class QDBObjectListItem(QtGui.QListWidgetItem):
         """
         QtGui.QListWidgetItem.__init__(self, icon, name, parent)
         self.id = id
+        self.name = name
         self.date = date
         self.setToolTip("Last Modified on %s" % date)
 

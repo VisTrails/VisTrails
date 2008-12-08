@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2008 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -3879,8 +3879,9 @@ class DBRegistry(object):
 
     vtType = 'registry'
 
-    def __init__(self, id=None, root_descriptor_id=None, packages=None):
+    def __init__(self, id=None, version=None, root_descriptor_id=None, packages=None):
         self._db_id = id
+        self._db_version = version
         self._db_root_descriptor_id = root_descriptor_id
         self.db_deleted_packages = []
         self.db_packages_id_index = {}
@@ -3900,6 +3901,7 @@ class DBRegistry(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBRegistry(id=self._db_id,
+                        version=self._db_version,
                         root_descriptor_id=self._db_root_descriptor_id)
         if self._db_packages is None:
             cp._db_packages = []
@@ -3936,6 +3938,11 @@ class DBRegistry(object):
             new_obj.db_id = res
         elif hasattr(old_obj, 'db_id'):
             new_obj.db_id = old_obj.db_id
+        if 'version' in class_dict:
+            res = class_dict['version'](old_obj, trans_dict)
+            new_obj.db_version = res
+        elif hasattr(old_obj, 'db_version'):
+            new_obj.db_version = old_obj.db_version
         if 'root_descriptor_id' in class_dict:
             res = class_dict['root_descriptor_id'](old_obj, trans_dict)
             new_obj.db_root_descriptor_id = res
@@ -3986,6 +3993,19 @@ class DBRegistry(object):
         self._db_id = id
     def db_delete_id(self, id):
         self._db_id = None
+    
+    def __get_db_version(self):
+        return self._db_version
+    def __set_db_version(self, version):
+        self._db_version = version
+        self.is_dirty = True
+    db_version = property(__get_db_version, __set_db_version)
+    def db_add_version(self, version):
+        self._db_version = version
+    def db_change_version(self, version):
+        self._db_version = version
+    def db_delete_version(self, version):
+        self._db_version = None
     
     def __get_db_root_descriptor_id(self):
         return self._db_root_descriptor_id
