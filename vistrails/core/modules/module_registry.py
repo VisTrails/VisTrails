@@ -297,6 +297,8 @@ class ModuleRegistry(DBRegistry):
     def delete_descriptor(self, desc, package=None):
         if package is None:
             package = self._default_package
+        if desc.base_descriptor_id != -1 and desc.base_descriptor:
+            desc.base_descriptor.children.remove(desc)
         del self.descriptors[(desc.package, desc.name, desc.namespace)]
         del self.descriptors_by_id[desc.id]
         package.delete_descriptor(desc)
