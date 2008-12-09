@@ -29,27 +29,39 @@ import sha
 class Hasher(object):
 
     @staticmethod
-    def parameter_signature(p):
-        hasher = sha.new()
-        hasher.update(p.type)
-        hasher.update(p.strValue)
-        hasher.update(p.name)
-        hasher.update(p.evaluatedStrValue)
-        return hasher.digest()
+    def parameter_signature(p, constant_hasher_map={}):
+        k = (p.identifier, p.type, p.namespace)
+        custom_hasher = constant_hasher_map.get(k, None)
+        if custom_hasher:
+            return custom_hasher(p)
+        else:
+            hasher = sha.new()
+            u = hasher.update
+            u(p.type)
+            u(p.identifier)
+            u(p.namespace or "")
+            u(p.strValue)
+            u(p.name)
+            u(p.evaluatedStrValue)
+            return hasher.digest()
 
     @staticmethod
-    def function_signature(function):
+    def function_signature(function, constant_hasher_map={}):
         hasher = sha.new()
-        hasher.update(function.name)
-        hasher.update(function.returnType)
-        hasher.update(hash_list(function.params, Hasher.parameter_signature))
+        u = hasher.update
+        u(function.name)
+        u(function.returnType)
+        u(hash_list(function.params,
+                    Hasher.parameter_signature,
+                    constant_hasher_map))
         return hasher.digest()
 
     @staticmethod
     def connection_signature(c):
         hasher = sha.new()
-        hasher.update(c.source.name)
-        hasher.update(c.destination.name)
+        u = hasher.update
+        u(c.source.name)
+        u(c.destination.name)
         return hasher.digest()
 
     @staticmethod
@@ -57,18 +69,20 @@ class Hasher(object):
         """Returns the signature for the connection, including source
 and dest subpipelines"""
         hasher = sha.new()
-        hasher.update(Hasher.connection_signature(c))
-        hasher.update(source_sig)
-        hasher.update(dest_sig)
+        u = hasher.update
+        u(Hasher.connection_signature(c))
+        u(source_sig)
+        u(dest_sig)
         return hasher.digest()
 
     @staticmethod
-    def module_signature(obj):
+    def module_signature(obj, constant_hasher_map={}):
         hasher = sha.new()
-        hasher.update(obj.name)
-        hasher.update(obj.package)
-        hasher.update(obj.namespace or '')
-        hasher.update(hash_list(obj.functions, Hasher.function_signature))
+        u = hasher.update
+        u(obj.name)
+        u(obj.package)
+        u(obj.namespace or '')
+        u(hash_list(obj.functions, Hasher.function_signature, constant_hasher_map))
         return hasher.digest()
 
     @staticmethod

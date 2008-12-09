@@ -25,9 +25,9 @@ import sha
 
 ##############################################################################
 
-def hash_list(lst, hasher_f):
+def hash_list(lst, hasher_f, constant_hasher_map={}):
     hasher = sha.new()
-    hash_l = [hasher_f(el) for el in lst]
+    hash_l = [hasher_f(el, constant_hasher_map) for el in lst]
     hash_l.sort()
     for hel in hash_l: hasher.update(hel)
     return hasher.digest()

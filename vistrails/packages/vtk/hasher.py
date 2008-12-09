@@ -24,10 +24,10 @@
 # incoming and outgoing connections
 from core.cache.hasher import Hasher
 
-def vtk_hasher(pipeline, module):
+def vtk_hasher(pipeline, module, chm):
     outgoing_connections = pipeline.graph.edges_from(module.id)
     incoming_connections = pipeline.graph.edges_to(module.id)
-    current_hash = Hasher.module_signature(module)
+    current_hash = Hasher.module_signature(module, chm)
     chashes = [Hasher.connection_signature(pipeline.connections[c_id])
                for (_, c_id) in outgoing_connections]
     chashes += [Hasher.connection_signature(pipeline.connections[c_id])

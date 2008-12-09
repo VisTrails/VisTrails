@@ -22,6 +22,7 @@
 """basic_modules defines basic VisTrails Modules that are used in most
 pipelines."""
 
+import core.cache.hasher
 from core.modules import module_configure
 import core.modules.module_registry
 from core.modules import port_configure
@@ -45,6 +46,8 @@ import core.packagemanager
 import core.system
 from itertools import izip
 import os
+import os.path
+import sha
 import zipfile
 import urllib
 
@@ -220,6 +223,19 @@ class File(Constant):
     @staticmethod
     def get_widget_class():
         return FileChooserWidget
+
+def file_parameter_hasher(p):
+    h = core.cache.hasher.Hasher.parameter_signature(p)
+    try:
+        # FIXME: This will break with aliases - I don't really care that much
+        v = int(os.path.getmtime(p.strValue))
+    except OSError:
+        return h
+    hasher = sha.new()
+    u = hasher.update
+    u(h)
+    u(str(v))
+    return hasher.digest()
 
 ##############################################################################
 
@@ -700,7 +716,7 @@ def initialize(*args, **keywords):
     
     reg.add_output_port(Constant, "value_as_string", String)
 
-    reg.add_module(File)
+    reg.add_module(File, constantSignatureCallable=file_parameter_hasher)
     reg.add_input_port(File, "value", File)
     reg.add_output_port(File, "value", File)
     reg.add_input_port(File, "name", String, True)

@@ -163,6 +163,10 @@ class ModuleRegistry(DBRegistry):
         self._module_key_map = {}
         self.descriptors = {}
         self.descriptors_by_id = {}
+        
+        # _constant_hasher_map stores callables for custom parameter
+        # hashers
+        self._constant_hasher_map = {}
 
         for package in self.package_list:
             for descriptor in package.descriptor_list:
@@ -191,16 +195,6 @@ class ModuleRegistry(DBRegistry):
             key = (self._current_package.identifier, "Module", None)
             self._module_key_map[core.modules.vistrails_module.Module] = key
 
-#         key = (self._current_package_name, "Module")
-#         self._module_key_map = { core.modules.vistrails_module.Module: key }
-#         self.descriptors = { key: self.root_descriptor }
-#         self.package_modules = {self._current_package_name: ["Module"]}
-#         self._legacy_name_only_map = {}
-#         self._monotonic = False
-        # self._module_source_ports_cache = {}
-        # self._module_destination_ports_cache = {}
-        # self.python_source_types = {}
-
     def __copy__(self):
         ModuleRegistry.do_copy(self)
 
@@ -210,6 +204,7 @@ class ModuleRegistry(DBRegistry):
         cp._module_key_map = {}
         cp.descriptors = {}
         cp.descriptors_by_id = {}
+        cp._constant_hasher_map = {}
         for package in cp.package_list:
             for descriptor in package.descriptor_list:
                 if descriptor.namespace.strip() == "":
@@ -268,24 +263,6 @@ class ModuleRegistry(DBRegistry):
             _reg._current_package = _reg._default_package
         else:
             _reg._current_package = reg.create_default_package()
-
-#         result = ModuleRegistry()
-#         result._module_key_map = copy.copy(self._module_key_map)
-#         result.root_descriptor = copy.copy(self.root_descriptor)
-#         def make_dictionary(descriptor):
-#             # This is inefficient
-#             result = {(descriptor.identifier,
-#                        descriptor.name): descriptor}
-#             for child in descriptor.children:
-#                 result.update(make_dictionary(child))
-#             return result
-#         result.descriptors = make_dictionary(result.root_descriptor)
-#         result._current_package_name = self._current_package_name
-#         result.package_modules = copy.copy(self.package_modules)
-
-#         # python_source_types is aliased instead of copied. Shouldn't be an issue
-#         result.python_source_types = self.python_source_types
-#         return result
 
     def set_global(self):
         global registry, add_module, add_input_port, has_input_port, \
@@ -382,12 +359,10 @@ class ModuleRegistry(DBRegistry):
     def get_descriptor_by_name(self, identifier, name, namespace=None):
         """get_descriptor_by_name(package_identifier,
                                   module_name,
-                                  namespace) -> ModuleDescriptor"""
-#         if namespace:
-#             key = (identifier, name, namespace)
-#         else:
-#             key = (identifier, name)
+                                  namespace) -> ModuleDescriptor
 
+        Raises ModuleRegistry.MissingModulePackage if lookup fails.
+        """
         if namespace is not None and namespace.strip() == "":
             namespace = None
         try:
@@ -395,13 +370,11 @@ class ModuleRegistry(DBRegistry):
         except KeyError:
             if identifier not in self.packages:
                 msg = ("Cannot find package %s: it is missing" % identifier)
-                # core.debug.critical(msg)
                 raise self.MissingModulePackage(identifier, name, namespace)
             else:
                 key = name if namespace is None else name + ':' + namespace
                 msg = ("Package %s does not contain module %s" %
                        (identifier, key))
-                # core.debug.critical(msg)
                 raise self.MissingModulePackage(identifier, name, namespace)
 
     def get_descriptor(self, module):
@@ -460,8 +433,6 @@ class ModuleRegistry(DBRegistry):
         legacy vistrails to new ones. For one, it is slow on misses. 
 
         """
-#         if name in self._legacy_name_only_map:
-#             return self._legacy_name_only_map[name]
         matches = [x for x in
                    self.descriptors.iterkeys()
                    if x[1] == name]
@@ -473,7 +444,6 @@ class ModuleRegistry(DBRegistry):
             raise Exception("ambiguous resolution...")
         k = matches[0]
         result = self.get_descriptor_by_name(*k)
-        # self._legacy_name_only_map[name] = result
         return result
 
     ##########################################################################
@@ -483,16 +453,17 @@ class ModuleRegistry(DBRegistry):
         given core.vistrail.Pipeline, possibly using user-defined
         hasher.
         """
+        chm = self._constant_hasher_map
         descriptor = self.get_descriptor_by_name(module.package,
                                                  module.name,
                                                  module.namespace)
         if not descriptor:
-            return core.cache.hasher.Hasher.module_signature(module)
+            return core.cache.hasher.Hasher.module_signature(module, chm)
         c = descriptor.hasher_callable()
         if c:
-            return c(pipeline, module)
+            return c(pipeline, module, chm)
         else:
-            return core.cache.hasher.Hasher.module_signature(module)
+            return core.cache.hasher.Hasher.module_signature(module, chm)
 
     def get_module_color(self, identifier, name, namespace=None):
         return self.get_descriptor_by_name(identifier, name, namespace).module_color()
@@ -606,9 +577,16 @@ class ModuleRegistry(DBRegistry):
 
         If signatureCallable is not None, then the cache uses this
         callable as the function to generate the signature for the
-        module in the cache. The function should take two parameters,
-        the pipeline (of type core.vistrail.Pipeline) and the module
-        (of type core.vistrail.Module), respectively.
+        module in the cache. The function should take three
+        parameters: the pipeline (of type core.vistrail.Pipeline), the
+        module (of type core.vistrail.Module), and a dict that stores
+        parameter hashers. This dict is supposed to be passed to
+        core/cache/hasher.py:Hasher, in case that needs to be called.
+
+        If constantSignatureCallable is not None, then the cache uses
+        this callable as the funciton to generate the signature for
+        the given constant.  If this is not None, then the added
+        module must be a subclass of Constant.
 
         Notice: in the future, more named parameters might be added to
         this method, and the order is not specified. Always call
@@ -627,6 +605,7 @@ class ModuleRegistry(DBRegistry):
         name = fetch('name', module.__name__)
         configureWidgetType = fetch('configureWidgetType', None)
         signatureCallable = fetch('signatureCallable', None)
+        constantSignatureCallable = fetch('constantSignatureCallable', None)
         moduleColor = fetch('moduleColor', None)
         moduleFringe = fetch('moduleFringe', None)
         moduleLeftFringe = fetch('moduleLeftFringe', None) 
@@ -636,10 +615,6 @@ class ModuleRegistry(DBRegistry):
         namespace = fetch('namespace', None)
 
         key = (identifier, name, namespace)
-#         if namespace:
-#             key = (identifier, name, namespace)
-#         else:
-#             key = (identifier, name)
         
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed to addModule: %s' % kwargs)
@@ -658,18 +633,6 @@ class ModuleRegistry(DBRegistry):
         base_key = self._module_key_map[baseClass]
         base_descriptor = self.descriptors[base_key]
 
-        # module_node = \
-        #     base_node.add_module(module, identifier, name, namespace)
-
-# Moved to update_registry
-#         descriptor_id = self.idScope.getNewId(ModuleDescriptor.vtType)
-#         descriptor = ModuleDescriptor(id=descriptor_id,
-#                                       module=module,
-#                                       package=identifier,
-#                                       base_descriptor=base_descriptor,
-#                                       name=name,
-#                                       namespace=namespace,
-#                                       )
         descriptor = self.update_registry(module, identifier, name, namespace,
                                           base_descriptor)
 
@@ -678,6 +641,18 @@ class ModuleRegistry(DBRegistry):
 
         if signatureCallable:
             descriptor.set_hasher_callable(signatureCallable)
+
+        if constantSignatureCallable:
+            try:
+                c = self.get_descriptor_by_name('edu.utah.sci.vistrails.basic',
+                                                'Constant').module
+            except self.MissingModulePackage:
+                msg = "Constant not found - can't set constantSignatureCallable"
+                raise VistrailsInternalError(msg)
+            if not issubclass(module, c):
+                raise TypeError("To set constantSignatureCallable, module " +
+                                "must be a subclass of Constant")
+            self._constant_hasher_map[key] = constantSignatureCallable
         descriptor.set_module_color(moduleColor)
 
         if moduleFringe:
@@ -688,23 +663,6 @@ class ModuleRegistry(DBRegistry):
             _check_fringe(moduleLeftFringe)
             _check_fringe(moduleRightFringe)
             descriptor.set_module_fringe(moduleLeftFringe, moduleRightFringe)
-
-# Moved to update_registry
-#         if identifier not in self.packages:
-#             if self._current_package.identifier == identifier:
-#                 package = self._current_package
-#             else:
-#                 package_id = self.idScope.getNewId(Package.vtType)
-#                 package = Package(id=package_id,
-#                                   codepath="",
-#                                   load_configuration=False,
-#                                   name="",
-#                                   identifier=identifier,
-#                                   )
-#             self.add_package(package)
-#         else:
-#             package = self.packages[identifier]
-#         self.add_descriptor(descriptor, package)
                  
         self.signals.emit_new_module(descriptor)
         return descriptor
@@ -833,8 +791,6 @@ class ModuleRegistry(DBRegistry):
         """deleteModule(module_name): Removes a module from the registry."""
         descriptor = self.get_descriptor_by_name(identifier, module_name, 
                                                  namespace)
-#         key = (module_name, identifier, namespace)
-#         descriptor = self.descriptors[key]
         assert len(descriptor.children) == 0
         self.signals.emit_deleted_module(descriptor)
         package = self.packages[descriptor.identifier]
