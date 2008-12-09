@@ -33,11 +33,15 @@ def translateVistrail(_vistrail):
         return -1
     def update_sigstring(old_obj, translate_dict):
         return old_obj.db_spec
+    def update_workflow(old_obj, translate_dict):
+        return DBWorkflow.update_version(old_obj.db_workflow, 
+                                         translate_dict, DBWorkflow())
 
     translate_dict = {'DBPortSpec': {'sigstring': update_sigstring,
                                      'optional': update_optional,
                                      'sort_key': update_sort_key},
-                      'DBPort': {'signature': update_signature}}
+                      'DBPort': {'signature': update_signature},
+                      'DBGroup': {'workflow': update_workflow}}
 
     # pass DBVistrail because domain contains enriched version of the auto_gen
     vistrail = DBVistrail.update_version(_vistrail, translate_dict, 
@@ -54,11 +58,15 @@ def translateWorkflow(_workflow):
         return -1
     def update_sigstring(old_obj, translate_dict):
         return old_obj.db_spec
+    def update_workflow(old_obj, translate_dict):
+        return DBWorkflow.update_version(old_obj.db_workflow, 
+                                         translate_dict, DBWorkflow())
 
     translate_dict = {'DBPortSpec': {'sigstring': update_sigstring,
                                      'optional': update_optional,
                                      'sort_key': update_sort_key},
-                      'DBPort': {'signature': update_signature}}
+                      'DBPort': {'signature': update_signature},
+                      'DBGroup': {'workflow': update_workflow}}
 
     workflow = DBWorkflow.update_version(_workflow, translate_dict,
                                          DBWorkflow())
