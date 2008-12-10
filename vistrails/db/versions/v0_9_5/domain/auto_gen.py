@@ -73,32 +73,32 @@ class DBPortSpec(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'name' in class_dict:
             res = class_dict['name'](old_obj, trans_dict)
             new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name'):
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
         if 'type' in class_dict:
             res = class_dict['type'](old_obj, trans_dict)
             new_obj.db_type = res
-        elif hasattr(old_obj, 'db_type'):
+        elif hasattr(old_obj, 'db_type') and old_obj.db_type is not None:
             new_obj.db_type = old_obj.db_type
         if 'optional' in class_dict:
             res = class_dict['optional'](old_obj, trans_dict)
             new_obj.db_optional = res
-        elif hasattr(old_obj, 'db_optional'):
+        elif hasattr(old_obj, 'db_optional') and old_obj.db_optional is not None:
             new_obj.db_optional = old_obj.db_optional
         if 'sort_key' in class_dict:
             res = class_dict['sort_key'](old_obj, trans_dict)
             new_obj.db_sort_key = res
-        elif hasattr(old_obj, 'db_sort_key'):
+        elif hasattr(old_obj, 'db_sort_key') and old_obj.db_sort_key is not None:
             new_obj.db_sort_key = old_obj.db_sort_key
         if 'sigstring' in class_dict:
             res = class_dict['sigstring'](old_obj, trans_dict)
             new_obj.db_sigstring = res
-        elif hasattr(old_obj, 'db_sigstring'):
+        elif hasattr(old_obj, 'db_sigstring') and old_obj.db_sigstring is not None:
             new_obj.db_sigstring = old_obj.db_sigstring
         return new_obj
 
@@ -292,63 +292,63 @@ class DBModule(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'cache' in class_dict:
             res = class_dict['cache'](old_obj, trans_dict)
             new_obj.db_cache = res
-        elif hasattr(old_obj, 'db_cache'):
+        elif hasattr(old_obj, 'db_cache') and old_obj.db_cache is not None:
             new_obj.db_cache = old_obj.db_cache
         if 'name' in class_dict:
             res = class_dict['name'](old_obj, trans_dict)
             new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name'):
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
         if 'namespace' in class_dict:
             res = class_dict['namespace'](old_obj, trans_dict)
             new_obj.db_namespace = res
-        elif hasattr(old_obj, 'db_namespace'):
+        elif hasattr(old_obj, 'db_namespace') and old_obj.db_namespace is not None:
             new_obj.db_namespace = old_obj.db_namespace
         if 'package' in class_dict:
             res = class_dict['package'](old_obj, trans_dict)
             new_obj.db_package = res
-        elif hasattr(old_obj, 'db_package'):
+        elif hasattr(old_obj, 'db_package') and old_obj.db_package is not None:
             new_obj.db_package = old_obj.db_package
         if 'version' in class_dict:
             res = class_dict['version'](old_obj, trans_dict)
             new_obj.db_version = res
-        elif hasattr(old_obj, 'db_version'):
+        elif hasattr(old_obj, 'db_version') and old_obj.db_version is not None:
             new_obj.db_version = old_obj.db_version
         if 'tag' in class_dict:
             res = class_dict['tag'](old_obj, trans_dict)
             new_obj.db_tag = res
-        elif hasattr(old_obj, 'db_tag'):
+        elif hasattr(old_obj, 'db_tag') and old_obj.db_tag is not None:
             new_obj.db_tag = old_obj.db_tag
         if 'location' in class_dict:
             res = class_dict['location'](old_obj, trans_dict)
             new_obj.db_location = res
-        elif hasattr(old_obj, 'db_location'):
+        elif hasattr(old_obj, 'db_location') and old_obj.db_location is not None:
             obj = old_obj.db_location
             new_obj.db_add_location(DBLocation.update_version(obj, trans_dict))
         if 'functions' in class_dict:
             res = class_dict['functions'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_function(obj)
-        elif hasattr(old_obj, 'db_functions'):
+        elif hasattr(old_obj, 'db_functions') and old_obj.db_functions is not None:
             for obj in old_obj.db_functions:
                 new_obj.db_add_function(DBFunction.update_version(obj, trans_dict))
         if 'annotations' in class_dict:
             res = class_dict['annotations'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_annotation(obj)
-        elif hasattr(old_obj, 'db_annotations'):
+        elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
         if 'portSpecs' in class_dict:
             res = class_dict['portSpecs'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_portSpec(obj)
-        elif hasattr(old_obj, 'db_portSpecs'):
+        elif hasattr(old_obj, 'db_portSpecs') and old_obj.db_portSpecs is not None:
             for obj in old_obj.db_portSpecs:
                 new_obj.db_add_portSpec(DBPortSpec.update_version(obj, trans_dict))
         return new_obj
@@ -723,33 +723,33 @@ class DBModuleDescriptor(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'name' in class_dict:
             res = class_dict['name'](old_obj, trans_dict)
             new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name'):
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
         if 'package' in class_dict:
             res = class_dict['package'](old_obj, trans_dict)
             new_obj.db_package = res
-        elif hasattr(old_obj, 'db_package'):
+        elif hasattr(old_obj, 'db_package') and old_obj.db_package is not None:
             new_obj.db_package = old_obj.db_package
         if 'namespace' in class_dict:
             res = class_dict['namespace'](old_obj, trans_dict)
             new_obj.db_namespace = res
-        elif hasattr(old_obj, 'db_namespace'):
+        elif hasattr(old_obj, 'db_namespace') and old_obj.db_namespace is not None:
             new_obj.db_namespace = old_obj.db_namespace
         if 'base_descriptor_id' in class_dict:
             res = class_dict['base_descriptor_id'](old_obj, trans_dict)
             new_obj.db_base_descriptor_id = res
-        elif hasattr(old_obj, 'db_base_descriptor_id'):
+        elif hasattr(old_obj, 'db_base_descriptor_id') and old_obj.db_base_descriptor_id is not None:
             new_obj.db_base_descriptor_id = old_obj.db_base_descriptor_id
         if 'portSpecs' in class_dict:
             res = class_dict['portSpecs'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_portSpec(obj)
-        elif hasattr(old_obj, 'db_portSpecs'):
+        elif hasattr(old_obj, 'db_portSpecs') and old_obj.db_portSpecs is not None:
             for obj in old_obj.db_portSpecs:
                 new_obj.db_add_portSpec(DBPortSpec.update_version(obj, trans_dict))
         return new_obj
@@ -938,12 +938,12 @@ class DBTag(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'name' in class_dict:
             res = class_dict['name'](old_obj, trans_dict)
             new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name'):
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
         return new_obj
 
@@ -1036,32 +1036,32 @@ class DBPort(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'type' in class_dict:
             res = class_dict['type'](old_obj, trans_dict)
             new_obj.db_type = res
-        elif hasattr(old_obj, 'db_type'):
+        elif hasattr(old_obj, 'db_type') and old_obj.db_type is not None:
             new_obj.db_type = old_obj.db_type
         if 'moduleId' in class_dict:
             res = class_dict['moduleId'](old_obj, trans_dict)
             new_obj.db_moduleId = res
-        elif hasattr(old_obj, 'db_moduleId'):
+        elif hasattr(old_obj, 'db_moduleId') and old_obj.db_moduleId is not None:
             new_obj.db_moduleId = old_obj.db_moduleId
         if 'moduleName' in class_dict:
             res = class_dict['moduleName'](old_obj, trans_dict)
             new_obj.db_moduleName = res
-        elif hasattr(old_obj, 'db_moduleName'):
+        elif hasattr(old_obj, 'db_moduleName') and old_obj.db_moduleName is not None:
             new_obj.db_moduleName = old_obj.db_moduleName
         if 'name' in class_dict:
             res = class_dict['name'](old_obj, trans_dict)
             new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name'):
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
         if 'signature' in class_dict:
             res = class_dict['signature'](old_obj, trans_dict)
             new_obj.db_signature = res
-        elif hasattr(old_obj, 'db_signature'):
+        elif hasattr(old_obj, 'db_signature') and old_obj.db_signature is not None:
             new_obj.db_signature = old_obj.db_signature
         return new_obj
 
@@ -1243,62 +1243,62 @@ class DBGroup(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'workflow' in class_dict:
             res = class_dict['workflow'](old_obj, trans_dict)
             new_obj.db_workflow = res
-        elif hasattr(old_obj, 'db_workflow'):
+        elif hasattr(old_obj, 'db_workflow') and old_obj.db_workflow is not None:
             obj = old_obj.db_workflow
             new_obj.db_add_workflow(DBWorkflow.update_version(obj, trans_dict))
         if 'cache' in class_dict:
             res = class_dict['cache'](old_obj, trans_dict)
             new_obj.db_cache = res
-        elif hasattr(old_obj, 'db_cache'):
+        elif hasattr(old_obj, 'db_cache') and old_obj.db_cache is not None:
             new_obj.db_cache = old_obj.db_cache
         if 'name' in class_dict:
             res = class_dict['name'](old_obj, trans_dict)
             new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name'):
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
         if 'namespace' in class_dict:
             res = class_dict['namespace'](old_obj, trans_dict)
             new_obj.db_namespace = res
-        elif hasattr(old_obj, 'db_namespace'):
+        elif hasattr(old_obj, 'db_namespace') and old_obj.db_namespace is not None:
             new_obj.db_namespace = old_obj.db_namespace
         if 'package' in class_dict:
             res = class_dict['package'](old_obj, trans_dict)
             new_obj.db_package = res
-        elif hasattr(old_obj, 'db_package'):
+        elif hasattr(old_obj, 'db_package') and old_obj.db_package is not None:
             new_obj.db_package = old_obj.db_package
         if 'version' in class_dict:
             res = class_dict['version'](old_obj, trans_dict)
             new_obj.db_version = res
-        elif hasattr(old_obj, 'db_version'):
+        elif hasattr(old_obj, 'db_version') and old_obj.db_version is not None:
             new_obj.db_version = old_obj.db_version
         if 'tag' in class_dict:
             res = class_dict['tag'](old_obj, trans_dict)
             new_obj.db_tag = res
-        elif hasattr(old_obj, 'db_tag'):
+        elif hasattr(old_obj, 'db_tag') and old_obj.db_tag is not None:
             new_obj.db_tag = old_obj.db_tag
         if 'location' in class_dict:
             res = class_dict['location'](old_obj, trans_dict)
             new_obj.db_location = res
-        elif hasattr(old_obj, 'db_location'):
+        elif hasattr(old_obj, 'db_location') and old_obj.db_location is not None:
             obj = old_obj.db_location
             new_obj.db_add_location(DBLocation.update_version(obj, trans_dict))
         if 'functions' in class_dict:
             res = class_dict['functions'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_function(obj)
-        elif hasattr(old_obj, 'db_functions'):
+        elif hasattr(old_obj, 'db_functions') and old_obj.db_functions is not None:
             for obj in old_obj.db_functions:
                 new_obj.db_add_function(DBFunction.update_version(obj, trans_dict))
         if 'annotations' in class_dict:
             res = class_dict['annotations'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_annotation(obj)
-        elif hasattr(old_obj, 'db_annotations'):
+        elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
         return new_obj
@@ -1643,46 +1643,46 @@ class DBLog(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'entity_type' in class_dict:
             res = class_dict['entity_type'](old_obj, trans_dict)
             new_obj.db_entity_type = res
-        elif hasattr(old_obj, 'db_entity_type'):
+        elif hasattr(old_obj, 'db_entity_type') and old_obj.db_entity_type is not None:
             new_obj.db_entity_type = old_obj.db_entity_type
         if 'version' in class_dict:
             res = class_dict['version'](old_obj, trans_dict)
             new_obj.db_version = res
-        elif hasattr(old_obj, 'db_version'):
+        elif hasattr(old_obj, 'db_version') and old_obj.db_version is not None:
             new_obj.db_version = old_obj.db_version
         if 'name' in class_dict:
             res = class_dict['name'](old_obj, trans_dict)
             new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name'):
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
         if 'last_modified' in class_dict:
             res = class_dict['last_modified'](old_obj, trans_dict)
             new_obj.db_last_modified = res
-        elif hasattr(old_obj, 'db_last_modified'):
+        elif hasattr(old_obj, 'db_last_modified') and old_obj.db_last_modified is not None:
             new_obj.db_last_modified = old_obj.db_last_modified
         if 'workflow_execs' in class_dict:
             res = class_dict['workflow_execs'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_workflow_exec(obj)
-        elif hasattr(old_obj, 'db_workflow_execs'):
+        elif hasattr(old_obj, 'db_workflow_execs') and old_obj.db_workflow_execs is not None:
             for obj in old_obj.db_workflow_execs:
                 new_obj.db_add_workflow_exec(DBWorkflowExec.update_version(obj, trans_dict))
         if 'machines' in class_dict:
             res = class_dict['machines'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_machine(obj)
-        elif hasattr(old_obj, 'db_machines'):
+        elif hasattr(old_obj, 'db_machines') and old_obj.db_machines is not None:
             for obj in old_obj.db_machines:
                 new_obj.db_add_machine(DBMachine.update_version(obj, trans_dict))
         if 'vistrail_id' in class_dict:
             res = class_dict['vistrail_id'](old_obj, trans_dict)
             new_obj.db_vistrail_id = res
-        elif hasattr(old_obj, 'db_vistrail_id'):
+        elif hasattr(old_obj, 'db_vistrail_id') and old_obj.db_vistrail_id is not None:
             new_obj.db_vistrail_id = old_obj.db_vistrail_id
         return new_obj
 
@@ -1938,32 +1938,32 @@ class DBMachine(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'name' in class_dict:
             res = class_dict['name'](old_obj, trans_dict)
             new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name'):
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
         if 'os' in class_dict:
             res = class_dict['os'](old_obj, trans_dict)
             new_obj.db_os = res
-        elif hasattr(old_obj, 'db_os'):
+        elif hasattr(old_obj, 'db_os') and old_obj.db_os is not None:
             new_obj.db_os = old_obj.db_os
         if 'architecture' in class_dict:
             res = class_dict['architecture'](old_obj, trans_dict)
             new_obj.db_architecture = res
-        elif hasattr(old_obj, 'db_architecture'):
+        elif hasattr(old_obj, 'db_architecture') and old_obj.db_architecture is not None:
             new_obj.db_architecture = old_obj.db_architecture
         if 'processor' in class_dict:
             res = class_dict['processor'](old_obj, trans_dict)
             new_obj.db_processor = res
-        elif hasattr(old_obj, 'db_processor'):
+        elif hasattr(old_obj, 'db_processor') and old_obj.db_processor is not None:
             new_obj.db_processor = old_obj.db_processor
         if 'ram' in class_dict:
             res = class_dict['ram'](old_obj, trans_dict)
             new_obj.db_ram = res
-        elif hasattr(old_obj, 'db_ram'):
+        elif hasattr(old_obj, 'db_ram') and old_obj.db_ram is not None:
             new_obj.db_ram = old_obj.db_ram
         return new_obj
 
@@ -2112,7 +2112,7 @@ class DBAdd(object):
         if 'data' in class_dict:
             res = class_dict['data'](old_obj, trans_dict)
             new_obj.db_data = res
-        elif hasattr(old_obj, 'db_data'):
+        elif hasattr(old_obj, 'db_data') and old_obj.db_data is not None:
             obj = old_obj.db_data
             if obj.vtType == 'module':
                 new_obj.db_add_data(DBModule.update_version(obj, trans_dict))
@@ -2141,27 +2141,27 @@ class DBAdd(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'what' in class_dict:
             res = class_dict['what'](old_obj, trans_dict)
             new_obj.db_what = res
-        elif hasattr(old_obj, 'db_what'):
+        elif hasattr(old_obj, 'db_what') and old_obj.db_what is not None:
             new_obj.db_what = old_obj.db_what
         if 'objectId' in class_dict:
             res = class_dict['objectId'](old_obj, trans_dict)
             new_obj.db_objectId = res
-        elif hasattr(old_obj, 'db_objectId'):
+        elif hasattr(old_obj, 'db_objectId') and old_obj.db_objectId is not None:
             new_obj.db_objectId = old_obj.db_objectId
         if 'parentObjId' in class_dict:
             res = class_dict['parentObjId'](old_obj, trans_dict)
             new_obj.db_parentObjId = res
-        elif hasattr(old_obj, 'db_parentObjId'):
+        elif hasattr(old_obj, 'db_parentObjId') and old_obj.db_parentObjId is not None:
             new_obj.db_parentObjId = old_obj.db_parentObjId
         if 'parentObjType' in class_dict:
             res = class_dict['parentObjType'](old_obj, trans_dict)
             new_obj.db_parentObjType = res
-        elif hasattr(old_obj, 'db_parentObjType'):
+        elif hasattr(old_obj, 'db_parentObjType') and old_obj.db_parentObjType is not None:
             new_obj.db_parentObjType = old_obj.db_parentObjType
         return new_obj
 
@@ -2311,17 +2311,17 @@ class DBOther(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'key' in class_dict:
             res = class_dict['key'](old_obj, trans_dict)
             new_obj.db_key = res
-        elif hasattr(old_obj, 'db_key'):
+        elif hasattr(old_obj, 'db_key') and old_obj.db_key is not None:
             new_obj.db_key = old_obj.db_key
         if 'value' in class_dict:
             res = class_dict['value'](old_obj, trans_dict)
             new_obj.db_value = res
-        elif hasattr(old_obj, 'db_value'):
+        elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
             new_obj.db_value = old_obj.db_value
         return new_obj
 
@@ -2419,17 +2419,17 @@ class DBLocation(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'x' in class_dict:
             res = class_dict['x'](old_obj, trans_dict)
             new_obj.db_x = res
-        elif hasattr(old_obj, 'db_x'):
+        elif hasattr(old_obj, 'db_x') and old_obj.db_x is not None:
             new_obj.db_x = old_obj.db_x
         if 'y' in class_dict:
             res = class_dict['y'](old_obj, trans_dict)
             new_obj.db_y = res
-        elif hasattr(old_obj, 'db_y'):
+        elif hasattr(old_obj, 'db_y') and old_obj.db_y is not None:
             new_obj.db_y = old_obj.db_y
         return new_obj
 
@@ -2533,32 +2533,32 @@ class DBParameter(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'pos' in class_dict:
             res = class_dict['pos'](old_obj, trans_dict)
             new_obj.db_pos = res
-        elif hasattr(old_obj, 'db_pos'):
+        elif hasattr(old_obj, 'db_pos') and old_obj.db_pos is not None:
             new_obj.db_pos = old_obj.db_pos
         if 'name' in class_dict:
             res = class_dict['name'](old_obj, trans_dict)
             new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name'):
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
         if 'type' in class_dict:
             res = class_dict['type'](old_obj, trans_dict)
             new_obj.db_type = res
-        elif hasattr(old_obj, 'db_type'):
+        elif hasattr(old_obj, 'db_type') and old_obj.db_type is not None:
             new_obj.db_type = old_obj.db_type
         if 'val' in class_dict:
             res = class_dict['val'](old_obj, trans_dict)
             new_obj.db_val = res
-        elif hasattr(old_obj, 'db_val'):
+        elif hasattr(old_obj, 'db_val') and old_obj.db_val is not None:
             new_obj.db_val = old_obj.db_val
         if 'alias' in class_dict:
             res = class_dict['alias'](old_obj, trans_dict)
             new_obj.db_alias = res
-        elif hasattr(old_obj, 'db_alias'):
+        elif hasattr(old_obj, 'db_alias') and old_obj.db_alias is not None:
             new_obj.db_alias = old_obj.db_alias
         return new_obj
 
@@ -2693,12 +2693,12 @@ class DBPluginData(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'data' in class_dict:
             res = class_dict['data'](old_obj, trans_dict)
             new_obj.db_data = res
-        elif hasattr(old_obj, 'db_data'):
+        elif hasattr(old_obj, 'db_data') and old_obj.db_data is not None:
             new_obj.db_data = old_obj.db_data
         return new_obj
 
@@ -2796,23 +2796,23 @@ class DBFunction(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'pos' in class_dict:
             res = class_dict['pos'](old_obj, trans_dict)
             new_obj.db_pos = res
-        elif hasattr(old_obj, 'db_pos'):
+        elif hasattr(old_obj, 'db_pos') and old_obj.db_pos is not None:
             new_obj.db_pos = old_obj.db_pos
         if 'name' in class_dict:
             res = class_dict['name'](old_obj, trans_dict)
             new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name'):
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
         if 'parameters' in class_dict:
             res = class_dict['parameters'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_parameter(obj)
-        elif hasattr(old_obj, 'db_parameters'):
+        elif hasattr(old_obj, 'db_parameters') and old_obj.db_parameters is not None:
             for obj in old_obj.db_parameters:
                 new_obj.db_add_parameter(DBParameter.update_version(obj, trans_dict))
         return new_obj
@@ -3011,61 +3011,61 @@ class DBAbstraction(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'cache' in class_dict:
             res = class_dict['cache'](old_obj, trans_dict)
             new_obj.db_cache = res
-        elif hasattr(old_obj, 'db_cache'):
+        elif hasattr(old_obj, 'db_cache') and old_obj.db_cache is not None:
             new_obj.db_cache = old_obj.db_cache
         if 'name' in class_dict:
             res = class_dict['name'](old_obj, trans_dict)
             new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name'):
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
         if 'namespace' in class_dict:
             res = class_dict['namespace'](old_obj, trans_dict)
             new_obj.db_namespace = res
-        elif hasattr(old_obj, 'db_namespace'):
+        elif hasattr(old_obj, 'db_namespace') and old_obj.db_namespace is not None:
             new_obj.db_namespace = old_obj.db_namespace
         if 'package' in class_dict:
             res = class_dict['package'](old_obj, trans_dict)
             new_obj.db_package = res
-        elif hasattr(old_obj, 'db_package'):
+        elif hasattr(old_obj, 'db_package') and old_obj.db_package is not None:
             new_obj.db_package = old_obj.db_package
         if 'version' in class_dict:
             res = class_dict['version'](old_obj, trans_dict)
             new_obj.db_version = res
-        elif hasattr(old_obj, 'db_version'):
+        elif hasattr(old_obj, 'db_version') and old_obj.db_version is not None:
             new_obj.db_version = old_obj.db_version
         if 'internal_version' in class_dict:
             res = class_dict['internal_version'](old_obj, trans_dict)
             new_obj.db_internal_version = res
-        elif hasattr(old_obj, 'db_internal_version'):
+        elif hasattr(old_obj, 'db_internal_version') and old_obj.db_internal_version is not None:
             new_obj.db_internal_version = old_obj.db_internal_version
         if 'tag' in class_dict:
             res = class_dict['tag'](old_obj, trans_dict)
             new_obj.db_tag = res
-        elif hasattr(old_obj, 'db_tag'):
+        elif hasattr(old_obj, 'db_tag') and old_obj.db_tag is not None:
             new_obj.db_tag = old_obj.db_tag
         if 'location' in class_dict:
             res = class_dict['location'](old_obj, trans_dict)
             new_obj.db_location = res
-        elif hasattr(old_obj, 'db_location'):
+        elif hasattr(old_obj, 'db_location') and old_obj.db_location is not None:
             obj = old_obj.db_location
             new_obj.db_add_location(DBLocation.update_version(obj, trans_dict))
         if 'functions' in class_dict:
             res = class_dict['functions'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_function(obj)
-        elif hasattr(old_obj, 'db_functions'):
+        elif hasattr(old_obj, 'db_functions') and old_obj.db_functions is not None:
             for obj in old_obj.db_functions:
                 new_obj.db_add_function(DBFunction.update_version(obj, trans_dict))
         if 'annotations' in class_dict:
             res = class_dict['annotations'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_annotation(obj)
-        elif hasattr(old_obj, 'db_annotations'):
+        elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
         return new_obj
@@ -3444,7 +3444,7 @@ class DBWorkflow(object):
             res = class_dict['modules'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_module(obj)
-        elif hasattr(old_obj, 'db_modules'):
+        elif hasattr(old_obj, 'db_modules') and old_obj.db_modules is not None:
             for obj in old_obj.db_modules:
                 if obj.vtType == 'module':
                     new_obj.db_add_module(DBModule.update_version(obj, trans_dict))
@@ -3455,60 +3455,60 @@ class DBWorkflow(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'entity_type' in class_dict:
             res = class_dict['entity_type'](old_obj, trans_dict)
             new_obj.db_entity_type = res
-        elif hasattr(old_obj, 'db_entity_type'):
+        elif hasattr(old_obj, 'db_entity_type') and old_obj.db_entity_type is not None:
             new_obj.db_entity_type = old_obj.db_entity_type
         if 'name' in class_dict:
             res = class_dict['name'](old_obj, trans_dict)
             new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name'):
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
         if 'version' in class_dict:
             res = class_dict['version'](old_obj, trans_dict)
             new_obj.db_version = res
-        elif hasattr(old_obj, 'db_version'):
+        elif hasattr(old_obj, 'db_version') and old_obj.db_version is not None:
             new_obj.db_version = old_obj.db_version
         if 'last_modified' in class_dict:
             res = class_dict['last_modified'](old_obj, trans_dict)
             new_obj.db_last_modified = res
-        elif hasattr(old_obj, 'db_last_modified'):
+        elif hasattr(old_obj, 'db_last_modified') and old_obj.db_last_modified is not None:
             new_obj.db_last_modified = old_obj.db_last_modified
         if 'connections' in class_dict:
             res = class_dict['connections'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_connection(obj)
-        elif hasattr(old_obj, 'db_connections'):
+        elif hasattr(old_obj, 'db_connections') and old_obj.db_connections is not None:
             for obj in old_obj.db_connections:
                 new_obj.db_add_connection(DBConnection.update_version(obj, trans_dict))
         if 'annotations' in class_dict:
             res = class_dict['annotations'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_annotation(obj)
-        elif hasattr(old_obj, 'db_annotations'):
+        elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
         if 'plugin_datas' in class_dict:
             res = class_dict['plugin_datas'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_plugin_data(obj)
-        elif hasattr(old_obj, 'db_plugin_datas'):
+        elif hasattr(old_obj, 'db_plugin_datas') and old_obj.db_plugin_datas is not None:
             for obj in old_obj.db_plugin_datas:
                 new_obj.db_add_plugin_data(DBPluginData.update_version(obj, trans_dict))
         if 'others' in class_dict:
             res = class_dict['others'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_other(obj)
-        elif hasattr(old_obj, 'db_others'):
+        elif hasattr(old_obj, 'db_others') and old_obj.db_others is not None:
             for obj in old_obj.db_others:
                 new_obj.db_add_other(DBOther.update_version(obj, trans_dict))
         if 'vistrail_id' in class_dict:
             res = class_dict['vistrail_id'](old_obj, trans_dict)
             new_obj.db_vistrail_id = res
-        elif hasattr(old_obj, 'db_vistrail_id'):
+        elif hasattr(old_obj, 'db_vistrail_id') and old_obj.db_vistrail_id is not None:
             new_obj.db_vistrail_id = old_obj.db_vistrail_id
         return new_obj
 
@@ -3879,8 +3879,9 @@ class DBRegistry(object):
 
     vtType = 'registry'
 
-    def __init__(self, id=None, version=None, root_descriptor_id=None, packages=None):
+    def __init__(self, id=None, entity_type=None, version=None, root_descriptor_id=None, packages=None):
         self._db_id = id
+        self._db_entity_type = entity_type
         self._db_version = version
         self._db_root_descriptor_id = root_descriptor_id
         self.db_deleted_packages = []
@@ -3901,6 +3902,7 @@ class DBRegistry(object):
 
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBRegistry(id=self._db_id,
+                        entity_type=self._db_entity_type,
                         version=self._db_version,
                         root_descriptor_id=self._db_root_descriptor_id)
         if self._db_packages is None:
@@ -3936,23 +3938,28 @@ class DBRegistry(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
+        if 'entity_type' in class_dict:
+            res = class_dict['entity_type'](old_obj, trans_dict)
+            new_obj.db_entity_type = res
+        elif hasattr(old_obj, 'db_entity_type') and old_obj.db_entity_type is not None:
+            new_obj.db_entity_type = old_obj.db_entity_type
         if 'version' in class_dict:
             res = class_dict['version'](old_obj, trans_dict)
             new_obj.db_version = res
-        elif hasattr(old_obj, 'db_version'):
+        elif hasattr(old_obj, 'db_version') and old_obj.db_version is not None:
             new_obj.db_version = old_obj.db_version
         if 'root_descriptor_id' in class_dict:
             res = class_dict['root_descriptor_id'](old_obj, trans_dict)
             new_obj.db_root_descriptor_id = res
-        elif hasattr(old_obj, 'db_root_descriptor_id'):
+        elif hasattr(old_obj, 'db_root_descriptor_id') and old_obj.db_root_descriptor_id is not None:
             new_obj.db_root_descriptor_id = old_obj.db_root_descriptor_id
         if 'packages' in class_dict:
             res = class_dict['packages'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_package(obj)
-        elif hasattr(old_obj, 'db_packages'):
+        elif hasattr(old_obj, 'db_packages') and old_obj.db_packages is not None:
             for obj in old_obj.db_packages:
                 new_obj.db_add_package(DBPackage.update_version(obj, trans_dict))
         return new_obj
@@ -3993,6 +4000,19 @@ class DBRegistry(object):
         self._db_id = id
     def db_delete_id(self, id):
         self._db_id = None
+    
+    def __get_db_entity_type(self):
+        return self._db_entity_type
+    def __set_db_entity_type(self, entity_type):
+        self._db_entity_type = entity_type
+        self.is_dirty = True
+    db_entity_type = property(__get_db_entity_type, __set_db_entity_type)
+    def db_add_entity_type(self, entity_type):
+        self._db_entity_type = entity_type
+    def db_change_entity_type(self, entity_type):
+        self._db_entity_type = entity_type
+    def db_delete_entity_type(self, entity_type):
+        self._db_entity_type = None
     
     def __get_db_version(self):
         return self._db_version
@@ -4115,17 +4135,17 @@ class DBAnnotation(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'key' in class_dict:
             res = class_dict['key'](old_obj, trans_dict)
             new_obj.db_key = res
-        elif hasattr(old_obj, 'db_key'):
+        elif hasattr(old_obj, 'db_key') and old_obj.db_key is not None:
             new_obj.db_key = old_obj.db_key
         if 'value' in class_dict:
             res = class_dict['value'](old_obj, trans_dict)
             new_obj.db_value = res
-        elif hasattr(old_obj, 'db_value'):
+        elif hasattr(old_obj, 'db_value') and old_obj.db_value is not None:
             new_obj.db_value = old_obj.db_value
         return new_obj
 
@@ -4239,7 +4259,7 @@ class DBChange(object):
         if 'data' in class_dict:
             res = class_dict['data'](old_obj, trans_dict)
             new_obj.db_data = res
-        elif hasattr(old_obj, 'db_data'):
+        elif hasattr(old_obj, 'db_data') and old_obj.db_data is not None:
             obj = old_obj.db_data
             if obj.vtType == 'module':
                 new_obj.db_add_data(DBModule.update_version(obj, trans_dict))
@@ -4268,32 +4288,32 @@ class DBChange(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'what' in class_dict:
             res = class_dict['what'](old_obj, trans_dict)
             new_obj.db_what = res
-        elif hasattr(old_obj, 'db_what'):
+        elif hasattr(old_obj, 'db_what') and old_obj.db_what is not None:
             new_obj.db_what = old_obj.db_what
         if 'oldObjId' in class_dict:
             res = class_dict['oldObjId'](old_obj, trans_dict)
             new_obj.db_oldObjId = res
-        elif hasattr(old_obj, 'db_oldObjId'):
+        elif hasattr(old_obj, 'db_oldObjId') and old_obj.db_oldObjId is not None:
             new_obj.db_oldObjId = old_obj.db_oldObjId
         if 'newObjId' in class_dict:
             res = class_dict['newObjId'](old_obj, trans_dict)
             new_obj.db_newObjId = res
-        elif hasattr(old_obj, 'db_newObjId'):
+        elif hasattr(old_obj, 'db_newObjId') and old_obj.db_newObjId is not None:
             new_obj.db_newObjId = old_obj.db_newObjId
         if 'parentObjId' in class_dict:
             res = class_dict['parentObjId'](old_obj, trans_dict)
             new_obj.db_parentObjId = res
-        elif hasattr(old_obj, 'db_parentObjId'):
+        elif hasattr(old_obj, 'db_parentObjId') and old_obj.db_parentObjId is not None:
             new_obj.db_parentObjId = old_obj.db_parentObjId
         if 'parentObjType' in class_dict:
             res = class_dict['parentObjType'](old_obj, trans_dict)
             new_obj.db_parentObjType = res
-        elif hasattr(old_obj, 'db_parentObjType'):
+        elif hasattr(old_obj, 'db_parentObjType') and old_obj.db_parentObjType is not None:
             new_obj.db_parentObjType = old_obj.db_parentObjType
         return new_obj
 
@@ -4480,43 +4500,43 @@ class DBPackage(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'name' in class_dict:
             res = class_dict['name'](old_obj, trans_dict)
             new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name'):
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
         if 'identifier' in class_dict:
             res = class_dict['identifier'](old_obj, trans_dict)
             new_obj.db_identifier = res
-        elif hasattr(old_obj, 'db_identifier'):
+        elif hasattr(old_obj, 'db_identifier') and old_obj.db_identifier is not None:
             new_obj.db_identifier = old_obj.db_identifier
         if 'codepath' in class_dict:
             res = class_dict['codepath'](old_obj, trans_dict)
             new_obj.db_codepath = res
-        elif hasattr(old_obj, 'db_codepath'):
+        elif hasattr(old_obj, 'db_codepath') and old_obj.db_codepath is not None:
             new_obj.db_codepath = old_obj.db_codepath
         if 'load_configuration' in class_dict:
             res = class_dict['load_configuration'](old_obj, trans_dict)
             new_obj.db_load_configuration = res
-        elif hasattr(old_obj, 'db_load_configuration'):
+        elif hasattr(old_obj, 'db_load_configuration') and old_obj.db_load_configuration is not None:
             new_obj.db_load_configuration = old_obj.db_load_configuration
         if 'version' in class_dict:
             res = class_dict['version'](old_obj, trans_dict)
             new_obj.db_version = res
-        elif hasattr(old_obj, 'db_version'):
+        elif hasattr(old_obj, 'db_version') and old_obj.db_version is not None:
             new_obj.db_version = old_obj.db_version
         if 'description' in class_dict:
             res = class_dict['description'](old_obj, trans_dict)
             new_obj.db_description = res
-        elif hasattr(old_obj, 'db_description'):
+        elif hasattr(old_obj, 'db_description') and old_obj.db_description is not None:
             new_obj.db_description = old_obj.db_description
         if 'module_descriptors' in class_dict:
             res = class_dict['module_descriptors'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_module_descriptor(obj)
-        elif hasattr(old_obj, 'db_module_descriptors'):
+        elif hasattr(old_obj, 'db_module_descriptors') and old_obj.db_module_descriptors is not None:
             for obj in old_obj.db_module_descriptors:
                 new_obj.db_add_module_descriptor(DBModuleDescriptor.update_version(obj, trans_dict))
         return new_obj
@@ -4762,68 +4782,68 @@ class DBWorkflowExec(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'user' in class_dict:
             res = class_dict['user'](old_obj, trans_dict)
             new_obj.db_user = res
-        elif hasattr(old_obj, 'db_user'):
+        elif hasattr(old_obj, 'db_user') and old_obj.db_user is not None:
             new_obj.db_user = old_obj.db_user
         if 'ip' in class_dict:
             res = class_dict['ip'](old_obj, trans_dict)
             new_obj.db_ip = res
-        elif hasattr(old_obj, 'db_ip'):
+        elif hasattr(old_obj, 'db_ip') and old_obj.db_ip is not None:
             new_obj.db_ip = old_obj.db_ip
         if 'session' in class_dict:
             res = class_dict['session'](old_obj, trans_dict)
             new_obj.db_session = res
-        elif hasattr(old_obj, 'db_session'):
+        elif hasattr(old_obj, 'db_session') and old_obj.db_session is not None:
             new_obj.db_session = old_obj.db_session
         if 'vt_version' in class_dict:
             res = class_dict['vt_version'](old_obj, trans_dict)
             new_obj.db_vt_version = res
-        elif hasattr(old_obj, 'db_vt_version'):
+        elif hasattr(old_obj, 'db_vt_version') and old_obj.db_vt_version is not None:
             new_obj.db_vt_version = old_obj.db_vt_version
         if 'ts_start' in class_dict:
             res = class_dict['ts_start'](old_obj, trans_dict)
             new_obj.db_ts_start = res
-        elif hasattr(old_obj, 'db_ts_start'):
+        elif hasattr(old_obj, 'db_ts_start') and old_obj.db_ts_start is not None:
             new_obj.db_ts_start = old_obj.db_ts_start
         if 'ts_end' in class_dict:
             res = class_dict['ts_end'](old_obj, trans_dict)
             new_obj.db_ts_end = res
-        elif hasattr(old_obj, 'db_ts_end'):
+        elif hasattr(old_obj, 'db_ts_end') and old_obj.db_ts_end is not None:
             new_obj.db_ts_end = old_obj.db_ts_end
         if 'parent_id' in class_dict:
             res = class_dict['parent_id'](old_obj, trans_dict)
             new_obj.db_parent_id = res
-        elif hasattr(old_obj, 'db_parent_id'):
+        elif hasattr(old_obj, 'db_parent_id') and old_obj.db_parent_id is not None:
             new_obj.db_parent_id = old_obj.db_parent_id
         if 'parent_type' in class_dict:
             res = class_dict['parent_type'](old_obj, trans_dict)
             new_obj.db_parent_type = res
-        elif hasattr(old_obj, 'db_parent_type'):
+        elif hasattr(old_obj, 'db_parent_type') and old_obj.db_parent_type is not None:
             new_obj.db_parent_type = old_obj.db_parent_type
         if 'parent_version' in class_dict:
             res = class_dict['parent_version'](old_obj, trans_dict)
             new_obj.db_parent_version = res
-        elif hasattr(old_obj, 'db_parent_version'):
+        elif hasattr(old_obj, 'db_parent_version') and old_obj.db_parent_version is not None:
             new_obj.db_parent_version = old_obj.db_parent_version
         if 'completed' in class_dict:
             res = class_dict['completed'](old_obj, trans_dict)
             new_obj.db_completed = res
-        elif hasattr(old_obj, 'db_completed'):
+        elif hasattr(old_obj, 'db_completed') and old_obj.db_completed is not None:
             new_obj.db_completed = old_obj.db_completed
         if 'name' in class_dict:
             res = class_dict['name'](old_obj, trans_dict)
             new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name'):
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
         if 'module_execs' in class_dict:
             res = class_dict['module_execs'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_module_exec(obj)
-        elif hasattr(old_obj, 'db_module_execs'):
+        elif hasattr(old_obj, 'db_module_execs') and old_obj.db_module_execs is not None:
             for obj in old_obj.db_module_execs:
                 new_obj.db_add_module_exec(DBModuleExec.update_version(obj, trans_dict))
         return new_obj
@@ -5108,13 +5128,13 @@ class DBConnection(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'ports' in class_dict:
             res = class_dict['ports'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_port(obj)
-        elif hasattr(old_obj, 'db_ports'):
+        elif hasattr(old_obj, 'db_ports') and old_obj.db_ports is not None:
             for obj in old_obj.db_ports:
                 new_obj.db_add_port(DBPort.update_version(obj, trans_dict))
         return new_obj
@@ -5287,7 +5307,7 @@ class DBAction(object):
             res = class_dict['operations'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_operation(obj)
-        elif hasattr(old_obj, 'db_operations'):
+        elif hasattr(old_obj, 'db_operations') and old_obj.db_operations is not None:
             for obj in old_obj.db_operations:
                 if obj.vtType == 'add':
                     new_obj.db_add_operation(DBAdd.update_version(obj, trans_dict))
@@ -5298,38 +5318,38 @@ class DBAction(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'prevId' in class_dict:
             res = class_dict['prevId'](old_obj, trans_dict)
             new_obj.db_prevId = res
-        elif hasattr(old_obj, 'db_prevId'):
+        elif hasattr(old_obj, 'db_prevId') and old_obj.db_prevId is not None:
             new_obj.db_prevId = old_obj.db_prevId
         if 'date' in class_dict:
             res = class_dict['date'](old_obj, trans_dict)
             new_obj.db_date = res
-        elif hasattr(old_obj, 'db_date'):
+        elif hasattr(old_obj, 'db_date') and old_obj.db_date is not None:
             new_obj.db_date = old_obj.db_date
         if 'session' in class_dict:
             res = class_dict['session'](old_obj, trans_dict)
             new_obj.db_session = res
-        elif hasattr(old_obj, 'db_session'):
+        elif hasattr(old_obj, 'db_session') and old_obj.db_session is not None:
             new_obj.db_session = old_obj.db_session
         if 'user' in class_dict:
             res = class_dict['user'](old_obj, trans_dict)
             new_obj.db_user = res
-        elif hasattr(old_obj, 'db_user'):
+        elif hasattr(old_obj, 'db_user') and old_obj.db_user is not None:
             new_obj.db_user = old_obj.db_user
         if 'prune' in class_dict:
             res = class_dict['prune'](old_obj, trans_dict)
             new_obj.db_prune = res
-        elif hasattr(old_obj, 'db_prune'):
+        elif hasattr(old_obj, 'db_prune') and old_obj.db_prune is not None:
             new_obj.db_prune = old_obj.db_prune
         if 'annotations' in class_dict:
             res = class_dict['annotations'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_annotation(obj)
-        elif hasattr(old_obj, 'db_annotations'):
+        elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
         return new_obj
@@ -5593,27 +5613,27 @@ class DBDelete(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'what' in class_dict:
             res = class_dict['what'](old_obj, trans_dict)
             new_obj.db_what = res
-        elif hasattr(old_obj, 'db_what'):
+        elif hasattr(old_obj, 'db_what') and old_obj.db_what is not None:
             new_obj.db_what = old_obj.db_what
         if 'objectId' in class_dict:
             res = class_dict['objectId'](old_obj, trans_dict)
             new_obj.db_objectId = res
-        elif hasattr(old_obj, 'db_objectId'):
+        elif hasattr(old_obj, 'db_objectId') and old_obj.db_objectId is not None:
             new_obj.db_objectId = old_obj.db_objectId
         if 'parentObjId' in class_dict:
             res = class_dict['parentObjId'](old_obj, trans_dict)
             new_obj.db_parentObjId = res
-        elif hasattr(old_obj, 'db_parentObjId'):
+        elif hasattr(old_obj, 'db_parentObjId') and old_obj.db_parentObjId is not None:
             new_obj.db_parentObjId = old_obj.db_parentObjId
         if 'parentObjType' in class_dict:
             res = class_dict['parentObjType'](old_obj, trans_dict)
             new_obj.db_parentObjType = res
-        elif hasattr(old_obj, 'db_parentObjType'):
+        elif hasattr(old_obj, 'db_parentObjType') and old_obj.db_parentObjType is not None:
             new_obj.db_parentObjType = old_obj.db_parentObjType
         return new_obj
 
@@ -5786,47 +5806,47 @@ class DBVistrail(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'entity_type' in class_dict:
             res = class_dict['entity_type'](old_obj, trans_dict)
             new_obj.db_entity_type = res
-        elif hasattr(old_obj, 'db_entity_type'):
+        elif hasattr(old_obj, 'db_entity_type') and old_obj.db_entity_type is not None:
             new_obj.db_entity_type = old_obj.db_entity_type
         if 'version' in class_dict:
             res = class_dict['version'](old_obj, trans_dict)
             new_obj.db_version = res
-        elif hasattr(old_obj, 'db_version'):
+        elif hasattr(old_obj, 'db_version') and old_obj.db_version is not None:
             new_obj.db_version = old_obj.db_version
         if 'name' in class_dict:
             res = class_dict['name'](old_obj, trans_dict)
             new_obj.db_name = res
-        elif hasattr(old_obj, 'db_name'):
+        elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
         if 'last_modified' in class_dict:
             res = class_dict['last_modified'](old_obj, trans_dict)
             new_obj.db_last_modified = res
-        elif hasattr(old_obj, 'db_last_modified'):
+        elif hasattr(old_obj, 'db_last_modified') and old_obj.db_last_modified is not None:
             new_obj.db_last_modified = old_obj.db_last_modified
         if 'actions' in class_dict:
             res = class_dict['actions'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_action(obj)
-        elif hasattr(old_obj, 'db_actions'):
+        elif hasattr(old_obj, 'db_actions') and old_obj.db_actions is not None:
             for obj in old_obj.db_actions:
                 new_obj.db_add_action(DBAction.update_version(obj, trans_dict))
         if 'tags' in class_dict:
             res = class_dict['tags'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_tag(obj)
-        elif hasattr(old_obj, 'db_tags'):
+        elif hasattr(old_obj, 'db_tags') and old_obj.db_tags is not None:
             for obj in old_obj.db_tags:
                 new_obj.db_add_tag(DBTag.update_version(obj, trans_dict))
         if 'annotations' in class_dict:
             res = class_dict['annotations'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_annotation(obj)
-        elif hasattr(old_obj, 'db_annotations'):
+        elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
         return new_obj
@@ -6163,63 +6183,63 @@ class DBModuleExec(object):
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id'):
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
             new_obj.db_id = old_obj.db_id
         if 'ts_start' in class_dict:
             res = class_dict['ts_start'](old_obj, trans_dict)
             new_obj.db_ts_start = res
-        elif hasattr(old_obj, 'db_ts_start'):
+        elif hasattr(old_obj, 'db_ts_start') and old_obj.db_ts_start is not None:
             new_obj.db_ts_start = old_obj.db_ts_start
         if 'ts_end' in class_dict:
             res = class_dict['ts_end'](old_obj, trans_dict)
             new_obj.db_ts_end = res
-        elif hasattr(old_obj, 'db_ts_end'):
+        elif hasattr(old_obj, 'db_ts_end') and old_obj.db_ts_end is not None:
             new_obj.db_ts_end = old_obj.db_ts_end
         if 'cached' in class_dict:
             res = class_dict['cached'](old_obj, trans_dict)
             new_obj.db_cached = res
-        elif hasattr(old_obj, 'db_cached'):
+        elif hasattr(old_obj, 'db_cached') and old_obj.db_cached is not None:
             new_obj.db_cached = old_obj.db_cached
         if 'module_id' in class_dict:
             res = class_dict['module_id'](old_obj, trans_dict)
             new_obj.db_module_id = res
-        elif hasattr(old_obj, 'db_module_id'):
+        elif hasattr(old_obj, 'db_module_id') and old_obj.db_module_id is not None:
             new_obj.db_module_id = old_obj.db_module_id
         if 'module_name' in class_dict:
             res = class_dict['module_name'](old_obj, trans_dict)
             new_obj.db_module_name = res
-        elif hasattr(old_obj, 'db_module_name'):
+        elif hasattr(old_obj, 'db_module_name') and old_obj.db_module_name is not None:
             new_obj.db_module_name = old_obj.db_module_name
         if 'completed' in class_dict:
             res = class_dict['completed'](old_obj, trans_dict)
             new_obj.db_completed = res
-        elif hasattr(old_obj, 'db_completed'):
+        elif hasattr(old_obj, 'db_completed') and old_obj.db_completed is not None:
             new_obj.db_completed = old_obj.db_completed
         if 'error' in class_dict:
             res = class_dict['error'](old_obj, trans_dict)
             new_obj.db_error = res
-        elif hasattr(old_obj, 'db_error'):
+        elif hasattr(old_obj, 'db_error') and old_obj.db_error is not None:
             new_obj.db_error = old_obj.db_error
         if 'abstraction_id' in class_dict:
             res = class_dict['abstraction_id'](old_obj, trans_dict)
             new_obj.db_abstraction_id = res
-        elif hasattr(old_obj, 'db_abstraction_id'):
+        elif hasattr(old_obj, 'db_abstraction_id') and old_obj.db_abstraction_id is not None:
             new_obj.db_abstraction_id = old_obj.db_abstraction_id
         if 'abstraction_version' in class_dict:
             res = class_dict['abstraction_version'](old_obj, trans_dict)
             new_obj.db_abstraction_version = res
-        elif hasattr(old_obj, 'db_abstraction_version'):
+        elif hasattr(old_obj, 'db_abstraction_version') and old_obj.db_abstraction_version is not None:
             new_obj.db_abstraction_version = old_obj.db_abstraction_version
         if 'machine_id' in class_dict:
             res = class_dict['machine_id'](old_obj, trans_dict)
             new_obj.db_machine_id = res
-        elif hasattr(old_obj, 'db_machine_id'):
+        elif hasattr(old_obj, 'db_machine_id') and old_obj.db_machine_id is not None:
             new_obj.db_machine_id = old_obj.db_machine_id
         if 'annotations' in class_dict:
             res = class_dict['annotations'](old_obj, trans_dict)
             for obj in res:
                 new_obj.db_add_annotation(obj)
-        elif hasattr(old_obj, 'db_annotations'):
+        elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
             for obj in old_obj.db_annotations:
                 new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
         return new_obj

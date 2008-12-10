@@ -242,13 +242,16 @@ class SQLAutoGen(AutoGen):
 			return (choice, True)
 	return (None, False)
 
-    def get_sql_referenced(self, ref_obj, obj):
+    def get_sql_referenced(self, ref_obj, obj, inverse=False):
         if ref_obj is not None:
             for ref_prop in ref_obj.properties:
-                if ref_prop.isReference() and \
+                if not (inverse ^ ref_prop.isInverse()) and \
+                        ref_prop.isReference() and \
                         ref_prop.getReference() == obj.getRegularName():
                     return (ref_prop, False)
             for choice in ref_obj.choices:
+                if inverse ^ choice.isInverse():
+                    continue
                 for ref_prop in choice.properties:
                     if ref_prop.isReference() and \
                             ref_prop.getReference() == obj.getRegularName():
@@ -368,15 +371,15 @@ class SQLAutoGen(AutoGen):
                             field.getPythonType(), field.getType()))
             count += 1
             if field.isGlobal():
-                self.printLine("if not global_props.has_key('%s'):\n" % \
-                               field.getGlobalName())
-                self.indentLine("global_props['%s'] = " % \
-                                    field.getGlobalName() +
-                                "self.convertToDB(%s, '%s', '%s')\n" % \
-                                    (field.getRegularName(),
-                                     field.getPythonType(),
-                                     field.getType()))
-                self.unindent()
+#                 self.printLine("if not global_props.has_key('%s'):\n" % \
+#                                field.getGlobalName())
+                self.printLine("global_props['%s'] = " % \
+                                   field.getGlobalName() +
+                               "self.convertToDB(%s, '%s', '%s')\n" % \
+                                   (field.getRegularName(),
+                                    field.getPythonType(),
+                                    field.getType()))
+                # self.unindent()
 
         attrPairs = []
         for field in self.getNormalSQLColumnsAndKey(object):
@@ -419,7 +422,7 @@ class SQLAutoGen(AutoGen):
                     disc_prop = self.getDiscriminatorProperty(object,
                                                               disc)
                     (ref_prop, _) = self.get_sql_referenced(ref_obj,
-                                                            object)
+                                                            object, False)
                     self.printLine("%s obj.%s == '%s':\n" % \
                                        (cond, disc_prop.getFieldName(),
                                         ref_obj.getRegularName()))
@@ -433,11 +436,15 @@ class SQLAutoGen(AutoGen):
             else:
                 ref_obj = self.getReferencedObject(backRef.getReference())
                 (ref_field, _) = self.get_sql_referenced(ref_obj,
-                                                         object)
-                self.printLine("p = all_objects[('%s', obj.%s)]\n" % \
+                                                         object, False)
+                self.printLine("if ('%s', obj.%s) in all_objects:\n" % \
                                    (ref_obj.getRegularName(),
                                     backRef.getFieldName()))
+                self.indentLine("p = all_objects[('%s', obj.%s)]\n" % \
+                                    (ref_obj.getRegularName(),
+                                     backRef.getFieldName()))
                 self.printLine('p.%s(obj)\n' % ref_field.getAppender())
+                self.unindent()
         self.printLine('\n')
 
         # set_sql_columns
@@ -516,7 +523,7 @@ class SQLAutoGen(AutoGen):
             ref_obj = self.getReferencedObject(ref.getReference())
             try:
                 (ref_field, is_choice) = \
-                    self.get_sql_referenced(ref_obj, object)
+                    self.get_sql_referenced(ref_obj, object, True)
             except Exception:
                 print "can't find tie between %s and %s" % (ref_obj.getName(),
                                                             object.getName())

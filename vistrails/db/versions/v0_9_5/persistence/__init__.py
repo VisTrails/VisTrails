@@ -84,9 +84,13 @@ class DAOList(dict):
         tree = ElementTree.ElementTree(root)
         self.write_xml_file(filename, tree)
 
-    def open_from_db(self, db_connection, vtType, id, lock=False):
+    def open_from_db(self, db_connection, vtType, id=None, lock=False, 
+                     global_props=None):
         all_objects = {}
-        global_props = {'id': id}
+        if global_props is None:
+            global_props = {}
+        if id is not None:
+            global_props['id'] = id
         # print global_props
         res_objects = self['sql'][vtType].get_sql_columns(db_connection, 
                                                           global_props,
@@ -102,35 +106,31 @@ class DAOList(dict):
         
         all_objects.update(res_objects)
         res = res_objects.values()[0]
-        del global_props['id']
+        global_props = {'entity_id': res.db_id,
+                        'entity_type': "'" + res.vtType + "'"}
 
         for dao_type, dao in self['sql'].iteritems():
-#             if (dao == self['sql'][DBVistrail.vtType] or
-#                 # dao == self['sql'][DBWorkflow.vtType] or
-#                 dao == self['sql'][DBLog.vtType] or
-#                 # dao == self['sql'][DBAbstraction.vtType]):
-#                 continue
             if (dao_type == DBVistrail.vtType or
+                dao_type == DBWorkflow.vtType or
                 dao_type == DBLog.vtType or
                 dao_type == DBRegistry.vtType):
                 continue
                 
             current_objs = dao.get_sql_columns(db_connection, global_props, 
                                                lock)
-            if dao_type == DBWorkflow.vtType:
+            all_objects.update(current_objs)
+
+            if dao_type == DBGroup.vtType:
                 for key, obj in current_objs.iteritems():
-                    if key[0] == vtType and key[1] == id:
-                        continue
-                    elif key[0] == DBWorkflow.vtType:
-                        res_objs = \
-                            self.open_from_db(db_connection, key[0], key[1], 
-                                              lock, version)
-                        res_dict = {}
-                        for res_obj in res_objs:
-                            res_dict[(res_obj.db_id, res_obj.vtType)] = res_obj
-                        all_objects.update(res_dict)
-            else:
-                all_objects.update(current_objs)
+                    new_props = {'parent_id': key[1],
+                                 'entity_id': global_props['entity_id'],
+                                 'entity_type': global_props['entity_type']}
+                    res_obj = self.open_from_db(db_connection, 
+                                                DBWorkflow.vtType, 
+                                                None, lock, new_props)
+                    res_dict = {}
+                    res_dict[(res_obj.vtType, res_obj.db_id)] = res_obj
+                    all_objects.update(res_dict)
 
         for key, obj in all_objects.iteritems():
             if key[0] == vtType and key[1] == id:
@@ -177,10 +177,11 @@ class DAOList(dict):
             if child.vtType == DBGroup.vtType:
                 if child.db_workflow:
                     # print '*** entity_type:', global_props['entity_type']
-                    self.save_to_db(db_connection, [child.db_workflow], do_copy,
-                                    {'entity_id': global_props['entity_id'],
-                                     'entity_type': global_props['entity_type']}
-                                    )
+                    new_props = {'entity_id': global_props['entity_id'],
+                                 'entity_type': global_props['entity_type']}
+                    child.db_workflow.db_entity_type = DBWorkflow.vtType
+                    self.save_to_db(db_connection, child.db_workflow, do_copy,
+                                    new_props)
                                             
             child.is_dirty = False
             child.is_new = False

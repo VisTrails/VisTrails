@@ -1652,12 +1652,9 @@
       <sql type="int"/>
     </property>
 
-    <property name="parent" ref="true" object="group" type="long" inverse="true">
+    <property ref="true" object="group" type="long" inverse="true" 
+	      mapping="many-to-one">
       <sql column="parent_id" type="int"/>
-    </property>
-    
-    <property name="parentType" type="str" inverse="true">
-      <sql column="parent_type" type="char(32)"/>
     </property>
   </object>
 

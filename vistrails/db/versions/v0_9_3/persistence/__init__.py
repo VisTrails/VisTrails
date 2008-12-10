@@ -27,6 +27,8 @@ ElementTree = get_elementtree_library()
 
 from db import VistrailsDBException
 from db.versions.v0_9_3 import version as my_version
+from db.versions.v0_9_3.domain import DBVistrail, DBWorkflow, DBLog, \
+    DBAbstraction
 
 class DAOList(dict):
     def __init__(self):
@@ -66,6 +68,100 @@ class DAOList(dict):
             root.set(k, v)
         tree = ElementTree.ElementTree(root)
         self.write_xml_file(filename, tree)
+
+    def open_from_db(self, db_connection, vtType, id, lock=False):
+        all_objects = {}
+        global_props = {'id': id}
+        # print global_props
+        res_objects = self['sql'][vtType].get_sql_columns(db_connection, 
+                                                          global_props,
+                                                          lock)
+
+        if len(res_objects) > 1:
+            raise VistrailsDBException("More than object of type '%s' and "
+                                       "id '%s' exist in the database" % \
+                                           (vtType, id))
+        elif len(res_objects) <= 0:
+            raise VistrailsDBException("No objects of type '%s' and "
+                                       "id '%s' exist in the database" % \
+                                           (vtType, id))
+
+        all_objects.update(res_objects)
+        res = res_objects.values()[0]
+        del global_props['id']
+
+        for dao in self['sql'].itervalues():
+            if (dao == self['sql'][DBVistrail.vtType] or
+                # dao == self['sql'][DBWorkflow.vtType] or
+                dao == self['sql'][DBLog.vtType] or
+                dao == self['sql'][DBAbstraction.vtType]):
+                continue
+            current_objs = dao.get_sql_columns(db_connection, global_props, 
+                                               lock)
+            if dao == self['sql'][DBWorkflow.vtType]:
+                for key, obj in current_objs.iteritems():
+                    if key[0] == vtType and key[1] == id:
+                        continue
+                    elif key[0] == DBWorkflow.vtType:
+                        res_obj = self.open_from_db(db_connection, key[0], 
+                                                    key[1], lock)
+                        res_dict = {}
+                        res_dict[(res_obj.vtType, res_obj.db_id)] = res_obj
+                        all_objects.update(res_dict)
+            else:
+                all_objects.update(current_objs)
+
+        for key, obj in all_objects.iteritems():
+            if key[0] == vtType and key[1] == id:
+                continue
+            self['sql'][obj.vtType].from_sql_fast(obj, all_objects)
+        for obj in all_objects.itervalues():
+            obj.is_dirty = False
+            obj.is_new = False
+        return res
+
+    def save_to_db(self, db_connection, obj, do_copy=False, global_props=None):
+        if do_copy and obj.db_id is not None:
+            obj.db_id = None
+
+        children = obj.db_children() # forSQL=True)
+        children.reverse()
+        if global_props is None:
+            global_props = {'entity_type': "'" + obj.vtType + "'"}
+        # print 'global_props:', global_props
+
+        # assumes not deleting entire thing
+        (child, _, _) = children[0]
+        dao_list['sql'][child.vtType].set_sql_columns(db_connection, child, 
+                                                      global_props, do_copy)
+        dao_list['sql'][child.vtType].to_sql_fast(child, do_copy)
+        if not do_copy:
+            for (child, _, _) in children:
+                for c in child.db_deleted_children(True):
+                    dao_list['sql'][c.vtType].delete_sql_column(db_connection,
+                                                                c,
+                                                                global_props)
+
+        (child, _, _) = children.pop(0)
+        child.is_dirty = False
+        child.is_new = False
+        for (child, _, _) in children:
+            # print "child:", child.vtType, child.db_id
+            dao_list['sql'][child.vtType].set_sql_columns(db_connection, child, 
+                                                          global_props, do_copy)
+            dao_list['sql'][child.vtType].to_sql_fast(child, do_copy)
+            if child.vtType == DBGroup.vtType:
+                if child.db_workflow:
+                    # print '*** entity_type:', global_props['entity_type']
+                    self.save_to_db(db_connection, child.db_workflow,
+                                    do_copy,
+                                    {'entity_id': global_props['entity_id'],
+                                     'entity_type': \
+                                         global_props['entity_type']}
+                                    )
+                                            
+            child.is_dirty = False
+            child.is_new = False
 
     def serialize(self, object):
         root = self.write_xml_object(object)

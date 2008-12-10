@@ -206,8 +206,7 @@ CREATE TABLE workflow(
     version char(16),
     last_modified datetime,
     vistrail_id int,
-    parent_id int,
-    parent_type char(32)
+    parent_id int
 ) engine=InnoDB;
 
 CREATE TABLE registry(

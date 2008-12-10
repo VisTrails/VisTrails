@@ -322,8 +322,9 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('package', obj.db_package)]
-        p.db_add_module_descriptor(obj)
+        if ('package', obj.db_package) in all_objects:
+            p = all_objects[('package', obj.db_package)]
+            p.db_add_module_descriptor(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -420,8 +421,9 @@ class DBTagSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('vistrail', obj.db_vistrail)]
-        p.db_add_tag(obj)
+        if ('vistrail', obj.db_vistrail) in all_objects:
+            p = all_objects[('vistrail', obj.db_vistrail)]
+            p.db_add_tag(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -636,7 +638,7 @@ class DBGroupSQLDAOBase(SQLDAO):
     def from_sql_fast(self, obj, all_objects):
         if obj.db_parentType == 'workflow':
             p = all_objects[('workflow', obj.db_parent)]
-            p.db_add_parent(obj)
+            p.db_add_module(obj)
         elif obj.db_parentType == 'add':
             p = all_objects[('add', obj.db_parent)]
             p.db_add_data(obj)
@@ -701,7 +703,7 @@ class DBGroupSQLDAOBase(SQLDAO):
             return
         if obj.db_workflow is not None:
             child = obj.db_workflow
-            child.db_parent = obj.db_id
+            child.db_group = obj.db_id
         if obj.db_location is not None:
             child = obj.db_location
             child.db_parentType = obj.vtType
@@ -742,11 +744,9 @@ class DBLogSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            if not global_props.has_key('entity_id'):
-                global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_type = self.convertFromDB(row[1], 'str', 'char(16)')
-            if not global_props.has_key('entity_type'):
-                global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
             version = self.convertFromDB(row[2], 'str', 'char(16)')
             name = self.convertFromDB(row[3], 'str', 'varchar(255)')
             last_modified = self.convertFromDB(row[4], 'datetime', 'datetime')
@@ -873,8 +873,9 @@ class DBMachineSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('log', obj.db_log)]
-        p.db_add_machine(obj)
+        if ('log', obj.db_log) in all_objects:
+            p = all_objects[('log', obj.db_log)]
+            p.db_add_machine(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -979,8 +980,9 @@ class DBAddSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('action', obj.db_action)]
-        p.db_add_operation(obj)
+        if ('action', obj.db_action) in all_objects:
+            p = all_objects[('action', obj.db_action)]
+            p.db_add_operation(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -1726,7 +1728,7 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'entity_id', 'entity_type', 'name', 'version', 'last_modified', 'vistrail_id', 'parent_id', 'parent_type']
+        columns = ['id', 'entity_id', 'entity_type', 'name', 'version', 'last_modified', 'vistrail_id', 'parent_id']
         table = 'workflow'
         whereMap = global_props
         orderBy = 'id'
@@ -1736,18 +1738,15 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            if not global_props.has_key('entity_id'):
-                global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_id = self.convertFromDB(row[1], 'long', 'int')
             entity_type = self.convertFromDB(row[2], 'str', 'char(16)')
-            if not global_props.has_key('entity_type'):
-                global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
             name = self.convertFromDB(row[3], 'str', 'varchar(255)')
             version = self.convertFromDB(row[4], 'str', 'char(16)')
             last_modified = self.convertFromDB(row[5], 'datetime', 'datetime')
             vistrail_id = self.convertFromDB(row[6], 'long', 'int')
-            parent = self.convertFromDB(row[7], 'long', 'int')
-            parentType = self.convertFromDB(row[8], 'str', 'char(32)')
+            group = self.convertFromDB(row[7], 'long', 'int')
             
             workflow = DBWorkflow(entity_type=entity_type,
                                   name=name,
@@ -1756,21 +1755,21 @@ class DBWorkflowSQLDAOBase(SQLDAO):
                                   vistrail_id=vistrail_id,
                                   id=id)
             workflow.db_entity_id = entity_id
-            workflow.db_parent = parent
-            workflow.db_parentType = parentType
+            workflow.db_group = group
             workflow.is_dirty = False
             res[('workflow', id)] = workflow
 
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('group', obj.db_parent)]
-        p.db_add_workflow(obj)
+        if ('group', obj.db_group) in all_objects:
+            p = all_objects[('group', obj.db_group)]
+            p.db_add_workflow(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'entity_id', 'entity_type', 'name', 'version', 'last_modified', 'vistrail_id', 'parent_id', 'parent_type']
+        columns = ['id', 'entity_id', 'entity_type', 'name', 'version', 'last_modified', 'vistrail_id', 'parent_id']
         table = 'workflow'
         whereMap = {}
         whereMap.update(global_props)
@@ -1799,12 +1798,9 @@ class DBWorkflowSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_vistrail_id') and obj.db_vistrail_id is not None:
             columnMap['vistrail_id'] = \
                 self.convertToDB(obj.db_vistrail_id, 'long', 'int')
-        if hasattr(obj, 'db_parent') and obj.db_parent is not None:
+        if hasattr(obj, 'db_group') and obj.db_group is not None:
             columnMap['parent_id'] = \
-                self.convertToDB(obj.db_parent, 'long', 'int')
-        if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
-            columnMap['parent_type'] = \
-                self.convertToDB(obj.db_parentType, 'str', 'char(32)')
+                self.convertToDB(obj.db_group, 'long', 'int')
         columnMap.update(global_props)
 
         if obj.is_new or do_copy:
@@ -1868,11 +1864,9 @@ class DBRegistrySQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            if not global_props.has_key('entity_id'):
-                global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_type = self.convertFromDB(row[1], 'str', 'char(16)')
-            if not global_props.has_key('entity_type'):
-                global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
             version = self.convertFromDB(row[2], 'str', 'char(16)')
             root_descriptor_id = self.convertFromDB(row[3], 'long', 'int')
             
@@ -2105,8 +2099,9 @@ class DBChangeSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('action', obj.db_action)]
-        p.db_add_operation(obj)
+        if ('action', obj.db_action) in all_objects:
+            p = all_objects[('action', obj.db_action)]
+            p.db_add_operation(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -2191,8 +2186,7 @@ class DBPackageSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            if not global_props.has_key('entity_id'):
-                global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             name = self.convertFromDB(row[1], 'str', 'varchar(255)')
             identifier = self.convertFromDB(row[2], 'str', 'varchar(1023)')
             codepath = self.convertFromDB(row[3], 'str', 'varchar(1023)')
@@ -2219,8 +2213,9 @@ class DBPackageSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('registry', obj.db_registry)]
-        p.db_add_package(obj)
+        if ('registry', obj.db_registry) in all_objects:
+            p = all_objects[('registry', obj.db_registry)]
+            p.db_add_package(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -2347,8 +2342,9 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('log', obj.db_log)]
-        p.db_add_workflow_exec(obj)
+        if ('log', obj.db_log) in all_objects:
+            p = all_objects[('log', obj.db_log)]
+            p.db_add_workflow_exec(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -2569,8 +2565,9 @@ class DBActionSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('vistrail', obj.db_vistrail)]
-        p.db_add_action(obj)
+        if ('vistrail', obj.db_vistrail) in all_objects:
+            p = all_objects[('vistrail', obj.db_vistrail)]
+            p.db_add_action(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -2678,8 +2675,9 @@ class DBDeleteSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('action', obj.db_action)]
-        p.db_add_operation(obj)
+        if ('action', obj.db_action) in all_objects:
+            p = all_objects[('action', obj.db_action)]
+            p.db_add_operation(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
@@ -2756,11 +2754,9 @@ class DBVistrailSQLDAOBase(SQLDAO):
         res = {}
         for row in data:
             id = self.convertFromDB(row[0], 'long', 'int')
-            if not global_props.has_key('entity_id'):
-                global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
+            global_props['entity_id'] = self.convertToDB(id, 'long', 'int')
             entity_type = self.convertFromDB(row[1], 'str', 'char(16)')
-            if not global_props.has_key('entity_type'):
-                global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
+            global_props['entity_type'] = self.convertToDB(entity_type, 'str', 'char(16)')
             version = self.convertFromDB(row[2], 'str', 'char(16)')
             name = self.convertFromDB(row[3], 'str', 'varchar(255)')
             last_modified = self.convertFromDB(row[4], 'datetime', 'datetime')
@@ -2893,8 +2889,9 @@ class DBModuleExecSQLDAOBase(SQLDAO):
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        p = all_objects[('workflow_exec', obj.db_workflow_exec)]
-        p.db_add_module_exec(obj)
+        if ('workflow_exec', obj.db_workflow_exec) in all_objects:
+            p = all_objects[('workflow_exec', obj.db_workflow_exec)]
+            p.db_add_module_exec(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:

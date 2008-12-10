@@ -438,9 +438,9 @@ def open_vistrail_from_db(db_connection, id, lock=False, version=None):
     dao_list = getVersionDAO(version)
     vistrail = \
         dao_list.open_from_db(db_connection, DBVistrail.vtType, id, lock)
+    vistrail = translate_vistrail(vistrail, version)
     for db_action in vistrail.db_get_actions():
         db_action.db_operations.sort(key=lambda x: x.db_id)
-    vistrail = translate_vistrail(vistrail, version)
     db.services.vistrail.update_id_scope(vistrail)
     return vistrail
 

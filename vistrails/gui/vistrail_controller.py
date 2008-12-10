@@ -2370,7 +2370,7 @@ class VistrailController(QtCore.QObject):
                     objs = self.locator.save(objs)
                     new_vistrail = objs[0][1]
                 else:
-                    new_vistrail = self.locator.save_as(self.vistrail)
+                    new_vistrail = self.locator.save(self.vistrail)
             if id(self.vistrail) != id(new_vistrail):
                 new_version = new_vistrail.db_currentVersion
                 self.set_vistrail(new_vistrail, locator)

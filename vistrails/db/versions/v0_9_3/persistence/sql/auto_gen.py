@@ -306,8 +306,9 @@ class DBTagSQLDAOBase(SQLDAO):
 
     def from_sql_fast(self, obj, all_objects):
         if obj.db_parentType == 'vistrail':
-            p = all_objects[('vistrail', obj.db_parent)]
-            p.db_add_tag(obj)
+            if ('vistrail', obj.db_parent) in all_objects:
+                p = all_objects[('vistrail', obj.db_parent)]
+                p.db_add_tag(obj)
         elif obj.db_parentType == 'abstraction':
             p = all_objects[('abstraction', obj.db_parent)]
             p.db_add_tag(obj)
@@ -1863,8 +1864,9 @@ class DBAnnotationSQLDAOBase(SQLDAO):
 
     def from_sql_fast(self, obj, all_objects):
         if obj.db_parentType == 'vistrail':
-            p = all_objects[('vistrail', obj.db_parent)]
-            p.db_add_annotation(obj)
+            if ('vistrail', obj.db_parent) in all_objects:
+                p = all_objects[('vistrail', obj.db_parent)]
+                p.db_add_annotation(obj)
         elif obj.db_parentType == 'workflow':
             p = all_objects[('workflow', obj.db_parent)]
             p.db_add_annotation(obj)
@@ -2333,8 +2335,9 @@ class DBActionSQLDAOBase(SQLDAO):
 
     def from_sql_fast(self, obj, all_objects):
         if obj.db_parentType == 'vistrail':
-            p = all_objects[('vistrail', obj.db_parent)]
-            p.db_add_action(obj)
+            if ('vistrail', obj.db_parent) in all_objects:
+                p = all_objects[('vistrail', obj.db_parent)]
+                p.db_add_action(obj)
         elif obj.db_parentType == 'abstraction':
             p = all_objects[('abstraction', obj.db_parent)]
             p.db_add_action(obj)

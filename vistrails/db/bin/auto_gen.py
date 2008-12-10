@@ -408,8 +408,9 @@ class AutoGen:
                 self.unindent()
             else:
                 self.printLine('new_obj.%s = res\n' % field.getFieldName())
-            self.unindentLine("elif hasattr(old_obj, '%s'):\n" % \
-                                  field.getFieldName())
+            self.unindentLine("elif hasattr(old_obj, '%s') and old_obj.%s "
+                              "is not None:\n" % (field.getFieldName(), 
+                                                  field.getFieldName()))
             if field.isReference():
                 refObj = self.getReferencedObject(field.getReference())
                 if field.isPlural():

@@ -1002,13 +1002,13 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                                     if c.destination.name=='SetActiveCamera':
                                         camera = pipeline.modules[c.source.moduleId]
                                         break
-                                    
+
+                            registry = get_module_registry()
                             def createCameraFunctions(function_ids):
                                 """ createCameraFunctions([3 x int]) -> [3 x ModuleFunction]
                                 Return the SetPosition, SetFocalPoint and SetViewUp camera position
 
                                 """
-                                registry = get_module_registry()
                                 for i in range(len(function_ids)):
                                     if (function_ids[i]==-1):
                                         function_ids[i] = controller.vistrail.idScope.getNewId(ModuleFunction.vtType)
