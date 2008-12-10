@@ -716,7 +716,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self._module_shape = None
         self._moved = False
         self._old_connection_ids = None
-
+        self.bp_shape = False
+        
     def computeBoundingRect(self):
         """ computeBoundingRect() -> None
         Adjust the module size according to the text size
