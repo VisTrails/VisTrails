@@ -653,11 +653,12 @@ class VistrailController(QtCore.QObject):
             if f[1] < 0:
                 old_id = -1
                 for i, old_function in enumerate(module.functions):
-                    if old_function.name == f[0] and f[3]:
-                        op_list.append(('delete', old_function,
-                                        module.vtType, module_id))
-                    else:
-                        old_id = i
+                    if old_function.name == f[0]:
+                        if f[3]:
+                            op_list.append(('delete', old_function,
+                                            module.vtType, module_id))
+                        else:
+                            old_id = i
             else:
                 old_id = f[1]
 
@@ -2472,6 +2473,26 @@ class TestVistrailController(gui.utils.TestVisTrailsGUI):
     # def test_add_module(self):
     #     v = api.new_vistrail()
        
+    def test_create_functions(self):
+        controller = VistrailController(Vistrail(), False)
+        controller.change_selected_version(0L)
+        module = controller.add_module(0.0,0.0, 'edu.utah.sci.vistrails.basic', 
+                                       'ConcatenateString')
+        functions = [('str1', -1, ['foo'], False),
+                     ('str2', -1, ['bar'], False)]
+        controller.update_functions(module.id, functions)
+
+        self.assertEquals(len(controller.current_pipeline.module_list), 1)
+        p_module = controller.current_pipeline.modules[module.id]
+        self.assertEquals(len(p_module.functions), 2)
+        self.assertEquals(p_module.functions[0].params[0].strValue, 'foo')
+        self.assertEquals(p_module.functions[1].params[0].strValue, 'bar')
+
+        # make sure updates work correctly
+        new_functions = [('str1', -1, ['baz'], False),
+                         ('str3', -1, ['foo'], False)]
+        controller.update_functions(module.id, new_functions)
+        self.assertEquals(len(p_module.functions), 3)
 
     def test_abstraction_create(self):
         from core.db.locator import XMLFileLocator
