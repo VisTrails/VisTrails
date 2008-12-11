@@ -289,6 +289,9 @@ class QShell(QtGui.QTextEdit):
         (3) the interpreter fails, finds errors and writes them to sys.stderr
         
         """
+        cursor = self.textCursor()
+        cursor.movePosition(QtGui.QTextCursor.End)
+        self.setTextCursor(cursor)
         self.set_active_pipeline()
         should_scroll = self.scroll_bar_at_bottom()
         self.pointer = 0
@@ -357,15 +360,18 @@ class QShell(QtGui.QTextEdit):
     def keyPressEvent(self, e):
         """keyPressEvent(e) -> None
         Handle user input a key at a time.
+
+        Notice that text might come more than one keypress at a time
+        if user is a fast enough typist!
         
         """
         text  = e.text()
         key   = e.key()
-        if not text.isEmpty():
-            ascii = ord(str(text))
-        else:
-            ascii = -1
-        if text.length() and ascii>=32 and ascii<127:
+
+        # NB: Sometimes len(str(text)) > 1!
+        if text.length() and all(ord(x) >= 32 and
+                                 ord(x) < 127
+                                 for x in str(text)):
             self.__insertText(text)
             return
 

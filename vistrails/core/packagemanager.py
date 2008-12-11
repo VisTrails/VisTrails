@@ -350,8 +350,21 @@ creating a class that behaves similarly)."""
             pkg = self._identifier_map[name]
             if not pkg.initialized():
                 pkg.check_requirements()
-                self._registry.initialize_package(pkg)
-                self.add_menu_items(pkg)
+                try:
+                    self._registry.initialize_package(pkg)
+                except Package.InitializationFailed, e:
+                    debug.DebugPrint.critical("Package initialization failed <codepath %s>" % pkg.codepath)
+                    debug.DebugPrint.critical("Will disable package <codepath %s>" % pkg.codepath)
+                    debug.DebugPrint.critical(str(e))
+                    # print "FAILED TO LOAD, let's disable it"
+                    # We disable the package manually to skip over things
+                    # we know will not be necessary - the only thing needed is
+                    # the reference in the package list
+                    self.late_disable_package(pkg.codepath)
+#                     pkg.remove_own_dom_element()
+#                     failed.append(package)
+                else:
+                    self.add_menu_items(pkg)
 
     def add_menu_items(self, pkg):
         """add_menu_items(pkg: Package) -> None

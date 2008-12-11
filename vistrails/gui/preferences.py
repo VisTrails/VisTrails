@@ -340,12 +340,12 @@ class QPackagesWidget(QtGui.QWidget):
         p = self._current_package
         try:
             p.load()
-        except:
+        except Exception, e:
             msg = 'ERROR: Could not load package.'
             self._name_label.setText(msg)
             self._identifier_label.setText(msg)
             self._dependencies_label.setText(msg)
-            self._description_label.setText(msg)
+            self._description_label.setText(msg + str(e))
             self._reverse_dependencies_label.setText(msg)
         else:
             self._name_label.setText(p.name)

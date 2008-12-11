@@ -55,6 +55,24 @@ def _check_fringe(fringe):
         assert type(v[0]) == float
         assert type(v[1]) == float
 
+def _toposort_modules(module_list):
+    """_toposort_modules([class]) -> [class]
+
+    _toposort_modules takes a list of modules and returns them
+    sorted topologically wrt to the subclass relation, such that
+    if a and b are both in the list and issubclass(a,b), then a
+    will appear before b in the resulting order.
+    """
+
+    g = Graph()
+    for m in module_list:
+        g.add_vertex(m)
+    for m in module_list:
+        for subclass in m.mro()[1:]: # skip self
+            if subclass in g.vertices:
+                g.add_edge(subclass, m)
+    return g.vertices_topological_sort()
+
 ###############################################################################
 # ModuleRegistrySignals
 
@@ -779,7 +797,7 @@ class ModuleRegistry(DBRegistry):
             package.module.initialize()
             # Perform auto-initialization
             if hasattr(package.module, '_modules'):
-                for module in package.module._modules:
+                for module in _toposort_modules(package.module._modules):
                     self.auto_add_module(module)
         except Exception, e:
             raise package.InitializationFailed(package, e, 

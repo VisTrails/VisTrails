@@ -524,11 +524,12 @@ class Graph(object):
         such that their parent nodes have already been
         traversed). vertex_set is optionally a list of vertices on
         which to perform the topological sort.
+
+        This is O(n log n) instead of the optimal O(n), 
         """
         (d, p, f) = self.dfs(vertex_set,raise_if_cyclic=True)
         lst = [(v, k) for (k,v) in f.iteritems()]
-        lst.sort()
-        lst.reverse()
+        lst.sort(reverse=True)
         return [v for (k, v) in lst]
 
     def topologically_contractible(self, subgraph):
