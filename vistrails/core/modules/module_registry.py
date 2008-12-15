@@ -527,12 +527,23 @@ class ModuleRegistry(DBRegistry):
             self._module_key_map[module] = (identifier, name, namespace)
         return descriptor
 
-    def auto_add_module(self, module):
-        """auto_add_module(module or (module, kwargs)): add module and
+    def auto_add_ports(self, module):
+        """auto_add_module(module or (module, kwargs)): add
         input/output ports to registry. Don't call this directly - it is
         meant to be used by the packagemanager, when inspecting the package
         contents."""
+        if hasattr(module, '_input_ports'):
+            for (port_name, port_types) in module._input_ports:
+                self.add_input_port(module, port_name, port_types)
+        if hasattr(module, '_output_ports'):
+            for (port_name, port_types) in module._output_ports:
+                self.add_output_port(module, port_name, port_types)
 
+    def auto_add_module(self, module):
+        """auto_add_module(module or (module, kwargs)): add module
+        to registry. Don't call this directly - it is
+        meant to be used by the packagemanager, when inspecting the package
+        contents."""
         if type(module) == type:
             self.add_module(module)
         elif (type(module) == tuple and
@@ -543,12 +554,6 @@ class ModuleRegistry(DBRegistry):
             module = module[0]
         else:
             raise TypeError("Expected module or (module, kwargs)")
-        if hasattr(module, '_input_ports'):
-            for (port_name, port_types) in module._input_ports:
-                self.add_input_port(module, port_name, port_types)
-        if hasattr(module, '_output_ports'):
-            for (port_name, port_types) in module._output_ports:
-                self.add_output_port(module, port_name, port_types)
 
     def add_module(self, module, **kwargs):
         """add_module(module: class, **kwargs) -> Tree
@@ -820,8 +825,13 @@ class ModuleRegistry(DBRegistry):
             package.module.initialize()
             # Perform auto-initialization
             if hasattr(package.module, '_modules'):
-                for module in _toposort_modules(package.module._modules):
+                modules = _toposort_modules(package.module._modules)
+                # We add all modules before adding ports because
+                # modules inside package might use each other as ports
+                for module in modules:
                     self.auto_add_module(module)
+                for module in modules:
+                    self.auto_add_ports(module)
         except Exception, e:
             raise package.InitializationFailed(package, e, 
                                                traceback.format_exc())
