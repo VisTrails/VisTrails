@@ -493,7 +493,7 @@ class ModuleRegistry(DBRegistry):
 
     def update_registry(self, module, identifier, name, namespace, 
                         base_descriptor):
-        if namespace is not None and namespace.strip():
+        if namespace is not None and not namespace.strip():
             namespace = None
 
         # create descriptor
@@ -716,10 +716,8 @@ class ModuleRegistry(DBRegistry):
     def add_port_spec(self, descriptor, port_spec):
         descriptor.add_port_spec(port_spec)
 
-    def get_port_spec(self, package, module_name, namespace, 
-                      port_name, port_type):
+    def get_port_spec_from_descriptor(self, desc, port_name, port_type):
         try:
-            desc = self.get_descriptor_by_name(package, module_name, namespace)
             for d in self.get_module_hierarchy(desc):
                 if d.has_port_spec(port_name, port_type):
                     return d.get_port_spec(port_name, port_type)
@@ -728,10 +726,35 @@ class ModuleRegistry(DBRegistry):
                                                          namespace, port_name,
                                                          port_type)
             raise
+        return None
+
+    def get_port_spec(self, package, module_name, namespace, 
+                      port_name, port_type):
+        try:
+            desc = self.get_descriptor_by_name(package, module_name, namespace)
+            return self.get_port_spec_from_descriptor(desc, port_name, 
+                                                      port_type)
         except self.MissingModulePackage:
             print "missing desc: '%s:%s|%s'" % (package, module_name, namespace)
             raise
         return None
+
+    def has_port_spec_from_descriptor(self, desc, port_name, port_type):
+        for d in self.get_module_hierarchy(desc):
+            if d.has_port_spec(port_name, port_type):
+                return True
+        return False
+
+    def has_port_spec(self, package, module_name, namespace,
+                      port_name, port_type):
+        try:
+            desc = self.get_descriptor_by_name(package, module_name, namespace)
+            return self.has_port_spec_from_descriptor(desc, port_name, 
+                                                      port_type)
+        except self.MissingModulePackage:
+            print "missing desc: '%s:%s|%s'" % (package, module_name, namespace)
+            raise
+        return None        
 
     def add_port(self, descriptor, port_name, port_type, port_sig=None, 
                  port_sigstring=None, optional=False, sort_key=-1):
@@ -1084,6 +1107,29 @@ class ModuleRegistry(DBRegistry):
                 return True
 
         return False
+
+    def find_descriptor_superclass(self, d1, d2):
+        """find_descriptor_superclass(d1: ModuleDescriptor,
+                                      d2: ModuleDescriptor) -> ModuleDescriptor
+        Finds the lowest common superclass descriptor for d1 and d2
+
+        """        
+        if self.is_descriptor_subclass(d1, d2):
+            return d2
+        elif self.is_descriptor_subclass(d2, d1):
+            return d1
+
+        d1_list = [d1]
+        while d1 != self.root_descriptor:
+            d1 = d1.base_descriptor
+            d1_list.append(d1)
+        d1_idx = -1
+        while self.is_descriptor_subclass(d2, d1_list[d1_idx]):
+            d1_idx -= 1
+        if d1_idx == -1:
+            return None
+        return d1_list[d1_idx+1]
+            
 
 ###############################################################################
 
