@@ -571,6 +571,7 @@ class QCellPresenter(QtGui.QLabel):
         else:
             self.info.hide()
             bgPixmap = QtGui.QPixmap.grabWidget(self)
+        self.thumbnail = QtGui.QPixmap(bgPixmap)
         painter = QtGui.QPainter(bgPixmap)
         painter.fillRect(bgPixmap.rect(),
                          QtGui.QBrush(QtGui.QColor(175, 198, 229, 196)))

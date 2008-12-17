@@ -271,6 +271,7 @@ class ZIPFileLocator(XMLFileLocator):
         fname = self._find_latest_temporary()
         if fname:
             obj = io.open_from_xml(fname, type)
+            return [('vistrail', obj)]
         else:
             (objs, tmp_dir) = io.open_from_zip_xml(self._name, type)
             self.tmp_dir = tmp_dir
