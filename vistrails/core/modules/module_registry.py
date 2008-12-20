@@ -392,7 +392,11 @@ class ModuleRegistry(DBRegistry):
                 msg = ("Cannot find package %s: it is missing" % identifier)
                 raise self.MissingModulePackage(identifier, name, namespace)
             else:
-                key = name if namespace is None else name + ':' + namespace
+                if namespace is None:
+                    key = name
+                else:
+                    key = name + ':' + namespace
+                # key = name if namespace is None else name + ':' + namespace
                 msg = ("Package %s does not contain module %s" %
                        (identifier, key))
                 raise self.MissingModulePackage(identifier, name, namespace)

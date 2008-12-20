@@ -57,7 +57,11 @@ class PortSpec(DBPortSpec):
             kwargs['optional'] = 0 # False
         elif type(kwargs['optional']) != type(0):
             if type(kwargs['optional']) == type(True):
-                kwargs['optional'] = 1 if kwargs['optional'] else 0
+                if kwargs['optional']:
+                    kwargs['optional'] = 1
+                else:
+                    kwargs['optional'] = 0
+#                 kwargs['optional'] = 1 if kwargs['optional'] else 0
             else:
                 raise VistrailsInternalError("Cannot parse 'optional' kw "
                                              "-- must be an int or bool")

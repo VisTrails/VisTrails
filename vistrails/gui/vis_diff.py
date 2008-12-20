@@ -568,10 +568,20 @@ class QVisualDiff(QtGui.QMainWindow):
             p_both.add_module(copy.copy(p1.modules[m1id]))
 
         total_len = len(v1Andv2) + len(paramChanged)
-        avg1_x = sum1_x / total_len if total_len != 0 else 0.0
-        avg1_y = sum1_y / total_len if total_len != 0 else 0.0
-        avg2_x = sum2_x / total_len if total_len != 0 else 0.0
-        avg2_y = sum2_y / total_len if total_len != 0 else 0.0
+        if total_len != 0:
+            avg1_x = sum1_x / total_len
+            avg1_y = sum1_y / total_len
+            avg2_x = sum2_x / total_len
+            avg2_y = sum2_y / total_len
+        else:
+            avg1_x = 0.0
+            avg1_y = 0.0
+            avg2_x = 0.0
+            avg2_y = 0.0
+#         avg1_x = sum1_x / total_len if total_len != 0 else 0.0
+#         avg1_y = sum1_y / total_len if total_len != 0 else 0.0
+#         avg2_x = sum2_x / total_len if total_len != 0 else 0.0
+#         avg2_y = sum2_y / total_len if total_len != 0 else 0.0
 
         # Now add the ones only applicable for v1, still using v1 ids
         for m1id in v1Only:

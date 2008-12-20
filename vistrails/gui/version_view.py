@@ -823,8 +823,11 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
                 
             #item.setGhosted(ghosted) # we won't set it now so we can check if
                                       # the state changed in update_color
-            
-            max_rank = ourMaxRank if nodeUser==currentUser else otherMaxRank
+            if nodeUser==currentUser:
+                max_rank = ourMaxRank
+            else:
+                max_rank = otherMaxRank
+#             max_rank = ourMaxRank if nodeUser==currentUser else otherMaxRank
             item.update_color(nodeUser==currentUser,
                               ranks[nodeId],
                               max_rank, ghosted)

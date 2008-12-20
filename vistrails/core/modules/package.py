@@ -76,7 +76,11 @@ class Package(DBPackage):
             arg = kwargs['load_configuration']
             if type(arg) != type(1):
                 if type(arg) == type(True):
-                    kwargs['load_configuration'] = 1 if arg else 0
+                    if arg:
+                        kwargs['load_configuration'] = 1
+                    else:
+                        kwargs['load_configuration'] = 0
+                    # kwargs['load_configuration'] = 1 if arg else 0
                 else:
                     raise VistrailsInternalError("Cannot convert "
                                                  "load_configuration")

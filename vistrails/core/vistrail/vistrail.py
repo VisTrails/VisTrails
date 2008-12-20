@@ -155,14 +155,22 @@ class Vistrail(DBVistrail):
 
     def _get_plugin_info(self):
         annotation = self.get_annotation("__plugin_info__")
-        return annotation.value if annotation is not None else ""
+        if annotation is not None:
+            return annotation.value
+        else:
+            return ""
+#         return annotation.value if annotation is not None else ""
     def _set_plugin_info(self, value):
         return self.set_annotation("__plugin_info__", value)
     plugin_info = property(_get_plugin_info, _set_plugin_info)
 
     def _get_database_info(self):
         annotation = self.get_annotation("__database_info__")
-        return annotation.value if annotation is not None else ""
+        if annotation is not None:
+            return annotation.value
+        else:
+            return ""
+#         return annotation.value if annotation is not None else ""
     def _set_database_info(self, value):
         return self.set_annotation("__database_info__", value)
     database_info = property(_get_database_info, _set_database_info)
