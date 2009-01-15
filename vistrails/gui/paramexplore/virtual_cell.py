@@ -206,16 +206,15 @@ def _positionPipelines(sheetPrefix, sheetCount, rowCount, colCount,
                           moduleId=sheetReference.id,
                           moduleName=sheetReference.name)
             source.name = "self"
-            source.spec = copy.copy(registry.get_output_port_spec(sheetReference,
-                                                                  "self"))
+            source.spec = sheetReference.get_port_spec("self", "output")
             port_id = -pipeline.tmp_id.getNewId(Port.vtType)
             destination = Port(id=port_id,
                                type='destination',
                                moduleId=cellLocation.id,
                                moduleName=cellLocation.name)
             destination.name = "SheetReference"
-            destination.spec = copy.copy(registry.get_input_port_spec(cellLocation,
-                                                                      "SheetReference"))
+            destination.spec = cellLocation.get_port_spec("SheetReference", 
+                                                          "input")
             c_id = -pipeline.tmp_id.getNewId(connection.Connection.vtType)
             conn = connection.Connection(id=c_id,
                                          ports=[source, destination])
@@ -232,7 +231,7 @@ def _positionPipelines(sheetPrefix, sheetCount, rowCount, colCount,
                           moduleId=cellLocation.id,
                           moduleName=cellLocation.name)
             source.name = "self"
-            source.spec = registry.get_output_port_spec(cellLocation, "self")
+            source.spec = cellLocation.get_port_spec("self", "output")
             port_id = -pipeline.tmp_id.getNewId(Port.vtType)
             cell_module = pipeline.get_module_by_id(mId)
             destination = Port(id=port_id,
@@ -240,8 +239,7 @@ def _positionPipelines(sheetPrefix, sheetCount, rowCount, colCount,
                                moduleId=mId,
                                moduleName=pipeline.modules[mId].name)
             destination.name = "Location"
-            destination.spec = registry.get_input_port_spec(cell_module,
-                                                            "Location")
+            destination.spec = cell_module.get_port_spec("Location", "input")
             c_id = -pipeline.tmp_id.getNewId(connection.Connection.vtType)
             conn = connection.Connection(id=c_id,
                                          ports=[source, destination])

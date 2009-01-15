@@ -730,9 +730,7 @@ def save_registry_to_xml(registry, filename, version=None):
             'xsi:schemaLocation': 'http://www.vistrails.org/registry.xsd'
             }
     if version is None:
-        version = get_db_version(db_connection)
-        if version is None:
-            version = currentVersion
+        version = currentVersion
     if not registry.db_version:
         registry.db_version = currentVersion
     registry = translate_registry(registry, registry.db_version, version)

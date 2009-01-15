@@ -290,7 +290,7 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'name', 'package', 'namespace', 'base_descriptor_id', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'name', 'package', 'namespace', 'version', 'base_descriptor_id', 'parent_id', 'entity_id', 'entity_type']
         table = 'module_descriptor'
         whereMap = global_props
         orderBy = 'id'
@@ -303,14 +303,16 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
             name = self.convertFromDB(row[1], 'str', 'varchar(255)')
             package = self.convertFromDB(row[2], 'str', 'varchar(255)')
             namespace = self.convertFromDB(row[3], 'str', 'varchar(255)')
-            base_descriptor_id = self.convertFromDB(row[4], 'long', 'int')
-            package = self.convertFromDB(row[5], 'long', 'int')
-            entity_id = self.convertFromDB(row[6], 'long', 'int')
-            entity_type = self.convertFromDB(row[7], 'str', 'char(16)')
+            version = self.convertFromDB(row[4], 'str', 'varchar(255)')
+            base_descriptor_id = self.convertFromDB(row[5], 'long', 'int')
+            package = self.convertFromDB(row[6], 'long', 'int')
+            entity_id = self.convertFromDB(row[7], 'long', 'int')
+            entity_type = self.convertFromDB(row[8], 'str', 'char(16)')
             
             module_descriptor = DBModuleDescriptor(name=name,
                                                    package=package,
                                                    namespace=namespace,
+                                                   version=version,
                                                    base_descriptor_id=base_descriptor_id,
                                                    id=id)
             module_descriptor.db_package = package
@@ -329,7 +331,7 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'name', 'package', 'namespace', 'base_descriptor_id', 'parent_id', 'entity_id', 'entity_type']
+        columns = ['id', 'name', 'package', 'namespace', 'version', 'base_descriptor_id', 'parent_id', 'entity_id', 'entity_type']
         table = 'module_descriptor'
         whereMap = {}
         whereMap.update(global_props)
@@ -349,6 +351,9 @@ class DBModuleDescriptorSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_namespace') and obj.db_namespace is not None:
             columnMap['namespace'] = \
                 self.convertToDB(obj.db_namespace, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_version') and obj.db_version is not None:
+            columnMap['version'] = \
+                self.convertToDB(obj.db_version, 'str', 'varchar(255)')
         if hasattr(obj, 'db_base_descriptor_id') and obj.db_base_descriptor_id is not None:
             columnMap['base_descriptor_id'] = \
                 self.convertToDB(obj.db_base_descriptor_id, 'long', 'int')

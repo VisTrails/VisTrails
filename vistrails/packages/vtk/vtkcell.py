@@ -34,6 +34,7 @@ from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 import vtkcell_rc
 import gc
 from gui.qt import qt_super
+import core.db.action
 from core.vistrail.action import Action
 from core.vistrail.port import Port
 from core.vistrail import module
@@ -41,7 +42,6 @@ from core.vistrail import connection
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
 from core.vistrail.location import Location
-import db.services.action
 import copy
 
 ################################################################################
@@ -964,7 +964,55 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
         QtGui.QAction.__init__(self,
                                "Save &Camera",
                                parent)
-        self.setStatusTip("Save current camera views to the pipeline")                                                        
+        self.setStatusTip("Save current camera views to the pipeline")
+
+    def setCamera(self, controller):
+        ops = []
+        pipeline = controller.current_pipeline                        
+        cellWidget = self.toolBar.getSnappedWidget()
+        renderers = cellWidget.getRendererList()
+        for ren in renderers:
+            cam = ren.GetActiveCamera()
+            cpos = cam.GetPosition()
+            cfol = cam.GetFocalPoint()
+            cup = cam.GetViewUp()
+            rendererId = cellWidget.renderer_maps[ren]
+            # Looking for SetActiveCamera()
+            camera = None
+            renderer = pipeline.modules[rendererId]
+            for c in pipeline.connections.values():
+                if c.destination.moduleId==rendererId:
+                    if c.destination.name=='SetActiveCamera':
+                        camera = pipeline.modules[c.source.moduleId]
+                        break
+            
+            if not camera:
+                # Create camera
+                vtk_package = 'edu.utah.sci.vistrails.vtk'
+                camera = controller.create_module(vtk_package, 'vtkCamera', '',
+                                                  0.0, 0.0)
+                ops.append(('add', camera))
+
+                # Connect camera to renderer
+                camera_conn = controller.create_connection(camera, 'self',
+                                                           renderer, 
+                                                           'SetActiveCamera')
+                ops.append(('add', camera_conn))
+            # update functions
+            def convert_to_str(arglist):
+                new_arglist = []
+                for arg in arglist:
+                    new_arglist.append(str(arg))
+                return new_arglist
+            functions = [('SetPosition', convert_to_str(cpos)),
+                         ('SetFocalPoint', convert_to_str(cfol)),
+                         ('SetViewUp', convert_to_str(cup))]
+            ops.extend(controller.update_functions_ops(camera, functions))
+
+        action = core.db.action.create_action(ops)
+        controller.add_new_action(action)
+        controller.perform_action(action)
+        controller.select_latest_version()
 
     def triggeredSlot(self, checked=False):
         """ toggledSlot(checked: boolean) -> None
@@ -984,159 +1032,8 @@ class QVTKWidgetSaveCamera(QtGui.QAction):
                     if view:
                         controller = view.controller
                         controller.change_selected_version(info['version'])
+                        self.setCamera(controller)
                         
-                        pipeline = controller.current_pipeline
-                        
-                        cellWidget = self.toolBar.getSnappedWidget()
-                        renderers = cellWidget.getRendererList()
-                        for ren in renderers:
-                            cam = ren.GetActiveCamera()
-                            cpos = cam.GetPosition()
-                            cfol = cam.GetFocalPoint()
-                            cup = cam.GetViewUp()
-                            rendererId = cellWidget.renderer_maps[ren]
-                            # Looking for SetCamera()
-                            camera = None
-                            for c in pipeline.connections.values():
-                                if c.destination.moduleId==rendererId:
-                                    if c.destination.name=='SetActiveCamera':
-                                        camera = pipeline.modules[c.source.moduleId]
-                                        break
-
-                            registry = get_module_registry()
-                            def createCameraFunctions(function_ids):
-                                """ createCameraFunctions([3 x int]) -> [3 x ModuleFunction]
-                                Return the SetPosition, SetFocalPoint and SetViewUp camera position
-
-                                """
-                                for i in range(len(function_ids)):
-                                    if (function_ids[i]==-1):
-                                        function_ids[i] = controller.vistrail.idScope.getNewId(ModuleFunction.vtType)
-                                        
-                                param_id = [controller.vistrail.idScope.getNewId(ModuleParam.vtType),
-                                            controller.vistrail.idScope.getNewId(ModuleParam.vtType),
-                                            controller.vistrail.idScope.getNewId(ModuleParam.vtType)]
-                                posParams = [ModuleParam(id=param_id[i], pos=i,
-                                                         name="", val=str(cpos[i]),
-                                                         type="Float", alias="")
-                                             for i in range(3)]
-                                setPos = ModuleFunction(id=function_ids[0],
-                                                        pos=0,
-                                                        name="SetPosition",
-                                                        parameters=posParams,
-                                                        )
-
-                                param_id = [controller.vistrail.idScope.getNewId(ModuleParam.vtType),
-                                            controller.vistrail.idScope.getNewId(ModuleParam.vtType),
-                                            controller.vistrail.idScope.getNewId(ModuleParam.vtType)]
-                                posParams = [ModuleParam(id=param_id[i], pos=i,
-                                                         name="", val=str(cfol[i]),
-                                                         type="Float", alias="")
-                                             for i in range(3)]
-                                function_id = controller.vistrail.idScope.getNewId(ModuleFunction.vtType)
-                                setFocal = ModuleFunction(id=function_ids[1],
-                                                          pos=1,
-                                                          name="SetFocalPoint",
-                                                          parameters=posParams,
-                                                          )
-
-                                param_id = [controller.vistrail.idScope.getNewId(ModuleParam.vtType),
-                                            controller.vistrail.idScope.getNewId(ModuleParam.vtType),
-                                            controller.vistrail.idScope.getNewId(ModuleParam.vtType)]
-                                posParams = [ModuleParam(id=param_id[i], pos=i,
-                                                         name="", val=str(cup[i]),
-                                                         type="Float", alias="")
-                                             for i in range(3)]
-                                function_id = controller.vistrail.idScope.getNewId(ModuleFunction.vtType)
-                                setUp = ModuleFunction(id=function_ids[2],
-                                                       pos=2,
-                                                       name="SetViewUp",
-                                                       parameters=posParams,
-                                                       )
-                                return [setPos, setFocal, setUp]
-                            
-                            if not camera:
-                                # Create camera
-                                loc_id = controller.vistrail.idScope.getNewId(Location.vtType)
-                                location = Location(id=loc_id, x=-1.0, y=-1.0)
-                                module_id = controller.vistrail.idScope.getNewId(module.Module.vtType)
-                                camera = module.Module(id=module_id,                                                       
-                                                       name="vtkCamera",
-                                                       package="edu.utah.sci.vistrails.vtk",
-                                                       location=location,
-                                                       functions=createCameraFunctions([-1]*3))                                
-                                action = db.services.action.create_action([('add', 
-                                                                            camera)])
-                                Action.convert(action)
-                                controller.vistrail.add_action(action, controller.current_version)
-                                controller.perform_action(action)
-
-                                port_id = controller.vistrail.idScope.getNewId(Port.vtType)
-                                source = Port(id=port_id,
-                                              type='source',
-                                              moduleId=camera.id,
-                                              moduleName=camera.name)
-                                source.name = "self"
-                                source.spec = copy.copy(registry.get_output_port_spec(camera,
-                                                                                      "self"))
-                                port_id = controller.vistrail.idScope.getNewId(Port.vtType)
-                                destination = Port(id=port_id,
-                                                   type='destination',
-                                                   moduleId=rendererId,
-                                                   moduleName='vtkRenderer')
-                                destination.name = "SetActiveCamera"
-                                destination.spec = copy.copy(registry.get_input_port_spec(pipeline.modules[rendererId],
-                                                                                           "SetActiveCamera"))
-                                c_id = controller.vistrail.idScope.getNewId(connection.Connection.vtType)
-                                conn = connection.Connection(id=c_id,
-                                                             ports=[source, destination])
-                                action = db.services.action.create_action([('add', 
-                                                                           conn)])
-                                Action.convert(action)
-                                controller.add_new_action(action)
-                                controller.perform_action(action)
-                            else:
-                                # Replace the current camera
-                                function_ids = [-1]*3
-                                for f in camera.functions:
-                                    if (f.name=='SetPosition'):
-                                        function_ids[0] = f.id
-                                    if (f.name=='SetFocalPoint'):
-                                        function_ids[1] = f.id
-                                    if (f.name=='SetViewUp'):
-                                        function_ids[2] = f.id
-                                functions = createCameraFunctions(function_ids)
-                                action_list = []
-                                for f in camera.functions:
-                                    if (f.name=='SetPosition'):
-                                        for i in range(3):
-                                            action_list.append(('change', f.params[i],
-                                                                functions[0].params[i],
-                                                                f.vtType, f.real_id))
-                                        functions[0] = None
-                                    if (f.name=='SetFocalPoint'):
-                                        for i in range(3):
-                                            action_list.append(('change', f.params[i],
-                                                                functions[1].params[i],
-                                                                f.vtType, f.real_id))
-                                        functions[1] = None
-                                    if (f.name=='SetViewUp'):
-                                        for i in range(3):
-                                            action_list.append(('change', f.params[i],
-                                                                functions[2].params[i],
-                                                                f.vtType, f.real_id))
-                                        functions[2] = None
-                                for f in functions:
-                                    if f:
-                                        action_list.append(('add', f,
-                                                            module.Module.vtType, camera.id))
-                                action = db.services.action.create_action(action_list)
-                                controller.add_new_action(action)
-                                controller.perform_action(action)
-                                
-                        controller.select_latest_version()
-                        controller.invalidate_version_tree(False)
-
                 
 class QVTKWidgetToolBar(QCellToolBar):
     """

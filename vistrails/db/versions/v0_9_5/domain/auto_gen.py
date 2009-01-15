@@ -662,11 +662,12 @@ class DBModuleDescriptor(object):
 
     vtType = 'module_descriptor'
 
-    def __init__(self, id=None, name=None, package=None, namespace=None, base_descriptor_id=None, portSpecs=None):
+    def __init__(self, id=None, name=None, package=None, namespace=None, version=None, base_descriptor_id=None, portSpecs=None):
         self._db_id = id
         self._db_name = name
         self._db_package = package
         self._db_namespace = namespace
+        self._db_version = version
         self._db_base_descriptor_id = base_descriptor_id
         self.db_deleted_portSpecs = []
         self.db_portSpecs_id_index = {}
@@ -689,6 +690,7 @@ class DBModuleDescriptor(object):
                                 name=self._db_name,
                                 package=self._db_package,
                                 namespace=self._db_namespace,
+                                version=self._db_version,
                                 base_descriptor_id=self._db_base_descriptor_id)
         if self._db_portSpecs is None:
             cp._db_portSpecs = []
@@ -740,6 +742,11 @@ class DBModuleDescriptor(object):
             new_obj.db_namespace = res
         elif hasattr(old_obj, 'db_namespace') and old_obj.db_namespace is not None:
             new_obj.db_namespace = old_obj.db_namespace
+        if 'version' in class_dict:
+            res = class_dict['version'](old_obj, trans_dict)
+            new_obj.db_version = res
+        elif hasattr(old_obj, 'db_version') and old_obj.db_version is not None:
+            new_obj.db_version = old_obj.db_version
         if 'base_descriptor_id' in class_dict:
             res = class_dict['base_descriptor_id'](old_obj, trans_dict)
             new_obj.db_base_descriptor_id = res
@@ -829,6 +836,19 @@ class DBModuleDescriptor(object):
         self._db_namespace = namespace
     def db_delete_namespace(self, namespace):
         self._db_namespace = None
+    
+    def __get_db_version(self):
+        return self._db_version
+    def __set_db_version(self, version):
+        self._db_version = version
+        self.is_dirty = True
+    db_version = property(__get_db_version, __set_db_version)
+    def db_add_version(self, version):
+        self._db_version = version
+    def db_change_version(self, version):
+        self._db_version = version
+    def db_delete_version(self, version):
+        self._db_version = None
     
     def __get_db_base_descriptor_id(self):
         return self._db_base_descriptor_id
@@ -1204,7 +1224,7 @@ class DBGroup(object):
                      version=self._db_version,
                      tag=self._db_tag)
         if self._db_workflow is not None:
-            cp._db_workflow = self._db_workflow.do_copy(new_ids, id_scope, id_remap)
+            cp._db_workflow = self._db_workflow.do_copy()
         if self._db_location is not None:
             cp._db_location = self._db_location.do_copy(new_ids, id_scope, id_remap)
         if self._db_functions is None:
@@ -3893,7 +3913,7 @@ class DBRegistry(object):
             self._db_packages = packages
             for v in self._db_packages:
                 self.db_packages_id_index[v.db_id] = v
-                self.db_packages_identifier_index[v.db_identifier] = v
+                self.db_packages_identifier_index[(v.db_identifier,v.db_version)] = v
         self.is_dirty = True
         self.is_new = True
     
@@ -3923,7 +3943,7 @@ class DBRegistry(object):
         
         # recreate indices and set flags
         cp.db_packages_id_index = dict((v.db_id, v) for v in cp._db_packages)
-        cp.db_packages_identifier_index = dict((v.db_identifier, v) for v in cp._db_packages)
+        cp.db_packages_identifier_index = dict(((v.db_identifier,v.db_version), v) for v in cp._db_packages)
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
@@ -4052,7 +4072,7 @@ class DBRegistry(object):
         self.is_dirty = True
         self._db_packages.append(package)
         self.db_packages_id_index[package.db_id] = package
-        self.db_packages_identifier_index[package.db_identifier] = package
+        self.db_packages_identifier_index[(package.db_identifier,package.db_version)] = package
     def db_change_package(self, package):
         self.is_dirty = True
         found = False
@@ -4064,7 +4084,7 @@ class DBRegistry(object):
         if not found:
             self._db_packages.append(package)
         self.db_packages_id_index[package.db_id] = package
-        self.db_packages_identifier_index[package.db_identifier] = package
+        self.db_packages_identifier_index[(package.db_identifier,package.db_version)] = package
     def db_delete_package(self, package):
         self.is_dirty = True
         for i in xrange(len(self._db_packages)):
@@ -4074,7 +4094,7 @@ class DBRegistry(object):
                 del self._db_packages[i]
                 break
         del self.db_packages_id_index[package.db_id]
-        del self.db_packages_identifier_index[package.db_identifier]
+        del self.db_packages_identifier_index[(package.db_identifier,package.db_version)]
     def db_get_package(self, key):
         for i in xrange(len(self._db_packages)):
             if self._db_packages[i].db_id == key:
@@ -4454,7 +4474,7 @@ class DBPackage(object):
             self._db_module_descriptors = module_descriptors
             for v in self._db_module_descriptors:
                 self.db_module_descriptors_id_index[v.db_id] = v
-                self.db_module_descriptors_name_index[(v.db_name,v.db_namespace)] = v
+                self.db_module_descriptors_name_index[(v.db_name,v.db_namespace,v.db_version)] = v
         self.is_dirty = True
         self.is_new = True
     
@@ -4485,7 +4505,7 @@ class DBPackage(object):
         
         # recreate indices and set flags
         cp.db_module_descriptors_id_index = dict((v.db_id, v) for v in cp._db_module_descriptors)
-        cp.db_module_descriptors_name_index = dict(((v.db_name,v.db_namespace), v) for v in cp._db_module_descriptors)
+        cp.db_module_descriptors_name_index = dict(((v.db_name,v.db_namespace,v.db_version), v) for v in cp._db_module_descriptors)
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
@@ -4668,7 +4688,7 @@ class DBPackage(object):
         self.is_dirty = True
         self._db_module_descriptors.append(module_descriptor)
         self.db_module_descriptors_id_index[module_descriptor.db_id] = module_descriptor
-        self.db_module_descriptors_name_index[(module_descriptor.db_name,module_descriptor.db_namespace)] = module_descriptor
+        self.db_module_descriptors_name_index[(module_descriptor.db_name,module_descriptor.db_namespace,module_descriptor.db_version)] = module_descriptor
     def db_change_module_descriptor(self, module_descriptor):
         self.is_dirty = True
         found = False
@@ -4680,7 +4700,7 @@ class DBPackage(object):
         if not found:
             self._db_module_descriptors.append(module_descriptor)
         self.db_module_descriptors_id_index[module_descriptor.db_id] = module_descriptor
-        self.db_module_descriptors_name_index[(module_descriptor.db_name,module_descriptor.db_namespace)] = module_descriptor
+        self.db_module_descriptors_name_index[(module_descriptor.db_name,module_descriptor.db_namespace,module_descriptor.db_version)] = module_descriptor
     def db_delete_module_descriptor(self, module_descriptor):
         self.is_dirty = True
         for i in xrange(len(self._db_module_descriptors)):
@@ -4690,7 +4710,7 @@ class DBPackage(object):
                 del self._db_module_descriptors[i]
                 break
         del self.db_module_descriptors_id_index[module_descriptor.db_id]
-        del self.db_module_descriptors_name_index[(module_descriptor.db_name,module_descriptor.db_namespace)]
+        del self.db_module_descriptors_name_index[(module_descriptor.db_name,module_descriptor.db_namespace,module_descriptor.db_version)]
     def db_get_module_descriptor(self, key):
         for i in xrange(len(self._db_module_descriptors)):
             if self._db_module_descriptors[i].db_id == key:

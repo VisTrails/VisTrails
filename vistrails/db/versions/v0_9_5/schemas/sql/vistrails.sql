@@ -57,6 +57,7 @@ CREATE TABLE module_descriptor(
     name varchar(255),
     package varchar(255),
     namespace varchar(255),
+    version varchar(255),
     base_descriptor_id int,
     parent_id int,
     entity_id int,

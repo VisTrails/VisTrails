@@ -258,7 +258,7 @@ class HandlerConfigurationWidget(StandardModuleConfigurationWidget):
             code = urllib.quote(str(self.codeEditor.toPlainText()))
             functions = [('Handler', self.findHandlerFunction(), [code], 
                           True)]
-            self.controller.update_functions(self.module.id, functions)
+            self.controller.update_functions(self.module, functions)
 
     def okTriggered(self, checked = False):
         """ okTriggered(checked: bool) -> None

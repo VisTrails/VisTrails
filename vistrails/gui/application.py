@@ -417,7 +417,8 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         if interactive:
             self.interactiveMode()
         else:
-            return self.noninteractiveMode()
+            r = self.noninteractiveMode()
+            return r
         return True
 
     def interactiveMode(self):
@@ -428,7 +429,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         if self.temp_configuration.check('showSplash'):
             self.splashScreen.finish(self.builderWindow)
         self.builderWindow.create_first_vistrail()
-        self.builderWindow.modulePalette.treeWidget.updateFromModuleRegistry()
+        self.builderWindow.modulePalette.updateFromModuleRegistry()
         self.builderWindow.modulePalette.connect_registry_signals()
         
         self.process_interactive_input()
@@ -436,8 +437,10 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
         if not self.temp_configuration.showSpreadsheetOnly:
             # in some systems (Linux and Tiger) we need to make both calls
             # so builderWindow is activated
-            self.builderWindow.raise_()
+            self.setActiveWindow(self.builderWindow)
             self.builderWindow.activateWindow()
+            self.builderWindow.show()
+            self.builderWindow.raise_()
         else:
             self.builderWindow.hide()
 
@@ -453,7 +456,7 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
             w_list = []
             for filename in self.input:
                 f_name, version = self._parse_vtinfo(filename, not usedb)
-                if f_name and version:
+                if f_name:
                     if not usedb:
                         locator = FileLocator(os.path.abspath(f_name))
                     else:
@@ -474,10 +477,14 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
                 workflow_info = self.temp_configuration.workflowInfo
             else:
                 workflow_info = None
-            r = core.console_mode.run(w_list,
+            errs = core.console_mode.run(w_list,
                                       self.temp_db_options.parameters,
                                       workflow_info)
-            return r
+            if len(errs) > 0:
+                for err in errs:
+                    print "*** Error in %s:%s:%s -- %s" % err
+                return False
+            return True
         else:
             debug.DebugPrint.critical("no input vistrails provided")
             return False
@@ -517,9 +524,11 @@ class VistrailsApplicationSingleton(VistrailsApplicationInterface,
 
         self.builderWindow = QBuilderWindow()
         if not self.temp_configuration.showSpreadsheetOnly:
-            self.builderWindow.show()
-        self.visDiffParent = QtGui.QWidget(None, QtCore.Qt.ToolTip)
-        self.visDiffParent.resize(0,0)
+            # self.builderWindow.show()
+            # self.setActiveWindow(self.builderWindow)
+            pass
+#         self.visDiffParent = QtGui.QWidget(None, QtCore.Qt.ToolTip)
+#         self.visDiffParent.resize(0,0)
         
     def runInitialization(self):
         """ runInitialization() -> None
@@ -655,6 +664,7 @@ VistrailsApplication = None
 def stop_application():
     """Stop and finalize the application singleton."""
     global VistrailsApplication
+    VistrailsApplication.finishSession()
     VistrailsApplication.save_configuration()
     VistrailsApplication.destroy()
     VistrailsApplication.deleteLater()

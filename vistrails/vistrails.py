@@ -31,6 +31,10 @@ if __name__ == '__main__':
     import os
     try:
         v = gui.application.start_application()
+        if v != 0:
+            if gui.application.VistrailsApplication:
+                gui.application.VistrailsApplication.finishSession()
+            sys.exit(v)
         app = gui.application.VistrailsApplication()
     except SystemExit, e:
         if gui.application.VistrailsApplication:
@@ -43,7 +47,7 @@ if __name__ == '__main__':
         import traceback
         traceback.print_exc()
         sys.exit(255)
-    if (app.temp_configuration.interactiveMode or
+    if (app.temp_configuration.interactiveMode and
         not app.temp_configuration.check('spreadsheetDumpCells')): 
         v = app.exec_()
 

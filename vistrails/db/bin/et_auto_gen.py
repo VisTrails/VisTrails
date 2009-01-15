@@ -427,15 +427,18 @@ class XMLAutoGen(AutoGen):
 
 
         def generatePropertyOutputCode(property, field=None):
-            self.printLine("childNode = ElementTree.SubElement(" +
-                           "node, '%s')\n" % property.getSingleName())
             if property.isReference():
+		refObj = self.getReferencedObject(property.getReference())
                 if field is None:
                     field = property
+                self.printLine("childNode = ElementTree.SubElement(" +
+                               "node, '%s')\n" % refObj.getName())
                 self.printLine("self.getDao('%s')" % property.getReference() +
                                ".toXML(%s, childNode)\n" % \
                                    field.getSingleName())
             else:
+                self.printLine("childNode = ElementTree.SubElement(" +
+                               "node, '%s')\n" % property.getSingleName())
                 self.printLine("childNode.text = " + \
                                    "self.convertToStr(child, '%s'))\n" % \
                                    property.getPythonType())

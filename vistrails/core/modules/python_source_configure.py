@@ -24,6 +24,7 @@ from PyQt4 import QtCore, QtGui
 from core.modules.module_configure import StandardModuleConfigurationWidget
 from core.modules.tuple_configuration import PortTableConfigurationWidget, \
     PortTable
+from core.utils import PortAlreadyExists
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
 import urllib
@@ -139,11 +140,8 @@ class PythonSourceConfigurationWidget(PortTableConfigurationWidget):
         self.outputPortTable = PortTable(self)
         labels = QtCore.QStringList() << "Output Port Name" << "Type"
         self.outputPortTable.setHorizontalHeaderLabels(labels)
-        if self.module.registry:
-            iPorts = self.module.registry.destination_ports_from_descriptor(self.module_descriptor)
-            self.inputPortTable.initializePorts(iPorts)
-            oPorts = self.module.registry.source_ports_from_descriptor(self.module_descriptor)
-            self.outputPortTable.initializePorts(oPorts)
+        self.inputPortTable.initializePorts(self.module._input_port_specs)
+        self.outputPortTable.initializePorts(self.module._output_port_specs)
         self.layout().addWidget(self.inputPortTable)
         self.layout().addWidget(self.outputPortTable)
         self.performPortConnection(self.connect)
@@ -243,14 +241,19 @@ class PythonSourceConfigurationWidget(PortTableConfigurationWidget):
         functions = []
         if self.codeEditor.document().isModified():
             code = urllib.quote(str(self.codeEditor.toPlainText()))
-            functions.append(('source', self.findSourceFunction(), [code], 
-                              True))
+            functions.append(('source', [code]))
         if len(deleted_ports) + len(added_ports) + len(functions) == 0:
             # nothing changed
             return
-        self.controller.update_ports_and_functions(self.module.id, 
-                                                   deleted_ports, added_ports,
-                                                   functions)
+        try:
+            self.controller.update_ports_and_functions(self.module.id, 
+                                                       deleted_ports, 
+                                                       added_ports,
+                                                       functions)
+        except PortAlreadyExists, e:
+            QtGui.QMessageBox.critical(self, 'Port Already Exists', str(e))
+            return False
+        return True
 
 #     def updateActionsHandler(self, controller):
 #         oldRegistry = self.module.registry

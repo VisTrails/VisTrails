@@ -1352,6 +1352,11 @@
       <sql type="varchar(255)"/>
     </property>
 
+    <property name="version" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
     <property name="base_descriptor_id" type="long" foreignKey="true" 
 	      object="module_descriptor">
       <xml name="baseDescriptorId" nodeType="xs:attribute" type="xs:int"/>
@@ -1441,7 +1446,7 @@
     </property>
 
     <property ref="true" object="module_descriptor" type="list" 
-	      mapping="one-to-many" index="name:namespace">
+	      mapping="one-to-many" index="name:namespace:version">
       <xml name="moduleDescriptor" nodeType="xs:element"/>
     </property>
 
@@ -1490,7 +1495,7 @@
     </property>
 
     <property ref="true" object="package" type="list"
-	      mapping="one-to-many" index="identifier">
+	      mapping="one-to-many" index="identifier:version">
       <xml nodeType="xs:element"/>
     </property>
   </object>

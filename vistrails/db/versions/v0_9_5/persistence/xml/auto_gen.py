@@ -197,6 +197,8 @@ class DBModuleDescriptorXMLDAOBase(XMLDAO):
         package = self.convertFromStr(data, 'str')
         data = node.get('namespace', None)
         namespace = self.convertFromStr(data, 'str')
+        data = node.get('version', None)
+        version = self.convertFromStr(data, 'str')
         data = node.get('baseDescriptorId', None)
         base_descriptor_id = self.convertFromStr(data, 'long')
         
@@ -216,6 +218,7 @@ class DBModuleDescriptorXMLDAOBase(XMLDAO):
                                  name=name,
                                  package=package,
                                  namespace=namespace,
+                                 version=version,
                                  base_descriptor_id=base_descriptor_id,
                                  portSpecs=portSpecs)
         obj.is_dirty = False
@@ -230,6 +233,7 @@ class DBModuleDescriptorXMLDAOBase(XMLDAO):
         node.set('name',self.convertToStr(module_descriptor.db_name, 'str'))
         node.set('package',self.convertToStr(module_descriptor.db_package, 'str'))
         node.set('namespace',self.convertToStr(module_descriptor.db_namespace, 'str'))
+        node.set('version',self.convertToStr(module_descriptor.db_version, 'str'))
         node.set('baseDescriptorId',self.convertToStr(module_descriptor.db_base_descriptor_id, 'long'))
         
         # set elements
@@ -481,7 +485,7 @@ class DBLogXMLDAOBase(XMLDAO):
         # set elements
         workflow_execs = log.db_workflow_execs
         for workflow_exec in workflow_execs:
-            childNode = ElementTree.SubElement(node, 'workflow_exec')
+            childNode = ElementTree.SubElement(node, 'workflowExec')
             self.getDao('workflow_exec').toXML(workflow_exec, childNode)
         machines = log.db_machines
         for machine in machines:
@@ -1391,7 +1395,7 @@ class DBPackageXMLDAOBase(XMLDAO):
         # set elements
         module_descriptors = package.db_module_descriptors
         for module_descriptor in module_descriptors:
-            childNode = ElementTree.SubElement(node, 'module_descriptor')
+            childNode = ElementTree.SubElement(node, 'moduleDescriptor')
             self.getDao('module_descriptor').toXML(module_descriptor, childNode)
         
         return node
@@ -1483,7 +1487,7 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
         # set elements
         module_execs = workflow_exec.db_module_execs
         for module_exec in module_execs:
-            childNode = ElementTree.SubElement(node, 'module_exec')
+            childNode = ElementTree.SubElement(node, 'moduleExec')
             self.getDao('module_exec').toXML(module_exec, childNode)
         
         return node

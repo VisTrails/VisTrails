@@ -88,7 +88,6 @@ class PortTable(QtGui.QTableWidget):
                           QtCore.QVariant(p.name),
                           QtCore.Qt.DisplayRole)
             self.setRowCount(self.rowCount()+1)
-        self.fixGeometry()
         self.connect(self.model(),
                      QtCore.SIGNAL('dataChanged(QModelIndex,QModelIndex)'),
                      self.handleDataChanged)
@@ -113,9 +112,10 @@ class PortTableItemDelegate(QtGui.QItemDelegate):
             combo = QtGui.QComboBox(parent)
             combo.setEditable(False)
             # FIXME just use descriptors here!!
-            for k, descriptor in sorted(registry.descriptors.iteritems()):
-                if not descriptor.module_abstract():
-                    combo.addItem("%s (%s)" % (k[1], k[0]), 
+            for _, pkg in sorted(registry.packages.iteritems()):
+                for _, descriptor in sorted(pkg.descriptors.iteritems()):
+                    combo.addItem("%s (%s)" % (descriptor.name, 
+                                               descriptor.identifier),
                                   QtCore.QVariant(descriptor.sigstring))
             return combo
         else:
@@ -162,11 +162,10 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
        change the visibility of input/output ports on the builder,
        change module color.
 
-       Each module has a local registry which is exactly like the
-       global modules.module_registry.registry. However, it holds
-       module information (ports) changing in time. The same module
-       can have different types of input ports at two different time
-       in the same vistrail.
+       Each module has a local set of input and output ports that may
+       change, unlike those stored by the global registry. The same
+       module can have different types of input ports at two different
+       time in the same vistrail.
 
     That's it, the rest of the widget will be just like a regular Qt
     widget.
@@ -233,9 +232,9 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
         Update vistrail controller and module when the user click Ok
         
         """
-        self.updateVistrail()
-        self.emit(QtCore.SIGNAL('doneConfigure()'))
-        self.close()
+        if self.updateVistrail():
+            self.emit(QtCore.SIGNAL('doneConfigure()'))
+            self.close()
 
     def getRegistryPorts(self, registry, type):
         if not registry:
@@ -252,29 +251,17 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
         deleted_ports = [p for p in old_ports if p not in new_ports]
         added_ports = [p for p in new_ports if p not in old_ports]
         return (deleted_ports, added_ports)
-
-#     def specsFromPorts(self, portType, ports):
-#         return [(portType,
-#                  p.name,
-#                  '('+registry.get_descriptor(p.spec.signature[0][0]).name+')')
-#                 for p in ports[0][1]]
-
-#     def registryChanges(self, oldRegistry, newPorts):
-#         if oldRegistry:
-#             oldIn = self.specsFromPorts('input',
-#                                         oldRegistry.all_destination_ports(self.module_descriptor))
-#             oldOut = self.specsFromPorts('output',
-#                                          oldRegistry.all_source_ports(self.module_descriptor))
-#         else:
-#             oldIn = []
-#             oldOut = []
-#         deletePorts = [p for p in oldIn if not p in newPorts]
-#         deletePorts += [p for p in oldOut if not p in newPorts]
-#         addPorts = [p for p in newPorts if ((not p in oldIn) and (not p in oldOut))]
-#         return (deletePorts, addPorts)
     
     def getPortDiff(self, p_type, port_table):
-        old_ports = self.getRegistryPorts(self.module.registry, p_type)
+        if p_type == 'input':
+            old_ports = [(p.name, p.sigstring)
+                         for p in self.module._input_port_specs]
+        elif p_type == 'output':
+            old_ports = [(p.name, p.sigstring) 
+                         for p in self.module._output_port_specs]
+        else:
+            old_ports = []
+        # old_ports = self.getRegistryPorts(self.module.registry, p_type)
         new_ports = port_table.getPorts()
         (deleted_ports, added_ports) = \
             self.registryChanges(old_ports, new_ports)
@@ -323,12 +310,8 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         # We know that the Tuple module initially doesn't have any
         # input port, we just use the local registry to see what ports
         # it has at the time of configuration.
-        if self.module.registry:
-            getter = self.module.registry.destination_ports_from_descriptor
-            iPorts = getter(self.module_descriptor)
-            self.portTable.initializePorts(iPorts)
-        else:
-            self.portTable.fixGeometry()
+        self.portTable.initializePorts(self.module._input_port_specs)
+        self.portTable.fixGeometry()
         centralLayout.addWidget(self.portTable)
 
         # We need a padded widget to take all vertical white space away
@@ -355,7 +338,13 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         if len(current_ports) > 0:
             spec = "(" + ','.join(p[1][1:-1] for p in current_ports) + ")"
             added_ports.append(('output', 'value', spec))
-        self.controller.update_ports(self.module.id, deleted_ports, added_ports)
+        try:
+            self.controller.update_ports(self.module.id, deleted_ports, 
+                                         added_ports)
+        except PortAlreadyExists, e:
+            QtGui.QMessageBox.critical(self, 'Port Already Exists', str(e))
+            return False
+        return True            
 
 class UntupleConfigurationWidget(PortTableConfigurationWidget):
     def __init__(self, module, controller, parent=None):
@@ -396,12 +385,8 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         # We know that the Tuple module initially doesn't have any
         # input port, we just use the local registry to see what ports
         # it has at the time of configuration.
-        if self.module.registry:
-            getter = self.module.registry.source_ports_from_descriptor
-            oPorts = getter(self.module_descriptor)
-            self.portTable.initializePorts(oPorts)
-        else:
-            self.portTable.fixGeometry()
+        self.portTable.initializePorts(self.module._output_port_specs)
+        self.portTable.fixGeometry()
         centralLayout.addWidget(self.portTable)
 
         # We need a padded widget to take all vertical white space away
@@ -430,44 +415,10 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         if len(current_ports) > 0:
             spec = "(" + ','.join(p[1][1:-1] for p in current_ports) + ")"
             added_ports.append(('input', 'value', spec))
-        self.controller.update_ports(self.module.id, deleted_ports, added_ports)
-
-#     def lcs(self, l1, l2):
-#         """ lcs(l1: list, l2: list) -> (keep, delete, add list)        
-#         Given 2 lists, we want to find our which part of l1 is the
-#         same as l2 and which should be deleted or added. This is very
-#         small in our case, we just use memoization.
-        
-#         """
-#         res = {}
-#         def rec(i1, i2):
-#             if (i1<0 or i2<0):
-#                 return 0
-#             cached = res.get(i1*len(l2)+i2, -1)
-#             if cached!=-1:
-#                 return cached
-#             if l1[i1]==l2[i2]:
-#                 r = rec(i1-1, i2-1) + 1
-#             else:
-#                 r = max(rec(i1, i2-1), rec(i1-1, i2))
-#             res[i1*len(l2)+i2] = r
-#             return r
-#         same = []
-#         delete = copy.copy(l1)
-#         add = copy.copy(l2)
-#         def trace(i1, i2):
-#             if i1>=0 and i2>=0:
-#                 if l1[i1]==l2[i2]:
-#                     same.append(l1[i1])
-#                     del delete[i1]
-#                     del add[i2]
-#                     trace(i1-1, i2-1)
-#                 else:
-#                     if rec(i1, i2)==rec(i1, i2-1):
-#                         trace(i1, i2-1)
-#                     else:
-#                         trace(i1-1, i2)
-#         rec(len(l1)-1, len(l2)-1)
-#         trace(len(l1)-1, len(l2)-1)
-#         same.reverse()
-#         return (same, delete, add)
+        try:
+            self.controller.update_ports(self.module.id, deleted_ports, 
+                                         added_ports)
+        except PortAlreadyExists, e:
+            QtGui.QMessageBox.critical(self, 'Port Already Exists', str(e))
+            return False
+        return True

@@ -48,11 +48,13 @@ def run_and_get_results(w_list, parameters='', workflow_info=None):
             version = v.get_version_number(workflow)
         elif type(workflow) in [ type(1), long]:
             version = workflow
+        elif workflow is None:
+            version = v.get_latest_version()
         else:
             msg = "Invalid version tag or number: %s" % workflow
             raise VistrailsInternalError(msg)
 
-        pip = v.getPipeline(workflow)
+        pip = v.getPipeline(version)
         for e in elements:
             pos = e.find("=")
             if pos != -1:
@@ -84,22 +86,23 @@ def run_and_get_results(w_list, parameters='', workflow_info=None):
                   'aliases': aliases,
                   }
         run = interpreter.execute(pip, **kwargs)
+        run.workflow_info = (locator.name, version)
         result.append(run)
     return result
     
 def run(w_list, parameters='', workflow_info=None):
     """run(w_list: list of (locator, version), parameters: str) -> boolean
     Run all workflows in w_list, version can be a tag name or a version id.
-    Returns False in case of error. 
+    Returns list of errors (empty list if there are no errors)
     """
+    all_errors = []
     results = run_and_get_results(w_list, parameters, workflow_info)
     for result in results:
         (objs, errors, executed) = (result.objects,
                                     result.errors, result.executed)
-        for i in objs.iterkeys():
-            if errors.has_key(i):
-                return False
-    return True
+        for err in sorted(errors.iteritems()):
+            all_errors.append(result.workflow_info + err)
+    return all_errors
 
 def cleanup():
     core.interpreter.cached.CachedInterpreter.cleanup()
@@ -135,7 +138,7 @@ class TestConsoleMode(unittest.TestCase):
         locator = XMLFileLocator(core.system.vistrails_root_directory() +
                                  '/tests/resources/dummy.xml')
         result = run([(locator, "int chain")])
-        self.assertEquals(result, True)
+        self.assertEqual(len(result), 0)
 
     def test_tuple(self):
         from core.vistrail.module_param import ModuleParam
@@ -166,7 +169,7 @@ class TestConsoleMode(unittest.TestCase):
         locator = XMLFileLocator(core.system.vistrails_root_directory() +
                                  '/tests/resources/pythonsource.xml')
         result = run([(locator,"testPortsAndFail")])
-        self.assertEquals(result, True)
+        self.assertEqual(len(result), 0)
 
     def test_python_source_2(self):
         locator = XMLFileLocator(core.system.vistrails_root_directory() +
@@ -178,16 +181,16 @@ class TestConsoleMode(unittest.TestCase):
         locator = XMLFileLocator(core.system.vistrails_root_directory() + 
                                  '/tests/resources/dynamic_module_error.xml')
         result = run([(locator, "test")])
-        self.assertEquals(result, False)
+        self.assertNotEqual(len(result), 0)
 
     def test_change_parameter(self):
         locator = XMLFileLocator(core.system.vistrails_root_directory() + 
                                  '/tests/resources/test_change_vistrail.xml')
         result = run([(locator, "v1")])
-        self.assertEquals(result, True)
+        self.assertEqual(len(result), 0)
 
         result = run([(locator, "v2")])
-        self.assertEquals(result, True)
+        self.assertEquals(len(result), 0)
 
     def test_ticket_73(self):
         # Tests serializing a custom-named module to disk

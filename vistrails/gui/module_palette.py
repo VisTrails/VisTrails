@@ -39,26 +39,6 @@ from core.packagemanager import get_package_manager
 import weakref
 
 ################################################################################
-
-# helper function to add namespace treewidgetitems to widget
-def _ensure_namespace(descriptor, parentItem):
-    desc = descriptor
-    # Ensures all namespaces have nodes
-    items = desc.namespace.split('|')
-    current_parent = parentItem
-    for item in items:
-        if not item in current_parent._namespace_items:
-            nsitem = QModuleTreeWidgetItem(None,
-                                           current_parent,
-                                           QtCore.QStringList(item))
-            nsitem._namespace_items = {}
-            current_parent._namespace_items[item] = weakref.ref(nsitem)
-            current_parent = nsitem
-        else:
-            current_parent = current_parent._namespace_items[item]()
-    return current_parent
-
-################################################################################
                 
 class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
     """
@@ -66,6 +46,11 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
     own type of tree widget
 
     """
+    def __init__(self, parent=None):
+        QSearchTreeWindow.__init__(self, parent)
+        self.packages = {}
+        self.namespaces = {}
+
     def connect_registry_signals(self):
         registry = get_module_registry()
         self.connect(registry.signals, registry.signals.new_module_signal, 
@@ -73,8 +58,13 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         self.connect(registry.signals, registry.signals.deleted_module_signal,
                      self.deletedModule)
         self.connect(registry.signals, registry.signals.deleted_package_signal, 
-                     self.deletedPackage)
-        
+                     self.deletedPackage)        
+        self.connect(registry.signals, registry.signals.show_module_signal,
+                     self.showModule)
+        self.connect(registry.signals, registry.signals.hide_module_signal,
+                     self.hideModule)
+        self.connect(registry.signals, registry.signals.module_updated_signal,
+                     self.switchDescriptors)
     
     def createTreeWidget(self):
         """ createTreeWidget() -> QModuleTreeWidget
@@ -84,96 +74,116 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         self.setWindowTitle('Modules')
         return QModuleTreeWidget(self)
 
+    def findModule(self, descriptor):
+        moduleName = descriptor.name
+        
+        items = [x for x in
+                 self.treeWidget.findItems(moduleName,
+                                           QtCore.Qt.MatchExactly |
+                                           QtCore.Qt.MatchWrap |
+                                           QtCore.Qt.MatchRecursive)
+                 if not x.is_top_level() and x.descriptor == descriptor]
+        if len(items) <> 1:
+            raise VistrailsInternalError("Expected one item (%s), got %d: %s" %
+                                         (moduleName,
+                                          len(items),
+                                          ";".join(x.descriptor.name 
+                                                   for x in items)))
+        item = items[0]
+        return item
+
+    def showModule(self, descriptor):
+        item = self.findModule(descriptor)
+        item.setHidden(False)
+
+    def hideModule(self, descriptor):
+        item = self.findModule(descriptor)
+        item.setHidden(True)
+
+    def switchDescriptors(self, old_descriptor, new_descriptor):
+        old_item = self.findModule(old_descriptor)
+        new_item = self.findModule(new_descriptor)
+        old_item.set_descriptor(new_descriptor)
+        new_item.set_descriptor(old_descriptor)
+
     def deletedModule(self, descriptor):
         """ deletedModule(descriptor: core.modules.module_registry.ModuleDescriptor)
         A module has been removed from VisTrails
 
         """
         if descriptor.module_abstract():
-            # skip abstract modules, they're no longer in the tree
+            # skip abstract and hidden modules, they're not in the tree
             return
 
-        moduleName = descriptor.name
-        identifier = descriptor.identifier
-        namespace = descriptor.namespace
-
-        items = [x
-                 for x in
-                 self.treeWidget.findItems(moduleName,
-                                           QtCore.Qt.MatchExactly |
-                                           QtCore.Qt.MatchWrap |
-                                           QtCore.Qt.MatchRecursive)
-                 if not x.is_top_level()
-                 and x.descriptor == descriptor]
-        if len(items) <> 1:
-            raise VistrailsInternalError("Expected one item (%s), got %d: %s" %
-                                         (moduleName,
-                                          len(items),
-                                          ";".join(x.descriptor.name for x in items)))
-        item = items[0]
+        item = self.findModule(descriptor)
         parent = item.parent()
         parent.takeChild(parent.indexOfChild(item))
-
-        #FIXME this will only take care of one layer of namespaces
-        if parent.childCount() <= 0:
-            grandparent = parent.parent()
-            try:
-                nsitems = grandparent._namespace_items
-            except AttributeError:
-                return
-            if namespace in grandparent._namespace_items:
-                grandparent.takeChild(grandparent.indexOfChild(parent))
-                del grandparent._namespace_items[namespace]
 
     def deletedPackage(self, package):
         """ deletedPackage(package):
         A package has been deleted from VisTrails
         """
-        pm = get_package_manager()
-        pm.get_package_by_identifier
-        items = self.treeWidget.findItems(package.name,
-                                          QtCore.Qt.MatchExactly |
-                                          QtCore.Qt.MatchWrap)
-        assert len(items) == 1
-        item = items[0]
-
+        item = self.packages[package.identifier]()        
         index = self.treeWidget.indexOfTopLevelItem(item)
         self.treeWidget.takeTopLevelItem(index)
 
-    def newModule(self, descriptor):
+    def newPackage(self, package_identifier, prepend=False):
+        # prepend places at the front of the list of packages,
+        # by default adds to the end of the list of packages
+        registry = get_module_registry()
+        package_name = registry.packages[package_identifier].name
+        package_item = \
+            QPackageTreeWidgetItem(None, QtCore.QStringList(package_name))
+        self.packages[package_identifier] = weakref.ref(package_item)
+        if prepend:
+            self.treeWidget.insertTopLevelItem(0, package_item)
+        else:
+            self.treeWidget.addTopLevelItem(package_item)
+        return package_item
+            
+    def newModule(self, descriptor, recurse=False):
         """ newModule(descriptor: core.modules.module_registry.ModuleDescriptor)
         A new module has been added to VisTrails
         
         """
-        if descriptor.module_abstract():
+        if not descriptor.module_abstract(): # and not descriptor.is_hidden:
             # skip abstract modules, they're no longer in the tree
-            return
-        moduleName = descriptor.name
-        identifier = descriptor.identifier
-        pm = get_package_manager()
-        packageName = pm.get_package_by_identifier(identifier).name
 
-        # NB: only looks for toplevel matches
-        packageItems = self.treeWidget.findItems(packageName,
-                                                 QtCore.Qt.MatchExactly |
-                                                 QtCore.Qt.MatchWrap)
-        assert(len(packageItems)<=1)
-        if packageItems==[]:
-            # didn't find a top-level package item, so let's create one
-            parentItem = QModuleTreeWidgetItem(None,
-                                               None,
-                                               QtCore.QStringList(packageName))
-            parentItem._namespace_items = {}
-            self.treeWidget.insertTopLevelItem(0, parentItem)
-        else:
-            parentItem = packageItems[0]
+            # NB: only looks for toplevel matches
+            package_identifier = descriptor.identifier
+            if package_identifier not in self.packages:
+                package_item = self.newPackage(package_identifier, True)
+            else:
+                package_item = self.packages[package_identifier]()
 
-        if descriptor.namespace:
-            parentItem = _ensure_namespace(descriptor, parentItem)
+            if descriptor.namespace_hidden or not descriptor.namespace:
+                parent_item = package_item
+            else:
+                parent_item = \
+                    package_item.get_namespace(descriptor.namespace.split('|'))
 
-        item = QModuleTreeWidgetItem(descriptor,
-                                     parentItem,
-                                     QtCore.QStringList(moduleName))
+            item = QModuleTreeWidgetItem(descriptor, parent_item,
+                                         QtCore.QStringList(descriptor.name))
+            if descriptor.is_hidden:
+                item.setHidden(True)
+
+        if recurse:
+            for child in descriptor.children:
+                self.newModule(child, recurse)
+
+    def updateFromModuleRegistry(self):
+        """ updateFromModuleRegistry(packageName: str) -> None
+        Setup this tree widget to show modules currently inside
+        module_registry.registry
+        
+        """
+
+        registry = get_module_registry()
+        for package in registry.package_list:
+            self.newPackage(package.identifier)
+        self.newModule(registry.root_descriptor, True)
+        self.treeWidget.sortItems(0, QtCore.Qt.AscendingOrder)
+        self.treeWidget.expandAll()
 
 class QModuleTreeWidget(QSearchTreeWidget):
     """
@@ -208,51 +218,6 @@ class QModuleTreeWidget(QSearchTreeWidget):
         item = self.itemAt(event.pos())
         if item:
             item.contextMenuEvent(event, self)
-
-        
-    def updateFromModuleRegistry(self):
-        """ updateFromModuleRegistry(packageName: str) -> None
-        Setup this tree widget to show modules currently inside
-        module_registry.registry
-        
-        """
-        parentItems = {}
-        
-        def createModuleItem(descriptor):
-            """ createModuleItem(descriptor: ModuleDescriptor)
-                     -> QModuleTreeWidgetItem
-            Traverse a module to create items recursively. Then return
-            its module item
-            
-            """
-            labels = QtCore.QStringList(descriptor.name)
-            # packageName = descriptor.module_package()
-            parentItem = parentItems[descriptor.identifier]
-            if descriptor.namespace:
-                parentItem = _ensure_namespace(descriptor, parentItem)
-            if not descriptor.module_abstract():
-                moduleItem = QModuleTreeWidgetItem(descriptor,
-                                                   parentItem,
-                                                   labels)
-            for child in descriptor.children:
-                createModuleItem(child)
-
-        # pm = get_package_manager()
-        # for packageName in registry.packages.iterkeys():
-        registry = get_module_registry()
-        for package in registry.package_list:
-            # name = pm.get_package_by_identifier(packageName).name
-            name = package.name
-            item = QModuleTreeWidgetItem(None,
-                                         self,
-                                         QtCore.QStringList(name))
-            item._namespace_items = {}
-            item.setFlags(item.flags() & ~QtCore.Qt.ItemIsDragEnabled)
-            parentItems[package.identifier] = item
-        descriptor = registry.root_descriptor
-        createModuleItem(descriptor)
-        self.sortItems(0, QtCore.Qt.AscendingOrder)
-        self.expandAll()
 
 class QModuleTreeWidgetItemDelegate(QtGui.QItemDelegate):
     """    
@@ -360,9 +325,8 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
 
         """
         QtGui.QTreeWidgetItem.__init__(self, parent, labelList)
-        self.descriptor = descriptor
-        if descriptor:
-            descriptor.set_widget(self)
+        self.set_descriptor(descriptor)
+
         # Real flags store the widget's flags prior to masking related
         # to abstract modules, etc.
         self._real_flags = self.flags()
@@ -408,3 +372,34 @@ class QModuleTreeWidgetItem(QtGui.QTreeWidgetItem):
         widget = QModuleDocumentation(self.descriptor, None)
         widget.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         widget.exec_()
+
+    def set_descriptor(self, descriptor):
+        self.descriptor = descriptor
+        if descriptor:
+            descriptor.set_widget(self)
+
+class QNamespaceTreeWidgetItem(QModuleTreeWidgetItem):
+    def __init__(self, parent, labelList):
+        QModuleTreeWidgetItem.__init__(self, None, parent, labelList)
+        self.setFlags(self.flags() & ~QtCore.Qt.ItemIsDragEnabled)
+        self.namespaces = {}
+
+    def get_namespace(self, namespace_items):
+        if len(namespace_items) <= 0:
+            return self
+        namespace_item = namespace_items.pop(0)
+        if namespace_item in self.namespaces:
+            item = self.namespaces[namespace_item]()
+        else:
+            item = QNamespaceTreeWidgetItem(self,
+                                            QtCore.QStringList(namespace_item))
+            self.namespaces[namespace_item] = weakref.ref(item)
+        return item.get_namespace(namespace_items)
+
+    def takeChild(self, index):
+        QModuleTreeWidgetItem.takeChild(self, index)
+        if self.childCount() < 1 and self.parent():
+            self.parent().takeChild(self.parent().indexOfChild(self))
+
+class QPackageTreeWidgetItem(QNamespaceTreeWidgetItem):
+    pass

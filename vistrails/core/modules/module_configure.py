@@ -20,7 +20,7 @@
 ##
 ############################################################################
 from PyQt4 import QtCore, QtGui
-from core.modules.module_registry import registry
+from core.modules.module_registry import get_module_registry
 # from core.vistrail.action import ChangeParameterAction
 from core.vistrail.port import PortEndPoint
 
@@ -30,11 +30,8 @@ class StandardModuleConfigurationWidget(QtGui.QDialog):
         QtGui.QDialog.__init__(self, parent)
         self.setModal(True)
         self.module = module
-        reg = module.registry or registry
-        self.module_descriptor = reg.get_descriptor_by_name(
-            self.module.package,
-            self.module.name,
-            self.module.namespace)
+        reg = get_module_registry()
+        self.module_descriptor = self.module.module_descriptor
         self.controller = controller
 
 

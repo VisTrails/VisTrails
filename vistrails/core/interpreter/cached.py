@@ -144,6 +144,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
 #         if self.debugger:
 #             self.debugger.update()
+        pipeline.ensure_modules_are_on_registry()
+        pipeline.ensure_connection_specs()
 
         self.resolve_aliases(pipeline, aliases)
 

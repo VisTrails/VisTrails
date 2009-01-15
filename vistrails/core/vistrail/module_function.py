@@ -95,8 +95,13 @@ class ModuleFunction(DBFunction):
     params = property(_get_params, _set_params)
     parameters = property(_get_params, _set_params)
 
-    def addParameter(self, param):
+    def add_parameter(self, param):
         self.db_add_parameter(param)
+    addParameter = add_parameter
+
+    def add_parameters(self, params):
+        for p in params:
+            self.db_add_parameter(p)
 
     ##########################################################################
 

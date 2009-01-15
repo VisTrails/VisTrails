@@ -134,6 +134,33 @@ class ModuleAlreadyExists(Exception):
                 (self._identifier,
                  self._name))
 
+class PortAlreadyExists(Exception):
+    """PortAlreadyExists is raised when trying to add a PortSpec that
+    has the same name and type as an existing PortSpec."""
+
+    def __init__(self, identifier, module_name, port_type, port_name):
+        self._identifier = identifier
+        self._module_name = module_name
+        self._port_type = port_type
+        self._port_name = port_name
+        
+    def __str__(self):
+        return "Module '%s:%s' already contains an %s port named '%s'" % \
+            (self._identifier, self._module_name, self._port_type,
+             self._port_name)
+
+class InvalidPipeline(Exception):
+    """InvalidPipeline is raised when a pipeline cannot be instantiated due 
+    to missing information in the registry, like unloaded packages or missing
+    modules.
+    """
+    def __init__(self, exception_set):
+        self._exception_set = exception_set
+
+    def __str__(self):
+        return "Pipeline cannot be instantiated:\n  " + \
+            '\n  '.join(str(e) for e in self._exception_set)
+
 ################################################################################
 
 # Only works for functions with NO kwargs!
@@ -333,6 +360,27 @@ def version_string_to_list(version):
         except ValueError:
             return value
     return [convert(value) for value in version.split('.')]
+
+def versions_increasing(v1, v2):
+    v1_list = v1.split('.')
+    v2_list = v2.split('.')
+    try:
+        while len(v1_list) > 0 and len(v2_list) > 0:
+            v1_num = int(v1_list.pop())
+            v2_num = int(v2_list.pop())
+            if v1_num < v2_num:
+                return True
+            elif v1_num > v2_num:
+                return False
+        if len(v1_list) < len(v2_list):
+            return True
+        elif len(v1_list) > len(v2_list):
+            return False
+    except ValueError:
+        print "ERROR: cannot compare versions whose components " \
+            "are not integers"
+    return True
+                
 
 ##############################################################################
 # DummyView

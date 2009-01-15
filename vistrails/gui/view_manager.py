@@ -36,7 +36,8 @@ import core.system
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.tag import Tag
 from core.vistrail.vistrail import Vistrail
-from core.modules.module_registry import ModuleRegistry
+from core.modules.module_registry import ModuleRegistry, \
+    ModuleRegistryException
 import copy
 
 ################################################################################
@@ -302,7 +303,7 @@ class QViewManager(QtGui.QTabWidget):
             # we don't want to ever close it again.
             self._first_view = None
 
-    def load_vistrail(self, locator, version=None):
+    def load_vistrail(self, locator, is_abstraction=False):
         abstraction_files = []
         vistrail = None
         try:
@@ -316,8 +317,8 @@ class QViewManager(QtGui.QTabWidget):
                         abstraction_files.append(abstraction_file)
                 else:
                     vistrail = res
-
-        except ModuleRegistry.MissingModulePackage, e:
+            vistrail.is_abstraction = is_abstraction
+        except ModuleRegistryException, e:
             msg = ('Cannot find module "%s" in \n' 
                    'package "%s". Make sure package is \n' 
                    'enabled in the Preferences dialog.' % \
@@ -356,8 +357,9 @@ class QViewManager(QtGui.QTabWidget):
         vistrailView.versionTab.vistrailChanged()
         return vistrailView
 
-    def open_vistrail(self, locator, version=None):
-        """open_vistrail(locator: Locator, version = None: int or str)
+    def open_vistrail(self, locator, version=None, is_abstraction=False):
+        """open_vistrail(locator: Locator, version = None: int or str,
+                         is_abstraction: bool)
 
         opens a new vistrail from the given locator, selecting the
         given version.
@@ -370,11 +372,12 @@ class QViewManager(QtGui.QTabWidget):
         if view:
             return view
         try:
-            (vistrail, abstraction_files) = self.load_vistrail(locator, version)
+            (vistrail, abstraction_files) = self.load_vistrail(locator,
+                                                               is_abstraction)
             result = self.set_vistrail_view(vistrail, locator, 
                                             abstraction_files, version)
             return result
-        except ModuleRegistry.MissingModulePackage, e:
+        except ModuleRegistryException, e:
             QtGui.QMessageBox.critical(self,
                                        'Missing package',
                                        (('Cannot find module "%s" in \n' % e._name) +
@@ -440,7 +443,7 @@ class QViewManager(QtGui.QTabWidget):
                 vistrail.add_action(action, 0L)
                 vistrail.addTag("Imported workflow", action.id)
                 # FIXME might need different locator?
-        except ModuleRegistry.MissingModulePackage, e:
+        except ModuleRegistryException, e:
             msg = ('Cannot find module "%s" in \n' 
                    'package "%s". Make sure package is \n' 
                    'enabled in the Preferences dialog.' % \
@@ -504,14 +507,14 @@ class QViewManager(QtGui.QTabWidget):
             vistrailView.flush_changes()
             gui_get = locator_class.save_from_gui
             if force_choose_locator:
-                locator = gui_get(self, Registry.vtType,
+                locator = gui_get(self, ModuleRegistry.vtType,
                                   vistrailView.controller.locator)
             else:
                 locator = (vistrailView.controller.locator or
-                           gui_get(self, Registry.vtType,
+                           gui_get(self, ModuleRegistry.vtType,
                                    vistrailView.controller.locator))
             if locator == untitled_locator():
-                locator = gui_get(self, Registry.vtType,
+                locator = gui_get(self, ModuleRegistry.vtType,
                                   vistrailView.controller.locator)
             if not locator:
                 return False

@@ -113,7 +113,7 @@ def translate_vistrail(vistrail, version=None, target_version=None):
 
 def translate_workflow(workflow, version=None, target_version=None):
     return translate_object(workflow, 'translateWorkflow', version, 
-                            target_versio)
+                            target_version)
 
 def translate_log(log, version=None, target_version=None):
     return translate_object(log, 'translateLog', version, target_version)

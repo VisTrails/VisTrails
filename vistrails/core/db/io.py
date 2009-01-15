@@ -52,6 +52,9 @@ def open_workflow(filename):
 def save_workflow(workflow, filename):
     db.services.io.save_workflow_to_xml(workflow, filename)
 
+def save_vistrail_to_xml(vistrail, filename):
+    db.services.io.save_vistrail_to_xml(vistrail, filename)
+
 def open_registry(filename):
     from core.modules.module_registry import ModuleRegistry
     registry = db.services.io.open_registry_from_xml(filename)

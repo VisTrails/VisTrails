@@ -77,16 +77,29 @@ class Vistrail(DBVistrail):
     def __init__(self, locator=None):
 	DBVistrail.__init__(self)
 
-        self.changed = False
-        self.currentVersion = -1
-        self.currentGraph=None
-        # self.prunedVersions = set()
-        self.savedQueries = []
         self.locator = locator
+        self.set_defaults()
+
+    def set_defaults(self, other=None):
+        if other is None:
+            self.changed = False
+            self.currentVersion = -1
+            self.currentGraph = None
+            self.savedQueries = []
+            self.is_abstraction = False
+        else:
+            self.changed = other.changed
+            self.currentVersion = other.currentVersion
+            self.currentGraph = other.currentGraph
+            self.savedQueries = copy.copy(other.savedQueries)
+            self.is_abstraction = other.is_abstraction
 
         # object to keep explicit expanded 
         # version tree always updated
         self.tree = ExplicitExpandedVersionTree(self)
+        # add all versions to the trees
+        for action in self.actions:
+            self.tree.addVersion(action.id, action.prevId)
 
     ##########################################################################
     # Properties
@@ -113,11 +126,6 @@ class Vistrail(DBVistrail):
     @staticmethod
     def convert(_vistrail):
 	_vistrail.__class__ = Vistrail
-        _vistrail.changed = False
-        _vistrail.currentVersion = -1
-        _vistrail.currentGraph=None
-        # _vistrail.prunedVersions = set()
-        _vistrail.savedQueries = []
 
 	for action in _vistrail.actions:
 	    Action.convert(action)
@@ -125,15 +133,8 @@ class Vistrail(DBVistrail):
             Tag.convert(tag)
         for annotation in _vistrail.annotations:
             Annotation.convert(annotation)
-	_vistrail.changed = False
 
-        # brute force creation of Vistrail object
-        # needs a "tree" field also!
-        _vistrail.tree = ExplicitExpandedVersionTree(_vistrail)
-
-        # add all versions to the trees
-	for action in _vistrail.actions:
-	    _vistrail.tree.addVersion(action.id, action.prevId)
+        _vistrail.set_defaults()
 
     def get_annotation(self, key):
         if self.db_has_annotation_with_key(key):

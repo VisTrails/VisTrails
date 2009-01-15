@@ -110,7 +110,8 @@ class Port(DBPort):
         _port.find_port_types()
 
     def find_port_types(self):
-        from core.modules.module_registry import get_module_registry
+        from core.modules.module_registry import get_module_registry, \
+            ModuleRegistryException
         registry = get_module_registry()
         self._descriptors = []
         if self.signature:
@@ -121,7 +122,7 @@ class Port(DBPort):
                         desc = registry.get_descriptor_by_name( \
                             *(type_str.split(':')))
                         self._descriptors.append(desc)
-                except registry.MissingModulePackage, e:
+                except ModuleRegistryException, e:
                     print ('Cannot find module "%s" in \n' 
                            'package "%s". Make sure package is \n' 
                            'enabled in the Preferences dialog.' % \

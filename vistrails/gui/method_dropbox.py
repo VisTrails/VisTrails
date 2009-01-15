@@ -93,19 +93,15 @@ class QMethodDropBox(QtGui.QScrollArea):
             if hasattr(data, 'items'):
                 event.accept()
                 for item in data.items:
-                    if item.spec:
-                        function = item.spec.create_module_function()
-                        # FIXME need to get the position,
-                        # but not sure if this is correct
-                        function.id = item.module.getNumFunctions()
-                        self.vWidget.addFunction(item.module,
-                                                 item.module.getNumFunctions(),
+                    if item.spec and self.controller:
+                        self.lockUpdate()
+                        function = self.controller.add_function(self.module, 
+                                                                item.spec.name)
+                        self.vWidget.addFunction(self.module, function.pos,
                                                  function)
                         self.scrollContentsBy(0, self.viewport().height())
-                        self.lockUpdate()
-                        if self.controller:
-                            self.controller.add_method(self.module.id, function)
                         self.unlockUpdate()
+
                 self.emit(QtCore.SIGNAL("paramsAreaChanged"))
 
     def updateModule(self, module):
@@ -233,17 +229,11 @@ class QMethodInputForm(QtGui.QGroupBox):
         """
         methodBox = self.parent().parent().parent()
         if methodBox.controller:
-            paramList = []
-            for i in xrange(len(self.widgets)):
-                paramList.append((str(self.widgets[i].contents()),
-                                  self.function.params[i].type,
-                                  self.function.params[i].namespace,
-                                  self.function.params[i].identifier,
-                                  str(self.labels[i].alias)))
             methodBox.lockUpdate()
-            methodBox.controller.replace_method(methodBox.module,
-                                                self.fId,
-                                                paramList)
+            methodBox.controller.update_function(methodBox.module,
+                                                 self.function.name,
+                                                 [str(w.contents()) 
+                                                  for w in self.widgets])
             methodBox.unlockUpdate()
 
     def check_alias(self, name):

@@ -31,6 +31,9 @@ from core.vistrail.port_spec import PortSpec, PortEndPoint
 from db.domain import DBGroup
 
 from core.utils import NoSummon, VistrailsInternalError, report_stack
+from core.modules.basic_modules import identifier as basic_pkg, \
+    version as basic_pkg_version
+import core.modules.sub_module
 import core.modules.module_registry
 from core.modules.module_registry import get_module_registry, ModuleRegistry
 
@@ -56,8 +59,13 @@ class Group(DBGroup, Module):
             self.package = ''
         if self.version is None:
             self.version = ''
-        self.portVisible = set()
-        self._registry = None
+        self.set_defaults()
+
+    def set_defaults(self, other=None):
+        Module.set_defaults(self, other)
+
+    def setup_indices(self):
+        self.make_port_specs()
 
     def __copy__(self):
         return Group.do_copy(self)
@@ -65,10 +73,7 @@ class Group(DBGroup, Module):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBGroup.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Group
-        cp._registry = None
-#         for port_spec in cp.db_portSpecs:
-#             cp.add_port_to_registry(port_spec)
-        cp.portVisible = copy.copy(self.portVisible)
+        cp.set_defaults(self)
         return cp
 
     @staticmethod
@@ -76,8 +81,6 @@ class Group(DBGroup, Module):
         if _group.__class__ == Group:
             return
         _group.__class__ = Group
-        _group._registry = None
-        _group.portVisible = set()
         if _group.db_location:
             Location.convert(_group.db_location)
         if _group.db_workflow:
@@ -87,7 +90,7 @@ class Group(DBGroup, Module):
 	    ModuleFunction.convert(_function)
         for _annotation in _group.db_get_annotations():
             Annotation.convert(_annotation)
-
+        _group.set_defaults()
 
     ##########################################################################
     # Properties
@@ -99,7 +102,7 @@ class Group(DBGroup, Module):
     location = DBGroup.db_location
     center = DBGroup.db_location
     tag = DBGroup.db_tag
-    version = DBGroup.db_version
+    # version = DBGroup.db_version
     # name = DBGroup.db_name
     # label = DBGroup.db_name
     # namespace = DBGroup.db_namespace
@@ -107,16 +110,14 @@ class Group(DBGroup, Module):
 
     name = 'Group'
     label = 'Group'
-    package = 'edu.utah.sci.vistrails.basic'
+    package = basic_pkg
     namespace = None
+    version = basic_pkg_version
+    internal_version = ''
 
     def summon(self):
-        registry = get_module_registry()
-        get = registry.get_descriptor_by_name
-        result = get(self.package, self.name).module()
+        result = self.module_descriptor.module()
         result.pipeline = self.pipeline
-        if not self._registry:
-            self.make_registry()
         result.input_remap = self._input_remap
         result.output_remap = self._output_remap
         if self.cache != 1:
@@ -125,75 +126,75 @@ class Group(DBGroup, Module):
             result.input_ports_order = [p.name for p in self.destinationPorts()]
         if hasattr(result, 'output_ports_order'):
             result.output_ports_order = [p.name for p in self.sourcePorts()]
-        result.registry = self.registry or registry
+        result.registry = get_module_registry()
         return result
 
     def is_group(self):
         return True
 
-    pipeline = DBGroup.db_workflow
+    def _get_pipeline(self):
+        return self.db_workflow
+    def _set_pipeline(self, pipeline):
+        self.db_workflow = pipeline
+        self.setup_indices()
+    pipeline = property(_get_pipeline, _set_pipeline)
     
-    def _get_registry(self):
-        if not self._registry:
-            # print 'making registry'
-            self.make_registry()
-        return self._registry
-    registry = property(_get_registry)
-
     # override these from the Module class with defaults
+    # these are "local" port_specs, but Group's are "registry"
     def _get_port_specs(self):
-        return dict()
+        if self._port_specs_id_index is None:
+            self._port_specs_id_index = {}
+            self._port_specs_id_index = \
+                dict([(p.id, p) for p in self._port_specs.itervalues()])
+        return self._port_specs_id_index
     port_specs = property(_get_port_specs)
+
+    def _get_port_spec_list(self):
+        return self._port_specs.values()
+    port_spec_list = property(_get_port_spec_list)
+
     def has_portSpec_with_name(self, name):
-        return False
+        return name in self._port_specs
+
     def get_portSpec_by_name(self, name):
+        if name in self._port_specs:
+            return self._port_specs[name]
         return None
 
-    @staticmethod
-    def get_port_spec_info(module):
-        # FIXME check old registry here?
-        port_name = None
-        sigstring = None
-        for function in module.functions:
-            if function.name == 'name':
-                port_name = function.params[0].strValue
-                # print '  port_name:', port_name
-            if function.name == 'spec':
-                sigstring = function.params[0].strValue
-                # print '  port_spec:',  port_spec
-        return (port_name, sigstring)
+    def get_port_spec_info(self, module):
+        return core.modules.sub_module.get_port_spec_info(self.pipeline, 
+                                                          module)
 
-    def make_registry(self):
-        registry = get_module_registry()
+    def make_port_specs(self):
+        self._port_specs = {}
+        self._port_specs_id_index = None
+        self._input_port_specs = []
+        self._output_port_specs = []
         self._input_remap = {}
         self._output_remap = {}
-        self._registry = ModuleRegistry()
-        self._registry.add_hierarchy(registry, self)
-        reg_desc = self._registry.get_descriptor_by_name(self.package, 
-                                                         self.name)
+        if self.pipeline is None:
+            return
 
+        registry = get_module_registry()
         for module in self.pipeline.module_list:
-            # print 'module:', module.name
-            if module.name == 'OutputPort' and \
-                    module.package == 'edu.utah.sci.vistrails.basic':
-                (port_name, sigstring) = self.get_port_spec_info(module)
-                self._registry.add_port(reg_desc, port_name, 'output', None,
-                                        sigstring)
+            if module.name == 'OutputPort' and module.package == basic_pkg:
+                (port_name, sigstring, optional, _) = \
+                    self.get_port_spec_info(module)
+                port_spec = registry.create_port_spec(port_name, 'output',
+                                                      None, sigstring,
+                                                      optional)
+                self._port_specs[(port_name, 'output')] = port_spec
+                self._output_port_specs.append(port_spec)
                 self._output_remap[port_name] = module
-            elif module.name == 'InputPort' and \
-                    module.package == 'edu.utah.sci.vistrails.basic':
-                (port_name, sigstring) = self.get_port_spec_info(module)
-                self._registry.add_port(reg_desc, port_name, 'input', None,
-                                        sigstring)
+            elif module.name == 'InputPort' and module.package == basic_pkg:
+                (port_name, sigstring, optional, _) = \
+                    self.get_port_spec_info(module)
+                port_spec = registry.create_port_spec(port_name, 'input',
+                                                      None, sigstring,
+                                                      optional)
+                self._port_specs[(port_name, 'input')] = port_spec
+                self._input_port_specs.append(port_spec)
                 self._input_remap[port_name] = module
-
-    def sourcePorts(self):
-        return self.registry.module_source_ports(False, self.package,
-                                                 self.name, self.namespace)
-
-    def destinationPorts(self):
-        return self.registry.module_destination_ports(False, self.package, 
-                                                      self.name, self.namespace)
 
     ##########################################################################
     # Operators
@@ -203,13 +204,12 @@ class Group(DBGroup, Module):
         GroupModule object. 
 
         """
-        rep = '<group id="%s" abstraction_id="%s" verion="%s">'
+        rep = '<group id="%s">'
         rep += str(self.location)
         rep += str(self.functions)
         rep += str(self.annotations)
         rep += '</group>'
-        return  rep % (str(self.id), str(self.abstraction_id), 
-                       str(self.version))
+        return  rep % str(self.id)
 
     def __eq__(self, other):
         """ __eq__(other: GroupModule) -> boolean

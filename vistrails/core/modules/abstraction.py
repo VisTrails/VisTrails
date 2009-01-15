@@ -1,3 +1,25 @@
+############################################################################
+##
+## Copyright (C) 2006-2008 University of Utah. All rights reserved.
+##
+## This file is part of VisTrails.
+##
+## This file may be used under the terms of the GNU General Public
+## License version 2.0 as published by the Free Software Foundation
+## and appearing in the file LICENSE.GPL included in the packaging of
+## this file.  Please review the following to ensure GNU General Public
+## Licensing requirements will be met:
+## http://www.opensource.org/licenses/gpl-license.php
+##
+## If you are unsure which license is appropriate for your use (for
+## instance, you are interested in developing a commercial derivative
+## of VisTrails), please contact us at vistrails@sci.utah.edu.
+##
+## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+##
+############################################################################
+
 import os
 import re
 from itertools import chain
@@ -7,9 +29,10 @@ from core.modules.vistrails_module import Module, ModuleError
 from core.modules.sub_module import read_vistrail, new_abstraction, \
     get_abstraction_dependencies
 import core.modules.module_registry
+from core.system import vistrails_version
 
-name = 'My Abstractions'
-version = '0.1.0'
+name = 'My SubWorkflows'
+version = vistrails_version()
 identifier = 'local.abstractions'
 
 vistrails = {}
@@ -18,7 +41,7 @@ def initialize(*args, **kwargs):
     import core.packagemanager
     manager = core.packagemanager.get_package_manager()
 
-    reg = core.modules.module_registry.registry
+    reg = core.modules.module_registry.get_module_registry()
 #     conf = get_vistrails_configuration()
 #     if conf.check("userPackageDirectory"):
 #         if conf.check('userPackageDirectory'):
@@ -39,18 +62,22 @@ def initialize(*args, **kwargs):
         for (abs_name, (abs_vistrail, abs_fname)) in abs_vistrails.iteritems():
             packages = get_abstraction_dependencies(abs_vistrail)
             add_abstraction = True
-            packages.discard('edu.utah.sci.vistrails.basic')
+            # packages.discard('edu.utah.sci.vistrails.basic')
             packages.discard(identifier)
             for package in packages:
                 if not manager.has_package(package):
                     add_abstraction = False
                     break
             if add_abstraction:
-                print 'adding', abs_name
+                # print 'adding', abs_name
                 abstraction = new_abstraction(abs_name, abs_vistrail, reg, 
                                               abs_fname)
                 if abstraction is not None:
-                    reg.auto_add_module(abstraction)
+                    options = {'namespace': abstraction.uuid,
+                               'hide_namespace': True,
+                               'version': str(abstraction.internal_version)}
+                    reg.auto_add_module((abstraction, options))
+                    reg.auto_add_ports(abstraction)
                 else:
                     new_vistrails[abs_name] = (abs_vistrail, abs_fname)
             else:
@@ -65,12 +92,10 @@ def package_dependencies():
     import core.packagemanager
     manager = core.packagemanager.get_package_manager()
 
-    reg = core.modules.module_registry.registry
+    reg = core.modules.module_registry.get_module_registry()
     conf = get_vistrails_configuration()
-    if conf.check("userPackageDirectory"):
-        if conf.check('userPackageDirectory'):
-            abstraction_dir = os.path.join(conf.userPackageDirectory,
-                                           'abstractions')
+    if conf.check("abstractionsDirectory"):
+        abstraction_dir = conf.abstractionsDirectory
     p = re.compile(r".*\.xml")
     all_packages = set()
     for abstraction in os.listdir(abstraction_dir):
@@ -79,7 +104,7 @@ def package_dependencies():
             vistrail = read_vistrail(abs_fname)
             packages = get_abstraction_dependencies(vistrail)
             add_abstraction = True
-            packages.discard('edu.utah.sci.vistrails.basic')
+            # packages.discard('edu.utah.sci.vistrails.basic')
             packages.discard(identifier)
             for package in packages:
                 if not manager.has_package(package):

@@ -27,6 +27,7 @@ to checking dependencies to initializing them."""
 from core import debug
 from core.configuration import ConfigurationObject
 import core.data_structures.graph
+import core.db.io
 from core.modules.module_registry import ModuleRegistry
 from core.modules.package import Package
 from core.utils import VistrailsInternalError, InstanceObject
@@ -127,6 +128,17 @@ class PackageManager(QtCore.QObject):
             self._registry = ModuleRegistry()
             self._registry.set_global()
 
+            def setup_basic_package():
+                import core.modules.basic_modules
+
+                # setup basic package
+                basic_package = self.add_package('basic_modules')
+                self._registry._default_package = basic_package
+                package_dictionary = {'basic_modules': \
+                                          core.modules.basic_modules}
+                self.initialize_packages(package_dictionary)
+            setup_basic_package()
+
     def finalize_packages(self):
         """Finalizes all installed packages. Call this only prior to
 exiting VisTrails."""
@@ -140,8 +152,9 @@ exiting VisTrails."""
     def add_package(self, packageName):
         """Adds a new package to the manager. This does not initialize it.
 To do so, call initialize_packages()"""
-        self._package_list[packageName] = \
-            self._registry.create_package(packageName)
+        package = self._registry.create_package(packageName)
+        self._package_list[packageName] = package
+        return package
 
     def remove_package(self, codepath):
         """remove_package(name): Removes a package from the system."""
@@ -222,8 +235,9 @@ Returns true if given package identifier is present."""
         """
         deps = package.dependencies()
         # FIXME don't hardcode this
-        if package.identifier != 'edu.utah.sci.vistrails.basic':
-            deps.append('edu.utah.sci.vistrails.basic')
+        from core.modules.basic_modules import identifier as basic_pkg
+        if package.identifier != basic_pkg:
+            deps.append(basic_pkg)
         missing_packages = [identifier
                             for identifier in deps
                             if identifier not in self._dependency_graph.vertices]
@@ -236,7 +250,7 @@ Returns true if given package identifier is present."""
                 self._dependency_graph.adjacency_list[package.identifier]):
                 self._dependency_graph.add_edge(package.identifier, dep_name)
 
-    def late_enable_package(self, package_codepath):
+    def late_enable_package(self, package_codepath, package_dictionary={}):
         """late_enable_package enables a package 'late', that is,
         after VisTrails initialization. All dependencies need to be
         already enabled.
@@ -247,7 +261,7 @@ Returns true if given package identifier is present."""
         self.add_package(package_codepath)
         pkg = self.get_package_by_codepath(package_codepath)
         try:
-            pkg.load()
+            pkg.load(package_dictionary.get(pkg.codepath, None))
         except Exception, e:
             # invert self.add_package
             del self._package_list[package_codepath]

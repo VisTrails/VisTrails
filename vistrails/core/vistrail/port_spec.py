@@ -376,6 +376,8 @@ class PortSpec(DBPortSpec):
         operator. 
         
         """
+        if self is None and other is None:
+            return True
         if type(self) != type(other) or \
                 self.name != other.name or \
                 self.type != other.type:
@@ -384,8 +386,6 @@ class PortSpec(DBPortSpec):
             self.create_descriptor_list()
         if other._descriptors is None:
             other.create_descriptor_list()
-        if self is None and other is None:
-            return True
         for (mine, their) in izip(self._descriptors, other._descriptors):
             if mine != their:
                 return False

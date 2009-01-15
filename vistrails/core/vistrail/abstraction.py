@@ -23,6 +23,8 @@
 import copy
 
 from core.modules.module_registry import get_module_registry
+import core.modules.sub_module 
+from core.utils import VistrailsInternalError
 from core.vistrail.annotation import Annotation
 from core.vistrail.location import Location
 from core.vistrail.module import Module
@@ -48,8 +50,13 @@ class Abstraction(DBAbstraction, Module):
             self.package = ''
         if self.version is None:
             self.version = ''
-        self.portVisible = set()
-        self.registry = None
+        self.set_defaults()
+
+    def set_defaults(self, other=None):
+        Module.set_defaults(self, other)
+
+    def setup_indices(self):
+        pass
 
     def __copy__(self):
         return Abstraction.do_copy(self)
@@ -57,10 +64,7 @@ class Abstraction(DBAbstraction, Module):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBAbstraction.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Abstraction
-        cp.registry = None
-#         for port_spec in cp.db_portSpecs:
-#             cp.add_port_to_registry(port_spec)
-        cp.portVisible = copy.copy(self.portVisible)
+        cp.set_defaults(self)
         return cp
 
     @staticmethod
@@ -68,15 +72,13 @@ class Abstraction(DBAbstraction, Module):
         if _abstraction.__class__ == Abstraction:
             return
         _abstraction.__class__ = Abstraction
-        _abstraction.registry = None
-        _abstraction.portVisible = set()
         if _abstraction.db_location:
             Location.convert(_abstraction.db_location)
 	for _function in _abstraction.db_functions:
 	    ModuleFunction.convert(_function)
         for _annotation in _abstraction.db_get_annotations():
             Annotation.convert(_annotation)
-
+        _abstraction.set_defaults()
 
     ##########################################################################
     # Properties
@@ -95,24 +97,30 @@ class Abstraction(DBAbstraction, Module):
     version = DBAbstraction.db_version
     internal_version = DBAbstraction.db_internal_version
 
+    def _get_pipeline(self):
+        return self.module_descriptor.module.pipeline
+    pipeline = property(_get_pipeline)
+
+    # override db-mirrored accesses in Module
+    port_specs = {}
+    port_spec_list = []
+    _input_port_specs = []
+    _output_port_specs = []
+
+    def has_portSpec_with_name(self, name):
+        return False
+    def get_portSpec_by_name(self, name):
+        return None
+    def add_port_spec(self, port_spec):
+        raise VistrailsInternalError("Cannot add port spec to abstraction")
+    def delete_port_spec(self, port_spec):
+        raise VistrailsInternalError("Cannot delete port spec from abstraction")
+
     ##########################################################################
 
-    def summon(self):
-        registry = get_module_registry()
-        get = registry.get_descriptor_by_name
-        try:
-            descriptor = get(self.package, self.name, self.namespace)
-        except registry.MissingModulePackage:
-            descriptor = get(self.package, self.name)
-        result = descriptor.module()
-        if self.cache != 1:
-            result.is_cacheable = lambda *args: False
-        if hasattr(result, 'input_ports_order'):
-            result.input_ports_order = [p.name for p in self.destinationPorts()]
-        if hasattr(result, 'output_ports_order'):
-            result.output_ports_order = [p.name for p in self.sourcePorts()]
-        result.registry = self.registry or registry
-        return result
+    def get_port_spec_info(self, module):
+        return core.modules.sub_module.get_port_spec_info(self.pipeline, 
+                                                          module)
 
     ##########################################################################
     # Operators

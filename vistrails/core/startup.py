@@ -109,13 +109,7 @@ class VistrailsStartup(object):
 
         Loads the appropriate packages from .vistrails/startup.xml.
         """
-
-        # FIXME should this be hardcoded?
-        import core.modules.basic_modules
-        self._package_manager.add_package('basic_modules')
-        self._package_dictionary['basic_modules'] = \
-            core.modules.basic_modules
-
+        
         def parse_package(node):
             is_value = (lambda node: node.nodeName in
                         set(['bool', 'str', 'int', 'float']))
@@ -179,36 +173,36 @@ by startup.py. This should only be called after init()."""
                 sys.exit(1)
                        
         def create_abstractions_dir():
-            debug.critical('Will try to create abstractions directory')
-            userpackages_dir = os.path.join(self.configuration.dotVistrails,
-                                           'userpackages')
-            abstractions_dir = os.path.join(userpackages_dir, 'abstractions')
+            debug.critical('Will try to create subworkflows directory')
+            abstractions_dir = os.path.join(self.configuration.dotVistrails,
+                                            'subworkflows')
 
             if not os.path.isdir(abstractions_dir):
                 try:
                     os.mkdir(abstractions_dir)
                 except:
-                    msg = ("Failed to create abstractions directory: '%s'.  "
+                    msg = ("Failed to create subworkflows directory: '%s'.  "
                            "This could be an indication of a permissions "
                            "problem.  Make sure directory '%s' is writable." % \
-                               (abstractions_dir, userpackages_dir))
+                               (abstractions_dir, 
+                                self.configuration.dotVistrails))
                     debug.critical(msg)
                     sys.exit(1)
-            try:
-                root_dir = core.system.vistrails_root_directory()
-                default_file = os.path.join(root_dir,'core','resources',
-                                            'abstractions_init')
-                user_file = os.path.join(abstractions_dir, '__init__.py')
-                print 'copying', default_file, '->', abstractions_dir
-                shutil.copyfile(default_file, user_file)
-                debug.log('Succeeded!')
-            except Exception, e:
-                print e
-                debug.critical("Failed to copy default file to abstractions "
-                               "package.  This could be an indication of a "
-                               "permissions problem. Make sure directory "
-                               "'%s' is writable" % abstractions_dir)
-                sys.exit(1)
+#             try:
+#                 root_dir = core.system.vistrails_root_directory()
+#                 default_file = os.path.join(root_dir,'core','resources',
+#                                             'abstractions_init')
+#                 user_file = os.path.join(abstractions_dir, '__init__.py')
+#                 print 'copying', default_file, '->', abstractions_dir
+#                 shutil.copyfile(default_file, user_file)
+#                 debug.log('Succeeded!')
+#             except Exception, e:
+#                 print e
+#                 debug.critical("Failed to copy default file to abstractions "
+#                                "package.  This could be an indication of a "
+#                                "permissions problem. Make sure directory "
+#                                "'%s' is writable" % abstractions_dir)
+#                 sys.exit(1)
 
         def install_default_startup():
             debug.critical('Will try to create default startup script')
@@ -310,7 +304,8 @@ by startup.py. This should only be called after init()."""
                                             'userpackages')
                 startup = os.path.join(self.configuration.dotVistrails,
                                        'startup.py')
-                abstractions = os.path.join(userpackages, 'abstractions')
+                abstractions = os.path.join(self.configuration.dotVistrails,
+                                            'subworkflows')
                 if not os.path.isdir(userpackages):
                     create_user_packages_dir()
                 if not os.path.isdir(abstractions):
@@ -388,10 +383,13 @@ by startup.py. This should only be called after init()."""
             s = os.path.join(core.system.default_dot_vistrails(),
                              'userpackages')
             self.configuration.userPackageDirectory = s
-        if not self.configuration.has('abstractionsDirectory'):
-            s = os.path.join(self.configuration.userPackageDirectory,
-                             'abstractions')
-            self.configuration.abstractionsDirectory = s            
+        if not self.configuration.has('abstractionsDirectory') or \
+                self.configuration.abstractionsDirectory == \
+                os.path.join(self.configuration.userPackageDirectory, 
+                             'abstractions'):
+            s = os.path.join(core.system.default_dot_vistrails(),
+                             'subworkflows')
+            self.configuration.abstractionsDirectory = s
 
     def setupBaseModules(self):
         """ setupBaseModules() -> None        
@@ -409,6 +407,13 @@ by startup.py. This should only be called after init()."""
         """
         # Imports standard packages directory
         self._package_manager.initialize_packages(self._package_dictionary)
+
+        # Enable abstractions
+        import core.modules.abstraction
+        abstraction_pkg = "subworkflows"
+        abstraction_dict = {abstraction_pkg: core.modules.abstraction}
+        self._package_manager.late_enable_package(abstraction_pkg,
+                                                  abstraction_dict)
 
     def runStartupHooks(self):
         """ runStartupHooks() -> None

@@ -43,7 +43,7 @@ class XMLDAO:
 	if value is not None:
             if type == 'str':
                 return str(value)
-	    elif value.strip() != '':
+            elif value.strip() != '':
 		if type == 'long':
 		    return long(value)
 		elif type == 'float':

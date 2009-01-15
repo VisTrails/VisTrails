@@ -31,7 +31,8 @@ from PyQt4 import QtCore, QtGui
 from gui.common_widgets import (QSearchTreeWindow,
                                 QSearchTreeWidget,
                                 QToolWindowInterface)
-from core.modules.module_registry import get_module_registry
+from core.modules.module_registry import get_module_registry, \
+    ModuleRegistryException
 from core.vistrail.port import PortEndPoint
 from gui.port_documentation import QPortDocumentation
 ################################################################################
@@ -107,14 +108,19 @@ class QMethodTreeWidget(QSearchTreeWidget):
         if module:
             registry = get_module_registry()
             try:
-                descriptor = registry.get_descriptor_by_name(module.package,
-                                                             module.name,
-                                                             module.namespace)
-            except registry.MissingModulePackage, e:
+                descriptor = module.module_descriptor
+            except ModuleRegistryException, e:
                 # FIXME handle this the same way as
                 # vistrail_controller:change_selected_version
                 raise
             moduleHierarchy = registry.get_module_hierarchy(descriptor)
+
+            method_specs = []
+            # Check the local registry
+            for port_spec in module.port_spec_list:
+                if registry.is_method(port_spec):
+                    method_specs.append(port_spec)
+
             for descriptor in moduleHierarchy:
                 baseName = descriptor.name
                 base_package = descriptor.identifier
@@ -125,15 +131,15 @@ class QMethodTreeWidget(QSearchTreeWidget):
                                                  (QtCore.QStringList()
                                                   <<  baseName
                                                   << ''))
-                method_specs = registry.method_ports(descriptor)
+                method_specs.extend(registry.method_ports(descriptor))
+                    
+#                 local_reg = module.registry
+#                 key = (descriptor.identifier, descriptor.name, 
+#                        descriptor.namespace)
+#                 if local_reg and local_reg.has_module(*key):
+#                     local_descriptor = local_reg.get_descriptor_by_name(*key)
+#                     method_specs += local_reg.method_ports(local_descriptor)
 
-                # Also check the local registry
-                local_reg = module.registry
-                key = (descriptor.identifier, descriptor.name, 
-                       descriptor.namespace)
-                if local_reg and local_reg.has_module(*key):
-                    local_descriptor = local_reg.get_descriptor_by_name(*key)
-                    method_specs += local_reg.method_ports(local_descriptor)
                 for method_spec in method_specs:
                     sig = method_spec.short_sigstring
                     QMethodTreeWidgetItem(module,
@@ -142,6 +148,8 @@ class QMethodTreeWidget(QSearchTreeWidget):
                                           (QtCore.QStringList()
                                            << method_spec.name
                                            << sig))
+                method_specs = []
+            # end for
             self.expandAll()
             self.resizeColumnToContents(0)
                                           

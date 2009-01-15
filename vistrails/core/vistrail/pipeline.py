@@ -27,7 +27,8 @@ from core.data_structures.bijectivedict import Bidict
 from core.data_structures.graph import Graph
 from core.debug import DebugPrint
 from core.modules.module_descriptor import ModuleDescriptor
-from core.modules.module_registry import get_module_registry
+from core.modules.module_registry import get_module_registry, \
+    ModuleRegistryException
 from core.utils import VistrailsInternalError
 from core.utils import expression, append_to_dict_of_lists
 from core.utils.uxml import named_elements
@@ -43,7 +44,7 @@ from core.vistrail.port_spec import PortSpec
 from db.domain import DBWorkflow
 from types import ListType
 import core.vistrail.action
-from core.utils import profile
+from core.utils import profile, InvalidPipeline
 
 from xml.dom.minidom import getDOMImplementation, parseString
 import copy
@@ -260,6 +261,11 @@ class Pipeline(DBWorkflow):
             self.perform_action(action)
 
     def perform_action(self, action):
+#         print "+++"
+#         for operation in action.operations:
+#             print operation.vtType, operation.what, operation.old_obj_id, \
+#                 operation.new_obj_id, operation.parentObjType, operation.parentObjId
+#         print "---"
         for operation in action.operations:
             self.perform_operation(operation)
 
@@ -462,24 +468,25 @@ class Pipeline(DBWorkflow):
 
     def add_port_to_registry(self, portSpec, moduleId):
         m = self.get_module_by_id(moduleId)
-        m.add_port_to_registry(portSpec)
+        m.add_port_spec(portSpec)
 
     def add_portSpec(self, port_spec, parent_id, parent_type=Module.vtType):
-        self.db_add_object(port_spec, parent_type, parent_id)
+        # self.db_add_object(port_spec, parent_type, parent_id)
         self.add_port_to_registry(port_spec, parent_id)
         
     def delete_port_from_registry(self, id, moduleId):
         m = self.get_module_by_id(moduleId)
-        m.delete_port_from_registry(id)
+        portSpec = m.port_specs[id]
+        m.delete_port_spec(portSpec)
 
     def delete_portSpec(self, spec_id, parent_id, parent_type=Module.vtType):
         self.delete_port_from_registry(spec_id, parent_id)
-        self.db_delete_object(spec_id, PortSpec.vtType, parent_type, parent_id)
+        # self.db_delete_object(spec_id, PortSpec.vtType, parent_type, parent_id)
 
     def change_portSpec(self, old_spec_id, port_spec, parent_id,
                         parent_type=Module.vtType):
         self.delete_port_from_registry(old_spec_id, parent_id)
-        self.db_change_object(old_spec_id, port_spec, parent_type, parent_id)
+        # self.db_change_object(old_spec_id, port_spec, parent_type, parent_id)
         self.add_port_to_registry(port_spec, parent_id)
 
     def add_alias(self, name, type, oId, parentType, parentId):
@@ -759,136 +766,21 @@ class Pipeline(DBWorkflow):
         Computes the specs for the connections in connection_ids. If
         connection_ids is None, computes it for every connection in the pipeline.
         """
-#         def source_spec(port):
-#             module = self.get_module_by_id(port.moduleId)
-#             reg = module.registry or registry
-#             port_list = []
-#             def do_it(ports):
-#                 # Following line is weird because we're in a hot-path
-#                 port_list.extend([p for p in ports
-#                                   if (p._db_name ==
-#                                       port._db_name)])
-
-#             if module.vtType == Abstraction.vtType and \
-#                     module.package == 'local.abstractions':
-#                 try:
-#                     do_it(reg.module_source_ports(False,
-#                                                   module.package,
-#                                                   module.name,
-#                                                   module.namespace))
-#                 except reg.MissingModulePackage:
-#                     do_it(reg.module_source_ports(False,
-#                                                   module.package,
-#                                                   module.name))
-#             else:
-#                 do_it(reg.module_source_ports(False,
-#                                               module.package,
-#                                               module.name,
-#                                               module.namespace))
-#             if len(port_list) == 0:
-#                 # The port might still be in the original registry
-#                 do_it(registry.module_source_ports(False, module.package,
-#                                                    module.name,
-#                                                    module.namespace))
-#             if len(port_list) == 0:
-#                 print "Failed", module.package, module.name, module.namespace, port.name
-#                 assert False
-            
-#             # if port_list has more than one element, then it's an
-#             # overloaded port. Source (output) port overloads must all
-#             # be contravariant. This means that the spec of the
-#             # new port must be a subtype of the spec of the
-#             # original port. This induces a total ordering on the types,
-#             # which we use to sort the possible ports, and get the
-#             # most strict one.
-            
-#             port_list.sort(lambda p1, p2:
-#                            (p1 != p2 and
-#                             issubclass(p1.spec.signature[0][0],
-#                                        p2.spec.signature[0][0])))
-#             return copy.copy(port_list[0].spec)
-
-#         def destination_spec(port):
-#             module = self.get_module_by_id(port.moduleId)
-#             reg = module.registry or registry
-#             port_list = []
-#             def do_it(ports):
-#                 # Following line is weird because we're in a hot-path
-#                 port_list.extend([p for p in ports
-#                                   if (p._db_name ==
-#                                       port._db_name)])
-
-#             if module.vtType == Abstraction.vtType and \
-#                     module.package == 'local.abstractions':
-#                 try:
-#                     do_it(reg.module_destination_ports(False,
-#                                                   module.package,
-#                                                   module.name,
-#                                                   module.namespace))
-#                 except reg.MissingModulePackage:
-#                     do_it(reg.module_destination_ports(False,
-#                                                   module.package,
-#                                                   module.name))
-#             else:
-#                 do_it(reg.module_destination_ports(False, 
-#                                                    module.package, 
-#                                                    module.name, 
-#                                                    module.namespace))
-#             if len(port_list) == 0:
-#                 # The port might still be in the original registry
-#                 do_it(registry.module_destination_ports(False, module.package,
-#                                                         module.name,
-#                                                         module.namespace))
-#             if len(port_list) == 0:
-#                 print "Failed", module.package, module.name, module.namespace, port.name
-#                 assert False
-
-#             # if port_list has more than one element, then it's an
-#             # overloaded port. Destination (input) port overloads must
-#             # all be covariant. This means that the spec of the new
-#             # port must be a supertype of the spec of the original
-#             # port. This induces a total ordering on the types, which
-#             # we use to sort the possible ports, and get the most
-#             # general one.
-
-#             port_list.sort(lambda p1, p2:
-#                            (p1 != p2 and
-#                             issubclass(p1.spec.signature[0][0],
-#                                        p2.spec.signature[0][0])))
-#             return copy.copy(port_list[-1].spec)
+        exceptions = set()
 
         def find_spec(port):
-            registry = get_module_registry()
             module = self.get_module_by_id(port.moduleId)
             port_type_map = PortSpec.port_type_map
-            if module.registry is not None:
-                regs = [module.registry, registry]
-            else:
-                regs = [registry]
             spec = None
-            for reg in regs:
-                try:
-                    spec = reg.get_port_spec(module.package, module.name, 
-                                             module.namespace, port.name, 
-                                             port_type_map.inverse[port.type])
-                    if spec is not None:
-                        break
-                except reg.MissingModulePackage:
-                    pass
-                except ModuleDescriptor.MissingPort:
-                    pass
-            if spec is None:
-                for p in module.sourcePorts():
-                    print '(source)', p
-                for p in module.destinationPorts():
-                    print '(dest)', p
-                raise VistrailsInternalError("Failed to find spec for %s port "
-                                             "'%s' in module '%s:%s:%s'" % \
-                                                 (port.type, port.name,
-                                                  module.package, module.name,
-                                                  module.namespace))
+            try:
+                spec = module.get_port_spec(port.name, 
+                                            port_type_map.inverse[port.type])
+            except ModuleRegistryException, e:
+                exceptions.add(e)
+            except ModuleDescriptor.MissingPort:
+                exceptions.add(e)
             return spec
-
+            
         if connection_ids is None:
             connection_ids = self.connections.iterkeys()
         for conn_id in connection_ids:
@@ -897,6 +789,9 @@ class Pipeline(DBWorkflow):
                 conn.source.spec = find_spec(conn.source)
             if not conn.destination.spec:
                 conn.destination.spec = find_spec(conn.destination)
+
+        if len(exceptions) > 0:
+            raise InvalidPipeline(exceptions)
 
     def ensure_modules_are_on_registry(self, module_ids=None):
         """ensure_modules_are_on_registry(module_ids: optional list of module ids) -> None
@@ -907,31 +802,39 @@ class Pipeline(DBWorkflow):
         in the calling stack.
         
         If modules are not on registry, the registry will raise
-        MissingModulePackage exceptions that should be caught and handled.
+        ModuleRegistryException exceptions that should be caught and handled.
 
         if no module_ids list is given, we assume every module in the pipeline.
         """
-
-        registry = get_module_registry()
-        if module_ids == None:
-            module_ids = self.modules.iterkeys()
-        for mid in module_ids:
-            if self.modules[mid].vtType == Abstraction.vtType and \
-                    self.modules[mid].package == 'local.abstractions':
+        
+        def find_descriptors(pipeline, module_ids=None):
+            registry = get_module_registry()
+            if module_ids == None:
+                module_ids = pipeline.modules.iterkeys()
+            exceptions = set()
+            for mid in module_ids:
+                module = pipeline.modules[mid]
                 try:
-                    registry.get_descriptor_by_name(self.modules[mid].package,
-                                                    self.modules[mid].name,
-                                                    self.modules[mid].namespace)
-                except registry.MissingModulePackage:
-                    self.modules[mid].namespace = None
-                    registry.get_descriptor_by_name(self.modules[mid].package,
-                                                    self.modules[mid].name)
-            else:
-                registry.get_descriptor_by_name(self.modules[mid].package,
-                                                self.modules[mid].name,
-                                                self.modules[mid].namespace)
-                
+                    descriptor = \
+                        registry.get_similar_descriptor(module.package,
+                                                        module.name,
+                                                        module.namespace,
+                                                        module.version,
+                                                        module.internal_version)
+                    module.module_descriptor = descriptor
+                    if (module.vtType == Group.vtType or 
+                        module.vtType == Abstraction.vtType):
+                        subpipeline = module.pipeline
+                        exceptions.update(find_descriptors(subpipeline))
+                except ModuleRegistryException, e:
+                    exceptions.add(e)
+            return exceptions
+        # end find_descriptors
 
+        exceptions = find_descriptors(self, module_ids)
+        if len(exceptions) > 0:
+            raise InvalidPipeline(exceptions)
+                
     ##########################################################################
     # Debugging
 

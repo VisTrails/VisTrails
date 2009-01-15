@@ -53,9 +53,9 @@ class QModuleDocumentation(QtGui.QDialog):
         self.textEdit = QtGui.QTextEdit(self)
         self.layout().addWidget(self.textEdit, 1)
         if descriptor.module.__doc__:
-            self.textEdit.insertPlainText(descriptor.module.__doc__)
+            self.textEdit.setText(descriptor.module.__doc__)
         else:
-            self.textEdit.insertPlainText("Documentation not available.")
+            self.textEdit.setText("Documentation not available.")
         self.textEdit.setReadOnly(True)
         self.textEdit.setTextCursor(QtGui.QTextCursor(self.textEdit.document()))
         self.layout().addWidget(self.closeButton)

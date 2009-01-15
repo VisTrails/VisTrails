@@ -24,10 +24,9 @@ pipelines."""
 
 import core.cache.hasher
 from core.modules import module_configure
-import core.modules.module_registry
+from core.modules.module_registry import get_module_registry
 from core.modules import port_configure
 from core.modules import vistrails_module
-from core.modules.sub_module import InputPort, OutputPort, Group, Abstraction
 from core.modules.vistrails_module import Module, new_module, \
      NotCacheable, ModuleError
 from core.modules.python_source_configure import PythonSourceConfigurationWidget
@@ -538,10 +537,11 @@ class PythonSource(NotCacheable, Module):
                                for k in self.outputPorts])
             locals_.update(outputDict)
         _m = core.packagemanager.get_package_manager()
+        reg = get_module_registry()
         locals_.update({'fail': fail,
                         'package_manager': _m,
                         'cache_this': cache_this,
-                        'registry': core.modules.module_registry.registry,
+                        'registry': reg,
                         'self': self})
         del locals_['source']
         exec code_str in locals_, locals_
@@ -698,14 +698,17 @@ class Variant(Module):
     pass
 
 def init_constant(m):
-    reg = core.modules.module_registry.get_module_registry()
+    reg = get_module_registry()
 
     reg.add_module(m)
     reg.add_input_port(m, "value", m)
     reg.add_output_port(m, "value", m)
     
-def initialize(*args, **keywords):
-    reg = core.modules.module_registry.get_module_registry()
+def initialize(*args, **kwargs):
+    reg = get_module_registry()
+
+    # !!! is_root should only be set for Module !!!
+    reg.add_module(Module, is_root=True)
 
     reg.add_module(Constant)
 
@@ -775,22 +778,6 @@ def initialize(*args, **keywords):
 
     reg.add_module(Variant)
 
-    # These are all from sub_module.py!
-
-    reg.add_module(InputPort)
-    reg.add_input_port(InputPort, "name", String, True)
-    reg.add_input_port(InputPort, "spec", String, True)
-    reg.add_input_port(InputPort, "old_name", String, True)
-    reg.add_input_port(InputPort, "ExternalPipe", Module, True)
-    reg.add_output_port(InputPort, "InternalPipe", Variant)
-
-    reg.add_module(OutputPort)
-    reg.add_input_port(OutputPort, "name", String, True)
-    reg.add_input_port(OutputPort, "spec", String, True)
-    reg.add_input_port(OutputPort, "InternalPipe", Module)
-    reg.add_output_port(OutputPort, "ExternalPipe", Variant, True)
-
-    reg.add_module(Group)
-
-    reg.add_module(Abstraction)
-
+    # initialize the sub_module modules, too
+    import core.modules.sub_module
+    core.modules.sub_module.initialize(*args, **kwargs)

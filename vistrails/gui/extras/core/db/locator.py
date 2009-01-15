@@ -120,6 +120,7 @@ def get_db_connection_from_gui(parent, id, name, host, port, user, passwd,
 suffix_map = {'vistrail': ['vt', 'xml'],
               'workflow': ['xml'],
               'log': ['xml'],
+              'registry': ['xml'],
               }
 
 def get_load_file_locator_from_gui(parent, obj_type):

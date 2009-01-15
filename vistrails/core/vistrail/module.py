@@ -63,9 +63,28 @@ class Module(DBModule):
             self.package = ''
         if self.version is None:
             self.version = ''
-        self.portVisible = set()
-        self.registry = None
-        self.is_breakpoint = False
+        self.set_defaults()
+
+    def set_defaults(self, other=None):                
+        if other is None:
+            self.portVisible = set()
+            self.is_breakpoint = False
+            self._module_descriptor = None
+        else:
+            self.portVisible = copy.copy(other.portVisible)
+            self.is_breakpoint = other.is_breakpoint
+            self._module_descriptor = other._module_descriptor
+        self.function_idx = self.db_functions_id_index
+        self.setup_indices()
+
+    def setup_indices(self):
+        self._input_port_specs = []
+        self._output_port_specs = []
+        for port_spec in self.port_spec_list:
+            if port_spec.type == 'input':
+                self._input_port_specs.append(port_spec)
+            elif port_spec.type == 'output':
+                self._output_port_specs.append(port_spec)
 
     def __copy__(self):
         """__copy__() -> Module - Returns a clone of itself"""
@@ -74,29 +93,21 @@ class Module(DBModule):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBModule.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Module
-        # cp.registry = copy.copy(self.registry)
-        cp.registry = None
-        for port_spec in cp.db_portSpecs:
-            cp.add_port_to_registry(port_spec)
-        cp.portVisible = copy.copy(self.portVisible)
+        cp.set_defaults(self)
         return cp
 
     @staticmethod
     def convert(_module):
 	_module.__class__ = Module
-	_module.registry = None
         for _port_spec in _module.db_portSpecs:
             PortSpec.convert(_port_spec)
-            _module.add_port_to_registry(_port_spec)
         if _module.db_location:
             Location.convert(_module.db_location)
 	for _function in _module.db_functions:
 	    ModuleFunction.convert(_function)
         for _annotation in _module.db_get_annotations():
             Annotation.convert(_annotation)
-
-        _module.is_breakpoint = False
-        _module.portVisible = set()
+        _module.set_defaults()
 
     ##########################################################################
 
@@ -111,8 +122,9 @@ class Module(DBModule):
     package = DBModule.db_package
     tag = DBModule.db_tag
     version = DBModule.db_version
-    is_breakpoint = False
-    
+    port_spec_list = DBModule.db_portSpecs
+    internal_version = ''
+
     # type check this (list, hash)
     def _get_functions(self):
         self.db_functions.sort(key=lambda x: x.db_pos)
@@ -142,24 +154,67 @@ class Module(DBModule):
         return self.db_has_portSpec_with_name(name)
     def get_portSpec_by_name(self, name):
         return self.db_get_portSpec_by_name(name)
+    def add_port_spec(self, spec):
+        self.db_add_portSpec(spec)
+        if spec.type == 'input':
+            self._input_port_specs.append(spec)
+        elif spec.type == 'output':
+            self._output_port_specs.append(spec)
+    def delete_port_spec(self, spec):
+        if spec.type == 'input':
+            self._input_port_specs.remove(spec)
+        elif spec.type == 'output':
+            self._output_port_specs.remove(spec)
+        self.db_delete_portSpec(spec)
+
+    def _get_module_descriptor(self):
+        if self._module_descriptor is None:
+            reg = get_module_registry()
+            self._module_descriptor = \
+                reg.get_descriptor_by_name(self.package, self.name, 
+                                           self.namespace, self.version,
+                                           str(self.internal_version))
+        return self._module_descriptor
+    def _set_module_descriptor(self, descriptor):
+        self._module_descriptor = descriptor
+    module_descriptor = property(_get_module_descriptor, 
+                                 _set_module_descriptor)
+
+    def get_port_spec(self, port_name, port_type):
+        """get_port_spec(port_name: str, port_type: str: ['input' | 'output'])
+             -> PortSpec
+
+        """
+        if self.has_portSpec_with_name((port_name, port_type)):
+            return self.get_portSpec_by_name((port_name, port_type))
+        desc = self.module_descriptor
+        reg = get_module_registry()
+        return reg.get_port_spec_from_descriptor(desc, port_name, port_type)
+
+    def has_port_spec(self, port_name, port_type):
+        if self.has_portSpec_with_name((port_name, port_type)):
+            return True
+        reg = get_module_registry()
+        desc = self.module_descriptor
+        return reg.has_port_spec_from_descriptor(desc, port_name, port_type)
 
     def summon(self):
-        reg = get_module_registry()
-        get = reg.get_descriptor_by_name
-        result = get(self.package, self.name, self.namespace).module()
+        result = self.module_descriptor.module()
         if self.cache != 1:
             result.is_cacheable = lambda *args: False
         if hasattr(result, 'input_ports_order'):
             result.input_ports_order = [p.name for p in self.destinationPorts()]
         if hasattr(result, 'output_ports_order'):
             result.output_ports_order = [p.name for p in self.sourcePorts()]
-        result.registry = self.registry or reg
+        # FIXME this may not be quite right because we don't have self.registry
+        # anymore.  That said, I'm not sure how self.registry would have
+        # worked for hybrids...
+        result.registry = get_module_registry()
         return result
 
     def getNumFunctions(self):
         """getNumFunctions() -> int - Returns the number of functions """
         return len(self.functions)
-
 
     def sourcePorts(self):
         """sourcePorts() -> list of Port 
@@ -167,12 +222,9 @@ class Module(DBModule):
 
         """
         registry = get_module_registry()
-        ports = registry.module_source_ports(True, self.package, self.name, 
-                                             self.namespace)
-        if self.registry:
-            ports.extend(self.registry.module_source_ports(False, self.package,
-                                                           self.name, 
-                                                           self.namespace))
+        desc = self.module_descriptor
+        ports = registry.module_source_ports_from_descriptor(True, desc)
+        ports.extend(self._output_port_specs)
         return ports
     
     def destinationPorts(self):
@@ -181,46 +233,10 @@ class Module(DBModule):
 
         """
         registry = get_module_registry()
-        ports = registry.module_destination_ports(True, self.package, 
-                                                  self.name, self.namespace)
-        if self.registry:
-            ports.extend(self.registry.module_destination_ports(False, 
-                                                                self.package, 
-                                                                self.name, 
-                                                                self.namespace))
+        desc = self.module_descriptor
+        ports = registry.module_destination_ports_from_descriptor(True, desc)
+        ports.extend(self._input_port_specs)
         return ports
-
-    def add_port_to_registry(self, port_spec):
-        # FIXME use ModuleDescriptor here now
-        registry = get_module_registry()
-        if self.registry is None:
-            self.registry = ModuleRegistry()
-            self.registry.add_hierarchy(registry, self)
-        descriptor = self.registry.get_descriptor_by_name(self.package, 
-                                                          self.name, 
-                                                          self.namespace)
-
-        try:
-            self.registry.add_port_spec(descriptor, port_spec)
-        except OverloadedPort:
-            print "Ignoring overloaded Module %s id %s adding %s " % \
-                (self.name, self.id, port_spec.name)
-
-    def delete_port_from_registry(self, id):
-        # FIXME use ModuleDescriptor here now
-        registry = get_module_registry()
-        if not id in self.port_specs:
-            raise VistrailsInternalError("id missing in port_specs")
-        port_spec = self.port_specs[id]
-        assert isinstance(self.registry, ModuleRegistry)
-        descriptor = self.registry.get_descriptor_by_name(self.package, 
-                                                          self.name, 
-                                                          self.namespace)
-
-        if port_spec.type == 'input':
-            self.registry.delete_input_port(descriptor, port_spec.name)
-        else:
-            self.registry.delete_output_port(descriptor, port_spec.name)
 
     ##########################################################################
     # Debugging

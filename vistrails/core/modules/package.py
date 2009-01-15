@@ -20,6 +20,7 @@
 ##
 ############################################################################
 
+from core.utils import versions_increasing
 from core.utils.uxml import (named_elements, enter_named_element)
 from core import debug
 from core.configuration import ConfigurationObject
@@ -86,24 +87,41 @@ class Package(DBPackage):
                                                  "load_configuration")
 
         DBPackage.__init__(self, *args, **kwargs)
-        self.descriptors = self.db_module_descriptors_name_index
-        self.descriptors_by_id = self.db_module_descriptors_id_index
-
-        self._module = None
-        self._initialized = False
+        self.set_defaults()
     
     def __copy__(self):
         Package.do_copy(self)
 
+    def set_defaults(self, other=None):
+        self.setup_indices()
+        if other is None:
+            self._module = None
+            self._initialized = False
+        else:
+            self._module = other._module
+            self._initialized = other._initialized
+        # FIXME decide whether we want None or ''
+        if self.version is None:
+            self.version = ''
+
+    def setup_indices(self):
+        self.descriptor_versions = self.db_module_descriptors_name_index
+        self.descriptors_by_id = self.db_module_descriptors_id_index
+        self.descriptors = {}
+        for key, desc in self.descriptor_versions.iteritems():
+            key = key[:2]
+            if key in self.descriptors:
+                old_desc = self.descriptors[key]
+                if versions_increasing(old_desc.version, desc.version):
+                    self.descriptors[key] = desc
+            else:
+                self.descriptors[key] = desc
+
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBPackage.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = Package
-        cp.descriptors = cp.db_module_descriptors_name_index
-        cp.descriptors_by_id = cp.db_module_descriptors_id_index
-
-        cp._module = self._module
-        cp._initialized = self._initialized
-
+        cp.set_defaults(self)
+        
     @staticmethod
     def convert(_package):
         if _package.__class__ == Package:
@@ -112,11 +130,7 @@ class Package(DBPackage):
 
         for descriptor in _package.db_module_descriptors:
             ModuleDescriptor.convert(descriptor)
-        _package.descriptors = _package.db_module_descriptors_name_index
-        _package.descriptors_by_id = _package.db_module_descriptors_id_index
-
-        _package._module = None
-        _package._initialized = False
+        _package.set_defaults()
 
     ##########################################################################
     # Properties
@@ -132,8 +146,19 @@ class Package(DBPackage):
 
     def add_descriptor(self, desc):
         self.db_add_module_descriptor(desc)
+        key = (desc.name, desc.namespace)
+        if key in self.descriptors:
+            old_desc = self.descriptors[key]
+            if versions_increasing(old_desc.version, desc.version):
+                self.descriptors[key] = desc
+        else:
+            self.descriptors[key] = desc
+        
     def delete_descriptor(self, desc):
         self.db_delete_module_descriptor(desc)
+        # FIXME hard to incremental updates here so we'll just recreate
+        # this can be slow
+        self.setup_indices()
 
     def _get_module(self):
         return self._module

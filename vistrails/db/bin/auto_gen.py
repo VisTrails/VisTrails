@@ -310,15 +310,24 @@ class AutoGen:
                     self.indentLine('cp.%s = []\n' % field.getPrivateName())
                 self.unindentLine('else:\n')
                 if field.getPythonType() == 'hash':
-                    self.indentLine('cp.%s = dict([(k,v.do_copy(new_ids, id_scope, id_remap)) for (k,v) in self.%s.iteritems()])\n' % (field.getPrivateName(), field.getPrivateName()))
+                    if field.shouldExpand():
+                        self.indentLine('cp.%s = dict([(k,v.do_copy(new_ids, id_scope, id_remap)) for (k,v) in self.%s.iteritems()])\n' % (field.getPrivateName(), field.getPrivateName()))
+                    else:
+                        self.indentLine('cp.%s = dict([(k, v.do_copy()) for (k,v) in self.%s.iteritems()])\n' % (field.getPrivateName(), field.getPrivateName()))
                 else:
-                    self.indentLine('cp.%s = [v.do_copy(new_ids, id_scope, id_remap) for v in self.%s]\n' % (field.getPrivateName(), field.getPrivateName()))
+                    if field.shouldExpand():
+                        self.indentLine('cp.%s = [v.do_copy(new_ids, id_scope, id_remap) for v in self.%s]\n' % (field.getPrivateName(), field.getPrivateName()))
+                    else:
+                        self.indentLine('cp.%s = [v.do_copy() for v in self.%s]\n' % (field.getPrivateName(), field.getPrivateName()))
                 self.unindent()
             else:
                 if field.isReference():
                     self.printLine('if self.%s is not None:\n' % \
                                        field.getPrivateName())
-                    self.indentLine('cp.%s = self.%s.do_copy(new_ids, id_scope, id_remap)\n' % (field.getPrivateName(), field.getPrivateName()))
+                    if field.shouldExpand():
+                        self.indentLine('cp.%s = self.%s.do_copy(new_ids, id_scope, id_remap)\n' % (field.getPrivateName(), field.getPrivateName()))
+                    else:
+                        self.indentLine('cp.%s = self.%s.do_copy()\n' % (field.getPrivateName(), field.getPrivateName()))
                     self.unindent()
 #                 else:
 #                     self.printLine('cp.%s = self.%s\n' % (field.getFieldName(),

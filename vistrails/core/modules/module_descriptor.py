@@ -87,9 +87,6 @@ class ModuleDescriptor(DBModuleDescriptor):
             return "Missing port: %s, %s" % (self._name, self._type)
 
     def __init__(self, *args, **kwargs):
-#         module, identifier, base_descriptor=None,
-#                  name=None, namespace=None):
-
         self.children = []
         if 'module' in kwargs:
             self.module = kwargs['module']
@@ -105,6 +102,9 @@ class ModuleDescriptor(DBModuleDescriptor):
                     kwargs['base_descriptor_id'] = self._base_descriptor.id
                 self._port_count = self._base_descriptor._port_count
                 self._base_descriptor.children.append(self)
+            else:
+                self._base_descriptor = None
+                self._port_count = 0
             del kwargs['base_descriptor']
         else:
             self._base_descriptor = None
@@ -117,17 +117,42 @@ class ModuleDescriptor(DBModuleDescriptor):
         if 'base_descriptor_id' not in kwargs:
             kwargs['base_descriptor_id'] = -1
         DBModuleDescriptor.__init__(self, *args, **kwargs)
+        self.set_defaults()
 
+    def set_defaults(self, other=None):
+        if other is None:
+            self._abstraction_refs = 1
+            self._is_abstract = False
+            self._configuration_widget = None
+            self._left_fringe = None
+            self._right_fringe = None
+            self._module_color = None
+            self._hasher_callable = None
+            self._widget_item = None
+            self._is_hidden = False
+            self._namespace_hidden = False
+        else:
+            # FIXME this will break things, I think
+            self.children = copy.copy(self.children)
+            
+            self._base_descriptor = other._base_descriptor
+            self.module = other.module
+            self._port_count = other._port_count
+            self._abstraction_refs = self._abstraction_refs
+            self._is_abstract = other._is_abstract
+            self._configuration_widget = other._configuration_widget
+            self._left_fringe = other._left_fringe
+            self._right_fringe = other._right_fringe
+            self._module_color = other._module_color
+            self._hasher_callable = other._hasher_callable
+            self._widget_item = other._widget_item
+            self._is_hidden = other._is_hidden
+            self._namespace_hidden = other._namespace_hidden
         self.port_specs = self.db_portSpecs_name_index
-
-        self._abstraction_refs = 1
-        self._is_abstract = False
-        self._configuration_widget = None
-        self._left_fringe = None
-        self._right_fringe = None
-        self._module_color = None
-        self._hasher_callable = None
-        self._widget_item = None
+        if self.version is None:
+            self.version = ''
+        if self.namespace is None:
+            self.namespace = ''
 
     def __copy__(self):
         return ModuleDescriptor.do_copy(self)
@@ -135,22 +160,7 @@ class ModuleDescriptor(DBModuleDescriptor):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBModuleDescriptor.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = ModuleDescriptor
-
-        cp._base_descriptor = self._base_descriptor
-        cp.module = self.module
-        cp._abstraction_refs = self._abstraction_refs
-        cp._port_count = self._port_count
-        cp._is_abstract = self._is_abstract
-        cp._configuration_widget = self._configuration_widget
-        cp._left_fringe = self._left_fringe
-        cp._right_fringe = self._right_fringe
-        cp._module_color = self._module_color
-        cp._hasher_callable = self._hasher_callable
-        cp._widget_item = self._widget_item
-        
-        # FIXME this will break things, I think
-        cp.children = copy.copy(self.children)
-        cp.port_specs = cp.db_portSpecs_name_index
+        cp.set_defaults(self)
         return cp
         
     @staticmethod
@@ -167,16 +177,8 @@ class ModuleDescriptor(DBModuleDescriptor):
         _desc.module = None
         _desc._base_descriptor = None
         _desc._port_count = 0
-        _desc._abstraction_refs = 1
-        _desc._is_abstract = False
-        _desc._configuration_widget = None
-        _desc._left_fringe = None
-        _desc._right_fringe = None
-        _desc._module_color = None
-        _desc._hasher_callable = None
-        _desc._widget_item = None
-        _desc.port_specs = _desc.db_portSpecs_name_index
-        
+        _desc.set_defaults()
+
     ##########################################################################
     # Properties
 
@@ -185,6 +187,7 @@ class ModuleDescriptor(DBModuleDescriptor):
     identifier = DBModuleDescriptor.db_package
     package = DBModuleDescriptor.db_package
     namespace = DBModuleDescriptor.db_namespace
+    version = DBModuleDescriptor.db_version
     base_descriptor_id = DBModuleDescriptor.db_base_descriptor_id
     port_specs_list = DBModuleDescriptor.db_portSpecs
     
@@ -256,13 +259,26 @@ class ModuleDescriptor(DBModuleDescriptor):
     def hasher_callable(self):
         return self._hasher_callable
 
+    def _get_is_hidden(self):
+        return self._is_hidden
+    def _set_is_hidden(self, hidden):
+        self._is_hidden = hidden
+    is_hidden = property(_get_is_hidden, _set_is_hidden)
+
+    def _get_namespace_hidden(self):
+        return self._namespace_hidden
+    def _set_namespace_hidden(self, hidden):
+        self._namespace_hidden = hidden
+    namespace_hidden = property(_get_namespace_hidden, _set_namespace_hidden)
+
     ##########################################################################
     # Operators
 
     def __eq__(self, other):
         return (self.package == other.package and
                 self.name == other.name and
-                self.namespace == other.namespace)
+                self.namespace == other.namespace and
+                self.version == other.version)
  
     ##########################################################################
     # Abstract module detection support

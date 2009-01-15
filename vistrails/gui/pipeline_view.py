@@ -37,7 +37,8 @@ from PyQt4 import QtCore, QtGui
 from core.utils import VistrailsInternalError, profile
 from core.utils.uxml import named_elements
 from core.modules.module_configure import DefaultModuleConfigurationWidget
-from core.modules.module_registry import get_module_registry
+from core.modules.module_registry import get_module_registry, \
+    ModuleRegistryException
 from core.vistrail.connection import Connection
 from core.vistrail.module import Module
 from core.vistrail.pipeline import Pipeline
@@ -1512,8 +1513,9 @@ mutual connections."""
                 self._old_connection_ids = new_connections
                 self.unselect_all()
                 self.reset_module_colors()
-                self.controller.current_pipeline.update_breakpoints()
-        except registry.MissingModulePackage, e:
+                if self.controller:
+                    self.controller.current_pipeline.update_breakpoints()
+        except ModuleRegistryException, e:
             views = self.views()
             assert len(views) > 0
             QtGui.QMessageBox.critical(views[0],
@@ -1566,13 +1568,11 @@ mutual connections."""
                 base_descriptor.name == 'Abstraction' and \
                 base_descriptor.identifier == 'edu.utah.sci.vistrails.basic':
             internal_version = item.descriptor.module.internal_version
-        module = self.controller.add_module(
-            event.scenePos().x(),
-            -event.scenePos().y(),
-            item.descriptor.identifier,
-            item.descriptor.name,
-            item.descriptor.namespace,
-            internal_version)
+        adder = self.controller.add_module_from_descriptor
+        module = adder(item.descriptor, 
+                       event.scenePos().x(),
+                       -event.scenePos().y(),
+                       internal_version)
         self.reset_module_colors()
         graphics_item = self.addModule(module)
         graphics_item.update()

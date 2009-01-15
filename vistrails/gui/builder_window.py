@@ -25,6 +25,7 @@ QBuilderWindow
 """
 from PyQt4 import QtCore, QtGui
 from core import system
+from core.configuration import get_vistrails_configuration
 from core.db.locator import DBLocator, FileLocator, XMLFileLocator, untitled_locator
 from core.packagemanager import get_package_manager
 from core.vistrail.pipeline import Pipeline
@@ -36,6 +37,7 @@ from gui.open_db_window import QOpenDBWindow
 from gui.preferences import QPreferencesDialog
 from gui.shell import QShellDialog
 from gui.debugger import QDebugger
+from gui.pipeline_view import QPipelineView
 from gui.theme import CurrentTheme
 from gui.view_manager import QViewManager
 from gui.vistrail_toolbar import QVistrailViewToolBar, QVistrailInteractionToolBar
@@ -57,12 +59,12 @@ class QBuilderWindow(QtGui.QMainWindow):
     a setup of an IDE
 
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, f=QtCore.Qt.WindowFlags()):
         """ QBuilderWindow(parent: QWidget) -> QBuilderWindow
         Construct the main window with menus, toolbar, and floating toolwindow
 
         """
-        QtGui.QMainWindow.__init__(self, parent)
+        QtGui.QMainWindow.__init__(self, parent, f)
         self.title = 'VisTrails Builder'
         self.setWindowTitle(self.title)
         self.setStatusBar(QtGui.QStatusBar(self))
@@ -299,17 +301,25 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.ungroupAction.setStatusTip('Ungroup the '
                                       'selected groups in '
                                       'the current pipeline view')
-        self.makeAbstractionAction = QtGui.QAction('Make Abstraction', self)
-        self.makeAbstractionAction.setStatusTip('Create an abstraction '
+        self.showGroupAction = QtGui.QAction('Show Group Pipeline', self)
+        self.showGroupAction.setEnabled(True)
+        self.showGroupAction.setStatusTip('Show the underlying pipelines '
+                                          'for the selected groups in '
+                                          'the current pipeline view')
+
+        self.makeAbstractionAction = QtGui.QAction('Make SubWorkflow', self)
+        self.makeAbstractionAction.setStatusTip('Create a subworkflow '
                                                 'from the selected modules')
         self.convertToAbstractionAction = \
-            QtGui.QAction('Convert to Abstraction', self)
-        self.convertToAbstractionAction.setStatusTip('Convert selected group'
-                                                     'to an abstraction')
-        self.importAbstractionAction = QtGui.QAction('Import Abstraction', self)
-        self.importAbstractionAction.setStatusTip('Import abstraction from '
+            QtGui.QAction('Convert to SubWorkflow', self)
+        self.convertToAbstractionAction.setStatusTip('Convert selected group '
+                                                     'to a subworkflow')
+        self.editAbstractionAction = QtGui.QAction("Edit SubWorkflow", self)
+        self.editAbstractionAction.setStatusTip("Edit a subworkflow")
+        self.importAbstractionAction = QtGui.QAction('Import SubWorkflow', self)
+        self.importAbstractionAction.setStatusTip('Import subworkflow from '
                                                   'a vistrail to local '
-                                                  'abstractions')
+                                                  'subworkflows')
         self.selectAllAction = QtGui.QAction('Select All\tCtrl+A', self)
         self.selectAllAction.setEnabled(False)
         self.selectAllAction.setStatusTip('Select all modules in '
@@ -436,8 +446,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editMenu.addSeparator()
         self.editMenu.addAction(self.groupAction)
         self.editMenu.addAction(self.ungroupAction)
+        self.editMenu.addAction(self.showGroupAction)
         self.editMenu.addAction(self.makeAbstractionAction)
         self.editMenu.addAction(self.convertToAbstractionAction)
+        self.editMenu.addAction(self.editAbstractionAction)
         self.editMenu.addAction(self.importAbstractionAction)
         self.editMenu.addSeparator()        
         self.editMenu.addAction(self.editPreferencesAction)
@@ -539,10 +551,12 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.selectAllAction, self.viewManager.selectAllModules),
             (self.groupAction, self.viewManager.group),
             (self.ungroupAction, self.viewManager.ungroup),
+            (self.showGroupAction, self.showGroup),
             (self.makeAbstractionAction, 
              self.viewManager.makeAbstraction),
             (self.convertToAbstractionAction,
              self.viewManager.convertToAbstraction),
+            (self.editAbstractionAction, self.editAbstraction),
             (self.importAbstractionAction, self.viewManager.importAbstraction),
             (self.newVistrailAction, self.newVistrail),
             (self.openFileAction, self.open_vistrail_default),
@@ -888,19 +902,22 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.open_vistrail_without_prompt(locator)
 
     def open_vistrail_without_prompt(self, locator, version=None,
-                                     execute_workflow=False):
+                                     execute_workflow=False, 
+                                     is_abstraction=False):
         """open_vistrail_without_prompt(locator_class, version: int or str,
-                                        execute_workflow: bool) -> None
+                                        execute_workflow: bool,
+                                        is_abstraction: bool) -> None
         Open vistrail depending on the locator class given.
         If a version is given, the workflow is shown on the Pipeline View.
-        I execute_workflow is True the workflow will be executed.
+        If execute_workflow is True the workflow will be executed.
+        If is_abstraction is True, the vistrail is flagged as abstraction
         """
         if not locator.is_valid():
-                ok = locator.update_from_gui()
+            ok = locator.update_from_gui()
         else:
             ok = True
         if ok:
-            self.viewManager.open_vistrail(locator, version)
+            self.viewManager.open_vistrail(locator, version, is_abstraction)
             self.closeVistrailAction.setEnabled(True)
             self.saveFileAsAction.setEnabled(True)
             self.exportFileAction.setEnabled(True)
@@ -1256,6 +1273,49 @@ class QBuilderWindow(QtGui.QMainWindow):
                                   currentView.controller,
                                   self)
             visDiff.show()
+
+    def showGroup(self):
+        """showGroup() -> None
+        Show the pipeline underlying a group module
+        
+        """
+        currentView = self.viewManager.currentWidget()
+        if currentView:
+            currentScene = currentView.pipelineTab.pipelineView.scene()
+            if currentScene.controller:
+                selected_items = currentScene.get_selected_item_ids()
+                selected_module_ids = selected_items[0]
+                if len(selected_module_ids) > 0:
+                    for id in selected_module_ids:
+                        group = \
+                            currentScene.controller.current_pipeline.modules[id]
+                        if group.vtType == 'group':
+                            pipelineMainWindow = QtGui.QMainWindow(self)
+                            pipelineView = QPipelineView()
+                            pipelineMainWindow.setCentralWidget(pipelineView)
+                            pipelineView.scene().setupScene(group.pipeline)
+                            pipelineView.show()
+                            pipelineMainWindow.show()
+
+    def openAbstraction(self, filename):
+        locator = XMLFileLocator(filename)
+        self.open_vistrail_without_prompt(locator, None, False, True)
+
+    def editAbstraction(self):
+        currentView = self.viewManager.currentWidget()
+        if currentView:
+            currentScene = currentView.pipelineTab.pipelineView.scene()
+            if currentScene.controller:
+                selected_items = currentScene.get_selected_item_ids()
+                selected_module_ids = selected_items[0]
+                if len(selected_module_ids) > 0:
+                    for id in selected_module_ids:
+                        abstraction = \
+                            currentScene.controller.current_pipeline.modules[id]
+                        if abstraction.vtType == 'abstraction':
+                            desc = abstraction.module_descriptor
+                            filename = desc.module.vt_fname
+                            self.openAbstraction(filename)
 
     def expandBranch(self):
         """ expandBranch() -> None
