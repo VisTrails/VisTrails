@@ -112,6 +112,12 @@ class vtkInteractionHandler(NotCacheable, Module):
         'UnRegisterEvent',
         'UpdateInformationEvent']
     
+    def __init__(self):
+        Module.__init__(self)
+        self.observer = None
+        self.handler = None
+        self.shareddata = None
+
     def compute(self):
         """ compute() -> None
         Actually compute nothing

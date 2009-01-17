@@ -422,6 +422,8 @@ class VistrailController(object):
                         base_name = function.params[0].strValue
                 if name_function is None:
                     base_name = neighbors[0][1]
+                if base_name == 'self':
+                    base_name = neighbors[0][0].name
                 port_name = create_name(base_name, names)
                 if name_function is not None:
                     name_function.params[0].strValue = port_name
@@ -438,11 +440,13 @@ class VistrailController(object):
         self.translate_modules(pipeline.module_list, avg_x, avg_y)
         module_index = dict([(m.id, m) for m in pipeline.module_list])
 
-        def create_port(port_type, other_port, old_module, names):
+        def create_port(port_type, other_port, other_module, old_module, names):
             x = old_module.location.x
             y = old_module.location.y
             module_name = port_type.capitalize() + 'Port'
             base_name = other_port.name
+            if base_name == 'self':
+                base_name = other_module.name
             port_name = create_name(base_name, names)
             module = self.create_module(basic_pkg, module_name, '', 
                                         x - avg_x, y - avg_y)
@@ -463,7 +467,8 @@ class VistrailController(object):
                 (new_module, new_port, new_name) = existing_ports[key]
             else:
                 (new_module, new_port, new_name) = \
-                    create_port(port_type, other_port, old_module, names)
+                    create_port(port_type, other_port, module, 
+                                old_module, names)
                 existing_ports[key] = (new_module, new_port, new_name)
                 pipeline.add_module(new_module)
                 if port_type == 'input':

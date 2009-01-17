@@ -282,5 +282,6 @@ def initialize(*args, **kwargs):
     reg.add_output_port(OutputPort, "ExternalPipe", Variant, True)
 
     reg.add_module(Group)
+    reg.add_output_port(Group, "self", Group, True)
 
     reg.add_module(Abstraction, name="SubWorkflow")

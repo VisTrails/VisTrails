@@ -212,6 +212,11 @@ class Module(DBModule):
         result.registry = get_module_registry()
         return result
 
+    def is_group(self):
+        return False
+    def is_abstraction(self):
+        return False
+
     def getNumFunctions(self):
         """getNumFunctions() -> int - Returns the number of functions """
         return len(self.functions)

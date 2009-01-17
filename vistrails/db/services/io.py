@@ -645,7 +645,7 @@ def open_log_from_db(db_connection, id, lock=False, version=None):
     log = translate_log(log, version)
     return log
 
-def save_log_to_xml(log, filename):
+def save_log_to_xml(log, filename, version=None):
 #     tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
 #             'xsi:schemaLocation': 'http://www.vistrails.org/log.xsd'
 #             }

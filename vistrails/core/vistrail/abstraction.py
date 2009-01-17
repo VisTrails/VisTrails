@@ -97,6 +97,9 @@ class Abstraction(DBAbstraction, Module):
     version = DBAbstraction.db_version
     internal_version = DBAbstraction.db_internal_version
 
+    def is_abstraction(self):
+        return True
+
     def _get_pipeline(self):
         return self.module_descriptor.module.pipeline
     pipeline = property(_get_pipeline)

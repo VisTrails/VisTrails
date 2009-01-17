@@ -52,7 +52,6 @@ from gui.module_annotation import QModuleAnnotation
 from gui.module_palette import QModuleTreeWidget
 from gui.module_documentation import QModuleDocumentation
 from gui.theme import CurrentTheme
-from xml.dom.minidom import getDOMImplementation, parseString
 import math
 import copy
 
@@ -796,6 +795,16 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 painter.setPen(CurrentTheme.MODULE_SELECTED_PEN)
             else:
                 painter.setPen(self.modulePen)
+            if self.module is not None:
+                if self.module.is_group():
+                    pen = painter.pen()
+                    pen.setStyle(QtCore.Qt.DashLine)
+                elif self.module.is_abstraction():
+                    pen = painter.pen()
+                    pen.setStyle(QtCore.Qt.DotLine)
+                else:
+                    painter.pen().setStyle(QtCore.Qt.SolidLine)
+                
         def setLabelPen():
             if self.isSelected():
                 painter.setPen(CurrentTheme.MODULE_LABEL_SELECTED_PEN)
@@ -1562,11 +1571,9 @@ mutual connections."""
         item = data.items[0]
         self.controller.reset_pipeline_view = False
         self.noUpdate = True
-        base_descriptor = item.descriptor.base_descriptor
         internal_version = -1L
-        if base_descriptor is not None and \
-                base_descriptor.name == 'Abstraction' and \
-                base_descriptor.identifier == 'edu.utah.sci.vistrails.basic':
+        reg = get_module_registry()
+        if reg.is_abstraction(item.descriptor):
             internal_version = item.descriptor.module.internal_version
         adder = self.controller.add_module_from_descriptor
         module = adder(item.descriptor, 

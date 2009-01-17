@@ -1334,6 +1334,13 @@ class ModuleRegistry(DBRegistry):
         if d1_idx == -1:
             return None
         return d1_list[d1_idx+1]
+
+    def is_abstraction(self, descriptor):
+        basic_pkg = core.modules.basic_modules.identifier
+        abstraction_desc = self.get_descriptor_by_name(basic_pkg, 
+                                                       'SubWorkflow')
+        return abstraction_desc != descriptor and \
+            self.is_descriptor_subclass(descriptor, abstraction_desc)
             
     def show_module(self, descriptor):
         self.signals.emit_show_module(descriptor)

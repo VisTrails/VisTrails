@@ -1289,7 +1289,8 @@ class QBuilderWindow(QtGui.QMainWindow):
                     for id in selected_module_ids:
                         group = \
                             currentScene.controller.current_pipeline.modules[id]
-                        if group.vtType == 'group':
+                        if (group.vtType == 'group' or 
+                            group.vtType == 'abstraction'):
                             pipelineMainWindow = QtGui.QMainWindow(self)
                             pipelineView = QPipelineView()
                             pipelineMainWindow.setCentralWidget(pipelineView)
