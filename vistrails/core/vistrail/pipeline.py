@@ -1321,5 +1321,41 @@ class TestPipeline(unittest.TestCase):
 #         for c in p2.connections:
 #             print c
 
+    def test_incorrect_port_spec(self):
+        p = Pipeline()
+        m1 = Module(name="String",
+                    package="edu.utah.sci.vistrails.basic",
+                    id=1L)
+        m2 = Module(name="String",
+                    package="edu.utah.sci.vistrails.basic",
+                    id=2L)
+        source = Port(id=1L,
+                      type='source', 
+                      moduleId=m1.id, 
+                      moduleName='String', 
+                      name='value',
+                      signature='(edu.utah.sci.vistrails.basic:StringBean)')
+        destination = Port(id=2L,
+                           type='destination',
+                           moduleId=m2.id,
+                           moduleName='String',
+                           name='value',
+                           signature='(edu.utah.sci.vistrails.basic:NString)')
+        c1 = Connection(id=1L,
+                        ports=[source, destination])
+        p.add_module(m1)
+        p.add_module(m2)
+        p.add_connection(c1)
+        p.ensure_modules_are_on_registry()
+        p.ensure_connection_specs()
+        p_source = p.connections[c1.id].source
+        p_destination = p.connections[c1.id].destination
+        self.assertEqual(p_source.signature, 
+                         '(edu.utah.sci.vistrails.basic:String)')
+        self.assertEqual(len(p_source.descriptors()), 1)
+        self.assertEqual(p_destination.signature,
+                         '(edu.utah.sci.vistrails.basic:String)')
+        self.assertEqual(len(p_destination.descriptors()), 1)
+
 if __name__ == '__main__':
     unittest.main()

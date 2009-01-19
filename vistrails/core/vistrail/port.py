@@ -123,10 +123,10 @@ class Port(DBPort):
                             *(type_str.split(':')))
                         self._descriptors.append(desc)
                 except ModuleRegistryException, e:
-                    print ('Cannot find module "%s" in \n' 
-                           'package "%s". Make sure package is \n' 
-                           'enabled in the Preferences dialog.' % \
-                               (e._name, e._identifier))
+#                     print ('Cannot find module "%s" in \n' 
+#                            'package "%s". Make sure package is \n' 
+#                            'enabled in the Preferences dialog.' % \
+#                                (e._name, e._identifier))
                     self._descriptors = []
                     return
 
@@ -164,6 +164,7 @@ class Port(DBPort):
         self._spec = spec
         if self._spec is not None:
             self.signature = self._spec.sigstring
+            self.find_port_types()
         else:
             self.signature = ""
     spec = property(_get_spec, _set_spec)
@@ -286,7 +287,6 @@ class TestPort(unittest.TestCase):
         oport = self.registry.source_ports_from_descriptor(descriptor)[0]
         iport = self.registry.destination_ports_from_descriptor(descriptor)[0]
         assert self.registry.ports_can_connect(oport, iport)
-
 
 if __name__ == '__main__':
     unittest.main()
