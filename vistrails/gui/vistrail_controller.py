@@ -703,6 +703,32 @@ class VistrailController(QtCore.QObject, BaseController):
         result = self.perform_action(action)
         return abstraction
 
+    def create_abstractions_from_groups(self, group_ids):
+        for group_id in group_ids:
+            self.create_abstraction_from_group(group_id)
+
+    def create_abstraction_from_group(self, group_id, name=""):
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        name = self.get_abstraction_name(name)
+        
+        (abstraction, connections) = \
+            BaseController.create_abstraction_from_group(self, 
+                                                         self.current_pipeline, 
+                                                         group_id, name)
+
+        op_list = []
+        getter = self.get_connections_to_and_from
+        op_list.extend(('delete', c)
+                       for c in getter(self.current_pipeline, [group_id]))
+        op_list.append(('delete', self.current_pipeline.modules[group_id]))
+        op_list.append(('add', abstraction))
+        op_list.extend(('add', c) for c in connections)
+        action = core.db.action.create_action(op_list)
+        self.add_new_action(action)
+        result = self.perform_action(action)
+        return abstraction
+
+
     def ungroup_set(self, module_ids):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
         for m_id in module_ids:
@@ -1641,13 +1667,13 @@ class VistrailController(QtCore.QObject, BaseController):
 
     def do_abstraction_prompt(self, name="", exists=False):
         if exists:
-            prompt = "'%s' already exists.  Enter a new abstraction name" % \
+            prompt = "'%s' already exists.  Enter a new subworkflow name" % \
                 name
         else:
-            prompt = 'Enter abstraction name'
+            prompt = 'Enter subworkflow name'
             
         (text, ok) = QtGui.QInputDialog.getText(None, 
-                                                'Set Abstraction Name',
+                                                'Set SubWorkflow Name',
                                                 prompt,
                                                 QtGui.QLineEdit.Normal,
                                                 name)
@@ -1663,70 +1689,6 @@ class VistrailController(QtCore.QObject, BaseController):
             self.import_abstraction(abstraction.name, abstraction.namespace,
                                     abstraction.internal_version)
         
-    def create_vistrail_from_pipeline(self, pipeline):
-        abs_vistrail = Vistrail()
-        
-        id_remap = {}
-        action = core.db.action.create_paste_action(pipeline, 
-                                                    abs_vistrail.idScope,
-                                                    id_remap)
-        abs_vistrail.add_action(action, 0L, 0)
-        return abs_vistrail
-
-    def create_abstractions_from_groups(self, group_ids):
-        for group_id in group_ids:
-            self.create_abstraction_from_group(group_id)
-
-    def create_abstraction_from_group(self, group_id, name=""):
-        name = self.get_abstraction_name(name)
-        if name is None:
-            return
-        group = self.current_pipeline.modules[group_id]
-        abs_vistrail = self.create_vistrail_from_pipeline(group.pipeline)
-        abs_vistrail.name = name
-        abs_vistrail.change_description("Created from group", 1L)
-        abs_fname = self.save_abstraction(abs_vistrail)
-
-        # need to late enable stuff on the 'local.abstractions' package
-        self.add_abstraction_to_registry(abs_vistrail, abs_fname, name)
-
-        
-        a_remap = {}
-        new_location = group.location.do_copy(True, self.vistrail.idScope,
-                                              a_remap)
-
-        abstraction_id = self.vistrail.idScope.getNewId(Abstraction.vtType)
-        abstraction = Abstraction(id=abstraction_id,
-                                  name=name, 
-                                  package=abstraction_pkg,
-                                  internal_version=1L,
-                                  location=new_location,
-                                  )
-
-        action_list = [('add', abstraction)]
-        a_remap = {(Module.vtType, group_id): abstraction_id}
-        graph = self.current_pipeline.graph
-        connect_ids = self.get_module_connection_ids([group_id], graph)
-        for c_id in connect_ids:
-            connection = self.current_pipeline.connections[c_id]
-            action_list.append(('delete', connection))
-            new_ports = []
-            for port in connection.ports:
-                port = port.do_copy(True, self.vistrail.idScope, 
-                                    a_remap)
-#                 if port.moduleId == group_id:
-#                     port.moduleId = abstraction.id
-                new_ports.append(port)
-            connection_id = self.vistrail.idScope.getNewId(Connection.vtType)
-            action_list.append(('add', Connection(id=connection_id,
-                                                  ports=new_ports)))
-        action_list.append(('delete', group))
-            
-        action = core.db.action.create_action(action_list)
-        self.add_new_action(action)
-        self.perform_action(action)
-        return abstraction
-
     def set_changed(self, changed):
         """ set_changed(changed: bool) -> None
         Set the current state of changed and emit signal accordingly

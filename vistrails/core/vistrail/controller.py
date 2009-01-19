@@ -43,6 +43,7 @@ from core.vistrail.module_param import ModuleParam
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.port import Port
 from core.vistrail.port_spec import PortSpec
+from core.vistrail.vistrail import Vistrail
 from db.domain import IdScope
 
 class VistrailController(object):
@@ -323,6 +324,35 @@ class VistrailController(object):
         return op_list
 
     ##########################################################################
+    # Methods to access/find pipeline information
+    
+    def get_connections_to(self, pipeline, module_ids):
+        connection_ids = set()
+        graph = pipeline.graph
+        for m_id in module_ids:
+            for _, id in graph.edges_to(m_id):
+                connection_ids.add(id)
+        return [pipeline.connections[c_id] for c_id in connection_ids]
+
+    def get_connections_from(self, pipeline, module_ids):
+        connection_ids = set()
+        graph = pipeline.graph
+        for m_id in module_ids:
+            for _, id in graph.edges_from(m_id):
+                connection_ids.add(id)
+        return [pipeline.connections[c_id] for c_id in connection_ids]
+
+    def get_connections_to_and_from(self, pipeline, module_ids):
+        connection_ids = set()
+        graph = pipeline.graph
+        for m_id in module_ids:
+            for _, id in graph.edges_from(m_id):
+                connection_ids.add(id)
+            for _, id in graph.edges_to(m_id):
+                connection_ids.add(id)
+        return [pipeline.connections[c_id] for c_id in connection_ids]
+        
+    ##########################################################################
     # Grouping/abstraction
 
     def get_avg_location(self, modules):
@@ -576,6 +606,51 @@ class VistrailController(object):
                                                           outside_connections)
         return (abstraction, connections)
 
+    def create_abstraction_from_group(self, full_pipeline, group_id, name):
+        if name is None:
+            return
+        group = self.current_pipeline.modules[group_id]
+        abs_vistrail = self.create_vistrail_from_pipeline(group.pipeline)
+        abs_vistrail.name = name
+        abs_vistrail.change_description("Created from group", 1L)
+        abs_fname = self.save_abstraction(abs_vistrail)
+
+        group_connections = self.get_connections_to_and_from(full_pipeline,
+                                                             [group_id])
+        outside_connections = []
+        for c in group_connections:
+            out_module = full_pipeline.modules[c.source.moduleId]
+            out_port = c.source.name
+            in_module = full_pipeline.modules[c.destination.moduleId]
+            in_port = c.destination.name
+            if c.source.moduleId == group_id:
+                out_module = None
+            if c.destination.moduleId == group.id:
+                in_module = None
+            outside_connections.append((out_module, out_port, 
+                                        in_module, in_port))
+
+        # need to late enable stuff on the 'local.abstractions' package
+        self.add_abstraction_to_registry(abs_vistrail, abs_fname, name,
+                                         None, "1")
+        namespace = abs_vistrail.get_annotation('__abstraction_uuid__').value
+        abstraction = self.create_module(abstraction_pkg, name, namespace, 
+                                         group.location.x, group.location.y, 
+                                         1L)
+        connections = self.get_connections_to_subpipeline(abstraction, 
+                                                          outside_connections)
+        return (abstraction, connections)
+
+    def create_vistrail_from_pipeline(self, pipeline):
+        abs_vistrail = Vistrail()
+        
+        id_remap = {}
+        action = core.db.action.create_paste_action(pipeline, 
+                                                    abs_vistrail.idScope,
+                                                    id_remap)
+        abs_vistrail.add_action(action, 0L, 0)
+        return abs_vistrail
+        
     def get_abstraction_dir(self):
         conf = get_vistrails_configuration()
         if conf.check('abstractionsDirectory'):
