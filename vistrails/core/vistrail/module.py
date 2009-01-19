@@ -69,10 +69,12 @@ class Module(DBModule):
         if other is None:
             self.portVisible = set()
             self.is_breakpoint = False
+            self._descriptor_info = None
             self._module_descriptor = None
         else:
             self.portVisible = copy.copy(other.portVisible)
             self.is_breakpoint = other.is_breakpoint
+            self._descriptor_info = None
             self._module_descriptor = other._module_descriptor
         self.function_idx = self.db_functions_id_index
         self.setup_indices()
@@ -167,13 +169,19 @@ class Module(DBModule):
             self._output_port_specs.remove(spec)
         self.db_delete_portSpec(spec)
 
+    def _get_descriptor_info(self):
+        if self._descriptor_info is None:
+            self._descriptor_info = (self.package, self.name, 
+                                     self.namespace, self.version,
+                                     str(self.internal_version))
+        return self._descriptor_info
+    descriptor_info = property(_get_descriptor_info)
+
     def _get_module_descriptor(self):
         if self._module_descriptor is None:
             reg = get_module_registry()
             self._module_descriptor = \
-                reg.get_descriptor_by_name(self.package, self.name, 
-                                           self.namespace, self.version,
-                                           str(self.internal_version))
+                reg.get_descriptor_by_name(*self.descriptor_info)
         return self._module_descriptor
     def _set_module_descriptor(self, descriptor):
         self._module_descriptor = descriptor

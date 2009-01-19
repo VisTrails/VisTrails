@@ -59,17 +59,23 @@ def initialize(*args, **kwargs):
     cannot_load = {}
     while len(abs_vistrails) > 0 and len(abs_vistrails) < last_count:
         new_vistrails = {}
-        for (abs_name, (abs_vistrail, abs_fname)) in abs_vistrails.iteritems():
+        for (abs_name, abs_info) in abs_vistrails.iteritems():
+            (abs_vistrail, abs_fname, abs_depends) = abs_info
             packages = get_abstraction_dependencies(abs_vistrail)
             add_abstraction = True
-            # packages.discard('edu.utah.sci.vistrails.basic')
-            packages.discard(identifier)
-            for package in packages:
-                if not manager.has_package(package):
-                    add_abstraction = False
-                    break
+            for package, inter_depends in packages.iteritems():
+                if package != identifier:
+                    if not manager.has_package(package):
+                        add_abstraction = False
+                        cannot_load[abs_name] = abs_vistrail
+                        break
+                else:
+                    for descriptor_info in inter_depends:
+                        if not reg.has_descriptor_with_name(*descriptor_info):
+                            add_abstraction = False
+                            new_vistrails[abs_name] = abs_info
+                            break
             if add_abstraction:
-                # print 'adding', abs_name
                 abstraction = new_abstraction(abs_name, abs_vistrail, reg, 
                                               abs_fname)
                 if abstraction is not None:
@@ -79,9 +85,7 @@ def initialize(*args, **kwargs):
                     reg.auto_add_module((abstraction, options))
                     reg.auto_add_ports(abstraction)
                 else:
-                    new_vistrails[abs_name] = (abs_vistrail, abs_fname)
-            else:
-                cannot_load[abs_name] = abs_vistrail
+                    cannot_load[abs_name] = abs_vistrail
         last_count = len(abs_vistrails)
         abs_vistrails = new_vistrails
 
@@ -102,18 +106,22 @@ def package_dependencies():
         if p.match(abstraction):
             abs_fname = os.path.join(abstraction_dir, abstraction)
             vistrail = read_vistrail(abs_fname)
-            packages = get_abstraction_dependencies(vistrail)
+            dependencies = get_abstraction_dependencies(vistrail)
             add_abstraction = True
-            # packages.discard('edu.utah.sci.vistrails.basic')
-            packages.discard(identifier)
-            for package in packages:
-                if not manager.has_package(package):
-                    add_abstraction = False
-                    break
+            inter_depends = []
+            for package, depends in dependencies.iteritems():
+                if package != identifier:
+                    if not manager.has_package(package):
+                        add_abstraction = False
+                        break
+                else:
+                    inter_depends.append(depends)
             if add_abstraction:
                 # print 'adding', abstraction[:-4]
-                all_packages.update(packages)
-                vistrails[abstraction[:-4]] = (vistrail, abs_fname)
+                all_packages.update(p for p in dependencies.iterkeys()
+                                    if p != identifier)
+                vistrails[abstraction[:-4]] = \
+                    (vistrail, abs_fname, inter_depends)
             else:
                 print "Abstraction '%s' missing packages it depends on"
     # print 'all_packages:', all_packages

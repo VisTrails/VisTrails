@@ -255,9 +255,11 @@ def get_abstraction_dependencies(vistrail, internal_version=-1L):
     # action = vistrail.actionMap[internal_version]
     pipeline = vistrail.getPipeline(internal_version)
     
-    packages = set()
+    packages = {}
     for module in pipeline.module_list:
-        packages.add(module.package)
+        if module.package not in packages:
+            packages[module.package] = set()
+        packages[module.package].add(module.descriptor_info)
     return packages
 
 ###############################################################################

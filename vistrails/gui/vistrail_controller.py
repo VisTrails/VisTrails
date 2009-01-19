@@ -1732,7 +1732,7 @@ class VistrailController(QtCore.QObject, BaseController):
             objs = [(Vistrail.vtType, self.vistrail)]
             if self.log and len(self.log.workflow_execs) > 0:
                 objs.append((Log.vtType, self.log))
-            abstractions = self.find_abstractions(self.vistrail)
+            abstractions = self.find_abstractions(self.vistrail, True)
             for abstraction in abstractions:
                 abs_module = abstraction.module_descriptor.module
                 if abs_module is not None:

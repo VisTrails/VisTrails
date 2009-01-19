@@ -30,7 +30,7 @@ from core.modules.abstraction import identifier as abstraction_pkg
 from core.modules.basic_modules import identifier as basic_pkg
 import core.modules.module_registry
 from core.modules.module_registry import ModuleRegistryException, \
-    MissingModuleVersion
+    MissingModuleVersion, MissingModule
 from core.modules.sub_module import new_abstraction, read_vistrail
 from core.utils import VistrailsInternalError, PortAlreadyExists
 from core.vistrail.abstraction import Abstraction
@@ -689,7 +689,7 @@ class VistrailController(object):
 
     def add_abstraction_to_registry(self, abs_vistrail, abs_fname, name, 
                                     namespace=None, module_version=None,
-                                    is_global=True):
+                                    is_global=True, avail_fnames=[]):
         reg = core.modules.module_registry.get_module_registry()
         if namespace is None:
             namespace = \
@@ -697,6 +697,8 @@ class VistrailController(object):
 
         if module_version is None:
             module_version = -1L
+
+        self.ensure_abstractions_loaded(abs_vistrail, avail_fnames)
         abstraction = new_abstraction(name, abs_vistrail, reg, abs_fname,
                                       long(module_version))
 
@@ -734,25 +736,8 @@ class VistrailController(object):
         vt_fname = os.path.join(abstraction_dir, name + '.xml')
         return os.path.exists(vt_fname)
 
-#         reg = core.modules.module_registry.get_module_registry()
-#         return reg.has_descriptor_with_name(abstraction_pkg, name,
-#                                             namespace)
-#         conf = get_vistrails_configuration()
-#         if conf.check('userPackageDirectory'):
-#             abstraction_dir = os.path.join(conf.userPackageDirectory,
-#                                            'abstractions')
-#             if not os.path.exists(abstraction_dir):
-#                 raise VistrailsInternalError("Cannot find %s" % \
-#                                                  abstraction_dir)
-#             vt_fname = os.path.join(abstraction_dir, fname + '.vt')
-#             if os.path.exists(vt_fname):
-#                 return True
-#         else:
-#             raise VistrailsInternalError("Cannot find userPackageDirectory")
-#         return False
-
     def load_abstraction(self, abs_fname, is_global=True, abs_name=None,
-                         module_version=None):
+                         module_version=None, avail_fnames=[]):
         if abs_name is None:
             abs_name = self.parse_abstraction_name(abs_fname)
         abs_vistrail = read_vistrail(abs_fname)
@@ -773,7 +758,7 @@ class VistrailController(object):
             desc = self.add_abstraction_to_registry(abs_vistrail, abs_fname, 
                                                     abs_name, None, 
                                                     module_version, 
-                                                    is_global)
+                                                    is_global, avail_fnames)
         else:
             print abs_name, "already in registry"
         return desc
@@ -873,7 +858,7 @@ class VistrailController(object):
 #         self.add_abstraction_to_registry(abs_vistrail, abs_fname, new_name,
 #                                          abstraction_uuid, module_version)
 
-    def find_abstractions(self, vistrail):
+    def find_abstractions(self, vistrail, recurse=False):
         abstractions = []
         for action in vistrail.actions:
             for operation in action.operations:
@@ -883,13 +868,22 @@ class VistrailController(object):
                         abstraction = operation.data
                         if abstraction.package == abstraction_pkg:
                             abstractions.append(abstraction)
+        if recurse:
+            for abstraction in abstractions:
+                abstractions.extend(
+                    self.find_abstractions(abstraction.vistrail, recurse))
         return abstractions
         
     def ensure_abstractions_loaded(self, vistrail, abs_fnames):
         lookup = {}
         for abs_fname in abs_fnames:
-            abs_name = os.path.basename(abs_fname)[12:-4]
+            abs_name = self.parse_abstraction_name(abs_fname)
+            # abs_name = os.path.basename(abs_fname)[12:-4]
             lookup[abs_name] = abs_fname
+            
+        # we're going to recurse manually (see
+        # add_abstraction_to_regsitry) because we can't call
+        # abstraction.vistrail until the module is loaded.
         abstractions = self.find_abstractions(vistrail)
         for abstraction in abstractions:
             try:
@@ -912,12 +906,12 @@ class VistrailController(object):
                     raise
                 abs_fname = lookup[abstraction.name]
                 self.load_abstraction(abs_fname, False, abstraction.name,
-                                      abstraction.internal_version)
+                                      abstraction.internal_version, abs_fnames)
                 descriptor = abstraction.module_descriptor                
             except ModuleRegistryException, e:
                 # shouldn't get here...
                 raise
-
+            
     def create_ungroup(self, full_pipeline, module_id):
 
         group = full_pipeline.modules[module_id]

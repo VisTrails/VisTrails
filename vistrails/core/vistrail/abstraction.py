@@ -104,6 +104,10 @@ class Abstraction(DBAbstraction, Module):
         return self.module_descriptor.module.pipeline
     pipeline = property(_get_pipeline)
 
+    def _get_vistrail(self):
+        return self.module_descriptor.module.vistrail
+    vistrail = property(_get_vistrail)
+
     # override db-mirrored accesses in Module
     port_specs = {}
     port_spec_list = []
