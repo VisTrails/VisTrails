@@ -262,8 +262,7 @@ class HandlerConfigurationWidget(StandardModuleConfigurationWidget):
         """
         if self.codeEditor.document().isModified():
             code = urllib.quote(str(self.codeEditor.toPlainText()))
-            functions = [('Handler', self.findHandlerFunction(), [code], 
-                          True)]
+            functions = [('Handler', [code])]
             self.controller.update_functions(self.module, functions)
 
     def okTriggered(self, checked = False):

@@ -237,7 +237,8 @@ class Module(DBModule):
         registry = get_module_registry()
         desc = self.module_descriptor
         ports = registry.module_source_ports_from_descriptor(True, desc)
-        ports.extend(self._output_port_specs)
+        ports.extend(sorted(self._output_port_specs, 
+                            key=lambda x: (x.sort_key, x.id)))
         return ports
     
     def destinationPorts(self):
@@ -248,7 +249,8 @@ class Module(DBModule):
         registry = get_module_registry()
         desc = self.module_descriptor
         ports = registry.module_destination_ports_from_descriptor(True, desc)
-        ports.extend(self._input_port_specs)
+        ports.extend(sorted(self._input_port_specs,
+                            key=lambda x: (x.sort_key, x.id)))
         return ports
 
     ##########################################################################
