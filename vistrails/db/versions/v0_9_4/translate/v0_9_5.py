@@ -25,9 +25,9 @@ from db.versions.v0_9_4.domain import DBVistrail, DBWorkflow, DBLog
 
 def translateVistrail(_vistrail):
     def update_port_spec_spec(new_obj, translate_dict):
-        return new_obj.db_signature
-    def update_port_spec(new_obj, translate_dict):
         return new_obj.db_sigstring
+    def update_port_spec(new_obj, translate_dict):
+        return new_obj.db_signature
 
     translate_dict = {'DBPortSpec': {'spec': update_port_spec_spec},
                       'DBPort': {'spec': update_port_spec}}
@@ -40,9 +40,9 @@ def translateVistrail(_vistrail):
 
 def translateWorkflow(_workflow):
     def update_port_spec_spec(new_obj, translate_dict):
-        return new_obj.db_signature
-    def update_port_spec(new_obj, translate_dict):
         return new_obj.db_sigstring
+    def update_port_spec(new_obj, translate_dict):
+        return new_obj.db_signature
 
     translate_dict = {'DBPortSpec': {'spec': update_port_spec_spec},
                       'DBPort': {'spec': update_port_spec}}

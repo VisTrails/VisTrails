@@ -117,7 +117,8 @@ class QMethodTreeWidget(QSearchTreeWidget):
 
             method_specs = []
             # Check the local registry
-            for port_spec in module.port_spec_list:
+            for port_spec in sorted(module.port_spec_list,
+                                    key=lambda x: x.name):
                 if registry.is_method(port_spec):
                     method_specs.append(port_spec)
 

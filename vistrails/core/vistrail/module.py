@@ -169,6 +169,15 @@ class Module(DBModule):
             self._output_port_specs.remove(spec)
         self.db_delete_portSpec(spec)
 
+    def _get_input_port_specs(self):
+        return sorted(self._input_port_specs, 
+                      key=lambda x: (x.sort_key, x.id))
+    input_port_specs = property(_get_input_port_specs)
+    def _get_output_port_specs(self):
+        return sorted(self._output_port_specs, 
+                      key=lambda x: (x.sort_key, x.id), reverse=True)
+    output_port_specs = property(_get_output_port_specs)
+
     def _get_descriptor_info(self):
         if self._descriptor_info is None:
             self._descriptor_info = (self.package, self.name, 
@@ -214,6 +223,8 @@ class Module(DBModule):
             result.input_ports_order = [p.name for p in self.destinationPorts()]
         if hasattr(result, 'output_ports_order'):
             result.output_ports_order = [p.name for p in self.sourcePorts()]
+            # output_ports are reversed for display purposes...
+            result.output_ports_order.reverse()
         # FIXME this may not be quite right because we don't have self.registry
         # anymore.  That said, I'm not sure how self.registry would have
         # worked for hybrids...
@@ -237,8 +248,7 @@ class Module(DBModule):
         registry = get_module_registry()
         desc = self.module_descriptor
         ports = registry.module_source_ports_from_descriptor(True, desc)
-        ports.extend(sorted(self._output_port_specs, 
-                            key=lambda x: (x.sort_key, x.id)))
+        ports.extend(self.output_port_specs)
         return ports
     
     def destinationPorts(self):
@@ -249,8 +259,7 @@ class Module(DBModule):
         registry = get_module_registry()
         desc = self.module_descriptor
         ports = registry.module_destination_ports_from_descriptor(True, desc)
-        ports.extend(sorted(self._input_port_specs,
-                            key=lambda x: (x.sort_key, x.id)))
+        ports.extend(self.input_port_specs)
         return ports
 
     ##########################################################################

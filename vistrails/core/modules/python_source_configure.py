@@ -140,8 +140,9 @@ class PythonSourceConfigurationWidget(PortTableConfigurationWidget):
         self.outputPortTable = PortTable(self)
         labels = QtCore.QStringList() << "Output Port Name" << "Type"
         self.outputPortTable.setHorizontalHeaderLabels(labels)
-        self.inputPortTable.initializePorts(self.module._input_port_specs)
-        self.outputPortTable.initializePorts(self.module._output_port_specs)
+        self.inputPortTable.initializePorts(self.module.input_port_specs)
+        self.outputPortTable.initializePorts(self.module.output_port_specs, 
+                                             True)
         self.layout().addWidget(self.inputPortTable)
         self.layout().addWidget(self.outputPortTable)
         self.performPortConnection(self.connect)

@@ -215,33 +215,52 @@ class VistrailController(object):
             new_functions.append(self.create_function(module, *f))
         return new_functions
 
-    def create_port_spec(self, module, port_type, port_name, port_sigstring):
+    def create_port_spec(self, module, port_type, port_name, port_sigstring,
+                         port_sort_key=-1):
         p_id = self.id_scope.getNewId(PortSpec.vtType)
         port_spec = PortSpec(id=p_id,
                              type=port_type,
                              name=port_name,
                              sigstring=port_sigstring,
+                             sort_key=port_sort_key,
                              )
         return port_spec
 
     def update_port_spec_ops(self, module, deleted_ports, added_ports):
         op_list = []
+        deleted_port_info = set()
+        changed_port_info = set()
+        for p in deleted_ports:
+            port_info = (p[1], p[0])
+            if module.has_portSpec_with_name(port_info):
+                port = module.get_portSpec_by_name(port_info)
+                port_sigstring = port.sigstring
+                deleted_port_info.add(port_info + (port.sigstring,))
+        for p in added_ports:
+            port_info = (p[1], p[0], p[2])
+            if port_info in deleted_port_info:
+                changed_port_info.add(port_info[:2])
+            
         # Remove any connections related to deleted ports
         for c in self.current_pipeline.connections.itervalues():
             if ((c.sourceId == module.id and
-                 any(c.source.name == p[1] for p in deleted_ports)) or
+                 any(c.source.name == p[1] for p in deleted_ports
+                     if (p[1], p[0]) not in changed_port_info)) or
                 (c.destinationId == module.id and
-                 any(c.destination.name == p[1] for p in deleted_ports))):
+                 any(c.destination.name == p[1] for p in deleted_ports
+                     if (p[1], p[0]) not in changed_port_info))):
                 op_list.append(('delete', c))
 
         # Remove any functions related to deleted ports
         for p in deleted_ports:
-            for function in module.functions:
-                if function.name == p[1]:
-                    op_list.append(('delete', function, 
-                                    Module.vtType, module.id))
+            if (p[1], p[0]) not in changed_port_info:
+                for function in module.functions:
+                    if function.name == p[1]:
+                        op_list.append(('delete', function, 
+                                        Module.vtType, module.id))
 
         # Remove all deleted ports
+        # !! Reset delted_port_info to not store sigstring
         deleted_port_info = set()
         for p in deleted_ports:
             port_info = (p[1], p[0])
@@ -255,7 +274,7 @@ class VistrailController(object):
             if (p[1], p[0]) not in deleted_port_info and \
                     module.has_port_spec(p[1], p[0]):
                 raise PortAlreadyExists(module.package, module.name, p[0], p[1])
-            port_spec = self.create_port_spec(module, p[0], p[1], p[2])
+            port_spec = self.create_port_spec(module, *p)
             op_list.append(('add', port_spec, Module.vtType, module.id))
         return op_list
 

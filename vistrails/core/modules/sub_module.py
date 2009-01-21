@@ -75,9 +75,9 @@ class Group(Module):
         kwargs = {'clean_pipeline': True}
         res = self.interpreter.execute_pipeline(self.pipeline, *(res[:2]), 
                                                 **kwargs)
-        for oport_name in self.outputPorts:
+        for oport_name, oport_module in self.output_remap.iteritems():
             if oport_name is not 'self':
-                oport_module = self.output_remap[oport_name]
+                # oport_module = self.output_remap[oport_name]
                 oport_obj = tmp_id_to_module_map[oport_module.id]
                 self.setResult(oport_name, oport_obj.get_output('ExternalPipe'))
         self.interpreter.finalize_pipeline(self.pipeline, *res[:-1])

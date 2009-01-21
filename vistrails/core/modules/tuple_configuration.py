@@ -29,6 +29,7 @@ is also a QWidget.
 from PyQt4 import QtCore, QtGui
 from core.modules.module_configure import StandardModuleConfigurationWidget
 from core.modules.module_registry import get_module_registry
+from core.utils import PortAlreadyExists
 
 ############################################################################
 
@@ -69,11 +70,15 @@ class PortTable(QtGui.QTableWidget):
             if changedGeometry:
                 self.fixGeometry()
 
-    def initializePorts(self, port_specs):
+    def initializePorts(self, port_specs, reverse_order=False):
         self.disconnect(self.model(),
                         QtCore.SIGNAL('dataChanged(QModelIndex,QModelIndex)'),
                         self.handleDataChanged)
-        for p in port_specs:
+        if reverse_order:
+            port_specs_iter = reversed(port_specs)
+        else:
+            port_specs_iter = port_specs
+        for p in port_specs_iter:
             model = self.model()
             sigstring = p.sigstring[1:-1]
             siglist = sigstring.split(':')
@@ -101,7 +106,7 @@ class PortTable(QtGui.QTableWidget):
             sigstring = str(model.data(model.index(i, 1), 
                                        QtCore.Qt.UserRole).toString())
             if name != '' and sigstring != '':
-                ports.append((name, '(' + sigstring + ')'))
+                ports.append((name, '(' + sigstring + ')', i))
         return ports
 
 class PortTableItemDelegate(QtGui.QItemDelegate):
@@ -254,11 +259,11 @@ class PortTableConfigurationWidget(StandardModuleConfigurationWidget):
     
     def getPortDiff(self, p_type, port_table):
         if p_type == 'input':
-            old_ports = [(p.name, p.sigstring)
-                         for p in self.module._input_port_specs]
+            old_ports = [(p.name, p.sigstring, p.sort_key)
+                         for p in self.module.input_port_specs]
         elif p_type == 'output':
-            old_ports = [(p.name, p.sigstring) 
-                         for p in self.module._output_port_specs]
+            old_ports = [(p.name, p.sigstring, p.sort_key) 
+                         for p in self.module.output_port_specs]
         else:
             old_ports = []
         # old_ports = self.getRegistryPorts(self.module.registry, p_type)
@@ -310,7 +315,7 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
         # We know that the Tuple module initially doesn't have any
         # input port, we just use the local registry to see what ports
         # it has at the time of configuration.
-        self.portTable.initializePorts(self.module._input_port_specs)
+        self.portTable.initializePorts(self.module.input_port_specs)
         self.portTable.fixGeometry()
         centralLayout.addWidget(self.portTable)
 
@@ -333,11 +338,11 @@ class TupleConfigurationWidget(PortTableConfigurationWidget):
             # nothing changed
             return
         current_ports = self.portTable.getPorts()
-        # note that the sigstring for deletion doesn't matter
-        deleted_ports.append(('output', 'value', '()'))
+        # note that the sigstring and sort_key for deletion doesn't matter
+        deleted_ports.append(('output', 'value'))
         if len(current_ports) > 0:
             spec = "(" + ','.join(p[1][1:-1] for p in current_ports) + ")"
-            added_ports.append(('output', 'value', spec))
+            added_ports.append(('output', 'value', spec, -1))
         try:
             self.controller.update_ports(self.module.id, deleted_ports, 
                                          added_ports)
@@ -385,7 +390,7 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
         # We know that the Tuple module initially doesn't have any
         # input port, we just use the local registry to see what ports
         # it has at the time of configuration.
-        self.portTable.initializePorts(self.module._output_port_specs)
+        self.portTable.initializePorts(self.module.output_port_specs, True)
         self.portTable.fixGeometry()
         centralLayout.addWidget(self.portTable)
 
@@ -411,10 +416,10 @@ class UntupleConfigurationWidget(PortTableConfigurationWidget):
             return
         current_ports = self.portTable.getPorts()
         # note that the sigstring for deletion doesn't matter
-        deleted_ports.append(('input', 'value', '()'))
+        deleted_ports.append(('input', 'value'))
         if len(current_ports) > 0:
             spec = "(" + ','.join(p[1][1:-1] for p in current_ports) + ")"
-            added_ports.append(('input', 'value', spec))
+            added_ports.append(('input', 'value', spec, -1))
         try:
             self.controller.update_ports(self.module.id, deleted_ports, 
                                          added_ports)
