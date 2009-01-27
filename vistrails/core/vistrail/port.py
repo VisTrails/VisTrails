@@ -120,7 +120,7 @@ class Port(DBPort):
                 try:
                     for type_str in signature_str.split(','):
                         desc = registry.get_descriptor_by_name( \
-                            *(type_str.split(':')))
+                            *(type_str.split(':', 2)))
                         self._descriptors.append(desc)
                 except ModuleRegistryException, e:
 #                     print ('Cannot find module "%s" in \n' 
