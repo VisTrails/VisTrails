@@ -67,19 +67,21 @@ class EnumerationWidget(QtGui.QComboBox, ConstantWidgetMixin):
     def change_state(self, state):
         self.update_parent()
     
-def initialize(namemodule,namespace,identifier):
+def initialize(namemodule,namespace,identifier, version):
     enumerationConstant = new_constant(namemodule,
                                             namespace,
                                             identifier,
+                                            version,
                                             EnumerationWidget)
     return enumerationConstant
 
-def new_constant(name, namespace, identifier, widget_type=StandardConstantWidget):
+def new_constant(name, namespace, identifier, 
+                 version, widget_type=StandardConstantWidget):
     """new_constant(name: str, namespace: str,widget_type: QWidget type) -> Module
     
     new_constant dynamically creates a new Module derived from Constant
     with a widget type."""
-    reg = core.modules.module_registry.get_module_registry
+    reg = core.modules.module_registry.get_module_registry()
     
     def __init__(self):
         Constant.__init__(self)
@@ -96,5 +98,6 @@ def new_constant(name, namespace, identifier, widget_type=StandardConstantWidget
                                     'translate_to_python': conversion})
     m.name = name
     m.isEnumeration = True
-    reg.add_module(m,namespace=namespace,package=identifier)
+    reg.add_module(m,namespace=namespace,package=identifier,
+                   package_version=version)
     return m

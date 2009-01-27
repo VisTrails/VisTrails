@@ -312,7 +312,7 @@ def webServiceParamsMethodDict(name, server, inparams, outparams):
     inparams and outparams. Right now, only the first outparam is used
     for setting the result. """
 
-    reg = core.modules.module_registry.get_module_registry
+    reg = core.modules.module_registry.get_module_registry()
 
     def wrapResponseobj(self,resp,visobj):
         if type(resp)==types.ListType:
@@ -639,7 +639,8 @@ def addTypesModules(w,modclient,server):
         obj = complexsdict[dictkey]
         obj.namespace = namespace
         if obj.typeobj == 'Enumeration':
-            mt = enumeration_widget.initialize(obj.name, namespace,identifier)
+            mt = enumeration_widget.initialize(obj.name, namespace,identifier,
+                                               version)
         else:
             mt = new_module(WebService,str(obj.name), webServiceTypesDict(obj))
             mt.name = obj.name
@@ -648,7 +649,8 @@ def addTypesModules(w,modclient,server):
             mt.server = server
             mt.isEnumeration = False
             mt.namespace = namespace
-            reg.add_module(mt, namespace= namespace, package=identifier)
+            reg.add_module(mt, namespace=namespace, 
+                           package=identifier, package_version=version)
 
 def addMethodsModules(w,modclient,server):
     """ Create a VisTrails module for each complex type specified in
@@ -670,7 +672,8 @@ def addMethodsModules(w,modclient,server):
         mt.modclient = modclient
         mt.server = server
         mt.namespace = namespace
-        reg.add_module(mt, namespace= namespace, package=identifier)
+        reg.add_module(mt, namespace= namespace, package=identifier,
+                       package_version=version)
 
 def addPortsToTypes(w):
     """ Add input and output ports to the VisTrails complex type modules. """
@@ -1093,7 +1096,8 @@ be loaded again: %s"% w
             namespace = w + '|Methods'
             mt.namespace = namespace
             
-            reg.add_module(mt, namespace= namespace, package=identifier)
+            reg.add_module(mt, namespace= namespace, package=identifier,
+                           package_version=version)
             
             objModule = WBModule(kw)
             objModule.namespace = namespace
@@ -1370,7 +1374,7 @@ The following could not be loaded:\n"""
         except Exception, e:
             print e
             import traceback
-            traceback.format_exc()
+            traceback.print_stack()
     print "An error occurred. Could not add missing wsdl."
     return False
 
