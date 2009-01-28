@@ -25,6 +25,7 @@ import copy
 from core.utils import VistrailsInternalError
 from core.vistrail.port_spec import PortSpec, PortEndPoint
 import core.debug
+import core.modules.module_registry
 from db.domain import DBModuleDescriptor
 
 # this is used by add_port to signal a repeated port. Should never
@@ -241,8 +242,8 @@ class ModuleDescriptor(DBModuleDescriptor):
             self._left_fringe = None
             self._right_fringe = None
         else:
-            _check_fringe(left_fringe)
-            _check_fringe(right_fringe)
+            core.modules.module_registry._check_fringe(left_fringe)
+            core.modules.module_registry._check_fringe(right_fringe)
             self._left_fringe = left_fringe
             self._right_fringe = right_fringe
 

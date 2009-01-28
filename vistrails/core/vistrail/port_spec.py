@@ -233,7 +233,7 @@ class PortSpec(DBPortSpec):
         self._descriptors = []
         if self.sigstring != '()':
             for sig in self.sigstring[1:-1].split(','):
-                k = sig.split(':')
+                k = sig.split(':', 2)
                 if len(k) < 2:
                     try:
                         d = registry.get_descriptor_from_name_only(k[0])
