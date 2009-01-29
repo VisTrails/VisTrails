@@ -186,6 +186,24 @@ class Filter(Fold):
             self.partialResult.append(self.element)
 
 
+class SimilarityFilter(Fold):
+    """A Filter module, to be used inside DDBJ_webService.vt; it will discard the
+    species with similarity score under 95.00."""
+
+    def setInitialValue(self):
+        """Defining the initial value..."""
+        
+        self.partialResult = []
+
+    def operation(self):
+        """Defining the operation..."""
+
+        similarityScore = float(self.elementResult[1].split('\t')[1])
+
+        if similarityScore>98.00:
+            self.partialResult.append(self.elementResult)
+
+
 ##class Sum(Fold):
 ##    """A Sum module, that computes the sum of the elements in a list."""
 ##
@@ -338,7 +356,8 @@ def initialize(*args,**keywords):
 
     core.modules.basic_modules.init_constant(ListValues)
 
-    reg.add_module(Fold,moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
+    reg.add_module(Fold,moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],\
+                   moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
     reg.add_input_port(Fold,'ModuleOutput',(core.modules.basic_modules.Module,""))
     reg.add_input_port(Fold,'InputList',(ListValues,""))
     reg.add_input_port(Fold,'InputPort',(ListValues,""))
@@ -346,9 +365,14 @@ def initialize(*args,**keywords):
     reg.add_output_port(Fold,'Result',(core.modules.basic_modules.Variant,""))
     reg.add_output_port(Fold,'Self',(core.modules.basic_modules.Module,""))
 
-    reg.add_module(Map,moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
+    reg.add_module(Map,moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],\
+                   moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
 
-    reg.add_module(Filter,moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
+    reg.add_module(Filter,moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],\
+                   moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
+
+    reg.add_module(SimilarityFilter,moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],\
+                   moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
 
 ##    reg.add_module(Sum)
 ##
@@ -356,7 +380,8 @@ def initialize(*args,**keywords):
 ##
 ##    reg.add_module(Or)
 
-    reg.add_module(If,moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
+    reg.add_module(If,moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],\
+                   moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
     reg.add_input_port(If,'Condition',(core.modules.basic_modules.Boolean,""))
     reg.add_input_port(If,'TruePort',(core.modules.basic_modules.Module,""))
     reg.add_input_port(If,'FalsePort',(core.modules.basic_modules.Module,""))
