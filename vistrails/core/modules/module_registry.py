@@ -1072,7 +1072,7 @@ class ModuleRegistry(DBRegistry):
         top_sort = graph.vertices_topological_sort()
         # set up fast removal of model
         for sigstring in top_sort:
-            self.delete_module(*(sigstring.split(':')))
+            self.delete_module(*(sigstring.split(':',2)))
         self.delete_package(package)
         self.signals.emit_deleted_package(package)
 
