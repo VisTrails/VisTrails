@@ -70,14 +70,63 @@ def translateVistrail(_vistrail):
     vistrail.db_version = '0.7.0'
     return vistrail
 
+module_map = {}
+translate_ports = {'SetInputConnection': {None: 'SetInputConnection0'},
+                   'GetOutputPort': {None: 'GetOutputPort0'},
+                   'SetRenderWindow': {None: 'SetVTKCell'},
+                   'SetInteractorStyle': {None: 'InteractorStyle'},
+                   'ResetCamera': {None: 'ResetCamera'},
+                   'AddInput': {None: 'AddInput',
+                                'vtkXYPlotActor': 'AddInput_2'},
+                   'SetInput': {None: 'SetInput',
+                                'vtkPolyDataNormals': 'SetInput_1',
+                                'vtkGlyph3D': 'SetInput_1',
+                                'vtkDelaunay2D': 'SetInput_1',
+                                'vtkDelaunay3D': 'SetInput_1',
+                                'vtkWarpVector': 'SetInput_1',
+                                'vtkContourFilter': 'SetInput_1',
+                                'vtkTubeFilter': 'SetInput_1',
+                                'vtkThresholdPoints': 'SetInput_1',
+                                'vtkProbeFilter': 'SetInput_1',
+                                'vtkTriangleFilter': 'SetInput_1',
+                                'vtkBandedPolyDataContourFilter': \
+                                    'SetInput_1',
+                                'vtkWarpScalar': 'SetInput_1'},
+                   'SetSourceConnection': {None: 'SetSourceConnection',
+                                           'vtkGlyph3D': \
+                                               'SetSourceConnection_2'},
+                   'AddFunction': {None: 'AddFunction',
+                                   ('vtkImplicitSum', 'vtkPlane'): \
+                                       'AddFunction_2',
+                                   ('vtkImplicitSum', 'Tuple'): \
+                                       'AddFunction_1'},
+                   'SetColor': {None: 'SetColor',
+                                ('vtkVolumeProperty', 
+                                 'vtkColorTransferFunction'): \
+                                    'SetColor_4',
+                                ('vtkVolumeProperty', 
+                                 'vtkPiecewiseFunction'): \
+                                    'SetColor_2'},
+                   'SetScalarOpacity': {None: 'SetScalarOpacity',
+                                        'vtkVolumeProperty': \
+                                            'SetScalarOpacity_2'},
+                   'SetGradientOpacity': {None: 'SetGradientOpacity',
+                                          'vtkVolumeProperty':
+                                              'SetGradientOpacity_2'},
+                   'SetSource': {None: 'SetSource',
+                                 'vtkGlyph3D': 'SetSource_1'},
+                   }
+
 def convert_data(child):
-    # FIXME don't like using core in here...
     from core.vistrail.port_spec import PortSpec
     from core.modules.module_registry import get_module_registry
+    global module_map, translate_ports
+
     registry = get_module_registry()
     if child.vtType == 'module':
         descriptor = registry.get_descriptor_from_name_only(child.db_name)
         package = descriptor.identifier
+        module_map[child.db_id] = (child.db_name, package)
         return DBModule(id=child.db_id,
                         cache=child.db_cache, 
                         abstraction=0, 
@@ -111,15 +160,24 @@ def convert_data(child):
                             value=child.db_value)
     elif child.vtType == 'port':
         sig = child.db_sig
-        if sig == 'SetColor(vtkPiecewiseFunction)':
-            sig = 'SetColor_2(vtkPiecewiseFunction)'
-        elif sig == 'SetScalarOpacity(vtkPiecewiseFunction)':
-            sig = 'SetScalarOpacity_2(vtkPiecewiseFunction)'
-        elif sig == 'SetGradientOpacity(vtkPiecewiseFunction)':
-            sig = 'SetGradientOpacity_2(vtkPiecewiseFunction)'
-        if '(' in sig:
+        if '(' in sig and ')' in sig:
             name = sig[:sig.find('(')]
             specs = sig[sig.find('(')+1:sig.find(')')]
+            if name in translate_ports:
+                if child.db_moduleId in module_map:
+                    (module_name, module_pkg) = module_map[child.db_moduleId]
+                    if module_pkg != 'edu.utah.sci.vistrails.vtk':
+                        # skip
+                        pass
+                else:
+                    module_name = child.db_moduleName
+                if module_name in translate_ports[name]:
+                    name = translate_ports[name][module_name]
+                elif (module_name, specs) in translate_ports[name]:
+                    name = translate_ports[name][(module_name, specs)]
+                else:
+                    name = translate_ports[name][None]
+
             new_specs = []
             for spec_name in specs.split(','):
                 descriptor = registry.get_descriptor_from_name_only(spec_name)

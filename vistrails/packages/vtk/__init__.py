@@ -914,8 +914,9 @@ def extract_vtk_instance(vistrails_obj):
     takes an instance of a VisTrails module that is a subclass
     of the vtkObjectBase module and returns the corresponding
     instance."""
-    registry = get_module_registry()
-    vtkObjectBase = registry.getDescriptorByName('vtkObjectBase').module
+    global identifier
+    vtkObjectBase = registry.get_descriptor_by_name(identifier,
+                                                    'vtkObjectBase').module
     assert isinstance(vistrails_obj, vtkObjectBase)
     return vistrails_obj.vtkInstance
 
@@ -924,9 +925,11 @@ def wrap_vtk_instance(vtk_obj):
 
     takes a vtk instance and returns a corresponding
     wrapped instance of a VisTrails module"""
+    global identifier
+
     assert isinstance(vtk_obj, vtk.vtkObjectBase)
-    registry = get_module_registry()
-    m = registry.getDescriptorByName(vtk_obj.GetClassName())
+    m = registry.get_descriptor_by_name(identifier,
+                                        vtk_obj.GetClassName())
     result = m.module()
     result.vtkInstance = vtk_obj
     return result
