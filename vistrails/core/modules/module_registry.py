@@ -230,6 +230,17 @@ class MissingModuleVersion(ModuleRegistryException):
         return "Missing version %s of module %s from package %s" % \
             (self._module_version, self._module_name, self._package_name)
 
+class AmbiguousResolution(ModuleRegistryException):
+    def __init__(self, name, namespace, matches):
+        ModuleRegistryException.__init__(self, "<unkown package>", 
+                                         name, namespace)
+        self.matches = matches
+
+    def __str__(self):
+        return ("Ambiguous resolution of module %s.  Could resolve to:\n%s" % \
+                    (self._module_name, 
+                     ',\n'.join(str(m) for m in self.matches)))
+        
 class MissingBaseClass(Exception):
     def __init__(self, base):
         Exception.__init__(self)
@@ -306,7 +317,8 @@ class ModuleRegistry(DBRegistry):
             if descriptor.base_descriptor_id in self.descriptors_by_id:
                 base_descriptor = \
                     self.descriptors_by_id[descriptor.base_descriptor_id]
-                base_descriptor.children.append(descriptor)
+                if descriptor not in base_descriptor.children:
+                    base_descriptor.children.append(descriptor)
         
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBRegistry.do_copy(self, new_ids, id_scope, id_remap)
@@ -614,10 +626,11 @@ class ModuleRegistry(DBRegistry):
 #                    self.descriptors.iterkeys()
 #                    if x[1] == name]
         if len(matches) == 0:
-            raise Exception("No matches")
-            # raise self.MissingModule("<unknown package>", name, None)
+            raise MissingModule("<unknown package>", name, None)
         if len(matches) > 1:
-            raise Exception("ambiguous resolution...\n" + str(matches))
+            matches_str = [(m[0].identifier, m[1][0], m[1][1],
+                            m[0].version) for m in matches]
+            raise AmbiguousResolution(name, None, matches_str)
         (pkg, key) = matches[0]
         desc = pkg.descriptors[key]
         result = self.get_descriptor_by_name(pkg.identifier, desc.name, 

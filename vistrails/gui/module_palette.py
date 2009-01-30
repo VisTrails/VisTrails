@@ -126,6 +126,7 @@ class QModulePalette(QSearchTreeWindow, QToolWindowInterface):
         item = self.packages[package.identifier]()        
         index = self.treeWidget.indexOfTopLevelItem(item)
         self.treeWidget.takeTopLevelItem(index)
+        del self.packages[package.identifier]
 
     def newPackage(self, package_identifier, prepend=False):
         # prepend places at the front of the list of packages,

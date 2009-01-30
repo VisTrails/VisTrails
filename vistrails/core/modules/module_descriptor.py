@@ -282,9 +282,10 @@ class ModuleDescriptor(DBModuleDescriptor):
                 self.version == other.version)
 
     def __str__(self):
-        return ("ModuleDescriptor(package=%s, name=%s, namespace=%s, "
-                "version=%s)" % (self.package, self.name, self.namespace,
-                                 self.version))
+        return ("ModuleDescriptor(id=%s, package=%s, name=%s, namespace=%s, "
+                "version=%s, base_descriptor_id=%s)" % \
+                    (self.id, self.package, self.name, self.namespace,
+                     self.version, self.base_descriptor_id))
  
     ##########################################################################
     # Abstract module detection support

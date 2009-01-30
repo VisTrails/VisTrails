@@ -287,7 +287,15 @@ class QViewManager(QtGui.QTabWidget):
             locator = copy.copy(untitled_locator())
         else:
             locator = None
-        (vistrail, abstraction_files) = self.load_vistrail(locator)
+        try:
+            (vistrail, abstraction_files) = self.load_vistrail(locator)
+        except ModuleRegistryException, e:
+            QtGui.QMessageBox.critical(self, str(e.__class__.__name__), str(e))
+        except Exception, e:
+            QtGui.QMessageBox.critical(None,
+                                       'Vistrails',
+                                       str(e))
+            raise
         return self.set_vistrail_view(vistrail, locator, abstraction_files)
 
     def close_first_vistrail_if_necessary(self):
@@ -306,30 +314,17 @@ class QViewManager(QtGui.QTabWidget):
     def load_vistrail(self, locator, is_abstraction=False):
         abstraction_files = []
         vistrail = None
-        try:
-            if locator is None:
-                vistrail = Vistrail()
+        if locator is None:
+            vistrail = Vistrail()
+        else:
+            res = locator.load()
+            if type(res) == type([]):
+                vistrail = res[0][1]
+                for (_, abstraction_file) in res[1:]:
+                    abstraction_files.append(abstraction_file)
             else:
-                res = locator.load()
-                if type(res) == type([]):
-                    vistrail = res[0][1]
-                    for (_, abstraction_file) in res[1:]:
-                        abstraction_files.append(abstraction_file)
-                else:
-                    vistrail = res
-            vistrail.is_abstraction = is_abstraction
-        except ModuleRegistryException, e:
-            msg = ('Cannot find module "%s" in \n' 
-                   'package "%s". Make sure package is \n' 
-                   'enabled in the Preferences dialog.' % \
-                       (e._name, e._identifier))
-            QtGui.QMessageBox.critical(self, 'Missing package', msg)
-        except Exception, e:
-            QtGui.QMessageBox.critical(None,
-                                       'Vistrails',
-                                       str(e))
-            raise
-
+                vistrail = res
+        vistrail.is_abstraction = is_abstraction
         return (vistrail, abstraction_files)
 
     def set_vistrail_view(self, vistrail, locator, abstraction_files=None,
@@ -378,11 +373,7 @@ class QViewManager(QtGui.QTabWidget):
                                             abstraction_files, version)
             return result
         except ModuleRegistryException, e:
-            QtGui.QMessageBox.critical(self,
-                                       'Missing package',
-                                       (('Cannot find module "%s" in \n' % e._name) +
-                                        ('package "%s". Make sure package is \n' % e._identifier) +
-                                        'enabled in the Preferences dialog.'))
+            QtGui.QMessageBox.critical(self, str(e.__class__.__name__), str(e))
         except Exception, e:
             QtGui.QMessageBox.critical(None,
                                        'Vistrails',
