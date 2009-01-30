@@ -1004,7 +1004,7 @@ class QVersionTreeScene(QInteractiveGraphicsScene):
         """
         if event.timerId() == self.timer.timerId():
             self.animation_step += 1
-            if self.animation_step == self.num_animation_steps:
+            if self.animation_step >= self.num_animation_steps:
                 self.animation_step = 1
                 self.timer.stop()
                 self.controller.animate_layout = False
