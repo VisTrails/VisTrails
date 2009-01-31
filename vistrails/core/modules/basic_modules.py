@@ -709,6 +709,7 @@ def initialize(*args, **kwargs):
 
     # !!! is_root should only be set for Module !!!
     reg.add_module(Module, is_root=True)
+    reg.add_output_port(Module, "self", Module)
 
     reg.add_module(Constant)
 

@@ -141,7 +141,6 @@ class Fold(core.modules.basic_modules.Module):
         """The compute method for the Fold."""
 
         self.setResult('Result', self.partialResult)
-        self.setResult('Self',self)
 
     def setInitialValue(self):
         """This method defines the initial value of the Fold structure. It must
@@ -287,7 +286,7 @@ class If(core.modules.basic_modules.Module):
     def compute(self):
         """ The compute method for the If module."""
 
-        self.setResult('Self',self)
+        pass
 
 
 #################################################################################
@@ -363,7 +362,6 @@ def initialize(*args,**keywords):
     reg.add_input_port(Fold,'InputPort',(ListValues,""))
     reg.add_input_port(Fold,'OutputPort',(core.modules.basic_modules.String,""))
     reg.add_output_port(Fold,'Result',(core.modules.basic_modules.Variant,""))
-    reg.add_output_port(Fold,'Self',(core.modules.basic_modules.Module,""))
 
     reg.add_module(Map,moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],\
                    moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
@@ -385,7 +383,6 @@ def initialize(*args,**keywords):
     reg.add_input_port(If,'Condition',(core.modules.basic_modules.Boolean,""))
     reg.add_input_port(If,'TruePort',(core.modules.basic_modules.Module,""))
     reg.add_input_port(If,'FalsePort',(core.modules.basic_modules.Module,""))
-    reg.add_output_port(If,'Self',(core.modules.basic_modules.Module,""))
     reg.add_output_port(If,'Result',(core.modules.basic_modules.Module,""))
 
     reg.add_module(Dot)
