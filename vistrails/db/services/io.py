@@ -511,16 +511,22 @@ def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None, version=None):
             raise VistrailsDBException('save_vistrail_to_zip_xml failed, '
                                        "type '%s' unrecognized" % obj_type)
         
-
+    tmp_zip_dir = tempfile.mkdtemp(prefix='vt_zip')
+    tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
     output = []
-    cmdline = ['zip', '-r', '-j', '-q', filename, vt_save_dir]
-    result = execute_cmdline(cmdline,output)
-    
-    #print result, output
-    if result != 0 and len(output) != 0:
-        for line in output:
-            if line.find('deflated') == -1:
-                raise VistrailsDBException(" ".join(output))
+    cmdline = ['zip', '-r', '-j', '-q', tmp_zip_file, vt_save_dir]
+    try:
+        result = execute_cmdline(cmdline,output)
+        # print result, output
+        if result != 0 and len(output) != 0:
+            for line in output:
+                if line.find('deflated') == -1:
+                    raise VistrailsDBException(" ".join(output))
+        shutil.copyfile(tmp_zip_file, filename)
+    finally:
+        os.unlink(tmp_zip_file)
+        os.rmdir(tmp_zip_dir)
+
     return (objs, vt_save_dir)
             
 def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):

@@ -281,7 +281,14 @@ class ZIPFileLocator(XMLFileLocator):
         return objs
 
     def save(self, objs, do_copy=True):
-        (objs, tmp_dir) = io.save_to_zip_xml(objs, self._name, self.tmp_dir)
+        if do_copy:
+            # make sure we create a fresh temporary directory if we're
+            # duplicating the vistrail
+            tmp_dir = None
+        else:
+            # otherwise, use the existing temp directory if one is set
+            tmp_dir = self.tmp_dir
+        (objs, tmp_dir) = io.save_to_zip_xml(objs, self._name, tmp_dir)
         self.tmp_dir = tmp_dir
         for obj in objs:
             if obj[0] != '__file__':

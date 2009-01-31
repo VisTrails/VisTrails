@@ -1755,6 +1755,7 @@ class VistrailController(QtCore.QObject, BaseController):
                 self.set_file_name(locator.name)
                 if old_locator:
                     old_locator.clean_temporaries()
+                    old_locator.close()
             else:
                 # new_vistrail = self.locator.save(self.vistrail)
                 if type(self.locator) == core.db.locator.ZIPFileLocator:
