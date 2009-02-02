@@ -3,13 +3,14 @@ from core.modules.module_registry import registry
 import core.modules.basic_modules
 import copy
 
-version="1.0"
+version="0.1"
 name="Control Flow"
 identifier="edu.utah.sci.vistrails.control_flow"
 
 
 #################################################################################
 ## The List Module
+## For instance, this module will be inside this package
 
 def list_conv(l):
     if (l[0] != '[') and (l[-1] != ']'):
@@ -67,11 +68,11 @@ class Fold(core.modules.basic_modules.Module):
             connectors_OutputPort = self.inputPorts.get('OutputPort')
 
             ######################################################################
-            ## updateModule()
+            ## updateModuleOutput()
 
-            def updateModule():
+            def updateModuleOutput():
                 """Function to be used inside this updateUsptream method. It
-                updates the modules connected to the Module port."""
+                updates the modules connected to the ModuleOutput port."""
 
                 nameInput = self.getInputFromPort('InputPort')
                 nameOutput = self.getInputFromPort('OutputPort')
@@ -124,7 +125,7 @@ class Fold(core.modules.basic_modules.Module):
 
             ## Updating connectors from 'ModuleOutput' --> This one must be the last
             for connector in connectors_ModuleOutput:
-                updateModule()
+                updateModuleOutput()
         
         else:
             lenght = len(InputList)
@@ -291,6 +292,7 @@ class If(core.modules.basic_modules.Module):
 
 #################################################################################
 ## Products
+## For instance, these modules will be inside this package
 
 
 class Dot(core.modules.basic_modules.Module):
@@ -355,22 +357,16 @@ def initialize(*args,**keywords):
 
     core.modules.basic_modules.init_constant(ListValues)
 
-    reg.add_module(Fold,moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],\
-                   moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
-    reg.add_input_port(Fold,'ModuleOutput',(core.modules.basic_modules.Module,""))
-    reg.add_input_port(Fold,'InputList',(ListValues,""))
-    reg.add_input_port(Fold,'InputPort',(ListValues,""))
-    reg.add_input_port(Fold,'OutputPort',(core.modules.basic_modules.String,""))
-    reg.add_output_port(Fold,'Result',(core.modules.basic_modules.Variant,""))
+    controlModules = [Fold,Map,Filter,SimilarityFilter,If]
 
-    reg.add_module(Map,moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],\
+    for module in controlModules:
+        reg.add_module(module, moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],\
                    moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
-
-    reg.add_module(Filter,moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],\
-                   moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
-
-    reg.add_module(SimilarityFilter,moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],\
-                   moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
+    reg.add_input_port(Fold, 'ModuleOutput', (core.modules.basic_modules.Module,""))
+    reg.add_input_port(Fold, 'InputList', (ListValues,""))
+    reg.add_input_port(Fold, 'InputPort', (ListValues,""))
+    reg.add_input_port(Fold, 'OutputPort', (core.modules.basic_modules.String,""))
+    reg.add_output_port(Fold, 'Result', (core.modules.basic_modules.Variant,""))
 
 ##    reg.add_module(Sum)
 ##
@@ -378,19 +374,17 @@ def initialize(*args,**keywords):
 ##
 ##    reg.add_module(Or)
 
-    reg.add_module(If,moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],\
-                   moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
-    reg.add_input_port(If,'Condition',(core.modules.basic_modules.Boolean,""))
-    reg.add_input_port(If,'TruePort',(core.modules.basic_modules.Module,""))
-    reg.add_input_port(If,'FalsePort',(core.modules.basic_modules.Module,""))
-    reg.add_output_port(If,'Result',(core.modules.basic_modules.Module,""))
+    reg.add_input_port(If, 'Condition', (core.modules.basic_modules.Boolean,""))
+    reg.add_input_port(If, 'TruePort', (core.modules.basic_modules.Module,""))
+    reg.add_input_port(If, 'FalsePort', (core.modules.basic_modules.Module,""))
+    reg.add_output_port(If, 'Result', (core.modules.basic_modules.Module,""))
 
     reg.add_module(Dot)
-    reg.add_input_port(Dot,'List_1',(ListValues,""))
-    reg.add_input_port(Dot,'List_2',(ListValues,""))
-    reg.add_output_port(Dot,'Result',(ListValues,""))
+    reg.add_input_port(Dot, 'List_1', (ListValues,""))
+    reg.add_input_port(Dot, 'List_2', (ListValues,""))
+    reg.add_output_port(Dot, 'Result', (ListValues,""))
 
     reg.add_module(Cross)
-    reg.add_input_port(Cross,'List_1',(ListValues,""))
-    reg.add_input_port(Cross,'List_2',(ListValues,""))
-    reg.add_output_port(Cross,'Result',(ListValues,""))
+    reg.add_input_port(Cross, 'List_1', (ListValues,""))
+    reg.add_input_port(Cross, 'List_2', (ListValues,""))
+    reg.add_output_port(Cross, 'Result', (ListValues,""))
