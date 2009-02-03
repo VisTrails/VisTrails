@@ -21,24 +21,51 @@
 ############################################################################
 import itk
 import core.modules
-from ITK import *
+import core.modules.module_registry
+from core.modules.vistrails_module import Module, ModuleError
 
-class PixelTypeFloat(PixelType):
+from ITK import PixelType
+  
+class PixelTypeFloat(Module):
+    my_namespace = "pixeltype"
     def compute(self):
         self._type = itk.F
         self.setResult("Pixel Type", self)
 
-class PixelTypeUnsignedChar(PixelType):
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Pixel Type Float", namespace=cls.my_namespace)
+        reg.add_output_port(cls, "Pixel Type", (PixelType, 'Pixel Type'))
+
+class PixelTypeUnsignedChar(Module):
+    my_namespace = "pixeltype"
     def compute(self):
         self._type = itk.UC
         self.setResult("Pixel Type", self)
 
-class PixelTypeUnsignedShort(PixelType):
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Pixel Type Unsigned Char", namespace=cls.my_namespace)
+        reg.add_output_port(cls, "Pixel Type", (PixelType, 'Pixel Type'))
+
+class PixelTypeUnsignedShort(Module):
+    my_namespace = "pixeltype"
     def compute(self):
         self._type = itk.US
         self.setResult("Pixel Type", self)
 
-class PixelTypeRGB(PixelType):
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Pixel Type Unsigned Short", namespace=cls.my_namespace)
+        reg.add_output_port(cls, "Pixel Type", (PixelType, 'Pixel Type'))
+
+class PixelTypeRGB(Module):
+    my_namespace = "pixeltype"
     def compute(self):
         self._type = itk.RGBPixel[itk.US]
         self.setResult("Pixel Type", self)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Pixel Type RGB", namespace=cls.my_namespace)
+        reg.add_output_port(cls, "Pixel Type", (PixelType, 'Pixel Type'))

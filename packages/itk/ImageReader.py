@@ -21,9 +21,12 @@
 ############################################################################
 import itk
 import core.modules
-from ITK import *
 
-class ImageReader(ITK):
+from ITK import *
+from Image import Image
+
+class ImageReader(Module):
+    my_namespace = "ImageReader"
     def compute(self):
         dim = self.getInputFromPort("Dimension")
         pt = self.getInputFromPort("Pixel Type")
@@ -34,7 +37,17 @@ class ImageReader(ITK):
         self.setResult("Image", self.reader.GetOutput())
         self.setResult("Reader", self)
 
-class ImageToFile(ITK):
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="ImageReader", namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Filename", (basic.String, 'Filename'))
+        reg.add_input_port(cls, "Pixel Type", (PixelType, 'Pixel Type'))
+        reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'))
+        reg.add_output_port(cls, "Image", (Image, 'Image'))
+        reg.add_output_port(cls, "Reader", (ImageReader, 'Reader'))
+
+class ImageToFile(Module):
+    my_namespace = "ImageReader"
     def compute(self):
         dim = self.getInputFromPort("Dimension")
         pt = self.getInputFromPort("Pixel Type")._type
@@ -49,7 +62,17 @@ class ImageToFile(ITK):
     def createOutputFile(self, s):
         return self.interpreter.filePool.create_file(suffix=s)
 
-class GDCMReader(ITK):
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="ImageToFile", namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Suffix", (basic.String, 'Suffix'))
+        reg.add_input_port(cls, "Pixel Type", (PixelType, 'Pixel Type'))
+        reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'))
+        reg.add_input_port(cls, "Image", (Image, 'Image'))
+        reg.add_output_port(cls, "File", (basic.File, 'File'))
+
+class GDCMReader(Module):
+    my_namespace = "ImageReader"
     def compute(self):
         dir = self.getInputFromPort("Directory")
         dim = self.getInputFromPort("Dimension")
@@ -69,7 +92,15 @@ class GDCMReader(ITK):
 
         self.setResult("Image Series", self.reader_.GetOutput())
 
-class DICOMReader(ITK):
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="GDCMReader", namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Directory", (basic.String, 'Directory'))
+        reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'))
+        reg.add_output_port(cls, "Image Series", (Image, 'Image Series'))
+
+class DICOMReader(Module):
+    my_namespace = "ImageReader"
     def compute(self):
         dir = self.getInputFromPort("Directory")
         dim = self.getInputFromPort("Dimension")
@@ -84,9 +115,16 @@ class DICOMReader(ITK):
         self.reader_.Update()
 
         self.setResult("Image Series", self.reader_.GetOutput())
-        
 
-class ITKImageToVTKData(ITK):
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="DICOMReader", namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Directory", (basic.String, 'Directory'))
+        reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'))
+        reg.add_output_port(cls, "Image Series", (Image, 'Image Series'))
+
+class ITKImageToVTKData(Module):
+    my_namespace = "ImageReader"
     def compute(self):
         dim = self.getInputFromPort("Dimension")
         pType = self.getInputFromPort("Input PixelType")
@@ -96,3 +134,5 @@ class ITKImageToVTKData(ITK):
         self.vtkExport_.SetInput(im)
         self.vtkExport_.Update()
         self.setResult("VTK Output", self.vtkExport_.GetOutput())
+
+        #TODO add register method

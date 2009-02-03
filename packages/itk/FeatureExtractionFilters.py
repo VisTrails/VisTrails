@@ -21,13 +21,14 @@
 ############################################################################
 import itk
 import core.modules
-from ITK import *
-from Filters import *
+from core.modules.vistrails_module import Module, ModuleError
 
-class GradientMagnitudeRecursiveGaussianImageFilter(FeatureFilter):
-    def setSigma(self, sigma):
-        self.sigma_ = sigma;
-        
+from ITK import *
+from Image import Image
+
+class GradientMagnitudeRecursiveGaussianImageFilter(Module):
+    my_namespace = "Filter|Feature"
+
     def compute(self):
         inFilter = self.forceGetInputFromPort("Input Filter")
         im = self.getInputFromPort("Input Image")
@@ -40,15 +41,27 @@ class GradientMagnitudeRecursiveGaussianImageFilter(FeatureFilter):
         inType = self.getInputFromPort("Input PixelType")._type
         outType = out._type
         dim = self.getInputFromPort("Dimension")
-        self.setSigma(self.getInputFromPort("Sigma"))
+        sigma_ = self.getInputFromPort("Sigma")
         inType = itk.Image[inType, dim]
         outType= itk.Image[outType, dim]
 
         self.filter_ = itk.GradientMagnitudeRecursiveGaussianImageFilter[inType, outType].New(im)
-        self.filter_.SetSigma(self.sigma_)
-        
+        self.filter_.SetSigma(sigma_)
         self.filter_.Update()
 
         self.setResult("Output Image", self.filter_.GetOutput())
         self.setResult("Filter", self)
         self.setResult("Output PixelType", out)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Gradient Magnitude Recursive Gaussian Image Filter", namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Input Filter", (Filter, 'Input Filter'))
+        reg.add_input_port(cls, "Input Image", (Image, 'Input Image'))
+        reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'))
+        reg.add_input_port(cls, "Output PixelType", (PixelType, 'Output PixelType'))
+        reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'))
+        reg.add_input_port(cls, "Sigma", (basic.Float, 'Sigma'))
+        reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))
+        reg.add_output_port(cls, "Filter", (Filter, 'Filter'), True)
+        reg.add_output_port(cls, "Output PixelType", (PixelType, 'Output PixelType'))

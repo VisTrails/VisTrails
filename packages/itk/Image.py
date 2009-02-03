@@ -21,35 +21,33 @@
 ############################################################################
 import itk
 import core.modules
+import core.modules.module_registry
+from core.modules.vistrails_module import Module, ModuleError
 from ITK import *
 from PixelTypes import *
 
-class Image(ITK):
-    def setDimension(self, dim):
-        self.dim = dim
-
-    def setPixelType(self, pixeltype):
-        self._type = pixeltype
-
-    def getDimension(self):
-        return self.dim
-
-    def getPixelType(self):
-        # Note:  This is still a PixelType object. 
-        return self._type
+class Image(Module, ITK):
+    my_namespace=""
 
     def compute(self):
-        inIm = self.getInputFromPort("Image")
-        if inIm:
-            self.setDimension(inIm.getDimension())
-            self.setPixelType(inIm.getPixelType())
-        else:    
-            self.setDimension(self.getInputFromPort("Dimension"))
-            self.setPixelType(self.getInputFromPort("Pixel Type"))
+        self.inIm = self.getInputFromPort("Image")
+        self.dim = self.getInputFromPort("Dimension")
+        self._type = self.getInputFromPort("Pixel Type")
 
-        self._image = itk.Image[_type._type, dim]
+        self._image = itk.Image[self._type._type, self.dim]
         self._image.New()
 
         self.setResult("Image Pixel Type", self._type)
         self.setResult("Image Dimension", self.dim)
-        self.setResult("Output Image", self)
+        self.setResult("Output Image", self.inIm)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Image", namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Pixel Type", (PixelType, 'Pixel Type'))
+        reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'))
+        reg.add_input_port(cls, "Image", (Image, 'Image'))
+
+        reg.add_output_port(cls, "Image Pixel Type", (PixelType, 'Image Pixel Type'))
+        reg.add_output_port(cls, "Image Dimension", (basic.Integer, 'Image Dimension'))
+        reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))

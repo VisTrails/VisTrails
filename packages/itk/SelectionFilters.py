@@ -21,12 +21,12 @@
 ############################################################################
 import itk
 import core.modules
+from core.modules.vistrails_module import Module, ModuleError
 from ITK import *
-from Filters import *
+from Image import Image
 
-class RegionOfInterestImageFilter(SelectionFilter):
-    def setSize(self, size):
-        self.region_.SetSize(size)
+class RegionOfInterestImageFilter(Module):
+    my_namespace="Filter|Selection"
 
     def setStart(self, start):
         if start == 2:
@@ -56,9 +56,9 @@ class RegionOfInterestImageFilter(SelectionFilter):
         if self.hasInputFromPort("Input Region"):
             self.region_ = self.getInputFromPort("Input Region").region_
         else:
-            self.region_ = itk.ImageRegion[indim]()         
+            self.region_ = itk.ImageRegion[indim]()
             self.setStart(indim)
-            self.setSize(self.getInputFromPort("Region Size").size_)
+            self.region_.SetSize(self.getInputFromPort("Region Size").size_)
 
         self.filter_.SetRegionOfInterest(self.region_)
         self.filter_.SetInput(im)
@@ -66,9 +66,22 @@ class RegionOfInterestImageFilter(SelectionFilter):
         self.setResult("Output Image", self.filter_.GetOutput())
         self.setResult("Output PixelType", out)
         self.setResult("Filter", self)
-        self.setResult("Output Dimension", outdim)
 
-class CastImageFilter(SelectionFilter):
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Region of Interest Image Filter", namespace=cls.my_namespace)
+
+        reg.add_input_port(cls, "Input Image", (Image, 'Input Image'))
+        reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'))
+        reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'))
+        reg.add_input_port(cls, "Output PixelType", (PixelType, 'Output PixelType'))
+
+        reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))
+        reg.add_output_port(cls, "Output PixelType", (PixelType, 'Output PixelType'))
+        reg.add_output_port(cls, "Dimension", (basic.Integer, 'Dimension'))
+
+class CastImageFilter(Module):
+    my_namespace="Filter|Selection"
     def compute(self):
         im = self.getInputFromPort("Input Image")
         dim = self.getInputFromPort("Dimension")
@@ -80,9 +93,29 @@ class CastImageFilter(SelectionFilter):
         self.filter_.Update()
         self.setResult("Output Image", self.filter_.GetOutput())
         self.setResult("Output PixelType", outType)
-        self.setResult("Dimension", dim)
 
-class ExtractImageFilter(SelectionFilter):
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Cast Image Filter", namespace=cls.my_namespace)
+
+        reg.add_input_port(cls, "Input Dimension", (basic.Integer, 'Input Dimension'))
+        reg.add_input_port(cls, "Output Dimension", (basic.Integer, 'Output Dimension'))
+        reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'))
+        reg.add_input_port(cls, "Output PixelType", (PixelType, 'Output PixelType'), True)
+        reg.add_input_port(cls, "Input 2D Index", (Index2D, 'Input 2D Index'))
+        reg.add_input_port(cls, "Input 3D Index", (Index3D, 'Input 3D Index'), True)
+        reg.add_input_port(cls, "Region Size", (Size, 'Region Size'))
+        reg.add_input_port(cls, "Input Image", (Image, 'Input Image'))
+        reg.add_input_port(cls, "Input Region", (Region, 'Input Region'), True)
+
+        reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))
+        reg.add_output_port(cls, "Output PixelType", (PixelType, 'Output PixelType'))
+        reg.add_output_port(cls, "Filter", (Filter, 'Filter'))
+        reg.add_output_port(cls, "Output Dimension", (basic.Integer, 'Output Dimension'))
+
+
+class ExtractImageFilter(Module):
+    my_namespace="Filter|Selection"
     def compute(self):
         imVol = self.getInputFromPort("Input Volume")
         inDim = self.getInputFromPort("Input Dimension")
@@ -93,12 +126,25 @@ class ExtractImageFilter(SelectionFilter):
         outType = itk.Image[pType._type,outDim]
         self.filter_ = itk.ExtractImageFilter[inType,outType].New()
         self.filter_.SetInput(imVol)
-        
+
         region = self.getInputFromPort("Extraction Region")
         self.filter_.SetExtractionRegion(region.region_)
         self.filter_.Update()
-        
+
         self.setResult("Output Image", self.filter_.GetOutput())
         self.setResult("Output PixelType", pType)
         self.setResult("Dimension", outDim)
-	
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Extract Image Filter", namespace=cls.my_namespace)
+
+        reg.add_input_port(cls, "Input Volume", (Image, 'Input Image'))
+        reg.add_input_port(cls, "Input Dimension", (basic.Integer, 'Input Dimension'))
+        reg.add_input_port(cls, "Output Dimension", (basic.Integer, 'Output Dimension'))
+        reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'))
+        reg.add_input_port(cls, "Extraction Region", (Region, 'Extraction Region'))
+
+        reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))
+        reg.add_output_port(cls, "Output PixelType", (PixelType, 'Output PixelType'))
+        reg.add_output_port(cls, "Dimension", (basic.Integer, 'Dimension'))

@@ -21,10 +21,12 @@
 ############################################################################
 import itk
 import core.modules
+from core.modules.vistrails_module import Module, ModuleError
 from ITK import *
-from Filters import *
+from Image import Image
 
-class CurvatureAnisotropicDiffusionFilter(SmoothingFilter):
+class CurvatureAnisotropicDiffusionFilter(Module):
+    my_namespace="Filter|Smoothing"
     def compute(self):
         im = self.getInputFromPort("Input Image")
 
@@ -71,8 +73,24 @@ class CurvatureAnisotropicDiffusionFilter(SmoothingFilter):
         self.setResult("Filter", self)
         self.setResult("Output Dimension", outdim)
 
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Curvature Anisotropic Diffusion Filter", namespace=cls.my_namespace)
+        reg.add_input_port(cls, "Input Image", (Image, 'Input Image'))
+        reg.add_input_port(cls, "Input Dimension", (basic.Integer, 'Input Dimension'))
+        reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'))
+        reg.add_input_port(cls, "Output PixelType", (PixelType, 'Output PixelType'), True)
+        reg.add_input_port(cls, "Iterations", (basic.Integer, 'Iterations'), True)
+        reg.add_input_port(cls, "TimeStep", (basic.Float, 'TimeStep'), True)
+        reg.add_input_port(cls, "Conductance", (basic.Float, 'Conductance'), True)
+        reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))
+        reg.add_output_port(cls, "Output PixelType", (PixelType, 'Output PixelType'))
+        reg.add_output_port(cls, "Output Dimension", (basic.Integer, 'Output Dimension'))
+        reg.add_output_port(cls, "Filter", (Filter, 'Filter'), True)
 
-class RecursiveGaussianImageFilter(SmoothingFilter):
+
+class RecursiveGaussianImageFilter(Module):
+    my_namespace="Filter|Smoothing"
     def compute(self):
         im = self.getInputFromPort("Input Image")
 
@@ -99,7 +117,21 @@ class RecursiveGaussianImageFilter(SmoothingFilter):
         self.setResult("Output PixelType", out)
         self.setResult("Output Dimension", outdim)
 
-class CurvatureFlowImageFilter(SmoothingFilter):
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Recursive Gaussian Image Filter", namespace=cls.my_namespace)
+
+        reg.add_input_port(cls, "Input Image", (Image, 'Input Image'))
+        reg.add_input_port(cls, "Input Dimension", (basic.Integer, 'Input Dimension'))
+        reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'))
+        reg.add_input_port(cls, "Sigma", (basic.Float, 'Sigma'))
+
+        reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))
+        reg.add_output_port(cls, "Output Dimension", (basic.Integer, 'Output Dimension'))
+        reg.add_output_port(cls, "Output PixelType", (PixelType, 'Output PixelType'))
+
+class CurvatureFlowImageFilter(Module):
+    my_namespace="Filter|Smoothing"
     def compute(self):
         im = self.getInputFromPort("Input Image")
         dim = self.getInputFromPort("Input Dimension")
@@ -125,9 +157,23 @@ class CurvatureFlowImageFilter(SmoothingFilter):
 
         self.filter_.SetTimeStep(self.ts)
         self.filter_.SetNumberOfIterations(self.iterations)
-        
+
         self.filter_.Update()
 
         self.setResult("Output Image", self.filter_.GetOutput())
         self.setResult("Output PixelType", out)
         self.setResult("Output Dimension", dim)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Curvature Flow Image Filter", namespace=cls.my_namespace)
+
+        reg.add_input_port(cls, "Input Image", (Image, 'Input Image'))
+        reg.add_input_port(cls, "Input Dimension", (basic.Integer, 'Input Dimension'))
+        reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'))
+        reg.add_input_port(cls, "TimeStep", (basic.Float, 'TimeStep'), True)
+        reg.add_input_port(cls, "Iterations", (basic.Integer, 'Iterations'), True)
+
+        reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))
+        reg.add_output_port(cls, "Output Dimension", (basic.Integer, 'Output Dimension'))
+        reg.add_output_port(cls, "Output PixelType", (PixelType, 'Output PixelType'))

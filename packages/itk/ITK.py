@@ -24,19 +24,32 @@ from core.modules.vistrails_module import Module, ModuleError
 
 import itk
 
-class ITK(Module):
+class ITK(object):
+    my_namespace="itk"
+
+class PixelType(Module, ITK):
+    my_namespace = "pixeltype"
+
     def compute(self):
         pass
 
-class PixelType(ITK):
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Pixel Type", namespace=cls.my_namespace)
+
+class Filter(Module, ITK):
+
     def compute(self):
         pass
 
-class Filter(ITK):
-    def compute(self):
-        pass
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Filter", namespace=cls.my_namespace)
 
-class Index2D(ITK):
+
+class Index2D(Module, ITK):
+    my_namespace = "index"
+
     def compute(self):
         self.ind_ = itk.Index[2]()
         self.x_ = self.getInputFromPort("X Index")
@@ -47,7 +60,17 @@ class Index2D(ITK):
 
         self.setResult("Index", self)
 
-class Index3D(ITK):
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Index2D", namespace=cls.my_namespace)
+
+        reg.add_input_port(cls, "X Index", (basic.Integer, 'X Index'))
+        reg.add_input_port(cls, "Y Index", (basic.Integer, 'Y Index'))
+
+        reg.add_output_port(cls, "Index", (Index2D, 'Index'))
+
+class Index3D(Module, ITK):
+    my_namespace = "index"
     def compute(self):
         self.ind_ = itk.Index[3]()
         self.x_ = self.getInputFromPort("X Index")
@@ -60,7 +83,18 @@ class Index3D(ITK):
 
         self.setResult("Index", self)
 
-class Size(ITK):
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Index3D", namespace=cls.my_namespace)
+
+        reg.add_input_port(cls, "X Index", (basic.Integer, 'X Index'))
+        reg.add_input_port(cls, "Y Index", (basic.Integer, 'Y Index'))
+        reg.add_input_port(cls, "Z Index", (basic.Integer, 'Z Index'))
+
+        reg.add_output_port(cls, "Index", (Index3D, 'Index'))
+
+class Size(Module, ITK):
+    my_namespace = "size"
     def compute(self):
         dim = self.getInputFromPort("Dimension")
         self.size_ = itk.Size[dim]()
@@ -71,13 +105,25 @@ class Size(ITK):
 
         self.size_.SetElement(0,self.x)
         self.size_.SetElement(1,self.y)
-        
+
         if dim > 2:
             self.size_.SetElement(2,self.z)
 
         self.setResult("Size",self)
 
-class Region(ITK):
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Size", namespace=cls.my_namespace)
+
+        reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'))
+        reg.add_input_port(cls, "Element 1", (basic.Integer, 'Element 1'))
+        reg.add_input_port(cls, "Element 2", (basic.Integer, 'Element 2'))
+        reg.add_input_port(cls, "Element 3", (basic.Integer, 'Element 3'))
+
+        reg.add_output_port(cls, "Size", (Size, 'Size'))
+
+class Region(Module, ITK):
+    my_namespace = "region"
     def compute(self):
         dim = self.getInputFromPort("Dimension")
         self.region_ = itk.ImageRegion[dim]()
@@ -88,3 +134,14 @@ class Region(ITK):
             self.region_.SetIndex(self.getInputFromPort("Input 2D Index").ind_)
 
         self.setResult("Region", self)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Region", namespace=cls.my_namespace)
+
+        reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'))
+        reg.add_input_port(cls, "Size", (Size, 'Size'))
+        reg.add_input_port(cls, "Input 2D Index", (Index2D, 'Input 2D Index'))
+        reg.add_input_port(cls, "Input 3D Index", (Index3D, 'Input 3D Index'), True)
+
+        reg.add_output_port(cls, "Region", (Region, 'Region'))

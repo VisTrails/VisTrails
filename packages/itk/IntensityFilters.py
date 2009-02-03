@@ -21,10 +21,13 @@
 ############################################################################
 import itk
 import core.modules
-from ITK import *
-from Filters import *
+from core.modules.vistrails_module import Module, ModuleError
 
-class RescaleIntensityImageFilter(IntensityFilter):
+from ITK import *
+from Image import Image
+
+class RescaleIntensityImageFilter(Module):
+    my_namespace = "Filter|Intensity"
     def compute(self):
         inFilter = self.forceGetInputFromPort("Input Filter")
         im = self.getInputFromPort("Input Image")
@@ -33,7 +36,6 @@ class RescaleIntensityImageFilter(IntensityFilter):
             out = self.getInputFromPort("Output PixelType")
         else:
             out = self.getInputFromPort("Input PixelType")
-
 
         inType = self.getInputFromPort("Input PixelType")._type
         outType = out._type
@@ -46,14 +48,31 @@ class RescaleIntensityImageFilter(IntensityFilter):
         self.filter_ = itk.RescaleIntensityImageFilter[inType, outType].New(im)
         self.filter_.SetOutputMaximum(maximum)
         self.filter_.SetOutputMinimum(minimum)
-        
+
         self.filter_.Update()
 
         self.setResult("Output Image", self.filter_.GetOutput())
         self.setResult("Filter", self)
         self.setResult("Output PixelType", out)
 
-class SigmoidImageFilter(IntensityFilter):
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Rescale Intensity Image Filter", namespace=cls.my_namespace)
+
+        reg.add_input_port(cls, "Input Filter", (Filter, 'Input Filter'), True)
+        reg.add_input_port(cls, "Input Image", (Image, 'Input Image'))
+        reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'))
+        reg.add_input_port(cls, "Output PixelType", (PixelType, 'Output PixelType'))
+        reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'))
+        reg.add_input_port(cls, "Minimum", (basic.Integer, 'Minimum'))
+        reg.add_input_port(cls, "Maximum", (basic.Integer, 'Maximum'))
+
+        reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))
+        reg.add_output_port(cls, "Filter", (Filter, 'Filter'), True)
+        reg.add_output_port(cls, "Output PixelType", (PixelType, 'Output PixelType'))
+
+class SigmoidImageFilter(Module):
+    my_namespace = "Filter|Intensity"
     def compute(self):
         inFilter = self.forceGetInputFromPort("Input Filter")
         im = self.getInputFromPort("Input Image")
@@ -62,7 +81,6 @@ class SigmoidImageFilter(IntensityFilter):
             out = self.getInputFromPort("Output PixelType")
         else:
             out = self.getInputFromPort("Input PixelType")
-
 
         inType = self.getInputFromPort("Input PixelType")._type
         outType = out._type
@@ -100,18 +118,38 @@ class SigmoidImageFilter(IntensityFilter):
         self.setResult("Output Image", self.filter_.GetOutput())
         self.setResult("Filter", self)
         self.setResult("Output PixelType", out)
-        self.setResult("Output Dimension", dim) 
+        self.setResult("Output Dimension", dim)
 
-class ThresholdImageFilter(IntensityFilter):
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Sigmoid Image Filter", namespace=cls.my_namespace)
+
+        reg.add_input_port(cls, "Input Filter", (Filter, 'Input Filter'), True)
+        reg.add_input_port(cls, "Input Image", (Image, 'Input Image'))
+        reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'))
+        reg.add_input_port(cls, "Output PixelType", (PixelType, 'Output PixelType'), True)
+        reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'))
+        reg.add_input_port(cls, "Minimum", (basic.Integer, 'Minimum'), True)
+        reg.add_input_port(cls, "Maximum", (basic.Integer, 'Maximum'), True)
+        reg.add_input_port(cls, "Alpha", (basic.Float, 'Alpha'), True)
+        reg.add_input_port(cls, "Beta", (basic.Float, 'Beta'), True)
+
+        reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))
+        reg.add_output_port(cls, "Filter", (Filter, 'Output Filter'))
+        reg.add_output_port(cls, "Output PixelType", (PixelType, 'Output PixelType'))
+        reg.add_output_port(cls, "Output Dimension", (basic.Integer, 'Output Dimension'))
+
+class ThresholdImageFilter(Module):
+    my_namespace = "Filter|Intensity"
     def compute(self):
         im = self.getInputFromPort("Input Image")
         up = self.getInputFromPort("Upper Value")
         lo = self.getInputFromPort("Lower Value")
-        
+
         inty = self.getInputFromPort("Input PixelType")._type
         dim = self.getInputFromPort("Dimension")
         inType = itk.Image[inty, dim]
-        
+
         self.filter_ = itk.ThresholdImageFilter[inType].New(im)
 
         self.filter_.SetUpper(up)
@@ -122,3 +160,17 @@ class ThresholdImageFilter(IntensityFilter):
         self.setResult("Output Image", self.filter_.GetOutput())
         self.setResult("Output PixelType", self.getInputFromPort("Input PixelType"))
         self.setResult("Output Dimension", dim)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Threshold Image Filter", namespace=cls.my_namespace)
+
+        reg.add_input_port(cls, "Input Image", (Image, 'Input Image'))
+        reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'))
+        reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'))
+        reg.add_input_port(cls, "Upper Value", (basic.Integer, 'Upper Value'))
+        reg.add_input_port(cls, "Lower Value", (basic.Integer, 'Lower Value'))
+
+        reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))
+        reg.add_output_port(cls, "Output Dimension", (basic.Integer, 'Output Dimension'))
+        reg.add_output_port(cls, "Output PixelType", (PixelType, 'Output PixelType'))
