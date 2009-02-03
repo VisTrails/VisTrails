@@ -152,6 +152,8 @@ by startup.py. This should only be called after init()."""
             if not os.path.isdir(userpackagesname):
                 try:
                     os.mkdir(userpackagesname)
+                    self.configuration.userPackageDirectory = \
+                        userpackagesname
                 except:
                     msg = ("""Failed to create userpackages directory: '%s'.
                     This could be an indication of a permissions problem.
@@ -180,6 +182,8 @@ by startup.py. This should only be called after init()."""
             if not os.path.isdir(abstractions_dir):
                 try:
                     os.mkdir(abstractions_dir)
+                    self.configuration.abstractionsDirectory = \
+                        abstractions_dir
                 except:
                     msg = ("Failed to create subworkflows directory: '%s'.  "
                            "This could be an indication of a permissions "
@@ -250,6 +254,9 @@ by startup.py. This should only be called after init()."""
                                % self.configuration.dotVistrails)
 
         def create_default_directory():
+            if os.path.lexists(self.configuration.dotVistrails):
+                return
+
             debug.critical('Will try to create default directory')
             try:
                 os.mkdir(self.configuration.dotVistrails)
