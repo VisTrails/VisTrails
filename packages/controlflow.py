@@ -1,7 +1,9 @@
 from core.modules.vistrails_module import *
 from core.modules.module_registry import registry
-import core.modules.basic_modules
+from core.modules.basic_modules import Boolean, Constant, String, Variant,\
+     NotCacheable, init_constant, new_constant
 import copy
+
 
 version="0.1"
 name="Control Flow"
@@ -20,15 +22,13 @@ def list_conv(l):
         l = eval(l)
         return l
 
-ListValues = core.modules.basic_modules.new_constant('ListValues' , staticmethod(list_conv), [],
-                                               staticmethod(lambda x: type(x) == list))
-
+ListValues = new_constant('ListValues' , staticmethod(list_conv), [],
+                          staticmethod(lambda x: type(x) == list))
 
 #################################################################################
 ## Fold Operator
 
-
-class NewConstant(core.modules.basic_modules.Constant):
+class NewConstant(Constant):
     """A new Constant module to be used inside the Fold module."""
         
     def setValue(self, v):
@@ -36,7 +36,7 @@ class NewConstant(core.modules.basic_modules.Constant):
         self.upToDate = True
 
 
-class Fold(core.modules.basic_modules.Module):
+class Fold(Module, NotCacheable):
     """The Fold Module is a high-order operator to implement some other structures,
     such as map, filter, sum, and so on.
     To use it, the user must inherit this class.
@@ -86,14 +86,14 @@ class Fold(core.modules.basic_modules.Module):
                     return constant
 
                 ## Update everything for each value inside the list
-                for i in range(len(InputList)):
+                for i in xrange(len(InputList)):
                     self.element = InputList[i]
                     for connector in connectors_ModuleOutput:
                         connector.obj.upToDate = False
                         ## Setting the value InputList[i] in the input port
                         if len(nameInput)==1:
                             ## Cleaning the previous connector...
-                            if connector.obj.inputPorts.has_key(nameInput[0]):
+                            if nameInput[0] in connector.obj.inputPorts:
                                 del connector.obj.inputPorts[nameInput[0]]
                             new_connector = ModuleConnector(create_constant(\
                                 self.element),'value')
@@ -102,9 +102,9 @@ class Fold(core.modules.basic_modules.Module):
                             if len(nameInput)!=len(InputList[i]):
                                 raise ModuleError(self,'The number of input values \
                                                   and input ports are not the same.')
-                            for j in range(len(nameInput)):
+                            for j in xrange(len(nameInput)):
                                 ## Cleaning the previous connector...
-                                if connector.obj.inputPorts.has_key(nameInput[j]):
+                                if nameInput[j] in connector.obj.inputPorts:
                                     del connector.obj.inputPorts[nameInput[j]]
                                 new_connector = ModuleConnector(create_constant(\
                                     self.element[j]),'value')
@@ -129,7 +129,7 @@ class Fold(core.modules.basic_modules.Module):
         
         else:
             lenght = len(InputList)
-            for i in range(lenght):
+            for i in xrange(lenght):
                 self.element = InputList[i]
                 self.operation()
                 
@@ -247,12 +247,10 @@ class SimilarityFilter(Fold):
 ##        
 ##        self.partialResult = self.partialResult or self.element
 
-
 #################################################################################
 ## If Operator
 
-
-class If(core.modules.basic_modules.Module):
+class If(Module, NotCacheable):
     """The If Module alows the user to choose the part of the workflow to be
     executed through the use of a condition."""
 
@@ -289,13 +287,11 @@ class If(core.modules.basic_modules.Module):
 
         pass
 
-
 #################################################################################
 ## Products
 ## For instance, these modules will be inside this package
 
-
-class Dot(core.modules.basic_modules.Module):
+class Dot(Module):
     """This module produces a Dot product between two input ports."""
     
     def compute(self):
@@ -306,7 +302,7 @@ class Dot(core.modules.basic_modules.Module):
 	result = []
 	if lenght1 != lenght2:
             raise ModuleError(self,'Both lists must have the same size.')
-	for i in range(lenght1):
+	for i in xrange(lenght1):
             if type(list1[i])==tuple and type(list2[i])==tuple:
                 tuple_ = list1[i]+list2[i]
                 result.append(tuple_)
@@ -323,7 +319,7 @@ class Dot(core.modules.basic_modules.Module):
         self.setResult("Result", result)
 
 
-class Cross(core.modules.basic_modules.Module):
+class Cross(Module):
     """This module produces a Cross product between two input ports."""
     
     def compute(self):
@@ -332,8 +328,8 @@ class Cross(core.modules.basic_modules.Module):
 	lenght1 = len(list1)
 	lenght2 = len(list2)
 	result = []
-	for i in range(lenght1):
-            for j in range(lenght2):
+	for i in xrange(lenght1):
+            for j in xrange(lenght2):
                 if type(list1[i])==tuple and type(list2[j])==tuple:
                     tuple_ = list1[i]+list2[j]
                     result.append(tuple_)
@@ -349,24 +345,23 @@ class Cross(core.modules.basic_modules.Module):
 
         self.setResult("Result", result)
 
-
 #################################################################################
 
 def initialize(*args,**keywords):
     reg=registry
 
-    core.modules.basic_modules.init_constant(ListValues)
+    init_constant(ListValues)
 
     controlModules = [Fold,Map,Filter,SimilarityFilter,If]
-
     for module in controlModules:
         reg.add_module(module, moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],\
                    moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
-    reg.add_input_port(Fold, 'ModuleOutput', (core.modules.basic_modules.Module,""))
-    reg.add_input_port(Fold, 'InputList', (ListValues,""))
-    reg.add_input_port(Fold, 'InputPort', (ListValues,""))
-    reg.add_input_port(Fold, 'OutputPort', (core.modules.basic_modules.String,""))
-    reg.add_output_port(Fold, 'Result', (core.modules.basic_modules.Variant,""))
+
+    reg.add_input_port(Fold, 'ModuleOutput', (Module, ""))
+    reg.add_input_port(Fold, 'InputList', (ListValues, ""))
+    reg.add_input_port(Fold, 'InputPort', (ListValues, ""))
+    reg.add_input_port(Fold, 'OutputPort', (String, ""))
+    reg.add_output_port(Fold, 'Result', (Variant, ""))
 
 ##    reg.add_module(Sum)
 ##
@@ -374,17 +369,17 @@ def initialize(*args,**keywords):
 ##
 ##    reg.add_module(Or)
 
-    reg.add_input_port(If, 'Condition', (core.modules.basic_modules.Boolean,""))
-    reg.add_input_port(If, 'TruePort', (core.modules.basic_modules.Module,""))
-    reg.add_input_port(If, 'FalsePort', (core.modules.basic_modules.Module,""))
-    reg.add_output_port(If, 'Result', (core.modules.basic_modules.Module,""))
+    reg.add_input_port(If, 'Condition', (Boolean, ""))
+    reg.add_input_port(If, 'TruePort', (Module, ""))
+    reg.add_input_port(If, 'FalsePort', (Module, ""))
+    reg.add_output_port(If, 'Result', (Module, ""))
 
     reg.add_module(Dot)
-    reg.add_input_port(Dot, 'List_1', (ListValues,""))
-    reg.add_input_port(Dot, 'List_2', (ListValues,""))
-    reg.add_output_port(Dot, 'Result', (ListValues,""))
+    reg.add_input_port(Dot, 'List_1', (ListValues, ""))
+    reg.add_input_port(Dot, 'List_2', (ListValues, ""))
+    reg.add_output_port(Dot, 'Result', (ListValues, ""))
 
     reg.add_module(Cross)
-    reg.add_input_port(Cross, 'List_1', (ListValues,""))
-    reg.add_input_port(Cross, 'List_2', (ListValues,""))
-    reg.add_output_port(Cross, 'Result', (ListValues,""))
+    reg.add_input_port(Cross, 'List_1', (ListValues, ""))
+    reg.add_input_port(Cross, 'List_2', (ListValues, ""))
+    reg.add_output_port(Cross, 'Result', (ListValues, ""))
