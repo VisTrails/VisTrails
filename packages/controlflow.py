@@ -22,8 +22,8 @@ def list_conv(l):
         l = eval(l)
         return l
 
-ListValues = new_constant('ListValues' , staticmethod(list_conv), [],
-                          staticmethod(lambda x: type(x) == list))
+ListOfElements = new_constant('ListOfElements' , staticmethod(list_conv), [],\
+                              staticmethod(lambda x: type(x) == list))
 
 #################################################################################
 ## Fold Operator
@@ -56,23 +56,25 @@ class Fold(Module, NotCacheable):
         InputList = self.getInputFromPort('InputList')
 
         self.partialResult = None
+        self.initialValue = None
         self.setInitialValue()
-        self.elementResult = None  
+        self.partialResult = self.initialValue
+        self.elementResult = None
         
         ## If there is some function to consider...
-        if self.hasInputFromPort('ModuleOutput'):
+        if self.hasInputFromPort('FunctionPort'):
 
             ## Getting list of connectors
-            connectors_ModuleOutput = self.inputPorts.get('ModuleOutput')
+            connectors_FunctionPort = self.inputPorts.get('FunctionPort')
             connectors_InputPort = self.inputPorts.get('InputPort')
             connectors_OutputPort = self.inputPorts.get('OutputPort')
 
             ######################################################################
-            ## updateModuleOutput()
+            ## updateFunctionPort()
 
-            def updateModuleOutput():
+            def updateFunctionPort():
                 """Function to be used inside this updateUsptream method. It
-                updates the modules connected to the ModuleOutput port."""
+                updates the modules connected to the FunctionPort port."""
 
                 nameInput = self.getInputFromPort('InputPort')
                 nameOutput = self.getInputFromPort('OutputPort')
@@ -88,7 +90,7 @@ class Fold(Module, NotCacheable):
                 ## Update everything for each value inside the list
                 for i in xrange(len(InputList)):
                     self.element = InputList[i]
-                    for connector in connectors_ModuleOutput:
+                    for connector in connectors_FunctionPort:
                         connector.obj.upToDate = False
                         ## Setting the value InputList[i] in the input port
                         if len(nameInput)==1:
@@ -110,6 +112,7 @@ class Fold(Module, NotCacheable):
                                     self.element[j]),'value')
                                 connector.obj.set_input_port(nameInput[j],new_connector)
                         connector.obj.update()
+                        ## Getting the result from the output port
                         self.elementResult = connector.obj.get_output(nameOutput)
                     self.operation()
 
@@ -123,9 +126,9 @@ class Fold(Module, NotCacheable):
             for connector in connectors_OutputPort:
                 connector.obj.update()
 
-            ## Updating connectors from 'ModuleOutput' --> This one must be the last
-            for connector in connectors_ModuleOutput:
-                updateModuleOutput()
+            ## Updating connectors from 'FunctionPort' --> This one must be the last
+            for connector in connectors_FunctionPort:
+                updateFunctionPort()
         
         else:
             lenght = len(InputList)
@@ -162,7 +165,7 @@ class Map(Fold):
     def setInitialValue(self):
         """Defining the initial value..."""
         
-        self.partialResult = []
+        self.initialValue = []
 
     def operation(self):
         """Defining the operation..."""
@@ -177,7 +180,7 @@ class Filter(Fold):
     def setInitialValue(self):
         """Defining the initial value..."""
         
-        self.partialResult = []
+        self.initialValue = []
 
     def operation(self):
         """Defining the operation..."""
@@ -193,7 +196,7 @@ class SimilarityFilter(Fold):
     def setInitialValue(self):
         """Defining the initial value..."""
         
-        self.partialResult = []
+        self.initialValue = []
 
     def operation(self):
         """Defining the operation..."""
@@ -210,7 +213,7 @@ class SimilarityFilter(Fold):
 ##    def setInitialValue(self):
 ##        """Defining the initial value..."""
 ##        
-##        self.partialResult = 0
+##        self.initialValue = 0
 ##        
 ##    def operation(self):
 ##        """Defining the operation..."""
@@ -225,7 +228,7 @@ class SimilarityFilter(Fold):
 ##    def setInitialValue(self):
 ##        """Defining the initial value..."""
 ##        
-##        self.partialResult = 1
+##        self.initialValue = 1
 ##
 ##    def operation(self):
 ##        """Defining the operation..."""
@@ -240,7 +243,7 @@ class SimilarityFilter(Fold):
 ##    def setInitialValue(self):
 ##        """Defining the initial value..."""
 ##        
-##        self.partialResult = 0
+##        self.initialValue = 0
 ##
 ##    def operation(self):
 ##        """Defining the operation..."""
@@ -350,16 +353,16 @@ class Cross(Module):
 def initialize(*args,**keywords):
     reg=registry
 
-    init_constant(ListValues)
+    init_constant(ListOfElements)
 
     controlModules = [Fold,Map,Filter,SimilarityFilter,If]
     for module in controlModules:
         reg.add_module(module, moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],\
                    moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
 
-    reg.add_input_port(Fold, 'ModuleOutput', (Module, ""))
-    reg.add_input_port(Fold, 'InputList', (ListValues, ""))
-    reg.add_input_port(Fold, 'InputPort', (ListValues, ""))
+    reg.add_input_port(Fold, 'FunctionPort', (Module, ""))
+    reg.add_input_port(Fold, 'InputList', (ListOfElements, ""))
+    reg.add_input_port(Fold, 'InputPort', (ListOfElements, ""))
     reg.add_input_port(Fold, 'OutputPort', (String, ""))
     reg.add_output_port(Fold, 'Result', (Variant, ""))
 
@@ -375,11 +378,11 @@ def initialize(*args,**keywords):
     reg.add_output_port(If, 'Result', (Module, ""))
 
     reg.add_module(Dot)
-    reg.add_input_port(Dot, 'List_1', (ListValues, ""))
-    reg.add_input_port(Dot, 'List_2', (ListValues, ""))
-    reg.add_output_port(Dot, 'Result', (ListValues, ""))
+    reg.add_input_port(Dot, 'List_1', (ListOfElements, ""))
+    reg.add_input_port(Dot, 'List_2', (ListOfElements, ""))
+    reg.add_output_port(Dot, 'Result', (ListOfElements, ""))
 
     reg.add_module(Cross)
-    reg.add_input_port(Cross, 'List_1', (ListValues, ""))
-    reg.add_input_port(Cross, 'List_2', (ListValues, ""))
-    reg.add_output_port(Cross, 'Result', (ListValues, ""))
+    reg.add_input_port(Cross, 'List_1', (ListOfElements, ""))
+    reg.add_input_port(Cross, 'List_2', (ListOfElements, ""))
+    reg.add_output_port(Cross, 'Result', (ListOfElements, ""))
