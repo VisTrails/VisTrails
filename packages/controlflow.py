@@ -102,8 +102,7 @@ class Fold(Module, NotCacheable):
                             connector.obj.set_input_port(nameInput[0],new_connector)
                         else:
                             if len(nameInput)!=len(InputList[i]):
-                                raise ModuleError(self,'The number of input values \
-                                                  and input ports are not the same.')
+                                raise ModuleError(self,'The number of input values and input ports are not the same.')
                             for j in xrange(len(nameInput)):
                                 ## Cleaning the previous connector...
                                 if nameInput[j] in connector.obj.inputPorts:
@@ -184,6 +183,9 @@ class Filter(Fold):
 
     def operation(self):
         """Defining the operation..."""
+
+        if type(self.elementResult)!=bool:
+            raise ModuleError(self,'The function applied to the elements of the list must return a boolean result.')
 
         if self.elementResult:
             self.partialResult.append(self.element)
@@ -305,19 +307,24 @@ class Dot(Module):
 	result = []
 	if lenght1 != lenght2:
             raise ModuleError(self,'Both lists must have the same size.')
-	for i in xrange(lenght1):
-            if type(list1[i])==tuple and type(list2[i])==tuple:
-                tuple_ = list1[i]+list2[i]
-                result.append(tuple_)
-            elif type(list1[i])==tuple and type(list2[i])!=tuple:
-                tuple_ = list1[i]+(list2[i],)
-                result.append(tuple_)
-            elif type(list1[i])!=tuple and type(list2[i])==tuple:
-                tuple_ = (list1[i],)+list2[i]
-                result.append(tuple_)
-            else:
+        if self.hasInputFromPort("CombineTuple") and (not self.getInputFromPort("CombineTuple")):
+            for i in xrange(lenght1):
                 tuple_ = (list1[i],list2[i])
                 result.append(tuple_)
+        else:
+            for i in xrange(lenght1):
+                if type(list1[i])==tuple and type(list2[i])==tuple:
+                    tuple_ = list1[i]+list2[i]
+                    result.append(tuple_)
+                elif type(list1[i])==tuple and type(list2[i])!=tuple:
+                    tuple_ = list1[i]+(list2[i],)
+                    result.append(tuple_)
+                elif type(list1[i])!=tuple and type(list2[i])==tuple:
+                    tuple_ = (list1[i],)+list2[i]
+                    result.append(tuple_)
+                else:
+                    tuple_ = (list1[i],list2[i])
+                    result.append(tuple_)
 
         self.setResult("Result", result)
 
@@ -331,20 +338,26 @@ class Cross(Module):
 	lenght1 = len(list1)
 	lenght2 = len(list2)
 	result = []
-	for i in xrange(lenght1):
-            for j in xrange(lenght2):
-                if type(list1[i])==tuple and type(list2[j])==tuple:
-                    tuple_ = list1[i]+list2[j]
-                    result.append(tuple_)
-                elif type(list1[i])==tuple and type(list2[j])!=tuple:
-                    tuple_ = list1[i]+(list2[j],)
-                    result.append(tuple_)
-                elif type(list1[i])!=tuple and type(list2[j])==tuple:
-                    tuple_ = (list1[i],)+list2[j]
-                    result.append(tuple_)
-                else:
+	if self.hasInputFromPort("CombineTuple") and (not self.getInputFromPort("CombineTuple")):
+            for i in xrange(lenght1):
+                for j in xrange(lenght2):
                     tuple_ = (list1[i],list2[j])
                     result.append(tuple_)
+        else:
+            for i in xrange(lenght1):
+                for j in xrange(lenght2):
+                    if type(list1[i])==tuple and type(list2[j])==tuple:
+                        tuple_ = list1[i]+list2[j]
+                        result.append(tuple_)
+                    elif type(list1[i])==tuple and type(list2[j])!=tuple:
+                        tuple_ = list1[i]+(list2[j],)
+                        result.append(tuple_)
+                    elif type(list1[i])!=tuple and type(list2[j])==tuple:
+                        tuple_ = (list1[i],)+list2[j]
+                        result.append(tuple_)
+                    else:
+                        tuple_ = (list1[i],list2[j])
+                        result.append(tuple_)
 
         self.setResult("Result", result)
 
@@ -380,9 +393,11 @@ def initialize(*args,**keywords):
     reg.add_module(Dot)
     reg.add_input_port(Dot, 'List_1', (ListOfElements, ""))
     reg.add_input_port(Dot, 'List_2', (ListOfElements, ""))
+    reg.add_input_port(Dot, 'CombineTuple', (Boolean, ""), optional=True)
     reg.add_output_port(Dot, 'Result', (ListOfElements, ""))
 
     reg.add_module(Cross)
     reg.add_input_port(Cross, 'List_1', (ListOfElements, ""))
     reg.add_input_port(Cross, 'List_2', (ListOfElements, ""))
+    reg.add_input_port(Cross, 'CombineTuple', (Boolean, ""), optional=True)
     reg.add_output_port(Cross, 'Result', (ListOfElements, ""))
