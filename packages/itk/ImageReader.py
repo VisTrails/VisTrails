@@ -29,12 +29,19 @@ class ImageReader(Module):
     my_namespace = "ImageReader"
     def compute(self):
         dim = self.getInputFromPort("Dimension")
-        pt = self.getInputFromPort("Pixel Type")
+        outPixelType = self.getInputFromPort("Pixel Type")
         fn = self.getInputFromPort("Filename")
-        self.reader = itk.ImageFileReader[itk.Image[pt._type, dim]].New()
+        self.reader = itk.ImageFileReader[itk.Image[outPixelType._type, dim]].New()
         self.reader.SetFileName(fn)
         self.reader.Update()
-        self.setResult("Image", self.reader.GetOutput())
+
+        #setup output image
+        outIm = Image()
+        outIm.setImg(self.reader.GetOutput())
+        outIm.setPixelType(outPixelType)
+        outIm.setDim(dim)
+
+        self.setResult("Image", outIm)
         self.setResult("Reader", self)
 
     @classmethod
@@ -43,19 +50,30 @@ class ImageReader(Module):
         reg.add_input_port(cls, "Filename", (basic.String, 'Filename'))
         reg.add_input_port(cls, "Pixel Type", (PixelType, 'Pixel Type'))
         reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'))
+
         reg.add_output_port(cls, "Image", (Image, 'Image'))
         reg.add_output_port(cls, "Reader", (ImageReader, 'Reader'))
 
 class ImageToFile(Module):
     my_namespace = "ImageReader"
     def compute(self):
-        dim = self.getInputFromPort("Dimension")
-        pt = self.getInputFromPort("Pixel Type")._type
-        suf = self.getInputFromPort("Suffix")
         im = self.getInputFromPort("Image")
+        #check for input PixelType
+        if self.hasInputFromPort("Input PixelType"):
+            inPixelType = self.getInputFromPort("Input PixelType")._type
+        else:
+            inPixelType = im.getPixelType()
+
+        #check for dimension
+        if self.hasInputFromPort("Dimension"):
+            dim = self.getInputFromPort("Dimension")
+        else:
+            dim = im.getDim()
+
+        suf = self.getInputFromPort("Suffix")
         f = self.createOutputFile(suf)
-        writeType = itk.Image[pt, dim]
-        writer = itk.ImageFileWriter[writeType].New(im, FileName=f.name)
+        writeType = itk.Image[inPixelType._type, dim]
+        writer = itk.ImageFileWriter[writeType].New(im.getImg(), FileName=f.name)
         writer.Update()
         self.setResult("File", f)
 
@@ -66,9 +84,10 @@ class ImageToFile(Module):
     def register(cls, reg, basic):
         reg.add_module(cls, name="ImageToFile", namespace=cls.my_namespace)
         reg.add_input_port(cls, "Suffix", (basic.String, 'Suffix'))
-        reg.add_input_port(cls, "Pixel Type", (PixelType, 'Pixel Type'))
-        reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'))
+        reg.add_input_port(cls, "Pixel Type", (PixelType, 'Pixel Type'),True)
+        reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'),True)
         reg.add_input_port(cls, "Image", (Image, 'Image'))
+
         reg.add_output_port(cls, "File", (basic.File, 'File'))
 
 class GDCMReader(Module):
@@ -90,7 +109,13 @@ class GDCMReader(Module):
         self.reader_.SetImageIO(self.io_.GetPointer())
         self.reader_.Update()
 
-        self.setResult("Image Series", self.reader_.GetOutput())
+        #setup output image
+        outIm = Image()
+        outIm.setImg(self.reader_.GetOutput())
+        outIm.setPixelType(itk.US)
+        outIm.setDim(dim)
+
+        self.setResult("Image Series", outIm)
 
     @classmethod
     def register(cls, reg, basic):
@@ -114,7 +139,13 @@ class DICOMReader(Module):
         self.reader_.SetFileNames(self.dicomNames_.GetFileNames(False))
         self.reader_.Update()
 
-        self.setResult("Image Series", self.reader_.GetOutput())
+        #setup output image
+        outIm = Image()
+        outIm.setImg(self.reader_.GetOutput())
+        outIm.setPixelType(itk.US)
+        outIm.setDim(dim)
+
+        self.setResult("Image Series", outIm)
 
     @classmethod
     def register(cls, reg, basic):

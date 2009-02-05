@@ -25,25 +25,30 @@ from core.modules.vistrails_module import Module, ModuleError
 from ITK import *
 from Image import Image
 
+#TODO This filter only accepts decimal pixel types, and there is no warning about this
 class CurvatureAnisotropicDiffusionFilter(Module):
     my_namespace="Filter|Smoothing"
     def compute(self):
         im = self.getInputFromPort("Input Image")
 
-        if self.hasInputFromPort("Output PixelType"):
-            out = self.getInputFromPort("Output PixelType")
+        #check for input PixelType
+        if self.hasInputFromPort("Input PixelType"):
+            inPixelType = self.getInputFromPort("Input PixelType")
         else:
-            out = self.getInputFromPort("Input PixelType")
+            inPixelType = im.getPixelType()
 
-        inType = self.getInputFromPort("Input PixelType")._type
-        outType = out._type
-        indim = self.getInputFromPort("Input Dimension")
-        outdim = indim
-        self.inIm = itk.Image[inType,indim]
-        self.outIm = itk.Image[outType,outdim]
+        #check for dimension
+        if self.hasInputFromPort("Dimension"):
+            dim = self.getInputFromPort("Dimension")
+        else:
+            dim = im.getDim()
 
-        self.filter_ = itk.CurvatureAnisotropicDiffusionImageFilter[self.inIm,self.outIm].New(im)
+        #set up filter
+        inImgType = itk.Image[inPixelType._type, dim]
 
+        self.filter_ = itk.CurvatureAnisotropicDiffusionImageFilter[inImgType, inImgType].New(im.getImg())
+
+        #default values are recommended
         if self.hasInputFromPort("Iterations"):
             iterations = self.getInputFromPort("Iterations")
         else:
@@ -52,7 +57,7 @@ class CurvatureAnisotropicDiffusionFilter(Module):
         if self.hasInputFromPort("TimeStep"):
             timestep = self.getInputFromPort("TimeStep")
         else:
-            if indim == 2:
+            if dim == 2:
                 timestep = 0.125
             else:
                 timestep = 0.0625
@@ -68,24 +73,26 @@ class CurvatureAnisotropicDiffusionFilter(Module):
 
         self.filter_.Update()
 
-        self.setResult("Output Image", self.filter_.GetOutput())
-        self.setResult("Output PixelType", out)
+        #setup output image
+        outIm = Image()
+        outIm.setImg(self.filter_.GetOutput())
+        outIm.setPixelType(inPixelType)
+        outIm.setDim(dim)
+        
+        self.setResult("Output Image", outIm)
         self.setResult("Filter", self)
-        self.setResult("Output Dimension", outdim)
 
     @classmethod
     def register(cls, reg, basic):
         reg.add_module(cls, name="Curvature Anisotropic Diffusion Filter", namespace=cls.my_namespace)
         reg.add_input_port(cls, "Input Image", (Image, 'Input Image'))
-        reg.add_input_port(cls, "Input Dimension", (basic.Integer, 'Input Dimension'))
-        reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'))
-        reg.add_input_port(cls, "Output PixelType", (PixelType, 'Output PixelType'), True)
+        reg.add_input_port(cls, "Input Dimension", (basic.Integer, 'Input Dimension'),True)
+        reg.add_input_port(cls, "Input PixelType Float", (PixelType, 'Input PixelType Float'),True)
         reg.add_input_port(cls, "Iterations", (basic.Integer, 'Iterations'), True)
         reg.add_input_port(cls, "TimeStep", (basic.Float, 'TimeStep'), True)
         reg.add_input_port(cls, "Conductance", (basic.Float, 'Conductance'), True)
+
         reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))
-        reg.add_output_port(cls, "Output PixelType", (PixelType, 'Output PixelType'))
-        reg.add_output_port(cls, "Output Dimension", (basic.Integer, 'Output Dimension'))
         reg.add_output_port(cls, "Filter", (Filter, 'Filter'), True)
 
 
@@ -94,27 +101,45 @@ class RecursiveGaussianImageFilter(Module):
     def compute(self):
         im = self.getInputFromPort("Input Image")
 
-        if self.hasInputFromPort("Output PixelType"):
-            out = self.getInputFromPort("Output PixelType")
+        #check for input PixelType
+        if self.hasInputFromPort("Input PixelType"):
+            inPixelType = self.getInputFromPort("Input PixelType")
         else:
-            out = self.getInputFromPort("Input PixelType")
+            inPixelType = im.getPixelType()
 
-        inType = self.getInputFromPort("Input PixelType")._type
-        outType = out._type
-        indim = self.getInputFromPort("Input Dimension")
-        outdim = indim
-        self.inIm = itk.Image[inType,indim]
-        self.outIm = itk.Image[outType,outdim]
+        #check for output PixelType
+        if self.hasInputFromPort("Output PixelType"):
+            outPixelType = self.getInputFromPort("Output PixelType")
+        else:
+            outPixelType = inPixelType
 
-        self.filter_ = itk.RecursiveGaussianImageFilter[self.inIm,self.outIm].New(im)
+        #check for dimension
+        if self.hasInputFromPort("Dimension"):
+            dim = self.getInputFromPort("Dimension")
+        else:
+            dim = im.getDim()
+
+        outdim = dim
+
+        #set up filter
+        inImgType = itk.Image[inPixelType._type, dim]
+        outImgType = itk.Image[outPixelType._type, dim]
+
+        self.filter_ = itk.RecursiveGaussianImageFilter[inImgType, outImgType].New(im.getImg())
 
         sigma = self.getInputFromPort("Sigma")
         self.filter_.SetSigma(sigma)
 
         self.filter_.Update()
 
-        self.setResult("Output Image", self.filter_.GetOutput())
-        self.setResult("Output PixelType", out)
+        #setup output image
+        outIm = Image()
+        outIm.setImg(self.filter_.GetOutput())
+        outIm.setPixelType(outPixelType)
+        outIm.setDim(dim)
+        
+        self.setResult("Output Image", outIm)
+        self.setResult("Output PixelType", outPixelType)
         self.setResult("Output Dimension", outdim)
 
     @classmethod
@@ -122,29 +147,38 @@ class RecursiveGaussianImageFilter(Module):
         reg.add_module(cls, name="Recursive Gaussian Image Filter", namespace=cls.my_namespace)
 
         reg.add_input_port(cls, "Input Image", (Image, 'Input Image'))
-        reg.add_input_port(cls, "Input Dimension", (basic.Integer, 'Input Dimension'))
-        reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'))
+        reg.add_input_port(cls, "Input Dimension", (basic.Integer, 'Input Dimension'),True)
+        reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'),True)
         reg.add_input_port(cls, "Sigma", (basic.Float, 'Sigma'))
 
         reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))
-        reg.add_output_port(cls, "Output Dimension", (basic.Integer, 'Output Dimension'))
-        reg.add_output_port(cls, "Output PixelType", (PixelType, 'Output PixelType'))
+        reg.add_output_port(cls, "Output Dimension", (basic.Integer, 'Output Dimension'),True)
+        reg.add_output_port(cls, "Output PixelType", (PixelType, 'Output PixelType'),True)
 
+#TODO This filter only accepts decimal pixel types, and there is no warning about this
 class CurvatureFlowImageFilter(Module):
     my_namespace="Filter|Smoothing"
     def compute(self):
         im = self.getInputFromPort("Input Image")
-        dim = self.getInputFromPort("Input Dimension")
 
-        inType = self.getInputFromPort("Input PixelType")._type
-        if self.hasInputFromPort("Output PixelType"):
-            out = self.getInputFromPort("Output PixelType")
+        #check for input PixelType
+        if self.hasInputFromPort("Input PixelType"):
+            inPixelType = self.getInputFromPort("Input PixelType")
         else:
-            out = self.getInputFromPort("Input PixelType")
+            inPixelType = im.getPixelType()
 
-        i = itk.Image[inType, dim]
-        o = itk.Image[out._type, dim]
-        self.filter_ = itk.CurvatureFlowImageFilter[i, o].New(im)
+        #check for dimension
+        if self.hasInputFromPort("Dimension"):
+            dim = self.getInputFromPort("Dimension")
+        else:
+            dim = im.getDim()
+
+        #set up filter
+        inImgType = itk.Image[inPixelType._type, dim]
+
+        self.filter_ = itk.CurvatureFlowImageFilter[inImgType, inImgType].New(im.getImg())
+
+        #default values recommended
         if self.hasInputFromPort("TimeStep"):
             self.ts = self.getInputFromPort("TimeStep")
         else:
@@ -160,20 +194,22 @@ class CurvatureFlowImageFilter(Module):
 
         self.filter_.Update()
 
-        self.setResult("Output Image", self.filter_.GetOutput())
-        self.setResult("Output PixelType", out)
-        self.setResult("Output Dimension", dim)
+        #setup output image
+        outIm = Image()
+        outIm.setImg(self.filter_.GetOutput())
+        outIm.setPixelType(inPixelType)
+        outIm.setDim(dim)
+        
+        self.setResult("Output Image", outIm)
 
     @classmethod
     def register(cls, reg, basic):
         reg.add_module(cls, name="Curvature Flow Image Filter", namespace=cls.my_namespace)
 
         reg.add_input_port(cls, "Input Image", (Image, 'Input Image'))
-        reg.add_input_port(cls, "Input Dimension", (basic.Integer, 'Input Dimension'))
-        reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'))
+        reg.add_input_port(cls, "Input Dimension", (basic.Integer, 'Input Dimension'),True)
+        reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'),True)
         reg.add_input_port(cls, "TimeStep", (basic.Float, 'TimeStep'), True)
         reg.add_input_port(cls, "Iterations", (basic.Integer, 'Iterations'), True)
 
         reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))
-        reg.add_output_port(cls, "Output Dimension", (basic.Integer, 'Output Dimension'))
-        reg.add_output_port(cls, "Output PixelType", (PixelType, 'Output PixelType'))

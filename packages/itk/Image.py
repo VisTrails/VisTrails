@@ -29,17 +29,30 @@ from PixelTypes import *
 class Image(Module, ITK):
     my_namespace=""
 
+    def getPixelType(self):
+        return self._type
+
+    def getDim(self):
+        return self.dim
+
+    def getImg(self):
+        return self.inIm
+
+    def setImg(self, img):
+        self.inIm = img
+
+    def setDim(self, dim):
+        self.dim = dim
+
+    def setPixelType(self, pt):
+        self._type = pt
+    
     def compute(self):
         self.inIm = self.getInputFromPort("Image")
         self.dim = self.getInputFromPort("Dimension")
         self._type = self.getInputFromPort("Pixel Type")
 
-        self._image = itk.Image[self._type._type, self.dim]
-        self._image.New()
-
-        self.setResult("Image Pixel Type", self._type)
-        self.setResult("Image Dimension", self.dim)
-        self.setResult("Output Image", self.inIm)
+        self.setResult("Output Image", self)
 
     @classmethod
     def register(cls, reg, basic):
@@ -48,6 +61,4 @@ class Image(Module, ITK):
         reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'))
         reg.add_input_port(cls, "Image", (Image, 'Image'))
 
-        reg.add_output_port(cls, "Image Pixel Type", (PixelType, 'Image Pixel Type'))
-        reg.add_output_port(cls, "Image Dimension", (basic.Integer, 'Image Dimension'))
         reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))
