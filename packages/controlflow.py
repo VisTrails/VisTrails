@@ -91,25 +91,26 @@ class Fold(Module, NotCacheable):
                 for i in xrange(len(InputList)):
                     self.element = InputList[i]
                     for connector in connectors_FunctionPort:
-                        connector.obj.upToDate = False
-                        ## Setting the value InputList[i] in the input port
-                        if len(nameInput)==1:
-                            ## Cleaning the previous connector...
-                            if nameInput[0] in connector.obj.inputPorts:
-                                del connector.obj.inputPorts[nameInput[0]]
-                            new_connector = ModuleConnector(create_constant(\
-                                self.element),'value')
-                            connector.obj.set_input_port(nameInput[0],new_connector)
-                        else:
-                            if len(nameInput)!=len(InputList[i]):
-                                raise ModuleError(self,'The number of input values and input ports are not the same.')
-                            for j in xrange(len(nameInput)):
+                        if not self.upToDate:
+                            connector.obj.upToDate = False
+                            ## Setting the value InputList[i] in the input port
+                            if len(nameInput)==1:
                                 ## Cleaning the previous connector...
-                                if nameInput[j] in connector.obj.inputPorts:
-                                    del connector.obj.inputPorts[nameInput[j]]
+                                if nameInput[0] in connector.obj.inputPorts:
+                                    del connector.obj.inputPorts[nameInput[0]]
                                 new_connector = ModuleConnector(create_constant(\
-                                    self.element[j]),'value')
-                                connector.obj.set_input_port(nameInput[j],new_connector)
+                                    self.element),'value')
+                                connector.obj.set_input_port(nameInput[0],new_connector)
+                            else:
+                                if len(nameInput)!=len(InputList[i]):
+                                    raise ModuleError(self,'The number of input values and input ports are not the same.')
+                                for j in xrange(len(nameInput)):
+                                    ## Cleaning the previous connector...
+                                    if nameInput[j] in connector.obj.inputPorts:
+                                        del connector.obj.inputPorts[nameInput[j]]
+                                    new_connector = ModuleConnector(create_constant(\
+                                        self.element[j]),'value')
+                                    connector.obj.set_input_port(nameInput[j],new_connector)
                         connector.obj.update()
                         ## Getting the result from the output port
                         self.elementResult = connector.obj.get_output(nameOutput)
@@ -130,8 +131,7 @@ class Fold(Module, NotCacheable):
                 updateFunctionPort()
         
         else:
-            lenght = len(InputList)
-            for i in xrange(lenght):
+            for i in xrange(len(InputList)):
                 self.element = InputList[i]
                 self.operation()
                 
@@ -191,6 +191,24 @@ class Filter(Fold):
             self.partialResult.append(self.element)
 
 
+class AreaFilter(Fold):
+    """A Filter module, to be used inside triangle_area.vt; it will discard the
+    areas under the value 200000."""
+
+    def setInitialValue(self):
+        """Defining the initial value..."""
+        
+        self.initialValue = []
+
+    def operation(self):
+        """Defining the operation..."""
+
+        area = self.elementResult
+        
+        if area>200000:
+            self.partialResult.append(area)
+
+
 class SimilarityFilter(Fold):
     """A Filter module, to be used inside DDBJ_webService.vt; it will discard the
     species with similarity score under 95.00."""
@@ -224,7 +242,7 @@ class SimilarityFilter(Fold):
 ##
 ##        
 ##class And(Fold):
-##    """An And module, that computes the And result between the elements
+##    """An And module, that computes the And result among the elements
 ##    in a list."""
 ##
 ##    def setInitialValue(self):
@@ -239,7 +257,7 @@ class SimilarityFilter(Fold):
 ##
 ##        
 ##class Or(Fold):
-##    """An Or module, that computes the Or result between the elements
+##    """An Or module, that computes the Or result among the elements
 ##    in a list."""
 ##
 ##    def setInitialValue(self):
@@ -279,13 +297,49 @@ class If(Module, NotCacheable):
             for connector in connectors_TruePort:
                 connector.obj.upToDate = False
                 connector.obj.update()
-                self.setResult('Result',connector.obj)
+                if self.hasInputFromPort('TrueOutputPorts'):
+                    ## Getting the list of connectors
+                    connectors_TrueOutputPorts = self.inputPorts.get('TrueOutputPorts')
+
+                    ## Updating connectors from 'TrueOutputPorts'
+                    for connector_ in connectors_TrueOutputPorts:
+                        connector_.obj.update()
+
+                    ## Getting the output ports
+                    outputPorts = self.getInputFromPort('TrueOutputPorts')
+                    
+                    if len(outputPorts)==1:
+                        self.setResult('Result',connector.obj.get_output(outputPorts[0]))
+                    else:
+                        result = []
+                        for outputPort in outputPorts:
+                            result.append(connector.obj.get_output(outputPort))
+                        self.setResult('Result',result)
+                
         else:
             ## Updating connectors from 'FalsePort'
             for connector in connectors_FalsePort:
                 connector.obj.upToDate = False
                 connector.obj.update()
-                self.setResult('Result',connector.obj)
+                if self.hasInputFromPort('FalseOutputPorts'):
+                    ## Getting the list of connectors
+                    connectors_FalseOutputPorts = self.inputPorts.get('FalseOutputPorts')
+
+                    ## Updating connectors from 'FalseOutputPorts'
+                    for connector_ in connectors_FalseOutputPorts:
+                        connector_.obj.update()
+
+                    ## Getting the output ports
+                    outputPorts = self.getInputFromPort('FalseOutputPorts')
+                    
+                    if len(outputPorts)==1:
+                        print connector.obj.outputPorts
+                        self.setResult('Result',connector.obj.get_output(outputPorts[0]))
+                    else:
+                        result = []
+                        for outputPort in outputPorts:
+                            result.append(connector.obj.get_output(outputPort))
+                        self.setResult('Result',result)
 
     def compute(self):
         """ The compute method for the If module."""
@@ -363,15 +417,25 @@ class Cross(Module):
 
 #################################################################################
 
+def registerControl(module):
+    """This function is used to register the control modules. In this way, all of
+    them will have the same style and shape."""
+    
+    reg = registry
+    reg.add_module(module, moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],\
+                   moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
+
 def initialize(*args,**keywords):
     reg=registry
 
     init_constant(ListOfElements)
 
-    controlModules = [Fold,Map,Filter,SimilarityFilter,If]
-    for module in controlModules:
-        reg.add_module(module, moduleRightFringe=[(0.0,0.0),(0.25,0.5),(0.0,1.0)],\
-                   moduleLeftFringe=[(0.0,0.0),(0.0,1.0)])
+    registerControl(Fold)
+    registerControl(Map)
+    registerControl(Filter)
+    registerControl(AreaFilter)
+    registerControl(SimilarityFilter)
+    registerControl(If)
 
     reg.add_input_port(Fold, 'FunctionPort', (Module, ""))
     reg.add_input_port(Fold, 'InputList', (ListOfElements, ""))
@@ -388,7 +452,9 @@ def initialize(*args,**keywords):
     reg.add_input_port(If, 'Condition', (Boolean, ""))
     reg.add_input_port(If, 'TruePort', (Module, ""))
     reg.add_input_port(If, 'FalsePort', (Module, ""))
-    reg.add_output_port(If, 'Result', (Module, ""))
+    reg.add_input_port(If, 'TrueOutputPorts', (ListOfElements, ""), optional=True)
+    reg.add_input_port(If, 'FalseOutputPorts', (ListOfElements, ""), optional=True)
+    reg.add_output_port(If, 'Result', (Variant, ""))
 
     reg.add_module(Dot)
     reg.add_input_port(Dot, 'List_1', (ListOfElements, ""))
