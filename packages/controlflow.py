@@ -333,7 +333,6 @@ class If(Module, NotCacheable):
                     outputPorts = self.getInputFromPort('FalseOutputPorts')
                     
                     if len(outputPorts)==1:
-                        print connector.obj.outputPorts
                         self.setResult('Result',connector.obj.get_output(outputPorts[0]))
                     else:
                         result = []
