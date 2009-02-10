@@ -28,7 +28,7 @@ from cdat_domain import CDATModule
 
 
 #cdat package identifiers
-cp_version = '0.1'
+cp_version = '0.2'
 cp_identifier = 'edu.utah.sci.vistrails.cdat'
 cp_name = 'CDAT'
 
@@ -110,7 +110,7 @@ def get_image_compute_method(action, ident=''):
                 lines.append(ident + "        args.append(%s)\n"%inp._name)
         if inp._required:
             lines.append("\n"+ ident +"    # %s is a required port\n" % inp._name)
-            lines.append(ident + "    if %s == None:\n" % inp._name)
+            lines.append(ident + "    if %s is None:\n" % inp._name)
             lines.append(ident + "        raise ModuleError(self, \"'%s' is a mandatory port\")\n" % inp._name)
 
     lines.append(ident + "    ofile = core.modules.basic_modules.File()\n")
@@ -138,7 +138,7 @@ def get_cdms2_compute_method(action, ident=''):
                 lines.append(ident + "        args.append(%s)\n"%inp._name)
         if inp._required:
             lines.append("\n"+ ident +"    # %s is a required port\n" % inp._name)
-            lines.append(ident + "    if %s == None:\n" % inp._name)
+            lines.append(ident + "    if %s is None:\n" % inp._name)
             lines.append(ident + "        raise ModuleError(self, \"'%s' is a mandatory port\")\n" % inp._name)
 
     lines.append(ident + "    res = cdms2.%s(*args)\n"%action._name)
@@ -165,7 +165,7 @@ def get_CdmsFile_compute_method(action, ident=''):
                 lines.append(ident + "        args.append(%s)\n"%inp._name)
         if inp._required:
             lines.append("\n"+ ident +"    # %s is a required port\n" % inp._name)
-            lines.append(ident + "    if %s == None:\n" % inp._name)
+            lines.append(ident + "    if %s is None:\n" % inp._name)
             lines.append(ident + "        raise ModuleError(self, \"'%s' is a mandatory port\")\n" % inp._name)
 
     lines.append(ident + "    res = cdmsfile.%s(*args)\n"%action._name)
@@ -195,13 +195,12 @@ if __name__ == '__main__':
     extra_init_lines = []
     init_lines = []
     extra_init_lines.append("\ndef initialize(*args, **keywords):\n")
-    extra_init_lines.append("    reg = core.modules.module_registry\n\n")
-
+    extra_init_lines.append("    reg = core.modules.module_registry.get_module_registry()\n\n")
 
     class_lines = []
     extra_class_lines = []
 
-    print "%s file(s) found."% len(modules)
+    print "%s xml file(s) found."% len(modules)
 
     CDATModule.write_extra_module_definitions_init(extra_class_lines)
 
@@ -258,7 +257,10 @@ if __name__ == '__main__':
 
     CDATModule.write_extra_module_definitions(extra_class_lines)
     CDATModule.register_extra_vistrails_modules(extra_init_lines)
-
+    
+    cdatwindow_init_lines = open("cdatwindow_init_inc.py").readlines()
+    extra_init_lines.extend(cdatwindow_init_lines)
+    
     extra_init_lines.extend(init_lines)
     extra_class_lines.extend(class_lines)
     write_init(output_file, extra_class_lines, extra_init_lines)
