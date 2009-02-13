@@ -52,6 +52,9 @@ from IntensityFilters import *
 from SegmentationFilters import *
 from SelectionFilters import *
 from SmoothingFilters import *
+from ThresholdFilters import *
+from GradientFilters import *
+from NeighborhoodFilters import *
 from ImageReader import *
 
 def initialize(*args, **keywords):
@@ -66,6 +69,7 @@ def initialize(*args, **keywords):
     Region.register(reg,basic)
     PixelType.register(reg,basic)
     Filter.register(reg,basic)
+    Kernel.register(reg,basic)
 
     Image.register(reg,basic)
 
@@ -82,7 +86,9 @@ def initialize(*args, **keywords):
 
 ########################################################################################
 # Feature Extraction Filters
-    featurefilters = [GradientMagnitudeRecursiveGaussianImageFilter]
+    featurefilters = [GradientMagnitudeRecursiveGaussianImageFilter,
+                      DanielssonDistanceMapImageFilter,
+                      SobelEdgeDetectionImageFilter]
 
     for cls in featurefilters:
         cls.register(reg,basic)
@@ -91,7 +97,9 @@ def initialize(*args, **keywords):
 # Intensity Filters
     intensityfilters = [RescaleIntensityImageFilter,
                         SigmoidImageFilter,
-                        ThresholdImageFilter]
+                        ThresholdImageFilter,
+                        ShiftScaleImageFilter,
+                        NormalizeImageFilter]
 
     for cls in intensityfilters:
         cls.register(reg,basic)
@@ -119,9 +127,37 @@ def initialize(*args, **keywords):
 # Smoothing Filters
     smoothingfilters = [CurvatureAnisotropicDiffusionFilter,
                         RecursiveGaussianImageFilter,
+                        DiscreteGaussianImageFilter,
+                        GradientAnisotropicDiffusionImageFilter,
+                        MinMaxCurvatureFlowImageFilter,
+                        BinomialBlurImageFilter,
+                        BilateralImageFilter,
                         CurvatureFlowImageFilter]
 
     for cls in smoothingfilters:
+        cls.register(reg,basic)
+
+########################################################################################
+# Threshold Filters
+    thresholdfilters = [BinaryThresholdImageFilter]
+
+    for cls in thresholdfilters:
+        cls.register(reg,basic)
+
+########################################################################################
+# Gradient Filters
+    gradientfilters = [GradientMagnitudeImageFilter]
+
+    for cls in gradientfilters:
+        cls.register(reg,basic)
+
+########################################################################################
+# Neighborhood Filters
+    neighborhoodfilters = [MeanImageFilter,
+                           MedianImageFilter,
+                           BinaryErodeImageFilter]
+
+    for cls in neighborhoodfilters:
         cls.register(reg,basic)
 
 ########################################################################################

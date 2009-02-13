@@ -27,7 +27,7 @@ from ITK import *
 from PixelTypes import *
 
 class Image(Module, ITK):
-    my_namespace=""
+    my_namespace="disregard"
 
     def getPixelType(self):
         return self._type

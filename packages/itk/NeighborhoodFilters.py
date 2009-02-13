@@ -1,4 +1,4 @@
-############################################################################
+#############################################################################
 ##
 ## Copyright (C) 2006-2007 University of Utah. All rights reserved.
 ##
@@ -19,6 +19,7 @@
 ## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 ##
 ############################################################################
+
 import itk
 import core.modules
 from core.modules.vistrails_module import Module, ModuleError
@@ -26,8 +27,8 @@ from core.modules.vistrails_module import Module, ModuleError
 from ITK import *
 from Image import Image
 
-class GradientMagnitudeRecursiveGaussianImageFilter(Module):
-    my_namespace = "Filter|Feature"
+class MeanImageFilter(Module):
+    my_namespace = 'Filter|Neighborhood'
 
     def compute(self):
         im = self.getInputFromPort("Input Image")
@@ -54,10 +55,7 @@ class GradientMagnitudeRecursiveGaussianImageFilter(Module):
         inImgType = itk.Image[inPixelType._type, dim]
         outImgType = itk.Image[outPixelType._type, dim]
 
-        sigma_ = self.getInputFromPort("Sigma")
-
-        self.filter_ = itk.GradientMagnitudeRecursiveGaussianImageFilter[inImgType, outImgType].New(im.getImg())
-        self.filter_.SetSigma(sigma_)
+        self.filter_ = itk.MeanImageFilter[inImgType, outImgType].New(im.getImg())
         self.filter_.Update()
 
         #setup output image
@@ -71,22 +69,24 @@ class GradientMagnitudeRecursiveGaussianImageFilter(Module):
         self.setResult("Filter", self)
         self.setResult("Output PixelType", outPixelType)
 
+
     @classmethod
     def register(cls, reg, basic):
-        reg.add_module(cls, name="Gradient Magnitude Recursive Gaussian Image Filter", namespace=cls.my_namespace)
+        reg.add_module(cls, name="Mean Image Filter", namespace=cls.my_namespace)
+
         reg.add_input_port(cls, "Input Image", (Image, 'Input Image'))
         reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'),True)
         reg.add_input_port(cls, "Output PixelType", (PixelType, 'Output PixelType'),True)
         reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'),True)
-        reg.add_input_port(cls, "Sigma", (basic.Float, 'Sigma'))
+
 
         reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))
         reg.add_output_port(cls, "Filter", (Filter, 'Filter'), True)
         reg.add_output_port(cls, "Output PixelType", (PixelType, 'Output PixelType'),True)
 
-#TODO this filter doesn't produce any results
-class DanielssonDistanceMapImageFilter(Module):
-    my_namespace = 'Filter|Feature'
+
+class MedianImageFilter(Module):
+    my_namespace = 'Filter|Neighborhood'
 
     def compute(self):
         im = self.getInputFromPort("Input Image")
@@ -113,13 +113,7 @@ class DanielssonDistanceMapImageFilter(Module):
         inImgType = itk.Image[inPixelType._type, dim]
         outImgType = itk.Image[outPixelType._type, dim]
 
-        squared_distance = self.getInputFromPort("Squared Distance")
-
-        image_spaceing = self.getInputFromPort("Image Spaceing")
-
-        self.filter_ = itk.DanielssonDistanceMapImageFilter[inImgType, outImgType].New(im.getImg())
-        self.filter_.SetSquaredDistance(squared_distance)
-        self.filter_.SetUseImageSpacing(image_spaceing)
+        self.filter_ = itk.MedianImageFilter[inImgType, outImgType].New(im.getImg())
         self.filter_.Update()
 
         #setup output image
@@ -136,24 +130,24 @@ class DanielssonDistanceMapImageFilter(Module):
 
     @classmethod
     def register(cls, reg, basic):
-        reg.add_module(cls, name="DanielssonDistance Map Image Filter", namespace=cls.my_namespace)
+        reg.add_module(cls, name="Median Image Filter", namespace=cls.my_namespace)
 
         reg.add_input_port(cls, "Input Image", (Image, 'Input Image'))
         reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'),True)
         reg.add_input_port(cls, "Output PixelType", (PixelType, 'Output PixelType'),True)
         reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'),True)
 
-        reg.add_input_port(cls, "Squared Distance", (basic.Float, 'Squared Distance'))
-        reg.add_input_port(cls, "Image Spaceing", (basic.Float, 'Image Spaceing'))
 
         reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))
         reg.add_output_port(cls, "Filter", (Filter, 'Filter'), True)
         reg.add_output_port(cls, "Output PixelType", (PixelType, 'Output PixelType'),True)
 
-class SobelEdgeDetectionImageFilter(Module):
-    my_namespace = 'Filter|Feature'
+#TODO does this filter even modify the image?
+class BinaryErodeImageFilter(Module):
+    my_namespace = 'Filter|Neighborhood'
 
     def compute(self):
+        print "comput"
         im = self.getInputFromPort("Input Image")
 
         #check for input PixelType
@@ -173,12 +167,18 @@ class SobelEdgeDetectionImageFilter(Module):
             dim = self.getInputFromPort("Dimension")
         else:
             dim = im.getDim()
-
+            
+        kernel = self.getInputFromPort("Kernel")
+        
         #set up filter
         inImgType = itk.Image[inPixelType._type, dim]
         outImgType = itk.Image[outPixelType._type, dim]
 
-        self.filter_ = itk.SobelEdgeDetectionImageFilter[inImgType, outImgType].New(im.getImg())
+        erode_value = self.getInputFromPort("Erode Value")
+
+        self.filter_ = itk.BinaryErodeImageFilter[inImgType, outImgType, kernel].New(im.getImg())
+        self.filter_.SetKernel(kernel)
+        self.filter_.SetErodeValue(erode_value)
         self.filter_.Update()
 
         #setup output image
@@ -195,13 +195,15 @@ class SobelEdgeDetectionImageFilter(Module):
 
     @classmethod
     def register(cls, reg, basic):
-        reg.add_module(cls, name="Sobel Edge Detection Image Filter", namespace=cls.my_namespace)
+        reg.add_module(cls, name="Binary Erode Image Filter", namespace=cls.my_namespace)
 
         reg.add_input_port(cls, "Input Image", (Image, 'Input Image'))
         reg.add_input_port(cls, "Input PixelType", (PixelType, 'Input PixelType'),True)
         reg.add_input_port(cls, "Output PixelType", (PixelType, 'Output PixelType'),True)
         reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'),True)
+        reg.add_input_port(cls, "Kernel", (Kernel, 'Kernel'))
 
+        reg.add_input_port(cls, "Erode Value", (basic.Integer, 'Erode Value'))
 
         reg.add_output_port(cls, "Output Image", (Image, 'Output Image'))
         reg.add_output_port(cls, "Filter", (Filter, 'Filter'), True)

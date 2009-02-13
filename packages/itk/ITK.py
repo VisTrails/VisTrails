@@ -28,7 +28,7 @@ class ITK(object):
     my_namespace="itk"
 
 class PixelType(Module, ITK):
-    my_namespace = "pixeltype"
+    my_namespace = "disregard"
 
     def compute(self):
         pass
@@ -38,6 +38,7 @@ class PixelType(Module, ITK):
         reg.add_module(cls, name="Pixel Type", namespace=cls.my_namespace)
 
 class Filter(Module, ITK):
+    my_namespace="disregard"
 
     def compute(self):
         pass
@@ -145,3 +146,21 @@ class Region(Module, ITK):
         reg.add_input_port(cls, "Input 3D Index", (Index3D, 'Input 3D Index'), True)
 
         reg.add_output_port(cls, "Region", (Region, 'Region'))
+
+class Kernel(Module, ITK):
+    my_namespace = "kernel"
+    def compute(self):
+        dim = self.getInputFromPort("Dimension")
+        radius = self.getInputFromPort("Radius")
+        self.kernel = itk.strel(dim,radius)
+
+        self.setResult("Kernel", self.kernel)
+
+    @classmethod
+    def register(cls, reg, basic):
+        reg.add_module(cls, name="Kernel", namespace=cls.my_namespace)
+
+        reg.add_input_port(cls, "Dimension", (basic.Integer, 'Dimension'))
+        reg.add_input_port(cls, "Radius", (basic.Integer, 'Radius'))
+
+        reg.add_output_port(cls, "Kernel", (Kernel, 'Kernel'))
