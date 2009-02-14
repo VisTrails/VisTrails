@@ -268,6 +268,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         self.ghosted = False
         self.controller = None
         self.moduleId = None
+        self.is_breakpoint = False
         self.createActions()
 
     def setGhosted(self, ghosted):
@@ -283,6 +284,15 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
             else:
                 self.setPen(CurrentTheme.CONFIGURE_PEN)
                 self.setBrush(CurrentTheme.CONFIGURE_BRUSH)
+
+    def setBreakpoint(self, breakpoint):
+        if self.is_breakpoint != breakpoint:
+            if breakpoint:
+                self.setBreakpointAct.setText("Remove Breakpoint")
+                self.setBreakpointAct.setStatusTip("Remove Breakpoint")
+            else:
+                self.setBreakpointAct.setText("Set Breakpoint")
+                self.setBreakpointAct.setStatusTip("Set Breakpoint")
 
     def mousePressEvent(self, event):
         """ mousePressEvent(event: QMouseEvent) -> None
@@ -329,8 +339,8 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         QtCore.QObject.connect(self.changeModuleLabelAct,
                                QtCore.SIGNAL("triggered()"),
                                self.changeModuleLabel)
-	self.setBreakpointAct = QtGui.QAction("Set Module as Breakpoint", self.scene())
-	self.setBreakpointAct.setStatusTip("Set or Remove Breakpoint")
+	self.setBreakpointAct = QtGui.QAction("Set Breakpoint", self.scene())
+	self.setBreakpointAct.setStatusTip("Set Breakpoint")
 	QtCore.QObject.connect(self.setBreakpointAct,
 			       QtCore.SIGNAL("triggered()"),
 			       self.set_breakpoint)
@@ -341,7 +351,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
 	"""
 	if self.moduleId >= 0:
 	    self.scene().toggle_breakpoint(self.moduleId)
-
+            self.setBreakpoint(not self.is_breakpoint)
         debug = get_default_interpreter().debugger
         if debug:
             debug.update()
@@ -703,6 +713,8 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.modulePen = CurrentTheme.MODULE_PEN
         self.moduleBrush = CurrentTheme.MODULE_BRUSH
         self.labelPen = CurrentTheme.MODULE_LABEL_PEN
+        self.customBrush = None
+        self.statusBrush = None
         self.labelRect = QtCore.QRectF()
         self.descRect = QtCore.QRectF()
         self.id = -1
@@ -714,9 +726,12 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.module = None
         self.ghosted = False
         self._module_shape = None
+        self._original_module_shape = None
         self._moved = False
         self._old_connection_ids = None
-        self.bp_shape = False
+        self.is_breakpoint = False
+        self.module_type = CurrentTheme.MODULE_DEFAULT_TYPE
+        self._needs_state_updated = True
         
     def computeBoundingRect(self):
         """ computeBoundingRect() -> None
@@ -763,117 +778,112 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             r = QtCore.QRectF()
         return r
 
+    def setPainterState(self, is_selected=None):
+        if self.is_breakpoint:
+            self.modulePen = CurrentTheme.BREAKPOINT_MODULE_PEN
+            self.labelPen = CurrentTheme.BREAKPOINT_MODULE_LABEL_PEN
+            self.moduleBrush = CurrentTheme.BREAKPOINT_MODULE_BRUSH
+        elif self.ghosted:
+            self.modulePen = CurrentTheme.GHOSTED_MODULE_PEN
+            self.labelPen = CurrentTheme.GHOSTED_MODULE_LABEL_PEN
+            self.moduleBrush = CurrentTheme.GHOSTED_MODULE_BRUSH
+        else:
+            self.modulePen = CurrentTheme.MODULE_PEN
+            self.labelPen = CurrentTheme.MODULE_LABEL_PEN
+            if self.statusBrush:
+                self.moduleBrush = self.statusBrush
+            elif self.customBrush:
+                self.moduleBrush = self.customBrush
+            else:
+                self.moduleBrush = CurrentTheme.MODULE_BRUSH
+
+        if is_selected is None:
+            is_selected = self.isSelected()
+        if is_selected:
+            self.modulePen = CurrentTheme.MODULE_SELECTED_PEN
+            self.labelPen = CurrentTheme.MODULE_LABEL_SELECTED_PEN
+        else:
+            if self.module_type == CurrentTheme.MODULE_ABSTRACTION_TYPE:
+                self.modulePen.setStyle(CurrentTheme.ABSTRACTION_PEN_STYLE)
+            elif self.module_type == CurrentTheme.MODULE_GROUP_TYPE:
+                self.modulePen.setStyle(CurrentTheme.GROUP_PEN_STYLE)
+            else:
+                self.modulePen.setStyle(CurrentTheme.MODULE_PEN_STYLE)
+            
     def setGhosted(self, ghosted):
         """ setGhosted(ghosted: True) -> None
         Set this link to be ghosted or not
         
         """
-        if self.ghosted <> ghosted:
+        if self.ghosted != ghosted:
             self.ghosted = ghosted
-            if ghosted:
-                self.modulePen = CurrentTheme.GHOSTED_MODULE_PEN
-                self.moduleBrush = CurrentTheme.GHOSTED_MODULE_BRUSH
-                self.labelPen = CurrentTheme.GHOSTED_MODULE_LABEL_PEN
-            else:
-                self.modulePen = CurrentTheme.MODULE_PEN
-                self.moduleBrush = CurrentTheme.MODULE_BRUSH
-                self.labelPen = CurrentTheme.MODULE_LABEL_PEN
-
             for port in self.inputPorts.itervalues():
                 port.setGhosted(ghosted)
             for port in self.outputPorts.itervalues():
                 port.setGhosted(ghosted)
+            self._needs_state_udpated = True
+
+#             if ghosted:
+#                 self.modulePen = CurrentTheme.GHOSTED_MODULE_PEN
+#                 self.moduleBrush = CurrentTheme.GHOSTED_MODULE_BRUSH
+#                 self.labelPen = CurrentTheme.GHOSTED_MODULE_LABEL_PEN
+#             else:
+#                 self.modulePen = CurrentTheme.MODULE_PEN
+#                 self.moduleBrush = CurrentTheme.MODULE_BRUSH
+#                 self.labelPen = CurrentTheme.MODULE_LABEL_PEN
+
+    def setBreakpoint(self, breakpoint):
+        if self.is_breakpoint != breakpoint:
+            self.is_breakpoint = breakpoint
+            if breakpoint:
+                self._original_module_shape = self._module_shape
+                self.set_module_shape(self.create_shape_from_fringe(
+                        CurrentTheme.BREAKPOINT_FRINGE))
+            else:
+                self._module_shape = self._original_module_shape
+            self._needs_state_updated = True
+
+#             if breakpoint:
+#                 self.modulePen = CurrentTheme.BREAKPOINT_MODULE_PEN
+#                 self.moduleBrush = CurrentTheme.BREAKPOINT_MODULE_BRUSH
+#                 self.labelPen = CurrentTheme.BREAKPOINT_MODULE_LABEL_PEN
             
+    def setModuleType(self, module_type=CurrentTheme.MODULE_DEFAULT_TYPE):
+        if self.module_type != module_type:
+            self.module_type = module_type
+            self._needs_state_updated = True
+
+    def set_module_shape(self, module_shape=None):
+        self._module_shape = module_shape
+        if self._module_shape is not None:
+            self.paddedRect = self._module_shape.boundingRect()
+
+    def set_custom_brush(self, brush):
+        self.customBrush = brush
+        self._needs_state_updated = True
+
     def paint(self, painter, option, widget=None):
         """ paint(painter: QPainter, option: QStyleOptionGraphicsItem,
                   widget: QWidget) -> None
         Peform actual painting of the module
         
         """
-        def setModulePen():
-            if self.isSelected():
-                painter.setPen(CurrentTheme.MODULE_SELECTED_PEN)
-            else:
-                painter.setPen(self.modulePen)
-            if self.module is not None:
-                if self.module.is_group():
-                    pen = painter.pen()
-                    pen.setStyle(QtCore.Qt.DashLine)
-                elif self.module.is_abstraction():
-                    pen = painter.pen()
-                    pen.setStyle(QtCore.Qt.DotLine)
-                else:
-                    painter.pen().setStyle(QtCore.Qt.SolidLine)
-                
-        def setLabelPen():
-            if self.isSelected():
-                painter.setPen(CurrentTheme.MODULE_LABEL_SELECTED_PEN)
-            else:
-                painter.setPen(self.labelPen)
-            
-        def drawCustomShape():
-            painter.setBrush(self.moduleBrush)
+        if self._needs_state_updated:
+            self.setPainterState()
+            self._needs_state_updated = False
+
+        # draw module shape
+        painter.setBrush(self.moduleBrush)
+        painter.setPen(self.modulePen)
+        if self._module_shape:
             painter.drawPolygon(self._module_shape)
-            setModulePen()
             painter.drawPolyline(self._module_shape)
-
-        def drawStandardShape():
-            painter.fillRect(self.paddedRect, self.moduleBrush)
-            setModulePen()
-            painter.drawRect(self.paddedRect)
-
-        def drawBreakpointShape():
-            painter.setBrush(self.moduleBrush)
-
-            P = QtCore.QPointF
-            shape = QtGui.QPolygonF()
-            height = self.paddedRect.height()
-
-            # right side of shape
-            for (px, py) in [(0.0,0.0),(0.5,0.25),(0.5,0.75),(0.0,1.0)]:
-                p = P(px, -py)
-                p *= height
-                p += self.paddedRect.bottomRight()
-                shape.append(p)
-
-            # left side of shape
-            for (px, py) in reversed([(0.0,0.0),(-0.5,0.25),(-0.5,0.75),(0.0,1.0)]):
-                p = P(px, -py)
-                p *= height
-                p += self.paddedRect.bottomLeft()
-                shape.append(p)
-            # close polygon
-            shape.append(shape[0])
-
-            painter.drawPolygon(shape)
-            setModulePen()
-            painter.drawPolyline(shape)
-
-        try:
-            if self.controller:
-                bps = self.controller.breakpoints
-                if bps.has_key(self.module.id):
-                    self.module.is_breakpoint = True
-            if self.module.is_breakpoint:
-                self.setGhosted(True)
-                self.bp_shape = True
-            else:
-                self.setGhosted(False)
-                self.bp_shape = False
-        except:
-            pass
-        if self.ghosted:
-            self.moduleBrush = CurrentTheme.GHOSTED_MODULE_BRUSH
-
-        if self.bp_shape:
-            drawBreakpointShape()
         else:
-            if self._module_shape:
-                drawCustomShape()
-            else:
-                drawStandardShape()
+            painter.fillRect(self.paddedRect, painter.brush())
+            painter.drawRect(self.paddedRect)
     
-        setLabelPen()
+        # draw module labels
+        painter.setPen(self.labelPen)
         painter.setFont(self.labelFont)
         painter.drawText(self.labelRect, QtCore.Qt.AlignCenter, self.label)
         if self.descRect:
@@ -916,7 +926,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         if c:
             ic = [int(cl*255) for cl in c]
             b = QtGui.QBrush(QtGui.QColor(ic[0], ic[1], ic[2]))
-            self.moduleBrush = b
+            self.set_custom_brush(b)
 
         # Check to see which ports will be shown on the screen
         # setupModule is in a hotpath, performance-wise, which is the
@@ -993,36 +1003,40 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                                             module.name,
                                             module.namespace)
         if fringe:
-            left_fringe, right_fringe = fringe
-            if left_fringe[0] != (0.0, 0.0):
-                left_fringe = [(0.0, 0.0)] + left_fringe
-            if left_fringe[-1] != (0.0, 1.0):
-                left_fringe = left_fringe + [(0.0, 1.0)]
+            self.set_module_shape(self.create_shape_from_fringe(fringe))
 
-            if right_fringe[0] != (0.0, 0.0):
-                right_fringe = [(0.0, 0.0)] + right_fringe
-            if right_fringe[-1] != (0.0, 1.0):
-                right_fringe = right_fringe + [(0.0, 1.0)]
+    def create_shape_from_fringe(self, fringe):
+        left_fringe, right_fringe = fringe
+        if left_fringe[0] != (0.0, 0.0):
+            left_fringe = [(0.0, 0.0)] + left_fringe
+        if left_fringe[-1] != (0.0, 1.0):
+            left_fringe = left_fringe + [(0.0, 1.0)]
 
-            P = QtCore.QPointF
-            self._module_shape = QtGui.QPolygonF()
-            height = self.paddedRect.height()
+        if right_fringe[0] != (0.0, 0.0):
+            right_fringe = [(0.0, 0.0)] + right_fringe
+        if right_fringe[-1] != (0.0, 1.0):
+            right_fringe = right_fringe + [(0.0, 1.0)]
 
-            # right side of shape
-            for (px, py) in right_fringe:
-                p = P(px, -py)
-                p *= height
-                p += self.paddedRect.bottomRight()
-                self._module_shape.append(p)
+        P = QtCore.QPointF
+        module_shape = QtGui.QPolygonF()
+        height = self.paddedRect.height()
 
-            # left side of shape
-            for (px, py) in reversed(left_fringe):
-                p = P(px, -py)
-                p *= height
-                p += self.paddedRect.bottomLeft()
-                self._module_shape.append(p)
-            # close polygon
-            self._module_shape.append(self._module_shape[0])
+        # right side of shape
+        for (px, py) in right_fringe:
+            p = P(px, -py)
+            p *= height
+            p += self.paddedRect.bottomRight()
+            module_shape.append(p)
+
+        # left side of shape
+        for (px, py) in reversed(left_fringe):
+            p = P(px, -py)
+            p *= height
+            p += self.paddedRect.bottomLeft()
+            module_shape.append(p)
+        # close polygon
+        module_shape.append(module_shape[0])
+        return module_shape
 
     def createPortItem(self, port, x, y):
         """ createPortItem(port: Port, x: int, y: int) -> QGraphicsPortItem
@@ -1044,6 +1058,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         configureShape.controller = self.controller
         configureShape.moduleId = self.id
         configureShape.setGhosted(self.ghosted)
+        configureShape.setBreakpoint(self.module.is_breakpoint)
         configureShape.translate(x, y)
         return configureShape
 
@@ -1201,6 +1216,7 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
                 selectedId = selectedItems[0].id
             self.scene().emit(QtCore.SIGNAL('moduleSelected'),
                               selectedId, selectedItems)
+            self._needs_state_updated = True
         return QtGui.QGraphicsItem.itemChange(self, change, value)
 
     def getDestPort(self, pos, srcPort):
@@ -1286,10 +1302,16 @@ class QPipelineScene(QInteractiveGraphicsScene):
             moduleQuery = (self.controller.current_version, module)
             matched = self.controller.search.matchModule(*moduleQuery)
             moduleItem.setGhosted(not matched)
+        moduleItem.setModuleType(CurrentTheme.MODULE_ABSTRACTION_TYPE
+                                 if module.is_abstraction() else
+                                 (CurrentTheme.MODULE_GROUP_TYPE
+                                  if module.is_group() else
+                                  CurrentTheme.MODULE_DEFAULT_TYPE))
         moduleItem.controller = self.controller
         moduleItem.setupModule(module)
+        moduleItem.setBreakpoint(module.is_breakpoint)
         if moduleBrush:
-            moduleItem.moduleBrush = moduleBrush
+            moduleItem.set_custom_brush(moduleBrush)
         self.addItem(moduleItem)
         self.modules[module.id] = moduleItem
         self._old_module_ids.add(module.id)
@@ -1492,6 +1514,12 @@ mutual connections."""
                         tm_item.setGhosted(not matched)
                     else:
                         tm_item.setGhosted(False)
+                    tm_item.setBreakpoint(nm.is_breakpoint)
+                    tm_item.setModuleType(CurrentTheme.MODULE_ABSTRACTION_TYPE
+                                          if nm.is_abstraction() else
+                                          (CurrentTheme.MODULE_GROUP_TYPE
+                                           if nm.is_group() else
+                                           CurrentTheme.MODULE_DEFAULT_TYPE))
 
                 new_connections = set(pipeline.connections)
                 connections_to_be_added = new_connections - self._old_connection_ids
@@ -1809,15 +1837,16 @@ mutual connections."""
                     return True
                 item.setToolTip(e.toolTip)
                 if e.status==0:
-                    item.moduleBrush = CurrentTheme.SUCCESS_MODULE_BRUSH
+                    item.statusBrush = CurrentTheme.SUCCESS_MODULE_BRUSH
                 elif e.status==1:
-                    item.moduleBrush = CurrentTheme.ERROR_MODULE_BRUSH
+                    item.statusBrush = CurrentTheme.ERROR_MODULE_BRUSH
                 elif e.status==2:
-                    item.moduleBrush = CurrentTheme.NOT_EXECUTED_MODULE_BRUSH
+                    item.statusBrush = CurrentTheme.NOT_EXECUTED_MODULE_BRUSH
                 elif e.status==3:
-                    item.moduleBrush = CurrentTheme.ACTIVE_MODULE_BRUSH
+                    item.statusBrush = CurrentTheme.ACTIVE_MODULE_BRUSH
                 elif e.status==4:
-                    item.moduleBrush = CurrentTheme.COMPUTING_MODULE_BRUSH
+                    item.statusBrush = CurrentTheme.COMPUTING_MODULE_BRUSH
+                item._needs_state_updated = True
                 item.update()
             return True
         return False
@@ -1880,6 +1909,7 @@ mutual connections."""
 	    module = self.controller.current_pipeline.modules[id]
 	    module.toggle_breakpoint()
             self.controller.toggle_breakpoint(id)
+            self.recreate_module(self.controller.current_pipeline, id)
 
     def open_annotations_window(self, id):
         """ open_annotations_window(int) -> None
@@ -1964,9 +1994,9 @@ mutual connections."""
 
 
     def reset_module_colors(self):
-        b = CurrentTheme.MODULE_BRUSH
         for module in self.modules.itervalues():
-            module.moduleBrush = b
+            module.statusBrush = None
+            module._needs_state_updated = True
 
 class QModuleStatusEvent(QtCore.QEvent):
     """

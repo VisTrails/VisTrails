@@ -81,6 +81,11 @@ class DefaultTheme(object):
         self.CONFIGURE_SHAPE = _create_configure_shape(self.CONFIGURE_WIDTH,
                                                        self.CONFIGURE_HEIGHT)
 
+        self.BREAKPOINT_FRINGE = \
+            (((0.0,0.0),(-0.5,0.25),(-0.5,0.75),(0.0,1.0)),
+             ((0.0,0.0),(0.5,0.25),(0.5,0.75),(0.0,1.0)))
+                                       
+
         # The number of control points when drawing connection curve
         self.CONNECTION_CONTROL_POINTS = 20
 
@@ -167,6 +172,23 @@ class DefaultTheme(object):
             QtGui.QColor(*(ColorByName.get_int('dark_dim_grey')))), 2)
         self.GHOSTED_MODULE_BRUSH = QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('light_dim_grey'))))
+
+        # Pen and brush for breakpoint modules
+        self.BREAKPOINT_MODULE_PEN = QtGui.QPen(QtGui.QBrush(
+                QtGui.QColor(*(ColorByName.get_int('dark_dim_grey')))), 2)
+        self.BREAKPOINT_MODULE_BRUSH = QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.get_int('light_dim_grey'))))
+        self.BREAKPOINT_MODULE_LABEL_PEN = QtGui.QPen(QtGui.QBrush(
+                QtGui.QColor(*(ColorByName.get_int('dark_dim_grey')))), 2)
+
+        # Module pen styles
+        self.MODULE_DEFAULT_TYPE = 0
+        self.MODULE_ABSTRACTION_TYPE = 1
+        self.MODULE_GROUP_TYPE = 2
+
+        self.MODULE_PEN_STYLE = QtCore.Qt.SolidLine
+        self.ABSTRACTION_PEN_STYLE = QtCore.Qt.DotLine
+        self.GROUP_PEN_STYLE = QtCore.Qt.DashLine
 
         # Brush and pen to draw a port shape at regular state
         self.PORT_PEN = QtGui.QPen(QtGui.QBrush(
