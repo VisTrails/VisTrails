@@ -22,6 +22,7 @@
 
 from core.log.workflow_exec import WorkflowExec
 from core.log.module_exec import ModuleExec
+from core.log.loop_exec import LoopExec
 from core.log.machine import Machine
 from core.vistrail.annotation import Annotation
 from core.vistrail.pipeline import Pipeline
@@ -38,6 +39,10 @@ class DummyLogController(object):
     def start_module_execution(*args, **kwargs):
         pass
     def finish_module_execution(*args, **kwargs):
+        pass
+    def start_loop_execution(*args, **kwargs):
+        pass
+    def finish_loop_execution(*args, **kwargs):
         pass
     def insert_module_annotations(*args, **kwargs):
         pass
@@ -101,27 +106,55 @@ class LogController(object):
     def start_module_execution(self, module, module_id, module_name, 
                                abstraction_id=None, abstraction_version=None, 
                                cached=0):
-        m_exec_id = self.log.id_scope.getNewId(ModuleExec.vtType)
-        module_exec = ModuleExec(id=m_exec_id,
-                                 machine_id=self.machine.id,
-                                 module_id=module_id,
-                                 module_name=module_name,
-                                 abstraction_id=abstraction_id,
-                                 abstraction_version=abstraction_version,
-                                 cached=cached,
-                                 ts_start=core.system.current_time(),
-                                 completed=0)
-        module.module_exec = module_exec
-        self.workflow_exec.add_module_exec(module_exec)
+        if (module.is_fold_operator) and (not module.first_iteration):
+            self.start_loop_execution(module)
+        else:
+            m_exec_id = self.log.id_scope.getNewId(ModuleExec.vtType)
+            module_exec = ModuleExec(id=m_exec_id,
+                                     machine_id=self.machine.id,
+                                     module_id=module_id,
+                                     module_name=module_name,
+                                     abstraction_id=abstraction_id,
+                                     abstraction_version=abstraction_version,
+                                     cached=cached,
+                                     ts_start=core.system.current_time(),
+                                     completed=0)
+            module.module_exec = module_exec
+            self.workflow_exec.add_module_exec(module_exec)
+            if (module.is_fold_operator):
+                self.start_loop_execution(module)
 
     def finish_module_execution(self, module, error=''):
-        module.module_exec.ts_end = core.system.current_time()
-        if not error:
-            module.module_exec.completed = 1
+        if (module.is_fold_operator) and (not module.last_iteration) and (not error):
+            self.finish_loop_execution(module, error)
         else:
-            module.module_exec.completed = -1
-            module.module_exec.error = error
-        del module.module_exec
+            if (module.is_fold_operator):
+                self.finish_loop_execution(module, error)
+                if error:
+                    error = 'Error in loop execution with id %d'%module.module_exec.\
+                            loop_execs[-1].id
+            module.module_exec.ts_end = core.system.current_time()
+            if not error:
+                module.module_exec.completed = 1
+            else:
+                module.module_exec.completed = -1
+                module.module_exec.error = error
+            del module.module_exec
+
+    def start_loop_execution(self, module):
+        l_exec_id = self.log.id_scope.getNewId(LoopExec.vtType)
+        loop_exec = LoopExec(id = l_exec_id,
+                             ts_start = core.system.current_time(),
+                             input = module.element)
+        module.module_exec.add_loop_exec(loop_exec)
+
+    def finish_loop_execution(self, module, error):
+        module.module_exec.loop_execs[-1].ts_end = core.system.current_time()
+        if not error:
+            module.module_exec.loop_execs[-1].completed = 1
+        else:
+            module.module_exec.loop_execs[-1].completed = -1
+            module.module_exec.loop_execs[-1].error = error
 
     def insert_module_annotations(self, module, a_dict):
         for k,v in a_dict.iteritems():

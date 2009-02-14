@@ -270,6 +270,16 @@ CREATE TABLE workflow_exec(
     entity_type char(16)
 ) engine=InnoDB;
 
+CREATE TABLE loop_exec(
+    id int,
+    ts_start datetime,
+    ts_end datetime,
+    input varchar(1023),
+    completed int,
+    error varchar(1023),
+    module_exec_id int
+) engine=InnoDB;
+
 CREATE TABLE connection_tbl(
     id int,
     parent_type char(32),

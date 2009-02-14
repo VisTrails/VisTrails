@@ -202,6 +202,9 @@ Designing New Modules
             }
 
         self.is_breakpoint = False
+
+        # is_fold_operator stores wether the module is a fold operator
+        self.is_fold_operator = False
         
     def clear(self):
         """clear(self) -> None. Removes all references, prepares for

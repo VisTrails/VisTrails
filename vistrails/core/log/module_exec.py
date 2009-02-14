@@ -21,6 +21,7 @@
 ############################################################################
 
 from core.vistrail.annotation import Annotation
+from core.log.loop_exec import LoopExec
 from db.domain import DBModuleExec
 
 class ModuleExec(DBModuleExec):
@@ -44,6 +45,8 @@ class ModuleExec(DBModuleExec):
         _module_exec.__class__ = ModuleExec
         for annotation in _module_exec.annotations:
             Annotation.convert(annotation)
+        for loop_exec in _module_exec.loop_execs:
+            LoopExec.convert(loop_exec)
 
     ##########################################################################
     # Properties
@@ -74,4 +77,11 @@ class ModuleExec(DBModuleExec):
     def add_annotation(self, annotation):
         self.db_add_annotation(annotation)
 
-    
+    def _get_loop_execs(self):
+        return self.db_loop_execs
+    def _set_loop_execs(self, loop_execs):
+        self.db_loop_execs = loop_execs
+    loop_execs = property(_get_loop_execs, _set_loop_execs)
+    def add_loop_exec(self, loop_exec):
+        self.db_add_loop_exec(loop_exec)
+        

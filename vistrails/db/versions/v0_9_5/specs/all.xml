@@ -936,6 +936,53 @@
   </object>
 
   <!--++++++++++++++++++++++++++-->
+  <!-- LOOP_EXEC +++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="loop_exec">
+    <layout>
+      <xml name="loopExec" nodeType="xs:element"/>
+      <sql table="loop_exec"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="ts_start" type="datetime">
+      <xml name="tsStart" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="ts_end" type="datetime">
+      <xml name="tsEnd" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="input" type="str">
+      <xml name="input" nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(1023)"/>
+    </property>
+
+    <property name="completed" type="int">
+      <xml name="completed" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="error" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(1023)"/>
+    </property>
+
+    <property ref="true" object="module_exec" type="long" mapping="many-to-one" 
+	      inverse="true">
+      <sql column="module_exec_id" type="int"/>
+    </property>
+
+  </object>
+  
+  <!--++++++++++++++++++++++++++-->
   <!-- MODULE_EXEC +++++++++++++-->
   <!--++++++++++++++++++++++++++-->
 
@@ -1001,6 +1048,10 @@
     </property>
 
     <property ref="true" object="annotation" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="loop_exec" type="list" mapping="one-to-many">
       <xml nodeType="xs:element"/>
     </property>
 

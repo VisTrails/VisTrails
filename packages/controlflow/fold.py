@@ -1,5 +1,7 @@
-from core.modules.vistrails_module import Module, ModuleConnector, InvalidOutput
+from core.modules.vistrails_module import Module, ModuleError, ModuleConnector,\
+     InvalidOutput
 from core.modules.basic_modules import Constant, NotCacheable
+from core.modules.module_registry import get_descriptor
 import copy
 
 #################################################################################
@@ -25,15 +27,18 @@ class Fold(Module, NotCacheable):
 
         ## Getting list of connectors
         connectors_InputList = self.inputPorts.get('InputList')
+        if connectors_InputList==None:
+            raise ModuleError(self, 'Missing value from port InputList')
 
         ## Updating connectors from 'InputList'
         for connector in connectors_InputList:
             connector.obj.update()
             
         InputList = self.getInputFromPort('InputList')
-
+        
         self.partialResult = None
         self.initialValue = None
+        
         self.setInitialValue()
         self.partialResult = self.initialValue
         self.elementResult = None
@@ -45,6 +50,13 @@ class Fold(Module, NotCacheable):
             connectors_FunctionPort = self.inputPorts.get('FunctionPort')
             connectors_InputPort = self.inputPorts.get('InputPort')
             connectors_OutputPort = self.inputPorts.get('OutputPort')
+
+            if connectors_FunctionPort==None:
+                raise ModuleError(self, 'Missing value from port FunctionPort')
+            if connectors_InputPort==None:
+                raise ModuleError(self, 'Missing value from port InputPort')
+            if connectors_OutputPort==None:
+                raise ModuleError(self, 'Missing value from port OutputPort')
 
             ######################################################################
             ## updateFunctionPort()
@@ -70,26 +82,50 @@ class Fold(Module, NotCacheable):
                     for connector in connectors_FunctionPort:
                         if not self.upToDate:
                             connector.obj.upToDate = False
+                            
+                            ## Setting information for logging stuff
+                            connector.obj.element = str(self.element)
+                            connector.obj.first_iteration = False
+                            if i==0:
+                                connector.obj.is_fold_operator = True
+                                connector.obj.first_iteration = True
+                                connector.obj.last_iteration = False
+                            if i==((len(InputList))-1):
+                                connector.obj.last_iteration = True
+
+##                            ## Getting the names of the input ports in the descriptor
+##                            input_ports = []
+##                            for inputPort in get_descriptor(connector.obj.__class__).port_specs_list:
+##                                input_ports.append(inputPort.name)
+                                
                             ## Setting the value InputList[i] in the input port
                             if len(nameInput)==1:
                                 ## Cleaning the previous connector...
                                 if nameInput[0] in connector.obj.inputPorts:
                                     del connector.obj.inputPorts[nameInput[0]]
+##                                if nameInput[0] not in input_ports:
+##                                    raise ModuleError(self, 'Invalid input port: %s'%nameInput[0])
                                 new_connector = ModuleConnector(create_constant(\
                                     self.element),'value')
                                 connector.obj.set_input_port(nameInput[0],new_connector)
                             else:
                                 if len(nameInput)!=len(InputList[i]):
-                                    raise ModuleError(self,'The number of input values and input ports are not the same.')
+                                    raise ModuleError(self,\
+                                                      'The number of input values and input ports are not the same.')
                                 for j in xrange(len(nameInput)):
                                     ## Cleaning the previous connector...
                                     if nameInput[j] in connector.obj.inputPorts:
                                         del connector.obj.inputPorts[nameInput[j]]
+##                                    if nameInput[j] not in input_ports:
+##                                        raise ModuleError(self, 'Invalid input port: %s'%nameInput[j])
                                     new_connector = ModuleConnector(create_constant(\
                                         self.element[j]),'value')
                                     connector.obj.set_input_port(nameInput[j],new_connector)
                         connector.obj.update()
+                        
                         ## Getting the result from the output port
+                        if nameOutput not in connector.obj.outputPorts:
+                            raise ModuleError(self, 'Invalid output port: %s'%nameOutput)
                         self.elementResult = connector.obj.get_output(nameOutput)
                     self.operation()
 
@@ -109,6 +145,7 @@ class Fold(Module, NotCacheable):
         
         else:
             for i in xrange(len(InputList)):
+                ## Getting the value inside the list
                 self.element = InputList[i]
                 self.operation()
                 

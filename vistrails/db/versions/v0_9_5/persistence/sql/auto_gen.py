@@ -2431,6 +2431,102 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
         dbCommand = self.createSQLDelete(table, whereMap)
         self.executeSQL(db, dbCommand, False)
 
+class DBLoopExecSQLDAOBase(SQLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def get_sql_columns(self, db, global_props,lock=False):
+        columns = ['id', 'ts_start', 'ts_end', 'input', 'completed', 'error', 'module_exec_id']
+        table = 'loop_exec'
+        whereMap = global_props
+        orderBy = 'id'
+
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        data = self.executeSQL(db, dbCommand, True)
+        res = {}
+        for row in data:
+            id = self.convertFromDB(row[0], 'long', 'int')
+            ts_start = self.convertFromDB(row[1], 'datetime', 'datetime')
+            ts_end = self.convertFromDB(row[2], 'datetime', 'datetime')
+            input = self.convertFromDB(row[3], 'str', 'varchar(1023)')
+            completed = self.convertFromDB(row[4], 'int', 'int')
+            error = self.convertFromDB(row[5], 'str', 'varchar(1023)')
+            module_exec = self.convertFromDB(row[6], 'long', 'int')
+            
+            loop_exec = DBLoopExec(ts_start=ts_start,
+                                   ts_end=ts_end,
+                                   input=input,
+                                   completed=completed,
+                                   error=error,
+                                   id=id)
+            loop_exec.db_module_exec = module_exec
+            loop_exec.is_dirty = False
+            res[('loop_exec', id)] = loop_exec
+
+        return res
+
+    def from_sql_fast(self, obj, all_objects):
+        if ('module_exec', obj.db_module_exec) in all_objects:
+            p = all_objects[('module_exec', obj.db_module_exec)]
+            p.db_add_loop_exec(obj)
+        
+    def set_sql_columns(self, db, obj, global_props, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return
+        columns = ['id', 'ts_start', 'ts_end', 'input', 'completed', 'error', 'module_exec_id']
+        table = 'loop_exec'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        columnMap = {}
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            columnMap['id'] = \
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_ts_start') and obj.db_ts_start is not None:
+            columnMap['ts_start'] = \
+                self.convertToDB(obj.db_ts_start, 'datetime', 'datetime')
+        if hasattr(obj, 'db_ts_end') and obj.db_ts_end is not None:
+            columnMap['ts_end'] = \
+                self.convertToDB(obj.db_ts_end, 'datetime', 'datetime')
+        if hasattr(obj, 'db_input') and obj.db_input is not None:
+            columnMap['input'] = \
+                self.convertToDB(obj.db_input, 'str', 'varchar(1023)')
+        if hasattr(obj, 'db_completed') and obj.db_completed is not None:
+            columnMap['completed'] = \
+                self.convertToDB(obj.db_completed, 'int', 'int')
+        if hasattr(obj, 'db_error') and obj.db_error is not None:
+            columnMap['error'] = \
+                self.convertToDB(obj.db_error, 'str', 'varchar(1023)')
+        if hasattr(obj, 'db_module_exec') and obj.db_module_exec is not None:
+            columnMap['module_exec_id'] = \
+                self.convertToDB(obj.db_module_exec, 'long', 'int')
+        columnMap.update(global_props)
+
+        if obj.is_new or do_copy:
+            dbCommand = self.createSQLInsert(table, columnMap)
+        else:
+            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
+        lastId = self.executeSQL(db, dbCommand, False)
+        
+    def to_sql_fast(self, obj, do_copy=True):
+        pass
+        
+    def delete_sql_column(self, db, obj, global_props):
+        table = 'loop_exec'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
+
 class DBConnectionSQLDAOBase(SQLDAO):
 
     def __init__(self, daoList):
@@ -2965,6 +3061,8 @@ class DBModuleExecSQLDAOBase(SQLDAO):
         for child in obj.db_annotations:
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
+        for child in obj.db_loop_execs:
+            child.db_module_exec = obj.db_id
         
     def delete_sql_column(self, db, obj, global_props):
         table = 'module_exec'
@@ -3026,6 +3124,8 @@ class SQLDAOListBase(dict):
             self['package'] = DBPackageSQLDAOBase(self)
         if 'workflow_exec' not in self:
             self['workflow_exec'] = DBWorkflowExecSQLDAOBase(self)
+        if 'loop_exec' not in self:
+            self['loop_exec'] = DBLoopExecSQLDAOBase(self)
         if 'connection' not in self:
             self['connection'] = DBConnectionSQLDAOBase(self)
         if 'action' not in self:

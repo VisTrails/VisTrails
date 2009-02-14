@@ -1492,6 +1492,55 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
         
         return node
 
+class DBLoopExecXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag != 'loopExec':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'long')
+        data = node.get('tsStart', None)
+        ts_start = self.convertFromStr(data, 'datetime')
+        data = node.get('tsEnd', None)
+        ts_end = self.convertFromStr(data, 'datetime')
+        data = node.get('input', None)
+        input = self.convertFromStr(data, 'str')
+        data = node.get('completed', None)
+        completed = self.convertFromStr(data, 'int')
+        data = node.get('error', None)
+        error = self.convertFromStr(data, 'str')
+        
+        obj = DBLoopExec(id=id,
+                         ts_start=ts_start,
+                         ts_end=ts_end,
+                         input=input,
+                         completed=completed,
+                         error=error)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, loop_exec, node=None):
+        if node is None:
+            node = ElementTree.Element('loopExec')
+        
+        # set attributes
+        node.set('id',self.convertToStr(loop_exec.db_id, 'long'))
+        node.set('tsStart',self.convertToStr(loop_exec.db_ts_start, 'datetime'))
+        node.set('tsEnd',self.convertToStr(loop_exec.db_ts_end, 'datetime'))
+        node.set('input',self.convertToStr(loop_exec.db_input, 'str'))
+        node.set('completed',self.convertToStr(loop_exec.db_completed, 'int'))
+        node.set('error',self.convertToStr(loop_exec.db_error, 'str'))
+        
+        return node
+
 class DBConnectionXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -1786,12 +1835,16 @@ class DBModuleExecXMLDAOBase(XMLDAO):
         machine_id = self.convertFromStr(data, 'long')
         
         annotations = []
+        loop_execs = []
         
         # read children
         for child in node.getchildren():
             if child.tag == 'annotation':
                 _data = self.getDao('annotation').fromXML(child)
                 annotations.append(_data)
+            elif child.tag == 'loopExec':
+                _data = self.getDao('loop_exec').fromXML(child)
+                loop_execs.append(_data)
             elif child.text.strip() == '':
                 pass
             else:
@@ -1808,7 +1861,8 @@ class DBModuleExecXMLDAOBase(XMLDAO):
                            abstraction_id=abstraction_id,
                            abstraction_version=abstraction_version,
                            machine_id=machine_id,
-                           annotations=annotations)
+                           annotations=annotations,
+                           loop_execs=loop_execs)
         obj.is_dirty = False
         return obj
     
@@ -1834,6 +1888,10 @@ class DBModuleExecXMLDAOBase(XMLDAO):
         for annotation in annotations:
             childNode = ElementTree.SubElement(node, 'annotation')
             self.getDao('annotation').toXML(annotation, childNode)
+        loop_execs = module_exec.db_loop_execs
+        for loop_exec in loop_execs:
+            childNode = ElementTree.SubElement(node, 'loopExec')
+            self.getDao('loop_exec').toXML(loop_exec, childNode)
         
         return node
 
@@ -1887,6 +1945,8 @@ class XMLDAOListBase(dict):
             self['package'] = DBPackageXMLDAOBase(self)
         if 'workflow_exec' not in self:
             self['workflow_exec'] = DBWorkflowExecXMLDAOBase(self)
+        if 'loop_exec' not in self:
+            self['loop_exec'] = DBLoopExecXMLDAOBase(self)
         if 'connection' not in self:
             self['connection'] = DBConnectionXMLDAOBase(self)
         if 'action' not in self:
