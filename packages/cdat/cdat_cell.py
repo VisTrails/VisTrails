@@ -1,7 +1,25 @@
 from PyQt4 import QtCore, QtGui
+from packages.spreadsheet.basic_widgets import SpreadsheetCell, CellLocation
 from packages.spreadsheet.spreadsheet_cell import QCellWidget, QCellToolBar
 from packages.spreadsheet.spreadsheet_controller import spreadsheetController
 import vcs
+
+class CDATCell(SpreadsheetCell):
+    
+    def __init__(self):
+        SpreadsheetCell.__init__(self)
+        self.cellWidget = None
+    
+    def compute(self):
+        """ compute() -> None
+        Dispatch the vtkRenderer to the actual rendering widget
+        """
+        self.cellWidget = self.displayAndWait(QCDATWidget, ())
+        if self.cellWidget!=None:
+            canvas = self.cellWidget.canvas
+        else:
+            canvas = None
+        self.setResult('canvas', canvas)
 
 class QCDATWidget(QCellWidget):
 
@@ -52,7 +70,10 @@ class QCDATWidget(QCellWidget):
         if self.canvas==None:
             vcsCanvas = vcs.init()
             self.setCanvas(vcsCanvas)
-        self.canvas.plot(*inputPorts)
+        self.canvas.clear()
+        if len(inputPorts)>0:
+            self.canvas.plot(*inputPorts)
+            
        
         spreadsheetWindow.setUpdatesEnabled(True)
 
@@ -71,4 +92,4 @@ class QCDATWidget(QCellWidget):
         
         """
         self.setCanvas(None)
-        QCellWidget.deleteLater(self)   
+        QCellWidget.deleteLater(self)

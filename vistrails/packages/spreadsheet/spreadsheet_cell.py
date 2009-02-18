@@ -313,7 +313,7 @@ class QCellToolBar(QtGui.QToolBar):
 class QCellToolBarRemoveCell(QtGui.QAction):
     """
     QCellToolBarRemoveCell is the action to clear the current cell
-    
+
     """
     def __init__(self, icon, parent=None):
         """ QCellToolBarRemoveCell(icon: QIcon, parent: QWidget)
@@ -339,8 +339,8 @@ class QCellToolBarRemoveCell(QtGui.QAction):
                                        QtGui.QMessageBox.No,
                                        QtGui.QMessageBox.No)
         if (r==QtGui.QMessageBox.Yes):
-            self.toolBar.sheet.setCellWidget(self.toolBar.row, self.toolBar.col,
-                                             None)
+            self.toolBar.sheet.setCellByType(self.toolBar.row, self.toolBar.col,
+                                             None, None)
             self.toolBar.sheet.setCellPipelineInfo(self.toolBar.row,
                                                    self.toolBar.col, None)
 
@@ -706,7 +706,7 @@ class QPipelineInfo(QtGui.QFrame):
         Update the information of a pipeline info
         
         """
-        if info:
+        if info!=None and info[0]['locator']!=None:
             self.edits[0].setText(str(info[0]['locator'].name))
             self.edits[1].setText('(Pipeline: %d, Module: %d)'
                                   % (info[0]['version'], info[0]['moduleId']))

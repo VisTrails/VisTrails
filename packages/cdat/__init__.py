@@ -45,8 +45,9 @@ cdutil = py_import('cdutil', {})
 
 #local python modules
 from cdat_window import QCDATWindow
-from cdat_cell import QCDATWidget
+from cdat_cell import QCDATWidget, CDATCell
 from quickplot import quickplot
+from packages.spreadsheet.basic_widgets import CellLocation
 
 version = "0.2"
 identifier = "edu.utah.sci.vistrails.cdat"
@@ -5193,6 +5194,16 @@ def initialize(*args, **keywords):
                        (TransientVariable,"variable to be plotted"))
     reg.add_input_port(quickplot, 'plot',
                        (core.modules.basic_modules.String,"Plot type"))
+    reg.add_input_port(quickplot, 'axes',
+                       (core.modules.basic_modules.String,"Axis Dimensions"))
+    reg.add_input_port(quickplot, "canvas", (Canvas, "Use this canvas instead of creating a new one"))
+    
+    reg.add_output_port(quickplot, "dataset", (TransientVariable, "variable after being plotted"))
+    reg.add_output_port(quickplot, "canvas", (Canvas, "The canvas of the plot"))
+    
+    reg.add_module(CDATCell)
+    reg.add_input_port(CDATCell, "Location", CellLocation)
+    reg.add_output_port(CDATCell, "canvas", Canvas)
 
     # end of cdatwindow_init_inc.py
     ##########################################################################

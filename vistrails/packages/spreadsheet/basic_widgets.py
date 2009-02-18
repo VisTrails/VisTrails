@@ -186,6 +186,8 @@ class SpreadsheetCell(NotCacheable, Module):
         inputPorts --- a tuple of input data that cellType() will understand
         
         """
+        if spreadsheetController.echoMode():
+            return displayAndWait(cellType, inputPorts)
         e = DisplayCellEvent()
         e.vistrail = self.moduleInfo
         if self.location:

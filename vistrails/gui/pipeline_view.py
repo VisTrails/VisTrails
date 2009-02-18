@@ -732,6 +732,11 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self.is_breakpoint = False
         self.module_type = CurrentTheme.MODULE_DEFAULT_TYPE
         self._needs_state_updated = True
+        self.progress = 0.0
+        self.progressBrush = CurrentTheme.SUCCESS_MODULE_BRUSH
+
+    def setProgress(self, progress):
+        self.progress = progress
         
     def computeBoundingRect(self):
         """ computeBoundingRect() -> None
@@ -868,18 +873,29 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         Peform actual painting of the module
         
         """
+        if self.progress>0.0:
+            progressRect = self.paddedRect.adjusted(0, 0, (self.progress-1.0)*self.paddedRect.width(), 0)
+            
         if self._needs_state_updated:
             self.setPainterState()
             self._needs_state_updated = False
-
+            
         # draw module shape
         painter.setBrush(self.moduleBrush)
         painter.setPen(self.modulePen)
         if self._module_shape:
             painter.drawPolygon(self._module_shape)
+            if self.progress>0.0:
+                painter.setClipRect(progressRect)
+                painter.setBrush(self.progressBrush)
+                painter.drawPolygon(self._module_shape)
+                painter.setClipping(False)
             painter.drawPolyline(self._module_shape)
         else:
             painter.fillRect(self.paddedRect, painter.brush())
+            if self.progress>0.0:
+                painter.fillRect(progressRect, self.progressBrush)
+            painter.setBrush(QtCore.Qt.NoBrush)
             painter.drawRect(self.paddedRect)
     
         # draw module labels
@@ -1828,11 +1844,9 @@ mutual connections."""
             for moduleId in ids:
                 self.modules[moduleId].setSelected(True)
             
-    def eventFilter(self, object, e):
-        """ eventFilter(object: QObject, e: QEvent) -> None        
-        Catch all the set module color events through self-event
-        filter. Using the standard event cause some ambiguity in
-        converting between QGraphicsSceneEvent and QEvent
+    def event(self, e):
+        """ event(e: QEvent) -> None        
+        Process the set module color events
         
         """
         if e.type()==QModuleStatusEvent.TYPE:
@@ -1841,20 +1855,20 @@ mutual connections."""
                 if not item:
                     return True
                 item.setToolTip(e.toolTip)
-                if e.status==0:
-                    item.statusBrush = CurrentTheme.SUCCESS_MODULE_BRUSH
-                elif e.status==1:
-                    item.statusBrush = CurrentTheme.ERROR_MODULE_BRUSH
-                elif e.status==2:
-                    item.statusBrush = CurrentTheme.NOT_EXECUTED_MODULE_BRUSH
-                elif e.status==3:
-                    item.statusBrush = CurrentTheme.ACTIVE_MODULE_BRUSH
-                elif e.status==4:
-                    item.statusBrush = CurrentTheme.COMPUTING_MODULE_BRUSH
+                statusMap =  {
+                    0: CurrentTheme.SUCCESS_MODULE_BRUSH,
+                    1: CurrentTheme.ERROR_MODULE_BRUSH,
+                    2: CurrentTheme.NOT_EXECUTED_MODULE_BRUSH,
+                    3: CurrentTheme.ACTIVE_MODULE_BRUSH,
+                    4: CurrentTheme.COMPUTING_MODULE_BRUSH,
+                    }
+                item.setProgress(e.progress)
+                if statusMap.has_key(e.status):
+                    item.statusBrush = statusMap[e.status]
                 item._needs_state_updated = True
                 item.update()
             return True
-        return False
+        return QInteractiveGraphicsScene.event(self, e)
 
     def selectAll(self):
         """ selectAll() -> None
@@ -1996,6 +2010,17 @@ mutual connections."""
         QtGui.QApplication.postEvent(self,
                                      QModuleStatusEvent(moduleId, 4, ''))
         QtCore.QCoreApplication.processEvents()
+        
+    def set_module_progress(self, moduleId, progress=0.0):
+        """ set_module_computing(moduleId: int, progress: float) -> None
+        Post an event to the scene (self) for updating the module color
+        
+        """
+        QtGui.QApplication.postEvent(self,
+                                     QModuleStatusEvent(moduleId, 5,
+                                                        '%d%% Completed' % int(progress*100),
+                                                        progress))
+        QtCore.QCoreApplication.processEvents()
 
 
     def reset_module_colors(self):
@@ -2010,7 +2035,7 @@ class QModuleStatusEvent(QtCore.QEvent):
     
     """
     TYPE = QtCore.QEvent.Type(QtCore.QEvent.User)
-    def __init__(self, moduleId, status, toolTip):
+    def __init__(self, moduleId, status, toolTip, progress=0.0):
         """ QModuleStatusEvent(type: int) -> None        
         Initialize the specific event with the module status. Status 0
         for success, 1 for error and 2 for not execute, 3 for active,
@@ -2021,6 +2046,7 @@ class QModuleStatusEvent(QtCore.QEvent):
         self.moduleId = moduleId
         self.status = status
         self.toolTip = toolTip
+        self.progress = progress
             
 class QPipelineView(QInteractiveGraphicsView):
     """

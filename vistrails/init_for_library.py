@@ -108,4 +108,4 @@ import gui.theme
 import gui.utils
 import gui.version_view
 import gui.vistrail_controller
-
+import packages.spreadsheet

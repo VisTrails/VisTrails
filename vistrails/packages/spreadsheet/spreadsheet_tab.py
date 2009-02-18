@@ -83,6 +83,7 @@ class StandardWidgetToolBar(QtGui.QToolBar):
         self.addAction(self.sheetTab.tabWidget.newSheetAction())
         self.addWidget(self.rowCountSpinBox())
         self.addWidget(self.colCountSpinBox())
+        self.addAction(self.sheetTab.tabWidget.exportSheetToImageAction())
         self.addSeparator()
         self.layout().setSpacing(2)
         self.currentToolBarAction = None
@@ -460,6 +461,50 @@ class StandardWidgetSheetTabInterface(object):
                     info[0]['actions'],
                     info[0]['pipeline'])
         return None
+
+    def exportSheetToImage(self, fileName):
+        """ exportSheetToImage() -> None
+        Montage all the cell images and export to a file
+        
+        """
+        (rCount, cCount) = self.getDimension()
+        if rCount<1 or cCount<1: return
+        cellHeights = [self.getCellRect(r, 0).height()
+                       for r in xrange(rCount)]
+        cellWidths = [self.getCellRect(0, c).width()
+                      for c in xrange(cCount)] 
+        finalImage = QtGui.QImage(sum(cellWidths), sum(cellHeights), QtGui.QImage.Format_ARGB32)
+        finalImage.fill(0xFFFFFFFF)
+        painter = QtGui.QPainter(finalImage)
+        y = 0
+        for r in xrange(rCount):
+            x = 0
+            for c in xrange(cCount):
+                widget = self.getCell(r, c)
+                if widget:
+                    pix = widget.grabWindowPixmap()
+                    cx = (cellWidths[c]-pix.width())/2
+                    cy = (cellHeights[r]-pix.height())/2
+                    painter.drawPixmap(x+cx, y+cy, widget.grabWindowPixmap())
+                x += cellWidths[c]
+            y += cellHeights[r]
+        painter.end()
+        finalImage.save(fileName)
+
+    def exportSheetToImages(self, dirPath, format='png'):
+        """ exportSheetToImage() -> None
+        Montage all the cell images and export to a file
+        
+        """
+        (rCount, cCount) = self.getDimension()
+        for r in xrange(rCount):
+            for c in xrange(cCount):
+                widget = self.getCell(r, c)
+                if widget:
+                    widget.grabWindowPixmap().save(dirPath+'/'+
+                                                   chr(c+ord('a'))+
+                                                   str(r+1)+
+                                                   '.'+format)
 
 class StandardWidgetSheetTab(QtGui.QWidget, StandardWidgetSheetTabInterface):
     """

@@ -156,8 +156,14 @@ class vtkBaseModule(Module):
 
         # Call update if appropriate
         if hasattr(self.vtkInstance, 'Update'):
-            # print "Called update on",self.vtkInstance
+            def ProgressEvent(obj, event):
+                self.logging.update_progress(self, obj.GetProgress())
+            isAlgorithm = issubclass(self.vtkClass, vtk.vtkAlgorithm)
+            if isAlgorithm:
+                cbId = self.vtkInstance.AddObserver('ProgressEvent', ProgressEvent)
             self.vtkInstance.Update()
+            if isAlgorithm:
+                self.vtkInstance.RemoveObserver(cbId)
 
         # Then update the output ports also with appropriate function calls
         for function in self.outputPorts.keys():

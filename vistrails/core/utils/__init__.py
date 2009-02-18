@@ -391,6 +391,7 @@ class DummyView(object):
     def set_module_success(*args, **kwargs): pass
     def set_module_error(*args, **kwargs): pass
     def set_module_not_executed(*args, **kwargs): pass
+    def set_module_progress(*args, **kwargs): pass
 
 ##############################################################################    
 # FIXME: Add tests

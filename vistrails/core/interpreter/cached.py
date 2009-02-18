@@ -279,9 +279,15 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             i = get_remapped_id(obj.id)
             logger.insert_module_annotations(obj, d)
 
+        # views and loggers work on local ids
+        def update_progress(obj, percentage=0.0):
+            i = get_remapped_id(obj.id)
+            view.set_module_progress(i, percentage)
+            
         logging_obj = InstanceObject(signalSuccess=add_to_executed,
                                      begin_update=begin_update,
                                      begin_compute=begin_compute,
+                                     update_progress=update_progress,
                                      end_update=end_update,
                                      update_cached=update_cached,
                                      annotate=annotate)

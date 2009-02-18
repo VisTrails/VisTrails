@@ -228,6 +228,48 @@ class StandardWidgetTabController(QtGui.QTabWidget):
                          self.openSpreadsheetAs)
         return self.openActionVar
 
+    def exportSheetToImageAction(self):
+        """ exportSheetToImageAction() -> QAction
+        Export the current sheet to an image
+        
+        """
+        if not hasattr(self, 'exportSheetToImageVar'):
+            self.exportSheetToImageVar = QtGui.QAction('Export', self)
+            self.exportSheetToImageVar.setStatusTip(
+                'Export all cells in the spreadsheet to a montaged image')
+
+            exportMenu = QtGui.QMenu(self)
+            singleAction = exportMenu.addAction('As a Single Image')
+            multiAction = exportMenu.addAction('Separately')
+            self.exportSheetToImageVar.setMenu(exportMenu)
+            
+            self.connect(self.exportSheetToImageVar,
+                         QtCore.SIGNAL('triggered(bool)'),
+                         self.exportSheetToImageActionTriggered)
+            
+            self.connect(exportMenu,
+                         QtCore.SIGNAL('triggered(QAction*)'),
+                         self.exportSheetToImageActionTriggered)
+        return self.exportSheetToImageVar
+
+    def exportSheetToImageActionTriggered(self, action=None):
+        """ exportSheetToImageActionTriggered(checked: boolean) -> None
+        Actual code to create export an image
+        
+        """
+        if type(action)!=bool and action.text()=='Separately':
+            dir = QtGui.QFileDialog.getExistingDirectory(
+                self, 'Select a Directory to Export Images', ".",
+                QtGui.QFileDialog.ShowDirsOnly)
+            if not dir.isNull():
+                self.currentWidget().exportSheetToImages(str(dir))
+        else:
+            file = QtGui.QFileDialog.getSaveFileName(
+                self, "Select a File to Export the Sheet",
+                ".", "Images (*.png, *.xpm, *.jpg)")
+            if not file.isNull():
+                self.currentWidget().exportSheetToImage(str(file))
+        
     def newSheetActionTriggered(self, checked=False):
         """ newSheetActionTriggered(checked: boolean) -> None
         Actual code to create a new sheet

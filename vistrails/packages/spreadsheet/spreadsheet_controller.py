@@ -43,7 +43,7 @@ class SpreadsheetController(object):
         """
         pass
 
-    def findSpreadsheetWindow(self):
+    def findSpreadsheetWindow(self, show=True):
         """ findSpreadsheetWindow() -> QWidget
         Looking for the spreadsheet window
         
@@ -54,7 +54,8 @@ class SpreadsheetController(object):
                 return w
         global spreadsheetWindow
         spreadsheetWindow = SpreadsheetWindow()
-        spreadsheetWindow.configShow()
+        if show:
+            spreadsheetWindow.configShow()
         return spreadsheetWindow
         
     def postEventToSpreadsheet(self, event):
@@ -77,6 +78,39 @@ class SpreadsheetController(object):
             return spreadsheetWindow.visApp.builderWindow
         else:
             return None
+
+    def setEchoMode(self, echo):
+        """ setEchoMode(echo: bool)
+        Instruct the spreadsheet to dispatch (echo) all cell widgets
+        instead of managing them on the spreadsheet
+
+        """
+        spreadsheetWindow = self.findSpreadsheetWindow(show=False)
+        if spreadsheetWindow:
+            spreadsheetWindow.setEchoMode(echo)
+
+    def echoMode(self):
+        """ echoMode() -> bool
+        Return true if the spreadsheet is in echo mode
+
+        """
+        spreadsheetWindow = self.findSpreadsheetWindow(show=False)
+        if spreadsheetWindow:
+            return spreadsheetWindow.echoMode
+        return None
+
+    def getEchoCellEvents(self):
+        """ getEchoCellEvents() -> [DisplayCellEvent]
+        Echo back the list of all cell events that have been captured
+        earlier
+        
+        """
+        spreadsheetWindow = self.findSpreadsheetWindow(show=False)
+        if spreadsheetWindow:
+            events = spreadsheetWindow.getEchoCellEvents()
+            spreadsheetWindow.clearEchoCellEvents()
+            return events
+        return None
 
 spreadsheetController = SpreadsheetController()
 registeredWidgets = {}

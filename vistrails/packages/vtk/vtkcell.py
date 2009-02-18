@@ -358,12 +358,11 @@ class QVTKWidget(QCellWidget):
         
         """
         qt_super(QVTKWidget, self).resizeEvent(e)
-
         if not self.mRenWin:
             return
 
         self.resizeWindow(self.width(), self.height())
-
+        self.mRenWin.Render()
 
     def moveEvent(self,e):
         """ moveEvent(e: QEvent) -> None
@@ -825,7 +824,7 @@ class QVTKWidget(QCellWidget):
                     cup = cam.GetViewUp()
                     for (row, col) in cells:
                         cell = sheet.getCell(row, col)
-                        if hasattr(cell, 'getRendererList'):
+                        if cell!=self and hasattr(cell, 'getRendererList'):
                             rens = cell.getRendererList()
                             for r in rens:
                                 if r!=ren:

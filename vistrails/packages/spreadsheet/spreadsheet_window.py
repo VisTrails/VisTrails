@@ -1,4 +1,4 @@
- ############################################################################
+############################################################################
 ##
 ## Copyright (C) 2006-2007 University of Utah. All rights reserved.
 ##
@@ -74,8 +74,12 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                      QtCore.SIGNAL('needChangeTitle'),
                      self.setWindowTitle)
         self.file_pool = module_utils.FilePool()
+        self.echoMode = False
+        self.echoCellEvents = []
 
     def cleanup(self):
+        if self.visApp!=None:
+            self.visApp.removeEventFilter(self)
         self.file_pool.cleanup()
 
     def destroy(self):
@@ -322,7 +326,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         """
         eType = e.type()
         # Handle Show/Hide cell resizer on MouseMove
-        if eType==5:
+        if eType==QtCore.QEvent.MouseMove:
             sheetWidget = self.tabController.tabWidgetUnderMouse()
             if sheetWidget:
                 sheetWidget.showHelpers(True, QtGui.QCursor.pos())
@@ -354,10 +358,10 @@ class SpreadsheetWindow(QtGui.QMainWindow):
             eType==QtCore.QEvent.MouseButtonPress):
             if type(q)==QCellContainer:
                 return q.containedWidget!=None
-            p = q.parent()
-            while (p and type(p)!=StandardWidgetSheet):
+            p = q
+            while (p and (not p.isModal()) and type(p)!=StandardWidgetSheet):
                 p = p.parent()
-            if p:
+            if p and not p.isModal():
                 pos = p.viewport().mapFromGlobal(e.globalPos())
                 p.emit(QtCore.SIGNAL('cellActivated(int, int, bool)'),
                        p.rowAt(pos.y()), p.columnAt(pos.x()),
@@ -392,6 +396,9 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         Display a cell when receive this event
         
         """
+        if self.echoMode:
+            self.echoCellEvents.append(e)
+            return None 
         self.tabController.addPipeline(e.vistrail)
         cid = self.tabController.increasePipelineCellId(e.vistrail)
         pid = self.tabController.getCurrentPipelineId(e.vistrail)
@@ -550,3 +557,28 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         sm.unlock()
         sm.detach()
         QtCore.QCoreApplication.quit()
+
+    def setEchoMode(self, echo):
+        """ setEchoMode(echo: bool)
+        Instruct the spreadsheet to dispatch (echo) all cell widgets
+        instead of managing them on the spreadsheet
+
+        """
+        self.echoMode = echo
+
+    def getEchoCellEvents(self):
+        """ getEchoCellEvents() -> [DisplayCellEvent]
+        Echo back the list of all cell events that have been captured
+        earlier
+        
+        """
+        return self.echoCellEvents
+
+    def clearEchoCellEvents(self):
+        """ clearEchoCellEvents()
+        Erase the list of echoed events 
+
+        """
+        self.echoCellEvents = []
+
+    
