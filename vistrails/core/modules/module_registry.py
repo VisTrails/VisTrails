@@ -66,12 +66,56 @@ def _toposort_modules(module_list):
 
     g = Graph()
     for m in module_list:
-        g.add_vertex(m)
+        if type(m) == tuple:
+            g.add_vertex(m[0], m)
+        else:
+            g.add_vertex(m, m)
     for m in module_list:
+        if type(m) == tuple:
+            m = m[0]
         for subclass in m.mro()[1:]: # skip self
             if subclass in g.vertices:
                 g.add_edge(subclass, m)
-    return g.vertices_topological_sort()
+    return [g.vertices[v] for v in g.vertices_topological_sort()]
+
+def _parse_abstraction_name(filename):
+    # assume only 1 possible prefix or suffix
+    prefixes = ["abstraction_"]
+    suffixes = [".vt", ".xml"]
+    name = os.path.basename(filename)
+    for prefix in prefixes:
+        if name.startswith(prefix):
+            name = name[len(prefix):]
+            break
+    for suffix in suffixes:
+        if name.endswith(suffix):
+            name = name[:-len(suffix)]
+            break
+    return name
+
+def _toposort_abstractions(package, abstraction_list):
+    from core.modules.sub_module import find_internal_abstraction_refs
+    g = Graph()
+    for a in abstraction_list:
+        if type(a) == tuple:
+            if type(a[1]) == dict and 'name' in a[1]:
+                name = a[1]['name']
+                if 'namespace' in a[1]:
+                    name = (name, namespace)
+                else:
+                    name = (name, '')
+            else:
+                name = (_parse_abstraction_name(a[0]), '')
+            g.add_vertex(name, a)
+        else:
+            g.add_vertex((_parse_abstraction_name(a), ''), a)
+    for a in abstraction_list:
+        if type(a) == tuple:
+            a = a[0]
+        for ref in find_internal_abstraction_refs(package, a):
+            if ref in g.vertices:
+                g.add_edge(ref, a)
+    return [g.vertices[v] for v in g.vertices_topological_sort()]
 
 ###############################################################################
 # ModuleRegistrySignals
@@ -898,6 +942,57 @@ class ModuleRegistry(DBRegistry):
         self.signals.emit_new_module(descriptor)
         return descriptor
 
+    def auto_add_subworkflow(self, subworkflow):
+        if type(subworkflow) == str:
+            return self.add_subworkflow(subworkflow)
+        elif (type(subworkflow) == tuple and
+              len(subworkflow) == 2 and
+              type(subworkflow[0]) == type and
+              type(subworkflow[1]) == dict):
+            descriptor = self.add_subworkflow(subworkflow[0], **subworkflow[1])
+            return descriptor
+        else:
+            raise TypeError("Expected filename or (filename, kwargs)")
+
+    def add_subworkflow(self, vt_fname, **kwargs):
+        from core.modules.sub_module import new_abstraction
+
+        # vt_fname is relative to the package path
+        if 'package' in kwargs:
+            identifier = kwargs['package']
+        else:
+            identifier = self._current_package.identifier
+        if 'package_version' in kwargs:
+            package_version = kwargs['package_version']
+        else:
+            package_version = self._current_package.version
+        if 'version' in kwargs:
+            version = kwargs['version']
+        else:
+            version = -1L
+        if 'name' in kwargs:
+            name = kwargs['name']
+        else:
+            name = _parse_abstraction_name(vt_fname)
+            kwargs['name'] = name
+ 
+        package = self.package_versions[(identifier, package_version)]
+        if not os.path.isabs(vt_fname):
+            vt_fname = os.path.join(package.package_dir, vt_fname)
+        else:
+            print "WARNING: using absolute path for subworkflow: '%s'" % \
+                vt_fname
+        
+        # create module from workflow
+        module = new_abstraction(name, vt_fname, None, version)
+        kwargs['version'] = str(module.internal_version)
+        descriptor = None
+        if kwargs:
+            descriptor = self.add_module(module, **kwargs)
+        else:
+            descriptor = self.add_module(module)
+        return descriptor
+
     def has_input_port(self, module, portName):
         descriptor = self.get_descriptor(module)
         # return descriptor.input_ports.has_key(portName)
@@ -1036,7 +1131,8 @@ class ModuleRegistry(DBRegistry):
             self.add_package(package)
         self.set_current_package(package)
         try:
-            package.module.initialize()
+            if hasattr(package.module, 'initialize'):
+                package.module.initialize()
             # Perform auto-initialization
             if hasattr(package.module, '_modules'):
                 modules = _toposort_modules(package.module._modules)
@@ -1044,8 +1140,17 @@ class ModuleRegistry(DBRegistry):
                 # modules inside package might use each other as ports
                 for module in modules:
                     self.auto_add_module(module)
-                for module in modules:
-                    self.auto_add_ports(module)
+            # Perform auto-initialization of abstractions
+            if hasattr(package.module, '_subworkflows'):
+                subworkflows = \
+                    _toposort_abstractions(package, 
+                                           package.module._subworkflows)
+                for subworkflow in subworkflows:
+                    self.add_subworkflow(subworkflow)
+            # allow all modules to auto_add_ports!
+            for descriptor in package.descriptor_list:
+                if hasattr(descriptor, 'module'):
+                    self.auto_add_ports(descriptor.module)
         except Exception, e:
             raise package.InitializationFailed(package, e, 
                                                traceback.format_exc())

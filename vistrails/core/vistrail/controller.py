@@ -20,6 +20,7 @@
 ##
 ############################################################################
 
+import copy
 from itertools import izip
 import os
 import uuid
@@ -718,7 +719,7 @@ class VistrailController(object):
             module_version = -1L
 
         self.ensure_abstractions_loaded(abs_vistrail, avail_fnames)
-        abstraction = new_abstraction(name, abs_vistrail, reg, abs_fname,
+        abstraction = new_abstraction(name, abs_vistrail, abs_fname,
                                       long(module_version))
 
         old_desc = None
@@ -782,18 +783,41 @@ class VistrailController(object):
             print abs_name, "already in registry"
         return desc
 
-    def save_abstraction(self, vistrail, name=None):
+    def manage_package_names(self, vistrail, package):
+        vistrail = copy.copy(vistrail)
+        dependencies = []
+        for action in vistrail.actions:
+            for operation in action.operations:
+                if (operation.vtType == 'add' or 
+                    operation.vtType == 'change'):
+                    if (operation.what == 'abstraction' and 
+                        operation.data.package == abstraction_pkg):
+                        operation.data.package = package
+                    elif (operation.what == 'abstraction' or
+                          operation.what == 'module' or
+                          operation.what == 'group'):
+                        dependencies.append(operation.data.package)
+                    
+        return (vistrail, dependencies)
+
+    def save_abstraction(self, vistrail, name=None, package=None, 
+                         save_dir=None):
+        if (package is None) != (save_dir is None):
+            raise VistrailsInternalError("Must set both package and "
+                                         "save_dir or neither")
         if name is None:
             name = vistrail.name
-        if self.abstraction_exists(name):
+
+        if package is None and self.abstraction_exists(name):
             raise VistrailsInternalError("Abstraction with name '%s' already "
                                          "exists" % name)
         if vistrail.get_annotation('__abstraction_uuid__') is None:            
             abstraction_uuid = str(uuid.uuid1())
             vistrail.set_annotation('__abstraction_uuid__', abstraction_uuid)
 
-        abstraction_dir = self.get_abstraction_dir()
-        vt_fname = os.path.join(abstraction_dir, name + '.xml')
+        if save_dir is None:
+            save_dir = self.get_abstraction_dir()
+        vt_fname = os.path.join(save_dir, name + '.xml')
         if os.path.exists(vt_fname):
             raise VistrailsInternalError("'%s' already exists" % \
                                              vt_fname)
@@ -835,12 +859,10 @@ class VistrailController(object):
                 reg = core.modules.module_registry.get_module_registry()
                 reg.delete_module(abstraction_pkg, name, namespace)
 
-    def import_abstraction(self, name, namespace, module_version=None):
+    def import_abstraction(self, new_name, name, namespace, 
+                           module_version=None):
         # copy from a local namespace to local.abstractions
         reg = core.modules.module_registry.get_module_registry()
-        new_name = self.get_abstraction_name(name)
-        if new_name is None:
-            return
         descriptor = self.get_abstraction_desc(name, namespace, module_version)
         if descriptor is None:
             # if not self.abstraction_exists(name):
@@ -858,25 +880,21 @@ class VistrailController(object):
             self.add_abstraction_to_registry(abs_vistrail, abs_fname, new_name,
                                              None, module_version)
 
-#         if namespace is None:
-#             # can't import an abstraction that already lives in 
-#             # local.abstractions
-#             return
-#         new_name = self.get_abstraction_name(name)
-#         if new_name is None:
-#             return
-#         descriptor = self.get_abstraction_desc(name, namespace, module_version)
-#         if descriptor is None:
-#             # if not self.abstraction_exists(name):
-#             raise VistrailsInternalError("Abstraction %s|%s not on registry" %\
-#                                              (name, namespace))
-#         # descriptor = self.get_abstraction_descriptor(name, namespace)
-#         abs_fname = descriptor.module.vt_fname
-#         abs_vistrail = descriptor.module.vistrail
-#         abs_fname = self.save_abstraction(abs_vistrail, new_name)
-#         self.add_abstraction_to_registry(abs_vistrail, abs_fname, new_name,
-#                                          abstraction_uuid, module_version)
-
+    def export_abstraction(self, new_name, pkg_name, dir, name, namespace, 
+                           module_version):
+        reg = core.modules.module_registry.get_module_registry()
+        descriptor = self.get_abstraction_desc(name, namespace, module_version)
+        if descriptor is None:
+            raise VistrailsInternalError("Abstraction %s|%s not on registry" %\
+                                             (name, namespace))
+        
+        abs_vistrail = descriptor.module.vistrail
+        (abs_vistrail, dependencies) = self.manage_package_names(abs_vistrail, 
+                                                                 pkg_name)
+        abs_fname = self.save_abstraction(abs_vistrail, new_name, pkg_name,
+                                          dir)
+        return (os.path.basename(abs_fname), dependencies)
+    
     def find_abstractions(self, vistrail, recurse=False):
         abstractions = []
         for action in vistrail.actions:

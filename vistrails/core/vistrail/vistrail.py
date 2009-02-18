@@ -80,6 +80,16 @@ class Vistrail(DBVistrail):
         self.locator = locator
         self.set_defaults()
 
+    def __copy__(self):
+        """ __copy__() -> Vistrail - Returns a clone of itself """ 
+        return Vistrail.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBVistrail.do_copy(self, new_ids, id_scope, id_remap)
+        cp.__class__ = Vistrail
+        cp.set_defaults(self)
+        return cp
+
     def set_defaults(self, other=None):
         if other is None:
             self.changed = False
@@ -100,6 +110,19 @@ class Vistrail(DBVistrail):
         # add all versions to the trees
         for action in self.actions:
             self.tree.addVersion(action.id, action.prevId)
+
+    @staticmethod
+    def convert(_vistrail):
+	_vistrail.__class__ = Vistrail
+
+	for action in _vistrail.actions:
+	    Action.convert(action)
+	for tag in _vistrail.tags:
+            Tag.convert(tag)
+        for annotation in _vistrail.annotations:
+            Annotation.convert(annotation)
+
+        _vistrail.set_defaults()
 
     ##########################################################################
     # Properties
@@ -122,20 +145,6 @@ class Vistrail(DBVistrail):
     def has_tag_with_name(self, name):
         return self.db_has_tag_with_name(name)
     
-
-    @staticmethod
-    def convert(_vistrail):
-	_vistrail.__class__ = Vistrail
-
-	for action in _vistrail.actions:
-	    Action.convert(action)
-	for tag in _vistrail.tags:
-            Tag.convert(tag)
-        for annotation in _vistrail.annotations:
-            Annotation.convert(annotation)
-
-        _vistrail.set_defaults()
-
     def get_annotation(self, key):
         if self.db_has_annotation_with_key(key):
             return self.db_get_annotation_by_key(key)

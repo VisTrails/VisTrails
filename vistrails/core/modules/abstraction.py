@@ -76,8 +76,7 @@ def initialize(*args, **kwargs):
                             new_vistrails[abs_name] = abs_info
                             break
             if add_abstraction:
-                abstraction = new_abstraction(abs_name, abs_vistrail, reg, 
-                                              abs_fname)
+                abstraction = new_abstraction(abs_name, abs_vistrail, abs_fname)
                 if abstraction is not None:
                     options = {'namespace': abstraction.uuid,
                                'hide_namespace': True,

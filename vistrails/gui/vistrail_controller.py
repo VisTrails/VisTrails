@@ -41,6 +41,7 @@ from core.packagemanager import get_package_manager
 from core.vistrail.action import Action
 from core.query.version import TrueSearch
 from core.query.visual import VisualQuery
+import core.system
 from core.system import vistrails_default_file_type
 from core.vistrail.abstraction import Abstraction
 from core.vistrail.annotation import Annotation
@@ -1655,12 +1656,12 @@ class VistrailController(QtCore.QObject, BaseController):
             self.current_pipeline.ensure_connection_specs(connections)
         return modules
 
-    def get_abstraction_name(self, name=""):
+    def get_abstraction_name(self, name="", check_exists=True):
         name = self.do_abstraction_prompt(name)
         if name is None:
             return None
-        while name == "" or self.abstraction_exists(name):
-            name = self.do_abstraction_prompt(name, True)
+        while name == "" or (check_exists and self.abstraction_exists(name)):
+            name = self.do_abstraction_prompt(name, name != "")
             if name is None:
                 return None
         return name
@@ -1686,9 +1687,138 @@ class VistrailController(QtCore.QObject, BaseController):
     def import_abstractions(self, abstraction_ids):
         for abstraction_id in abstraction_ids:
             abstraction = self.current_pipeline.modules[abstraction_id]
-            self.import_abstraction(abstraction.name, abstraction.namespace,
-                                    abstraction.internal_version)
+            new_name = self.get_abstraction_name(abstraction.name)
+            if new_name:
+                self.import_abstraction(new_name,
+                                        abstraction.name, 
+                                        abstraction.namespace,
+                                        abstraction.internal_version)
         
+    def do_export_prompt(self, title, prompt):
+        (text, ok) = QtGui.QInputDialog.getText(None,
+                                                title,
+                                                prompt,
+                                                QtGui.QLineEdit.Normal,
+                                                '')
+        if ok and not text.isEmpty():
+            return str(text).strip().rstrip()
+        return ''
+            
+    def do_save_dir_prompt(self):
+        dialog = QtGui.QFileDialog.getExistingDirectory
+        dir_name = dialog(None, "Save Subworkflows...",
+                          core.system.vistrails_file_directory())
+        if dir_name.isEmpty():
+            return None
+        dir_name = os.path.abspath(str(dir_name))
+        setattr(get_vistrails_configuration(), 'fileDirectory', dir_name)
+        core.system.set_vistrails_file_directory(dir_name)
+        return dir_name
+    
+    def export_abstractions(self, abstraction_ids):
+        save_dir = self.do_save_dir_prompt()
+        if not save_dir:
+            return 
+
+        def read_init(dir_name):
+            import imp
+            found_attrs = {}
+            found_lists = {}
+            attrs = ['identifier', 'name', 'version']
+            lists = ['_subworkflows', '_dependencies']
+            try:
+                (file, pathname, description) = \
+                    imp.find_module(os.path.basename(dir_name), 
+                                    [os.path.dirname(dir_name)])
+                module = imp.load_module(os.path.basename(dir_name), file,
+                                         pathname, description)
+                for attr in attrs:
+                    if hasattr(module, attr):
+                        found_attrs[attr] = getattr(module, attr)
+                for attr in lists:
+                    if hasattr(module, attr):
+                        found_lists[attr] = getattr(module, attr)
+            except Exception, e:
+                print e
+                pass
+            return (found_attrs, found_lists)
+
+        def write_init(save_dir, found_attrs, found_lists, attrs, lists):
+            init_file = os.path.join(save_dir, '__init__.py')
+            if os.path.exists(init_file):
+                f = open(init_file, 'a')
+            else:
+                f = open(init_file, 'w')
+            for attr, val in attrs.iteritems():
+                if attr not in found_attrs:
+                    print >>f, "%s = '%s'" % (attr, val)
+            for attr, val_list in lists.iteritems():
+                if attr not in found_lists:
+                    print >>f, "%s = %s" % (attr, str(val_list))
+                else:
+                    diff_list = []
+                    for val in val_list:
+                        if val not in found_lists[attr]:
+                            diff_list.append(val)
+                    print >>f, '%s.extend(%s)' % (attr, str(diff_list))
+            f.close()
+
+        if os.path.exists(os.path.join(save_dir, '__init__.py')):
+            (found_attrs, found_lists) = read_init(save_dir)
+        else:
+            found_attrs = {}
+            found_lists = {}
+
+        if 'name' in found_attrs:
+            pkg_name = found_attrs['name']
+        else:
+            pkg_name = self.do_export_prompt("Target Package Name",
+                                             "Enter target package name")
+            if not pkg_name:
+                return
+
+        if 'identifier' in found_attrs:
+            pkg_identifier = found_attrs['identifier']
+        else:
+            pkg_identifier = self.do_export_prompt("Target Package Identifier",
+                                                   "Enter target package "
+                                                   "identifier (e.g. "
+                                                   "org.place.user.package)")
+            if not pkg_identifier:
+                return
+
+        abstractions = []
+        for abstraction_id in abstraction_ids:
+            abstraction = self.current_pipeline.modules[abstraction_id]
+            if abstraction.is_abstraction() and \
+                    abstraction.package == abstraction_pkg:
+                abstractions.append(abstraction)
+                abstractions.extend(self.find_abstractions(
+                        abstraction.vistrail))
+        pkg_subworkflows = []
+        pkg_dependencies = set()
+        for abstraction in abstractions:
+            print "abstraction", abstraction
+            new_name = self.get_abstraction_name(abstraction.name, False)
+            if not new_name:
+                break
+            (subworkflow, dependencies) = \
+                self.export_abstraction(new_name,
+                                        pkg_identifier,
+                                        save_dir,
+                                        abstraction.name, 
+                                        abstraction.namespace,
+                                        str(abstraction.internal_version))
+            pkg_subworkflows.append(subworkflow)
+            pkg_dependencies.update(dependencies)
+
+        attrs = {'identifier': pkg_identifier,
+                 'name': pkg_name,
+                 'version': '0.0.1'}
+        lists = {'_subworkflows': pkg_subworkflows,
+                 '_dependencies': list(pkg_dependencies)}
+        write_init(save_dir, found_attrs, found_lists, attrs, lists)
+
     def set_changed(self, changed):
         """ set_changed(changed: bool) -> None
         Set the current state of changed and emit signal accordingly

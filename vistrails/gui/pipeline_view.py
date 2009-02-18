@@ -1793,6 +1793,11 @@ mutual connections."""
         if items is not None:
             self.controller.import_abstractions(items[0])
 
+    def exportAbstraction(self):
+        items = self.get_selected_item_ids(False)
+        if items is not None:
+            self.controller.export_abstractions(items[0])
+
     def copySelection(self):
         """ copySelection() -> None
         Copy the current selected modules into clipboard

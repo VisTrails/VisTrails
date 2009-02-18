@@ -320,6 +320,10 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.importAbstractionAction.setStatusTip('Import subworkflow from '
                                                   'a vistrail to local '
                                                   'subworkflows')
+        self.exportAbstractionAction = QtGui.QAction('Export SubWorkflows', self)
+        self.exportAbstractionAction.setStatusTip('Export subworkflows from '
+                                                  'local subworkflows for '
+                                                  'use in a package')
         self.selectAllAction = QtGui.QAction('Select All\tCtrl+A', self)
         self.selectAllAction.setEnabled(False)
         self.selectAllAction.setStatusTip('Select all modules in '
@@ -451,6 +455,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.editMenu.addAction(self.convertToAbstractionAction)
         self.editMenu.addAction(self.editAbstractionAction)
         self.editMenu.addAction(self.importAbstractionAction)
+        self.editMenu.addAction(self.exportAbstractionAction)
         self.editMenu.addSeparator()        
         self.editMenu.addAction(self.editPreferencesAction)
 
@@ -558,6 +563,7 @@ class QBuilderWindow(QtGui.QMainWindow):
              self.viewManager.convertToAbstraction),
             (self.editAbstractionAction, self.editAbstraction),
             (self.importAbstractionAction, self.viewManager.importAbstraction),
+            (self.exportAbstractionAction, self.viewManager.exportAbstraction),
             (self.newVistrailAction, self.newVistrail),
             (self.openFileAction, self.open_vistrail_default),
             (self.importFileAction, self.import_vistrail_default),

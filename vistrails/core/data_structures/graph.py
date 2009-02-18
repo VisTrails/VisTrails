@@ -208,8 +208,8 @@ class Graph(object):
     ##########################################################################
     # Mutate graph
 
-    def add_vertex(self, id):
-        """ add_vertex(id: id type) -> None
+    def add_vertex(self, id, data=None):
+        """ add_vertex(id: id type, data) -> None
         Add a vertex to the graph if it is not already in the graph
         and return nothing
 
@@ -218,7 +218,7 @@ class Graph(object):
         
         """
         if not id in self.vertices:
-            self.vertices[id] = None
+            self.vertices[id] = data
             self.adjacency_list[id] = []
             self.inverse_adjacency_list[id] = []
 
@@ -528,9 +528,13 @@ class Graph(object):
         This is O(n log n) instead of the optimal O(n), 
         """
         (d, p, f) = self.dfs(vertex_set,raise_if_cyclic=True)
-        lst = [(v, k) for (k,v) in f.iteritems()]
-        lst.sort(reverse=True)
-        return [v for (k, v) in lst]
+        # Optimized these three lines into the last one
+        # lst = [(v, k) for (k,v) in f.iteritems()]
+        # lst.sort(reverse=True)
+        # return [v for (k, v) in lst]
+        return [k for (k, _) in sorted(f.iteritems(), 
+                                       key=lambda x: (x[1], x[0]),
+                                       reverse=True)]
 
     def topologically_contractible(self, subgraph):
         """topologically_contractible(subgraph) -> Boolean.

@@ -216,6 +216,11 @@ class QViewManager(QtGui.QTabWidget):
         vistrailView = self.currentWidget()
         if vistrailView:
             vistrailView.pipelineTab.pipelineView.scene().importAbstraction()
+
+    def exportAbstraction(self):
+        vistrailView = self.currentWidget()
+        if vistrailView:
+            vistrailView.pipelineTab.pipelineView.scene().exportAbstraction()
             
     def currentView(self):
         """currentView() -> VistrailView. Returns the current vistrail view."""

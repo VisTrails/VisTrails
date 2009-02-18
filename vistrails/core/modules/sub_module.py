@@ -173,8 +173,7 @@ def read_vistrail(vt_fname):
     Vistrail.convert(vistrail)
     return vistrail
 
-def new_abstraction(name, vistrail, registry, vt_fname=None,
-                    internal_version=-1L):
+def new_abstraction(name, vistrail, vt_fname=None, internal_version=-1L):
     """make_abstraction(name: str, 
                         vistrail: (str or Vistrail), 
                         registry: ModuleRegistry,
@@ -249,7 +248,7 @@ def new_abstraction(name, vistrail, registry, vt_fname=None,
 
 def get_abstraction_dependencies(vistrail, internal_version=-1L):
     if type(vistrail) == type(""):
-        vistrail = read_vistrail(vt_fname)
+        vistrail = read_vistrail(vistrail)
     if internal_version == -1L:
         internal_version = vistrail.get_latest_version()
     # action = vistrail.actionMap[internal_version]
@@ -261,6 +260,18 @@ def get_abstraction_dependencies(vistrail, internal_version=-1L):
             packages[module.package] = set()
         packages[module.package].add(module.descriptor_info)
     return packages
+
+def find_internal_abstraction_refs(pkg, vistrail, internal_version=-1L):
+    if type(vistrail) == type(""):
+        vistrail = read_vistrail(os.path.join(pkg.package_dir, vistrail))
+    if internal_version == -1L:
+        internal_version = vistrail.get_latest_version()
+    pipeline = vistrail.getPipeline(internal_version)
+    abstractions = []
+    for m in pipeline.module_list:
+        if m.vtType == 'abstraction' and m.package == pkg.identifier:
+            abstractions.append((m.name, m.namespace))
+    return abstractions
 
 ###############################################################################
 

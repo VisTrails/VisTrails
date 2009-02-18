@@ -20,15 +20,17 @@
 ##
 ############################################################################
 
+import copy
+import os
+import traceback
+from PyQt4 import QtCore
+
 from core.utils import versions_increasing
 from core.utils.uxml import (named_elements, enter_named_element)
 from core import debug
 from core.configuration import ConfigurationObject
 from core.modules.module_descriptor import ModuleDescriptor
 from db.domain import DBPackage
-import copy
-import traceback
-from PyQt4 import QtCore
 
 ##############################################################################
 
@@ -97,9 +99,11 @@ class Package(DBPackage):
         if other is None:
             self._module = None
             self._initialized = False
+            self.package_dir = None
         else:
             self._module = other._module
             self._initialized = other._initialized
+            self.package_dir = other.package_dir
         # FIXME decide whether we want None or ''
         if self.version is None:
             self.version = ''
@@ -247,6 +251,7 @@ class Package(DBPackage):
             self.name = self._module.name
             self.identifier = self._module.identifier
             self.version = self._module.version
+            self.package_dir = os.path.dirname(self._module.__file__)
         except AttributeError, e:
             try:
                 v = self._module.__file__
@@ -312,12 +317,18 @@ class Package(DBPackage):
         self._initialized = False
 
     def dependencies(self):
+        deps = []
         try:
             callable_ = self._module.package_dependencies
         except AttributeError:
-            return []
+            pass
         else:
-            return callable_()
+            deps = callable_()
+
+        if self.module is not None and \
+                hasattr(self.module, '_dependencies'):
+            deps.extend(self.module._dependencies)
+        return deps
 
     def initialized(self):
         return self._initialized
