@@ -186,9 +186,12 @@ class DefaultTheme(object):
         self.MODULE_ABSTRACTION_TYPE = 1
         self.MODULE_GROUP_TYPE = 2
 
-        self.MODULE_PEN_STYLE = QtCore.Qt.SolidLine
-        self.ABSTRACTION_PEN_STYLE = QtCore.Qt.DotLine
-        self.GROUP_PEN_STYLE = QtCore.Qt.DashLine
+        self.ABSTRACTION_PEN = QtGui.QPen(QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.get_int('black')))), 2,
+                                          QtCore.Qt.DotLine)
+        self.GROUP_PEN = QtGui.QPen(QtGui.QBrush(
+            QtGui.QColor(*(ColorByName.get_int('black')))), 2,
+                                          QtCore.Qt.DashLine)
 
         # Brush and pen to draw a port shape at regular state
         self.PORT_PEN = QtGui.QPen(QtGui.QBrush(

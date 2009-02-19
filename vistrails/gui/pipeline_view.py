@@ -784,36 +784,36 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         return r
 
     def setPainterState(self, is_selected=None):
-        if self.is_breakpoint:
-            self.modulePen = CurrentTheme.BREAKPOINT_MODULE_PEN
-            self.labelPen = CurrentTheme.BREAKPOINT_MODULE_LABEL_PEN
-            self.moduleBrush = CurrentTheme.BREAKPOINT_MODULE_BRUSH
-        elif self.ghosted:
-            self.modulePen = CurrentTheme.GHOSTED_MODULE_PEN
-            self.labelPen = CurrentTheme.GHOSTED_MODULE_LABEL_PEN
-            self.moduleBrush = CurrentTheme.GHOSTED_MODULE_BRUSH
-        else:
-            self.modulePen = CurrentTheme.MODULE_PEN
-            self.labelPen = CurrentTheme.MODULE_LABEL_PEN
-            if self.statusBrush:
-                self.moduleBrush = self.statusBrush
-            elif self.customBrush:
-                self.moduleBrush = self.customBrush
-            else:
-                self.moduleBrush = CurrentTheme.MODULE_BRUSH
-
         if is_selected is None:
             is_selected = self.isSelected()
         if is_selected:
             self.modulePen = CurrentTheme.MODULE_SELECTED_PEN
             self.labelPen = CurrentTheme.MODULE_LABEL_SELECTED_PEN
+        elif self.is_breakpoint:
+            self.modulePen = CurrentTheme.BREAKPOINT_MODULE_PEN
+            self.labelPen = CurrentTheme.BREAKPOINT_MODULE_LABEL_PEN
+        elif self.ghosted:
+            self.modulePen = CurrentTheme.GHOSTED_MODULE_PEN
+            self.labelPen = CurrentTheme.GHOSTED_MODULE_LABEL_PEN
         else:
+            self.labelPen = CurrentTheme.MODULE_LABEL_PEN
             if self.module_type == CurrentTheme.MODULE_ABSTRACTION_TYPE:
-                self.modulePen.setStyle(CurrentTheme.ABSTRACTION_PEN_STYLE)
+                self.modulePen = CurrentTheme.ABSTRACTION_PEN
             elif self.module_type == CurrentTheme.MODULE_GROUP_TYPE:
-                self.modulePen.setStyle(CurrentTheme.GROUP_PEN_STYLE)
+                self.modulePen = CurrentTheme.GROUP_PEN
             else:
-                self.modulePen.setStyle(CurrentTheme.MODULE_PEN_STYLE)
+                self.modulePen = CurrentTheme.MODULE_PEN
+
+        if self.is_breakpoint:
+            self.moduleBrush = CurrentTheme.BREAKPOINT_MODULE_BRUSH
+        elif self.ghosted:
+            self.moduleBrush = CurrentTheme.GHOSTED_MODULE_BRUSH
+        elif self.statusBrush:
+            self.moduleBrush = self.statusBrush
+        elif self.customBrush:
+            self.moduleBrush = self.customBrush
+        else:
+            self.moduleBrush = CurrentTheme.MODULE_BRUSH
             
     def setGhosted(self, ghosted):
         """ setGhosted(ghosted: True) -> None
