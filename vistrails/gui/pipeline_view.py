@@ -730,7 +730,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
         self._moved = False
         self._old_connection_ids = None
         self.is_breakpoint = False
-        self.module_type = CurrentTheme.MODULE_DEFAULT_TYPE
         self._needs_state_updated = True
         self.progress = 0.0
         self.progressBrush = CurrentTheme.SUCCESS_MODULE_BRUSH
@@ -797,9 +796,9 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
             self.labelPen = CurrentTheme.GHOSTED_MODULE_LABEL_PEN
         else:
             self.labelPen = CurrentTheme.MODULE_LABEL_PEN
-            if self.module_type == CurrentTheme.MODULE_ABSTRACTION_TYPE:
+            if self.module is not None and self.module.is_abstraction():
                 self.modulePen = CurrentTheme.ABSTRACTION_PEN
-            elif self.module_type == CurrentTheme.MODULE_GROUP_TYPE:
+            elif self.module is not None and self.module.is_group():
                 self.modulePen = CurrentTheme.GROUP_PEN
             else:
                 self.modulePen = CurrentTheme.MODULE_PEN
@@ -853,11 +852,6 @@ class QGraphicsModuleItem(QGraphicsItemInterface, QtGui.QGraphicsItem):
 #                 self.moduleBrush = CurrentTheme.BREAKPOINT_MODULE_BRUSH
 #                 self.labelPen = CurrentTheme.BREAKPOINT_MODULE_LABEL_PEN
             
-    def setModuleType(self, module_type=CurrentTheme.MODULE_DEFAULT_TYPE):
-        if self.module_type != module_type:
-            self.module_type = module_type
-            self._needs_state_updated = True
-
     def set_module_shape(self, module_shape=None):
         self._module_shape = module_shape
         if self._module_shape is not None:
@@ -1318,11 +1312,6 @@ class QPipelineScene(QInteractiveGraphicsScene):
             moduleQuery = (self.controller.current_version, module)
             matched = self.controller.search.matchModule(*moduleQuery)
             moduleItem.setGhosted(not matched)
-        moduleItem.setModuleType(CurrentTheme.MODULE_ABSTRACTION_TYPE
-                                 if module.is_abstraction() else
-                                 (CurrentTheme.MODULE_GROUP_TYPE
-                                  if module.is_group() else
-                                  CurrentTheme.MODULE_DEFAULT_TYPE))
         moduleItem.controller = self.controller
         moduleItem.setupModule(module)
         moduleItem.setBreakpoint(module.is_breakpoint)
@@ -1531,11 +1520,6 @@ mutual connections."""
                     else:
                         tm_item.setGhosted(False)
                     tm_item.setBreakpoint(nm.is_breakpoint)
-                    tm_item.setModuleType(CurrentTheme.MODULE_ABSTRACTION_TYPE
-                                          if nm.is_abstraction() else
-                                          (CurrentTheme.MODULE_GROUP_TYPE
-                                           if nm.is_group() else
-                                           CurrentTheme.MODULE_DEFAULT_TYPE))
 
                 new_connections = set(pipeline.connections)
                 connections_to_be_added = new_connections - self._old_connection_ids

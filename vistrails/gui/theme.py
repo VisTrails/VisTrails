@@ -182,10 +182,6 @@ class DefaultTheme(object):
                 QtGui.QColor(*(ColorByName.get_int('dark_dim_grey')))), 2)
 
         # Module pen styles
-        self.MODULE_DEFAULT_TYPE = 0
-        self.MODULE_ABSTRACTION_TYPE = 1
-        self.MODULE_GROUP_TYPE = 2
-
         self.ABSTRACTION_PEN = QtGui.QPen(QtGui.QBrush(
             QtGui.QColor(*(ColorByName.get_int('black')))), 2,
                                           QtCore.Qt.DotLine)
