@@ -801,6 +801,21 @@ class QVTKWidget(QCellWidget):
                 rens += cell.getRendererList()
         return rens
 
+    def getSelectedCellWidgets(self):
+        sheet = self.findSheetTabWidget()
+        if sheet:
+            iren = self.mRenWin.GetInteractor()
+            ren = self.interacting
+            if not ren: ren = self.getActiveRenderer(iren)
+            if ren:
+                cells = sheet.getSelectedLocations()
+                if (ren in self.getRenderersInCellList(sheet, cells)):
+                    return [sheet.getCell(row, col)
+                            for (row, col) in cells
+                            if hasattr(sheet.getCell(row, col), 
+                                       'getRendererList')]
+        return []
+
     def interactionEvent(self, istyle, name):
         """ interactionEvent(istyle: vtkInteractorStyle, name: str) -> None
         Make sure interactions sync across selected renderers
@@ -810,53 +825,43 @@ class QVTKWidget(QCellWidget):
             istyle.OnMouseWheelForward()
         if name=='MouseWheelBackwardEvent':
             istyle.OnMouseWheelBackward()
-        sheet = self.findSheetTabWidget()
-        if sheet:
-            iren = istyle.GetInteractor()
-            ren = self.interacting
-            if not ren: ren = self.getActiveRenderer(iren)
-            if ren:
-                cells = sheet.getSelectedLocations()
-                if (ren in self.getRenderersInCellList(sheet, cells)):
-                    cam = ren.GetActiveCamera()
-                    cpos = cam.GetPosition()
-                    cfol = cam.GetFocalPoint()
-                    cup = cam.GetViewUp()
-                    for (row, col) in cells:
-                        cell = sheet.getCell(row, col)
-                        if cell!=self and hasattr(cell, 'getRendererList'):
-                            rens = cell.getRendererList()
-                            for r in rens:
-                                if r!=ren:
-                                    dcam = r.GetActiveCamera()
-                                    dcam.SetPosition(cpos)
-                                    dcam.SetFocalPoint(cfol)
-                                    dcam.SetViewUp(cup)
-                                    r.ResetCameraClippingRange()
-                            cell.update()
+        ren = self.interacting
+        if not ren:
+            ren = self.getActiveRenderer(istyle.GetInteractor())
+        if ren:
+            cam = ren.GetActiveCamera()
+            cpos = cam.GetPosition()
+            cfol = cam.GetFocalPoint()
+            cup = cam.GetViewUp()
+            for cell in self.getSelectedCellWidgets():
+                if cell!=self and hasattr(cell, 'getRendererList'): 
+                    rens = cell.getRendererList()
+                    for r in rens:
+                        if r!=ren:
+                            dcam = r.GetActiveCamera()
+                            dcam.SetPosition(cpos)
+                            dcam.SetFocalPoint(cfol)
+                            dcam.SetViewUp(cup)
+                            r.ResetCameraClippingRange()
+                    cell.update()
 
     def charEvent(self, istyle, name):
         """ charEvent(istyle: vtkInteractorStyle, name: str) -> None
         Make sure key presses also sync across selected renderers
 
         """
-        sheet = self.findSheetTabWidget()
-        if sheet:
-            iren = istyle.GetInteractor()
-            ren = self.interacting
-            if not ren: ren = self.getActiveRenderer(iren)
-            if ren:
-                keyCode = iren.GetKeyCode()
-                if keyCode in ['w','W','s','S','r','R','p','P']:
-                    cells = sheet.getSelectedLocations()                
-                    if (ren in self.getRenderersInCellList(sheet, cells)):
-                        for (row, col) in cells:
-                            cell = sheet.getCell(row, col)
-                            if hasattr(cell, 'GetInteractor'):
-                                selectedIren = cell.GetInteractor()
-                                selectedIren.SetKeyCode(keyCode)
-                                selectedIren.GetInteractorStyle().OnChar()
-                                selectedIren.Render()
+        iren = istyle.GetInteractor()
+        ren = self.interacting
+        if not ren: ren = self.getActiveRenderer(iren)
+        if ren:
+            keyCode = iren.GetKeyCode()
+            if keyCode in ['w','W','s','S','r','R','p','P']:
+                for cell in self.getSelectedCellWidgets():
+                    if hasattr(cell, 'GetInteractor'):
+                        selectedIren = cell.GetInteractor()
+                        selectedIren.SetKeyCode(keyCode)
+                        selectedIren.GetInteractorStyle().OnChar()
+                        selectedIren.Render()
             istyle.OnChar()
 
     def saveToPNG(self, filename):
