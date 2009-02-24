@@ -709,7 +709,7 @@ def initialize(*args, **kwargs):
 
     # !!! is_root should only be set for Module !!!
     reg.add_module(Module, is_root=True)
-    reg.add_output_port(Module, "self", Module)
+    reg.add_output_port(Module, "self", Module, optional=True)
 
     reg.add_module(Constant)
 
@@ -767,6 +767,7 @@ def initialize(*args, **kwargs):
     reg.add_module(PythonSource,
                     configureWidgetType=PythonSourceConfigurationWidget)
     reg.add_input_port(PythonSource, 'source', String, True)
+    reg.add_output_port(PythonSource, 'self', Module)
 
     reg.add_module(SmartSource,
                     configureWidgetType=PythonSourceConfigurationWidget)

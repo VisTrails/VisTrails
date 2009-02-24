@@ -177,11 +177,11 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 else:
                     tupleModule = core.interpreter.base.InternalTuple()
                     tupleModule.length = len(f.params)
-                    for (i,p) in enumerate(f.params):
+                    for (j,p) in enumerate(f.params):
                         constant = create_constant(p, module)
                         constant.update()
                         connector = ModuleConnector(constant, 'value')
-                        tupleModule.set_input_port(i, connector)
+                        tupleModule.set_input_port(j, connector)
                     connector = ModuleConnector(tupleModule, 'value')
                 obj.set_input_port(f.name, connector, is_method=True)
 
@@ -225,6 +225,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         module_executed_hook = fetch('module_executed_hook', [])
         done_summon_hooks = fetch('done_summon_hooks', [])
         clean_pipeline = fetch('clean_pipeline', False)
+        parent_exec = fetch('parent_exec', None)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
@@ -248,7 +249,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             reg = modules.module_registry.get_module_registry()
             module_name = reg.get_descriptor(obj.__class__).name
 
-            logger.start_module_execution(obj, i, module_name)
+            logger.start_execution(obj, i, module_name,\
+                                   parent_exec=parent_exec)
 
         # views and loggers work on local ids
         def begin_update(obj):
@@ -261,8 +263,9 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             reg = modules.module_registry.get_module_registry()
             module_name = reg.get_descriptor(obj.__class__).name
 
-            logger.start_module_execution(obj, i, module_name, cached=1)
-            logger.finish_module_execution(obj)
+            logger.start_execution(obj, i, module_name,\
+                                   parent_exec=parent_exec, cached=1)
+            logger.finish_execution(obj)
 
         # views and loggers work on local ids
         def end_update(obj, error=''):
@@ -271,8 +274,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 view.set_module_success(i)
             else:
                 view.set_module_error(i, error)
-            
-            logger.finish_module_execution(obj, error)
+
+            logger.finish_execution(obj, error)
 
         # views and loggers work on local ids
         def annotate(obj, d):
@@ -290,7 +293,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                                      update_progress=update_progress,
                                      end_update=end_update,
                                      update_cached=update_cached,
-                                     annotate=annotate)
+                                     annotate=annotate,
+                                     log=logger)
 
         # PARAMETER CHANGES SETUP
         parameter_changes = []
@@ -376,6 +380,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 pass
             return r
         view = fetch('view', DummyView())
+        reset_computed = fetch('reset_computed', True)
      
         self.clean_modules(to_delete)
 
@@ -386,6 +391,10 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                 view.set_module_success(i)
             else:
                 view.set_module_not_executed(i)
+
+        if reset_computed:
+            for module in self._objects.itervalues():
+                module.computed = False
 
     def unlocked_execute(self, pipeline, **kwargs):
         """unlocked_execute(pipeline, **kwargs): Executes a pipeline using

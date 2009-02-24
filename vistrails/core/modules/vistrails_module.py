@@ -205,7 +205,11 @@ Designing New Modules
 
         # is_fold_operator stores wether the module is a fold operator
         self.is_fold_operator = False
-        
+
+        # computed stores wether the module was computed
+        # used for the logging stuff
+        self.computed = False
+
     def clear(self):
         """clear(self) -> None. Removes all references, prepares for
 deletion."""
@@ -250,13 +254,16 @@ context."""
         self.logging.begin_update(self)
         self.updateUpstream()
         if self.upToDate:
-            self.logging.update_cached(self)
+            if not self.computed:
+                self.logging.update_cached(self)
+                self.computed = True
             return
         self.logging.begin_compute(self)
         try:
             if self.is_breakpoint:
                 raise ModuleBreakpoint(self)
             self.compute()
+            self.computed = True
         except ModuleError, me:
             if hasattr(me.module, 'interpreter'):
                 raise
@@ -266,7 +273,7 @@ context."""
                 raise ModuleError(self, msg)
         except KeyboardInterrupt, e:
             raise ModuleError(self, 'Interrupted by user')
-        except Exception, e: 
+        except Exception, e:
             raise ModuleError(self, 'Uncaught exception: "%s"' % str(e))
         self.upToDate = True
         self.logging.end_update(self)

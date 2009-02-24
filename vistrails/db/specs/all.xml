@@ -301,6 +301,10 @@
 	<sql column="parent_id" type="int"/>
       </property>
 
+      <property ref="true" object="group_exec">
+	<sql column="parent_id" type="int"/>
+      </property>
+
       <property ref="true" object="add">
 	<sql column="parent_id" type="int"/>
       </property>
@@ -960,9 +964,91 @@
       <sql type="datetime"/>
     </property>
 
-    <property name="input" type="str">
+    <!--<property name="input" type="str">
       <xml name="input" nodeType="xs:attribute" type="xs:string"/>
       <sql type="varchar(1023)"/>
+    </property>-->
+
+    <property name="completed" type="int">
+      <xml name="completed" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="error" type="str">
+      <xml nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(1023)"/>
+    </property>
+
+    <property ref="true" object="module_exec" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="group_exec" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+            mapping="many-to-one">
+      <property ref="true" object="module_exec" type="long" mapping="many-to-one" 
+		inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="group_exec" type="long" mapping="many-to-one" 
+		inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+  </object>
+
+  <!--++++++++++++++++++++++++++-->
+  <!-- GROUP_EXEC ++++++++++++++-->
+  <!--++++++++++++++++++++++++++-->
+
+  <object name="group_exec">
+    <layout>
+      <xml name="groupExec" nodeType="xs:element"/>
+      <sql table="group_exec"/>
+    </layout>
+
+    <property name="id" type="long" primaryKey="true">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="ts_start" type="datetime">
+      <xml name="tsStart" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="ts_end" type="datetime">
+      <xml name="tsEnd" nodeType="xs:attribute" type="xs:dateTime"/>
+      <sql type="datetime"/>
+    </property>
+
+    <property name="cached" type="int">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql nodeType="int"/>
+    </property>
+
+    <property name="module_id" type="long" foreignKey="true" object="module">
+      <xml name="moduleId" nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property name="group_name" type="str">
+      <xml name="groupName" nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
+    </property>
+
+    <property name="group_type" type="str">
+      <xml name="groupType" nodeType="xs:attribute" type="xs:string"/>
+      <sql type="varchar(255)"/>
     </property>
 
     <property name="completed" type="int">
@@ -975,9 +1061,60 @@
       <sql type="varchar(1023)"/>
     </property>
 
-    <property ref="true" object="module_exec" type="long" mapping="many-to-one" 
+    <property name="machine_id" type="long" foreignKey="true" object="machine">
+      <xml nodeType="xs:attribute" type="xs:int"/>
+      <sql type="int"/>
+    </property>
+
+    <property ref="true" object="annotation" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="loop_exec" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="module_exec" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property ref="true" object="group_exec" type="list" mapping="one-to-many">
+      <xml nodeType="xs:element"/>
+    </property>
+
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
+    </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+            mapping="many-to-one">
+      <property ref="true" object="workflow_exec" type="long" mapping="many-to-one" 
+		inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="loop_exec" type="long" mapping="many-to-one" 
+		inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="group_exec" type="long" mapping="many-to-one" 
+		inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
+
+    <!--<property ref="true" object="workflow_exec" type="long" mapping="many-to-one" 
 	      inverse="true">
-      <sql column="module_exec_id" type="int"/>
+      <sql column="wf_exec_id" type="int"/>
+    </property>-->
+
+    <property name="entity_id" type="long" inverse="true">
+      <sql type="int"/>
+    </property>
+
+    <property name="entity_type" type="str" inverse="true">
+      <sql type="char(16)"/>
     </property>
 
   </object>
@@ -1055,10 +1192,27 @@
       <xml nodeType="xs:element"/>
     </property>
 
-    <property ref="true" object="workflow_exec" type="long" mapping="many-to-one" 
-	      inverse="true">
-      <sql column="wf_exec_id" type="int"/>
+    <property name="parentType" type="str" inverse="true">
+      <sql column="parent_type" type="char(32)"/>
     </property>
+
+    <choice name="parent" type="long" discriminator="parentType" inverse="true" 
+            mapping="many-to-one">
+      <property ref="true" object="workflow_exec" type="long" mapping="many-to-one" 
+		inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="group_exec" type="long" mapping="many-to-one" 
+		inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+
+      <property ref="true" object="loop_exec" type="long" mapping="many-to-one" 
+	      inverse="true">
+	<sql column="parent_id" type="int"/>
+      </property>
+    </choice>
 
     <property name="entity_id" type="long" inverse="true">
       <sql type="int"/>
@@ -1789,9 +1943,15 @@
       <sql column="log_id" type="int"/>
     </property>
 
-    <property ref="true" object="module_exec" type="list" mapping="one-to-many">
-      <xml nodeType="xs:element"/>
-    </property>
+    <choice name="item" type="list" mapping="one-to-many">
+      <property name="module_exec" ref="true" object="module_exec">
+	<xml nodeType="xs:element"/>
+      </property>
+
+      <property name="group_exec" ref="true" object="group_exec">
+	<xml nodeType="xs:element"/>
+      </property>
+    </choice>
 
     <property name="entity_id" type="long" inverse="true">
       <sql type="int"/>

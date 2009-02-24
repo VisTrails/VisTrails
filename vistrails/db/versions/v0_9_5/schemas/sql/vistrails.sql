@@ -239,6 +239,23 @@ CREATE TABLE change_tbl(
     entity_type char(16)
 ) engine=InnoDB;
 
+CREATE TABLE group_exec(
+    id int,
+    ts_start datetime,
+    ts_end datetime,
+    cached int,
+    module_id int,
+    group_name varchar(255),
+    group_type varchar(255),
+    completed int,
+    error varchar(1023),
+    machine_id int,
+    parent_type char(32),
+    entity_id int,
+    entity_type char(16),
+    parent_id int
+) engine=InnoDB;
+
 CREATE TABLE package(
     id int not null auto_increment primary key,
     name varchar(255),
@@ -274,10 +291,10 @@ CREATE TABLE loop_exec(
     id int,
     ts_start datetime,
     ts_end datetime,
-    input varchar(1023),
     completed int,
     error varchar(1023),
-    module_exec_id int
+    parent_type char(32),
+    parent_id int
 ) engine=InnoDB;
 
 CREATE TABLE connection_tbl(
@@ -331,8 +348,9 @@ CREATE TABLE module_exec(
     abstraction_id int,
     abstraction_version int,
     machine_id int,
-    wf_exec_id int,
+    parent_type char(32),
     entity_id int,
-    entity_type char(16)
+    entity_type char(16),
+    parent_id int
 ) engine=InnoDB;
 

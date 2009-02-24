@@ -1992,6 +1992,9 @@ class DBAnnotationSQLDAOBase(SQLDAO):
         elif obj.db_parentType == 'module_exec':
             p = all_objects[('module_exec', obj.db_parent)]
             p.db_add_annotation(obj)
+        elif obj.db_parentType == 'group_exec':
+            p = all_objects[('group_exec', obj.db_parent)]
+            p.db_add_annotation(obj)
         elif obj.db_parentType == 'add':
             p = all_objects[('add', obj.db_parent)]
             p.db_add_data(obj)
@@ -2164,6 +2167,156 @@ class DBChangeSQLDAOBase(SQLDAO):
         
     def delete_sql_column(self, db, obj, global_props):
         table = 'change_tbl'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        dbCommand = self.createSQLDelete(table, whereMap)
+        self.executeSQL(db, dbCommand, False)
+
+class DBGroupExecSQLDAOBase(SQLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def get_sql_columns(self, db, global_props,lock=False):
+        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'group_name', 'group_type', 'completed', 'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        table = 'group_exec'
+        whereMap = global_props
+        orderBy = 'id'
+
+        dbCommand = self.createSQLSelect(table, columns, whereMap, orderBy, lock)
+        data = self.executeSQL(db, dbCommand, True)
+        res = {}
+        for row in data:
+            id = self.convertFromDB(row[0], 'long', 'int')
+            ts_start = self.convertFromDB(row[1], 'datetime', 'datetime')
+            ts_end = self.convertFromDB(row[2], 'datetime', 'datetime')
+            cached = self.convertFromDB(row[3], 'int', 'int')
+            module_id = self.convertFromDB(row[4], 'long', 'int')
+            group_name = self.convertFromDB(row[5], 'str', 'varchar(255)')
+            group_type = self.convertFromDB(row[6], 'str', 'varchar(255)')
+            completed = self.convertFromDB(row[7], 'int', 'int')
+            error = self.convertFromDB(row[8], 'str', 'varchar(1023)')
+            machine_id = self.convertFromDB(row[9], 'long', 'int')
+            parentType = self.convertFromDB(row[10], 'str', 'char(32)')
+            entity_id = self.convertFromDB(row[11], 'long', 'int')
+            entity_type = self.convertFromDB(row[12], 'str', 'char(16)')
+            parent = self.convertFromDB(row[13], 'long', 'long')
+            
+            group_exec = DBGroupExec(ts_start=ts_start,
+                                     ts_end=ts_end,
+                                     cached=cached,
+                                     module_id=module_id,
+                                     group_name=group_name,
+                                     group_type=group_type,
+                                     completed=completed,
+                                     error=error,
+                                     machine_id=machine_id,
+                                     id=id)
+            group_exec.db_parentType = parentType
+            group_exec.db_entity_id = entity_id
+            group_exec.db_entity_type = entity_type
+            group_exec.db_parent = parent
+            group_exec.is_dirty = False
+            res[('group_exec', id)] = group_exec
+
+        return res
+
+    def from_sql_fast(self, obj, all_objects):
+        if obj.db_parentType == 'workflow_exec':
+            p = all_objects[('workflow_exec', obj.db_parent)]
+            p.db_add_item(obj)
+        elif obj.db_parentType == 'loop_exec':
+            p = all_objects[('loop_exec', obj.db_parent)]
+            p.db_add_group_exec(obj)
+        elif obj.db_parentType == 'group_exec':
+            p = all_objects[('group_exec', obj.db_parent)]
+            p.db_add_group_exec(obj)
+        
+    def set_sql_columns(self, db, obj, global_props, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return
+        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'group_name', 'group_type', 'completed', 'error', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
+        table = 'group_exec'
+        whereMap = {}
+        whereMap.update(global_props)
+        if obj.db_id is not None:
+            keyStr = self.convertToDB(obj.db_id, 'long', 'int')
+            whereMap['id'] = keyStr
+        columnMap = {}
+        if hasattr(obj, 'db_id') and obj.db_id is not None:
+            columnMap['id'] = \
+                self.convertToDB(obj.db_id, 'long', 'int')
+        if hasattr(obj, 'db_ts_start') and obj.db_ts_start is not None:
+            columnMap['ts_start'] = \
+                self.convertToDB(obj.db_ts_start, 'datetime', 'datetime')
+        if hasattr(obj, 'db_ts_end') and obj.db_ts_end is not None:
+            columnMap['ts_end'] = \
+                self.convertToDB(obj.db_ts_end, 'datetime', 'datetime')
+        if hasattr(obj, 'db_cached') and obj.db_cached is not None:
+            columnMap['cached'] = \
+                self.convertToDB(obj.db_cached, 'int', 'int')
+        if hasattr(obj, 'db_module_id') and obj.db_module_id is not None:
+            columnMap['module_id'] = \
+                self.convertToDB(obj.db_module_id, 'long', 'int')
+        if hasattr(obj, 'db_group_name') and obj.db_group_name is not None:
+            columnMap['group_name'] = \
+                self.convertToDB(obj.db_group_name, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_group_type') and obj.db_group_type is not None:
+            columnMap['group_type'] = \
+                self.convertToDB(obj.db_group_type, 'str', 'varchar(255)')
+        if hasattr(obj, 'db_completed') and obj.db_completed is not None:
+            columnMap['completed'] = \
+                self.convertToDB(obj.db_completed, 'int', 'int')
+        if hasattr(obj, 'db_error') and obj.db_error is not None:
+            columnMap['error'] = \
+                self.convertToDB(obj.db_error, 'str', 'varchar(1023)')
+        if hasattr(obj, 'db_machine_id') and obj.db_machine_id is not None:
+            columnMap['machine_id'] = \
+                self.convertToDB(obj.db_machine_id, 'long', 'int')
+        if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
+            columnMap['parent_type'] = \
+                self.convertToDB(obj.db_parentType, 'str', 'char(32)')
+        if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
+            columnMap['entity_id'] = \
+                self.convertToDB(obj.db_entity_id, 'long', 'int')
+        if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
+            columnMap['entity_type'] = \
+                self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+        if hasattr(obj, 'db_parent') and obj.db_parent is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_parent, 'long', 'long')
+        columnMap.update(global_props)
+
+        if obj.is_new or do_copy:
+            dbCommand = self.createSQLInsert(table, columnMap)
+        else:
+            dbCommand = self.createSQLUpdate(table, columnMap, whereMap)
+        lastId = self.executeSQL(db, dbCommand, False)
+        
+    def to_sql_fast(self, obj, do_copy=True):
+        if not do_copy and not obj.is_dirty:
+            return
+        for child in obj.db_annotations:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
+        for child in obj.db_loop_execs:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
+        for child in obj.db_module_execs:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
+        for child in obj.db_group_execs:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
+        
+    def delete_sql_column(self, db, obj, global_props):
+        table = 'group_exec'
         whereMap = {}
         whereMap.update(global_props)
         if obj.db_id is not None:
@@ -2418,8 +2571,9 @@ class DBWorkflowExecSQLDAOBase(SQLDAO):
     def to_sql_fast(self, obj, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        for child in obj.db_module_execs:
-            child.db_workflow_exec = obj.db_id
+        for child in obj.db_items:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
         
     def delete_sql_column(self, db, obj, global_props):
         table = 'workflow_exec'
@@ -2440,7 +2594,7 @@ class DBLoopExecSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'ts_start', 'ts_end', 'input', 'completed', 'error', 'module_exec_id']
+        columns = ['id', 'ts_start', 'ts_end', 'completed', 'error', 'parent_type', 'parent_id']
         table = 'loop_exec'
         whereMap = global_props
         orderBy = 'id'
@@ -2452,32 +2606,35 @@ class DBLoopExecSQLDAOBase(SQLDAO):
             id = self.convertFromDB(row[0], 'long', 'int')
             ts_start = self.convertFromDB(row[1], 'datetime', 'datetime')
             ts_end = self.convertFromDB(row[2], 'datetime', 'datetime')
-            input = self.convertFromDB(row[3], 'str', 'varchar(1023)')
-            completed = self.convertFromDB(row[4], 'int', 'int')
-            error = self.convertFromDB(row[5], 'str', 'varchar(1023)')
-            module_exec = self.convertFromDB(row[6], 'long', 'int')
+            completed = self.convertFromDB(row[3], 'int', 'int')
+            error = self.convertFromDB(row[4], 'str', 'varchar(1023)')
+            parentType = self.convertFromDB(row[5], 'str', 'char(32)')
+            parent = self.convertFromDB(row[6], 'long', 'long')
             
             loop_exec = DBLoopExec(ts_start=ts_start,
                                    ts_end=ts_end,
-                                   input=input,
                                    completed=completed,
                                    error=error,
                                    id=id)
-            loop_exec.db_module_exec = module_exec
+            loop_exec.db_parentType = parentType
+            loop_exec.db_parent = parent
             loop_exec.is_dirty = False
             res[('loop_exec', id)] = loop_exec
 
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        if ('module_exec', obj.db_module_exec) in all_objects:
-            p = all_objects[('module_exec', obj.db_module_exec)]
+        if obj.db_parentType == 'module_exec':
+            p = all_objects[('module_exec', obj.db_parent)]
+            p.db_add_loop_exec(obj)
+        elif obj.db_parentType == 'group_exec':
+            p = all_objects[('group_exec', obj.db_parent)]
             p.db_add_loop_exec(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'ts_start', 'ts_end', 'input', 'completed', 'error', 'module_exec_id']
+        columns = ['id', 'ts_start', 'ts_end', 'completed', 'error', 'parent_type', 'parent_id']
         table = 'loop_exec'
         whereMap = {}
         whereMap.update(global_props)
@@ -2494,18 +2651,18 @@ class DBLoopExecSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_ts_end') and obj.db_ts_end is not None:
             columnMap['ts_end'] = \
                 self.convertToDB(obj.db_ts_end, 'datetime', 'datetime')
-        if hasattr(obj, 'db_input') and obj.db_input is not None:
-            columnMap['input'] = \
-                self.convertToDB(obj.db_input, 'str', 'varchar(1023)')
         if hasattr(obj, 'db_completed') and obj.db_completed is not None:
             columnMap['completed'] = \
                 self.convertToDB(obj.db_completed, 'int', 'int')
         if hasattr(obj, 'db_error') and obj.db_error is not None:
             columnMap['error'] = \
                 self.convertToDB(obj.db_error, 'str', 'varchar(1023)')
-        if hasattr(obj, 'db_module_exec') and obj.db_module_exec is not None:
-            columnMap['module_exec_id'] = \
-                self.convertToDB(obj.db_module_exec, 'long', 'int')
+        if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
+            columnMap['parent_type'] = \
+                self.convertToDB(obj.db_parentType, 'str', 'char(32)')
+        if hasattr(obj, 'db_parent') and obj.db_parent is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_parent, 'long', 'long')
         columnMap.update(global_props)
 
         if obj.is_new or do_copy:
@@ -2515,7 +2672,14 @@ class DBLoopExecSQLDAOBase(SQLDAO):
         lastId = self.executeSQL(db, dbCommand, False)
         
     def to_sql_fast(self, obj, do_copy=True):
-        pass
+        if not do_copy and not obj.is_dirty:
+            return
+        for child in obj.db_module_execs:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
+        for child in obj.db_group_execs:
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
         
     def delete_sql_column(self, db, obj, global_props):
         table = 'loop_exec'
@@ -2946,7 +3110,7 @@ class DBModuleExecSQLDAOBase(SQLDAO):
         return self.daoList[dao]
 
     def get_sql_columns(self, db, global_props,lock=False):
-        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'module_name', 'completed', 'error', 'abstraction_id', 'abstraction_version', 'machine_id', 'wf_exec_id', 'entity_id', 'entity_type']
+        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'module_name', 'completed', 'error', 'abstraction_id', 'abstraction_version', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'module_exec'
         whereMap = global_props
         orderBy = 'id'
@@ -2966,9 +3130,10 @@ class DBModuleExecSQLDAOBase(SQLDAO):
             abstraction_id = self.convertFromDB(row[8], 'long', 'int')
             abstraction_version = self.convertFromDB(row[9], 'long', 'int')
             machine_id = self.convertFromDB(row[10], 'long', 'int')
-            workflow_exec = self.convertFromDB(row[11], 'long', 'int')
+            parentType = self.convertFromDB(row[11], 'str', 'char(32)')
             entity_id = self.convertFromDB(row[12], 'long', 'int')
             entity_type = self.convertFromDB(row[13], 'str', 'char(16)')
+            parent = self.convertFromDB(row[14], 'long', 'long')
             
             module_exec = DBModuleExec(ts_start=ts_start,
                                        ts_end=ts_end,
@@ -2981,23 +3146,30 @@ class DBModuleExecSQLDAOBase(SQLDAO):
                                        abstraction_version=abstraction_version,
                                        machine_id=machine_id,
                                        id=id)
-            module_exec.db_workflow_exec = workflow_exec
+            module_exec.db_parentType = parentType
             module_exec.db_entity_id = entity_id
             module_exec.db_entity_type = entity_type
+            module_exec.db_parent = parent
             module_exec.is_dirty = False
             res[('module_exec', id)] = module_exec
 
         return res
 
     def from_sql_fast(self, obj, all_objects):
-        if ('workflow_exec', obj.db_workflow_exec) in all_objects:
-            p = all_objects[('workflow_exec', obj.db_workflow_exec)]
+        if obj.db_parentType == 'workflow_exec':
+            p = all_objects[('workflow_exec', obj.db_parent)]
+            p.db_add_item(obj)
+        elif obj.db_parentType == 'group_exec':
+            p = all_objects[('group_exec', obj.db_parent)]
+            p.db_add_module_exec(obj)
+        elif obj.db_parentType == 'loop_exec':
+            p = all_objects[('loop_exec', obj.db_parent)]
             p.db_add_module_exec(obj)
         
     def set_sql_columns(self, db, obj, global_props, do_copy=True):
         if not do_copy and not obj.is_dirty:
             return
-        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'module_name', 'completed', 'error', 'abstraction_id', 'abstraction_version', 'machine_id', 'wf_exec_id', 'entity_id', 'entity_type']
+        columns = ['id', 'ts_start', 'ts_end', 'cached', 'module_id', 'module_name', 'completed', 'error', 'abstraction_id', 'abstraction_version', 'machine_id', 'parent_type', 'entity_id', 'entity_type', 'parent_id']
         table = 'module_exec'
         whereMap = {}
         whereMap.update(global_props)
@@ -3038,15 +3210,18 @@ class DBModuleExecSQLDAOBase(SQLDAO):
         if hasattr(obj, 'db_machine_id') and obj.db_machine_id is not None:
             columnMap['machine_id'] = \
                 self.convertToDB(obj.db_machine_id, 'long', 'int')
-        if hasattr(obj, 'db_workflow_exec') and obj.db_workflow_exec is not None:
-            columnMap['wf_exec_id'] = \
-                self.convertToDB(obj.db_workflow_exec, 'long', 'int')
+        if hasattr(obj, 'db_parentType') and obj.db_parentType is not None:
+            columnMap['parent_type'] = \
+                self.convertToDB(obj.db_parentType, 'str', 'char(32)')
         if hasattr(obj, 'db_entity_id') and obj.db_entity_id is not None:
             columnMap['entity_id'] = \
                 self.convertToDB(obj.db_entity_id, 'long', 'int')
         if hasattr(obj, 'db_entity_type') and obj.db_entity_type is not None:
             columnMap['entity_type'] = \
                 self.convertToDB(obj.db_entity_type, 'str', 'char(16)')
+        if hasattr(obj, 'db_parent') and obj.db_parent is not None:
+            columnMap['parent_id'] = \
+                self.convertToDB(obj.db_parent, 'long', 'long')
         columnMap.update(global_props)
 
         if obj.is_new or do_copy:
@@ -3062,7 +3237,8 @@ class DBModuleExecSQLDAOBase(SQLDAO):
             child.db_parentType = obj.vtType
             child.db_parent = obj.db_id
         for child in obj.db_loop_execs:
-            child.db_module_exec = obj.db_id
+            child.db_parentType = obj.vtType
+            child.db_parent = obj.db_id
         
     def delete_sql_column(self, db, obj, global_props):
         table = 'module_exec'
@@ -3120,6 +3296,8 @@ class SQLDAOListBase(dict):
             self['annotation'] = DBAnnotationSQLDAOBase(self)
         if 'change' not in self:
             self['change'] = DBChangeSQLDAOBase(self)
+        if 'group_exec' not in self:
+            self['group_exec'] = DBGroupExecSQLDAOBase(self)
         if 'package' not in self:
             self['package'] = DBPackageSQLDAOBase(self)
         if 'workflow_exec' not in self:

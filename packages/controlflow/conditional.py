@@ -1,25 +1,34 @@
 from core.modules.vistrails_module import Module, InvalidOutput
 from core.modules.basic_modules import NotCacheable
+from core.utils import VistrailsInternalError
 import copy
 
 #################################################################################
 ## If Operator
 
 class If(Module, NotCacheable):
-    """The If Module alows the user to choose the part of the workflow to be
-    executed through the use of a condition."""
+    """
+    The If Module alows the user to choose the part of the workflow to be
+    executed through the use of a condition.
+    """
 
     def updateUpstream(self):
         """A modified version of the updateUpstream method."""
       
         ## Updating connectors from 'Condition'
         connectors_Condition = self.inputPorts.get('Condition')
+        if connectors_Condition==None:
+            raise VistrailsInternalError('Missing value from port Condition')
         for connector in connectors_Condition:
             connector.obj.update()
 
         ## Getting the list of connectors
         connectors_TruePort = self.inputPorts.get('TruePort')
+        if connectors_TruePort==None:
+            raise VistrailsInternalError('Missing value from port TruePort')
         connectors_FalsePort = self.inputPorts.get('FalsePort')
+        if connectors_FalsePort==None:
+            raise VistrailsInternalError('Missing value from port FalsePort')
 
         ## Getting the condition
         cond = self.getInputFromPort('Condition')

@@ -20,48 +20,75 @@
 ##
 ############################################################################
 
-from db.domain import DBLoopExec
+from core.log.module_exec import ModuleExec
+from core.log.loop_exec import LoopExec
+from core.vistrail.annotation import Annotation
+from db.domain import DBGroupExec
 
-class LoopExec(DBLoopExec):
-    """ Class that stores info for logging a loop execution. """
+class GroupExec(DBGroupExec):
+    """ Class that stores info for logging a group/abstraction execution. """
 
     def __init__(self, *args, **kwargs):
-        DBLoopExec.__init__(self, *args, **kwargs)
+        DBGroupExec.__init__(self, *args, **kwargs)
 
     def __copy__(self):
         return self.do_copy()
 
     def do_copy(self):
-        cp = DBLoopExec.__copy__(self)
-        cp.__class__ = LoopExec
+        cp = DBGroupExec.__copy__(self)
+        cp.__class__ = GroupExec
         return cp
 
     @staticmethod
-    def convert(_loop_exec):
-        if _loop_exec.__class__ == LoopExec:
+    def convert(_wf_exec):
+        if _group_exec.__class__ == GroupExec:
             return
-        _loop_exec.__class__ = LoopExec
-        from core.log.module_exec import ModuleExec
-        for module_exec in _loop_exec.module_execs:
+        _group_exec.__class__ = GroupExec
+        for annotation in _group_exec.annotations:
+            Annotation.convert(annotation)
+        for loop_exec in _group_exec.loop_execs:
+            LoopExec.convert(loop_exec)
+        for module_exec in _group_exec.module_execs:
             ModuleExec.convert(module_exec)
-        from core.log.group_exec import GroupExec
-        for group_exec in _loop_exec.group_execs:
+        for group_exec in _group_exec.group_execs:
             GroupExec.convert(group_exec)
+            
 
     ##########################################################################
     # Properties
 
-    id = DBLoopExec.db_id
-    ts_start = DBLoopExec.db_ts_start
-    ts_end = DBLoopExec.db_ts_end
-    completed = DBLoopExec.db_completed
-    error = DBLoopExec.db_error
+    id = DBGroupExec.db_id
+    ts_start = DBGroupExec.db_ts_start
+    ts_end = DBGroupExec.db_ts_end
+    cached = DBGroupExec.db_cached
+    module_id = DBGroupExec.db_module_id
+    group_name = DBGroupExec.db_group_name
+    group_type = DBGroupExec.db_group_type
+    completed = DBGroupExec.db_completed
+    error = DBGroupExec.db_error
+    machine_id = DBGroupExec.db_machine_id
 
     def _get_duration(self):
         if self.db_ts_end is not None:
             return self.db_ts_end - self.db_ts_start
         return None
     duration = property(_get_duration)
+
+    def _get_annotations(self):
+        return self.db_annotations
+    def _set_annotations(self, annotations):
+        self.db_annotations = annotations
+    annotations = property(_get_annotations, _set_annotations)
+    def add_annotation(self, annotation):
+        self.db_add_annotation(annotation)
+
+    def _get_loop_execs(self):
+        return self.db_loop_execs
+    def _set_loop_execs(self, loop_execs):
+        self.db_loop_execs = loop_execs
+    loop_execs = property(_get_loop_execs, _set_loop_execs)
+    def add_loop_exec(self, loop_exec):
+        self.db_add_loop_exec(loop_exec)
 
     def _get_module_execs(self):
         return self.db_module_execs

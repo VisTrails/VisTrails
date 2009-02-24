@@ -4453,6 +4453,557 @@ class DBChange(object):
     def getPrimaryKey(self):
         return self._db_id
 
+class DBGroupExec(object):
+
+    vtType = 'group_exec'
+
+    def __init__(self, id=None, ts_start=None, ts_end=None, cached=None, module_id=None, group_name=None, group_type=None, completed=None, error=None, machine_id=None, annotations=None, loop_execs=None, module_execs=None, group_execs=None):
+        self._db_id = id
+        self._db_ts_start = ts_start
+        self._db_ts_end = ts_end
+        self._db_cached = cached
+        self._db_module_id = module_id
+        self._db_group_name = group_name
+        self._db_group_type = group_type
+        self._db_completed = completed
+        self._db_error = error
+        self._db_machine_id = machine_id
+        self.db_deleted_annotations = []
+        self.db_annotations_id_index = {}
+        if annotations is None:
+            self._db_annotations = []
+        else:
+            self._db_annotations = annotations
+            for v in self._db_annotations:
+                self.db_annotations_id_index[v.db_id] = v
+        self.db_deleted_loop_execs = []
+        self.db_loop_execs_id_index = {}
+        if loop_execs is None:
+            self._db_loop_execs = []
+        else:
+            self._db_loop_execs = loop_execs
+            for v in self._db_loop_execs:
+                self.db_loop_execs_id_index[v.db_id] = v
+        self.db_deleted_module_execs = []
+        self.db_module_execs_id_index = {}
+        if module_execs is None:
+            self._db_module_execs = []
+        else:
+            self._db_module_execs = module_execs
+            for v in self._db_module_execs:
+                self.db_module_execs_id_index[v.db_id] = v
+        self.db_deleted_group_execs = []
+        self.db_group_execs_id_index = {}
+        if group_execs is None:
+            self._db_group_execs = []
+        else:
+            self._db_group_execs = group_execs
+            for v in self._db_group_execs:
+                self.db_group_execs_id_index[v.db_id] = v
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBGroupExec.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBGroupExec(id=self._db_id,
+                         ts_start=self._db_ts_start,
+                         ts_end=self._db_ts_end,
+                         cached=self._db_cached,
+                         module_id=self._db_module_id,
+                         group_name=self._db_group_name,
+                         group_type=self._db_group_type,
+                         completed=self._db_completed,
+                         error=self._db_error,
+                         machine_id=self._db_machine_id)
+        if self._db_annotations is None:
+            cp._db_annotations = []
+        else:
+            cp._db_annotations = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_annotations]
+        if self._db_loop_execs is None:
+            cp._db_loop_execs = []
+        else:
+            cp._db_loop_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_loop_execs]
+        if self._db_module_execs is None:
+            cp._db_module_execs = []
+        else:
+            cp._db_module_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_module_execs]
+        if self._db_group_execs is None:
+            cp._db_group_execs = []
+        else:
+            cp._db_group_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_group_execs]
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+            if hasattr(self, 'db_module_id') and ('module', self._db_module_id) in id_remap:
+                cp._db_module_id = id_remap[('module', self._db_module_id)]
+            if hasattr(self, 'db_machine_id') and ('machine', self._db_machine_id) in id_remap:
+                cp._db_machine_id = id_remap[('machine', self._db_machine_id)]
+        
+        # recreate indices and set flags
+        cp.db_annotations_id_index = dict((v.db_id, v) for v in cp._db_annotations)
+        cp.db_loop_execs_id_index = dict((v.db_id, v) for v in cp._db_loop_execs)
+        cp.db_module_execs_id_index = dict((v.db_id, v) for v in cp._db_module_execs)
+        cp.db_group_execs_id_index = dict((v.db_id, v) for v in cp._db_group_execs)
+        cp.is_dirty = self.is_dirty
+        cp.is_new = self.is_new
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBGroupExec()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
+            new_obj.db_id = old_obj.db_id
+        if 'ts_start' in class_dict:
+            res = class_dict['ts_start'](old_obj, trans_dict)
+            new_obj.db_ts_start = res
+        elif hasattr(old_obj, 'db_ts_start') and old_obj.db_ts_start is not None:
+            new_obj.db_ts_start = old_obj.db_ts_start
+        if 'ts_end' in class_dict:
+            res = class_dict['ts_end'](old_obj, trans_dict)
+            new_obj.db_ts_end = res
+        elif hasattr(old_obj, 'db_ts_end') and old_obj.db_ts_end is not None:
+            new_obj.db_ts_end = old_obj.db_ts_end
+        if 'cached' in class_dict:
+            res = class_dict['cached'](old_obj, trans_dict)
+            new_obj.db_cached = res
+        elif hasattr(old_obj, 'db_cached') and old_obj.db_cached is not None:
+            new_obj.db_cached = old_obj.db_cached
+        if 'module_id' in class_dict:
+            res = class_dict['module_id'](old_obj, trans_dict)
+            new_obj.db_module_id = res
+        elif hasattr(old_obj, 'db_module_id') and old_obj.db_module_id is not None:
+            new_obj.db_module_id = old_obj.db_module_id
+        if 'group_name' in class_dict:
+            res = class_dict['group_name'](old_obj, trans_dict)
+            new_obj.db_group_name = res
+        elif hasattr(old_obj, 'db_group_name') and old_obj.db_group_name is not None:
+            new_obj.db_group_name = old_obj.db_group_name
+        if 'group_type' in class_dict:
+            res = class_dict['group_type'](old_obj, trans_dict)
+            new_obj.db_group_type = res
+        elif hasattr(old_obj, 'db_group_type') and old_obj.db_group_type is not None:
+            new_obj.db_group_type = old_obj.db_group_type
+        if 'completed' in class_dict:
+            res = class_dict['completed'](old_obj, trans_dict)
+            new_obj.db_completed = res
+        elif hasattr(old_obj, 'db_completed') and old_obj.db_completed is not None:
+            new_obj.db_completed = old_obj.db_completed
+        if 'error' in class_dict:
+            res = class_dict['error'](old_obj, trans_dict)
+            new_obj.db_error = res
+        elif hasattr(old_obj, 'db_error') and old_obj.db_error is not None:
+            new_obj.db_error = old_obj.db_error
+        if 'machine_id' in class_dict:
+            res = class_dict['machine_id'](old_obj, trans_dict)
+            new_obj.db_machine_id = res
+        elif hasattr(old_obj, 'db_machine_id') and old_obj.db_machine_id is not None:
+            new_obj.db_machine_id = old_obj.db_machine_id
+        if 'annotations' in class_dict:
+            res = class_dict['annotations'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_annotation(obj)
+        elif hasattr(old_obj, 'db_annotations') and old_obj.db_annotations is not None:
+            for obj in old_obj.db_annotations:
+                new_obj.db_add_annotation(DBAnnotation.update_version(obj, trans_dict))
+        if 'loop_execs' in class_dict:
+            res = class_dict['loop_execs'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_loop_exec(obj)
+        elif hasattr(old_obj, 'db_loop_execs') and old_obj.db_loop_execs is not None:
+            for obj in old_obj.db_loop_execs:
+                new_obj.db_add_loop_exec(DBLoopExec.update_version(obj, trans_dict))
+        if 'module_execs' in class_dict:
+            res = class_dict['module_execs'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_module_exec(obj)
+        elif hasattr(old_obj, 'db_module_execs') and old_obj.db_module_execs is not None:
+            for obj in old_obj.db_module_execs:
+                new_obj.db_add_module_exec(DBModuleExec.update_version(obj, trans_dict))
+        if 'group_execs' in class_dict:
+            res = class_dict['group_execs'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_group_exec(obj)
+        elif hasattr(old_obj, 'db_group_execs') and old_obj.db_group_execs is not None:
+            for obj in old_obj.db_group_execs:
+                new_obj.db_add_group_exec(DBGroupExec.update_version(obj, trans_dict))
+        return new_obj
+
+    def db_children(self, parent=(None,None), orphan=False):
+        children = []
+        to_del = []
+        for child in self.db_annotations:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_annotation(child)
+        to_del = []
+        for child in self.db_loop_execs:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_loop_exec(child)
+        to_del = []
+        for child in self.db_module_execs:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_module_exec(child)
+        to_del = []
+        for child in self.db_group_execs:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_group_exec(child)
+        children.append((self, parent[0], parent[1]))
+        return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_annotations)
+        children.extend(self.db_deleted_loop_execs)
+        children.extend(self.db_deleted_module_execs)
+        children.extend(self.db_deleted_group_execs)
+        if remove:
+            self.db_deleted_annotations = []
+            self.db_deleted_loop_execs = []
+            self.db_deleted_module_execs = []
+            self.db_deleted_group_execs = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        for child in self._db_annotations:
+            if child.has_changes():
+                return True
+        for child in self._db_loop_execs:
+            if child.has_changes():
+                return True
+        for child in self._db_module_execs:
+            if child.has_changes():
+                return True
+        for child in self._db_group_execs:
+            if child.has_changes():
+                return True
+        return False
+    def __get_db_id(self):
+        return self._db_id
+    def __set_db_id(self, id):
+        self._db_id = id
+        self.is_dirty = True
+    db_id = property(__get_db_id, __set_db_id)
+    def db_add_id(self, id):
+        self._db_id = id
+    def db_change_id(self, id):
+        self._db_id = id
+    def db_delete_id(self, id):
+        self._db_id = None
+    
+    def __get_db_ts_start(self):
+        return self._db_ts_start
+    def __set_db_ts_start(self, ts_start):
+        self._db_ts_start = ts_start
+        self.is_dirty = True
+    db_ts_start = property(__get_db_ts_start, __set_db_ts_start)
+    def db_add_ts_start(self, ts_start):
+        self._db_ts_start = ts_start
+    def db_change_ts_start(self, ts_start):
+        self._db_ts_start = ts_start
+    def db_delete_ts_start(self, ts_start):
+        self._db_ts_start = None
+    
+    def __get_db_ts_end(self):
+        return self._db_ts_end
+    def __set_db_ts_end(self, ts_end):
+        self._db_ts_end = ts_end
+        self.is_dirty = True
+    db_ts_end = property(__get_db_ts_end, __set_db_ts_end)
+    def db_add_ts_end(self, ts_end):
+        self._db_ts_end = ts_end
+    def db_change_ts_end(self, ts_end):
+        self._db_ts_end = ts_end
+    def db_delete_ts_end(self, ts_end):
+        self._db_ts_end = None
+    
+    def __get_db_cached(self):
+        return self._db_cached
+    def __set_db_cached(self, cached):
+        self._db_cached = cached
+        self.is_dirty = True
+    db_cached = property(__get_db_cached, __set_db_cached)
+    def db_add_cached(self, cached):
+        self._db_cached = cached
+    def db_change_cached(self, cached):
+        self._db_cached = cached
+    def db_delete_cached(self, cached):
+        self._db_cached = None
+    
+    def __get_db_module_id(self):
+        return self._db_module_id
+    def __set_db_module_id(self, module_id):
+        self._db_module_id = module_id
+        self.is_dirty = True
+    db_module_id = property(__get_db_module_id, __set_db_module_id)
+    def db_add_module_id(self, module_id):
+        self._db_module_id = module_id
+    def db_change_module_id(self, module_id):
+        self._db_module_id = module_id
+    def db_delete_module_id(self, module_id):
+        self._db_module_id = None
+    
+    def __get_db_group_name(self):
+        return self._db_group_name
+    def __set_db_group_name(self, group_name):
+        self._db_group_name = group_name
+        self.is_dirty = True
+    db_group_name = property(__get_db_group_name, __set_db_group_name)
+    def db_add_group_name(self, group_name):
+        self._db_group_name = group_name
+    def db_change_group_name(self, group_name):
+        self._db_group_name = group_name
+    def db_delete_group_name(self, group_name):
+        self._db_group_name = None
+    
+    def __get_db_group_type(self):
+        return self._db_group_type
+    def __set_db_group_type(self, group_type):
+        self._db_group_type = group_type
+        self.is_dirty = True
+    db_group_type = property(__get_db_group_type, __set_db_group_type)
+    def db_add_group_type(self, group_type):
+        self._db_group_type = group_type
+    def db_change_group_type(self, group_type):
+        self._db_group_type = group_type
+    def db_delete_group_type(self, group_type):
+        self._db_group_type = None
+    
+    def __get_db_completed(self):
+        return self._db_completed
+    def __set_db_completed(self, completed):
+        self._db_completed = completed
+        self.is_dirty = True
+    db_completed = property(__get_db_completed, __set_db_completed)
+    def db_add_completed(self, completed):
+        self._db_completed = completed
+    def db_change_completed(self, completed):
+        self._db_completed = completed
+    def db_delete_completed(self, completed):
+        self._db_completed = None
+    
+    def __get_db_error(self):
+        return self._db_error
+    def __set_db_error(self, error):
+        self._db_error = error
+        self.is_dirty = True
+    db_error = property(__get_db_error, __set_db_error)
+    def db_add_error(self, error):
+        self._db_error = error
+    def db_change_error(self, error):
+        self._db_error = error
+    def db_delete_error(self, error):
+        self._db_error = None
+    
+    def __get_db_machine_id(self):
+        return self._db_machine_id
+    def __set_db_machine_id(self, machine_id):
+        self._db_machine_id = machine_id
+        self.is_dirty = True
+    db_machine_id = property(__get_db_machine_id, __set_db_machine_id)
+    def db_add_machine_id(self, machine_id):
+        self._db_machine_id = machine_id
+    def db_change_machine_id(self, machine_id):
+        self._db_machine_id = machine_id
+    def db_delete_machine_id(self, machine_id):
+        self._db_machine_id = None
+    
+    def __get_db_annotations(self):
+        return self._db_annotations
+    def __set_db_annotations(self, annotations):
+        self._db_annotations = annotations
+        self.is_dirty = True
+    db_annotations = property(__get_db_annotations, __set_db_annotations)
+    def db_get_annotations(self):
+        return self._db_annotations
+    def db_add_annotation(self, annotation):
+        self.is_dirty = True
+        self._db_annotations.append(annotation)
+        self.db_annotations_id_index[annotation.db_id] = annotation
+    def db_change_annotation(self, annotation):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == annotation.db_id:
+                self._db_annotations[i] = annotation
+                found = True
+                break
+        if not found:
+            self._db_annotations.append(annotation)
+        self.db_annotations_id_index[annotation.db_id] = annotation
+    def db_delete_annotation(self, annotation):
+        self.is_dirty = True
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == annotation.db_id:
+                if not self._db_annotations[i].is_new:
+                    self.db_deleted_annotations.append(self._db_annotations[i])
+                del self._db_annotations[i]
+                break
+        del self.db_annotations_id_index[annotation.db_id]
+    def db_get_annotation(self, key):
+        for i in xrange(len(self._db_annotations)):
+            if self._db_annotations[i].db_id == key:
+                return self._db_annotations[i]
+        return None
+    def db_get_annotation_by_id(self, key):
+        return self.db_annotations_id_index[key]
+    def db_has_annotation_with_id(self, key):
+        return key in self.db_annotations_id_index
+    
+    def __get_db_loop_execs(self):
+        return self._db_loop_execs
+    def __set_db_loop_execs(self, loop_execs):
+        self._db_loop_execs = loop_execs
+        self.is_dirty = True
+    db_loop_execs = property(__get_db_loop_execs, __set_db_loop_execs)
+    def db_get_loop_execs(self):
+        return self._db_loop_execs
+    def db_add_loop_exec(self, loop_exec):
+        self.is_dirty = True
+        self._db_loop_execs.append(loop_exec)
+        self.db_loop_execs_id_index[loop_exec.db_id] = loop_exec
+    def db_change_loop_exec(self, loop_exec):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_loop_execs)):
+            if self._db_loop_execs[i].db_id == loop_exec.db_id:
+                self._db_loop_execs[i] = loop_exec
+                found = True
+                break
+        if not found:
+            self._db_loop_execs.append(loop_exec)
+        self.db_loop_execs_id_index[loop_exec.db_id] = loop_exec
+    def db_delete_loop_exec(self, loop_exec):
+        self.is_dirty = True
+        for i in xrange(len(self._db_loop_execs)):
+            if self._db_loop_execs[i].db_id == loop_exec.db_id:
+                if not self._db_loop_execs[i].is_new:
+                    self.db_deleted_loop_execs.append(self._db_loop_execs[i])
+                del self._db_loop_execs[i]
+                break
+        del self.db_loop_execs_id_index[loop_exec.db_id]
+    def db_get_loop_exec(self, key):
+        for i in xrange(len(self._db_loop_execs)):
+            if self._db_loop_execs[i].db_id == key:
+                return self._db_loop_execs[i]
+        return None
+    def db_get_loop_exec_by_id(self, key):
+        return self.db_loop_execs_id_index[key]
+    def db_has_loop_exec_with_id(self, key):
+        return key in self.db_loop_execs_id_index
+    
+    def __get_db_module_execs(self):
+        return self._db_module_execs
+    def __set_db_module_execs(self, module_execs):
+        self._db_module_execs = module_execs
+        self.is_dirty = True
+    db_module_execs = property(__get_db_module_execs, __set_db_module_execs)
+    def db_get_module_execs(self):
+        return self._db_module_execs
+    def db_add_module_exec(self, module_exec):
+        self.is_dirty = True
+        self._db_module_execs.append(module_exec)
+        self.db_module_execs_id_index[module_exec.db_id] = module_exec
+    def db_change_module_exec(self, module_exec):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_module_execs)):
+            if self._db_module_execs[i].db_id == module_exec.db_id:
+                self._db_module_execs[i] = module_exec
+                found = True
+                break
+        if not found:
+            self._db_module_execs.append(module_exec)
+        self.db_module_execs_id_index[module_exec.db_id] = module_exec
+    def db_delete_module_exec(self, module_exec):
+        self.is_dirty = True
+        for i in xrange(len(self._db_module_execs)):
+            if self._db_module_execs[i].db_id == module_exec.db_id:
+                if not self._db_module_execs[i].is_new:
+                    self.db_deleted_module_execs.append(self._db_module_execs[i])
+                del self._db_module_execs[i]
+                break
+        del self.db_module_execs_id_index[module_exec.db_id]
+    def db_get_module_exec(self, key):
+        for i in xrange(len(self._db_module_execs)):
+            if self._db_module_execs[i].db_id == key:
+                return self._db_module_execs[i]
+        return None
+    def db_get_module_exec_by_id(self, key):
+        return self.db_module_execs_id_index[key]
+    def db_has_module_exec_with_id(self, key):
+        return key in self.db_module_execs_id_index
+    
+    def __get_db_group_execs(self):
+        return self._db_group_execs
+    def __set_db_group_execs(self, group_execs):
+        self._db_group_execs = group_execs
+        self.is_dirty = True
+    db_group_execs = property(__get_db_group_execs, __set_db_group_execs)
+    def db_get_group_execs(self):
+        return self._db_group_execs
+    def db_add_group_exec(self, group_exec):
+        self.is_dirty = True
+        self._db_group_execs.append(group_exec)
+        self.db_group_execs_id_index[group_exec.db_id] = group_exec
+    def db_change_group_exec(self, group_exec):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_group_execs)):
+            if self._db_group_execs[i].db_id == group_exec.db_id:
+                self._db_group_execs[i] = group_exec
+                found = True
+                break
+        if not found:
+            self._db_group_execs.append(group_exec)
+        self.db_group_execs_id_index[group_exec.db_id] = group_exec
+    def db_delete_group_exec(self, group_exec):
+        self.is_dirty = True
+        for i in xrange(len(self._db_group_execs)):
+            if self._db_group_execs[i].db_id == group_exec.db_id:
+                if not self._db_group_execs[i].is_new:
+                    self.db_deleted_group_execs.append(self._db_group_execs[i])
+                del self._db_group_execs[i]
+                break
+        del self.db_group_execs_id_index[group_exec.db_id]
+    def db_get_group_exec(self, key):
+        for i in xrange(len(self._db_group_execs)):
+            if self._db_group_execs[i].db_id == key:
+                return self._db_group_execs[i]
+        return None
+    def db_get_group_exec_by_id(self, key):
+        return self.db_group_execs_id_index[key]
+    def db_has_group_exec_with_id(self, key):
+        return key in self.db_group_execs_id_index
+    
+    def getPrimaryKey(self):
+        return self._db_id
+
 class DBPackage(object):
 
     vtType = 'package'
@@ -4732,7 +5283,15 @@ class DBWorkflowExec(object):
 
     vtType = 'workflow_exec'
 
-    def __init__(self, id=None, user=None, ip=None, session=None, vt_version=None, ts_start=None, ts_end=None, parent_id=None, parent_type=None, parent_version=None, completed=None, name=None, module_execs=None):
+    def __init__(self, items=None, id=None, user=None, ip=None, session=None, vt_version=None, ts_start=None, ts_end=None, parent_id=None, parent_type=None, parent_version=None, completed=None, name=None):
+        self.db_deleted_items = []
+        self.db_items_id_index = {}
+        if items is None:
+            self._db_items = []
+        else:
+            self._db_items = items
+            for v in self._db_items:
+                self.db_items_id_index[v.db_id] = v
         self._db_id = id
         self._db_user = user
         self._db_ip = ip
@@ -4745,14 +5304,6 @@ class DBWorkflowExec(object):
         self._db_parent_version = parent_version
         self._db_completed = completed
         self._db_name = name
-        self.db_deleted_module_execs = []
-        self.db_module_execs_id_index = {}
-        if module_execs is None:
-            self._db_module_execs = []
-        else:
-            self._db_module_execs = module_execs
-            for v in self._db_module_execs:
-                self.db_module_execs_id_index[v.db_id] = v
         self.is_dirty = True
         self.is_new = True
     
@@ -4772,10 +5323,10 @@ class DBWorkflowExec(object):
                             parent_version=self._db_parent_version,
                             completed=self._db_completed,
                             name=self._db_name)
-        if self._db_module_execs is None:
-            cp._db_module_execs = []
+        if self._db_items is None:
+            cp._db_items = []
         else:
-            cp._db_module_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_module_execs]
+            cp._db_items = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_items]
         
         # set new ids
         if new_ids:
@@ -4787,7 +5338,7 @@ class DBWorkflowExec(object):
             cp.db_id = new_id
         
         # recreate indices and set flags
-        cp.db_module_execs_id_index = dict((v.db_id, v) for v in cp._db_module_execs)
+        cp.db_items_id_index = dict((v.db_id, v) for v in cp._db_items)
         cp.is_dirty = self.is_dirty
         cp.is_new = self.is_new
         return cp
@@ -4799,6 +5350,16 @@ class DBWorkflowExec(object):
         class_dict = {}
         if new_obj.__class__.__name__ in trans_dict:
             class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'items' in class_dict:
+            res = class_dict['items'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_item(obj)
+        elif hasattr(old_obj, 'db_items') and old_obj.db_items is not None:
+            for obj in old_obj.db_items:
+                if obj.vtType == 'module_exec':
+                    new_obj.db_add_item(DBModuleExec.update_version(obj, trans_dict))
+                elif obj.vtType == 'group_exec':
+                    new_obj.db_add_item(DBGroupExec.update_version(obj, trans_dict))
         if 'id' in class_dict:
             res = class_dict['id'](old_obj, trans_dict)
             new_obj.db_id = res
@@ -4859,39 +5420,74 @@ class DBWorkflowExec(object):
             new_obj.db_name = res
         elif hasattr(old_obj, 'db_name') and old_obj.db_name is not None:
             new_obj.db_name = old_obj.db_name
-        if 'module_execs' in class_dict:
-            res = class_dict['module_execs'](old_obj, trans_dict)
-            for obj in res:
-                new_obj.db_add_module_exec(obj)
-        elif hasattr(old_obj, 'db_module_execs') and old_obj.db_module_execs is not None:
-            for obj in old_obj.db_module_execs:
-                new_obj.db_add_module_exec(DBModuleExec.update_version(obj, trans_dict))
         return new_obj
 
     def db_children(self, parent=(None,None), orphan=False):
         children = []
         to_del = []
-        for child in self.db_module_execs:
+        for child in self.db_items:
             children.extend(child.db_children((self.vtType, self.db_id), orphan))
             if orphan:
                 to_del.append(child)
         for child in to_del:
-            self.db_delete_module_exec(child)
+            self.db_delete_item(child)
         children.append((self, parent[0], parent[1]))
         return children
     def db_deleted_children(self, remove=False):
         children = []
-        children.extend(self.db_deleted_module_execs)
+        children.extend(self.db_deleted_items)
         if remove:
-            self.db_deleted_module_execs = []
+            self.db_deleted_items = []
         return children
     def has_changes(self):
         if self.is_dirty:
             return True
-        for child in self._db_module_execs:
+        for child in self._db_items:
             if child.has_changes():
                 return True
         return False
+    def __get_db_items(self):
+        return self._db_items
+    def __set_db_items(self, items):
+        self._db_items = items
+        self.is_dirty = True
+    db_items = property(__get_db_items, __set_db_items)
+    def db_get_items(self):
+        return self._db_items
+    def db_add_item(self, item):
+        self.is_dirty = True
+        self._db_items.append(item)
+        self.db_items_id_index[item.db_id] = item
+    def db_change_item(self, item):
+        self.is_dirty = True
+        found = False
+        for i in xrange(len(self._db_items)):
+            if self._db_items[i].db_id == item.db_id:
+                self._db_items[i] = item
+                found = True
+                break
+        if not found:
+            self._db_items.append(item)
+        self.db_items_id_index[item.db_id] = item
+    def db_delete_item(self, item):
+        self.is_dirty = True
+        for i in xrange(len(self._db_items)):
+            if self._db_items[i].db_id == item.db_id:
+                if not self._db_items[i].is_new:
+                    self.db_deleted_items.append(self._db_items[i])
+                del self._db_items[i]
+                break
+        del self.db_items_id_index[item.db_id]
+    def db_get_item(self, key):
+        for i in xrange(len(self._db_items)):
+            if self._db_items[i].db_id == key:
+                return self._db_items[i]
+        return None
+    def db_get_item_by_id(self, key):
+        return self.db_items_id_index[key]
+    def db_has_item_with_id(self, key):
+        return key in self.db_items_id_index
+    
     def __get_db_id(self):
         return self._db_id
     def __set_db_id(self, id):
@@ -5048,6 +5644,221 @@ class DBWorkflowExec(object):
     def db_delete_name(self, name):
         self._db_name = None
     
+    def getPrimaryKey(self):
+        return self._db_id
+
+class DBLoopExec(object):
+
+    vtType = 'loop_exec'
+
+    def __init__(self, id=None, ts_start=None, ts_end=None, completed=None, error=None, module_execs=None, group_execs=None):
+        self._db_id = id
+        self._db_ts_start = ts_start
+        self._db_ts_end = ts_end
+        self._db_completed = completed
+        self._db_error = error
+        self.db_deleted_module_execs = []
+        self.db_module_execs_id_index = {}
+        if module_execs is None:
+            self._db_module_execs = []
+        else:
+            self._db_module_execs = module_execs
+            for v in self._db_module_execs:
+                self.db_module_execs_id_index[v.db_id] = v
+        self.db_deleted_group_execs = []
+        self.db_group_execs_id_index = {}
+        if group_execs is None:
+            self._db_group_execs = []
+        else:
+            self._db_group_execs = group_execs
+            for v in self._db_group_execs:
+                self.db_group_execs_id_index[v.db_id] = v
+        self.is_dirty = True
+        self.is_new = True
+    
+    def __copy__(self):
+        return DBLoopExec.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = DBLoopExec(id=self._db_id,
+                        ts_start=self._db_ts_start,
+                        ts_end=self._db_ts_end,
+                        completed=self._db_completed,
+                        error=self._db_error)
+        if self._db_module_execs is None:
+            cp._db_module_execs = []
+        else:
+            cp._db_module_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_module_execs]
+        if self._db_group_execs is None:
+            cp._db_group_execs = []
+        else:
+            cp._db_group_execs = [v.do_copy(new_ids, id_scope, id_remap) for v in self._db_group_execs]
+        
+        # set new ids
+        if new_ids:
+            new_id = id_scope.getNewId(self.vtType)
+            if self.vtType in id_scope.remap:
+                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
+            else:
+                id_remap[(self.vtType, self.db_id)] = new_id
+            cp.db_id = new_id
+        
+        # recreate indices and set flags
+        cp.db_module_execs_id_index = dict((v.db_id, v) for v in cp._db_module_execs)
+        cp.db_group_execs_id_index = dict((v.db_id, v) for v in cp._db_group_execs)
+        cp.is_dirty = self.is_dirty
+        cp.is_new = self.is_new
+        return cp
+
+    @staticmethod
+    def update_version(old_obj, trans_dict, new_obj=None):
+        if new_obj is None:
+            new_obj = DBLoopExec()
+        class_dict = {}
+        if new_obj.__class__.__name__ in trans_dict:
+            class_dict = trans_dict[new_obj.__class__.__name__]
+        if 'id' in class_dict:
+            res = class_dict['id'](old_obj, trans_dict)
+            new_obj.db_id = res
+        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
+            new_obj.db_id = old_obj.db_id
+        if 'ts_start' in class_dict:
+            res = class_dict['ts_start'](old_obj, trans_dict)
+            new_obj.db_ts_start = res
+        elif hasattr(old_obj, 'db_ts_start') and old_obj.db_ts_start is not None:
+            new_obj.db_ts_start = old_obj.db_ts_start
+        if 'ts_end' in class_dict:
+            res = class_dict['ts_end'](old_obj, trans_dict)
+            new_obj.db_ts_end = res
+        elif hasattr(old_obj, 'db_ts_end') and old_obj.db_ts_end is not None:
+            new_obj.db_ts_end = old_obj.db_ts_end
+        if 'completed' in class_dict:
+            res = class_dict['completed'](old_obj, trans_dict)
+            new_obj.db_completed = res
+        elif hasattr(old_obj, 'db_completed') and old_obj.db_completed is not None:
+            new_obj.db_completed = old_obj.db_completed
+        if 'error' in class_dict:
+            res = class_dict['error'](old_obj, trans_dict)
+            new_obj.db_error = res
+        elif hasattr(old_obj, 'db_error') and old_obj.db_error is not None:
+            new_obj.db_error = old_obj.db_error
+        if 'module_execs' in class_dict:
+            res = class_dict['module_execs'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_module_exec(obj)
+        elif hasattr(old_obj, 'db_module_execs') and old_obj.db_module_execs is not None:
+            for obj in old_obj.db_module_execs:
+                new_obj.db_add_module_exec(DBModuleExec.update_version(obj, trans_dict))
+        if 'group_execs' in class_dict:
+            res = class_dict['group_execs'](old_obj, trans_dict)
+            for obj in res:
+                new_obj.db_add_group_exec(obj)
+        elif hasattr(old_obj, 'db_group_execs') and old_obj.db_group_execs is not None:
+            for obj in old_obj.db_group_execs:
+                new_obj.db_add_group_exec(DBGroupExec.update_version(obj, trans_dict))
+        return new_obj
+
+    def db_children(self, parent=(None,None), orphan=False):
+        children = []
+        to_del = []
+        for child in self.db_module_execs:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_module_exec(child)
+        to_del = []
+        for child in self.db_group_execs:
+            children.extend(child.db_children((self.vtType, self.db_id), orphan))
+            if orphan:
+                to_del.append(child)
+        for child in to_del:
+            self.db_delete_group_exec(child)
+        children.append((self, parent[0], parent[1]))
+        return children
+    def db_deleted_children(self, remove=False):
+        children = []
+        children.extend(self.db_deleted_module_execs)
+        children.extend(self.db_deleted_group_execs)
+        if remove:
+            self.db_deleted_module_execs = []
+            self.db_deleted_group_execs = []
+        return children
+    def has_changes(self):
+        if self.is_dirty:
+            return True
+        for child in self._db_module_execs:
+            if child.has_changes():
+                return True
+        for child in self._db_group_execs:
+            if child.has_changes():
+                return True
+        return False
+    def __get_db_id(self):
+        return self._db_id
+    def __set_db_id(self, id):
+        self._db_id = id
+        self.is_dirty = True
+    db_id = property(__get_db_id, __set_db_id)
+    def db_add_id(self, id):
+        self._db_id = id
+    def db_change_id(self, id):
+        self._db_id = id
+    def db_delete_id(self, id):
+        self._db_id = None
+    
+    def __get_db_ts_start(self):
+        return self._db_ts_start
+    def __set_db_ts_start(self, ts_start):
+        self._db_ts_start = ts_start
+        self.is_dirty = True
+    db_ts_start = property(__get_db_ts_start, __set_db_ts_start)
+    def db_add_ts_start(self, ts_start):
+        self._db_ts_start = ts_start
+    def db_change_ts_start(self, ts_start):
+        self._db_ts_start = ts_start
+    def db_delete_ts_start(self, ts_start):
+        self._db_ts_start = None
+    
+    def __get_db_ts_end(self):
+        return self._db_ts_end
+    def __set_db_ts_end(self, ts_end):
+        self._db_ts_end = ts_end
+        self.is_dirty = True
+    db_ts_end = property(__get_db_ts_end, __set_db_ts_end)
+    def db_add_ts_end(self, ts_end):
+        self._db_ts_end = ts_end
+    def db_change_ts_end(self, ts_end):
+        self._db_ts_end = ts_end
+    def db_delete_ts_end(self, ts_end):
+        self._db_ts_end = None
+    
+    def __get_db_completed(self):
+        return self._db_completed
+    def __set_db_completed(self, completed):
+        self._db_completed = completed
+        self.is_dirty = True
+    db_completed = property(__get_db_completed, __set_db_completed)
+    def db_add_completed(self, completed):
+        self._db_completed = completed
+    def db_change_completed(self, completed):
+        self._db_completed = completed
+    def db_delete_completed(self, completed):
+        self._db_completed = None
+    
+    def __get_db_error(self):
+        return self._db_error
+    def __set_db_error(self, error):
+        self._db_error = error
+        self.is_dirty = True
+    db_error = property(__get_db_error, __set_db_error)
+    def db_add_error(self, error):
+        self._db_error = error
+    def db_change_error(self, error):
+        self._db_error = error
+    def db_delete_error(self, error):
+        self._db_error = None
+    
     def __get_db_module_execs(self):
         return self._db_module_execs
     def __set_db_module_execs(self, module_execs):
@@ -5090,173 +5901,47 @@ class DBWorkflowExec(object):
     def db_has_module_exec_with_id(self, key):
         return key in self.db_module_execs_id_index
     
-    def getPrimaryKey(self):
-        return self._db_id
-
-class DBLoopExec(object):
-
-    vtType = 'loop_exec'
-
-    def __init__(self, id=None, ts_start=None, ts_end=None, input=None, completed=None, error=None):
-        self._db_id = id
-        self._db_ts_start = ts_start
-        self._db_ts_end = ts_end
-        self._db_input = input
-        self._db_completed = completed
-        self._db_error = error
+    def __get_db_group_execs(self):
+        return self._db_group_execs
+    def __set_db_group_execs(self, group_execs):
+        self._db_group_execs = group_execs
         self.is_dirty = True
-        self.is_new = True
-    
-    def __copy__(self):
-        return DBLoopExec.do_copy(self)
-
-    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
-        cp = DBLoopExec(id=self._db_id,
-                        ts_start=self._db_ts_start,
-                        ts_end=self._db_ts_end,
-                        input=self._db_input,
-                        completed=self._db_completed,
-                        error=self._db_error)
-        
-        # set new ids
-        if new_ids:
-            new_id = id_scope.getNewId(self.vtType)
-            if self.vtType in id_scope.remap:
-                id_remap[(id_scope.remap[self.vtType], self.db_id)] = new_id
-            else:
-                id_remap[(self.vtType, self.db_id)] = new_id
-            cp.db_id = new_id
-        
-        # recreate indices and set flags
-        cp.is_dirty = self.is_dirty
-        cp.is_new = self.is_new
-        return cp
-
-    @staticmethod
-    def update_version(old_obj, trans_dict, new_obj=None):
-        if new_obj is None:
-            new_obj = DBLoopExec()
-        class_dict = {}
-        if new_obj.__class__.__name__ in trans_dict:
-            class_dict = trans_dict[new_obj.__class__.__name__]
-        if 'id' in class_dict:
-            res = class_dict['id'](old_obj, trans_dict)
-            new_obj.db_id = res
-        elif hasattr(old_obj, 'db_id') and old_obj.db_id is not None:
-            new_obj.db_id = old_obj.db_id
-        if 'ts_start' in class_dict:
-            res = class_dict['ts_start'](old_obj, trans_dict)
-            new_obj.db_ts_start = res
-        elif hasattr(old_obj, 'db_ts_start') and old_obj.db_ts_start is not None:
-            new_obj.db_ts_start = old_obj.db_ts_start
-        if 'ts_end' in class_dict:
-            res = class_dict['ts_end'](old_obj, trans_dict)
-            new_obj.db_ts_end = res
-        elif hasattr(old_obj, 'db_ts_end') and old_obj.db_ts_end is not None:
-            new_obj.db_ts_end = old_obj.db_ts_end
-        if 'input' in class_dict:
-            res = class_dict['input'](old_obj, trans_dict)
-            new_obj.db_input = res
-        elif hasattr(old_obj, 'db_input') and old_obj.db_input is not None:
-            new_obj.db_input = old_obj.db_input
-        if 'completed' in class_dict:
-            res = class_dict['completed'](old_obj, trans_dict)
-            new_obj.db_completed = res
-        elif hasattr(old_obj, 'db_completed') and old_obj.db_completed is not None:
-            new_obj.db_completed = old_obj.db_completed
-        if 'error' in class_dict:
-            res = class_dict['error'](old_obj, trans_dict)
-            new_obj.db_error = res
-        elif hasattr(old_obj, 'db_error') and old_obj.db_error is not None:
-            new_obj.db_error = old_obj.db_error
-        return new_obj
-
-    def db_children(self, parent=(None,None), orphan=False):
-        return [(self, parent[0], parent[1])]
-    def db_deleted_children(self, remove=False):
-        children = []
-        return children
-    def has_changes(self):
-        if self.is_dirty:
-            return True
-        return False
-    def __get_db_id(self):
-        return self._db_id
-    def __set_db_id(self, id):
-        self._db_id = id
+    db_group_execs = property(__get_db_group_execs, __set_db_group_execs)
+    def db_get_group_execs(self):
+        return self._db_group_execs
+    def db_add_group_exec(self, group_exec):
         self.is_dirty = True
-    db_id = property(__get_db_id, __set_db_id)
-    def db_add_id(self, id):
-        self._db_id = id
-    def db_change_id(self, id):
-        self._db_id = id
-    def db_delete_id(self, id):
-        self._db_id = None
-    
-    def __get_db_ts_start(self):
-        return self._db_ts_start
-    def __set_db_ts_start(self, ts_start):
-        self._db_ts_start = ts_start
+        self._db_group_execs.append(group_exec)
+        self.db_group_execs_id_index[group_exec.db_id] = group_exec
+    def db_change_group_exec(self, group_exec):
         self.is_dirty = True
-    db_ts_start = property(__get_db_ts_start, __set_db_ts_start)
-    def db_add_ts_start(self, ts_start):
-        self._db_ts_start = ts_start
-    def db_change_ts_start(self, ts_start):
-        self._db_ts_start = ts_start
-    def db_delete_ts_start(self, ts_start):
-        self._db_ts_start = None
-    
-    def __get_db_ts_end(self):
-        return self._db_ts_end
-    def __set_db_ts_end(self, ts_end):
-        self._db_ts_end = ts_end
+        found = False
+        for i in xrange(len(self._db_group_execs)):
+            if self._db_group_execs[i].db_id == group_exec.db_id:
+                self._db_group_execs[i] = group_exec
+                found = True
+                break
+        if not found:
+            self._db_group_execs.append(group_exec)
+        self.db_group_execs_id_index[group_exec.db_id] = group_exec
+    def db_delete_group_exec(self, group_exec):
         self.is_dirty = True
-    db_ts_end = property(__get_db_ts_end, __set_db_ts_end)
-    def db_add_ts_end(self, ts_end):
-        self._db_ts_end = ts_end
-    def db_change_ts_end(self, ts_end):
-        self._db_ts_end = ts_end
-    def db_delete_ts_end(self, ts_end):
-        self._db_ts_end = None
-    
-    def __get_db_input(self):
-        return self._db_input
-    def __set_db_input(self, input):
-        self._db_input = input
-        self.is_dirty = True
-    db_input = property(__get_db_input, __set_db_input)
-    def db_add_input(self, input):
-        self._db_input = input
-    def db_change_input(self, input):
-        self._db_input = input
-    def db_delete_input(self, input):
-        self._db_input = None
-    
-    def __get_db_completed(self):
-        return self._db_completed
-    def __set_db_completed(self, completed):
-        self._db_completed = completed
-        self.is_dirty = True
-    db_completed = property(__get_db_completed, __set_db_completed)
-    def db_add_completed(self, completed):
-        self._db_completed = completed
-    def db_change_completed(self, completed):
-        self._db_completed = completed
-    def db_delete_completed(self, completed):
-        self._db_completed = None
-    
-    def __get_db_error(self):
-        return self._db_error
-    def __set_db_error(self, error):
-        self._db_error = error
-        self.is_dirty = True
-    db_error = property(__get_db_error, __set_db_error)
-    def db_add_error(self, error):
-        self._db_error = error
-    def db_change_error(self, error):
-        self._db_error = error
-    def db_delete_error(self, error):
-        self._db_error = None
+        for i in xrange(len(self._db_group_execs)):
+            if self._db_group_execs[i].db_id == group_exec.db_id:
+                if not self._db_group_execs[i].is_new:
+                    self.db_deleted_group_execs.append(self._db_group_execs[i])
+                del self._db_group_execs[i]
+                break
+        del self.db_group_execs_id_index[group_exec.db_id]
+    def db_get_group_exec(self, key):
+        for i in xrange(len(self._db_group_execs)):
+            if self._db_group_execs[i].db_id == key:
+                return self._db_group_execs[i]
+        return None
+    def db_get_group_exec_by_id(self, key):
+        return self.db_group_execs_id_index[key]
+    def db_has_group_exec_with_id(self, key):
+        return key in self.db_group_execs_id_index
     
     def getPrimaryKey(self):
         return self._db_id

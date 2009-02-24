@@ -21,6 +21,7 @@
 ############################################################################
 
 from core.log.module_exec import ModuleExec
+from core.log.group_exec import GroupExec
 from db.domain import DBWorkflowExec
 
 class WorkflowExec(DBWorkflowExec):
@@ -42,8 +43,11 @@ class WorkflowExec(DBWorkflowExec):
         if _wf_exec.__class__ == WorkflowExec:
             return
         _wf_exec.__class__ = WorkflowExec
-        for module_exec in _wf_exec.module_execs:
-            ModuleExec.convert(module_exec)
+        for item in _wf_exec.items:
+            if item.__class__ == ModuleExec:
+                ModuleExec.convert(item)
+            else:
+                GroupExec.convert(item)
             
 
     ##########################################################################
@@ -68,8 +72,8 @@ class WorkflowExec(DBWorkflowExec):
         return None
     duration = property(_get_duration)
 
-    def _get_module_execs(self):
-        return self.db_module_execs
-    module_execs = property(_get_module_execs)
-    def add_module_exec(self, module_exec):
-        self.db_add_module_exec(module_exec)
+    def _get_items(self):
+        return self.db_items
+    items = property(_get_items)
+    def add_item(self, item):
+        self.db_add_item(item)

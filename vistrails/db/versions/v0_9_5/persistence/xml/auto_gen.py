@@ -1328,6 +1328,117 @@ class DBChangeXMLDAOBase(XMLDAO):
         
         return node
 
+class DBGroupExecXMLDAOBase(XMLDAO):
+
+    def __init__(self, daoList):
+        self.daoList = daoList
+
+    def getDao(self, dao):
+        return self.daoList[dao]
+
+    def fromXML(self, node):
+        if node.tag != 'groupExec':
+            return None
+        
+        # read attributes
+        data = node.get('id', None)
+        id = self.convertFromStr(data, 'long')
+        data = node.get('tsStart', None)
+        ts_start = self.convertFromStr(data, 'datetime')
+        data = node.get('tsEnd', None)
+        ts_end = self.convertFromStr(data, 'datetime')
+        data = node.get('cached', None)
+        cached = self.convertFromStr(data, 'int')
+        data = node.get('moduleId', None)
+        module_id = self.convertFromStr(data, 'long')
+        data = node.get('groupName', None)
+        group_name = self.convertFromStr(data, 'str')
+        data = node.get('groupType', None)
+        group_type = self.convertFromStr(data, 'str')
+        data = node.get('completed', None)
+        completed = self.convertFromStr(data, 'int')
+        data = node.get('error', None)
+        error = self.convertFromStr(data, 'str')
+        data = node.get('machine_id', None)
+        machine_id = self.convertFromStr(data, 'long')
+        
+        annotations = []
+        loop_execs = []
+        module_execs = []
+        group_execs = []
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag == 'annotation':
+                _data = self.getDao('annotation').fromXML(child)
+                annotations.append(_data)
+            elif child.tag == 'loopExec':
+                _data = self.getDao('loop_exec').fromXML(child)
+                loop_execs.append(_data)
+            elif child.tag == 'moduleExec':
+                _data = self.getDao('module_exec').fromXML(child)
+                module_execs.append(_data)
+            elif child.tag == 'groupExec':
+                _data = self.getDao('group_exec').fromXML(child)
+                group_execs.append(_data)
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
+        obj = DBGroupExec(id=id,
+                          ts_start=ts_start,
+                          ts_end=ts_end,
+                          cached=cached,
+                          module_id=module_id,
+                          group_name=group_name,
+                          group_type=group_type,
+                          completed=completed,
+                          error=error,
+                          machine_id=machine_id,
+                          annotations=annotations,
+                          loop_execs=loop_execs,
+                          module_execs=module_execs,
+                          group_execs=group_execs)
+        obj.is_dirty = False
+        return obj
+    
+    def toXML(self, group_exec, node=None):
+        if node is None:
+            node = ElementTree.Element('groupExec')
+        
+        # set attributes
+        node.set('id',self.convertToStr(group_exec.db_id, 'long'))
+        node.set('tsStart',self.convertToStr(group_exec.db_ts_start, 'datetime'))
+        node.set('tsEnd',self.convertToStr(group_exec.db_ts_end, 'datetime'))
+        node.set('cached',self.convertToStr(group_exec.db_cached, 'int'))
+        node.set('moduleId',self.convertToStr(group_exec.db_module_id, 'long'))
+        node.set('groupName',self.convertToStr(group_exec.db_group_name, 'str'))
+        node.set('groupType',self.convertToStr(group_exec.db_group_type, 'str'))
+        node.set('completed',self.convertToStr(group_exec.db_completed, 'int'))
+        node.set('error',self.convertToStr(group_exec.db_error, 'str'))
+        node.set('machine_id',self.convertToStr(group_exec.db_machine_id, 'long'))
+        
+        # set elements
+        annotations = group_exec.db_annotations
+        for annotation in annotations:
+            childNode = ElementTree.SubElement(node, 'annotation')
+            self.getDao('annotation').toXML(annotation, childNode)
+        loop_execs = group_exec.db_loop_execs
+        for loop_exec in loop_execs:
+            childNode = ElementTree.SubElement(node, 'loopExec')
+            self.getDao('loop_exec').toXML(loop_exec, childNode)
+        module_execs = group_exec.db_module_execs
+        for module_exec in module_execs:
+            childNode = ElementTree.SubElement(node, 'moduleExec')
+            self.getDao('module_exec').toXML(module_exec, childNode)
+        group_execs = group_exec.db_group_execs
+        for group_exec in group_execs:
+            childNode = ElementTree.SubElement(node, 'groupExec')
+            self.getDao('group_exec').toXML(group_exec, childNode)
+        
+        return node
+
 class DBPackageXMLDAOBase(XMLDAO):
 
     def __init__(self, daoList):
@@ -1438,19 +1549,23 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
         data = node.get('name', None)
         name = self.convertFromStr(data, 'str')
         
-        module_execs = []
+        items = []
         
         # read children
         for child in node.getchildren():
             if child.tag == 'moduleExec':
                 _data = self.getDao('module_exec').fromXML(child)
-                module_execs.append(_data)
+                items.append(_data)
+            elif child.tag == 'groupExec':
+                _data = self.getDao('group_exec').fromXML(child)
+                items.append(_data)
             elif child.text is None or child.text.strip() == '':
                 pass
             else:
                 print '*** ERROR *** tag = %s' % child.tag
         
-        obj = DBWorkflowExec(id=id,
+        obj = DBWorkflowExec(items=items,
+                             id=id,
                              user=user,
                              ip=ip,
                              session=session,
@@ -1461,8 +1576,7 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
                              parent_type=parent_type,
                              parent_version=parent_version,
                              completed=completed,
-                             name=name,
-                             module_execs=module_execs)
+                             name=name)
         obj.is_dirty = False
         return obj
     
@@ -1485,10 +1599,14 @@ class DBWorkflowExecXMLDAOBase(XMLDAO):
         node.set('name',self.convertToStr(workflow_exec.db_name, 'str'))
         
         # set elements
-        module_execs = workflow_exec.db_module_execs
-        for module_exec in module_execs:
-            childNode = ElementTree.SubElement(node, 'moduleExec')
-            self.getDao('module_exec').toXML(module_exec, childNode)
+        items = workflow_exec.db_items
+        for item in items:
+            if item.vtType == 'module_exec':
+                childNode = ElementTree.SubElement(node, 'moduleExec')
+                self.getDao('module_exec').toXML(item, childNode)
+            elif item.vtType == 'group_exec':
+                childNode = ElementTree.SubElement(node, 'groupExec')
+                self.getDao('group_exec').toXML(item, childNode)
         
         return node
 
@@ -1511,19 +1629,34 @@ class DBLoopExecXMLDAOBase(XMLDAO):
         ts_start = self.convertFromStr(data, 'datetime')
         data = node.get('tsEnd', None)
         ts_end = self.convertFromStr(data, 'datetime')
-        data = node.get('input', None)
-        input = self.convertFromStr(data, 'str')
         data = node.get('completed', None)
         completed = self.convertFromStr(data, 'int')
         data = node.get('error', None)
         error = self.convertFromStr(data, 'str')
         
+        module_execs = []
+        group_execs = []
+        
+        # read children
+        for child in node.getchildren():
+            if child.tag == 'moduleExec':
+                _data = self.getDao('module_exec').fromXML(child)
+                module_execs.append(_data)
+            elif child.tag == 'groupExec':
+                _data = self.getDao('group_exec').fromXML(child)
+                group_execs.append(_data)
+            elif child.text is None or child.text.strip() == '':
+                pass
+            else:
+                print '*** ERROR *** tag = %s' % child.tag
+        
         obj = DBLoopExec(id=id,
                          ts_start=ts_start,
                          ts_end=ts_end,
-                         input=input,
                          completed=completed,
-                         error=error)
+                         error=error,
+                         module_execs=module_execs,
+                         group_execs=group_execs)
         obj.is_dirty = False
         return obj
     
@@ -1535,9 +1668,18 @@ class DBLoopExecXMLDAOBase(XMLDAO):
         node.set('id',self.convertToStr(loop_exec.db_id, 'long'))
         node.set('tsStart',self.convertToStr(loop_exec.db_ts_start, 'datetime'))
         node.set('tsEnd',self.convertToStr(loop_exec.db_ts_end, 'datetime'))
-        node.set('input',self.convertToStr(loop_exec.db_input, 'str'))
         node.set('completed',self.convertToStr(loop_exec.db_completed, 'int'))
         node.set('error',self.convertToStr(loop_exec.db_error, 'str'))
+        
+        # set elements
+        module_execs = loop_exec.db_module_execs
+        for module_exec in module_execs:
+            childNode = ElementTree.SubElement(node, 'moduleExec')
+            self.getDao('module_exec').toXML(module_exec, childNode)
+        group_execs = loop_exec.db_group_execs
+        for group_exec in group_execs:
+            childNode = ElementTree.SubElement(node, 'groupExec')
+            self.getDao('group_exec').toXML(group_exec, childNode)
         
         return node
 
@@ -1941,6 +2083,8 @@ class XMLDAOListBase(dict):
             self['annotation'] = DBAnnotationXMLDAOBase(self)
         if 'change' not in self:
             self['change'] = DBChangeXMLDAOBase(self)
+        if 'group_exec' not in self:
+            self['group_exec'] = DBGroupExecXMLDAOBase(self)
         if 'package' not in self:
             self['package'] = DBPackageXMLDAOBase(self)
         if 'workflow_exec' not in self:

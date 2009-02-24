@@ -256,7 +256,7 @@ class SQLAutoGen(AutoGen):
                     if ref_prop.isReference() and \
                             ref_prop.getReference() == obj.getRegularName():
                         return (choice, True)
-        raise Exception("didn't work")
+        raise Exception("didn't work", ref_obj.getRegularName(), obj.getRegularName())
 
     def generateSchema(self):
 	self.reset(SQL_SPACES)

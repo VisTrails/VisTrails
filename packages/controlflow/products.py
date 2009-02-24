@@ -14,7 +14,8 @@ class Dot(Module):
 	result = []
 	if lenght1 != lenght2:
             raise ModuleError(self,'Both lists must have the same size.')
-        if self.hasInputFromPort("CombineTuple") and (not self.getInputFromPort("CombineTuple")):
+        if self.hasInputFromPort("CombineTuple") and (not self.getInputFromPort\
+                                                      ("CombineTuple")):
             for i in xrange(lenght1):
                 tuple_ = (list1[i],list2[i])
                 result.append(tuple_)
@@ -45,7 +46,8 @@ class Cross(Module):
 	lenght1 = len(list1)
 	lenght2 = len(list2)
 	result = []
-	if self.hasInputFromPort("CombineTuple") and (not self.getInputFromPort("CombineTuple")):
+	if self.hasInputFromPort("CombineTuple") and (not self.getInputFromPort\
+                                                      ("CombineTuple")):
             for i in xrange(lenght1):
                 for j in xrange(lenght2):
                     tuple_ = (list1[i],list2[j])

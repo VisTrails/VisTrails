@@ -26,7 +26,8 @@ from itertools import izip
 
 from core.modules import module_registry
 from core.modules.basic_modules import String, Boolean, Variant, NotCacheable
-from core.modules.vistrails_module import Module, InvalidOutput, new_module
+from core.modules.vistrails_module import Module, InvalidOutput, new_module, \
+    ModuleError
 from core.utils import ModuleAlreadyExists, DummyView, VistrailsInternalError
 import os.path
 
@@ -41,7 +42,7 @@ class InputPort(Module):
         else:
             self.setResult('InternalPipe', InvalidOutput)
 
-##############################################################################
+###############################################################################
     
 class OutputPort(Module):
     
@@ -72,15 +73,24 @@ class Group(Module):
             iport_module = self.input_remap[iport_name]
             iport_obj = tmp_id_to_module_map[iport_module.id]
             iport_obj.set_input_port('ExternalPipe', conn[0])
-        kwargs = {'clean_pipeline': True}
+        
+        kwargs = {'logger': self.logging.log, 'clean_pipeline': True}
+        if hasattr(self, 'group_exec'):
+            kwargs['parent_exec'] = self.group_exec
+
         res = self.interpreter.execute_pipeline(self.pipeline, *(res[:2]), 
                                                 **kwargs)
+        if len(res[2]) > 0:
+            raise ModuleError(self, 'Error(s) inside group:\n' +
+                              '\n'.join(me.msg for me in res[2].itervalues()))
+            
         for oport_name, oport_module in self.output_remap.iteritems():
             if oport_name is not 'self':
                 # oport_module = self.output_remap[oport_name]
                 oport_obj = tmp_id_to_module_map[oport_module.id]
                 self.setResult(oport_name, oport_obj.get_output('ExternalPipe'))
-        self.interpreter.finalize_pipeline(self.pipeline, *res[:-1])
+        self.interpreter.finalize_pipeline(self.pipeline, *res[:-1],
+                                           **{'reset_computed': False})
 
 ###############################################################################
 

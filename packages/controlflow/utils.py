@@ -30,7 +30,8 @@ class Filter(Fold):
         """Defining the operation..."""
 
         if type(self.elementResult)!=bool:
-            raise ModuleError(self,'The function applied to the elements of the list must return a boolean result.')
+            raise ModuleError(self,'The function applied to the elements of the\
+list must return a boolean result.')
 
         if self.elementResult:
             self.partialResult.append(self.element)
