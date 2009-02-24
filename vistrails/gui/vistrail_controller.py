@@ -152,7 +152,6 @@ class VistrailController(QtCore.QObject, BaseController):
         self._current_graph_layout = VistrailsTreeLayoutLW()
         self.animate_layout = False
         self.num_versions_always_shown = 1
-        self.breakpoints = {}
 
     ##########################################################################
     # Signal vistrail relayout / redraw
@@ -202,12 +201,6 @@ class VistrailController(QtCore.QObject, BaseController):
             return self.locator or core.db.locator.untitled_locator()
         else:
             return None
-
-    def toggle_breakpoint(self, m_id):
-        if self.breakpoints.has_key(m_id):
-            self.breakpoints.pop(m_id)
-        else:
-            self.breakpoints[m_id] = True
 
     def cleanup(self):
         locator = self.get_locator()

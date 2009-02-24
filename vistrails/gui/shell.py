@@ -340,7 +340,7 @@ class QShell(QtGui.QTextEdit):
             self.interpreter.active_pipeline = p
         cmd = 'active_pipeline = self.shell.interpreter.active_pipeline'
         self.interpreter.runcode(cmd)
-        cmd = 'modules = self.vistrails_interpreter.setup_pipeline(active_pipeline)[0]'
+        cmd = 'modules = self.vistrails_interpreter.find_persistent_entities(active_pipeline)[0]'
         self.interpreter.runcode(cmd)
 
     def add_controller(self, c):

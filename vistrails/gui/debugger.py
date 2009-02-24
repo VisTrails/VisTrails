@@ -67,27 +67,22 @@ class QDebugger(QToolWindow, QToolWindowInterface):
         Update the debugger.  If the update requires querying modules for input
         changes, update_vals should be set to True
         """
-        pipe = self.controller.current_pipeline
-        try:
-            mods_dict, mapping, mod_set, conn_set = self.vistrails_interpreter.setup_pipeline(pipe)
-            
-            bps = self.controller.breakpoints
-            breaks = []
+        pipeline = self.controller.current_pipeline
+        if pipeline is None:
+            return
 
-            for m in bps.keys():
-                breaks.append(mods_dict[m])
-                
-            self.inspector.clear_modules()
-            for m in breaks:
-                m.is_breakpoint = True
-                self.inspector.add_module(m, get_vals=update_vals)
-                
-        except:
-            #  The exception is called only when an empty pipeline is sent.
-            #  FIXME:  Should I make this into an exception that can be caught?
-            pass
+        self.inspector.clear_modules()
+        for module in pipeline.module_list:
+            if module.is_breakpoint or module.is_watched:
+                self.inspector.add_module(module)
+        if update_vals:
+            (module_objects, _, _) = \
+                self.vistrails_interpreter.find_persistent_entities(pipeline)
+            for m_id in self.inspector.modules:
+                if m_id in module_objects and module_objects[m_id] is not None:
+                    self.inspector.update_values(m_id, module_objects[m_id])
 
-#########################################################################################
+###############################################################################
 #  QObjectInspector
 
 class QObjectInspector(QtGui.QTreeWidget):
@@ -99,36 +94,46 @@ class QObjectInspector(QtGui.QTreeWidget):
     def __init__(self, parent=None):
         QtGui.QTreeWidget.__init__(self, parent)
         self.setColumnCount(2)
+        self.modules = {}
 
     def clear_modules(self):
         """
         clear_modules() -> None
         Clear the current list of module breakpoints
         """
+        self.modules = {}
         self.clear()
      
-    def add_module(self, m, get_vals=False):
+    def add_module(self, m):
         """
-        add_module(m, get_vals=False) -> None
+        add_module(m : core.vistrail.module.Module) -> None
         Add the give module, m, as a breakpoint.
         """
+        # !!! This uses the core.vistrail.module.Module item
         item = QDebugModuleItem(self)
-        classstr = str(m.__class__)
-        classstr = classstr.split('.')
-        classstr = classstr[len(classstr) - 1]
-        classstr = classstr[0:len(classstr) - 2]
-        item.setText(0, classstr)
+        item.setText(0, "%s (%d)" % (m.name, m.id))
         item.setText(1, "Module Type")
-        self.add_dict(m, item)
-        self.add_ports(m, item, display_vals=get_vals)
+        self.modules[m.id] = item
+#         self.add_dict(m, item)
+#         self.add_ports(m, item, display_vals=get_vals)
         
-    def add_dict(self, m, item):
+    def update_values(self, m_id, persistent_module):
         """
-        add_dict(m, item) -> None
-        Add the dictionary associated with module m to be displayed as part of the
-        debug information for that breakpoint.
+        update_values(m_id: long, 
+          persistent_module : subclass of core.modules.vistrails_module.Module)
         """
-        dict_item = QDebugModuleItem(item)
+        module_item = self.modules[m_id]
+        module_item.takeChildren()
+        self.add_dict(persistent_module, module_item)
+        self.add_ports(persistent_module, module_item, True)
+
+    def add_dict(self, m, parent_item):
+        """
+        add_dict(m, parent_item) -> None
+        Add the dictionary associated with module m to be displayed 
+        as part of the debug information for that breakpoint.
+        """
+        dict_item = QDebugModuleItem(parent_item)
         dict_item.setText(0, "__dict__")
         dict_item.setText(1, "")
         for k in m.__dict__.keys():
@@ -136,14 +141,14 @@ class QObjectInspector(QtGui.QTreeWidget):
             d_val.setText(0, str(k))
             d_val.setText(1, str(m.__dict__[k]))
 
-    def add_ports(self, m, item, display_vals=False):
+    def add_ports(self, m, parent_item, display_vals=False):
         """
         add_ports(m, item, display_vals=False) -> None
         Add port information from module m to the item being displayed in the debugger.
         If display_vals is True, fetch the appropriate values from the module's input ports.
         """
         ports = m.__dict__["inputPorts"]
-        port_item = QDebugModuleItem(item)
+        port_item = QDebugModuleItem(parent_item)
         port_item.setText(0, "inputPorts")
         port_item.setText(1, "")
         for p in ports.keys():

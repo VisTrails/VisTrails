@@ -312,6 +312,7 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
         menu.addAction(self.viewDocumentationAct)
         menu.addAction(self.changeModuleLabelAct)
 	menu.addAction(self.setBreakpointAct)
+        menu.addAction(self.setWatchedAct)
         menu.exec_(event.screenPos())
 
     def createActions(self):
@@ -344,7 +345,11 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
 	QtCore.QObject.connect(self.setBreakpointAct,
 			       QtCore.SIGNAL("triggered()"),
 			       self.set_breakpoint)
-
+        self.setWatchedAct = QtGui.QAction("Watch Module", self.scene())
+        self.setWatchedAct.setStatusTip("Watch Module")
+        QtCore.QObject.connect(self.setWatchedAct,
+			       QtCore.SIGNAL("triggered()"),
+			       self.set_watched)
     def set_breakpoint(self):
 	""" set_breakpoint() -> None
 	Sets this module as a breakpoint for execution
@@ -352,6 +357,13 @@ class QGraphicsConfigureItem(QtGui.QGraphicsPolygonItem):
 	if self.moduleId >= 0:
 	    self.scene().toggle_breakpoint(self.moduleId)
             self.setBreakpoint(not self.is_breakpoint)
+        debug = get_default_interpreter().debugger
+        if debug:
+            debug.update()
+
+    def set_watched(self):
+        if self.moduleId >= 0:
+            self.scene().toggle_watched(self.moduleId)
         debug = get_default_interpreter().debugger
         if debug:
             debug.update()
@@ -1377,7 +1389,6 @@ mutual connections."""
         self._old_connection_ids = set()
         self.unselect_all()
         self.clearItems()
-        self.controller.current_pipeline.update_breakpoints()
         
     def remove_module(self, m_id):
         """remove_module(m_id): None
@@ -1388,7 +1399,6 @@ mutual connections."""
         self.removeItem(self.modules[m_id])
         del self.modules[m_id]
         self._old_module_ids.remove(m_id)
-        self.controller.current_pipeline.update_breakpoints()
 
     def remove_connection(self, c_id):
         """remove_connection(c_id): None
@@ -1428,7 +1438,6 @@ mutual connections."""
             self.modules[m_id].setSelected(True)
             
         self.modules[m_id]._old_connection_ids = None
-        self.controller.current_pipeline.update_breakpoints()
 
     def module_text_has_changed(self, m1, m2):
         # 2008-06-25 cscheid
@@ -1550,8 +1559,6 @@ mutual connections."""
                 self._old_connection_ids = new_connections
                 self.unselect_all()
                 self.reset_module_colors()
-                if self.controller:
-                    self.controller.current_pipeline.update_breakpoints()
         except ModuleRegistryException, e:
             views = self.views()
             assert len(views) > 0
@@ -1694,9 +1701,7 @@ mutual connections."""
                 # Current pipeline changed, so we need to change the
                 # _old_connection_ids. However, the difference_update
                 # above takes care of connection ids, so we don't need
-                # to call anything.
-        self.controller.current_pipeline.update_breakpoints()
-        
+                # to call anything.        
 
     def keyPressEvent(self, event):
         """ keyPressEvent(event: QKeyEvent) -> None
@@ -1911,8 +1916,12 @@ mutual connections."""
 	if self.controller:
 	    module = self.controller.current_pipeline.modules[id]
 	    module.toggle_breakpoint()
-            self.controller.toggle_breakpoint(id)
             self.recreate_module(self.controller.current_pipeline, id)
+
+    def toggle_watched(self, id):
+        if self.controller:
+	    module = self.controller.current_pipeline.modules[id]
+	    module.toggle_watched()
 
     def open_annotations_window(self, id):
         """ open_annotations_window(int) -> None

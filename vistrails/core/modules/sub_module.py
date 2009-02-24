@@ -68,6 +68,9 @@ class Group(Module):
                                          "remap dictionaries don't exist")
             
         res = self.interpreter.setup_pipeline(self.pipeline)
+        if len(res[5]) > 0:
+            raise ModuleError(self, 'Error(s) inside group:\n' +
+                              '\n'.join(me.msg for me in res[5].itervalues()))
         tmp_id_to_module_map = res[0]
         for iport_name, conn in self.inputPorts.iteritems():
             iport_module = self.input_remap[iport_name]

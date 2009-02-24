@@ -69,11 +69,13 @@ class Module(DBModule):
         if other is None:
             self.portVisible = set()
             self.is_breakpoint = False
+            self.is_watched = False
             self._descriptor_info = None
             self._module_descriptor = None
         else:
             self.portVisible = copy.copy(other.portVisible)
             self.is_breakpoint = other.is_breakpoint
+            self.is_watched = other.is_watched
             self._descriptor_info = None
             self._module_descriptor = other._module_descriptor
         self.function_idx = self.db_functions_id_index
@@ -148,6 +150,8 @@ class Module(DBModule):
         return self.db_get_annotation_by_key(key)        
     def toggle_breakpoint(self):
         self.is_breakpoint = not self.is_breakpoint
+    def toggle_watched(self):
+        self.is_watched = not self.is_watched
 
     def _get_port_specs(self):
         return self.db_portSpecs_id_index

@@ -26,7 +26,8 @@ from core.data_structures.bijectivedict import Bidict
 import core.db.io
 from core.log.controller import DummyLogController
 # from core.modules.module_utils import FilePool
-from core.modules.vistrails_module import ModuleConnector, ModuleError
+from core.modules.vistrails_module import ModuleConnector, ModuleError, \
+    ModuleBreakpoint
 from core.utils import DummyView
 from core.vistrail.annotation import Annotation
 from core.vistrail.vistrail import Vistrail
@@ -144,6 +145,9 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
 
 #         if self.debugger:
 #             self.debugger.update()
+        to_delete = []
+        errors = {}
+
         pipeline.ensure_modules_are_on_registry()
         pipeline.ensure_connection_specs()
 
@@ -162,28 +166,51 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             obj = self._objects[persistent_id]
             obj.interpreter = self
             obj.id = persistent_id
-            
-            if controller:
-                if controller.breakpoints.has_key(i):
-                    obj.is_breakpoint = True
+            obj.is_breakpoint = module.is_breakpoint
                 
             reg = modules.module_registry.get_module_registry()
             for f in module.functions:
+                connector = None
                 if len(f.params) == 0:
                     connector = ModuleConnector(create_null(), 'value')
                 elif len(f.params) == 1:
                     p = f.params[0]
-                    connector = ModuleConnector(create_constant(p, module), 'value')
+                    try:
+                        constant = create_constant(p, module)
+                        connector = ModuleConnector(constant, 'value')
+                    except ValueError, e:
+                        err = ModuleError(self, 'Cannot convert parameter '
+                                          'value "%s"\n' % p.strValue + str(e))
+                        errors[i] = err
+                        to_delete.append(obj.id)
+                    except Exception, e:
+                        err = ModuleError(self, 'Uncaught exception: "%s"' % \
+                                              p.strValue + str(e))
+                        errors[i] = err
+                        to_delete.append(obj.id)
                 else:
                     tupleModule = core.interpreter.base.InternalTuple()
                     tupleModule.length = len(f.params)
                     for (j,p) in enumerate(f.params):
-                        constant = create_constant(p, module)
-                        constant.update()
-                        connector = ModuleConnector(constant, 'value')
-                        tupleModule.set_input_port(j, connector)
+                        try:
+                            constant = create_constant(p, module)
+                            constant.update()
+                            connector = ModuleConnector(constant, 'value')
+                            tupleModule.set_input_port(i, connector)
+                        except ValueError, e:
+                            err = ModuleError(self, "Cannot convert parameter "
+                                              "value '%s'\n" % p.strValue + \
+                                                  str(e))
+                            errors[i] = err
+                            to_delete.append(obj.id)
+                        except Exception, e:
+                            err = ModuleError(self, 'Uncaught exception: '
+                                              '"%s"' % p.strValue + str(e))
+                            errors[i] = err
+                            to_delete.append(obj.id)
                     connector = ModuleConnector(tupleModule, 'value')
-                obj.set_input_port(f.name, connector, is_method=True)
+                if connector:
+                    obj.set_input_port(f.name, connector, is_method=True)
 
         # Create the new connections
         for i in conn_added_set:
@@ -202,7 +229,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         for i, j in tmp_to_persistent_module_map.iteritems():
             tmp_id_to_module_map[i] = self._objects[j]
         return (tmp_id_to_module_map, tmp_to_persistent_module_map.inverse,
-                module_added_set, conn_added_set)
+                module_added_set, conn_added_set, to_delete, errors)
 
     def execute_pipeline(self, pipeline, tmp_id_to_module_map, 
                          persistent_to_tmp_id_map, **kwargs):
@@ -340,6 +367,9 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             except ModuleError, me:
                 me.module.logging.end_update(me.module, me.msg)
                 errors[me.module.id] = me
+            except ModuleBreakpoint, mb:
+                mb.module.logging.end_update(mb.module)
+                errors[mb.module.id] = mb
 
         if self.done_update_hook:
             self.done_update_hook(self._persistent_pipeline, self._objects)
@@ -384,7 +414,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
      
         self.clean_modules(to_delete)
 
-        for i, obj in objs.iteritems():
+        for i in objs:
             if i in errs:
                 view.set_module_error(i, errs[i].msg)
             elif i in execs and execs[i]:
@@ -405,7 +435,12 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         res = self.setup_pipeline(pipeline, **kwargs)
         modules_added = res[2]
         conns_added = res[3]
-        res = self.execute_pipeline(pipeline, *(res[:2]), **kwargs)
+        to_delete = res[4]
+        errors = res[5]
+        if len(errors) == 0:
+            res = self.execute_pipeline(pipeline, *(res[:2]), **kwargs)
+        else:
+            res = (to_delete, res[0], errors, [], [])
         self.finalize_pipeline(pipeline, *(res[:-1]), **kwargs)
         
         return InstanceObject(objects=res[1],
@@ -541,6 +576,34 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         return (module_id_map, connection_id_map,
                 modules_added, connections_added)
         
+    def find_persistent_entities(self, pipeline):
+        """returns a map from a pipeline to the persistent pipeline, 
+        assuming those pieces exist"""
+        persistent_p = self._persistent_pipeline
+        object_map = {}
+        module_id_map = {}
+        connection_id_map = {}
+        pipeline.refresh_signatures()
+        # we must traverse vertices in topological sort order
+        verts = pipeline.graph.vertices_topological_sort()
+        for module_id in verts:
+            sig = pipeline.subpipeline_signature(module_id)
+            if persistent_p.has_subpipeline_signature(sig):
+                i = persistent_p.subpipeline_id_from_signature(sig)
+                module_id_map[module_id] = i
+                object_map[module_id] = self._objects[i]
+            else:
+                module_id_map[module_id] = None
+                object_map[module_id] = None
+        for connection in pipeline.connections.itervalues():
+            sig = pipeline.connection_signature(connection.id)
+            if persistent_p.has_connection_signature(sig):
+                connection_id_map[connection.id] = \
+                    persistent_p.connection_id_from_signature(sig)
+            else:
+                connection_id_map[connection.id] = None
+        return (object_map, module_id_map, connection_id_map)
+
     __instance = None
     @staticmethod
     def get():

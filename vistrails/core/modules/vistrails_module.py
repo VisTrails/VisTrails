@@ -43,6 +43,7 @@ class MissingModule(Exception):
 class ModuleBreakpoint(Exception):
     def __init__(self, module):
         self.module = module
+        self.msg = "Hit breakpoint"
 
     def __str__(self):
         retstr = "Encoutered breakpoint at Module %s:\n" % (self.module)
@@ -273,7 +274,9 @@ context."""
                 raise ModuleError(self, msg)
         except KeyboardInterrupt, e:
             raise ModuleError(self, 'Interrupted by user')
-        except Exception, e:
+        except ModuleBreakpoint:
+            raise
+        except Exception, e: 
             raise ModuleError(self, 'Uncaught exception: "%s"' % str(e))
         self.upToDate = True
         self.logging.end_update(self)

@@ -1168,23 +1168,22 @@ class QBuilderWindow(QtGui.QMainWindow):
             self.debugger.show()
             
     def update_debugger(self):
-        try:
-            ctrlr = self.viewManager.currentWidget().controller
-            if not self.debugger:
-                self.debugger = QDebugger(self, ctrlr)
-                self.connect(self.debugger, QtCore.SIGNAL("debuggerHidden()"),
-                             self.debugAction.toggle)
-                self.debugger.setWindowTitle("Debugger")
-                self.addDockWidget(QtCore.Qt.BottomDockWidgetArea,
-                                   self.debugger)
+        if self.viewManager.currentWidget() is None:
+            return
+        ctrlr = self.viewManager.currentWidget().controller
+        if not self.debugger:
+            self.debugger = QDebugger(self, ctrlr)
+            self.connect(self.debugger, QtCore.SIGNAL("debuggerHidden()"),
+                         self.debugAction.toggle)
+            self.debugger.setWindowTitle("Debugger")
+            self.addDockWidget(QtCore.Qt.BottomDockWidgetArea,
+                               self.debugger)
 
-            self.debugger.set_controller(ctrlr)
-            if self.debugger.isVisible():
-                self.debugger.show()
-            else:
-                self.debugger.hide()
-        except:
-            pass
+        self.debugger.set_controller(ctrlr)
+        if self.debugger.isVisible():
+            self.debugger.show()
+        else:
+            self.debugger.hide()
 
     def savePythonPrompt(self):
         """savePythonPrompt() -> None
