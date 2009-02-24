@@ -68,15 +68,6 @@ class Fold(Module, NotCacheable):
         
         else:
             for i in xrange(len(self.inputList)):
-                ## Setting information for logging stuff
-                self.first_iteration = False
-                if i==0:
-                    self.is_fold_operator = True
-                    self.first_iteration = True
-                    self.last_iteration = False
-                if i==((len(self.inputList))-1):
-                    self.last_iteration = True
-                    
                 ## Getting the value inside the list
                 self.element = self.inputList[i]
                 self.operation()
@@ -135,7 +126,6 @@ class Fold(Module, NotCacheable):
                 del module.inputPorts[inputPorts[0]]
             new_connector = ModuleConnector(create_constant(self.element),\
                                             'value')
-            print inputPorts[0]
             module.set_input_port(inputPorts[0], new_connector)
         else:
             for j in xrange(len(inputPorts)):
