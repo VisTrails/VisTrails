@@ -23,6 +23,8 @@
 """ Define facilities for setting up SubModule Module in VisTrails """
 
 from itertools import izip
+import random
+import sha
 
 from core.modules import module_registry
 from core.modules.basic_modules import String, Boolean, Variant, NotCacheable
@@ -292,7 +294,12 @@ def initialize(*args, **kwargs):
     # These are all from sub_module.py!
     reg = module_registry.get_module_registry()
 
-    reg.add_module(InputPort)
+    def random_signature(pipeline, obj, chm):
+        hasher = sha.new()
+        hasher.update(str(random.random()))
+        return hasher.digest()
+
+    reg.add_module(InputPort, signatureCallable=random_signature)
     reg.add_input_port(InputPort, "name", String, True)
     reg.add_input_port(InputPort, "optional", Boolean, True)
     reg.add_input_port(InputPort, "spec", String)
