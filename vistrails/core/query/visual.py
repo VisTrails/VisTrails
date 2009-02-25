@@ -82,6 +82,8 @@ class VisualQuery(query.Query):
             for querySourceId in self.queryPipeline.graph.sources():
                 querySourceName = self.queryPipeline.modules[querySourceId].name
                 if not queryModuleNameIndex.has_key(querySourceName):
+                    # need to reset matches here!
+                    matches = set()
                     continue
                 candidates = queryModuleNameIndex[querySourceName]
                 atLeastOneMatch = False
