@@ -196,7 +196,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
                             constant = create_constant(p, module)
                             constant.update()
                             connector = ModuleConnector(constant, 'value')
-                            tupleModule.set_input_port(i, connector)
+                            tupleModule.set_input_port(j, connector)
                         except ValueError, e:
                             err = ModuleError(self, "Cannot convert parameter "
                                               "value '%s'\n" % p.strValue + \
