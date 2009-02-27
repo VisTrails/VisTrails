@@ -80,6 +80,9 @@ import core.external_connection
 import core.interpreter.default
 import core.interpreter.cached
 import core.keychain
+import core.log
+import core.log.controller
+import core.log.log
 import core.modules.module_utils
 import core.modules.module_registry
 import core.modules.constant_configuration
