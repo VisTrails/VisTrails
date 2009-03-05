@@ -37,11 +37,12 @@ class ConstantWidgetMixin(object):
         self._last_contents = None
 
     def update_parent(self):
-        if self.parent():
-            newContents = self.contents()
-            if newContents != self._last_contents:
+        newContents = self.contents()
+        if newContents != self._last_contents:
+            if self.parent() and hasattr(self.parent(), 'updateMethod'):
                 self.parent().updateMethod()
-                self._last_contents = newContents
+            self._last_contents = newContents
+            self.emit(QtCore.SIGNAL('contentsChanged'), (self,newContents))    
 
 class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
     """
@@ -91,6 +92,18 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
         self.update_text()
         return str(self.text())
 
+    def setContents(self, strValue, silent=True):
+        """setContents(strValue: str) -> None
+        Re-implement this method so the widget can change its value after 
+        constructed. If silent is False, it will propagate the event back 
+        to the parent.
+        As this is a QLineEdit, we just call setText(strValue)
+        """
+        self.setText(strValue)
+        self.update_text()
+        if not silent:
+            self.update_parent()
+            
     def update_text(self):
         """ update_text() -> None
         Update the text to the result of the evaluation
@@ -105,7 +118,15 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
                 self.setText(str(eval(str(base), None, None)))
             except:
                 self.setText(base)
-
+                
+    def sizeHint(self):
+        metrics = QtGui.QFontMetrics(self.font())
+        return QtCore.QSize(metrics.width(self.text())+10, 
+                            metrics.height()+6)
+    
+    def minimumSizeHint(self):
+        return self.sizeHint()
+    
     ###########################################################################
     # event handlers
 
@@ -116,14 +137,14 @@ class StandardConstantWidget(QtGui.QLineEdit, ConstantWidgetMixin):
         """
         self._contents = str(self.text())
         if self.parent():
-            self.parent().focusInEvent(event)
+            QtCore.QCoreApplication.sendEvent(self.parent(), event)
         QtGui.QLineEdit.focusInEvent(self, event)
 
     def focusOutEvent(self, event):
         self.update_parent()
         QtGui.QLineEdit.focusOutEvent(self, event)
         if self.parent():
-            self.parent().focusOutEvent(event)
+            QtCore.QCoreApplication.sendEvent(self.parent(), event)
 
 ###############################################################################
 # File Constant Widgets
@@ -202,6 +223,12 @@ class FileChooserWidget(QtGui.QWidget, ConstantWidgetMixin):
 
         """
         return self.line_edit.contents()
+    
+    def setContents(self, strValue, silent=True):
+        """setContents(strValue: str) -> None
+        Updates the contents of the line_edit 
+        """
+        self.line_edit.setContents(strValue, silent)
 
 class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
 
@@ -218,19 +245,21 @@ class BooleanWidget(QtGui.QCheckBox, ConstantWidgetMixin):
         assert param.type == 'Boolean'
         assert param.identifier == 'edu.utah.sci.vistrails.basic'
         assert param.namespace is None
-        if param.strValue:
-            value = param.strValue
-        else:
-            value = "False"
-        assert value in self._values
-
-        self.connect(self, QtCore.SIGNAL('stateChanged(int)'),
-                     self.change_state)
-        self.setCheckState(self._states[self._values.index(value)])
-
+        self.setContents(param.strValue)
+        
     def contents(self):
         return self._values[self._states.index(self.checkState())]
 
+    def setContents(self, strValue, silent=True):
+        if strValue:
+            value = strValue
+        else:
+            value = "False"
+        assert value in self._values
+        self.setCheckState(self._states[self._values.index(value)])
+        if not silent:
+            self.update_parent()
+            
     def change_state(self, state):
         self.update_parent()
 
@@ -249,17 +278,26 @@ class ColorChooserButton(QtGui.QFrame):
             #the mac's nice look messes up with the colors
             self.setAttribute(QtCore.Qt.WA_MacMetalStyle, False)
 
-    def setColor(self, qcolor):
+    def setColor(self, qcolor, silent=True):
         self.qcolor = qcolor
-        self.palette().setBrush(QtGui.QPalette.Window, self.qcolor)
+        
+        self._palette = QtGui.QPalette(self.palette())
+        self._palette.setBrush(QtGui.QPalette.Base, self.qcolor)
+        self._palette.setBrush(QtGui.QPalette.Window, self.qcolor)
+        self.setPalette(self._palette)
         self.repaint()
+        if not silent:
+            self.emit(QtCore.SIGNAL("color_selected"))
 
     def sizeHint(self):
         return QtCore.QSize(24,24)
 
     def mousePressEvent(self, event):
+        if self.parent():
+            QtCore.QCoreApplication.sendEvent(self.parent(), event)
         if event.button() == QtCore.Qt.LeftButton:
             self.openChooser()
+       
 
     def openChooser(self):
         """
@@ -268,8 +306,7 @@ class ColorChooserButton(QtGui.QFrame):
         """
         color = QtGui.QColorDialog.getColor(self.qcolor, self.parent())
         if color.isValid():
-            self.setColor(color)
-            self.emit(QtCore.SIGNAL("color_selected"))
+            self.setColor(color, silent=False)
         else:
             self.setColor(self.qcolor)
 
@@ -294,13 +331,8 @@ class ColorWidget(QtGui.QWidget, ConstantWidgetMixin):
         layout.addWidget(self.color_indicator)
         layout.addStretch(1)
         self.setLayout(layout)
-        if contents != "":
-            color = contents.split(',')
-            qcolor = QtGui.QColor(float(color[0])*255,
-                                  float(color[1])*255,
-                                  float(color[2])*255)
-            self.color_indicator.setColor(qcolor)
-
+        self.setContents(contents)
+        
     def contents(self):
         """contents() -> str
         Return the string representation of color_indicator
@@ -309,3 +341,32 @@ class ColorWidget(QtGui.QWidget, ConstantWidgetMixin):
         return "%s,%s,%s" % (self.color_indicator.qcolor.redF(),
                              self.color_indicator.qcolor.greenF(),
                              self.color_indicator.qcolor.blueF())
+        
+    def setContents(self, strValue, silent=True):
+        """setContents(strValue: str) -> None
+        Updates the color_indicator to display the color in strValue
+        
+        """
+        if strValue != '':
+            color = strValue.split(',')
+            qcolor = QtGui.QColor(float(color[0])*255,
+                                  float(color[1])*255,
+                                  float(color[2])*255)
+            self.color_indicator.setColor(qcolor, silent)
+        
+    def mousePressEvent(self, event):
+        if self.parent():
+            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+        QtGui.QWidget.mousePressEvent(self, event)
+        
+    ###########################################################################
+    # event handlers
+
+    def focusInEvent(self, event):
+        """ focusInEvent(event: QEvent) -> None
+        Pass the event to the parent
+
+        """
+        if self.parent():
+            QtCore.QCoreApplication.sendEvent(self.parent(), event)
+        QtGui.QFrame.focusInEvent(self, event)    

@@ -389,7 +389,9 @@ class TransferFunctionScene(QtGui.QGraphicsScene):
         self._tf_poly = poly
         self.addItem(poly)
         self.create_tf_items(tf)
-            
+        #current scale
+        self._sx = 1.0
+        self._sy = 1.0    
         # Add outlines
         line_color = QtGui.QColor(200, 200, 200)
         pen = QtGui.QPen(line_color)
@@ -405,6 +407,11 @@ class TransferFunctionScene(QtGui.QGraphicsScene):
             self.addLine(QtCore.QLineF(u, 0.0, u, 1.0), pen)
             self.addLine(QtCore.QLineF(0.0, u, 1.0, u), pen)
 
+    def reset_transfer_function(self, tf):
+        self.create_tf_items(tf)
+        self.update_scale(self._sx, self._sy)
+        self._tf_poly.setup()
+        
     def removeItem(self, item):
         if item in self._tf_items:
             self._tf_items.remove(item)
@@ -418,7 +425,8 @@ class TransferFunctionScene(QtGui.QGraphicsScene):
         QtGui.QGraphicsScene.addItem(self, item)
 
     def create_tf_items(self, tf):
-        for item in self._tf_items:
+        items = copy.copy(self._tf_items)
+        for item in items:
             self.removeItem(item)
         self._tf_items = []
         if len(tf._pts) == 0:
@@ -446,6 +454,8 @@ class TransferFunctionScene(QtGui.QGraphicsScene):
     def update_scale(self, sx, sy):
         for item in self._tf_items:
             item.update_scale(sx, sy)
+        self._sx = sx
+        self._sy = sy
 
     def get_leftmost_point(self):
         pt = None
@@ -517,7 +527,16 @@ class TransferFunctionWidget(QtGui.QWidget, ConstantWidgetMixin):
 
     def contents(self):
         return pickle.dumps(self._scene.get_transfer_function()).encode('hex')
-
+    
+    def setContents(self, strValue, silent=True):
+        if not strValue:
+            self._tf = copy.copy(default_tf)
+        else:
+            self._tf = pickle.loads(strValue.decode('hex'))
+        self._scene.reset_transfer_function(self._tf)
+        if not silent:
+            self.update_parent()    
+            
 ##############################################################################
 # Helper module to adjust range
 
