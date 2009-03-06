@@ -23,6 +23,7 @@
 from core.log.module_exec import ModuleExec
 from core.log.group_exec import GroupExec
 from db.domain import DBWorkflowExec
+from db.domain import DBModuleExec
 
 class WorkflowExec(DBWorkflowExec):
     """ Class that stores info for logging a workflow execution. """
@@ -44,7 +45,7 @@ class WorkflowExec(DBWorkflowExec):
             return
         _wf_exec.__class__ = WorkflowExec
         for item in _wf_exec.items:
-            if item.__class__ == ModuleExec:
+            if item.__class__ == DBModuleExec:
                 ModuleExec.convert(item)
             else:
                 GroupExec.convert(item)

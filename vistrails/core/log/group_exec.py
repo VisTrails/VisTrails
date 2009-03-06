@@ -40,7 +40,7 @@ class GroupExec(DBGroupExec):
         return cp
 
     @staticmethod
-    def convert(_wf_exec):
+    def convert(_group_exec):
         if _group_exec.__class__ == GroupExec:
             return
         _group_exec.__class__ = GroupExec
