@@ -135,6 +135,29 @@ def create_group(module_ids, connection_ids, controller=None):
     controller.create_group(module_ids, connection_ids)
     controller.current_pipeline_view.setupScene(controller.current_pipeline)
 
+def get_modules_by_name(name, package=None, namespace=None, controller=None):
+    if controller is None:
+        controller = get_current_controller()
+    res = []
+    for module in controller.current_pipeline.modules.itervalues():
+        if (module.name == name and
+            (package is None or module.package == package) and
+            (namespace is None or module.namespace == namespace)):
+            res.append(module)
+    return res
+
+def change_parameter(module_id, function_name, param_list, controller=None):
+    """change_parameter(module_id: long, 
+                        function_name: str, 
+                        param_list: list(str)) -> None
+    Note: param list is a list of strings no matter what the parameter type!
+    """
+    if controller is None:
+        controller = get_current_controller()
+    module = controller.current_pipeline.modules[module_id]
+    controller.update_function(module, function_name, param_list)
+    controller.current_pipeline_view.setupScene(controller.current_pipeline)
+
 ##############################################################################
 
 def select_version(version, ctrl=None):
