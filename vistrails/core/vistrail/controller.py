@@ -280,7 +280,8 @@ class VistrailController(object):
         return op_list
 
     def update_function_ops(self, module, function_name, param_values=[],
-                            old_id=-1L, should_replace=True):
+                            old_id=-1L, should_replace=True, aliases=[]):
+        """NOTE: aliases will be removed in the future!"""
         op_list = []
         port_spec = module.get_port_spec(function_name, 'input')
 
@@ -295,9 +296,11 @@ class VistrailController(object):
             function = module.function_idx[old_id]
             for i, new_param_value in enumerate(param_values):
                 old_param = function.params[i]
-                if old_param.strValue != new_param_value:
+                if (len(aliases) > i and old_param.alias != aliases[i]) or \
+                        (old_param.strValue != new_param_value):
                     new_param = self.create_param(port_spec, i, 
                                                   new_param_value)
+                    new_param.alias = aliases[i]
                     op_list.append(('change', old_param, new_param,
                                     function.vtType, function.real_id))
         else:

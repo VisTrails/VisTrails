@@ -146,16 +146,19 @@ def get_modules_by_name(name, package=None, namespace=None, controller=None):
             res.append(module)
     return res
 
-def change_parameter(module_id, function_name, param_list, controller=None):
+def change_parameter(module_id, function_name, param_list, alias_list=[], 
+                     controller=None):
     """change_parameter(module_id: long, 
                         function_name: str, 
+                        alias_list: list(str),
                         param_list: list(str)) -> None
-    Note: param list is a list of strings no matter what the parameter type!
+    Note: param_list is a list of strings no matter what the parameter type!
+    Note: alias_list will be REMOVED!!
     """
     if controller is None:
         controller = get_current_controller()
     module = controller.current_pipeline.modules[module_id]
-    controller.update_function(module, function_name, param_list)
+    controller.update_function(module, function_name, param_list, alias_list)
     controller.current_pipeline_view.setupScene(controller.current_pipeline)
 
 ##############################################################################

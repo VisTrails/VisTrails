@@ -233,7 +233,10 @@ class QMethodInputForm(QtGui.QGroupBox):
             methodBox.controller.update_function(methodBox.module,
                                                  self.function.name,
                                                  [str(w.contents()) 
-                                                  for w in self.widgets])
+                                                  for w in self.widgets],
+                                                 [str(label.alias)
+                                                  for label in self.labels])
+            
             methodBox.unlockUpdate()
 
     def check_alias(self, name):
