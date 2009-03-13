@@ -450,6 +450,18 @@ class VistrailController(QtCore.QObject, BaseController):
         self.add_new_action(action)
         return self.perform_action(action)
         
+    def update_parameter(self, function, old_param_id, new_value):
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        old_param = function.parameter_idx[old_param_id]
+        new_param = BaseController.update_parameter(self, old_param, new_value)
+        if new_param is None:
+            return None
+        op = ('change', old_param, new_param, 
+              function.vtType, function.real_id)
+        action = core.db.action.create_action([op])
+        self.add_new_action(action)
+        return self.perform_action(action)
+
     def delete_method(self, function_pos, module_id):
         """ delete_method(function_pos: int, module_id: int) -> version id
         Delete a method with function_pos from module module_id

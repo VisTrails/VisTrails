@@ -161,6 +161,44 @@ def change_parameter(module_id, function_name, param_list, alias_list=[],
     controller.update_function(module, function_name, param_list, alias_list)
     controller.current_pipeline_view.setupScene(controller.current_pipeline)
 
+def change_parameter_by_id(module_id, function_id, old_param_id, new_value, 
+                           controller=None):
+    """change_parameter_by_id(module_id: long,
+                             function_id: long,
+                             old_param_id: long,
+                             new_value: str,
+                             controller: VistrailController) -> long
+    Returns the id of the new parameter.
+    Note: function_id is the real_id! Use f.real_id to access real_id
+    Note: old_param_id is the real_id! Use p.real_id to access real_id
+    """
+    if controller is None:
+        controller = get_current_controller()
+    module = controller.current_pipeline.modules[module_id]
+    function = module.function_idx[function_id]
+    pos = function.parameter_idx[old_param_id].pos
+    controller.update_parameter(function, old_param_id, new_value)
+    controller.current_pipeline_view.setupScene(controller.current_pipeline)
+    return function.params[pos].real_id
+
+def change_parameter_by_pos(module_id, function_pos, old_param_pos, new_value,
+                            controller=None):
+    """change_parameter_by_id(module_id: long,
+                             function_pos: int,
+                             old_param_pos: int,
+                             new_value: str,
+                             controller: VistrailController) -> long
+    Returns the id of the new parameter.
+    """
+    if controller is None:
+        controller = get_current_controller()
+    module = controller.current_pipeline.modules[module_id]
+    function = module.functions[function_pos]
+    old_param_id = function.params[old_param_pos].real_id
+    controller.update_parameter(function, old_param_id, new_value)
+    controller.current_pipeline_view.setupScene(controller.current_pipeline)
+    return function.params[old_param_pos].real_id
+
 ##############################################################################
 
 def select_version(version, ctrl=None):

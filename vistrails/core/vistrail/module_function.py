@@ -54,7 +54,14 @@ class ModuleFunction(DBFunction):
             self.real_id = -1
         if self.pos is None:
             self.pos = -1
-        self.returnType = "void"
+        self.set_defaults()
+        
+    def set_defaults(self, other=None):
+        if other is None:
+            self.returnType = "void"
+        else:
+            self.returnType = other.returnType
+        self.parameter_idx = self.db_parameters_id_index
 
     def __copy__(self):
         """ __copy__() -> ModuleFunction - Returns a clone of itself """
@@ -63,7 +70,7 @@ class ModuleFunction(DBFunction):
     def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
         cp = DBFunction.do_copy(self, new_ids, id_scope, id_remap)
         cp.__class__ = ModuleFunction
-        cp.returnType = self.returnType
+        cp.set_defaults(self)
         return cp
 
     @staticmethod
@@ -73,7 +80,7 @@ class ModuleFunction(DBFunction):
 	_function.__class__ = ModuleFunction
 	for _parameter in _function.db_get_parameters():
 	    ModuleParam.convert(_parameter)
-        _function.returnType = "void"
+        _function.set_defaults()
 
     ##########################################################################
     # Properties
@@ -81,8 +88,7 @@ class ModuleFunction(DBFunction):
     id = DBFunction.db_pos
     pos = DBFunction.db_pos
     real_id = DBFunction.db_id
-    name = DBFunction.db_name
-   
+    name = DBFunction.db_name   
 
     def _get_params(self):
         self.db_parameters.sort(key=lambda x: x.db_pos)

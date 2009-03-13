@@ -326,6 +326,25 @@ class VistrailController(object):
             op_list.extend(self.update_function_ops(module, *f))
         return op_list
 
+    def update_parameter(self, old_param, new_value):
+        """update_parameter(old_param: ModuleParam, new_value: str)
+              -> ModuleParam
+        Generates a change parameter action if the value is different
+
+        """
+        if old_param.strValue == new_value:
+            return None
+
+        param_id = self.id_scope.getNewId(ModuleParam.vtType)
+        new_param = ModuleParam(id=param_id,
+                                pos=old_param.pos,
+                                name=old_param.name,
+                                alias=old_param.alias,
+                                val=new_value,
+                                type=old_param.typeStr,
+                                )
+        return new_param
+
     def update_annotation_ops(self, module, annotations):
         """update_annotation_ops(module: Module, annotations: [(str, str)])
               -> [operation_list]
