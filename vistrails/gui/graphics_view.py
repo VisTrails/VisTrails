@@ -116,8 +116,8 @@ class QInteractiveGraphicsScene(QtGui.QGraphicsScene):
             minWDiff = min-self.sceneBoundingRect.width()
         if self.sceneBoundingRect.height() < min:
             minHDiff = min-self.sceneBoundingRect.height()
-        self.sceneBoundingRect.adjust(-minWDiff/2, minHDiff/2, 
-                                       minWDiff/2, -minHDiff/2)
+        self.sceneBoundingRect.adjust(-minWDiff/2, -minHDiff/2, 
+                                       minWDiff/2, minHDiff/2)
 
         if keep_square:
             diff = abs(self.sceneBoundingRect.width()-
