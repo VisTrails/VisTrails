@@ -228,10 +228,12 @@ class CompactDatabase(Module):
     def compute(self):
         self.checkInputPort('dbEntry')
         db_entry = self.getInputFromPort('dbEntry')
-        res = LoadAppLogic.CompactDatabase(db_entry.db_entry)
+        LoadAppLogic.CompactDatabase(db_entry.db_entry)
+        self.setResult('dbEntry', db_entry)
+        
 
     _input_ports = [('dbEntry', DatabaseEntry)]
-    _output_ports = []
+    _output_ports = [('dbEntry', DatabaseEntry)]
 
 class GetCSVFiles(Module):
     def compute(self):
@@ -312,6 +314,20 @@ class ComputeColumns(Module):
     _input_ports = [('csvFile', CSVFileEntry), ('dbEntry', DatabaseEntry)]
     _output_ports = [('dbEntry', DatabaseEntry)]
 
+class DetectionsHistogram(Module):
+    def compute(self):
+        self.checkInputPort('dbEntry')
+        db_entry = self.getInputFromPort('dbEntry')
+        high_quality = False
+        if self.hasInputFromPort('highQuality'):
+            high_quality = self.getInputFromPort('highQuality')
+        histogram = LoadAppLogic.DetectionsHistogram(db_entry.db_entry, 
+                                                     high_quality)
+        self.setResult('histogram', histogram)
+    
+    _input_ports = [('dbEntry', DatabaseEntry), ('highQuality', Boolean, True)]
+    _output_ports = [('histogram', 
+                      '(edu.utah.sci.vistrails.control_flow:ListOfElements)')]
 
 _modules = [Collection,
             CSVFileEntry,
@@ -332,6 +348,7 @@ _modules = [Collection,
             ReadCSVFile,
             LoadCSVFileIntoDB,
             ComputeColumns,
+            DetectionsHistogram,
             ]
 
 def package_dependencies():

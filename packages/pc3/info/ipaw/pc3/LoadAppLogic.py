@@ -422,3 +422,20 @@ class LoadAppLogic(object):
         SqlConn.close()
 
     #endregion
+
+    #region Histogram
+    @staticmethod
+    def DetectionsHistogram(DBEntry, HighQuality=False):
+        SqlConn = MySQLdb.connect(**DBEntry.ConnectionString)
+        SqlCur = SqlConn.cursor()
+        if HighQuality:
+            where_clause = "WHERE raErr < 0.1 and decErr < 0.05 "
+        else:
+            where_clause = ""
+
+        SqlCur.execute("SELECT ceiling(zoneId/10) as zoneGroup, " 
+                       "count(*) as detectionCount FROM P2Detection "
+                       "%s"
+                       "GROUP BY ceiling(zoneId/10) "
+                       "ORDER BY ceiling(zoneId/10)" % where_clause)
+        return SqlCur.fetchall()
