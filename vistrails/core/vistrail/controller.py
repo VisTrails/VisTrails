@@ -300,7 +300,8 @@ class VistrailController(object):
                         (old_param.strValue != new_param_value):
                     new_param = self.create_param(port_spec, i, 
                                                   new_param_value)
-                    new_param.alias = aliases[i]
+                    if len(aliases) > i:
+                        new_param.alias = aliases[i]
                     op_list.append(('change', old_param, new_param,
                                     function.vtType, function.real_id))
         else:
