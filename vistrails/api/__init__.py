@@ -146,19 +146,23 @@ def get_modules_by_name(name, package=None, namespace=None, controller=None):
             res.append(module)
     return res
 
-def change_parameter(module_id, function_name, param_list, alias_list=[], 
-                     controller=None):
+def change_parameter(module_id, function_name, param_list, function_id=-1L,
+                     alias_list=[], controller=None):
     """change_parameter(module_id: long, 
                         function_name: str, 
+                        param_list: list(str),
+                        function_id: long,
                         alias_list: list(str),
-                        param_list: list(str)) -> None
+                        controller: VistrailController,
+                        ) -> None
     Note: param_list is a list of strings no matter what the parameter type!
     Note: alias_list will be REMOVED!!
     """
     if controller is None:
         controller = get_current_controller()
     module = controller.current_pipeline.modules[module_id]
-    controller.update_function(module, function_name, param_list, alias_list)
+    controller.update_function(module, function_name, param_list, function_id, 
+                               alias_list)
     controller.current_pipeline_view.setupScene(controller.current_pipeline)
 
 def change_parameter_by_id(module_id, function_id, old_param_id, new_value, 

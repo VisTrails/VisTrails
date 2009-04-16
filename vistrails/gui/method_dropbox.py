@@ -234,6 +234,7 @@ class QMethodInputForm(QtGui.QGroupBox):
                                                  self.function.name,
                                                  [str(w.contents()) 
                                                   for w in self.widgets],
+                                                 self.function.id,
                                                  [str(label.alias)
                                                   for label in self.labels])
             

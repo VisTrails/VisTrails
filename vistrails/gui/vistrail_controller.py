@@ -441,11 +441,11 @@ class VistrailController(QtCore.QObject, BaseController):
         result = self.perform_action(action)
         return function
 
-    def update_function(self, module, function_name, param_values, 
+    def update_function(self, module, function_name, param_values, old_id=-1L,
                         aliases=[]):
         self.emit(QtCore.SIGNAL("flushMoveActions()"))
         op_list = self.update_function_ops(module, function_name, param_values,
-                                           aliases=aliases)
+                                           old_id, aliases=aliases)
         action = core.db.action.create_action(op_list)
         self.add_new_action(action)
         return self.perform_action(action)
