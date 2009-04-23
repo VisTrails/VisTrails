@@ -87,7 +87,8 @@ class Group(Module):
                                                 **kwargs)
         if len(res[2]) > 0:
             raise ModuleError(self, 'Error(s) inside group:\n' +
-                              '\n'.join(me.msg for me in res[2].itervalues()))
+                              '\n '.join(me.module.__class__.__name__ + ': ' + \
+                                            me.msg for me in res[2].itervalues()))
             
         for oport_name, oport_module in self.output_remap.iteritems():
             if oport_name is not 'self':
@@ -96,6 +97,12 @@ class Group(Module):
                 self.setResult(oport_name, oport_obj.get_output('ExternalPipe'))
         self.interpreter.finalize_pipeline(self.pipeline, *res[:-1],
                                            **{'reset_computed': False})
+
+    def is_cacheable(self):
+        for module in self.pipeline.modules.itervalues():
+            if not module.summon().is_cacheable():
+                return False
+        return True
 
 ###############################################################################
 
