@@ -42,6 +42,7 @@ from core.vistrail import connection
 from core.vistrail.module_function import ModuleFunction
 from core.vistrail.module_param import ModuleParam
 from core.vistrail.location import Location
+from core.modules.vistrails_module import ModuleError
 import copy
 
 ################################################################################
@@ -61,10 +62,16 @@ class VTKCell(SpreadsheetCell):
         Dispatch the vtkRenderer to the actual rendering widget
         """
         renderers = self.forceGetInputListFromPort('AddRenderer')
+        renderViews = self.forceGetInputListFromPort('SetRenderView')
+        if len(renderViews)>1:
+            raise ModuleError('There can only be one vtkRenderView per cell')
+        if len(renderViews)==1 and len(renderers)>0:
+            raise ModuleError('Cannot set both vtkRenderView and vtkRenderer to a cell')
+        renderView = self.forceGetInputFromPort('SetRenderView')
         iHandlers = self.forceGetInputListFromPort('InteractionHandler')
         iStyle = self.forceGetInputFromPort('InteractorStyle')
         picker = self.forceGetInputFromPort('AddPicker')
-        self.cellWidget = self.displayAndWait(QVTKWidget, (renderers, iHandlers, iStyle, picker))
+        self.cellWidget = self.displayAndWait(QVTKWidget, (renderers, renderView, iHandlers, iStyle, picker))
 
 AsciiToKeySymTable = ( None, None, None, None, None, None, None,
                        None, None,
@@ -200,16 +207,23 @@ class QVTKWidget(QCellWidget):
             renderer.SetRenderWindow(None)
         del oldRenderers
 
-        (renderers, self.iHandlers, iStyle, picker) = inputPorts
+        (renderers, renderView, self.iHandlers, iStyle, picker) = inputPorts
+        if renderView:
+            renderView.vtkInstance.SetupRenderWindow(renWin)
+            renderers = [renderView.vtkInstance.GetRenderer()]
         self.renderer_maps = {}
         for renderer in renderers:
-            renWin.AddRenderer(renderer.vtkInstance)
-            self.renderer_maps[renderer.vtkInstance] = renderer.moduleInfo['moduleId']
-            if hasattr(renderer.vtkInstance, 'IsActiveCameraCreated'):
-                if not renderer.vtkInstance.IsActiveCameraCreated():
-                    renderer.vtkInstance.ResetCamera()
+            if renderView==None:
+                vtkInstance = renderer.vtkInstance
+                renWin.AddRenderer(vtkInstance)
+                self.renderer_maps[vtkInstance] = renderer.moduleInfo['moduleId']
+            else:
+                vtkInstance = renderer
+            if hasattr(vtkInstance, 'IsActiveCameraCreated'):
+                if not vtkInstance.IsActiveCameraCreated():
+                    vtkInstance.ResetCamera()
                 else:
-                    renderer.vtkInstance.ResetCameraClippingRange()
+                    vtkInstance.ResetCameraClippingRange()
             
         iren = renWin.GetInteractor()
         if picker:
@@ -217,11 +231,12 @@ class QVTKWidget(QCellWidget):
             
         # Update interactor style
         self.removeObserversFromInteractorStyle()
-        if iStyle==None:
-            iStyleInstance = vtk.vtkInteractorStyleTrackballCamera()
-        else:
-            iStyleInstance = iStyle.vtkInstance
-        iren.SetInteractorStyle(iStyleInstance)
+        if renderView==None:
+            if iStyle==None:
+                iStyleInstance = vtk.vtkInteractorStyleTrackballCamera()
+            else:
+                iStyleInstance = iStyle.vtkInstance
+            iren.SetInteractorStyle(iStyleInstance)
         self.addObserversToInteractorStyle()
         
         for iHandler in self.iHandlers:
@@ -1062,12 +1077,14 @@ def registerSelf():
     registry = get_module_registry()
     registry.add_module(VTKCell)
     registry.add_input_port(VTKCell, "Location", CellLocation)
-    [vR, vIH, vIS, vP] = [registry.get_descriptor_by_name(identifier, name).module
-                           for name in ['vtkRenderer',
-                                        'vtkInteractionHandler',
-                                        'vtkInteractorStyle',
-                                        'vtkAbstractPicker']]
+    [vR, vRV, vIH, vIS, vP] = [registry.get_descriptor_by_name(identifier, name).module
+                               for name in ['vtkRenderer',
+                                            'vtkRenderView',
+                                            'vtkInteractionHandler',
+                                            'vtkInteractorStyle',
+                                            'vtkAbstractPicker']]
     registry.add_input_port(VTKCell, "AddRenderer", vR)
+    registry.add_input_port(VTKCell, "SetRenderView", vRV)
     registry.add_input_port(VTKCell, "InteractionHandler", vIH)
     registry.add_input_port(VTKCell, "InteractorStyle", vIS)
     registry.add_input_port(VTKCell, "AddPicker", vP)
