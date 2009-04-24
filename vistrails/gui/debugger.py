@@ -81,7 +81,11 @@ class QDebugger(QToolWindow, QToolWindowInterface):
             for m_id in self.inspector.modules:
                 if m_id in module_objects and module_objects[m_id] is not None:
                     self.inspector.update_values(m_id, module_objects[m_id])
-
+                elif module_objects[m_id] is None:
+                    edges = pipeline.graph.edges_to(m_id)
+                    self.inspector.update_inputs(m_id, module_objects, edges,
+                                                  pipeline.connections)
+                        
 ###############################################################################
 #  QObjectInspector
 
@@ -127,6 +131,29 @@ class QObjectInspector(QtGui.QTreeWidget):
         self.add_dict(persistent_module, module_item)
         self.add_ports(persistent_module, module_item, True)
 
+    def update_inputs(self, m_id, persistent_map, edges, connections):
+        input_ports = {}
+        for upstream_id, c_id in edges:
+            if upstream_id in persistent_map and \
+                    persistent_map[upstream_id] is not None:
+                persistent_module = persistent_map[upstream_id]
+                connection = connections[c_id]
+                try:
+                    output_port = \
+                        persistent_module.get_output(connection.source.name)
+                    input_ports[connection.destination.name] = output_port
+                except ModuleError:
+                    input_ports[connection.destination.name] = None
+        if len(input_ports) > 0:
+            module_item = self.modules[m_id]
+            module_item.takeChildren()
+            inputs_item = QDebugModuleItem(module_item)
+            inputs_item.setText(0, "inputPorts")
+            inputs_item.setText(1, "")   
+            for port_name, port_val in input_ports.iteritems():
+                self.create_port_item(port_name, port_val, True, 
+                                      inputs_item)
+                
     def add_dict(self, m, parent_item):
         """
         add_dict(m, parent_item) -> None
@@ -141,29 +168,48 @@ class QObjectInspector(QtGui.QTreeWidget):
             d_val.setText(0, str(k))
             d_val.setText(1, str(m.__dict__[k]))
 
+
+    def create_port_item(self, port_name, port_value, display_vals=False,
+                         parent=None):
+        p_item = QDebugModuleItem(parent)
+        p_item.setText(0, str(port_name))
+        if display_vals:
+            p_item.setText(1, str(port_value))
+        else:
+            typestr = str(port_val.__class__)
+            typestr = typestr.split('.')
+            typestr = typestr[len(typestr)-1]
+            typestr = typestr[0:len(typestr)-2]
+            p_item.setText(1, typestr)            
+            
     def add_ports(self, m, parent_item, display_vals=False):
         """
         add_ports(m, item, display_vals=False) -> None
         Add port information from module m to the item being displayed in the debugger.
         If display_vals is True, fetch the appropriate values from the module's input ports.
         """
-        ports = m.__dict__["inputPorts"]
-        port_item = QDebugModuleItem(parent_item)
-        port_item.setText(0, "inputPorts")
-        port_item.setText(1, "")
-        for p in ports.keys():
-            p_val = QDebugModuleItem(port_item)
-            p_val.setText(0, str(p))
-            if display_vals:
-                port_value = m.getInputFromPort(p)
-                p_val.setText(1, str(port_value))
-            else:
-                c = ports[p][0]
-                typestr = str(c.obj.__class__)
-                typestr = typestr.split('.')
-                typestr = typestr[len(typestr)-1]
-                typestr = typestr[0:len(typestr)-2]
-                p_val.setText(1, typestr)            
+        inputs_item = QDebugModuleItem(parent_item)
+        inputs_item.setText(0, "inputPorts")
+        inputs_item.setText(1, "")
+        for port_name in m.inputPorts:
+            try:
+                port_val = m.getInputListFromPort(port_name)
+                if len(port_val) == 1:
+                    port_val = port_val[0]
+            except ModuleError:
+                port_val = None
+            self.create_port_item(port_name, port_val, display_vals, 
+                                  inputs_item)
+        outputs_item = QDebugModuleItem(parent_item)
+        outputs_item.setText(0, "outputPorts")
+        outputs_item.setText(1, "")
+        for port_name in m.outputPorts:
+            try:
+                port_val = m.get_output(port_name)
+            except ModuleError:
+                port_val = None
+            self.create_port_item(port_name, port_val, display_vals, 
+                                  outputs_item)
 
 ########################################################################
 # QDebugModuleItem
