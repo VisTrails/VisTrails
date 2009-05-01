@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -1077,15 +1077,16 @@ def registerSelf():
     registry = get_module_registry()
     registry.add_module(VTKCell)
     registry.add_input_port(VTKCell, "Location", CellLocation)
-    [vR, vRV, vIH, vIS, vP] = [registry.get_descriptor_by_name(identifier, name).module
-                               for name in ['vtkRenderer',
-                                            'vtkRenderView',
-                                            'vtkInteractionHandler',
-                                            'vtkInteractorStyle',
-                                            'vtkAbstractPicker']]
-    registry.add_input_port(VTKCell, "AddRenderer", vR)
-    registry.add_input_port(VTKCell, "SetRenderView", vRV)
-    registry.add_input_port(VTKCell, "InteractionHandler", vIH)
-    registry.add_input_port(VTKCell, "InteractorStyle", vIS)
-    registry.add_input_port(VTKCell, "AddPicker", vP)
+    import core.debug
+    for (port,module) in [("AddRenderer",'vtkRenderer'),
+                          ("SetRenderView",'vtkRenderView'),
+                          ("InteractionHandler",'vtkInteractionHandler'),
+                          ("InteractorStyle", 'vtkInteractorStyle'),
+                          ("AddPicker",'vtkAbstractPicker')]:
+        try:
+            registry.add_input_port(VTKCell, port,'(%s:%s)'%(identifier,module))
+ 
+        except Exception, e:
+            core.debug.warning(str(e))
+
     registry.add_output_port(VTKCell, "self", VTKCell)
