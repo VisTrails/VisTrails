@@ -183,7 +183,7 @@ class QVTKWidget(QCellWidget):
             
         self.removeObserversFromInteractorStyle()
         
-        self.updateContents(([],[], None, None))
+        self.updateContents(([], None, [], None, None))
         
         self.SetRenderWindow(None)
 
