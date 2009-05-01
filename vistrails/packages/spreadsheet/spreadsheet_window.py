@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -81,6 +81,7 @@ class SpreadsheetWindow(QtGui.QMainWindow):
         if self.visApp!=None:
             self.visApp.removeEventFilter(self)
         self.file_pool.cleanup()
+        self.tabController.cleanup()
 
     def destroy(self):
         self.tabController.cleanup()
@@ -277,16 +278,21 @@ class SpreadsheetWindow(QtGui.QMainWindow):
                         self.adjustSize()
                         self.move(r.center()-self.rect().center()-frameDiff)
                         break
+            if not self.visApp.temp_configuration.interactiveMode:
+                return
             ### Maximize
             if self.visApp.temp_configuration.maximizeWindows:
                 self.showMaximized()
+                ### When the builder is hidden, the spreadsheet window does
+                ### not have focus. We have to force it
+                if self.visApp.temp_configuration.showSpreadsheetOnly:
+                    self.raise_()
             else:
                 self.show()
-            ### When the builder is hidden, the spreadsheet window does not have
-            ### focus. We have to force it to have the focus
-            if self.visApp.temp_configuration.showSpreadsheetOnly:
-                self.show()
-                self.raise_()                
+                ### When the builder is hidden, the spreadsheet window does
+                ### not have focus. We have to force it to have the focus
+                if self.visApp.temp_configuration.showSpreadsheetOnly:
+                    self.raise_()                
         else:
             self.show()
 

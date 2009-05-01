@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -71,9 +71,10 @@ class ImageViewerCellWidget(QCellWidget):
         self.label.palette().setColor(QtGui.QPalette.Window, QtCore.Qt.white)
         self.label.setMouseTracking(False)
         self.label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        self.label.setScaledContents(True)
+        self.label.setScaledContents(False)
         self.toolBarType = ImageViewerToolBar
         self.originalPix = None
+        self.setMinimumSize(1, 1)
 
     def updateContents(self, inputPorts):
         """ updateContents(inputPorts: tuple) -> None
@@ -100,6 +101,12 @@ class ImageViewerCellWidget(QCellWidget):
         if pixmap and (not pixmap.isNull()):
             return pixmap.save(filename)
         return False
+
+    def resizeEvent(self, e):
+        if self.originalPix!=None:
+            self.label.setPixmap(self.originalPix.scaled(self.label.size(),
+                                                         QtCore.Qt.KeepAspectRatio,
+                                                         QtCore.Qt.SmoothTransformation))
                 
 class ImageViewerFitToCellAction(QtGui.QAction):
     """
