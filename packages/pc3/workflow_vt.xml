@@ -1,0 +1,1153 @@
+<vistrail id="" name="" version="1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
+  <action date="2009-04-07 16:02:43" id="1" prevId="0" prune="" session="0" user="koop">
+    <add id="0" objectId="0" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="0" name="DatabaseEntry" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0" />
+    </add>
+    <add id="1" objectId="0" parentObjId="0" parentObjType="module" what="location">
+      <location id="0" x="-162.420168067" y="79.5966386555" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:02:45" id="2" prevId="1" prune="" session="0" user="koop">
+    <add id="2" objectId="1" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="1" name="LoadCSVFileIntoDB" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0" />
+    </add>
+    <add id="3" objectId="1" parentObjId="1" parentObjType="module" what="location">
+      <location id="1" x="-104.336134454" y="-118.319327731" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:04:24" id="3" prevId="2" prune="" session="0" user="koop">
+    <delete id="4" objectId="0" parentObjId="0" parentObjType="module" what="location" />
+    <delete id="5" objectId="0" parentObjId="" parentObjType="" what="module" />
+    <delete id="6" objectId="1" parentObjId="1" parentObjType="module" what="location" />
+    <delete id="7" objectId="1" parentObjId="" parentObjType="" what="module" />
+  </action>
+  <action date="2009-04-07 16:04:27" id="4" prevId="3" prune="" session="0" user="koop">
+    <add id="8" objectId="2" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="2" name="GetCSVFiles" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0" />
+    </add>
+    <add id="9" objectId="2" parentObjId="2" parentObjType="module" what="location">
+      <location id="2" x="-84.974789916" y="105.411764706" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:04:58" id="5" prevId="4" prune="" session="0" user="koop">
+    <change id="10" newObjId="3" oldObjId="2" parentObjId="2" parentObjType="module" what="location">
+      <location id="3" x="-20.4369747899" y="129.075630252" />
+    </change>
+  </action>
+  <action date="2009-04-07 16:04:58" id="6" prevId="5" prune="" session="0" user="koop">
+    <add id="11" objectId="3" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="3" name="ComputeColumns" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0" />
+    </add>
+    <add id="12" objectId="4" parentObjId="3" parentObjType="module" what="location">
+      <location id="4" x="50.5546218487" y="-62.3865546218" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:05:01" id="7" prevId="6" prune="" session="0" user="koop">
+    <add id="13" objectId="4" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="4" name="CreateEmptyLoadDB" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0" />
+    </add>
+    <add id="14" objectId="5" parentObjId="4" parentObjType="module" what="location">
+      <location id="5" x="-236.638655462" y="118.319327731" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:05:06" id="8" prevId="7" prune="" session="0" user="koop">
+    <add id="15" objectId="5" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="5" name="LoadCSVFileIntoDB" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0" />
+    </add>
+    <add id="16" objectId="6" parentObjId="5" parentObjType="module" what="location">
+      <location id="6" x="-157.042016807" y="8.60504201681" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:05:10" id="9" prevId="8" prune="" session="0" user="koop">
+    <add id="17" objectId="0" parentObjId="" parentObjType="" what="connection">
+      <connection id="0" />
+    </add>
+    <add id="18" objectId="0" parentObjId="0" parentObjType="connection" what="port">
+      <port id="0" moduleId="4" moduleName="CreateEmptyLoadDB" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+    </add>
+    <add id="19" objectId="1" parentObjId="0" parentObjType="connection" what="port">
+      <port id="1" moduleId="5" moduleName="LoadCSVFileIntoDB" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:05:19" id="10" prevId="9" prune="" session="0" user="koop">
+    <change id="20" newObjId="7" oldObjId="6" parentObjId="5" parentObjType="module" what="location">
+      <location id="7" x="-11.8319327731" y="10.756302521" />
+    </change>
+  </action>
+  <action date="2009-04-07 16:05:19" id="11" prevId="10" prune="" session="0" user="koop">
+    <add id="21" objectId="1" parentObjId="" parentObjType="" what="connection">
+      <connection id="1" />
+    </add>
+    <add id="22" objectId="2" parentObjId="1" parentObjType="connection" what="port">
+      <port id="2" moduleId="5" moduleName="LoadCSVFileIntoDB" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+    </add>
+    <add id="23" objectId="3" parentObjId="1" parentObjType="connection" what="port">
+      <port id="3" moduleId="3" moduleName="ComputeColumns" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:06:15" id="12" prevId="11" prune="" session="0" user="koop">
+    <change id="24" newObjId="8" oldObjId="3" parentObjId="2" parentObjType="module" what="location">
+      <location id="8" x="-10.756302521" y="152.739495798" />
+    </change>
+    <change id="25" newObjId="9" oldObjId="4" parentObjId="3" parentObjType="module" what="location">
+      <location id="9" x="98.9579831933" y="-69.9159663866" />
+    </change>
+    <change id="26" newObjId="10" oldObjId="7" parentObjId="5" parentObjType="module" what="location">
+      <location id="10" x="-90.3529411765" y="1.7763568394e-15" />
+    </change>
+  </action>
+  <action date="2009-04-07 16:06:15" id="13" prevId="12" prune="" session="0" user="koop">
+    <add id="27" objectId="6" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="6" name="ReadCSVFile" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0" />
+    </add>
+    <add id="28" objectId="11" parentObjId="6" parentObjType="module" what="location">
+      <location id="11" x="91.4285714286" y="78.5210084034" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:06:18" id="14" prevId="13" prune="" session="0" user="koop">
+    <add id="29" objectId="2" parentObjId="" parentObjType="" what="connection">
+      <connection id="2" />
+    </add>
+    <add id="30" objectId="4" parentObjId="2" parentObjType="connection" what="port">
+      <port id="4" moduleId="6" moduleName="ReadCSVFile" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="source" />
+    </add>
+    <add id="31" objectId="5" parentObjId="2" parentObjType="connection" what="port">
+      <port id="5" moduleId="5" moduleName="LoadCSVFileIntoDB" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:06:22" id="15" prevId="14" prune="" session="0" user="koop">
+    <change id="32" newObjId="12" oldObjId="11" parentObjId="6" parentObjType="module" what="location">
+      <location id="12" x="86.0504201681" y="90.3529411765" />
+    </change>
+  </action>
+  <action date="2009-04-07 16:06:22" id="16" prevId="15" prune="" session="0" user="koop">
+    <add id="33" objectId="3" parentObjId="" parentObjType="" what="connection">
+      <connection id="3" />
+    </add>
+    <add id="34" objectId="6" parentObjId="3" parentObjType="connection" what="port">
+      <port id="6" moduleId="6" moduleName="ReadCSVFile" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="source" />
+    </add>
+    <add id="35" objectId="7" parentObjId="3" parentObjType="connection" what="port">
+      <port id="7" moduleId="3" moduleName="ComputeColumns" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:06:43" id="17" prevId="16" prune="" session="0" user="koop">
+    <change id="36" newObjId="13" oldObjId="8" parentObjId="2" parentObjType="module" what="location">
+      <location id="13" x="-130.151260504" y="258.151260504" />
+    </change>
+    <change id="37" newObjId="14" oldObjId="5" parentObjId="4" parentObjType="module" what="location">
+      <location id="14" x="153.81512605" y="109.714285714" />
+    </change>
+    <change id="38" newObjId="15" oldObjId="10" parentObjId="5" parentObjType="module" what="location">
+      <location id="15" x="89.2773109244" y="18.2857142857" />
+    </change>
+    <change id="39" newObjId="16" oldObjId="12" parentObjId="6" parentObjType="module" what="location">
+      <location id="16" x="-162.420168067" y="123.697478992" />
+    </change>
+  </action>
+  <action date="2009-04-07 16:06:43" id="18" prevId="17" prune="" session="0" user="koop">
+    <add id="40" objectId="7" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="7" name="CompactDatabase" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0" />
+    </add>
+    <add id="41" objectId="17" parentObjId="7" parentObjType="module" what="location">
+      <location id="17" x="123.697478992" y="-182.857142857" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:06:45" id="19" prevId="18" prune="" session="0" user="koop">
+    <add id="42" objectId="4" parentObjId="" parentObjType="" what="connection">
+      <connection id="4" />
+    </add>
+    <add id="43" objectId="8" parentObjId="4" parentObjType="connection" what="port">
+      <port id="8" moduleId="3" moduleName="ComputeColumns" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+    </add>
+    <add id="44" objectId="9" parentObjId="4" parentObjType="connection" what="port">
+      <port id="9" moduleId="7" moduleName="CompactDatabase" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:08:31" id="20" prevId="19" prune="" session="0" user="koop">
+    <change id="45" newObjId="18" oldObjId="13" parentObjId="2" parentObjType="module" what="location">
+      <location id="18" x="-182.857142857" y="256.0" />
+    </change>
+    <change id="46" newObjId="19" oldObjId="17" parentObjId="7" parentObjType="module" what="location">
+      <location id="19" x="109.714285714" y="-190.386554622" />
+    </change>
+  </action>
+  <action date="2009-04-07 16:08:31" id="21" prevId="20" prune="" session="0" user="koop">
+    <add id="47" objectId="8" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="8" name="Map" namespace="" package="edu.utah.sci.vistrails.control_flow" tag="" version="0.1" />
+    </add>
+    <add id="48" objectId="20" parentObjId="8" parentObjType="module" what="location">
+      <location id="20" x="114.016806723" y="-292.571428571" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:08:44" id="22" prevId="21" prune="" session="0" user="koop">
+    <add id="49" objectId="5" parentObjId="" parentObjType="" what="connection">
+      <connection id="5" />
+    </add>
+    <add id="50" objectId="10" parentObjId="5" parentObjType="connection" what="port">
+      <port id="10" moduleId="7" moduleName="CompactDatabase" name="self" signature="(edu.utah.sci.vistrails.basic:Module)" type="source" />
+    </add>
+    <add id="51" objectId="11" parentObjId="5" parentObjType="connection" what="port">
+      <port id="11" moduleId="8" moduleName="Map" name="FunctionPort" signature="(edu.utah.sci.vistrails.basic:Module)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:40:18" id="23" prevId="22" prune="" session="1" user="koop">
+    <change id="52" newObjId="21" oldObjId="18" parentObjId="2" parentObjType="module" what="location">
+      <location id="21" x="338.293817527" y="-164.978391356" />
+    </change>
+  </action>
+  <action date="2009-04-07 16:40:18" id="24" prevId="23" prune="" session="1" user="koop">
+    <add id="53" objectId="6" parentObjId="" parentObjType="" what="connection">
+      <connection id="6" />
+    </add>
+    <add id="54" objectId="12" parentObjId="6" parentObjType="connection" what="port">
+      <port id="12" moduleId="2" moduleName="GetCSVFiles" name="csvFiles" signature="(edu.utah.sci.vistrails.control_flow:ListOfElements)" type="source" />
+    </add>
+    <add id="55" objectId="13" parentObjId="6" parentObjType="connection" what="port">
+      <port id="13" moduleId="8" moduleName="Map" name="InputList" signature="(edu.utah.sci.vistrails.control_flow:ListOfElements)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:40:21" id="25" prevId="24" prune="" session="1" user="koop">
+    <add id="56" objectId="0" parentObjId="2" parentObjType="module" what="function">
+      <function id="0" name="csvRootPath" pos="0" />
+    </add>
+    <add id="57" objectId="0" parentObjId="0" parentObjType="function" what="parameter">
+      <parameter alias="" id="0" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:40:32" id="26" prevId="25" prune="" session="1" user="koop">
+    <change id="58" newObjId="1" oldObjId="0" parentObjId="0" parentObjType="function" what="parameter">
+      <parameter alias="" id="1" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="/vistrails/pc3/SampleData/" />
+    </change>
+  </action>
+  <action date="2009-04-07 16:40:44" id="27" prevId="26" prune="" session="1" user="koop">
+    <change id="59" newObjId="2" oldObjId="1" parentObjId="0" parentObjType="function" what="parameter">
+      <parameter alias="" id="2" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="/vistrails/pc3/SampleData/J062941" />
+    </change>
+  </action>
+  <action date="2009-04-07 16:40:45" id="28" prevId="27" prune="" session="1" user="koop">
+    <add id="60" objectId="1" parentObjId="4" parentObjType="module" what="function">
+      <function id="1" name="jobID" pos="0" />
+    </add>
+    <add id="61" objectId="3" parentObjId="1" parentObjType="function" what="parameter">
+      <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:40:46" id="29" prevId="28" prune="" session="1" user="koop">
+    <change id="62" newObjId="4" oldObjId="3" parentObjId="1" parentObjType="function" what="parameter">
+      <parameter alias="" id="4" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="J062941" />
+    </change>
+  </action>
+  <action date="2009-04-07 16:40:56" id="30" prevId="29" prune="" session="1" user="koop">
+    <add id="63" objectId="2" parentObjId="8" parentObjType="module" what="function">
+      <function id="2" name="InputPort" pos="0" />
+    </add>
+    <add id="64" objectId="5" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="5" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.control_flow:ListOfElements" val="" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:41:03" id="31" prevId="30" prune="" session="1" user="koop">
+    <change id="65" newObjId="6" oldObjId="5" parentObjId="2" parentObjType="function" what="parameter">
+      <parameter alias="" id="6" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.control_flow:ListOfElements" val="[&apos;csvFile&apos;]" />
+    </change>
+  </action>
+  <action date="2009-04-07 16:41:04" id="32" prevId="31" prune="" session="1" user="koop">
+    <add id="66" objectId="3" parentObjId="8" parentObjType="module" what="function">
+      <function id="3" name="OutputPort" pos="1" />
+    </add>
+    <add id="67" objectId="7" parentObjId="3" parentObjType="function" what="parameter">
+      <parameter alias="" id="7" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:41:06" id="33" prevId="32" prune="" session="1" user="koop">
+    <change id="68" newObjId="8" oldObjId="7" parentObjId="3" parentObjType="function" what="parameter">
+      <parameter alias="" id="8" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="self" />
+    </change>
+  </action>
+  <action date="2009-04-07 16:54:37" id="34" prevId="33" prune="" session="2" user="koop">
+    <change id="69" newObjId="22" oldObjId="9" parentObjId="3" parentObjType="module" what="location">
+      <location id="22" x="85.6656725716" y="-67.2575042623" />
+    </change>
+    <change id="70" newObjId="23" oldObjId="14" parentObjId="4" parentObjType="module" what="location">
+      <location id="23" x="140.522815428" y="228.015850247" />
+    </change>
+    <change id="71" newObjId="24" oldObjId="15" parentObjId="5" parentObjType="module" what="location">
+      <location id="24" x="75.9850003027" y="20.94417641" />
+    </change>
+    <change id="72" newObjId="25" oldObjId="16" parentObjId="6" parentObjType="module" what="location">
+      <location id="25" x="-115.897080891" y="133.002096427" />
+    </change>
+    <change id="73" newObjId="26" oldObjId="19" parentObjId="7" parentObjType="module" what="location">
+      <location id="26" x="96.4219750923" y="-187.728092498" />
+    </change>
+  </action>
+  <action date="2009-04-07 16:54:37" id="35" prevId="34" prune="" session="2" user="koop">
+    <delete id="74" objectId="10" parentObjId="5" parentObjType="connection" what="port" />
+    <delete id="75" objectId="11" parentObjId="5" parentObjType="connection" what="port" />
+    <delete id="76" objectId="5" parentObjId="" parentObjType="" what="connection" />
+  </action>
+  <action date="2009-04-07 16:54:46" id="36" prevId="35" prune="" session="2" user="koop">
+    <change id="77" newObjId="27" oldObjId="26" parentObjId="7" parentObjType="module" what="location">
+      <location id="27" x="83.1296644706" y="-163.801933379" />
+    </change>
+  </action>
+  <action date="2009-04-07 16:54:46" id="37" prevId="36" prune="" session="2" user="koop">
+    <add id="78" objectId="9" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="9" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2" />
+    </add>
+    <add id="79" objectId="28" parentObjId="9" parentObjType="module" what="location">
+      <location id="28" x="-168.812344896" y="256.541594999" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:54:47" id="38" prevId="37" prune="" session="2" user="koop">
+    <add id="80" objectId="7" parentObjId="" parentObjType="" what="connection">
+      <connection id="7" />
+    </add>
+    <add id="81" objectId="14" parentObjId="7" parentObjType="connection" what="port">
+      <port id="14" moduleId="9" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="82" objectId="15" parentObjId="7" parentObjType="connection" what="port">
+      <port id="15" moduleId="6" moduleName="ReadCSVFile" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:54:52" id="39" prevId="38" prune="" session="2" user="koop">
+    <add id="83" objectId="10" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="10" name="OutputPort" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2" />
+    </add>
+    <add id="84" objectId="29" parentObjId="10" parentObjType="module" what="location">
+      <location id="29" x="-74.4369394816" y="-280.467754118" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:54:58" id="40" prevId="39" prune="" session="2" user="koop">
+    <change id="85" newObjId="30" oldObjId="27" parentObjId="7" parentObjType="module" what="location">
+      <location id="30" x="19.3265734863" y="-161.143471254" />
+    </change>
+  </action>
+  <action date="2009-04-07 16:54:58" id="41" prevId="40" prune="" session="2" user="koop">
+    <add id="86" objectId="8" parentObjId="" parentObjType="" what="connection">
+      <connection id="8" />
+    </add>
+    <add id="87" objectId="16" parentObjId="8" parentObjType="connection" what="port">
+      <port id="16" moduleId="7" moduleName="CompactDatabase" name="self" signature="(edu.utah.sci.vistrails.basic:Module)" type="source" />
+    </add>
+    <add id="88" objectId="17" parentObjId="8" parentObjType="connection" what="port">
+      <port id="17" moduleId="10" moduleName="OutputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:55:06" id="42" prevId="41" prune="" session="2" user="koop">
+    <change id="89" newObjId="31" oldObjId="29" parentObjId="10" parentObjType="module" what="location">
+      <location id="31" x="-22.5969280569" y="-256.541594999" />
+    </change>
+  </action>
+  <action date="2009-04-07 16:55:06" id="43" prevId="42" prune="" session="2" user="koop">
+    <delete id="90" objectId="0" parentObjId="0" parentObjType="connection" what="port" />
+    <delete id="91" objectId="1" parentObjId="0" parentObjType="connection" what="port" />
+    <delete id="92" objectId="0" parentObjId="" parentObjType="" what="connection" />
+    <delete id="93" objectId="2" parentObjId="1" parentObjType="connection" what="port" />
+    <delete id="94" objectId="3" parentObjId="1" parentObjType="connection" what="port" />
+    <delete id="95" objectId="1" parentObjId="" parentObjType="" what="connection" />
+    <delete id="96" objectId="4" parentObjId="2" parentObjType="connection" what="port" />
+    <delete id="97" objectId="5" parentObjId="2" parentObjType="connection" what="port" />
+    <delete id="98" objectId="2" parentObjId="" parentObjType="" what="connection" />
+    <delete id="99" objectId="6" parentObjId="3" parentObjType="connection" what="port" />
+    <delete id="100" objectId="7" parentObjId="3" parentObjType="connection" what="port" />
+    <delete id="101" objectId="3" parentObjId="" parentObjType="" what="connection" />
+    <delete id="102" objectId="8" parentObjId="4" parentObjType="connection" what="port" />
+    <delete id="103" objectId="9" parentObjId="4" parentObjType="connection" what="port" />
+    <delete id="104" objectId="4" parentObjId="" parentObjType="" what="connection" />
+    <delete id="105" objectId="14" parentObjId="7" parentObjType="connection" what="port" />
+    <delete id="106" objectId="15" parentObjId="7" parentObjType="connection" what="port" />
+    <delete id="107" objectId="7" parentObjId="" parentObjType="" what="connection" />
+    <delete id="108" objectId="16" parentObjId="8" parentObjType="connection" what="port" />
+    <delete id="109" objectId="17" parentObjId="8" parentObjType="connection" what="port" />
+    <delete id="110" objectId="8" parentObjId="" parentObjType="" what="connection" />
+    <delete id="111" objectId="22" parentObjId="3" parentObjType="module" what="location" />
+    <delete id="112" objectId="3" parentObjId="" parentObjType="" what="module" />
+    <delete id="113" objectId="24" parentObjId="5" parentObjType="module" what="location" />
+    <delete id="114" objectId="5" parentObjId="" parentObjType="" what="module" />
+    <delete id="115" objectId="25" parentObjId="6" parentObjType="module" what="location" />
+    <delete id="116" objectId="6" parentObjId="" parentObjType="" what="module" />
+    <delete id="117" objectId="30" parentObjId="7" parentObjType="module" what="location" />
+    <delete id="118" objectId="7" parentObjId="" parentObjType="" what="module" />
+    <delete id="119" objectId="28" parentObjId="9" parentObjType="module" what="location" />
+    <delete id="120" objectId="9" parentObjId="" parentObjType="" what="module" />
+    <delete id="121" objectId="31" parentObjId="10" parentObjType="module" what="location" />
+    <delete id="122" objectId="10" parentObjId="" parentObjType="" what="module" />
+    <add id="123" objectId="11" parentObjId="" parentObjType="" what="group">
+      <group cache="1" id="11" name="Group" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="">
+        <workflow id="" name="untitled" version="" vistrail_id="">
+          <connection id="1">
+            <port id="2" moduleId="2" moduleName="LoadCSVFileIntoDB" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+            <port id="1" moduleId="7" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+          </connection>
+          <connection id="2">
+            <port id="3" moduleId="2" moduleName="LoadCSVFileIntoDB" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+            <port id="4" moduleId="1" moduleName="ComputeColumns" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+          </connection>
+          <connection id="3">
+            <port id="5" moduleId="3" moduleName="ReadCSVFile" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="source" />
+            <port id="6" moduleId="2" moduleName="LoadCSVFileIntoDB" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="destination" />
+          </connection>
+          <connection id="4">
+            <port id="7" moduleId="3" moduleName="ReadCSVFile" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="source" />
+            <port id="8" moduleId="1" moduleName="ComputeColumns" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="destination" />
+          </connection>
+          <connection id="5">
+            <port id="9" moduleId="1" moduleName="ComputeColumns" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+            <port id="10" moduleId="4" moduleName="CompactDatabase" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+          </connection>
+          <connection id="6">
+            <port id="11" moduleId="5" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+            <port id="12" moduleId="3" moduleName="ReadCSVFile" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="destination" />
+          </connection>
+          <connection id="7">
+            <port id="13" moduleId="4" moduleName="CompactDatabase" name="self" signature="(edu.utah.sci.vistrails.basic:Module)" type="source" />
+            <port id="14" moduleId="6" moduleName="OutputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+          </connection>
+          <module cache="1" id="1" name="ComputeColumns" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0">
+            <location id="1" x="106.720523819" y="-54.8483871491" />
+          </module>
+          <module cache="1" id="2" name="LoadCSVFileIntoDB" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0">
+            <location id="2" x="97.0398515499" y="33.3532935232" />
+          </module>
+          <module cache="1" id="3" name="ReadCSVFile" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0">
+            <location id="3" x="-94.8422296438" y="145.41121354" />
+          </module>
+          <module cache="1" id="4" name="CompactDatabase" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0">
+            <location id="4" x="40.3814247335" y="-148.734354141" />
+          </module>
+          <module cache="1" id="5" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2">
+            <location id="5" x="-147.757493649" y="268.950712112" />
+            <function id="1" name="name" pos="0">
+              <parameter alias="" id="1" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="csvFile" />
+            </function>
+          </module>
+          <module cache="1" id="6" name="OutputPort" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2">
+            <location id="6" x="-1.54207680972" y="-244.132477886" />
+            <function id="2" name="name" pos="0">
+              <parameter alias="" id="2" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="CompactDatabase" />
+            </function>
+          </module>
+          <module cache="1" id="7" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="">
+            <location id="7" x="161.577666675" y="240.424967361" />
+            <function id="3" name="name" pos="0">
+              <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="dbEntry" />
+            </function>
+          </module>
+        </workflow>
+      </group>
+    </add>
+    <add id="124" objectId="32" parentObjId="11" parentObjType="group" what="location">
+      <location id="32" x="-21.0548512472" y="-12.4091171132" />
+    </add>
+    <add id="125" objectId="9" parentObjId="" parentObjType="" what="connection">
+      <connection id="9" />
+    </add>
+    <add id="126" objectId="18" parentObjId="9" parentObjType="connection" what="port">
+      <port id="18" moduleId="4" moduleName="CreateEmptyLoadDB" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+    </add>
+    <add id="127" objectId="19" parentObjId="9" parentObjType="connection" what="port">
+      <port id="19" moduleId="11" moduleName="Group" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-07 16:55:21" id="44" prevId="43" prune="" session="2" user="koop">
+    <change id="128" newObjId="33" oldObjId="23" parentObjId="4" parentObjType="module" what="location">
+      <location id="33" x="-4.3633703485" y="23.3142666728" />
+    </change>
+    <change id="129" newObjId="34" oldObjId="32" parentObjId="11" parentObjType="group" what="location">
+      <location id="34" x="85.2836337266" y="-113.430677838" />
+    </change>
+  </action>
+  <action date="2009-04-07 16:55:23" id="45" prevId="44" prune="" session="2" user="koop">
+    <add id="130" objectId="10" parentObjId="" parentObjType="" what="connection">
+      <connection id="10" />
+    </add>
+    <add id="131" objectId="20" parentObjId="10" parentObjType="connection" what="port">
+      <port id="20" moduleId="11" moduleName="Group" name="self" signature="(edu.utah.sci.vistrails.basic:Group)" type="source" />
+    </add>
+    <add id="132" objectId="21" parentObjId="10" parentObjType="connection" what="port">
+      <port id="21" moduleId="8" moduleName="Map" name="FunctionPort" signature="(edu.utah.sci.vistrails.basic:Module)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-07 17:40:52" id="46" prevId="45" prune="" session="3" user="koop" />
+  <action date="2009-04-07 17:41:16" id="47" prevId="46" prune="" session="3" user="koop">
+    <add id="133" objectId="12" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="12" name="String" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2" />
+    </add>
+    <add id="134" objectId="35" parentObjId="12" parentObjType="module" what="location">
+      <location id="35" x="159.193277311" y="148.43697479" />
+    </add>
+  </action>
+  <action date="2009-04-07 17:41:25" id="48" prevId="47" prune="" session="3" user="koop">
+    <add id="135" objectId="13" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="13" name="ConcatenateString" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2" />
+    </add>
+    <add id="136" objectId="36" parentObjId="13" parentObjType="module" what="location">
+      <location id="36" x="271.058823529" y="52.7058823529" />
+    </add>
+  </action>
+  <action date="2009-04-07 17:41:30" id="49" prevId="48" prune="" session="3" user="koop">
+    <change id="137" newObjId="37" oldObjId="35" parentObjId="12" parentObjType="module" what="location">
+      <location id="37" x="150.588235294" y="152.739495798" />
+    </change>
+  </action>
+  <action date="2009-04-07 17:41:30" id="50" prevId="49" prune="" session="3" user="koop">
+    <add id="138" objectId="11" parentObjId="" parentObjType="" what="connection">
+      <connection id="11" />
+    </add>
+    <add id="139" objectId="22" parentObjId="11" parentObjType="connection" what="port">
+      <port id="22" moduleId="12" moduleName="String" name="value" signature="(edu.utah.sci.vistrails.basic:String)" type="source" />
+    </add>
+    <add id="140" objectId="23" parentObjId="11" parentObjType="connection" what="port">
+      <port id="23" moduleId="4" moduleName="CreateEmptyLoadDB" name="jobID" signature="(edu.utah.sci.vistrails.basic:String)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-07 17:41:32" id="51" prevId="50" prune="" session="3" user="koop">
+    <delete id="141" objectId="4" parentObjId="1" parentObjType="function" what="parameter" />
+    <delete id="142" objectId="1" parentObjId="4" parentObjType="module" what="function" />
+  </action>
+  <action date="2009-04-07 17:41:38" id="52" prevId="51" prune="" session="3" user="koop" />
+  <action date="2009-04-07 17:41:40" id="53" prevId="52" prune="" session="3" user="koop">
+    <add id="143" objectId="4" parentObjId="12" parentObjType="module" what="function">
+      <function id="4" name="value" pos="0" />
+    </add>
+    <add id="144" objectId="9" parentObjId="4" parentObjType="function" what="parameter">
+      <parameter alias="" id="9" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="" />
+    </add>
+  </action>
+  <action date="2009-04-07 17:41:41" id="54" prevId="53" prune="" session="3" user="koop">
+    <change id="145" newObjId="10" oldObjId="9" parentObjId="4" parentObjType="function" what="parameter">
+      <parameter alias="" id="10" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="J062941" />
+    </change>
+  </action>
+  <action date="2009-04-07 17:41:47" id="55" prevId="54" prune="" session="3" user="koop" />
+  <action date="2009-04-07 17:41:52" id="56" prevId="55" prune="" session="3" user="koop">
+    <add id="146" objectId="5" parentObjId="13" parentObjType="module" what="function">
+      <function id="5" name="str1" pos="0" />
+    </add>
+    <add id="147" objectId="11" parentObjId="5" parentObjType="function" what="parameter">
+      <parameter alias="" id="11" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="" />
+    </add>
+  </action>
+  <action date="2009-04-07 17:41:57" id="57" prevId="56" prune="" session="3" user="koop">
+    <change id="148" newObjId="12" oldObjId="11" parentObjId="5" parentObjType="function" what="parameter">
+      <parameter alias="" id="12" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="/vistrails/pc3/SampleData/" />
+    </change>
+  </action>
+  <action date="2009-04-07 17:41:58" id="58" prevId="57" prune="" session="3" user="koop">
+    <add id="149" objectId="12" parentObjId="" parentObjType="" what="connection">
+      <connection id="12" />
+    </add>
+    <add id="150" objectId="24" parentObjId="12" parentObjType="connection" what="port">
+      <port id="24" moduleId="12" moduleName="String" name="value" signature="(edu.utah.sci.vistrails.basic:String)" type="source" />
+    </add>
+    <add id="151" objectId="25" parentObjId="12" parentObjType="connection" what="port">
+      <port id="25" moduleId="13" moduleName="ConcatenateString" name="str2" signature="(edu.utah.sci.vistrails.basic:String)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-07 17:42:02" id="59" prevId="58" prune="" session="3" user="koop">
+    <delete id="152" objectId="2" parentObjId="0" parentObjType="function" what="parameter" />
+    <delete id="153" objectId="0" parentObjId="2" parentObjType="module" what="function" />
+  </action>
+  <action date="2009-04-07 17:42:04" id="60" prevId="59" prune="" session="3" user="koop">
+    <add id="154" objectId="13" parentObjId="" parentObjType="" what="connection">
+      <connection id="13" />
+    </add>
+    <add id="155" objectId="26" parentObjId="13" parentObjType="connection" what="port">
+      <port id="26" moduleId="13" moduleName="ConcatenateString" name="value" signature="(edu.utah.sci.vistrails.basic:String)" type="source" />
+    </add>
+    <add id="156" objectId="27" parentObjId="13" parentObjType="connection" what="port">
+      <port id="27" moduleId="2" moduleName="GetCSVFiles" name="csvRootPath" signature="(edu.utah.sci.vistrails.basic:String)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:17:18" id="61" prevId="60" prune="" session="4" user="koop">
+    <change id="157" newObjId="38" oldObjId="34" parentObjId="11" parentObjType="group" what="location">
+      <location id="38" x="-377.409022582" y="-678.31312327" />
+    </change>
+  </action>
+  <action date="2009-04-08 17:17:22" id="62" prevId="61" prune="" session="4" user="koop">
+    <delete id="158" objectId="20" parentObjId="10" parentObjType="connection" what="port" />
+    <delete id="159" objectId="21" parentObjId="10" parentObjType="connection" what="port" />
+    <delete id="160" objectId="10" parentObjId="" parentObjType="" what="connection" />
+  </action>
+  <action date="2009-04-08 17:17:25" id="63" prevId="62" prune="" session="4" user="koop">
+    <delete id="161" objectId="18" parentObjId="9" parentObjType="connection" what="port" />
+    <delete id="162" objectId="19" parentObjId="9" parentObjType="connection" what="port" />
+    <delete id="163" objectId="9" parentObjId="" parentObjType="" what="connection" />
+  </action>
+  <action date="2009-04-08 17:17:27" id="64" prevId="63" prune="" session="4" user="koop">
+    <delete id="164" objectId="38" parentObjId="11" parentObjType="group" what="location" />
+    <delete id="165" objectId="11" parentObjId="" parentObjType="" what="group" />
+    <add id="166" objectId="18" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="18" name="ComputeColumns" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0" />
+    </add>
+    <add id="167" objectId="43" parentObjId="18" parentObjType="module" what="location">
+      <location id="43" x="-270.688498763" y="-733.161510419" />
+    </add>
+    <add id="168" objectId="19" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="19" name="LoadCSVFileIntoDB" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0" />
+    </add>
+    <add id="169" objectId="44" parentObjId="19" parentObjType="module" what="location">
+      <location id="44" x="-280.369171032" y="-644.959829747" />
+    </add>
+    <add id="170" objectId="20" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="20" name="ReadCSVFile" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0" />
+    </add>
+    <add id="171" objectId="45" parentObjId="20" parentObjType="module" what="location">
+      <location id="45" x="-472.251252226" y="-532.90190973" />
+    </add>
+    <add id="172" objectId="21" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="21" name="CompactDatabase" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0" />
+    </add>
+    <add id="173" objectId="46" parentObjId="21" parentObjType="module" what="location">
+      <location id="46" x="-337.027597849" y="-827.047477411" />
+    </add>
+    <add id="174" objectId="19" parentObjId="" parentObjType="" what="connection">
+      <connection id="19" />
+    </add>
+    <add id="175" objectId="39" parentObjId="19" parentObjType="connection" what="port">
+      <port id="39" moduleId="18" moduleName="ComputeColumns" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+    </add>
+    <add id="176" objectId="38" parentObjId="19" parentObjType="connection" what="port">
+      <port id="38" moduleId="19" moduleName="LoadCSVFileIntoDB" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+    </add>
+    <add id="177" objectId="20" parentObjId="" parentObjType="" what="connection">
+      <connection id="20" />
+    </add>
+    <add id="178" objectId="41" parentObjId="20" parentObjType="connection" what="port">
+      <port id="41" moduleId="19" moduleName="LoadCSVFileIntoDB" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="destination" />
+    </add>
+    <add id="179" objectId="40" parentObjId="20" parentObjType="connection" what="port">
+      <port id="40" moduleId="20" moduleName="ReadCSVFile" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="source" />
+    </add>
+    <add id="180" objectId="21" parentObjId="" parentObjType="" what="connection">
+      <connection id="21" />
+    </add>
+    <add id="181" objectId="43" parentObjId="21" parentObjType="connection" what="port">
+      <port id="43" moduleId="18" moduleName="ComputeColumns" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="destination" />
+    </add>
+    <add id="182" objectId="42" parentObjId="21" parentObjType="connection" what="port">
+      <port id="42" moduleId="20" moduleName="ReadCSVFile" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="source" />
+    </add>
+    <add id="183" objectId="22" parentObjId="" parentObjType="" what="connection">
+      <connection id="22" />
+    </add>
+    <add id="184" objectId="45" parentObjId="22" parentObjType="connection" what="port">
+      <port id="45" moduleId="21" moduleName="CompactDatabase" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+    </add>
+    <add id="185" objectId="44" parentObjId="22" parentObjType="connection" what="port">
+      <port id="44" moduleId="18" moduleName="ComputeColumns" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:17:36" id="65" prevId="64" prune="" session="4" user="koop">
+    <delete id="186" objectId="45" parentObjId="22" parentObjType="connection" what="port" />
+    <delete id="187" objectId="44" parentObjId="22" parentObjType="connection" what="port" />
+    <delete id="188" objectId="22" parentObjId="" parentObjType="" what="connection" />
+  </action>
+  <action date="2009-04-08 17:17:50" id="66" prevId="65" prune="" session="4" user="koop">
+    <change id="189" newObjId="47" oldObjId="43" parentObjId="18" parentObjType="module" what="location">
+      <location id="47" x="-225.667156687" y="-334.401052027" />
+    </change>
+    <change id="190" newObjId="48" oldObjId="44" parentObjId="19" parentObjType="module" what="location">
+      <location id="48" x="-235.347828956" y="-246.199371355" />
+    </change>
+    <change id="191" newObjId="49" oldObjId="45" parentObjId="20" parentObjType="module" what="location">
+      <location id="49" x="-427.229910149" y="-134.141451338" />
+    </change>
+    <change id="192" newObjId="50" oldObjId="46" parentObjId="21" parentObjType="module" what="location">
+      <location id="50" x="-292.006255772" y="-428.287019019" />
+    </change>
+  </action>
+  <action date="2009-04-08 17:17:50" id="67" prevId="66" prune="" session="4" user="koop">
+    <add id="193" objectId="22" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="22" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2" />
+    </add>
+    <add id="194" objectId="51" parentObjId="22" parentObjType="module" what="location">
+      <location id="51" x="-482.685303555" y="16.4739011452" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:17:52" id="68" prevId="67" prune="" session="4" user="koop">
+    <add id="195" objectId="23" parentObjId="" parentObjType="" what="connection">
+      <connection id="23" />
+    </add>
+    <add id="196" objectId="46" parentObjId="23" parentObjType="connection" what="port">
+      <port id="46" moduleId="22" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="197" objectId="47" parentObjId="23" parentObjType="connection" what="port">
+      <port id="47" moduleId="20" moduleName="ReadCSVFile" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:17:56" id="69" prevId="68" prune="" session="4" user="koop">
+    <change id="198" newObjId="52" oldObjId="51" parentObjId="22" parentObjType="module" what="location">
+      <location id="52" x="-499.1592047" y="-21.4160714888" />
+    </change>
+  </action>
+  <action date="2009-04-08 17:17:56" id="70" prevId="69" prune="" session="4" user="koop">
+    <add id="199" objectId="23" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="23" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2" />
+    </add>
+    <add id="200" objectId="53" parentObjId="23" parentObjType="module" what="location">
+      <location id="53" x="-235.576786377" y="-49.4217034357" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:17:58" id="71" prevId="70" prune="" session="4" user="koop">
+    <add id="201" objectId="24" parentObjId="" parentObjType="" what="connection">
+      <connection id="24" />
+    </add>
+    <add id="202" objectId="48" parentObjId="24" parentObjType="connection" what="port">
+      <port id="48" moduleId="23" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="203" objectId="49" parentObjId="24" parentObjType="connection" what="port">
+      <port id="49" moduleId="19" moduleName="LoadCSVFileIntoDB" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:18:27" id="72" prevId="71" prune="" session="4" user="koop">
+    <change id="204" newObjId="54" oldObjId="50" parentObjId="21" parentObjType="module" what="location">
+      <location id="54" x="-222.815870962" y="-497.477403829" />
+    </change>
+  </action>
+  <action date="2009-04-08 17:18:27" id="73" prevId="72" prune="" session="4" user="koop">
+    <add id="205" objectId="24" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="24" name="OutputPort" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2" />
+    </add>
+    <add id="206" objectId="55" parentObjId="24" parentObjType="module" what="location">
+      <location id="55" x="-130.143819047" y="-401.963187943" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:18:30" id="74" prevId="73" prune="" session="4" user="koop">
+    <add id="207" objectId="25" parentObjId="" parentObjType="" what="connection">
+      <connection id="25" />
+    </add>
+    <add id="208" objectId="50" parentObjId="25" parentObjType="connection" what="port">
+      <port id="50" moduleId="18" moduleName="ComputeColumns" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+    </add>
+    <add id="209" objectId="51" parentObjId="25" parentObjType="connection" what="port">
+      <port id="51" moduleId="24" moduleName="OutputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:18:44" id="75" prevId="74" prune="" session="4" user="koop">
+    <change id="210" newObjId="56" oldObjId="55" parentObjId="24" parentObjType="module" what="location">
+      <location id="56" x="-131.791209162" y="-411.84752863" />
+    </change>
+  </action>
+  <action date="2009-04-08 17:18:45" id="76" prevId="75" prune="" session="4" user="koop">
+    <delete id="211" objectId="39" parentObjId="19" parentObjType="connection" what="port" />
+    <delete id="212" objectId="38" parentObjId="19" parentObjType="connection" what="port" />
+    <delete id="213" objectId="19" parentObjId="" parentObjType="" what="connection" />
+    <delete id="214" objectId="41" parentObjId="20" parentObjType="connection" what="port" />
+    <delete id="215" objectId="40" parentObjId="20" parentObjType="connection" what="port" />
+    <delete id="216" objectId="20" parentObjId="" parentObjType="" what="connection" />
+    <delete id="217" objectId="43" parentObjId="21" parentObjType="connection" what="port" />
+    <delete id="218" objectId="42" parentObjId="21" parentObjType="connection" what="port" />
+    <delete id="219" objectId="21" parentObjId="" parentObjType="" what="connection" />
+    <delete id="220" objectId="46" parentObjId="23" parentObjType="connection" what="port" />
+    <delete id="221" objectId="47" parentObjId="23" parentObjType="connection" what="port" />
+    <delete id="222" objectId="23" parentObjId="" parentObjType="" what="connection" />
+    <delete id="223" objectId="48" parentObjId="24" parentObjType="connection" what="port" />
+    <delete id="224" objectId="49" parentObjId="24" parentObjType="connection" what="port" />
+    <delete id="225" objectId="24" parentObjId="" parentObjType="" what="connection" />
+    <delete id="226" objectId="50" parentObjId="25" parentObjType="connection" what="port" />
+    <delete id="227" objectId="51" parentObjId="25" parentObjType="connection" what="port" />
+    <delete id="228" objectId="25" parentObjId="" parentObjType="" what="connection" />
+    <delete id="229" objectId="47" parentObjId="18" parentObjType="module" what="location" />
+    <delete id="230" objectId="18" parentObjId="" parentObjType="" what="module" />
+    <delete id="231" objectId="48" parentObjId="19" parentObjType="module" what="location" />
+    <delete id="232" objectId="19" parentObjId="" parentObjType="" what="module" />
+    <delete id="233" objectId="49" parentObjId="20" parentObjType="module" what="location" />
+    <delete id="234" objectId="20" parentObjId="" parentObjType="" what="module" />
+    <delete id="235" objectId="52" parentObjId="22" parentObjType="module" what="location" />
+    <delete id="236" objectId="22" parentObjId="" parentObjType="" what="module" />
+    <delete id="237" objectId="53" parentObjId="23" parentObjType="module" what="location" />
+    <delete id="238" objectId="23" parentObjId="" parentObjType="" what="module" />
+    <delete id="239" objectId="56" parentObjId="24" parentObjType="module" what="location" />
+    <delete id="240" objectId="24" parentObjId="" parentObjType="" what="module" />
+    <add id="241" objectId="25" parentObjId="" parentObjType="" what="group">
+      <group cache="1" id="25" name="Group" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="">
+        <workflow id="" name="untitled" version="" vistrail_id="">
+          <connection id="1">
+            <port id="1" moduleId="1" moduleName="ComputeColumns" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+            <port id="2" moduleId="2" moduleName="LoadCSVFileIntoDB" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+          </connection>
+          <connection id="2">
+            <port id="3" moduleId="2" moduleName="LoadCSVFileIntoDB" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="destination" />
+            <port id="4" moduleId="3" moduleName="ReadCSVFile" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="source" />
+          </connection>
+          <connection id="3">
+            <port id="5" moduleId="1" moduleName="ComputeColumns" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="destination" />
+            <port id="6" moduleId="3" moduleName="ReadCSVFile" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="source" />
+          </connection>
+          <connection id="4">
+            <port id="7" moduleId="4" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+            <port id="8" moduleId="3" moduleName="ReadCSVFile" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="destination" />
+          </connection>
+          <connection id="5">
+            <port id="9" moduleId="5" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+            <port id="10" moduleId="2" moduleName="LoadCSVFileIntoDB" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+          </connection>
+          <connection id="6">
+            <port id="11" moduleId="1" moduleName="ComputeColumns" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+            <port id="12" moduleId="6" moduleName="OutputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+          </connection>
+          <module cache="1" id="1" name="ComputeColumns" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0">
+            <location id="1" x="66.7948593185" y="-134.829855648" />
+          </module>
+          <module cache="1" id="2" name="LoadCSVFileIntoDB" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0">
+            <location id="2" x="57.1141870494" y="-46.6281749756" />
+          </module>
+          <module cache="1" id="3" name="ReadCSVFile" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0">
+            <location id="3" x="-134.767894144" y="65.4297450412" />
+          </module>
+          <module cache="1" id="4" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2">
+            <location id="4" x="-206.697188695" y="178.15512489" />
+            <function id="1" name="name" pos="0">
+              <parameter alias="" id="1" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="csvFile" />
+            </function>
+          </module>
+          <module cache="1" id="5" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2">
+            <location id="5" x="56.8852296284" y="150.149492943" />
+            <function id="2" name="name" pos="0">
+              <parameter alias="" id="2" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="dbEntry" />
+            </function>
+          </module>
+          <module cache="1" id="6" name="OutputPort" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2">
+            <location id="6" x="160.670806843" y="-212.276332251" />
+            <function id="3" name="name" pos="0">
+              <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="dbEntry" />
+            </function>
+          </module>
+        </workflow>
+      </group>
+    </add>
+    <add id="242" objectId="57" parentObjId="25" parentObjType="group" what="location">
+      <location id="57" x="-292.462016005" y="-199.571196379" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:18:51" id="77" prevId="76" prune="" session="4" user="koop">
+    <change id="243" newObjId="58" oldObjId="33" parentObjId="4" parentObjType="module" what="location">
+      <location id="58" x="-38.9585627535" y="15.0773161002" />
+    </change>
+    <change id="244" newObjId="59" oldObjId="57" parentObjId="25" parentObjType="group" what="location">
+      <location id="59" x="7.36298483796" y="-179.802515005" />
+    </change>
+  </action>
+  <action date="2009-04-08 17:18:51" id="78" prevId="77" prune="" session="4" user="koop">
+    <add id="245" objectId="26" parentObjId="" parentObjType="" what="connection">
+      <connection id="26" />
+    </add>
+    <add id="246" objectId="52" parentObjId="26" parentObjType="connection" what="port">
+      <port id="52" moduleId="4" moduleName="CreateEmptyLoadDB" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+    </add>
+    <add id="247" objectId="53" parentObjId="26" parentObjType="connection" what="port">
+      <port id="53" moduleId="25" moduleName="Group" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:18:57" id="79" prevId="78" prune="" session="4" user="koop">
+    <change id="248" newObjId="60" oldObjId="59" parentObjId="25" parentObjType="group" what="location">
+      <location id="60" x="17.2473255251" y="-163.32861386" />
+    </change>
+  </action>
+  <action date="2009-04-08 17:18:59" id="80" prevId="79" prune="" session="4" user="koop">
+    <add id="249" objectId="27" parentObjId="" parentObjType="" what="connection">
+      <connection id="27" />
+    </add>
+    <add id="250" objectId="54" parentObjId="27" parentObjType="connection" what="port">
+      <port id="54" moduleId="25" moduleName="Group" name="self" signature="(edu.utah.sci.vistrails.basic:Group)" type="source" />
+    </add>
+    <add id="251" objectId="55" parentObjId="27" parentObjType="connection" what="port">
+      <port id="55" moduleId="8" moduleName="Map" name="FunctionPort" signature="(edu.utah.sci.vistrails.basic:Module)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:19:15" id="81" prevId="80" prune="" session="4" user="koop">
+    <change id="252" newObjId="13" oldObjId="8" parentObjId="3" parentObjType="function" what="parameter">
+      <parameter alias="" id="13" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="dbEntry" />
+    </change>
+  </action>
+  <action date="2009-04-08 17:19:23" id="82" prevId="81" prune="" session="4" user="koop">
+    <change id="253" newObjId="61" oldObjId="54" parentObjId="21" parentObjType="module" what="location">
+      <location id="61" x="212.095119272" y="-431.581799248" />
+    </change>
+  </action>
+  <action date="2009-04-08 17:19:23" id="83" prevId="82" prune="" session="4" user="koop">
+    <add id="254" objectId="28" parentObjId="" parentObjType="" what="connection">
+      <connection id="28" />
+    </add>
+    <add id="255" objectId="56" parentObjId="28" parentObjType="connection" what="port">
+      <port id="56" moduleId="8" moduleName="Map" name="Result" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="256" objectId="57" parentObjId="28" parentObjType="connection" what="port">
+      <port id="57" moduleId="21" moduleName="CompactDatabase" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:19:27" id="84" prevId="83" prune="" session="4" user="koop">
+    <delete id="257" objectId="56" parentObjId="28" parentObjType="connection" what="port" />
+    <delete id="258" objectId="57" parentObjId="28" parentObjType="connection" what="port" />
+    <delete id="259" objectId="28" parentObjId="" parentObjType="" what="connection" />
+  </action>
+  <action date="2009-04-08 17:19:34" id="85" prevId="84" prune="" session="4" user="koop">
+    <add id="260" objectId="29" parentObjId="" parentObjType="" what="connection">
+      <connection id="29" />
+    </add>
+    <add id="261" objectId="58" parentObjId="29" parentObjType="connection" what="port">
+      <port id="58" moduleId="8" moduleName="Map" name="Result" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="262" objectId="59" parentObjId="29" parentObjType="connection" what="port">
+      <port id="59" moduleId="21" moduleName="CompactDatabase" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:21:28" id="86" prevId="85" prune="" session="4" user="koop">
+    <change id="263" newObjId="62" oldObjId="61" parentObjId="21" parentObjType="module" what="location">
+      <location id="62" x="217.990984439" y="-457.523605984" />
+    </change>
+  </action>
+  <action date="2009-04-08 17:21:28" id="87" prevId="86" prune="" session="4" user="koop">
+    <delete id="264" objectId="58" parentObjId="29" parentObjType="connection" what="port" />
+    <delete id="265" objectId="59" parentObjId="29" parentObjType="connection" what="port" />
+    <delete id="266" objectId="29" parentObjId="" parentObjType="" what="connection" />
+  </action>
+  <action date="2009-04-08 17:21:31" id="88" prevId="87" prune="" session="4" user="koop">
+    <add id="267" objectId="30" parentObjId="" parentObjType="" what="connection">
+      <connection id="30" />
+    </add>
+    <add id="268" objectId="60" parentObjId="30" parentObjType="connection" what="port">
+      <port id="60" moduleId="25" moduleName="Group" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+    </add>
+    <add id="269" objectId="61" parentObjId="30" parentObjType="connection" what="port">
+      <port id="61" moduleId="21" moduleName="CompactDatabase" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:21:51" id="89" prevId="88" prune="" session="4" user="koop">
+    <change id="270" newObjId="63" oldObjId="62" parentObjId="21" parentObjType="module" what="location">
+      <location id="63" x="2.20231931269" y="-396.206608244" />
+    </change>
+  </action>
+  <action date="2009-04-08 17:21:51" id="90" prevId="89" prune="" session="4" user="koop">
+    <delete id="271" objectId="60" parentObjId="30" parentObjType="connection" what="port" />
+    <delete id="272" objectId="61" parentObjId="30" parentObjType="connection" what="port" />
+    <delete id="273" objectId="30" parentObjId="" parentObjType="" what="connection" />
+  </action>
+  <action date="2009-04-08 17:22:10" id="91" prevId="90" prune="" session="4" user="koop">
+    <change id="274" newObjId="64" oldObjId="63" parentObjId="21" parentObjType="module" what="location">
+      <location id="64" x="228.60354174" y="-455.165259917" />
+    </change>
+  </action>
+  <action date="2009-04-08 17:22:23" id="92" prevId="91" prune="" session="4" user="koop">
+    <add id="275" objectId="26" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="26" name="If" namespace="" package="edu.utah.sci.vistrails.control_flow" tag="" version="0.1" />
+    </add>
+    <add id="276" objectId="65" parentObjId="26" parentObjType="module" what="location">
+      <location id="65" x="149.754975252" y="-367.901986445" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:22:36" id="93" prevId="92" prune="" session="4" user="koop">
+    <change id="277" newObjId="66" oldObjId="64" parentObjId="21" parentObjType="module" what="location">
+      <location id="66" x="235.953509581" y="-468.64020096" />
+    </change>
+  </action>
+  <action date="2009-04-08 17:22:39" id="94" prevId="93" prune="" session="4" user="koop">
+    <add id="278" objectId="31" parentObjId="" parentObjType="" what="connection">
+      <connection id="31" />
+    </add>
+    <add id="279" objectId="62" parentObjId="31" parentObjType="connection" what="port">
+      <port id="62" moduleId="21" moduleName="CompactDatabase" name="self" signature="(edu.utah.sci.vistrails.basic:Module)" type="source" />
+    </add>
+    <add id="280" objectId="63" parentObjId="31" parentObjType="connection" what="port">
+      <port id="63" moduleId="26" moduleName="If" name="TruePort" signature="(edu.utah.sci.vistrails.basic:Module)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:22:41" id="95" prevId="94" prune="" session="4" user="koop">
+    <add id="281" objectId="32" parentObjId="" parentObjType="" what="connection">
+      <connection id="32" />
+    </add>
+    <add id="282" objectId="64" parentObjId="32" parentObjType="connection" what="port">
+      <port id="64" moduleId="8" moduleName="Map" name="Result" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+    </add>
+    <add id="283" objectId="65" parentObjId="32" parentObjType="connection" what="port">
+      <port id="65" moduleId="26" moduleName="If" name="Condition" signature="(edu.utah.sci.vistrails.basic:Boolean)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:22:56" id="96" prevId="95" prune="" session="4" user="koop">
+    <change id="284" newObjId="67" oldObjId="65" parentObjId="26" parentObjType="module" what="location">
+      <location id="67" x="165.679905574" y="-369.126981085" />
+    </change>
+  </action>
+  <action date="2009-04-08 17:22:56" id="97" prevId="96" prune="" session="4" user="koop">
+    <add id="285" objectId="33" parentObjId="" parentObjType="" what="connection">
+      <connection id="33" />
+    </add>
+    <add id="286" objectId="66" parentObjId="33" parentObjType="connection" what="port">
+      <port id="66" moduleId="4" moduleName="CreateEmptyLoadDB" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+    </add>
+    <add id="287" objectId="67" parentObjId="33" parentObjType="connection" what="port">
+      <port id="67" moduleId="21" moduleName="CompactDatabase" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:23:40" id="98" prevId="97" prune="" session="4" user="koop">
+    <change id="288" newObjId="68" oldObjId="66" parentObjId="21" parentObjType="module" what="location">
+      <location id="68" x="360.902962881" y="-460.065238478" />
+    </change>
+  </action>
+  <action date="2009-04-08 17:23:40" id="99" prevId="98" prune="" session="4" user="koop" />
+  <action date="2009-04-08 17:43:41" id="100" prevId="99" prune="" session="5" user="koop">
+    <change id="289" newObjId="69" oldObjId="67" parentObjId="26" parentObjType="module" what="location">
+      <location id="69" x="176.22882839" y="-382.689881848" />
+    </change>
+  </action>
+  <action date="2009-04-08 17:43:41" id="101" prevId="100" prune="" session="5" user="koop">
+    <add id="290" objectId="27" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="27" name="Module" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2" />
+    </add>
+    <add id="291" objectId="70" parentObjId="27" parentObjType="module" what="location">
+      <location id="70" x="325.509618316" y="-292.355860895" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:43:47" id="102" prevId="101" prune="" session="5" user="koop">
+    <add id="292" objectId="34" parentObjId="" parentObjType="" what="connection">
+      <connection id="34" />
+    </add>
+    <add id="293" objectId="68" parentObjId="34" parentObjType="connection" what="port">
+      <port id="68" moduleId="27" moduleName="Module" name="self" signature="(edu.utah.sci.vistrails.basic:Module)" type="source" />
+    </add>
+    <add id="294" objectId="69" parentObjId="34" parentObjType="connection" what="port">
+      <port id="69" moduleId="26" moduleName="If" name="FalsePort" signature="(edu.utah.sci.vistrails.basic:Module)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-08 17:44:42" id="103" prevId="102" prune="" session="5" user="koop">
+    <change id="295" newObjId="71" oldObjId="70" parentObjId="27" parentObjType="module" what="location">
+      <location id="71" x="201.936522474" y="-468.673570816" />
+    </change>
+  </action>
+  <action date="2009-04-10 13:39:54" id="104" prevId="103" prune="" session="6" user="koop">
+    <add id="296" objectId="28" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="28" name="DetectionsHistogram" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0" />
+    </add>
+    <add id="297" objectId="72" parentObjId="28" parentObjType="module" what="location">
+      <location id="72" x="429.549610616" y="-595.581197698" />
+    </add>
+  </action>
+  <action date="2009-04-10 13:39:57" id="105" prevId="104" prune="" session="6" user="koop">
+    <add id="298" objectId="35" parentObjId="" parentObjType="" what="connection">
+      <connection id="35" />
+    </add>
+    <add id="299" objectId="70" parentObjId="35" parentObjType="connection" what="port">
+      <port id="70" moduleId="21" moduleName="CompactDatabase" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+    </add>
+    <add id="300" objectId="71" parentObjId="35" parentObjType="connection" what="port">
+      <port id="71" moduleId="28" moduleName="DetectionsHistogram" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-10 13:41:24" id="106" prevId="105" prune="" session="6" user="koop">
+    <add id="301" objectId="29" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="29" name="MplPlot" namespace="" package="edu.utah.sci.vistrails.matplotlib" tag="" version="0.9.0" />
+    </add>
+    <add id="302" objectId="73" parentObjId="29" parentObjType="module" what="location">
+      <location id="73" x="549.285584018" y="-710.147790766" />
+    </add>
+  </action>
+  <action date="2009-04-10 13:41:28" id="107" prevId="106" prune="" session="6" user="koop">
+    <add id="303" objectId="30" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="30" name="MplFigure" namespace="" package="edu.utah.sci.vistrails.matplotlib" tag="" version="0.9.0" />
+    </add>
+    <add id="304" objectId="74" parentObjId="30" parentObjType="module" what="location">
+      <location id="74" x="572.826394762" y="-823.928376027" />
+    </add>
+  </action>
+  <action date="2009-04-10 13:41:30" id="108" prevId="107" prune="" session="6" user="koop">
+    <add id="305" objectId="31" parentObjId="" parentObjType="" what="module">
+      <module cache="1" id="31" name="MplFigureCell" namespace="" package="edu.utah.sci.vistrails.matplotlib" tag="" version="0.9.0" />
+    </add>
+    <add id="306" objectId="75" parentObjId="31" parentObjType="module" what="location">
+      <location id="75" x="590.482002819" y="-937.708961288" />
+    </add>
+  </action>
+  <action date="2009-04-10 13:41:34" id="109" prevId="108" prune="" session="6" user="koop">
+    <add id="307" objectId="36" parentObjId="" parentObjType="" what="connection">
+      <connection id="36" />
+    </add>
+    <add id="308" objectId="72" parentObjId="36" parentObjType="connection" what="port">
+      <port id="72" moduleId="30" moduleName="MplFigure" name="FigureManager" signature="(edu.utah.sci.vistrails.matplotlib:MplFigureManager)" type="source" />
+    </add>
+    <add id="309" objectId="73" parentObjId="36" parentObjType="connection" what="port">
+      <port id="73" moduleId="31" moduleName="MplFigureCell" name="FigureManager" signature="(edu.utah.sci.vistrails.matplotlib:MplFigureManager)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-10 13:41:42" id="110" prevId="109" prune="" session="6" user="koop">
+    <add id="310" objectId="37" parentObjId="" parentObjType="" what="connection">
+      <connection id="37" />
+    </add>
+    <add id="311" objectId="74" parentObjId="37" parentObjType="connection" what="port">
+      <port id="74" moduleId="29" moduleName="MplPlot" name="source" signature="(edu.utah.sci.vistrails.basic:String)" type="source" />
+    </add>
+    <add id="312" objectId="75" parentObjId="37" parentObjType="connection" what="port">
+      <port id="75" moduleId="30" moduleName="MplFigure" name="Script" signature="(edu.utah.sci.vistrails.basic:String)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-10 13:45:54" id="111" prevId="110" prune="" session="6" user="koop">
+    <add id="313" objectId="0" parentObjId="29" parentObjType="module" what="portSpec">
+      <portSpec id="0" name="histogramData" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="0" type="input" />
+    </add>
+    <add id="314" objectId="6" parentObjId="29" parentObjType="module" what="function">
+      <function id="6" name="source" pos="0" />
+    </add>
+    <add id="315" objectId="14" parentObjId="6" parentObjType="function" what="parameter">
+      <parameter alias="" id="14" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="x%20%3D%20%5Ba%5B1%5D%20for%20a%20in%20histogramData%5D%0Abins%20%3D%20%5Ba%5B0%5D%20for%20a%20in%20histogramData%5D%0A%0Ahist%28x%2C%20bins%29%0A" />
+    </add>
+  </action>
+  <action date="2009-04-10 13:45:58" id="112" prevId="111" prune="" session="6" user="koop">
+    <add id="316" objectId="38" parentObjId="" parentObjType="" what="connection">
+      <connection id="38" />
+    </add>
+    <add id="317" objectId="76" parentObjId="38" parentObjType="connection" what="port">
+      <port id="76" moduleId="28" moduleName="DetectionsHistogram" name="histogram" signature="(edu.utah.sci.vistrails.control_flow:ListOfElements)" type="source" />
+    </add>
+    <add id="318" objectId="77" parentObjId="38" parentObjType="connection" what="port">
+      <port id="77" moduleId="29" moduleName="MplPlot" name="histogramData" signature="(edu.utah.sci.vistrails.control_flow:ListOfElements)" type="destination" />
+    </add>
+  </action>
+  <action date="2009-04-10 14:02:37" id="113" prevId="112" prune="" session="7" user="koop">
+    <change id="319" newObjId="15" oldObjId="14" parentObjId="6" parentObjType="function" what="parameter">
+      <parameter alias="" id="15" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="x%20%3D%20%5Ba%5B1%5D%20for%20a%20in%20histogramData%5D%0Abins%20%3D%20%5Ba%5B0%5D%20for%20a%20in%20histogramData%5D%0A%0Abar%28x%2C%20bins%29%0A" />
+    </change>
+  </action>
+  <action date="2009-04-10 14:03:17" id="114" prevId="113" prune="" session="7" user="koop">
+    <change id="320" newObjId="16" oldObjId="15" parentObjId="6" parentObjType="function" what="parameter">
+      <parameter alias="" id="16" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="x%20%3D%20%5Ba%5B1%5D%20for%20a%20in%20histogramData%5D%0Abins%20%3D%20%5Ba%5B0%5D%20for%20a%20in%20histogramData%5D%0A%0Abar%28bins%2C%20x%29%0A" />
+    </change>
+  </action>
+  <action date="2009-04-10 14:03:32" id="115" prevId="114" prune="" session="7" user="koop">
+    <change id="321" newObjId="17" oldObjId="10" parentObjId="4" parentObjType="function" what="parameter">
+      <parameter alias="" id="17" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="J062945" />
+    </change>
+  </action>
+  <action date="2009-04-10 14:04:46" id="116" prevId="115" prune="" session="7" user="koop">
+    <add id="322" objectId="7" parentObjId="28" parentObjType="module" what="function">
+      <function id="7" name="highQuality" pos="0" />
+    </add>
+    <add id="323" objectId="18" parentObjId="7" parentObjType="function" what="parameter">
+      <parameter alias="" id="18" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="" />
+    </add>
+  </action>
+  <action date="2009-04-10 14:04:47" id="117" prevId="116" prune="" session="7" user="koop">
+    <change id="324" newObjId="19" oldObjId="18" parentObjId="7" parentObjType="function" what="parameter">
+      <parameter alias="" id="19" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
+    </change>
+  </action>
+  <action date="2009-04-10 14:06:31" id="118" prevId="117" prune="" session="8" user="koop" />
+  <action date="2009-04-10 14:06:32" id="119" prevId="118" prune="" session="8" user="koop">
+    <change id="325" newObjId="20" oldObjId="19" parentObjId="7" parentObjType="function" what="parameter">
+      <parameter alias="" id="20" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="False" />
+    </change>
+  </action>
+  <action date="2009-04-10 14:08:48" id="120" prevId="119" prune="" session="8" user="koop">
+    <change id="326" newObjId="21" oldObjId="20" parentObjId="7" parentObjType="function" what="parameter">
+      <parameter alias="" id="21" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
+    </change>
+  </action>
+  <action date="2009-04-10 14:09:20" id="121" prevId="120" prune="" session="8" user="koop" />
+  <tag id="46" name="Working Map" />
+  <tag id="60" name="SingleString" />
+  <tag id="85" name="Moved Compact" />
+  <tag id="99" name="Compact Outside" />
+  <tag id="103" name="Fixed False Branch" />
+  <tag id="119" name="Histogram" />
+  <tag id="120" name="High Quality Histogram" />
+</vistrail>

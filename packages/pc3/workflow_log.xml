@@ -1,0 +1,47 @@
+<log id="" name="" version="1.0.0" vistrail_id="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/log.xsd">
+  <workflowExec completed="1" id="1" ip="155.98.20.78" name="" parentId="" parentType="vistrail" parentVersion="121" session="9" tsEnd="2009-05-07 14:25:18" tsStart="2009-05-07 14:25:14" user="koop" vtVersion="1.2">
+    <moduleExec cached="0" completed="1" error="" id="1" machine_id="1" moduleId="12" moduleName="String" tsEnd="2009-05-07 14:25:14" tsStart="2009-05-07 14:25:14" />
+    <moduleExec cached="0" completed="1" error="" id="2" machine_id="1" moduleId="13" moduleName="ConcatenateString" tsEnd="2009-05-07 14:25:14" tsStart="2009-05-07 14:25:14" />
+    <moduleExec cached="0" completed="1" error="" id="3" machine_id="1" moduleId="2" moduleName="GetCSVFiles" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+    <moduleExec cached="0" completed="1" error="" id="4" machine_id="1" moduleId="4" moduleName="CreateEmptyLoadDB" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+    <moduleExec cached="0" completed="1" error="" id="5" machine_id="1" moduleId="8" moduleName="Map" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:15">
+      <loopExec completed="1" error="" id="6" iteration="0" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15">
+        <groupExec cached="0" completed="1" error="" groupName="Group" groupType="Group" id="7" machine_id="1" moduleId="25" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15">
+          <moduleExec cached="0" completed="1" error="" id="8" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="9" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="10" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="11" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="12" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="13" machine_id="1" moduleId="6" moduleName="OutputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+        </groupExec>
+      </loopExec>
+      <loopExec completed="1" error="" id="14" iteration="1" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15">
+        <groupExec cached="0" completed="1" error="" groupName="Group" groupType="Group" id="15" machine_id="1" moduleId="25" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15">
+          <moduleExec cached="0" completed="1" error="" id="16" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="17" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="18" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="19" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="20" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="21" machine_id="1" moduleId="6" moduleName="OutputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+        </groupExec>
+      </loopExec>
+      <loopExec completed="1" error="" id="22" iteration="2" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:15">
+        <groupExec cached="0" completed="1" error="" groupName="Group" groupType="Group" id="23" machine_id="1" moduleId="25" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:15">
+          <moduleExec cached="0" completed="1" error="" id="24" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="25" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="26" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="27" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-07 14:25:16" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="28" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:16" />
+          <moduleExec cached="0" completed="1" error="" id="29" machine_id="1" moduleId="6" moduleName="OutputPort" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:17" />
+        </groupExec>
+      </loopExec>
+    </moduleExec>
+    <moduleExec cached="0" completed="1" error="" id="30" machine_id="1" moduleId="26" moduleName="If" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:17" />
+    <moduleExec cached="0" completed="1" error="" id="31" machine_id="1" moduleId="21" moduleName="CompactDatabase" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:17" />
+    <moduleExec cached="0" completed="1" error="" id="32" machine_id="1" moduleId="28" moduleName="DetectionsHistogram" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:17" />
+    <moduleExec cached="0" completed="1" error="" id="33" machine_id="1" moduleId="29" moduleName="MplPlot" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:17" />
+    <moduleExec cached="0" completed="1" error="" id="34" machine_id="1" moduleId="30" moduleName="MplFigure" tsEnd="2009-05-07 14:25:18" tsStart="2009-05-07 14:25:17" />
+    <moduleExec cached="0" completed="1" error="" id="35" machine_id="1" moduleId="31" moduleName="MplFigureCell" tsEnd="2009-05-07 14:25:18" tsStart="2009-05-07 14:25:18" />
+  </workflowExec>
+  <machine architecture="32" id="1" name="vgc-g5c.sci.utah.edu" os="Darwin" processor="powerpc" ram="4294967296" />
+</log>

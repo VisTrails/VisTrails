@@ -1,0 +1,330 @@
+<registry id="" rootDescriptorId="0" version="1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/registry.xsd">
+  <package codepath="basic_modules" description="basic_modules defines basic VisTrails Modules that are used in most
+pipelines." id="0" identifier="edu.utah.sci.vistrails.basic" loadConfiguration="1" name="Basic Modules" version="1.2">
+    <moduleDescriptor baseDescriptorId="-1" id="0" name="Module" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="0" name="self" optional="1" sigstring="(edu.utah.sci.vistrails.basic:Module)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="1" name="Constant" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="9" name="value_as_string" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="1" id="2" name="Boolean" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="1" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="input" />
+      <portSpec id="2" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="1" id="3" name="Float" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="3" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Float)" sortKey="-1" type="input" />
+      <portSpec id="4" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Float)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="1" id="4" name="Integer" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="5" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Integer)" sortKey="-1" type="input" />
+      <portSpec id="6" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Integer)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="1" id="5" name="String" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="7" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="8" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="1" id="6" name="File" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="10" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:File)" sortKey="-1" type="input" />
+      <portSpec id="11" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:File)" sortKey="-1" type="output" />
+      <portSpec id="12" name="name" optional="1" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="13" name="self" optional="1" sigstring="(edu.utah.sci.vistrails.basic:File)" sortKey="-1" type="output" />
+      <portSpec id="14" name="create_file" optional="1" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="input" />
+      <portSpec id="15" name="local_filename" optional="1" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="7" name="FileSink" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="16" name="file" optional="0" sigstring="(edu.utah.sci.vistrails.basic:File)" sortKey="-1" type="input" />
+      <portSpec id="17" name="outputName" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="18" name="overrideFile" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="input" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="1" id="8" name="Color" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="19" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Color)" sortKey="-1" type="input" />
+      <portSpec id="20" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Color)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="9" name="StandardOutput" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="21" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Module)" sortKey="-1" type="input" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="10" name="Tuple" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="22" name="self" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Tuple)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="11" name="TestTuple" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="23" name="tuple" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Integer,edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="12" name="Untuple" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="24" name="tuple" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Tuple)" sortKey="-1" type="input" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="13" name="ConcatenateString" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="25" name="str1" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="26" name="str2" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="27" name="str3" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="28" name="str4" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="29" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="14" name="List" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="30" name="head" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Module)" sortKey="-1" type="input" />
+      <portSpec id="31" name="tail" optional="0" sigstring="(edu.utah.sci.vistrails.basic:List)" sortKey="-1" type="input" />
+      <portSpec id="32" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:List)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="15" name="Null" namespace="" package="edu.utah.sci.vistrails.basic" version="" />
+    <moduleDescriptor baseDescriptorId="0" id="16" name="PythonSource" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="33" name="source" optional="1" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="34" name="self" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Module)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="17" name="SmartSource" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="35" name="source" optional="1" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="18" name="Unzip" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="36" name="archive_file" optional="0" sigstring="(edu.utah.sci.vistrails.basic:File)" sortKey="-1" type="input" />
+      <portSpec id="37" name="filename_in_archive" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="38" name="file" optional="0" sigstring="(edu.utah.sci.vistrails.basic:File)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="19" name="Variant" namespace="" package="edu.utah.sci.vistrails.basic" version="" />
+    <moduleDescriptor baseDescriptorId="0" id="20" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="39" name="name" optional="1" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="40" name="optional" optional="1" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="input" />
+      <portSpec id="41" name="spec" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="42" name="old_name" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="43" name="ExternalPipe" optional="1" sigstring="(edu.utah.sci.vistrails.basic:Variant)" sortKey="-1" type="input" />
+      <portSpec id="44" name="InternalPipe" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Variant)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="21" name="OutputPort" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="45" name="name" optional="1" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="46" name="optional" optional="1" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="input" />
+      <portSpec id="47" name="spec" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="48" name="InternalPipe" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Variant)" sortKey="-1" type="input" />
+      <portSpec id="49" name="ExternalPipe" optional="1" sigstring="(edu.utah.sci.vistrails.basic:Variant)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="22" name="Group" namespace="" package="edu.utah.sci.vistrails.basic" version="">
+      <portSpec id="50" name="self" optional="1" sigstring="(edu.utah.sci.vistrails.basic:Group)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="22" id="23" name="SubWorkflow" namespace="" package="edu.utah.sci.vistrails.basic" version="" />
+  </package>
+  <package codepath="pythonCalc" description="This package implements a very simple VisTrails module called
+PythonCalc. This is intended as a simple example that can be referred
+to by users to create their own packages and modules later.
+
+If you&apos;re interested in developing new modules for VisTrails, you
+should also consult the documentation in the User&apos;s Guide and in
+core/modules/vistrails_module.py.
+" id="1" identifier="edu.utah.sci.vistrails.pythoncalc" loadConfiguration="1" name="PythonCalc" version="0.9.0">
+    <moduleDescriptor baseDescriptorId="0" id="24" name="PythonCalc" namespace="" package="edu.utah.sci.vistrails.pythoncalc" version="">
+      <portSpec id="51" name="value1" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Float)" sortKey="-1" type="input" />
+      <portSpec id="52" name="value2" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Float)" sortKey="-1" type="input" />
+      <portSpec id="53" name="op" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="54" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Float)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+  </package>
+  <package codepath="spreadsheet" description="No description available" id="2" identifier="edu.utah.sci.vistrails.spreadsheet" loadConfiguration="1" name="VisTrails Spreadsheet" version="0.9.0">
+    <moduleDescriptor baseDescriptorId="0" id="25" name="SheetReference" namespace="" package="edu.utah.sci.vistrails.spreadsheet" version="">
+      <portSpec id="55" name="MinRowCount" optional="1" sigstring="(edu.utah.sci.vistrails.basic:Integer)" sortKey="-1" type="input" />
+      <portSpec id="56" name="MinColumnCount" optional="1" sigstring="(edu.utah.sci.vistrails.basic:Integer)" sortKey="-1" type="input" />
+      <portSpec id="57" name="SheetName" optional="1" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="58" name="self" optional="0" sigstring="(edu.utah.sci.vistrails.spreadsheet:SheetReference)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="26" name="CellLocation" namespace="" package="edu.utah.sci.vistrails.spreadsheet" version="">
+      <portSpec id="59" name="ColumnRowAddress" optional="1" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="60" name="Row" optional="1" sigstring="(edu.utah.sci.vistrails.basic:Integer)" sortKey="-1" type="input" />
+      <portSpec id="61" name="Column" optional="1" sigstring="(edu.utah.sci.vistrails.basic:Integer)" sortKey="-1" type="input" />
+      <portSpec id="62" name="SheetReference" optional="0" sigstring="(edu.utah.sci.vistrails.spreadsheet:SheetReference)" sortKey="-1" type="input" />
+      <portSpec id="63" name="self" optional="0" sigstring="(edu.utah.sci.vistrails.spreadsheet:CellLocation)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="27" name="SpreadsheetCell" namespace="" package="edu.utah.sci.vistrails.spreadsheet" version="">
+      <portSpec id="64" name="Location" optional="0" sigstring="(edu.utah.sci.vistrails.spreadsheet:CellLocation)" sortKey="-1" type="input" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="25" id="28" name="SingleCellSheetReference" namespace="" package="edu.utah.sci.vistrails.spreadsheet" version="">
+      <portSpec id="65" name="SheetName" optional="1" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="66" name="self" optional="0" sigstring="(edu.utah.sci.vistrails.spreadsheet:SingleCellSheetReference)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="27" id="29" name="ImageViewerCell" namespace="" package="edu.utah.sci.vistrails.spreadsheet" version="">
+      <portSpec id="67" name="Location" optional="0" sigstring="(edu.utah.sci.vistrails.spreadsheet:CellLocation)" sortKey="-1" type="input" />
+      <portSpec id="68" name="File" optional="0" sigstring="(edu.utah.sci.vistrails.basic:File)" sortKey="-1" type="input" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="27" id="30" name="RichTextCell" namespace="" package="edu.utah.sci.vistrails.spreadsheet" version="">
+      <portSpec id="69" name="Location" optional="0" sigstring="(edu.utah.sci.vistrails.spreadsheet:CellLocation)" sortKey="-1" type="input" />
+      <portSpec id="70" name="File" optional="0" sigstring="(edu.utah.sci.vistrails.basic:File)" sortKey="-1" type="input" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="27" id="31" name="SVGCell" namespace="" package="edu.utah.sci.vistrails.spreadsheet" version="">
+      <portSpec id="71" name="Location" optional="0" sigstring="(edu.utah.sci.vistrails.spreadsheet:CellLocation)" sortKey="-1" type="input" />
+      <portSpec id="72" name="File" optional="0" sigstring="(edu.utah.sci.vistrails.basic:File)" sortKey="-1" type="input" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="32" name="SVGSplitter" namespace="" package="edu.utah.sci.vistrails.spreadsheet" version="">
+      <portSpec id="73" name="File" optional="0" sigstring="(edu.utah.sci.vistrails.basic:File)" sortKey="-1" type="input" />
+    </moduleDescriptor>
+  </package>
+  <package codepath="controlflow" description="No description available" id="6" identifier="edu.utah.sci.vistrails.control_flow" loadConfiguration="1" name="Control Flow" version="0.1">
+    <moduleDescriptor baseDescriptorId="1" id="33" name="ListOfElements" namespace="" package="edu.utah.sci.vistrails.control_flow" version="">
+      <portSpec id="74" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="input" />
+      <portSpec id="75" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="34" name="Fold" namespace="" package="edu.utah.sci.vistrails.control_flow" version="">
+      <portSpec id="76" name="FunctionPort" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Module)" sortKey="-1" type="input" />
+      <portSpec id="77" name="InputList" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="input" />
+      <portSpec id="78" name="InputPort" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="input" />
+      <portSpec id="79" name="OutputPort" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="80" name="Result" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Variant)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="34" id="35" name="Map" namespace="" package="edu.utah.sci.vistrails.control_flow" version="" />
+    <moduleDescriptor baseDescriptorId="34" id="36" name="Filter" namespace="" package="edu.utah.sci.vistrails.control_flow" version="" />
+    <moduleDescriptor baseDescriptorId="34" id="37" name="AreaFilter" namespace="" package="edu.utah.sci.vistrails.control_flow" version="" />
+    <moduleDescriptor baseDescriptorId="34" id="38" name="SimilarityFilter" namespace="" package="edu.utah.sci.vistrails.control_flow" version="" />
+    <moduleDescriptor baseDescriptorId="0" id="39" name="If" namespace="" package="edu.utah.sci.vistrails.control_flow" version="">
+      <portSpec id="81" name="Condition" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="input" />
+      <portSpec id="82" name="TruePort" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Module)" sortKey="-1" type="input" />
+      <portSpec id="83" name="FalsePort" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Module)" sortKey="-1" type="input" />
+      <portSpec id="84" name="TrueOutputPorts" optional="1" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="input" />
+      <portSpec id="85" name="FalseOutputPorts" optional="1" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="input" />
+      <portSpec id="86" name="Result" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Variant)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="40" name="Dot" namespace="" package="edu.utah.sci.vistrails.control_flow" version="">
+      <portSpec id="87" name="List_1" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="input" />
+      <portSpec id="88" name="List_2" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="input" />
+      <portSpec id="89" name="CombineTuple" optional="1" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="input" />
+      <portSpec id="90" name="Result" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="41" name="Cross" namespace="" package="edu.utah.sci.vistrails.control_flow" version="">
+      <portSpec id="91" name="List_1" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="input" />
+      <portSpec id="92" name="List_2" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="input" />
+      <portSpec id="93" name="CombineTuple" optional="1" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="input" />
+      <portSpec id="94" name="Result" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+  </package>
+  <package codepath="HTTP" description="HTTP provides packages for HTTP-based file fetching. This provides
+a location-independent way of referring to files. This package uses a
+local cache of the files, inside the per-user VisTrails
+directory. This way, files that haven&apos;t been changed do not need
+downloading. The check is performed efficiently using the HTTP GET
+headers.
+" id="4" identifier="edu.utah.sci.vistrails.http" loadConfiguration="1" name="HTTP" version="0.9.0">
+    <moduleDescriptor baseDescriptorId="0" id="42" name="HTTP" namespace="" package="edu.utah.sci.vistrails.http" version="" />
+    <moduleDescriptor baseDescriptorId="42" id="43" name="HTTPFile" namespace="" package="edu.utah.sci.vistrails.http" version="">
+      <portSpec id="95" name="url" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="96" name="file" optional="0" sigstring="(edu.utah.sci.vistrails.basic:File)" sortKey="-1" type="output" />
+      <portSpec id="97" name="local_filename" optional="1" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+  </package>
+  <package codepath="pylab" description="Matplotlib package for VisTrails.
+
+This package wrap Matplotlib to provide a plotting tool for
+VisTrails. We are going to use the &apos;Qt4Agg&apos; backend of the library.
+
+" id="5" identifier="edu.utah.sci.vistrails.matplotlib" loadConfiguration="1" name="matplotlib" version="0.9.0">
+    <moduleDescriptor baseDescriptorId="16" id="44" name="MplPlot" namespace="" package="edu.utah.sci.vistrails.matplotlib" version="">
+      <portSpec id="98" name="source" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="45" name="MplFigureManager" namespace="" package="edu.utah.sci.vistrails.matplotlib" version="" />
+    <moduleDescriptor baseDescriptorId="0" id="46" name="MplFigure" namespace="" package="edu.utah.sci.vistrails.matplotlib" version="">
+      <portSpec id="99" name="Script" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="100" name="FigureManager" optional="0" sigstring="(edu.utah.sci.vistrails.matplotlib:MplFigureManager)" sortKey="-1" type="output" />
+      <portSpec id="101" name="File" optional="0" sigstring="(edu.utah.sci.vistrails.basic:File)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="27" id="47" name="MplFigureCell" namespace="" package="edu.utah.sci.vistrails.matplotlib" version="">
+      <portSpec id="102" name="FigureManager" optional="0" sigstring="(edu.utah.sci.vistrails.matplotlib:MplFigureManager)" sortKey="-1" type="input" />
+    </moduleDescriptor>
+  </package>
+  <package codepath="dialogs" description="dialogs provides modules for user-based interaction on execution.
+Users can then enter file names, numbers, strings, etc." id="3" identifier="edu.utah.sci.vistrails.dialogs" loadConfiguration="1" name="Dialogs" version="0.9.0">
+    <moduleDescriptor baseDescriptorId="0" id="48" name="Dialog" namespace="" package="edu.utah.sci.vistrails.dialogs" version="" />
+    <moduleDescriptor baseDescriptorId="48" id="49" name="TextDialog" namespace="" package="edu.utah.sci.vistrails.dialogs" version="">
+      <portSpec id="103" name="title" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="104" name="label" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="105" name="default" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="106" name="result" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+  </package>
+  <package codepath="pc3" description="No description available" id="7" identifier="edu.utah.sci.dakoop.pc3" loadConfiguration="1" name="Provenance Challenge 3" version="1.0.0">
+    <moduleDescriptor baseDescriptorId="0" id="50" name="ReadCSVReadyFile" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="107" name="csvRootPath" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="108" name="csvFiles" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="51" name="IsMatchTableRowCount" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="109" name="csvFile" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="input" />
+      <portSpec id="110" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="input" />
+      <portSpec id="111" name="countsMatch" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="52" name="LoadCSVFileIntoDB" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="112" name="csvFile" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="input" />
+      <portSpec id="113" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="input" />
+      <portSpec id="114" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="53" name="IsMatchCSVFileColumnNames" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="115" name="csvFile" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="input" />
+      <portSpec id="116" name="columnsMatch" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="54" name="ComputeColumns" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="117" name="csvFile" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="input" />
+      <portSpec id="118" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="input" />
+      <portSpec id="119" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="55" name="ReadCSVFile" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="120" name="csvFile" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="input" />
+      <portSpec id="121" name="csvFile" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="56" name="LoadCSVFileIntoTable" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="122" name="csvFile" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="input" />
+      <portSpec id="123" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="input" />
+      <portSpec id="124" name="success" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="57" name="IsMatchTableColumnRanges" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="125" name="csvFile" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="input" />
+      <portSpec id="126" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="input" />
+      <portSpec id="127" name="rangesMatch" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="58" name="DetectionsHistogram" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="128" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="input" />
+      <portSpec id="129" name="highQuality" optional="1" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="input" />
+      <portSpec id="130" name="histogram" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="59" name="Collection" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="131" name="elements" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Module)" sortKey="-1" type="input" />
+      <portSpec id="132" name="self" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:Collection)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="60" name="CompactDatabase" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="133" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="input" />
+      <portSpec id="134" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="61" name="IsMatchCSVFileTables" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="135" name="csvFiles" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="input" />
+      <portSpec id="136" name="tablesMatch" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="62" name="ReadCSVFileColumnNames" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="137" name="csvFile" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="input" />
+      <portSpec id="138" name="csvFile" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="63" name="CreateEmptyLoadDB" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="139" name="jobID" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="140" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="64" name="GetCSVFiles" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="141" name="csvRootPath" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="142" name="csvFiles" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="65" name="IsExistsCSVFile" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="143" name="csvFile" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="input" />
+      <portSpec id="144" name="fileExists" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="66" name="DatabaseEntry" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="145" name="dbGuid" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="146" name="dbName" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="147" name="connectionString" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="148" name="self" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="67" name="UpdateComputedColumns" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="149" name="csvFile" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="input" />
+      <portSpec id="150" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="input" />
+      <portSpec id="151" name="success" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="68" name="CSVFileEntry" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="152" name="filePath" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="153" name="headerPath" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="154" name="rowCount" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Integer)" sortKey="-1" type="input" />
+      <portSpec id="155" name="targetTable" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="156" name="checksum" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="157" name="columnNames" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:Collection)" sortKey="-1" type="input" />
+      <portSpec id="158" name="self" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+    <moduleDescriptor baseDescriptorId="0" id="69" name="IsCSVReadyFileExists" namespace="" package="edu.utah.sci.dakoop.pc3" version="">
+      <portSpec id="159" name="csvRootPath" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="input" />
+      <portSpec id="160" name="fileExists" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Boolean)" sortKey="-1" type="output" />
+    </moduleDescriptor>
+  </package>
+  <package codepath="subworkflows" description="No description available" id="8" identifier="local.abstractions" loadConfiguration="1" name="My SubWorkflows" version="1.2" />
+</registry>

@@ -1,0 +1,169 @@
+<workflow id="0" name="untitled" version="1.0.0" vistrail_id="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/workflow.xsd">
+  <connection id="32">
+    <port id="64" moduleId="8" moduleName="Map" name="Result" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+    <port id="65" moduleId="26" moduleName="If" name="Condition" signature="(edu.utah.sci.vistrails.basic:Boolean)" type="destination" />
+  </connection>
+  <connection id="33">
+    <port id="66" moduleId="4" moduleName="CreateEmptyLoadDB" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+    <port id="67" moduleId="21" moduleName="CompactDatabase" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+  </connection>
+  <connection id="34">
+    <port id="68" moduleId="27" moduleName="Module" name="self" signature="(edu.utah.sci.vistrails.basic:Module)" type="source" />
+    <port id="69" moduleId="26" moduleName="If" name="FalsePort" signature="(edu.utah.sci.vistrails.basic:Module)" type="destination" />
+  </connection>
+  <connection id="35">
+    <port id="70" moduleId="21" moduleName="CompactDatabase" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+    <port id="71" moduleId="28" moduleName="DetectionsHistogram" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+  </connection>
+  <connection id="36">
+    <port id="72" moduleId="30" moduleName="MplFigure" name="FigureManager" signature="(edu.utah.sci.vistrails.matplotlib:MplFigureManager)" type="source" />
+    <port id="73" moduleId="31" moduleName="MplFigureCell" name="FigureManager" signature="(edu.utah.sci.vistrails.matplotlib:MplFigureManager)" type="destination" />
+  </connection>
+  <connection id="37">
+    <port id="74" moduleId="29" moduleName="MplPlot" name="source" signature="(edu.utah.sci.vistrails.basic:String)" type="source" />
+    <port id="75" moduleId="30" moduleName="MplFigure" name="Script" signature="(edu.utah.sci.vistrails.basic:String)" type="destination" />
+  </connection>
+  <connection id="6">
+    <port id="12" moduleId="2" moduleName="GetCSVFiles" name="csvFiles" signature="(edu.utah.sci.vistrails.control_flow:ListOfElements)" type="source" />
+    <port id="13" moduleId="8" moduleName="Map" name="InputList" signature="(edu.utah.sci.vistrails.control_flow:ListOfElements)" type="destination" />
+  </connection>
+  <connection id="38">
+    <port id="76" moduleId="28" moduleName="DetectionsHistogram" name="histogram" signature="(edu.utah.sci.vistrails.control_flow:ListOfElements)" type="source" />
+    <port id="77" moduleId="29" moduleName="MplPlot" name="histogramData" signature="(edu.utah.sci.vistrails.control_flow:ListOfElements)" type="destination" />
+  </connection>
+  <connection id="11">
+    <port id="22" moduleId="12" moduleName="String" name="value" signature="(edu.utah.sci.vistrails.basic:String)" type="source" />
+    <port id="23" moduleId="4" moduleName="CreateEmptyLoadDB" name="jobID" signature="(edu.utah.sci.vistrails.basic:String)" type="destination" />
+  </connection>
+  <connection id="12">
+    <port id="24" moduleId="12" moduleName="String" name="value" signature="(edu.utah.sci.vistrails.basic:String)" type="source" />
+    <port id="25" moduleId="13" moduleName="ConcatenateString" name="str2" signature="(edu.utah.sci.vistrails.basic:String)" type="destination" />
+  </connection>
+  <connection id="13">
+    <port id="26" moduleId="13" moduleName="ConcatenateString" name="value" signature="(edu.utah.sci.vistrails.basic:String)" type="source" />
+    <port id="27" moduleId="2" moduleName="GetCSVFiles" name="csvRootPath" signature="(edu.utah.sci.vistrails.basic:String)" type="destination" />
+  </connection>
+  <connection id="26">
+    <port id="52" moduleId="4" moduleName="CreateEmptyLoadDB" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+    <port id="53" moduleId="25" moduleName="Group" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+  </connection>
+  <connection id="27">
+    <port id="54" moduleId="25" moduleName="Group" name="self" signature="(edu.utah.sci.vistrails.basic:Group)" type="source" />
+    <port id="55" moduleId="8" moduleName="Map" name="FunctionPort" signature="(edu.utah.sci.vistrails.basic:Module)" type="destination" />
+  </connection>
+  <connection id="31">
+    <port id="62" moduleId="21" moduleName="CompactDatabase" name="self" signature="(edu.utah.sci.vistrails.basic:Module)" type="source" />
+    <port id="63" moduleId="26" moduleName="If" name="TruePort" signature="(edu.utah.sci.vistrails.basic:Module)" type="destination" />
+  </connection>
+  <module cache="1" id="2" name="GetCSVFiles" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0">
+    <location id="21" x="338.293817527" y="-164.978391356" />
+  </module>
+  <module cache="1" id="4" name="CreateEmptyLoadDB" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0">
+    <location id="58" x="-38.9585627535" y="15.0773161002" />
+  </module>
+  <module cache="1" id="8" name="Map" namespace="" package="edu.utah.sci.vistrails.control_flow" tag="" version="0.1">
+    <location id="20" x="114.016806723" y="-292.571428571" />
+    <function id="2" name="InputPort" pos="0">
+      <parameter alias="" id="6" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.control_flow:ListOfElements" val="[&apos;csvFile&apos;]" />
+    </function>
+    <function id="3" name="OutputPort" pos="1">
+      <parameter alias="" id="13" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="dbEntry" />
+    </function>
+  </module>
+  <module cache="1" id="12" name="String" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2">
+    <location id="37" x="150.588235294" y="152.739495798" />
+    <function id="4" name="value" pos="0">
+      <parameter alias="" id="17" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="J062945" />
+    </function>
+  </module>
+  <module cache="1" id="13" name="ConcatenateString" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2">
+    <location id="36" x="271.058823529" y="52.7058823529" />
+    <function id="5" name="str1" pos="0">
+      <parameter alias="" id="12" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="/vistrails/pc3/SampleData/" />
+    </function>
+  </module>
+  <module cache="1" id="21" name="CompactDatabase" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0">
+    <location id="68" x="360.902962881" y="-460.065238478" />
+  </module>
+  <group cache="1" id="25" name="Group" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="">
+    <workflow id="" name="untitled" version="" vistrail_id="">
+      <connection id="1">
+        <port id="1" moduleId="1" moduleName="ComputeColumns" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+        <port id="2" moduleId="2" moduleName="LoadCSVFileIntoDB" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+      </connection>
+      <connection id="2">
+        <port id="3" moduleId="2" moduleName="LoadCSVFileIntoDB" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="destination" />
+        <port id="4" moduleId="3" moduleName="ReadCSVFile" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="source" />
+      </connection>
+      <connection id="3">
+        <port id="5" moduleId="1" moduleName="ComputeColumns" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="destination" />
+        <port id="6" moduleId="3" moduleName="ReadCSVFile" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="source" />
+      </connection>
+      <connection id="4">
+        <port id="7" moduleId="4" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+        <port id="8" moduleId="3" moduleName="ReadCSVFile" name="csvFile" signature="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" type="destination" />
+      </connection>
+      <connection id="5">
+        <port id="9" moduleId="5" moduleName="InputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="source" />
+        <port id="10" moduleId="2" moduleName="LoadCSVFileIntoDB" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
+      </connection>
+      <connection id="6">
+        <port id="11" moduleId="1" moduleName="ComputeColumns" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="source" />
+        <port id="12" moduleId="6" moduleName="OutputPort" name="InternalPipe" signature="(edu.utah.sci.vistrails.basic:Variant)" type="destination" />
+      </connection>
+      <module cache="1" id="1" name="ComputeColumns" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0">
+        <location id="1" x="66.7948593185" y="-134.829855648" />
+      </module>
+      <module cache="1" id="2" name="LoadCSVFileIntoDB" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0">
+        <location id="2" x="57.1141870494" y="-46.6281749756" />
+      </module>
+      <module cache="1" id="3" name="ReadCSVFile" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0">
+        <location id="3" x="-134.767894144" y="65.4297450412" />
+      </module>
+      <module cache="1" id="4" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2">
+        <location id="4" x="-206.697188695" y="178.15512489" />
+        <function id="1" name="name" pos="0">
+          <parameter alias="" id="1" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="csvFile" />
+        </function>
+      </module>
+      <module cache="1" id="5" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2">
+        <location id="5" x="56.8852296284" y="150.149492943" />
+        <function id="2" name="name" pos="0">
+          <parameter alias="" id="2" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="dbEntry" />
+        </function>
+      </module>
+      <module cache="1" id="6" name="OutputPort" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2">
+        <location id="6" x="160.670806843" y="-212.276332251" />
+        <function id="3" name="name" pos="0">
+          <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="dbEntry" />
+        </function>
+      </module>
+    </workflow>
+    <location id="60" x="17.2473255251" y="-163.32861386" />
+  </group>
+  <module cache="1" id="26" name="If" namespace="" package="edu.utah.sci.vistrails.control_flow" tag="" version="0.1">
+    <location id="69" x="176.22882839" y="-382.689881848" />
+  </module>
+  <module cache="1" id="27" name="Module" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2">
+    <location id="71" x="201.936522474" y="-468.673570816" />
+  </module>
+  <module cache="1" id="28" name="DetectionsHistogram" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0">
+    <location id="72" x="429.549610616" y="-595.581197698" />
+    <function id="7" name="highQuality" pos="0">
+      <parameter alias="" id="21" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
+    </function>
+  </module>
+  <module cache="1" id="29" name="MplPlot" namespace="" package="edu.utah.sci.vistrails.matplotlib" tag="" version="0.9.0">
+    <location id="73" x="549.285584018" y="-710.147790766" />
+    <function id="6" name="source" pos="0">
+      <parameter alias="" id="16" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="x%20%3D%20%5Ba%5B1%5D%20for%20a%20in%20histogramData%5D%0Abins%20%3D%20%5Ba%5B0%5D%20for%20a%20in%20histogramData%5D%0A%0Abar%28bins%2C%20x%29%0A" />
+    </function>
+    <portSpec id="0" name="histogramData" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="0" type="input" />
+  </module>
+  <module cache="1" id="30" name="MplFigure" namespace="" package="edu.utah.sci.vistrails.matplotlib" tag="" version="0.9.0">
+    <location id="74" x="572.826394762" y="-823.928376027" />
+  </module>
+  <module cache="1" id="31" name="MplFigureCell" namespace="" package="edu.utah.sci.vistrails.matplotlib" tag="" version="0.9.0">
+    <location id="75" x="590.482002819" y="-937.708961288" />
+  </module>
+</workflow>

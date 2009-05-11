@@ -1,0 +1,1103 @@
+<opmGraph version="1.0.0">
+  <accounts>
+    <account id="acct0">
+      <value>0</value>
+    </account>
+    <account id="acct1">
+      <value>1</value>
+    </account>
+    <account id="acct2">
+      <value>2</value>
+    </account>
+    <overlaps>
+      <account id="acct0" />
+      <account id="acct1" />
+    </overlaps>
+    <overlaps>
+      <account id="acct0" />
+      <account id="acct2" />
+    </overlaps>
+    <overlaps>
+      <account id="acct1" />
+      <account id="acct2" />
+    </overlaps>
+  </accounts>
+  <processes>
+    <process id="p0">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="1" machine_id="1" moduleId="12" moduleName="String" tsEnd="2009-05-07 14:25:14" tsStart="2009-05-07 14:25:14" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </process>
+    <process id="p1">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="2" machine_id="1" moduleId="13" moduleName="ConcatenateString" tsEnd="2009-05-07 14:25:14" tsStart="2009-05-07 14:25:14" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </process>
+    <process id="p2">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="3" machine_id="1" moduleId="2" moduleName="GetCSVFiles" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </process>
+    <process id="p3">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="4" machine_id="1" moduleId="4" moduleName="CreateEmptyLoadDB" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </process>
+    <process id="p4">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="5" machine_id="1" moduleId="8" moduleName="Map" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:15">
+          <loopExec completed="1" error="" id="6" iteration="0" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15">
+            <groupExec cached="0" completed="1" error="" groupName="Group" groupType="Group" id="7" machine_id="1" moduleId="25" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15">
+              <moduleExec cached="0" completed="1" error="" id="8" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+              <moduleExec cached="0" completed="1" error="" id="9" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+              <moduleExec cached="0" completed="1" error="" id="10" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+              <moduleExec cached="0" completed="1" error="" id="11" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+              <moduleExec cached="0" completed="1" error="" id="12" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+              <moduleExec cached="0" completed="1" error="" id="13" machine_id="1" moduleId="6" moduleName="OutputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+            </groupExec>
+          </loopExec>
+          <loopExec completed="1" error="" id="14" iteration="1" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15">
+            <groupExec cached="0" completed="1" error="" groupName="Group" groupType="Group" id="15" machine_id="1" moduleId="25" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15">
+              <moduleExec cached="0" completed="1" error="" id="16" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+              <moduleExec cached="0" completed="1" error="" id="17" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+              <moduleExec cached="0" completed="1" error="" id="18" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+              <moduleExec cached="0" completed="1" error="" id="19" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+              <moduleExec cached="0" completed="1" error="" id="20" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+              <moduleExec cached="0" completed="1" error="" id="21" machine_id="1" moduleId="6" moduleName="OutputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+            </groupExec>
+          </loopExec>
+          <loopExec completed="1" error="" id="22" iteration="2" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:15">
+            <groupExec cached="0" completed="1" error="" groupName="Group" groupType="Group" id="23" machine_id="1" moduleId="25" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:15">
+              <moduleExec cached="0" completed="1" error="" id="24" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+              <moduleExec cached="0" completed="1" error="" id="25" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+              <moduleExec cached="0" completed="1" error="" id="26" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+              <moduleExec cached="0" completed="1" error="" id="27" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-07 14:25:16" tsStart="2009-05-07 14:25:15" />
+              <moduleExec cached="0" completed="1" error="" id="28" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:16" />
+              <moduleExec cached="0" completed="1" error="" id="29" machine_id="1" moduleId="6" moduleName="OutputPort" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:17" />
+            </groupExec>
+          </loopExec>
+        </moduleExec>
+      </value>
+      <account id="acct0" />
+    </process>
+    <process id="p5">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="30" machine_id="1" moduleId="26" moduleName="If" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:17" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </process>
+    <process id="p6">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="31" machine_id="1" moduleId="21" moduleName="CompactDatabase" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:17" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </process>
+    <process id="p7">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="32" machine_id="1" moduleId="28" moduleName="DetectionsHistogram" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:17" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </process>
+    <process id="p8">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="33" machine_id="1" moduleId="29" moduleName="MplPlot" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:17" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </process>
+    <process id="p9">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="34" machine_id="1" moduleId="30" moduleName="MplFigure" tsEnd="2009-05-07 14:25:18" tsStart="2009-05-07 14:25:17" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </process>
+    <process id="p10">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="35" machine_id="1" moduleId="31" moduleName="MplFigureCell" tsEnd="2009-05-07 14:25:18" tsStart="2009-05-07 14:25:18" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </process>
+    <process id="p11">
+      <value>
+        <moduleExec cached="" completed="1" error="" id="-1" machine_id="" moduleId="-1" moduleName="Split" tsEnd="" tsStart="" />
+      </value>
+      <account id="acct1" />
+      <account id="acct2" />
+    </process>
+    <process id="p12">
+      <value>
+        <moduleExec cached="" completed="1" error="" id="-1" machine_id="" moduleId="-1" moduleName="Join" tsEnd="" tsStart="" />
+      </value>
+      <account id="acct1" />
+      <account id="acct2" />
+    </process>
+    <process id="p13">
+      <value>
+        <groupExec cached="0" completed="1" error="" groupName="Group" groupType="Group" id="7" machine_id="1" moduleId="25" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15">
+          <moduleExec cached="0" completed="1" error="" id="8" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="9" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="10" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="11" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="12" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="13" machine_id="1" moduleId="6" moduleName="OutputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+        </groupExec>
+      </value>
+      <account id="acct1" />
+    </process>
+    <process id="p14">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="8" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p15">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="9" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p16">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="10" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p17">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="11" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p18">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="12" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p19">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="13" machine_id="1" moduleId="6" moduleName="OutputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p20">
+      <value>
+        <groupExec cached="0" completed="1" error="" groupName="Group" groupType="Group" id="15" machine_id="1" moduleId="25" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15">
+          <moduleExec cached="0" completed="1" error="" id="16" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="17" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="18" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="19" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="20" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="21" machine_id="1" moduleId="6" moduleName="OutputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+        </groupExec>
+      </value>
+      <account id="acct1" />
+    </process>
+    <process id="p21">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="16" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p22">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="17" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p23">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="18" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p24">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="19" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p25">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="20" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p26">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="21" machine_id="1" moduleId="6" moduleName="OutputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p27">
+      <value>
+        <groupExec cached="0" completed="1" error="" groupName="Group" groupType="Group" id="23" machine_id="1" moduleId="25" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:15">
+          <moduleExec cached="0" completed="1" error="" id="24" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="25" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="26" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="27" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-07 14:25:16" tsStart="2009-05-07 14:25:15" />
+          <moduleExec cached="0" completed="1" error="" id="28" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:16" />
+          <moduleExec cached="0" completed="1" error="" id="29" machine_id="1" moduleId="6" moduleName="OutputPort" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:17" />
+        </groupExec>
+      </value>
+      <account id="acct1" />
+    </process>
+    <process id="p28">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="24" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p29">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="25" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p30">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="26" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-07 14:25:15" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p31">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="27" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-07 14:25:16" tsStart="2009-05-07 14:25:15" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p32">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="28" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:16" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p33">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="29" machine_id="1" moduleId="6" moduleName="OutputPort" tsEnd="2009-05-07 14:25:17" tsStart="2009-05-07 14:25:17" />
+      </value>
+      <account id="acct2" />
+    </process>
+  </processes>
+  <artifacts>
+    <artifact id="a0">
+      <value>
+        <function id="4" name="value" pos="0">
+          <parameter alias="" id="17" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="J062945" />
+        </function>
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a1">
+      <value>
+        <portSpec id="8" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a2">
+      <value>
+        <function id="5" name="str1" pos="0">
+          <parameter alias="" id="12" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="/vistrails/pc3/SampleData/" />
+        </function>
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a3">
+      <value>
+        <portSpec id="29" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a4">
+      <value>
+        <portSpec id="142" name="csvFiles" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a5">
+      <value>
+        <portSpec id="140" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a6">
+      <value>
+        <portSpec id="80" name="Result" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Variant)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a7">
+      <value>
+        <portSpec id="-1" name="csvFile" optional="" sigstring="" sortKey="" type="output" />
+      </value>
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a8">
+      <value>
+        <portSpec id="-1" name="dbEntry" optional="" sigstring="" sortKey="" type="output" />
+      </value>
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a9">
+      <value>
+        <portSpec id="44" name="InternalPipe" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Variant)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a10">
+      <value>
+        <portSpec id="44" name="InternalPipe" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Variant)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a11">
+      <value>
+        <portSpec id="121" name="csvFile" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a12">
+      <value>
+        <portSpec id="114" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a13">
+      <value>
+        <portSpec id="119" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a14">
+      <value>
+        <portSpec id="-1" name="csvFile" optional="" sigstring="" sortKey="" type="output" />
+      </value>
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a15">
+      <value>
+        <portSpec id="-1" name="dbEntry" optional="" sigstring="" sortKey="" type="output" />
+      </value>
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a16">
+      <value>
+        <portSpec id="44" name="InternalPipe" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Variant)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a17">
+      <value>
+        <portSpec id="44" name="InternalPipe" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Variant)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a18">
+      <value>
+        <portSpec id="121" name="csvFile" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a19">
+      <value>
+        <portSpec id="114" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a20">
+      <value>
+        <portSpec id="119" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a21">
+      <value>
+        <portSpec id="-1" name="csvFile" optional="" sigstring="" sortKey="" type="output" />
+      </value>
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a22">
+      <value>
+        <portSpec id="-1" name="dbEntry" optional="" sigstring="" sortKey="" type="output" />
+      </value>
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a23">
+      <value>
+        <portSpec id="44" name="InternalPipe" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Variant)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a24">
+      <value>
+        <portSpec id="44" name="InternalPipe" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Variant)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a25">
+      <value>
+        <portSpec id="121" name="csvFile" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a26">
+      <value>
+        <portSpec id="114" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a27">
+      <value>
+        <portSpec id="119" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a28">
+      <value>
+        <portSpec id="134" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a29">
+      <value>
+        <function id="7" name="highQuality" pos="0">
+          <parameter alias="" id="21" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:Boolean" val="True" />
+        </function>
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a30">
+      <value>
+        <portSpec id="130" name="histogram" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a31">
+      <value>
+        <function id="6" name="source" pos="0">
+          <parameter alias="" id="16" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="x%20%3D%20%5Ba%5B1%5D%20for%20a%20in%20histogramData%5D%0Abins%20%3D%20%5Ba%5B0%5D%20for%20a%20in%20histogramData%5D%0A%0Abar%28bins%2C%20x%29%0A" />
+        </function>
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a32">
+      <value>
+        <portSpec id="98" name="source" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a33">
+      <value>
+        <portSpec id="100" name="FigureManager" optional="0" sigstring="(edu.utah.sci.vistrails.matplotlib:MplFigureManager)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+  </artifacts>
+  <causalDependencies>
+    <used>
+      <effect id="p0" />
+      <role value="in" />
+      <cause id="a0" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a1" />
+      <role value="out" />
+      <cause id="p0" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p1" />
+      <role value="in" />
+      <cause id="a2" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p1" />
+      <role value="in" />
+      <cause id="a1" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a3" />
+      <role value="out" />
+      <cause id="p1" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p2" />
+      <role value="in" />
+      <cause id="a3" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a4" />
+      <role value="out" />
+      <cause id="p2" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p3" />
+      <role value="in" />
+      <cause id="a1" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a5" />
+      <role value="out" />
+      <cause id="p3" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p4" />
+      <role value="in" />
+      <cause id="a4" />
+      <account id="acct0" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a6" />
+      <role value="out" />
+      <cause id="p4" />
+      <account id="acct0" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p11" />
+      <role value="in" />
+      <cause id="a4" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a7" />
+      <role value="out" />
+      <cause id="p11" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p12" />
+      <role value="in" />
+      <cause id="a8" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p13" />
+      <role value="in" />
+      <cause id="a7" />
+      <account id="acct1" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a8" />
+      <role value="out" />
+      <cause id="p13" />
+      <account id="acct1" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p13" />
+      <role value="in" />
+      <cause id="a5" />
+      <account id="acct1" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a9" />
+      <role value="out" />
+      <cause id="p14" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p14" />
+      <role value="in" />
+      <cause id="a5" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a10" />
+      <role value="out" />
+      <cause id="p15" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p15" />
+      <role value="in" />
+      <cause id="a7" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p16" />
+      <role value="in" />
+      <cause id="a10" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a11" />
+      <role value="out" />
+      <cause id="p16" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p17" />
+      <role value="in" />
+      <cause id="a9" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p17" />
+      <role value="in" />
+      <cause id="a11" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a12" />
+      <role value="out" />
+      <cause id="p17" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p18" />
+      <role value="in" />
+      <cause id="a12" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p18" />
+      <role value="in" />
+      <cause id="a11" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a13" />
+      <role value="out" />
+      <cause id="p18" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p19" />
+      <role value="in" />
+      <cause id="a13" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a8" />
+      <role value="out" />
+      <cause id="p19" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <wasGeneratedBy>
+      <effect id="a14" />
+      <role value="out" />
+      <cause id="p11" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p12" />
+      <role value="in" />
+      <cause id="a15" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p20" />
+      <role value="in" />
+      <cause id="a14" />
+      <account id="acct1" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a15" />
+      <role value="out" />
+      <cause id="p20" />
+      <account id="acct1" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p20" />
+      <role value="in" />
+      <cause id="a5" />
+      <account id="acct1" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a16" />
+      <role value="out" />
+      <cause id="p21" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p21" />
+      <role value="in" />
+      <cause id="a5" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a17" />
+      <role value="out" />
+      <cause id="p22" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p22" />
+      <role value="in" />
+      <cause id="a14" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p23" />
+      <role value="in" />
+      <cause id="a17" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a18" />
+      <role value="out" />
+      <cause id="p23" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p24" />
+      <role value="in" />
+      <cause id="a16" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p24" />
+      <role value="in" />
+      <cause id="a18" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a19" />
+      <role value="out" />
+      <cause id="p24" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p25" />
+      <role value="in" />
+      <cause id="a19" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p25" />
+      <role value="in" />
+      <cause id="a18" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a20" />
+      <role value="out" />
+      <cause id="p25" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p26" />
+      <role value="in" />
+      <cause id="a20" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a15" />
+      <role value="out" />
+      <cause id="p26" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <wasGeneratedBy>
+      <effect id="a21" />
+      <role value="out" />
+      <cause id="p11" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p12" />
+      <role value="in" />
+      <cause id="a22" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p27" />
+      <role value="in" />
+      <cause id="a21" />
+      <account id="acct1" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a22" />
+      <role value="out" />
+      <cause id="p27" />
+      <account id="acct1" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p27" />
+      <role value="in" />
+      <cause id="a5" />
+      <account id="acct1" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a23" />
+      <role value="out" />
+      <cause id="p28" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p28" />
+      <role value="in" />
+      <cause id="a5" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a24" />
+      <role value="out" />
+      <cause id="p29" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p29" />
+      <role value="in" />
+      <cause id="a21" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p30" />
+      <role value="in" />
+      <cause id="a24" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a25" />
+      <role value="out" />
+      <cause id="p30" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p31" />
+      <role value="in" />
+      <cause id="a23" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p31" />
+      <role value="in" />
+      <cause id="a25" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a26" />
+      <role value="out" />
+      <cause id="p31" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p32" />
+      <role value="in" />
+      <cause id="a26" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p32" />
+      <role value="in" />
+      <cause id="a25" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a27" />
+      <role value="out" />
+      <cause id="p32" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p33" />
+      <role value="in" />
+      <cause id="a27" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a22" />
+      <role value="out" />
+      <cause id="p33" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <wasGeneratedBy>
+      <effect id="a6" />
+      <role value="out" />
+      <cause id="p12" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p5" />
+      <role value="in" />
+      <cause id="a6" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <wasTriggeredBy>
+      <effect id="p6" />
+      <role value="control" />
+      <cause id="p5" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasTriggeredBy>
+    <used>
+      <effect id="p6" />
+      <role value="in" />
+      <cause id="a5" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a28" />
+      <role value="out" />
+      <cause id="p6" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p7" />
+      <role value="in" />
+      <cause id="a29" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p7" />
+      <role value="in" />
+      <cause id="a28" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a30" />
+      <role value="out" />
+      <cause id="p7" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p8" />
+      <role value="in" />
+      <cause id="a31" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p8" />
+      <role value="in" />
+      <cause id="a30" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a32" />
+      <role value="out" />
+      <cause id="p8" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p9" />
+      <role value="in" />
+      <cause id="a32" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a33" />
+      <role value="out" />
+      <cause id="p9" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p10" />
+      <role value="in" />
+      <cause id="a33" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+  </causalDependencies>
+</opmGraph>
