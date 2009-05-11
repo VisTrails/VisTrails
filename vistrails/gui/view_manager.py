@@ -30,8 +30,9 @@ from gui.theme import CurrentTheme
 from gui.utils import getBuilderWindow
 from gui.vistrail_view import QVistrailView
 from core import system
-from core.db.locator import FileLocator, untitled_locator
+from core.db.locator import FileLocator, XMLFileLocator, untitled_locator
 from core.log.log import Log
+from core.log.opm_graph import OpmGraph
 import core.system
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.tag import Tag
@@ -420,6 +421,7 @@ class QViewManager(QtGui.QTabWidget):
                                            str(e))
                 return False
             return locator
+        return False
    
     def open_workflow(self, locator, version=None):
         self.close_first_vistrail_if_necessary()
@@ -474,6 +476,7 @@ class QViewManager(QtGui.QTabWidget):
                 return False
             vistrailView.controller.write_workflow(locator)
             return True
+        return False
 
     def save_log(self, locator_class, force_choose_locator=True):
         vistrailView = self.currentWidget()
@@ -495,6 +498,7 @@ class QViewManager(QtGui.QTabWidget):
                 return False
             vistrailView.controller.write_log(locator)
             return True
+        return False
 
     def save_registry(self, locator_class, force_choose_locator=True):
         vistrailView = self.currentWidget()
@@ -516,6 +520,30 @@ class QViewManager(QtGui.QTabWidget):
                 return False
             vistrailView.controller.write_registry(locator)
             return True
+        return False
+
+    def save_opm(self, locator_class=XMLFileLocator, 
+                 force_choose_locator=True):
+        vistrailView = self.currentWidget()
+
+        if vistrailView:
+            vistrailView.flush_changes()
+            gui_get = locator_class.save_from_gui
+            if force_choose_locator:
+                locator = gui_get(self, OpmGraph.vtType,
+                                  vistrailView.controller.locator)
+            else:
+                locator = (vistrailView.controller.locator or
+                           gui_get(self, OpmGraph.vtType,
+                                   vistrailView.controller.locator))
+            if locator == untitled_locator():
+                locator = gui_get(self, OpmGraph.vtType,
+                                  vistrailView.controller.locator)
+            if not locator:
+                return False
+            vistrailView.controller.write_opm(locator)
+            return True
+        return False
 
     def save_tree_to_pdf(self):
         vistrailView = self.currentWidget()

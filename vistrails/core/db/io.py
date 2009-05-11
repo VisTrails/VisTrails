@@ -21,6 +21,7 @@
 ############################################################################
 
 from core.vistrail.action import Action
+from core.log.log import Log
 from core.vistrail.operation import AddOp, ChangeOp, DeleteOp
 import db.services.io
 import db.services.vistrail
@@ -76,6 +77,11 @@ def serialize(object):
 
     """
     return db.services.io.serialize(object)
+
+def merge_logs(new_log, log_fname):
+    log = db.services.io.merge_logs(new_log, log_fname)
+    Log.convert(log)
+    return log
 
 def get_workflow_diff(vt, v1, v2):
     from core.vistrail.pipeline import Pipeline

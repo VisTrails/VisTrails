@@ -329,6 +329,7 @@ class QVistrailView(QDockContainer):
         
         """
         if self.controller:
+            self.controller.flush_move_actions()
             self.controller.reset_pipeline_view = byClick
             self.controller.change_selected_version(versionId)
             self.controller.invalidate_version_tree(False)

@@ -20,4 +20,8 @@
 ##
 ############################################################################
 
-from db.versions.v1_0_0.domain import *
+DROP TABLE IF EXISTS `vistrails_version`;
+
+-- genereated automatically by generate.py
+
+DROP TABLE IF EXISTS was_generated_by, accounts, port_spec, module, module_descriptor, tag, processes, port, artifact, group_tbl, log_tbl, agents, machine, add_tbl, other, location, overlaps, artifacts, causal_dependencies, parameter, used, plugin_data, function, abstraction, workflow, opm_graph, registry, account, annotation, change_tbl, was_derived_from, was_controlled_by, group_exec, time, package, workflow_exec, loop_exec, connection_tbl, process, was_triggered_by, action, agent, delete_tbl, vistrail, module_exec

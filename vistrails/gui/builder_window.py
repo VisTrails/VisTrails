@@ -216,6 +216,11 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.closeVistrailAction.setStatusTip('Close the current vistrail')
         self.closeVistrailAction.setEnabled(False)
 
+        self.saveOpmAction = QtGui.QAction('Save As OPM XML...', self)
+        self.saveOpmAction.setStatusTip('Saves provenance according to the'
+                                        'Open Provenance Model in XML')
+        self.saveOpmAction.setEnabled(True)
+
         self.saveLogAction = QtGui.QAction('Save Log...', self)
         self.saveLogAction.setStatusTip('Save the execution log to '
                                         'a file')
@@ -427,6 +432,7 @@ class QBuilderWindow(QtGui.QMainWindow):
         self.fileMenu.addAction(self.importFileAction)
         self.fileMenu.addAction(self.exportFileAction)
         self.fileMenu.addSeparator()
+        self.fileMenu.addAction(self.saveOpmAction)
         self.fileMenu.addAction(self.saveLogAction)
         self.fileMenu.addAction(self.exportLogAction)
         self.fileMenu.addAction(self.importWorkflowAction)
@@ -571,6 +577,7 @@ class QBuilderWindow(QtGui.QMainWindow):
             (self.saveFileAsAction, self.save_vistrail_default_as),
             (self.exportFileAction, self.export_vistrail_default),
             (self.closeVistrailAction, self.viewManager.closeVistrail),
+            (self.saveOpmAction, self.viewManager.save_opm),
             (self.saveLogAction, self.save_log_default),
             (self.exportLogAction, self.export_log_default),
             (self.importWorkflowAction, self.import_workflow_default),
@@ -1284,6 +1291,31 @@ class QBuilderWindow(QtGui.QMainWindow):
         Show the pipeline underlying a group module
         
         """
+        class DummyController(object):
+            def __init__(self, pip):
+                self.current_pipeline = pip
+                self.search = None
+#             def copy_modules_and_connections(self, module_ids, connection_ids):
+#                 """copy_modules_and_connections(module_ids: [long],
+#                                              connection_ids: [long]) -> str
+#                 Serializes a list of modules and connections
+#                 """
+
+#                 pipeline = Pipeline()
+# #                 pipeline.set_abstraction_map( \
+# #                     self.current_pipeline.abstraction_map)
+#                 for module_id in module_ids:
+#                     module = self.current_pipeline.modules[module_id]
+# #                     if module.vtType == Abstraction.vtType:
+# #                         abstraction = \
+# #                             pipeline.abstraction_map[module.abstraction_id]
+# #                         pipeline.add_abstraction(abstraction)
+#                     pipeline.add_module(module)
+#                 for connection_id in connection_ids:
+#                     connection = self.current_pipeline.connections[connection_id]
+#                     pipeline.add_connection(connection)
+#                 return core.db.io.serialize(pipeline)
+
         currentView = self.viewManager.currentWidget()
         if currentView:
             currentScene = currentView.pipelineTab.pipelineView.scene()
@@ -1298,10 +1330,18 @@ class QBuilderWindow(QtGui.QMainWindow):
                             group.vtType == 'abstraction'):
                             pipelineMainWindow = QtGui.QMainWindow(self)
                             pipelineView = QPipelineView()
+                            controller = DummyController(group.pipeline)
+                            pipelineView.controller = controller
                             pipelineMainWindow.setCentralWidget(pipelineView)
+                            pipelineView.scene().controller = \
+                                controller
+                            controller.current_pipeline_view = \
+                                pipelineView.scene()
                             pipelineView.scene().setupScene(group.pipeline)
+                            self.groupPipelineView = pipelineView
                             pipelineView.show()
                             pipelineMainWindow.show()
+                            print pipelineView.scene().controller
 
     def openAbstraction(self, filename):
         locator = XMLFileLocator(filename)

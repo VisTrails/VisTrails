@@ -32,6 +32,7 @@ from core.utils import VistrailsInternalError, ModuleAlreadyExists, \
     InvalidPipeline
 from core.log.controller import LogController, DummyLogController
 from core.log.log import Log
+from core.log.opm_graph import OpmGraph
 from core.modules.abstraction import identifier as abstraction_pkg
 from core.modules.module_registry import ModuleRegistryException
 from core.modules.basic_modules import Variant
@@ -178,6 +179,9 @@ class VistrailController(QtCore.QObject, BaseController):
         finally:
             self.reset_version_view = True
 
+    def flush_move_actions(self):
+        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+
     ##########################################################################
     # Autosave
 
@@ -187,12 +191,15 @@ class VistrailController(QtCore.QObject, BaseController):
     def disable_autosave(self):
         self._auto_save = False
 
-    def get_logger(self):
+    def logging_on(self):
         from gui.application import VistrailsApplication
-        if VistrailsApplication.configuration.check('nologger'):
-            return DummyLogController()
-        else:
+        return not VistrailsApplication.configuration.check('nologger')
+
+    def get_logger(self):
+        if self.logging_on():
             return LogController(self.log)
+        else:
+            return DummyLogController()
 
     def get_locator(self):
         from gui.application import VistrailsApplication
@@ -291,7 +298,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
     def add_module_from_descriptor(self, descriptor, x=0.0, y=0.0, 
                                    internal_version=-1):
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
 
         if not self.current_pipeline:
             raise Exception("No version is selected")
@@ -310,7 +317,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Add a new module into the current pipeline
         
         """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
 
         if not self.current_pipeline:
             raise Exception("No version is selected")
@@ -343,7 +350,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Delete multiple modules from the current pipeline
         
         """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
 
         graph = self.current_pipeline.graph
         connect_ids = self.get_module_connection_ids(module_ids, graph)
@@ -399,7 +406,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Add a new connection into Vistrail
         
         """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
         connection = \
             self.create_connection_from_ids(output_id, output_port_spec, 
                                             input_id, input_port_spec)
@@ -422,7 +429,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Delete a list of connections
         
         """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
         
         action_list = []
         for c_id in connect_ids:
@@ -433,7 +440,7 @@ class VistrailController(QtCore.QObject, BaseController):
         return self.perform_action(action)
 
     def add_function(self, module, function_name):
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
         function = self.create_function(module, function_name)
         action = core.db.action.create_action([('add', function, 
                                                 module.vtType, module.id)])
@@ -443,7 +450,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
     def update_function(self, module, function_name, param_values, old_id=-1L,
                         aliases=[]):
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
         op_list = self.update_function_ops(module, function_name, param_values,
                                            old_id, aliases=aliases)
         action = core.db.action.create_action(op_list)
@@ -451,7 +458,7 @@ class VistrailController(QtCore.QObject, BaseController):
         return self.perform_action(action)
         
     def update_parameter(self, function, old_param_id, new_value):
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
         old_param = function.parameter_idx[old_param_id]
         new_param = BaseController.update_parameter(self, old_param, new_value)
         if new_param is None:
@@ -467,7 +474,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Delete a method with function_pos from module module_id
 
         """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
 
         module = self.current_pipeline.get_module_by_id(module_id)
         function = module.functions[function_pos]
@@ -481,7 +488,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Add a new method into the module's function list
         
         """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
 
         module = self.current_pipeline.get_module_by_id(module_id)
         function_id = self.vistrail.idScope.getNewId(ModuleFunction.vtType)
@@ -507,7 +514,7 @@ class VistrailController(QtCore.QObject, BaseController):
                -> version_id or None, if new parameter was equal to old one.
         Replaces parameters for a given function
         """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
 
         action_list = []
         must_change = False
@@ -540,7 +547,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Deletes an annotation from a module
         
         """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
 
         module = self.current_pipeline.get_module_by_id(module_id)
         annotation = module.get_annotation_by_key(key)
@@ -555,7 +562,7 @@ class VistrailController(QtCore.QObject, BaseController):
         moduleId
         
         """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
 
         assert type(pair[0]) == type('')
         assert type(pair[1]) == type('')
@@ -637,7 +644,7 @@ class VistrailController(QtCore.QObject, BaseController):
         - port_tuple : (portType, portName, portSpec)
         
         """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
         
         module = self.current_pipeline.get_module_by_id(module_id)
         p_id = self.vistrail.idScope.getNewId(PortSpec.vtType)
@@ -661,7 +668,7 @@ class VistrailController(QtCore.QObject, BaseController):
         - port_tuple : (portType, portName, portSpec)
         
         """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
 
         spec_id = -1
         module = self.current_pipeline.get_module_by_id(module_id)
@@ -676,7 +683,7 @@ class VistrailController(QtCore.QObject, BaseController):
         return self.perform_action(action)
 
     def create_group(self, module_ids, connection_ids):
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
         (group, connections) = \
             BaseController.create_group(self, self.current_pipeline, 
                                         module_ids, connection_ids)
@@ -695,7 +702,7 @@ class VistrailController(QtCore.QObject, BaseController):
         return group
     
     def create_abstraction(self, module_ids, connection_ids, name):
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
         (abstraction, connections) = \
             BaseController.create_abstraction(self, self.current_pipeline, 
                                               module_ids, connection_ids, name)
@@ -716,7 +723,7 @@ class VistrailController(QtCore.QObject, BaseController):
             self.create_abstraction_from_group(group_id)
 
     def create_abstraction_from_group(self, group_id, name=""):
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
         name = self.get_abstraction_name(name)
         
         (abstraction, connections) = \
@@ -738,7 +745,7 @@ class VistrailController(QtCore.QObject, BaseController):
 
 
     def ungroup_set(self, module_ids):
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
         for m_id in module_ids:
             self.create_ungroup(m_id)
 
@@ -774,7 +781,7 @@ class VistrailController(QtCore.QObject, BaseController):
         - notes : 'QtCore.QString'
         
         """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
         
         if self.vistrail.change_notes(str(notes),self.current_version):
             self.set_changed(True)
@@ -829,11 +836,6 @@ class VistrailController(QtCore.QObject, BaseController):
                                     params)
 
     def execute_workflow_list(self, vistrails):
-        if self.current_pipeline:
-            locator = self.get_locator()
-            if locator:
-                locator.clean_temporaries()
-                locator.save_temporary(self.vistrail)
         interpreter = get_default_interpreter()
         changed = False
         old_quiet = self.quiet
@@ -858,13 +860,20 @@ class VistrailController(QtCore.QObject, BaseController):
 
         if interpreter.debugger:
             interpreter.debugger.update_values()
+        if self.logging_on():
+            self.set_changed(True)
 
     def execute_current_workflow(self):
         """ execute_current_workflow() -> None
         Execute the current workflow (if exists)
         
         """
+        self.flush_move_actions()
         if self.current_pipeline:
+            locator = self.get_locator()
+            if locator:
+                locator.clean_temporaries()
+                locator.save_temporary(self.vistrail)
             self.execute_workflow_list([(self.locator,
                                          self.current_version,
                                          self.current_pipeline,
@@ -1546,7 +1555,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Updates the current module's tag
         
         """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
         if module.vtType == 'module':
             self.vistrail.update_object(module, db_tag=tag)
         elif module.vtType == 'abstraction':
@@ -1557,7 +1566,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Update the current vistrail tag and return success predicate
         
         """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
         try:
             if self.vistrail.hasTag(self.current_version):
                 self.vistrail.changeTag(tag, self.current_version)
@@ -1604,7 +1613,7 @@ class VistrailController(QtCore.QObject, BaseController):
                                      connection_ids: [long]) -> str
         Serializes a list of modules and connections
         """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
 
         pipeline = Pipeline()
         sum_x = 0.0
@@ -1634,7 +1643,7 @@ class VistrailController(QtCore.QObject, BaseController):
         Returns the list of module ids of added modules
 
         """
-        self.emit(QtCore.SIGNAL("flushMoveActions()"))
+        self.flush_move_actions()
 
         pipeline = core.db.io.unserialize(str, Pipeline)
         modules = []
@@ -1936,7 +1945,24 @@ class VistrailController(QtCore.QObject, BaseController):
     
     def write_log(self, locator):
         if self.log:
-            locator.save_as(self.log)
+            if self.vistrail.db_log_filename is not None:
+                log = core.db.io.merge_logs(self.log, 
+                                            self.vistrail.db_log_filename)
+            else:
+                log = self.log
+            locator.save_as(log)
+
+    def write_opm(self, locator):
+        if self.log:
+            if self.vistrail.db_log_filename is not None:
+                log = core.db.io.merge_logs(self.log, 
+                                            self.vistrail.db_log_filename)
+            else:
+                log = self.log
+            opm_graph = OpmGraph(log=log, 
+                                 version=self.current_version,
+                                 workflow=self.current_pipeline)
+            locator.save_as(opm_graph)
 
     def write_registry(self, locator):
         locator.save_as(core.modules.module_registry.get_module_registry())

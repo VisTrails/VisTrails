@@ -23,7 +23,6 @@
 from core.log.module_exec import ModuleExec
 from core.log.group_exec import GroupExec
 from db.domain import DBWorkflowExec
-from db.domain import DBModuleExec
 
 class WorkflowExec(DBWorkflowExec):
     """ Class that stores info for logging a workflow execution. """
@@ -44,12 +43,13 @@ class WorkflowExec(DBWorkflowExec):
         if _wf_exec.__class__ == WorkflowExec:
             return
         _wf_exec.__class__ = WorkflowExec
-        for item in _wf_exec.items:
-            if item.__class__ == DBModuleExec:
-                ModuleExec.convert(item)
-            else:
-                GroupExec.convert(item)
-            
+        for item_exec in _wf_exec.item_execs:
+            if item_exec.vtType == ModuleExec.vtType:
+                ModuleExec.convert(item_exec)
+            elif item_exec.vtType == GroupExec.vtType:
+                GroupExec.convert(item_exec)
+            elif item_exec.vtType == LoopExec.vtType:
+                LoopExec.convert(item_exec)
 
     ##########################################################################
     # Properties
@@ -73,8 +73,10 @@ class WorkflowExec(DBWorkflowExec):
         return None
     duration = property(_get_duration)
 
-    def _get_items(self):
-        return self.db_items
-    items = property(_get_items)
-    def add_item(self, item):
-        self.db_add_item(item)
+    def _get_item_execs(self):
+        return self.db_item_execs
+    def _set_item_execs(self, item_execs):
+        self.db_item_execs = item_execs
+    item_execs = property(_get_item_execs, _set_item_execs)
+    def add_item_exec(self, item_exec):
+        self.db_add_item_exec(item_exec)

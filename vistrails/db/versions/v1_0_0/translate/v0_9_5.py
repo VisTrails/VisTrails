@@ -21,67 +21,38 @@
 ############################################################################
 
 import copy
-from db.versions.v0_9_5.domain import DBVistrail, DBWorkflow, DBLog, \
+from db.versions.v1_0_0.domain import DBVistrail, DBWorkflow, DBLog, \
     DBRegistry
 
 def translateVistrail(_vistrail):
-    def update_signature(old_obj, translate_dict):
-        return old_obj.db_spec
-    def update_optional(old_obj, translate_dict):
-        return 0
-    def update_sort_key(old_obj, translate_dict):
-        return -1
-    def update_sigstring(old_obj, translate_dict):
-        return old_obj.db_spec
     def update_workflow(old_obj, translate_dict):
         return DBWorkflow.update_version(old_obj.db_workflow, 
                                          translate_dict, DBWorkflow())
-
-    translate_dict = {'DBPortSpec': {'sigstring': update_sigstring,
-                                     'optional': update_optional,
-                                     'sort_key': update_sort_key},
-                      'DBPort': {'signature': update_signature},
-                      'DBGroup': {'workflow': update_workflow}}
-
-    # pass DBVistrail because domain contains enriched version of the auto_gen
-    vistrail = DBVistrail.update_version(_vistrail, translate_dict, 
+    translate_dict = {'DBGroup': {'workflow': update_workflow}}
+    vistrail = DBVistrail.update_version(_vistrail, translate_dict,
                                          DBVistrail())
-    vistrail.db_version = '0.9.5'
+    vistrail.db_version = '1.0.0'
     return vistrail
 
 def translateWorkflow(_workflow):
-    def update_signature(old_obj, translate_dict):
-        return old_obj.db_spec
-    def update_optional(old_obj, translate_dict):
-        return 0
-    def update_sort_key(old_obj, translate_dict):
-        return -1
-    def update_sigstring(old_obj, translate_dict):
-        return old_obj.db_spec
     def update_workflow(old_obj, translate_dict):
         return DBWorkflow.update_version(old_obj.db_workflow, 
                                          translate_dict, DBWorkflow())
-
-    translate_dict = {'DBPortSpec': {'sigstring': update_sigstring,
-                                     'optional': update_optional,
-                                     'sort_key': update_sort_key},
-                      'DBPort': {'signature': update_signature},
-                      'DBGroup': {'workflow': update_workflow}}
-
+    translate_dict = {'DBGroup': {'workflow': update_workflow}}
     workflow = DBWorkflow.update_version(_workflow, translate_dict,
                                          DBWorkflow())
-    workflow.db_version = '0.9.5'
+    workflow.db_version = '1.0.0'
     return workflow
 
 def translateLog(_log):
     translate_dict = {}
     log = DBLog.update_version(_log, translate_dict, DBLog())
-    log.db_version = '0.9.5'
+    log.db_version = '1.0.0'
     return log
 
 def translateRegistry(_registry):
     translate_dict = {}
     registry = DBRegistry.update_version(_registry, translate_dict,
                                          DBRegistry())
-    registry.db_version = '0.9.5'
+    registry.db_version = '1.0.0'
     return registry

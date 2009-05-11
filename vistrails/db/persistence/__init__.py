@@ -20,4 +20,4 @@
 ##
 ############################################################################
 
-from db.versions.v0_9_5.persistence import *
+from db.versions.v1_0_0.persistence import *

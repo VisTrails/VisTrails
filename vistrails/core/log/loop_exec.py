@@ -38,15 +38,19 @@ class LoopExec(DBLoopExec):
 
     @staticmethod
     def convert(_loop_exec):
+        from core.log.module_exec import ModuleExec
+        from core.log.group_exec import GroupExec
+
         if _loop_exec.__class__ == LoopExec:
             return
         _loop_exec.__class__ = LoopExec
-        from core.log.module_exec import ModuleExec
-        for module_exec in _loop_exec.module_execs:
-            ModuleExec.convert(module_exec)
-        from core.log.group_exec import GroupExec
-        for group_exec in _loop_exec.group_execs:
-            GroupExec.convert(group_exec)
+        for item_exec in _loop_exec.item_execs:
+            if item_exec.vtType == ModuleExec.vtType:
+                ModuleExec.convert(item_exec)
+            elif item_exec.vtType == GroupExec.vtType:
+                GroupExec.convert(item_exec)
+            elif item_exec.vtType == LoopExec.vtType:
+                LoopExec.convert(item_exec)
 
     ##########################################################################
     # Properties
@@ -63,18 +67,10 @@ class LoopExec(DBLoopExec):
         return None
     duration = property(_get_duration)
 
-    def _get_module_execs(self):
-        return self.db_module_execs
-    def _set_module_execs(self, module_execs):
-        self.db_module_execs = module_execs
-    module_execs = property(_get_module_execs, _set_module_execs)
-    def add_module_exec(self, module_exec):
-        self.db_add_module_exec(module_exec)
-
-    def _get_group_execs(self):
-        return self.db_group_execs
-    def _set_group_execs(self, group_execs):
-        self.db_group_execs = group_execs
-    group_execs = property(_get_group_execs, _set_group_execs)
-    def add_group_exec(self, group_exec):
-        self.db_add_group_exec(group_exec)
+    def _get_item_execs(self):
+        return self.db_item_execs
+    def _set_item_execs(self, item_execs):
+        self.db_item_execs = item_execs
+    item_execs = property(_get_item_execs, _set_item_execs)
+    def add_item_exec(self, item_exec):
+        self.db_add_item_exec(item_exec)

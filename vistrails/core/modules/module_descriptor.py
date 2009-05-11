@@ -275,6 +275,10 @@ class ModuleDescriptor(DBModuleDescriptor):
     ##########################################################################
     # Operators
 
+    def __hash__(self):
+        return (type(self), self.package, self.name, self.namespace, 
+                self.version).__hash__()
+
     def __eq__(self, other):
         return (self.package == other.package and
                 self.name == other.name and

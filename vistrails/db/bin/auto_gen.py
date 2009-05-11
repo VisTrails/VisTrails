@@ -440,7 +440,7 @@ class AutoGen:
                     for prop in field.properties:
                         if prop.isReference():
                             propRefObj = \
-                                self.getReferencedObject(prop.getSingleName())
+                                self.getReferencedObject(prop.getReference())
                         else:
                             raise Exception("Should not get here")
                         self.printLine("%s obj.vtType == '%s':\n" % \
@@ -637,25 +637,29 @@ class AutoGen:
 				     field.getName()))
 		else:
 		    childObj = self.getReferencedObject(field.getReference())
-		    self.printLine('found = False\n')
-		    self.printLine('for i in xrange(len(self.%s)):\n' % \
-				    field.getPrivateName())
-		    self.indentLine('if self.%s[i].%s == %s.%s:\n' % \
-				    (field.getPrivateName(),
-				     childObj.getKey().getPythonName(),
-				     field.getName(),
-				     childObj.getKey().getPythonName()))
-		    self.indentLine('self.%s[i] = %s\n' % \
-				    (field.getPrivateName(),
-				     field.getName()))
-		    self.printLine('found = True\n')
-		    self.printLine('break\n')
-		    self.unindent(2)
-		    self.printLine('if not found:\n')
-		    self.indentLine('self.%s.append(%s)\n' % \
-				    (field.getPrivateName(),
-				     field.getName()))
-		    self.unindent()
+                    if childObj.getKey() is not None:
+                        self.printLine('found = False\n')
+                        self.printLine('for i in xrange(len(self.%s)):\n' % \
+                                        field.getPrivateName())
+                        self.indentLine('if self.%s[i].%s == %s.%s:\n' % \
+                                        (field.getPrivateName(),
+                                         childObj.getKey().getPythonName(),
+                                         field.getName(),
+                                         childObj.getKey().getPythonName()))
+                        self.indentLine('self.%s[i] = %s\n' % \
+                                        (field.getPrivateName(),
+                                         field.getName()))
+                        self.printLine('found = True\n')
+                        self.printLine('break\n')
+                        self.unindent(2)
+                        self.printLine('if not found:\n')
+                        self.indent()
+                    self.printLine('self.%s.append(%s)\n' % \
+                                       (field.getPrivateName(),
+                                        field.getName()))
+                    if childObj.getKey() is not None:
+                        self.unindent()
+		    # self.unindent()
                 for index in self.getAllIndices(field):
                     self.printLine('self.db_%s_%s_index[%s] = %s\n' % \
                                        (field.getRegularName(),
@@ -686,23 +690,26 @@ class AutoGen:
                                            childObj.getKey().getPythonName()))
 		else:
 		    childObj = self.getReferencedObject(field.getReference())
-                    
-		    self.printLine('for i in xrange(len(self.%s)):\n' % \
-				    field.getPrivateName())
-		    self.indentLine('if self.%s[i].%s == %s.%s:\n' % \
-				    (field.getPrivateName(),
-				     childObj.getKey().getPythonName(),
-				     field.getName(),
-				     childObj.getKey().getPythonName()))
-                    self.indentLine('if not self.%s[i].is_new:\n' % \
+                    if childObj.getKey() is None:
+                        self.printLine("raise Exception('Cannot delete a "
+                                       "non-keyed object')\n")
+                    else:
+                        self.printLine('for i in xrange(len(self.%s)):\n' % \
                                         field.getPrivateName())
-                    self.indentLine('self.db_deleted_%s.append(' % \
-                                        field.getRegularName() +
-                                    'self.%s[i])\n' % field.getPrivateName())
-		    self.unindentLine('del self.%s[i]\n' % \
-                                          field.getPrivateName())
-		    self.printLine('break\n')
-		    self.unindent(2)
+                        self.indentLine('if self.%s[i].%s == %s.%s:\n' % \
+                                        (field.getPrivateName(),
+                                         childObj.getKey().getPythonName(),
+                                         field.getName(),
+                                         childObj.getKey().getPythonName()))
+                        self.indentLine('if not self.%s[i].is_new:\n' % \
+                                            field.getPrivateName())
+                        self.indentLine('self.db_deleted_%s.append(' % \
+                                            field.getRegularName() +
+                                        'self.%s[i])\n' % field.getPrivateName())
+                        self.unindentLine('del self.%s[i]\n' % \
+                                              field.getPrivateName())
+                        self.printLine('break\n')
+                        self.unindent(2)
                 for index in self.getAllIndices(field):
                     self.printLine('del self.db_%s_%s_index[%s]\n' % \
                                        (field.getRegularName(),
@@ -719,14 +726,17 @@ class AutoGen:
 				    field.getPrivateName())
 		    self.unindentLine('return None\n')
 		else:
-		    self.indentLine('for i in xrange(len(self.%s)):\n' % \
-				    field.getPrivateName())
-		    self.indentLine('if self.%s[i].%s == key:\n' % \
-				    (field.getPrivateName(),
-				     childObj.getKey().getPythonName()))
-		    self.indentLine('return self.%s[i]\n' % \
-				    field.getPrivateName())
-		    self.unindent(2)
+                    if childObj.getKey() is not None:
+                        self.indentLine('for i in xrange(len(self.%s)):\n' % \
+                                        field.getPrivateName())
+                        self.indentLine('if self.%s[i].%s == key:\n' % \
+                                        (field.getPrivateName(),
+                                         childObj.getKey().getPythonName()))
+                        self.indentLine('return self.%s[i]\n' % \
+                                        field.getPrivateName())
+                        self.unindent(2)
+                    else:
+                        self.indent()
 		    self.printLine('return None\n')
 		self.unindent()
                 for index in self.getAllIndices(field):
@@ -746,9 +756,10 @@ class AutoGen:
                                     
 	    self.printLine('\n')
 	 
-	self.printLine('def getPrimaryKey(self):\n')
-	self.indentLine('return self.%s' % \
-			object.getKey().getPrivateName())
-	self.unindent()
+        if object.getKey() is not None:
+            self.printLine('def getPrimaryKey(self):\n')
+            self.indentLine('return self.%s' % \
+                            object.getKey().getPrivateName())
+            self.unindent()
 	self.unindentLine('\n\n')
 

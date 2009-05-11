@@ -20,4 +20,10 @@
 ##
 ############################################################################
 
-from db.versions.v1_0_0.domain import *
+from auto_gen import DBRegistry as _DBRegistry
+from id_scope import IdScope
+
+class DBRegistry(_DBRegistry):
+    def __init__(self, *args, **kwargs):
+	_DBRegistry.__init__(self, *args, **kwargs)
+        self.idScope = IdScope()

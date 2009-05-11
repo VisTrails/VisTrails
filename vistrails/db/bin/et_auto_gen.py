@@ -307,7 +307,8 @@ class XMLAutoGen(AutoGen):
 
         # define fromXML function
         self.unindentLine('def fromXML(self, node):\n')
-        self.indentLine('if node.tag != \'%s\':\n' % object.getName())
+        self.indentLine('node_tag = node.tag.split("}")[1] if node.tag[0] == "{" else node.tag\n')
+        self.printLine('if node_tag != \'%s\':\n' % object.getName())
         self.indentLine('return None\n')
         self.unindent()
 
@@ -323,11 +324,12 @@ class XMLAutoGen(AutoGen):
 
         def generatePropertyParseCode(property, cond):
             if property.isReference():
-                refObj = self.getReferencedObject(property.getSingleName())
+                # print "property.getSingleName():", property.getSingleName()
+                refObj = self.getReferencedObject(property.getReference())
                 propertyName = refObj.getName()
             else:
                 propertyName = property.getName()
-            self.printLine("%s child.tag == '%s':\n" % (cond, propertyName))
+            self.printLine("%s child_tag == '%s':\n" % (cond, propertyName))
 
             if property.isReference():
                 self.indentLine("_data = self.getDao('%s').fromXML(child)\n" % \
@@ -335,7 +337,7 @@ class XMLAutoGen(AutoGen):
             else:
                 self.indentLine("_data = " + 
                                 "self.convertFromStr(child.text,'%s')\n" % \
-                                     property.getReference())
+                                     property.getPythonType())
 
         def generateFieldStoreCode(field):
             if field.isPlural():
@@ -370,8 +372,8 @@ class XMLAutoGen(AutoGen):
             self.printLine('\n')
             self.printLine('# read children\n')
             self.printLine('for child in node.getchildren():\n')
-            self.indent()
-
+            self.indentLine('child_tag = child.tag.split("}")[1] if child.tag[0] == "{" else child.tag\n')
+            
             cond = 'if'
             for field in elements + choices:
                 if field.isChoice():
@@ -440,17 +442,18 @@ class XMLAutoGen(AutoGen):
                 self.printLine("childNode = ElementTree.SubElement(" +
                                "node, '%s')\n" % property.getSingleName())
                 self.printLine("childNode.text = " + \
-                                   "self.convertToStr(child, '%s'))\n" % \
-                                   property.getPythonType())
+                                   "self.convertToStr(%s, '%s')\n" % \
+                                   (property.getSingleName(),
+                                    property.getPythonType()))
 
         if len(elements) + len(choices) > 0:
             self.printLine('# set elements\n')
             for field in elements + choices:
-                if field.isReference():
-                    self.printLine('%s = %s.%s\n' % \
+                self.printLine('%s = %s.%s\n' % \
                                    (field.getRegularName(),
                                     object.getRegularName(), 
                                     field.getFieldName()))
+                if field.isReference():
                     if field.isPlural():
                         if field.getPythonType() == 'hash':
                             self.printLine('for %s in %s.itervalues():\n' % \
@@ -470,7 +473,7 @@ class XMLAutoGen(AutoGen):
                             self.printLine("%s %s.vtType == '%s':\n" % \
                                                (cond,
                                                 field.getSingleName(),
-                                                property.getSingleName()))
+                                                property.getReference()))
                             self.indent()
                             generatePropertyOutputCode(property, field)
                             self.unindent()
@@ -478,6 +481,8 @@ class XMLAutoGen(AutoGen):
                     else:
                         generatePropertyOutputCode(field)
                     self.unindent()
+                else:
+                    generatePropertyOutputCode(field)
             self.printLine('\n')
         self.printLine('return node\n\n')
 

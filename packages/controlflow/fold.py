@@ -6,8 +6,9 @@ from core.modules.module_registry import get_module_registry
 from core.vistrail.port_spec import PortSpec
 from core.utils import VistrailsInternalError
 from list_module import ListOfElements
-import copy
 
+import copy
+from itertools import izip
 
 #################################################################################
 ## Fold Operator
@@ -19,63 +20,28 @@ class Fold(Module, NotCacheable):
     Initially, the method setInitialValue() must be defined.
     Later, the method operation() must be defined."""
     
+    def __init__(self):
+        Module.__init__(self)
+        self.is_fold_module = True
+
     def updateUpstream(self):
         """A modified version of the updateUpstream method."""
 
-        ## Getting list of connectors
-        connectors_InputList = self.inputPorts.get('InputList')
-        if connectors_InputList==None:
-            raise VistrailsInternalError('Missing value from port InputList')
-
-        ## Updating connectors from 'InputList'
-        for connector in connectors_InputList:
-            connector.obj.update()
-            
-        self.inputList = self.getInputFromPort('InputList')
-        
-        self.partialResult = None
-        self.initialValue = None
-        
-        self.setInitialValue()
-        self.partialResult = self.initialValue
-        self.elementResult = None
-        
-        ## If there is some function to consider...
-        if self.hasInputFromPort('FunctionPort'):
-
-            ## Getting list of connectors
-            self.connectors_FunctionPort = self.inputPorts.get('FunctionPort')
-            connectors_InputPort = self.inputPorts.get('InputPort')
-            connectors_OutputPort = self.inputPorts.get('OutputPort')
-
-            if self.connectors_FunctionPort==None:
-                raise VistrailsInternalError('Missing value from port FunctionPort')
-            if connectors_InputPort==None:
-                raise VistrailsInternalError('Missing value from port InputPort')
-            if connectors_OutputPort==None:
-                raise VistrailsInternalError('Missing value from port OutputPort')
-           
-            ## Updating connectors from 'InputPort'
-            for connector in connectors_InputPort:
-                connector.obj.update()
-
-            ## Updating connectors from 'OutputPort'
-            for connector in connectors_OutputPort:
-                connector.obj.update()
-
-            ## Updating connectors from 'FunctionPort' --> This one must be the last
-            self.updateFunctionPort()
-        
-        else:
-            for i in xrange(len(self.inputList)):
-                ## Getting the value inside the list
-                self.element = self.inputList[i]
-                self.operation()
-                
-        for iport, connectorList in copy.copy(self.inputPorts.items()):
-            for connector in connectorList:
-                if connector.obj.get_output(connector.port) is InvalidOutput:
-                    self.removeInputConnector(iport, connector)
+        # everything is the same except that we don't update anything
+        # upstream of FunctionPort
+        for port_name, connector_list in self.inputPorts.iteritems():
+            if port_name == 'FunctionPort':
+                for connector in connector_list:
+                    connector.obj.updateUpstream()
+            else:
+                for connector in connector_list:
+                    connector.obj.update()
+        for port_name, connectorList in copy.copy(self.inputPorts.items()):
+            if port_name != 'FunctionPort':
+                for connector in connectorList:
+                    if connector.obj.get_output(connector.port) is \
+                            InvalidOutput:
+                        self.removeInputConnector(port_name, connector)
 
     def updateFunctionPort(self):
         """
@@ -84,29 +50,46 @@ class Fold(Module, NotCacheable):
         """
         nameInput = self.getInputFromPort('InputPort')
         nameOutput = self.getInputFromPort('OutputPort')
+        rawInputList = self.getInputFromPort('InputList')
+
+        # create inputList to always have iterable elements
+        # to simplify code
+        element_is_iter = False
+        inputList = []
+        for element in rawInputList:
+            if not is_iterable(element):
+                inputList.append([element])
+            else:
+                element_is_iter = True
+                inputList.append(element)
 
         ## Update everything for each value inside the list
-        for i in xrange(len(self.inputList)):
-            self.element = self.inputList[i]
-            for connector in self.connectors_FunctionPort:
+        for i in xrange(len(inputList)): 
+            element = inputList[i]
+            if element_is_iter:
+                self.element = element
+            else:
+                self.element = element[0]
+            for connector in self.inputPorts.get('FunctionPort'):
                 if not self.upToDate:
                     ##Type checking
                     if i==0:
-                        self.typeChecking(connector.obj, nameInput)
+                        self.typeChecking(connector.obj, nameInput, inputList)
                     
                     connector.obj.upToDate = False
                     connector.obj.already_computed = False
                     
                     ## Setting information for logging stuff
+                    connector.obj.is_fold_operator = True
                     connector.obj.first_iteration = False
+                    connector.obj.last_iteration = False
+                    connector.obj.fold_iteration = i
                     if i==0:
-                        connector.obj.is_fold_operator = True
                         connector.obj.first_iteration = True
-                        connector.obj.last_iteration = False
-                    if i==((len(self.inputList))-1):
+                    if i==((len(inputList))-1):
                         connector.obj.last_iteration = True
 
-                    self.setInputValues(connector.obj, nameInput)
+                    self.setInputValues(connector.obj, nameInput, element)
                 connector.obj.update()
                 
                 ## Getting the result from the output port
@@ -116,60 +99,42 @@ class Fold(Module, NotCacheable):
                 self.elementResult = connector.obj.get_output(nameOutput)
             self.operation()
 
-    def setInputValues(self, module, inputPorts):
+    def setInputValues(self, module, inputPorts, elementList):
         """
         Function used to set a value inside 'module', given the input port(s).
         """
-        if len(inputPorts)==1:
+        for element, inputPort in izip(elementList, inputPorts):
             ## Cleaning the previous connector...
-            if inputPorts[0] in module.inputPorts:
-                del module.inputPorts[inputPorts[0]]
-            new_connector = ModuleConnector(create_constant(self.element),\
-                                            'value')
-            module.set_input_port(inputPorts[0], new_connector)
-        else:
-            for j in xrange(len(inputPorts)):
-                ## Cleaning the previous connector...
-                if inputPorts[j] in module.inputPorts:
-                    del module.inputPorts[inputPorts[j]]
-                new_connector = ModuleConnector(create_constant(self.element[j]),\
-                                                'value')
-                module.set_input_port(inputPorts[j], new_connector)
-
-    def typeChecking(self, module, inputPorts):
+            if inputPort in module.inputPorts:
+                del module.inputPorts[inputPort]
+            new_connector = ModuleConnector(create_constant(element), 'value')
+            module.set_input_port(inputPort, new_connector)
+            
+    def typeChecking(self, module, inputPorts, inputList):
         """
         Function used to check if the types of the input list element and of the
         inputPort of 'module' match.
         """
-        if len(inputPorts)==1:
-            port_spec1 = module.moduleInfo['pipeline'].modules\
-                         [module.moduleInfo['moduleId']].get_port_spec(inputPorts[0],\
-                                                                       'input')
-            for element in self.inputList:
-                v_module = create_module(element, port_spec1.signature)
-                if v_module!=None:
-                    self.compare(port_spec1, v_module, inputPorts[0])
+        for elementList in inputList:
+            if len(elementList) != len(inputPorts):
+                raise ModuleError(self,
+                                  'The number of input values and input ports '
+                                  'are not the same.')
+            for element, inputPort in izip(elementList, inputPorts):
+                p_modules = module.moduleInfo['pipeline'].modules
+                p_module = p_modules[module.moduleInfo['moduleId']]
+                port_spec = p_module.get_port_spec(inputPort, 'input')
+                v_module = create_module(element, port_spec.signature)
+                if v_module is not None:
+                    if not self.compare(port_spec, v_module, inputPort):
+                        raise ModuleError(self,
+                                          'The type of a list element does '
+                                          'not match with the type of the '
+                                          'port %s.' % port)
+
                     del v_module
                 else:
                     break
-            return
-        else:
-            for element in self.inputList:
-                if len(inputPorts)!=len(element):
-                    raise VistrailsInternalError\
-                          ('The number of input values and input ports are' +
-                           ' not the same.')
-                for port in xrange(len(inputPorts)):
-                    port_spec1 = module.moduleInfo['pipeline'].modules\
-                                 [module.moduleInfo['moduleId']].get_port_spec\
-                                 (inputPorts[port], 'input')
-                    v_module = create_module(element[port], port_spec1.signature)
-                    if v_module!=None:
-                        self.compare(port_spec1, v_module, inputPorts[port])
-                        del v_module
-                    else:
-                        break
-            return
 
     def createSignature(self, v_module):
         """
@@ -195,14 +160,15 @@ class Fold(Module, NotCacheable):
         port_spec2 = PortSpec(**{'signature': v_module})
         matched = reg.are_specs_matched(port_spec1, port_spec2)
                 
-        if not matched:
-            raise VistrailsInternalError\
-                  ('The type of a list element does not match with the type' +
-                   ' of the port %s.'%port)
-            return
+        return matched
         
     def compute(self):
         """The compute method for the Fold."""
+
+        self.setInitialValue()
+        self.partialResult = self.initialValue
+        self.elementResult = None
+        self.updateFunctionPort()
 
         self.setResult('Result', self.partialResult)
 
@@ -273,3 +239,10 @@ def create_module(value, signature):
         print "Type checking is not going to be done inside Fold module."
         return None
     
+def is_iterable(obj):
+    try:
+        iter(obj)
+        return True
+    except TypeError:
+        pass
+    return False

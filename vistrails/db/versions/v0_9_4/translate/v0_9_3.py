@@ -51,6 +51,6 @@ def translateWorkflow(_workflow):
 
 def translateLog(_log):
     translate_dict = {}
-    log = DBLog.update_version(_log, translate_dict)
+    log = DBLog.update_version(_log, translate_dict, DBLog())
     log.db_version = '0.9.4'
     return log

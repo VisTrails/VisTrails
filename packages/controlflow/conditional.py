@@ -15,78 +15,55 @@ class If(Module, NotCacheable):
     def updateUpstream(self):
         """A modified version of the updateUpstream method."""
       
-        ## Updating connectors from 'Condition'
-        connectors_Condition = self.inputPorts.get('Condition')
-        if connectors_Condition==None:
-            raise VistrailsInternalError('Missing value from port Condition')
-        for connector in connectors_Condition:
-            connector.obj.update()
-
-        ## Getting the list of connectors
-        connectors_TruePort = self.inputPorts.get('TruePort')
-        if connectors_TruePort==None:
-            raise VistrailsInternalError('Missing value from port TruePort')
-        connectors_FalsePort = self.inputPorts.get('FalsePort')
-        if connectors_FalsePort==None:
-            raise VistrailsInternalError('Missing value from port FalsePort')
-
-        ## Getting the condition
-        cond = self.getInputFromPort('Condition')
-
-        if cond:
-            ## Updating connectors from 'TruePort'
-            for connector in connectors_TruePort:
-                connector.obj.upToDate = False
-                connector.obj.update()
-                if self.hasInputFromPort('TrueOutputPorts'):
-                    ## Getting the list of connectors
-                    connectors_TrueOutputPorts = self.inputPorts.get('TrueOutputPorts')
-
-                    ## Updating connectors from 'TrueOutputPorts'
-                    for connector_ in connectors_TrueOutputPorts:
-                        connector_.obj.update()
-
-                    ## Getting the output ports
-                    outputPorts = self.getInputFromPort('TrueOutputPorts')
-                    
-                    if len(outputPorts)==1:
-                        self.setResult('Result',connector.obj.get_output(outputPorts[0]))
-                    else:
-                        result = []
-                        for outputPort in outputPorts:
-                            result.append(connector.obj.get_output(outputPort))
-                        self.setResult('Result',result)
-                
-        else:
-            ## Updating connectors from 'FalsePort'
-            for connector in connectors_FalsePort:
-                connector.obj.upToDate = False
-                connector.obj.update()
-                if self.hasInputFromPort('FalseOutputPorts'):
-                    ## Getting the list of connectors
-                    connectors_FalseOutputPorts = self.inputPorts.get('FalseOutputPorts')
-
-                    ## Updating connectors from 'FalseOutputPorts'
-                    for connector_ in connectors_FalseOutputPorts:
-                        connector_.obj.update()
-
-                    ## Getting the output ports
-                    outputPorts = self.getInputFromPort('FalseOutputPorts')
-                    
-                    if len(outputPorts)==1:
-                        self.setResult('Result',connector.obj.get_output(outputPorts[0]))
-                    else:
-                        result = []
-                        for outputPort in outputPorts:
-                            result.append(connector.obj.get_output(outputPort))
-                        self.setResult('Result',result)
-                        
-        for iport, connectorList in copy.copy(self.inputPorts.items()):
-            for connector in connectorList:
-                if connector.obj.get_output(connector.port) is InvalidOutput:
-                    self.removeInputConnector(iport, connector)
+        # everything is the same except that we don't update anything
+        # upstream of TruePort or FalsePort
+        excluded_ports = set(['TruePort', 'FalsePort', 'TrueOutputPorts',
+                              'FalseOutputPorts'])
+        for port_name, connector_list in self.inputPorts.iteritems():
+            if port_name not in excluded_ports:
+                for connector in connector_list:
+                    connector.obj.update()
+        for port_name, connectorList in copy.copy(self.inputPorts.items()):
+            if port_name not in excluded_ports:
+                for connector in connectorList:
+                    if connector.obj.get_output(connector.port) is \
+                            InvalidOutput:
+                        self.removeInputConnector(port_name, connector)
 
     def compute(self):
         """ The compute method for the If module."""
 
-        pass
+        if not self.hasInputFromPort('Condition'):
+            raise ModuleError(self, 'Must set condition')
+        cond = self.getInputFromPort('Condition')
+
+        if cond:
+            port_name = 'TruePort'
+            output_ports_name = 'TrueOutputPorts'
+        else:
+            port_name = 'FalsePort'
+            output_ports_name = 'FalseOutputPorts'
+
+        if self.hasInputFromPort(output_ports_name):
+            for connector in self.inputPorts.get(output_ports_name):
+                connector.obj.update()
+
+        if not self.hasInputFromPort(port_name):
+            raise ModuleError(self, 'Must set ' + port_name)
+
+        for connector in self.inputPorts.get(port_name):
+            connector.obj.upToDate = False
+            connector.obj.update()
+
+            if self.hasInputFromPort(output_ports_name):
+                output_ports = self.getInputFromPort(output_ports_name)
+                result = []
+                for output_port in output_ports:
+                    result.append(connector.obj.get_output(output_port))
+
+                # FIXME can we just make this a list?
+                if len(output_ports) == 1:
+                    self.setResult('Result', result[0])
+                else:
+                    self.setResult('Result', result)
+                                  

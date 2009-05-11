@@ -20,4 +20,5 @@
 ##
 ############################################################################
 
-from db.versions.v1_0_0.domain import *
+class SQLDAOListBase(dict):
+    pass

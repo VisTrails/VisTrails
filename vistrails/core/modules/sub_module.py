@@ -80,8 +80,8 @@ class Group(Module):
             iport_obj.set_input_port('ExternalPipe', conn[0])
         
         kwargs = {'logger': self.logging.log, 'clean_pipeline': True}
-        if hasattr(self, 'group_exec'):
-            kwargs['parent_exec'] = self.group_exec
+#         if hasattr(self, 'group_exec'):
+#             kwargs['parent_exec'] = self.group_exec
 
         res = self.interpreter.execute_pipeline(self.pipeline, *(res[:2]), 
                                                 **kwargs)

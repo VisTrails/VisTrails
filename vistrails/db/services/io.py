@@ -34,9 +34,10 @@ import tempfile
 
 from db import VistrailsDBException
 from db.domain import DBVistrail, DBWorkflow, DBLog, DBAbstraction, DBGroup, \
-    DBRegistry
+    DBRegistry, DBWorkflowExec, DBOpmGraph
 import db.services.abstraction
 import db.services.log
+import db.services.opm
 import db.services.registry
 import db.services.workflow
 import db.services.vistrail
@@ -44,16 +45,30 @@ from db.versions import getVersionDAO, currentVersion, getVersionSchemaDir, \
     translate_object, translate_vistrail, translate_workflow, translate_log, \
     translate_registry
 
+_db_lib = None
+def get_db_lib():
+    global _db_lib
+    if _db_lib is None:
+        import MySQLdb
+        # import sqlite3
+        _db_lib = MySQLdb
+    return _db_lib
+def set_db_lib(lib):
+    global _db_lib
+    _db_lib = lib
+
 def open_db_connection(config):
-    import MySQLdb
 
     if config is None:
         msg = "You need to provide valid config dictionary"
         raise VistrailsDBException(msg)
     try:
-        db_connection = MySQLdb.connect(**config)
+        print config
+        # FIXME allow config to be kwargs and args?
+        # db_connection = get_db_lib().connect(**config)
+        db_connection = get_db_lib().connect(config)
         return db_connection
-    except MySQLdb.Error, e:
+    except get_db_lib().Error, e:
         # should have a DB exception type
         msg = "cannot open connection (%d: %s)" % (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
@@ -67,12 +82,10 @@ def test_db_connection(config):
     Tests a connection raising an exception in case of error.
     
     """
-    import MySQLdb
-
     try:
-        db_connection = MySQLdb.connect(**config)
+        db_connection = get_db_lib().connect(**config)
         close_db_connection(db_connection)
-    except MySQLdb.Error, e:
+    except get_db_lib().Error, e:
         msg = "connection test failed (%d: %s)" % (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
 
@@ -89,8 +102,6 @@ def date_to_str(date):
 
 def get_db_object_list(config, obj_type):
     
-    import MySQLdb
-
     result = []    
     db = open_db_connection(config)
 
@@ -118,15 +129,13 @@ def get_db_object_list(config, obj_type):
         c.close()
         close_db_connection(db)
         
-    except MySQLdb.Error, e:
+    except get_db_lib().Error, e:
         msg = "Couldn't get list of vistrails objects from db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
     return result
 
 def get_db_object_modification_time(db_connection, obj_id, obj_type):
-    import MySQLdb
-
     command = """
     SELECT o.last_modified
     FROM %s o
@@ -138,15 +147,13 @@ def get_db_object_modification_time(db_connection, obj_id, obj_type):
         c.execute(command % (translate_to_tbl_name(obj_type), obj_id))
         time = c.fetchall()[0][0]
         c.close()
-    except MySQLdb.Error, e:
+    except get_db_lib().Error, e:
         msg = "Couldn't get object modification time from db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
     return time
 
 def get_db_object_version(db_connection, obj_id, obj_type):
-    import MySQLdb
-
     command = """
     SELECT o.version
     FROM %s o
@@ -158,15 +165,13 @@ def get_db_object_version(db_connection, obj_id, obj_type):
         c.execute(command % (translate_to_tbl_name(obj_type), obj_id))
         version = c.fetchall()[0][0]
         c.close()
-    except MySQLdb.Error, e:
+    except get_db_lib().Error, e:
         msg = "Couldn't get object version from db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
     return version
 
 def get_db_version(db_connection):
-    import MySQLdb
-
     command = """
     SELECT `version`
     FROM `vistrails_version`
@@ -177,14 +182,12 @@ def get_db_version(db_connection):
         c.execute(command)
         version = c.fetchall()[0][0]
         c.close()
-    except MySQLdb.Error, e:
+    except get_db_lib().Error, e:
         # just return None if we hit an error
         return None
     return version
 
 def get_matching_abstraction_id(db_connection, abstraction):
-    import MySQLdb
-
     last_action_id = -1
     last_action = None
     for action in abstraction.db_actions:
@@ -215,33 +218,56 @@ def get_matching_abstraction_id(db_connection, abstraction):
         if len(result) > 0:
             print 'got result:', result
             id = result[0][0]
-    except MySQLdb.Error, e:
+    except get_db_lib().Error, e:
         msg = "Couldn't get object modification time from db (%d : %s)" % \
             (e.args[0], e.args[1])
         raise VistrailsDBException(msg)
     return id
 
 def setup_db_tables(db_connection, version=None):
-    import MySQLdb
-
     schemaDir = getVersionSchemaDir(version)
     try:
+        def execute_file(c, f):
+            cmd = ""
+            auto_inc_str = 'auto_increment'
+            not_null_str = 'not null'
+            engine_str = 'engine=InnoDB;'
+            for line in f:
+                if line.find(auto_inc_str) > 0:
+                    num = line.find(auto_inc_str)
+                    line = line[:num] + line[num+len(auto_inc_str):]
+                if line.find(not_null_str) > 0:
+                    num = line.find(not_null_str)
+                    line = line[:num] + line[num+len(not_null_str):]
+                cmd += line
+                ending = line.rstrip()
+                if ending and ending[-1] == ';':
+                    # FIXME engine stuff switch for MySQLdb, sqlite3
+                    cmd = cmd.rstrip()
+                    if cmd.endswith(engine_str):
+                        cmd = cmd[:-len(engine_str)] + ';'
+                    print cmd
+                    c.execute(cmd)
+                    cmd = ""
+
         # delete tables
         c = db_connection.cursor()
         f = open(os.path.join(schemaDir, 'vistrails_drop.sql'))
-        db_script = f.read()
-        c.execute(db_script)
+        execute_file(c, f)
+#         db_script = f.read()
+#         c.execute(db_script)
         c.close()
         f.close()
 
         # create tables        
         c = db_connection.cursor()
         f = open(os.path.join(schemaDir, 'vistrails.sql'))
-        db_script = f.read()
-        c.execute(db_script)
+        execute_file(c, f)
+#         db_script = f.read()
+#         c.execute(db_script)
         f.close()
         c.close()
-    except MySQLdb.Error, e:
+    except get_db_lib().Error, e:
         raise VistrailsDBException("unable to create tables: " + str(e))
 
 ##############################################################################
@@ -269,16 +295,11 @@ def save_to_xml(obj, filename):
         return save_log_to_xml(obj, filename)
     elif obj.vtType == DBRegistry.vtType:
         return save_registry_to_xml(obj, filename)
+    elif obj.vtType == DBOpmGraph.vtType:
+        return save_opm_to_xml(obj, filename)
     else:
         raise VistrailsDBException("cannot save object of type "
                                    "'%s' to xml" % type)
-
-def append_to_xml(obj, filename):
-    if obj.vtType == DBLog.vtType:
-        return append_log_to_xml(obj, filename)
-    else:
-        raise VistrailsDBException("cannot append object of type '%s'" % \
-                                       obj.vtType)
 
 def open_from_zip_xml(filename, type):
     if type == DBVistrail.vtType:
@@ -362,7 +383,7 @@ def open_vistrail_from_xml(filename):
     version = get_version_for_xml(tree.getroot())
     try:
         daoList = getVersionDAO(version)
-        vistrail = daoList.open_from_xml(filename, DBVistrail.vtType)
+        vistrail = daoList.open_from_xml(filename, DBVistrail.vtType, tree)
         vistrail = translate_vistrail(vistrail, version)
         db.services.vistrail.update_id_scope(vistrail)
     except VistrailsDBException, e:
@@ -390,6 +411,7 @@ def open_vistrail_from_zip_xml(filename):
 
     vistrail = None
     log = None
+    log_fname = None
     abstraction_files = []
     unknown_files = []
     try:
@@ -401,6 +423,7 @@ def open_vistrail_from_zip_xml(filename):
                     # FIXME read log to get execution info
                     # right now, just ignore the file
                     log = None 
+                    log_fname = os.path.join(root, fname)
                     # log = open_log_from_xml(os.path.join(root, fname))
                     # objs.append(DBLog.vtType, log)
                 elif fname.startswith('abstraction_'):
@@ -415,7 +438,8 @@ def open_vistrail_from_zip_xml(filename):
                                        unknown_files)
     if vistrail is None:
         raise VistrailsDBException("vt file does not contain vistrail")
-    
+    vistrail.db_log_filename = log_fname
+
     objs = [(DBVistrail.vtType, vistrail)]
     if log is not None:
         objs.append((DBLog.vtType, log))
@@ -500,10 +524,7 @@ def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None, version=None):
                                            'as obj')
         elif obj_type == DBLog.vtType:
             xml_fname = os.path.join(vt_save_dir, 'log')
-            if not os.path.exists(xml_fname):
-                save_log_to_xml(obj, xml_fname, version)
-            else:
-                append_log_to_xml(obj, xml_fname, version)
+            save_log_to_xml(obj, xml_fname, version, True)
         elif obj_type == DBVistrail.vtType:
             xml_fname = os.path.join(vt_save_dir, 'vistrail')
             save_vistrail_to_xml(obj, xml_fname, version)
@@ -511,6 +532,7 @@ def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None, version=None):
             raise VistrailsDBException('save_vistrail_to_zip_xml failed, '
                                        "type '%s' unrecognized" % obj_type)
         
+
     tmp_zip_dir = tempfile.mkdtemp(prefix='vt_zip')
     tmp_zip_file = os.path.join(tmp_zip_dir, "vt.zip")
     output = []
@@ -526,7 +548,7 @@ def save_vistrail_to_zip_xml(objs, filename, vt_save_dir=None, version=None):
     finally:
         os.unlink(tmp_zip_file)
         os.rmdir(tmp_zip_dir)
-
+    
     return (objs, vt_save_dir)
             
 def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
@@ -542,7 +564,7 @@ def save_vistrail_to_db(vistrail, db_connection, do_copy=False, version=None):
     vistrail = translate_vistrail(vistrail, vistrail.db_version, version)
     dao_list = getVersionDAO(version)
 
-    db_connection.begin()
+    # db_connection.begin()
     if not do_copy and vistrail.db_last_modified is not None:
         new_time = get_db_object_modification_time(db_connection, 
                                                    vistrail.db_id,
@@ -568,7 +590,7 @@ def open_workflow_from_xml(filename):
     tree = ElementTree.parse(filename)
     version = get_version_for_xml(tree.getroot())
     daoList = getVersionDAO(version)
-    workflow = daoList.open_from_xml(filename, DBWorkflow.vtType)
+    workflow = daoList.open_from_xml(filename, DBWorkflow.vtType, tree)
     workflow = translate_workflow(workflow, version)
     db.services.workflow.update_id_scope(workflow)
     return workflow
@@ -626,14 +648,39 @@ def save_workflow_to_db(workflow, db_connection, do_copy=False, version=None):
 ##############################################################################
 # Logging I/O
 
-def open_log_from_xml(filename):
+def open_log_from_xml(filename, was_appended=False):
     """open_log_from_xml(filename) -> DBLog"""
-    tree = ElementTree.parse(filename)
-    version = get_version_for_xml(tree.getroot())
-    daoList = getVersionDAO(version)
-    log = daoList.open_from_xml(filename, DBLog.vtType)
-    log = translate_log(log, version)
-    db.services.log.update_id_scope(log)
+    if was_appended:
+        parser = ElementTree.XMLTreeBuilder()
+        parser.feed("<log>\n")
+        f = open(filename, "rb")
+        parser.feed(f.read())
+        parser.feed("</log>\n")
+        root = parser.close()
+        workflow_execs = []
+        for node in root:
+            version = get_version_for_xml(node)
+            daoList = getVersionDAO(version)
+            workflow_exec = \
+                daoList.read_xml_object(DBWorkflowExec.vtType, node)
+            if version != currentVersion:
+                # if version is wrong, dump this into a dummy log object, 
+                # then translate, then get workflow_exec back
+                log = DBLog()
+                translate_log(log, currentVersion, version)
+                log.db_add_workflow_exec(workflow_exec)
+                log = translate_log(log, version)
+                workflow_exec = log.db_workflow_execs[0]
+            workflow_execs.append(workflow_exec)
+        log = DBLog(workflow_execs=workflow_execs)
+        db.services.log.update_ids(log)
+    else:
+        tree = ElementTree.parse(filename)
+        version = get_version_for_xml(tree.getroot())
+        daoList = getVersionDAO(version)
+        log = daoList.open_from_xml(filename, DBLog.vtType, tree)
+        log = translate_log(log, version)
+        db.services.log.update_id_scope(log)
     return log
 
 def open_log_from_db(db_connection, id, lock=False, version=None):
@@ -651,12 +698,7 @@ def open_log_from_db(db_connection, id, lock=False, version=None):
     log = translate_log(log, version)
     return log
 
-def save_log_to_xml(log, filename, version=None):
-#     tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-#             'xsi:schemaLocation': 'http://www.vistrails.org/log.xsd'
-#             }
-#     daoList.save_to_xml(log, filename, tags, currentVersion)
-
+def save_log_to_xml(log, filename, version=None, do_append=False):
     if version is None:
         version = currentVersion
     if not log.db_version:
@@ -664,10 +706,18 @@ def save_log_to_xml(log, filename, version=None):
     log = translate_log(log, log.db_version, version)
 
     daoList = getVersionDAO(version)
-    log_file = open(filename, 'wb')
-    for workflow_exec in log.workflow_execs:
-        daoList.save_to_xml(workflow_exec, log_file, {}, currentVersion)
-    log_file.close()
+    if do_append:
+        log_file = open(filename, 'ab')
+        for workflow_exec in log.workflow_execs:
+            # cannot do correct numbering here...
+            workflow_exec.db_id = -1L
+            daoList.save_to_xml(workflow_exec, log_file, {}, currentVersion)
+        log_file.close()
+    else:
+        tags = {'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+                'xsi:schemaLocation': 'http://www.vistrails.org/log.xsd'
+                }
+        daoList.save_to_xml(log, filename, tags, currentVersion)
     return log
 
 def save_log_to_db(log, db_connection, do_copy=False, version=None):
@@ -689,20 +739,30 @@ def save_log_to_db(log, db_connection, do_copy=False, version=None):
     db_connection.commit()
     return log
 
-def append_log_to_xml(log, filename, version=None):
+def merge_logs(new_log, vt_log_fname):
+    log = open_log_from_xml(vt_log_fname, True)
+    for workflow_exec in new_log.db_workflow_execs:
+        workflow_exec.db_id = log.id_scope.getNewId(DBWorkflowExec.vtType)
+        log.db_add_workflow_exec(workflow_exec)
+    return log
+
+##############################################################################
+# OPM I/O
+
+def save_opm_to_xml(opm_graph, filename, version=None):    
+    # FIXME, we're using workflow, version, and log here...
+    # which aren't in DBOpmGraph...
     if version is None:
         version = currentVersion
-    if not log.db_version:
-        log.db_version = currentVersion
-    log = translate_log(log, log.db_version, version)
-
     daoList = getVersionDAO(version)
-    log_file = open(filename, 'ab')
-
-    for workflow_exec in log.workflow_execs:
-        daoList.save_to_xml(workflow_exec, log_file, {}, currentVersion)
-    log_file.close()
-    return log
+    tags = {'xmlns': 'http://openprovenance.org/model/v1.01.a',
+            }
+    opm_graph = db.services.opm.create_opm(opm_graph.workflow, 
+                                           opm_graph.version,
+                                           opm_graph.log,
+                                           opm_graph.registry)
+    daoList.save_to_xml(opm_graph, filename, tags, currentVersion)
+    return opm_graph
 
 ##############################################################################
 # Registry I/O
@@ -711,7 +771,7 @@ def open_registry_from_xml(filename):
     tree = ElementTree.parse(filename)
     version = get_version_for_xml(tree.getroot())
     daoList = getVersionDAO(version)
-    registry = daoList.open_from_xml(filename, DBRegistry.vtType)
+    registry = daoList.open_from_xml(filename, DBRegistry.vtType, tree)
     registry = translate_registry(registry, version)
     db.services.registry.update_id_scope(registry)
     return registry
@@ -829,17 +889,24 @@ def get_version_for_xml(root):
     msg = "Cannot find version information"
     raise VistrailsDBException(msg)
 
+def get_type_for_xml(root):
+    return root.tag
+
 def get_current_time(db_connection=None):
     timestamp = datetime.now()
     if db_connection is not None:
         try:
             c = db_connection.cursor()
-            c.execute("SELECT NOW()")
+            # FIXME MySQL versus sqlite3
+            # c.execute("SELECT NOW();")
+            c.execute("SELECT DATETIME('NOW');")
             row = c.fetchone()
             if row:
-                timestamp = row[0]
+                # FIXME MySQL versus sqlite3
+                # timestamp = row[0]
+                timestamp = datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
             c.close()
-        except MySQLdb.Error, e:
+        except get_db_lib().Error, e:
             print "Logger Error %d: %s" % (e.args[0], e.args[1])
 
     return timestamp

@@ -1,29 +1,40 @@
---##########################################################################
---
--- Copyright (C) 2006-2008 University of Utah. All rights reserved.
---
--- This file is part of VisTrails.
---
--- This file may be used under the terms of the GNU General Public
--- License version 2.0 as published by the Free Software Foundation
--- and appearing in the file LICENSE.GPL included in the packaging of
--- this file.  Please review the following to ensure GNU General Public
--- Licensing requirements will be met:
--- http://www.opensource.org/licenses/gpl-license.php
---
--- If you are unsure which license is appropriate for your use (for
--- instance, you are interested in developing a commercial derivative
--- of VisTrails), please contact us at vistrails@sci.utah.edu.
---
--- This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
--- WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
---
---##########################################################################
+############################################################################
+##
+## Copyright (C) 2006-2008 University of Utah. All rights reserved.
+##
+## This file is part of VisTrails.
+##
+## This file may be used under the terms of the GNU General Public
+## License version 2.0 as published by the Free Software Foundation
+## and appearing in the file LICENSE.GPL included in the packaging of
+## this file.  Please review the following to ensure GNU General Public
+## Licensing requirements will be met:
+## http://www.opensource.org/licenses/gpl-license.php
+##
+## If you are unsure which license is appropriate for your use (for
+## instance, you are interested in developing a commercial derivative
+## of VisTrails), please contact us at vistrails@sci.utah.edu.
+##
+## This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+## WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+##
+############################################################################
 
 CREATE TABLE `vistrails_version`(`version` char(16)) engine=InnoDB;
-INSERT INTO `vistrails_version`(`version`) VALUES ('0.9.5');
+INSERT INTO `vistrails_version`(`version`) VALUES ('1.0.0');
 
 -- generated automatically by auto_dao.py
+
+CREATE TABLE was_generated_by(
+    effect int,
+    role varchar(255),
+    cause int,
+    account int
+) engine=InnoDB;
+
+CREATE TABLE accounts(
+
+) engine=InnoDB;
 
 CREATE TABLE port_spec(
     id int,
@@ -72,6 +83,10 @@ CREATE TABLE tag(
     entity_type char(16)
 ) engine=InnoDB;
 
+CREATE TABLE processes(
+
+) engine=InnoDB;
+
 CREATE TABLE port(
     id int,
     type varchar(255),
@@ -83,6 +98,12 @@ CREATE TABLE port(
     entity_id int,
     entity_type char(16),
     parent_id int
+) engine=InnoDB;
+
+CREATE TABLE artifact(
+    id int,
+    value ,
+    account int
 ) engine=InnoDB;
 
 CREATE TABLE group_tbl(
@@ -106,6 +127,10 @@ CREATE TABLE log_tbl(
     name varchar(255),
     last_modified datetime,
     vistrail_id int
+) engine=InnoDB;
+
+CREATE TABLE agents(
+
 ) engine=InnoDB;
 
 CREATE TABLE machine(
@@ -152,6 +177,18 @@ CREATE TABLE location(
     parent_id int
 ) engine=InnoDB;
 
+CREATE TABLE overlaps(
+
+) engine=InnoDB;
+
+CREATE TABLE artifacts(
+
+) engine=InnoDB;
+
+CREATE TABLE causal_dependencies(
+
+) engine=InnoDB;
+
 CREATE TABLE parameter(
     id int,
     pos int,
@@ -163,6 +200,13 @@ CREATE TABLE parameter(
     entity_id int,
     entity_type char(16),
     parent_id int
+) engine=InnoDB;
+
+CREATE TABLE used(
+    effect int,
+    role varchar(255),
+    cause int,
+    account int
 ) engine=InnoDB;
 
 CREATE TABLE plugin_data(
@@ -210,11 +254,20 @@ CREATE TABLE workflow(
     parent_id int
 ) engine=InnoDB;
 
+CREATE TABLE opm_graph(
+
+) engine=InnoDB;
+
 CREATE TABLE registry(
     id int not null auto_increment primary key,
     entity_type char(16),
     version char(16),
     root_descriptor_id int
+) engine=InnoDB;
+
+CREATE TABLE account(
+    id int,
+    value 
 ) engine=InnoDB;
 
 CREATE TABLE annotation(
@@ -239,6 +292,20 @@ CREATE TABLE change_tbl(
     entity_type char(16)
 ) engine=InnoDB;
 
+CREATE TABLE was_derived_from(
+    effect int,
+    role varchar(255),
+    cause int,
+    account int
+) engine=InnoDB;
+
+CREATE TABLE was_controlled_by(
+    effect int,
+    role varchar(255),
+    cause int,
+    account int
+) engine=InnoDB;
+
 CREATE TABLE group_exec(
     id int,
     ts_start datetime,
@@ -254,6 +321,12 @@ CREATE TABLE group_exec(
     entity_id int,
     entity_type char(16),
     parent_id int
+) engine=InnoDB;
+
+CREATE TABLE time(
+    no_later_than datetime,
+    no_earlier_than datetime,
+    clock_id varchar(255)
 ) engine=InnoDB;
 
 CREATE TABLE package(
@@ -305,6 +378,19 @@ CREATE TABLE connection_tbl(
     parent_id int
 ) engine=InnoDB;
 
+CREATE TABLE process(
+    id int,
+    value ,
+    account int
+) engine=InnoDB;
+
+CREATE TABLE was_triggered_by(
+    effect int,
+    role varchar(255),
+    cause int,
+    account int
+) engine=InnoDB;
+
 CREATE TABLE action(
     id int,
     prev_id int,
@@ -315,6 +401,12 @@ CREATE TABLE action(
     parent_id int,
     entity_id int,
     entity_type char(16)
+) engine=InnoDB;
+
+CREATE TABLE agent(
+    id int,
+    value ,
+    account int
 ) engine=InnoDB;
 
 CREATE TABLE delete_tbl(

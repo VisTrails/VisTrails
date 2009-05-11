@@ -20,11 +20,28 @@
 ##
 ############################################################################
 
-from db.domain import DBWorkflowExec
+from auto_gen import DBLog as _DBLog
+from auto_gen import DBAbstraction, DBModule, DBGroup, DBLoopExec, \
+    DBGroupExec, DBModuleExec
+from id_scope import IdScope
 
-def update_id_scope(log):
-    pass
+import copy
 
-def update_ids(log):
-    for workflow_exec in log.db_workflow_execs:
-        workflow_exec.db_id = log.id_scope.getNewId(DBWorkflowExec.vtType)
+class DBLog(_DBLog):
+
+    def __init__(self, *args, **kwargs):
+	_DBLog.__init__(self, *args, **kwargs)
+        self.id_scope = IdScope(1,
+                                {DBLoopExec.vtType: 'item_exec',
+                                 DBModuleExec.vtType: 'item_exec',
+                                 DBGroupExec.vtType: 'item_exec',
+                                 DBAbstraction.vtType: DBModule.vtType,
+                                 DBGroup.vtType: DBModule.vtType})
+
+    def __copy__(self):
+        return DBLog.do_copy(self)
+
+    def do_copy(self, new_ids=False, id_scope=None, id_remap=None):
+        cp = _DBLog.do_copy(self, new_ids, id_scope, id_remap)
+        cp.__class__ = DBLog
+        cp.id_scope = copy.copy(self.id_scope)

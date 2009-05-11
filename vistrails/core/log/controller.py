@@ -25,6 +25,7 @@ from core.log.module_exec import ModuleExec
 from core.log.loop_exec import LoopExec
 from core.log.group_exec import GroupExec
 from core.log.machine import Machine
+from core.modules.sub_module import Group, Abstraction
 from core.vistrail.annotation import Annotation
 from core.vistrail.pipeline import Pipeline
 from core.vistrail.vistrail import Vistrail
@@ -109,15 +110,12 @@ class LogController(object):
             self.workflow_exec.completed = 1
 
     def create_module_exec(self, module, module_id, module_name,
-                           abstraction_id, abstraction_version,
                            cached):
         m_exec_id = self.log.id_scope.getNewId(ModuleExec.vtType)
         module_exec = ModuleExec(id=m_exec_id,
                                  machine_id=self.machine.id,
                                  module_id=module_id,
                                  module_name=module_name,
-                                 abstraction_id=abstraction_id,
-                                 abstraction_version=abstraction_version,
                                  cached=cached,
                                  ts_start=core.system.current_time(),
                                  completed=0)
@@ -125,14 +123,10 @@ class LogController(object):
 
     def create_group_exec(self, group, module_id, group_name, cached):
         g_exec_id = self.log.id_scope.getNewId(GroupExec.vtType)
-        group_ = group.moduleInfo['pipeline'].\
-                 modules[group.moduleInfo['moduleId']]
-        is_group = group_.is_group()
-        is_abstraction = group_.is_abstraction()
-        if is_group:
-            group_type = 'Group'
-        if is_abstraction:
+        if isinstance(group, Abstraction):
             group_type = 'SubWorkflow'
+        else:
+            group_type = 'Group'
         group_exec = GroupExec(id=g_exec_id,
                                machine_id=self.machine.id,
                                module_id=module_id,
@@ -143,142 +137,63 @@ class LogController(object):
                                completed=0)
         return group_exec
 
-    def create_loop_exec(self):
+    def create_loop_exec(self, iteration):
         l_exec_id = self.log.id_scope.getNewId(LoopExec.vtType)
-        loop_exec = LoopExec(id = l_exec_id,
-                             ts_start = core.system.current_time())
+        loop_exec = LoopExec(id=l_exec_id,
+                             iteration=iteration,
+                             ts_start=core.system.current_time())
         return loop_exec
 
-    def start_execution(self, module, module_id, module_name, parent_exec,\
-                        abstraction_id=None, abstraction_version=None,
+    def start_execution(self, module, module_id, module_name, parent_execs,
                         cached=0):
-        is_group = module.moduleInfo['pipeline'].modules\
-                   [module.moduleInfo['moduleId']].is_group() or module.\
-                   moduleInfo['pipeline'].modules\
-                   [module.moduleInfo['moduleId']].is_abstraction()
-        if (module.is_fold_operator):
-            if not is_group:
-                self.start_module_loop_execution(module, module_id,
-                                                 module_name,
-                                                 abstraction_id,
-                                                 abstraction_version,
-                                                 parent_exec,
-                                                 cached)
-            else:
-                self.start_group_loop_execution(module, module_id,
-                                                module_name, parent_exec,
-                                                cached)
+        parent_exec = parent_execs[-1]
+        if module.is_fold_operator:
+            print 'starting loop'
+            parent_exec = self.start_loop_execution(module, module_id, 
+                                                    module_name, 
+                                                    parent_exec, cached,
+                                                    module.fold_iteration)
+            parent_execs.append(parent_exec)
+
+        if isinstance(module, Group):
+            print 'starting group', module_name
+            ret = self.start_group_execution(module, module_id, module_name,
+                                             parent_exec, cached)
+            if ret is not None:
+                parent_execs.append(ret)
         else:
-            if not is_group:
-                self.start_module_execution(module, module_id,
-                                            module_name,
-                                            abstraction_id,
-                                            abstraction_version,
-                                            parent_exec, cached)
-            else:
-                self.start_group_execution(module, module_id, module_name,
-                                           parent_exec, cached)
-
-    def finish_execution(self, module, error=''):
-        is_group = module.moduleInfo['pipeline'].modules\
-                   [module.moduleInfo['moduleId']].is_group() or module.\
-                   moduleInfo['pipeline'].modules\
-                   [module.moduleInfo['moduleId']].is_abstraction()
-        if (module.is_fold_operator):
-            if not is_group:
-                self.finish_module_loop_execution(module, error)
-            else:
-                self.finish_group_loop_execution(module, error)
-        else:
-            if not is_group:
-                self.finish_module_execution(module, error)
-            else:
-                self.finish_group_execution(module, error)
-
-    def start_module_loop_execution(self, module, module_id, module_name,
-                                    abstraction_id, abstraction_version,
-                                    parent_exec, cached):
-        if (not module.first_iteration):
-            self.start_loop_execution(module)
-        else:
-            module_exec = self.create_module_exec(module, module_id,
-                                                  module_name,
-                                                  abstraction_id,
-                                                  abstraction_version,
-                                                  cached)
-            module.module_exec = module_exec
-            if parent_exec:
-                if parent_exec.loop_execs:
-                    parent_exec.loop_execs[-1].add_module_exec(module_exec)
-                else:
-                    parent_exec.add_module_exec(module_exec)
-            else:
-                self.workflow_exec.add_item(module_exec)
-            self.start_loop_execution(module)
-
-    def finish_module_loop_execution(self, module, error):
-        self.finish_loop_execution(module, error)
-        if (module.last_iteration) or (error):
-            module.module_exec.ts_end = core.system.current_time()
-            if not error:
-                module.module_exec.completed = 1
-            else:
-                if module.module_exec.loop_execs and module.module_exec.\
-                   loop_execs[-1].error:
-                    error = 'Error in loop execution with id %d.'%\
-                            module.module_exec.loop_execs[-1].id
-                module.module_exec.completed = -1
-                module.module_exec.error = error
-            del module.module_exec
-
-    def start_group_loop_execution(self, group, module_id, group_name,
-                                   parent_exec, cached):
-        if (not group.first_iteration):
-            self.start_loop_execution(group)
-        else:
-            group_exec = self.create_group_exec(group, module_id,
-                                                group_name, cached)
-            group.group_exec = group_exec
-            if parent_exec:
-                if parent_exec.loop_execs:
-                    parent_exec.loop_execs[-1].add_group_exec(group_exec)
-                else:
-                    parent_exec.add_group_exec(group_exec)
-            else:
-                self.workflow_exec.add_item(group_exec)
-            self.start_loop_execution(group)
-
-    def finish_group_loop_execution(self, group, error):
-        self.finish_loop_execution(group, error)
-        if (group.last_iteration) or (error):
-            group.group_exec.ts_end = core.system.current_time()
-            if not error:
-                group.group_exec.completed = 1
-            else:
-                if group.group_exec.loop_execs and group.group_exec.\
-                   loop_execs[-1].error:
-                    error = 'Error in loop execution with id %d.'%\
-                            group.group_exec.loop_execs[-1].id
-                group.group_exec.completed = -1
-                group.group_exec.error = error
-            del group.group_exec
+            print 'starting module', module_name
+            ret = self.start_module_execution(module, module_id, module_name,
+                                              parent_exec, cached)
+            if ret is not None:
+                parent_execs.append(ret)
         
+    def finish_execution(self, module, error, parent_execs):
+        if isinstance(module, Group):
+            print 'finishing group'
+            if self.finish_group_execution(module, error):
+                parent_execs.pop()
+        else:
+            print 'finishing module'
+            if self.finish_module_execution(module, error):
+                parent_execs.pop()
+        if module.is_fold_operator:
+            print 'finishing loop'
+            self.finish_loop_execution(module, error, parent_execs.pop())
+
     def start_module_execution(self, module, module_id, module_name,
-                               abstraction_id, abstraction_version,
                                parent_exec, cached):
         module_exec = self.create_module_exec(module, module_id,
                                               module_name,
-                                              abstraction_id,
-                                              abstraction_version,
                                               cached)
         module.module_exec = module_exec
         if parent_exec:
-            if parent_exec.loop_execs:
-                parent_exec.loop_execs[-1].add_module_exec(module_exec)
-            else:
-                parent_exec.add_module_exec(module_exec)
+            parent_exec.add_item_exec(module_exec)
         else:
-            self.workflow_exec.add_item(module_exec)
+            self.workflow_exec.add_item_exec(module_exec)
+        if module.is_fold_module:
+            return module_exec
+        return None
 
     def finish_module_execution(self, module, error):
         module.module_exec.ts_end = core.system.current_time()
@@ -288,6 +203,8 @@ class LogController(object):
             module.module_exec.completed = -1
             module.module_exec.error = error
         del module.module_exec
+        if module.is_fold_module:
+            return True
 
     def start_group_execution(self, group, module_id, group_name,
                               parent_exec, cached):
@@ -295,72 +212,75 @@ class LogController(object):
                                             group_name, cached)
         group.group_exec = group_exec
         if parent_exec:
-            if parent_exec.loop_execs:
-                parent_exec.loop_execs[-1].add_group_exec(group_exec)
-            else:
-                parent_exec.add_group_exec(group_exec)
+            parent_exec.add_item_exec(group_exec)
         else:
-            self.workflow_exec.add_item(group_exec)
+            self.workflow_exec.add_item_exec(group_exec)
+        return group_exec
 
     def finish_group_execution(self, group, error):
         group.group_exec.ts_end = core.system.current_time()
         if not error:
             group.group_exec.completed = 1
         else:
-            if group.group_exec.module_execs and group.group_exec.\
-               module_execs[-1].error:
-                error = 'Error in module execution with id %d.'%\
-                        group.group_exec.module_execs[-1].id
-            if group.group_exec.group_execs and group.group_exec.\
-               group_execs[-1].error:
-                error = 'Error in group execution with id %d.'%\
-                        group.group_exec.group_execs[-1].id
+#             if group.group_exec.module_execs and group.group_exec.\
+#                module_execs[-1].error:
+#                 error = 'Error in module execution with id %d.'%\
+#                         group.group_exec.module_execs[-1].id
+#             if group.group_exec.group_execs and group.group_exec.\
+#                group_execs[-1].error:
+#                 error = 'Error in group execution with id %d.'%\
+#                         group.group_exec.group_execs[-1].id
             group.group_exec.completed = -1
             group.group_exec.error = error
         del group.group_exec
+        return True
 
-    def start_loop_execution(self, module):
-        loop_exec = self.create_loop_exec()
-        is_group = module.moduleInfo['pipeline'].modules\
-                   [module.moduleInfo['moduleId']].is_group() or module.\
-                   moduleInfo['pipeline'].modules\
-                   [module.moduleInfo['moduleId']].is_abstraction()
-        if is_group:
-            module.group_exec.add_loop_exec(loop_exec)
+    def start_loop_execution(self, module, module_id, module_name, 
+                             parent_exec, cached, iteration):
+        loop_exec = self.create_loop_exec(iteration)
+        if parent_exec:
+            parent_exec.add_loop_exec(loop_exec)
         else:
-            module.module_exec.add_loop_exec(loop_exec)
+            self.workflow_exec.add_item_exec(loop_exec)
+        return loop_exec
 
-    def finish_loop_execution(self, module, error):
-        is_group = module.moduleInfo['pipeline'].modules\
-                   [module.moduleInfo['moduleId']].is_group() or module.\
-                   moduleInfo['pipeline'].modules\
-                   [module.moduleInfo['moduleId']].is_abstraction()
-        if is_group:
-            module.group_exec.loop_execs[-1].ts_end = core.system.\
-                                                      current_time()
-            if not error:
-                module.group_exec.loop_execs[-1].completed = 1
-            else:
-                if module.group_exec.loop_execs[-1].module_execs and\
-                   module.group_exec.loop_execs[-1].module_execs[-1].error:
-                    error = 'Error in module execution with id %d.'%\
-                            module.group_exec.loop_execs[-1].\
-                            module_execs[-1].id
-                if module.group_exec.loop_execs[-1].group_execs and\
-                   module.group_exec.loop_execs[-1].group_execs[-1].error:
-                    error = 'Error in group execution with id %d.'%\
-                            module.group_exec.loop_execs[-1].\
-                            group_execs[-1].id
-                module.group_exec.loop_execs[-1].completed = -1
-                module.group_exec.loop_execs[-1].error = error
+    def finish_loop_execution(self, module, error, loop_exec):
+        loop_exec.ts_end = core.system.current_time()
+        if not error:
+            loop_exec.completed = 1
         else:
-            module.module_exec.loop_execs[-1].ts_end = core.system.\
-                                                       current_time()
-            if not error:
-                module.module_exec.loop_execs[-1].completed = 1
-            else:
-                module.module_exec.loop_execs[-1].completed = -1
-                module.module_exec.loop_execs[-1].error = error
+            loop_exec.completed = -1
+            loop_exec.error = error
+        return True
+
+#         is_group = isinstance(module, Group)
+#         if is_group:
+#             module.group_exec.loop_execs[-1].ts_end = core.system.\
+#                                                       current_time()
+#             if not error:
+#                 module.group_exec.loop_execs[-1].completed = 1
+#             else:
+#                 if module.group_exec.loop_execs[-1].module_execs and\
+#                    module.group_exec.loop_execs[-1].module_execs[-1].error:
+#                     error = 'Error in module execution with id %d.'%\
+#                             module.group_exec.loop_execs[-1].\
+#                             module_execs[-1].id
+#                 if module.group_exec.loop_execs[-1].group_execs and\
+#                    module.group_exec.loop_execs[-1].group_execs[-1].error:
+#                     error = 'Error in group execution with id %d.'%\
+#                             module.group_exec.loop_execs[-1].\
+#                             group_execs[-1].id
+#                 module.group_exec.loop_execs[-1].completed = -1
+#                 module.group_exec.loop_execs[-1].error = error
+#         else:
+#             module.module_exec.loop_execs[-1].ts_end = core.system.\
+#                                                        current_time()
+#             if not error:
+#                 module.module_exec.loop_execs[-1].completed = 1
+#             else:
+#                 module.module_exec.loop_execs[-1].completed = -1
+#                 module.module_exec.loop_execs[-1].error = error
+#         return True
 
     def insert_module_annotations(self, module, a_dict):
         for k,v in a_dict.iteritems():

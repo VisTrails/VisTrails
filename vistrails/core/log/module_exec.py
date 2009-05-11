@@ -56,8 +56,6 @@ class ModuleExec(DBModuleExec):
     ts_end = DBModuleExec.db_ts_end
     cached = DBModuleExec.db_cached
     completed = DBModuleExec.db_completed
-    abstraction_id = DBModuleExec.db_abstraction_id
-    abstraction_version = DBModuleExec.db_abstraction_version
     module_id = DBModuleExec.db_module_id
     module_name = DBModuleExec.db_module_name
     machine_id = DBModuleExec.db_machine_id

@@ -252,7 +252,7 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         module_executed_hook = fetch('module_executed_hook', [])
         done_summon_hooks = fetch('done_summon_hooks', [])
         clean_pipeline = fetch('clean_pipeline', False)
-        parent_exec = fetch('parent_exec', None)
+        # parent_exec = fetch('parent_exec', None)
 
         if len(kwargs) > 0:
             raise VistrailsInternalError('Wrong parameters passed '
@@ -276,8 +276,9 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             reg = modules.module_registry.get_module_registry()
             module_name = reg.get_descriptor(obj.__class__).name
 
-            logger.start_execution(obj, i, module_name,\
-                                   parent_exec=parent_exec)
+            # !!!self.parent_execs is mutated!!!
+            logger.start_execution(obj, i, module_name,
+                                   parent_execs=self.parent_execs)
 
         # views and loggers work on local ids
         def begin_update(obj):
@@ -290,9 +291,11 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             reg = modules.module_registry.get_module_registry()
             module_name = reg.get_descriptor(obj.__class__).name
 
-            logger.start_execution(obj, i, module_name,\
-                                   parent_exec=parent_exec, cached=1)
-            logger.finish_execution(obj)
+            # !!!self.parent_execs is mutated!!!
+            logger.start_execution(obj, i, module_name,
+                                   parent_execs=self.parent_execs,
+                                   cached=1)
+            num_pops = logger.finish_execution(obj,'', self.parent_execs)
 
         # views and loggers work on local ids
         def end_update(obj, error=''):
@@ -302,7 +305,8 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             else:
                 view.set_module_error(i, error)
 
-            logger.finish_execution(obj, error)
+            # !!!self.parent_execs is mutated!!!
+            logger.finish_execution(obj, error, self.parent_execs)
 
         # views and loggers work on local ids
         def annotate(obj, d):
@@ -367,9 +371,11 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
             except ModuleError, me:
                 me.module.logging.end_update(me.module, me.msg)
                 errors[me.module.id] = me
+                break
             except ModuleBreakpoint, mb:
                 mb.module.logging.end_update(mb.module)
                 errors[mb.module.id] = mb
+                break
 
         if self.done_update_hook:
             self.done_update_hook(self._persistent_pipeline, self._objects)
@@ -514,9 +520,11 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         else:
             vistrail = None
 
+        self.parent_execs = [None]
         logger.start_workflow_execution(vistrail, pipeline, current_version)
         result = self.unlocked_execute(pipeline, **new_kwargs)
         logger.finish_workflow_execution(result.errors)
+        self.parent_execs = [None]
 
         return result
 
