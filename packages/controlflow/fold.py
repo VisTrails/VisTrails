@@ -242,7 +242,8 @@ def create_module(value, signature):
 def is_iterable(obj):
     try:
         iter(obj)
-        return True
+        if type(obj) != str:
+            return True
     except TypeError:
         pass
     return False
