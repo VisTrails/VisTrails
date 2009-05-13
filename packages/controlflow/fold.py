@@ -54,13 +54,15 @@ class Fold(Module, NotCacheable):
 
         # create inputList to always have iterable elements
         # to simplify code
-        element_is_iter = False
+        if len(nameInput) == 1:
+            element_is_iter = False
+        else:
+            element_is_iter = True
         inputList = []
         for element in rawInputList:
-            if not is_iterable(element):
+            if not element_is_iter:
                 inputList.append([element])
             else:
-                element_is_iter = True
                 inputList.append(element)
 
         ## Update everything for each value inside the list
@@ -168,7 +170,12 @@ class Fold(Module, NotCacheable):
         self.setInitialValue()
         self.partialResult = self.initialValue
         self.elementResult = None
-        self.updateFunctionPort()
+        if self.hasInputFromPort('FunctionPort'):
+            self.updateFunctionPort()
+        else:
+            for element in self.getInputFromPort('InputList'):
+                self.element = element
+                self.operation()
 
         self.setResult('Result', self.partialResult)
 
@@ -238,12 +245,4 @@ def create_module(value, signature):
         print "Could not identify the type of the list element."
         print "Type checking is not going to be done inside Fold module."
         return None
-    
-def is_iterable(obj):
-    try:
-        iter(obj)
-        if type(obj) != str:
-            return True
-    except TypeError:
-        pass
-    return False
+

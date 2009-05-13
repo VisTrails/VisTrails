@@ -317,7 +317,7 @@ def create_opm(workflow, version, log, reg):
                                   process_map],
                              'edu.utah.sci.vistrails.basic:Group':
                                  [{},
-                                  {'self': False},
+                                  {},
                                   process_group],
                              'edu.utah.sci.vistrails.basic:InputPort':
                                  [{'name': False,
@@ -397,6 +397,17 @@ def create_opm(workflow, version, log, reg):
                         if not special_ports[1][source.db_name]:
                             found_output_ports[source.db_name] = conn
                             continue
+                    dest = conn.db_ports_type_index['destination']
+                    dest_module = \
+                        workflow.db_modules_id_index[dest.db_moduleId]
+                    dest_desc_str = dest_module.db_package + ':' + \
+                        dest_module.db_name
+                    dest_special_ports = all_special_ports.get(dest_desc_str,
+                                                               [{}, {}, None])
+                    if dest.db_name in dest_special_ports[0] and \
+                            not dest_special_ports[0][dest.db_name]:
+                        print 'skipping', dest.db_name
+                        continue
                     (artifact, in_cache) = process_connection(conn)
                     if not in_cache:
                         if source.db_name in special_ports[1]:

@@ -148,7 +148,6 @@ class LogController(object):
                         cached=0):
         parent_exec = parent_execs[-1]
         if module.is_fold_operator:
-            print 'starting loop'
             parent_exec = self.start_loop_execution(module, module_id, 
                                                     module_name, 
                                                     parent_exec, cached,
@@ -156,13 +155,11 @@ class LogController(object):
             parent_execs.append(parent_exec)
 
         if isinstance(module, Group):
-            print 'starting group', module_name
             ret = self.start_group_execution(module, module_id, module_name,
                                              parent_exec, cached)
             if ret is not None:
                 parent_execs.append(ret)
         else:
-            print 'starting module', module_name
             ret = self.start_module_execution(module, module_id, module_name,
                                               parent_exec, cached)
             if ret is not None:
@@ -170,15 +167,12 @@ class LogController(object):
         
     def finish_execution(self, module, error, parent_execs):
         if isinstance(module, Group):
-            print 'finishing group'
             if self.finish_group_execution(module, error):
                 parent_execs.pop()
         else:
-            print 'finishing module'
             if self.finish_module_execution(module, error):
                 parent_execs.pop()
         if module.is_fold_operator:
-            print 'finishing loop'
             self.finish_loop_execution(module, error, parent_execs.pop())
 
     def start_module_execution(self, module, module_id, module_name,
