@@ -1,3 +1,4 @@
+import os
 import sys
 from xml.etree import cElementTree as ElementTree
 
@@ -5,7 +6,8 @@ def run(filename, account=None):
     root = ElementTree.parse(filename)
     node_id = 0
     lookup = {}
-    
+    error_edges = []
+
     def should_include(obj):
         if account is None:
             return True
@@ -21,15 +23,32 @@ def run(filename, account=None):
         if not should_include(process):
             continue
         process_id = process.get('id')
+        error = None
         for child in process.getiterator('value').next().getchildren():
             if child.tag == 'moduleExec':
                 process_label = child.get('moduleName')
+                if child.get('completed') == '-1':
+                    error = child.get('error')
             elif child.tag == 'groupExec':
                 process_label = child.get('groupName')
-        print '%d [label="%s", shape=box, color=blue];' % \
-            (node_id, process_label)
+                if child.get('completed') == '-1':
+                    error = child.get('error')
+        if child.tag == 'groupExec':
+            shape = 'hexagon'
+        elif child.tag == 'moduleExec' and child.get('moduleName') == 'Map':
+            shape = 'hexagon'
+        else:
+            shape = 'box'
+        print '%d [label="%s", shape=%s, color=blue];' % \
+            (node_id, process_label, shape)
         lookup[process_id] = node_id
         node_id += 1
+        if error is not None:
+            print '%d [label="ERROR: %s", shape=octagon, color=black];' % (node_id,
+                                                                    error)
+            error_edges.append((node_id - 1, node_id))
+        node_id += 1
+
     for artifact in root.getiterator('artifacts').next().getiterator('artifact'):
         if not should_include(artifact):
             continue
@@ -49,7 +68,46 @@ def run(filename, account=None):
                 for param in child.getiterator('parameter'):
                     param_val = param.get('val')
                     if len(param_val) > 32:
-                        param_val = param_val[:32] + '...'
+                        if param.get('type') == \
+                                'edu.utah.sci.vistrails.basic:File':
+                            print >>sys.stderr, "got here"
+                            dir_names = []
+                            dir_name = param_val
+                            while os.path.split(dir_name)[1]:
+                                (dir_name, next_name) = os.path.split(dir_name)
+                                dir_names.append(next_name)
+                            dir_names.append('/')
+                            if len(dir_names) <= 1:
+                                param_val = param_val
+                            dir_names.reverse()
+                            if len(dir_names[-1]) > 28:
+                                i = 1
+                                j = 1
+                                arr = dir_names[-1].split('_')
+                                while len('_'.join(arr[:i] + ['...'] + arr[-j:])) < 28:
+                                    if i == j:
+                                        i += 1
+                                    else:
+                                        j += 1
+                                dir_names[-1] = '_'.join(arr[:i] + ['...'] + arr[-j:])
+                            print >>sys.stderr, dir_names
+                            i = 1
+                            while (len(os.path.join(dir_names[0], dir_names[1],
+                                                    '...', 
+                                                    *dir_names[-i:])) < 32 and
+                                   i+1 < len(dir_names)):
+                                print >>sys.stderr, \
+                                    len(os.path.join(dir_names[0], 
+                                                     dir_names[1],
+                                                     '...', 
+                                                     *dir_names[-i:]))
+                                i += 1
+                            print >>sys.stderr, i
+                            param_val = os.path.join(dir_names[0], 
+                                                     dir_names[1], '...',
+                                                     *dir_names[-i:])
+                        else:
+                            param_val = param_val[:24] + '...' + param_val[-8:]
                     artifact_label += comma + param_val
                     comma = ', '
                 artifact_label += ')'
@@ -79,6 +137,9 @@ def run(filename, account=None):
         print "%d -> %d;" % \
             (lookup[wtb.getiterator('cause').next().get('id')], 
              lookup[wtb.getiterator('effect').next().get('id')])
+
+    for error_edge in error_edges:
+        print "%d -> %d;" % error_edge
     print "}"
     
 

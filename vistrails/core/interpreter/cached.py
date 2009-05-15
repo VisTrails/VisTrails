@@ -27,7 +27,7 @@ import core.db.io
 from core.log.controller import DummyLogController
 # from core.modules.module_utils import FilePool
 from core.modules.vistrails_module import ModuleConnector, ModuleError, \
-    ModuleBreakpoint
+    ModuleBreakpoint, ModuleErrors
 from core.utils import DummyView
 from core.vistrail.annotation import Annotation
 from core.vistrail.vistrail import Vistrail
@@ -368,6 +368,11 @@ class CachedInterpreter(core.interpreter.base.BaseInterpreter):
         for obj in persistent_sinks:
             try:
                 obj.update()
+            except ModuleErrors, mes:
+                for me in mes.module_errors:
+                    me.module.logging.end_update(me.module, me.msg)
+                    errors[me.module.id] = me
+                break
             except ModuleError, me:
                 me.module.logging.end_update(me.module, me.msg)
                 errors[me.module.id] = me

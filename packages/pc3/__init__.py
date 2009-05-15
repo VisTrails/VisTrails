@@ -4,6 +4,8 @@ from core.modules.vistrails_module import Module, ModuleError
 
 from info.ipaw.pc3.LoadAppLogic import LoadAppLogic
 
+import os
+
 name = "Provenance Challenge 3"
 identifier = "edu.utah.sci.dakoop.pc3"
 version = '1.0.0'
@@ -107,6 +109,8 @@ class ReadCSVReadyFile(Module):
     def compute(self):
         self.checkInputPort('csvRootPath')
         path = self.getInputFromPort('csvRootPath')
+        self.annotate({'used_files':
+                           str([os.path.join(path, "csv_ready.csv")])})
         csv_files = LoadAppLogic.ReadCSVReadyFile(path)
         # wrapped_res = Collection([CSVFileEntry(e) for e in res], CSVFileEntry)
         list_of_elts = [CSVFileEntry(f) for f in csv_files]
@@ -146,6 +150,8 @@ class ReadCSVFileColumnNames(Module):
     def compute(self):
         self.checkInputPort('csvFile')
         csv_file = self.getInputFromPort('csvFile')
+        self.annotate({'used_files':
+                          str([csv_file.file_entry.HeaderPath])})
         res = LoadAppLogic.ReadCSVFileColumnNames(csv_file.file_entry)
         self.setResult('csvFile', CSVFileEntry(res))
 
@@ -178,6 +184,12 @@ class LoadCSVFileIntoTable(Module):
         self.checkInputPort('dbEntry')
         csv_file = self.getInputFromPort('csvFile')
         db_entry = self.getInputFromPort('dbEntry')
+        self.annotate({'used_files':
+                          str([csv_file.file_entry.FilePath]),
+                       'generated_tables':
+                           str([(db_entry.db_entry.ConnectionString, 
+                                 db_entry.db_entry.DBName,
+                                 csv_file.file_entry.TargetTable)])})
         res = LoadAppLogic.LoadCSVFileIntoTable(db_entry.db_entry,
                                                 csv_file.file_entry)
         self.setResult('success', res)
@@ -191,6 +203,11 @@ class UpdateComputedColumns(Module):
         self.checkInputPort('dbEntry')
         csv_file = self.getInputFromPort('csvFile')
         db_entry = self.getInputFromPort('dbEntry')
+        if csv_file.file_entry.TargetTable.upper() == 'P2DETECTION':
+            self.annotate({'used_tables':
+                           str([(db_entry.db_entry.ConnectionString, 
+                                 db_entry.db_entry.DBName,
+                                 csv_file.file_entry.TargetTable)])})
         res = LoadAppLogic.UpdateComputedColumns(db_entry.db_entry,
                                                  csv_file.file_entry)
         self.setResult('success', res)
@@ -204,6 +221,10 @@ class IsMatchTableRowCount(Module):
         self.checkInputPort('dbEntry')
         csv_file = self.getInputFromPort('csvFile')
         db_entry = self.getInputFromPort('dbEntry')
+        self.annotate({'used_tables':
+                           str([(db_entry.db_entry.ConnectionString, 
+                                 db_entry.db_entry.DBName,
+                                 csv_file.file_entry.TargetTable)])})
         res = LoadAppLogic.IsMatchTableRowCount(db_entry.db_entry,
                                                 csv_file.file_entry)
         self.setResult('countsMatch', res)
@@ -217,6 +238,11 @@ class IsMatchTableColumnRanges(Module):
         self.checkInputPort('dbEntry')
         csv_file = self.getInputFromPort('csvFile')
         db_entry = self.getInputFromPort('dbEntry')
+        if csv_file.file_entry.TargetTable.upper() == 'P2DETECTION':
+            self.annotate({'used_tables':
+                               str([(db_entry.db_entry.ConnectionString, 
+                                     db_entry.db_entry.DBName,
+                                     csv_file.file_entry.TargetTable)])})
         res = LoadAppLogic.IsMatchTableColumnRanges(db_entry.db_entry,
                                                     csv_file.file_entry)
         self.setResult('rangesMatch', res)
@@ -228,6 +254,16 @@ class CompactDatabase(Module):
     def compute(self):
         self.checkInputPort('dbEntry')
         db_entry = self.getInputFromPort('dbEntry')
+        self.annotate({'used_tables':
+                           str([(db_entry.db_entry.ConnectionString, 
+                                 db_entry.db_entry.DBName,
+                                 "P2Detection"),
+                                (db_entry.db_entry.ConnectionString, 
+                                 db_entry.db_entry.DBName,
+                                 "P2FrameMeta"),
+                                (db_entry.db_entry.ConnectionString, 
+                                 db_entry.db_entry.DBName,
+                                 "P2ImageMeta")])})
         LoadAppLogic.CompactDatabase(db_entry.db_entry)
         self.setResult('dbEntry', db_entry)
         
@@ -240,10 +276,12 @@ class GetCSVFiles(Module):
         self.checkInputPort('csvRootPath')
         path = self.getInputFromPort('csvRootPath')
         if not LoadAppLogic.IsCSVReadyFileExists(path):
-            raise ModuleError("IsCSVReadyFileExists failed")
+            raise ModuleError(self, "IsCSVReadyFileExists failed")
+        self.annotate({'used_files':
+                           str([os.path.join(path, "csv_ready.csv")])})
         csv_files = LoadAppLogic.ReadCSVReadyFile(path)
         if not LoadAppLogic.IsMatchCSVFileTables(csv_files):
-            raise ModuleError("IsMatchCSVFileTables failed")
+            raise ModuleError(self, "IsMatchCSVFileTables failed")
 #         getter = get_module_registry().get_descriptor_by_name
 #         descriptor = getter('edu.utah.sci.vistrails.control_flow', 
 #                             'ListOfElements')
@@ -269,11 +307,13 @@ class ReadCSVFile(Module):
         self.checkInputPort('csvFile')
         csv_file = self.getInputFromPort('csvFile')
         if not LoadAppLogic.IsExistsCSVFile(csv_file.file_entry):
-            raise ModuleError("IsExistsCSVFile failed")
+            raise ModuleError(self, "IsExistsCSVFile failed")
+        self.annotate({'used_files':
+                          str([csv_file.file_entry.HeaderPath])})
         csv_file.file_entry = \
             LoadAppLogic.ReadCSVFileColumnNames(csv_file.file_entry)
         if not LoadAppLogic.IsMatchCSVFileColumnNames(csv_file.file_entry):
-            raise ModuleError("IsMatchCSVFileColumnNames failed")
+            raise ModuleError(self, "IsMatchCSVFileColumnNames failed")
         self.setResult('csvFile', csv_file)
 
     _input_ports = [('csvFile', CSVFileEntry)]
@@ -286,9 +326,15 @@ class LoadCSVFileIntoDB(Module):
         csv_file = self.getInputFromPort('csvFile')
         print 'csv_file:', csv_file
         db_entry = self.getInputFromPort('dbEntry')
+        self.annotate({'used_files':
+                          str([csv_file.file_entry.FilePath])})
+        self.annotate({'generated_tables':
+                           str([(db_entry.db_entry.ConnectionString, 
+                                 db_entry.db_entry.DBName,
+                                 csv_file.file_entry.TargetTable)])})
         if not LoadAppLogic.LoadCSVFileIntoTable(db_entry.db_entry,
                                                  csv_file.file_entry):
-            raise ModuleError("LoadCSVFileIntoTable failed")
+            raise ModuleError(self, "LoadCSVFileIntoTable failed")
         self.setResult('dbEntry', db_entry)
 
     _input_ports = [('csvFile', CSVFileEntry), ('dbEntry', DatabaseEntry)]
@@ -300,15 +346,19 @@ class ComputeColumns(Module):
         self.checkInputPort('dbEntry')
         csv_file = self.getInputFromPort('csvFile')
         db_entry = self.getInputFromPort('dbEntry')
+        self.annotate({'used_tables':
+                           str([(db_entry.db_entry.ConnectionString, 
+                                 db_entry.db_entry.DBName,
+                                 csv_file.file_entry.TargetTable)])})
         if not LoadAppLogic.UpdateComputedColumns(db_entry.db_entry,
                                                   csv_file.file_entry):
-            raise ModuleError("UpdateComputedColumns failed")
+            raise ModuleError(self, "UpdateComputedColumns failed")
         if not LoadAppLogic.IsMatchTableRowCount(db_entry.db_entry,
                                                  csv_file.file_entry):
-            raise ModuleError("IsMatchTableRowCount failed")
+            raise ModuleError(self, "IsMatchTableRowCount failed")
         if not LoadAppLogic.IsMatchTableColumnRanges(db_entry.db_entry,
                                                      csv_file.file_entry):
-            raise ModuleError("IsMatchTableColumnRanges failed")
+            raise ModuleError(self, "IsMatchTableColumnRanges failed")
         self.setResult('dbEntry', db_entry)
 
     _input_ports = [('csvFile', CSVFileEntry), ('dbEntry', DatabaseEntry)]
@@ -321,6 +371,10 @@ class DetectionsHistogram(Module):
         high_quality = False
         if self.hasInputFromPort('highQuality'):
             high_quality = self.getInputFromPort('highQuality')
+        self.annotate({'used_tables':
+                           str([(db_entry.db_entry.ConnectionString, 
+                                 db_entry.db_entry.DBName,
+                                 "P2Detection")])})
         histogram = LoadAppLogic.DetectionsHistogram(db_entry.db_entry, 
                                                      high_quality)
         self.setResult('histogram', histogram)

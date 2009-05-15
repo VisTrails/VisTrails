@@ -8,7 +8,8 @@ from db.versions.v1_0_0.domain import DBOpmProcess, DBOpmArtifact, DBOpmUsed, \
     DBOpmAccount, DBOpmAccounts, DBOpmGraph, DBOpmArtifacts, \
     DBOpmDependencies, DBOpmProcesses, DBOpmProcessValue, DBOpmArtifactValue, \
     IdScope, DBGroupExec, DBLoopExec, DBModuleExec, DBOpmOverlaps, DBPort, \
-    DBConnection, DBGroup, DBPortSpec, DBOpmWasTriggeredBy
+    DBConnection, DBGroup, DBPortSpec, DBOpmWasTriggeredBy, DBFunction, \
+    DBParameter
 from db.services.vistrail import materializeWorkflow
 from db.versions.v1_0_0.persistence import DAOList
 
@@ -26,6 +27,35 @@ def create_process_manual(p_str, account, id_scope):
     return DBOpmProcess(id='p' + str(id_scope.getNewId(DBOpmProcess.vtType)),
                         value=DBOpmProcessValue(item_exec),
                         accounts=[DBOpmAccountId(id=account.db_id)])
+
+def create_artifact_from_filename(filename, account, id_scope):
+    parameter = DBParameter(id=-1,
+                            pos=0,
+                            type='edu.utah.sci.vistrails.basic:File',
+                            val=filename)
+    function = DBFunction(id=-1,
+                          name="file",
+                          pos=0,
+                          parameters=[parameter])
+    return DBOpmArtifact(id='a' + str(id_scope.getNewId(DBOpmArtifact.vtType)),
+                         value=DBOpmArtifactValue(function),
+                         accounts=[DBOpmAccountId(id=account.db_id)])
+
+def create_artifact_from_db_tuple(db_tuple, account, id_scope):
+    parameters = []
+    for db_str in db_tuple:
+        parameter = DBParameter(id=-1,
+                                pos=0,
+                                type='edu.utah.sci.vistrails.basic:String',
+                                val=db_str)
+        parameters.append(parameter)
+    function = DBFunction(id=-1,
+                          name="dbEntry",
+                          pos=0,
+                          parameters=parameters)
+    return DBOpmArtifact(id='a' + str(id_scope.getNewId(DBOpmArtifact.vtType)),
+                         value=DBOpmArtifactValue(function),
+                         accounts=[DBOpmAccountId(id=account.db_id)])
 
 def create_artifact_from_function(function, account, id_scope):
     return DBOpmArtifact(id='a' + str(id_scope.getNewId(DBOpmArtifact.vtType)),
@@ -69,6 +99,8 @@ def create_opm(workflow, version, log, reg):
     dependencies = []
     accounts = []
     depth_accounts = {}
+    file_artifacts = {}
+    db_artifacts = {}
 
     def do_create_process(workflow, item_exec, account, module_processes):
         process = create_process(item_exec, account, id_scope)
@@ -164,7 +196,7 @@ def create_opm(workflow, version, log, reg):
 
             # need to have process that extracts artifacts for each iteration
             input_list_artifact = found_input_ports['InputList']
-            result_artifact = found_output_ports['Result']
+            result_artifact = found_output_ports.get('Result', None)
             input_port_list = \
                 eval(found_input_ports['InputPort'].db_parameters[0].db_val)
             output_port = \
@@ -177,8 +209,9 @@ def create_opm(workflow, version, log, reg):
                                             account,
                                             id_scope))
             # need to have process that condenses artifacts from each iteration
-            j_process = create_process_manual('Join', account, id_scope)
-            processes.append(j_process)
+            if result_artifact is not None:
+                j_process = create_process_manual('Join', account, id_scope)
+                processes.append(j_process)
             for loop_exec in item_exec.db_loop_execs:
                 loop_up_artifacts = {}
                 loop_down_artifacts = {}
@@ -199,19 +232,21 @@ def create_opm(workflow, version, log, reg):
                     loop_up_artifacts[input_name].append(s_artifact)
 
                 # process output_port
-                port_spec = DBPortSpec(id=-1,
-                                       name=output_port,
-                                       type='output')
-                o_artifact = \
-                        create_artifact_from_port_spec(port_spec, account, 
-                                                       id_scope)
-                artifacts.append(o_artifact)
-                if output_port not in loop_down_artifacts:
-                    loop_down_artifacts[output_port] = []
-                loop_down_artifacts[output_port].append(o_artifact)
+                if loop_exec.db_completed == 1:
+                    port_spec = DBPortSpec(id=-1,
+                                           name=output_port,
+                                           type='output')
+                    o_artifact = \
+                            create_artifact_from_port_spec(port_spec, account, 
+                                                           id_scope)
+                    artifacts.append(o_artifact)
+                    if output_port not in loop_down_artifacts:
+                        loop_down_artifacts[output_port] = []
+                    loop_down_artifacts[output_port].append(o_artifact)
 
-                dependencies.append(create_used(j_process, o_artifact, 
-                                                account, id_scope))
+                if result_artifact is not None:
+                    dependencies.append(create_used(j_process, o_artifact, 
+                                                    account, id_scope))
                                                 
                 # now process a loop_exec
                 for child_exec in loop_exec.db_item_execs:
@@ -224,10 +259,11 @@ def create_opm(workflow, version, log, reg):
                                  loop_up_artifacts, loop_down_artifacts, True)
 
             # need to set Return artifact and connect j_process to it
-            dependencies.append(create_was_generated_by(result_artifact,
-                                                        j_process,
-                                                        account,
-                                                        id_scope))            
+            if result_artifact is not None:
+                dependencies.append(create_was_generated_by(result_artifact,
+                                                            j_process,
+                                                            account,
+                                                            id_scope))
 
         def process_group(module, found_input_ports, found_output_ports):
             # identify depth and create new account if necessary
@@ -342,6 +378,55 @@ def create_opm(workflow, version, log, reg):
         special_ports = all_special_ports.get(module_desc_str, [{}, {}, None])
         found_input_ports = {}
         found_output_ports = {}
+        
+        # process used_files annotations
+        # process generated_tables annotations:
+        for annotation in item_exec.db_annotations:
+            def process_db_tuple(db_tuple):
+                db_tuple = (str(db_tuple[0]),) + db_tuple[1:]
+                if db_tuple not in db_artifacts:
+                    artifact = create_artifact_from_db_tuple(db_tuple,
+                                                             account,
+                                                             id_scope)
+                    artifacts.append(artifact)
+                    db_artifacts[db_tuple] = artifact
+                else:
+                    artifact = db_artifacts[db_tuple]
+                    if int(artifact.db_accounts[0].db_id[4:]) > \
+                            int(account.db_id[4:]):
+                        artifact.db_accounts[0] = account
+                return artifact
+
+            if annotation.db_key == 'used_files':
+                used_files = eval(annotation.db_value)
+                for fname in used_files:
+                    if fname not in file_artifacts:
+                        artifact = create_artifact_from_filename(fname,
+                                                                 account,
+                                                                 id_scope)
+                        artifacts.append(artifact)
+                        file_artifacts[fname] = artifact
+                    else:
+                        artifact = file_artifacts[fname]
+                        if int(artifact.db_accounts[0].db_id[4:]) > \
+                                int(account.db_id[4:]):
+                            artifact.db_accounts[0] = account
+                    dependencies.append(create_used(process, artifact,
+                                                    account, id_scope))
+            elif annotation.db_key == 'generated_tables':
+                generated_tables = eval(annotation.db_value)
+                for db_tuple in generated_tables:
+                    artifact = process_db_tuple(db_tuple)
+                    dependencies.append(create_was_generated_by(artifact,
+                                                                process,
+                                                                account,
+                                                                id_scope))
+            elif annotation.db_key == 'used_tables':
+                used_tables = eval(annotation.db_value)
+                for db_tuple in used_tables:
+                    artifact = process_db_tuple(db_tuple)
+                    dependencies.append(create_used(process, artifact,
+                                                    account, id_scope))
 
         # process functions
         for function in module.db_functions:
@@ -353,6 +438,9 @@ def create_opm(workflow, version, log, reg):
             function_t = (module.db_id, function.db_name)
             if function_t in function_artifacts:
                 artifact = function_artifacts[function_t]
+                if int(artifact.db_accounts[0].db_id[4:]) > \
+                        int(account.db_id[4:]):
+                    artifact.db_accounts[0] = account
             else:
                 artifact = create_artifact_from_function(function, 
                                                          account,
@@ -388,39 +476,40 @@ def create_opm(workflow, version, log, reg):
                     dependencies.append(create_used(process, artifact, 
                                                     account, id_scope))
 
-        if module.db_id in downstream_lookup:
-            # check if everything completed successfully for this?
-            for conns in downstream_lookup[module.db_id].itervalues():
-                for conn in conns:
-                    source = conn.db_ports_type_index['source']
-                    if source.db_name in special_ports[1]:
-                        if not special_ports[1][source.db_name]:
-                            found_output_ports[source.db_name] = conn
-                            continue
-                    dest = conn.db_ports_type_index['destination']
-                    dest_module = \
-                        workflow.db_modules_id_index[dest.db_moduleId]
-                    dest_desc_str = dest_module.db_package + ':' + \
-                        dest_module.db_name
-                    dest_special_ports = all_special_ports.get(dest_desc_str,
-                                                               [{}, {}, None])
-                    if dest.db_name in dest_special_ports[0] and \
-                            not dest_special_ports[0][dest.db_name]:
-                        print 'skipping', dest.db_name
-                        continue
-                    (artifact, in_cache) = process_connection(conn)
-                    if not in_cache:
+        if item_exec.db_completed == 1:
+            if module.db_id in downstream_lookup:
+                # check if everything completed successfully for this?
+                for conns in downstream_lookup[module.db_id].itervalues():
+                    for conn in conns:
+                        source = conn.db_ports_type_index['source']
                         if source.db_name in special_ports[1]:
-                            found_output_ports[source.db_name] = artifact
-                        if source.db_name not in out_downstream_artifacts:
-                            out_downstream_artifacts[source.db_name] = []
-                        out_downstream_artifacts[source.db_name].append(artifact)
-                        print 'adding dependency (ap)', artifact.db_id, \
-                            process.db_id
-                        dependencies.append(create_was_generated_by(artifact, 
-                                                                    process, 
-                                                                    account,
-                                                                    id_scope))
+                            if not special_ports[1][source.db_name]:
+                                found_output_ports[source.db_name] = conn
+                                continue
+                        dest = conn.db_ports_type_index['destination']
+                        dest_module = \
+                            workflow.db_modules_id_index[dest.db_moduleId]
+                        dest_desc_str = dest_module.db_package + ':' + \
+                            dest_module.db_name
+                        dest_special_ports = all_special_ports.get(dest_desc_str,
+                                                                   [{}, {}, None])
+                        if dest.db_name in dest_special_ports[0] and \
+                                not dest_special_ports[0][dest.db_name]:
+                            print 'skipping', dest.db_name
+                            continue
+                        (artifact, in_cache) = process_connection(conn)
+                        if not in_cache:
+                            if source.db_name in special_ports[1]:
+                                found_output_ports[source.db_name] = artifact
+                            if source.db_name not in out_downstream_artifacts:
+                                out_downstream_artifacts[source.db_name] = []
+                            out_downstream_artifacts[source.db_name].append(artifact)
+                            print 'adding dependency (ap)', artifact.db_id, \
+                                process.db_id
+                            dependencies.append(create_was_generated_by(artifact, 
+                                                                        process, 
+                                                                        account,
+                                                                        id_scope))
 
         if special_ports[2] is not None:
             special_ports[2](module, found_input_ports, found_output_ports)

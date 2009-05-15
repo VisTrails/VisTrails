@@ -79,6 +79,15 @@ error and the error message as a string."""
         self.module = module
         self.msg = errormsg
 
+class ModuleErrors(Exception):
+    """Exception representing a list of VisTrails module runtime errors.
+    This exception is recognized by the interpreter and allows meaningful
+    error reporting to the user and to the logging mechanism."""
+    def __init__(self, module_errors):
+        """ModuleErrors should be passed a list of ModuleError objects"""
+        Exception.__init__(self, str(tuple(me.msg for me in module_errors)))
+        self.module_errors = module_errors
+
 class _InvalidOutput(object):
     """ Specify an invalid result
     """
@@ -275,6 +284,8 @@ context."""
                 msg = "A dynamic module raised an exception: '%s'"
                 msg %= str(me)
                 raise ModuleError(self, msg)
+        except ModuleErrors:
+            raise
         except KeyboardInterrupt, e:
             raise ModuleError(self, 'Interrupted by user')
         except ModuleBreakpoint:

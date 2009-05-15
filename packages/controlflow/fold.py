@@ -1,5 +1,5 @@
-from core.modules.vistrails_module import Module, ModuleError, ModuleConnector,\
-     InvalidOutput
+from core.modules.vistrails_module import Module, ModuleError, ModuleErrors, \
+    ModuleConnector, InvalidOutput
 from core.modules.basic_modules import Boolean, String, Integer, Float, Tuple,\
      File, NotCacheable, Constant
 from core.modules.module_registry import get_module_registry
@@ -171,7 +171,12 @@ class Fold(Module, NotCacheable):
         self.partialResult = self.initialValue
         self.elementResult = None
         if self.hasInputFromPort('FunctionPort'):
-            self.updateFunctionPort()
+            try:
+                self.updateFunctionPort()
+            except ModuleError, e:
+                raise ModuleErrors([e, 
+                                    ModuleError(self, 
+                                                "Error inside map: " + e.msg)])
         else:
             for element in self.getInputFromPort('InputList'):
                 self.element = element
