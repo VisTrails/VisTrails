@@ -1,0 +1,49 @@
+<log id="" name="" version="1.0.0" vistrail_id="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/log.xsd">
+  <workflowExec completed="-1" id="1" ip="155.98.20.78" name="" parentId="" parentType="vistrail" parentVersion="121" session="9" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" user="koop" vtVersion="1.2">
+    <moduleExec cached="0" completed="1" error="" id="1" machine_id="1" moduleId="12" moduleName="String" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+    <moduleExec cached="0" completed="1" error="" id="2" machine_id="1" moduleId="13" moduleName="ConcatenateString" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+    <moduleExec cached="0" completed="1" error="" id="3" machine_id="1" moduleId="2" moduleName="GetCSVFiles" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+      <annotation id="1" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/csv_ready.csv&apos;]" />
+    </moduleExec>
+    <moduleExec cached="0" completed="1" error="" id="4" machine_id="1" moduleId="4" moduleName="CreateEmptyLoadDB" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+    <moduleExec cached="0" completed="-1" error="Error inside map: Error(s) inside group:
+ComputeColumns: IsMatchTableRowCount failed" id="5" machine_id="1" moduleId="8" moduleName="Map" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+      <loopExec completed="1" error="" id="6" iteration="0" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+        <groupExec cached="0" completed="1" error="" groupName="Group" groupType="Group" id="7" machine_id="1" moduleId="25" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+          <moduleExec cached="0" completed="1" error="" id="8" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+          <moduleExec cached="0" completed="1" error="" id="9" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+          <moduleExec cached="0" completed="1" error="" id="10" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+            <annotation id="2" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2FrameMeta.csv.hdr&apos;]" />
+          </moduleExec>
+          <moduleExec cached="0" completed="1" error="" id="11" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+            <annotation id="3" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2FrameMeta.csv&apos;]" />
+            <annotation id="4" key="generated_tables" value="[({&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}, &apos;J062945_LoadDB&apos;, &apos;P2FrameMeta&apos;)]" />
+          </moduleExec>
+          <moduleExec cached="0" completed="1" error="" id="12" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+            <annotation id="5" key="used_tables" value="[({&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}, &apos;J062945_LoadDB&apos;, &apos;P2FrameMeta&apos;)]" />
+          </moduleExec>
+          <moduleExec cached="0" completed="1" error="" id="13" machine_id="1" moduleId="6" moduleName="OutputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+        </groupExec>
+      </loopExec>
+      <loopExec completed="-1" error="Error(s) inside group:
+ComputeColumns: IsMatchTableRowCount failed" id="14" iteration="1" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+        <groupExec cached="0" completed="-1" error="Error(s) inside group:
+ComputeColumns: IsMatchTableRowCount failed" groupName="Group" groupType="Group" id="15" machine_id="1" moduleId="25" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+          <moduleExec cached="0" completed="1" error="" id="16" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+          <moduleExec cached="0" completed="1" error="" id="17" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+          <moduleExec cached="0" completed="1" error="" id="18" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+            <annotation id="6" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2ImageMeta.csv.hdr&apos;]" />
+          </moduleExec>
+          <moduleExec cached="0" completed="1" error="" id="19" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+            <annotation id="7" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2ImageMeta.csv&apos;]" />
+            <annotation id="8" key="generated_tables" value="[({&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}, &apos;J062945_LoadDB&apos;, &apos;P2ImageMeta&apos;)]" />
+          </moduleExec>
+          <moduleExec cached="0" completed="-1" error="IsMatchTableRowCount failed" id="20" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+            <annotation id="9" key="used_tables" value="[({&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}, &apos;J062945_LoadDB&apos;, &apos;P2ImageMeta&apos;)]" />
+          </moduleExec>
+        </groupExec>
+      </loopExec>
+    </moduleExec>
+  </workflowExec>
+  <machine architecture="32" id="1" name="vgc-g5c.sci.utah.edu" os="Darwin" processor="powerpc" ram="4294967296" />
+</log>

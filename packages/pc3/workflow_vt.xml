@@ -1,4 +1,4 @@
-<vistrail id="" name="" version="1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
+<vistrail id="" name="" version="0.9.5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vistrails.org/vistrail.xsd">
   <action date="2009-04-07 16:02:43" id="1" prevId="0" prune="" session="0" user="koop">
     <add id="0" objectId="0" parentObjId="" parentObjType="" what="module">
       <module cache="1" id="0" name="DatabaseEntry" namespace="" package="edu.utah.sci.dakoop.pc3" tag="" version="1.0.0" />
@@ -374,7 +374,7 @@
     <delete id="121" objectId="31" parentObjId="10" parentObjType="module" what="location" />
     <delete id="122" objectId="10" parentObjId="" parentObjType="" what="module" />
     <add id="123" objectId="11" parentObjId="" parentObjType="" what="group">
-      <group cache="1" id="11" name="Group" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="">
+      <group cache="1" id="11" name="Group" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2">
         <workflow id="" name="untitled" version="" vistrail_id="">
           <connection id="1">
             <port id="2" moduleId="2" moduleName="LoadCSVFileIntoDB" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />
@@ -428,7 +428,7 @@
               <parameter alias="" id="2" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="CompactDatabase" />
             </function>
           </module>
-          <module cache="1" id="7" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="">
+          <module cache="1" id="7" name="InputPort" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2">
             <location id="7" x="161.577666675" y="240.424967361" />
             <function id="3" name="name" pos="0">
               <parameter alias="" id="3" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="dbEntry" />
@@ -762,7 +762,7 @@
     <delete id="239" objectId="56" parentObjId="24" parentObjType="module" what="location" />
     <delete id="240" objectId="24" parentObjId="" parentObjType="" what="module" />
     <add id="241" objectId="25" parentObjId="" parentObjType="" what="group">
-      <group cache="1" id="25" name="Group" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="">
+      <group cache="1" id="25" name="Group" namespace="" package="edu.utah.sci.vistrails.basic" tag="" version="1.2">
         <workflow id="" name="untitled" version="" vistrail_id="">
           <connection id="1">
             <port id="1" moduleId="1" moduleName="ComputeColumns" name="dbEntry" signature="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" type="destination" />

@@ -1,0 +1,755 @@
+<opmGraph version="1.0.0">
+  <accounts>
+    <account id="acct0">
+      <value>0</value>
+    </account>
+    <account id="acct1">
+      <value>1</value>
+    </account>
+    <account id="acct2">
+      <value>2</value>
+    </account>
+    <overlaps>
+      <account id="acct0" />
+      <account id="acct1" />
+    </overlaps>
+    <overlaps>
+      <account id="acct0" />
+      <account id="acct2" />
+    </overlaps>
+    <overlaps>
+      <account id="acct1" />
+      <account id="acct2" />
+    </overlaps>
+  </accounts>
+  <processes>
+    <process id="p0">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="1" machine_id="1" moduleId="12" moduleName="String" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </process>
+    <process id="p1">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="2" machine_id="1" moduleId="13" moduleName="ConcatenateString" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </process>
+    <process id="p2">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="3" machine_id="1" moduleId="2" moduleName="GetCSVFiles" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+          <annotation id="1" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/csv_ready.csv&apos;]" />
+        </moduleExec>
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </process>
+    <process id="p3">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="4" machine_id="1" moduleId="4" moduleName="CreateEmptyLoadDB" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </process>
+    <process id="p4">
+      <value>
+        <moduleExec cached="0" completed="-1" error="Error inside map: Error(s) inside group: ComputeColumns: IsMatchTableRowCount failed" id="5" machine_id="1" moduleId="8" moduleName="Map" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+          <loopExec completed="1" error="" id="6" iteration="0" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+            <groupExec cached="0" completed="1" error="" groupName="Group" groupType="Group" id="7" machine_id="1" moduleId="25" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+              <moduleExec cached="0" completed="1" error="" id="8" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+              <moduleExec cached="0" completed="1" error="" id="9" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+              <moduleExec cached="0" completed="1" error="" id="10" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+                <annotation id="2" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2FrameMeta.csv.hdr&apos;]" />
+              </moduleExec>
+              <moduleExec cached="0" completed="1" error="" id="11" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+                <annotation id="3" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2FrameMeta.csv&apos;]" />
+                <annotation id="4" key="generated_tables" value="[({&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}, &apos;J062945_LoadDB&apos;, &apos;P2FrameMeta&apos;)]" />
+              </moduleExec>
+              <moduleExec cached="0" completed="1" error="" id="12" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+                <annotation id="5" key="used_tables" value="[({&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}, &apos;J062945_LoadDB&apos;, &apos;P2FrameMeta&apos;)]" />
+              </moduleExec>
+              <moduleExec cached="0" completed="1" error="" id="13" machine_id="1" moduleId="6" moduleName="OutputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+            </groupExec>
+          </loopExec>
+          <loopExec completed="-1" error="Error(s) inside group: ComputeColumns: IsMatchTableRowCount failed" id="14" iteration="1" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+            <groupExec cached="0" completed="-1" error="Error(s) inside group: ComputeColumns: IsMatchTableRowCount failed" groupName="Group" groupType="Group" id="15" machine_id="1" moduleId="25" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+              <moduleExec cached="0" completed="1" error="" id="16" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+              <moduleExec cached="0" completed="1" error="" id="17" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+              <moduleExec cached="0" completed="1" error="" id="18" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+                <annotation id="6" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2ImageMeta.csv.hdr&apos;]" />
+              </moduleExec>
+              <moduleExec cached="0" completed="1" error="" id="19" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+                <annotation id="7" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2ImageMeta.csv&apos;]" />
+                <annotation id="8" key="generated_tables" value="[({&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}, &apos;J062945_LoadDB&apos;, &apos;P2ImageMeta&apos;)]" />
+              </moduleExec>
+              <moduleExec cached="0" completed="-1" error="IsMatchTableRowCount failed" id="20" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+                <annotation id="9" key="used_tables" value="[({&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}, &apos;J062945_LoadDB&apos;, &apos;P2ImageMeta&apos;)]" />
+              </moduleExec>
+            </groupExec>
+          </loopExec>
+        </moduleExec>
+      </value>
+      <account id="acct0" />
+    </process>
+    <process id="p5">
+      <value>
+        <moduleExec cached="" completed="1" error="" id="-1" machine_id="" moduleId="-1" moduleName="Split" tsEnd="" tsStart="" />
+      </value>
+      <account id="acct1" />
+      <account id="acct2" />
+    </process>
+    <process id="p6">
+      <value>
+        <groupExec cached="0" completed="1" error="" groupName="Group" groupType="Group" id="7" machine_id="1" moduleId="25" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+          <moduleExec cached="0" completed="1" error="" id="8" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+          <moduleExec cached="0" completed="1" error="" id="9" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+          <moduleExec cached="0" completed="1" error="" id="10" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+            <annotation id="2" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2FrameMeta.csv.hdr&apos;]" />
+          </moduleExec>
+          <moduleExec cached="0" completed="1" error="" id="11" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+            <annotation id="3" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2FrameMeta.csv&apos;]" />
+            <annotation id="4" key="generated_tables" value="[({&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}, &apos;J062945_LoadDB&apos;, &apos;P2FrameMeta&apos;)]" />
+          </moduleExec>
+          <moduleExec cached="0" completed="1" error="" id="12" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+            <annotation id="5" key="used_tables" value="[({&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}, &apos;J062945_LoadDB&apos;, &apos;P2FrameMeta&apos;)]" />
+          </moduleExec>
+          <moduleExec cached="0" completed="1" error="" id="13" machine_id="1" moduleId="6" moduleName="OutputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+        </groupExec>
+      </value>
+      <account id="acct1" />
+    </process>
+    <process id="p7">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="8" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p8">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="9" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p9">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="10" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+          <annotation id="2" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2FrameMeta.csv.hdr&apos;]" />
+        </moduleExec>
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p10">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="11" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+          <annotation id="3" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2FrameMeta.csv&apos;]" />
+          <annotation id="4" key="generated_tables" value="[({&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}, &apos;J062945_LoadDB&apos;, &apos;P2FrameMeta&apos;)]" />
+        </moduleExec>
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p11">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="12" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+          <annotation id="5" key="used_tables" value="[({&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}, &apos;J062945_LoadDB&apos;, &apos;P2FrameMeta&apos;)]" />
+        </moduleExec>
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p12">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="13" machine_id="1" moduleId="6" moduleName="OutputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p13">
+      <value>
+        <groupExec cached="0" completed="-1" error="Error(s) inside group: ComputeColumns: IsMatchTableRowCount failed" groupName="Group" groupType="Group" id="15" machine_id="1" moduleId="25" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+          <moduleExec cached="0" completed="1" error="" id="16" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+          <moduleExec cached="0" completed="1" error="" id="17" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+          <moduleExec cached="0" completed="1" error="" id="18" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+            <annotation id="6" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2ImageMeta.csv.hdr&apos;]" />
+          </moduleExec>
+          <moduleExec cached="0" completed="1" error="" id="19" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+            <annotation id="7" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2ImageMeta.csv&apos;]" />
+            <annotation id="8" key="generated_tables" value="[({&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}, &apos;J062945_LoadDB&apos;, &apos;P2ImageMeta&apos;)]" />
+          </moduleExec>
+          <moduleExec cached="0" completed="-1" error="IsMatchTableRowCount failed" id="20" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+            <annotation id="9" key="used_tables" value="[({&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}, &apos;J062945_LoadDB&apos;, &apos;P2ImageMeta&apos;)]" />
+          </moduleExec>
+        </groupExec>
+      </value>
+      <account id="acct1" />
+    </process>
+    <process id="p14">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="16" machine_id="1" moduleId="5" moduleName="InputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p15">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="17" machine_id="1" moduleId="4" moduleName="InputPort" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47" />
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p16">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="18" machine_id="1" moduleId="3" moduleName="ReadCSVFile" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+          <annotation id="6" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2ImageMeta.csv.hdr&apos;]" />
+        </moduleExec>
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p17">
+      <value>
+        <moduleExec cached="0" completed="1" error="" id="19" machine_id="1" moduleId="2" moduleName="LoadCSVFileIntoDB" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+          <annotation id="7" key="used_files" value="[&apos;/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2ImageMeta.csv&apos;]" />
+          <annotation id="8" key="generated_tables" value="[({&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}, &apos;J062945_LoadDB&apos;, &apos;P2ImageMeta&apos;)]" />
+        </moduleExec>
+      </value>
+      <account id="acct2" />
+    </process>
+    <process id="p18">
+      <value>
+        <moduleExec cached="0" completed="-1" error="IsMatchTableRowCount failed" id="20" machine_id="1" moduleId="1" moduleName="ComputeColumns" tsEnd="2009-05-14 16:36:47" tsStart="2009-05-14 16:36:47">
+          <annotation id="9" key="used_tables" value="[({&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}, &apos;J062945_LoadDB&apos;, &apos;P2ImageMeta&apos;)]" />
+        </moduleExec>
+      </value>
+      <account id="acct2" />
+    </process>
+  </processes>
+  <artifacts>
+    <artifact id="a0">
+      <value>
+        <function id="4" name="value" pos="0">
+          <parameter alias="" id="17" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="J062945" />
+        </function>
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a1">
+      <value>
+        <portSpec id="8" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a2">
+      <value>
+        <function id="5" name="str1" pos="0">
+          <parameter alias="" id="12" name="&lt;no description&gt;" pos="0" type="edu.utah.sci.vistrails.basic:String" val="/vistrails/pc3/SampleData/" />
+        </function>
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a3">
+      <value>
+        <portSpec id="29" name="value" optional="0" sigstring="(edu.utah.sci.vistrails.basic:String)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a4">
+      <value>
+        <function id="-1" name="file" pos="0">
+          <parameter alias="" id="-1" name="" pos="0" type="edu.utah.sci.vistrails.basic:File" val="/vistrails/pc3/SampleData/J062945/csv_ready.csv" />
+        </function>
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a5">
+      <value>
+        <portSpec id="142" name="csvFiles" optional="0" sigstring="(edu.utah.sci.vistrails.control_flow:ListOfElements)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a6">
+      <value>
+        <portSpec id="140" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a7">
+      <value>
+        <portSpec id="-1" name="csvFile" optional="" sigstring="" sortKey="" type="output" />
+      </value>
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a8">
+      <value>
+        <portSpec id="-1" name="dbEntry" optional="" sigstring="" sortKey="" type="output" />
+      </value>
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a9">
+      <value>
+        <portSpec id="44" name="InternalPipe" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Variant)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a10">
+      <value>
+        <portSpec id="44" name="InternalPipe" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Variant)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a11">
+      <value>
+        <function id="-1" name="file" pos="0">
+          <parameter alias="" id="-1" name="" pos="0" type="edu.utah.sci.vistrails.basic:File" val="/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2FrameMeta.csv.hdr" />
+        </function>
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a12">
+      <value>
+        <portSpec id="121" name="csvFile" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a13">
+      <value>
+        <function id="-1" name="file" pos="0">
+          <parameter alias="" id="-1" name="" pos="0" type="edu.utah.sci.vistrails.basic:File" val="/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2FrameMeta.csv" />
+        </function>
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a14">
+      <value>
+        <function id="-1" name="dbEntry" pos="0">
+          <parameter alias="" id="-1" name="" pos="0" type="edu.utah.sci.vistrails.basic:String" val="{&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}" />
+          <parameter alias="" id="-1" name="" pos="0" type="edu.utah.sci.vistrails.basic:String" val="J062945_LoadDB" />
+          <parameter alias="" id="-1" name="" pos="0" type="edu.utah.sci.vistrails.basic:String" val="P2FrameMeta" />
+        </function>
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a15">
+      <value>
+        <portSpec id="114" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a16">
+      <value>
+        <portSpec id="119" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a17">
+      <value>
+        <portSpec id="-1" name="csvFile" optional="" sigstring="" sortKey="" type="output" />
+      </value>
+      <account id="acct1" />
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a18">
+      <value>
+        <portSpec id="44" name="InternalPipe" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Variant)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a19">
+      <value>
+        <portSpec id="44" name="InternalPipe" optional="0" sigstring="(edu.utah.sci.vistrails.basic:Variant)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a20">
+      <value>
+        <function id="-1" name="file" pos="0">
+          <parameter alias="" id="-1" name="" pos="0" type="edu.utah.sci.vistrails.basic:File" val="/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2ImageMeta.csv.hdr" />
+        </function>
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a21">
+      <value>
+        <portSpec id="121" name="csvFile" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:CSVFileEntry)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a22">
+      <value>
+        <function id="-1" name="file" pos="0">
+          <parameter alias="" id="-1" name="" pos="0" type="edu.utah.sci.vistrails.basic:File" val="/vistrails/pc3/SampleData/J062945/P2_J062945_B001_P2fits0_20081115_P2ImageMeta.csv" />
+        </function>
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a23">
+      <value>
+        <function id="-1" name="dbEntry" pos="0">
+          <parameter alias="" id="-1" name="" pos="0" type="edu.utah.sci.vistrails.basic:String" val="{&apos;passwd&apos;: &apos;pc3_load-2009&apos;, &apos;host&apos;: &apos;localhost&apos;, &apos;db&apos;: &apos;J062945_LoadDB&apos;, &apos;user&apos;: &apos;ipaw&apos;}" />
+          <parameter alias="" id="-1" name="" pos="0" type="edu.utah.sci.vistrails.basic:String" val="J062945_LoadDB" />
+          <parameter alias="" id="-1" name="" pos="0" type="edu.utah.sci.vistrails.basic:String" val="P2ImageMeta" />
+        </function>
+      </value>
+      <account id="acct2" />
+    </artifact>
+    <artifact id="a24">
+      <value>
+        <portSpec id="114" name="dbEntry" optional="0" sigstring="(edu.utah.sci.dakoop.pc3:DatabaseEntry)" sortKey="-1" type="output" />
+      </value>
+      <account id="acct2" />
+    </artifact>
+  </artifacts>
+  <causalDependencies>
+    <used>
+      <effect id="p0" />
+      <role value="in" />
+      <cause id="a0" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a1" />
+      <role value="out" />
+      <cause id="p0" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p1" />
+      <role value="in" />
+      <cause id="a2" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p1" />
+      <role value="in" />
+      <cause id="a1" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a3" />
+      <role value="out" />
+      <cause id="p1" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p2" />
+      <role value="in" />
+      <cause id="a4" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p2" />
+      <role value="in" />
+      <cause id="a3" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a5" />
+      <role value="out" />
+      <cause id="p2" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p3" />
+      <role value="in" />
+      <cause id="a1" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a6" />
+      <role value="out" />
+      <cause id="p3" />
+      <account id="acct0" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p4" />
+      <role value="in" />
+      <cause id="a5" />
+      <account id="acct0" />
+    </used>
+    <used>
+      <effect id="p5" />
+      <role value="in" />
+      <cause id="a5" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a7" />
+      <role value="out" />
+      <cause id="p5" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p6" />
+      <role value="in" />
+      <cause id="a7" />
+      <account id="acct1" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a8" />
+      <role value="out" />
+      <cause id="p6" />
+      <account id="acct1" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p6" />
+      <role value="in" />
+      <cause id="a6" />
+      <account id="acct1" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a9" />
+      <role value="out" />
+      <cause id="p7" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p7" />
+      <role value="in" />
+      <cause id="a6" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a10" />
+      <role value="out" />
+      <cause id="p8" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p8" />
+      <role value="in" />
+      <cause id="a7" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p9" />
+      <role value="in" />
+      <cause id="a11" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p9" />
+      <role value="in" />
+      <cause id="a10" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a12" />
+      <role value="out" />
+      <cause id="p9" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p10" />
+      <role value="in" />
+      <cause id="a13" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a14" />
+      <role value="out" />
+      <cause id="p10" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p10" />
+      <role value="in" />
+      <cause id="a9" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p10" />
+      <role value="in" />
+      <cause id="a12" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a15" />
+      <role value="out" />
+      <cause id="p10" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p11" />
+      <role value="in" />
+      <cause id="a14" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p11" />
+      <role value="in" />
+      <cause id="a15" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p11" />
+      <role value="in" />
+      <cause id="a12" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a16" />
+      <role value="out" />
+      <cause id="p11" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p12" />
+      <role value="in" />
+      <cause id="a16" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a8" />
+      <role value="out" />
+      <cause id="p12" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <wasGeneratedBy>
+      <effect id="a17" />
+      <role value="out" />
+      <cause id="p5" />
+      <account id="acct1" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p13" />
+      <role value="in" />
+      <cause id="a17" />
+      <account id="acct1" />
+    </used>
+    <used>
+      <effect id="p13" />
+      <role value="in" />
+      <cause id="a6" />
+      <account id="acct1" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a18" />
+      <role value="out" />
+      <cause id="p14" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p14" />
+      <role value="in" />
+      <cause id="a6" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a19" />
+      <role value="out" />
+      <cause id="p15" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p15" />
+      <role value="in" />
+      <cause id="a17" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p16" />
+      <role value="in" />
+      <cause id="a20" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p16" />
+      <role value="in" />
+      <cause id="a19" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a21" />
+      <role value="out" />
+      <cause id="p16" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p17" />
+      <role value="in" />
+      <cause id="a22" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a23" />
+      <role value="out" />
+      <cause id="p17" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p17" />
+      <role value="in" />
+      <cause id="a18" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p17" />
+      <role value="in" />
+      <cause id="a21" />
+      <account id="acct2" />
+    </used>
+    <wasGeneratedBy>
+      <effect id="a24" />
+      <role value="out" />
+      <cause id="p17" />
+      <account id="acct2" />
+    </wasGeneratedBy>
+    <used>
+      <effect id="p18" />
+      <role value="in" />
+      <cause id="a23" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p18" />
+      <role value="in" />
+      <cause id="a24" />
+      <account id="acct2" />
+    </used>
+    <used>
+      <effect id="p18" />
+      <role value="in" />
+      <cause id="a21" />
+      <account id="acct2" />
+    </used>
+  </causalDependencies>
+</opmGraph>
