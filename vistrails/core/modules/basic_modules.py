@@ -719,6 +719,7 @@ def initialize(*args, **kwargs):
     init_constant(String)
     
     reg.add_output_port(Constant, "value_as_string", String)
+    reg.add_output_port(String, "value_as_string", String, True)
 
     reg.add_module(File, constantSignatureCallable=file_parameter_hasher)
     reg.add_input_port(File, "value", File)
