@@ -133,7 +133,9 @@ class QParamInspector(QtGui.QWidget):
 #         self.annotationsTab.horizontalHeader().setStretchLastSection(True)
 #         self.tabWidget.addTab(self.annotationsTab, 'Annotations')        
         self.boxLayout.addWidget(self.tabWidget)
-        self.boxLayout.addWidget(QtGui.QSizeGrip(self))
+        sizeGrip = QtGui.QSizeGrip(self)
+        self.boxLayout.addWidget(sizeGrip)
+        self.boxLayout.setAlignment(sizeGrip, QtCore.Qt.AlignRight)
         self.setLayout(self.boxLayout)
 
     def closeEvent(self, e):
