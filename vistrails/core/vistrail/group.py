@@ -64,8 +64,11 @@ class Group(DBGroup, Module):
     def set_defaults(self, other=None):
         Module.set_defaults(self, other)
 
-    def setup_indices(self):
-        self.make_port_specs()
+    def setup_indices(self):        
+        # delay this until needed (on materialize)
+        self._port_specs = None
+        self._port_specs_id_index = None
+        # self.make_port_specs()
 
     def __copy__(self):
         return Group.do_copy(self)
@@ -118,6 +121,8 @@ class Group(DBGroup, Module):
     def summon(self):
         result = self.module_descriptor.module()
         result.pipeline = self.pipeline
+        if self._port_specs is None:
+            self.make_port_specs()
         result.input_remap = self._input_remap
         result.output_remap = self._output_remap
         if self.cache != 1:
@@ -143,6 +148,8 @@ class Group(DBGroup, Module):
     # these are "local" port_specs, but Group's are "registry"
     def _get_port_specs(self):
         if self._port_specs_id_index is None:
+            if self._port_specs is None:
+                self.make_port_specs()
             self._port_specs_id_index = {}
             self._port_specs_id_index = \
                 dict([(p.id, p) for p in self._port_specs.itervalues()])
@@ -150,16 +157,33 @@ class Group(DBGroup, Module):
     port_specs = property(_get_port_specs)
 
     def _get_port_spec_list(self):
+        if self._port_specs is None:
+            self.make_port_specs()
         return self._port_specs.values()
     port_spec_list = property(_get_port_spec_list)
 
     def has_portSpec_with_name(self, name):
+        if self._port_specs is None:
+            self.make_port_specs()
         return name in self._port_specs
 
     def get_portSpec_by_name(self, name):
+        if self._port_specs is None:
+            self.make_port_specs()
         if name in self._port_specs:
             return self._port_specs[name]
         return None
+
+    def _get_input_port_specs(self):
+        if self._port_specs is None:
+            self.make_port_specs()
+        return Module._get_input_port_specs(self)
+    input_port_specs = property(_get_input_port_specs)
+    def _get_output_port_specs(self):
+        if self._port_specs is None:
+            self.make_port_specs()
+        return Module._get_output_port_specs(self)
+    output_port_specs = property(_get_output_port_specs)
 
     def get_port_spec_info(self, module):
         return core.modules.sub_module.get_port_spec_info(self.pipeline, 
@@ -167,7 +191,6 @@ class Group(DBGroup, Module):
 
     def make_port_specs(self):
         self._port_specs = {}
-        self._port_specs_id_index = None
         self._input_port_specs = []
         self._output_port_specs = []
         self._input_remap = {}
