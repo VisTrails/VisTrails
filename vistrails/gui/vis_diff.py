@@ -276,6 +276,20 @@ class QVisualDiff(QtGui.QMainWindow):
         self.createToolBar()
         self.createToolWindows(v1Name, v2Name)
 
+        self.installEventFilter(self)
+
+    def eventFilter(self, object, event):
+        if event.type() == QtCore.QEvent.ShortcutOverride and \
+                event.key() == QtCore.Qt.Key_W and \
+                event.modifiers() == QtCore.Qt.ControlModifier:
+            event.accept()
+            self.close()
+        return QtGui.QMainWindow.eventFilter(self, object, event)
+
+    def closeEvent(self, event):
+        self.inspector.close()
+        self.legendWindow.close()
+
     def createPipelineView(self):
         """ createPipelineView() -> None        
         Create a center pipeline view for Visual Diff and setup the
