@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2008 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -46,7 +46,7 @@ class DAOList(dict):
 COPYRIGHT_NOTICE = \
 """############################################################################
 ##
-## Copyright (C) 2006-2008 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##

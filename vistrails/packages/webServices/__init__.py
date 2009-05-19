@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -35,7 +35,8 @@ import httplib
 import urllib
 import time
 
-import ZSI
+ZSI = py_import('ZSI', {'linux-ubuntu': 'python-zsi',
+                        'linux-fedora': 'python-ZSI'})
 from ZSI.ServiceProxy import ServiceProxy
 from ZSI.generate.wsdl2python import WriteServiceModule
 from ZSI.wstools import WSDLTools
@@ -1378,3 +1379,8 @@ The following could not be loaded:\n"""
     print "An error occurred. Could not add missing wsdl."
     return False
 
+def package_requirements():
+    import core.requirements
+    if not core.requirements.python_module_exists('ZSI'):
+        raise core.requirements.MissingRequirement('ZSI')
+    import ZSI

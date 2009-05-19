@@ -1,6 +1,6 @@
 ###########################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -20,7 +20,8 @@
 ##
 ############################################################################
 
-from gui.application import VistrailsApplication
+from core.configuration import get_vistrails_persistent_configuration, \
+    get_vistrails_configuration
 from gui.open_db_window import QOpenDBWindow, QConnectionDBSetupWindow
 from core.db.locator import DBLocator, FileLocator, untitled_locator
 from db import VistrailsDBException
@@ -135,7 +136,7 @@ def get_load_file_locator_from_gui(parent, obj_type):
         return None
     filename = os.path.abspath(str(fileName))
     dirName = os.path.dirname(filename)
-    setattr(VistrailsApplication.configuration, 'fileDirectory', dirName)
+    setattr(get_vistrails_persistent_configuration(), 'fileDirectory', dirName)
     core.system.set_vistrails_file_directory(dirName)
     return FileLocator(filename)
 
@@ -163,7 +164,7 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
             break
     if not found_suffix:
         if obj_type == 'vistrail':
-            f += VistrailsApplication.configuration.defaultFileType
+            f += get_vistrails_configuration().defaultFileType
         else:
             f += '.' + suffix_map[obj_type][0]
 
@@ -177,7 +178,7 @@ def get_save_file_locator_from_gui(parent, obj_type, locator=None):
         if msg.exec_() == QtGui.QMessageBox.No:
             return None
     dirName = os.path.dirname(str(f))
-    setattr(VistrailsApplication.configuration, 'fileDirectory', dirName)
+    setattr(get_vistrails_persistent_configuration(), 'fileDirectory', dirName)
     core.system.set_vistrails_file_directory(dirName)
     return FileLocator(f)
    

@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -195,14 +195,6 @@ def default_dot_vistrails():
 
     """
     return os.path.join(home_directory(), '.vistrails')
-
-def default_bookmarks_file():
-    """ default_bookmarks_file() -> str
-    Returns default Vistrails per-user bookmarks file
-
-    """
-    return os.path.join(default_dot_vistrails(),'bookmarks.xml')
-
 def default_connections_file():
     """ default_connections_file() -> str
     Returns default Vistrails per-user connections file

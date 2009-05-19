@@ -14,9 +14,10 @@ import vtk
 import class_tree
 import core.debug
 
-log      = core.debug.DebugPrint().log
-warning  = core.debug.DebugPrint().warning
-critical = core.debug.DebugPrint().critical
+log      = core.debug.log
+warning  = core.debug.warning
+critical = core.debug.critical
+debug    = core.debug.debug
 
 class VTKMethodParser(object):
     """This class provides useful methods for parsing methods of a VTK

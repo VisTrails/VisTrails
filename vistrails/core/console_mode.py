@@ -1,6 +1,6 @@
 ############################################################################
 ##
-## Copyright (C) 2006-2007 University of Utah. All rights reserved.
+## Copyright (C) 2006-2009 University of Utah. All rights reserved.
 ##
 ## This file is part of VisTrails.
 ##
@@ -21,29 +21,51 @@
 ############################################################################
 """ Module used when running  vistrails uninteractively """
 import os.path
-
+import uuid
 import core.interpreter.default
 import core.db.io
-from core.db.locator import XMLFileLocator
+from core.configuration import get_vistrails_configuration
+from core.db.locator import XMLFileLocator, ZIPFileLocator
 from core.utils import (VistrailsInternalError, expression,
                         DummyView)
 from core.vistrail.vistrail import Vistrail
-
 ################################################################################
     
-def run_and_get_results(w_list, parameters='', workflow_info=None):
-    """run_and_get_results(w_list: list of (locator, version), parameters: str)
+def run_and_get_results(w_list, parameters='', workflow_info=None, 
+                        update_thumbs=False):
+    """run_and_get_results(w_list: list of (locator, version), parameters: str,
+                           workflow_info:str, update_thumbs: boolean)
     Run all workflows in w_list, and returns an interpreter result object.
     version can be a tag name or a version id.
     
     """
+    #FIXME: console mode doesn't care about abstractions
+    import core.thumbnails
+    def load_vistrail(locator):
+        abstraction_files = []
+        thumbnail_files = []
+        vistrail = None
+        res = locator.load()
+        if type(res) == type([]):
+            vistrail = res[0][1]
+            for (t, file) in res[1:]:
+                if t == '__file__':
+                    abstraction_files.append(file)
+                elif t == '__thumb__':
+                    thumbnail_files.append(file)
+        else:
+            vistrail = res
+        return (vistrail, abstraction_files, thumbnail_files)
+    
     elements = parameters.split("&")
     aliases = {}
     result = []
+    thumb_cache = core.thumbnails.ThumbnailCache.getInstance()
     for locator, workflow in w_list:
-        v = locator.load()
-        if type(v) == type([]):
-            v = v[0][1]
+        (v, abstractions , thumbnails)  = load_vistrail(locator)
+        # copy the thumbnails to local dir
+        if len(thumbnails) > 0:
+            thumb_cache.copy_thumbnails(thumbnails)
         if type(workflow) == type("str"):
             version = v.get_version_number(workflow)
         elif type(workflow) in [ type(1), long]:
@@ -85,18 +107,53 @@ def run_and_get_results(w_list, parameters='', workflow_info=None):
                   'view': view,
                   'aliases': aliases,
                   }
+        if update_thumbs:
+            conf = get_vistrails_configuration()
+            temp_folder_used = False
+            if not conf.check('spreadsheetDumpCells'):
+                conf.spreadsheetDumpCells = core.db.io.create_temp_folder(prefix='vt_thumb')
+                temp_folder_used = True
         run = interpreter.execute(pip, **kwargs)
         run.workflow_info = (locator.name, version)
+        run.pipeline = pip
+        objs = [(Vistrail.vtType, v)]
+        if update_thumbs:
+           if len(run.errors) == 0:
+               old_thumb = v.actionMap[version].thumbnail
+               fname = thumb_cache.add_entry_from_cell_dump(
+                                        conf.spreadsheetDumpCells, old_thumb)
+               v.change_thumbnail(fname, version) 
+               thumb_cache.save_thumbnail(image, fname)
+               #thumbs = v.find_thumbnails()
+               for thumbnail in thumbs:
+                   abs_fname = thumb_cache.get_abs_name_entry(thumbnail)
+                   if abs_fname is not None:
+                       objs.append(('__thumb__', abs_fname))
+           if temp_folder_used:
+              core.db.io.remove_temp_folder(conf.spreadsheetDumpCells)
+              conf.spreadsheetDumpCells = (None, str)
+                    
+        #not sure if you need to add the abstractions back
+        #but just to be safe
+        for abstraction in abstractions:
+           objs.append(('__file__', abstraction))
+                   
+        if type(locator) == ZIPFileLocator:
+            objs = locator.save(objs)
+        else:
+            locator.save(v)
+            locator.close()
         result.append(run)
     return result
     
-def run(w_list, parameters='', workflow_info=None):
+def run(w_list, parameters='', workflow_info=None, update_thumbs=False):
     """run(w_list: list of (locator, version), parameters: str) -> boolean
     Run all workflows in w_list, version can be a tag name or a version id.
     Returns list of errors (empty list if there are no errors)
     """
     all_errors = []
-    results = run_and_get_results(w_list, parameters, workflow_info)
+    results = run_and_get_results(w_list, parameters, workflow_info, 
+                                  update_thumbs)
     for result in results:
         (objs, errors, executed) = (result.objects,
                                     result.errors, result.executed)
